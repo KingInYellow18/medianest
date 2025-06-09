@@ -1,0 +1,52 @@
+[
+  {
+    "Category": "Authentication",
+    "Endpoints": 4,
+    "GET": 0,
+    "POST": 4,
+    "PUT": 0,
+    "DELETE": 0,
+    "Priority": "High",
+    "Security": "JWT tokens, rate limiting"
+  },
+  {
+    "Category": "User Management",
+    "Endpoints": 6,
+    "GET": 2,
+    "POST": 1,
+    "PUT": 2,
+    "DELETE": 1,
+    "Priority": "High",
+    "Security": "JWT authentication, role-based access"
+  },
+  {
+    "Category": "Service Monitoring",
+    "Endpoints": 3,
+    "GET": 3,
+    "POST": 0,
+    "PUT": 0,
+    "DELETE": 0,
+    "Priority": "Medium",
+    "Security": "JWT authentication"
+  },
+  {
+    "Category": "Media Management",
+    "Endpoints": 7,
+    "GET": 2,
+    "POST": 2,
+    "PUT": 1,
+    "DELETE": 2,
+    "Priority": "High",
+    "Security": "JWT authentication, user ownership validation"
+  },
+  {
+    "Category": "Admin Functions",
+    "Endpoints": 5,
+    "GET": 3,
+    "POST": 1,
+    "PUT": 1,
+    "DELETE": 0,
+    "Priority": "Medium",
+    "Security": "JWT authentication, admin role required"
+  }
+]
