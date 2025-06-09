@@ -36,46 +36,11 @@ services:
       - FLASK_DEBUG=1
       - DATABASE_URL=sqlite:///dev.db
       - JWT_SECRET_KEY=dev-secret-key-change-in-production
-      - UPTIME_KUMA_URL=http://uptime-kuma:3001
-      - OVERSEERR_URL=http://overseerr:5055
+      - UPTIME_KUMA_URL=http://your-uptime-kuma-host:3001
+      - UPTIME_KUMA_API_KEY=${UPTIME_KUMA_API_KEY}
+      - OVERSEERR_URL=http://your-overseerr-host:5055
+      - OVERSEERR_API_KEY=${OVERSEERR_API_KEY}
       - NFS_MOUNT_PATH=/mnt/media
-    depends_on:
-      - uptime-kuma
-      - overseerr
-
-  nginx:
-    image: nginx:alpine
-    ports:
-      - "80:80"
-    volumes:
-      - ./docker/nginx/nginx.dev.conf:/etc/nginx/nginx.conf
-    depends_on:
-      - frontend
-      - backend
-
-  uptime-kuma:
-    image: louislam/uptime-kuma:latest
-    ports:
-      - "3001:3001"
-    volumes:
-      - uptime-kuma-data:/app/data
-    restart: unless-stopped
-
-  overseerr:
-    image: lscr.io/linuxserver/overseerr:latest
-    ports:
-      - "5055:5055"
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/Chicago
-    volumes:
-      - overseerr-data:/config
-    restart: unless-stopped
-
-volumes:
-  uptime-kuma-data:
-  overseerr-data:
 ```
 
 ## docker-compose.prod.yml (Production)
@@ -108,52 +73,14 @@ services:
       - FLASK_ENV=production
       - DATABASE_URL=sqlite:////app/data/prod.db
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-      - UPTIME_KUMA_URL=http://uptime-kuma:3001
+      - UPTIME_KUMA_URL=http://your-uptime-kuma-host:3001
       - UPTIME_KUMA_API_KEY=${UPTIME_KUMA_API_KEY}
-      - OVERSEERR_URL=http://overseerr:5055
+      - OVERSEERR_URL=http://your-overseerr-host:5055
       - OVERSEERR_API_KEY=${OVERSEERR_API_KEY}
       - NFS_MOUNT_PATH=/mnt/media
     restart: unless-stopped
-    depends_on:
-      - uptime-kuma
-      - overseerr
-
-  nginx:
-    image: nginx:alpine
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./docker/nginx/nginx.prod.conf:/etc/nginx/nginx.conf
-      - ./docker/nginx/ssl:/etc/nginx/ssl
-    depends_on:
-      - frontend
-      - backend
-    restart: unless-stopped
-
-  uptime-kuma:
-    image: louislam/uptime-kuma:latest
-    expose:
-      - "3001"
-    volumes:
-      - uptime-kuma-data:/app/data
-    restart: unless-stopped
-
-  overseerr:
-    image: lscr.io/linuxserver/overseerr:latest
-    expose:
-      - "5055"
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=${TIMEZONE:-UTC}
-    volumes:
-      - overseerr-data:/config
-    restart: unless-stopped
 
 volumes:
-  uptime-kuma-data:
-  overseerr-data:
   media-storage:
     driver: local
     driver_opts:
@@ -438,10 +365,10 @@ JWT_SECRET_KEY=your-jwt-secret-here
 DATABASE_URL=sqlite:///app.db
 
 # External Services
-UPTIME_KUMA_URL=http://localhost:3001
+UPTIME_KUMA_URL=http://your-uptime-kuma-host:3001
 UPTIME_KUMA_API_KEY=your-uptime-kuma-api-key
 
-OVERSEERR_URL=http://localhost:5055
+OVERSEERR_URL=http://your-overseerr-host:5055
 OVERSEERR_API_KEY=your-overseerr-api-key
 
 # Storage
