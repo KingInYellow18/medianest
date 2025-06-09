@@ -1,0 +1,14 @@
+# Python caches
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Node modules
+node_modules/
+
+# Environment files
+.env
+
+# Docker artifacts and logs
+*.log
+*.pid
