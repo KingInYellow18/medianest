@@ -245,10 +245,10 @@ database:
 
 external_services:
   uptime_kuma:
-    url: "http://uptime-kuma:3001"
+    url: "http://your-uptime-kuma-host:3001"
     api_key: "${UPTIME_KUMA_API_KEY}"
   overseerr:
-    url: "http://overseerr:5055"
+    url: "http://your-overseerr-host:5055"
     api_key: "${OVERSEERR_API_KEY}"
 
 storage:
