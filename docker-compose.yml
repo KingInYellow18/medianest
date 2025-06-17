@@ -1,39 +1,52 @@
-version: '3.8'
+version: "3.9"
 
 services:
-  frontend:
-    build:
-      context: ./path/to/frontend
-      dockerfile: Dockerfile.dev
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./path/to/frontend/src:/app/src
-      - ./path/to/frontend/public:/app/public
-      - /app/node_modules
-    environment:
-      - REACT_APP_API_URL=${REACT_APP_API_URL:-http://backend:5000/api}
-      - REACT_APP_ENVIRONMENT=${REACT_APP_ENVIRONMENT:-development}
-    depends_on:
-      - backend
-
   backend:
-    build:
-      context: ./path/to/backend
-      dockerfile: Dockerfile.dev
+    build: ./backend
+    container_name: backend
     ports:
       - "5000:5000"
     volumes:
-      - ./path/to/backend:/app
-      - ./path/to/config:/app/config
+      - ./backend:/app
+      - ./backend/config:/app/config
+      - backend_cache:/app/.cache
     environment:
       - FLASK_ENV=${FLASK_ENV:-development}
       - FLASK_DEBUG=${FLASK_DEBUG:-1}
+      - FLASK_APP=${FLASK_APP:-app.py}
       - DATABASE_URL=${DATABASE_URL:-sqlite:///dev.db}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-change-me}
-      - UPTIME_KUMA_URL=${UPTIME_KUMA_URL:-http://your-uptime-kuma-host:3001}
-      - UPTIME_KUMA_API_KEY=${UPTIME_KUMA_API_KEY:-your-uptime-kuma-api-key}
-      - OVERSEERR_URL=${OVERSEERR_URL:-http://your-overseerr-host:5055}
-      - OVERSEERR_API_KEY=${OVERSEERR_API_KEY:-your-overseerr-api-key}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - UPTIME_KUMA_URL=${UPTIME_KUMA_URL}
+      - UPTIME_KUMA_API_KEY=${UPTIME_KUMA_API_KEY}
+      - OVERSEERR_URL=${OVERSEERR_URL}
+      - OVERSEERR_API_KEY=${OVERSEERR_API_KEY}
       - NFS_MOUNT_PATH=${NFS_MOUNT_PATH:-/mnt/media}
+      - PYTHONPATH=/app
+    networks:
+      - medianest-network
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - /app/node_modules
+    environment:
+      - REACT_APP_API_URL=${REACT_APP_API_URL:-http://backend:5000/api}
+      - NODE_ENV=${NODE_ENV:-development}
+    depends_on:
+      - backend
+    networks:
+      - medianest-network
+
+networks:
+  medianest-network:
+    driver: bridge
+
+volumes:
+  backend_cache:
+  frontend_node_modules:
 

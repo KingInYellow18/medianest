@@ -1,0 +1,31 @@
+# MediaNest Backend Dependencies
+# :TechnologyVersion Flask v3.1.x + Python v3.11 compatible
+# Implements :SecurityFirst and :RESTfulAPI + :LayeredArchitecture patterns
+
+# Core Flask framework v3.1+
+Flask>=3.1.0,<4.0.0
+
+# REST API framework for :RESTfulAPI pattern
+Flask-RESTful>=0.3.10
+
+# Serialization and validation for API requests/responses
+marshmallow>=3.20.0
+flask-marshmallow>=0.15.0
+
+# JWT authentication preparation (:SecurityFirst)
+Flask-JWT-Extended>=4.5.0
+
+# CORS support for frontend communication (:ClientServerPattern)
+Flask-CORS>=4.0.0
+
+# Environment variable management (:SecurityFirst - no hardcoded secrets)
+python-dotenv>=1.0.0
+
+# Production WSGI server (optional for container deployment)
+gunicorn>=21.0.0
+
+# Request handling and validation
+Werkzeug>=3.0.0
+
+# UUID generation for request tracking
+uuid>=1.30
