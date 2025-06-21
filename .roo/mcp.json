@@ -9,17 +9,20 @@
         "AI_PROVIDER": "vertex",
         "GOOGLE_CLOUD_PROJECT": "76110950615",
         "GOOGLE_CLOUD_LOCATION": "us-central1",
-        "VERTEX_MODEL_ID": "gemini-2.5-pro-exp-03-25",
+        "VERTEX_MODEL_ID": "gemini-2.5-flash",
         "AI_TEMPERATURE": "0.0",
         "AI_USE_STREAMING": "true",
         "AI_MAX_OUTPUT_TOKENS": "65535",
-        "GOOGLE_APPLICATION_CREDENTIALS": "/home/kinginyellow/projects/.credentials/vertex-ai-service-account.json"
+        "GOOGLE_APPLICATION_CREDENTIALS": "/home/kinginyellow/gcp/gen-lang-client-0789493253-19727fc0c116.json"
       },
       "disabled": false,
       "autoApprove": [],
       "timeout": 300,
       "alwaysAllow": [
-        "save_topic_explanation"
+        "save_topic_explanation",
+        "answer_query_websearch",
+        "answer_query_direct",
+        "save_answer_query_websearch"
       ]
     },
     "perplexity-mcp": {
@@ -45,7 +48,11 @@
         "context7-mcp"
       ],
       "disabled": false,
-      "autoApprove": []
+      "autoApprove": [],
+      "alwaysAllow": [
+        "resolve-library-id",
+        "get-library-docs"
+      ]
     },
     "fetch": {
       "command": "/home/kinginyellow/.nvm/versions/node/v22.15.0/bin/node",
@@ -53,7 +60,10 @@
         "/home/kinginyellow/Cline/MCP/fetch-mcp/dist/index.js"
       ],
       "disabled": false,
-      "autoApprove": []
+      "autoApprove": [],
+      "alwaysAllow": [
+        "fetch_html"
+      ]
     },
     "github": {
       "command": "docker",
@@ -69,7 +79,10 @@
         "GITHUB_PERSONAL_ACCESS_TOKEN": "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"
       },
       "disabled": false,
-      "autoApprove": []
+      "autoApprove": [],
+      "alwaysAllow": [
+        "get_file_contents"
+      ]
     },
     "firecrawl-mcp-server": {
       "command": "docker",
@@ -87,7 +100,10 @@
       "disabled": false,
       "autoApprove": [],
       "timeout": 600,
-      "alwaysAllow": []
+      "alwaysAllow": [
+        "firecrawl_search",
+        "firecrawl_scrape"
+      ]
     },
     "brave-search": {
       "command": "docker",
@@ -103,7 +119,10 @@
         "BRAVE_API_KEY": "BSAN3b_0DrRSAXTIYh7M0FzzVmMOT06"
       },
       "disabled": false,
-      "autoApprove": []
+      "autoApprove": [],
+      "alwaysAllow": [
+        "brave_web_search"
+      ]
     },
     "puppeteer": {
       "command": "docker",
@@ -117,7 +136,10 @@
         "mcp/puppeteer"
       ],
       "disabled": false,
-      "autoApprove": []
+      "autoApprove": [],
+      "alwaysAllow": [
+        "puppeteer_navigate"
+      ]
     }
   }
 }
