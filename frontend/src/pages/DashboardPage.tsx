@@ -1,10 +1,9 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ServiceStatusCard from '../components/dashboard/ServiceStatusCard';
 import useServiceStatus, { Service } from '../hooks/useServiceStatus';
-
-
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -15,6 +14,7 @@ const DashboardPage = () => {
     isLoading,
     refetch,
   } = useServiceStatus(!!token);
+
 
   const handleLogout = async () => {
     try {
@@ -27,6 +27,7 @@ const DashboardPage = () => {
 
   const handleRetry = () => {
     if (!token) return;
+
     refetch();
   };
 
@@ -61,6 +62,7 @@ const DashboardPage = () => {
 
         <div className="service-status-section">
           <h3>Service Status</h3>
+
 
           {isLoading && (
             <div className="loading-indicator" style={{ padding: '20px', textAlign: 'center' }}>
@@ -99,6 +101,7 @@ const DashboardPage = () => {
             </div>
           )}
 
+
           {!isLoading && !error && (
             <div
               className="service-status-grid"
@@ -109,6 +112,7 @@ const DashboardPage = () => {
                 marginTop: '20px',
               }}
             >
+
               {serviceData?.length ? (
                 serviceData.map((service, index) => (
                   <ServiceStatusCard
