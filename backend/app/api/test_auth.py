@@ -5,6 +5,7 @@ from backend.app.models.user import User
 
 @pytest.fixture
 def app():
+
     app = create_app(
         "development",
         config_overrides={
@@ -13,6 +14,7 @@ def app():
             'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
         }
     )
+
     return app
 
 @pytest.fixture

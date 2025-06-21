@@ -7,6 +7,7 @@ from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from .config import DevelopmentConfig, ProductionConfig, BaseConfig
 
+
 db = SQLAlchemy()
 jwt = JWTManager()
 
@@ -14,20 +15,13 @@ jwt = JWTManager()
 def create_app(
     config_name: str | None = None, config_overrides: dict | None = None
 ) -> Flask:
+
     """Application factory for creating configured Flask app instances.
 
     Parameters
     ----------
     config_name: str | None
         Name of the configuration to load ("development" or "production").
-    config_overrides: dict | None
-        Optional configuration overrides used primarily for testing.
-
-    Returns
-    -------
-    Flask
-        Configured Flask application instance.
-    """
 
     app = Flask(__name__, instance_relative_config=True)
 
@@ -41,6 +35,7 @@ def create_app(
 
     config_class = config_map.get(config_name, DevelopmentConfig)
     app.config.from_object(config_class)
+
 
     if config_overrides:
         app.config.update(config_overrides)
