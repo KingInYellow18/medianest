@@ -1,16 +1,18 @@
 import pytest
-from flask import Flask
-from flask_jwt_extended import JWTManager
-from backend.app.api.auth import auth_bp
+from flask_jwt_extended import create_access_token
+from backend.app import create_app
 from backend.app.models.user import User
 
 @pytest.fixture
 def app():
-    app = Flask(__name__)
-    app.config['JWT_SECRET_KEY'] = 'test-secret'
-    app.register_blueprint(auth_bp)
-    jwt = JWTManager(app)
-    app.testing = True
+    app = create_app(
+        "development",
+        config_overrides={
+            'TESTING': True,
+            'JWT_SECRET_KEY': 'test-secret',
+            'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
+        }
+    )
     return app
 
 @pytest.fixture
@@ -123,7 +125,9 @@ def test_logout_missing_token(client):
 
 import json
 
-def make_jwt_header(token):
+def make_jwt_header(identity, app):
+    with app.app_context():
+        token = create_access_token(identity=str(identity))
     return {"Authorization": f"Bearer {token}"}
 
 def test_register_admin_success(mocker, client):
@@ -147,7 +151,7 @@ def test_register_admin_success(mocker, client):
     response = client.post(
         '/api/auth/register',
         json={"username": "newuser", "password": "newpass", "email": "new@user.com"},
-        headers=make_jwt_header("valid_admin_token")
+        headers=make_jwt_header(1, client.application)
     )
     assert response.status_code == 201
     data = response.get_json()
@@ -167,7 +171,7 @@ def test_register_non_admin_forbidden(mocker, client):
     response = client.post(
         '/api/auth/register',
         json={"username": "otheruser", "password": "otherpass", "email": "other@user.com"},
-        headers=make_jwt_header("valid_user_token")
+        headers=make_jwt_header(2, client.application)
     )
     assert response.status_code == 403
     data = response.get_json()
@@ -192,7 +196,7 @@ def test_register_duplicate_username(mocker, client):
     response = client.post(
         '/api/auth/register',
         json={"username": "existing", "password": "pass", "email": "unique@user.com"},
-        headers=make_jwt_header("valid_admin_token")
+        headers=make_jwt_header(1, client.application)
     )
     assert response.status_code == 400
     data = response.get_json()
@@ -217,7 +221,7 @@ def test_register_duplicate_email(mocker, client):
     response = client.post(
         '/api/auth/register',
         json={"username": "uniqueuser", "password": "pass", "email": "dupe@user.com"},
-        headers=make_jwt_header("valid_admin_token")
+        headers=make_jwt_header(1, client.application)
     )
     assert response.status_code == 400
     data = response.get_json()
@@ -242,7 +246,7 @@ def test_register_missing_fields(mocker, client, payload, expected_msg):
     response = client.post(
         '/api/auth/register',
         json=payload,
-        headers=make_jwt_header("valid_admin_token")
+        headers=make_jwt_header(1, client.application)
     )
     assert response.status_code == 400
     data = response.get_json()
