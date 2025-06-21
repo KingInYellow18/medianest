@@ -5,17 +5,18 @@ from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
+from .config import Config
 
 db = SQLAlchemy()
 jwt = JWTManager()
 
 
-def create_app(config_overrides: dict | None = None) -> Flask:
+def create_app(test_config: dict | None = None) -> Flask:
     """Application factory for creating configured Flask app instances.
 
     Parameters
     ----------
-    config_overrides: dict | None
+    test_config: dict | None
         Optional configuration overrides used primarily for testing.
 
     Returns
@@ -26,16 +27,12 @@ def create_app(config_overrides: dict | None = None) -> Flask:
 
     app = Flask(__name__, instance_relative_config=True)
 
-    app.config.from_mapping(
-        SQLALCHEMY_DATABASE_URI=os.environ.get(
-            "DATABASE_URL", f"sqlite:///{os.path.join(app.instance_path, 'medianest.db')}"
-        ),
-        SQLALCHEMY_TRACK_MODIFICATIONS=False,
-        JWT_SECRET_KEY=os.environ.get("JWT_SECRET_KEY", "change-me"),
-    )
+    # Load default configuration
+    app.config.from_object(Config)
 
-    if config_overrides:
-        app.config.update(config_overrides)
+    # Allow passing in testing configuration overrides
+    if test_config:
+        app.config.update(test_config)
 
     # Extensions
     db.init_app(app)

@@ -8,12 +8,10 @@ and user management functionality.
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import Column, Integer, String, DateTime, Boolean
-from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
+from backend.app import db
 
 
-class User(Base):
+class User(db.Model):
     """
     User model for authentication and user management.
     
