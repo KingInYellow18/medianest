@@ -5,11 +5,16 @@ from backend.app.models.user import User
 
 @pytest.fixture
 def app():
-    app = create_app({
-        'TESTING': True,
-        'JWT_SECRET_KEY': 'test-secret',
-        'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
-    })
+
+    app = create_app(
+        "development",
+        config_overrides={
+            'TESTING': True,
+            'JWT_SECRET_KEY': 'test-secret',
+            'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
+        }
+    )
+
     return app
 
 @pytest.fixture
