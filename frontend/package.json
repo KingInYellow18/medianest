@@ -2,7 +2,19 @@
   "name": "medianest-frontend",
   "version": "0.0.1",
   "private": true,
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:ci": "jest --coverage --watchAll=false"
+  },
   "dependencies": {
     "react-router-dom": "^7.6.2"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^12.1.5",
+    "@testing-library/user-event": "^13.5.0",
+    "jest": "^27.5.1"
   }
 }

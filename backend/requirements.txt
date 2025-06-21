@@ -5,3 +5,7 @@ Werkzeug==3.0.1
 Flask-JWT-Extended==4.6.0
 Flask-CORS
 python-socketio[client]
+
+# Testing
+pytest
+pytest-cov
