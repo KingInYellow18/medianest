@@ -1,71 +1,51 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, ChangeEvent, FormEvent } from 'react';
 import { useAuth } from '../context/AuthContext';
 
-const LoginPage = () => {
-  // State management for form inputs
-  const [formData, setFormData] = useState({
-    username: '',
-    password: ''
-  });
+const RegisterPage = () => {
+  const [formData, setFormData] = useState({ username: '', email: '', password: '' });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Get auth functions and loading state from context
-  const { login, loading } = useAuth();
-  const navigate = useNavigate();
+  const { register, loading } = useAuth();
 
-  // Handle input changes using immutable state updates
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prevData => ({
-      ...prevData,
-      [name]: value
-    }));
-    // Clear error when user starts typing
+    setFormData((prev) => ({ ...prev, [name]: value }));
     if (error) setError('');
   };
 
-  // Handle form submission with actual authentication
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
-
     try {
-      const result = await login(formData.username, formData.password);
-      
+      const result = await register(formData.username, formData.password, formData.email);
       if (result.success) {
-        setSuccess('Login successful! Redirecting...');
-        // Redirect to dashboard after successful login
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 1000);
+        setSuccess(result.message || 'User registered successfully!');
+        setFormData({ username: '', email: '', password: '' });
       } else {
-        setError(result.error || 'Login failed');
+        setError(result.error || 'Registration failed');
       }
-    } catch (error) {
-      console.error('Login error:', error);
+    } catch (err) {
+      console.error('Registration error:', err);
       setError('An unexpected error occurred');
     }
   };
 
   return (
-    <div className="login-page">
-      <h1>Login</h1>
-      <form onSubmit={handleSubmit} className="login-form">
+    <div className="register-page">
+      <h1>Register</h1>
+      <form onSubmit={handleSubmit} className="register-form">
         {error && (
           <div className="error-message" style={{ color: 'red', marginBottom: '1rem' }}>
             {error}
           </div>
         )}
-        
         {success && (
           <div className="success-message" style={{ color: 'green', marginBottom: '1rem' }}>
             {success}
           </div>
         )}
-
         <div className="form-group">
           <label htmlFor="username">Username:</label>
           <input
@@ -78,7 +58,18 @@ const LoginPage = () => {
             disabled={loading}
           />
         </div>
-        
+        <div className="form-group">
+          <label htmlFor="email">Email:</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            value={formData.email}
+            onChange={handleInputChange}
+            required
+            disabled={loading}
+          />
+        </div>
         <div className="form-group">
           <label htmlFor="password">Password:</label>
           <input
@@ -91,13 +82,12 @@ const LoginPage = () => {
             disabled={loading}
           />
         </div>
-        
         <button type="submit" className="submit-button" disabled={loading}>
-          {loading ? 'Logging in...' : 'Login'}
+          {loading ? 'Registering...' : 'Register'}
         </button>
       </form>
     </div>
   );
 };
 
-export default LoginPage;
+export default RegisterPage;

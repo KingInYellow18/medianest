@@ -4,12 +4,18 @@ import { useAuth } from '../context/AuthContext';
 import { getServiceStatus } from '../services/dashboardService';
 import ServiceStatusCard from '../components/dashboard/ServiceStatusCard';
 
+interface Service {
+  id?: number;
+  name: string;
+  status: string;
+}
+
 const DashboardPage = () => {
   const navigate = useNavigate();
   const { user, logout, token } = useAuth();
-  const [services, setServices] = useState([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchServiceStatus = async () => {
@@ -18,13 +24,10 @@ const DashboardPage = () => {
         setLoading(false);
         return;
       }
-
       try {
         setLoading(true);
         setError(null);
-        
         const response = await getServiceStatus(token);
-        
         if (response.success) {
           setServices(response.data);
         } else {
@@ -37,7 +40,6 @@ const DashboardPage = () => {
         setLoading(false);
       }
     };
-
     fetchServiceStatus();
   }, [token]);
 
@@ -51,30 +53,22 @@ const DashboardPage = () => {
   };
 
   const handleRetry = () => {
-    // Retry fetching service status
-    const fetchServiceStatus = async () => {
-      if (!token) return;
-
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const response = await getServiceStatus(token);
-        
+    if (!token) return;
+    setLoading(true);
+    setError(null);
+    getServiceStatus(token)
+      .then((response) => {
         if (response.success) {
           setServices(response.data);
         } else {
           setError(response.error || 'Failed to fetch service status');
         }
-      } catch (err) {
+      })
+      .catch((err) => {
         setError('An unexpected error occurred while fetching service status');
         console.error('Service status fetch error:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchServiceStatus();
+      })
+      .finally(() => setLoading(false));
   };
 
   return (
@@ -92,35 +86,41 @@ const DashboardPage = () => {
             border: 'none',
             borderRadius: '4px',
             cursor: 'pointer',
-            marginTop: '10px'
+            marginTop: '10px',
           }}
         >
           Logout
         </button>
       </div>
-      
+
       <div className="dashboard-content">
         <h2>System Overview</h2>
-        <p>Welcome to your media management dashboard. Here you can monitor system status and manage your media files.</p>
-        
+        <p>
+          Welcome to your media management dashboard. Here you can monitor system
+          status and manage your media files.
+        </p>
+
         <div className="service-status-section">
           <h3>Service Status</h3>
-          
+
           {loading && (
             <div className="loading-indicator" style={{ padding: '20px', textAlign: 'center' }}>
               <p>Loading service status...</p>
             </div>
           )}
-          
+
           {error && (
-            <div className="error-message" style={{
-              padding: '15px',
-              backgroundColor: '#f8d7da',
-              color: '#721c24',
-              border: '1px solid #f5c6cb',
-              borderRadius: '4px',
-              marginBottom: '20px'
-            }}>
+            <div
+              className="error-message"
+              style={{
+                padding: '15px',
+                backgroundColor: '#f8d7da',
+                color: '#721c24',
+                border: '1px solid #f5c6cb',
+                borderRadius: '4px',
+                marginBottom: '20px',
+              }}
+            >
               <p>Error: {error}</p>
               <button
                 onClick={handleRetry}
@@ -132,21 +132,24 @@ const DashboardPage = () => {
                   border: 'none',
                   borderRadius: '4px',
                   cursor: 'pointer',
-                  marginTop: '10px'
+                  marginTop: '10px',
                 }}
               >
                 Retry
               </button>
             </div>
           )}
-          
+
           {!loading && !error && (
-            <div className="service-status-grid" style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-              gap: '20px',
-              marginTop: '20px'
-            }}>
+            <div
+              className="service-status-grid"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                gap: '20px',
+                marginTop: '20px',
+              }}
+            >
               {services.length > 0 ? (
                 services.map((service, index) => (
                   <ServiceStatusCard
