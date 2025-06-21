@@ -6,12 +6,15 @@ Implements login functionality using Flask-JWT-Extended.
 
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import (
-    JWTManager, create_access_token, create_refresh_token,
-    jwt_required, get_jwt_identity, get_jwt
+    create_access_token,
+    create_refresh_token,
+    jwt_required,
+    get_jwt_identity,
+    get_jwt,
 )
 from sqlalchemy.orm import Session
 from backend.app.models.user import User
-from backend.app import db  # Assumes db is SQLAlchemy instance from app context
+from backend.app import db, jwt  # SQLAlchemy and JWTManager instances
 import logging
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
@@ -19,11 +22,7 @@ auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 # In-memory blacklist for JWTs (for demo only; use Redis/DB in production)
 jwt_blacklist = set()
 
-# JWTManager instance and callback registration should be moved to app initialization.
-# For demonstration, we create a local JWTManager and register the callback here.
-from flask_jwt_extended import JWTManager
-
-jwt = JWTManager()  # This should be initialized with the Flask app in app.py
+# JWT callbacks are registered on the shared JWTManager instance
 
 @jwt.token_in_blocklist_loader
 def check_if_token_revoked(jwt_header, jwt_payload):
@@ -78,8 +77,8 @@ def login():
         logger.warning(f"Inactive user login attempt: {username}")
         return jsonify({"msg": "User account is inactive"}), 403
 
-    access_token = create_access_token(identity=user.id)
-    refresh_token = create_refresh_token(identity=user.id)
+    access_token = create_access_token(identity=str(user.id))
+    refresh_token = create_refresh_token(identity=str(user.id))
     logger.info(f"User logged in: {username}")
     return jsonify(access_token=access_token, refresh_token=refresh_token), 200
 
@@ -128,7 +127,7 @@ def refresh():
     """
     try:
         current_user_id = get_jwt_identity()
-        access_token = create_access_token(identity=current_user_id)
+        access_token = create_access_token(identity=str(current_user_id))
         logger.info(f"Token refreshed for user_id: {current_user_id}")
         return jsonify(access_token=access_token), 200
     except Exception as e:
