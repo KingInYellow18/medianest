@@ -3,18 +3,23 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "test:ci": "jest --coverage --watchAll=false"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "react-router-dom": "^7.6.2"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^12.1.5",
-    "@testing-library/user-event": "^13.5.0",
-    "jest": "^27.5.1"
+    "@types/react": "^18.2.76",
+    "@types/react-dom": "^18.2.18",
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.17",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.4",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.0"
   }
 }
