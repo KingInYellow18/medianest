@@ -344,31 +344,28 @@ This document provides a comprehensive, phased implementation strategy for Media
 - Enhance security
 - Prepare deployment
 
-### Week 13: Testing Implementation
+### Week 13: Testing Implementation (Simplified)
 
-#### Unit Testing
-- [ ] Achieve 80% code coverage minimum
-- [ ] Test all critical paths at 95% coverage
-- [ ] Implement custom matchers per test_architecture.md
-- [ ] Create test data factories
-- [ ] Document testing standards
-- [ ] Configure Testcontainers for database testing
+#### Critical Path Testing
+- [ ] Test Plex OAuth flow (PIN generation, verification, user creation)
+- [ ] Test media request submission with Overseerr integration
+- [ ] Test service status monitoring (Uptime Kuma)
+- [ ] Test rate limiting (100 req/min general, 5/hour YouTube)
+- [ ] Test user data isolation (YouTube downloads)
+- [ ] Test graceful degradation when services unavailable
 
-#### Integration Testing
+#### API Testing
 - [ ] Test all API endpoints with Supertest
-- [ ] Verify external service integrations with mocks
-- [ ] Test database operations with Testcontainers
-- [ ] Validate WebSocket functionality
-- [ ] Implement contract testing with Pact
-- [ ] Test rate limiting and security features
+- [ ] Use simple mocks (Nock) for external services
+- [ ] Test authentication and authorization
+- [ ] Test error responses and validation
+- [ ] Add basic performance assertions (<1s response)
 
-#### E2E Testing
-- [ ] Set up Playwright for E2E tests
-- [ ] Create critical user flow tests
-- [ ] Test responsive design
-- [ ] Verify error handling
-- [ ] Automate regression testing
-- [ ] Implement flaky test detection (<2% tolerance)
+#### E2E Testing (Minimal)
+- [ ] Set up Playwright for critical flows only
+- [ ] Test complete auth flow (login to dashboard)
+- [ ] Test media request flow (search to submission)
+- [ ] Skip complex scenarios - focus on happy paths
 
 ### Week 14: Performance Optimization
 
@@ -386,12 +383,12 @@ This document provides a comprehensive, phased implementation strategy for Media
 - [ ] Optimize WebSocket connections
 - [ ] Implement CDN for static assets
 
-#### Load Testing
-- [ ] Create k6 load test scripts
-- [ ] Test API endpoints under load
-- [ ] Verify WebSocket scalability
-- [ ] Test database connection pooling
-- [ ] Document performance baselines
+#### Simple Performance Validation
+- [ ] Add response time assertions to API tests
+- [ ] Test 20 concurrent requests (basic stress test)
+- [ ] Verify database queries complete in <100ms
+- [ ] Check memory usage stays reasonable
+- [ ] Skip complex load testing tools
 
 ### Week 15: Security Hardening
 
@@ -410,16 +407,16 @@ This document provides a comprehensive, phased implementation strategy for Media
 - [ ] Create security monitoring alerts
 
 ### Deliverables
-- Comprehensive test suite with >80% coverage
-- Performance optimized application
-- Security hardened system
+- Practical test suite covering critical paths
+- Performance validated for 20 concurrent users
+- Basic security measures verified
 - Production-ready configuration
 
 ### Success Criteria
-- All tests passing in CI/CD
-- Page load times <2 seconds
-- API response times <1 second
-- Security scan shows no critical issues
+- Critical path tests passing (auth, requests, status)
+- Total test suite runs in <5 minutes
+- API response times <1 second verified
+- No obvious security vulnerabilities
 
 ## Phase 5: Launch Preparation (Week 16)
 
@@ -536,10 +533,10 @@ This document provides a comprehensive, phased implementation strategy for Media
 - ✅ Security audit passed
 
 ### Quality Metrics
-- Code coverage >80% (95% critical paths)
-- <2% flaky test rate
-- Zero critical security vulnerabilities
-- <1 second API response time (95th percentile)
+- Code coverage >60% overall (80% for auth/security only)
+- Zero flaky tests (fix or remove immediately)
+- Basic security validation passes
+- <1 second API response time for all endpoints
 
 ## Post-MVP Roadmap
 

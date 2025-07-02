@@ -1,79 +1,91 @@
-# MediaNest Test Architecture
+# MediaNest Test Architecture (Simplified)
 
-**Version:** 1.0  
+**Version:** 2.0  
 **Date:** January 2025  
-**Status:** Draft
+**Status:** Final  
+**Scope:** Small-scale application (10-20 users)
 
 ## Table of Contents
 
 1. [Executive Summary](#1-executive-summary)
-2. [Testing Philosophy & Principles](#2-testing-philosophy--principles)
-3. [Test Strategy Overview](#3-test-strategy-overview)
-4. [Technology Stack Testing](#4-technology-stack-testing)
-5. [Test Types & Layers](#5-test-types--layers)
-6. [Environment Configuration](#6-environment-configuration)
-7. [Test Implementation Guidelines](#7-test-implementation-guidelines)
-8. [CI/CD Integration](#8-cicd-integration)
-9. [Performance & Load Testing](#9-performance--load-testing)
-10. [Security Testing](#10-security-testing)
-11. [Test Automation Framework](#11-test-automation-framework)
-12. [Coverage Requirements](#12-coverage-requirements)
-13. [Monitoring & Reporting](#13-monitoring--reporting)
-14. [Maintenance & Best Practices](#14-maintenance--best-practices)
+2. [Pragmatic Testing Approach](#2-pragmatic-testing-approach)
+3. [Test Implementation](#3-test-implementation)
+4. [Critical Path Testing](#4-critical-path-testing)
+5. [External Service Testing](#5-external-service-testing)
+6. [Simple CI/CD Integration](#6-simple-cicd-integration)
+7. [Practical Guidelines](#7-practical-guidelines)
 
 ## 1. Executive Summary
 
-MediaNest's test architecture ensures reliable, secure, and performant operation of a unified media management portal serving 10-20 concurrent users. The strategy encompasses unit, integration, end-to-end, and specialized testing for external service integrations (Plex, Overseerr, Uptime Kuma), real-time features (Socket.io), background processing (Bull/Redis), and security mechanisms (Plex OAuth, JWT).
+MediaNest's test strategy is designed for a small-scale monolithic application serving 10-20 concurrent users. We focus on practical, maintainable testing that ensures quality without over-engineering.
 
-### Key Testing Objectives
-- **Reliability**: 99.9% uptime with graceful degradation when external services fail
-- **Security**: Comprehensive authentication and authorization testing
-- **Performance**: Sub-2s page loads and <1s API response times
-- **Integration**: Robust external service mocking and fallback testing
-- **User Experience**: End-to-end workflow validation
+### Key Principles
+- **Test what matters**: Focus on critical user paths and integrations
+- **Keep it simple**: Use built-in tools and avoid complex frameworks
+- **Fast feedback**: Total test suite runs in under 5 minutes
+- **Practical coverage**: Target 60-70% overall, 80% for critical paths
 
-## 2. Testing Philosophy & Principles
+## 2. Pragmatic Testing Approach
 
-### 2.1 Testing Pyramid Strategy
+### 2.1 Testing Focus Areas
+
+Instead of rigid percentages, we test based on risk and value:
+
+1. **Critical Paths (High Priority)**
+   - Plex OAuth authentication flow
+   - Media request submission
+   - Service status monitoring
+   - Rate limiting enforcement
+
+2. **Core Features (Medium Priority)**
+   - YouTube download functionality
+   - User data isolation
+   - Error handling and fallbacks
+   - WebSocket connections
+
+3. **Nice-to-Have (Low Priority)**
+   - UI component variations
+   - Edge case scenarios
+   - Performance optimizations
+
+### 2.2 Simplified Standards
+- **Coverage Goals**: 60-70% overall (not a hard requirement)
+- **Test Execution**: Under 5 minutes for full suite
+- **Flaky Tests**: Fix immediately or remove
+
+## 3. Test Implementation
+
+### 3.1 Test Types (What We Actually Need)
+
+| Test Type | Purpose | Tools | When to Use |
+|-----------|---------|-------|-------------|
+| Unit Tests | Business logic, utilities | Jest | Complex logic, calculations |
+| API Tests | Endpoint validation | Supertest | All API routes |
+| Integration Tests | External services | Nock/MSW | Service integrations |
+| E2E Tests | Critical user flows | Playwright | 2-3 key workflows only |
+
+### 3.2 What We're NOT Doing
+- Contract testing (Pact) - overkill for our scale
+- Load testing tools (k6, Artillery) - simple integration tests suffice
+- Security scanning tools (OWASP ZAP) - manual security review is enough
+- Complex mocking frameworks - use simple stubs
+
+### 3.3 Simple Test Environment
+
+```yaml
+# docker-compose.test.yml - One simple test environment
+version: '3.8'
+services:
+  postgres-test:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: medianest_test
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+  
+  redis-test:
+    image: redis:7-alpine
 ```
-              E2E Tests (5%)
-          Integration Tests (25%)
-        Unit Tests (70%)
-```
-
-### 2.2 Core Principles
-1. **Test-Driven Development**: Write tests before implementation
-2. **Fast Feedback**: Unit tests run in <30 seconds
-3. **Reliable Isolation**: Each test runs independently
-4. **Real-World Simulation**: Integration tests mirror production scenarios
-5. **Security-First**: All authentication flows thoroughly tested
-6. **Graceful Degradation**: Test service failures and fallbacks
-
-### 2.3 Testing Standards
-- **Code Coverage**: Minimum 80% for critical paths, 70% overall
-- **Test Execution Time**: Full suite completes in <10 minutes
-- **Flaky Test Tolerance**: <2% failure rate in CI/CD
-
-## 3. Test Strategy Overview
-
-### 3.1 Testing Layers
-
-| Test Layer | Purpose | Tools | Coverage |
-|------------|---------|-------|----------|
-| Unit | Individual components, functions | Jest, React Testing Library | 70% |
-| Integration | API endpoints, database interactions | Supertest, Testcontainers | 25% |
-| E2E | User workflows, cross-system | Playwright, Cypress | 5% |
-| Contract | External API interactions | Pact, WireMock | - |
-| Performance | Load, stress, scalability | k6, Artillery | - |
-| Security | Authentication, authorization | Custom scripts, OWASP ZAP | - |
-
-### 3.2 Test Environment Matrix
-
-| Environment | Purpose | Services | Data |
-|-------------|---------|----------|------|
-| Local | Development testing | Docker Compose | Fixtures |
-| CI/CD | Automated testing | GitHub Actions + Docker | Synthetic |
-| Staging | Integration testing | Full stack | Production-like |
 
 ## 4. Technology Stack Testing
 
@@ -372,56 +384,54 @@ describe('Rate Limiter', () => {
 });
 ```
 
-## 5. Test Types & Layers
+## 4. Critical Path Testing
 
-### 5.1 External Service Integration Testing
+### 4.1 What to Test First
 
-#### Plex API Testing
-```typescript
-// backend/tests/integration/plex/plexService.test.ts
-import nock from 'nock';
-import { PlexService } from '../../src/services/plexService';
+1. **Authentication Flow** (Most Critical)
+   ```typescript
+   // Simple test for Plex OAuth
+   describe('Plex Authentication', () => {
+     it('should handle PIN generation', async () => {
+       const pin = await authService.generatePlexPin();
+       expect(pin).toHaveProperty('code');
+       expect(pin.code).toHaveLength(4);
+     });
+     
+     it('should create user from Plex data', async () => {
+       const plexUser = { id: '123', username: 'test', email: 'test@example.com' };
+       const user = await userService.createFromPlex(plexUser);
+       expect(user.plexId).toBe('123');
+     });
+   });
+   ```
 
-describe('Plex Service Integration', () => {
-  let plexService: PlexService;
-  
-  beforeEach(() => {
-    plexService = new PlexService('http://localhost:32400');
-  });
-  
-  afterEach(() => {
-    nock.cleanAll();
-  });
-  
-  it('fetches library sections successfully', async () => {
-    nock('http://localhost:32400')
-      .get('/library/sections')
-      .query({ 'X-Plex-Token': 'test-token' })
-      .reply(200, {
-        MediaContainer: {
-          Directory: [
-            { key: '1', title: 'Movies', type: 'movie' },
-            { key: '2', title: 'TV Shows', type: 'show' }
-          ]
-        }
-      });
-    
-    const libraries = await plexService.getLibraries('test-token');
-    
-    expect(libraries).toHaveLength(2);
-    expect(libraries[0].title).toBe('Movies');
-  });
-  
-  it('handles Plex server unavailable gracefully', async () => {
-    nock('http://localhost:32400')
-      .get('/library/sections')
-      .replyWithError('ECONNREFUSED');
-    
-    await expect(plexService.getLibraries('test-token'))
-      .rejects
-      .toThrow('Plex server unavailable');
-  });
-});
+2. **Media Request Flow**
+   ```typescript
+   // Test the happy path only
+   it('should submit media request', async () => {
+     const response = await request(app)
+       .post('/api/media/request')
+       .set('Authorization', 'Bearer valid-token')
+       .send({ title: 'The Matrix', type: 'movie' });
+     
+     expect(response.status).toBe(201);
+   });
+   ```
+
+3. **Service Status Check**
+   ```typescript
+   // Simple mock for Uptime Kuma
+   it('should return service status', async () => {
+     mockUptimeKuma.getStatus.mockResolvedValue([
+       { name: 'Plex', status: 'up' },
+       { name: 'Overseerr', status: 'down' }
+     ]);
+     
+     const response = await request(app).get('/api/dashboard/status');
+     expect(response.body.services).toHaveLength(2);
+   });
+   ```
 ```
 
 #### Overseerr API Testing
@@ -1075,52 +1085,42 @@ describe('Performance Requirements', () => {
 });
 ```
 
-## 8. CI/CD Integration
+## 6. Simple CI/CD Integration
 
-### 8.1 GitHub Actions Workflow
+### 6.1 One Simple GitHub Actions Workflow
 
 ```yaml
 # .github/workflows/test.yml
-name: Test Suite
+name: Tests
 
 on:
   push:
-    branches: [main, develop]
-  pull_request:
     branches: [main]
+  pull_request:
 
 jobs:
-  unit-tests:
+  test:
     runs-on: ubuntu-latest
     
     services:
       postgres:
-        image: postgres:15
+        image: postgres:15-alpine
         env:
           POSTGRES_PASSWORD: test
           POSTGRES_USER: test
           POSTGRES_DB: medianest_test
-        ports:
-          - 5432:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
       
       redis:
         image: redis:7-alpine
-        ports:
-          - 6379:6379
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -1128,126 +1128,31 @@ jobs:
           node-version: 20
           cache: 'npm'
       
-      - name: Install dependencies
-        run: |
-          npm ci
-          cd frontend && npm ci
-          cd ../backend && npm ci
-      
-      - name: Run backend unit tests
+      - name: Install and Test
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/medianest_test
           REDIS_URL: redis://localhost:6379
           NODE_ENV: test
         run: |
-          cd backend
-          npm run test:unit
-      
-      - name: Run frontend unit tests
-        run: |
-          cd frontend
-          npm run test:unit
-      
-      - name: Upload coverage reports
-        uses: codecov/codecov-action@v3
-        with:
-          directory: ./coverage
-          flags: unittests
-
-  integration-tests:
-    runs-on: ubuntu-latest
-    needs: unit-tests
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: |
           npm ci
-          cd frontend && npm ci
-          cd ../backend && npm ci
-      
-      - name: Start test environment
+          npm test
+          
+      # Only run E2E on main branch to save time
+      - name: E2E Tests
+        if: github.ref == 'refs/heads/main'
         run: |
-          docker-compose -f docker-compose.test.yml up -d
-          sleep 30 # Wait for services to be ready
-      
-      - name: Run integration tests
-        env:
-          NODE_ENV: test
-        run: |
-          cd backend
-          npm run test:integration
-      
-      - name: Stop test environment
-        run: docker-compose -f docker-compose.test.yml down
+          npx playwright install chromium
+          npm run test:e2e
+```
 
-  e2e-tests:
-    runs-on: ubuntu-latest
-    needs: [unit-tests, integration-tests]
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: |
-          npm ci
-          cd frontend && npm ci
-          cd ../backend && npm ci
-      
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
-      
-      - name: Start application
-        run: |
-          docker-compose -f docker-compose.test.yml up -d
-          npm run dev &
-          sleep 60 # Wait for app to be ready
-      
-      - name: Run E2E tests
-        run: npx playwright test
-      
-      - name: Upload Playwright report
-        uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 30
+### 6.2 Local Testing
 
-  security-tests:
-    runs-on: ubuntu-latest
-    needs: unit-tests
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Run Snyk security scan
-        uses: snyk/actions/node@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --severity-threshold=high
-      
-      - name: Run npm audit
-        run: |
-          cd frontend && npm audit --audit-level high
-          cd ../backend && npm audit --audit-level high
+```bash
+# Simple test commands
+npm test              # Run all tests
+npm run test:watch    # Watch mode for development
+npm run test:api      # Just API tests
+npm run test:e2e      # Just E2E tests (rarely)
 ```
 
 ### 8.2 Test Reporting and Metrics
@@ -1308,65 +1213,56 @@ export class TestMetrics {
 }
 ```
 
-## 9. Performance & Load Testing
+## 5. External Service Testing
 
-### 9.1 API Load Testing with k6
+### 5.1 Simple Mocking Strategy
 
-```javascript
-// tests/performance/api-load.js
-import http from 'k6/http';
-import { check, sleep } from 'k6';
+Use basic mocks instead of complex frameworks:
 
-export let options = {
-  stages: [
-    { duration: '2m', target: 10 }, // Ramp up
-    { duration: '5m', target: 20 }, // Stay at 20 users
-    { duration: '2m', target: 0 },  // Ramp down
-  ],
-  thresholds: {
-    http_req_duration: ['p(95)<500'], // 95% of requests under 500ms
-    http_req_failed: ['rate<0.1'],   // Error rate under 10%
-  },
+```typescript
+// Simple mock for external services
+export const mockPlexAPI = {
+  getLibraries: jest.fn().mockResolvedValue([
+    { id: '1', title: 'Movies' },
+    { id: '2', title: 'TV Shows' }
+  ]),
+  searchMedia: jest.fn(),
+  getUserInfo: jest.fn()
 };
 
-export default function() {
-  // Test authentication
-  let authResponse = http.post('http://localhost:4000/api/auth/login', {
-    username: 'testuser',
-    password: 'testpass'
+// In tests
+import { mockPlexAPI } from '../mocks';
+
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+
+it('should handle Plex being down', async () => {
+  mockPlexAPI.getLibraries.mockRejectedValue(new Error('Connection refused'));
+  
+  const response = await request(app).get('/api/plex/libraries');
+  expect(response.status).toBe(503);
+  expect(response.body.error).toContain('temporarily unavailable');
+});
+```
+
+### 5.2 Testing Service Failures
+
+Focus on graceful degradation:
+
+```typescript
+// Test what happens when services fail
+describe('Service Resilience', () => {
+  it('should show degraded status when Overseerr is down', async () => {
+    mockOverseerr.isAvailable.mockResolvedValue(false);
+    
+    const response = await request(app).get('/api/dashboard/status');
+    const overseerr = response.body.services.find(s => s.name === 'Overseerr');
+    
+    expect(overseerr.status).toBe('down');
+    expect(overseerr.features).toContain('disabled');
   });
-  
-  check(authResponse, {
-    'auth status is 200': (r) => r.status === 200,
-    'auth response time < 200ms': (r) => r.timings.duration < 200,
-  });
-  
-  let token = authResponse.json('token');
-  let headers = { Authorization: `Bearer ${token}` };
-  
-  // Test dashboard endpoint
-  let dashboardResponse = http.get('http://localhost:4000/api/dashboard/status', {
-    headers: headers
-  });
-  
-  check(dashboardResponse, {
-    'dashboard status is 200': (r) => r.status === 200,
-    'dashboard response time < 500ms': (r) => r.timings.duration < 500,
-  });
-  
-  // Test media search
-  let searchResponse = http.get(
-    'http://localhost:4000/api/media/search?q=matrix',
-    { headers: headers }
-  );
-  
-  check(searchResponse, {
-    'search status is 200': (r) => r.status === 200,
-    'search response time < 1000ms': (r) => r.timings.duration < 1000,
-  });
-  
-  sleep(1);
-}
+});
 ```
 
 ### 9.2 WebSocket Load Testing
@@ -1519,158 +1415,37 @@ describe('Database Performance', () => {
 });
 ```
 
-## 10. Security Testing
+### 5.3 Simple Performance Checks
 
-### 10.1 Authentication & Authorization Testing
+No need for k6 or Artillery - just add assertions to existing tests:
 
 ```typescript
-// tests/security/auth.test.ts
-import request from 'supertest';
-import { app } from '../src/app';
-import jwt from 'jsonwebtoken';
-
-describe('Security: Authentication & Authorization', () => {
-  describe('JWT Token Security', () => {
-    it('rejects requests with no token', async () => {
-      await request(app)
-        .get('/api/admin/users')
-        .expect(401)
-        .expect(res => {
-          expect(res.body.error.code).toBe('AUTH_REQUIRED');
-        });
-    });
-    
-    it('rejects requests with invalid token', async () => {
-      await request(app)
-        .get('/api/admin/users')
-        .set('Authorization', 'Bearer invalid-token')
-        .expect(401)
-        .expect(res => {
-          expect(res.body.error.code).toBe('INVALID_TOKEN');
-        });
-    });
-    
-    it('rejects requests with expired token', async () => {
-      const expiredToken = jwt.sign(
-        { userId: 'test', role: 'admin' },
-        process.env.JWT_SECRET!,
-        { expiresIn: '1ms' }
-      );
-      
-      // Wait for token to expire
-      await new Promise(resolve => setTimeout(resolve, 10));
-      
-      await request(app)
-        .get('/api/admin/users')
-        .set('Authorization', `Bearer ${expiredToken}`)
-        .expect(401)
-        .expect(res => {
-          expect(res.body.error.code).toBe('TOKEN_EXPIRED');
-        });
-    });
-    
-    it('rejects users accessing admin endpoints', async () => {
-      const userToken = jwt.sign(
-        { userId: 'test', role: 'user' },
-        process.env.JWT_SECRET!
-      );
-      
-      await request(app)
-        .get('/api/admin/users')
-        .set('Authorization', `Bearer ${userToken}`)
-        .expect(403)
-        .expect(res => {
-          expect(res.body.error.code).toBe('PERMISSION_DENIED');
-        });
-    });
-  });
+// Add performance checks to integration tests
+it('should respond quickly to API requests', async () => {
+  const start = Date.now();
   
-  describe('Rate Limiting', () => {
-    it('enforces API rate limits', async () => {
-      const token = jwt.sign(
-        { userId: 'test', role: 'user' },
-        process.env.JWT_SECRET!
-      );
-      
-      const requests = Array.from({ length: 101 }, () =>
-        request(app)
-          .get('/api/dashboard/status')
-          .set('Authorization', `Bearer ${token}`)
-      );
-      
-      const responses = await Promise.all(requests);
-      const rateLimitedResponses = responses.filter(r => r.status === 429);
-      
-      expect(rateLimitedResponses.length).toBeGreaterThan(0);
-    });
-    
-    it('includes retry-after header in rate limit responses', async () => {
-      const token = jwt.sign(
-        { userId: 'test', role: 'user' },
-        process.env.JWT_SECRET!
-      );
-      
-      // Exceed rate limit
-      for (let i = 0; i < 101; i++) {
-        await request(app)
-          .get('/api/dashboard/status')
-          .set('Authorization', `Bearer ${token}`);
-      }
-      
-      const response = await request(app)
-        .get('/api/dashboard/status')
-        .set('Authorization', `Bearer ${token}`)
-        .expect(429);
-      
-      expect(response.headers['retry-after']).toBeDefined();
-      expect(parseInt(response.headers['retry-after'])).toBeGreaterThan(0);
-    });
-  });
+  const response = await request(app)
+    .get('/api/dashboard/status')
+    .set('Authorization', 'Bearer valid-token');
   
-  describe('Input Validation', () => {
-    it('sanitizes user input to prevent XSS', async () => {
-      const token = jwt.sign(
-        { userId: 'test', role: 'user' },
-        process.env.JWT_SECRET!
-      );
-      
-      const maliciousInput = '<script>alert("xss")</script>';
-      
-      await request(app)
-        .post('/api/media/request')
-        .set('Authorization', `Bearer ${token}`)
-        .send({
-          title: maliciousInput,
-          mediaType: 'movie',
-          tmdbId: '123'
-        })
-        .expect(400)
-        .expect(res => {
-          expect(res.body.error.code).toBe('VALIDATION_ERROR');
-        });
-    });
-    
-    it('validates YouTube URLs to prevent code injection', async () => {
-      const token = jwt.sign(
-        { userId: 'test', role: 'user' },
-        process.env.JWT_SECRET!
-      );
-      
-      const maliciousUrl = 'javascript:alert("xss")';
-      
-      await request(app)
-        .post('/api/youtube/download')
-        .set('Authorization', `Bearer ${token}`)
-        .send({
-          playlistUrl: maliciousUrl
-        })
-        .expect(400)
-        .expect(res => {
-          expect(res.body.error.code).toBe('INVALID_YOUTUBE_URL');
-        });
-    });
-  });
+  const duration = Date.now() - start;
+  
+  expect(response.status).toBe(200);
+  expect(duration).toBeLessThan(1000); // Under 1 second
 });
+
+// Simple concurrent user test
+it('should handle 20 concurrent requests', async () => {
+  const requests = Array(20).fill(null).map(() => 
+    request(app).get('/api/health')
+  );
+  
+  const responses = await Promise.all(requests);
+  const successful = responses.filter(r => r.status === 200);
+  
+  expect(successful.length).toBe(20);
+});
+```
 ```
 
 ### 10.2 SQL Injection Prevention Testing
@@ -1756,534 +1531,120 @@ describe('Security: HTTP Headers', () => {
 });
 ```
 
-## 11. Test Automation Framework
+## 7. Practical Guidelines
 
-### 11.1 Test Utilities
-
-```typescript
-// tests/utils/testHelpers.ts
-import { PrismaClient } from '@prisma/client';
-import jwt from 'jsonwebtoken';
-import { Redis } from 'ioredis';
-
-export class TestHelpers {
-  static generateAuthToken(payload: any): string {
-    return jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: '1h' });
-  }
-  
-  static async waitForCondition(
-    condition: () => Promise<boolean>,
-    timeout = 5000,
-    interval = 100
-  ): Promise<void> {
-    const startTime = Date.now();
-    
-    while (Date.now() - startTime < timeout) {
-      if (await condition()) {
-        return;
-      }
-      await new Promise(resolve => setTimeout(resolve, interval));
-    }
-    
-    throw new Error(`Condition not met within ${timeout}ms`);
-  }
-  
-  static createMockRequest(overrides = {}) {
-    return {
-      method: 'GET',
-      url: '/',
-      headers: {},
-      body: {},
-      query: {},
-      params: {},
-      user: null,
-      ...overrides
-    };
-  }
-  
-  static createMockResponse() {
-    const res = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn().mockReturnThis(),
-      send: jest.fn().mockReturnThis(),
-      setHeader: jest.fn().mockReturnThis(),
-      cookie: jest.fn().mockReturnThis()
-    };
-    return res;
-  }
-}
-
-export class DatabaseTestHelper {
-  constructor(private prisma: PrismaClient) {}
-  
-  async seedTestData() {
-    await this.prisma.user.createMany({
-      data: [
-        {
-          plexId: 'test-user-1',
-          username: 'testuser1',
-          email: 'test1@example.com',
-          role: 'user'
-        },
-        {
-          plexId: 'test-admin-1',
-          username: 'admin',
-          email: 'admin@example.com',
-          role: 'admin'
-        }
-      ]
-    });
-  }
-  
-  async cleanTestData() {
-    await this.prisma.mediaRequest.deleteMany();
-    await this.prisma.youtubeDownload.deleteMany();
-    await this.prisma.user.deleteMany();
-  }
-}
-
-export class RedisTestHelper {
-  constructor(private redis: Redis) {}
-  
-  async flushTestData() {
-    await this.redis.flushall();
-  }
-  
-  async setTestRateLimit(userId: string, endpoint: string, count: number) {
-    const key = `rate:${endpoint}:${userId}`;
-    await this.redis.set(key, count, 'EX', 60);
-  }
-}
-```
-
-### 11.2 Custom Matchers
+### 7.1 Test Helpers (Keep It Simple)
 
 ```typescript
-// tests/utils/customMatchers.ts
-import { expect } from '@jest/globals';
-
-declare global {
-  namespace jest {
-    interface Matchers<R> {
-      toBeValidJWT(): R;
-      toHaveValidApiResponse(): R;
-      toBeWithinTimeRange(expected: number, tolerance: number): R;
-    }
-  }
-}
-
-expect.extend({
-  toBeValidJWT(received: string) {
-    try {
-      const decoded = jwt.decode(received);
-      if (!decoded || typeof decoded !== 'object') {
-        return {
-          message: () => 'Expected a valid JWT token',
-          pass: false
-        };
-      }
-      
-      return {
-        message: () => 'Expected not to be a valid JWT token',
-        pass: true
-      };
-    } catch (error) {
-      return {
-        message: () => `Expected a valid JWT token, but got error: ${error.message}`,
-        pass: false
-      };
-    }
+// Simple test utilities
+export const testUtils = {
+  // Generate test JWT
+  createAuthToken: (userId: string, role = 'user') => {
+    return jwt.sign({ userId, role }, process.env.JWT_SECRET, { expiresIn: '1h' });
   },
   
-  toHaveValidApiResponse(received: any) {
-    const hasSuccess = typeof received.success === 'boolean';
-    const hasData = received.success ? received.data !== undefined : received.error !== undefined;
-    
-    return {
-      message: () => hasSuccess && hasData 
-        ? 'Expected invalid API response format'
-        : 'Expected valid API response format with success boolean and data/error',
-      pass: hasSuccess && hasData
-    };
+  // Create test user
+  createTestUser: async (overrides = {}) => {
+    return await prisma.user.create({
+      data: {
+        plexId: 'test-' + Date.now(),
+        username: 'testuser',
+        email: 'test@example.com',
+        role: 'user',
+        ...overrides
+      }
+    });
   },
   
-  toBeWithinTimeRange(received: number, expected: number, tolerance: number) {
-    const diff = Math.abs(received - expected);
-    const withinRange = diff <= tolerance;
-    
-    return {
-      message: () => withinRange
-        ? `Expected ${received} not to be within ${tolerance}ms of ${expected}`
-        : `Expected ${received} to be within ${tolerance}ms of ${expected}, but diff was ${diff}ms`,
-      pass: withinRange
-    };
+  // Clean database after tests
+  cleanDatabase: async () => {
+    await prisma.mediaRequest.deleteMany();
+    await prisma.user.deleteMany();
   }
-});
-```
-
-### 11.3 Test Data Factories
-
-```typescript
-// tests/factories/userFactory.ts
-import { User } from '@prisma/client';
-
-export class UserFactory {
-  static create(overrides: Partial<User> = {}): Omit<User, 'id' | 'createdAt' | 'updatedAt'> {
-    return {
-      plexId: `plex-${Math.random().toString(36).substr(2, 9)}`,
-      username: `user${Math.random().toString(36).substr(2, 5)}`,
-      email: `test${Math.random().toString(36).substr(2, 5)}@example.com`,
-      role: 'user',
-      plexToken: null,
-      lastLoginAt: null,
-      status: 'active',
-      ...overrides
-    };
-  }
-  
-  static createAdmin(overrides: Partial<User> = {}) {
-    return this.create({
-      role: 'admin',
-      username: 'admin',
-      ...overrides
-    });
-  }
-  
-  static createMany(count: number, overrides: Partial<User> = {}) {
-    return Array.from({ length: count }, () => this.create(overrides));
-  }
-}
-
-export class MediaRequestFactory {
-  static create(userId: string, overrides = {}) {
-    return {
-      userId,
-      title: `Test Movie ${Math.random().toString(36).substr(2, 5)}`,
-      mediaType: 'movie',
-      tmdbId: Math.floor(Math.random() * 10000).toString(),
-      status: 'pending',
-      overseerrId: null,
-      completedAt: null,
-      ...overrides
-    };
-  }
-}
-```
-
-## 12. Coverage Requirements
-
-### 12.1 Coverage Metrics
-
-| Component | Line Coverage | Branch Coverage | Function Coverage |
-|-----------|---------------|-----------------|-------------------|
-| Authentication | 95% | 90% | 100% |
-| API Controllers | 85% | 80% | 95% |
-| Service Layer | 90% | 85% | 95% |
-| Database Layer | 80% | 75% | 90% |
-| Frontend Components | 85% | 80% | 90% |
-| External Integrations | 75% | 70% | 85% |
-
-### 12.2 Critical Path Coverage
-
-```typescript
-// Critical paths requiring 100% coverage
-const CRITICAL_PATHS = [
-  'src/services/authService.ts',
-  'src/middleware/authentication.ts',
-  'src/middleware/rateLimiter.ts',
-  'src/controllers/authController.ts',
-  'src/integrations/plex/auth.ts'
-];
-```
-
-### 12.3 Coverage Reporting
-
-```bash
-# Generate coverage reports
-npm run test:coverage
-
-# Coverage by directory
-npm run test:coverage -- --coverage-directory-threshold=80
-
-# Enforce coverage thresholds
-npm run test:coverage -- --coverage-threshold-global=80
-```
-
-## 13. Monitoring & Reporting
-
-### 13.1 Test Result Dashboard
-
-```typescript
-// scripts/generateTestReport.ts
-import fs from 'fs';
-import path from 'path';
-
-interface TestMetrics {
-  timestamp: string;
-  totalTests: number;
-  passedTests: number;
-  failedTests: number;
-  skippedTests: number;
-  coverage: {
-    lines: number;
-    branches: number;
-    functions: number;
-    statements: number;
-  };
-  performance: {
-    averageTestTime: number;
-    slowestTests: Array<{
-      name: string;
-      duration: number;
-    }>;
-  };
-}
-
-export function generateTestReport(): TestMetrics {
-  // Read Jest results
-  const jestResults = JSON.parse(
-    fs.readFileSync('test-results/jest-results.json', 'utf8')
-  );
-  
-  // Read coverage data
-  const coverageData = JSON.parse(
-    fs.readFileSync('coverage/coverage-summary.json', 'utf8')
-  );
-  
-  const report: TestMetrics = {
-    timestamp: new Date().toISOString(),
-    totalTests: jestResults.numTotalTests,
-    passedTests: jestResults.numPassedTests,
-    failedTests: jestResults.numFailedTests,
-    skippedTests: jestResults.numPendingTests,
-    coverage: {
-      lines: coverageData.total.lines.pct,
-      branches: coverageData.total.branches.pct,
-      functions: coverageData.total.functions.pct,
-      statements: coverageData.total.statements.pct
-    },
-    performance: {
-      averageTestTime: jestResults.testResults.reduce((sum, result) => 
-        sum + result.perfStats.runtime, 0) / jestResults.testResults.length,
-      slowestTests: jestResults.testResults
-        .map(result => ({
-          name: result.name,
-          duration: result.perfStats.runtime
-        }))
-        .sort((a, b) => b.duration - a.duration)
-        .slice(0, 10)
-    }
-  };
-  
-  // Write report
-  fs.writeFileSync(
-    'test-results/test-metrics.json',
-    JSON.stringify(report, null, 2)
-  );
-  
-  return report;
-}
-```
-
-### 13.2 Continuous Monitoring
-
-```typescript
-// tests/monitoring/testMonitor.ts
-export class TestMonitor {
-  private static instance: TestMonitor;
-  private metrics: Map<string, number[]> = new Map();
-  
-  static getInstance(): TestMonitor {
-    if (!TestMonitor.instance) {
-      TestMonitor.instance = new TestMonitor();
-    }
-    return TestMonitor.instance;
-  }
-  
-  recordTestDuration(testName: string, duration: number) {
-    if (!this.metrics.has(testName)) {
-      this.metrics.set(testName, []);
-    }
-    this.metrics.get(testName)!.push(duration);
-  }
-  
-  detectRegressions(): Array<{ testName: string; regression: number }> {
-    const regressions = [];
-    
-    for (const [testName, durations] of this.metrics) {
-      if (durations.length < 5) continue; // Need history
-      
-      const recent = durations.slice(-3).reduce((a, b) => a + b, 0) / 3;
-      const baseline = durations.slice(0, -3).reduce((a, b) => a + b, 0) / (durations.length - 3);
-      
-      if (recent > baseline * 1.5) { // 50% slower
-        regressions.push({
-          testName,
-          regression: (recent - baseline) / baseline
-        });
-      }
-    }
-    
-    return regressions;
-  }
-}
-```
-
-## 14. Maintenance & Best Practices
-
-### 14.1 Test Maintenance Guidelines
-
-#### Regular Review Cycles
-- **Weekly**: Review failing tests and flaky test reports
-- **Monthly**: Update test data and mock responses
-- **Quarterly**: Review test architecture and coverage goals
-
-#### Test Debt Management
-```typescript
-// Mark tests that need attention
-describe.skip('Legacy API Tests', () => {
-  // TODO: Update after API refactor
-  // DEBT: These tests use deprecated mock library
-  // OWNER: @backend-team
-});
-```
-
-#### Dependency Updates
-```bash
-# Update testing dependencies quarterly
-npm update jest @testing-library/react @testing-library/jest-dom
-npm update playwright cypress supertest
-
-# Check for security vulnerabilities
-npm audit
-```
-
-### 14.2 Common Anti-Patterns to Avoid
-
-#### ❌ Don't Test Implementation Details
-```typescript
-// Bad: Testing internal state
-expect(component.state.isLoading).toBe(true);
-
-// Good: Testing behavior
-expect(screen.getByText('Loading...')).toBeInTheDocument();
-```
-
-#### ❌ Don't Use Production Dependencies in Tests
-```typescript
-// Bad: Using real external services
-const plexClient = new PlexClient('https://my-plex-server.com');
-
-// Good: Using mocks
-const mockPlexClient = createMockPlexClient();
-```
-
-#### ❌ Don't Write Overly Complex Tests
-```typescript
-// Bad: Testing multiple concerns
-it('should handle complex user workflow', async () => {
-  // 100 lines of test code testing everything
-});
-
-// Good: Focused, single-concern tests
-it('should create user account', async () => { /* ... */ });
-it('should send welcome email', async () => { /* ... */ });
-it('should redirect to dashboard', async () => { /* ... */ });
-```
-
-### 14.3 Performance Optimization
-
-#### Test Execution Optimization
-```typescript
-// jest.config.js
-module.exports = {
-  // Run tests in parallel
-  maxWorkers: '50%',
-  
-  // Cache test results
-  cache: true,
-  cacheDirectory: './node_modules/.cache/jest',
-  
-  // Only test changed files in watch mode
-  watchman: true,
-  
-  // Optimize test discovery
-  testPathIgnorePatterns: ['/node_modules/', '/build/']
 };
 ```
 
-#### Mock Optimization
-```typescript
-// Reuse expensive mocks
-const mockPlexClient = jest.fn();
-beforeAll(() => {
-  mockPlexClient.mockImplementation(() => ({
-    getLibraries: jest.fn().mockResolvedValue(mockLibraries),
-    searchMedia: jest.fn().mockResolvedValue(mockSearchResults)
-  }));
-});
+### 7.2 What to Test Checklist
+
+✅ **Must Test:**
+- Plex OAuth flow (critical path)
+- User data isolation (security)
+- Rate limiting (prevent abuse)
+- Service unavailability handling
+- Basic API authentication
+
+❌ **Skip Testing:**
+- UI component props/state
+- Simple CRUD operations
+- Third-party library internals
+- CSS/styling
+- Performance under extreme load
+
+### 7.3 Test Maintenance
+
+1. **Fix or Delete**: Flaky tests get one chance to be fixed, then deleted
+2. **Review Quarterly**: Remove obsolete tests
+3. **Document Weird Tests**: If a test is non-obvious, add a comment explaining why
+4. **Keep It Fast**: If total suite > 5 minutes, remove low-value tests
+
+### 7.4 Coverage Guidelines (Realistic Goals)
+
+**Target Coverage: 60-70% overall**
+
+Prioritize coverage where it matters:
+- Authentication/Security: 80%
+- Business Logic: 70%
+- API Routes: 60%
+- UI Components: 40-50%
+
+```javascript
+// jest.config.js - Simple configuration
+module.exports = {
+  testEnvironment: 'node',
+  coverageDirectory: 'coverage',
+  collectCoverageFrom: [
+    'src/**/*.{js,ts}',
+    '!src/**/*.test.{js,ts}',
+    '!src/types/**'
+  ],
+  // No hard thresholds - use as guidance only
+  coverageReporters: ['text', 'html']
+};
 ```
 
-### 14.4 Documentation Standards
+## Example Test Structure
 
-#### Test Documentation Template
-```typescript
-/**
- * @fileoverview Tests for MediaService
- * @description Validates media request functionality including:
- * - Plex integration for existing content checks
- * - Overseerr integration for new requests
- * - Rate limiting enforcement
- * - Error handling and fallbacks
- * 
- * @requires Plex server mock
- * @requires Overseerr API mock
- * @requires Redis for rate limiting
- * 
- * @author Backend Team
- * @since 1.0.0
- */
+```
+tests/
+├── unit/
+│   ├── services/          # Business logic tests
+│   └── utils/             # Utility function tests
+├── integration/
+│   ├── api/               # API endpoint tests
+│   └── external/          # External service mocks
+├── e2e/
+│   ├── auth.spec.ts       # Auth flow
+│   └── media-request.spec.ts  # Request flow
+└── helpers/
+    ├── setup.ts           # Test setup
+    └── mocks.ts           # Shared mocks
 ```
 
-#### Test Case Documentation
-```typescript
-describe('MediaService', () => {
-  /**
-   * Tests the primary use case where a user requests media
-   * that doesn't exist in their Plex library.
-   * 
-   * Preconditions:
-   * - User is authenticated
-   * - Media is not in Plex library
-   * - Overseerr is available
-   * - User hasn't exceeded rate limits
-   * 
-   * Expected outcomes:
-   * - Request submitted to Overseerr
-   * - Database record created
-   * - User receives confirmation
-   */
-  it('submits request for unavailable media', async () => {
-    // Test implementation
-  });
-});
-```
+## Summary
+
+This simplified test architecture is designed specifically for MediaNest's scale (10-20 users). It prioritizes:
+
+1. **Practical Testing**: Focus on what can break, not arbitrary coverage
+2. **Simple Tools**: Jest, Supertest, and basic mocks - no complex frameworks
+3. **Fast Execution**: Under 5 minutes for everything
+4. **Easy Maintenance**: If a test is hard to maintain, delete it
+
+Remember: For a small application, a few well-written tests covering critical paths are worth more than thousands of tests covering every edge case.
+
+**Key Takeaway**: Test the Plex OAuth flow thoroughly, ensure services fail gracefully, verify rate limiting works, and call it done. Everything else is optional.
 
 ---
 
-## Conclusion
-
-This test architecture provides comprehensive coverage for MediaNest's complex technology stack, ensuring reliability, security, and performance at scale. The multi-layered approach combines unit testing for fast feedback, integration testing for service interactions, and end-to-end testing for user workflows.
-
-Key success factors:
-- **Fast feedback loops** with sub-30-second unit test execution
-- **Reliable external service mocking** preventing flaky tests
-- **Comprehensive security testing** for authentication and authorization
-- **Performance monitoring** to catch regressions early
-- **Automated CI/CD integration** for continuous quality assurance
-
-This architecture supports MediaNest's goal of providing a reliable, secure media management platform while maintaining developer productivity and code quality standards.
-
-**Document Version**: 1.0  
-**Next Review**: February 2025  
-**Maintainers**: Development Team
+**Document Version**: 2.0 (Simplified)  
+**Review Schedule**: When something breaks  
+**Maintenance**: Keep it simple

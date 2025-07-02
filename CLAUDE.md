@@ -144,37 +144,41 @@ class ServiceClient {
 - Graceful degradation when services unavailable
 - Structured logging with correlation IDs
 
-## Testing Strategy
+## Testing Strategy (Simplified for 10-20 Users)
 
-### IMPORTANT: All tests MUST follow the principles outlined in test_architecture.md
+### Focus on What Matters
+- Test critical paths: Plex OAuth, media requests, service status
+- Use simple tools: Jest, Supertest, basic mocks
+- Target 60-70% coverage overall (80% for auth/security)
+- Total test suite runs in <5 minutes
 
-- Unit tests for business logic (70% of tests)
-- Integration tests for API endpoints (25% of tests)
-- E2E tests for critical user flows (5% of tests)
-- Mock external services in tests
-- Minimum 80% code coverage target (95% for critical paths)
+### Priority Testing Areas
+1. **Plex Authentication**: PIN flow, user creation, token validation
+2. **Media Requests**: API endpoints, Overseerr integration
+3. **Service Monitoring**: Uptime Kuma status, graceful degradation
+4. **Rate Limiting**: Verify limits work (100/min API, 5/hr YouTube)
+5. **User Isolation**: Ensure users can't see each other's data
 
-### Test Implementation Requirements
-When creating tests, ALWAYS follow these principles from test_architecture.md:
+### What NOT to Test
+- UI component internals
+- Simple CRUD operations
+- Third-party library behavior
+- Edge cases that won't happen with 20 users
+- Performance under extreme load
 
-1. **Test Structure**: Use AAA pattern (Arrange, Act, Assert)
-2. **Naming**: Follow conventions - unit: `*.test.ts`, integration: `*.integration.test.ts`, E2E: `*.spec.ts`
-3. **Isolation**: Each test must run independently with no shared state
-4. **Mocking**: Use dependency injection and mock external services
-5. **Performance**: Unit tests must complete in <30 seconds total
-6. **Security**: Include authentication/authorization tests for all protected endpoints
-7. **Error Cases**: Test both success and failure scenarios
-8. **Database Testing**: Use Testcontainers for PostgreSQL/Redis
-9. **WebSocket Testing**: Test real-time features with Socket.io client
-10. **External APIs**: Mock Plex, Overseerr, and Uptime Kuma responses
+### Simple Test Structure
+```
+tests/
+├── unit/          # Business logic only
+├── integration/   # API endpoints + external services
+└── e2e/           # 2-3 critical user flows
+```
 
-### Test Quality Standards
-- No flaky tests (failure rate must be <2%)
-- Use custom matchers for API responses and JWT validation
-- Include performance assertions where relevant
-- Document complex test scenarios
-- Group related tests logically
-- Clean up all test data after execution
+### Key Principles
+- If a test is flaky, fix it immediately or delete it
+- Mock external services with simple stubs (no Pact/WireMock)
+- Use built-in Jest features, avoid complex frameworks
+- Document only non-obvious test scenarios
 
 # important-instruction-reminders
 Do what has been asked; nothing more, nothing less.
