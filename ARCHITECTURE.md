@@ -385,55 +385,18 @@ PUT    /api/admin/config    # Update system settings
 
 ### 6.3 Error Handling Best Practices
 
-#### User-Facing Error Messages
-```typescript
-// Generic user-friendly messages
-const USER_ERRORS = {
-  RATE_LIMIT: "Too many requests. Please try again later.",
-  SERVICE_UNAVAILABLE: "This service is temporarily unavailable.",
-  PERMISSION_DENIED: "You don't have permission to perform this action.",
-  INVALID_REQUEST: "Invalid request. Please check your input.",
-  NOT_FOUND: "The requested resource was not found.",
-  INTERNAL_ERROR: "Something went wrong. Please try again."
-};
-```
+For comprehensive error handling implementation, see `/docs/ERROR_HANDLING_LOGGING_STRATEGY.md`.
 
-#### Internal Error Logging
-```typescript
-// Detailed internal logging
-logger.error({
-  timestamp: new Date().toISOString(),
-  userId: req.user?.id,
-  endpoint: req.path,
-  method: req.method,
-  error: {
-    message: error.message,
-    stack: error.stack,
-    code: error.code,
-    details: error.details
-  },
-  request: {
-    headers: sanitizeHeaders(req.headers),
-    body: sanitizeBody(req.body)
-  }
-});
-```
+#### Key Principles
+- **User-friendly error messages**: Clear, actionable feedback without technical jargon
+- **Correlation ID tracking**: Trace requests across services and logs
+- **Circuit breakers**: Prevent cascading failures from external services
+- **Graceful degradation**: Maintain core functionality when services fail
 
 #### Error Response Strategy
-1. **Client Errors (4xx)**
-   - Return clear, actionable messages
-   - Include error code for client handling
-   - Avoid exposing internal details
-
-2. **Server Errors (5xx)**
-   - Log full details internally
-   - Return generic message to user
-   - Include request ID for support
-
-3. **External Service Errors**
-   - Implement circuit breakers
-   - Provide fallback responses
-   - Cache last known good state
+1. **Client Errors (4xx)**: Clear, actionable messages with error codes
+2. **Server Errors (5xx)**: Generic user messages, detailed internal logging
+3. **External Service Errors**: Circuit breakers with fallback responses
 
 ## 7. Security Architecture
 
@@ -921,24 +884,19 @@ While designed for 10-20 users, the architecture supports growth:
 
 ### 11.1 Logging Strategy
 
-```
-# Log Levels
+For detailed logging implementation and configuration, see `/docs/ERROR_HANDLING_LOGGING_STRATEGY.md`.
+
+#### Key Components
+- **Winston logger**: Multiple transports (Console, File, DailyRotate)
+- **Structured JSON logging**: Machine-parsable format for analysis
+- **Correlation ID propagation**: Track requests across services
+- **Log retention**: 30-day retention with automated cleanup
+
+#### Log Levels
 - ERROR: System errors, failed integrations
-- WARN: Rate limit violations, service degradation
+- WARN: Rate limit violations, service degradation  
 - INFO: User actions, successful operations
 - DEBUG: Detailed execution flow (dev only)
-
-# Log Format
-{
-  "timestamp": "2025-01-15T10:30:00Z",
-  "level": "INFO",
-  "service": "api",
-  "userId": "uuid",
-  "action": "media.request",
-  "details": {},
-  "duration": 145
-}
-```
 
 ### 11.2 Metrics & Monitoring
 
@@ -1048,7 +1006,13 @@ See `/docs/DEVELOPMENT.md` for local setup instructions.
 
 See `/docs/API.md` for detailed API specifications.
 
-### D. Security Checklist
+### D. Implementation Strategies
+
+- `/docs/ERROR_HANDLING_LOGGING_STRATEGY.md` - Error handling and logging implementation
+- `/docs/future/SECURITY_STRATEGY.md` - Security implementation details (coming soon)
+- `/docs/future/PERFORMANCE_STRATEGY.md` - Performance optimization guide (coming soon)
+
+### E. Security Checklist
 
 - [ ] All containers run as non-root users
 - [ ] Secrets stored in Docker secrets, not environment variables
