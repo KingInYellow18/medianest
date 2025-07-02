@@ -59,9 +59,9 @@ Instead of rigid percentages, we test based on risk and value:
 
 | Test Type | Purpose | Tools | When to Use |
 |-----------|---------|-------|-------------|
-| Unit Tests | Business logic, utilities | Jest | Complex logic, calculations |
+| Unit Tests | Business logic, utilities | Vitest | Complex logic, calculations |
 | API Tests | Endpoint validation | Supertest | All API routes |
-| Integration Tests | External services | Nock/MSW | Service integrations |
+| Integration Tests | External services | MSW (Mock Service Worker) | Service integrations |
 | E2E Tests | Critical user flows | Playwright | 2-3 key workflows only |
 
 ### 3.2 What We're NOT Doing
