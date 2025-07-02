@@ -1,0 +1,472 @@
+# MediaNest Product Requirements Document (PRD)
+
+**Version:** 1.0  
+**Date:** January 2025  
+**Status:** Final Draft
+
+## 1.0 Introduction & Vision
+
+### 1.1 Project Overview
+
+MediaNest is a unified web portal designed to consolidate multiple media management tools and services into a single, authenticated interface for Plex server users. The platform serves as a centralized hub where invited friends and family can request new content, monitor service status, manage YouTube playlist downloads, browse existing media, and access documentation—all through one seamless login experience.
+
+The system addresses the fragmentation problem where users currently need to navigate between multiple applications (Overseerr, Uptime Kuma, YouTube download scripts, and various documentation pages) with different authentication requirements. MediaNest eliminates this friction by providing a cohesive, modern interface that simplifies media management tasks for casual users.
+
+### 1.2 Goals & Objectives
+
+**Primary Goals:**
+- **Unify Access**: Provide single sign-on (SSO) functionality for all media-related services
+- **Simplify User Experience**: Create an intuitive interface that requires minimal technical knowledge
+- **Centralize Management**: Consolidate media requests, service monitoring, and content management
+- **Reduce Friction**: Eliminate the need for users to remember multiple URLs and credentials
+
+**Key Objectives:**
+- Reduce time spent navigating between services by 80%
+- Decrease new user onboarding time from 30+ minutes to under 5 minutes
+- Provide real-time service status visibility to prevent confusion
+- Enable seamless media request workflows without technical barriers
+
+**Success Metrics (KPIs):**
+- User session duration: Target 5-10 minutes (efficient task completion)
+- Request-to-availability time: < 24 hours for 90% of requests
+- System uptime: 99.9% excluding planned maintenance
+- User satisfaction score: > 4.5/5.0
+
+### 1.3 Target Audience & User Personas
+
+**Primary Audience**: Friends and family members with Plex server access (approximately 10-20 users)
+
+**User Personas:**
+
+1. **The Casual Viewer (70% of users)**
+   - Technical Proficiency: Low to Medium
+   - Primary Goals: Watch content, request new shows/movies
+   - Pain Points: Confused by multiple tools, forgets URLs, frustrated by downtime
+
+2. **The Content Curator (20% of users)**
+   - Technical Proficiency: Medium
+   - Primary Goals: Manage YouTube playlists, organize collections, request specific content
+   - Pain Points: Manual playlist management, scattered tools
+
+3. **The Administrator (10% of users)**
+   - Technical Proficiency: High
+   - Primary Goals: User management, system configuration, monitoring
+   - Pain Points: Lack of centralized control, manual user provisioning
+
+## 2.0 Functional Requirements
+
+### 2.1 Core Features
+
+1. **Authentication & User Management**
+   - Single sign-on system with secure credential storage
+   - Role-based access control (User/Admin)
+   - User registration and profile management
+
+2. **Service Integration Dashboard**
+   - Real-time service status monitoring via Uptime Kuma API
+   - Visual indicators for service health
+   - Quick access to integrated services
+
+3. **Media Request System**
+   - Overseerr API integration for content requests
+   - Request tracking and status updates
+   - Personal request queue visibility
+
+4. **Plex Library Browser**
+   - Browse existing media content
+   - View collections and metadata
+   - Search functionality across libraries
+
+5. **YouTube Playlist Manager**
+   - Playlist URL submission interface
+   - Download status tracking
+   - Automatic Plex collection creation
+
+6. **Documentation Hub**
+   - User guides and tutorials
+   - Quick links to external services
+   - FAQ section
+
+### 2.2 Detailed Feature Breakdown
+
+#### Authentication Module
+- **US-001**: As a new user, I want to authenticate via Plex OAuth so that I can access MediaNest with my existing Plex credentials
+- **US-002**: As a registered user, I want to log in with Plex OAuth so that I can access my personalized dashboard
+- **US-003**: As the system administrator, I want to log in with admin/admin on first container startup so that I can configure the system
+- **US-004**: As an admin, I want to manage user accounts so that I can control access to the system
+
+#### Dashboard Module
+- **US-005**: As a user, I want to see all service statuses at a glance so that I know what's available
+- **US-006**: As a user, I want to receive notifications when services go down so that I'm aware of issues
+- **US-007**: As a user, I want quick access buttons to all integrated services so that I can navigate efficiently
+- **US-008**: As a user, I want unavailable services to be visually greyed out so that I know they're temporarily inaccessible
+
+#### Media Request Module
+- **US-009**: As a user, I want to search for movies and TV shows so that I can check availability
+- **US-010**: As a user, I want to request unavailable content so that it can be added to Plex
+- **US-011**: As a user, I want to track my request status so that I know when content is available
+- **US-012**: As a user, I want to see my request history so that I can avoid duplicate requests
+
+#### Plex Browser Module
+- **US-013**: As a user, I want to browse the Plex library so that I can see available content
+- **US-014**: As a user, I want to search for specific titles so that I can quickly find content
+- **US-015**: As a user, I want to view collections so that I can explore curated content
+
+#### YouTube Manager Module
+- **US-016**: As a user, I want to submit YouTube playlist URLs so that they can be downloaded
+- **US-017**: As a user, I want to see download progress so that I know when content is ready
+- **US-018**: As a user, I want downloaded playlists to appear as Plex collections so that they're organized
+- **US-019**: As a user, I want to manage my YouTube downloads so that I can remove old content
+- **US-020**: As a user, I want rate-limited downloads so that the system remains stable for all users
+
+#### Documentation Module
+- **US-021**: As a new user, I want to access a step-by-step guide so that I can learn the system
+- **US-022**: As a user, I want quick links to related services so that I can access them easily
+- **US-023**: As a user, I want to read FAQs so that I can troubleshoot common issues
+
+### 2.3 Data Requirements
+
+**User Data:**
+- User ID (UUID)
+- Plex username (from OAuth)
+- Plex user ID (from OAuth)
+- Email address (from Plex OAuth)
+- Role (enum: user, admin)
+- Created timestamp
+- Last login timestamp
+- Account status (active/suspended)
+- Plex auth token (encrypted)
+
+**Media Request Data:**
+- Request ID (UUID)
+- User ID (foreign key)
+- Title (string)
+- Media type (movie/tv)
+- TMDB/IMDB ID
+- Request status (pending/approved/available/failed)
+- Request timestamp
+- Completion timestamp
+- Overseerr request ID
+
+**YouTube Download Data:**
+- Download ID (UUID)
+- User ID (foreign key)
+- Playlist URL
+- Playlist title
+- Download status (queued/downloading/completed/failed)
+- File paths (array)
+- Plex collection ID
+- Created timestamp
+- Completed timestamp
+
+**Service Status Data:**
+- Service ID
+- Service name
+- Status (up/down/degraded)
+- Response time
+- Last check timestamp
+- Uptime percentage
+
+**System Configuration:**
+- API endpoints
+- Authentication secrets
+- Service integration settings
+- Feature toggles
+
+**Data Relationships:**
+- Users → Media Requests (1:N)
+- Users → YouTube Downloads (1:N)
+- YouTube Downloads → Files (1:N)
+- Media Requests → Status Updates (1:N)
+- Services → Status History (1:N)
+
+## 3.0 Non-Functional Requirements
+
+### 3.1 User Interface (UI) & User Experience (UX)
+
+**Visual Design:**
+- Modern, minimalist aesthetic similar to Overseerr and Plex
+- Dark mode as default with light mode option
+- Responsive design supporting 320px to 4K displays
+- Clean typography using system fonts
+- Subtle animations for state transitions
+
+**Navigation:**
+- Persistent sidebar navigation on desktop
+- Bottom navigation bar on mobile
+- Breadcrumb trails for deep navigation
+- Search bar accessible from all pages
+
+**Performance:**
+- Page load time < 2 seconds on 3G connection
+- Smooth scrolling and transitions (60fps)
+- Lazy loading for media images
+- Progressive web app capabilities
+
+### 3.2 Platform & Environment
+
+**Browser Support:**
+- Chrome/Edge (latest 2 versions)
+- Safari (latest 2 versions)
+- Firefox (latest 2 versions)
+- Mobile Safari (iOS 14+)
+- Chrome Mobile (Android 8+)
+
+**Hosting Requirements:**
+- Docker container deployment preferred
+- Support for environment variable configuration
+- Reverse proxy compatible (nginx/Traefik)
+- SSL/TLS encryption required
+
+**Deployment Architecture:**
+- Frontend: Static files served via CDN or nginx
+- Backend: RESTful API server (containerized)
+- Database: PostgreSQL or MySQL (containerized)
+- Cache: Redis for session management
+- Queue: Background job processor for downloads
+
+**Scalability:**
+- Support 50 concurrent users
+- Handle 1000 requests per minute
+- Database capable of 100,000+ records
+
+### 3.3 Constraints & Business Rules
+
+**Authentication Rules:**
+- All features require authentication (no anonymous access)
+- Sessions expire after 30 days of inactivity
+- Failed login attempts limited to 5 per hour
+- Password requirements: minimum 8 characters
+
+**Access Control:**
+- Regular users can only view/modify their own data
+- Admin functions restricted to admin role
+- API rate limiting: 100 requests per minute per user
+
+**Data Privacy:**
+- User passwords never stored in plain text
+- Personal data not exposed in logs
+- GDPR-compliant data handling
+- User data deletion on account removal
+
+### 3.4 Security & Privacy Considerations
+
+**Security Measures:**
+- HTTPS enforcement for all connections
+- CSRF protection on all forms
+- SQL injection prevention
+- XSS protection through input sanitization
+- Secure session management
+- API authentication using JWT tokens
+
+**Privacy Protection:**
+- No tracking cookies or analytics
+- Minimal data collection policy
+- User consent for data processing
+- Encrypted storage for sensitive data
+- Audit logging for admin actions
+
+### 3.5 API Integration Specifications
+
+**Plex API:**
+- Endpoints: /library/sections, /library/metadata
+- Authentication: X-Plex-Token header
+- Rate limits: Respect Plex server limits
+
+**Overseerr API:**
+- Endpoints: /api/v1/request, /api/v1/search
+- Authentication: API key in header
+- Webhook support for status updates
+
+**Uptime Kuma API:**
+- Endpoints: /api/status-page, /api/monitor
+- Real-time updates via WebSocket
+- Fallback to polling every 60 seconds
+
+**YouTube Download Integration:**
+- Command-line interface wrapper
+- Queue management system
+- Progress tracking via stdout parsing
+
+## 4.0 Success Criteria & Acceptance Criteria
+
+### 4.1 Feature-Specific Acceptance Criteria
+
+**Media Request Flow:**
+1. User logs in successfully
+2. User searches for "The Matrix"
+3. If not in Plex, "Request" button appears
+4. User clicks request, confirmation modal appears
+5. Request submitted to Overseerr via API
+6. User sees request in personal queue with "Pending" status
+7. When approved, status updates to "Processing"
+8. When available, status shows "Available in Plex"
+
+**Service Status Dashboard:**
+1. Dashboard loads within 2 seconds
+2. All monitored services display current status
+3. Green = Up, Red = Down, Yellow = Degraded
+4. Status updates every 60 seconds automatically
+5. Click on service opens details modal
+6. Uptime percentage displayed for last 24h/7d/30d
+
+**YouTube Playlist Management:**
+1. User pastes valid YouTube playlist URL
+2. System validates URL format
+3. "Download" button triggers background job
+4. Progress bar shows download status
+5. Upon completion, notification appears
+6. New collection visible in Plex within 5 minutes
+7. Collection contains all downloaded videos
+
+### 4.2 Performance Criteria
+
+- Authentication response time < 500ms
+- API response time < 1 second for 95% of requests
+- Database queries optimized to < 100ms
+- Zero downtime deployments
+- 99.9% uptime excluding planned maintenance
+
+### 4.3 Usability Criteria
+
+- New user can complete registration in < 2 minutes
+- First-time user can request media within 3 clicks
+- Mobile users can access all features without horizontal scrolling
+- Error messages provide clear remediation steps
+- Help documentation accessible within 2 clicks
+
+## 5.0 Future Considerations / Roadmap
+
+### 5.1 Phase 2 Enhancements (3-6 months)
+
+1. **Push Notifications**
+   - Real-time updates for request status changes
+   - Service downtime alerts
+   - New content notifications
+
+2. **Analytics Dashboard**
+   - Most requested content
+   - User activity metrics
+   - Service reliability trends
+   - Storage usage statistics
+
+3. **Advanced Search**
+   - Filter by genre, year, rating
+   - Recommendation engine
+   - Trending content display
+
+### 5.2 Phase 3 Enhancements (6-12 months)
+
+1. **Direct Download Integration**
+   - Torrent client integration
+   - Download queue management
+   - Bandwidth scheduling
+
+2. **Automated Workflows**
+   - Auto-approval for trusted users
+   - Smart collection creation
+   - Duplicate detection
+
+3. **Enhanced Media Management**
+   - Transcoding options
+   - Subtitle management
+   - Metadata editing
+
+### 5.3 Long-term Vision (12+ months)
+
+1. **Cloud Backup Integration**
+   - Automated backup scheduling
+   - Cloud storage provider integration
+   - Disaster recovery features
+
+2. **AI-Powered Features**
+   - Content recommendations
+   - Automatic tagging
+   - Smart playlist generation
+
+3. **Multi-Server Support**
+   - Federated authentication
+   - Cross-server search
+   - Load balancing
+
+## 6.0 Assumptions & Open Questions
+
+### 6.1 Technical Assumptions
+
+1. Plex server API remains stable and accessible
+2. Overseerr API supports all required operations
+3. Uptime Kuma provides webhook/API access
+4. YouTube download tools remain functional
+5. Users have modern browsers with JavaScript enabled
+
+### 6.2 Business Assumptions
+
+1. User base remains under 50 active users
+2. Storage capacity exists for YouTube downloads
+3. Internet bandwidth sufficient for streaming
+4. Legal compliance for personal media server
+5. No commercial use of the platform
+
+### 6.3 Open Questions
+
+1. **Authentication Method**: Should we implement OAuth2 for future service integrations?
+2. **Data Retention**: How long should request history and logs be retained?
+3. **Localization**: Is multi-language support needed for the user base?
+4. **Mobile App**: Is a native mobile app preferred over responsive web?
+5. **Backup Strategy**: What's the preferred backup solution and frequency?
+6. **Migration Path**: How to migrate existing Overseerr users and data?
+7. **Performance Monitoring**: Which APM tool should be integrated?
+8. **YouTube Tools**: Which specific YouTube download tool to integrate (yt-dlp, youtube-dl)?
+9. **Notification Delivery**: Email, push notifications, or both?
+10. **Rate Limiting**: Specific limits for YouTube downloads to prevent abuse?
+
+## 7.0 Out of Scope
+
+The following features and functionalities are explicitly **NOT** part of the current project scope:
+
+### 7.1 Content Management
+- Direct media file uploads
+- Video editing or transcoding interface
+- Torrent/NZB search integration
+- Automated content acquisition
+- DRM removal tools
+
+### 7.2 Advanced Features
+- Multi-language subtitle generation
+- Live TV streaming integration
+- Gaming server integration
+- E-book reader interface
+- Music streaming features
+
+### 7.3 Administrative Tools
+- Server hardware monitoring
+- Network diagnostics
+- Automated server maintenance
+- Direct Plex server configuration
+- System-level user management
+
+### 7.4 Social Features
+- User forums or chat
+- Content ratings and reviews
+- Social media sharing
+- Watch parties
+- User-generated playlists
+
+### 7.5 Commercial Features
+- Payment processing
+- Subscription management
+- Advertisement integration
+- Usage-based billing
+- Reseller capabilities
+
+---
+
+*This PRD represents the complete functional and technical requirements for MediaNest v1.0. Regular reviews and updates should be conducted as the project progresses and new requirements emerge.*
+
+**Document History:**
+- v1.0 - Initial Release - January 2025
+
+**Approval:**
+- Product Owner: _____________ Date: _______
+- Technical Lead: _____________ Date: _______
+- UX Lead: _____________ Date: _______
