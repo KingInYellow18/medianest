@@ -154,10 +154,11 @@ The system addresses the fragmentation problem where users currently need to nav
 - Playlist URL
 - Playlist title
 - Download status (queued/downloading/completed/failed)
-- File paths (array)
+- File paths (array, stored in /youtube directory)
 - Plex collection ID
 - Created timestamp
 - Completed timestamp
+- Rate limit counter (requests per hour)
 
 **Service Status Data:**
 - Service ID
@@ -168,10 +169,13 @@ The system addresses the fragmentation problem where users currently need to nav
 - Uptime percentage
 
 **System Configuration:**
-- API endpoints
-- Authentication secrets
+- API endpoints (Plex, Overseerr, Uptime Kuma)
+- Authentication secrets (stored in .env initially, Docker secrets future)
 - Service integration settings
 - Feature toggles
+- Rate limiting rules (per-user, per-endpoint)
+- YouTube download path (/youtube, Docker volume mount)
+- Admin bootstrap credentials (admin/admin on first run)
 
 **Data Relationships:**
 - Users → Media Requests (1:N)
@@ -182,7 +186,30 @@ The system addresses the fragmentation problem where users currently need to nav
 
 ## 3.0 Non-Functional Requirements
 
-### 3.1 User Interface (UI) & User Experience (UX)
+### 3.1 Technology Stack
+
+**Frontend:**
+- Framework: Next.js 14+ (React-based)
+- Authentication: NextAuth.js with Plex OAuth provider
+- Real-time: Socket.io client for status updates
+- UI Components: Tailwind CSS for styling
+- State Management: React Query for API data
+
+**Backend:**
+- Runtime: Node.js with Express.js
+- API: RESTful endpoints with JWT authentication
+- Real-time: Socket.io server for Uptime Kuma integration
+- Queue: Bull for YouTube download job processing
+- ORM: Prisma for PostgreSQL
+
+**Infrastructure:**
+- Database: PostgreSQL (primary data storage)
+- Cache: Redis (sessions, rate limiting, job queues)
+- Container: Docker with Docker Compose
+- Architecture: Monolithic (suitable for 10-20 users)
+- Environment: .env files (future: Docker secrets)
+
+### 3.2 User Interface (UI) & User Experience (UX)
 
 **Visual Design:**
 - Modern, minimalist aesthetic similar to Overseerr and Plex
@@ -219,11 +246,12 @@ The system addresses the fragmentation problem where users currently need to nav
 - SSL/TLS encryption required
 
 **Deployment Architecture:**
-- Frontend: Static files served via CDN or nginx
-- Backend: RESTful API server (containerized)
-- Database: PostgreSQL or MySQL (containerized)
-- Cache: Redis for session management
-- Queue: Background job processor for downloads
+- Frontend: Next.js application (containerized)
+- Backend: Node.js/Express API server (containerized)
+- Database: PostgreSQL (containerized)
+- Cache: Redis for session management and rate limiting
+- Queue: Bull queue (Redis-backed) for YouTube downloads
+- Real-time: Socket.io for Uptime Kuma integration
 
 **Scalability:**
 - Support 50 concurrent users
@@ -234,14 +262,19 @@ The system addresses the fragmentation problem where users currently need to nav
 
 **Authentication Rules:**
 - All features require authentication (no anonymous access)
+- Primary authentication via Plex OAuth
+- Admin bootstrap: admin/admin on first container startup only
 - Sessions expire after 30 days of inactivity
-- Failed login attempts limited to 5 per hour
-- Password requirements: minimum 8 characters
+- Plex token refresh handled automatically
 
 **Access Control:**
 - Regular users can only view/modify their own data
 - Admin functions restricted to admin role
-- API rate limiting: 100 requests per minute per user
+- API rate limiting (Redis-based):
+  - General API: 100 requests per minute per user
+  - YouTube downloads: 5 downloads per hour per user
+  - Media requests: 20 per hour per user
+  - Failed requests return 429 with Retry-After header
 
 **Data Privacy:**
 - User passwords never stored in plain text
@@ -254,10 +287,12 @@ The system addresses the fragmentation problem where users currently need to nav
 **Security Measures:**
 - HTTPS enforcement for all connections
 - CSRF protection on all forms
-- SQL injection prevention
+- SQL injection prevention via parameterized queries
 - XSS protection through input sanitization
-- Secure session management
-- API authentication using JWT tokens
+- Secure session management with NextAuth.js
+- JWT tokens for API authentication
+- Environment variables for sensitive configuration (.env file)
+- Future: Docker secrets for production deployment
 
 **Privacy Protection:**
 - No tracking cookies or analytics
@@ -269,24 +304,29 @@ The system addresses the fragmentation problem where users currently need to nav
 ### 3.5 API Integration Specifications
 
 **Plex API:**
-- Endpoints: /library/sections, /library/metadata
-- Authentication: X-Plex-Token header
+- Endpoints: /library/sections, /library/metadata, /library/collections
+- Authentication: X-Plex-Token header (obtained via OAuth)
 - Rate limits: Respect Plex server limits
+- Used for: Library browsing, collection creation
 
 **Overseerr API:**
-- Endpoints: /api/v1/request, /api/v1/search
+- Endpoints: /api/v1/request, /api/v1/search, /api/v1/user
 - Authentication: API key in header
 - Webhook support for status updates
+- Service unavailability handling: Grey out request features
 
 **Uptime Kuma API:**
-- Endpoints: /api/status-page, /api/monitor
-- Real-time updates via WebSocket
-- Fallback to polling every 60 seconds
+- Primary: Socket.io (WebSocket) for real-time status updates
+- Secondary: REST endpoints for specific queries
+- Authentication: Token-based for both methods
+- Used for: Service health monitoring, dashboard status indicators
 
 **YouTube Download Integration:**
-- Command-line interface wrapper
-- Queue management system
-- Progress tracking via stdout parsing
+- Tool: yt-dlp (actively maintained fork)
+- Queue management: Bull queue with Redis backend
+- Progress tracking: stdout parsing and progress callbacks
+- Download path: /youtube (Docker volume mountable)
+- Rate limiting: 5 downloads per hour per user
 
 ## 4.0 Success Criteria & Acceptance Criteria
 
@@ -409,16 +449,16 @@ The system addresses the fragmentation problem where users currently need to nav
 
 ### 6.3 Open Questions
 
-1. **Authentication Method**: Should we implement OAuth2 for future service integrations?
+1. ~~**Authentication Method**: Should we implement OAuth2 for future service integrations?~~ **RESOLVED**: Using Plex OAuth as primary authentication
 2. **Data Retention**: How long should request history and logs be retained?
 3. **Localization**: Is multi-language support needed for the user base?
 4. **Mobile App**: Is a native mobile app preferred over responsive web?
 5. **Backup Strategy**: What's the preferred backup solution and frequency?
 6. **Migration Path**: How to migrate existing Overseerr users and data?
 7. **Performance Monitoring**: Which APM tool should be integrated?
-8. **YouTube Tools**: Which specific YouTube download tool to integrate (yt-dlp, youtube-dl)?
+8. ~~**YouTube Tools**: Which specific YouTube download tool to integrate (yt-dlp, youtube-dl)?~~ **RESOLVED**: Using yt-dlp
 9. **Notification Delivery**: Email, push notifications, or both?
-10. **Rate Limiting**: Specific limits for YouTube downloads to prevent abuse?
+10. ~~**Rate Limiting**: Specific limits for YouTube downloads to prevent abuse?~~ **RESOLVED**: 5 downloads per hour per user
 
 ## 7.0 Out of Scope
 
@@ -463,8 +503,24 @@ The following features and functionalities are explicitly **NOT** part of the cu
 
 *This PRD represents the complete functional and technical requirements for MediaNest v1.0. Regular reviews and updates should be conducted as the project progresses and new requirements emerge.*
 
+## 8.0 Key Technical Decisions Summary
+
+The following technical decisions have been finalized based on research and requirements analysis:
+
+1. **Authentication**: Plex OAuth for user authentication with admin bootstrap (admin/admin)
+2. **Technology Stack**: Next.js + Node.js/Express + PostgreSQL + Redis
+3. **Architecture**: Monolithic deployment with Docker Compose
+4. **Real-time Updates**: Socket.io for Uptime Kuma integration
+5. **YouTube Downloads**: yt-dlp with /youtube directory (Docker volume)
+6. **Rate Limiting**: Redis-based with per-user limits
+7. **Configuration**: Environment variables (.env) initially, Docker secrets for production
+8. **Service Handling**: Grey out unavailable features based on Uptime Kuma status
+
+---
+
 **Document History:**
 - v1.0 - Initial Release - January 2025
+- v1.1 - Updated with technical decisions and implementation details - January 2025
 
 **Approval:**
 - Product Owner: _____________ Date: _______

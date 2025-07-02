@@ -6,77 +6,148 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 MediaNest is a unified web portal for managing a Plex media server and related services. It consolidates multiple tools (Overseerr, Uptime Kuma, YouTube downloaders, etc.) into a single authenticated interface for friends and family who access the Plex server.
 
-## Key Project Goals
+## Key Architecture Decisions
 
-1. **Single Sign-On**: One login for all media-related services
-2. **Service Integration**: Combines Overseerr (media requests), Uptime Kuma (status monitoring), YouTube playlist management, and Plex library browsing
-3. **User-Friendly**: Designed for 10-20 casual users who just want to watch and manage media easily
-4. **Admin Controls**: Separate admin capabilities for user management and configuration
-
-## Core Features to Implement
-
-### User Features
-- Single authentication system
-- Dashboard with service status (Uptime Kuma integration)
-- Browse existing Plex media library
-- Request new movies/shows through Overseerr integration
-- YouTube playlist management and downloads
-- Create/update Plex collections in "YouTube" library
-- User guide and documentation access
-- Quick links to other services (Audiobookshelf, Calibre-web)
-
-### Admin Features
-- User management (create, modify, delete accounts)
-- System configuration settings
-- Service monitoring and management
-
-## Technical Architecture Considerations
-
-### Authentication & Security
-- Implement secure user authentication with hashed passwords
-- Role-based access control (regular users vs. admins)
-- All features require authentication
-- Never expose user credentials or allow anonymous access
-
-### Integrations Required
-- **Plex API**: Library browsing, collection management
-- **Overseerr API**: Media request submission and status tracking
-- **Uptime Kuma API**: Service health monitoring
-- **YouTube Download**: Playlist processing and file management
-
-### Data Models
-- Users (username, email, hashed password, role)
-- Media Requests (title, type, status, requester, date)
-- YouTube Downloads (playlist URL, file names, status)
-- Service Status (from Uptime Kuma)
-- Documentation/Links
+- **Monolithic Architecture**: Single deployable unit for 10-20 concurrent users
+- **Technology Stack**:
+  - Frontend: Next.js 14.x with React, Tailwind CSS
+  - Backend: Express API with Node.js 20.x LTS
+  - Database: PostgreSQL 15.x (primary) + Redis 7.x (cache/queue)
+  - Authentication: NextAuth.js with Plex OAuth
+  - Real-time: Socket.io for WebSocket connections
+  - Queue: Bull for background job processing
+  - Container: Docker with Docker Compose
+  - Proxy: Nginx for SSL termination
 
 ## Development Commands
 
-Since this is a new project, commands will be established as the technology stack is chosen. Future instances should check for:
-- Build commands (e.g., `npm run build`, `python setup.py`)
-- Development server (e.g., `npm run dev`, `flask run`)
-- Test commands (e.g., `npm test`, `pytest`)
-- Linting (e.g., `npm run lint`, `flake8`)
-- Type checking (e.g., `npm run typecheck`, `mypy`)
+Once the project is initialized, use these commands:
+```bash
+# Frontend development
+cd frontend && npm run dev    # Start Next.js dev server (port 3000)
+cd frontend && npm run build  # Build production frontend
+cd frontend && npm test       # Run frontend tests
+cd frontend && npm run lint   # Lint frontend code
 
-## UI/UX Guidelines
+# Backend development  
+cd backend && npm run dev     # Start Express dev server (port 4000)
+cd backend && npm run build   # Build backend
+cd backend && npm test        # Run backend tests
+cd backend && npm run lint    # Lint backend code
 
-- Modern, minimalist design similar to Overseerr and Plex
-- Responsive web interface (mobile-friendly)
-- Clear navigation and dashboard-style layout
-- Prioritize clarity and ease of use for non-technical users
+# Full stack
+docker-compose up            # Run entire stack in containers
+docker-compose down          # Stop all containers
+```
 
-## Success Criteria
+## Code Architecture
 
-1. Users can sign up, log in, and request media through a unified interface
-2. Dashboard displays real-time service status via Uptime Kuma
-3. YouTube playlists can be downloaded and organized into Plex collections
-4. All actions are properly authenticated and authorized
+### Frontend Structure (Next.js)
+```
+frontend/
+├── app/                    # Next.js 14 app directory
+│   ├── (auth)/            # Auth-protected routes
+│   ├── api/               # API route handlers
+│   └── layout.tsx         # Root layout with providers
+├── components/
+│   ├── dashboard/         # Dashboard components
+│   ├── media/             # Media browsing components
+│   └── shared/            # Reusable UI components
+├── lib/
+│   ├── api/               # API client functions
+│   ├── hooks/             # Custom React hooks
+│   └── utils/             # Helper functions
+└── services/              # External service integrations
+```
 
-## Future Enhancements (Not Initial Scope)
+### Backend Structure (Express)
+```
+backend/
+├── src/
+│   ├── controllers/       # Request handlers
+│   ├── services/          # Business logic
+│   ├── integrations/      # External API clients
+│   │   ├── plex/         # Plex API integration
+│   │   ├── overseerr/    # Overseerr API integration
+│   │   └── uptime-kuma/  # Uptime Kuma integration
+│   ├── jobs/              # Background job processors
+│   ├── middleware/        # Express middleware
+│   └── models/            # Database models
+└── config/                # Configuration files
+```
 
-- Push notifications for request updates
-- Media analytics and viewing statistics
-- Direct torrent downloader integration
-- Automated transcoding and cloud backups
+## Key Integration Points
+
+### Plex Authentication Flow
+1. User clicks "Login with Plex"
+2. Redirect to Plex OAuth with client ID
+3. Plex redirects back with auth code
+4. Exchange code for Plex token
+5. Fetch user details from Plex API
+6. Create/update local user record
+7. Issue JWT for session management
+
+### Service Integration Pattern
+```typescript
+// All external services follow this pattern:
+class ServiceClient {
+  constructor(config) {
+    this.baseURL = config.url;
+    this.apiKey = config.apiKey;
+    this.timeout = config.timeout || 5000;
+  }
+  
+  async request(endpoint, options) {
+    // Circuit breaker logic
+    // Retry logic
+    // Error mapping
+  }
+}
+```
+
+### WebSocket Events
+- `service:status` - Service health updates
+- `request:update` - Media request status changes
+- `download:progress` - YouTube download progress
+- `user:notification` - User-specific alerts
+
+## Database Schema Highlights
+
+### Core Tables
+- `users` - Plex ID, email, role, preferences
+- `media_requests` - Links to Overseerr requests
+- `youtube_downloads` - Download queue and status
+- `service_status` - Cached service health data
+- `user_sessions` - Active JWT sessions
+
+### Redis Usage
+- Session storage with 24h TTL
+- Service status cache (5min TTL)
+- Bull job queue data
+- Rate limiting counters
+
+## Security Considerations
+
+- All routes require authentication except `/api/health`
+- Plex OAuth for primary authentication
+- JWT tokens with secure httpOnly cookies
+- Rate limiting: 100 req/min per user
+- Input validation with Joi/Zod
+- SQL injection prevention via Prisma ORM
+- XSS protection via React's built-in escaping
+
+## Error Handling
+
+- User-facing errors return friendly messages
+- Internal errors logged with full stack traces
+- Circuit breakers for external services
+- Graceful degradation when services unavailable
+- Structured logging with correlation IDs
+
+## Testing Strategy
+
+- Unit tests for business logic
+- Integration tests for API endpoints
+- E2E tests for critical user flows
+- Mock external services in tests
+- Minimum 80% code coverage target
