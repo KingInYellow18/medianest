@@ -146,8 +146,38 @@ class ServiceClient {
 
 ## Testing Strategy
 
-- Unit tests for business logic
-- Integration tests for API endpoints
-- E2E tests for critical user flows
+### IMPORTANT: All tests MUST follow the principles outlined in test_architecture.md
+
+- Unit tests for business logic (70% of tests)
+- Integration tests for API endpoints (25% of tests)
+- E2E tests for critical user flows (5% of tests)
 - Mock external services in tests
-- Minimum 80% code coverage target
+- Minimum 80% code coverage target (95% for critical paths)
+
+### Test Implementation Requirements
+When creating tests, ALWAYS follow these principles from test_architecture.md:
+
+1. **Test Structure**: Use AAA pattern (Arrange, Act, Assert)
+2. **Naming**: Follow conventions - unit: `*.test.ts`, integration: `*.integration.test.ts`, E2E: `*.spec.ts`
+3. **Isolation**: Each test must run independently with no shared state
+4. **Mocking**: Use dependency injection and mock external services
+5. **Performance**: Unit tests must complete in <30 seconds total
+6. **Security**: Include authentication/authorization tests for all protected endpoints
+7. **Error Cases**: Test both success and failure scenarios
+8. **Database Testing**: Use Testcontainers for PostgreSQL/Redis
+9. **WebSocket Testing**: Test real-time features with Socket.io client
+10. **External APIs**: Mock Plex, Overseerr, and Uptime Kuma responses
+
+### Test Quality Standards
+- No flaky tests (failure rate must be <2%)
+- Use custom matchers for API responses and JWT validation
+- Include performance assertions where relevant
+- Document complex test scenarios
+- Group related tests logically
+- Clean up all test data after execution
+
+# important-instruction-reminders
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
