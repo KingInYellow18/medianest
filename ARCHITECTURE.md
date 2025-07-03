@@ -63,7 +63,7 @@ MediaNest is a unified web portal that consolidates multiple media management se
 │         │    │      Shared Services        │     │           │
 │         │    │  - Auth (NextAuth.js)       │     │           │
 │         │    │  - WebSocket (Socket.io)    │     │           │
-│         │    │  - Queue (Bull)             │     │           │
+│         │    │  - Queue (BullMQ)           │     │           │
 │         │    └────────────┬────────────────┘     │           │
 │         └─────────────────┼──────────────────────┘           │
 │                           │                                   │
@@ -94,7 +94,7 @@ MediaNest is a unified web portal that consolidates multiple media management se
 4. API requests authenticated via JWT tokens
 5. Backend processes requests and integrates with external services
 6. Real-time updates delivered via WebSocket connections
-7. Background jobs handled by Bull queue processor
+7. Background jobs handled by BullMQ processor
 
 ## 3. Architecture Principles
 
@@ -275,7 +275,7 @@ rate:api:{userId} -> counter (TTL: 60s)
 rate:youtube:{userId} -> counter (TTL: 3600s)
 rate:request:{userId} -> counter (TTL: 3600s)
 
-# Job queues (Bull)
+# Job queues (BullMQ)
 bull:youtube:waiting -> [job1, job2, ...]
 bull:youtube:active -> {jobId: data}
 bull:youtube:completed -> {jobId: result}
@@ -790,54 +790,65 @@ export function decrypt(data) {
 }
 ```
 
-### 9.5 Bull Queue Configuration
+### 9.5 BullMQ Configuration
 
 ```javascript
 // lib/queues/youtubeQueue.js
-import Queue from 'bull';
+import { Queue, Worker } from 'bullmq';
 import { spawn } from 'child_process';
 
+const connection = {
+  host: 'redis',
+  port: 6379
+};
+
 export const youtubeQueue = new Queue('youtube-downloads', {
-  redis: {
-    host: 'redis',
-    port: 6379
-  },
+  connection,
   defaultJobOptions: {
     attempts: 3,
     backoff: {
       type: 'exponential',
       delay: 3000
     },
-    removeOnComplete: 100,
-    removeOnFail: 500
+    removeOnComplete: {
+      age: 3600, // 1 hour
+      count: 100
+    },
+    removeOnFail: {
+      age: 86400 // 24 hours
+    }
   }
 });
 
-// Process jobs
-youtubeQueue.process(async (job) => {
-  const { url, userId, outputPath } = job.data;
-  
-  return new Promise((resolve, reject) => {
-    const ytdlp = spawn('yt-dlp', [
-      url,
-      '-o', `${outputPath}/${userId}/%(title)s.%(ext)s`,
-      '--newline',
-      '--no-warnings'
-    ]);
+// Worker to process jobs
+export const youtubeWorker = new Worker(
+  'youtube-downloads',
+  async (job) => {
+    const { url, userId, outputPath } = job.data;
+    
+    return new Promise((resolve, reject) => {
+      const ytdlp = spawn('yt-dlp', [
+        url,
+        '-o', `${outputPath}/${userId}/%(title)s.%(ext)s`,
+        '--newline',
+        '--no-warnings'
+      ]);
 
-    ytdlp.stdout.on('data', (data) => {
-      const match = data.toString().match(/\[download\]\s+(\d+\.\d+)%/);
-      if (match) {
-        job.progress(parseFloat(match[1]));
-      }
-    });
+      ytdlp.stdout.on('data', (data) => {
+        const match = data.toString().match(/\[download\]\s+(\d+\.\d+)%/);
+        if (match) {
+          job.updateProgress(parseFloat(match[1]));
+        }
+      });
 
-    ytdlp.on('close', (code) => {
-      if (code === 0) resolve();
-      else reject(new Error(`yt-dlp exited with code ${code}`));
+      ytdlp.on('close', (code) => {
+        if (code === 0) resolve({ success: true });
+        else reject(new Error(`yt-dlp exited with code ${code}`));
+      });
     });
-  });
-});
+  },
+  { connection }
+);
 
 ## 10. Performance & Scalability
 
@@ -994,7 +1005,7 @@ Based on architectural research, the following considerations are critical for s
 - Docker: 24.x
 - Nginx: 1.25.x
 - yt-dlp: Latest version
-- Bull: 4.x
+- BullMQ: 5.x
 - opossum: 8.x
 - Socket.io: 4.x
 

@@ -68,7 +68,7 @@ Instead of rigid percentages, we test based on risk and value:
 - Contract testing (Pact) - overkill for our scale
 - Load testing tools (k6, Artillery) - simple integration tests suffice
 - Security scanning tools (OWASP ZAP) - manual security review is enough
-- Complex mocking frameworks - use simple stubs
+- Complex mocking frameworks - MSW provides all we need
 
 ### 3.3 Simple Test Environment
 
@@ -87,88 +87,238 @@ services:
     image: redis:7-alpine
 ```
 
+### 3.4 Testing Tool Choices
+
+#### Why These Tools?
+
+1. **Vitest over Jest**
+   - Native ESM support for Next.js 14
+   - Faster execution with Vite's HMR
+   - Built-in TypeScript support
+   - Jest-compatible API for easy migration
+
+2. **MSW over Nock**
+   - Works in both Node.js and browser
+   - More realistic request interception
+   - Better TypeScript support
+   - Service Worker approach is more modern
+
+3. **BullMQ over Bull**
+   - Better TypeScript support
+   - More active maintenance
+   - Improved performance
+   - Better job flow support
+
+4. **Keeping Supertest**
+   - Still the best for Express API testing
+   - Works perfectly with Vitest
+   - Mature and well-documented
+
+5. **Keeping Testcontainers**
+   - Best solution for integration testing
+   - Real database instances
+   - Isolated test environments
+
+6. **Keeping Playwright**
+   - Excellent for E2E testing
+   - Great debugging tools
+   - Cross-browser support
+
 ## 4. Technology Stack Testing
 
-### 4.1 Frontend Testing (Next.js 14)
+### 4.1 Testing Tools Overview
+
+#### Core Testing Stack
+```json
+{
+  "devDependencies": {
+    // Testing Framework
+    "vitest": "^1.2.0",
+    "@vitest/ui": "^1.2.0",
+    "@vitest/coverage-v8": "^1.2.0",
+    
+    // Testing Utilities
+    "@testing-library/react": "^14.1.0",
+    "@testing-library/user-event": "^14.5.0",
+    "@testing-library/jest-dom": "^6.2.0",
+    
+    // API Testing
+    "supertest": "^6.3.0",
+    
+    // Mocking
+    "msw": "^2.1.0",
+    
+    // Test Containers
+    "@testcontainers/postgresql": "^10.4.0",
+    "@testcontainers/redis": "^10.4.0",
+    
+    // E2E Testing
+    "@playwright/test": "^1.41.0",
+    
+    // Queue Testing
+    "bullmq": "^5.1.0"
+  }
+}
+```
+
+#### Vitest Configuration
+```typescript
+// vitest.config.ts
+import { defineConfig } from 'vitest/config'
+import react from '@vitejs/plugin-react'
+import path from 'path'
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./tests/setup.ts'],
+    globals: true,
+    coverage: {
+      reporter: ['text', 'json', 'html'],
+      exclude: [
+        'node_modules/',
+        'tests/',
+        '**/*.d.ts',
+        '**/*.config.*',
+        '**/mockData.ts'
+      ],
+      thresholds: {
+        branches: 60,
+        functions: 60,
+        lines: 60,
+        statements: 60
+      }
+    },
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        singleThread: true
+      }
+    }
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+      '@/components': path.resolve(__dirname, './src/components'),
+      '@/lib': path.resolve(__dirname, './src/lib')
+    }
+  }
+})
+```
+
+#### Test Setup File
+```typescript
+// tests/setup.ts
+import '@testing-library/jest-dom/vitest'
+import { cleanup } from '@testing-library/react'
+import { afterEach } from 'vitest'
+
+// Cleanup after each test
+afterEach(() => {
+  cleanup()
+})
+
+// Mock window.matchMedia
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(), // deprecated
+    removeListener: vi.fn(), // deprecated
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+})
+```
+
+### 4.2 Frontend Testing (Next.js 14)
 
 #### Component Testing
 ```typescript
 // components/__tests__/Dashboard.test.tsx
-import { render, screen } from '@testing-library/react';
-import { Dashboard } from '../Dashboard';
+import { describe, it, expect, vi } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import { Dashboard } from '@/components/Dashboard'
 
 describe('Dashboard Component', () => {
   it('displays service status indicators', () => {
     const mockServices = [
       { name: 'Plex', status: 'up', uptime: 99.9 },
       { name: 'Overseerr', status: 'down', uptime: 85.2 }
-    ];
+    ]
     
-    render(<Dashboard services={mockServices} />);
+    render(<Dashboard services={mockServices} />)
     
-    expect(screen.getByText('Plex')).toBeInTheDocument();
-    expect(screen.getByRole('status')).toHaveClass('status-up');
-  });
-});
+    expect(screen.getByText('Plex')).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveClass('status-up')
+  })
+})
 ```
 
 #### Server-Side Rendering Testing
 ```typescript
-// pages/__tests__/dashboard.test.ts
-import { getServerSideProps } from '../dashboard';
+// app/__tests__/dashboard.test.ts
+import { describe, it, expect } from 'vitest'
+import { getServerSideProps } from '../dashboard'
 
 describe('Dashboard SSR', () => {
   it('fetches service status data', async () => {
-    const context = { req: {}, res: {}, query: {} };
-    const result = await getServerSideProps(context);
+    const context = { req: {}, res: {}, query: {} }
+    const result = await getServerSideProps(context)
     
-    expect(result.props.services).toBeDefined();
-    expect(result.props.services.length).toBeGreaterThan(0);
-  });
-});
+    expect(result.props.services).toBeDefined()
+    expect(result.props.services.length).toBeGreaterThan(0)
+  })
+})
 ```
 
 #### API Route Testing
 ```typescript
-// pages/api/__tests__/auth.test.ts
-import request from 'supertest';
-import { createMocks } from 'node-mocks-http';
-import handler from '../auth/session';
+// app/api/__tests__/auth.test.ts
+import { describe, it, expect } from 'vitest'
+import request from 'supertest'
+import { createMocks } from 'node-mocks-http'
+import handler from '../auth/session'
 
 describe('/api/auth/session', () => {
   it('returns user session data', async () => {
     const { req, res } = createMocks({
       method: 'GET',
       headers: { authorization: 'Bearer valid-token' }
-    });
+    })
     
-    await handler(req, res);
+    await handler(req, res)
     
-    expect(res._getStatusCode()).toBe(200);
+    expect(res._getStatusCode()).toBe(200)
     expect(JSON.parse(res._getData())).toMatchObject({
       user: { id: expect.any(String) }
-    });
-  });
-});
+    })
+  })
+})
 ```
 
-### 4.2 Backend Testing (Express)
+### 4.3 Backend Testing (Express)
 
 #### API Endpoint Testing
 ```typescript
 // backend/tests/integration/api/media.test.ts
-import request from 'supertest';
-import { app } from '../../src/app';
-import { setupTestDB, cleanupTestDB } from '../helpers/database';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import request from 'supertest'
+import { app } from '@/app'
+import { setupTestDB, cleanupTestDB } from '../helpers/database'
 
 describe('Media API', () => {
   beforeAll(async () => {
-    await setupTestDB();
-  });
+    await setupTestDB()
+  })
   
   afterAll(async () => {
-    await cleanupTestDB();
-  });
+    await cleanupTestDB()
+  })
   
   describe('POST /api/media/request', () => {
     it('creates media request with authentication', async () => {
@@ -179,55 +329,56 @@ describe('Media API', () => {
           title: 'The Matrix',
           mediaType: 'movie',
           tmdbId: '603'
-        });
+        })
       
-      expect(response.status).toBe(201);
-      expect(response.body.data.title).toBe('The Matrix');
-    });
+      expect(response.status).toBe(201)
+      expect(response.body.data.title).toBe('The Matrix')
+    })
     
     it('rejects unauthenticated requests', async () => {
       const response = await request(app)
         .post('/api/media/request')
-        .send({ title: 'Test Movie' });
+        .send({ title: 'Test Movie' })
       
-      expect(response.status).toBe(401);
-    });
-  });
-});
+      expect(response.status).toBe(401)
+    })
+  })
+})
 ```
 
 #### Service Layer Testing
 ```typescript
 // backend/tests/unit/services/authService.test.ts
-import { AuthService } from '../../src/services/authService';
-import { PlexClient } from '../../src/integrations/plex';
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { AuthService } from '@/services/authService'
+import { PlexClient } from '@/integrations/plex'
 
-jest.mock('../../src/integrations/plex');
+vi.mock('@/integrations/plex')
 
 describe('AuthService', () => {
-  let authService: AuthService;
-  let mockPlexClient: jest.Mocked<PlexClient>;
+  let authService: AuthService
+  let mockPlexClient: PlexClient
   
   beforeEach(() => {
-    mockPlexClient = new PlexClient() as jest.Mocked<PlexClient>;
-    authService = new AuthService(mockPlexClient);
-  });
+    mockPlexClient = new PlexClient()
+    authService = new AuthService(mockPlexClient)
+  })
   
   it('validates Plex token correctly', async () => {
-    mockPlexClient.validateToken.mockResolvedValue({
+    vi.spyOn(mockPlexClient, 'validateToken').mockResolvedValue({
       valid: true,
       user: { id: '123', username: 'testuser' }
-    });
+    })
     
-    const result = await authService.validatePlexToken('test-token');
+    const result = await authService.validatePlexToken('test-token')
     
-    expect(result.valid).toBe(true);
-    expect(result.user.username).toBe('testuser');
-  });
-});
+    expect(result.valid).toBe(true)
+    expect(result.user.username).toBe('testuser')
+  })
+})
 ```
 
-### 4.3 Database Testing (PostgreSQL)
+### 4.4 Database Testing (PostgreSQL)
 
 #### Repository Testing with Testcontainers
 ```typescript
@@ -288,7 +439,7 @@ describe('UserRepository', () => {
 });
 ```
 
-### 4.4 Redis Testing
+### 4.5 Redis Testing
 
 #### Cache Testing
 ```typescript
@@ -434,36 +585,110 @@ describe('Rate Limiter', () => {
    ```
 ```
 
+### 5.2 External Service Mocking with MSW
+
+#### MSW Setup
+```typescript
+// tests/mocks/server.ts
+import { setupServer } from 'msw/node'
+import { handlers } from './handlers'
+
+export const server = setupServer(...handlers)
+
+// Start server before all tests
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+
+// Reset handlers after each test
+afterEach(() => server.resetHandlers())
+
+// Clean up after all tests
+afterAll(() => server.close())
+```
+
+#### MSW Handlers
+```typescript
+// tests/mocks/handlers.ts
+import { http, HttpResponse } from 'msw'
+
+export const handlers = [
+  // Overseerr API
+  http.post('http://localhost:5055/api/v1/request', async ({ request }) => {
+    const body = await request.json()
+    return HttpResponse.json({
+      id: 123,
+      type: body.mediaType,
+      status: 'pending',
+      media: { tmdbId: body.tmdbId, title: 'The Matrix' }
+    }, { status: 201 })
+  }),
+  
+  // Plex API
+  http.get('https://plex.tv/api/v2/pins/:id', ({ params }) => {
+    return HttpResponse.json({
+      id: params.id,
+      code: 'ABCD',
+      authToken: 'plex-auth-token'
+    })
+  }),
+  
+  // Uptime Kuma
+  http.get('http://localhost:3001/api/status-page/heartbeat', () => {
+    return HttpResponse.json({
+      heartbeatList: {
+        '1': [{ status: 1, time: Date.now() }],
+        '2': [{ status: 0, time: Date.now() }]
+      }
+    })
+  })
+]
+```
+
 #### Overseerr API Testing
 ```typescript
 // backend/tests/integration/overseerr/overseerrService.test.ts
-import nock from 'nock';
-import { OverseerrService } from '../../src/services/overseerrService';
+import { describe, it, expect, beforeAll } from 'vitest'
+import { OverseerrService } from '@/services/overseerrService'
+import { server } from '../../mocks/server'
+import { http, HttpResponse } from 'msw'
 
 describe('Overseerr Service Integration', () => {
+  beforeAll(() => {
+    // Import MSW server setup
+    server.listen()
+  })
+  
   it('submits media request successfully', async () => {
-    nock('http://localhost:5055')
-      .post('/api/v1/request')
-      .reply(201, {
-        id: 123,
-        type: 'movie',
-        status: 'pending',
-        media: { tmdbId: 603, title: 'The Matrix' }
-      });
-    
-    const service = new OverseerrService('http://localhost:5055', 'api-key');
+    const service = new OverseerrService('http://localhost:5055', 'api-key')
     const request = await service.submitRequest({
       mediaType: 'movie',
       tmdbId: 603
-    });
+    })
     
-    expect(request.id).toBe(123);
-    expect(request.status).toBe('pending');
-  });
-});
+    expect(request.id).toBe(123)
+    expect(request.status).toBe('pending')
+  })
+  
+  it('handles service errors gracefully', async () => {
+    // Override handler for this test
+    server.use(
+      http.post('http://localhost:5055/api/v1/request', () => {
+        return HttpResponse.json(
+          { error: 'Service unavailable' },
+          { status: 503 }
+        )
+      })
+    )
+    
+    const service = new OverseerrService('http://localhost:5055', 'api-key')
+    await expect(service.submitRequest({
+      mediaType: 'movie',
+      tmdbId: 603
+    })).rejects.toThrow('Service unavailable')
+  })
+})
 ```
 
-### 5.2 WebSocket Testing (Socket.io)
+### 5.3 WebSocket Testing (Socket.io)
 
 ```typescript
 // frontend/tests/integration/websocket.test.ts
@@ -532,78 +757,93 @@ describe('WebSocket Integration', () => {
 });
 ```
 
-### 5.3 Background Job Testing (Bull/Redis)
+### 5.4 Background Job Testing (BullMQ/Redis)
 
 ```typescript
 // backend/tests/integration/jobs/youtubeDownload.test.ts
-import Queue from 'bull';
-import { RedisContainer } from '@testcontainers/redis';
-import { processYouTubeDownload } from '../../src/jobs/youtubeProcessor';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { Queue, Worker } from 'bullmq'
+import { RedisContainer } from '@testcontainers/redis'
+import { processYouTubeDownload } from '@/jobs/youtubeProcessor'
 
 describe('YouTube Download Jobs', () => {
-  let container: RedisContainer;
-  let queue: Queue.Queue;
+  let container: RedisContainer
+  let queue: Queue
+  let worker: Worker
   
   beforeAll(async () => {
-    container = await new RedisContainer('redis:7-alpine').start();
+    container = await new RedisContainer('redis:7-alpine').start()
     
-    queue = new Queue('youtube-test', {
-      redis: {
-        host: container.getHost(),
-        port: container.getMappedPort(6379)
-      }
-    });
+    const connection = {
+      host: container.getHost(),
+      port: container.getMappedPort(6379)
+    }
     
-    queue.process(processYouTubeDownload);
-  });
+    queue = new Queue('youtube-test', { connection })
+    worker = new Worker('youtube-test', processYouTubeDownload, { connection })
+  })
   
   afterAll(async () => {
-    await queue.close();
-    await container.stop();
-  });
+    await worker.close()
+    await queue.close()
+    await container.stop()
+  })
   
   it('processes download job successfully', async () => {
     const jobData = {
       userId: 'user123',
       playlistUrl: 'https://www.youtube.com/playlist?list=TEST',
       outputPath: '/tmp/test-downloads'
-    };
+    }
     
-    const job = await queue.add(jobData);
-    await job.finished();
+    const job = await queue.add('download', jobData)
     
-    expect(job.finishedOn).toBeDefined();
-    expect(job.returnvalue.success).toBe(true);
-  });
+    // Wait for job completion
+    const result = await job.waitUntilFinished(worker.queueEvents)
+    
+    expect(result.success).toBe(true)
+    expect(result.files).toBeDefined()
+  })
   
   it('handles invalid YouTube URL', async () => {
     const jobData = {
       userId: 'user123',
       playlistUrl: 'invalid-url',
       outputPath: '/tmp/test-downloads'
-    };
+    }
     
-    const job = await queue.add(jobData);
+    const job = await queue.add('download', jobData)
     
-    await expect(job.finished()).rejects.toThrow('Invalid YouTube URL');
-  });
+    await expect(
+      job.waitUntilFinished(worker.queueEvents)
+    ).rejects.toThrow('Invalid YouTube URL')
+  })
   
   it('retries failed downloads', async () => {
     const jobData = {
       userId: 'user123',
       playlistUrl: 'https://www.youtube.com/playlist?list=NONEXISTENT',
       outputPath: '/tmp/test-downloads'
-    };
+    }
     
-    const job = await queue.add(jobData, { attempts: 3 });
+    const job = await queue.add('download', jobData, {
+      attempts: 3,
+      backoff: { type: 'exponential', delay: 1000 }
+    })
     
-    await expect(job.finished()).rejects.toThrow();
-    expect(job.attemptsMade).toBe(3);
-  });
-});
+    try {
+      await job.waitUntilFinished(worker.queueEvents)
+    } catch (error) {
+      const jobState = await job.getState()
+      const attempts = await job.getFailedReason()
+      expect(jobState).toBe('failed')
+      expect(job.attemptsMade).toBe(3)
+    }
+  })
+})
 ```
 
-### 5.4 Authentication Testing
+### 5.5 Authentication Testing
 
 #### Plex OAuth Testing
 ```typescript
@@ -719,7 +959,7 @@ describe('JWT Service', () => {
 });
 ```
 
-### 5.5 End-to-End Testing
+### 5.6 End-to-End Testing
 
 ```typescript
 // e2e/tests/mediaRequest.spec.ts
@@ -838,37 +1078,45 @@ services:
 
 #### Test Configuration
 ```typescript
-// jest.config.js
-module.exports = {
-  preset: 'ts-jest',
-  testEnvironment: 'node',
-  setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
-  testMatch: [
-    '<rootDir>/tests/**/*.test.ts',
-    '<rootDir>/src/**/__tests__/**/*.test.ts'
-  ],
-  collectCoverageFrom: [
-    'src/**/*.{ts,tsx}',
-    '!src/**/*.d.ts',
-    '!src/tests/**'
-  ],
-  coverageThreshold: {
-    global: {
-      branches: 70,
-      functions: 70,
-      lines: 70,
-      statements: 70
+// vitest.config.ts - Backend configuration
+import { defineConfig } from 'vitest/config'
+import path from 'path'
+
+export default defineConfig({
+  test: {
+    environment: 'node',
+    setupFiles: ['./tests/setup.ts'],
+    globals: true,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      exclude: [
+        'node_modules/',
+        'tests/',
+        '**/*.d.ts',
+        '**/*.config.*'
+      ],
+      thresholds: {
+        branches: 70,
+        functions: 70,
+        lines: 70,
+        statements: 70
+      }
     },
-    './src/services/': {
-      branches: 80,
-      functions: 80,
-      lines: 80,
-      statements: 80
+    testTimeout: 30000,
+    pool: 'forks',
+    poolOptions: {
+      forks: {
+        singleFork: true
+      }
     }
   },
-  testTimeout: 30000,
-  maxWorkers: '50%'
-};
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src')
+    }
+  }
+})
 ```
 
 #### Playwright Configuration
@@ -1149,36 +1397,53 @@ jobs:
 
 ```bash
 # Simple test commands
-npm test              # Run all tests
+npm test              # Run all tests with Vitest
+npm run test:ui       # Open Vitest UI for debugging
 npm run test:watch    # Watch mode for development
+npm run test:coverage # Generate coverage report
 npm run test:api      # Just API tests
 npm run test:e2e      # Just E2E tests (rarely)
+
+# Package.json scripts
+{
+  "scripts": {
+    "test": "vitest run",
+    "test:ui": "vitest --ui",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:api": "vitest run tests/integration/api",
+    "test:unit": "vitest run tests/unit",
+    "test:e2e": "playwright test"
+  }
+}
 ```
 
 ### 8.2 Test Reporting and Metrics
 
 #### Coverage Reporting
 ```typescript
-// tests/coverage.config.js
-module.exports = {
-  reporters: [
-    'default',
-    ['jest-junit', {
-      outputDirectory: './test-results',
-      outputName: 'junit.xml'
-    }],
-    ['jest-html-reporters', {
-      publicPath: './test-results/html',
-      filename: 'index.html'
-    }]
-  ],
-  coverageReporters: [
-    'text',
-    'lcov',
-    'html',
-    'json-summary'
-  ]
-};
+// vitest.config.ts - Coverage configuration
+export default defineConfig({
+  test: {
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html', 'lcov'],
+      reportsDirectory: './test-results/coverage',
+      exclude: [
+        'node_modules/',
+        'tests/',
+        '**/*.d.ts',
+        '**/*.config.*',
+        '**/mockData.ts'
+      ]
+    },
+    reporters: ['default', 'html', 'junit'],
+    outputFile: {
+      junit: './test-results/junit.xml',
+      html: './test-results/html/index.html'
+    }
+  }
+})
 ```
 
 #### Performance Metrics Collection
@@ -1215,35 +1480,47 @@ export class TestMetrics {
 
 ## 5. External Service Testing
 
-### 5.1 Simple Mocking Strategy
+### 5.1 Simple Mocking Strategy with MSW
 
-Use basic mocks instead of complex frameworks:
+MSW provides a clean, interceptor-based approach to mocking:
 
 ```typescript
-// Simple mock for external services
-export const mockPlexAPI = {
-  getLibraries: jest.fn().mockResolvedValue([
-    { id: '1', title: 'Movies' },
-    { id: '2', title: 'TV Shows' }
-  ]),
-  searchMedia: jest.fn(),
-  getUserInfo: jest.fn()
-};
+// tests/mocks/plexHandlers.ts
+import { http, HttpResponse } from 'msw'
+
+export const plexHandlers = [
+  http.get('https://plex.tv/api/v2/library/sections', () => {
+    return HttpResponse.json([
+      { id: '1', title: 'Movies' },
+      { id: '2', title: 'TV Shows' }
+    ])
+  }),
+  
+  http.get('https://plex.tv/api/v2/user', () => {
+    return HttpResponse.json({
+      id: '123',
+      username: 'testuser',
+      email: 'test@example.com'
+    })
+  })
+]
 
 // In tests
-import { mockPlexAPI } from '../mocks';
-
-beforeEach(() => {
-  jest.clearAllMocks();
-});
+import { server } from '../mocks/server'
+import { http, HttpResponse } from 'msw'
 
 it('should handle Plex being down', async () => {
-  mockPlexAPI.getLibraries.mockRejectedValue(new Error('Connection refused'));
+  // Override the handler for this specific test
+  server.use(
+    http.get('https://plex.tv/api/v2/library/sections', () => {
+      return HttpResponse.error()
+    })
+  )
   
-  const response = await request(app).get('/api/plex/libraries');
-  expect(response.status).toBe(503);
-  expect(response.body.error).toContain('temporarily unavailable');
-});
+  const response = await request(app).get('/api/plex/libraries')
+  expect(response.status).toBe(503)
+  expect(response.body.error).toContain('temporarily unavailable')
+})
 ```
 
 ### 5.2 Testing Service Failures
@@ -1597,19 +1874,27 @@ Prioritize coverage where it matters:
 - API Routes: 60%
 - UI Components: 40-50%
 
-```javascript
-// jest.config.js - Simple configuration
-module.exports = {
-  testEnvironment: 'node',
-  coverageDirectory: 'coverage',
-  collectCoverageFrom: [
-    'src/**/*.{js,ts}',
-    '!src/**/*.test.{js,ts}',
-    '!src/types/**'
-  ],
-  // No hard thresholds - use as guidance only
-  coverageReporters: ['text', 'html']
-};
+```typescript
+// vitest.config.ts - Simple configuration
+import { defineConfig } from 'vitest/config'
+
+export default defineConfig({
+  test: {
+    environment: 'node',
+    coverage: {
+      provider: 'v8',
+      reportsDirectory: './coverage',
+      exclude: [
+        'node_modules/',
+        'tests/',
+        '**/*.test.{js,ts}',
+        'src/types/**'
+      ],
+      // No hard thresholds - use as guidance only
+      reporter: ['text', 'html']
+    }
+  }
+})
 ```
 
 ## Example Test Structure

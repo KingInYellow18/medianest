@@ -15,7 +15,7 @@ MediaNest is a unified web portal for managing a Plex media server and related s
   - Database: PostgreSQL 15.x (primary) + Redis 7.x (cache/queue)
   - Authentication: NextAuth.js with Plex OAuth
   - Real-time: Socket.io for WebSocket connections
-  - Queue: Bull for background job processing
+  - Queue: BullMQ for background job processing
   - Container: Docker with Docker Compose
   - Proxy: Nginx for SSL termination
 
@@ -26,18 +26,26 @@ Once the project is initialized, use these commands:
 # Frontend development
 cd frontend && npm run dev    # Start Next.js dev server (port 3000)
 cd frontend && npm run build  # Build production frontend
-cd frontend && npm test       # Run frontend tests
+cd frontend && npm test       # Run tests with Vitest
+cd frontend && npm run test:ui # Open Vitest UI for debugging
 cd frontend && npm run lint   # Lint frontend code
 
 # Backend development  
 cd backend && npm run dev     # Start Express dev server (port 4000)
 cd backend && npm run build   # Build backend
-cd backend && npm test        # Run backend tests
+cd backend && npm test        # Run tests with Vitest
+cd backend && npm run test:ui # Open Vitest UI for debugging
 cd backend && npm run lint    # Lint backend code
 
 # Full stack
 docker-compose up            # Run entire stack in containers
 docker-compose down          # Stop all containers
+
+# Testing commands (both frontend and backend)
+npm test                     # Run all tests
+npm run test:watch          # Run tests in watch mode
+npm run test:coverage       # Generate coverage report
+npm run test:e2e            # Run E2E tests with Playwright
 ```
 
 ## Code Architecture
@@ -123,7 +131,7 @@ class ServiceClient {
 ### Redis Usage
 - Session storage with 24h TTL
 - Service status cache (5min TTL)
-- Bull job queue data
+- BullMQ job queue data
 - Rate limiting counters
 
 ## Security Considerations
@@ -148,7 +156,7 @@ class ServiceClient {
 
 ### Focus on What Matters
 - Test critical paths: Plex OAuth, media requests, service status
-- Use simple tools: Jest, Supertest, basic mocks
+- Use modern tools: Vitest, Supertest, MSW for mocking
 - Target 60-70% coverage overall (80% for auth/security)
 - Total test suite runs in <5 minutes
 
@@ -176,8 +184,8 @@ tests/
 
 ### Key Principles
 - If a test is flaky, fix it immediately or delete it
-- Mock external services with simple stubs (no Pact/WireMock)
-- Use built-in Jest features, avoid complex frameworks
+- Mock external services with MSW for realistic request interception
+- Use Vitest's built-in features for fast, modern testing
 - Document only non-obvious test scenarios
 
 # important-instruction-reminders
