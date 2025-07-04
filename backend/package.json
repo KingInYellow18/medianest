@@ -1,6 +1,6 @@
 {
-  "name": "medianest-backend",
-  "version": "0.1.0",
+  "name": "@medianest/backend",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "nodemon",
@@ -8,6 +8,7 @@
     "start": "node dist/server.js",
     "lint": "eslint src --ext .ts",
     "type-check": "tsc --noEmit",
+    "clean": "rimraf dist",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"
