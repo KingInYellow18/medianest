@@ -188,6 +188,39 @@ tests/
 - Use Vitest's built-in features for fast, modern testing
 - Document only non-obvious test scenarios
 
+## Important Development Notes
+
+### ALWAYS Use Context7 MCP Server Before Code Generation
+- **REQUIRED**: Before writing any code, use the Context7 MCP server to check for the latest documentation
+- Use `mcp__context7__resolve-library-id` to find the correct library
+- Use `mcp__context7__get-library-docs` to get up-to-date documentation
+- This ensures code is using the latest APIs and best practices
+
+### Current Implementation Status
+Phase 1 (Core Infrastructure) is complete:
+- ✅ Plex OAuth authentication with PIN flow
+- ✅ Database schema with Prisma ORM
+- ✅ Repository pattern with full CRUD operations
+- ✅ JWT authentication and RBAC middleware
+- ✅ Rate limiting with Redis Lua scripts
+- ✅ Winston logging with correlation IDs
+- ✅ Error handling with user-friendly messages
+- ✅ Basic monitoring and metrics
+
+Remaining infrastructure tasks:
+- API versioning structure (implement when needed)
+- Socket.io server configuration (for real-time features)
+- AES-256-GCM encryption for sensitive data
+
+Next phase: External Service Integration (Plex, Overseerr, Uptime Kuma)
+
+### Git Workflow
+- Use descriptive commit messages
+- Group related changes into logical commits
+- Run tests before committing: `npm test`
+- Lint code before committing: `npm run lint`
+- Follow conventional commits format when possible
+
 # important-instruction-reminders
 Do what has been asked; nothing more, nothing less.
 NEVER create files unless they're absolutely necessary for achieving your goal.
