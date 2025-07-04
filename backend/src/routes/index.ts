@@ -5,8 +5,12 @@ import mediaRoutes from './media'
 import plexRoutes from './plex'
 import youtubeRoutes from './youtube'
 import adminRoutes from './admin'
+import { healthRouter } from './health'
 
 export const setupRoutes = (app: Express) => {
+  // Health check (no auth required)
+  app.use('/api/health', healthRouter)
+  
   // API routes
   app.use('/api/auth', authRoutes)
   app.use('/api/dashboard', dashboardRoutes)
