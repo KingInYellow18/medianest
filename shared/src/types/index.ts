@@ -1,14 +1,14 @@
-// Shared type definitions for MediaNest
+// Common types used across frontend and backend
 
 export interface User {
   id: string;
   plexId: string;
   plexUsername: string;
   email?: string;
-  role: 'user' | 'admin';
+  role: 'admin' | 'user';
+  status: 'active' | 'inactive';
   createdAt: Date;
   lastLoginAt?: Date;
-  status: 'active' | 'suspended';
 }
 
 export interface MediaRequest {
@@ -17,28 +17,30 @@ export interface MediaRequest {
   title: string;
   mediaType: 'movie' | 'tv';
   tmdbId?: string;
-  status: 'pending' | 'approved' | 'available' | 'failed';
+  status: 'pending' | 'approved' | 'completed' | 'failed';
   overseerrId?: string;
   createdAt: Date;
   completedAt?: Date;
 }
 
 export interface ServiceStatus {
-  serviceName: string;
+  name: string;
   status: 'up' | 'down' | 'degraded';
   responseTime?: number;
-  lastCheckAt: Date;
-  uptimePercentage?: number;
+  lastCheck?: Date;
+  uptime?: number;
 }
 
-export interface YouTubeDownload {
-  id: string;
-  userId: string;
-  playlistUrl: string;
-  playlistTitle?: string;
-  status: 'queued' | 'downloading' | 'completed' | 'failed';
-  filePaths?: string[];
-  plexCollectionId?: string;
-  createdAt: Date;
-  completedAt?: Date;
+export interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  error?: {
+    code: string;
+    message: string;
+    details?: any;
+  };
+  meta?: {
+    timestamp: string;
+    version: string;
+  };
 }

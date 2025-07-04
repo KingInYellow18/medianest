@@ -27,7 +27,8 @@
     "db:migrate": "npm run prisma:migrate --workspace=backend",
     "db:generate": "npm run prisma:generate --workspace=backend",
     "db:studio": "npm run prisma:studio --workspace=backend",
-    "generate-secrets": "node scripts/generate-secrets.js"
+    "generate-secrets": "node scripts/generate-secrets.js",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
