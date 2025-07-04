@@ -26,19 +26,24 @@ This project and everyone participating in it is governed by our Code of Conduct
 
 ## Development Process
 1. Clone the repository
-2. Install dependencies: `npm install`
+2. Install dependencies: `npm install` (this sets up Git hooks automatically)
 3. Start development: `npm run dev`
 4. Create a feature branch: `git checkout -b feature/your-feature`
 5. Make your changes
 6. Run tests: `npm test`
-7. Commit with conventional commits
+7. Commit your changes (pre-commit hooks will run ESLint automatically)
 8. Push and create a PR
 
 ## Style Guide
 - Follow the ESLint configuration
-- Use Prettier for formatting
 - Write meaningful commit messages
 - Add JSDoc comments for public APIs
+
+## Git Hooks
+This project uses `simple-git-hooks` to maintain code quality:
+- **Pre-commit**: Runs ESLint on staged TypeScript/JavaScript files
+- Hooks are automatically installed when you run `npm install`
+- To manually update hooks: `npx simple-git-hooks`
 
 ## Testing
 - Write tests for new features

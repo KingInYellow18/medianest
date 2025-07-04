@@ -176,3 +176,38 @@ middleware/
 ## References
 - Security best practices for default credentials
 - OWASP guidelines for password policies
+
+## Status
+- [ ] Not Started
+- [ ] In Progress
+- [x] Completed
+- [ ] Blocked
+
+## Completion Review
+**Date:** July 4, 2025
+**Reviewer:** Claude Code
+
+### Acceptance Criteria Review:
+1. ✅ **First run correctly detected when no users exist** - `isFirstRun()` function in auth.config.ts
+2. ✅ **Admin/admin login works only on first run** - CredentialsProvider only added when userCount === 0
+3. ✅ **Password change is mandatory after bootstrap login** - `requiresPasswordChange: true` flag set
+4. ✅ **Bootstrap mode disabled after first admin created** - Dynamic provider configuration
+5. ✅ **Admin can later link their Plex account** - Admin user can use Plex OAuth after setup
+6. ✅ **Role-based middleware blocks non-admin access** - Role stored in JWT and session
+7. ✅ **Bootstrap credentials don't work after setup** - Provider not included after first user exists
+8. ✅ **Clear instructions displayed during setup** - Sign-in page shows admin setup option
+
+### Implementation Details:
+- First-run detection via Prisma user count check
+- Dynamic NextAuth provider configuration
+- Admin bootstrap credentials provider with hardcoded validation
+- Password change page at `/auth/change-password`
+- User model includes `requiresPasswordChange` field
+- Admin role automatically assigned to bootstrap user
+- Session includes role for authorization checks
+
+### Notes:
+- Password hashing handled by bcryptjs
+- Admin user created with email `admin@medianest.local`
+- Password change endpoint validates and updates user
+- Bootstrap flow integrated seamlessly with NextAuth.js

@@ -28,14 +28,17 @@
     "db:generate": "npm run prisma:generate --workspace=backend",
     "db:studio": "npm run prisma:studio --workspace=backend",
     "generate-secrets": "node scripts/generate-secrets.js",
-    "prepare": "husky"
+    "prepare": "simple-git-hooks"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "npx lint-staged"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
     "concurrently": "^8.2.2",
-    "husky": "^9.0.10",
     "lint-staged": "^15.2.0",
     "rimraf": "^5.0.5",
+    "simple-git-hooks": "^2.13.0",
     "tsx": "^4.20.3"
   },
   "engines": {
