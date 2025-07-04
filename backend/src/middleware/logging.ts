@@ -1,29 +1,45 @@
 import { Request, Response, NextFunction } from 'express'
-import { logger } from '../utils/logger'
+import { metrics } from '../utils/monitoring'
 
 export const requestLogger = (req: Request, res: Response, next: NextFunction) => {
   const start = Date.now()
+  
+  // Skip logging for health check endpoint
+  if (req.path === '/health') {
+    return next()
+  }
 
-  // Log request
-  logger.info({
-    type: 'request',
+  // Log request start
+  req.logger.info('Request started', {
     method: req.method,
-    url: req.url,
+    path: req.path,
+    query: req.query,
+    userId: req.user?.id,
     ip: req.ip,
-    userAgent: req.get('user-agent'),
+    userAgent: req.get('user-agent')
   })
 
-  // Log response
-  res.on('finish', () => {
+  // Capture response
+  const originalSend = res.send
+  res.send = function(data) {
+    res.send = originalSend
+    
     const duration = Date.now() - start
-    logger.info({
-      type: 'response',
+    
+    req.logger.info('Request completed', {
       method: req.method,
-      url: req.url,
+      path: req.path,
       statusCode: res.statusCode,
       duration,
+      ...(res.statusCode >= 400 && { response: data })
     })
-  })
+    
+    // Record metrics
+    metrics.incrementRequest(`${req.method} ${req.path}`)
+    metrics.recordDuration(duration)
+    
+    return res.send(data)
+  } as any
 
   next()
 }

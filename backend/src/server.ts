@@ -7,6 +7,7 @@ import compression from 'compression'
 import { createServer } from 'http'
 import { logger } from './utils/logger'
 import { errorHandler } from './middleware/error'
+import { correlationIdMiddleware } from './middleware/correlation-id'
 import { requestLogger } from './middleware/logging'
 import { setupRoutes } from './routes'
 import { initializeDatabase } from './config/database'
@@ -38,11 +39,26 @@ app.use(cors({
 app.use(compression())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+app.use(correlationIdMiddleware)
 app.use(requestLogger)
 
 // Health check endpoint
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
+})
+
+// Metrics endpoint (protected in production)
+app.get('/metrics', (req, res) => {
+  // In production, protect this endpoint
+  if (process.env.NODE_ENV === 'production') {
+    const authHeader = req.headers.authorization
+    if (!authHeader || authHeader !== `Bearer ${process.env.METRICS_TOKEN}`) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
+  }
+  
+  const { metrics } = require('./utils/monitoring')
+  res.json(metrics.getMetrics())
 })
 
 // Setup routes
