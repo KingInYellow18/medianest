@@ -13,14 +13,17 @@ declare global {
 }
 
 export function correlationIdMiddleware(req: Request, res: Response, next: NextFunction) {
-  // Extract or generate correlation ID
-  const correlationId = req.headers['x-correlation-id'] as string || uuidv4()
+  // Extract or generate correlation ID (case-insensitive)
+  const correlationId = req.headers['x-correlation-id'] || 
+                       req.headers['X-Correlation-ID'] || 
+                       req.headers['X-CORRELATION-ID'] || 
+                       uuidv4()
   
   // Attach to request
-  req.correlationId = correlationId
+  req.correlationId = correlationId as string
   
   // Create child logger with correlation ID
-  req.logger = createChildLogger(correlationId)
+  req.logger = createChildLogger(correlationId as string)
   
   // Set response header
   res.setHeader('x-correlation-id', correlationId)
