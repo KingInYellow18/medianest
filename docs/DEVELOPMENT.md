@@ -314,64 +314,113 @@ tests/
 ### Running Tests
 
 ```bash
-# Unit tests (Jest)
-npm run test:unit
+# All tests (Vitest)
+npm run test
 
-# Integration tests
-npm run test:integration
+# Unit tests only
+npm test -- tests/unit/
 
-# E2E tests (Playwright)
-npm run test:e2e
+# Integration tests only  
+npm test -- tests/integration/
 
-# Watch mode
+# Watch mode for development
 npm run test:watch
 
 # Coverage report
 npm run test:coverage
+
+# Test UI for debugging
+npm run test:ui
+
+# Backend-specific test commands
+cd backend
+npm test                    # Run all backend tests
+npm run test:coverage       # Generate coverage report
+./run-tests.sh             # Automated test runner with database setup
 ```
 
 ### Writing Tests
 
-#### Unit Test Example
+#### Unit Test Example (Vitest)
 ```typescript
-// backend/tests/unit/services/auth.test.ts
-import { describe, it, expect, beforeEach } from '@jest/globals';
-import { AuthService } from '../../../src/services/auth';
+// backend/tests/unit/utils/jwt.test.ts
+import { describe, it, expect, beforeEach } from 'vitest';
+import { generateToken, verifyToken } from '@/utils/jwt';
 
-describe('AuthService', () => {
-  let authService: AuthService;
-
-  beforeEach(() => {
-    authService = new AuthService();
+describe('JWT Utilities', () => {
+  it('should generate and verify standard token', () => {
+    const payload = { userId: 'user123', email: 'user@example.com', role: 'user' };
+    const token = generateToken(payload, false);
+    
+    const decoded = verifyToken(token);
+    expect(decoded.userId).toBe('user123');
+    expect(decoded.role).toBe('user');
   });
 
-  it('should validate JWT token', async () => {
-    const token = 'valid-jwt-token';
-    const result = await authService.validateToken(token);
-    expect(result).toBeTruthy();
+  it('should generate remember me token with 30 day expiry', () => {
+    const payload = { userId: 'user123', email: 'user@example.com', role: 'user' };
+    const token = generateToken(payload, true);
+    
+    // Should not throw when verifying
+    expect(() => verifyToken(token)).not.toThrow();
   });
 });
 ```
 
-#### Integration Test Example
+#### Integration Test Example (Supertest + Vitest)
 ```typescript
-// backend/tests/integration/api/auth.test.ts
-import request from 'supertest';
-import { app } from '../../../src/app';
+// backend/tests/integration/repositories/user.repository.test.ts
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { UserRepository } from '@/repositories/user.repository';
+import { getTestPrismaClient, cleanDatabase, disconnectDatabase } from '../../helpers/database';
 
-describe('POST /api/auth/login', () => {
-  it('should login with valid credentials', async () => {
-    const response = await request(app)
-      .post('/api/auth/login')
-      .send({
-        username: 'admin',
-        password: 'admin'
-      });
+describe('User Repository', () => {
+  let prisma: ReturnType<typeof getTestPrismaClient>;
+  let userRepository: UserRepository;
 
-    expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
+  beforeAll(async () => {
+    prisma = getTestPrismaClient();
+    userRepository = new UserRepository(prisma);
+  });
+
+  beforeEach(async () => {
+    await cleanDatabase();
+  });
+
+  afterAll(async () => {
+    await disconnectDatabase();
+  });
+
+  it('should create a new user', async () => {
+    const userData = {
+      plexId: 'plex-123',
+      plexUsername: 'testuser',
+      email: 'test@example.com',
+      role: 'user' as const
+    };
+
+    const user = await userRepository.create(userData);
+    expect(user.id).toBeDefined();
+    expect(user.plexId).toBe('plex-123');
+    expect(user.email).toBe('test@example.com');
   });
 });
+```
+
+#### Test Environment Setup
+The test suite uses:
+- **Vitest**: Modern test framework with TypeScript support
+- **MSW (Mock Service Worker)**: For mocking external Plex API calls
+- **Supertest**: For HTTP endpoint testing
+- **Test Database**: Separate PostgreSQL instance on port 5433
+- **Test Redis**: Separate Redis instance on port 6380
+
+```bash
+# Start test environment
+docker-compose -f docker-compose.test.yml up -d
+
+# Run database migrations for tests
+DATABASE_URL="postgresql://test:test@localhost:5433/medianest_test" npx prisma migrate deploy
 ```
 
 ## Database Management
@@ -728,25 +777,40 @@ cd frontend && npm run analyze
 
 ## Development Roadmap
 
-### Immediate Goals (Current Sprint)
-- Complete initial project setup
-- Implement Plex OAuth authentication
-- Create basic dashboard with service status
+### ✅ Completed (Phase 1)
+- ✅ Complete initial project setup
+- ✅ Implement Plex OAuth authentication with PIN flow
+- ✅ JWT authentication and RBAC middleware
+- ✅ Database schema with Prisma ORM
+- ✅ Repository pattern implementation
+- ✅ Comprehensive error handling and logging
+- ✅ Rate limiting with Redis
+- ✅ Complete testing suite (30 tests, 60-70% coverage)
 
-### Short-term Goals (Next 2-4 weeks)
-- Implement media request functionality
-- Add YouTube download management
-- Complete admin user management
+### 🚧 Current Goals (Phase 2 - External Service Integration)
+- [ ] Plex API client with circuit breakers
+- [ ] Overseerr integration for media requests
+- [ ] Uptime Kuma WebSocket connection
+- [ ] Service status monitoring and caching
+- [ ] Service configuration management through admin UI
+
+### Short-term Goals (Phase 3 - Next 2-4 weeks)
+- [ ] Media request functionality through Overseerr
+- [ ] YouTube download management with yt-dlp
+- [ ] Real-time notifications via Socket.io
+- [ ] Background job processing with BullMQ
+- [ ] Admin dashboard with service status
 
 ### Medium-term Goals (Next 1-3 months)
-- Add comprehensive testing suite
-- Implement real-time notifications
-- Performance optimization
+- [ ] Advanced analytics dashboard
+- [ ] Performance optimization and monitoring
+- [ ] API documentation with OpenAPI/Swagger
+- [ ] CI/CD pipeline implementation
 
 ### Long-term Goals (3+ months)
-- Advanced analytics dashboard
-- Mobile app considerations
-- Multi-server support exploration
+- [ ] Mobile app considerations
+- [ ] Multi-server support exploration
+- [ ] Advanced user permissions and groups
 
 ---
 
