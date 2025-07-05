@@ -1,39 +1,84 @@
 version: '3.8'
 
 services:
-  frontend:
+  app:
     build:
-      context: ./path/to/frontend
-      dockerfile: Dockerfile.dev
+      context: .
+      dockerfile: Dockerfile
+    container_name: medianest-app
+    restart: unless-stopped
     ports:
       - "3000:3000"
-    volumes:
-      - ./path/to/frontend/src:/app/src
-      - ./path/to/frontend/public:/app/public
-      - /app/node_modules
+      - "4000:4000"
     environment:
-      - REACT_APP_API_URL=${REACT_APP_API_URL:-http://backend:5000/api}
-      - REACT_APP_ENVIRONMENT=${REACT_APP_ENVIRONMENT:-development}
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://medianest:medianest_password@postgres:5432/medianest?connection_limit=20&pool_timeout=30
+      - REDIS_URL=redis://redis:6379
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - PLEX_CLIENT_ID=${PLEX_CLIENT_ID}
+      - PLEX_CLIENT_SECRET=${PLEX_CLIENT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    volumes:
+      - ./youtube:/app/youtube:rw
+      - uploads:/app/uploads:rw
     depends_on:
-      - backend
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    user: "1000:1000"
+    networks:
+      - medianest-network
 
-  backend:
-    build:
-      context: ./path/to/backend
-      dockerfile: Dockerfile.dev
-    ports:
-      - "5000:5000"
-    volumes:
-      - ./path/to/backend:/app
-      - ./path/to/config:/app/config
+  postgres:
+    image: postgres:15-alpine
+    container_name: medianest-postgres
+    restart: unless-stopped
     environment:
-      - FLASK_ENV=${FLASK_ENV:-development}
-      - FLASK_DEBUG=${FLASK_DEBUG:-1}
-      - DATABASE_URL=${DATABASE_URL:-sqlite:///dev.db}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-change-me}
-      - UPTIME_KUMA_URL=${UPTIME_KUMA_URL:-http://your-uptime-kuma-host:3001}
-      - UPTIME_KUMA_API_KEY=${UPTIME_KUMA_API_KEY:-your-uptime-kuma-api-key}
-      - OVERSEERR_URL=${OVERSEERR_URL:-http://your-overseerr-host:5055}
-      - OVERSEERR_API_KEY=${OVERSEERR_API_KEY:-your-overseerr-api-key}
-      - NFS_MOUNT_PATH=${NFS_MOUNT_PATH:-/mnt/media}
+      - POSTGRES_DB=medianest
+      - POSTGRES_USER=medianest
+      - POSTGRES_PASSWORD=medianest_password
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U medianest"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - medianest-network
 
+  redis:
+    image: redis:7-alpine
+    container_name: medianest-redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - medianest-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  uploads:
+
+networks:
+  medianest-network:
+    driver: bridge

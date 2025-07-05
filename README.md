@@ -1,272 +1,164 @@
-# Media Management Web App (MediaNest)
+# MediaNest
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/your-username/medianest)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://python.org)
-[![React](https://img.shields.io/badge/react-18+-blue.svg)](https://reactjs.org)
-[![Docker](https://img.shields.io/badge/docker-compose-blue.svg)](https://docker.com)
+A unified web portal for managing Plex media server and related services.
 
-A comprehensive media management web application providing a unified interface for Plex server management and media workflow optimization. Designed for small teams (~10 users) who need streamlined access to media services, request management, and system monitoring.
-
-## 📋 Table of Contents
-
-- [Features](#-features)
-- [Technology Stack](#-technology-stack)
-- [System Architecture](#-system-architecture)
-- [Installation](#-installation)
-- [API Overview](#-api-overview)
-- [User Roles & Permissions](#-user-roles--permissions)
-- [Security Features](#-security-features)
-- [Development Timeline](#-development-timeline)
-- [Contributing](#-contributing)
-- [Documentation](#-documentation)
-- [License](#-license)
-- [Support](#-support)
-
-## 🚀 Features
-
-### Core Capabilities
-
-- **🔍 Service Monitoring**: Real-time status and health checks via Uptime Kuma integration
-- **📺 Media Request Management**: Seamless media requests through Overseerr API integration
-- **📥 YouTube Download Manager**: yt-dlp integration for downloading and managing YouTube content
-- **👥 User Management**: Complete user authentication, profiles, and role-based access control
-- **⚙️ Configuration Administration**: System configuration management with YAML-based settings
-- **📚 Plex Setup Guide**: Comprehensive FAQ and setup documentation for users
-
-### User Experience
-
-- **Regular Users**: View service status, submit media requests, manage YouTube downloads, access setup guides
-- **Administrators**: Full system access including user management, configuration editing, system monitoring, and backup management
-
-## 🛠 Technology Stack
-
-### Frontend Architecture
-- **React 18** with TypeScript for type safety and modern development
-- **Tailwind CSS** for utility-first responsive design
-- **React Query/TanStack Query** for server state management and caching
-- **React Router** for client-side routing
-- **React Hook Form** for form management with validation
-- **Axios** for HTTP client with authentication interceptors
-
-### Backend Architecture
-- **Flask 3.x** with Python 3.11+ for REST API server
-- **SQLAlchemy 2.x** with Alembic for database ORM and migrations
-- **Flask-JWT-Extended** for secure JWT-based authentication
-- **Marshmallow** for data serialization and validation
-- **Flask-CORS** for cross-origin resource sharing
-- **Flask-Limiter** for API rate limiting
-
-### Database & Storage
-- **SQLite** for lightweight database needs with Alembic migrations
-- **NFS Storage** for shared media file management
-- **File-based configuration** using YAML format
-
-### External Integrations
-- **Uptime Kuma** (WebSocket/HTTP API) for service monitoring
-- **Overseerr** (REST API) for Plex media request management
-- **yt-dlp** Python library for YouTube content downloading
-- **NFS** for distributed storage access
-
-### Infrastructure & Deployment
-- **Docker Compose** for multi-container orchestration
-- **Nginx** as reverse proxy with SSL termination and static file serving
-- **Multi-stage Docker builds** for optimized production images
-- **GitHub Actions** for CI/CD pipeline automation
-
-## 🏗 System Architecture
-
-The application consists of 7 main components working together in a microservices architecture:
-
-1. **Frontend React App** - User interface and client-side logic
-2. **Flask API Server** - Backend REST API and business logic
-3. **SQLite Database** - Data persistence layer
-4. **Nginx Reverse Proxy** - Load balancing and SSL termination
-5. **Uptime Kuma Integration** - Service monitoring and health checks
-6. **Overseerr Integration** - Media request management
-7. **yt-dlp Service** - YouTube content downloading
-
-For detailed architecture diagrams, see [`project_plan/architecture_diagram.png`](project_plan/architecture_diagram.png).
-
-## 📦 Installation
+## Quick Start
 
 ### Prerequisites
 
+- Node.js 20.x or higher
 - Docker and Docker Compose
-- Git
-- 4GB+ RAM recommended
-- 10GB+ storage space
-
-### Quick Start
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/your-username/medianest.git
-   cd medianest
-   ```
-
-2. **Configure environment variables**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
-   ```
-
-3. **Start the application**
-   ```bash
-   docker-compose up -d
-   ```
-
-4. **Access the application**
-   - Web Interface: `http://localhost:3000`
-   - API Documentation: `http://localhost:5000/api/docs`
+- PostgreSQL 15.x (for local development)
+- Redis 7.x (for local development)
 
 ### Development Setup
 
-1. **Backend Development**
+1. **Clone the repository**
    ```bash
-   cd backend
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   pip install -r requirements.txt
-   flask run
+   git clone <repository-url>
+   cd medianest
    ```
 
-2. **Frontend Development**
+2. **Install dependencies**
    ```bash
-   cd frontend
-   npm install
-   npm start
+   npm run install:all
    ```
 
-For detailed setup instructions, see [`project_plan/implementation-guide.md`](project_plan/implementation-guide.md).
+3. **Set up environment variables**
+   ```bash
+   cp .env.example .env
+   npm run generate-secrets
+   ```
+   Then edit `.env` with your configuration.
 
-## 🔌 API Overview
+4. **Set up the database**
+   ```bash
+   # Start PostgreSQL and Redis (if not using Docker)
+   # Then run migrations
+   npm run db:generate
+   npm run db:migrate
+   ```
 
-The application provides a comprehensive REST API with **25 endpoints** across **5 main categories**:
+5. **Start development servers**
+   ```bash
+   npm run dev
+   ```
 
-### API Categories
+   This starts:
+   - Frontend at http://localhost:3000
+   - Backend at http://localhost:4000
 
-1. **Authentication** (4 endpoints)
-   - Login, logout, refresh tokens, user registration
+### Docker Development
 
-2. **User Management** (6 endpoints)
-   - User CRUD operations, profile management, role assignment
+To run the entire stack with Docker:
 
-3. **Service Monitoring** (3 endpoints)
-   - Status checks, uptime statistics, health monitoring
+```bash
+# Build and start all services
+npm run docker:up
 
-4. **Media Management** (7 endpoints)
-   - Media request lifecycle, YouTube download management
+# View logs
+npm run docker:logs
 
-5. **Admin Functions** (5 endpoints)
-   - Configuration management, system monitoring, backup operations
+# Stop all services
+npm run docker:down
+```
 
-### API Documentation
+## Project Structure
 
-- Interactive API docs available at `/api/docs` when running
-- OpenAPI/Swagger specification included
-- Postman collection available in [`project_plan/`](project_plan/)
+```
+medianest/
+├── frontend/          # Next.js 14 frontend application
+│   ├── src/
+│   │   ├── app/      # App router pages and layouts
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── lib/
+│   │   └── services/
+│   └── server.js     # Custom server for Socket.io support
+├── backend/          # Express.js backend API
+│   ├── src/
+│   │   ├── config/
+│   │   ├── controllers/
+│   │   ├── integrations/
+│   │   ├── jobs/
+│   │   ├── middleware/
+│   │   ├── repositories/
+│   │   ├── routes/
+│   │   ├── services/
+│   │   ├── types/
+│   │   └── utils/
+│   └── prisma/       # Database schema and migrations
+├── infrastructure/   # Infrastructure configuration
+│   └── database/     # Database initialization scripts
+├── docs/            # Documentation
+└── scripts/         # Utility scripts
+```
 
-## 👤 User Roles & Permissions
+## Available Scripts
 
-### Regular Users
-- ✅ View service status and uptime statistics
-- ✅ Submit and track media requests
-- ✅ Manage personal YouTube downloads
-- ✅ Access setup guides and documentation
-- ✅ Update personal profile and preferences
+### Root Commands
+- `npm run dev` - Start both frontend and backend in development mode
+- `npm run build` - Build both frontend and backend for production
+- `npm run lint` - Run linting for both frontend and backend
+- `npm run type-check` - Run TypeScript type checking
 
-### Administrators
-- ✅ All regular user permissions
-- ✅ User management (create, edit, delete users)
-- ✅ System configuration management
-- ✅ Advanced monitoring and analytics
-- ✅ Backup and restore operations
-- ✅ Service integration management
+### Database Commands
+- `npm run db:generate` - Generate Prisma client
+- `npm run db:migrate` - Run database migrations
+- `npm run db:studio` - Open Prisma Studio
 
-## 🔒 Security Features
+### Docker Commands
+- `npm run docker:build` - Build Docker images
+- `npm run docker:up` - Start all services with Docker Compose
+- `npm run docker:down` - Stop all services
+- `npm run docker:logs` - View container logs
 
-- **JWT Authentication**: Short-lived access tokens (15 min) with refresh tokens
-- **Role-Based Access Control**: Admin and User roles with appropriate permissions
-- **Rate Limiting**: API-wide and endpoint-specific rate limits
-- **Input Validation**: Comprehensive validation using Marshmallow schemas
-- **Security Headers**: CORS, XSS protection, content security policy
-- **Secure Configuration**: Environment-based secrets management
-- **API Security**: Request/response validation and sanitization
+## Configuration
 
-## 📅 Development Timeline
+### Environment Variables
 
-**Total Duration**: 10 weeks across 5 phases
+See `.env.example` for all available configuration options. Key variables:
 
-### Phase Overview
-1. **Foundation** (Weeks 1-2): Core infrastructure and authentication
-2. **Core Features** (Weeks 3-4): User management and basic functionality
-3. **Integrations** (Weeks 5-6): External service integrations
-4. **Advanced Features** (Weeks 7-8): Admin features and optimization
-5. **Deployment** (Weeks 9-10): Production deployment and testing
+- `DATABASE_URL` - PostgreSQL connection string
+- `REDIS_URL` - Redis connection string
+- `NEXTAUTH_SECRET` - Secret for NextAuth.js
+- `PLEX_CLIENT_ID/SECRET` - Plex OAuth credentials
+- `ENCRYPTION_KEY` - Key for encrypting sensitive data
 
-For detailed timeline and milestones, see [`project_plan/project-plan.md`](project_plan/project-plan.md).
+### External Services
 
-## 🤝 Contributing
+External service configurations (Plex, Overseerr, Uptime Kuma) are managed through the admin UI after deployment.
 
-We welcome contributions! Please follow these guidelines:
+## Reverse Proxy Configuration
 
-### Getting Started
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Add tests for new functionality
-5. Ensure all tests pass
-6. Commit your changes (`git commit -m 'Add amazing feature'`)
-7. Push to the branch (`git push origin feature/amazing-feature`)
-8. Open a Pull Request
+MediaNest is designed to work behind a reverse proxy. The application:
+- Trusts proxy headers (`X-Forwarded-*`)
+- Handles WebSocket upgrades for Socket.io
+- Supports path-based routing
 
-### Development Guidelines
-- Follow existing code style and conventions
-- Write tests for new features
-- Update documentation as needed
-- Ensure Docker builds pass
-- Follow semantic versioning for releases
+Example nginx configuration:
 
-### Code Style
-- **Python**: Follow PEP 8, use Black for formatting
-- **TypeScript/React**: Follow Airbnb style guide, use Prettier
-- **Commits**: Use conventional commit messages
+```nginx
+location / {
+    proxy_pass http://localhost:3000;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_cache_bypass $http_upgrade;
+}
+```
 
-## 📚 Documentation
+## Contributing
 
-### Project Documentation
-- [`project_plan/project-plan.md`](project_plan/project-plan.md) - Complete project specification
-- [`project_plan/implementation-guide.md`](project_plan/implementation-guide.md) - Implementation details
-- [`project_plan/docker-configs.md`](project_plan/docker-configs.md) - Docker configuration guide
+1. Create a feature branch
+2. Make your changes
+3. Run tests and linting
+4. Submit a pull request
 
-### Architecture Resources
-- [`project_plan/architecture_diagram.png`](project_plan/architecture_diagram.png) - System architecture diagram
-- [`project_plan/api_endpoints_chart.png`](project_plan/api_endpoints_chart.png) - API structure visualization
-- [`project_plan/gantt_chart.png`](project_plan/gantt_chart.png) - Development timeline
+## License
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 📞 Support
-
-### Getting Help
-- **Issues**: Report bugs and request features via [GitHub Issues](https://github.com/your-username/medianest/issues)
-- **Discussions**: Join community discussions in [GitHub Discussions](https://github.com/your-username/medianest/discussions)
-- **Documentation**: Check the [`project_plan/`](project_plan/) directory for detailed documentation
-
-### Maintainers
-- **Project Lead**: [Your Name](mailto:your.email@example.com)
-- **Technical Lead**: [Technical Lead Name](mailto:tech.lead@example.com)
-
-### Community
-- Follow development updates and announcements
-- Contribute to discussions and feature requests
-- Help improve documentation and guides
-
----
-
-**Built with ❤️ for the Plex community**
-
-*MediaNest - Streamlining your media management workflow*
+[Your License Here]
