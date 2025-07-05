@@ -1,5 +1,5 @@
 # Build stage
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 
 WORKDIR /app
 
@@ -32,7 +32,7 @@ RUN npx prisma generate
 RUN npm run build
 
 # Production stage
-FROM node:20-alpine
+FROM node:24-alpine
 
 # Install yt-dlp and ffmpeg for YouTube downloads
 RUN apk add --no-cache python3 py3-pip ffmpeg && \
