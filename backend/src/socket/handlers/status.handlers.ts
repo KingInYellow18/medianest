@@ -43,6 +43,33 @@ export function statusHandlers(io: Server, socket: Socket): void {
     }
   });
 
+  // Request refresh for specific service
+  socket.on('request:refresh', async (serviceId: string) => {
+    try {
+      logger.info('User requested service refresh', {
+        userId: socket.data.user?.id,
+        serviceId
+      });
+
+      // Refresh the specific service status
+      const status = await statusService.refreshServiceStatus(serviceId);
+      
+      // Emit update to all subscribers
+      io.to('status-updates').emit('service:status', {
+        serviceId,
+        status: status.status,
+        responseTime: status.responseTime,
+        timestamp: new Date().toISOString(),
+        details: status.details
+      });
+    } catch (error) {
+      logger.error('Failed to refresh service status', { serviceId, error });
+      socket.emit('error', { 
+        message: `Failed to refresh status for service ${serviceId}` 
+      });
+    }
+  });
+
   // Admin-only: Force status refresh
   socket.on('admin:refresh-status', async () => {
     if (socket.data.user?.role !== 'admin') {

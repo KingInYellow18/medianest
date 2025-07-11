@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { io } from 'socket.io-client';
-import Cookies from 'js-cookie';
+import { socketManager } from '@/lib/socket';
 import { ServiceStatus } from '@/types/dashboard';
 
 export function useServiceStatus(initialServices: ServiceStatus[]) {
@@ -10,32 +9,14 @@ export function useServiceStatus(initialServices: ServiceStatus[]) {
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    const socketUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000';
-    
-    // Get auth token from cookie
-    const token = Cookies.get('next-auth.session-token');
+    // Connect to socket
+    socketManager.connect();
 
-    const socketInstance = io(socketUrl, {
-      auth: {
-        token,
-      },
-      transports: ['websocket', 'polling'],
-    });
+    const handleConnectionStatus = (status: { connected: boolean }) => {
+      setConnected(status.connected);
+    };
 
-    socketInstance.on('connect', () => {
-      console.log('Connected to WebSocket');
-      setConnected(true);
-      
-      // Subscribe to service status updates
-      socketInstance.emit('subscribe:status');
-    });
-
-    socketInstance.on('disconnect', () => {
-      console.log('Disconnected from WebSocket');
-      setConnected(false);
-    });
-
-    socketInstance.on('service:status', (data: ServiceStatus) => {
+    const handleServiceUpdate = (data: ServiceStatus) => {
       console.log('Service status update:', data);
       setServices(prev => {
         const existingService = prev.find(s => s.id === data.id);
@@ -54,22 +35,44 @@ export function useServiceStatus(initialServices: ServiceStatus[]) {
           return [...prev, { ...data, lastCheckAt: new Date(data.lastCheckAt) }];
         }
       });
-    });
+    };
 
-    socketInstance.on('connect_error', (error) => {
-      console.error('WebSocket connection error:', error);
-    });
+    const handleBulkUpdate = (data: ServiceStatus[]) => {
+      console.log('Bulk service update:', data);
+      setServices(data.map(service => ({
+        ...service,
+        lastCheckAt: new Date(service.lastCheckAt)
+      })));
+    };
 
-    // Fetch services periodically
+    // Listen for events
+    socketManager.on('connection:status', handleConnectionStatus);
+    socketManager.on('service:status', handleServiceUpdate);
+    socketManager.on('service:bulk-update', handleBulkUpdate);
+
+    // Subscribe to updates when connected
+    if (socketManager.isConnected()) {
+      socketManager.emit('subscribe:status');
+    }
+
+    // Fetch services periodically as fallback
     const fetchServices = async () => {
       try {
-        const response = await fetch('/api/services/status');
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+        const response = await fetch(`${apiUrl}/dashboard/status`);
         if (response.ok) {
           const data = await response.json();
-          setServices(data.map((service: any) => ({
+          const services = data.data.services.map((service: any) => ({
             ...service,
+            displayName: service.displayName || service.name,
+            uptime: service.uptime || {
+              '24h': service.uptimePercentage || 0,
+              '7d': service.uptimePercentage || 0,
+              '30d': service.uptimePercentage || 0,
+            },
             lastCheckAt: new Date(service.lastCheckAt),
-          })));
+          }));
+          setServices(services);
         }
       } catch (error) {
         console.error('Failed to fetch services:', error);
@@ -79,15 +82,20 @@ export function useServiceStatus(initialServices: ServiceStatus[]) {
     // Initial fetch
     fetchServices();
 
-    // Fetch every 30 seconds
+    // Fetch every 30 seconds as fallback
     const interval = setInterval(fetchServices, 30000);
 
     return () => {
-      socketInstance.off('connect');
-      socketInstance.off('disconnect');
-      socketInstance.off('service:status');
-      socketInstance.off('connect_error');
-      socketInstance.disconnect();
+      // Unsubscribe from updates
+      if (socketManager.isConnected()) {
+        socketManager.emit('unsubscribe:status');
+      }
+      
+      // Remove event listeners
+      socketManager.off('connection:status', handleConnectionStatus);
+      socketManager.off('service:status', handleServiceUpdate);
+      socketManager.off('service:bulk-update', handleBulkUpdate);
+      
       clearInterval(interval);
     };
   }, []);

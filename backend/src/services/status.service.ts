@@ -281,6 +281,40 @@ export class StatusService {
     return this.statusCache.get(service) || null;
   }
 
+  async refreshServiceStatus(service: string): Promise<ServiceStatus> {
+    logger.info(`Manually refreshing status for service: ${service}`);
+    
+    // If Uptime Kuma is connected, request immediate update
+    if (this.uptimeKumaClient?.connected) {
+      const monitors = await this.uptimeKumaClient.getMonitorList();
+      for (const monitor of monitors) {
+        const serviceName = this.serviceMapping.get(monitor.name);
+        if (serviceName === service) {
+          // Force a health check by emitting a refresh request
+          this.uptimeKumaClient.emit('refreshMonitor', monitor.id);
+          
+          // Return the latest cached status
+          const status = this.statusCache.get(service);
+          if (status) return status;
+          break;
+        }
+      }
+    }
+    
+    // Fallback: manually check service health
+    const status = await this.checkServiceHealth(service);
+    this.statusCache.set(service, status);
+    
+    // Update cache
+    await redisClient.setex(
+      `${this.cachePrefix}${service}`, 
+      this.cacheTTL, 
+      JSON.stringify(status)
+    );
+    
+    return status;
+  }
+
   disconnect(): void {
     this.stopFallbackPolling();
     if (this.uptimeKumaClient) {

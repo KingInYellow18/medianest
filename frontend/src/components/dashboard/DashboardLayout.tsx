@@ -3,8 +3,11 @@
 import React from 'react';
 import { ServiceStatus, QuickAction } from '@/types/dashboard';
 import { useServiceStatus } from '@/hooks/useServiceStatus';
+import { useWebSocket } from '@/hooks/useWebSocket';
+import { useRealtimeStatus } from '@/hooks/useRealtimeStatus';
 import { ServiceCard } from './ServiceCard';
 import { ConnectionStatus } from './ConnectionStatus';
+import { UpdateAnimation } from './UpdateAnimation';
 
 interface DashboardLayoutProps {
   initialServices: ServiceStatus[];
@@ -13,6 +16,10 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ initialServices, children }: DashboardLayoutProps) {
   const { services, connected } = useServiceStatus(initialServices);
+  const { connectionError, reconnectAttempt, refreshService } = useWebSocket();
+  
+  // Enable real-time updates
+  useRealtimeStatus();
 
   const handleViewDetails = (serviceId: string) => {
     console.log('View details for service:', serviceId);
@@ -37,7 +44,9 @@ export function DashboardLayout({ initialServices, children }: DashboardLayoutPr
         break;
       case 'refresh':
         // Handle refresh actions
-        // TODO: Implement service refresh functionality
+        if (action.serviceId) {
+          refreshService(action.serviceId);
+        }
         break;
       default:
         console.log('Unknown action type:', action.type);
@@ -47,7 +56,11 @@ export function DashboardLayout({ initialServices, children }: DashboardLayoutPr
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <div className="container mx-auto px-4 py-8">
-        <ConnectionStatus connected={connected} />
+        <ConnectionStatus 
+          connected={connected} 
+          error={connectionError}
+          reconnectAttempt={reconnectAttempt}
+        />
         
         {children}
         
@@ -58,12 +71,13 @@ export function DashboardLayout({ initialServices, children }: DashboardLayoutPr
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
             {services.map((service) => (
-              <ServiceCard 
-                key={service.id} 
-                service={service}
-                onViewDetails={handleViewDetails}
-                onQuickAction={handleQuickAction}
-              />
+              <UpdateAnimation key={service.id} serviceId={service.id}>
+                <ServiceCard 
+                  service={service}
+                  onViewDetails={handleViewDetails}
+                  onQuickAction={handleQuickAction}
+                />
+              </UpdateAnimation>
             ))}
           </div>
         )}
