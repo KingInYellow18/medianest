@@ -108,7 +108,10 @@ describe('DashboardLayout', () => {
       </DashboardLayout>
     );
     
-    const servicesContainer = screen.getByText('Plex').closest('section');
+    // Find the grid container that contains the service cards
+    const plexCard = screen.getByText('Plex');
+    const servicesContainer = plexCard.closest('.grid');
+    expect(servicesContainer).toBeTruthy();
     expect(servicesContainer).toHaveClass('grid');
     expect(servicesContainer).toHaveClass('grid-cols-1');
     expect(servicesContainer).toHaveClass('md:grid-cols-2');

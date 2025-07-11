@@ -21,11 +21,17 @@ export function DashboardLayout({ initialServices, children }: DashboardLayoutPr
         
         {children}
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-          {services.map((service) => (
-            <ServiceCard key={service.id} service={service} />
-          ))}
-        </div>
+        {services.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-400 text-lg">Loading services...</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+            {services.map((service) => (
+              <ServiceCard key={service.id} service={service} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
