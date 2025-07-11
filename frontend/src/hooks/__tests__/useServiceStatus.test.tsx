@@ -1,0 +1,213 @@
+import React from 'react';
+import { renderHook, act, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { useServiceStatus } from '../useServiceStatus';
+import { ServiceStatus } from '@/types/dashboard';
+import io, { Socket } from 'socket.io-client';
+
+// Mock socket.io-client
+vi.mock('socket.io-client');
+const mockIo = io as unknown as ReturnType<typeof vi.fn>;
+
+// Mock js-cookie
+vi.mock('js-cookie', () => ({
+  default: {
+    get: vi.fn(() => 'mock-jwt-token'),
+  },
+}));
+
+describe('useServiceStatus', () => {
+  let mockSocket: Partial<Socket>;
+  let queryClient: QueryClient;
+
+  const initialServices: ServiceStatus[] = [
+    {
+      id: 'plex',
+      name: 'Plex',
+      status: 'up',
+      responseTime: 100,
+      lastCheckAt: new Date(),
+      uptimePercentage: 99.9,
+    },
+  ];
+
+  beforeEach(() => {
+    // Setup mock socket
+    mockSocket = {
+      on: vi.fn(),
+      off: vi.fn(),
+      disconnect: vi.fn(),
+      connected: true,
+    };
+    
+    (mockIo as any).mockReturnValue(mockSocket as Socket);
+
+    // Setup query client
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+      },
+    });
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const wrapper = ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>
+      {children}
+    </QueryClientProvider>
+  );
+
+  it('initializes with provided services', () => {
+    const { result } = renderHook(
+      () => useServiceStatus(initialServices),
+      { wrapper }
+    );
+
+    expect(result.current.services).toEqual(initialServices);
+    expect(result.current.connected).toBe(true);
+  });
+
+  it('creates socket connection with authentication', () => {
+    renderHook(() => useServiceStatus(initialServices), { wrapper });
+
+    expect(mockIo).toHaveBeenCalledWith(process.env.NEXT_PUBLIC_BACKEND_URL, {
+      auth: {
+        token: 'mock-jwt-token',
+      },
+    });
+  });
+
+  it('registers socket event listeners', () => {
+    renderHook(() => useServiceStatus(initialServices), { wrapper });
+
+    expect(mockSocket.on).toHaveBeenCalledWith('connect', expect.any(Function));
+    expect(mockSocket.on).toHaveBeenCalledWith('disconnect', expect.any(Function));
+    expect(mockSocket.on).toHaveBeenCalledWith('service:status', expect.any(Function));
+  });
+
+  it('updates connection status on connect/disconnect', () => {
+    const { result } = renderHook(
+      () => useServiceStatus(initialServices),
+      { wrapper }
+    );
+
+    // Simulate disconnect
+    const disconnectHandler = (mockSocket.on as ReturnType<typeof vi.fn>).mock.calls.find(
+      ([event]) => event === 'disconnect'
+    )?.[1];
+    
+    act(() => {
+      disconnectHandler();
+    });
+
+    expect(result.current.connected).toBe(false);
+
+    // Simulate reconnect
+    const connectHandler = (mockSocket.on as ReturnType<typeof vi.fn>).mock.calls.find(
+      ([event]) => event === 'connect'
+    )?.[1];
+    
+    act(() => {
+      connectHandler();
+    });
+
+    expect(result.current.connected).toBe(true);
+  });
+
+  it('updates service status on service:status event', () => {
+    const { result } = renderHook(
+      () => useServiceStatus(initialServices),
+      { wrapper }
+    );
+
+    const statusHandler = (mockSocket.on as ReturnType<typeof vi.fn>).mock.calls.find(
+      ([event]) => event === 'service:status'
+    )?.[1];
+
+    const updatedService: ServiceStatus = {
+      id: 'plex',
+      name: 'Plex',
+      status: 'down',
+      responseTime: 0,
+      lastCheckAt: new Date(),
+      uptimePercentage: 98.5,
+    };
+
+    act(() => {
+      statusHandler(updatedService);
+    });
+
+    expect(result.current.services[0].status).toBe('down');
+    expect(result.current.services[0].uptimePercentage).toBe(98.5);
+  });
+
+  it('adds new service if not in list', () => {
+    const { result } = renderHook(
+      () => useServiceStatus(initialServices),
+      { wrapper }
+    );
+
+    const statusHandler = (mockSocket.on as ReturnType<typeof vi.fn>).mock.calls.find(
+      ([event]) => event === 'service:status'
+    )?.[1];
+
+    const newService: ServiceStatus = {
+      id: 'overseerr',
+      name: 'Overseerr',
+      status: 'up',
+      responseTime: 200,
+      lastCheckAt: new Date(),
+      uptimePercentage: 100,
+    };
+
+    act(() => {
+      statusHandler(newService);
+    });
+
+    expect(result.current.services).toHaveLength(2);
+    expect(result.current.services[1].id).toBe('overseerr');
+  });
+
+  it('cleans up socket on unmount', () => {
+    const { unmount } = renderHook(
+      () => useServiceStatus(initialServices),
+      { wrapper }
+    );
+
+    unmount();
+
+    expect(mockSocket.off).toHaveBeenCalledWith('connect');
+    expect(mockSocket.off).toHaveBeenCalledWith('disconnect');
+    expect(mockSocket.off).toHaveBeenCalledWith('service:status');
+    expect(mockSocket.disconnect).toHaveBeenCalled();
+  });
+
+  it('fetches services periodically', async () => {
+    const mockFetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve([
+          {
+            id: 'plex',
+            name: 'Plex Updated',
+            status: 'up',
+            responseTime: 120,
+            lastCheckAt: new Date().toISOString(),
+            uptimePercentage: 99.8,
+          },
+        ]),
+      })
+    );
+    global.fetch = mockFetch as any;
+
+    renderHook(() => useServiceStatus(initialServices), { wrapper });
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith('/api/services/status');
+    });
+  });
+});
