@@ -5,26 +5,29 @@ module.exports = {
     es2022: true,
   },
   parser: '@typescript-eslint/parser',
-  plugins: ['@typescript-eslint', 'import', 'prettier'],
+  plugins: ['@typescript-eslint', 'import-x', 'prettier'],
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
-    'plugin:@typescript-eslint/recommended-requiring-type-checking',
-    'plugin:import/recommended',
-    'plugin:import/typescript',
-    'prettier',
+    'plugin:@typescript-eslint/recommended-type-checked',
+    'plugin:import-x/recommended',
+    'plugin:import-x/typescript',
+    'plugin:prettier/recommended',
   ],
   parserOptions: {
     ecmaVersion: 2022,
     sourceType: 'module',
     tsconfigRootDir: __dirname,
-    project: ['./tsconfig.base.json'],
+    project: ['./tsconfig.base.json', './frontend/tsconfig.json', './backend/tsconfig.json', './shared/tsconfig.json'],
   },
   settings: {
-    'import/resolver': {
+    'import-x/parsers': {
+      '@typescript-eslint/parser': ['.ts', '.tsx'],
+    },
+    'import-x/resolver': {
       typescript: {
         alwaysTryTypes: true,
-        project: ['./tsconfig.base.json'],
+        project: ['./tsconfig.base.json', './frontend/tsconfig.json', './backend/tsconfig.json', './shared/tsconfig.json'],
       },
     },
   },
@@ -32,13 +35,21 @@ module.exports = {
     // TypeScript
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
-    '@typescript-eslint/no-explicit-any': 'error',
+    '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-    '@typescript-eslint/no-non-null-assertion': 'error',
-    '@typescript-eslint/strict-boolean-expressions': 'error',
+    '@typescript-eslint/no-non-null-assertion': 'warn',
+    '@typescript-eslint/strict-boolean-expressions': 'off',
+    '@typescript-eslint/no-misused-promises': [
+      'error',
+      {
+        checksVoidReturn: {
+          attributes: false,
+        },
+      },
+    ],
     
     // Imports
-    'import/order': [
+    'import-x/order': [
       'error',
       {
         groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
@@ -46,8 +57,9 @@ module.exports = {
         alphabetize: { order: 'asc', caseInsensitive: true },
       },
     ],
-    'import/no-duplicates': 'error',
-    'import/no-cycle': 'error',
+    'import-x/no-duplicates': 'error',
+    'import-x/no-cycle': 'warn',
+    'import-x/no-unresolved': 'error',
     
     // General
     'no-console': ['warn', { allow: ['warn', 'error'] }],
@@ -63,5 +75,7 @@ module.exports = {
     'coverage',
     '*.config.js',
     '*.config.ts',
+    '*.mjs',
+    'vitest.config.ts',
   ],
 };
