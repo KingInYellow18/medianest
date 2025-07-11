@@ -18,7 +18,7 @@
       "@/hooks/*": ["./src/hooks/*", "./hooks/*"],
       "@/services/*": ["./src/services/*", "./services/*"],
       "@/contexts/*": ["./contexts/*"],
-      "@/types/*": ["./types/*"],
+      "@/types/*": ["./src/types/*", "./types/*"],
       "@/utils/*": ["./utils/*"],
       "@medianest/shared": ["../shared/src"],
       "@medianest/shared/*": ["../shared/src/*"]

@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { plexService } from '@/services/plex.service';
-import { userRepository, serviceConfigRepository } from '@/repositories';
+import { userRepository, serviceConfigRepository } from '@/repositories/instances';
 import { redisClient } from '@/config/redis';
 import { encryptionService } from '@/services/encryption.service';
 import { AppError } from '@/utils/errors';
 
 // Mock dependencies
-vi.mock('@/repositories');
+vi.mock('@/repositories/instances');
 vi.mock('@/config/redis');
 vi.mock('@/services/encryption.service');
 vi.mock('@/integrations/plex/plex.client');

@@ -1,17 +1,17 @@
 import { describe, it, expect, beforeAll, afterAll, vi, beforeEach } from 'vitest';
 import { setupServer } from 'msw/node';
-import { rest } from 'msw';
+import { http, HttpResponse } from 'msw';
 import { plexService } from '@/services/plex.service';
 import { overseerrService } from '@/services/overseerr.service';
 import { statusService } from '@/services/status.service';
-import { userRepository, serviceConfigRepository } from '@/repositories';
+import { userRepository, serviceConfigRepository } from '@/repositories/instances';
 import { encryptionService } from '@/services/encryption.service';
 
 // MSW server for mocking external APIs
 const server = setupServer(
   // Plex API mocks
-  rest.get('http://localhost:32400/', (req, res, ctx) => {
-    return res(ctx.json({
+  http.get('http://localhost:32400/', () => {
+    return HttpResponse.json({
       MediaContainer: {
         friendlyName: 'Test Plex Server',
         machineIdentifier: 'test-machine-id',
@@ -19,27 +19,27 @@ const server = setupServer(
         platform: 'Linux',
         updatedAt: Date.now()
       }
-    }));
+    });
   }),
   
-  rest.get('http://localhost:32400/library/sections', (req, res, ctx) => {
-    return res(ctx.json({
+  http.get('http://localhost:32400/library/sections', () => {
+    return HttpResponse.json({
       MediaContainer: {
         Directory: [
           { key: '1', type: 'movie', title: 'Movies', uuid: 'movie-uuid', updatedAt: Date.now() },
           { key: '2', type: 'show', title: 'TV Shows', uuid: 'show-uuid', updatedAt: Date.now() }
         ]
       }
-    }));
+    });
   }),
 
   // Overseerr API mocks
-  rest.get('http://localhost:5055/api/v1/status', (req, res, ctx) => {
-    return res(ctx.json({ status: 'ok' }));
+  http.get('http://localhost:5055/api/v1/status', () => {
+    return HttpResponse.json({ status: 'ok' });
   }),
 
-  rest.get('http://localhost:5055/api/v1/search', (req, res, ctx) => {
-    return res(ctx.json({
+  http.get('http://localhost:5055/api/v1/search', () => {
+    return HttpResponse.json({
       results: [{
         id: 123,
         mediaType: 'movie',
@@ -48,11 +48,11 @@ const server = setupServer(
         tmdbId: 123
       }],
       totalPages: 1
-    }));
+    });
   }),
 
-  rest.post('http://localhost:5055/api/v1/request', (req, res, ctx) => {
-    return res(ctx.json({
+  http.post('http://localhost:5055/api/v1/request', () => {
+    return HttpResponse.json({
       id: 1,
       status: 1,
       media: {
@@ -66,7 +66,7 @@ const server = setupServer(
       },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
-    }));
+    });
   })
 );
 

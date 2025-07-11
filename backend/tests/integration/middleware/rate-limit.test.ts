@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { Request, Response, NextFunction } from 'express'
-import { createRateLimiter } from '@/middleware/rate-limit'
+import { createRateLimit } from '@/middleware/rate-limit'
 import Redis from 'ioredis-mock'
 
 describe('Rate Limiting Middleware', () => {
@@ -36,7 +36,7 @@ describe('Rate Limiting Middleware', () => {
 
   describe('General API Rate Limiting', () => {
     it('should allow requests within limit', async () => {
-      const limiter = createRateLimiter(redis, { limit: 5, window: 60 })
+      const limiter = createRateLimit({ max: 5, windowMs: 60000 })
 
       for (let i = 0; i < 5; i++) {
         await limiter(req as Request, res as Response, next)
@@ -47,7 +47,7 @@ describe('Rate Limiting Middleware', () => {
     })
 
     it('should block requests exceeding limit', async () => {
-      const limiter = createRateLimiter(redis, { limit: 2, window: 60 })
+      const limiter = createRateLimit({ max: 2, windowMs: 60000 })
 
       // First two requests should pass
       await limiter(req as Request, res as Response, next)
@@ -64,7 +64,7 @@ describe('Rate Limiting Middleware', () => {
     })
 
     it('should reset after window expires', async () => {
-      const limiter = createRateLimiter(redis, { limit: 1, window: 1 }) // 1 second window
+      const limiter = createRateLimit({ max: 1, windowMs: 1000 }) // 1 second window
 
       // First request should pass
       await limiter(req as Request, res as Response, next)
@@ -89,7 +89,7 @@ describe('Rate Limiting Middleware', () => {
     })
 
     it('should set rate limit headers', async () => {
-      const limiter = createRateLimiter(redis, { limit: 100, window: 60 })
+      const limiter = createRateLimit({ max: 100, windowMs: 60000 })
 
       await limiter(req as Request, res as Response, next)
 
@@ -100,7 +100,7 @@ describe('Rate Limiting Middleware', () => {
 
     it('should use IP as fallback for unauthenticated requests', async () => {
       req.user = undefined
-      const limiter = createRateLimiter(redis, { limit: 5, window: 60 })
+      const limiter = createRateLimit({ max: 5, windowMs: 60000 })
 
       await limiter(req as Request, res as Response, next)
 
@@ -111,10 +111,10 @@ describe('Rate Limiting Middleware', () => {
 
   describe('YouTube Download Rate Limiting', () => {
     it('should enforce stricter limits for YouTube downloads', async () => {
-      const limiter = createRateLimiter(redis, { 
-        limit: 5, 
-        window: 3600, // 1 hour
-        keyPrefix: 'youtube'
+      const limiter = createRateLimit({ 
+        max: 5, 
+        windowMs: 3600000, // 1 hour
+        keyGenerator: (req) => `youtube:${req.user?.id || req.ip}`
       })
       req.path = '/api/youtube/download'
 
@@ -134,10 +134,10 @@ describe('Rate Limiting Middleware', () => {
     })
 
     it('should provide retry-after header for YouTube limits', async () => {
-      const limiter = createRateLimiter(redis, { 
-        limit: 1, 
-        window: 3600,
-        keyPrefix: 'youtube'
+      const limiter = createRateLimit({ 
+        max: 1, 
+        windowMs: 3600000,
+        keyGenerator: (req) => `youtube:${req.user?.id || req.ip}`
       })
 
       // First request passes
@@ -154,7 +154,7 @@ describe('Rate Limiting Middleware', () => {
 
   describe('Rate Limit Key Generation', () => {
     it('should create unique keys per user', async () => {
-      const limiter = createRateLimiter(redis, { limit: 2, window: 60 })
+      const limiter = createRateLimit({ max: 2, windowMs: 60000 })
       
       // User 1
       await limiter(req as Request, res as Response, next)
@@ -174,10 +174,10 @@ describe('Rate Limiting Middleware', () => {
     })
 
     it('should create unique keys per endpoint', async () => {
-      const limiter = createRateLimiter(redis, { 
-        limit: 1, 
-        window: 60,
-        keyPrefix: 'endpoint'
+      const limiter = createRateLimit({ 
+        max: 1, 
+        windowMs: 60000,
+        keyGenerator: (req) => `endpoint:${req.path}:${req.user?.id || req.ip}`
       })
       
       // Endpoint 1

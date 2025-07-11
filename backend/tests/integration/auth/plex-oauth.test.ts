@@ -13,7 +13,7 @@ import {
 } from '../../helpers/external-services'
 
 // Mock repositories
-vi.mock('@/repositories', () => ({
+vi.mock('@/repositories/instances', () => ({
   userRepository: {
     findByPlexId: vi.fn(),
     create: vi.fn(),

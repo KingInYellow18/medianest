@@ -5,7 +5,7 @@ import { createAuthToken, createExpiredToken, createInvalidToken } from '../../h
 import { AuthenticationError, AuthorizationError } from '@/utils/errors'
 
 // Mock the repository
-vi.mock('@/repositories', () => ({
+vi.mock('@/repositories/instances', () => ({
   userRepository: {
     findById: vi.fn()
   }

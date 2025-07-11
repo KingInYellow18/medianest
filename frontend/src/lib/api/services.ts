@@ -17,9 +17,15 @@ export async function getServiceStatus(): Promise<ServiceStatus[]> {
 
     const data = await response.json();
     
-    // Convert date strings to Date objects
+    // Convert date strings to Date objects and ensure uptime structure
     return data.data.services.map((service: any) => ({
       ...service,
+      displayName: service.displayName || service.name,
+      uptime: service.uptime || {
+        '24h': service.uptimePercentage || 0,
+        '7d': service.uptimePercentage || 0,
+        '30d': service.uptimePercentage || 0,
+      },
       lastCheckAt: new Date(service.lastCheckAt),
     }));
   } catch (error) {
@@ -29,24 +35,39 @@ export async function getServiceStatus(): Promise<ServiceStatus[]> {
       {
         id: 'plex',
         name: 'Plex',
+        displayName: 'Plex Media Server',
         status: 'down',
-        uptimePercentage: 0,
+        uptime: {
+          '24h': 0,
+          '7d': 0,
+          '30d': 0,
+        },
         lastCheckAt: new Date(),
         features: ['disabled'],
       },
       {
         id: 'overseerr',
         name: 'Overseerr',
+        displayName: 'Overseerr',
         status: 'down',
-        uptimePercentage: 0,
+        uptime: {
+          '24h': 0,
+          '7d': 0,
+          '30d': 0,
+        },
         lastCheckAt: new Date(),
         features: ['disabled'],
       },
       {
         id: 'uptime-kuma',
         name: 'Uptime Kuma',
+        displayName: 'Uptime Kuma',
         status: 'down',
-        uptimePercentage: 0,
+        uptime: {
+          '24h': 0,
+          '7d': 0,
+          '30d': 0,
+        },
         lastCheckAt: new Date(),
         features: ['disabled'],
       },

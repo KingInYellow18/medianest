@@ -11,6 +11,14 @@ import {
 } from '@/utils/errors'
 import { ZodError } from 'zod'
 
+// Mock monitoring utilities
+const mockIncrement = vi.fn()
+vi.mock('@/utils/monitoring', () => ({
+  metrics: {
+    incrementError: mockIncrement
+  }
+}))
+
 describe('Error Handler Middleware', () => {
   let req: Partial<Request>
   let res: Partial<Response>
@@ -248,13 +256,6 @@ describe('Error Handler Middleware', () => {
 
   describe('Metrics Recording', () => {
     it('should record error metrics', () => {
-      const mockIncrement = vi.fn()
-      vi.mock('@/utils/monitoring', () => ({
-        metrics: {
-          incrementError: mockIncrement
-        }
-      }))
-
       const error = new AuthenticationError('Invalid token')
       errorHandler(error, req as Request, res as Response, next)
 

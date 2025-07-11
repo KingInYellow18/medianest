@@ -35,8 +35,15 @@ describe('useServiceStatus', () => {
   beforeEach(() => {
     // Setup mock socket
     mockSocket = {
-      on: vi.fn(),
+      on: vi.fn((event, callback) => {
+        // Auto-trigger connect event
+        if (event === 'connect') {
+          setTimeout(() => callback(), 0);
+        }
+        return mockSocket;
+      }),
       off: vi.fn(),
+      emit: vi.fn(),
       disconnect: vi.fn(),
       connected: true,
     };
@@ -61,14 +68,18 @@ describe('useServiceStatus', () => {
     </QueryClientProvider>
   );
 
-  it('initializes with provided services', () => {
+  it('initializes with provided services', async () => {
     const { result } = renderHook(
       () => useServiceStatus(initialServices),
       { wrapper }
     );
 
     expect(result.current.services).toEqual(initialServices);
-    expect(result.current.connected).toBe(true);
+    
+    // Wait for the connect event to fire and update the state
+    await waitFor(() => {
+      expect(result.current.connected).toBe(true);
+    });
   });
 
   it('creates socket connection with authentication', () => {
@@ -78,6 +89,7 @@ describe('useServiceStatus', () => {
       auth: {
         token: 'mock-jwt-token',
       },
+      transports: ['websocket', 'polling'],
     });
   });
 
