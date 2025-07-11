@@ -24,6 +24,18 @@ export const config = {
     adminUsername: process.env.ADMIN_USERNAME || 'admin',
     adminPassword: process.env.ADMIN_PASSWORD || 'admin'
   },
+  
+  // JWT
+  jwt: {
+    secret: process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || 'development-secret',
+    issuer: 'medianest',
+    audience: 'medianest-users'
+  },
+  
+  // Security
+  security: {
+    encryptionKey: process.env.ENCRYPTION_KEY || 'development-encryption-key-32-chars!'
+  },
 
   // Plex
   plex: {

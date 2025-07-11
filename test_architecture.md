@@ -1480,50 +1480,276 @@ export class TestMetrics {
 
 ## 5. External Service Testing
 
-### 5.1 Simple Mocking Strategy with MSW
+### 5.1 Hybrid Mocking Strategy (90% Mocks, 10% Live)
 
-MSW provides a clean, interceptor-based approach to mocking:
+We use a hybrid approach that prioritizes mocked tests for speed and reliability, with optional live integration tests for critical flows.
+
+#### MSW Mock Handler Architecture
+
+MSW (Mock Service Worker) provides request interception at the network level, allowing realistic API mocking:
 
 ```typescript
-// tests/mocks/plexHandlers.ts
+// tests/mocks/handlers.ts
 import { http, HttpResponse } from 'msw'
 
-export const plexHandlers = [
-  http.get('https://plex.tv/api/v2/library/sections', () => {
-    return HttpResponse.json([
-      { id: '1', title: 'Movies' },
-      { id: '2', title: 'TV Shows' }
-    ])
+export const handlers = [
+  // PLEX API HANDLERS
+  http.post('https://plex.tv/pins.xml', ({ request }) => {
+    const clientId = request.headers.get('X-Plex-Client-Identifier')
+    if (!clientId) {
+      return HttpResponse.text('Unauthorized', { status: 401 })
+    }
+    
+    return HttpResponse.text(`
+      <pin>
+        <id>12345</id>
+        <code>ABCD</code>
+      </pin>
+    `, { 
+      headers: { 'Content-Type': 'application/xml' }
+    })
   }),
   
-  http.get('https://plex.tv/api/v2/user', () => {
+  // OVERSEERR API HANDLERS
+  http.get(/^https?:\/\/[^\/]+\/api\/v1\/status$/, ({ request }) => {
+    const apiKey = request.headers.get('X-Api-Key')
+    if (!apiKey) {
+      return HttpResponse.json({ error: 'API key required' }, { status: 401 })
+    }
+    
     return HttpResponse.json({
-      id: '123',
-      username: 'testuser',
-      email: 'test@example.com'
+      version: '1.33.2',
+      totalRequests: 1234,
+      totalMovieRequests: 800,
+      totalTvRequests: 434,
+      appDataPath: '/app/config'
+    })
+  }),
+  
+  // UPTIME KUMA API HANDLERS
+  http.get(/^https?:\/\/[^\/]+\/api\/badge\/(\d+)\/(status|uptime|ping|cert-exp)$/, ({ params }) => {
+    const [monitorId, type] = params
+    
+    // Return SVG badges like real Uptime Kuma
+    if (type === 'status') {
+      return HttpResponse.text(
+        `<svg>...</svg>`, // Actual SVG omitted for brevity
+        { headers: { 'Content-Type': 'image/svg+xml' } }
+      )
+    }
+    
+    return HttpResponse.json({ 
+      monitorId, 
+      type,
+      value: type === 'uptime' ? 99.9 : 45
     })
   })
 ]
+```
 
-// In tests
-import { server } from '../mocks/server'
-import { http, HttpResponse } from 'msw'
+#### Critical MSW Setup Configuration
 
-it('should handle Plex being down', async () => {
-  // Override the handler for this specific test
-  server.use(
-    http.get('https://plex.tv/api/v2/library/sections', () => {
-      return HttpResponse.error()
-    })
-  )
-  
-  const response = await request(app).get('/api/plex/libraries')
-  expect(response.status).toBe(503)
-  expect(response.body.error).toContain('temporarily unavailable')
+The key to proper mock isolation is configuring MSW to bypass local Express routes:
+
+```typescript
+// tests/setup.ts
+import { server } from './mocks/server'
+
+beforeAll(() => {
+  // CRITICAL: Use 'bypass' to let local Express routes pass through
+  server.listen({ 
+    onUnhandledRequest: 'bypass' // Don't intercept local API calls
+  })
+})
+
+afterEach(() => {
+  server.resetHandlers()
+})
+
+afterAll(() => {
+  server.close()
 })
 ```
 
-### 5.2 Testing Service Failures
+#### Test Helper Functions
+
+Helper functions provide clean test scenarios without modifying core handlers:
+
+```typescript
+// tests/helpers/external-services.ts
+import { server } from '../mocks/server'
+import { http, HttpResponse } from 'msw'
+
+// Authorize a Plex PIN for testing
+export function authorizePlexPin(pinId: string, authToken?: string) {
+  server.use(
+    http.get(`https://plex.tv/pins/${pinId}.xml`, () => {
+      return HttpResponse.text(`
+        <pin>
+          <id>${pinId}</id>
+          <code>ABCD</code>
+          <authToken>${authToken || 'plex-auth-token-123'}</authToken>
+        </pin>
+      `, {
+        headers: { 'Content-Type': 'application/xml' }
+      })
+    })
+  )
+}
+
+// Simulate service outages
+export function simulatePlexDown() {
+  server.use(
+    http.post('https://plex.tv/pins.xml', () => {
+      return HttpResponse.text('Service Unavailable', { status: 503 })
+    }),
+    http.get(/https:\/\/plex\.tv\/.*/, () => {
+      return HttpResponse.text('Service Unavailable', { status: 503 })
+    })
+  )
+}
+
+// Mock specific Overseerr scenarios
+export function simulateMediaAlreadyRequested(tmdbId: number, mediaType: 'movie' | 'tv') {
+  server.use(
+    http.post(/\/api\/v1\/request$/, async ({ request }) => {
+      const body = await request.json() as any
+      if (body.mediaId === tmdbId && body.mediaType === mediaType) {
+        return HttpResponse.json(
+          { error: 'Media already requested' },
+          { status: 409 }
+        )
+      }
+      return undefined // Let default handler process
+    })
+  )
+}
+```
+
+### 5.2 Testing Service Integration Patterns
+
+#### Pattern 1: Happy Path Testing
+
+```typescript
+describe('Plex OAuth Flow', () => {
+  it('completes authentication successfully', async () => {
+    // PIN is generated by default handler
+    const pinResponse = await request(app)
+      .post('/api/v1/auth/plex/pin')
+      .expect(200)
+    
+    expect(pinResponse.body.data.code).toBe('ABCD')
+    
+    // Authorize the PIN for verification
+    authorizePlexPin('12345', 'test-auth-token')
+    
+    // Verify PIN and create user
+    const authResponse = await request(app)
+      .post('/api/v1/auth/plex/verify')
+      .send({ pinId: '12345' })
+      .expect(200)
+    
+    expect(authResponse.body.data.user.username).toBe('testplexuser')
+  })
+})
+```
+
+#### Pattern 2: Service Failure Testing
+
+```typescript
+describe('Service Resilience', () => {
+  it('handles Plex unavailability gracefully', async () => {
+    simulatePlexDown()
+    
+    const response = await request(app)
+      .post('/api/v1/auth/plex/pin')
+      .expect(503)
+    
+    expect(response.body.error.code).toBe('PLEX_UNREACHABLE')
+    expect(response.body.error.message).toContain('Cannot connect to Plex')
+  })
+  
+  it('provides cached data when Overseerr is down', async () => {
+    // Seed cache with valid data
+    await cache.setServiceStatus('overseerr', { status: 'up' })
+    
+    simulateOverseerrDown()
+    
+    const response = await request(app)
+      .get('/api/v1/dashboard/status')
+      .expect(200)
+    
+    expect(response.body.services.overseerr.cached).toBe(true)
+  })
+})
+```
+
+#### Pattern 3: Edge Case Testing
+
+```typescript
+describe('Edge Cases', () => {
+  it('handles expired Plex PIN gracefully', async () => {
+    // Don't authorize the PIN - it remains unauthorized
+    const response = await request(app)
+      .post('/api/v1/auth/plex/verify')
+      .send({ pinId: '12345' })
+      .expect(400)
+    
+    expect(response.body.error.code).toBe('PIN_NOT_AUTHORIZED')
+  })
+  
+  it('prevents duplicate media requests', async () => {
+    simulateMediaAlreadyRequested(603, 'movie')
+    
+    const response = await request(app)
+      .post('/api/v1/media/request')
+      .send({ tmdbId: 603, mediaType: 'movie' })
+      .expect(409)
+    
+    expect(response.body.error.message).toContain('already requested')
+  })
+})
+```
+
+### 5.3 Live Integration Testing (Optional)
+
+For critical flows, we support optional live integration tests with strict safeguards:
+
+```typescript
+// tests/live/plex-integration.test.ts
+describe.skipIf(!process.env.ENABLE_LIVE_TESTS)('Live Plex Integration', () => {
+  const TEST_USER_PREFIX = 'medianest_test_'
+  
+  beforeAll(async () => {
+    // Verify we're in test environment
+    if (!process.env.PLEX_TEST_SERVER_URL) {
+      throw new Error('Live tests require PLEX_TEST_SERVER_URL')
+    }
+  })
+  
+  afterEach(async () => {
+    // Cleanup any test data
+    await cleanupTestUsers(TEST_USER_PREFIX)
+  })
+  
+  it('validates real Plex token', async () => {
+    const result = await plexClient.validateToken(process.env.PLEX_TEST_TOKEN)
+    expect(result.valid).toBe(true)
+  })
+})
+```
+
+### 5.4 Mock vs Live Decision Matrix
+
+| Scenario | Use Mocks | Use Live | Reason |
+|----------|-----------|----------|---------|
+| Unit Tests | ✅ | ❌ | Speed and isolation |
+| Integration Tests | ✅ | ❌ | Predictable behavior |
+| CI/CD Pipeline | ✅ | ❌ | No external dependencies |
+| Pre-deployment Validation | ❌ | ✅ | Real-world verification |
+| Debugging Production Issues | ❌ | ✅ | Reproduce actual behavior |
+
+### 5.5 Testing Service Failures
 
 Focus on graceful degradation:
 
@@ -1531,15 +1757,15 @@ Focus on graceful degradation:
 // Test what happens when services fail
 describe('Service Resilience', () => {
   it('should show degraded status when Overseerr is down', async () => {
-    mockOverseerr.isAvailable.mockResolvedValue(false);
+    simulateOverseerrDown()
     
-    const response = await request(app).get('/api/dashboard/status');
-    const overseerr = response.body.services.find(s => s.name === 'Overseerr');
+    const response = await request(app).get('/api/dashboard/status')
+    const overseerr = response.body.services.find(s => s.name === 'Overseerr')
     
-    expect(overseerr.status).toBe('down');
-    expect(overseerr.features).toContain('disabled');
-  });
-});
+    expect(overseerr.status).toBe('down')
+    expect(overseerr.features).toContain('disabled')
+  })
+})
 ```
 
 ### 9.2 WebSocket Load Testing

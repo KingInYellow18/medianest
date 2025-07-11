@@ -1,11 +1,16 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, vi, beforeAll, afterAll } from 'vitest'
 import request from 'supertest'
 import express from 'express'
 import { errorHandler } from '@/middleware/error'
 import { correlationIdMiddleware } from '@/middleware/correlation-id'
-import { authRouter } from '../../mocks/auth-router'
+import authRoutes from '@/routes/v1/auth'
 import { server as mswServer } from '../../mocks/server'
 import { http, HttpResponse } from 'msw'
+import { 
+  authorizePlexPin, 
+  simulatePlexDown,
+  resetMockHandlers 
+} from '../../helpers/external-services'
 
 // Mock repositories
 vi.mock('@/repositories', () => ({
@@ -17,6 +22,37 @@ vi.mock('@/repositories', () => ({
   }
 }))
 
+// Mock services
+vi.mock('@/services/encryption.service', () => ({
+  encryptionService: {
+    encrypt: vi.fn((value) => Promise.resolve(`encrypted-${value}`)),
+    decrypt: vi.fn((value) => Promise.resolve(value.replace('encrypted-', '')))
+  }
+}))
+
+vi.mock('@/services/jwt.service', () => ({
+  jwtService: {
+    generateAccessToken: vi.fn(() => 'test-jwt-token'),
+    generateRememberToken: vi.fn(() => 'test-remember-token'),
+    verifyToken: vi.fn()
+  }
+}))
+
+// Mock config
+vi.mock('@/config', () => ({
+  config: {
+    plex: {
+      clientId: 'test-client-id',
+      clientSecret: 'test-client-secret'
+    },
+    jwt: {
+      secret: 'test-secret',
+      issuer: 'medianest',
+      audience: 'medianest-users'
+    }
+  }
+}))
+
 describe('Plex OAuth PIN Flow', () => {
   let app: express.Application
 
@@ -24,14 +60,18 @@ describe('Plex OAuth PIN Flow', () => {
     app = express()
     app.use(express.json())
     app.use(correlationIdMiddleware)
-    app.use('/api/auth', authRouter)
+    app.use('/api/v1/auth', authRoutes)
     app.use(errorHandler)
+    
+    // Reset all mocks
+    vi.clearAllMocks()
+    resetMockHandlers()
   })
 
   describe('PIN Generation', () => {
     it('should generate a PIN successfully', async () => {
       const response = await request(app)
-        .post('/api/auth/plex/pin')
+        .post('/api/v1/auth/plex/pin')
         .send()
 
       expect(response.status).toBe(200)
@@ -41,21 +81,17 @@ describe('Plex OAuth PIN Flow', () => {
           id: '12345',
           code: 'ABCD',
           qrUrl: expect.stringContaining('plex.tv/link'),
-          expiresIn: expect.any(Number)
+          expiresIn: 900
         }
       })
     })
 
     it('should handle Plex API errors gracefully', async () => {
-      // Override MSW handler to return error
-      mswServer.use(
-        http.post('https://plex.tv/pins.xml', () => {
-          return HttpResponse.text('Service Unavailable', { status: 503 })
-        })
-      )
+      // Simulate Plex being down
+      simulatePlexDown()
 
       const response = await request(app)
-        .post('/api/auth/plex/pin')
+        .post('/api/v1/auth/plex/pin')
         .send()
 
       expect(response.status).toBe(503)
@@ -72,6 +108,9 @@ describe('Plex OAuth PIN Flow', () => {
   describe('PIN Verification', () => {
     it('should verify PIN and create user successfully', async () => {
       const { userRepository } = await import('@/repositories')
+      const { jwtService } = await import('@/services/jwt.service')
+      
+      // Setup mocks
       vi.mocked(userRepository.findByPlexId).mockResolvedValue(null)
       vi.mocked(userRepository.isFirstUser).mockResolvedValue(false)
       vi.mocked(userRepository.create).mockResolvedValue({
@@ -83,11 +122,14 @@ describe('Plex OAuth PIN Flow', () => {
         status: 'active',
         createdAt: new Date(),
         lastLoginAt: new Date(),
-        plexToken: 'encrypted-token'
+        plexToken: 'encrypted-plex-auth-token-123'
       })
 
+      // Authorize the PIN
+      authorizePlexPin('12345', 'plex-auth-token-123')
+
       const response = await request(app)
-        .post('/api/auth/plex/verify')
+        .post('/api/v1/auth/plex/verify')
         .send({ pinId: '12345' })
 
       expect(response.status).toBe(200)
@@ -100,8 +142,8 @@ describe('Plex OAuth PIN Flow', () => {
             email: 'plex@example.com',
             role: 'user'
           },
-          token: expect.any(String),
-          rememberToken: expect.any(String)
+          token: 'test-jwt-token',
+          rememberToken: null
         }
       })
 
@@ -110,9 +152,15 @@ describe('Plex OAuth PIN Flow', () => {
         plexId: 'plex-user-456',
         username: 'testplexuser',
         email: 'plex@example.com',
-        plexToken: 'plex-auth-token-123',
+        plexToken: 'encrypted-plex-auth-token-123',
         role: 'user',
         lastLoginAt: expect.any(Date)
+      })
+      
+      // Verify JWT generation
+      expect(jwtService.generateAccessToken).toHaveBeenCalledWith({
+        userId: 'new-user-id',
+        role: 'user'
       })
     })
 
@@ -135,12 +183,15 @@ describe('Plex OAuth PIN Flow', () => {
         ...existingUser,
         username: 'testplexuser',
         email: 'plex@example.com',
-        plexToken: 'plex-auth-token-123',
+        plexToken: 'encrypted-plex-auth-token-123',
         lastLoginAt: new Date()
       })
 
+      // Authorize the PIN
+      authorizePlexPin('12345', 'plex-auth-token-123')
+
       const response = await request(app)
-        .post('/api/auth/plex/verify')
+        .post('/api/v1/auth/plex/verify')
         .send({ pinId: '12345' })
 
       expect(response.status).toBe(200)
@@ -149,7 +200,7 @@ describe('Plex OAuth PIN Flow', () => {
         {
           username: 'testplexuser',
           email: 'plex@example.com',
-          plexToken: 'plex-auth-token-123',
+          plexToken: 'encrypted-plex-auth-token-123',
           lastLoginAt: expect.any(Date)
         }
       )
@@ -171,8 +222,11 @@ describe('Plex OAuth PIN Flow', () => {
         plexToken: 'encrypted-token'
       })
 
+      // Authorize the PIN
+      authorizePlexPin('12345', 'plex-auth-token-123')
+
       const response = await request(app)
-        .post('/api/auth/plex/verify')
+        .post('/api/v1/auth/plex/verify')
         .send({ pinId: '12345' })
 
       expect(response.status).toBe(200)
@@ -184,23 +238,11 @@ describe('Plex OAuth PIN Flow', () => {
     })
 
     it('should handle expired PIN', async () => {
-      // Override handler to return PIN without auth token
-      mswServer.use(
-        http.get('https://plex.tv/pins/:id.xml', () => {
-          return HttpResponse.text(`
-            <pin>
-              <id>expired-pin</id>
-              <code>XXXX</code>
-            </pin>
-          `, {
-            headers: { 'Content-Type': 'application/xml' }
-          })
-        })
-      )
+      // Don't authorize the PIN - it will not have an auth token
 
       const response = await request(app)
-        .post('/api/auth/plex/verify')
-        .send({ pinId: 'expired-pin' })
+        .post('/api/v1/auth/plex/verify')
+        .send({ pinId: '12345' })
 
       expect(response.status).toBe(400)
       expect(response.body).toMatchObject({
@@ -213,14 +255,8 @@ describe('Plex OAuth PIN Flow', () => {
     })
 
     it('should handle invalid PIN', async () => {
-      mswServer.use(
-        http.get('https://plex.tv/pins/:id.xml', () => {
-          return HttpResponse.text('Not Found', { status: 404 })
-        })
-      )
-
       const response = await request(app)
-        .post('/api/auth/plex/verify')
+        .post('/api/v1/auth/plex/verify')
         .send({ pinId: 'invalid-pin' })
 
       expect(response.status).toBe(400)
@@ -235,7 +271,7 @@ describe('Plex OAuth PIN Flow', () => {
 
     it('should handle missing PIN ID', async () => {
       const response = await request(app)
-        .post('/api/auth/plex/verify')
+        .post('/api/v1/auth/plex/verify')
         .send({})
 
       expect(response.status).toBe(400)
@@ -263,28 +299,27 @@ describe('Plex OAuth PIN Flow', () => {
         plexToken: 'encrypted-token'
       })
 
+      // Authorize the PIN
+      authorizePlexPin('12345', 'plex-auth-token-123')
+
       const response = await request(app)
-        .post('/api/auth/plex/verify')
+        .post('/api/v1/auth/plex/verify')
         .send({ pinId: '12345' })
 
       // Check for secure cookie headers
       const cookies = response.headers['set-cookie']
       expect(cookies).toBeDefined()
       expect(cookies).toEqual(expect.arrayContaining([
-        expect.stringMatching(/token=.*;.*HttpOnly/),
-        expect.stringMatching(/rememberToken=.*;.*HttpOnly/)
+        expect.stringMatching(/token=.*;.*HttpOnly/)
       ]))
     })
   })
 
   describe('Session Management', () => {
-    it('should create session token in database', async () => {
-      // TODO: Add session token repository mocks and verify creation
-      // This would be implemented when session token repository is added
-    })
-
     it('should handle remember me functionality', async () => {
       const { userRepository } = await import('@/repositories')
+      const { jwtService } = await import('@/services/jwt.service')
+      
       vi.mocked(userRepository.findByPlexId).mockResolvedValue({
         id: 'user-id',
         plexId: 'plex-user-456',
@@ -297,8 +332,11 @@ describe('Plex OAuth PIN Flow', () => {
         plexToken: 'token'
       })
 
+      // Authorize the PIN
+      authorizePlexPin('12345', 'plex-auth-token-123')
+
       const response = await request(app)
-        .post('/api/auth/plex/verify')
+        .post('/api/v1/auth/plex/verify')
         .send({ 
           pinId: '12345',
           rememberMe: true 
@@ -306,10 +344,20 @@ describe('Plex OAuth PIN Flow', () => {
 
       expect(response.status).toBe(200)
       
-      // Verify remember token has longer expiry
+      // Verify remember token generation
+      expect(jwtService.generateRememberToken).toHaveBeenCalledWith({
+        userId: 'user-id',
+        role: 'user'
+      })
+      
+      // Verify remember token in response
+      expect(response.body.data.rememberToken).toBe('test-remember-token')
+      
+      // Verify remember token cookie
       const rememberTokenCookie = response.headers['set-cookie']
         ?.find((c: string) => c.startsWith('rememberToken='))
       
+      expect(rememberTokenCookie).toBeDefined()
       expect(rememberTokenCookie).toMatch(/Max-Age=7776000/) // 90 days in seconds
     })
   })

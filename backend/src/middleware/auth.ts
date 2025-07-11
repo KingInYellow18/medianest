@@ -1,8 +1,8 @@
-import { Request, Response, NextFunction } from 'express';
-import { verifyToken } from '../utils/jwt';
-import { getRepositories } from '../config/database';
-import { AuthenticationError, AuthorizationError } from '../utils/errors';
-import { logger } from '../utils/logger';
+import type { Request, Response, NextFunction } from 'express';
+import { jwtService } from '@/services/jwt.service';
+import { userRepository } from '@/repositories/instances';
+import { AppError } from '@/middleware/error';
+import { logger } from '@/utils/logger';
 
 // Extend Express Request interface
 declare global {
@@ -19,54 +19,51 @@ declare global {
   }
 }
 
-export function authenticate() {
-  return async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      // Extract token from Authorization header
-      const authHeader = req.headers.authorization;
-      const token = authHeader?.startsWith('Bearer ') 
-        ? authHeader.substring(7) 
-        : null;
+export const authenticate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    // Extract token from Authorization header
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.startsWith('Bearer ') 
+      ? authHeader.substring(7) 
+      : null;
 
-      if (!token) {
-        throw new AuthenticationError('No token provided');
-      }
-
-      // Verify JWT token
-      const payload = verifyToken(token);
-
-      // Verify user still exists and is active
-      const { userRepository } = getRepositories();
-      const user = await userRepository.findById(payload.userId);
-
-      if (!user || user.status !== 'active') {
-        throw new AuthenticationError('User not found or inactive');
-      }
-
-      // Attach user info to request
-      req.user = {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        plexId: user.plexId || undefined
-      };
-      req.token = token;
-
-      next();
-    } catch (error) {
-      next(error);
+    if (!token) {
+      throw new AppError('No token provided', 401, 'NO_TOKEN');
     }
-  };
-}
+
+    // Verify JWT token
+    const payload = jwtService.verifyToken(token);
+
+    // Verify user still exists and is active
+    const user = await userRepository.findById(payload.userId);
+
+    if (!user || user.status !== 'active') {
+      throw new AppError('User not found or inactive', 401, 'USER_NOT_FOUND');
+    }
+
+    // Attach user info to request
+    req.user = {
+      id: user.id,
+      email: user.email || '',
+      role: user.role,
+      plexId: user.plexId || undefined
+    };
+    req.token = token;
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
 
 export function requireRole(...roles: string[]) {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
-      return next(new AuthenticationError('Authentication required'));
+      return next(new AppError('Authentication required', 401, 'AUTH_REQUIRED'));
     }
 
     if (!roles.includes(req.user.role)) {
-      return next(new AuthorizationError(`Required role: ${roles.join(' or ')}`));
+      return next(new AppError(`Required role: ${roles.join(' or ')}`, 403, 'FORBIDDEN'));
     }
 
     next();

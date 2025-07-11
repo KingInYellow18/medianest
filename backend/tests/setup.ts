@@ -3,6 +3,33 @@ import { server } from './mocks/server'
 
 // Mock winston and logger completely for tests
 vi.mock('winston', () => ({
+  default: {
+    createLogger: vi.fn(() => ({
+      info: vi.fn(),
+      error: vi.fn(),
+      debug: vi.fn(),
+      warn: vi.fn(),
+      child: vi.fn(() => ({
+        info: vi.fn(),
+        error: vi.fn(),
+        debug: vi.fn(),
+        warn: vi.fn()
+      }))
+    })),
+    format: {
+      combine: vi.fn(),
+      timestamp: vi.fn(),
+      errors: vi.fn(),
+      splat: vi.fn(),
+      json: vi.fn(),
+      printf: vi.fn(),
+      colorize: vi.fn()
+    },
+    transports: {
+      Console: vi.fn(),
+      File: vi.fn()
+    }
+  },
   createLogger: vi.fn(() => ({
     info: vi.fn(),
     error: vi.fn(),
@@ -36,7 +63,9 @@ vi.mock('winston-daily-rotate-file', () => ({
 
 // Setup MSW server
 beforeAll(() => {
-  server.listen({ onUnhandledRequest: 'error' })
+  server.listen({ 
+    onUnhandledRequest: 'bypass' // Let unhandled requests (local Express routes) pass through
+  })
 })
 
 afterEach(() => {
