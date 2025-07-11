@@ -1,17 +1,26 @@
-import { Router } from 'express'
+import { Router } from 'express';
+import { authenticate } from '@/middleware/auth';
+import { plexController } from '@/controllers/plex.controller';
+import { asyncHandler } from '@/utils/async-handler';
 
-const router = Router()
+const router = Router();
 
-// GET /api/plex/libraries - Get Plex libraries
-router.get('/libraries', async (req, res) => {
-  // TODO: Implement get libraries
-  res.json({ message: 'Plex libraries endpoint' })
-})
+// All routes require authentication
+router.use(authenticate);
 
-// GET /api/plex/collections - Get collections
-router.get('/collections', async (req, res) => {
-  // TODO: Implement get collections
-  res.json({ message: 'Plex collections endpoint' })
-})
+// Get Plex server info
+router.get('/server', asyncHandler(plexController.getServerInfo));
 
-export default router
+// Get all libraries
+router.get('/libraries', asyncHandler(plexController.getLibraries));
+
+// Get items from a specific library
+router.get('/libraries/:libraryKey/items', asyncHandler(plexController.getLibraryItems));
+
+// Search across all libraries
+router.get('/search', asyncHandler(plexController.search));
+
+// Get recently added items
+router.get('/recently-added', asyncHandler(plexController.getRecentlyAdded));
+
+export default router;

@@ -84,6 +84,14 @@ async function startServer() {
     await initializeQueues()
     logger.info('Queues initialized')
 
+    // Initialize Socket.io
+    const io = initializeSocketServer(httpServer)
+    socketService.setIoInstance(io)
+    logger.info('Socket.io initialized')
+
+    // Initialize external services
+    await initializeServices()
+
     // Start server
     httpServer.listen(PORT, () => {
       logger.info(`Server running on port ${PORT}`)
@@ -94,11 +102,40 @@ async function startServer() {
   }
 }
 
+// Initialize external services
+async function initializeServices() {
+  try {
+    // Initialize Plex service
+    const { plexService } = require('./services/plex.service')
+    plexService.startCleanupTimer()
+    logger.info('Plex service initialized')
+
+    // Initialize Overseerr service
+    const { overseerrService } = require('./services/overseerr.service')
+    await overseerrService.initialize()
+    logger.info('Overseerr service initialized')
+
+    // Initialize Status service (Uptime Kuma)
+    const { statusService } = require('./services/status.service')
+    await statusService.initialize()
+    logger.info('Status service initialized')
+  } catch (error) {
+    logger.error('Failed to initialize services:', error)
+    // Continue running even if external services fail
+  }
+}
+
 // Graceful shutdown
 process.on('SIGTERM', async () => {
   logger.info('SIGTERM received, shutting down gracefully')
+  
+  // Disconnect services
+  const { statusService } = require('./services/status.service')
+  statusService.disconnect()
+  
   httpServer.close(() => {
     logger.info('HTTP server closed')
+    process.exit(0)
   })
 })
 

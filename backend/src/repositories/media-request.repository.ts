@@ -227,4 +227,33 @@ export class MediaRequestRepository extends BaseRepository<MediaRequest, CreateM
       }
     });
   }
+
+  async findByTmdbId(tmdbId: number | string, mediaType: string): Promise<MediaRequest | null> {
+    return this.prisma.mediaRequest.findFirst({
+      where: {
+        tmdbId: String(tmdbId),
+        mediaType
+      }
+    });
+  }
+
+  async findByOverseerrId(overseerrId: string): Promise<MediaRequest | null> {
+    return this.prisma.mediaRequest.findFirst({
+      where: { overseerrId }
+    });
+  }
+
+  async getCountsByStatus(userId: string): Promise<Record<string, number> & { total: number }> {
+    const counts = await this.getUserRequestStats(userId);
+    const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
+    
+    return {
+      ...counts,
+      total,
+      pending: counts.pending || 0,
+      approved: counts.approved || 0,
+      available: counts.available || 0,
+      failed: counts.failed || 0
+    };
+  }
 }
