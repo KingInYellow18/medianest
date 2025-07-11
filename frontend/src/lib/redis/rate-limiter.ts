@@ -159,7 +159,7 @@ export async function getRateLimitStatus(
     const oldestEntry = await redis.zrange(key, 0, 0, 'WITHSCORES');
     let resetAt: Date;
     
-    if (oldestEntry.length >= 2) {
+    if (oldestEntry.length >= 2 && oldestEntry[1]) {
       const oldestTime = parseInt(oldestEntry[1]);
       resetAt = new Date(oldestTime + config.windowMs);
     } else {

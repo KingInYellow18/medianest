@@ -12,11 +12,16 @@ vi.mock('date-fns', () => ({
 describe('ServiceCard', () => {
   const mockService: ServiceStatus = {
     id: 'test-service',
-    name: 'Test Service',
+    name: 'Plex',
+    displayName: 'Test Service',
     status: 'up',
     responseTime: 150,
     lastCheckAt: new Date(),
-    uptimePercentage: 99.5,
+    uptime: {
+      '24h': 99.5,
+      '7d': 99.2,
+      '30d': 98.8,
+    },
     url: 'https://test.service',
   };
 
@@ -24,9 +29,9 @@ describe('ServiceCard', () => {
     render(<ServiceCard service={mockService} />);
     
     expect(screen.getByText('Test Service')).toBeInTheDocument();
-    expect(screen.getByText('Response: 150ms')).toBeInTheDocument();
-    expect(screen.getByText('Uptime: 99.5%')).toBeInTheDocument();
-    expect(screen.getByText('Last check: 5 minutes ago')).toBeInTheDocument();
+    expect(screen.getByText('150ms')).toBeInTheDocument();
+    expect(screen.getByText('99.5%')).toBeInTheDocument();
+    expect(screen.getByText('5 minutes ago')).toBeInTheDocument();
   });
 
   it('shows correct status indicator for up status', () => {
@@ -34,7 +39,7 @@ describe('ServiceCard', () => {
     
     const statusElement = screen.getByRole('status');
     expect(statusElement).toHaveClass('bg-green-500');
-    expect(screen.getByText('up')).toHaveClass('text-green-500');
+    expect(screen.getByText('up')).toHaveClass('text-green-400');
   });
 
   it('shows correct status indicator for down status', () => {
@@ -43,7 +48,7 @@ describe('ServiceCard', () => {
     
     const statusElement = screen.getByRole('status');
     expect(statusElement).toHaveClass('bg-red-500');
-    expect(screen.getByText('down')).toHaveClass('text-red-500');
+    expect(screen.getByText('down')).toHaveClass('text-red-400');
   });
 
   it('shows correct status indicator for degraded status', () => {
@@ -52,7 +57,7 @@ describe('ServiceCard', () => {
     
     const statusElement = screen.getByRole('status');
     expect(statusElement).toHaveClass('bg-yellow-500');
-    expect(screen.getByText('degraded')).toHaveClass('text-yellow-500');
+    expect(screen.getByText('degraded')).toHaveClass('text-yellow-400');
   });
 
   it('shows disabled message when service is unavailable', () => {
@@ -66,6 +71,6 @@ describe('ServiceCard', () => {
     const serviceWithoutResponseTime = { ...mockService, responseTime: undefined };
     render(<ServiceCard service={serviceWithoutResponseTime} />);
     
-    expect(screen.queryByText(/Response:/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Response Time:/)).not.toBeInTheDocument();
   });
 });

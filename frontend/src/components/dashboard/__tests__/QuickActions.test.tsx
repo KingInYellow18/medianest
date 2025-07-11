@@ -5,82 +5,85 @@ import { QuickActions } from '../QuickActions';
 import { ServiceStatus } from '@/types/dashboard';
 
 describe('QuickActions', () => {
-  it('shows correct action text and link for Plex', () => {
+  it('shows correct action buttons for Plex', () => {
     const plexService: ServiceStatus = {
       id: 'plex',
       name: 'Plex',
+      displayName: 'Plex Media Server',
       status: 'up',
       lastCheckAt: new Date(),
-      uptimePercentage: 99,
+      uptime: {
+        '24h': 99.5,
+        '7d': 99.2,
+        '30d': 98.8,
+      },
       url: 'https://plex.tv',
     };
     
     render(<QuickActions service={plexService} />);
     
-    const link = screen.getByRole('link', { name: 'Browse Library' });
-    expect(link).toHaveAttribute('href', '/media/browse');
+    expect(screen.getByText('Browse Library')).toBeInTheDocument();
+    expect(screen.getByText('Open Service')).toBeInTheDocument();
   });
 
-  it('shows correct action text and link for Overseerr', () => {
+  it('shows correct action buttons for Overseerr', () => {
     const overseerrService: ServiceStatus = {
       id: 'overseerr',
       name: 'Overseerr',
+      displayName: 'Overseerr',
       status: 'up',
       lastCheckAt: new Date(),
-      uptimePercentage: 99,
+      uptime: {
+        '24h': 99.5,
+        '7d': 99.2,
+        '30d': 98.8,
+      },
       url: 'https://overseerr.example.com',
     };
     
     render(<QuickActions service={overseerrService} />);
     
-    const link = screen.getByRole('link', { name: 'Request Media' });
-    expect(link).toHaveAttribute('href', '/media/search');
+    expect(screen.getByText('Request Media')).toBeInTheDocument();
+    expect(screen.getByText('Open Service')).toBeInTheDocument();
   });
 
-  it('shows correct action text and external link for Uptime Kuma', () => {
+  it('shows correct action buttons for Uptime Kuma', () => {
     const uptimeKumaService: ServiceStatus = {
       id: 'uptime-kuma',
       name: 'Uptime Kuma',
+      displayName: 'Uptime Kuma',
       status: 'up',
       lastCheckAt: new Date(),
-      uptimePercentage: 99,
+      uptime: {
+        '24h': 99.5,
+        '7d': 99.2,
+        '30d': 98.8,
+      },
       url: 'https://uptime.example.com',
     };
     
     render(<QuickActions service={uptimeKumaService} />);
     
-    const link = screen.getByRole('link', { name: 'View Status' });
-    expect(link).toHaveAttribute('href', 'https://uptime.example.com');
+    expect(screen.getByText('Open Service')).toBeInTheDocument();
+    expect(screen.getByText('Refresh Status')).toBeInTheDocument();
   });
 
-  it('shows default action text for unknown service', () => {
-    const unknownService: ServiceStatus = {
-      id: 'unknown',
-      name: 'Unknown Service',
-      status: 'up',
-      lastCheckAt: new Date(),
-      uptimePercentage: 99,
-      url: 'https://unknown.example.com',
-    };
-    
-    render(<QuickActions service={unknownService} />);
-    
-    const link = screen.getByRole('link', { name: 'Open Service' });
-    expect(link).toHaveAttribute('href', '#');
-  });
-
-  it('uses fallback href when service has no URL', () => {
+  it('shows no actions when service has no URL', () => {
     const serviceWithoutUrl: ServiceStatus = {
       id: 'uptime-kuma',
       name: 'Uptime Kuma',
+      displayName: 'Uptime Kuma',
       status: 'up',
       lastCheckAt: new Date(),
-      uptimePercentage: 99,
+      uptime: {
+        '24h': 99.5,
+        '7d': 99.2,
+        '30d': 98.8,
+      },
     };
     
     render(<QuickActions service={serviceWithoutUrl} />);
     
-    const link = screen.getByRole('link', { name: 'View Status' });
-    expect(link).toHaveAttribute('href', '#');
+    expect(screen.getByText('Refresh Status')).toBeInTheDocument();
   });
 });

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { getAuthOptions } from "@/lib/auth/auth.config"
 import { prisma } from "@/lib/db/prisma"
-import bcrypt from "bcryptjs"
+// import bcrypt from "bcryptjs" // Will be used when password storage is implemented
 import { z } from "zod"
 
 const changePasswordSchema = z.object({
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    const { currentPassword, newPassword } = parsed.data
+    const { currentPassword, newPassword: _newPassword } = parsed.data
     
     // Get the user from the database
     const user = await prisma.user.findUnique({
@@ -56,8 +56,8 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Hash the new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10)
+    // Hash the new password (not stored yet in this implementation)
+    // const hashedPassword = await bcrypt.hash(_newPassword, 10)
     
     // Update the user record
     await prisma.user.update({

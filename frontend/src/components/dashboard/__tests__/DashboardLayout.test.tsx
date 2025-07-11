@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { DashboardLayout } from '../DashboardLayout';
@@ -17,28 +17,43 @@ const mockServices: ServiceStatus[] = [
   {
     id: 'plex',
     name: 'Plex',
+    displayName: 'Plex Media Server',
     status: 'up',
     responseTime: 150,
     lastCheckAt: new Date(),
-    uptimePercentage: 99.5,
+    uptime: {
+      '24h': 99.5,
+      '7d': 99.2,
+      '30d': 98.8,
+    },
     url: 'https://plex.tv',
   },
   {
     id: 'overseerr',
     name: 'Overseerr',
+    displayName: 'Overseerr',
     status: 'down',
     responseTime: 0,
     lastCheckAt: new Date(),
-    uptimePercentage: 95.0,
+    uptime: {
+      '24h': 95.0,
+      '7d': 94.5,
+      '30d': 93.2,
+    },
     url: 'https://overseerr.example.com',
   },
   {
     id: 'uptime-kuma',
     name: 'Uptime Kuma',
+    displayName: 'Uptime Kuma',
     status: 'degraded',
     responseTime: 500,
     lastCheckAt: new Date(),
-    uptimePercentage: 98.0,
+    uptime: {
+      '24h': 98.0,
+      '7d': 97.8,
+      '30d': 97.5,
+    },
     url: 'https://uptime.example.com',
   },
 ];
@@ -79,7 +94,7 @@ describe('DashboardLayout', () => {
       </DashboardLayout>
     );
     
-    expect(screen.getByText('Plex')).toBeInTheDocument();
+    expect(screen.getByText('Plex Media Server')).toBeInTheDocument();
     expect(screen.getByText('Overseerr')).toBeInTheDocument();
     expect(screen.getByText('Uptime Kuma')).toBeInTheDocument();
   });
@@ -135,8 +150,9 @@ describe('DashboardLayout', () => {
       </DashboardLayout>
     );
     
-    expect(screen.getByRole('link', { name: 'Browse Library' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Request Media' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'View Status' })).toBeInTheDocument();
+    // Check for quick action buttons (they are now buttons, not links)
+    expect(screen.getByText('Browse Library')).toBeInTheDocument();
+    expect(screen.getByText('Request Media')).toBeInTheDocument();
+    expect(screen.getByText('Open Service')).toBeInTheDocument();
   });
 });

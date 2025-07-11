@@ -1,13 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { io } from 'socket.io-client';
 import Cookies from 'js-cookie';
 import { ServiceStatus } from '@/types/dashboard';
 
 export function useServiceStatus(initialServices: ServiceStatus[]) {
   const [services, setServices] = useState<ServiceStatus[]>(initialServices);
-  const [socket, setSocket] = useState<Socket | null>(null);
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
@@ -60,8 +59,6 @@ export function useServiceStatus(initialServices: ServiceStatus[]) {
     socketInstance.on('connect_error', (error) => {
       console.error('WebSocket connection error:', error);
     });
-
-    setSocket(socketInstance);
 
     // Fetch services periodically
     const fetchServices = async () => {

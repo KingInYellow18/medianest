@@ -4,7 +4,6 @@ import { prisma } from "../db/prisma"
 import PlexProvider from "./plex-provider"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { z } from "zod"
-import bcrypt from "bcryptjs"
 
 // Admin credentials schema
 const adminCredentialsSchema = z.object({
@@ -18,7 +17,7 @@ export async function getAuthOptions(): Promise<NextAuthOptions> {
   const userCount = await prisma.user.count()
   const isFirstRun = userCount === 0
 
-  const providers = [
+  const providers: any[] = [
     // Plex OAuth provider
     PlexProvider({
       clientId: process.env.AUTH_PLEX_CLIENT_ID!,
@@ -84,7 +83,7 @@ export async function getAuthOptions(): Promise<NextAuthOptions> {
   }
 
   return {
-    adapter: PrismaAdapter(prisma) as any,
+    adapter: PrismaAdapter(prisma as any) as any,
     providers,
     session: {
       strategy: "jwt",
@@ -175,11 +174,11 @@ export async function getAuthOptions(): Promise<NextAuthOptions> {
     },
     
     events: {
-      async signIn({ user, account, profile, isNewUser }) {
+      async signIn({ user, account, profile: _profile, isNewUser: _isNewUser }) {
         console.log(`User ${user.email} signed in via ${account?.provider}`)
       },
       
-      async signOut({ session, token }) {
+      async signOut({ session: _session, token: _token }) {
         console.log(`User signed out`)
       },
     },

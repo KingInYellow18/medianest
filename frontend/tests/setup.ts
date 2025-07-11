@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
-import { afterEach, vi, beforeAll } from 'vitest'
+import { afterEach, vi } from 'vitest'
 
 // Set required environment variables
 process.env.NEXT_PUBLIC_BACKEND_URL = 'http://localhost:4000'
@@ -28,15 +28,15 @@ Object.defineProperty(window, 'matchMedia', {
 // Mock socket.io-client with proper implementation
 vi.mock('socket.io-client', () => {
   const createMockSocket = () => {
-    const eventHandlers = new Map()
+    const eventHandlers = new Map<string, Array<(...args: any[]) => void>>()
     let isConnected = true // Start connected by default
     
-    const mockSocket = {
-      on: vi.fn((event, callback) => {
+    const mockSocket: any = {
+      on: vi.fn((event: string, callback: (...args: any[]) => void) => {
         if (!eventHandlers.has(event)) {
           eventHandlers.set(event, [])
         }
-        eventHandlers.get(event).push(callback)
+        eventHandlers.get(event)?.push(callback)
         
         // Auto-trigger connect event after a small delay if not already connected
         if (event === 'connect' && isConnected) {
@@ -47,13 +47,15 @@ vi.mock('socket.io-client', () => {
         
         return mockSocket
       }),
-      off: vi.fn((event, callback) => {
+      off: vi.fn((event: string, callback?: (...args: any[]) => void) => {
         if (eventHandlers.has(event)) {
           if (callback) {
             const handlers = eventHandlers.get(event)
-            const index = handlers.indexOf(callback)
-            if (index > -1) {
-              handlers.splice(index, 1)
+            if (handlers) {
+              const index = handlers.indexOf(callback)
+              if (index > -1) {
+                handlers.splice(index, 1)
+              }
             }
           } else {
             // Remove all handlers for the event if no callback specified
@@ -62,7 +64,7 @@ vi.mock('socket.io-client', () => {
         }
         return mockSocket
       }),
-      emit: vi.fn(() => mockSocket),
+      emit: vi.fn((..._args: any[]) => mockSocket),
       close: vi.fn(() => {
         isConnected = false
         mockSocket.connected = false
@@ -71,14 +73,14 @@ vi.mock('socket.io-client', () => {
         isConnected = false
         mockSocket.connected = false
         const disconnectHandlers = eventHandlers.get('disconnect') || []
-        disconnectHandlers.forEach(handler => handler())
+        disconnectHandlers.forEach((handler: (...args: any[]) => void) => handler())
       }),
       connect: vi.fn(() => {
         if (!isConnected) {
           isConnected = true
           mockSocket.connected = true
           const connectHandlers = eventHandlers.get('connect') || []
-          connectHandlers.forEach(handler => handler())
+          connectHandlers.forEach((handler: (...args: any[]) => void) => handler())
         }
       }),
       connected: true, // Start connected
@@ -87,20 +89,21 @@ vi.mock('socket.io-client', () => {
         opts: {}
       },
       // Helper method for tests to trigger events
-      _trigger: (event, ...args) => {
+      _trigger: (event: string, ...args: any[]) => {
         const handlers = eventHandlers.get(event) || []
-        handlers.forEach(handler => handler(...args))
+        handlers.forEach((handler: (...args: any[]) => void) => handler(...args))
       },
       // Helper to get all registered handlers for testing
-      _getHandlers: (event) => {
+      _getHandlers: (event: string) => {
         return eventHandlers.get(event) || []
-      }
+      },
+      _mockConnectionOptions: undefined as any
     }
     
     return mockSocket
   }
   
-  const io = vi.fn((url, options) => {
+  const io = vi.fn((_url: string, options?: any) => {
     const socket = createMockSocket()
     // Store options for assertion
     socket._mockConnectionOptions = options
@@ -116,8 +119,8 @@ vi.mock('socket.io-client', () => {
 })
 
 // Mock fetch for relative URLs
-beforeAll(() => {
-  global.fetch = vi.fn((url, options) => {
+function setupFetchMock() {
+  const mockFetch = vi.fn((url: string | URL | Request, _options?: RequestInit): Promise<Response> => {
     const fullUrl = typeof url === 'string' && url.startsWith('http') 
       ? url 
       : `${process.env.NEXT_PUBLIC_BACKEND_URL}${url}`
@@ -129,20 +132,29 @@ beforeAll(() => {
         json: () => Promise.resolve([
           { 
             id: 'plex',
-            name: 'Plex', 
-            status: 'operational', 
-            uptime: 99.9,
+            name: 'Plex',
+            displayName: 'Plex Media Server',
+            status: 'up', 
+            uptime: {
+              '24h': 99.9,
+              '7d': 99.5,
+              '30d': 99.2,
+            },
             responseTime: 45,
             lastCheckAt: new Date().toISOString(),
-            uptimePercentage: 99.9
           }
         ])
-      })
+      } as Response)
     }
     
     return Promise.reject(new Error(`Unmocked fetch: ${fullUrl}`))
-  })
-})
+  });
+  
+  global.fetch = mockFetch as any;
+}
+
+// Setup the fetch mock immediately
+setupFetchMock();
 
 // Reset global state before each test
-globalThis.resetBeforeEachTest = true
+(globalThis as any).resetBeforeEachTest = true

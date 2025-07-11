@@ -159,16 +159,17 @@ export async function getDownloadQueueStats() {
     active,
     completed,
     failed,
-    delayed,
-    paused
+    delayed
   ] = await Promise.all([
     queue.getWaitingCount(),
     queue.getActiveCount(),
     queue.getCompletedCount(),
     queue.getFailedCount(),
-    queue.getDelayedCount(),
-    queue.getPausedCount()
+    queue.getDelayedCount()
   ]);
+
+  // Note: getPausedCount is not available in this BullMQ version
+  const paused = 0;
 
   return {
     waiting,

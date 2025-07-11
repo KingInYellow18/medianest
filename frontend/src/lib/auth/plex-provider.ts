@@ -83,7 +83,7 @@ export default function PlexProvider<P extends PlexProfile>(
     },
     token: {
       url: "https://plex.tv/api/v2/pins/{pinId}",
-      async request({ client, params, checks, provider }) {
+      async request({ client: _client, params: _params, checks: _checks, provider: _provider }) {
         // This is a custom token exchange for Plex PIN auth
         // In practice, we'll need to poll this endpoint until the user authorizes
         throw new Error("Plex PIN auth requires custom implementation")
@@ -91,7 +91,7 @@ export default function PlexProvider<P extends PlexProfile>(
     },
     userinfo: {
       url: "https://plex.tv/api/v2/user",
-      async request({ client, tokens }) {
+      async request({ client: _client, tokens }) {
         const response = await fetch("https://plex.tv/api/v2/user", {
           headers: {
             "X-Plex-Token": tokens.authToken as string,
@@ -119,6 +119,7 @@ export default function PlexProvider<P extends PlexProfile>(
         name: profile.username,
         email: profile.email,
         image: profile.thumb,
+        role: "USER", // Default role for Plex users
       }
     },
     style: {
@@ -168,7 +169,7 @@ export async function createPlexPin(
 
 export async function checkPlexPin(
   pinId: number,
-  clientIdentifier: string,
+  _clientIdentifier: string,
   headers: Record<string, string>
 ): Promise<PlexPinResponse> {
   const response = await fetch(`https://plex.tv/api/v2/pins/${pinId}`, {

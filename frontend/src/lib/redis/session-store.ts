@@ -176,16 +176,20 @@ export async function getUserSessions(userId: string): Promise<SessionData[]> {
  * Delete all sessions for a user
  */
 export async function deleteUserSessions(userId: string): Promise<void> {
-  const sessions = await getUserSessions(userId);
+  const redis = getRedisClient();
+  const userKey = `${KEY_PREFIX.USER_SESSIONS}${userId}`;
   
-  for (const session of sessions) {
-    // Find session token from user sessions
-    const userKey = `${KEY_PREFIX.USER_SESSIONS}${userId}`;
-    const tokens = await getRedisClient().smembers(userKey);
+  try {
+    // Get all session tokens for the user
+    const tokens = await redis.smembers(userKey);
     
+    // Delete each session
     for (const token of tokens) {
       await deleteSession(token);
     }
+  } catch (error) {
+    console.error('Failed to delete user sessions:', error);
+    throw error;
   }
 }
 

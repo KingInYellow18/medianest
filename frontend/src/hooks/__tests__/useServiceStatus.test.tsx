@@ -25,10 +25,15 @@ describe('useServiceStatus', () => {
     {
       id: 'plex',
       name: 'Plex',
+      displayName: 'Plex Media Server',
       status: 'up',
       responseTime: 100,
       lastCheckAt: new Date(),
-      uptimePercentage: 99.9,
+      uptime: {
+        '24h': 99.9,
+        '7d': 99.5,
+        '30d': 99.2,
+      },
     },
   ];
 
@@ -40,8 +45,8 @@ describe('useServiceStatus', () => {
         if (event === 'connect') {
           setTimeout(() => callback(), 0);
         }
-        return mockSocket;
-      }),
+        return mockSocket as Socket;
+      }) as any,
       off: vi.fn(),
       emit: vi.fn(),
       disconnect: vi.fn(),
@@ -143,18 +148,23 @@ describe('useServiceStatus', () => {
     const updatedService: ServiceStatus = {
       id: 'plex',
       name: 'Plex',
+      displayName: 'Plex Media Server',
       status: 'down',
       responseTime: 0,
       lastCheckAt: new Date(),
-      uptimePercentage: 98.5,
+      uptime: {
+        '24h': 98.5,
+        '7d': 98.0,
+        '30d': 97.5,
+      },
     };
 
     act(() => {
       statusHandler(updatedService);
     });
 
-    expect(result.current.services[0].status).toBe('down');
-    expect(result.current.services[0].uptimePercentage).toBe(98.5);
+    expect(result.current.services[0]?.status).toBe('down');
+    expect(result.current.services[0]?.uptime['24h']).toBe(98.5);
   });
 
   it('adds new service if not in list', () => {
@@ -170,10 +180,15 @@ describe('useServiceStatus', () => {
     const newService: ServiceStatus = {
       id: 'overseerr',
       name: 'Overseerr',
+      displayName: 'Overseerr',
       status: 'up',
       responseTime: 200,
       lastCheckAt: new Date(),
-      uptimePercentage: 100,
+      uptime: {
+        '24h': 100,
+        '7d': 100,
+        '30d': 100,
+      },
     };
 
     act(() => {
@@ -181,7 +196,7 @@ describe('useServiceStatus', () => {
     });
 
     expect(result.current.services).toHaveLength(2);
-    expect(result.current.services[1].id).toBe('overseerr');
+    expect(result.current.services[1]?.id).toBe('overseerr');
   });
 
   it('cleans up socket on unmount', () => {
@@ -205,14 +220,19 @@ describe('useServiceStatus', () => {
         json: () => Promise.resolve([
           {
             id: 'plex',
-            name: 'Plex Updated',
+            name: 'Plex',
+            displayName: 'Plex Updated',
             status: 'up',
             responseTime: 120,
             lastCheckAt: new Date().toISOString(),
-            uptimePercentage: 99.8,
+            uptime: {
+              '24h': 99.8,
+              '7d': 99.5,
+              '30d': 99.2,
+            },
           },
         ]),
-      })
+      } as unknown as Response)
     );
     global.fetch = mockFetch as any;
 
