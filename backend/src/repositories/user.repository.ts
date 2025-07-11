@@ -2,6 +2,8 @@ import { User, Prisma } from '@prisma/client';
 import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
 import { NotFoundError } from '../utils/errors';
 import bcrypt from 'bcryptjs';
+import { encryptionService } from '../services/encryption.service';
+import { logger } from '../utils/logger';
 
 export interface CreateUserInput {
   email: string;
@@ -25,11 +27,34 @@ export interface UpdateUserInput {
 }
 
 export class UserRepository extends BaseRepository<User, CreateUserInput, UpdateUserInput> {
+  private decryptUserData(user: User): User {
+    try {
+      const decryptedUser = { ...user };
+      
+      // Decrypt Plex token if it exists
+      if (user.plexToken) {
+        try {
+          decryptedUser.plexToken = encryptionService.decryptFromStorage(user.plexToken);
+        } catch (error) {
+          logger.error('Failed to decrypt Plex token', { userId: user.id, error });
+          // Return null token if decryption fails
+          decryptedUser.plexToken = null;
+        }
+      }
+      
+      return decryptedUser;
+    } catch (error) {
+      logger.error('Failed to decrypt user data', { userId: user.id, error });
+      return user;
+    }
+  }
+
   async findById(id: string): Promise<User | null> {
     try {
-      return await this.prisma.user.findUnique({
+      const user = await this.prisma.user.findUnique({
         where: { id }
       });
+      return user ? this.decryptUserData(user) : null;
     } catch (error) {
       this.handleDatabaseError(error);
     }
@@ -37,9 +62,10 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
 
   async findByEmail(email: string): Promise<User | null> {
     try {
-      return await this.prisma.user.findUnique({
+      const user = await this.prisma.user.findUnique({
         where: { email }
       });
+      return user ? this.decryptUserData(user) : null;
     } catch (error) {
       this.handleDatabaseError(error);
     }
@@ -47,9 +73,10 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
 
   async findByPlexId(plexId: string): Promise<User | null> {
     try {
-      return await this.prisma.user.findUnique({
+      const user = await this.prisma.user.findUnique({
         where: { plexId }
       });
+      return user ? this.decryptUserData(user) : null;
     } catch (error) {
       this.handleDatabaseError(error);
     }
@@ -83,25 +110,34 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
 
   async create(data: CreateUserInput): Promise<User> {
     try {
+      const encryptedData = { ...data };
+      
+      // Encrypt Plex token if provided
+      if (data.plexToken) {
+        encryptedData.plexToken = encryptionService.encryptForStorage(data.plexToken);
+      }
+      
       // Hash password if provided
       if (data.password) {
         const hashedPassword = await bcrypt.hash(data.password, 10);
         
         // Create password hash field for admin bootstrap
         const userData: any = {
-          ...data,
+          ...encryptedData,
           passwordHash: hashedPassword
         };
         delete userData.password;
         
-        return await this.prisma.user.create({
+        const user = await this.prisma.user.create({
           data: userData
         });
+        return this.decryptUserData(user);
       }
 
-      return await this.prisma.user.create({
-        data: data as Prisma.UserCreateInput
+      const user = await this.prisma.user.create({
+        data: encryptedData as Prisma.UserCreateInput
       });
+      return this.decryptUserData(user);
     } catch (error) {
       this.handleDatabaseError(error);
     }
@@ -119,10 +155,19 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
         throw new NotFoundError('User');
       }
 
-      return await this.prisma.user.update({
+      const encryptedData = { ...data };
+      
+      // Encrypt Plex token if provided
+      if (data.plexToken) {
+        encryptedData.plexToken = encryptionService.encryptForStorage(data.plexToken);
+      }
+
+      const user = await this.prisma.user.update({
         where: { id },
-        data
+        data: encryptedData
       });
+      
+      return this.decryptUserData(user);
     } catch (error) {
       this.handleDatabaseError(error);
     }

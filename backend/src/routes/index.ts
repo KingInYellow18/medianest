@@ -1,23 +1,16 @@
-import { Express } from 'express'
-import authRoutes from './auth'
-import dashboardRoutes from './dashboard'
-import mediaRoutes from './media'
-import plexRoutes from './plex'
-import youtubeRoutes from './youtube'
-import adminRoutes from './admin'
-import { healthRouter } from './health'
+import { Express } from 'express';
+import v1Routes from './v1';
+import { healthRouter } from './health';
 
 export const setupRoutes = (app: Express) => {
-  // Health check (no auth required)
-  app.use('/api/health', healthRouter)
+  // Health check (no auth required, unversioned)
+  app.use('/api/health', healthRouter);
   
-  // API routes
-  app.use('/api/auth', authRoutes)
-  app.use('/api/dashboard', dashboardRoutes)
-  app.use('/api/media', mediaRoutes)
-  app.use('/api/plex', plexRoutes)
-  app.use('/api/youtube', youtubeRoutes)
-  app.use('/api/admin', adminRoutes)
+  // API v1 routes
+  app.use('/api/v1', v1Routes);
+  
+  // Future versions would be added here
+  // app.use('/api/v2', v2Routes);
 
   // 404 handler
   app.use('/api/*', (_req, res) => {
@@ -27,6 +20,6 @@ export const setupRoutes = (app: Express) => {
         code: 'NOT_FOUND',
         message: 'Endpoint not found',
       },
-    })
-  })
-}
+    });
+  });
+};

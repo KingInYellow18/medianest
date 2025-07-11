@@ -15,7 +15,8 @@
     "test:coverage": "vitest run --coverage",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "generate:key": "tsx scripts/generate-encryption-key.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.18.0",

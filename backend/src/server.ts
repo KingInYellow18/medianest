@@ -13,6 +13,8 @@ import { setupRoutes } from './routes'
 import { initializeDatabase } from './config/database'
 import { initializeRedis } from './config/redis'
 import { initializeQueues } from './config/queues'
+import { initializeSocketServer } from './socket'
+import { socketService } from './services/socket.service'
 
 const app = express()
 const httpServer = createServer(app)
