@@ -4,6 +4,11 @@ import type {
   DownloadFormat,
   UserQuota,
 } from '@/types/youtube';
+import type {
+  DownloadQueueResponse,
+  DownloadQueueItem,
+  QueueFilters,
+} from '@/types/youtube-queue';
 
 import { getAuthHeaders } from './auth';
 
@@ -85,6 +90,57 @@ export async function getDownloadQueue(): Promise<YouTubeDownloadRequest[]> {
   return response.json();
 }
 
+export interface FetchDownloadQueueOptions {
+  userId?: string;
+  filters: QueueFilters;
+  page?: number;
+  limit?: number;
+}
+
+export async function fetchDownloadQueue(
+  options: FetchDownloadQueueOptions
+): Promise<DownloadQueueResponse> {
+  const headers = await getAuthHeaders();
+  const params = new URLSearchParams();
+  
+  if (options.userId) {
+    params.append('userId', options.userId);
+  }
+  
+  if (options.filters.status && options.filters.status !== 'all') {
+    params.append('status', options.filters.status);
+  }
+  
+  if (options.filters.search) {
+    params.append('search', options.filters.search);
+  }
+  
+  if (options.filters.dateRange) {
+    params.append('startDate', options.filters.dateRange.start.toISOString());
+    params.append('endDate', options.filters.dateRange.end.toISOString());
+  }
+  
+  if (options.page) {
+    params.append('page', options.page.toString());
+  }
+  
+  if (options.limit) {
+    params.append('limit', options.limit.toString());
+  }
+
+  const response = await fetch(`${API_BASE}/youtube/downloads?${params.toString()}`, {
+    method: 'GET',
+    headers,
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to fetch download queue');
+  }
+
+  return response.json();
+}
+
 export async function cancelDownload(downloadId: string): Promise<void> {
   const headers = await getAuthHeaders();
 
@@ -125,6 +181,36 @@ export async function checkDuplicateURL(url: string): Promise<{ isDuplicate: boo
 
   if (!response.ok) {
     throw new Error('Failed to check for duplicate URL');
+  }
+
+  return response.json();
+}
+
+export async function deleteDownload(downloadId: string): Promise<void> {
+  const headers = await getAuthHeaders();
+
+  const response = await fetch(`${API_BASE}/youtube/downloads/${downloadId}`, {
+    method: 'DELETE',
+    headers,
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to delete download');
+  }
+}
+
+export async function getDownloadDetails(downloadId: string): Promise<DownloadQueueItem> {
+  const headers = await getAuthHeaders();
+
+  const response = await fetch(`${API_BASE}/youtube/downloads/${downloadId}`, {
+    method: 'GET',
+    headers,
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to get download details');
   }
 
   return response.json();
