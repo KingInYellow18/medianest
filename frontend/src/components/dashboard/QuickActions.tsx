@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+
 import { ServiceStatus, QuickAction } from '@/types/dashboard';
 
 interface QuickActionsProps {
@@ -17,13 +18,13 @@ export function QuickActions({ service, onQuickAction }: QuickActionsProps) {
         actions.push({
           type: 'navigate',
           serviceId: service.id,
-          url: '/media/browse'
+          url: '/media/browse',
         });
         if (service.url) {
           actions.push({
             type: 'configure',
             serviceId: service.id,
-            url: service.url
+            url: service.url,
           });
         }
         break;
@@ -31,13 +32,13 @@ export function QuickActions({ service, onQuickAction }: QuickActionsProps) {
         actions.push({
           type: 'navigate',
           serviceId: service.id,
-          url: '/media/search'
+          url: '/media/search',
         });
         if (service.url) {
           actions.push({
             type: 'configure',
             serviceId: service.id,
-            url: service.url
+            url: service.url,
           });
         }
         break;
@@ -46,12 +47,12 @@ export function QuickActions({ service, onQuickAction }: QuickActionsProps) {
           actions.push({
             type: 'configure',
             serviceId: service.id,
-            url: service.url
+            url: service.url,
           });
         }
         actions.push({
           type: 'refresh',
-          serviceId: service.id
+          serviceId: service.id,
         });
         break;
       default:
@@ -59,7 +60,7 @@ export function QuickActions({ service, onQuickAction }: QuickActionsProps) {
           actions.push({
             type: 'configure',
             serviceId: service.id,
-            url: service.url
+            url: service.url,
           });
         }
     }

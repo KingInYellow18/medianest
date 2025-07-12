@@ -1,9 +1,11 @@
-import React from 'react';
-import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render, screen } from '@testing-library/react';
+import React from 'react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { DashboardLayout } from '../DashboardLayout';
+
 import { ServiceStatus } from '@/types/dashboard';
+
+import { DashboardLayout } from '../DashboardLayout';
 
 // Mock the useServiceStatus hook
 vi.mock('@/hooks/useServiceStatus', () => ({
@@ -70,20 +72,16 @@ describe('DashboardLayout', () => {
   });
 
   const renderWithProviders = (component: React.ReactElement) => {
-    return render(
-      <QueryClientProvider client={queryClient}>
-        {component}
-      </QueryClientProvider>
-    );
+    return render(<QueryClientProvider client={queryClient}>{component}</QueryClientProvider>);
   };
 
   it('renders children correctly', () => {
     renderWithProviders(
       <DashboardLayout initialServices={mockServices}>
         <h1>Test Dashboard</h1>
-      </DashboardLayout>
+      </DashboardLayout>,
     );
-    
+
     expect(screen.getByText('Test Dashboard')).toBeInTheDocument();
   });
 
@@ -91,9 +89,9 @@ describe('DashboardLayout', () => {
     renderWithProviders(
       <DashboardLayout initialServices={mockServices}>
         <div>Content</div>
-      </DashboardLayout>
+      </DashboardLayout>,
     );
-    
+
     expect(screen.getByText('Plex Media Server')).toBeInTheDocument();
     expect(screen.getByText('Overseerr')).toBeInTheDocument();
     expect(screen.getByText('Uptime Kuma')).toBeInTheDocument();
@@ -103,13 +101,13 @@ describe('DashboardLayout', () => {
     renderWithProviders(
       <DashboardLayout initialServices={mockServices}>
         <div>Content</div>
-      </DashboardLayout>
+      </DashboardLayout>,
     );
-    
+
     // Check for status indicators
     const statusElements = screen.getAllByRole('status');
     expect(statusElements).toHaveLength(3);
-    
+
     // Check for status text
     expect(screen.getByText('up')).toBeInTheDocument();
     expect(screen.getByText('down')).toBeInTheDocument();
@@ -120,9 +118,9 @@ describe('DashboardLayout', () => {
     renderWithProviders(
       <DashboardLayout initialServices={mockServices}>
         <div>Content</div>
-      </DashboardLayout>
+      </DashboardLayout>,
     );
-    
+
     // Find the grid container that contains the service cards
     const plexCard = screen.getByText('Plex');
     const servicesContainer = plexCard.closest('.grid');
@@ -137,9 +135,9 @@ describe('DashboardLayout', () => {
     renderWithProviders(
       <DashboardLayout initialServices={[]}>
         <div>Content</div>
-      </DashboardLayout>
+      </DashboardLayout>,
     );
-    
+
     expect(screen.getByText('Loading services...')).toBeInTheDocument();
   });
 
@@ -147,9 +145,9 @@ describe('DashboardLayout', () => {
     renderWithProviders(
       <DashboardLayout initialServices={mockServices}>
         <div>Content</div>
-      </DashboardLayout>
+      </DashboardLayout>,
     );
-    
+
     // Check for quick action buttons (they are now buttons, not links)
     expect(screen.getByText('Browse Library')).toBeInTheDocument();
     expect(screen.getByText('Request Media')).toBeInTheDocument();

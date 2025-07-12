@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import React from 'react';
 
 interface UpdateAnimationProps {
   serviceId: string;
@@ -10,13 +10,11 @@ interface UpdateAnimationProps {
 }
 
 export function UpdateAnimation({ serviceId, children }: UpdateAnimationProps) {
-  const queryClient = useQueryClient();
-  
   const { data: update } = useQuery({
     queryKey: ['service-update', serviceId],
     enabled: false, // Only used for animation trigger
     staleTime: 1000, // Clear after animation
-    gcTime: 1000 // Garbage collect after 1 second
+    gcTime: 1000, // Garbage collect after 1 second
   });
 
   return (
@@ -25,18 +23,22 @@ export function UpdateAnimation({ serviceId, children }: UpdateAnimationProps) {
         <motion.div
           key={`update-${serviceId}-${Date.now()}`}
           initial={{ scale: 1 }}
-          animate={{ 
+          animate={{
             scale: [1, 1.03, 1],
-            borderColor: ['rgba(59, 130, 246, 0)', 'rgba(59, 130, 246, 0.5)', 'rgba(59, 130, 246, 0)']
+            borderColor: [
+              'rgba(59, 130, 246, 0)',
+              'rgba(59, 130, 246, 0.5)',
+              'rgba(59, 130, 246, 0)',
+            ],
           }}
-          transition={{ 
+          transition={{
             duration: 0.6,
-            ease: 'easeInOut'
+            ease: 'easeInOut',
           }}
           style={{
             borderWidth: 2,
             borderStyle: 'solid',
-            borderRadius: '0.5rem'
+            borderRadius: '0.5rem',
           }}
         >
           {children}

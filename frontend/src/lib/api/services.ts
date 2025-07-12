@@ -16,7 +16,7 @@ export async function getServiceStatus(): Promise<ServiceStatus[]> {
     }
 
     const data = await response.json();
-    
+
     // Convert date strings to Date objects and ensure uptime structure
     return data.data.services.map((service: any) => ({
       ...service,

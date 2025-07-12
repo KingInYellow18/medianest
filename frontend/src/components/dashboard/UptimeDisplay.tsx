@@ -25,21 +25,15 @@ export function UptimeDisplay({ uptime }: UptimeDisplayProps) {
     <div className="space-y-1">
       <div className="flex justify-between text-xs">
         <span className="text-gray-400">24h:</span>
-        <span className={getUptimeColor(uptime['24h'])}>
-          {formatUptime(uptime['24h'])}%
-        </span>
+        <span className={getUptimeColor(uptime['24h'])}>{formatUptime(uptime['24h'])}%</span>
       </div>
       <div className="flex justify-between text-xs">
         <span className="text-gray-400">7d:</span>
-        <span className={getUptimeColor(uptime['7d'])}>
-          {formatUptime(uptime['7d'])}%
-        </span>
+        <span className={getUptimeColor(uptime['7d'])}>{formatUptime(uptime['7d'])}%</span>
       </div>
       <div className="flex justify-between text-xs">
         <span className="text-gray-400">30d:</span>
-        <span className={getUptimeColor(uptime['30d'])}>
-          {formatUptime(uptime['30d'])}%
-        </span>
+        <span className={getUptimeColor(uptime['30d'])}>{formatUptime(uptime['30d'])}%</span>
       </div>
     </div>
   );

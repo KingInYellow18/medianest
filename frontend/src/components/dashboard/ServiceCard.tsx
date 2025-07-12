@@ -1,12 +1,14 @@
 'use client';
 
-import React from 'react';
-import { motion } from 'framer-motion';
-import { ServiceStatus, QuickAction } from '@/types/dashboard';
-import { StatusIndicator } from './StatusIndicator';
-import { QuickActions } from './QuickActions';
-import { UptimeDisplay } from './UptimeDisplay';
 import { formatDistanceToNow } from 'date-fns';
+import { motion } from 'framer-motion';
+import React from 'react';
+
+import { ServiceStatus, QuickAction } from '@/types/dashboard';
+
+import { QuickActions } from './QuickActions';
+import { StatusIndicator } from './StatusIndicator';
+import { UptimeDisplay } from './UptimeDisplay';
 
 interface ServiceCardProps {
   service: ServiceStatus;
@@ -19,7 +21,7 @@ export function ServiceCard({ service, onViewDetails, onQuickAction, children }:
   const statusVariants = {
     up: { scale: 1, opacity: 1 },
     down: { scale: 0.95, opacity: 0.8 },
-    degraded: { scale: 0.98, opacity: 0.9 }
+    degraded: { scale: 0.98, opacity: 0.9 },
   };
 
   const handleCardClick = () => {
@@ -46,9 +48,9 @@ export function ServiceCard({ service, onViewDetails, onQuickAction, children }:
       className="bg-gray-800 rounded-lg p-6 hover:bg-gray-700 transition-all duration-200 cursor-pointer border border-gray-700 hover:border-gray-600"
       animate={service.status}
       variants={statusVariants}
-      whileHover={{ 
+      whileHover={{
         y: -2,
-        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)"
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
       }}
       onClick={handleCardClick}
       layout
@@ -65,7 +67,7 @@ export function ServiceCard({ service, onViewDetails, onQuickAction, children }:
         </div>
         <StatusIndicator status={service.status} pulse={service.status === 'up'} />
       </div>
-      
+
       <div className="space-y-3">
         {service.responseTime !== undefined && (
           <div className="flex justify-between text-sm">
@@ -73,9 +75,9 @@ export function ServiceCard({ service, onViewDetails, onQuickAction, children }:
             <span className="text-white font-medium">{service.responseTime}ms</span>
           </div>
         )}
-        
+
         <UptimeDisplay uptime={service.uptime} />
-        
+
         {service.details && (
           <div className="space-y-1">
             {service.details.activeStreams !== undefined && (
@@ -98,14 +100,14 @@ export function ServiceCard({ service, onViewDetails, onQuickAction, children }:
             )}
           </div>
         )}
-        
+
         <div className="text-xs text-gray-500">
           Last check: {formatDistanceToNow(service.lastCheckAt, { addSuffix: true })}
         </div>
       </div>
-      
+
       {service.error && (
-        <motion.div 
+        <motion.div
           className="mt-4 p-2 bg-red-900/20 rounded text-red-400 text-sm"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -114,9 +116,9 @@ export function ServiceCard({ service, onViewDetails, onQuickAction, children }:
           {service.error}
         </motion.div>
       )}
-      
+
       {service.features?.includes('disabled') && (
-        <motion.div 
+        <motion.div
           className="mt-4 p-2 bg-yellow-900/20 rounded text-yellow-500 text-sm"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -125,11 +127,11 @@ export function ServiceCard({ service, onViewDetails, onQuickAction, children }:
           Service temporarily unavailable
         </motion.div>
       )}
-      
+
       {children}
-      
+
       {service.url && !service.features?.includes('disabled') && (
-        <div className="mt-4" onClick={e => e.stopPropagation()}>
+        <div className="mt-4" onClick={(e) => e.stopPropagation()}>
           <QuickActions service={service} onQuickAction={onQuickAction} />
         </div>
       )}

@@ -1,8 +1,10 @@
 'use client';
 
-import React from 'react';
 import { motion } from 'framer-motion';
+import React from 'react';
+
 import { ServiceStatus, QuickAction } from '@/types/dashboard';
+
 import { ServiceCard } from '../ServiceCard';
 
 interface PlexCardProps {
@@ -15,23 +17,15 @@ export function PlexCard({ service, onViewDetails, onQuickAction }: PlexCardProp
   // Ensure the service is a Plex service
   if (service.name !== 'Plex') {
     return (
-      <ServiceCard 
-        service={service} 
-        onViewDetails={onViewDetails} 
-        onQuickAction={onQuickAction} 
-      />
+      <ServiceCard service={service} onViewDetails={onViewDetails} onQuickAction={onQuickAction} />
     );
   }
 
   return (
-    <ServiceCard 
-      service={service} 
-      onViewDetails={onViewDetails} 
-      onQuickAction={onQuickAction}
-    >
+    <ServiceCard service={service} onViewDetails={onViewDetails} onQuickAction={onQuickAction}>
       {/* Additional Plex-specific features */}
       {service.details && (
-        <motion.div 
+        <motion.div
           className="mt-4 pt-4 border-t border-gray-700"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -44,7 +38,7 @@ export function PlexCard({ service, onViewDetails, onQuickAction }: PlexCardProp
                   <span>🎥</span>
                   Active Streams:
                 </span>
-                <motion.span 
+                <motion.span
                   className="text-white font-medium bg-blue-900/30 px-2 py-1 rounded"
                   key={service.details.activeStreams}
                   initial={{ scale: 1.2 }}
@@ -55,7 +49,7 @@ export function PlexCard({ service, onViewDetails, onQuickAction }: PlexCardProp
                 </motion.span>
               </div>
             )}
-            
+
             {service.details.version && (
               <div className="flex justify-between text-sm">
                 <span className="text-gray-400 flex items-center gap-2">
@@ -70,7 +64,7 @@ export function PlexCard({ service, onViewDetails, onQuickAction }: PlexCardProp
 
             {/* Plex-specific status indicators */}
             {service.status === 'up' && service.details.activeStreams !== undefined && (
-              <motion.div 
+              <motion.div
                 className="mt-3 p-2 bg-green-900/20 rounded text-green-400 text-xs flex items-center gap-2"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -78,10 +72,9 @@ export function PlexCard({ service, onViewDetails, onQuickAction }: PlexCardProp
               >
                 <span>✅</span>
                 <span>
-                  {service.details.activeStreams === 0 
-                    ? 'Server ready for streaming' 
-                    : `${service.details.activeStreams} active ${service.details.activeStreams === 1 ? 'stream' : 'streams'}`
-                  }
+                  {service.details.activeStreams === 0
+                    ? 'Server ready for streaming'
+                    : `${service.details.activeStreams} active ${service.details.activeStreams === 1 ? 'stream' : 'streams'}`}
                 </span>
               </motion.div>
             )}

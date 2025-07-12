@@ -1,5 +1,5 @@
-import { io, Socket } from 'socket.io-client';
 import Cookies from 'js-cookie';
+import { io, Socket } from 'socket.io-client';
 
 interface ConnectionOptions {
   reconnection?: boolean;
@@ -15,19 +15,25 @@ interface SocketEvents {
   'request:refresh': (serviceId: string) => void;
   'service:status': (data: any) => void;
   'service:bulk-update': (data: any[]) => void;
-  'connection:status': (data: { connected: boolean; latency?: number; reconnectAttempt?: number }) => void;
-  'error': (data: { message: string; code?: string }) => void;
+  'connection:status': (data: {
+    connected: boolean;
+    latency?: number;
+    reconnectAttempt?: number;
+  }) => void;
+  error: (data: { message: string; code?: string }) => void;
+  'subscribe:request': (requestId: string) => void;
+  [key: `request:${string}:status`]: (data: any) => void;
 }
 
 class SocketManager {
   private socket: Socket | null = null;
-  private listeners: Map<string, Set<Function>> = new Map();
+  private listeners: Map<string, Set<(...args: any[]) => void>> = new Map();
   private connectionOptions: ConnectionOptions = {
     reconnection: true,
     reconnectionDelay: 1000,
     reconnectionDelayMax: 5000,
     reconnectionAttempts: 5,
-    timeout: 10000
+    timeout: 10000,
   };
   private reconnectAttempt = 0;
 
@@ -47,13 +53,14 @@ class SocketManager {
       return this.socket;
     }
 
-    const token = Cookies.get('next-auth.session-token') || Cookies.get('__Secure-next-auth.session-token');
+    const token =
+      Cookies.get('next-auth.session-token') || Cookies.get('__Secure-next-auth.session-token');
     const socketUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000';
 
     this.socket = io(socketUrl, {
       auth: { token },
       transports: ['websocket', 'polling'],
-      ...this.connectionOptions
+      ...this.connectionOptions,
     });
 
     this.setupEventHandlers();
@@ -77,13 +84,13 @@ class SocketManager {
     this.socket.on('connect_error', (error) => {
       console.error('[Socket] Connection error:', error.message);
       this.reconnectAttempt++;
-      this.emit('connection:status', { 
-        connected: false, 
-        reconnectAttempt: this.reconnectAttempt 
+      this.emit('connection:status', {
+        connected: false,
+        reconnectAttempt: this.reconnectAttempt,
       });
-      this.emit('error', { 
+      this.emit('error', {
         message: error.message,
-        code: error.type
+        code: error.type,
       });
     });
 
@@ -103,9 +110,9 @@ class SocketManager {
 
     this.socket.io.on('reconnect_failed', () => {
       console.error('[Socket] Reconnection failed');
-      this.emit('error', { 
+      this.emit('error', {
         message: 'Failed to reconnect after maximum attempts',
-        code: 'RECONNECT_FAILED'
+        code: 'RECONNECT_FAILED',
       });
     });
   }
@@ -114,16 +121,16 @@ class SocketManager {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());
     }
-    this.listeners.get(event)!.add(callback as Function);
-    
+    this.listeners.get(event)!.add(callback as (...args: any[]) => void);
+
     if (this.socket) {
       this.socket.on(event as string, callback as any);
     }
   }
 
   off<K extends keyof SocketEvents>(event: K, callback: SocketEvents[K]) {
-    this.listeners.get(event)?.delete(callback as Function);
-    
+    this.listeners.get(event)?.delete(callback as (...args: any[]) => void);
+
     if (this.socket) {
       this.socket.off(event as string, callback as any);
     }
@@ -139,7 +146,7 @@ class SocketManager {
     // Also emit to local listeners
     const localListeners = this.listeners.get(event);
     if (localListeners) {
-      localListeners.forEach(callback => {
+      localListeners.forEach((callback) => {
         try {
           callback(...args);
         } catch (error) {
@@ -169,7 +176,7 @@ class SocketManager {
 
   updateConnectionOptions(options: Partial<ConnectionOptions>) {
     this.connectionOptions = { ...this.connectionOptions, ...options };
-    
+
     // If already connected, we need to reconnect with new options
     if (this.socket) {
       this.disconnect();

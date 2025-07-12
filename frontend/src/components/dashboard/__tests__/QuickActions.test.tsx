@@ -1,8 +1,10 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
+import React from 'react';
 import { describe, it, expect } from 'vitest';
-import { QuickActions } from '../QuickActions';
+
 import { ServiceStatus } from '@/types/dashboard';
+
+import { QuickActions } from '../QuickActions';
 
 describe('QuickActions', () => {
   it('shows correct action buttons for Plex', () => {
@@ -19,9 +21,9 @@ describe('QuickActions', () => {
       },
       url: 'https://plex.tv',
     };
-    
+
     render(<QuickActions service={plexService} />);
-    
+
     expect(screen.getByText('Browse Library')).toBeInTheDocument();
     expect(screen.getByText('Open Service')).toBeInTheDocument();
   });
@@ -40,9 +42,9 @@ describe('QuickActions', () => {
       },
       url: 'https://overseerr.example.com',
     };
-    
+
     render(<QuickActions service={overseerrService} />);
-    
+
     expect(screen.getByText('Request Media')).toBeInTheDocument();
     expect(screen.getByText('Open Service')).toBeInTheDocument();
   });
@@ -61,9 +63,9 @@ describe('QuickActions', () => {
       },
       url: 'https://uptime.example.com',
     };
-    
+
     render(<QuickActions service={uptimeKumaService} />);
-    
+
     expect(screen.getByText('Open Service')).toBeInTheDocument();
     expect(screen.getByText('Refresh Status')).toBeInTheDocument();
   });
@@ -81,9 +83,9 @@ describe('QuickActions', () => {
         '30d': 98.8,
       },
     };
-    
+
     render(<QuickActions service={serviceWithoutUrl} />);
-    
+
     expect(screen.getByText('Refresh Status')).toBeInTheDocument();
   });
 });

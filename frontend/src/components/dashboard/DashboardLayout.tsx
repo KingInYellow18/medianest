@@ -1,12 +1,14 @@
 'use client';
 
 import React from 'react';
-import { ServiceStatus, QuickAction } from '@/types/dashboard';
+
+import { useRealtimeStatus } from '@/hooks/useRealtimeStatus';
 import { useServiceStatus } from '@/hooks/useServiceStatus';
 import { useWebSocket } from '@/hooks/useWebSocket';
-import { useRealtimeStatus } from '@/hooks/useRealtimeStatus';
-import { ServiceCard } from './ServiceCard';
+import { ServiceStatus, QuickAction } from '@/types/dashboard';
+
 import { ConnectionStatus } from './ConnectionStatus';
+import { ServiceCard } from './ServiceCard';
 import { UpdateAnimation } from './UpdateAnimation';
 
 interface DashboardLayoutProps {
@@ -17,7 +19,7 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ initialServices, children }: DashboardLayoutProps) {
   const { services, connected } = useServiceStatus(initialServices);
   const { connectionError, reconnectAttempt, refreshService } = useWebSocket();
-  
+
   // Enable real-time updates
   useRealtimeStatus();
 
@@ -28,7 +30,7 @@ export function DashboardLayout({ initialServices, children }: DashboardLayoutPr
 
   const handleQuickAction = (action: QuickAction) => {
     console.log('Quick action:', action);
-    
+
     switch (action.type) {
       case 'navigate':
         // Handle navigation actions
@@ -56,14 +58,14 @@ export function DashboardLayout({ initialServices, children }: DashboardLayoutPr
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <div className="container mx-auto px-4 py-8">
-        <ConnectionStatus 
-          connected={connected} 
+        <ConnectionStatus
+          connected={connected}
           error={connectionError}
           reconnectAttempt={reconnectAttempt}
         />
-        
+
         {children}
-        
+
         {services.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-400 text-lg">Loading services...</p>
@@ -72,7 +74,7 @@ export function DashboardLayout({ initialServices, children }: DashboardLayoutPr
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
             {services.map((service) => (
               <UpdateAnimation key={service.id} serviceId={service.id}>
-                <ServiceCard 
+                <ServiceCard
                   service={service}
                   onViewDetails={handleViewDetails}
                   onQuickAction={handleQuickAction}

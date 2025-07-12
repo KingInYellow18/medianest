@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+
 import { socketManager } from '@/lib/socket';
 import { ServiceStatus } from '@/types/dashboard';
 
@@ -18,17 +19,17 @@ export function useServiceStatus(initialServices: ServiceStatus[]) {
 
     const handleServiceUpdate = (data: ServiceStatus) => {
       console.log('Service status update:', data);
-      setServices(prev => {
-        const existingService = prev.find(s => s.id === data.id);
+      setServices((prev) => {
+        const existingService = prev.find((s) => s.id === data.id);
         if (existingService) {
           // Update existing service
-          return prev.map(service => 
-            service.id === data.id 
-              ? { 
+          return prev.map((service) =>
+            service.id === data.id
+              ? {
                   ...data,
-                  lastCheckAt: new Date(data.lastCheckAt)
+                  lastCheckAt: new Date(data.lastCheckAt),
                 }
-              : service
+              : service,
           );
         } else {
           // Add new service
@@ -39,10 +40,12 @@ export function useServiceStatus(initialServices: ServiceStatus[]) {
 
     const handleBulkUpdate = (data: ServiceStatus[]) => {
       console.log('Bulk service update:', data);
-      setServices(data.map(service => ({
-        ...service,
-        lastCheckAt: new Date(service.lastCheckAt)
-      })));
+      setServices(
+        data.map((service) => ({
+          ...service,
+          lastCheckAt: new Date(service.lastCheckAt),
+        })),
+      );
     };
 
     // Listen for events
@@ -90,12 +93,12 @@ export function useServiceStatus(initialServices: ServiceStatus[]) {
       if (socketManager.isConnected()) {
         socketManager.emit('unsubscribe:status');
       }
-      
+
       // Remove event listeners
       socketManager.off('connection:status', handleConnectionStatus);
       socketManager.off('service:status', handleServiceUpdate);
       socketManager.off('service:bulk-update', handleBulkUpdate);
-      
+
       clearInterval(interval);
     };
   }, []);

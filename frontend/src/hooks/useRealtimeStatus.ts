@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
+
 import { socketManager } from '@/lib/socket';
 import { ServiceStatus } from '@/types/dashboard';
 
@@ -19,26 +20,23 @@ export function useRealtimeStatus() {
   useEffect(() => {
     const handleStatusUpdate = (update: ServiceStatusUpdate) => {
       // Update single service
-      queryClient.setQueryData<ServiceStatus[]>(
-        ['services', 'status'],
-        (old) => {
-          if (!old) return old;
+      queryClient.setQueryData<ServiceStatus[]>(['services', 'status'], (old) => {
+        if (!old) return old;
 
-          return old.map(service =>
-            service.id === update.serviceId
-              ? {
-                  ...service,
-                  status: update.status,
-                  responseTime: update.responseTime,
-                  lastCheckAt: new Date(update.timestamp),
-                  details: update.details 
-                    ? { ...service.details, ...update.details } 
-                    : service.details
-                }
-              : service
-          );
-        }
-      );
+        return old.map((service) =>
+          service.id === update.serviceId
+            ? {
+                ...service,
+                status: update.status,
+                responseTime: update.responseTime,
+                lastCheckAt: new Date(update.timestamp),
+                details: update.details
+                  ? { ...service.details, ...update.details }
+                  : service.details,
+              }
+            : service,
+        );
+      });
 
       // Set update data for animation trigger
       queryClient.setQueryData(['service-update', update.serviceId], update);
@@ -51,11 +49,11 @@ export function useRealtimeStatus() {
 
     const handleBulkUpdate = (services: ServiceStatus[]) => {
       // Update all services at once
-      const processedServices = services.map(service => ({
+      const processedServices = services.map((service) => ({
         ...service,
-        lastCheckAt: new Date(service.lastCheckAt)
+        lastCheckAt: new Date(service.lastCheckAt),
       }));
-      
+
       queryClient.setQueryData(['services', 'status'], processedServices);
     };
 

@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
+import { motion, AnimatePresence } from 'framer-motion';
+import React from 'react';
 
 interface ConnectionStatusProps {
   connected: boolean;
@@ -10,7 +10,11 @@ interface ConnectionStatusProps {
   reconnectAttempt?: number;
 }
 
-export function ConnectionStatus({ connected, error, reconnectAttempt = 0 }: ConnectionStatusProps) {
+export function ConnectionStatus({
+  connected,
+  error,
+  reconnectAttempt = 0,
+}: ConnectionStatusProps) {
   const showStatus = !connected || error;
 
   return (
@@ -21,13 +25,10 @@ export function ConnectionStatus({ connected, error, reconnectAttempt = 0 }: Con
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.3 }}
-          className={clsx(
-            'fixed top-0 left-0 right-0 z-50 px-4 py-2 text-center text-sm',
-            {
-              'bg-yellow-600 text-white': !connected && !error,
-              'bg-red-600 text-white': error,
-            }
-          )}
+          className={clsx('fixed top-0 left-0 right-0 z-50 px-4 py-2 text-center text-sm', {
+            'bg-yellow-600 text-white': !connected && !error,
+            'bg-red-600 text-white': error,
+          })}
         >
           <div className="flex items-center justify-center space-x-2">
             {!connected && !error && (
@@ -58,7 +59,7 @@ export function ConnectionStatus({ connected, error, reconnectAttempt = 0 }: Con
                 </span>
               </>
             )}
-            
+
             {error && (
               <>
                 <svg

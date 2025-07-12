@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+
 import { socketManager } from '@/lib/socket';
 
 interface ConnectionStatus {
@@ -66,11 +67,11 @@ export function useWebSocket() {
     socketManager.connect();
   }, []);
 
-  return { 
-    isConnected, 
-    connectionError, 
+  return {
+    isConnected,
+    connectionError,
     reconnectAttempt,
     refreshService,
-    reconnect
+    reconnect,
   };
 }

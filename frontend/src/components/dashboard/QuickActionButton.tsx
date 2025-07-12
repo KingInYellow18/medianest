@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
 import { motion } from 'framer-motion';
+import React from 'react';
+
 import { QuickAction } from '@/types/dashboard';
 
 interface QuickActionButtonProps {
@@ -12,12 +13,12 @@ interface QuickActionButtonProps {
   disabled?: boolean;
 }
 
-export function QuickActionButton({ 
-  action, 
-  onClick, 
+export function QuickActionButton({
+  action,
+  onClick,
   variant = 'primary',
   size = 'md',
-  disabled = false
+  disabled = false,
 }: QuickActionButtonProps) {
   const getActionText = (action: QuickAction) => {
     switch (action.type) {
@@ -48,17 +49,17 @@ export function QuickActionButton({
   const variantClasses = {
     primary: 'bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500',
     secondary: 'bg-gray-600 hover:bg-gray-700 text-white focus:ring-gray-500',
-    danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500'
+    danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500',
   };
 
   const sizeClasses = {
     sm: 'px-2 py-1 text-xs',
     md: 'px-3 py-2 text-sm',
-    lg: 'px-4 py-3 text-base'
+    lg: 'px-4 py-3 text-base',
   };
 
-  const disabledClasses = disabled 
-    ? 'opacity-50 cursor-not-allowed bg-gray-500 hover:bg-gray-500' 
+  const disabledClasses = disabled
+    ? 'opacity-50 cursor-not-allowed bg-gray-500 hover:bg-gray-500'
     : '';
 
   return (
