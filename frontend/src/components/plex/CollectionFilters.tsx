@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { CollectionFilters } from '@/types/plex';
+import type { CollectionFilters } from '@/types/plex';
 import { useDebounce } from '@/hooks/useDebounce';
 
 interface CollectionFiltersProps {
