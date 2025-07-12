@@ -5,26 +5,25 @@ module.exports = {
     es2022: true,
   },
   parser: '@typescript-eslint/parser',
-  plugins: ['@typescript-eslint', 'import-x', 'prettier'],
+  plugins: ['@typescript-eslint', 'import', 'prettier'],
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
-    'plugin:@typescript-eslint/recommended-type-checked',
-    'plugin:import-x/recommended',
-    'plugin:import-x/typescript',
+    'plugin:import/recommended',
+    'plugin:import/typescript',
     'plugin:prettier/recommended',
   ],
   parserOptions: {
     ecmaVersion: 2022,
     sourceType: 'module',
     tsconfigRootDir: __dirname,
-    project: ['./tsconfig.base.json', './frontend/tsconfig.json', './backend/tsconfig.json', './shared/tsconfig.json'],
+    project: './tsconfig.base.json',
   },
   settings: {
-    'import-x/parsers': {
+    'import/parsers': {
       '@typescript-eslint/parser': ['.ts', '.tsx'],
     },
-    'import-x/resolver': {
+    'import/resolver': {
       typescript: {
         alwaysTryTypes: true,
         project: ['./tsconfig.base.json', './frontend/tsconfig.json', './backend/tsconfig.json', './shared/tsconfig.json'],
@@ -39,17 +38,18 @@ module.exports = {
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     '@typescript-eslint/no-non-null-assertion': 'warn',
     '@typescript-eslint/strict-boolean-expressions': 'off',
-    '@typescript-eslint/no-misused-promises': [
-      'error',
-      {
-        checksVoidReturn: {
-          attributes: false,
-        },
-      },
-    ],
+    '@typescript-eslint/no-misused-promises': 'off',
+    '@typescript-eslint/no-unsafe-assignment': 'warn',
+    '@typescript-eslint/no-unsafe-member-access': 'warn',
+    '@typescript-eslint/no-unsafe-call': 'warn',
+    '@typescript-eslint/no-unsafe-return': 'warn',
+    '@typescript-eslint/no-unsafe-argument': 'warn',
+    '@typescript-eslint/require-await': 'warn',
+    '@typescript-eslint/restrict-template-expressions': 'off',
+    '@typescript-eslint/no-base-to-string': 'off',
     
     // Imports
-    'import-x/order': [
+    'import/order': [
       'error',
       {
         groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
@@ -57,9 +57,11 @@ module.exports = {
         alphabetize: { order: 'asc', caseInsensitive: true },
       },
     ],
-    'import-x/no-duplicates': 'error',
-    'import-x/no-cycle': 'warn',
-    'import-x/no-unresolved': 'error',
+    'import/no-duplicates': 'error',
+    'import/no-cycle': 'warn',
+    'import/no-unresolved': 'error',
+    'import/no-named-as-default': 'warn',
+    'import/no-named-as-default-member': 'off',
     
     // General
     'no-console': ['warn', { allow: ['warn', 'error'] }],

@@ -35,8 +35,16 @@
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
+    "@typescript-eslint/eslint-plugin": "^7.16.1",
+    "@typescript-eslint/parser": "^7.16.1",
     "concurrently": "^8.2.2",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-import-resolver-typescript": "^3.6.1",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-prettier": "^5.2.1",
     "lint-staged": "^15.2.0",
+    "prettier": "^3.3.3",
     "rimraf": "^5.0.5",
     "simple-git-hooks": "^2.13.0",
     "tsx": "^4.20.3"
