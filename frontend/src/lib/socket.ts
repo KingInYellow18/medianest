@@ -13,6 +13,7 @@ interface SocketEvents {
   'subscribe:status': () => void;
   'unsubscribe:status': () => void;
   'request:refresh': (serviceId: string) => void;
+  'request:update': (data: any) => void;
   'service:status': (data: any) => void;
   'service:bulk-update': (data: any[]) => void;
   'connection:status': (data: {
@@ -22,6 +23,7 @@ interface SocketEvents {
   }) => void;
   error: (data: { message: string; code?: string }) => void;
   'subscribe:request': (requestId: string) => void;
+  'unsubscribe:request': (requestId: string) => void;
   [key: `request:${string}:status`]: (data: any) => void;
 }
 
@@ -90,7 +92,7 @@ class SocketManager {
       });
       this.emit('error', {
         message: error.message,
-        code: error.type,
+        code: (error as any).type,
       });
     });
 

@@ -33,6 +33,7 @@ export function usePlexLibraryItems(libraryKey: string, filters: PlexFilters) {
         offset: pageParam,
         limit: 50,
       }),
+    initialPageParam: 0,
     getNextPageParam: (lastPage, pages) => {
       const totalLoaded = pages.reduce((sum, page) => sum + page.items.length, 0);
       return totalLoaded < lastPage.totalSize ? totalLoaded : undefined;
