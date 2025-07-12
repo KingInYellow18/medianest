@@ -11,7 +11,7 @@ export function useRateLimit(limit = 20, window = 3600000) {
     return recentRequests.length < limit;
   }, [requests, limit, window]);
   
-  const addRequest = useCallback(() => {
+  const trackRequest = useCallback(() => {
     setRequests(prev => [...prev, Date.now()]);
   }, []);
   
@@ -21,5 +21,16 @@ export function useRateLimit(limit = 20, window = 3600000) {
     return Math.max(0, limit - recentRequests.length);
   }, [requests, limit, window]);
   
-  return { canRequest, addRequest, remainingRequests };
+  const resetTime = useMemo(() => {
+    if (requests.length === 0) {
+      return new Date(Date.now() + window);
+    }
+    const oldestRequest = Math.min(...requests);
+    return new Date(oldestRequest + window);
+  }, [requests, window]);
+  
+  // Legacy alias for backward compatibility
+  const addRequest = trackRequest;
+  
+  return { canRequest, addRequest, remainingRequests, resetTime, trackRequest };
 }

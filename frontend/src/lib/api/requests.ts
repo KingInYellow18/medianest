@@ -40,7 +40,8 @@ export async function getUserRequests(): Promise<MediaRequest[]> {
     throw new Error('Failed to fetch requests');
   }
   
-  return response.json();
+  const data = await response.json();
+  return data.data || data; // Handle both old and new response formats
 }
 
 export async function getRequestDetails(requestId: string): Promise<MediaRequest> {

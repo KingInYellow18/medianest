@@ -14,6 +14,11 @@ export interface MediaRequest {
   availableAt?: Date;
   overseerrId?: string;
   deniedReason?: string;
+  user?: {
+    id: string;
+    plexUsername: string;
+    email?: string;
+  };
 }
 
 export type RequestStatus = 
@@ -57,4 +62,35 @@ export interface SeasonInfo {
   airDate?: string;
   overview?: string;
   posterPath?: string;
+}
+
+export interface RequestFilters {
+  status?: RequestStatus | 'all';
+  mediaType?: 'movie' | 'tv' | 'all';
+  dateRange?: {
+    start: Date;
+    end: Date;
+  };
+  search?: string;
+}
+
+export interface UseRequestHistoryOptions {
+  userId?: string;
+  filters: RequestFilters;
+  page: number;
+  pageSize: number;
+  sortBy: 'date' | 'title' | 'status';
+  sortOrder: 'asc' | 'desc';
+}
+
+export interface RequestHistoryResponse {
+  requests: MediaRequest[];
+  totalCount: number;
+  totalPages: number;
+  currentPage: number;
+}
+
+export interface RequestUpdate {
+  requestId: string;
+  data: Partial<MediaRequest>;
 }

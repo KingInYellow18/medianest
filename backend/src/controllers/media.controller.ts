@@ -95,19 +95,74 @@ export class MediaController {
   async getUserRequests(req: Request, res: Response) {
     try {
       const userId = req.user!.id;
-      const { skip = 0, take = 20 } = req.query;
+      const { 
+        page = 1, 
+        pageSize = 20,
+        status,
+        mediaType,
+        search,
+        startDate,
+        endDate,
+        sortBy = 'date',
+        sortOrder = 'desc'
+      } = req.query;
 
-      const requests = await overseerrService.getUserRequests(userId, {
-        skip: Number(skip),
-        take: Number(take),
+      // Build filters
+      const filters: Record<string, any> = { userId };
+      
+      if (status && status !== 'all') {
+        filters.status = status as string;
+      }
+      
+      if (mediaType && mediaType !== 'all') {
+        filters.mediaType = mediaType as string;
+      }
+      
+      if (search) {
+        filters.title = { contains: search as string, mode: 'insensitive' };
+      }
+      
+      if (startDate || endDate) {
+        filters.requestedAt = {};
+        if (startDate) {
+          filters.requestedAt.gte = new Date(startDate as string);
+        }
+        if (endDate) {
+          filters.requestedAt.lte = new Date(endDate as string);
+        }
+      }
+
+      // Calculate skip
+      const skip = (Number(page) - 1) * Number(pageSize);
+
+      // Get total count for pagination
+      const totalCount = await mediaRequestRepository.count(filters);
+      const totalPages = Math.ceil(totalCount / Number(pageSize));
+
+      // Get requests with sorting
+      const orderBy: Record<string, any> = {};
+      if (sortBy === 'date') {
+        orderBy.requestedAt = sortOrder;
+      } else if (sortBy === 'title') {
+        orderBy.title = sortOrder;
+      } else if (sortBy === 'status') {
+        orderBy.status = sortOrder;
+      }
+
+      const requests = await mediaRequestRepository.findMany({
+        where: filters,
+        skip,
+        take: Number(pageSize),
+        orderBy,
       });
 
       res.json({
         success: true,
-        data: requests,
-        meta: {
-          skip: Number(skip),
-          take: Number(take),
+        data: {
+          requests,
+          totalCount,
+          totalPages,
+          currentPage: Number(page),
         },
       });
     } catch (error) {
@@ -178,6 +233,106 @@ export class MediaController {
       }
       logger.error('Failed to delete request', { error });
       throw new AppError('Failed to delete request', 500);
+    }
+  }
+
+  async getAllRequests(req: Request, res: Response) {
+    try {
+      // Only admins can access this endpoint
+      if (req.user!.role !== 'admin') {
+        throw new AppError('Access denied', 403);
+      }
+
+      const { 
+        page = 1, 
+        pageSize = 20,
+        status,
+        mediaType,
+        search,
+        startDate,
+        endDate,
+        sortBy = 'date',
+        sortOrder = 'desc',
+        userId
+      } = req.query;
+
+      // Build filters
+      const filters: Record<string, any> = {};
+      
+      if (userId) {
+        filters.userId = userId as string;
+      }
+      
+      if (status && status !== 'all') {
+        filters.status = status as string;
+      }
+      
+      if (mediaType && mediaType !== 'all') {
+        filters.mediaType = mediaType as string;
+      }
+      
+      if (search) {
+        filters.title = { contains: search as string, mode: 'insensitive' };
+      }
+      
+      if (startDate || endDate) {
+        filters.requestedAt = {};
+        if (startDate) {
+          filters.requestedAt.gte = new Date(startDate as string);
+        }
+        if (endDate) {
+          filters.requestedAt.lte = new Date(endDate as string);
+        }
+      }
+
+      // Calculate skip
+      const skip = (Number(page) - 1) * Number(pageSize);
+
+      // Get total count for pagination
+      const totalCount = await mediaRequestRepository.count(filters);
+      const totalPages = Math.ceil(totalCount / Number(pageSize));
+
+      // Get requests with sorting
+      const orderBy: Record<string, any> = {};
+      if (sortBy === 'date') {
+        orderBy.requestedAt = sortOrder;
+      } else if (sortBy === 'title') {
+        orderBy.title = sortOrder;
+      } else if (sortBy === 'status') {
+        orderBy.status = sortOrder;
+      }
+
+      const requests = await mediaRequestRepository.findMany({
+        where: filters,
+        skip,
+        take: Number(pageSize),
+        orderBy,
+        include: {
+          user: {
+            select: {
+              id: true,
+              plexUsername: true,
+              email: true,
+            },
+          },
+        },
+      });
+
+      res.json({
+        success: true,
+        data: {
+          requests,
+          totalCount,
+          totalPages,
+          currentPage: Number(page),
+        },
+      });
+    } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
+      logger.error('Failed to get all requests', { error });
+      throw new AppError('Failed to get requests', 500);
     }
   }
 }

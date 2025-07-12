@@ -127,6 +127,11 @@ export class OverseerrService {
 
       // Notify user via WebSocket
       socketService.emitToUser(userId, 'request:created', savedRequest);
+      // Also emit to request-specific room
+      socketService.emitToRoom(`request:${savedRequest.id}`, `request:${savedRequest.id}:status`, {
+        status: savedRequest.status,
+        updatedAt: savedRequest.createdAt,
+      });
 
       return savedRequest;
     } catch (error) {
@@ -191,6 +196,11 @@ export class OverseerrService {
         requestId: request.id,
         status: newStatus,
         title: request.title,
+      });
+      // Also emit to request-specific room
+      socketService.emitToRoom(`request:${request.id}`, `request:${request.id}:status`, {
+        status: newStatus,
+        updatedAt: new Date(),
       });
     }
   }

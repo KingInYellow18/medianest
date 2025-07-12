@@ -1,6 +1,7 @@
 import { Server, Socket } from 'socket.io';
 
 import { notificationHandlers } from './notification.handlers';
+import { requestHandlers } from './request.handlers';
 import { statusHandlers } from './status.handlers';
 
 export function registerHandlers(io: Server, socket: Socket): void {
@@ -10,5 +11,8 @@ export function registerHandlers(io: Server, socket: Socket): void {
   // User notifications
   notificationHandlers(io, socket);
 
-  // Future: YouTube download progress, media request updates, etc.
+  // Media request status updates
+  requestHandlers(io, socket);
+
+  // Future: YouTube download progress, etc.
 }
