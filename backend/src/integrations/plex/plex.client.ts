@@ -13,7 +13,7 @@ export interface PlexServerInfo {
 
 export interface PlexLibrary {
   key: string;
-  type: 'movie' | 'show' | 'music' | 'photo';
+  type: 'movie' | 'show' | 'youtube';
   title: string;
   uuid: string;
   updatedAt: number;
