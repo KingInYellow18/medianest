@@ -2,8 +2,8 @@
 
 import clsx from 'clsx';
 import { Film, Tv, Youtube, Search } from 'lucide-react';
-import React from 'react';
 import Link from 'next/link';
+import React from 'react';
 
 import { PlexLibrary } from '@/types/plex';
 
@@ -37,7 +37,9 @@ export function LibrarySelector({
               onClick={() => onLibraryChange(library.key)}
               className={clsx(
                 'flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap transition-all',
-                isSelected ? 'bg-blue-500 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700',
+                isSelected
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700',
               )}
             >
               <Icon className="w-4 h-4" />
@@ -47,9 +49,9 @@ export function LibrarySelector({
           );
         })}
       </div>
-      
+
       {/* Global Search Button */}
-      <Link 
+      <Link
         href="/plex/search"
         className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 transition-all whitespace-nowrap"
       >

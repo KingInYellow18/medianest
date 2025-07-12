@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+
 import { fetchCollections, fetchCollectionDetail } from '@/lib/api/plex';
 import { CollectionFilters } from '@/types/plex';
 
@@ -16,16 +17,17 @@ export function useCollections(libraryKey: string, filters: CollectionFilters) {
       // Client-side search filtering
       if (filters.search) {
         const searchLower = filters.search.toLowerCase();
-        filteredData = filteredData.filter((collection) =>
-          collection.title.toLowerCase().includes(searchLower) ||
-          collection.summary?.toLowerCase().includes(searchLower)
+        filteredData = filteredData.filter(
+          (collection) =>
+            collection.title.toLowerCase().includes(searchLower) ||
+            collection.summary?.toLowerCase().includes(searchLower),
         );
       }
 
       // Client-side minimum items filtering
       if (filters.minItems && filters.minItems > 0) {
-        filteredData = filteredData.filter((collection) => 
-          collection.childCount >= filters.minItems
+        filteredData = filteredData.filter(
+          (collection) => collection.childCount >= filters.minItems!,
         );
       }
 

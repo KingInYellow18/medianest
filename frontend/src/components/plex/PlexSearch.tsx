@@ -1,17 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Filter } from 'lucide-react';
 import clsx from 'clsx';
+import { Filter } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
 
-import { SearchBar } from './SearchBar';
-import { SearchResults } from './SearchResults';
-import { AdvancedSearchFilters } from './AdvancedSearchFilters';
-import { SearchHomepage } from './SearchHomepage';
 import { usePlexSearch } from '@/hooks/usePlexSearch';
 import { useSearchHistory } from '@/hooks/useSearchHistory';
 import { PlexSearchQuery, PlexMediaItem } from '@/types/plex-search';
+
+import { AdvancedSearchFilters } from './AdvancedSearchFilters';
+import { SearchBar } from './SearchBar';
+import { SearchHomepage } from './SearchHomepage';
+import { SearchResults } from './SearchResults';
 
 interface PlexSearchProps {
   initialQuery?: string;
@@ -22,16 +23,16 @@ export function PlexSearch({ initialQuery = '', onResultSelect }: PlexSearchProp
   const router = useRouter();
   const searchParams = useSearchParams();
   const [showFilters, setShowFilters] = useState(false);
-  
+
   const [searchQuery, setSearchQuery] = useState<PlexSearchQuery>({
     query: initialQuery || searchParams.get('q') || '',
     libraries: searchParams.getAll('library'),
-    filters: {}
+    filters: {},
   });
-  
+
   const { results, isLoading, suggestions } = usePlexSearch(searchQuery);
   const { addToHistory, getHistory } = useSearchHistory();
-  
+
   // Update URL params when search changes
   useEffect(() => {
     const params = new URLSearchParams();
@@ -39,20 +40,20 @@ export function PlexSearch({ initialQuery = '', onResultSelect }: PlexSearchProp
       params.set('q', searchQuery.query);
     }
     if (searchQuery.libraries && searchQuery.libraries.length > 0) {
-      searchQuery.libraries.forEach(lib => params.append('library', lib));
+      searchQuery.libraries.forEach((lib) => params.append('library', lib));
     }
-    
+
     const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
     router.replace(newUrl, { scroll: false });
   }, [searchQuery, router]);
-  
+
   const handleSearch = (query: string) => {
-    setSearchQuery(prev => ({ ...prev, query }));
+    setSearchQuery((prev) => ({ ...prev, query }));
     if (query.trim().length >= 2) {
       addToHistory(query.trim());
     }
   };
-  
+
   const handleClearSearch = () => {
     setSearchQuery({ query: '', filters: {} });
     router.replace(window.location.pathname);
@@ -81,45 +82,38 @@ export function PlexSearch({ initialQuery = '', onResultSelect }: PlexSearchProp
                 isLoading={isLoading}
               />
             </div>
-            
+
             <button
               onClick={() => setShowFilters(!showFilters)}
               className={clsx(
                 'p-3 rounded-lg transition-colors',
-                showFilters 
-                  ? 'bg-blue-500 text-white' 
-                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                showFilters
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700',
               )}
               aria-label="Toggle filters"
             >
               <Filter className="w-5 h-5" />
             </button>
           </div>
-          
+
           {showFilters && (
             <div className="mt-4">
               <AdvancedSearchFilters
                 filters={searchQuery.filters || {}}
-                onChange={(filters) => setSearchQuery(prev => ({ ...prev, filters }))}
+                onChange={(filters) => setSearchQuery((prev) => ({ ...prev, filters }))}
                 availableFilters={results?.availableFilters || {}}
               />
             </div>
           )}
         </div>
       </div>
-      
+
       <div className="container mx-auto px-4 py-8">
         {searchQuery.query ? (
-          <SearchResults
-            results={results}
-            isLoading={isLoading}
-            onItemClick={handleItemClick}
-          />
+          <SearchResults results={results} isLoading={isLoading} onItemClick={handleItemClick} />
         ) : (
-          <SearchHomepage 
-            recentSearches={getHistory()}
-            onSearchSelect={handleSearch}
-          />
+          <SearchHomepage recentSearches={getHistory()} onSearchSelect={handleSearch} />
         )}
       </div>
     </div>

@@ -1,7 +1,7 @@
 'use client';
 
-import { PlexCollectionSummary } from '@/types/plex';
 import { Card, CardContent } from '@/components/ui/card';
+import { PlexCollectionSummary } from '@/types/plex';
 
 interface CollectionCardProps {
   collection: PlexCollectionSummary;
@@ -10,7 +10,7 @@ interface CollectionCardProps {
 
 export function CollectionCard({ collection, onClick }: CollectionCardProps) {
   return (
-    <Card 
+    <Card
       className="group cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105"
       onClick={onClick}
     >
@@ -29,24 +29,24 @@ export function CollectionCard({ collection, onClick }: CollectionCardProps) {
             </div>
           </div>
         )}
-        
+
         {/* Item count badge */}
         <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
           {collection.childCount} items
         </div>
       </div>
-      
+
       <CardContent className="p-4">
         <h3 className="font-semibold text-sm line-clamp-2 mb-2 min-h-[2.5rem]">
           {collection.title}
         </h3>
-        
+
         {collection.summary && (
           <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-3 mb-2">
             {collection.summary}
           </p>
         )}
-        
+
         <div className="flex justify-between items-center text-xs text-gray-500">
           <span>Added {collection.addedAt.toLocaleDateString()}</span>
         </div>

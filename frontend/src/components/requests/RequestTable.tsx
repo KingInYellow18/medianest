@@ -49,7 +49,7 @@ export function RequestTable({
   onRequestClick,
   showRequester = false,
   sortBy = 'date',
-  sortOrder = 'desc',
+  sortOrder: _sortOrder = 'desc',
   onSort,
 }: RequestTableProps) {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());

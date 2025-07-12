@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import { ChevronDown, ChevronUp, X } from 'lucide-react';
+import { useState } from 'react';
 
 import { PlexSearchFilters, AvailableFilters } from '@/types/plex-search';
 
@@ -23,7 +23,7 @@ function MultiSelect({ options, value, onChange, placeholder }: MultiSelectProps
 
   const handleToggle = (option: string) => {
     if (value.includes(option)) {
-      onChange(value.filter(v => v !== option));
+      onChange(value.filter((v) => v !== option));
     } else {
       onChange([...value, option]);
     }
@@ -38,10 +38,7 @@ function MultiSelect({ options, value, onChange, placeholder }: MultiSelectProps
       >
         <div className="flex items-center justify-between">
           <span className={value.length === 0 ? 'text-gray-400' : 'text-white'}>
-            {value.length === 0 
-              ? placeholder 
-              : `${value.length} selected`
-            }
+            {value.length === 0 ? placeholder : `${value.length} selected`}
           </span>
           <ChevronDown className="w-4 h-4 text-gray-400" />
         </div>
@@ -80,7 +77,7 @@ interface RangeSliderProps {
 
 function RangeSlider({ min, max, value, onChange, step = 1, format }: RangeSliderProps) {
   const formatValue = format || ((v: number) => v.toString());
-  
+
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-sm text-gray-400">
@@ -114,13 +111,9 @@ function RangeSlider({ min, max, value, onChange, step = 1, format }: RangeSlide
 function formatFilterLabel(key: string, value: any): string {
   switch (key) {
     case 'year':
-      return value.min === value.max 
-        ? `Year: ${value.min}` 
-        : `Year: ${value.min}-${value.max}`;
+      return value.min === value.max ? `Year: ${value.min}` : `Year: ${value.min}-${value.max}`;
     case 'rating':
-      return value.min === value.max 
-        ? `Rating: ${value.min}` 
-        : `Rating: ${value.min}-${value.max}`;
+      return value.min === value.max ? `Rating: ${value.min}` : `Rating: ${value.min}-${value.max}`;
     case 'genre':
       return `Genres: ${value.join(', ')}`;
     case 'contentRating':
@@ -130,15 +123,15 @@ function formatFilterLabel(key: string, value: any): string {
   }
 }
 
-export function AdvancedSearchFilters({ 
-  filters, 
-  onChange, 
-  availableFilters = {} 
+export function AdvancedSearchFilters({
+  filters,
+  onChange,
+  availableFilters = {},
 }: AdvancedSearchFiltersProps) {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['basic']));
-  
+
   const toggleSection = (section: string) => {
-    setExpandedSections(prev => {
+    setExpandedSections((prev) => {
       const next = new Set(prev);
       if (next.has(section)) {
         next.delete(section);
@@ -172,7 +165,7 @@ export function AdvancedSearchFilters({
             <ChevronDown className="w-4 h-4 text-gray-400" />
           )}
         </button>
-        
+
         {expandedSections.has('basic') && (
           <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Year Range */}
@@ -183,15 +176,17 @@ export function AdvancedSearchFilters({
                 max={availableFilters.years?.max || currentYear}
                 value={[
                   filters.year?.min || availableFilters.years?.min || 1900,
-                  filters.year?.max || availableFilters.years?.max || currentYear
+                  filters.year?.max || availableFilters.years?.max || currentYear,
                 ]}
-                onChange={([min, max]) => onChange({
-                  ...filters,
-                  year: { min, max }
-                })}
+                onChange={([min, max]) =>
+                  onChange({
+                    ...filters,
+                    year: { min, max },
+                  })
+                }
               />
             </div>
-            
+
             {/* Rating Range */}
             <div>
               <label className="text-xs text-gray-400 mb-2 block">Rating</label>
@@ -199,35 +194,48 @@ export function AdvancedSearchFilters({
                 min={0}
                 max={10}
                 step={0.1}
-                value={[
-                  filters.rating?.min || 0,
-                  filters.rating?.max || 10
-                ]}
-                onChange={([min, max]) => onChange({
-                  ...filters,
-                  rating: { min, max }
-                })}
+                value={[filters.rating?.min || 0, filters.rating?.max || 10]}
+                onChange={([min, max]) =>
+                  onChange({
+                    ...filters,
+                    rating: { min, max },
+                  })
+                }
                 format={(value) => value.toFixed(1)}
               />
             </div>
-            
+
             {/* Content Rating */}
             <div>
               <label className="text-xs text-gray-400 mb-2 block">Content Rating</label>
               <MultiSelect
-                options={availableFilters.contentRatings || ['G', 'PG', 'PG-13', 'R', 'NC-17', 'TV-G', 'TV-PG', 'TV-14', 'TV-MA']}
+                options={
+                  availableFilters.contentRatings || [
+                    'G',
+                    'PG',
+                    'PG-13',
+                    'R',
+                    'NC-17',
+                    'TV-G',
+                    'TV-PG',
+                    'TV-14',
+                    'TV-MA',
+                  ]
+                }
                 value={filters.contentRating || []}
-                onChange={(value) => onChange({
-                  ...filters,
-                  contentRating: value
-                })}
+                onChange={(value) =>
+                  onChange({
+                    ...filters,
+                    contentRating: value,
+                  })
+                }
                 placeholder="Any rating"
               />
             </div>
           </div>
         )}
       </div>
-      
+
       {/* Advanced Filters */}
       <div>
         <button
@@ -241,23 +249,34 @@ export function AdvancedSearchFilters({
             <ChevronDown className="w-4 h-4 text-gray-400" />
           )}
         </button>
-        
+
         {expandedSections.has('advanced') && (
           <div className="mt-4 space-y-4">
             {/* Genres */}
             <div>
               <label className="text-xs text-gray-400 mb-2 block">Genres</label>
               <MultiSelect
-                options={availableFilters.genres || ['Action', 'Comedy', 'Drama', 'Horror', 'Sci-Fi', 'Thriller']}
+                options={
+                  availableFilters.genres || [
+                    'Action',
+                    'Comedy',
+                    'Drama',
+                    'Horror',
+                    'Sci-Fi',
+                    'Thriller',
+                  ]
+                }
                 value={filters.genre || []}
-                onChange={(value) => onChange({
-                  ...filters,
-                  genre: value
-                })}
+                onChange={(value) =>
+                  onChange({
+                    ...filters,
+                    genre: value,
+                  })
+                }
                 placeholder="Select genres"
               />
             </div>
-            
+
             {/* Studios */}
             {availableFilters.studios && (
               <div>
@@ -265,10 +284,12 @@ export function AdvancedSearchFilters({
                 <MultiSelect
                   options={availableFilters.studios}
                   value={filters.studio || []}
-                  onChange={(value) => onChange({
-                    ...filters,
-                    studio: value
-                  })}
+                  onChange={(value) =>
+                    onChange({
+                      ...filters,
+                      studio: value,
+                    })
+                  }
                   placeholder="Select studios"
                 />
               </div>
@@ -276,7 +297,7 @@ export function AdvancedSearchFilters({
           </div>
         )}
       </div>
-      
+
       {/* Active Filters */}
       {Object.keys(filters).length > 0 && (
         <div className="pt-4 border-t border-gray-700">

@@ -1,7 +1,8 @@
 'use client';
 
-import { useCollectionDetail } from '@/hooks/usePlexCollections';
 import { Button } from '@/components/ui/button';
+import { useCollectionDetail } from '@/hooks/usePlexCollections';
+
 import { MediaList } from './MediaList';
 
 interface CollectionDetailProps {
@@ -62,16 +63,14 @@ export function CollectionDetail({ collectionKey, onBack }: CollectionDetailProp
         <Button onClick={onBack} variant="outline" size="sm">
           ← Back
         </Button>
-        
+
         <div className="flex-1">
           <h1 className="text-2xl font-bold mb-2">{collection.title}</h1>
-          
+
           {collection.summary && (
-            <p className="text-gray-600 dark:text-gray-400 mb-4 max-w-3xl">
-              {collection.summary}
-            </p>
+            <p className="text-gray-600 dark:text-gray-400 mb-4 max-w-3xl">{collection.summary}</p>
           )}
-          
+
           <div className="flex items-center gap-4 text-sm text-gray-500">
             <span>{collection.childCount} items</span>
             <span>Added {collection.addedAt.toLocaleDateString()}</span>

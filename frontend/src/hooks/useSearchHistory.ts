@@ -33,16 +33,16 @@ export function useSearchHistory() {
     const trimmedQuery = query.trim();
     if (!trimmedQuery || trimmedQuery.length < 2) return;
 
-    setHistory(prev => {
+    setHistory((prev) => {
       // Remove existing entry if it exists
-      const filtered = prev.filter(item => item !== trimmedQuery);
+      const filtered = prev.filter((item) => item !== trimmedQuery);
       // Add to beginning and limit size
       return [trimmedQuery, ...filtered].slice(0, MAX_HISTORY_ITEMS);
     });
   };
 
   const removeFromHistory = (query: string) => {
-    setHistory(prev => prev.filter(item => item !== query));
+    setHistory((prev) => prev.filter((item) => item !== query));
   };
 
   const clearHistory = () => {

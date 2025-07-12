@@ -16,7 +16,7 @@ export function SearchHomepage({ recentSearches, onSearchSelect }: SearchHomepag
     'Drama',
     'Horror',
     '2023',
-    '2024'
+    '2024',
   ];
 
   return (

@@ -1,9 +1,9 @@
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
-import { Search, X, Clock, TrendingUp } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, X, Clock, TrendingUp } from 'lucide-react';
+import { useRef, useState, useEffect } from 'react';
 
 import { SearchSuggestion } from '@/types/plex-search';
 
@@ -16,38 +16,34 @@ interface SearchBarProps {
   placeholder?: string;
 }
 
-export function SearchBar({ 
-  value, 
-  onChange, 
-  onClear, 
-  suggestions = [], 
+export function SearchBar({
+  value,
+  onChange,
+  onClear,
+  suggestions = [],
   isLoading = false,
-  placeholder = "Search movies, shows, actors..."
+  placeholder = 'Search movies, shows, actors...',
 }: SearchBarProps) {
   const [isFocused, setIsFocused] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
-  
+
   const showSuggestions = isFocused && (suggestions.length > 0 || value.length > 0);
-  
+
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!showSuggestions) return;
-      
+
       switch (e.key) {
         case 'ArrowDown':
           e.preventDefault();
-          setSelectedIndex(prev => 
-            prev < suggestions.length - 1 ? prev + 1 : 0
-          );
+          setSelectedIndex((prev) => (prev < suggestions.length - 1 ? prev + 1 : 0));
           break;
         case 'ArrowUp':
           e.preventDefault();
-          setSelectedIndex(prev => 
-            prev > 0 ? prev - 1 : suggestions.length - 1
-          );
+          setSelectedIndex((prev) => (prev > 0 ? prev - 1 : suggestions.length - 1));
           break;
         case 'Enter':
           e.preventDefault();
@@ -62,11 +58,13 @@ export function SearchBar({
           break;
       }
     };
-    
+
     if (isFocused) {
       window.addEventListener('keydown', handleKeyDown);
       return () => window.removeEventListener('keydown', handleKeyDown);
     }
+
+    return undefined;
   }, [isFocused, selectedIndex, suggestions, onChange]);
 
   // Reset selected index when suggestions change
@@ -80,7 +78,7 @@ export function SearchBar({
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <Search className="h-5 w-5 text-gray-400" />
         </div>
-        
+
         <input
           ref={inputRef}
           type="text"
@@ -99,12 +97,12 @@ export function SearchBar({
           aria-controls="search-suggestions"
           aria-expanded={showSuggestions}
         />
-        
+
         <div className="absolute inset-y-0 right-0 pr-3 flex items-center gap-2">
           {isLoading && (
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
           )}
-          
+
           {value && (
             <button
               onClick={onClear}
@@ -116,7 +114,7 @@ export function SearchBar({
           )}
         </div>
       </div>
-      
+
       {/* Suggestions Dropdown */}
       <AnimatePresence>
         {showSuggestions && (
@@ -139,7 +137,7 @@ export function SearchBar({
                   }}
                   className={clsx(
                     'w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700 transition-colors text-left',
-                    selectedIndex === index && 'bg-gray-700'
+                    selectedIndex === index && 'bg-gray-700',
                   )}
                 >
                   {suggestion.type === 'history' && (
@@ -149,15 +147,15 @@ export function SearchBar({
                     <TrendingUp className="w-4 h-4 text-blue-400 flex-shrink-0" />
                   )}
                   <span className="text-white flex-1">{suggestion.text}</span>
-                  {suggestion.type === 'filter' && suggestion.metadata?.type && (
-                    <span className="text-xs text-gray-400">{suggestion.metadata.type}</span>
-                  )}
+                  {suggestion.type === 'filter' && suggestion.metadata?.type ? (
+                    <span className="text-xs text-gray-400">
+                      {String(suggestion.metadata.type)}
+                    </span>
+                  ) : null}
                 </button>
               ))
             ) : value.length > 0 ? (
-              <div className="px-4 py-3 text-gray-400 text-sm">
-                No suggestions found
-              </div>
+              <div className="px-4 py-3 text-gray-400 text-sm">No suggestions found</div>
             ) : null}
           </motion.div>
         )}

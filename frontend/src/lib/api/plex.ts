@@ -1,4 +1,11 @@
-import { PlexLibrary, PlexLibraryResponse, PlexMediaItem, PlexCollectionSummary, PlexCollectionDetail, CollectionFilters } from '@/types/plex';
+import {
+  PlexLibrary,
+  PlexLibraryResponse,
+  PlexMediaItem,
+  PlexCollectionSummary,
+  PlexCollectionDetail,
+  CollectionFilters,
+} from '@/types/plex';
 import { PlexSearchQuery, PlexSearchResults } from '@/types/plex-search';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
@@ -120,19 +127,19 @@ export async function searchPlex(searchQuery: PlexSearchQuery): Promise<PlexSear
   const headers = await getAuthHeaders();
 
   const searchParams = new URLSearchParams();
-  
+
   if (searchQuery.query) {
     searchParams.append('query', searchQuery.query);
   }
-  
+
   if (searchQuery.libraries && searchQuery.libraries.length > 0) {
-    searchQuery.libraries.forEach(lib => searchParams.append('libraries', lib));
+    searchQuery.libraries.forEach((lib) => searchParams.append('libraries', lib));
   }
-  
+
   if (searchQuery.mediaTypes && searchQuery.mediaTypes.length > 0) {
-    searchQuery.mediaTypes.forEach(type => searchParams.append('mediaTypes', type));
+    searchQuery.mediaTypes.forEach((type) => searchParams.append('mediaTypes', type));
   }
-  
+
   // Add filters
   if (searchQuery.filters) {
     Object.entries(searchQuery.filters).forEach(([key, value]) => {
@@ -143,7 +150,7 @@ export async function searchPlex(searchQuery: PlexSearchQuery): Promise<PlexSear
           searchParams.append(`${key}Max`, String(value.max));
         } else if (Array.isArray(value)) {
           // Array filters
-          value.forEach(v => searchParams.append(key, String(v)));
+          value.forEach((v) => searchParams.append(key, String(v)));
         } else {
           // Simple filters
           searchParams.append(key, String(value));
@@ -163,14 +170,15 @@ export async function searchPlex(searchQuery: PlexSearchQuery): Promise<PlexSear
   return {
     query: searchQuery.query,
     totalResults: data.meta?.total || 0,
-    results: data.data?.results?.map((group: any) => ({
-      library: group.library,
-      mediaType: group.mediaType,
-      items: group.items.map(transformPlexItem),
-      totalCount: group.totalCount
-    })) || [],
+    results:
+      data.data?.results?.map((group: any) => ({
+        library: group.library,
+        mediaType: group.mediaType,
+        items: group.items.map(transformPlexItem),
+        totalCount: group.totalCount,
+      })) || [],
     suggestions: data.data?.suggestions || [],
-    availableFilters: data.data?.availableFilters
+    availableFilters: data.data?.availableFilters,
   };
 }
 
@@ -205,18 +213,21 @@ export async function fetchCollections(
   const headers = await getAuthHeaders();
 
   const searchParams = new URLSearchParams();
-  
+
   if (filters.search) {
     searchParams.append('search', filters.search);
   }
-  
+
   if (filters.sort) {
     searchParams.append('sort', filters.sort);
   }
 
-  const response = await fetch(`${API_BASE}/plex/libraries/${libraryKey}/collections?${searchParams}`, {
-    headers,
-  });
+  const response = await fetch(
+    `${API_BASE}/plex/libraries/${libraryKey}/collections?${searchParams}`,
+    {
+      headers,
+    },
+  );
 
   if (!response.ok) {
     throw new Error('Failed to fetch collections');

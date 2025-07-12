@@ -2,9 +2,10 @@
 
 import { Film, Tv, Music, Image as ImageIcon } from 'lucide-react';
 
+import { PlexSearchResults, PlexMediaItem } from '@/types/plex-search';
+
 import { MediaCard } from './MediaCard';
 import { MediaCardSkeleton } from './MediaCardSkeleton';
-import { PlexSearchResults, PlexMediaItem } from '@/types/plex-search';
 
 interface SearchResultsProps {
   results?: PlexSearchResults;
@@ -44,7 +45,7 @@ export function SearchResults({ results, isLoading, onItemClick }: SearchResults
   if (isLoading) {
     return <SearchResultsSkeleton />;
   }
-  
+
   if (!results) {
     return null;
   }
@@ -72,36 +73,31 @@ export function SearchResults({ results, isLoading, onItemClick }: SearchResults
           <span className="text-white font-medium">"{results.query}"</span>
         </div>
       </div>
-      
+
       {/* Grouped Results */}
       {results.results.map((group) => {
         const IconComponent = typeIcons[group.library.type as keyof typeof typeIcons] || Film;
-        
+
         return (
           <section key={`${group.library.key}-${group.mediaType}`} className="space-y-4">
             <div className="flex items-center gap-3">
               <IconComponent className="w-5 h-5 text-gray-400" />
-              <h2 className="text-xl font-semibold text-white">
-                {group.library.title}
-              </h2>
+              <h2 className="text-xl font-semibold text-white">{group.library.title}</h2>
               <span className="text-sm text-gray-400">
-                ({group.totalCount.toLocaleString()} {group.totalCount === 1 ? 'result' : 'results'})
+                ({group.totalCount.toLocaleString()} {group.totalCount === 1 ? 'result' : 'results'}
+                )
               </span>
             </div>
-            
+
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
               {group.items.map((item) => (
-                <MediaCard
-                  key={item.key}
-                  media={item}
-                  onClick={() => onItemClick(item)}
-                />
+                <MediaCard key={item.key} media={item} onClick={() => onItemClick(item)} />
               ))}
             </div>
-            
+
             {group.totalCount > group.items.length && (
               <div className="mt-6 text-center">
-                <button 
+                <button
                   className="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-400 
                            hover:text-blue-300 transition-colors focus:outline-none focus:ring-2 
                            focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 rounded-md"

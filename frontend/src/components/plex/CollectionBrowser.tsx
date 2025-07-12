@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+
 import { useCollections } from '@/hooks/usePlexCollections';
 import { CollectionFilters, PlexCollectionSummary } from '@/types/plex';
+
 import { CollectionFilters as CollectionFiltersComponent } from './CollectionFilters';
 import { CollectionGrid } from './CollectionGrid';
 

@@ -2,17 +2,17 @@
 
 import { useState, useMemo } from 'react';
 
+import { Button } from '@/components/ui/button';
 import { usePlexLibraries } from '@/hooks/usePlexLibrary';
 import { PlexFilters, PlexCollectionSummary } from '@/types/plex';
 
+import { CollectionBrowser } from './CollectionBrowser';
+import { CollectionDetail } from './CollectionDetail';
 import { LibrarySearch } from './LibrarySearch';
 import { LibrarySelector } from './LibrarySelector';
 import { MediaFilters } from './MediaFilters';
 import { MediaGrid } from './MediaGrid';
 import { RecentlyAdded } from './RecentlyAdded';
-import { CollectionBrowser } from './CollectionBrowser';
-import { CollectionDetail } from './CollectionDetail';
-import { Button } from '@/components/ui/button';
 
 interface PlexBrowserProps {
   initialLibrary?: string;
@@ -25,7 +25,7 @@ export function PlexBrowser({ initialLibrary, onLibraryChange }: PlexBrowserProp
   const { data: libraries, isLoading: librariesLoading } = usePlexLibraries();
   const [selectedLibrary, setSelectedLibrary] = useState<string | undefined>(initialLibrary);
   const [filters, setFilters] = useState<PlexFilters>({
-    sort: 'addedAt:desc',
+    sort: 'addedAt',
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('media');
@@ -39,7 +39,7 @@ export function PlexBrowser({ initialLibrary, onLibraryChange }: PlexBrowserProp
   // Handle library selection
   const handleLibraryChange = (libraryKey: string) => {
     setSelectedLibrary(libraryKey);
-    setFilters({ sort: 'addedAt:desc' }); // Reset filters when changing library
+    setFilters({ sort: 'addedAt' }); // Reset filters when changing library
     setSearchQuery(''); // Clear search
     setViewMode('media'); // Reset to media view
     setSelectedCollection(null); // Clear selected collection
@@ -61,7 +61,9 @@ export function PlexBrowser({ initialLibrary, onLibraryChange }: PlexBrowserProp
   // Auto-select first library if none selected
   if (libraries && libraries.length > 0 && !selectedLibrary) {
     const firstLibrary = libraries[0];
-    handleLibraryChange(firstLibrary.key);
+    if (firstLibrary) {
+      handleLibraryChange(firstLibrary.key);
+    }
   }
 
   if (librariesLoading) {

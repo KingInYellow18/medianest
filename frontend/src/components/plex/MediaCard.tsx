@@ -1,6 +1,5 @@
 'use client';
 
-import clsx from 'clsx';
 import { Play, Star, Eye } from 'lucide-react';
 import Image from 'next/image';
 import React, { useState } from 'react';

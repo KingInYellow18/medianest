@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Input } from '@/components/ui/input';
+
 import { Button } from '@/components/ui/button';
-import type { CollectionFilters } from '@/types/plex';
+import { Input } from '@/components/ui/input';
 import { useDebounce } from '@/hooks/useDebounce';
+import type { CollectionFilters } from '@/types/plex';
 
 interface CollectionFiltersProps {
   filters: CollectionFilters;
@@ -43,7 +44,7 @@ export function CollectionFilters({ filters, onChange }: CollectionFiltersProps)
       {/* Sort and Filters */}
       <div className="flex flex-wrap gap-2 items-center">
         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Sort by:</span>
-        
+
         <Button
           variant={filters.sort === 'title' ? 'default' : 'outline'}
           size="sm"
@@ -51,7 +52,7 @@ export function CollectionFilters({ filters, onChange }: CollectionFiltersProps)
         >
           Title
         </Button>
-        
+
         <Button
           variant={filters.sort === 'addedAt' ? 'default' : 'outline'}
           size="sm"
@@ -59,7 +60,7 @@ export function CollectionFilters({ filters, onChange }: CollectionFiltersProps)
         >
           Date Added
         </Button>
-        
+
         <Button
           variant={filters.sort === 'childCount' ? 'default' : 'outline'}
           size="sm"

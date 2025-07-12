@@ -2,9 +2,9 @@
 
 import React, { useEffect, useRef } from 'react';
 
-import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
+import { useIsIntersecting } from '@/hooks/useIntersectionObserver';
 import { usePlexLibraryItems, useLibrarySearch } from '@/hooks/usePlexLibrary';
-import { PlexFilters, PlexMediaItem } from '@/types/plex';
+import { PlexFilters, PlexMediaItem, PlexLibraryResponse } from '@/types/plex';
 
 import { MediaCard } from './MediaCard';
 import { MediaCardSkeleton } from './MediaCardSkeleton';
@@ -23,9 +23,8 @@ export function MediaGrid({ libraryKey, filters, searchQuery }: MediaGridProps) 
   const searchQueryResult = useLibrarySearch(libraryKey, searchQuery || '');
 
   const isSearching = !!searchQuery && searchQuery.length >= 2;
-  const query = isSearching ? searchQueryResult : libraryQuery;
 
-  const { isIntersecting } = useIntersectionObserver(loadMoreRef, {
+  const isIntersecting = useIsIntersecting(loadMoreRef, {
     threshold: 0.1,
     rootMargin: '100px',
   });
@@ -45,7 +44,7 @@ export function MediaGrid({ libraryKey, filters, searchQuery }: MediaGridProps) 
   // Get items from appropriate source
   const items = isSearching
     ? searchQueryResult.data || []
-    : libraryQuery.data?.pages.flatMap((page) => page.items) || [];
+    : (libraryQuery.data?.pages as PlexLibraryResponse[])?.flatMap((page) => page.items) || [];
 
   const isLoading = isSearching ? searchQueryResult.isLoading : libraryQuery.isLoading;
   const isFetchingMore = libraryQuery.isFetchingNextPage;

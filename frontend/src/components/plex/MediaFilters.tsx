@@ -1,6 +1,5 @@
 'use client';
 
-import { ChevronDown } from 'lucide-react';
 import React from 'react';
 
 import { Select } from '@/components/ui/Select';

@@ -1,6 +1,7 @@
 'use client';
 
 import { PlexCollectionSummary } from '@/types/plex';
+
 import { CollectionCard } from './CollectionCard';
 import { CollectionCardSkeleton } from './CollectionCardSkeleton';
 
