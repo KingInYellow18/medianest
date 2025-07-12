@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+
 import { useDebounce } from '@/hooks/useDebounce';
 import { searchMedia } from '@/lib/api/media';
 import { SearchFilters } from '@/types/media';

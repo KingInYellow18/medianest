@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import Image from 'next/image';
 import { Calendar, Star, Clock, Tv } from 'lucide-react';
+import Image from 'next/image';
+import { useState } from 'react';
+
 import { MediaSearchResult } from '@/types/media';
+
 import { AvailabilityBadge } from './AvailabilityBadge';
 import { RequestButton } from './RequestButton';
 
@@ -16,9 +18,10 @@ interface MediaCardProps {
 export function MediaCard({ media, onSelect, onRequestClick }: MediaCardProps) {
   const [imageError, setImageError] = useState(false);
 
-  const posterUrl = media.posterPath && !imageError
-    ? `https://image.tmdb.org/t/p/w500${media.posterPath}`
-    : '/images/poster-placeholder.png';
+  const posterUrl =
+    media.posterPath && !imageError
+      ? `https://image.tmdb.org/t/p/w500${media.posterPath}`
+      : '/images/poster-placeholder.png';
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return null;
@@ -75,7 +78,9 @@ export function MediaCard({ media, onSelect, onRequestClick }: MediaCardProps) {
           {media.mediaType === 'tv' && media.numberOfSeasons && (
             <div className="flex items-center gap-1">
               <Tv className="w-3 h-3" />
-              <span>{media.numberOfSeasons} {media.numberOfSeasons === 1 ? 'Season' : 'Seasons'}</span>
+              <span>
+                {media.numberOfSeasons} {media.numberOfSeasons === 1 ? 'Season' : 'Seasons'}
+              </span>
             </div>
           )}
 

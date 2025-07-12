@@ -1,8 +1,9 @@
 'use client';
 
-import { MediaSearchResult } from '@/types/media';
-import { Button } from '@/components/ui/button';
 import { Plus, Check, Clock, Loader2 } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+import { MediaSearchResult } from '@/types/media';
 
 interface RequestButtonProps {
   media: MediaSearchResult;
@@ -15,12 +16,7 @@ export function RequestButton({ media, onClick, isLoading = false }: RequestButt
 
   if (availability.status === 'available') {
     return (
-      <Button
-        variant="secondary"
-        size="sm"
-        disabled
-        className="w-full"
-      >
+      <Button variant="secondary" size="sm" disabled className="w-full">
         <Check className="w-4 h-4 mr-2" />
         Available
       </Button>
@@ -29,12 +25,7 @@ export function RequestButton({ media, onClick, isLoading = false }: RequestButt
 
   if (availability.status === 'requested') {
     return (
-      <Button
-        variant="secondary"
-        size="sm"
-        disabled
-        className="w-full"
-      >
+      <Button variant="secondary" size="sm" disabled className="w-full">
         <Clock className="w-4 h-4 mr-2" />
         Requested
       </Button>
@@ -43,12 +34,7 @@ export function RequestButton({ media, onClick, isLoading = false }: RequestButt
 
   if (availability.status === 'processing') {
     return (
-      <Button
-        variant="secondary"
-        size="sm"
-        disabled
-        className="w-full"
-      >
+      <Button variant="secondary" size="sm" disabled className="w-full">
         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
         Processing
       </Button>
@@ -56,13 +42,7 @@ export function RequestButton({ media, onClick, isLoading = false }: RequestButt
   }
 
   return (
-    <Button
-      variant="default"
-      size="sm"
-      onClick={onClick}
-      disabled={isLoading}
-      className="w-full"
-    >
+    <Button variant="default" size="sm" onClick={onClick} disabled={isLoading} className="w-full">
       {isLoading ? (
         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
       ) : (

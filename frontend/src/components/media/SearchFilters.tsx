@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { useState } from 'react';
+
 import { Button } from '@/components/ui/button';
 
 interface SearchFiltersProps {
@@ -95,9 +96,7 @@ export function SearchFilters({ onFilterChange, availableGenres = [] }: SearchFi
         <div className="mt-4 space-y-4">
           {/* Year Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Release Year
-            </label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Release Year</label>
             <select
               value={year}
               onChange={(e) => handleYearChange(e.target.value)}
@@ -115,9 +114,7 @@ export function SearchFilters({ onFilterChange, availableGenres = [] }: SearchFi
           {/* Genre Filter */}
           {availableGenres.length > 0 && (
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Genre
-              </label>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Genre</label>
               <select
                 value={genre}
                 onChange={(e) => handleGenreChange(e.target.value)}
@@ -135,12 +132,7 @@ export function SearchFilters({ onFilterChange, availableGenres = [] }: SearchFi
 
           {/* Clear Filters */}
           {hasActiveFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearFilters}
-              className="w-full"
-            >
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="w-full">
               Clear Filters
             </Button>
           )}

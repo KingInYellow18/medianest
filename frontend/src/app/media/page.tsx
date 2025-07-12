@@ -1,32 +1,28 @@
 'use client';
 
-import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { MediaSearchResult } from '@/types/media';
-import { useMediaSearch } from '@/hooks/useMediaSearch';
-import { SearchInput } from '@/components/media/SearchInput';
-import { SearchFilters } from '@/components/media/SearchFilters';
+import { useState, useCallback } from 'react';
+
 import { MediaGrid } from '@/components/media/MediaGrid';
-import { requestMedia } from '@/lib/api/media';
-import { useToast } from '@/hooks/use-toast';
+import { SearchFilters } from '@/components/media/SearchFilters';
+import { SearchInput } from '@/components/media/SearchInput';
+import { RequestModal } from '@/components/media/RequestModal';
+import { useMediaSearch } from '@/hooks/useMediaSearch';
+import { useMediaRequest } from '@/hooks/useMediaRequest';
+import { MediaSearchResult } from '@/types/media';
 
 export default function MediaSearchPage() {
   const router = useRouter();
-  const { toast } = useToast();
+  const { submitRequest } = useMediaRequest();
+  const [selectedMedia, setSelectedMedia] = useState<MediaSearchResult | null>(null);
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [filters, setFilters] = useState({
     mediaType: 'all' as 'all' | 'movie' | 'tv',
     year: '',
     genre: '',
   });
 
-  const {
-    query,
-    setQuery,
-    results,
-    isLoading,
-    isDebouncing,
-    error,
-  } = useMediaSearch();
+  const { query, setQuery, results, isLoading, error } = useMediaSearch();
 
   // Filter results based on selected filters
   const filteredResults = results.filter((media) => {
@@ -54,42 +50,36 @@ export default function MediaSearchPage() {
   // Extract unique genres from results for filter dropdown
   const availableGenres = Array.from(
     new Map(
-      results
-        .flatMap((media) => media.genres || [])
-        .map((genre) => [genre.id, genre])
-    ).values()
+      results.flatMap((media) => media.genres || []).map((genre) => [genre.id, genre]),
+    ).values(),
   ).sort((a, b) => a.name.localeCompare(b.name));
 
-  const handleMediaSelect = useCallback((media: MediaSearchResult) => {
-    // Navigate to media detail page (to be implemented)
-    router.push(`/media/${media.mediaType}/${media.tmdbId}`);
-  }, [router]);
+  const handleMediaSelect = useCallback(
+    (media: MediaSearchResult) => {
+      // Navigate to media detail page (to be implemented)
+      router.push(`/media/${media.mediaType}/${media.tmdbId}`);
+    },
+    [router],
+  );
 
-  const handleRequestClick = useCallback(async (media: MediaSearchResult) => {
-    try {
-      await requestMedia({
-        tmdbId: media.tmdbId,
-        mediaType: media.mediaType,
-      });
+  const handleRequestClick = useCallback(
+    (media: MediaSearchResult) => {
+      setSelectedMedia(media);
+      setIsRequestModalOpen(true);
+    },
+    [],
+  );
 
-      toast({
-        title: 'Request Submitted',
-        description: `${media.title} has been requested successfully.`,
-      });
-
-      // Refresh the search results to update availability status
-      // This would be handled by React Query cache invalidation in a real implementation
-    } catch (error) {
-      toast({
-        title: 'Request Failed',
-        description: error instanceof Error ? error.message : 'Failed to submit request',
-        variant: 'destructive',
-      });
-    }
-  }, [toast]);
-
-  const handleFilterChange = useCallback((newFilters: typeof filters) => {
-    setFilters(newFilters);
+  const handleFilterChange = useCallback((newFilters: { 
+    mediaType: 'all' | 'movie' | 'tv'; 
+    year?: string; 
+    genre?: string; 
+  }) => {
+    setFilters({
+      mediaType: newFilters.mediaType,
+      year: newFilters.year || '',
+      genre: newFilters.genre || ''
+    });
   }, []);
 
   return (
@@ -110,17 +100,14 @@ export default function MediaSearchPage() {
             <SearchInput
               value={query}
               onChange={setQuery}
-              isLoading={isDebouncing}
-              placeholder="Search for movies or TV shows..."
+              isLoading={isLoading}
+              onClear={() => setQuery('')}
             />
           </div>
 
           {/* Filters */}
           <div className="lg:col-span-1">
-            <SearchFilters
-              onFilterChange={handleFilterChange}
-              availableGenres={availableGenres}
-            />
+            <SearchFilters onFilterChange={handleFilterChange} availableGenres={availableGenres} />
           </div>
         </div>
 
@@ -157,12 +144,25 @@ export default function MediaSearchPage() {
             <p className="text-gray-400 text-lg mb-2">
               Start typing to search for movies and TV shows
             </p>
-            <p className="text-gray-500 text-sm">
-              Use filters to narrow down your search results
-            </p>
+            <p className="text-gray-500 text-sm">Use filters to narrow down your search results</p>
           </div>
         )}
       </div>
+
+      {/* Request Modal */}
+      {selectedMedia && (
+        <RequestModal
+          media={selectedMedia}
+          isOpen={isRequestModalOpen}
+          onClose={() => {
+            setIsRequestModalOpen(false);
+            setSelectedMedia(null);
+          }}
+          onSubmit={async (request) => {
+            await submitRequest(request);
+          }}
+        />
+      )}
     </div>
   );
 }

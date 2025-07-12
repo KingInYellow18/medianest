@@ -1,6 +1,7 @@
 'use client';
 
 import { MediaSearchResult } from '@/types/media';
+
 import { MediaCard } from './MediaCard';
 import { MediaCardSkeleton } from './MediaCardSkeleton';
 
