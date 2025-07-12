@@ -1,7 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useWebSocket } from '../useWebSocket';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
 import { socketManager } from '@/lib/socket';
+
+import { useWebSocket } from '../useWebSocket';
 
 // Mock the socket manager
 vi.mock('@/lib/socket', () => ({
@@ -11,8 +13,8 @@ vi.mock('@/lib/socket', () => ({
     off: vi.fn(),
     emit: vi.fn(),
     disconnect: vi.fn(),
-    isConnected: vi.fn()
-  }
+    isConnected: vi.fn(),
+  },
 }));
 
 describe('useWebSocket', () => {
@@ -20,11 +22,11 @@ describe('useWebSocket', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     mockSocket = {
       connected: false,
       on: vi.fn(),
-      emit: vi.fn()
+      emit: vi.fn(),
     };
 
     vi.mocked(socketManager.connect).mockReturnValue(mockSocket);
@@ -38,7 +40,7 @@ describe('useWebSocket', () => {
 
   it('should subscribe to status updates when connected', () => {
     mockSocket.connected = true;
-    
+
     renderHook(() => useWebSocket());
 
     expect(mockSocket.emit).toHaveBeenCalledWith('subscribe:status');
@@ -48,9 +50,9 @@ describe('useWebSocket', () => {
     const { result } = renderHook(() => useWebSocket());
 
     // Get the connection status handler
-    const connectionHandler = vi.mocked(socketManager.on).mock.calls.find(
-      call => call[0] === 'connection:status'
-    )?.[1];
+    const connectionHandler = vi
+      .mocked(socketManager.on)
+      .mock.calls.find((call) => call[0] === 'connection:status')?.[1];
 
     // Simulate connection
     act(() => {
@@ -65,9 +67,9 @@ describe('useWebSocket', () => {
     const { result } = renderHook(() => useWebSocket());
 
     // Get the error handler
-    const errorHandler = vi.mocked(socketManager.on).mock.calls.find(
-      call => call[0] === 'error'
-    )?.[1];
+    const errorHandler = vi
+      .mocked(socketManager.on)
+      .mock.calls.find((call) => call[0] === 'error')?.[1];
 
     // Simulate error
     act(() => {
@@ -80,9 +82,9 @@ describe('useWebSocket', () => {
   it('should track reconnection attempts', () => {
     const { result } = renderHook(() => useWebSocket());
 
-    const connectionHandler = vi.mocked(socketManager.on).mock.calls.find(
-      call => call[0] === 'connection:status'
-    )?.[1];
+    const connectionHandler = vi
+      .mocked(socketManager.on)
+      .mock.calls.find((call) => call[0] === 'connection:status')?.[1];
 
     act(() => {
       connectionHandler?.({ connected: false, reconnectAttempt: 3 });
@@ -120,25 +122,17 @@ describe('useWebSocket', () => {
 
     // Should unsubscribe
     expect(mockSocket.emit).toHaveBeenCalledWith('unsubscribe:status');
-    
+
     // Should remove event listeners
-    expect(socketManager.off).toHaveBeenCalledWith(
-      'connection:status',
-      expect.any(Function)
-    );
-    expect(socketManager.off).toHaveBeenCalledWith(
-      'error',
-      expect.any(Function)
-    );
+    expect(socketManager.off).toHaveBeenCalledWith('connection:status', expect.any(Function));
+    expect(socketManager.off).toHaveBeenCalledWith('error', expect.any(Function));
   });
 
   it('should subscribe on connect event', () => {
     renderHook(() => useWebSocket());
 
     // Get the connect handler
-    const connectHandler = mockSocket.on.mock.calls.find(
-      call => call[0] === 'connect'
-    )?.[1];
+    const connectHandler = mockSocket.on.mock.calls.find((call) => call[0] === 'connect')?.[1];
 
     // Trigger connect
     act(() => {

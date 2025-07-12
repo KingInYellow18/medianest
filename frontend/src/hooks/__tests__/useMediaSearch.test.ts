@@ -1,9 +1,11 @@
-import { renderHook, act, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactNode } from 'react';
+import { renderHook, act, waitFor } from '@testing-library/react';
+import React, { ReactNode } from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { useMediaSearch } from '../useMediaSearch';
+
 import * as mediaApi from '@/lib/api/media';
+
+import { useMediaSearch } from '../useMediaSearch';
 
 // Mock the API module
 vi.mock('@/lib/api/media');
@@ -16,11 +18,9 @@ vi.mock('../useDebounce', () => ({
 describe('useMediaSearch', () => {
   let queryClient: QueryClient;
 
-  const wrapper = ({ children }: { children: ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  );
+  const wrapper = ({ children }: { children: ReactNode }) => {
+    return React.createElement(QueryClientProvider, { client: queryClient }, children);
+  };
 
   beforeEach(() => {
     queryClient = new QueryClient({
@@ -129,13 +129,10 @@ describe('useMediaSearch', () => {
       .mockResolvedValueOnce(firstResults as any)
       .mockResolvedValueOnce(secondResults as any);
 
-    const { result, rerender } = renderHook(
-      ({ query }) => useMediaSearch(query),
-      {
-        wrapper,
-        initialProps: { query: 'First' },
-      }
-    );
+    const { result, rerender } = renderHook(({ query }) => useMediaSearch(query), {
+      wrapper,
+      initialProps: { query: 'First' },
+    });
 
     await waitFor(() => {
       expect(result.current.results).toEqual(firstResults.results);

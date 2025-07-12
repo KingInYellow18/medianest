@@ -1,10 +1,12 @@
-import React from 'react';
-import { renderHook, act, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { useServiceStatus } from '../useServiceStatus';
-import { ServiceStatus } from '@/types/dashboard';
+import { renderHook, act, waitFor } from '@testing-library/react';
+import React from 'react';
 import io, { Socket } from 'socket.io-client';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
+import { ServiceStatus } from '@/types/dashboard';
+
+import { useServiceStatus } from '../useServiceStatus';
 
 // Mock socket.io-client
 vi.mock('socket.io-client');
@@ -52,7 +54,7 @@ describe('useServiceStatus', () => {
       disconnect: vi.fn(),
       connected: true,
     };
-    
+
     (mockIo as any).mockReturnValue(mockSocket as Socket);
 
     // Setup query client
@@ -67,20 +69,15 @@ describe('useServiceStatus', () => {
     vi.clearAllMocks();
   });
 
-  const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  );
+  const wrapper = ({ children }: { children: React.ReactNode }) => {
+    return React.createElement(QueryClientProvider, { client: queryClient }, children);
+  };
 
   it('initializes with provided services', async () => {
-    const { result } = renderHook(
-      () => useServiceStatus(initialServices),
-      { wrapper }
-    );
+    const { result } = renderHook(() => useServiceStatus(initialServices), { wrapper });
 
     expect(result.current.services).toEqual(initialServices);
-    
+
     // Wait for the connect event to fire and update the state
     await waitFor(() => {
       expect(result.current.connected).toBe(true);
@@ -107,16 +104,13 @@ describe('useServiceStatus', () => {
   });
 
   it('updates connection status on connect/disconnect', () => {
-    const { result } = renderHook(
-      () => useServiceStatus(initialServices),
-      { wrapper }
-    );
+    const { result } = renderHook(() => useServiceStatus(initialServices), { wrapper });
 
     // Simulate disconnect
     const disconnectHandler = (mockSocket.on as ReturnType<typeof vi.fn>).mock.calls.find(
-      ([event]) => event === 'disconnect'
+      ([event]) => event === 'disconnect',
     )?.[1];
-    
+
     act(() => {
       disconnectHandler();
     });
@@ -125,9 +119,9 @@ describe('useServiceStatus', () => {
 
     // Simulate reconnect
     const connectHandler = (mockSocket.on as ReturnType<typeof vi.fn>).mock.calls.find(
-      ([event]) => event === 'connect'
+      ([event]) => event === 'connect',
     )?.[1];
-    
+
     act(() => {
       connectHandler();
     });
@@ -136,13 +130,10 @@ describe('useServiceStatus', () => {
   });
 
   it('updates service status on service:status event', () => {
-    const { result } = renderHook(
-      () => useServiceStatus(initialServices),
-      { wrapper }
-    );
+    const { result } = renderHook(() => useServiceStatus(initialServices), { wrapper });
 
     const statusHandler = (mockSocket.on as ReturnType<typeof vi.fn>).mock.calls.find(
-      ([event]) => event === 'service:status'
+      ([event]) => event === 'service:status',
     )?.[1];
 
     const updatedService: ServiceStatus = {
@@ -168,13 +159,10 @@ describe('useServiceStatus', () => {
   });
 
   it('adds new service if not in list', () => {
-    const { result } = renderHook(
-      () => useServiceStatus(initialServices),
-      { wrapper }
-    );
+    const { result } = renderHook(() => useServiceStatus(initialServices), { wrapper });
 
     const statusHandler = (mockSocket.on as ReturnType<typeof vi.fn>).mock.calls.find(
-      ([event]) => event === 'service:status'
+      ([event]) => event === 'service:status',
     )?.[1];
 
     const newService: ServiceStatus = {
@@ -200,10 +188,7 @@ describe('useServiceStatus', () => {
   });
 
   it('cleans up socket on unmount', () => {
-    const { unmount } = renderHook(
-      () => useServiceStatus(initialServices),
-      { wrapper }
-    );
+    const { unmount } = renderHook(() => useServiceStatus(initialServices), { wrapper });
 
     unmount();
 
@@ -217,22 +202,23 @@ describe('useServiceStatus', () => {
     const mockFetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
-        json: () => Promise.resolve([
-          {
-            id: 'plex',
-            name: 'Plex',
-            displayName: 'Plex Updated',
-            status: 'up',
-            responseTime: 120,
-            lastCheckAt: new Date().toISOString(),
-            uptime: {
-              '24h': 99.8,
-              '7d': 99.5,
-              '30d': 99.2,
+        json: () =>
+          Promise.resolve([
+            {
+              id: 'plex',
+              name: 'Plex',
+              displayName: 'Plex Updated',
+              status: 'up',
+              responseTime: 120,
+              lastCheckAt: new Date().toISOString(),
+              uptime: {
+                '24h': 99.8,
+                '7d': 99.5,
+                '30d': 99.2,
+              },
             },
-          },
-        ]),
-      } as unknown as Response)
+          ]),
+      } as unknown as Response),
     );
     global.fetch = mockFetch as any;
 

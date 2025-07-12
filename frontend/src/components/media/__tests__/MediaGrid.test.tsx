@@ -1,7 +1,9 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { MediaGrid } from '../MediaGrid';
+
 import { MediaSearchResult } from '@/types/media';
+
+import { MediaGrid } from '../MediaGrid';
 
 // Mock the child components
 vi.mock('../MediaCard', () => ({
@@ -46,7 +48,10 @@ const mockResults: MediaSearchResult[] = [
     voteAverage: 8.9,
     voteCount: 12000,
     popularity: 255.0,
-    genres: [{ id: 18, name: 'Drama' }, { id: 80, name: 'Crime' }],
+    genres: [
+      { id: 18, name: 'Drama' },
+      { id: 80, name: 'Crime' },
+    ],
     numberOfSeasons: 5,
     status: 'Ended',
     availability: { status: 'unavailable' },
@@ -61,7 +66,7 @@ describe('MediaGrid', () => {
         isLoading={true}
         onMediaSelect={() => {}}
         onRequestClick={() => {}}
-      />
+      />,
     );
 
     const skeletons = screen.getAllByTestId('media-card-skeleton');
@@ -75,7 +80,7 @@ describe('MediaGrid', () => {
         isLoading={false}
         onMediaSelect={() => {}}
         onRequestClick={() => {}}
-      />
+      />,
     );
 
     expect(screen.getByText('No results found')).toBeInTheDocument();
@@ -89,7 +94,7 @@ describe('MediaGrid', () => {
         isLoading={false}
         onMediaSelect={() => {}}
         onRequestClick={() => {}}
-      />
+      />,
     );
 
     expect(screen.getByTestId('media-card-1')).toBeInTheDocument();
@@ -105,7 +110,7 @@ describe('MediaGrid', () => {
         isLoading={false}
         onMediaSelect={onMediaSelect}
         onRequestClick={() => {}}
-      />
+      />,
     );
 
     fireEvent.click(screen.getByText('Select Fight Club'));
@@ -121,7 +126,7 @@ describe('MediaGrid', () => {
         isLoading={false}
         onMediaSelect={() => {}}
         onRequestClick={onRequestClick}
-      />
+      />,
     );
 
     fireEvent.click(screen.getByText('Request Breaking Bad'));
@@ -135,7 +140,7 @@ describe('MediaGrid', () => {
         isLoading={false}
         onMediaSelect={() => {}}
         onRequestClick={() => {}}
-      />
+      />,
     );
 
     const grid = container.querySelector('.grid');
@@ -154,7 +159,7 @@ describe('MediaGrid', () => {
         isLoading={false}
         onMediaSelect={() => {}}
         onRequestClick={() => {}}
-      />
+      />,
     );
 
     // Check that both cards are rendered (implying unique keys work)

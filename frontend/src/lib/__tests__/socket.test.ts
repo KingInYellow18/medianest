@@ -1,6 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { io } from 'socket.io-client';
 import Cookies from 'js-cookie';
+import { io } from 'socket.io-client';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
 import { socketManager } from '../socket';
 
 // Mock socket.io-client
@@ -15,11 +16,11 @@ describe('SocketManager', () => {
 
   beforeEach(() => {
     // Reset the singleton instance
-    // @ts-ignore - accessing private property for testing
+    // @ts-expect-error - accessing private property for testing
     socketManager.socket = null;
-    // @ts-ignore
+    // @ts-expect-error - accessing private property for testing
     socketManager.listeners.clear();
-    // @ts-ignore
+    // @ts-expect-error - accessing private property for testing
     socketManager.reconnectAttempt = 0;
 
     // Mock socket methods
@@ -35,13 +36,13 @@ describe('SocketManager', () => {
       removeAllListeners: vi.fn(),
       disconnect: vi.fn(),
       io: {
-        on: vi.fn()
-      }
+        on: vi.fn(),
+      },
     };
 
     // Mock io function to return mock socket
     vi.mocked(io).mockReturnValue(mockSocket as any);
-    
+
     // Mock Cookies
     vi.mocked(Cookies.get).mockReturnValue('test-token');
   });
@@ -63,8 +64,8 @@ describe('SocketManager', () => {
           reconnectionDelay: 1000,
           reconnectionDelayMax: 5000,
           reconnectionAttempts: 5,
-          timeout: 10000
-        })
+          timeout: 10000,
+        }),
       );
     });
 
@@ -83,14 +84,14 @@ describe('SocketManager', () => {
 
     it('should handle missing auth token', () => {
       vi.mocked(Cookies.get).mockReturnValue(undefined);
-      
+
       socketManager.connect();
 
       expect(io).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
-          auth: { token: undefined }
-        })
+          auth: { token: undefined },
+        }),
       );
     });
   });
@@ -130,7 +131,7 @@ describe('SocketManager', () => {
 
       expect(mockSocket.emit).not.toHaveBeenCalled();
       expect(consoleWarn).toHaveBeenCalledWith(
-        "[Socket] Cannot emit 'subscribe:status' - not connected"
+        "[Socket] Cannot emit 'subscribe:status' - not connected",
       );
 
       consoleWarn.mockRestore();
@@ -153,9 +154,7 @@ describe('SocketManager', () => {
     });
 
     it('should handle connect event', () => {
-      const connectHandler = mockSocket.on.mock.calls.find(
-        call => call[0] === 'connect'
-      )?.[1];
+      const connectHandler = mockSocket.on.mock.calls.find((call) => call[0] === 'connect')?.[1];
 
       // Trigger connect event
       connectHandler?.();
@@ -170,7 +169,7 @@ describe('SocketManager', () => {
 
     it('should handle disconnect event', () => {
       const disconnectHandler = mockSocket.on.mock.calls.find(
-        call => call[0] === 'disconnect'
+        (call) => call[0] === 'disconnect',
       )?.[1];
 
       // Trigger disconnect event
@@ -183,7 +182,7 @@ describe('SocketManager', () => {
 
     it('should handle connection error', () => {
       const errorHandler = mockSocket.on.mock.calls.find(
-        call => call[0] === 'connect_error'
+        (call) => call[0] === 'connect_error',
       )?.[1];
 
       const errorCallback = vi.fn();
@@ -194,7 +193,7 @@ describe('SocketManager', () => {
 
       expect(errorCallback).toHaveBeenCalledWith({
         message: 'Connection failed',
-        code: 'TransportError'
+        code: 'TransportError',
       });
     });
   });
@@ -206,33 +205,33 @@ describe('SocketManager', () => {
 
     it('should track reconnection attempts', () => {
       const reconnectHandler = mockSocket.io.on.mock.calls.find(
-        call => call[0] === 'reconnect_attempt'
+        (call) => call[0] === 'reconnect_attempt',
       )?.[1];
 
       reconnectHandler?.(3);
 
-      // @ts-ignore
+      // @ts-expect-error - accessing private property for testing
       expect(socketManager.reconnectAttempt).toBe(3);
     });
 
     it('should reset reconnect attempt on successful reconnection', () => {
       // Set initial attempt count
-      // @ts-ignore
+      // @ts-expect-error - accessing private property for testing
       socketManager.reconnectAttempt = 5;
 
       const reconnectHandler = mockSocket.io.on.mock.calls.find(
-        call => call[0] === 'reconnect'
+        (call) => call[0] === 'reconnect',
       )?.[1];
 
       reconnectHandler?.(5);
 
-      // @ts-ignore
+      // @ts-expect-error - accessing private property for testing
       expect(socketManager.reconnectAttempt).toBe(0);
     });
 
     it('should emit error on reconnection failure', () => {
       const failHandler = mockSocket.io.on.mock.calls.find(
-        call => call[0] === 'reconnect_failed'
+        (call) => call[0] === 'reconnect_failed',
       )?.[1];
 
       const errorCallback = vi.fn();
@@ -242,7 +241,7 @@ describe('SocketManager', () => {
 
       expect(errorCallback).toHaveBeenCalledWith({
         message: 'Failed to reconnect after maximum attempts',
-        code: 'RECONNECT_FAILED'
+        code: 'RECONNECT_FAILED',
       });
     });
   });
@@ -263,7 +262,7 @@ describe('SocketManager', () => {
     it('should update connection options', () => {
       socketManager.updateConnectionOptions({
         reconnectionDelay: 2000,
-        reconnectionAttempts: 10
+        reconnectionAttempts: 10,
       });
 
       socketManager.connect();
@@ -272,8 +271,8 @@ describe('SocketManager', () => {
         expect.any(String),
         expect.objectContaining({
           reconnectionDelay: 2000,
-          reconnectionAttempts: 10
-        })
+          reconnectionAttempts: 10,
+        }),
       );
     });
 
@@ -282,7 +281,7 @@ describe('SocketManager', () => {
       const firstCallCount = vi.mocked(io).mock.calls.length;
 
       socketManager.updateConnectionOptions({
-        timeout: 20000
+        timeout: 20000,
       });
 
       expect(mockSocket.disconnect).toHaveBeenCalled();
