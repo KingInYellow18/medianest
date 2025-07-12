@@ -42,7 +42,7 @@ export interface PlexMediaItem {
   studio?: string;
 }
 
-export interface PlexCollection {
+export interface PlexCollectionSummary {
   id: string;
   key: string;
   title: string;
@@ -50,7 +50,20 @@ export interface PlexCollection {
   thumb?: string;
   art?: string;
   childCount: number;
-  items?: PlexMediaItem[];
+  addedAt: Date;
+  updatedAt: Date;
+  collectionSort?: string;
+  collectionMode?: string;
+}
+
+export interface PlexCollectionDetail extends PlexCollectionSummary {
+  items: PlexMediaItem[];
+}
+
+export interface CollectionFilters {
+  search?: string;
+  sort?: 'title' | 'addedAt' | 'childCount';
+  minItems?: number;
 }
 
 export interface PlexFilters {

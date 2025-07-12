@@ -1,4 +1,4 @@
-import { PlexLibrary, PlexLibraryResponse, PlexMediaItem } from '@/types/plex';
+import { PlexLibrary, PlexLibraryResponse, PlexMediaItem, PlexCollectionSummary, PlexCollectionDetail, CollectionFilters } from '@/types/plex';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
@@ -137,6 +137,69 @@ export async function fetchRecentlyAdded(
 
   const data = await response.json();
   return data.data.map(transformPlexItem);
+}
+
+export async function fetchCollections(
+  libraryKey: string,
+  filters: CollectionFilters = {},
+): Promise<PlexCollectionSummary[]> {
+  const headers = await getAuthHeaders();
+
+  const searchParams = new URLSearchParams();
+  
+  if (filters.search) {
+    searchParams.append('search', filters.search);
+  }
+  
+  if (filters.sort) {
+    searchParams.append('sort', filters.sort);
+  }
+
+  const response = await fetch(`${API_BASE}/plex/libraries/${libraryKey}/collections?${searchParams}`, {
+    headers,
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch collections');
+  }
+
+  const data = await response.json();
+  return data.data.map(transformPlexCollection);
+}
+
+export async function fetchCollectionDetail(collectionKey: string): Promise<PlexCollectionDetail> {
+  const headers = await getAuthHeaders();
+
+  const response = await fetch(`${API_BASE}/plex/collections/${collectionKey}`, {
+    headers,
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch collection detail');
+  }
+
+  const data = await response.json();
+  return {
+    ...transformPlexCollection(data.data),
+    items: data.data.items?.map(transformPlexItem) || [],
+  };
+}
+
+// Transform backend Plex collection to frontend format
+function transformPlexCollection(collection: any): PlexCollectionSummary {
+  return {
+    id: collection.ratingKey,
+    key: collection.key,
+    title: collection.title,
+    summary: collection.summary,
+    thumb: collection.thumb,
+    art: collection.art,
+    childCount: collection.childCount,
+    addedAt: new Date(collection.addedAt * 1000),
+    updatedAt: new Date(collection.updatedAt * 1000),
+    collectionSort: collection.collectionSort,
+    collectionMode: collection.collectionMode,
+  };
 }
 
 // Transform backend Plex item to frontend format

@@ -3,18 +3,23 @@
 import { useState, useMemo } from 'react';
 
 import { usePlexLibraries } from '@/hooks/usePlexLibrary';
-import { PlexFilters } from '@/types/plex';
+import { PlexFilters, PlexCollectionSummary } from '@/types/plex';
 
 import { LibrarySearch } from './LibrarySearch';
 import { LibrarySelector } from './LibrarySelector';
 import { MediaFilters } from './MediaFilters';
 import { MediaGrid } from './MediaGrid';
 import { RecentlyAdded } from './RecentlyAdded';
+import { CollectionBrowser } from './CollectionBrowser';
+import { CollectionDetail } from './CollectionDetail';
+import { Button } from '@/components/ui/button';
 
 interface PlexBrowserProps {
   initialLibrary?: string;
   onLibraryChange?: (libraryKey: string) => void;
 }
+
+type ViewMode = 'media' | 'collections' | 'collection-detail';
 
 export function PlexBrowser({ initialLibrary, onLibraryChange }: PlexBrowserProps) {
   const { data: libraries, isLoading: librariesLoading } = usePlexLibraries();
@@ -23,6 +28,8 @@ export function PlexBrowser({ initialLibrary, onLibraryChange }: PlexBrowserProp
     sort: 'addedAt:desc',
   });
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<ViewMode>('media');
+  const [selectedCollection, setSelectedCollection] = useState<PlexCollectionSummary | null>(null);
 
   // Get the selected library object
   const currentLibrary = useMemo(() => {
@@ -34,7 +41,21 @@ export function PlexBrowser({ initialLibrary, onLibraryChange }: PlexBrowserProp
     setSelectedLibrary(libraryKey);
     setFilters({ sort: 'addedAt:desc' }); // Reset filters when changing library
     setSearchQuery(''); // Clear search
+    setViewMode('media'); // Reset to media view
+    setSelectedCollection(null); // Clear selected collection
     onLibraryChange?.(libraryKey);
+  };
+
+  // Handle collection selection
+  const handleCollectionSelect = (collection: PlexCollectionSummary) => {
+    setSelectedCollection(collection);
+    setViewMode('collection-detail');
+  };
+
+  // Handle back from collection detail
+  const handleBackFromCollection = () => {
+    setSelectedCollection(null);
+    setViewMode('collections');
   };
 
   // Auto-select first library if none selected
@@ -76,21 +97,57 @@ export function PlexBrowser({ initialLibrary, onLibraryChange }: PlexBrowserProp
 
       {selectedLibrary && currentLibrary && (
         <>
-          {/* Search */}
-          <LibrarySearch
-            value={searchQuery}
-            onChange={setSearchQuery}
-            placeholder={`Search ${currentLibrary.title}...`}
-          />
+          {/* View Mode Toggle */}
+          <div className="flex gap-2 mb-4">
+            <Button
+              variant={viewMode === 'media' ? 'default' : 'outline'}
+              onClick={() => setViewMode('media')}
+              size="sm"
+            >
+              Media
+            </Button>
+            <Button
+              variant={viewMode === 'collections' ? 'default' : 'outline'}
+              onClick={() => setViewMode('collections')}
+              size="sm"
+            >
+              Collections
+            </Button>
+          </div>
 
-          {/* Recently Added Section */}
-          {!searchQuery && <RecentlyAdded libraryKey={selectedLibrary} />}
+          {viewMode === 'media' && (
+            <>
+              {/* Search */}
+              <LibrarySearch
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder={`Search ${currentLibrary.title}...`}
+              />
 
-          {/* Filters */}
-          <MediaFilters filters={filters} onChange={setFilters} library={currentLibrary} />
+              {/* Recently Added Section */}
+              {!searchQuery && <RecentlyAdded libraryKey={selectedLibrary} />}
 
-          {/* Media Grid */}
-          <MediaGrid libraryKey={selectedLibrary} filters={filters} searchQuery={searchQuery} />
+              {/* Filters */}
+              <MediaFilters filters={filters} onChange={setFilters} library={currentLibrary} />
+
+              {/* Media Grid */}
+              <MediaGrid libraryKey={selectedLibrary} filters={filters} searchQuery={searchQuery} />
+            </>
+          )}
+
+          {viewMode === 'collections' && (
+            <CollectionBrowser
+              libraryKey={selectedLibrary}
+              onCollectionSelect={handleCollectionSelect}
+            />
+          )}
+
+          {viewMode === 'collection-detail' && selectedCollection && (
+            <CollectionDetail
+              collectionKey={selectedCollection.key}
+              onBack={handleBackFromCollection}
+            />
+          )}
         </>
       )}
     </div>
