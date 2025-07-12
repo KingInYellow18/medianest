@@ -5,7 +5,7 @@ export {
   createRedisConnection,
   closeRedisConnections,
   checkRedisHealth,
-  type RedisConfig
+  type RedisConfig,
 } from './redis-client';
 
 // Session store exports
@@ -19,7 +19,7 @@ export {
   cleanupExpiredSessions,
   getActiveSessionCount,
   sessionExists,
-  type SessionData
+  type SessionData,
 } from './session-store';
 
 // Rate limiter exports
@@ -31,7 +31,7 @@ export {
   getRateLimitHeaders,
   RATE_LIMITS,
   type RateLimitConfig,
-  type RateLimitResult
+  type RateLimitResult,
 } from './rate-limiter';
 
 // Cache exports
@@ -47,5 +47,5 @@ export {
   batchGetCache,
   batchSetCache,
   CACHE_CONFIG,
-  type CacheOptions
+  type CacheOptions,
 } from './cache';

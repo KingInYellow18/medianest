@@ -27,7 +27,7 @@ const defaultConfig: RedisConfig = {
   retryStrategy: (times: number) => {
     const delay = Math.min(times * 50, 2000);
     return delay;
-  }
+  },
 };
 
 /**
@@ -59,10 +59,10 @@ export function getRedisClient(config?: Partial<RedisConfig>): Redis {
  */
 export function getRedisSubscriber(config?: Partial<RedisConfig>): Redis {
   if (!redisSubscriber) {
-    const finalConfig = { 
-      ...defaultConfig, 
+    const finalConfig = {
+      ...defaultConfig,
       ...config,
-      maxRetriesPerRequest: null // Keep trying for subscribers
+      maxRetriesPerRequest: null, // Keep trying for subscribers
     };
     redisSubscriber = new Redis(finalConfig);
 

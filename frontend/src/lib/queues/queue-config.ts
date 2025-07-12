@@ -1,4 +1,5 @@
 import { Queue, Worker, QueueEvents, ConnectionOptions } from 'bullmq';
+
 import { createRedisConnection } from '../redis/redis-client';
 
 // Queue names
@@ -7,10 +8,10 @@ export const QUEUE_NAMES = {
   MEDIA_REQUEST: 'media-request',
   SERVICE_STATUS: 'service-status',
   NOTIFICATIONS: 'notifications',
-  CLEANUP: 'cleanup'
+  CLEANUP: 'cleanup',
 } as const;
 
-export type QueueName = typeof QUEUE_NAMES[keyof typeof QUEUE_NAMES];
+export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
 
 // Shared connection options for BullMQ
 const connectionOptions: ConnectionOptions = {
@@ -19,7 +20,7 @@ const connectionOptions: ConnectionOptions = {
   retryStrategy: (times: number): number => {
     const delay = Math.min(times * 50, 2000);
     return delay;
-  }
+  },
 };
 
 // Queue instances cache
@@ -37,13 +38,13 @@ export function getQueue(name: QueueName): Queue {
       defaultJobOptions: {
         removeOnComplete: {
           age: 3600, // Keep completed jobs for 1 hour
-          count: 100 // Keep max 100 completed jobs
+          count: 100, // Keep max 100 completed jobs
         },
         removeOnFail: {
           age: 24 * 3600, // Keep failed jobs for 24 hours
-          count: 50 // Keep max 50 failed jobs
-        }
-      }
+          count: 50, // Keep max 50 failed jobs
+        },
+      },
     });
 
     queues.set(name, queue);
@@ -82,10 +83,10 @@ export async function closeAllQueues(): Promise<void> {
   }
 
   await Promise.all(promises);
-  
+
   queues.clear();
   queueEvents.clear();
-  
+
   console.log('✅ All queue connections closed');
 }
 
@@ -96,32 +97,32 @@ export const QUEUE_CONFIGS = {
     maxStalledCount: 1,
     stalledInterval: 30000, // 30 seconds
     lockDuration: 300000, // 5 minutes lock per job
-    lockRenewTime: 150000 // Renew lock every 2.5 minutes
+    lockRenewTime: 150000, // Renew lock every 2.5 minutes
   },
   [QUEUE_NAMES.MEDIA_REQUEST]: {
     concurrency: 5,
     maxStalledCount: 3,
     stalledInterval: 10000,
-    lockDuration: 30000
+    lockDuration: 30000,
   },
   [QUEUE_NAMES.SERVICE_STATUS]: {
     concurrency: 10,
     maxStalledCount: 3,
     stalledInterval: 5000,
-    lockDuration: 10000
+    lockDuration: 10000,
   },
   [QUEUE_NAMES.NOTIFICATIONS]: {
     concurrency: 20,
     maxStalledCount: 3,
     stalledInterval: 5000,
-    lockDuration: 5000
+    lockDuration: 5000,
   },
   [QUEUE_NAMES.CLEANUP]: {
     concurrency: 1,
     maxStalledCount: 1,
     stalledInterval: 60000,
-    lockDuration: 600000 // 10 minutes for cleanup tasks
-  }
+    lockDuration: 600000, // 10 minutes for cleanup tasks
+  },
 } as const;
 
 /**
@@ -130,18 +131,18 @@ export const QUEUE_CONFIGS = {
 export function createWorker<T = any>(
   name: QueueName,
   processor: (job: any) => Promise<T>,
-  customOptions?: Partial<typeof QUEUE_CONFIGS[QueueName]>
+  customOptions?: Partial<(typeof QUEUE_CONFIGS)[QueueName]>,
 ): Worker<T> {
   const connection = createRedisConnection({
     ...connectionOptions,
-    maxRetriesPerRequest: null // Workers should keep trying
+    maxRetriesPerRequest: null, // Workers should keep trying
   } as any);
 
   const config = QUEUE_CONFIGS[name];
   const options = {
     ...config,
     ...customOptions,
-    connection: connection as any
+    connection: connection as any,
   };
 
   return new Worker(name, processor, options);
