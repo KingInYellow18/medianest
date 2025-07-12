@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { getServerSession } from 'next-auth';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 import { getAuthOptions } from '@/lib/auth/auth.config';
 import { RequestSubmission, MediaRequest } from '@/types/requests';
@@ -233,7 +233,9 @@ describe('requests API', () => {
         statusText: 'Not Found',
       } as Response);
 
-      await expect(getRequestDetails('non-existent')).rejects.toThrow('Failed to fetch request details');
+      await expect(getRequestDetails('non-existent')).rejects.toThrow(
+        'Failed to fetch request details',
+      );
     });
 
     it('should handle request with seasons', async () => {
@@ -336,9 +338,7 @@ describe('requests API', () => {
 
     it('should handle timeout errors', async () => {
       vi.mocked(global.fetch).mockImplementationOnce(
-        () => new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Request timeout')), 0)
-        )
+        () => new Promise((_, reject) => setTimeout(() => reject(new Error('Request timeout')), 0)),
       );
 
       await expect(getUserRequests()).rejects.toThrow('Request timeout');

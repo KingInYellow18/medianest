@@ -1,14 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
-import Image from 'next/image';
-import { ChevronDown, ChevronUp, ExternalLink, ArrowUpDown } from 'lucide-react';
-import { RequestStatusBadge } from './RequestStatusBadge';
-import { RequestList } from './RequestList';
-import { RequestDetails } from './RequestDetails';
-import { formatDistanceToNow } from 'date-fns';
 import clsx from 'clsx';
+import { formatDistanceToNow } from 'date-fns';
+import { ChevronDown, ChevronUp, ExternalLink, ArrowUpDown } from 'lucide-react';
+import Image from 'next/image';
+import React, { useState } from 'react';
+
 import { MediaRequest } from '@/types/requests';
+
+import { RequestDetails } from './RequestDetails';
+import { RequestList } from './RequestList';
+import { RequestStatusBadge } from './RequestStatusBadge';
 
 interface RequestTableProps {
   requests: MediaRequest[];
@@ -41,19 +43,19 @@ function RequestTableSkeleton() {
   );
 }
 
-export function RequestTable({ 
-  requests, 
-  isLoading, 
-  onRequestClick, 
+export function RequestTable({
+  requests,
+  isLoading,
+  onRequestClick,
   showRequester = false,
   sortBy = 'date',
   sortOrder = 'desc',
-  onSort
+  onSort,
 }: RequestTableProps) {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   const toggleRow = (requestId: string) => {
-    setExpandedRows(prev => {
+    setExpandedRows((prev) => {
       const next = new Set(prev);
       if (next.has(requestId)) {
         next.delete(requestId);
@@ -72,9 +74,7 @@ export function RequestTable({
     return (
       <div className="text-center py-12 bg-gray-800 rounded-lg">
         <p className="text-gray-400 text-lg">No requests found</p>
-        <p className="text-gray-500 text-sm mt-2">
-          Start by searching for something to watch!
-        </p>
+        <p className="text-gray-500 text-sm mt-2">Start by searching for something to watch!</p>
       </div>
     );
   }
@@ -85,9 +85,11 @@ export function RequestTable({
       className="flex items-center gap-1 hover:text-white transition-colors"
     >
       <span>{field === 'date' ? 'Requested' : field.charAt(0).toUpperCase() + field.slice(1)}</span>
-      <ArrowUpDown className={clsx('w-3 h-3', {
-        'text-blue-500': sortBy === field
-      })} />
+      <ArrowUpDown
+        className={clsx('w-3 h-3', {
+          'text-blue-500': sortBy === field,
+        })}
+      />
     </button>
   );
 
@@ -138,9 +140,7 @@ export function RequestTable({
                         </div>
                       )}
                       <div>
-                        <div className="text-sm font-medium text-white">
-                          {request.title}
-                        </div>
+                        <div className="text-sm font-medium text-white">{request.title}</div>
                         {request.mediaType === 'tv' && request.seasons && (
                           <div className="text-xs text-gray-400">
                             {request.seasons.length} season{request.seasons.length !== 1 ? 's' : ''}
@@ -150,9 +150,7 @@ export function RequestTable({
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-300 capitalize">
-                      {request.mediaType}
-                    </span>
+                    <span className="text-sm text-gray-300 capitalize">{request.mediaType}</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <RequestStatusBadge status={request.status} />
@@ -188,7 +186,7 @@ export function RequestTable({
                     )}
                   </td>
                 </tr>
-                
+
                 {/* Expanded Row */}
                 {expandedRows.has(request.id) && (
                   <tr>
@@ -205,8 +203,8 @@ export function RequestTable({
 
       {/* Mobile List View */}
       <div className="md:hidden">
-        <RequestList 
-          requests={requests} 
+        <RequestList
+          requests={requests}
           showRequester={showRequester}
           onRequestClick={onRequestClick}
         />

@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
 import clsx from 'clsx';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import React from 'react';
 
 interface PaginationProps {
   currentPage: number;
@@ -39,7 +39,7 @@ function getPaginationItems(currentPage: number, totalPages: number) {
 
 export function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
   const pages = getPaginationItems(currentPage, totalPages);
-  
+
   return (
     <div className="flex items-center justify-center gap-1 mt-6">
       <button
@@ -50,7 +50,7 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
         <ChevronLeft className="w-4 h-4" />
         <span className="hidden sm:inline">Previous</span>
       </button>
-      
+
       {pages.map((page, index) => (
         <React.Fragment key={index}>
           {page === '...' ? (
@@ -62,7 +62,7 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
                 'px-3 py-2 rounded-lg transition-colors',
                 currentPage === page
                   ? 'bg-blue-500 text-white'
-                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700',
               )}
             >
               {page}
@@ -70,7 +70,7 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
           )}
         </React.Fragment>
       ))}
-      
+
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}

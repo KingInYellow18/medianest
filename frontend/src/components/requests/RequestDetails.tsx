@@ -1,8 +1,10 @@
 'use client';
 
 import { format } from 'date-fns';
-import { RequestStatusBadge } from './RequestStatusBadge';
+
 import { MediaRequest } from '@/types/requests';
+
+import { RequestStatusBadge } from './RequestStatusBadge';
 
 interface RequestDetailsProps {
   request: MediaRequest;

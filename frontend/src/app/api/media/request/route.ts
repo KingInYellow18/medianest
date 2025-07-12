@@ -8,9 +8,9 @@ const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:4000';
 export async function POST(request: NextRequest) {
   try {
     const authOptions = await getAuthOptions();
-  const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions);
 
-  if (!session) {
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

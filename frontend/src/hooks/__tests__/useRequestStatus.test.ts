@@ -1,7 +1,7 @@
-import { renderHook, act } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { renderHook, act } from '@testing-library/react';
 import React from 'react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { socketManager } from '@/lib/socket';
 import { RequestStatus } from '@/types/requests';
@@ -27,47 +27,47 @@ describe('useRequestStatus', () => {
   const mockOff = vi.fn();
   const mockConnect = vi.fn();
   const mockIsConnected = vi.fn();
-  
+
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     vi.mocked(socketManager).on = mockOn;
     vi.mocked(socketManager).off = mockOff;
     vi.mocked(socketManager).connect = mockConnect;
     vi.mocked(socketManager).isConnected = mockIsConnected;
-    
+
     mockIsConnected.mockReturnValue(true);
   });
 
   it('should connect to socket and subscribe to status updates', () => {
     const requestId = 'test-123';
-    
+
     renderHook(() => useRequestStatus(requestId), {
       wrapper: createWrapper(),
     });
 
     expect(mockConnect).toHaveBeenCalled();
-    expect(mockOn).toHaveBeenCalledWith(
-      `request:${requestId}:status`,
-      expect.any(Function)
-    );
+    expect(mockOn).toHaveBeenCalledWith(`request:${requestId}:status`, expect.any(Function));
   });
 
   it('should update query cache when status changes', () => {
     const requestId = 'test-123';
     const queryClient = new QueryClient();
-    
+
     // Set initial data
-    queryClient.setQueryData(['requests', 'user'], [
-      {
-        id: requestId,
-        tmdbId: 550,
-        mediaType: 'movie',
-        title: 'Fight Club',
-        status: 'pending' as RequestStatus,
-        requestedAt: new Date().toISOString(),
-      },
-    ]);
+    queryClient.setQueryData(
+      ['requests', 'user'],
+      [
+        {
+          id: requestId,
+          tmdbId: 550,
+          mediaType: 'movie',
+          title: 'Fight Club',
+          status: 'pending' as RequestStatus,
+          requestedAt: new Date().toISOString(),
+        },
+      ],
+    );
 
     const wrapper = ({ children }: { children: React.ReactNode }) =>
       React.createElement(QueryClientProvider, { client: queryClient }, children);
@@ -90,7 +90,7 @@ describe('useRequestStatus', () => {
   it('should handle status updates for requests not in cache', () => {
     const requestId = 'test-456';
     const queryClient = new QueryClient();
-    
+
     const wrapper = ({ children }: { children: React.ReactNode }) =>
       React.createElement(QueryClientProvider, { client: queryClient }, children);
 
@@ -109,34 +109,37 @@ describe('useRequestStatus', () => {
   it('should update specific request in list', () => {
     const requestId = 'test-789';
     const queryClient = new QueryClient();
-    
+
     // Set initial data with multiple requests
-    queryClient.setQueryData(['requests', 'user'], [
-      {
-        id: 'other-1',
-        tmdbId: 100,
-        mediaType: 'movie',
-        title: 'Other Movie',
-        status: 'available' as RequestStatus,
-        requestedAt: new Date().toISOString(),
-      },
-      {
-        id: requestId,
-        tmdbId: 550,
-        mediaType: 'movie',
-        title: 'Fight Club',
-        status: 'pending' as RequestStatus,
-        requestedAt: new Date().toISOString(),
-      },
-      {
-        id: 'other-2',
-        tmdbId: 200,
-        mediaType: 'tv',
-        title: 'Other Show',
-        status: 'denied' as RequestStatus,
-        requestedAt: new Date().toISOString(),
-      },
-    ]);
+    queryClient.setQueryData(
+      ['requests', 'user'],
+      [
+        {
+          id: 'other-1',
+          tmdbId: 100,
+          mediaType: 'movie',
+          title: 'Other Movie',
+          status: 'available' as RequestStatus,
+          requestedAt: new Date().toISOString(),
+        },
+        {
+          id: requestId,
+          tmdbId: 550,
+          mediaType: 'movie',
+          title: 'Fight Club',
+          status: 'pending' as RequestStatus,
+          requestedAt: new Date().toISOString(),
+        },
+        {
+          id: 'other-2',
+          tmdbId: 200,
+          mediaType: 'tv',
+          title: 'Other Show',
+          status: 'denied' as RequestStatus,
+          requestedAt: new Date().toISOString(),
+        },
+      ],
+    );
 
     const wrapper = ({ children }: { children: React.ReactNode }) =>
       React.createElement(QueryClientProvider, { client: queryClient }, children);
@@ -150,7 +153,7 @@ describe('useRequestStatus', () => {
     });
 
     const updatedData = queryClient.getQueryData(['requests', 'user']) as any[];
-    
+
     // Only the specific request should be updated
     expect(updatedData[0].status).toBe('available');
     expect(updatedData[1].status).toBe('processing');
@@ -159,7 +162,7 @@ describe('useRequestStatus', () => {
 
   it('should clean up event listener on unmount', () => {
     const requestId = 'test-999';
-    
+
     const { unmount } = renderHook(() => useRequestStatus(requestId), {
       wrapper: createWrapper(),
     });
@@ -168,15 +171,12 @@ describe('useRequestStatus', () => {
 
     unmount();
 
-    expect(mockOff).toHaveBeenCalledWith(
-      `request:${requestId}:status`,
-      statusCallback
-    );
+    expect(mockOff).toHaveBeenCalledWith(`request:${requestId}:status`, statusCallback);
   });
 
   it('should not connect if already connected', () => {
     mockIsConnected.mockReturnValue(true);
-    
+
     renderHook(() => useRequestStatus('test-111'), {
       wrapper: createWrapper(),
     });
@@ -188,17 +188,20 @@ describe('useRequestStatus', () => {
   it('should handle multiple status updates', () => {
     const requestId = 'test-multi';
     const queryClient = new QueryClient();
-    
-    queryClient.setQueryData(['requests', 'user'], [
-      {
-        id: requestId,
-        tmdbId: 550,
-        mediaType: 'movie',
-        title: 'Fight Club',
-        status: 'pending' as RequestStatus,
-        requestedAt: new Date().toISOString(),
-      },
-    ]);
+
+    queryClient.setQueryData(
+      ['requests', 'user'],
+      [
+        {
+          id: requestId,
+          tmdbId: 550,
+          mediaType: 'movie',
+          title: 'Fight Club',
+          status: 'pending' as RequestStatus,
+          requestedAt: new Date().toISOString(),
+        },
+      ],
+    );
 
     const wrapper = ({ children }: { children: React.ReactNode }) =>
       React.createElement(QueryClientProvider, { client: queryClient }, children);
@@ -233,7 +236,7 @@ describe('useRequestStatus', () => {
   it('should preserve other request properties when updating status', () => {
     const requestId = 'test-preserve';
     const queryClient = new QueryClient();
-    
+
     const originalRequest = {
       id: requestId,
       tmdbId: 550,
@@ -259,7 +262,7 @@ describe('useRequestStatus', () => {
     });
 
     const updatedData = queryClient.getQueryData(['requests', 'user']) as any[];
-    
+
     // All properties except status should remain unchanged
     expect(updatedData[0]).toEqual({
       ...originalRequest,

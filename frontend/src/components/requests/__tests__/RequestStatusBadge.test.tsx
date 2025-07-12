@@ -59,7 +59,7 @@ describe('RequestStatusBadge', () => {
       expect(badge).toBeInTheDocument();
 
       // Check for expected classes
-      expectedClasses.forEach(className => {
+      expectedClasses.forEach((className) => {
         expect(badge).toHaveClass(className);
       });
 
@@ -93,7 +93,7 @@ describe('RequestStatusBadge', () => {
         <RequestStatusBadge status="available" />
         <RequestStatusBadge status="denied" />
         <RequestStatusBadge status="failed" />
-      </>
+      </>,
     );
 
     // All badges should have an icon
@@ -101,7 +101,7 @@ describe('RequestStatusBadge', () => {
     expect(icons).toHaveLength(7);
 
     // Each icon should have correct sizing
-    icons.forEach(icon => {
+    icons.forEach((icon) => {
       expect(icon).toHaveClass('w-4');
       expect(icon).toHaveClass('h-4');
     });
@@ -117,7 +117,13 @@ describe('RequestStatusBadge', () => {
 
   it('should handle className prop if provided', () => {
     // Testing with an extended version that accepts className
-    const ExtendedBadge = ({ status, className }: { status: RequestStatus; className?: string }) => (
+    const ExtendedBadge = ({
+      status,
+      className,
+    }: {
+      status: RequestStatus;
+      className?: string;
+    }) => (
       <div className={className}>
         <RequestStatusBadge status={status} />
       </div>
@@ -134,11 +140,11 @@ describe('RequestStatusBadge', () => {
       <>
         <RequestStatusBadge status="pending" />
         <RequestStatusBadge status="partially-available" />
-      </>
+      </>,
     );
 
     const badges = container.querySelectorAll('.inline-flex');
-    badges.forEach(badge => {
+    badges.forEach((badge) => {
       // All badges should have same padding classes
       expect(badge).toHaveClass('px-3');
       expect(badge).toHaveClass('py-1');

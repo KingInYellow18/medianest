@@ -1,12 +1,14 @@
 'use client';
 
+import { useSession } from 'next-auth/react';
 import { useState } from 'react';
-import { RequestTable } from './RequestTable';
-import { RequestDetailModal } from './RequestDetailModal';
+
 import { Pagination } from '@/components/ui/Pagination';
 import { useRequestHistory } from '@/hooks/useRequestHistory';
 import { RequestFilters, MediaRequest } from '@/types/requests';
-import { useSession } from 'next-auth/react';
+
+import { RequestDetailModal } from './RequestDetailModal';
+import { RequestTable } from './RequestTable';
 
 interface RequestHistoryProps {
   filters: RequestFilters;
@@ -27,7 +29,7 @@ export function RequestHistory({ filters, isAdmin, userId }: RequestHistoryProps
     page,
     pageSize: 20,
     sortBy,
-    sortOrder
+    sortOrder,
   });
 
   const handleRequestClick = (request: MediaRequest) => {
@@ -57,11 +59,7 @@ export function RequestHistory({ filters, isAdmin, userId }: RequestHistoryProps
         />
 
         {totalPages > 1 && (
-          <Pagination
-            currentPage={page}
-            totalPages={totalPages}
-            onPageChange={setPage}
-          />
+          <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
         )}
       </div>
 

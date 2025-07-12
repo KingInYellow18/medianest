@@ -2,8 +2,8 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import '@testing-library/jest-dom';
 
-import { MediaSearchResult } from '@/types/media';
 import { useRateLimit } from '@/hooks/useRateLimit';
+import { MediaSearchResult } from '@/types/media';
 
 import { RequestModal } from '../RequestModal';
 
@@ -12,8 +12,7 @@ vi.mock('@/hooks/useRateLimit');
 
 // Mock Headless UI Dialog
 vi.mock('@headlessui/react', () => ({
-  Dialog: ({ open, onClose, children }: any) => 
-    open ? <div role="dialog">{children}</div> : null,
+  Dialog: ({ open, onClose, children }: any) => (open ? <div role="dialog">{children}</div> : null),
   DialogPanel: ({ children }: any) => <div>{children}</div>,
   DialogOverlay: ({ children }: any) => <div>{children}</div>,
   DialogTitle: ({ children }: any) => <h3>{children}</h3>,
@@ -26,11 +25,7 @@ vi.mock('../SeasonSelector', () => ({
   SeasonSelector: ({ tvShow, selectedSeasons, onSeasonToggle }: any) => (
     <div data-testid="season-selector">
       {Array.from({ length: tvShow.numberOfSeasons }, (_, i) => (
-        <button
-          key={i + 1}
-          onClick={() => onSeasonToggle(i + 1)}
-          data-testid={`season-${i + 1}`}
-        >
+        <button key={i + 1} onClick={() => onSeasonToggle(i + 1)} data-testid={`season-${i + 1}`}>
           Season {i + 1} {selectedSeasons.includes(i + 1) ? '(selected)' : ''}
         </button>
       ))}
@@ -99,7 +94,7 @@ describe('RequestModal', () => {
         isOpen={false}
         onClose={mockOnClose}
         onSubmit={mockOnSubmit}
-      />
+      />,
     );
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -112,7 +107,7 @@ describe('RequestModal', () => {
         isOpen={true}
         onClose={mockOnClose}
         onSubmit={mockOnSubmit}
-      />
+      />,
     );
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -131,7 +126,7 @@ describe('RequestModal', () => {
         isOpen={true}
         onClose={mockOnClose}
         onSubmit={mockOnSubmit}
-      />
+      />,
     );
 
     expect(screen.getByText('Breaking Bad')).toBeInTheDocument();
@@ -147,7 +142,7 @@ describe('RequestModal', () => {
         isOpen={true}
         onClose={mockOnClose}
         onSubmit={mockOnSubmit}
-      />
+      />,
     );
 
     const season1Button = screen.getByTestId('season-1');
@@ -171,7 +166,7 @@ describe('RequestModal', () => {
         isOpen={true}
         onClose={mockOnClose}
         onSubmit={mockOnSubmit}
-      />
+      />,
     );
 
     const submitButton = screen.getByText('Rate limit exceeded');
@@ -185,7 +180,7 @@ describe('RequestModal', () => {
         isOpen={true}
         onClose={mockOnClose}
         onSubmit={mockOnSubmit}
-      />
+      />,
     );
 
     expect(screen.getByText('Request Movie (19 remaining)')).toBeInTheDocument();
@@ -198,7 +193,7 @@ describe('RequestModal', () => {
         isOpen={true}
         onClose={mockOnClose}
         onSubmit={mockOnSubmit}
-      />
+      />,
     );
 
     const submitButton = screen.getByText('Request Movie (19 remaining)');
@@ -220,7 +215,7 @@ describe('RequestModal', () => {
         isOpen={true}
         onClose={mockOnClose}
         onSubmit={mockOnSubmit}
-      />
+      />,
     );
 
     // Select seasons 1 and 3
@@ -246,7 +241,7 @@ describe('RequestModal', () => {
         isOpen={true}
         onClose={mockOnClose}
         onSubmit={mockOnSubmit}
-      />
+      />,
     );
 
     const submitButton = screen.getByText('Select at least one season');
@@ -260,7 +255,7 @@ describe('RequestModal', () => {
         isOpen={true}
         onClose={mockOnClose}
         onSubmit={mockOnSubmit}
-      />
+      />,
     );
 
     fireEvent.click(screen.getByText('Cancel'));
@@ -274,7 +269,7 @@ describe('RequestModal', () => {
         isOpen={true}
         onClose={mockOnClose}
         onSubmit={mockOnSubmit}
-      />
+      />,
     );
 
     const closeButton = screen.getByRole('button', { name: /close/i });
@@ -283,9 +278,7 @@ describe('RequestModal', () => {
   });
 
   it('should show loading state while submitting', async () => {
-    mockOnSubmit.mockImplementation(
-      () => new Promise(resolve => setTimeout(resolve, 100))
-    );
+    mockOnSubmit.mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)));
 
     render(
       <RequestModal
@@ -293,7 +286,7 @@ describe('RequestModal', () => {
         isOpen={true}
         onClose={mockOnClose}
         onSubmit={mockOnSubmit}
-      />
+      />,
     );
 
     const submitButton = screen.getByText('Request Movie (19 remaining)');
@@ -319,7 +312,7 @@ describe('RequestModal', () => {
         isOpen={true}
         onClose={mockOnClose}
         onSubmit={mockOnSubmit}
-      />
+      />,
     );
 
     // Should still render normally - the RequestButton component handles availability

@@ -1,13 +1,13 @@
-import { renderHook, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { renderHook, waitFor } from '@testing-library/react';
+import { useRouter } from 'next/navigation';
 import React from 'react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
+import { useRateLimit } from '@/hooks/useRateLimit';
 import { submitMediaRequest } from '@/lib/api/requests';
 import { socketManager } from '@/lib/socket';
-import { useRateLimit } from '@/hooks/useRateLimit';
 
 import { useMediaRequest } from '../useMediaRequest';
 
@@ -40,7 +40,7 @@ describe('useMediaRequest', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     vi.mocked(useToast).mockReturnValue({ toast: mockToast } as any);
     vi.mocked(useRouter).mockReturnValue({ push: mockPush } as any);
     vi.mocked(useRateLimit).mockReturnValue({
@@ -49,7 +49,7 @@ describe('useMediaRequest', () => {
       resetTime: new Date(Date.now() + 3600000),
       trackRequest: mockTrackRequest,
     });
-    
+
     vi.mocked(socketManager).connect = mockConnect;
     vi.mocked(socketManager).emit = mockEmit;
     vi.mocked(socketManager).isConnected = mockIsConnected;
@@ -226,7 +226,7 @@ describe('useMediaRequest', () => {
       title: 'Request submitted',
       description: 'Your request has been submitted successfully',
     });
-    
+
     // Should not try to subscribe to socket events
     expect(mockEmit).not.toHaveBeenCalled();
   });
@@ -266,14 +266,21 @@ describe('useMediaRequest', () => {
 
   it('should track submission state correctly', async () => {
     vi.mocked(submitMediaRequest).mockImplementation(
-      () => new Promise(resolve => setTimeout(() => resolve({
-        id: '111',
-        tmdbId: 550,
-        mediaType: 'movie',
-        title: 'Fight Club',
-        status: 'pending',
-        requestedAt: new Date().toISOString(),
-      }), 100))
+      () =>
+        new Promise((resolve) =>
+          setTimeout(
+            () =>
+              resolve({
+                id: '111',
+                tmdbId: 550,
+                mediaType: 'movie',
+                title: 'Fight Club',
+                status: 'pending',
+                requestedAt: new Date().toISOString(),
+              }),
+            100,
+          ),
+        ),
     );
 
     const { result } = renderHook(() => useMediaRequest(), {

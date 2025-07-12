@@ -21,9 +21,9 @@ export interface MediaRequest {
   };
 }
 
-export type RequestStatus = 
+export type RequestStatus =
   | 'pending'
-  | 'approved' 
+  | 'approved'
   | 'processing'
   | 'partially-available'
   | 'available'

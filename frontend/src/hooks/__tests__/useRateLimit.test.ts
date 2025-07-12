@@ -150,9 +150,7 @@ describe('useRateLimit', () => {
     });
 
     // Reset time should still be based on the first request
-    expect(result.current.resetTime?.getTime()).toBe(
-      new Date('2023-01-01T13:00:00Z').getTime()
-    );
+    expect(result.current.resetTime?.getTime()).toBe(new Date('2023-01-01T13:00:00Z').getTime());
 
     // Move forward past the first request's window
     act(() => {
@@ -163,9 +161,7 @@ describe('useRateLimit', () => {
     const { result: newResult } = renderHook(() => useRateLimit());
 
     // Reset time should now be based on the second request
-    expect(newResult.current.resetTime?.getTime()).toBe(
-      new Date('2023-01-01T13:30:00Z').getTime()
-    );
+    expect(newResult.current.resetTime?.getTime()).toBe(new Date('2023-01-01T13:30:00Z').getTime());
   });
 
   it('should handle rapid successive requests', () => {
@@ -179,7 +175,7 @@ describe('useRateLimit', () => {
     });
 
     expect(result.current.remainingRequests).toBe(MAX_REQUESTS - 10);
-    
+
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
     expect(stored).toHaveLength(10);
     // All timestamps should be the same

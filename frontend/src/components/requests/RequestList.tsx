@@ -1,9 +1,11 @@
 'use client';
 
-import Image from 'next/image';
 import { formatDistanceToNow } from 'date-fns';
-import { RequestStatusBadge } from './RequestStatusBadge';
+import Image from 'next/image';
+
 import { MediaRequest } from '@/types/requests';
+
+import { RequestStatusBadge } from './RequestStatusBadge';
 
 interface RequestListProps {
   requests: MediaRequest[];
@@ -30,24 +32,24 @@ export function RequestList({ requests, showRequester, onRequestClick }: Request
                 className="rounded flex-shrink-0"
               />
             )}
-            
+
             <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-medium text-white truncate">
-                {request.title}
-              </h3>
-              
+              <h3 className="text-sm font-medium text-white truncate">{request.title}</h3>
+
               <div className="mt-1 flex items-center gap-2 text-xs text-gray-400">
                 <span className="capitalize">{request.mediaType}</span>
                 <span>•</span>
-                <span>{formatDistanceToNow(new Date(request.requestedAt), { addSuffix: true })}</span>
+                <span>
+                  {formatDistanceToNow(new Date(request.requestedAt), { addSuffix: true })}
+                </span>
               </div>
-              
+
               {showRequester && (
                 <p className="mt-1 text-xs text-gray-500">
                   Requested by {request.user?.plexUsername || `User ${request.userId.slice(0, 8)}`}
                 </p>
               )}
-              
+
               <div className="mt-2">
                 <RequestStatusBadge status={request.status} />
               </div>

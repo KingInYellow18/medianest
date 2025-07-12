@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
-import { socketManager } from '@/lib/socket';
-import { submitMediaRequest } from '@/lib/api/requests';
 import { useToast } from '@/hooks/use-toast';
 import { useRateLimit } from '@/hooks/useRateLimit';
+import { submitMediaRequest } from '@/lib/api/requests';
+import { socketManager } from '@/lib/socket';
 
 export function useMediaRequest() {
   const queryClient = useQueryClient();
@@ -21,35 +21,35 @@ export function useMediaRequest() {
       socketManager.connect();
     }
   }, []);
-  
+
   const submitRequest = useMutation({
     mutationFn: async (request: Parameters<typeof submitMediaRequest>[0]) => {
       // Check rate limit before submission
       if (!canRequest) {
         throw new Error('Rate limit exceeded');
       }
-      
+
       return submitMediaRequest(request);
     },
     onSuccess: (data, variables) => {
       // Track the successful request
       trackRequest();
-      
+
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: ['media', 'availability', variables.mediaId] });
       queryClient.invalidateQueries({ queryKey: ['requests', 'user'] });
-      
+
       // Subscribe to real-time updates for this request if connected
       if (socketManager.isConnected()) {
         socketManager.emit('subscribe:request', data.id);
       }
-      
+
       // Show success toast
       toast({
         title: 'Request submitted',
         description: 'Your request has been submitted successfully',
       });
-      
+
       // Navigate to requests page
       router.push('/media/requests');
     },
@@ -67,9 +67,9 @@ export function useMediaRequest() {
           variant: 'destructive',
         });
       }
-    }
+    },
   });
-  
+
   return {
     submitRequest: submitRequest.mutateAsync,
     isSubmitting: submitRequest.isPending,

@@ -46,11 +46,11 @@ describe('SeasonSelector', () => {
         tvShow={mockTvShow}
         selectedSeasons={[]}
         onSeasonToggle={mockOnSeasonToggle}
-      />
+      />,
     );
 
     expect(screen.getByText('Select Seasons')).toBeInTheDocument();
-    
+
     for (let i = 1; i <= 5; i++) {
       expect(screen.getByText(`Season ${i}`)).toBeInTheDocument();
     }
@@ -62,7 +62,7 @@ describe('SeasonSelector', () => {
         tvShow={mockTvShow}
         selectedSeasons={[]}
         onSeasonToggle={mockOnSeasonToggle}
-      />
+      />,
     );
 
     // Available seasons (1, 2, 4) should have specific styling
@@ -79,7 +79,7 @@ describe('SeasonSelector', () => {
         tvShow={mockTvShow}
         selectedSeasons={[1, 3]}
         onSeasonToggle={mockOnSeasonToggle}
-      />
+      />,
     );
 
     const season1Button = screen.getByRole('button', { name: /Season 1/i });
@@ -99,7 +99,7 @@ describe('SeasonSelector', () => {
         tvShow={mockTvShow}
         selectedSeasons={[]}
         onSeasonToggle={mockOnSeasonToggle}
-      />
+      />,
     );
 
     fireEvent.click(screen.getByRole('button', { name: /Season 2/i }));
@@ -115,7 +115,7 @@ describe('SeasonSelector', () => {
         tvShow={mockTvShow}
         selectedSeasons={[]}
         onSeasonToggle={mockOnSeasonToggle}
-      />
+      />,
     );
 
     expect(screen.getByText('Select All')).toBeInTheDocument();
@@ -128,7 +128,7 @@ describe('SeasonSelector', () => {
         tvShow={mockTvShow}
         selectedSeasons={[1]}
         onSeasonToggle={mockOnSeasonToggle}
-      />
+      />,
     );
 
     fireEvent.click(screen.getByText('Select All'));
@@ -147,7 +147,7 @@ describe('SeasonSelector', () => {
         tvShow={mockTvShow}
         selectedSeasons={[1, 3, 5]}
         onSeasonToggle={mockOnSeasonToggle}
-      />
+      />,
     );
 
     fireEvent.click(screen.getByText('Deselect All'));
@@ -170,7 +170,7 @@ describe('SeasonSelector', () => {
         tvShow={tvShowNoAvailability}
         selectedSeasons={[]}
         onSeasonToggle={mockOnSeasonToggle}
-      />
+      />,
     );
 
     // All seasons should render without available indicator
@@ -186,7 +186,7 @@ describe('SeasonSelector', () => {
         tvShow={mockTvShow}
         selectedSeasons={[3]}
         onSeasonToggle={mockOnSeasonToggle}
-      />
+      />,
     );
 
     const season3Button = screen.getByRole('button', { name: /Season 3/i });
@@ -197,13 +197,9 @@ describe('SeasonSelector', () => {
 
   it('should not render if tvShow is not a TV show', () => {
     const movie = { ...mockTvShow, mediaType: 'movie' as const };
-    
+
     const { container } = render(
-      <SeasonSelector
-        tvShow={movie}
-        selectedSeasons={[]}
-        onSeasonToggle={mockOnSeasonToggle}
-      />
+      <SeasonSelector tvShow={movie} selectedSeasons={[]} onSeasonToggle={mockOnSeasonToggle} />,
     );
 
     expect(container.firstChild).toBeNull();
@@ -211,13 +207,13 @@ describe('SeasonSelector', () => {
 
   it('should not render if numberOfSeasons is missing', () => {
     const tvShowNoSeasons = { ...mockTvShow, numberOfSeasons: undefined };
-    
+
     const { container } = render(
       <SeasonSelector
         tvShow={tvShowNoSeasons}
         selectedSeasons={[]}
         onSeasonToggle={mockOnSeasonToggle}
-      />
+      />,
     );
 
     expect(container.firstChild).toBeNull();

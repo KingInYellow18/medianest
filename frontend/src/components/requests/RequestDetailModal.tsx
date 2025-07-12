@@ -1,12 +1,14 @@
 'use client';
 
 import { Dialog, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
 import { X } from 'lucide-react';
 import Image from 'next/image';
+import { Fragment } from 'react';
+
+import { MediaRequest } from '@/types/requests';
+
 import { RequestDetails } from './RequestDetails';
 import { RequestStatusBadge } from './RequestStatusBadge';
-import { MediaRequest } from '@/types/requests';
 
 interface RequestDetailModalProps {
   request: MediaRequest;
@@ -49,7 +51,7 @@ export function RequestDetailModal({ request, isOpen, onClose }: RequestDetailMo
                   >
                     <X className="w-5 h-5 text-white" />
                   </button>
-                  
+
                   <div className="p-6">
                     <div className="flex items-start gap-4 mb-6">
                       {request.posterPath && (
@@ -61,18 +63,20 @@ export function RequestDetailModal({ request, isOpen, onClose }: RequestDetailMo
                           className="rounded-lg flex-shrink-0"
                         />
                       )}
-                      
+
                       <div>
                         <Dialog.Title as="h3" className="text-2xl font-bold text-white mb-2">
                           {request.title}
                         </Dialog.Title>
                         <div className="flex items-center gap-3">
                           <RequestStatusBadge status={request.status} />
-                          <span className="text-sm text-gray-400 capitalize">{request.mediaType}</span>
+                          <span className="text-sm text-gray-400 capitalize">
+                            {request.mediaType}
+                          </span>
                         </div>
                       </div>
                     </div>
-                    
+
                     <RequestDetails request={request} />
                   </div>
                 </div>

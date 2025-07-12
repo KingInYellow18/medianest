@@ -4,11 +4,11 @@ import { useRouter } from 'next/navigation';
 import { useState, useCallback } from 'react';
 
 import { MediaGrid } from '@/components/media/MediaGrid';
+import { RequestModal } from '@/components/media/RequestModal';
 import { SearchFilters } from '@/components/media/SearchFilters';
 import { SearchInput } from '@/components/media/SearchInput';
-import { RequestModal } from '@/components/media/RequestModal';
-import { useMediaSearch } from '@/hooks/useMediaSearch';
 import { useMediaRequest } from '@/hooks/useMediaRequest';
+import { useMediaSearch } from '@/hooks/useMediaSearch';
 import { MediaSearchResult } from '@/types/media';
 
 export default function MediaSearchPage() {
@@ -62,25 +62,21 @@ export default function MediaSearchPage() {
     [router],
   );
 
-  const handleRequestClick = useCallback(
-    (media: MediaSearchResult) => {
-      setSelectedMedia(media);
-      setIsRequestModalOpen(true);
+  const handleRequestClick = useCallback((media: MediaSearchResult) => {
+    setSelectedMedia(media);
+    setIsRequestModalOpen(true);
+  }, []);
+
+  const handleFilterChange = useCallback(
+    (newFilters: { mediaType: 'all' | 'movie' | 'tv'; year?: string; genre?: string }) => {
+      setFilters({
+        mediaType: newFilters.mediaType,
+        year: newFilters.year || '',
+        genre: newFilters.genre || '',
+      });
     },
     [],
   );
-
-  const handleFilterChange = useCallback((newFilters: { 
-    mediaType: 'all' | 'movie' | 'tv'; 
-    year?: string; 
-    genre?: string; 
-  }) => {
-    setFilters({
-      mediaType: newFilters.mediaType,
-      year: newFilters.year || '',
-      genre: newFilters.genre || ''
-    });
-  }, []);
 
   return (
     <div className="min-h-screen bg-gray-900">
