@@ -1,9 +1,10 @@
 import { Request, Response } from 'express';
-import { statusService } from '@/services/status.service';
+
 import { mediaRequestRepository, userRepository } from '@/repositories';
 import { plexService } from '@/services/plex.service';
-import { logger } from '@/utils/logger';
+import { statusService } from '@/services/status.service';
 import { AppError } from '@/utils/errors';
+import { logger } from '@/utils/logger';
 
 export class DashboardController {
   async getServiceStatuses(req: Request, res: Response) {
@@ -15,8 +16,8 @@ export class DashboardController {
         data: statuses,
         meta: {
           timestamp: new Date(),
-          count: statuses.length
-        }
+          count: statuses.length,
+        },
       });
     } catch (error) {
       logger.error('Failed to get service statuses', { error });
@@ -28,14 +29,14 @@ export class DashboardController {
     try {
       const { service } = req.params;
       const status = await statusService.getServiceStatus(service);
-      
+
       if (!status) {
         throw new AppError(`Service '${service}' not found`, 404);
       }
-      
+
       res.json({
         success: true,
-        data: status
+        data: status,
       });
     } catch (error) {
       if (error instanceof AppError) {
@@ -49,11 +50,11 @@ export class DashboardController {
   async getDashboardStats(req: Request, res: Response) {
     try {
       const userId = req.user!.id;
-      
+
       // Get user's recent requests
       const recentRequests = await mediaRequestRepository.findByUser(userId, {
         take: 5,
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
       });
 
       // Get request counts
@@ -77,19 +78,19 @@ export class DashboardController {
             username: user?.plexUsername,
             email: user?.email,
             role: user?.role,
-            lastLogin: user?.lastLoginAt
+            lastLogin: user?.lastLoginAt,
           },
           requests: {
             recent: recentRequests,
-            counts: requestCounts
+            counts: requestCounts,
           },
           recentlyAdded: recentlyAdded.slice(0, 10),
           stats: {
             totalRequests: requestCounts.total || 0,
             pendingRequests: requestCounts.pending || 0,
-            availableRequests: requestCounts.available || 0
-          }
-        }
+            availableRequests: requestCounts.available || 0,
+          },
+        },
       });
     } catch (error) {
       logger.error('Failed to get dashboard stats', { error });
@@ -99,16 +100,14 @@ export class DashboardController {
 
   async getNotifications(req: Request, res: Response) {
     try {
-      const userId = req.user!.id;
-      
       // For MVP, return empty notifications
-      // In production, you'd fetch from a notifications table
+      // In production, you'd fetch from a notifications table using req.user!.id
       res.json({
         success: true,
         data: [],
         meta: {
-          unreadCount: 0
-        }
+          unreadCount: 0,
+        },
       });
     } catch (error) {
       logger.error('Failed to get notifications', { error });

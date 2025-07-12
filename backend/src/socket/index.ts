@@ -1,8 +1,11 @@
 import { Server as HttpServer } from 'http';
+
 import { Server, Socket } from 'socket.io';
-import { authenticateSocket } from './middleware';
-import { registerHandlers } from './handlers';
+
 import { logger } from '@/utils/logger';
+
+import { registerHandlers } from './handlers';
+import { authenticateSocket } from './middleware';
 
 export function initializeSocketServer(httpServer: HttpServer): Server {
   const io = new Server(httpServer, {

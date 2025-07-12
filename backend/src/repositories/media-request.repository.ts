@@ -1,6 +1,8 @@
 import { MediaRequest, Prisma } from '@prisma/client';
-import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
+
 import { NotFoundError } from '../utils/errors';
+
+import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
 
 export interface CreateMediaRequestInput {
   userId: string;
@@ -24,7 +26,11 @@ export interface MediaRequestFilters {
   createdBefore?: Date;
 }
 
-export class MediaRequestRepository extends BaseRepository<MediaRequest, CreateMediaRequestInput, UpdateMediaRequestInput> {
+export class MediaRequestRepository extends BaseRepository<
+  MediaRequest,
+  CreateMediaRequestInput,
+  UpdateMediaRequestInput
+> {
   async findById(id: string): Promise<MediaRequest | null> {
     try {
       return await this.prisma.mediaRequest.findUnique({
@@ -35,64 +41,58 @@ export class MediaRequestRepository extends BaseRepository<MediaRequest, CreateM
               id: true,
               email: true,
               name: true,
-              plexUsername: true
-            }
-          }
-        }
+              plexUsername: true,
+            },
+          },
+        },
       });
     } catch (error) {
       this.handleDatabaseError(error);
     }
   }
 
-  async findByUser(userId: string, options: PaginationOptions = {}): Promise<PaginatedResult<MediaRequest>> {
-    return this.paginate<MediaRequest>(
-      this.prisma.mediaRequest,
-      { userId },
-      options,
-      undefined,
-      {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-            plexUsername: true
-          }
-        }
-      }
-    );
+  async findByUser(
+    userId: string,
+    options: PaginationOptions = {},
+  ): Promise<PaginatedResult<MediaRequest>> {
+    return this.paginate<MediaRequest>(this.prisma.mediaRequest, { userId }, options, undefined, {
+      user: {
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          plexUsername: true,
+        },
+      },
+    });
   }
 
-  async findByFilters(filters: MediaRequestFilters, options: PaginationOptions = {}): Promise<PaginatedResult<MediaRequest>> {
+  async findByFilters(
+    filters: MediaRequestFilters,
+    options: PaginationOptions = {},
+  ): Promise<PaginatedResult<MediaRequest>> {
     const where: Prisma.MediaRequestWhereInput = {};
 
     if (filters.userId) where.userId = filters.userId;
     if (filters.status) where.status = filters.status;
     if (filters.mediaType) where.mediaType = filters.mediaType;
-    
+
     if (filters.createdAfter || filters.createdBefore) {
       where.createdAt = {};
       if (filters.createdAfter) where.createdAt.gte = filters.createdAfter;
       if (filters.createdBefore) where.createdAt.lte = filters.createdBefore;
     }
 
-    return this.paginate<MediaRequest>(
-      this.prisma.mediaRequest,
-      where,
-      options,
-      undefined,
-      {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-            plexUsername: true
-          }
-        }
-      }
-    );
+    return this.paginate<MediaRequest>(this.prisma.mediaRequest, where, options, undefined, {
+      user: {
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          plexUsername: true,
+        },
+      },
+    });
   }
 
   async create(data: CreateMediaRequestInput): Promise<MediaRequest> {
@@ -105,10 +105,10 @@ export class MediaRequestRepository extends BaseRepository<MediaRequest, CreateM
               id: true,
               email: true,
               name: true,
-              plexUsername: true
-            }
-          }
-        }
+              plexUsername: true,
+            },
+          },
+        },
       });
     } catch (error) {
       this.handleDatabaseError(error);
@@ -119,7 +119,7 @@ export class MediaRequestRepository extends BaseRepository<MediaRequest, CreateM
     try {
       const exists = await this.prisma.mediaRequest.findUnique({
         where: { id },
-        select: { id: true }
+        select: { id: true },
       });
 
       if (!exists) {
@@ -135,10 +135,10 @@ export class MediaRequestRepository extends BaseRepository<MediaRequest, CreateM
               id: true,
               email: true,
               name: true,
-              plexUsername: true
-            }
-          }
-        }
+              plexUsername: true,
+            },
+          },
+        },
       });
     } catch (error) {
       this.handleDatabaseError(error);
@@ -147,27 +147,27 @@ export class MediaRequestRepository extends BaseRepository<MediaRequest, CreateM
 
   async updateStatus(id: string, status: string): Promise<MediaRequest> {
     const data: UpdateMediaRequestInput = { status };
-    
+
     if (status === 'completed' || status === 'available') {
       data.completedAt = new Date();
     }
-    
+
     return this.update(id, data);
   }
 
   async bulkUpdateStatus(requestIds: string[], status: string): Promise<number> {
     try {
       const data: Prisma.MediaRequestUpdateManyMutationInput = { status };
-      
+
       if (status === 'completed' || status === 'available') {
         data.completedAt = new Date();
       }
 
       const result = await this.prisma.mediaRequest.updateMany({
         where: {
-          id: { in: requestIds }
+          id: { in: requestIds },
         },
-        data
+        data,
       });
 
       return result.count;
@@ -179,7 +179,7 @@ export class MediaRequestRepository extends BaseRepository<MediaRequest, CreateM
   async delete(id: string): Promise<MediaRequest> {
     try {
       return await this.prisma.mediaRequest.delete({
-        where: { id }
+        where: { id },
       });
     } catch (error) {
       this.handleDatabaseError(error);
@@ -188,13 +188,13 @@ export class MediaRequestRepository extends BaseRepository<MediaRequest, CreateM
 
   async countByStatus(status?: string): Promise<number> {
     return this.prisma.mediaRequest.count({
-      where: status ? { status } : undefined
+      where: status ? { status } : undefined,
     });
   }
 
   async countByUser(userId: string): Promise<number> {
     return this.prisma.mediaRequest.count({
-      where: { userId }
+      where: { userId },
     });
   }
 
@@ -202,13 +202,16 @@ export class MediaRequestRepository extends BaseRepository<MediaRequest, CreateM
     const requests = await this.prisma.mediaRequest.groupBy({
       by: ['status'],
       where: { userId },
-      _count: true
+      _count: true,
     });
 
-    return requests.reduce((acc, item) => {
-      acc[item.status] = item._count;
-      return acc;
-    }, {} as Record<string, number>);
+    return requests.reduce(
+      (acc, item) => {
+        acc[item.status] = item._count;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
   }
 
   async getRecentRequests(limit: number = 10): Promise<MediaRequest[]> {
@@ -221,10 +224,10 @@ export class MediaRequestRepository extends BaseRepository<MediaRequest, CreateM
             id: true,
             email: true,
             name: true,
-            plexUsername: true
-          }
-        }
-      }
+            plexUsername: true,
+          },
+        },
+      },
     });
   }
 
@@ -232,28 +235,28 @@ export class MediaRequestRepository extends BaseRepository<MediaRequest, CreateM
     return this.prisma.mediaRequest.findFirst({
       where: {
         tmdbId: String(tmdbId),
-        mediaType
-      }
+        mediaType,
+      },
     });
   }
 
   async findByOverseerrId(overseerrId: string): Promise<MediaRequest | null> {
     return this.prisma.mediaRequest.findFirst({
-      where: { overseerrId }
+      where: { overseerrId },
     });
   }
 
   async getCountsByStatus(userId: string): Promise<Record<string, number> & { total: number }> {
     const counts = await this.getUserRequestStats(userId);
     const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
-    
+
     return {
       ...counts,
       total,
       pending: counts.pending || 0,
       approved: counts.approved || 0,
       available: counts.available || 0,
-      failed: counts.failed || 0
+      failed: counts.failed || 0,
     };
   }
 }

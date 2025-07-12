@@ -1,4 +1,5 @@
 import { Server, Socket } from 'socket.io';
+
 import { logger } from '@/utils/logger';
 
 export function notificationHandlers(io: Server, socket: Socket): void {

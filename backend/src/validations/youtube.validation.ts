@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { uuidParam } from './common';
 
 export const createDownloadSchema = z.object({
@@ -8,7 +9,7 @@ export const createDownloadSchema = z.object({
       .url('Invalid URL format')
       .refine(
         (url) => url.includes('youtube.com') || url.includes('youtu.be'),
-        'Must be a YouTube URL'
+        'Must be a YouTube URL',
       ),
   }),
 });

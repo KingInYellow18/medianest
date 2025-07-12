@@ -1,18 +1,19 @@
+import { redisClient } from '@/config/redis';
 import { PlexClient } from '@/integrations/plex/plex.client';
 import { userRepository, serviceConfigRepository } from '@/repositories';
-import { logger } from '@/utils/logger';
 import { AppError } from '@/utils/errors';
-import { redisClient } from '@/config/redis';
+import { logger } from '@/utils/logger';
+
 import { encryptionService } from './encryption.service';
 
 export class PlexService {
   private clients: Map<string, PlexClient> = new Map();
   private cachePrefix = 'plex:';
   private cacheTTL = {
-    serverInfo: 3600,    // 1 hour
-    libraries: 300,      // 5 minutes
-    search: 60,          // 1 minute
-    recentlyAdded: 300   // 5 minutes
+    serverInfo: 3600, // 1 hour
+    libraries: 300, // 5 minutes
+    search: 60, // 1 minute
+    recentlyAdded: 300, // 5 minutes
   };
 
   async getClientForUser(userId: string): Promise<PlexClient> {
@@ -38,7 +39,7 @@ export class PlexService {
 
     // Create new client
     const client = new PlexClient(config.serviceUrl, decryptedToken);
-    
+
     // Test connection
     try {
       await client.testConnection();
@@ -52,7 +53,7 @@ export class PlexService {
 
   async getServerInfo(userId: string) {
     const cacheKey = `${this.cachePrefix}server:${userId}`;
-    
+
     // Check cache
     const cached = await redisClient.get(cacheKey);
     if (cached) {
@@ -64,18 +65,14 @@ export class PlexService {
     const serverInfo = await client.testConnection();
 
     // Cache result
-    await redisClient.setex(
-      cacheKey, 
-      this.cacheTTL.serverInfo, 
-      JSON.stringify(serverInfo)
-    );
+    await redisClient.setex(cacheKey, this.cacheTTL.serverInfo, JSON.stringify(serverInfo));
 
     return serverInfo;
   }
 
   async getLibraries(userId: string) {
     const cacheKey = `${this.cachePrefix}libraries:${userId}`;
-    
+
     // Check cache
     const cached = await redisClient.get(cacheKey);
     if (cached) {
@@ -87,19 +84,19 @@ export class PlexService {
     const libraries = await client.getLibraries();
 
     // Cache result
-    await redisClient.setex(
-      cacheKey, 
-      this.cacheTTL.libraries, 
-      JSON.stringify(libraries)
-    );
+    await redisClient.setex(cacheKey, this.cacheTTL.libraries, JSON.stringify(libraries));
 
     return libraries;
   }
 
-  async getLibraryItems(userId: string, libraryKey: string, options?: {
-    offset?: number;
-    limit?: number;
-  }) {
+  async getLibraryItems(
+    userId: string,
+    libraryKey: string,
+    options?: {
+      offset?: number;
+      limit?: number;
+    },
+  ) {
     // Library items are not cached due to potential size
     const client = await this.getClientForUser(userId);
     return client.getLibraryItems(libraryKey, options);
@@ -107,7 +104,7 @@ export class PlexService {
 
   async search(userId: string, query: string) {
     const cacheKey = `${this.cachePrefix}search:${userId}:${query}`;
-    
+
     // Check cache
     const cached = await redisClient.get(cacheKey);
     if (cached) {
@@ -119,18 +116,14 @@ export class PlexService {
     const results = await client.search(query);
 
     // Cache result
-    await redisClient.setex(
-      cacheKey, 
-      this.cacheTTL.search, 
-      JSON.stringify(results)
-    );
+    await redisClient.setex(cacheKey, this.cacheTTL.search, JSON.stringify(results));
 
     return results;
   }
 
   async getRecentlyAdded(userId: string) {
     const cacheKey = `${this.cachePrefix}recent:${userId}`;
-    
+
     // Check cache
     const cached = await redisClient.get(cacheKey);
     if (cached) {
@@ -142,28 +135,27 @@ export class PlexService {
     const items = await client.getRecentlyAdded();
 
     // Cache result
-    await redisClient.setex(
-      cacheKey, 
-      this.cacheTTL.recentlyAdded, 
-      JSON.stringify(items)
-    );
+    await redisClient.setex(cacheKey, this.cacheTTL.recentlyAdded, JSON.stringify(items));
 
     return items;
   }
 
   // Clean up idle clients periodically (every 30 minutes)
   startCleanupTimer(): void {
-    setInterval(() => {
-      const now = Date.now();
-      const maxIdleTime = 30 * 60 * 1000; // 30 minutes
+    setInterval(
+      () => {
+        const now = Date.now();
+        const maxIdleTime = 30 * 60 * 1000; // 30 minutes
 
-      // In a production app, we'd track last access time
-      // For MVP, just clear all clients periodically
-      if (this.clients.size > 10) {
-        logger.info('Clearing Plex client cache', { count: this.clients.size });
-        this.clients.clear();
-      }
-    }, 30 * 60 * 1000);
+        // In a production app, we'd track last access time
+        // For MVP, just clear all clients periodically
+        if (this.clients.size > 10) {
+          logger.info('Clearing Plex client cache', { count: this.clients.size });
+          this.clients.clear();
+        }
+      },
+      30 * 60 * 1000,
+    );
   }
 }
 

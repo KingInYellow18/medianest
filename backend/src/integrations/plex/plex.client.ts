@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
-import { logger } from '@/utils/logger';
+
 import { config } from '@/config';
+import { logger } from '@/utils/logger';
 
 export interface PlexServerInfo {
   name: string;
@@ -50,8 +51,8 @@ export class PlexClient {
         'X-Plex-Client-Identifier': config.plex?.clientId || 'medianest',
         'X-Plex-Product': 'MediaNest',
         'X-Plex-Version': '1.0.0',
-        'Accept': 'application/json'
-      }
+        Accept: 'application/json',
+      },
     });
 
     this.setupInterceptors();
@@ -65,9 +66,9 @@ export class PlexClient {
         if (error.response) {
           logger.error('Plex API error', {
             status: error.response.status,
-            url: error.config?.url
+            url: error.config?.url,
           });
-          
+
           if (error.response.status === 401) {
             throw new Error('Invalid or expired Plex token');
           } else if (error.response.status === 404) {
@@ -77,14 +78,14 @@ export class PlexClient {
           logger.error('Plex API timeout', { url: error.config?.url });
           throw new Error('Plex server timeout');
         } else {
-          logger.error('Plex API connection error', { 
+          logger.error('Plex API connection error', {
             message: error.message,
-            code: error.code 
+            code: error.code,
           });
           throw new Error('Unable to connect to Plex server');
         }
         return Promise.reject(error);
-      }
+      },
     );
   }
 
@@ -93,13 +94,13 @@ export class PlexClient {
     try {
       const response = await this.client.get('/');
       const data = response.data.MediaContainer;
-      
+
       const serverInfo: PlexServerInfo = {
         name: data.friendlyName,
         machineIdentifier: data.machineIdentifier,
         version: data.version,
         platform: data.platform,
-        updatedAt: data.updatedAt
+        updatedAt: data.updatedAt,
       };
 
       return serverInfo;
@@ -117,7 +118,7 @@ export class PlexClient {
         type: lib.type,
         title: lib.title,
         uuid: lib.uuid,
-        updatedAt: lib.updatedAt
+        updatedAt: lib.updatedAt,
       }));
 
       return libraries;
@@ -132,24 +133,22 @@ export class PlexClient {
     options: {
       offset?: number;
       limit?: number;
-    } = {}
+    } = {},
   ): Promise<{ items: PlexMediaItem[]; totalSize: number }> {
     const params = new URLSearchParams({
       'X-Plex-Container-Start': String(options.offset || 0),
-      'X-Plex-Container-Size': String(options.limit || 50)
+      'X-Plex-Container-Size': String(options.limit || 50),
     });
 
     try {
-      const response = await this.client.get(
-        `/library/sections/${libraryKey}/all?${params}`
-      );
-      
+      const response = await this.client.get(`/library/sections/${libraryKey}/all?${params}`);
+
       const container = response.data.MediaContainer;
       const items = (container.Metadata || []).map(this.mapMediaItem);
 
       return {
         items,
-        totalSize: container.totalSize || 0
+        totalSize: container.totalSize || 0,
       };
     } catch (error) {
       throw new Error(`Failed to fetch library items: ${error.message}`);
@@ -160,13 +159,13 @@ export class PlexClient {
   async search(query: string, limit = 20): Promise<PlexMediaItem[]> {
     const params = new URLSearchParams({
       query: encodeURIComponent(query),
-      limit: String(limit)
+      limit: String(limit),
     });
 
     try {
       const response = await this.client.get(`/search?${params}`);
       const results = response.data.MediaContainer.Metadata || [];
-      
+
       return results.map(this.mapMediaItem);
     } catch (error) {
       throw new Error(`Search failed: ${error.message}`);
@@ -177,13 +176,13 @@ export class PlexClient {
   async getRecentlyAdded(limit = 20): Promise<PlexMediaItem[]> {
     const params = new URLSearchParams({
       'X-Plex-Container-Start': '0',
-      'X-Plex-Container-Size': String(limit)
+      'X-Plex-Container-Size': String(limit),
     });
 
     try {
       const response = await this.client.get(`/library/recentlyAdded?${params}`);
       const items = response.data.MediaContainer.Metadata || [];
-      
+
       return items.map(this.mapMediaItem);
     } catch (error) {
       throw new Error(`Failed to fetch recently added: ${error.message}`);
@@ -203,7 +202,7 @@ export class PlexClient {
       thumb: item.thumb,
       duration: item.duration,
       addedAt: item.addedAt,
-      viewCount: item.viewCount
+      viewCount: item.viewCount,
     };
   }
 }

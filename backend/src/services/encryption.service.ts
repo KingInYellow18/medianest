@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+
 import { logger } from '@/utils/logger';
 
 interface EncryptedData {
@@ -60,7 +61,7 @@ export class EncryptionService {
       const decipher = crypto.createDecipheriv(
         this.algorithm,
         this.key,
-        Buffer.from(data.iv, 'hex')
+        Buffer.from(data.iv, 'hex'),
       );
 
       // Set auth tag
@@ -104,9 +105,7 @@ export class EncryptionService {
    */
   isEncrypted(data: string): boolean {
     const parts = data.split(':');
-    return (
-      parts.length === 3 && parts.every((part) => /^[0-9a-f]+$/i.test(part))
-    );
+    return parts.length === 3 && parts.every((part) => /^[0-9a-f]+$/i.test(part));
   }
 }
 

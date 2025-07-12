@@ -1,4 +1,7 @@
+import { randomBytes } from 'crypto';
+
 import jwt from 'jsonwebtoken';
+
 import { AppError } from './errors';
 
 interface JWTPayload {
@@ -26,15 +29,15 @@ const REMEMBER_ME_TOKEN_EXPIRY = '30d';
 export function generateToken(
   payload: JWTPayload,
   rememberMe: boolean = false,
-  options?: JWTOptions
+  options?: JWTOptions,
 ): string {
   const expiresIn = rememberMe ? REMEMBER_ME_TOKEN_EXPIRY : DEFAULT_TOKEN_EXPIRY;
-  
+
   const tokenOptions: jwt.SignOptions = {
     expiresIn: options?.expiresIn || expiresIn,
     issuer: options?.issuer || JWT_ISSUER,
     audience: options?.audience || JWT_AUDIENCE,
-    algorithm: 'HS256'
+    algorithm: 'HS256',
   };
 
   return jwt.sign(payload, JWT_SECRET, tokenOptions);
@@ -45,7 +48,7 @@ export function verifyToken(token: string): JWTPayload {
     const decoded = jwt.verify(token, JWT_SECRET, {
       issuer: JWT_ISSUER,
       audience: JWT_AUDIENCE,
-      algorithms: ['HS256']
+      algorithms: ['HS256'],
     }) as JWTPayload;
 
     return decoded;
@@ -70,8 +73,7 @@ export function decodeToken(token: string): JWTPayload | null {
 
 export function generateRefreshToken(): string {
   // Generate a random refresh token
-  const randomBytes = require('crypto').randomBytes(32);
-  return randomBytes.toString('hex');
+  return randomBytes(32).toString('hex');
 }
 
 export function getTokenExpiry(token: string): Date | null {

@@ -15,47 +15,47 @@ export interface RetryOptions {
  */
 export async function retryWithBackoff<T>(
   fn: () => Promise<T>,
-  options: Partial<RetryOptions> = {}
+  options: Partial<RetryOptions> = {},
 ): Promise<T> {
   const config: RetryOptions = {
     maxAttempts: 3,
     initialDelay: 1000,
     maxDelay: 10000,
     factor: 2,
-    ...options
+    ...options,
   };
 
   let lastError: Error;
-  
+
   for (let attempt = 1; attempt <= config.maxAttempts; attempt++) {
     try {
       return await fn();
     } catch (error) {
       lastError = error as Error;
-      
+
       if (attempt < config.maxAttempts) {
         // Calculate delay with exponential backoff and jitter
         const baseDelay = Math.min(
           config.initialDelay * Math.pow(config.factor, attempt - 1),
-          config.maxDelay
+          config.maxDelay,
         );
-        
+
         // Add jitter (±25% of base delay)
         const jitter = baseDelay * 0.25 * (Math.random() * 2 - 1);
         const delay = Math.round(baseDelay + jitter);
-        
-        logger.debug('Retrying after delay', { 
-          attempt, 
+
+        logger.debug('Retrying after delay', {
+          attempt,
           maxAttempts: config.maxAttempts,
           delay,
-          error: lastError.message 
+          error: lastError.message,
         });
-        
-        await new Promise(resolve => setTimeout(resolve, delay));
+
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
   }
-  
+
   throw lastError!;
 }
 
@@ -69,28 +69,28 @@ export async function retryWithBackoff<T>(
 export async function simpleRetry<T>(
   fn: () => Promise<T>,
   maxAttempts = 3,
-  delay = 1000
+  delay = 1000,
 ): Promise<T> {
   let lastError: Error;
-  
+
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       return await fn();
     } catch (error) {
       lastError = error as Error;
-      
+
       if (attempt < maxAttempts) {
-        logger.debug('Simple retry after delay', { 
-          attempt, 
+        logger.debug('Simple retry after delay', {
+          attempt,
           maxAttempts,
           delay,
-          error: lastError.message 
+          error: lastError.message,
         });
-        
-        await new Promise(resolve => setTimeout(resolve, delay));
+
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
   }
-  
+
   throw lastError!;
 }

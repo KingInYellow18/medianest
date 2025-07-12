@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { paginationSchema, uuidParam } from './common';
 
 export const updateUserSchema = z.object({

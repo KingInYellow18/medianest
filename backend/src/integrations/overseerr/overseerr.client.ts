@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
+
 import { logger } from '@/utils/logger';
 
 export interface OverseerrConfig {
@@ -53,8 +54,8 @@ export class OverseerrClient {
       timeout: 5000,
       headers: {
         'X-Api-Key': config.apiKey,
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
     });
 
     this.setupInterceptors();
@@ -66,15 +67,15 @@ export class OverseerrClient {
       async (error) => {
         logger.error('Overseerr API error', {
           status: error.response?.status,
-          url: error.config?.url
+          url: error.config?.url,
         });
-        
+
         if (error.response?.status === 409) {
           throw new Error('Media already requested');
         }
-        
+
         return Promise.reject(error);
-      }
+      },
     );
   }
 
@@ -90,18 +91,21 @@ export class OverseerrClient {
   }
 
   // Search for media (simplified)
-  async searchMedia(query: string, page = 1): Promise<{
+  async searchMedia(
+    query: string,
+    page = 1,
+  ): Promise<{
     results: MediaSearchResult[];
     totalPages: number;
   }> {
     try {
       const response = await this.client.get('/search', {
-        params: { query, page }
+        params: { query, page },
       });
 
       return {
         results: response.data.results.map(this.mapSearchResult),
-        totalPages: response.data.totalPages
+        totalPages: response.data.totalPages,
       };
     } catch (error) {
       logger.error('Search failed', { query, error });
@@ -110,10 +114,7 @@ export class OverseerrClient {
   }
 
   // Get media details
-  async getMediaDetails(
-    mediaType: 'movie' | 'tv',
-    tmdbId: number
-  ): Promise<MediaSearchResult> {
+  async getMediaDetails(mediaType: 'movie' | 'tv', tmdbId: number): Promise<MediaSearchResult> {
     try {
       const response = await this.client.get(`/${mediaType}/${tmdbId}`);
       return this.mapSearchResult(response.data);
@@ -138,10 +139,12 @@ export class OverseerrClient {
   }
 
   // Get user's requests
-  async getUserRequests(options: {
-    take?: number;
-    skip?: number;
-  } = {}): Promise<{
+  async getUserRequests(
+    options: {
+      take?: number;
+      skip?: number;
+    } = {},
+  ): Promise<{
     results: MediaRequestInfo[];
     pageInfo: {
       pages: number;
@@ -152,8 +155,8 @@ export class OverseerrClient {
       const response = await this.client.get('/request', {
         params: {
           take: options.take || 20,
-          skip: options.skip || 0
-        }
+          skip: options.skip || 0,
+        },
       });
 
       return response.data;
@@ -175,7 +178,7 @@ export class OverseerrClient {
       overview: data.overview,
       posterPath: data.posterPath,
       backdropPath: data.backdropPath,
-      mediaInfo: data.mediaInfo
+      mediaInfo: data.mediaInfo,
     };
   }
 }

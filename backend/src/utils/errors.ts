@@ -7,13 +7,13 @@ export class AppError extends Error {
     message: string,
     statusCode: number = 500,
     code: string = 'INTERNAL_ERROR',
-    details?: any
+    details?: any,
   ) {
     super(message);
     this.statusCode = statusCode;
     this.code = code;
     this.details = details;
-    
+
     // Maintain proper stack trace for debugging
     Error.captureStackTrace(this, this.constructor);
   }

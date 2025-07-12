@@ -1,6 +1,8 @@
-import { io, Socket } from 'socket.io-client';
-import { logger } from '@/utils/logger';
 import { EventEmitter } from 'events';
+
+import { io, Socket } from 'socket.io-client';
+
+import { logger } from '@/utils/logger';
 
 export interface MonitorStatus {
   monitorID: number;
@@ -34,7 +36,7 @@ export class UptimeKumaClient extends EventEmitter {
   constructor(
     private url: string,
     private username?: string,
-    private password?: string
+    private password?: string,
   ) {
     super();
   }
@@ -47,7 +49,7 @@ export class UptimeKumaClient extends EventEmitter {
           reconnection: true,
           reconnectionAttempts: 5,
           reconnectionDelay: 5000,
-          timeout: 10000
+          timeout: 10000,
         });
 
         this.setupEventHandlers();
@@ -55,7 +57,7 @@ export class UptimeKumaClient extends EventEmitter {
         this.socket.on('connect', async () => {
           logger.info('Connected to Uptime Kuma');
           this.connected = true;
-          
+
           // Authenticate if credentials provided
           if (this.username && this.password) {
             try {
@@ -65,10 +67,10 @@ export class UptimeKumaClient extends EventEmitter {
               // Continue without auth - may have limited access
             }
           }
-          
+
           // Request initial monitor list
           this.socket!.emit('monitorList');
-          
+
           resolve();
         });
 
@@ -86,7 +88,6 @@ export class UptimeKumaClient extends EventEmitter {
             reject(new Error('Connection timeout'));
           }
         }, 15000);
-
       } catch (error) {
         reject(error);
       }
@@ -100,19 +101,23 @@ export class UptimeKumaClient extends EventEmitter {
         return;
       }
 
-      this.socket.emit('login', {
-        username: this.username,
-        password: this.password,
-        token: ''
-      }, (res: any) => {
-        if (res && res.ok) {
-          logger.info('Authenticated with Uptime Kuma');
-          resolve();
-        } else {
-          logger.error('Uptime Kuma authentication failed', { msg: res?.msg });
-          reject(new Error(res?.msg || 'Authentication failed'));
-        }
-      });
+      this.socket.emit(
+        'login',
+        {
+          username: this.username,
+          password: this.password,
+          token: '',
+        },
+        (res: any) => {
+          if (res && res.ok) {
+            logger.info('Authenticated with Uptime Kuma');
+            resolve();
+          } else {
+            logger.error('Uptime Kuma authentication failed', { msg: res?.msg });
+            reject(new Error(res?.msg || 'Authentication failed'));
+          }
+        },
+      );
     });
   }
 
@@ -122,12 +127,12 @@ export class UptimeKumaClient extends EventEmitter {
     // Monitor list update
     this.socket.on('monitorList', (data: Record<string, MonitorStatus>) => {
       logger.debug('Received monitor list', { count: Object.keys(data).length });
-      
+
       this.monitors.clear();
       for (const [id, monitor] of Object.entries(data)) {
         this.monitors.set(Number(id), monitor);
       }
-      
+
       this.emit('monitorList', Array.from(this.monitors.values()));
     });
 
@@ -138,10 +143,10 @@ export class UptimeKumaClient extends EventEmitter {
         monitor.status = data.status === 1;
         monitor.ping = data.ping;
         monitor.msg = data.msg;
-        
+
         this.emit('heartbeat', {
           monitor,
-          heartbeat: data
+          heartbeat: data,
         });
       }
     });
@@ -150,12 +155,12 @@ export class UptimeKumaClient extends EventEmitter {
     this.socket.on('importantHeartbeatList', (monitorID: number, data: HeartbeatData[]) => {
       logger.info('Status change detected', {
         monitorID,
-        latest: data[0]?.status === 1 ? 'UP' : 'DOWN'
+        latest: data[0]?.status === 1 ? 'UP' : 'DOWN',
       });
-      
+
       this.emit('statusChange', {
         monitorID,
-        heartbeats: data
+        heartbeats: data,
       });
     });
 
@@ -165,10 +170,11 @@ export class UptimeKumaClient extends EventEmitter {
       if (monitor) {
         if (period === 24) {
           monitor.uptime24h = uptime;
-        } else if (period === 720) { // 30 days
+        } else if (period === 720) {
+          // 30 days
           monitor.uptime30d = uptime;
         }
-        
+
         this.emit('uptime', { monitorID, period, uptime });
       }
     });
@@ -185,7 +191,7 @@ export class UptimeKumaClient extends EventEmitter {
       logger.info('Reconnected to Uptime Kuma', { attemptNumber });
       this.connected = true;
       this.emit('reconnect', attemptNumber);
-      
+
       // Re-request monitor list
       this.socket!.emit('monitorList');
     });
@@ -200,7 +206,7 @@ export class UptimeKumaClient extends EventEmitter {
   }
 
   getMonitorByName(name: string): MonitorStatus | undefined {
-    return Array.from(this.monitors.values()).find(m => m.name === name);
+    return Array.from(this.monitors.values()).find((m) => m.name === name);
   }
 
   disconnect(): void {
@@ -208,17 +214,17 @@ export class UptimeKumaClient extends EventEmitter {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = undefined;
     }
-    
+
     if (this.socket) {
       this.socket.disconnect();
       this.socket = undefined;
     }
-    
+
     this.connected = false;
     this.monitors.clear();
   }
 
   isConnected(): boolean {
-    return this.connected && this.socket?.connected || false;
+    return (this.connected && this.socket?.connected) || false;
   }
 }

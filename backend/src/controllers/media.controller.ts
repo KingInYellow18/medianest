@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
-import { overseerrService } from '@/services/overseerr.service';
+
 import { mediaRequestRepository } from '@/repositories';
-import { logger } from '@/utils/logger';
+import { overseerrService } from '@/services/overseerr.service';
 import { AppError } from '@/utils/errors';
+import { logger } from '@/utils/logger';
 
 export class MediaController {
   async searchMedia(req: Request, res: Response) {
@@ -21,8 +22,8 @@ export class MediaController {
         meta: {
           query,
           page: Number(page),
-          totalPages: results.totalPages
-        }
+          totalPages: results.totalPages,
+        },
       });
     } catch (error) {
       if (error instanceof AppError) {
@@ -43,12 +44,12 @@ export class MediaController {
 
       const details = await overseerrService.getMediaDetails(
         mediaType as 'movie' | 'tv',
-        Number(tmdbId)
+        Number(tmdbId),
       );
 
       res.json({
         success: true,
-        data: details
+        data: details,
       });
     } catch (error) {
       if (error instanceof AppError) {
@@ -75,12 +76,12 @@ export class MediaController {
       const request = await overseerrService.requestMedia(userId, {
         mediaType,
         tmdbId: Number(tmdbId),
-        seasons
+        seasons,
       });
 
       res.status(201).json({
         success: true,
-        data: request
+        data: request,
       });
     } catch (error) {
       if (error instanceof AppError) {
@@ -98,7 +99,7 @@ export class MediaController {
 
       const requests = await overseerrService.getUserRequests(userId, {
         skip: Number(skip),
-        take: Number(take)
+        take: Number(take),
       });
 
       res.json({
@@ -106,8 +107,8 @@ export class MediaController {
         data: requests,
         meta: {
           skip: Number(skip),
-          take: Number(take)
-        }
+          take: Number(take),
+        },
       });
     } catch (error) {
       logger.error('Failed to get user requests', { error });
@@ -133,7 +134,7 @@ export class MediaController {
 
       res.json({
         success: true,
-        data: request
+        data: request,
       });
     } catch (error) {
       if (error instanceof AppError) {
@@ -169,7 +170,7 @@ export class MediaController {
 
       res.json({
         success: true,
-        message: 'Request deleted successfully'
+        message: 'Request deleted successfully',
       });
     } catch (error) {
       if (error instanceof AppError) {

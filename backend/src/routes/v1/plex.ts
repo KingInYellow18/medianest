@@ -1,6 +1,7 @@
 import { Router } from 'express';
-import { authenticate } from '@/middleware/auth';
+
 import { plexController } from '@/controllers/plex.controller';
+import { authenticate } from '@/middleware/auth';
 import { asyncHandler } from '@/utils/async-handler';
 
 const router = Router();

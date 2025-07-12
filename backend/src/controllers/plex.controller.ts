@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
+
 import { plexService } from '@/services/plex.service';
-import { logger } from '@/utils/logger';
 import { AppError } from '@/utils/errors';
+import { logger } from '@/utils/logger';
 
 export class PlexController {
   async getServerInfo(req: Request, res: Response) {
@@ -11,7 +12,7 @@ export class PlexController {
 
       res.json({
         success: true,
-        data: serverInfo
+        data: serverInfo,
       });
     } catch (error) {
       if (error instanceof AppError) {
@@ -31,8 +32,8 @@ export class PlexController {
         success: true,
         data: libraries,
         meta: {
-          count: libraries.length
-        }
+          count: libraries.length,
+        },
       });
     } catch (error) {
       if (error instanceof AppError) {
@@ -51,7 +52,7 @@ export class PlexController {
 
       const result = await plexService.getLibraryItems(userId, libraryKey, {
         offset: Number(offset),
-        limit: Number(limit)
+        limit: Number(limit),
       });
 
       res.json({
@@ -60,8 +61,8 @@ export class PlexController {
         meta: {
           offset: Number(offset),
           limit: Number(limit),
-          total: result.totalSize
-        }
+          total: result.totalSize,
+        },
       });
     } catch (error) {
       if (error instanceof AppError) {
@@ -88,8 +89,8 @@ export class PlexController {
         data: results,
         meta: {
           query,
-          count: results.length
-        }
+          count: results.length,
+        },
       });
     } catch (error) {
       if (error instanceof AppError) {
@@ -109,8 +110,8 @@ export class PlexController {
         success: true,
         data: items,
         meta: {
-          count: items.length
-        }
+          count: items.length,
+        },
       });
     } catch (error) {
       if (error instanceof AppError) {

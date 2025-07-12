@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { uuidParam } from './common';
 
 export const createMediaRequestSchema = z.object({

@@ -1,6 +1,7 @@
 import { Server, Socket } from 'socket.io';
-import { statusHandlers } from './status.handlers';
+
 import { notificationHandlers } from './notification.handlers';
+import { statusHandlers } from './status.handlers';
 
 export function registerHandlers(io: Server, socket: Socket): void {
   // Service status subscriptions

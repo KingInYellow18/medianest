@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+
 import { getRedis } from '../config/redis';
 import { RateLimitError } from '../utils/errors';
 import { logger } from '../utils/logger';
@@ -19,7 +20,7 @@ export function createRateLimit(options: RateLimitOptions) {
     keyGenerator = defaultKeyGenerator,
     skipSuccessfulRequests = false,
     skipFailedRequests = false,
-    message = 'Too many requests'
+    message = 'Too many requests',
   } = options;
 
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -48,19 +49,16 @@ export function createRateLimit(options: RateLimitOptions) {
         end
       `;
 
-      const result = await redis.eval(
-        luaScript,
-        1,
-        key,
-        max,
-        windowSeconds
-      ) as [number, number];
+      const result = (await redis.eval(luaScript, 1, key, max, windowSeconds)) as [number, number];
 
       const [blocked, ttl] = result;
 
       // Set rate limit headers
       res.setHeader('X-RateLimit-Limit', max);
-      res.setHeader('X-RateLimit-Remaining', Math.max(0, max - parseInt(await redis.get(key) || '0')));
+      res.setHeader(
+        'X-RateLimit-Remaining',
+        Math.max(0, max - parseInt((await redis.get(key)) || '0')),
+      );
       res.setHeader('X-RateLimit-Reset', new Date(Date.now() + ttl * 1000).toISOString());
 
       if (blocked) {
@@ -71,16 +69,16 @@ export function createRateLimit(options: RateLimitOptions) {
       // Store original end function to handle skip options
       if (skipSuccessfulRequests || skipFailedRequests) {
         const originalEnd = res.end;
-        res.end = function(...args: any[]) {
-          const shouldSkip = 
+        res.end = function (...args: any[]) {
+          const shouldSkip =
             (skipSuccessfulRequests && res.statusCode < 400) ||
             (skipFailedRequests && res.statusCode >= 400);
 
           if (shouldSkip) {
             // Decrement counter
-            redis.decr(key).catch(err => 
-              logger.error('Failed to decrement rate limit counter', err)
-            );
+            redis
+              .decr(key)
+              .catch((err) => logger.error('Failed to decrement rate limit counter', err));
           }
 
           return originalEnd.apply(res, args);
@@ -110,28 +108,28 @@ function defaultKeyGenerator(req: Request): string {
 export const apiRateLimit = createRateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: 100,
-  message: 'Too many API requests'
+  message: 'Too many API requests',
 });
 
 export const authRateLimit = createRateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5,
   keyGenerator: (req) => req.ip || 'unknown',
-  message: 'Too many authentication attempts'
+  message: 'Too many authentication attempts',
 });
 
 export const youtubeRateLimit = createRateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 5,
   keyGenerator: (req) => req.user?.id || req.ip || 'unknown',
-  message: 'YouTube download limit exceeded'
+  message: 'YouTube download limit exceeded',
 });
 
 export const mediaRequestRateLimit = createRateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 20,
   keyGenerator: (req) => req.user?.id || req.ip || 'unknown',
-  message: 'Media request limit exceeded'
+  message: 'Media request limit exceeded',
 });
 
 // Strict rate limit for sensitive operations
@@ -141,5 +139,5 @@ export const strictRateLimit = createRateLimit({
   keyGenerator: (req) => req.ip || 'unknown',
   skipSuccessfulRequests: false,
   skipFailedRequests: false,
-  message: 'Too many attempts for this operation'
+  message: 'Too many attempts for this operation',
 });

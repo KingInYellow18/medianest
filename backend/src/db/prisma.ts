@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+
 import { logger } from '../utils/logger';
 
 // Create singleton instance
@@ -10,8 +11,8 @@ export function getPrismaClient(): PrismaClient {
       log: [
         { emit: 'event', level: 'query' },
         { emit: 'event', level: 'error' },
-        { emit: 'event', level: 'warn' }
-      ]
+        { emit: 'event', level: 'warn' },
+      ],
     });
 
     // Log queries in development
@@ -20,7 +21,7 @@ export function getPrismaClient(): PrismaClient {
         logger.debug('Prisma Query', {
           query: e.query,
           params: e.params,
-          duration: `${e.duration}ms`
+          duration: `${e.duration}ms`,
         });
       });
     }
@@ -30,7 +31,7 @@ export function getPrismaClient(): PrismaClient {
       if (e.duration > 1000) {
         logger.warn('Slow query detected', {
           query: e.query,
-          duration: `${e.duration}ms`
+          duration: `${e.duration}ms`,
         });
       }
     });
@@ -39,7 +40,7 @@ export function getPrismaClient(): PrismaClient {
     prisma.$on('error', (e: any) => {
       logger.error('Prisma error', {
         message: e.message,
-        target: e.target
+        target: e.target,
       });
     });
   }

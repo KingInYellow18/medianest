@@ -1,8 +1,9 @@
+import { redisClient } from '@/config/redis';
 import { UptimeKumaClient } from '@/integrations/uptime-kuma/uptime-kuma.client';
 import { serviceConfigRepository } from '@/repositories';
 import { socketService } from '@/services/socket.service';
 import { logger } from '@/utils/logger';
-import { redisClient } from '@/config/redis';
+
 import { encryptionService } from './encryption.service';
 
 export interface ServiceStatus {
@@ -40,16 +41,12 @@ export class StatusService {
 
       // Decrypt credentials if needed
       const username = config.configData?.username;
-      const password = config.configData?.password ? 
-        await encryptionService.decrypt(config.configData.password) : 
-        undefined;
+      const password = config.configData?.password
+        ? await encryptionService.decrypt(config.configData.password)
+        : undefined;
 
       // Connect to Uptime Kuma
-      this.uptimeKumaClient = new UptimeKumaClient(
-        config.serviceUrl,
-        username,
-        password
-      );
+      this.uptimeKumaClient = new UptimeKumaClient(config.serviceUrl, username, password);
 
       await this.connectToUptimeKuma();
     } catch (error) {
@@ -63,7 +60,7 @@ export class StatusService {
 
     try {
       await this.uptimeKumaClient.connect();
-      
+
       // Set up event handlers
       this.uptimeKumaClient.on('monitorList', (monitors) => {
         this.updateAllStatuses(monitors);
@@ -90,7 +87,6 @@ export class StatusService {
         logger.info('Reconnected to Uptime Kuma, stopping fallback polling');
         this.stopFallbackPolling();
       });
-
     } catch (error) {
       logger.error('Failed to connect to Uptime Kuma', { error });
       this.startFallbackPolling();
@@ -109,25 +105,23 @@ export class StatusService {
       uptime24h: monitor.uptime24h,
       uptime30d: monitor.uptime30d,
       lastCheck: new Date(),
-      message: monitor.msg
+      message: monitor.msg,
     };
 
     this.statusCache.set(serviceName, status);
-    
+
     // Update Redis cache
-    redisClient.setex(
-      `${this.cachePrefix}${serviceName}`, 
-      this.cacheTTL, 
-      JSON.stringify(status)
-    ).catch(err => logger.error('Failed to cache status', { err }));
-    
+    redisClient
+      .setex(`${this.cachePrefix}${serviceName}`, this.cacheTTL, JSON.stringify(status))
+      .catch((err) => logger.error('Failed to cache status', { err }));
+
     // Emit to connected clients
     socketService.emit('service:status', status);
   }
 
   private updateAllStatuses(monitors: any[]): void {
     const allStatuses: ServiceStatus[] = [];
-    
+
     for (const monitor of monitors) {
       const serviceName = this.serviceMapping.get(monitor.name);
       if (serviceName) {
@@ -139,21 +133,19 @@ export class StatusService {
           uptime24h: monitor.uptime24h,
           uptime30d: monitor.uptime30d,
           lastCheck: new Date(),
-          message: monitor.msg
+          message: monitor.msg,
         };
-        
+
         this.statusCache.set(serviceName, status);
         allStatuses.push(status);
       }
     }
-    
+
     // Update Redis cache
-    redisClient.setex(
-      `${this.cachePrefix}all`, 
-      this.cacheTTL, 
-      JSON.stringify(allStatuses)
-    ).catch(err => logger.error('Failed to cache all statuses', { err }));
-    
+    redisClient
+      .setex(`${this.cachePrefix}all`, this.cacheTTL, JSON.stringify(allStatuses))
+      .catch((err) => logger.error('Failed to cache all statuses', { err }));
+
     // Emit to connected clients
     socketService.emit('service:status:all', allStatuses);
   }
@@ -170,16 +162,17 @@ export class StatusService {
     if (!serviceName) return;
 
     const status = this.mapMonitorStatus(monitor);
-    const message = status === 'down' 
-      ? `${monitor.name} is currently unavailable`
-      : `${monitor.name} is back online`;
+    const message =
+      status === 'down'
+        ? `${monitor.name} is currently unavailable`
+        : `${monitor.name} is back online`;
 
     socketService.emit('notification', {
       type: 'service-status',
       severity: status === 'down' ? 'error' : 'info',
       title: 'Service Status Update',
       message,
-      data: { service: serviceName, status }
+      data: { service: serviceName, status },
     });
   }
 
@@ -188,11 +181,11 @@ export class StatusService {
     if (this.pollingInterval) return;
 
     logger.info('Starting fallback status polling');
-    
+
     this.pollingInterval = setInterval(async () => {
       await this.pollServiceStatuses();
     }, 30000); // Poll every 30 seconds
-    
+
     // Initial poll
     this.pollServiceStatuses();
   }
@@ -207,19 +200,15 @@ export class StatusService {
   private async pollServiceStatuses(): Promise<void> {
     const services = ['plex', 'overseerr', 'medianest'];
     const statuses: ServiceStatus[] = [];
-    
+
     for (const service of services) {
       const status = await this.checkServiceHealth(service);
       statuses.push(status);
       this.statusCache.set(service, status);
     }
-    
+
     // Update cache and emit
-    await redisClient.setex(
-      `${this.cachePrefix}all`, 
-      this.cacheTTL, 
-      JSON.stringify(statuses)
-    );
+    await redisClient.setex(`${this.cachePrefix}all`, this.cacheTTL, JSON.stringify(statuses));
     socketService.emit('service:status:all', statuses);
   }
 
@@ -232,7 +221,7 @@ export class StatusService {
           name: service,
           displayName: service.charAt(0).toUpperCase() + service.slice(1),
           status: 'unknown',
-          message: 'Service not configured'
+          message: 'Service not configured',
         };
       }
 
@@ -245,7 +234,7 @@ export class StatusService {
         responseTime: Math.floor(Math.random() * 100),
         uptime24h: 99.9,
         uptime30d: 99.5,
-        lastCheck: new Date()
+        lastCheck: new Date(),
       };
     } catch (error) {
       return {
@@ -253,7 +242,7 @@ export class StatusService {
         displayName: service.charAt(0).toUpperCase() + service.slice(1),
         status: 'down',
         lastCheck: new Date(),
-        message: error.message
+        message: error.message,
       };
     }
   }
@@ -265,7 +254,7 @@ export class StatusService {
     if (cached) {
       return JSON.parse(cached);
     }
-    
+
     // Return from memory cache
     return Array.from(this.statusCache.values());
   }
@@ -276,14 +265,14 @@ export class StatusService {
     if (cached) {
       return JSON.parse(cached);
     }
-    
+
     // Return from memory cache
     return this.statusCache.get(service) || null;
   }
 
   async refreshServiceStatus(service: string): Promise<ServiceStatus> {
     logger.info(`Manually refreshing status for service: ${service}`);
-    
+
     // If Uptime Kuma is connected, request immediate update
     if (this.uptimeKumaClient?.connected) {
       const monitors = await this.uptimeKumaClient.getMonitorList();
@@ -292,7 +281,7 @@ export class StatusService {
         if (serviceName === service) {
           // Force a health check by emitting a refresh request
           this.uptimeKumaClient.emit('refreshMonitor', monitor.id);
-          
+
           // Return the latest cached status
           const status = this.statusCache.get(service);
           if (status) return status;
@@ -300,18 +289,14 @@ export class StatusService {
         }
       }
     }
-    
+
     // Fallback: manually check service health
     const status = await this.checkServiceHealth(service);
     this.statusCache.set(service, status);
-    
+
     // Update cache
-    await redisClient.setex(
-      `${this.cachePrefix}${service}`, 
-      this.cacheTTL, 
-      JSON.stringify(status)
-    );
-    
+    await redisClient.setex(`${this.cachePrefix}${service}`, this.cacheTTL, JSON.stringify(status));
+
     return status;
   }
 

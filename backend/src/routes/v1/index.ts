@@ -1,12 +1,14 @@
 import { Router } from 'express';
+
+import { authenticate } from '@/middleware/auth';
+
+import adminRoutes from './admin';
 import authRoutes from './auth';
 import dashboardRoutes from './dashboard';
 import mediaRoutes from './media';
 import plexRoutes from './plex';
-import youtubeRoutes from './youtube';
-import adminRoutes from './admin';
 import webhookRoutes from './webhooks';
-import { authenticate } from '@/middleware/auth';
+import youtubeRoutes from './youtube';
 
 const router = Router();
 

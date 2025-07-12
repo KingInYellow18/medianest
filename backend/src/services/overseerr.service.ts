@@ -1,9 +1,10 @@
+import { redisClient } from '@/config/redis';
 import { OverseerrClient } from '@/integrations/overseerr/overseerr.client';
 import { serviceConfigRepository, mediaRequestRepository } from '@/repositories';
-import { logger } from '@/utils/logger';
-import { AppError } from '@/utils/errors';
 import { socketService } from '@/services/socket.service';
-import { redisClient } from '@/config/redis';
+import { AppError } from '@/utils/errors';
+import { logger } from '@/utils/logger';
+
 import { encryptionService } from './encryption.service';
 
 export class OverseerrService {
@@ -11,9 +12,9 @@ export class OverseerrService {
   private isAvailable = false;
   private cachePrefix = 'overseerr:';
   private cacheTTL = {
-    search: 60,        // 1 minute
-    details: 300,      // 5 minutes
-    requests: 30       // 30 seconds
+    search: 60, // 1 minute
+    details: 300, // 5 minutes
+    requests: 30, // 30 seconds
   };
 
   async initialize(): Promise<void> {
@@ -25,13 +26,11 @@ export class OverseerrService {
       }
 
       // Decrypt API key if needed
-      const apiKey = config.apiKey ? 
-        await encryptionService.decrypt(config.apiKey) : 
-        '';
+      const apiKey = config.apiKey ? await encryptionService.decrypt(config.apiKey) : '';
 
       this.client = new OverseerrClient({
         url: config.serviceUrl,
-        apiKey
+        apiKey,
       });
 
       this.isAvailable = await this.client.testConnection();
@@ -54,10 +53,10 @@ export class OverseerrService {
 
     try {
       const results = await this.client!.searchMedia(query, page);
-      
+
       // Cache for 1 minute
       await redisClient.setex(cacheKey, this.cacheTTL.search, JSON.stringify(results));
-      
+
       return results;
     } catch (error) {
       logger.error('Media search failed', { query, error });
@@ -77,10 +76,10 @@ export class OverseerrService {
 
     try {
       const details = await this.client!.getMediaDetails(mediaType, tmdbId);
-      
+
       // Cache for 5 minutes
       await redisClient.setex(cacheKey, this.cacheTTL.details, JSON.stringify(details));
-      
+
       return details;
     } catch (error) {
       logger.error('Failed to get media details', { mediaType, tmdbId, error });
@@ -88,20 +87,20 @@ export class OverseerrService {
     }
   }
 
-  async requestMedia(userId: string, request: {
-    mediaType: 'movie' | 'tv';
-    tmdbId: number;
-    seasons?: number[];
-  }) {
+  async requestMedia(
+    userId: string,
+    request: {
+      mediaType: 'movie' | 'tv';
+      tmdbId: number;
+      seasons?: number[];
+    },
+  ) {
     this.ensureAvailable();
 
     try {
       // Check if already requested in our database
-      const existing = await mediaRequestRepository.findByTmdbId(
-        request.tmdbId,
-        request.mediaType
-      );
-      
+      const existing = await mediaRequestRepository.findByTmdbId(request.tmdbId, request.mediaType);
+
       if (existing && existing.status !== 'failed') {
         throw new AppError('Media already requested', 409);
       }
@@ -113,7 +112,7 @@ export class OverseerrService {
       const overseerrRequest = await this.client!.requestMedia({
         mediaType: request.mediaType,
         mediaId: request.tmdbId,
-        seasons: request.seasons
+        seasons: request.seasons,
       });
 
       // Save to our database
@@ -123,7 +122,7 @@ export class OverseerrService {
         mediaType: request.mediaType,
         title: mediaDetails.title,
         status: 'pending',
-        overseerrId: String(overseerrRequest.id)
+        overseerrId: String(overseerrRequest.id),
       });
 
       // Notify user via WebSocket
@@ -145,23 +144,23 @@ export class OverseerrService {
     return mediaRequestRepository.findByUser(userId, {
       skip: options.skip || 0,
       take: options.take || 20,
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
   }
 
   // Webhook handler for status updates
   async handleWebhook(payload: any): Promise<void> {
-    logger.info('Received Overseerr webhook', { 
+    logger.info('Received Overseerr webhook', {
       type: payload.notification_type,
-      mediaId: payload.media?.tmdbId 
+      mediaId: payload.media?.tmdbId,
     });
 
     // Map webhook types to our status
     const statusMap: Record<string, string> = {
-      'MEDIA_APPROVED': 'approved',
-      'MEDIA_AVAILABLE': 'available',
-      'MEDIA_DECLINED': 'failed',
-      'MEDIA_FAILED': 'failed'
+      MEDIA_APPROVED: 'approved',
+      MEDIA_AVAILABLE: 'available',
+      MEDIA_DECLINED: 'failed',
+      MEDIA_FAILED: 'failed',
     };
 
     const newStatus = statusMap[payload.notification_type];
@@ -177,21 +176,21 @@ export class OverseerrService {
     } else if (payload.media?.tmdbId) {
       request = await mediaRequestRepository.findByTmdbId(
         payload.media.tmdbId,
-        payload.media.mediaType
+        payload.media.mediaType,
       );
     }
 
     if (request) {
       await mediaRequestRepository.update(request.id, {
         status: newStatus,
-        completedAt: newStatus === 'available' ? new Date() : undefined
+        completedAt: newStatus === 'available' ? new Date() : undefined,
       });
 
       // Notify user
       socketService.emitToUser(request.userId, 'request:update', {
         requestId: request.id,
         status: newStatus,
-        title: request.title
+        title: request.title,
       });
     }
   }

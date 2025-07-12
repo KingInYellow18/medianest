@@ -22,5 +22,5 @@ export const dateRangeSchema = z
       }
       return true;
     },
-    { message: 'Start date must be before end date' }
+    { message: 'Start date must be before end date' },
   );

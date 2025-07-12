@@ -1,4 +1,5 @@
 import { Server, Socket } from 'socket.io';
+
 import { statusService } from '@/services/status.service';
 import { logger } from '@/utils/logger';
 
@@ -16,8 +17,8 @@ export function statusHandlers(io: Server, socket: Socket): void {
       socket.emit('status:current', statuses);
     } catch (error) {
       logger.error('Failed to subscribe to status', { error });
-      socket.emit('error', { 
-        message: 'Failed to subscribe to status updates' 
+      socket.emit('error', {
+        message: 'Failed to subscribe to status updates',
       });
     }
   });
@@ -37,8 +38,8 @@ export function statusHandlers(io: Server, socket: Socket): void {
       socket.emit(`status:${service}`, status);
     } catch (error) {
       logger.error('Failed to get service status', { service, error });
-      socket.emit('error', { 
-        message: `Failed to get status for ${service}` 
+      socket.emit('error', {
+        message: `Failed to get status for ${service}`,
       });
     }
   });
@@ -48,24 +49,24 @@ export function statusHandlers(io: Server, socket: Socket): void {
     try {
       logger.info('User requested service refresh', {
         userId: socket.data.user?.id,
-        serviceId
+        serviceId,
       });
 
       // Refresh the specific service status
       const status = await statusService.refreshServiceStatus(serviceId);
-      
+
       // Emit update to all subscribers
       io.to('status-updates').emit('service:status', {
         serviceId,
         status: status.status,
         responseTime: status.responseTime,
         timestamp: new Date().toISOString(),
-        details: status.details
+        details: status.details,
       });
     } catch (error) {
       logger.error('Failed to refresh service status', { serviceId, error });
-      socket.emit('error', { 
-        message: `Failed to refresh status for service ${serviceId}` 
+      socket.emit('error', {
+        message: `Failed to refresh status for service ${serviceId}`,
       });
     }
   });
@@ -83,8 +84,8 @@ export function statusHandlers(io: Server, socket: Socket): void {
       io.to('status-updates').emit('status:refreshed');
     } catch (error) {
       logger.error('Failed to refresh statuses', { error });
-      socket.emit('error', { 
-        message: 'Failed to refresh service statuses' 
+      socket.emit('error', {
+        message: 'Failed to refresh service statuses',
       });
     }
   });

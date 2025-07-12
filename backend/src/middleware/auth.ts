@@ -1,7 +1,8 @@
 import type { Request, Response, NextFunction } from 'express';
-import { jwtService } from '@/services/jwt.service';
-import { userRepository } from '@/repositories/instances';
+
 import { AppError } from '@/middleware/error';
+import { userRepository } from '@/repositories/instances';
+import { jwtService } from '@/services/jwt.service';
 import { logger } from '@/utils/logger';
 
 // Extend Express Request interface
@@ -19,13 +20,15 @@ declare global {
   }
 }
 
-export const authenticate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const authenticate = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
   try {
     // Extract token from Authorization header
     const authHeader = req.headers.authorization;
-    const token = authHeader?.startsWith('Bearer ') 
-      ? authHeader.substring(7) 
-      : null;
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
 
     if (!token) {
       throw new AppError('No token provided', 401, 'NO_TOKEN');
@@ -46,7 +49,7 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
       id: user.id,
       email: user.email || '',
       role: user.role,
-      plexId: user.plexId || undefined
+      plexId: user.plexId || undefined,
     };
     req.token = token;
 
@@ -83,9 +86,7 @@ export function optionalAuth() {
     try {
       // Extract token from Authorization header
       const authHeader = req.headers.authorization;
-      const token = authHeader?.startsWith('Bearer ') 
-        ? authHeader.substring(7) 
-        : null;
+      const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
 
       if (!token) {
         // No token, but that's OK for optional auth
@@ -105,7 +106,7 @@ export function optionalAuth() {
           id: user.id,
           email: user.email,
           role: user.role,
-          plexId: user.plexId || undefined
+          plexId: user.plexId || undefined,
         };
         req.token = token;
       }
@@ -127,7 +128,7 @@ export function logAuthenticatedRequest() {
         userId: req.user.id,
         method: req.method,
         path: req.path,
-        ip: req.ip
+        ip: req.ip,
       });
     }
     next();
