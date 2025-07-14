@@ -41,8 +41,10 @@
     "pre-commit": "npx lint-staged"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
     "@playwright/test": "^1.54.1",
-    "@types/node": "^20.11.0",
+    "@types/node": "^20.14.10",
     "@typescript-eslint/eslint-plugin": "^7.16.1",
     "@typescript-eslint/parser": "^7.16.1",
     "concurrently": "^8.2.2",
