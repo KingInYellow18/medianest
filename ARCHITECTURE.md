@@ -36,7 +36,7 @@ MediaNest is a unified web portal that consolidates multiple media management se
 - **Phase 1 (Core Infrastructure)**: ✅ Complete
 - **Phase 2 (External Service Integration)**: ✅ Complete
 - **Phase 3 (Dashboard & Media Search UI)**: ✅ Complete
-- **Phase 4 (YouTube Integration)**: ⏳ In Progress (Schema ready, implementation pending)
+- **Phase 4 (YouTube Integration)**: ⏳ In Progress (Frontend complete, backend pending)
 - **Phase 5 (Advanced Features)**: 📋 Planned
 
 ## 2. System Overview
@@ -760,6 +760,26 @@ secrets:
 # - docker-compose.test.yml: Test environment (root and backend specific)
 ```
 
+#### Frontend Custom Server
+
+The frontend uses a custom server.js to support WebSocket connections with Next.js:
+
+```javascript
+// frontend/server.js
+const { createServer } = require('http');
+const { parse } = require('url');
+const next = require('next');
+const { Server } = require('socket.io');
+
+const dev = process.env.NODE_ENV !== 'production';
+const app = next({ dev });
+const handle = app.getRequestHandler();
+
+// Custom server enables Socket.io integration with Next.js
+// Required for real-time status updates and notifications
+// Handles both development and production modes
+```
+
 #### Socket.io Implementation
 
 WebSocket support is implemented in the Express backend server:
@@ -1103,7 +1123,7 @@ Based on architectural research, the following considerations are critical for s
 - Socket.io Client: 4.7.5
 - NextAuth.js: 4.24.7
 - Tailwind CSS: 3.4.1
-- Vitest: 1.2.2
+- Vitest: 1.6.1
 - Zod: 3.24.1
 - BullMQ: 5.1.2
 
@@ -1197,10 +1217,13 @@ See `/docs/API.md` for detailed API specifications.
 
 1. **YouTube Download Feature** (Phase 4)
 
-   - Database schema ready
-   - API routes registered
-   - Queue configuration exists
-   - Missing: Worker implementation, yt-dlp integration
+   - ✅ Database schema ready
+   - ✅ API routes registered
+   - ✅ Queue configuration exists
+   - ✅ Frontend components fully implemented
+   - ❌ Backend controller implementation
+   - ❌ Worker implementation
+   - ❌ yt-dlp integration
 
 2. **Admin UI** (Phase 5)
 
