@@ -1,6 +1,6 @@
 // Service-related types
 
-export type ServiceName = 'Plex' | 'Overseerr' | 'Uptime Kuma';
+export type ServiceName = 'plex' | 'overseerr' | 'uptime-kuma' | 'medianest' | string;
 
 export interface UptimeMetrics {
   '24h': number;

@@ -3,10 +3,11 @@ import type { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 
 import { config } from '@/config';
-import { AppError } from '@/middleware/error';
+import { AppError } from '@medianest/shared';
 import { userRepository } from '@/repositories/instances';
 import { encryptionService } from '@/services/encryption.service';
 import { jwtService } from '@/services/jwt.service';
+import { AuthenticatedRequest } from '@/types';
 import { logger } from '@/utils/logger';
 
 // Validation schemas
@@ -196,7 +197,7 @@ export class AuthController {
         data: {
           user: {
             id: user.id,
-            username: user.username,
+            username: user.plexUsername || user.email || '',
             email: user.email,
             role: user.role,
           },
@@ -237,15 +238,8 @@ export class AuthController {
    */
   async getSession(req: Request, res: Response): Promise<void> {
     // This would be called after auth middleware has validated the token
-    interface AuthenticatedRequest extends Request {
-      user?: {
-        id: string;
-        username: string;
-        email: string | null;
-        role: string;
-      };
-    }
-    const user = (req as AuthenticatedRequest).user;
+    const authReq = req as AuthenticatedRequest;
+    const user = authReq.user;
 
     if (!user) {
       throw new AppError('User not found in request', 401, 'UNAUTHORIZED');
@@ -256,7 +250,7 @@ export class AuthController {
       data: {
         user: {
           id: user.id,
-          username: user.username,
+          username: user.plexUsername || user.email || '',
           email: user.email,
           role: user.role,
         },

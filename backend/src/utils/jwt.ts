@@ -34,7 +34,7 @@ export function generateToken(
   const expiresIn = rememberMe ? REMEMBER_ME_TOKEN_EXPIRY : DEFAULT_TOKEN_EXPIRY;
 
   const tokenOptions: jwt.SignOptions = {
-    expiresIn: options?.expiresIn || expiresIn,
+    expiresIn: (options?.expiresIn || expiresIn) as string | number | undefined,
     issuer: options?.issuer || JWT_ISSUER,
     audience: options?.audience || JWT_AUDIENCE,
     algorithm: 'HS256',

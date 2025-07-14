@@ -41,6 +41,10 @@ export class UptimeKumaClient extends EventEmitter {
     super();
   }
 
+  get isConnected(): boolean {
+    return this.connected;
+  }
+
   async connect(): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
@@ -222,9 +226,5 @@ export class UptimeKumaClient extends EventEmitter {
 
     this.connected = false;
     this.monitors.clear();
-  }
-
-  isConnected(): boolean {
-    return (this.connected && this.socket?.connected) || false;
   }
 }
