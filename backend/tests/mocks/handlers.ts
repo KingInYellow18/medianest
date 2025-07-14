@@ -1,4 +1,5 @@
 import { http, HttpResponse } from 'msw'
+import { youtubeHandlers } from './youtube-handlers'
 
 // Mock data stores for stateful responses
 const mockPins = new Map<string, any>()
@@ -635,5 +636,8 @@ export const handlers = [
         '3': { '24h': 100, '30d': 99.99 }
       }
     })
-  })
+  }),
+
+  // Include YouTube and Collections handlers
+  ...youtubeHandlers
 ]
