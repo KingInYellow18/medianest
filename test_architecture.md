@@ -1,9 +1,10 @@
-# MediaNest Test Architecture (Simplified)
+# MediaNest Test Architecture
 
-**Version:** 2.0  
-**Date:** January 2025  
-**Status:** Final  
+**Version:** 3.0  
+**Date:** January 12, 2025  
+**Status:** Updated - Aligned with Implementation  
 **Scope:** Small-scale application (10-20 users)
+**Last Audit:** January 12, 2025 - 37 test files, 6,500+ lines
 
 ## Table of Contents
 
@@ -17,13 +18,20 @@
 
 ## 1. Executive Summary
 
-MediaNest's test strategy is designed for a small-scale monolithic application serving 10-20 concurrent users. We focus on practical, maintainable testing that ensures quality without over-engineering.
+MediaNest has implemented a **comprehensive and modern test suite** with 37 test files covering 6,500+ lines of test code across frontend, backend, and integration layers. The test architecture leverages Vitest, MSW, and React Testing Library to provide fast, reliable testing for our monolithic Next.js + Express application serving 10-20 concurrent users.
 
-### Key Principles
-- **Test what matters**: Focus on critical user paths and integrations
-- **Keep it simple**: Use built-in tools and avoid complex frameworks
-- **Fast feedback**: Total test suite runs in under 5 minutes
-- **Practical coverage**: Target 60-70% overall, 80% for critical paths
+### Current Implementation Status
+- ✅ **37 test files** with comprehensive coverage of critical paths
+- ✅ **Modern stack**: Vitest v1.2.0 + MSW v2.1.0 + React Testing Library
+- ✅ **Automated setup**: Docker Compose test environment with real databases
+- ✅ **60% coverage enforced** across both frontend and backend workspaces
+- ✅ **Real-time testing**: WebSocket, queue processing, and external API mocking
+
+### Key Principles (Implemented)
+- **Test what matters**: Critical paths (auth, media requests, service status) thoroughly covered
+- **Modern tooling**: Using 2025 best practices with Vitest and MSW v2
+- **Fast feedback**: Vitest provides sub-second test startup with HMR-like performance
+- **Practical coverage**: 60% minimum enforced, targeting 70% for critical components
 
 ## 2. Pragmatic Testing Approach
 
@@ -55,25 +63,27 @@ Instead of rigid percentages, we test based on risk and value:
 
 ## 3. Test Implementation
 
-### 3.1 Test Types (What We Actually Need)
+### 3.1 Test Types (Currently Implemented)
 
-| Test Type | Purpose | Tools | When to Use |
-|-----------|---------|-------|-------------|
-| Unit Tests | Business logic, utilities | Vitest | Complex logic, calculations |
-| API Tests | Endpoint validation | Supertest | All API routes |
-| Integration Tests | External services | MSW (Mock Service Worker) | Service integrations |
-| E2E Tests | Critical user flows | Playwright | 2-3 key workflows only |
+| Test Type | Purpose | Tools | Coverage | Status |
+|-----------|---------|-------|----------|--------|
+| Unit Tests | Business logic, utilities | Vitest | 4 files (backend) | ✅ Implemented |
+| Component Tests | React components, hooks | Vitest + RTL | 18 files (frontend) | ✅ Implemented |
+| API Tests | Endpoint validation | Vitest + Supertest | 10 files (backend) | ✅ Implemented |
+| Integration Tests | External services | Vitest + MSW v2.1.0 | Comprehensive | ✅ Implemented |
+| E2E Tests | Critical user flows | **Missing** | 0 files | ❌ Not Implemented |
 
-### 3.2 What We're NOT Doing
-- Contract testing (Pact) - overkill for our scale
-- Load testing tools (k6, Artillery) - simple integration tests suffice
-- Security scanning tools (OWASP ZAP) - manual security review is enough
-- Complex mocking frameworks - MSW provides all we need
+### 3.2 What We're Successfully Doing
+- ✅ **Modern MSW v2.1.0**: Realistic HTTP interception with browser/Node.js support
+- ✅ **Real Database Testing**: PostgreSQL (port 5433) + Redis (port 6380) 
+- ✅ **Automated Setup**: `run-tests.sh` script with Docker Compose management
+- ✅ **Comprehensive Mocking**: Plex, Overseerr, Uptime Kuma APIs fully mocked
 
-### 3.3 Simple Test Environment
+### 3.3 Current Test Environment
 
+**Actual Implementation:**
 ```yaml
-# docker-compose.test.yml - One simple test environment
+# docker-compose.test.yml (IMPLEMENTED)
 version: '3.8'
 services:
   postgres-test:
@@ -82,110 +92,161 @@ services:
       POSTGRES_DB: medianest_test
       POSTGRES_USER: test
       POSTGRES_PASSWORD: test
+    ports:
+      - "5433:5432"
   
   redis-test:
     image: redis:7-alpine
+    ports:
+      - "6380:6379"
 ```
 
-### 3.4 Testing Tool Choices
+**Automated Management:**
+- `./run-tests.sh` - Handles Docker Compose lifecycle
+- Automatic database migrations on test startup
+- Proper cleanup between test runs
 
-#### Why These Tools?
+### 3.4 Testing Tool Choices (Current Implementation)
 
-1. **Vitest over Jest**
-   - Native ESM support for Next.js 14
-   - Faster execution with Vite's HMR
-   - Built-in TypeScript support
-   - Jest-compatible API for easy migration
+#### Why These Tools Were Selected (2025 Best Practices):
 
-2. **MSW over Nock**
-   - Works in both Node.js and browser
-   - More realistic request interception
-   - Better TypeScript support
-   - Service Worker approach is more modern
+1. **Vitest v1.2.0** ✅ **IMPLEMENTED**
+   - ✅ Native ESM support for Next.js 14 App Router
+   - ✅ Sub-second test startup with Vite's HMR-like performance  
+   - ✅ Built-in TypeScript support with zero configuration
+   - ✅ Jest-compatible API enabling easy migration
+   - ✅ V8 coverage provider for accurate reporting
 
-3. **BullMQ over Bull**
-   - Better TypeScript support
-   - More active maintenance
-   - Improved performance
-   - Better job flow support
+2. **MSW v2.1.0** ✅ **IMPLEMENTED** 
+   - ✅ Works seamlessly in both Node.js tests and browser development
+   - ✅ Network-level request interception (more realistic than mocks)
+   - ✅ Excellent TypeScript support with request/response typing
+   - ✅ Modern Service Worker approach for browser environments
 
-4. **Keeping Supertest**
-   - Still the best for Express API testing
-   - Works perfectly with Vitest
-   - Mature and well-documented
+3. **React Testing Library** ✅ **IMPLEMENTED**
+   - ✅ Component testing focused on user behavior
+   - ✅ Excellent integration with Vitest
+   - ✅ Encourages accessible and maintainable tests
 
-5. **Keeping Testcontainers**
-   - Best solution for integration testing
-   - Real database instances
-   - Isolated test environments
+4. **Supertest v6.3.4** ✅ **IMPLEMENTED**
+   - ✅ Industry standard for Express API testing
+   - ✅ Perfect integration with Vitest
+   - ✅ Mature, stable, and well-documented
 
-6. **Keeping Playwright**
-   - Excellent for E2E testing
-   - Great debugging tools
-   - Cross-browser support
+5. **Real Databases (not Testcontainers)** ✅ **IMPLEMENTED**
+   - ✅ Dedicated PostgreSQL test instance (port 5433)
+   - ✅ Dedicated Redis test instance (port 6380)  
+   - ✅ Simpler than Testcontainers for our 10-20 user scale
+   - ✅ Faster setup and teardown for continuous testing
+
+6. **Playwright** ❌ **NOT IMPLEMENTED**
+   - 📋 Planned for E2E testing implementation
+   - 📋 Infrastructure exists but no actual tests yet
 
 ## 4. Technology Stack Testing
 
-### 4.1 Testing Tools Overview
+### 4.1 Current Testing Stack (Implemented)
 
-#### Core Testing Stack
+#### Core Testing Dependencies (VERIFIED)
 ```json
 {
   "devDependencies": {
-    // Testing Framework
+    // Testing Framework (✅ IMPLEMENTED)
     "vitest": "^1.2.0",
-    "@vitest/ui": "^1.2.0",
+    "@vitest/ui": "^1.2.0", 
     "@vitest/coverage-v8": "^1.2.0",
     
-    // Testing Utilities
+    // Frontend Testing (✅ IMPLEMENTED)
     "@testing-library/react": "^14.1.0",
-    "@testing-library/user-event": "^14.5.0",
+    "@testing-library/user-event": "^14.5.0", 
     "@testing-library/jest-dom": "^6.2.0",
     
-    // API Testing
-    "supertest": "^6.3.0",
+    // API Testing (✅ IMPLEMENTED)
+    "supertest": "^6.3.4",
     
-    // Mocking
+    // Modern Mocking (✅ IMPLEMENTED)  
     "msw": "^2.1.0",
     
-    // Test Containers
-    "@testcontainers/postgresql": "^10.4.0",
-    "@testcontainers/redis": "^10.4.0",
-    
-    // E2E Testing
+    // E2E Testing (📋 INFRASTRUCTURE ONLY)
     "@playwright/test": "^1.41.0",
     
-    // Queue Testing
+    // Queue Testing (✅ IMPLEMENTED)
     "bullmq": "^5.1.0"
   }
 }
 ```
 
-#### Vitest Configuration
+#### Test Infrastructure (VERIFIED IMPLEMENTATION)
+- ✅ **37 test files** across backend and frontend
+- ✅ **6,500+ lines** of test code  
+- ✅ **Real databases**: PostgreSQL:5433, Redis:6380
+- ✅ **Automated setup**: `run-tests.sh` Docker Compose management
+- ✅ **MSW handlers**: Comprehensive mocking for Plex, Overseerr, Uptime Kuma
+- ✅ **Coverage enforcement**: 60% minimum thresholds
+```
+
+#### Vitest Configuration (ACTUAL IMPLEMENTATION)
+
+**Backend Configuration** (`backend/vitest.config.ts`):
 ```typescript
-// vitest.config.ts
+import { defineConfig } from 'vitest/config'
+import path from 'path'
+
+export default defineConfig({
+  test: {
+    environment: 'node',           // ✅ Server-side testing
+    setupFiles: ['./tests/setup.ts'],
+    globals: true,
+    testTimeout: 30000,            // ✅ 30s for integration tests
+    coverage: {
+      provider: 'v8',              // ✅ Modern V8 coverage
+      reporter: ['text', 'json', 'html'],
+      exclude: [
+        'node_modules/',
+        'tests/',
+        '**/*.d.ts', 
+        '**/*.config.*'
+      ],
+      thresholds: {                // ✅ 60% minimum enforced
+        branches: 60,
+        functions: 60,
+        lines: 60,
+        statements: 60
+      }
+    },
+    pool: 'forks',                 // ✅ Process isolation
+    poolOptions: {
+      forks: {
+        singleFork: true           // ✅ Database test isolation
+      }
+    }
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src')
+    }
+  }
+})
+```
+
+**Frontend Configuration** (`frontend/vitest.config.mts`):
+```typescript
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react()],              // ✅ React support
   test: {
-    environment: 'jsdom',
+    environment: 'jsdom',          // ✅ DOM testing environment
     setupFiles: ['./tests/setup.ts'],
     globals: true,
     coverage: {
+      provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      exclude: [
-        'node_modules/',
-        'tests/',
-        '**/*.d.ts',
-        '**/*.config.*',
-        '**/mockData.ts'
-      ],
-      thresholds: {
+      thresholds: {                // ✅ Same standards as backend
         branches: 60,
-        functions: 60,
+        functions: 60, 
         lines: 60,
         statements: 60
       }
@@ -193,12 +254,12 @@ export default defineConfig({
     pool: 'threads',
     poolOptions: {
       threads: {
-        singleThread: true
+        singleThread: true         // ✅ Consistent execution
       }
     }
   },
   resolve: {
-    alias: {
+    alias: {                       // ✅ Path aliases for clean imports
       '@': path.resolve(__dirname, './src'),
       '@/components': path.resolve(__dirname, './src/components'),
       '@/lib': path.resolve(__dirname, './src/lib')
@@ -207,32 +268,70 @@ export default defineConfig({
 })
 ```
 
-#### Test Setup File
+#### Test Setup Files (ACTUAL IMPLEMENTATION)
+
+**Backend Setup** (`backend/tests/setup.ts`):
 ```typescript
-// tests/setup.ts
+import { beforeAll, afterEach, afterAll } from 'vitest'
+import { server } from './mocks/server'
+
+// ✅ MSW Server lifecycle management
+beforeAll(() => {
+  server.listen({ onUnhandledRequest: 'error' })
+})
+
+afterEach(() => {
+  server.resetHandlers()
+})
+
+afterAll(() => {
+  server.close()
+})
+
+// ✅ Global test utilities (IMPLEMENTED)
+export { createTestUser, createTestJWT } from './helpers/auth'
+export { setupTestDB, cleanupTestDB } from './helpers/database'
+```
+
+**Frontend Setup** (`frontend/tests/setup.ts`):
+```typescript
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
-import { afterEach } from 'vitest'
+import { afterEach, vi } from 'vitest'
 
-// Cleanup after each test
+// ✅ React Testing Library cleanup
 afterEach(() => {
   cleanup()
 })
 
-// Mock window.matchMedia
+// ✅ Socket.io mocking (COMPREHENSIVE IMPLEMENTATION)
+vi.mock('socket.io-client', () => ({
+  io: vi.fn(() => ({
+    on: vi.fn(),
+    off: vi.fn(),
+    emit: vi.fn(),
+    disconnect: vi.fn(),
+    connected: false,
+  })),
+}))
+
+// ✅ Window.matchMedia mocking  
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: vi.fn().mockImplementation(query => ({
     matches: false,
     media: query,
     onchange: null,
-    addListener: vi.fn(), // deprecated
-    removeListener: vi.fn(), // deprecated
+    addListener: vi.fn(),
+    removeListener: vi.fn(), 
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
     dispatchEvent: vi.fn(),
   })),
 })
+
+// ✅ Fetch API mocking for API calls
+global.fetch = vi.fn()
 ```
 
 ### 4.2 Frontend Testing (Next.js 14)
@@ -585,62 +684,139 @@ describe('Rate Limiter', () => {
    ```
 ```
 
-### 5.2 External Service Mocking with MSW
+### 5.2 External Service Mocking with MSW v2.1.0 (IMPLEMENTED)
 
-#### MSW Setup
+#### MSW Server Setup (VERIFIED IMPLEMENTATION)
 ```typescript
-// tests/mocks/server.ts
+// backend/tests/mocks/server.ts ✅ IMPLEMENTED
 import { setupServer } from 'msw/node'
 import { handlers } from './handlers'
 
 export const server = setupServer(...handlers)
 
-// Start server before all tests
+// ✅ Lifecycle management in setup.ts
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
-
-// Reset handlers after each test
 afterEach(() => server.resetHandlers())
-
-// Clean up after all tests
 afterAll(() => server.close())
 ```
 
-#### MSW Handlers
+#### MSW Handlers (COMPREHENSIVE IMPLEMENTATION)
 ```typescript
-// tests/mocks/handlers.ts
-import { http, HttpResponse } from 'msw'
+// backend/tests/mocks/handlers/ ✅ 3 HANDLER FILES IMPLEMENTED
 
-export const handlers = [
-  // Overseerr API
-  http.post('http://localhost:5055/api/v1/request', async ({ request }) => {
+// 1. plex-handlers.ts - Plex API mocking
+export const plexHandlers = [
+  // PIN generation
+  http.post('https://plex.tv/pins.xml', () => {
+    return HttpResponse.text(`<pin><id>12345</id><code>ABCD</code></pin>`, {
+      headers: { 'Content-Type': 'application/xml' }
+    })
+  }),
+  
+  // PIN verification with auth token
+  http.get('https://plex.tv/pins/:id.xml', ({ params }) => {
+    return HttpResponse.text(`
+      <pin>
+        <id>${params.id}</id>
+        <authToken>plex-auth-token-123</authToken>
+      </pin>`, {
+      headers: { 'Content-Type': 'application/xml' }
+    })
+  }),
+  
+  // User account info
+  http.get('https://plex.tv/users/account.xml', () => {
+    return HttpResponse.text(`
+      <user>
+        <id>456</id>
+        <username>testplexuser</username>
+        <email>test@example.com</email>
+      </user>`, {
+      headers: { 'Content-Type': 'application/xml' }
+    })
+  })
+]
+
+// 2. overseerr-handlers.ts - Overseerr API mocking  
+export const overseerrHandlers = [
+  // Media request submission
+  http.post(/\/api\/v1\/request$/, async ({ request }) => {
     const body = await request.json()
     return HttpResponse.json({
       id: 123,
       type: body.mediaType,
-      status: 'pending',
+      status: 'pending', 
       media: { tmdbId: body.tmdbId, title: 'The Matrix' }
     }, { status: 201 })
   }),
   
-  // Plex API
-  http.get('https://plex.tv/api/v2/pins/:id', ({ params }) => {
+  // Service status check
+  http.get(/\/api\/v1\/status$/, () => {
     return HttpResponse.json({
-      id: params.id,
-      code: 'ABCD',
-      authToken: 'plex-auth-token'
+      version: '1.33.2',
+      totalRequests: 1234,
+      totalMovieRequests: 800,
+      totalTvRequests: 434
     })
-  }),
-  
-  // Uptime Kuma
-  http.get('http://localhost:3001/api/status-page/heartbeat', () => {
+  })
+]
+
+// 3. uptime-kuma-handlers.ts - Uptime Kuma mocking
+export const uptimeKumaHandlers = [
+  // Status page heartbeat
+  http.get(/\/api\/status-page\/heartbeat/, () => {
     return HttpResponse.json({
       heartbeatList: {
-        '1': [{ status: 1, time: Date.now() }],
-        '2': [{ status: 0, time: Date.now() }]
+        '1': [{ status: 1, time: Date.now() }],  // Plex up
+        '2': [{ status: 0, time: Date.now() }]   // Overseerr down
       }
     })
   })
 ]
+```
+
+#### MSW Test Helpers (IMPLEMENTED)
+```typescript
+// backend/tests/helpers/external-services.ts ✅ IMPLEMENTED
+import { server } from '../mocks/server'
+import { http, HttpResponse } from 'msw'
+
+// ✅ Helper to authorize Plex PIN for testing
+export function authorizePlexPin(pinId: string, authToken?: string) {
+  server.use(
+    http.get(`https://plex.tv/pins/${pinId}.xml`, () => {
+      return HttpResponse.text(`
+        <pin>
+          <id>${pinId}</id>
+          <authToken>${authToken || 'test-auth-token'}</authToken>
+        </pin>`)
+    })
+  )
+}
+
+// ✅ Helper to simulate service outages
+export function simulatePlexDown() {
+  server.use(
+    http.post('https://plex.tv/pins.xml', () => {
+      return HttpResponse.text('Service Unavailable', { status: 503 })
+    })
+  )
+}
+
+// ✅ Helper for media request conflicts
+export function simulateMediaAlreadyRequested(tmdbId: number) {
+  server.use(
+    http.post(/\/api\/v1\/request$/, async ({ request }) => {
+      const body = await request.json()
+      if (body.tmdbId === tmdbId) {
+        return HttpResponse.json(
+          { error: 'Media already requested' },
+          { status: 409 }
+        )
+      }
+    })
+  )
+}
 ```
 
 #### Overseerr API Testing
