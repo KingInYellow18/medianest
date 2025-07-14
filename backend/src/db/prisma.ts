@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 
 import { logger } from '../utils/logger';
 
@@ -8,16 +8,19 @@ let prisma: PrismaClient;
 export function getPrismaClient(): PrismaClient {
   if (!prisma) {
     prisma = new PrismaClient({
-      log: [
-        { emit: 'event', level: 'query' },
-        { emit: 'event', level: 'error' },
-        { emit: 'event', level: 'warn' },
-      ],
+      log:
+        process.env.NODE_ENV === 'development'
+          ? [
+              { emit: 'event', level: 'query' },
+              { emit: 'event', level: 'error' },
+              { emit: 'event', level: 'warn' },
+            ]
+          : [{ emit: 'event', level: 'error' }],
     });
 
     // Log queries in development
     if (process.env.NODE_ENV === 'development') {
-      prisma.$on('query', (e: any) => {
+      (prisma.$on as any)('query', (e: Prisma.QueryEvent) => {
         logger.debug('Prisma Query', {
           query: e.query,
           params: e.params,
@@ -27,7 +30,7 @@ export function getPrismaClient(): PrismaClient {
     }
 
     // Log slow queries in all environments
-    prisma.$on('query', (e: any) => {
+    (prisma.$on as any)('query', (e: Prisma.QueryEvent) => {
       if (e.duration > 1000) {
         logger.warn('Slow query detected', {
           query: e.query,
@@ -37,7 +40,7 @@ export function getPrismaClient(): PrismaClient {
     });
 
     // Log errors
-    prisma.$on('error', (e: any) => {
+    (prisma.$on as any)('error', (e: Prisma.LogEvent) => {
       logger.error('Prisma error', {
         message: e.message,
         target: e.target,
