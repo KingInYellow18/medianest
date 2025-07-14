@@ -61,7 +61,6 @@ export function statusHandlers(io: Server, socket: Socket): void {
         status: status.status,
         responseTime: status.responseTime,
         timestamp: new Date().toISOString(),
-        details: status.details,
       });
     } catch (error) {
       logger.error('Failed to refresh service status', { serviceId, error });

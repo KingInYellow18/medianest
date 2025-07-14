@@ -28,3 +28,14 @@ export function createRepositories(prisma: PrismaClient) {
 }
 
 export type Repositories = ReturnType<typeof createRepositories>;
+
+// Re-export repository singletons
+export {
+  userRepository,
+  mediaRequestRepository,
+  youtubeDownloadRepository,
+  serviceStatusRepository,
+  serviceConfigRepository,
+  sessionTokenRepository,
+  prisma,
+} from './instances';

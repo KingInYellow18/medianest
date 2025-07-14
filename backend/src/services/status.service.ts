@@ -153,8 +153,8 @@ export class StatusService {
     socketService.emit('service:status:all', allStatuses);
   }
 
-  private mapMonitorStatus(monitor: any): 'up' | 'down' | 'degraded' | 'unknown' {
-    if (!monitor.active) return 'unknown';
+  private mapMonitorStatus(monitor: any): 'up' | 'down' | 'degraded' {
+    if (!monitor.active) return 'down';
     if (monitor.status === false) return 'down';
     if (monitor.ping && monitor.ping > 1000) return 'degraded';
     return 'up';
@@ -223,8 +223,9 @@ export class StatusService {
         return {
           name: service,
           displayName: service.charAt(0).toUpperCase() + service.slice(1),
-          status: 'unknown',
+          status: 'down',
           message: 'Service not configured',
+          lastCheck: new Date(),
         };
       }
 
@@ -277,8 +278,8 @@ export class StatusService {
     logger.info(`Manually refreshing status for service: ${service}`);
 
     // If Uptime Kuma is connected, request immediate update
-    if (this.uptimeKumaClient?.connected) {
-      const monitors = await this.uptimeKumaClient.getMonitorList();
+    if (this.uptimeKumaClient?.isConnected) {
+      const monitors = this.uptimeKumaClient.getMonitors();
       for (const monitor of monitors) {
         const serviceName = this.serviceMapping.get(monitor.name);
         if (serviceName === service) {

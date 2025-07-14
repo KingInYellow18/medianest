@@ -39,4 +39,13 @@ export const socketService = {
   sendNotification(userId: string, notification: unknown): void {
     this.emitToUser(userId, 'notification:new', notification);
   },
+
+  // Emit to all connected clients
+  emit(event: string, data: unknown): void {
+    if (!io) {
+      console.warn('Socket.io not initialized');
+      return;
+    }
+    io.emit(event, data);
+  },
 };
