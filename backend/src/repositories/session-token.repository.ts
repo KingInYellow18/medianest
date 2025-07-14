@@ -2,7 +2,7 @@ import crypto from 'crypto';
 
 import { SessionToken, Prisma } from '@prisma/client';
 
-import { NotFoundError } from '../utils/errors';
+import { NotFoundError } from '@medianest/shared';
 
 import { BaseRepository } from './base.repository';
 

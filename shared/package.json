@@ -9,9 +9,13 @@
     "clean": "rimraf dist",
     "type-check": "tsc --noEmit"
   },
+  "dependencies": {
+    "uuid": "^10.0.0"
+  },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
+    "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^8.35.1",
     "@typescript-eslint/parser": "^8.35.1",
     "eslint": "^9.30.1",

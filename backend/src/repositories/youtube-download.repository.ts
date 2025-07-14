@@ -1,6 +1,6 @@
 import { YoutubeDownload, Prisma } from '@prisma/client';
 
-import { NotFoundError } from '../utils/errors';
+import { NotFoundError } from '@medianest/shared';
 
 import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
 

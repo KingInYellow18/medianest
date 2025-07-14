@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 
 import { mediaRequestRepository } from '@/repositories';
 import { overseerrService } from '@/services/overseerr.service';
-import { AppError } from '@/utils/errors';
+import { AppError } from '@medianest/shared';
 import { logger } from '@/utils/logger';
 
 export class MediaController {
@@ -95,8 +95,8 @@ export class MediaController {
   async getUserRequests(req: Request, res: Response) {
     try {
       const userId = req.user!.id;
-      const { 
-        page = 1, 
+      const {
+        page = 1,
         pageSize = 20,
         status,
         mediaType,
@@ -104,24 +104,24 @@ export class MediaController {
         startDate,
         endDate,
         sortBy = 'date',
-        sortOrder = 'desc'
+        sortOrder = 'desc',
       } = req.query;
 
       // Build filters
       const filters: Record<string, any> = { userId };
-      
+
       if (status && status !== 'all') {
         filters.status = status as string;
       }
-      
+
       if (mediaType && mediaType !== 'all') {
         filters.mediaType = mediaType as string;
       }
-      
+
       if (search) {
         filters.title = { contains: search as string, mode: 'insensitive' };
       }
-      
+
       if (startDate || endDate) {
         filters.requestedAt = {};
         if (startDate) {
@@ -243,8 +243,8 @@ export class MediaController {
         throw new AppError('Access denied', 403);
       }
 
-      const { 
-        page = 1, 
+      const {
+        page = 1,
         pageSize = 20,
         status,
         mediaType,
@@ -253,28 +253,28 @@ export class MediaController {
         endDate,
         sortBy = 'date',
         sortOrder = 'desc',
-        userId
+        userId,
       } = req.query;
 
       // Build filters
       const filters: Record<string, any> = {};
-      
+
       if (userId) {
         filters.userId = userId as string;
       }
-      
+
       if (status && status !== 'all') {
         filters.status = status as string;
       }
-      
+
       if (mediaType && mediaType !== 'all') {
         filters.mediaType = mediaType as string;
       }
-      
+
       if (search) {
         filters.title = { contains: search as string, mode: 'insensitive' };
       }
-      
+
       if (startDate || endDate) {
         filters.requestedAt = {};
         if (startDate) {

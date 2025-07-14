@@ -3,18 +3,21 @@ import { UptimeKumaClient } from '@/integrations/uptime-kuma/uptime-kuma.client'
 import { serviceConfigRepository } from '@/repositories';
 import { socketService } from '@/services/socket.service';
 import { logger } from '@/utils/logger';
+import {
+  ServiceStatus as SharedServiceStatus,
+  ServiceName,
+  SOCKET_EVENTS,
+} from '@medianest/shared';
 
 import { encryptionService } from './encryption.service';
 
-export interface ServiceStatus {
-  name: string;
-  displayName: string;
-  status: 'up' | 'down' | 'degraded' | 'unknown';
-  responseTime?: number;
+// Extend the shared ServiceStatus type for backend-specific fields
+export interface ServiceStatus
+  extends Omit<SharedServiceStatus, 'id' | 'uptime' | 'details' | 'features'> {
+  message?: string;
   uptime24h?: number;
   uptime30d?: number;
   lastCheck?: Date;
-  message?: string;
 }
 
 export class StatusService {

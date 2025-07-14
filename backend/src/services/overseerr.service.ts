@@ -2,7 +2,7 @@ import { redisClient } from '@/config/redis';
 import { OverseerrClient } from '@/integrations/overseerr/overseerr.client';
 import { serviceConfigRepository, mediaRequestRepository } from '@/repositories';
 import { socketService } from '@/services/socket.service';
-import { AppError } from '@/utils/errors';
+import { AppError } from '@medianest/shared';
 import { logger } from '@/utils/logger';
 
 import { encryptionService } from './encryption.service';

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 
 import { getRedis } from '../config/redis';
-import { RateLimitError } from '../utils/errors';
+import { RateLimitError } from '@medianest/shared';
 import { logger } from '../utils/logger';
 
 interface RateLimitOptions {

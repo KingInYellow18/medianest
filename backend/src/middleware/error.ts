@@ -7,7 +7,7 @@ import {
   AuthenticationError,
   AuthorizationError,
   RateLimitError,
-} from '../utils/errors';
+} from '@medianest/shared';
 import { metrics } from '../utils/monitoring';
 
 // User-friendly error messages

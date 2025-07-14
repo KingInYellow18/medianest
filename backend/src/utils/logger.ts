@@ -1,9 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 
-import { v4 as uuidv4 } from 'uuid';
 import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
+import { generateCorrelationId } from '@medianest/shared';
 
 // Ensure logs directory exists
 const logsDir = path.join(process.cwd(), 'logs');
@@ -79,7 +79,7 @@ const logger = winston.createLogger({
 
 // Create child logger with correlation ID
 export function createChildLogger(correlationId?: string): winston.Logger {
-  return logger.child({ correlationId: correlationId || uuidv4() });
+  return logger.child({ correlationId: correlationId || generateCorrelationId() });
 }
 
 // Create a stream object with a 'write' function for Morgan/Express logging

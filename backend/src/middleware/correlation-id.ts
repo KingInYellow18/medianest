@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { v4 as uuidv4 } from 'uuid';
+import { generateCorrelationId } from '@medianest/shared';
 
 import { createChildLogger } from '../utils/logger';
 
@@ -19,7 +19,7 @@ export function correlationIdMiddleware(req: Request, res: Response, next: NextF
     req.headers['x-correlation-id'] ||
     req.headers['X-Correlation-ID'] ||
     req.headers['X-CORRELATION-ID'] ||
-    uuidv4();
+    generateCorrelationId();
 
   // Attach to request
   req.correlationId = correlationId as string;

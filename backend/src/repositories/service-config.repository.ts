@@ -1,7 +1,7 @@
 import { ServiceConfig, Prisma } from '@prisma/client';
 
 import { encryptionService } from '../services/encryption.service';
-import { NotFoundError } from '../utils/errors';
+import { NotFoundError } from '@medianest/shared';
 import { logger } from '../utils/logger';
 
 import { BaseRepository } from './base.repository';

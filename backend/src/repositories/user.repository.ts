@@ -2,7 +2,7 @@ import { User, Prisma } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
 import { encryptionService } from '../services/encryption.service';
-import { NotFoundError } from '../utils/errors';
+import { NotFoundError } from '@medianest/shared';
 import { logger } from '../utils/logger';
 
 import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';

@@ -1,7 +1,7 @@
 import { redisClient } from '@/config/redis';
 import { PlexClient } from '@/integrations/plex/plex.client';
 import { userRepository, serviceConfigRepository } from '@/repositories';
-import { AppError } from '@/utils/errors';
+import { AppError } from '@medianest/shared';
 import { logger } from '@/utils/logger';
 
 import { encryptionService } from './encryption.service';

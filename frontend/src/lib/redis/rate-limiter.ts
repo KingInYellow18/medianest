@@ -1,4 +1,5 @@
 import { getRedisClient } from './redis-client';
+import { RATE_LIMITS } from '@medianest/shared';
 
 export interface RateLimitConfig {
   windowMs: number; // Time window in milliseconds
@@ -12,34 +13,6 @@ export interface RateLimitResult {
   resetAt: Date;
   retryAfter?: number; // Seconds until next allowed request
 }
-
-// Default rate limit configurations
-export const RATE_LIMITS = {
-  // General API rate limit: 100 requests per minute
-  API: {
-    windowMs: 60 * 1000,
-    max: 100,
-    keyPrefix: 'rate:api:',
-  },
-  // YouTube download rate limit: 5 downloads per hour
-  YOUTUBE_DOWNLOAD: {
-    windowMs: 60 * 60 * 1000,
-    max: 5,
-    keyPrefix: 'rate:youtube:',
-  },
-  // Auth attempts: 5 per 15 minutes
-  AUTH: {
-    windowMs: 15 * 60 * 1000,
-    max: 5,
-    keyPrefix: 'rate:auth:',
-  },
-  // Media requests: 20 per hour
-  MEDIA_REQUEST: {
-    windowMs: 60 * 60 * 1000,
-    max: 20,
-    keyPrefix: 'rate:media:',
-  },
-};
 
 /**
  * Check rate limit for a given key

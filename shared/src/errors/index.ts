@@ -1,3 +1,5 @@
+// Shared error classes
+
 export class AppError extends Error {
   public readonly statusCode: number;
   public readonly code: string;
@@ -59,4 +61,34 @@ export class ServiceUnavailableError extends AppError {
   constructor(service: string) {
     super(`${service} is temporarily unavailable`, 503, 'SERVICE_UNAVAILABLE');
   }
+}
+
+export class BadRequestError extends AppError {
+  constructor(message: string, details?: any) {
+    super(message, 400, 'BAD_REQUEST', details);
+  }
+}
+
+export class InternalServerError extends AppError {
+  constructor(message: string = 'An internal server error occurred', details?: any) {
+    super(message, 500, 'INTERNAL_SERVER_ERROR', details);
+  }
+}
+
+// Type guard for AppError
+export function isAppError(error: any): error is AppError {
+  return error instanceof AppError;
+}
+
+// Convert any error to AppError
+export function toAppError(error: any): AppError {
+  if (isAppError(error)) {
+    return error;
+  }
+
+  if (error instanceof Error) {
+    return new InternalServerError(error.message);
+  }
+
+  return new InternalServerError('An unknown error occurred');
 }

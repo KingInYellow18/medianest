@@ -3,7 +3,7 @@ import { plexService } from '@/services/plex.service';
 import { userRepository, serviceConfigRepository } from '@/repositories/instances';
 import { redisClient } from '@/config/redis';
 import { encryptionService } from '@/services/encryption.service';
-import { AppError } from '@/utils/errors';
+import { AppError } from '@medianest/shared';
 
 // Mock dependencies
 vi.mock('@/repositories/instances');
@@ -19,7 +19,7 @@ describe('PlexService', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Clear client cache
     plexService['clients'].clear();
 
@@ -33,7 +33,7 @@ describe('PlexService', () => {
       role: 'user',
       createdAt: new Date(),
       lastLoginAt: new Date(),
-      status: 'active'
+      status: 'active',
     });
 
     vi.mocked(serviceConfigRepository.findByName).mockResolvedValue({
@@ -41,7 +41,7 @@ describe('PlexService', () => {
       serviceName: 'plex',
       serviceUrl: mockServerUrl,
       enabled: true,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     });
 
     vi.mocked(encryptionService.decrypt).mockResolvedValue(mockDecryptedToken);
@@ -52,7 +52,7 @@ describe('PlexService', () => {
   describe('getClientForUser', () => {
     it('should create and cache a new client for user', async () => {
       const client = await plexService.getClientForUser(mockUserId);
-      
+
       expect(userRepository.findById).toHaveBeenCalledWith(mockUserId);
       expect(serviceConfigRepository.findByName).toHaveBeenCalledWith('plex');
       expect(encryptionService.decrypt).toHaveBeenCalledWith(mockPlexToken);
@@ -62,7 +62,7 @@ describe('PlexService', () => {
     it('should return cached client for subsequent calls', async () => {
       const client1 = await plexService.getClientForUser(mockUserId);
       const client2 = await plexService.getClientForUser(mockUserId);
-      
+
       expect(client1).toBe(client2);
       expect(userRepository.findById).toHaveBeenCalledTimes(1);
     });
@@ -77,25 +77,27 @@ describe('PlexService', () => {
         role: 'user',
         createdAt: new Date(),
         lastLoginAt: new Date(),
-        status: 'active'
+        status: 'active',
       });
 
-      await expect(plexService.getClientForUser(mockUserId))
-        .rejects.toThrow(new AppError('User not found or missing Plex token', 401));
+      await expect(plexService.getClientForUser(mockUserId)).rejects.toThrow(
+        new AppError('User not found or missing Plex token', 401),
+      );
     });
 
     it('should throw error if Plex server not configured', async () => {
       vi.mocked(serviceConfigRepository.findByName).mockResolvedValueOnce(null);
 
-      await expect(plexService.getClientForUser(mockUserId))
-        .rejects.toThrow(new AppError('Plex server not configured', 500));
+      await expect(plexService.getClientForUser(mockUserId)).rejects.toThrow(
+        new AppError('Plex server not configured', 500),
+      );
     });
   });
 
   describe('getLibraries', () => {
     const mockLibraries = [
       { key: '1', type: 'movie' as const, title: 'Movies', uuid: 'uuid1', updatedAt: 123 },
-      { key: '2', type: 'show' as const, title: 'TV Shows', uuid: 'uuid2', updatedAt: 456 }
+      { key: '2', type: 'show' as const, title: 'TV Shows', uuid: 'uuid2', updatedAt: 456 },
     ];
 
     it('should return cached libraries if available', async () => {
@@ -113,8 +115,8 @@ describe('PlexService', () => {
       vi.doMock('@/integrations/plex/plex.client', () => ({
         PlexClient: vi.fn(() => ({
           testConnection: vi.fn().mockResolvedValue({}),
-          getLibraries: mockGetLibraries
-        }))
+          getLibraries: mockGetLibraries,
+        })),
       }));
 
       const result = await plexService.getLibraries(mockUserId);
@@ -122,7 +124,7 @@ describe('PlexService', () => {
       expect(redisClient.setex).toHaveBeenCalledWith(
         'plex:libraries:user-123',
         300,
-        JSON.stringify(mockLibraries)
+        JSON.stringify(mockLibraries),
       );
     });
   });
@@ -135,8 +137,8 @@ describe('PlexService', () => {
         guid: 'plex://movie/123',
         type: 'movie' as const,
         title: 'Test Movie',
-        addedAt: 1234567890
-      }
+        addedAt: 1234567890,
+      },
     ];
 
     it('should return cached search results if available', async () => {
@@ -154,8 +156,8 @@ describe('PlexService', () => {
       vi.doMock('@/integrations/plex/plex.client', () => ({
         PlexClient: vi.fn(() => ({
           testConnection: vi.fn().mockResolvedValue({}),
-          search: mockSearch
-        }))
+          search: mockSearch,
+        })),
       }));
 
       await plexService.search(mockUserId, 'Test Movie');
@@ -163,7 +165,7 @@ describe('PlexService', () => {
       expect(redisClient.setex).toHaveBeenCalledWith(
         'plex:search:user-123:Test Movie',
         60,
-        JSON.stringify(mockSearchResults)
+        JSON.stringify(mockSearchResults),
       );
     });
   });

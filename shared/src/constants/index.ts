@@ -3,19 +3,31 @@
 export const APP_NAME = 'MediaNest';
 export const APP_VERSION = '1.0.0';
 
+// Re-export constants from specific modules
+export * from './events';
+export * from './api';
+
 // Rate limiting constants
 export const RATE_LIMITS = {
   GENERAL_API: {
     windowMs: 60 * 1000, // 1 minute
     max: 100, // requests per window
+    keyPrefix: 'rate:api:',
   },
   YOUTUBE_DOWNLOAD: {
     windowMs: 60 * 60 * 1000, // 1 hour
     max: 5, // downloads per window
+    keyPrefix: 'rate:youtube:',
   },
   MEDIA_REQUEST: {
     windowMs: 60 * 60 * 1000, // 1 hour
     max: 20, // requests per window
+    keyPrefix: 'rate:media:',
+  },
+  AUTH: {
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // attempts per window
+    keyPrefix: 'rate:auth:',
   },
 } as const;
 

@@ -1,6 +1,6 @@
 import { ServiceStatus, Prisma, Decimal } from '@prisma/client';
 
-import { NotFoundError } from '../utils/errors';
+import { NotFoundError } from '@medianest/shared';
 
 import { BaseRepository } from './base.repository';
 
