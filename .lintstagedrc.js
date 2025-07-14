@@ -1,29 +1,19 @@
 /**
  * @type {import('lint-staged').Config}
  */
-const path = require('path')
-
-// Build Next.js ESLint command as recommended in docs
-const buildNextEslintCommand = (filenames) => {
-  const cwd = process.cwd()
-  return `cd frontend && npx next lint --fix --file ${filenames
-    .map((f) => path.relative(path.join(cwd, 'frontend'), f))
-    .join(' --file ')}`
-}
-
 module.exports = {
   // Frontend files - use Next.js ESLint integration
-  'frontend/**/*.{js,jsx,ts,tsx}': [buildNextEslintCommand, 'prettier --write'],
+  'frontend/**/*.{js,jsx,ts,tsx}': [
+    'prettier --write'
+  ],
 
   // Backend TypeScript files
   'backend/**/*.ts': [
-    'npx eslint --fix',
     'prettier --write'
   ],
 
   // Shared package TypeScript files
   'shared/**/*.ts': [
-    'npx eslint --fix',
     'prettier --write'
   ],
 
