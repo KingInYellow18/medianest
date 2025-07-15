@@ -139,15 +139,16 @@ shared/
 
 ## Key Integration Points
 
-### Plex Authentication Flow
+### Plex Authentication Flow (PIN-based)
 
 1. User clicks "Login with Plex"
-2. Redirect to Plex OAuth with client ID
-3. Plex redirects back with auth code
-4. Exchange code for Plex token
-5. Fetch user details from Plex API
-6. Create/update local user record
-7. Issue JWT for session management
+2. Backend generates PIN via Plex API
+3. User enters PIN at plex.tv/link
+4. Frontend polls backend for authorization status
+5. Backend exchanges PIN for Plex token
+6. Fetch user details from Plex API
+7. Create/update local user record with encrypted token
+8. Issue JWT for session management
 
 ### Service Integration Pattern
 
@@ -308,7 +309,32 @@ Phase 1 (Core Infrastructure) is COMPLETE ✅:
 - ✅ AES-256-GCM encryption for sensitive data
 - ✅ Zod input validation schemas for all endpoints
 
-Ready for Phase 2: External Service Integration (Plex, Overseerr, Uptime Kuma)
+Phase 2 (External Service Integration) is COMPLETE ✅:
+
+- ✅ Plex API integration with PIN-based OAuth flow
+- ✅ Overseerr API integration for media requests
+- ✅ Uptime Kuma integration for service monitoring
+- ✅ Service configuration management with encryption
+- ✅ Circuit breaker pattern for all external services
+- ✅ Health check endpoints for all services
+
+Phase 3 (Dashboard & Media UI) is COMPLETE ✅:
+
+- ✅ Service status cards with real-time updates
+- ✅ Media browsing with Plex library integration
+- ✅ Media request UI with Overseerr integration
+- ✅ YouTube downloader frontend interface
+- ✅ WebSocket-powered status updates
+- ✅ Mobile-responsive dashboard
+
+Phase 4 (YouTube Integration) is IN PROGRESS 🚧:
+
+- ✅ Frontend download interface complete
+- ⏳ Backend YouTube downloader integration pending
+- ⏳ BullMQ job processing for downloads
+- ⏳ User isolation for download queues
+
+Ready for Phase 4 completion: YouTube backend implementation with yt-dlp
 
 ### Development Setup
 
@@ -408,6 +434,23 @@ Ready for Phase 2: External Service Integration (Plex, Overseerr, Uptime Kuma)
 - Socket.io admin UI available at `http://localhost:4000/admin` in development
 - Use correlation IDs in logs to trace requests
 - Enable debug logging with `LOG_LEVEL=debug`
+
+### Key Configuration Files
+
+- `.env.example` - Complete list of all environment variables
+- `docker-compose.yml` - Production deployment configuration
+- `docker-compose.dev.yml` - Development environment with hot reload
+- `docker-compose.test.yml` - Test environment setup
+- `vitest.workspace.ts` - Test configuration for all workspaces
+- `ARCHITECTURE.md` - Detailed system design documentation
+
+### Important Architecture Documents
+
+- `docs/01-project-overview.md` - Project goals and scope
+- `docs/02-architecture-decisions.md` - Key architectural choices
+- `docs/04-security-design.md` - Security implementation details
+- `docs/05-api-design.md` - API endpoint documentation
+- `docs/08-deployment-plan.md` - Production deployment guide
 
 # important-instruction-reminders
 
