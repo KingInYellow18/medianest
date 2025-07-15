@@ -6,6 +6,7 @@ import { logger } from '@/utils/logger';
 
 import { registerHandlers } from './handlers';
 import { authenticateSocket } from './middleware';
+import { setSocketServer } from './server';
 
 export function initializeSocketServer(httpServer: HttpServer): Server {
   const io = new Server(httpServer, {
@@ -15,6 +16,9 @@ export function initializeSocketServer(httpServer: HttpServer): Server {
     },
     transports: ['websocket', 'polling'],
   });
+
+  // Store the socket server instance
+  setSocketServer(io);
 
   // JWT authentication middleware
   io.use(authenticateSocket);

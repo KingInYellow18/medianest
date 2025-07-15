@@ -127,6 +127,12 @@ async function initializeServices() {
     const { statusService } = await import('./services/status.service');
     await statusService.initialize();
     logger.info('Status service initialized');
+
+    // Initialize YouTube download processor
+    const { YouTubeDownloadProcessor } = await import('./jobs/youtube-download.processor');
+    const youtubeProcessor = new YouTubeDownloadProcessor();
+    await youtubeProcessor.start();
+    logger.info('YouTube download processor initialized');
   } catch (error) {
     logger.error('Failed to initialize services:', error);
     // Continue running even if external services fail
