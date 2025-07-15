@@ -1,6 +1,7 @@
 // Plex image URL utilities
+import { getExternalServiceUrls } from '@/config';
 
-const PLEX_BASE_URL = process.env.NEXT_PUBLIC_PLEX_URL || 'http://localhost:32400';
+const { plex: PLEX_BASE_URL } = getExternalServiceUrls();
 
 export function getPlexImageUrl(
   path?: string,

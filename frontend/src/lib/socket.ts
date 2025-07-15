@@ -1,5 +1,6 @@
 import Cookies from 'js-cookie';
 import { io, Socket } from 'socket.io-client';
+import { getApiConfig } from '@/config';
 
 interface ConnectionOptions {
   reconnection?: boolean;
@@ -57,7 +58,8 @@ class SocketManager {
 
     const token =
       Cookies.get('next-auth.session-token') || Cookies.get('__Secure-next-auth.session-token');
-    const socketUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000';
+    const { backendUrl } = getApiConfig();
+    const socketUrl = backendUrl;
 
     this.socket = io(socketUrl, {
       auth: { token },

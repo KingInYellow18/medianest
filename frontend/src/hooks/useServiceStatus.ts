@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 
 import { socketManager } from '@/lib/socket';
 import { ServiceStatus } from '@/types/dashboard';
+import { getApiConfig } from '@/config';
 
 export function useServiceStatus(initialServices: ServiceStatus[]) {
   const [services, setServices] = useState<ServiceStatus[]>(initialServices);
@@ -61,8 +62,8 @@ export function useServiceStatus(initialServices: ServiceStatus[]) {
     // Fetch services periodically as fallback
     const fetchServices = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
-        const response = await fetch(`${apiUrl}/dashboard/status`);
+        const { baseUrl } = getApiConfig();
+        const response = await fetch(`${baseUrl}/dashboard/status`);
         if (response.ok) {
           const data = await response.json();
           const services = data.data.services.map((service: any) => ({

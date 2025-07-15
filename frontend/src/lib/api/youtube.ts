@@ -4,15 +4,12 @@ import type {
   DownloadFormat,
   UserQuota,
 } from '@/types/youtube';
-import type {
-  DownloadQueueResponse,
-  DownloadQueueItem,
-  QueueFilters,
-} from '@/types/youtube-queue';
+import type { DownloadQueueResponse, DownloadQueueItem, QueueFilters } from '@/types/youtube-queue';
 
 import { getAuthHeaders } from './auth';
+import { getApiConfig } from '@/config';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+const { baseUrl: API_BASE } = getApiConfig();
 
 export async function validateAndFetchMetadata(url: string): Promise<YouTubeMetadata> {
   const headers = await getAuthHeaders();
@@ -98,32 +95,32 @@ export interface FetchDownloadQueueOptions {
 }
 
 export async function fetchDownloadQueue(
-  options: FetchDownloadQueueOptions
+  options: FetchDownloadQueueOptions,
 ): Promise<DownloadQueueResponse> {
   const headers = await getAuthHeaders();
   const params = new URLSearchParams();
-  
+
   if (options.userId) {
     params.append('userId', options.userId);
   }
-  
+
   if (options.filters.status && options.filters.status !== 'all') {
     params.append('status', options.filters.status);
   }
-  
+
   if (options.filters.search) {
     params.append('search', options.filters.search);
   }
-  
+
   if (options.filters.dateRange) {
     params.append('startDate', options.filters.dateRange.start.toISOString());
     params.append('endDate', options.filters.dateRange.end.toISOString());
   }
-  
+
   if (options.page) {
     params.append('page', options.page.toString());
   }
-  
+
   if (options.limit) {
     params.append('limit', options.limit.toString());
   }
@@ -132,7 +129,7 @@ export async function fetchDownloadQueue(
     method: 'GET',
     headers,
   });
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.message || 'Failed to fetch download queue');
@@ -171,7 +168,9 @@ export async function retryDownload(downloadId: string): Promise<YouTubeDownload
   return response.json();
 }
 
-export async function checkDuplicateURL(url: string): Promise<{ isDuplicate: boolean; existingDownload?: any }> {
+export async function checkDuplicateURL(
+  url: string,
+): Promise<{ isDuplicate: boolean; existingDownload?: any }> {
   const headers = await getAuthHeaders();
   const response = await fetch(`${API_BASE}/youtube/check-duplicate`, {
     method: 'POST',
@@ -193,7 +192,7 @@ export async function deleteDownload(downloadId: string): Promise<void> {
     method: 'DELETE',
     headers,
   });
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.message || 'Failed to delete download');
@@ -207,7 +206,7 @@ export async function getDownloadDetails(downloadId: string): Promise<DownloadQu
     method: 'GET',
     headers,
   });
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.message || 'Failed to get download details');

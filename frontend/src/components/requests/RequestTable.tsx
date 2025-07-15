@@ -7,6 +7,7 @@ import Image from 'next/image';
 import React, { useState } from 'react';
 
 import { MediaRequest } from '@/types/requests';
+import { getExternalServiceUrls } from '@/config';
 
 import { RequestDetails } from './RequestDetails';
 import { RequestList } from './RequestList';
@@ -176,7 +177,7 @@ export function RequestTable({
                     </button>
                     {request.overseerrId && (
                       <a
-                        href={`${process.env.NEXT_PUBLIC_OVERSEERR_URL}/request/${request.overseerrId}`}
+                        href={`${getExternalServiceUrls().overseerr}/request/${request.overseerrId}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-gray-400 hover:text-white"

@@ -7,8 +7,9 @@ import {
   CollectionFilters,
 } from '@/types/plex';
 import { PlexSearchQuery, PlexSearchResults } from '@/types/plex-search';
+import { getApiConfig } from '@/config';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+const { baseUrl: API_BASE } = getApiConfig();
 
 async function getAuthHeaders(): Promise<HeadersInit> {
   // In Next.js with NextAuth, we can get the token from the session

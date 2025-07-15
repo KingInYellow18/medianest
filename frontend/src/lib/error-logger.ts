@@ -1,4 +1,5 @@
 import { logError, ErrorLogEntry, extractErrorDetails } from '@medianest/shared';
+import { getErrorReportingConfig, isProduction } from '@/config';
 
 interface ErrorReportingConfig {
   enabled: boolean;
@@ -156,9 +157,11 @@ class ErrorLogger {
 let errorLogger: ErrorLogger | null = null;
 
 export function initializeErrorLogger(config: Partial<ErrorReportingConfig> = {}) {
+  const { endpoint } = getErrorReportingConfig();
+
   const defaultConfig: ErrorReportingConfig = {
-    enabled: process.env.NODE_ENV === 'production',
-    endpoint: process.env.NEXT_PUBLIC_ERROR_REPORTING_ENDPOINT,
+    enabled: isProduction(),
+    endpoint,
     sampleRate: 1.0, // Report 100% of errors by default
     excludeErrors: [
       'ResizeObserver loop limit exceeded', // Common browser warning

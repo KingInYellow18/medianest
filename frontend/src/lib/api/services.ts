@@ -1,6 +1,7 @@
 import { ServiceStatus } from '@medianest/shared';
+import { getApiConfig } from '@/config';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+const { baseUrl: API_BASE_URL } = getApiConfig();
 
 export async function getServiceStatus(): Promise<ServiceStatus[]> {
   try {

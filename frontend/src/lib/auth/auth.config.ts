@@ -4,6 +4,7 @@ import { prisma } from '../db/prisma';
 import PlexProvider from './plex-provider';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { z } from 'zod';
+import { getPlexAuthConfig } from '@/config';
 
 // Admin credentials schema
 const adminCredentialsSchema = z.object({
@@ -20,9 +21,7 @@ export async function getAuthOptions(): Promise<NextAuthOptions> {
   const providers: any[] = [
     // Plex OAuth provider
     PlexProvider({
-      clientId: process.env.AUTH_PLEX_CLIENT_ID!,
-      clientSecret: process.env.AUTH_PLEX_CLIENT_SECRET!,
-      clientIdentifier: process.env.PLEX_CLIENT_IDENTIFIER,
+      ...getPlexAuthConfig(),
       product: 'MediaNest',
       device: 'Web',
       deviceName: 'MediaNest Web Portal',
