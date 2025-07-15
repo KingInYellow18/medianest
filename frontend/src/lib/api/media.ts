@@ -1,11 +1,10 @@
+import { apiClient } from './client';
 import {
   MediaSearchResponse,
   MediaRequestPayload,
   MediaRequest,
   MediaAvailability,
 } from '@/types/media';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
 export interface SearchParams {
   query: string;
@@ -15,42 +14,29 @@ export interface SearchParams {
   page?: number;
 }
 
-async function getAuthHeaders(): Promise<HeadersInit> {
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
+export async function searchMedia(params: SearchParams): Promise<MediaSearchResponse> {
+  const queryParams: Record<string, string> = {
+    query: params.query,
   };
 
-  // In a real app, you'd get the token from your auth context or storage
-  const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+  if (params.mediaType && params.mediaType !== 'all') {
+    queryParams.type = params.mediaType;
+  }
+  if (params.year) {
+    queryParams.year = params.year.toString();
+  }
+  if (params.genre) {
+    queryParams.genre = params.genre.toString();
+  }
+  if (params.page) {
+    queryParams.page = params.page.toString();
   }
 
-  return headers;
-}
-
-export async function searchMedia(params: SearchParams): Promise<MediaSearchResponse> {
-  const queryParams = new URLSearchParams({
-    query: params.query,
-    ...(params.mediaType && params.mediaType !== 'all' && { type: params.mediaType }),
-    ...(params.year && { year: params.year.toString() }),
-    ...(params.genre && { genre: params.genre.toString() }),
-    ...(params.page && { page: params.page.toString() }),
-  });
-
-  const response = await fetch(`${API_BASE_URL}/media/search?${queryParams}`, {
-    headers: await getAuthHeaders(),
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to search media');
-  }
-
-  const data = await response.json();
+  const response = await apiClient.get<any>('/media/search', { params: queryParams });
 
   // Check availability for each result
   const resultsWithAvailability = await Promise.all(
-    data.data.map(async (item: any) => {
+    response.data.map(async (item: any) => {
       const availability = await checkAvailability(item.id, item.mediaType);
       return { ...item, availability };
     }),
@@ -58,9 +44,9 @@ export async function searchMedia(params: SearchParams): Promise<MediaSearchResp
 
   return {
     results: resultsWithAvailability,
-    totalResults: data.meta?.totalResults || data.data.length,
-    page: data.meta?.page || 1,
-    totalPages: data.meta?.totalPages || 1,
+    totalResults: response.meta?.totalResults || response.data.length,
+    page: response.meta?.page || 1,
+    totalPages: response.meta?.totalPages || 1,
   };
 }
 
@@ -69,28 +55,18 @@ export async function checkAvailability(
   mediaType: 'movie' | 'tv',
 ): Promise<MediaAvailability> {
   try {
-    const response = await fetch(`${API_BASE_URL}/media/${mediaType}/${tmdbId}`, {
-      headers: await getAuthHeaders(),
-    });
-
-    if (!response.ok) {
-      return {
-        status: 'unavailable',
-      };
-    }
-
-    const data = await response.json();
+    const response = await apiClient.get<any>(`/media/${mediaType}/${tmdbId}`);
 
     // Map the response to our MediaAvailability interface
     return {
-      status: data.data?.mediaInfo?.status || 'unavailable',
-      plexUrl: data.data?.mediaInfo?.plexUrl,
-      requestedBy: data.data?.mediaInfo?.requestedBy,
-      requestedAt: data.data?.mediaInfo?.requestedAt,
-      seasons: data.data?.mediaInfo?.seasons,
+      status: response.mediaInfo?.status || 'unavailable',
+      plexUrl: response.mediaInfo?.plexUrl,
+      requestedBy: response.mediaInfo?.requestedBy,
+      requestedAt: response.mediaInfo?.requestedAt,
+      seasons: response.mediaInfo?.seasons,
     };
   } catch (error) {
-    console.error('Error checking availability:', error);
+    // If we can't check availability, assume it's unavailable
     return {
       status: 'unavailable',
     };
@@ -98,53 +74,27 @@ export async function checkAvailability(
 }
 
 export async function requestMedia(payload: MediaRequestPayload): Promise<MediaRequest> {
-  const response = await fetch(`${API_BASE_URL}/media/request`, {
-    method: 'POST',
-    headers: await getAuthHeaders(),
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to submit media request');
-  }
-
-  const data = await response.json();
-  return data.data;
+  const response = await apiClient.post<MediaRequest>('/media/request', payload);
+  return response;
 }
 
 export async function getUserRequests(
   skip = 0,
   take = 20,
 ): Promise<{ requests: MediaRequest[]; total: number }> {
-  const queryParams = new URLSearchParams({
-    skip: skip.toString(),
-    take: take.toString(),
+  const response = await apiClient.get<any>('/media/requests', {
+    params: {
+      skip: skip.toString(),
+      take: take.toString(),
+    },
   });
 
-  const response = await fetch(`${API_BASE_URL}/media/requests?${queryParams}`, {
-    headers: await getAuthHeaders(),
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch user requests');
-  }
-
-  const data = await response.json();
   return {
-    requests: data.data,
-    total: data.meta?.total || data.data.length,
+    requests: response.data || response,
+    total: response.meta?.total || response.length,
   };
 }
 
 export async function deleteRequest(requestId: string): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/media/requests/${requestId}`, {
-    method: 'DELETE',
-    headers: await getAuthHeaders(),
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to delete request');
-  }
+  await apiClient.delete(`/media/requests/${requestId}`);
 }
