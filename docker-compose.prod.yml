@@ -1,0 +1,158 @@
+# Production Docker Compose configuration with secrets management
+# This file demonstrates proper production configuration with Docker secrets
+
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    ports:
+      - '443:443'
+      - '80:80'
+    depends_on:
+      - app
+    restart: unless-stopped
+    networks:
+      - medianest-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    environment:
+      - NODE_ENV=production
+      - USE_DOCKER_SECRETS=true
+      - DOCKER_SECRETS_PATH=/run/secrets
+      - PORT=4000
+      - HOST=0.0.0.0
+      - DATABASE_URL_FILE=/run/secrets/database_url
+      - REDIS_URL_FILE=/run/secrets/redis_url
+    volumes:
+      - youtube_downloads:/app/youtube:rw
+      - app_uploads:/app/uploads:rw
+    secrets:
+      - database_url
+      - redis_url
+      - nextauth_secret
+      - jwt_secret
+      - encryption_key
+      - plex_client_id
+      - plex_client_secret
+      - overseerr_api_key
+      - uptime_kuma_token
+    user: '1000:1000'
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    networks:
+      - medianest-network
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:4000/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=medianest
+      - POSTGRES_USER=medianest
+      - POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+    secrets:
+      - postgres_password
+    user: '999:999'
+    restart: unless-stopped
+    networks:
+      - medianest-network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U medianest -d medianest']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis:
+    image: redis:7-alpine
+    command: >
+      redis-server 
+      --appendonly yes 
+      --maxmemory 512mb 
+      --maxmemory-policy allkeys-lru
+      --requirepass-file /run/secrets/redis_password
+    volumes:
+      - redis_data:/data
+    secrets:
+      - redis_password
+    user: '999:999'
+    restart: unless-stopped
+    networks:
+      - medianest-network
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'redis-cli',
+          '--no-auth-warning',
+          '-a',
+          '$(cat /run/secrets/redis_password)',
+          'ping',
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  youtube_downloads:
+    driver: local
+  app_uploads:
+    driver: local
+
+networks:
+  medianest-network:
+    driver: bridge
+
+secrets:
+  # Database secrets
+  database_url:
+    file: ./secrets/database_url
+  postgres_password:
+    file: ./secrets/postgres_password
+
+  # Redis secrets
+  redis_url:
+    file: ./secrets/redis_url
+  redis_password:
+    file: ./secrets/redis_password
+
+  # Application secrets
+  nextauth_secret:
+    file: ./secrets/nextauth_secret
+  jwt_secret:
+    file: ./secrets/jwt_secret
+  encryption_key:
+    file: ./secrets/encryption_key
+
+  # OAuth secrets
+  plex_client_id:
+    file: ./secrets/plex_client_id
+  plex_client_secret:
+    file: ./secrets/plex_client_secret
+
+  # External service secrets
+  overseerr_api_key:
+    file: ./secrets/overseerr_api_key
+  uptime_kuma_token:
+    file: ./secrets/uptime_kuma_token
