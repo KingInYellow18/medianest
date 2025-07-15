@@ -11,3 +11,6 @@ export * from './constants';
 
 // Export all shared errors
 export * from './errors';
+
+// Export configuration management
+export * from './config';
