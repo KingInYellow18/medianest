@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 
 import { getRedis } from '../config/redis';
+import { getRateLimitConfig } from '../config';
 import { RateLimitError } from '@medianest/shared';
 import { logger } from '../utils/logger';
 
@@ -104,30 +105,33 @@ function defaultKeyGenerator(req: Request): string {
   return req.user?.id || req.ip || 'unknown';
 }
 
+// Get configuration once at module load
+const rateLimitConfig = getRateLimitConfig();
+
 // Pre-configured rate limiters
 export const apiRateLimit = createRateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 100,
+  windowMs: rateLimitConfig.api.window,
+  max: rateLimitConfig.api.requests,
   message: 'Too many API requests',
 });
 
 export const authRateLimit = createRateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5,
+  windowMs: 15 * 60 * 1000, // 15 minutes - static value for security
+  max: 5, // Fixed for security - not configurable
   keyGenerator: (req) => req.ip || 'unknown',
   message: 'Too many authentication attempts',
 });
 
 export const youtubeRateLimit = createRateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 5,
+  windowMs: rateLimitConfig.youtube.window,
+  max: rateLimitConfig.youtube.requests,
   keyGenerator: (req) => req.user?.id || req.ip || 'unknown',
   message: 'YouTube download limit exceeded',
 });
 
 export const mediaRequestRateLimit = createRateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 20,
+  windowMs: rateLimitConfig.media.window,
+  max: rateLimitConfig.media.requests,
   keyGenerator: (req) => req.user?.id || req.ip || 'unknown',
   message: 'Media request limit exceeded',
 });

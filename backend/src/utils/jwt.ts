@@ -2,6 +2,7 @@ import { randomBytes } from 'crypto';
 
 import jwt from 'jsonwebtoken';
 
+import { getJWTConfig } from '../config';
 import { AppError } from './errors';
 
 interface JWTPayload {
@@ -17,37 +18,48 @@ interface JWTOptions {
   audience?: string;
 }
 
-// Get JWT secret from environment
-const JWT_SECRET = process.env.JWT_SECRET || 'development-secret-change-in-production';
-const JWT_ISSUER = process.env.JWT_ISSUER || 'medianest';
-const JWT_AUDIENCE = process.env.JWT_AUDIENCE || 'medianest-users';
-
 // Default expiry times
 const DEFAULT_TOKEN_EXPIRY = '24h';
 const REMEMBER_ME_TOKEN_EXPIRY = '30d';
+
+/**
+ * Get JWT configuration from centralized config
+ */
+const getJWTSettings = () => {
+  const config = getJWTConfig();
+  return {
+    secret: config.secret,
+    issuer: config.issuer,
+    audience: config.audience,
+    defaultExpiry: config.expiresIn || DEFAULT_TOKEN_EXPIRY,
+  };
+};
 
 export function generateToken(
   payload: JWTPayload,
   rememberMe: boolean = false,
   options?: JWTOptions,
 ): string {
-  const expiresIn = rememberMe ? REMEMBER_ME_TOKEN_EXPIRY : DEFAULT_TOKEN_EXPIRY;
+  const settings = getJWTSettings();
+  const expiresIn = rememberMe ? REMEMBER_ME_TOKEN_EXPIRY : settings.defaultExpiry;
 
   const tokenOptions: jwt.SignOptions = {
-    expiresIn: (options?.expiresIn || expiresIn) as string | number | undefined,
-    issuer: options?.issuer || JWT_ISSUER,
-    audience: options?.audience || JWT_AUDIENCE,
+    expiresIn: options?.expiresIn || expiresIn,
+    issuer: options?.issuer || settings.issuer,
+    audience: options?.audience || settings.audience,
     algorithm: 'HS256',
   };
 
-  return jwt.sign(payload, JWT_SECRET, tokenOptions);
+  return jwt.sign(payload, settings.secret, tokenOptions);
 }
 
-export function verifyToken(token: string): JWTPayload {
+export function verifyToken(token: string, options?: Partial<JWTOptions>): JWTPayload {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET, {
-      issuer: JWT_ISSUER,
-      audience: JWT_AUDIENCE,
+    const settings = getJWTSettings();
+
+    const decoded = jwt.verify(token, settings.secret, {
+      issuer: options?.issuer || settings.issuer,
+      audience: options?.audience || settings.audience,
       algorithms: ['HS256'],
     }) as JWTPayload;
 
@@ -58,6 +70,9 @@ export function verifyToken(token: string): JWTPayload {
     }
     if (error instanceof jwt.JsonWebTokenError) {
       throw new AppError('Invalid token', 401, 'INVALID_TOKEN');
+    }
+    if (error instanceof jwt.NotBeforeError) {
+      throw new AppError('Token not active yet', 401, 'TOKEN_NOT_ACTIVE');
     }
     throw new AppError('Token verification failed', 401, 'TOKEN_VERIFICATION_FAILED');
   }
@@ -72,7 +87,7 @@ export function decodeToken(token: string): JWTPayload | null {
 }
 
 export function generateRefreshToken(): string {
-  // Generate a random refresh token
+  // Generate a cryptographically secure random refresh token
   return randomBytes(32).toString('hex');
 }
 
@@ -92,4 +107,64 @@ export function isTokenExpired(token: string): boolean {
   const expiry = getTokenExpiry(token);
   if (!expiry) return true;
   return expiry < new Date();
+}
+
+/**
+ * Extract token from Authorization header
+ */
+export function extractTokenFromHeader(authHeader: string | undefined): string | null {
+  if (!authHeader) return null;
+
+  const parts = authHeader.split(' ');
+  if (parts.length !== 2 || parts[0] !== 'Bearer') return null;
+
+  return parts[1];
+}
+
+/**
+ * Create a JWT token payload from user data
+ */
+export function createTokenPayload(user: {
+  id: string;
+  email: string;
+  role: string;
+  plexId?: string;
+}): JWTPayload {
+  return {
+    userId: user.id,
+    email: user.email,
+    role: user.role,
+    plexId: user.plexId,
+  };
+}
+
+/**
+ * Validate JWT configuration at startup
+ */
+export function validateJWTConfig(): void {
+  const settings = getJWTSettings();
+
+  if (!settings.secret || settings.secret.length < 32) {
+    throw new Error('JWT secret must be at least 32 characters long');
+  }
+
+  if (!settings.issuer) {
+    throw new Error('JWT issuer is required');
+  }
+
+  if (!settings.audience) {
+    throw new Error('JWT audience is required');
+  }
+}
+
+/**
+ * Get JWT configuration for external use (without secret)
+ */
+export function getJWTInfo() {
+  const settings = getJWTSettings();
+  return {
+    issuer: settings.issuer,
+    audience: settings.audience,
+    defaultExpiry: settings.defaultExpiry,
+  };
 }

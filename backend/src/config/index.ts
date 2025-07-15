@@ -1,56 +1,192 @@
-import dotenv from 'dotenv';
+import {
+  BackendConfigSchema,
+  createConfiguration,
+  environmentLoader,
+  configUtils,
+  type BackendConfig,
+} from '@medianest/shared/config';
 
-// Load environment variables
-dotenv.config();
+/**
+ * Load and validate backend configuration
+ */
+const loadBackendConfig = (): BackendConfig => {
+  const environment = environmentLoader.getEnvironment();
 
-export const config = {
-  env: process.env.NODE_ENV || 'development',
-  port: parseInt(process.env.PORT || '4000', 10),
-
-  // Database
-  database: {
-    url: process.env.DATABASE_URL || 'postgresql://user:pass@localhost:5432/medianest',
-  },
-
-  // Redis
-  redis: {
-    url: process.env.REDIS_URL || 'redis://localhost:6379',
-  },
-
-  // Authentication
-  auth: {
-    nextAuthSecret: process.env.NEXTAUTH_SECRET || 'development-secret',
-    encryptionKey: process.env.ENCRYPTION_KEY || 'development-encryption-key-32-chars!',
-    adminUsername: process.env.ADMIN_USERNAME || 'admin',
-    adminPassword: process.env.ADMIN_PASSWORD || 'admin',
-  },
-
-  // JWT
-  jwt: {
-    secret: process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || 'development-secret',
-    issuer: 'medianest',
-    audience: 'medianest-users',
-  },
-
-  // Security
-  security: {
-    encryptionKey: process.env.ENCRYPTION_KEY || 'development-encryption-key-32-chars!',
-  },
-
-  // Plex
-  plex: {
-    clientId: process.env.PLEX_CLIENT_ID || 'medianest',
-    clientSecret: process.env.PLEX_CLIENT_SECRET || '',
-  },
-
-  // YouTube
-  youtube: {
-    downloadPath: process.env.YOUTUBE_DOWNLOAD_PATH || '/app/youtube',
-    rateLimit: parseInt(process.env.YOUTUBE_RATE_LIMIT || '5', 10),
-  },
-
-  // Logging
-  logging: {
-    level: process.env.LOG_LEVEL || 'info',
-  },
+  return createConfiguration((env) => BackendConfigSchema.parse(env), {
+    useDockerSecrets: environment === 'production',
+    envFilePath: environment === 'test' ? '.env.test' : undefined,
+  });
 };
+
+/**
+ * Validated backend configuration instance
+ */
+export const config = loadBackendConfig();
+
+/**
+ * Configuration logging utility
+ */
+export const logConfiguration = () => {
+  const sanitized = configUtils.sanitizeConfigForLogging(config);
+  console.log('Backend configuration loaded:', {
+    environment: config.NODE_ENV,
+    port: config.PORT,
+    databaseUrl: configUtils.maskSensitiveValue('DATABASE_URL', config.DATABASE_URL),
+    redisHost: config.REDIS_HOST,
+    redisPort: config.REDIS_PORT,
+    jwtIssuer: config.JWT_ISSUER,
+    plexClientId: config.PLEX_CLIENT_ID,
+    youtubeDownloadPath: config.YOUTUBE_DOWNLOAD_PATH,
+    logLevel: config.LOG_LEVEL,
+    useDockerSecrets: config.USE_DOCKER_SECRETS,
+  });
+};
+
+/**
+ * Validate required configuration at startup
+ */
+export const validateRequiredConfig = () => {
+  const required = [
+    'DATABASE_URL',
+    'JWT_SECRET',
+    'NEXTAUTH_SECRET',
+    'ENCRYPTION_KEY',
+    'PLEX_CLIENT_ID',
+    'PLEX_CLIENT_SECRET',
+  ];
+
+  const missing = required.filter((key) => !config[key as keyof BackendConfig]);
+
+  if (missing.length > 0) {
+    throw new Error(`Missing required configuration: ${missing.join(', ')}`);
+  }
+};
+
+/**
+ * Get database configuration for Prisma
+ */
+export const getDatabaseConfig = () => ({
+  url: config.DATABASE_URL,
+  pool: {
+    size: config.DATABASE_POOL_SIZE,
+    timeout: config.DATABASE_TIMEOUT,
+  },
+});
+
+/**
+ * Get Redis configuration
+ */
+export const getRedisConfig = () => {
+  if (config.REDIS_URL) {
+    return { url: config.REDIS_URL };
+  }
+
+  return {
+    host: config.REDIS_HOST,
+    port: config.REDIS_PORT,
+    password: config.REDIS_PASSWORD,
+    username: config.REDIS_USERNAME,
+    db: config.REDIS_DATABASE,
+    tls: config.REDIS_TLS ? {} : undefined,
+  };
+};
+
+/**
+ * Get JWT configuration
+ */
+export const getJWTConfig = () => ({
+  secret: config.JWT_SECRET,
+  issuer: config.JWT_ISSUER,
+  audience: config.JWT_AUDIENCE,
+  expiresIn: config.JWT_EXPIRES_IN,
+});
+
+/**
+ * Get Plex OAuth configuration
+ */
+export const getPlexConfig = () => ({
+  clientId: config.PLEX_CLIENT_ID,
+  clientSecret: config.PLEX_CLIENT_SECRET,
+  clientIdentifier: config.PLEX_CLIENT_IDENTIFIER || config.PLEX_CLIENT_ID,
+  serverUrl: config.PLEX_SERVER_URL,
+});
+
+/**
+ * Get rate limiting configuration
+ */
+export const getRateLimitConfig = () => ({
+  api: {
+    requests: config.RATE_LIMIT_API_REQUESTS,
+    window: config.RATE_LIMIT_API_WINDOW,
+  },
+  youtube: {
+    requests: config.RATE_LIMIT_YOUTUBE_REQUESTS,
+    window: config.RATE_LIMIT_YOUTUBE_WINDOW,
+  },
+  media: {
+    requests: config.RATE_LIMIT_MEDIA_REQUESTS,
+    window: config.RATE_LIMIT_MEDIA_WINDOW,
+  },
+});
+
+/**
+ * Get YouTube configuration
+ */
+export const getYouTubeConfig = () => ({
+  downloadPath: config.YOUTUBE_DOWNLOAD_PATH,
+  maxConcurrentDownloads: config.YOUTUBE_MAX_CONCURRENT_DOWNLOADS,
+  rateLimit: config.YOUTUBE_RATE_LIMIT,
+});
+
+/**
+ * Get admin bootstrap configuration
+ */
+export const getAdminConfig = () => ({
+  username: config.ADMIN_USERNAME,
+  password: config.ADMIN_PASSWORD,
+});
+
+/**
+ * Get service endpoints configuration
+ */
+export const getServiceEndpointsConfig = () => ({
+  overseerr: {
+    url: config.OVERSEERR_URL,
+    apiKey: config.OVERSEERR_API_KEY,
+  },
+  uptimeKuma: {
+    url: config.UPTIME_KUMA_URL,
+    token: config.UPTIME_KUMA_TOKEN,
+  },
+  plex: {
+    url: config.PLEX_URL,
+  },
+});
+
+/**
+ * Get monitoring configuration
+ */
+export const getMonitoringConfig = () => ({
+  metricsToken: config.METRICS_TOKEN,
+  metricsEndpoint: config.METRICS_ENDPOINT,
+  errorReportingEndpoint: config.ERROR_REPORTING_ENDPOINT,
+  healthCheckInterval: config.HEALTH_CHECK_INTERVAL,
+});
+
+/**
+ * Check if we're in development environment
+ */
+export const isDevelopment = () => config.NODE_ENV === 'development';
+
+/**
+ * Check if we're in test environment
+ */
+export const isTest = () => config.NODE_ENV === 'test';
+
+/**
+ * Check if we're in production environment
+ */
+export const isProduction = () => config.NODE_ENV === 'production';
+
+// Export the configuration type for other modules
+export type { BackendConfig };
