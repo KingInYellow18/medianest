@@ -9,6 +9,7 @@ import mediaRoutes from './media';
 import plexRoutes from './plex';
 import webhookRoutes from './webhooks';
 import youtubeRoutes from './youtube';
+import { errorsRoutes } from './errors.routes';
 
 const router = Router();
 
@@ -21,6 +22,7 @@ router.use('/dashboard', authenticate, dashboardRoutes);
 router.use('/media', authenticate, mediaRoutes);
 router.use('/plex', authenticate, plexRoutes);
 router.use('/youtube', authenticate, youtubeRoutes);
+router.use('/errors', authenticate, errorsRoutes);
 
 // Admin routes
 router.use('/admin', authenticate, adminRoutes);
