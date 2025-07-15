@@ -1,28 +1,56 @@
-# Production Docker Compose configuration with secrets management
-# This file demonstrates proper production configuration with Docker secrets
+# MediaNest Production Docker Compose Configuration
+# Includes security hardening, resource limits, and monitoring
 
 version: '3.8'
 
 services:
   nginx:
     image: nginx:alpine
+    container_name: medianest-nginx
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infrastructure/nginx/ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
     ports:
-      - '443:443'
       - '80:80'
+      - '443:443'
+    environment:
+      - DOMAIN_NAME=${DOMAIN_NAME}
     depends_on:
-      - app
+      app:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - medianest-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    healthcheck:
+      test: ['CMD', 'wget', '--quiet', '--tries=1', '--spider', 'http://localhost/nginx_status']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
 
   app:
     build:
       context: .
       dockerfile: Dockerfile
-      target: production
+      args:
+        - BUILD_DATE=${BUILD_DATE:-$(date -u +'%Y-%m-%dT%H:%M:%SZ')}
+        - VCS_REF=${VCS_REF:-$(git rev-parse --short HEAD)}
+    image: medianest:${VERSION:-latest}
+    container_name: medianest-app
     environment:
       - NODE_ENV=production
       - USE_DOCKER_SECRETS=true
@@ -31,9 +59,13 @@ services:
       - HOST=0.0.0.0
       - DATABASE_URL_FILE=/run/secrets/database_url
       - REDIS_URL_FILE=/run/secrets/redis_url
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - BACKEND_URL=${BACKEND_URL}
     volumes:
-      - youtube_downloads:/app/youtube:rw
+      - youtube_downloads:/app/downloads:rw
       - app_uploads:/app/uploads:rw
+      - app_logs:/app/logs:rw
     secrets:
       - database_url
       - redis_url
@@ -42,60 +74,120 @@ services:
       - encryption_key
       - plex_client_id
       - plex_client_secret
-      - overseerr_api_key
-      - uptime_kuma_token
     user: '1000:1000'
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - medianest-network
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
     healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:4000/health']
+      test: ['CMD', 'curl', '-f', 'http://localhost:4000/api/health']
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: '50m'
+        max-file: '5'
+    labels:
+      - 'com.medianest.description=MediaNest Application'
+      - 'com.medianest.version=${VERSION:-latest}'
 
   postgres:
     image: postgres:15-alpine
+    container_name: medianest-postgres
     environment:
       - POSTGRES_DB=medianest
       - POSTGRES_USER=medianest
       - POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
       - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+      # Performance tuning
+      - POSTGRES_MAX_CONNECTIONS=100
+      - POSTGRES_SHARED_BUFFERS=256MB
+      - POSTGRES_EFFECTIVE_CACHE_SIZE=1GB
+      - POSTGRES_MAINTENANCE_WORK_MEM=64MB
+      - POSTGRES_CHECKPOINT_COMPLETION_TARGET=0.9
+      - POSTGRES_WAL_BUFFERS=16MB
+      - POSTGRES_DEFAULT_STATISTICS_TARGET=100
+      - POSTGRES_RANDOM_PAGE_COST=1.1
+      - POSTGRES_EFFECTIVE_IO_CONCURRENCY=200
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./database/init:/docker-entrypoint-initdb.d:ro
+      - postgres_backups:/backups
+      - ./infrastructure/database/postgresql.conf:/etc/postgresql/postgresql.conf:ro
     secrets:
       - postgres_password
-    user: '999:999'
     restart: unless-stopped
     networks:
       - medianest-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U medianest -d medianest']
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: '20m'
+        max-file: '3'
+    labels:
+      - 'com.medianest.backup=daily'
 
   redis:
     image: redis:7-alpine
+    container_name: medianest-redis
     command: >
       redis-server 
       --appendonly yes 
+      --appendfsync everysec
       --maxmemory 512mb 
       --maxmemory-policy allkeys-lru
       --requirepass-file /run/secrets/redis_password
+      --tcp-backlog 511
+      --timeout 300
+      --tcp-keepalive 300
+      --supervised no
+      --save 900 1
+      --save 300 10
+      --save 60 10000
     volumes:
       - redis_data:/data
+      - redis_backups:/backups
     secrets:
       - redis_password
-    user: '999:999'
     restart: unless-stopped
     networks:
       - medianest-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
     healthcheck:
       test:
         [
@@ -103,26 +195,102 @@ services:
           'redis-cli',
           '--no-auth-warning',
           '-a',
-          '$(cat /run/secrets/redis_password)',
+          '$$(cat /run/secrets/redis_password)',
           'ping',
         ]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+    labels:
+      - 'com.medianest.backup=daily'
+
+  # Optional: Backup service
+  backup:
+    image: postgres:15-alpine
+    container_name: medianest-backup
+    environment:
+      - POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
+    volumes:
+      - postgres_backups:/backups
+      - ./scripts/backup.sh:/backup.sh:ro
+    secrets:
+      - postgres_password
+    networks:
+      - medianest-network
+    depends_on:
+      - postgres
+    restart: 'no'
+    profiles:
+      - backup
+    command:
+      [
+        '/bin/sh',
+        '-c',
+        "echo 'Backup service ready. Run with: docker compose run backup /backup.sh'",
+      ]
 
 volumes:
   postgres_data:
     driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_PATH:-./data}/postgres
   redis_data:
     driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_PATH:-./data}/redis
   youtube_downloads:
     driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_PATH:-./data}/downloads
   app_uploads:
     driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_PATH:-./data}/uploads
+  app_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${LOG_PATH:-./logs}/app
+  nginx_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${LOG_PATH:-./logs}/nginx
+  postgres_backups:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${BACKUP_PATH:-./backups}/postgres
+  redis_backups:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${BACKUP_PATH:-./backups}/redis
 
 networks:
   medianest-network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
 
 secrets:
   # Database secrets
@@ -150,9 +318,3 @@ secrets:
     file: ./secrets/plex_client_id
   plex_client_secret:
     file: ./secrets/plex_client_secret
-
-  # External service secrets
-  overseerr_api_key:
-    file: ./secrets/overseerr_api_key
-  uptime_kuma_token:
-    file: ./secrets/uptime_kuma_token

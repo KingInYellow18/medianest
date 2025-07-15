@@ -34,15 +34,28 @@ RUN npm run build
 # Production stage
 FROM node:20-alpine
 
-# Install yt-dlp and ffmpeg for YouTube downloads
-RUN apk add --no-cache python3 py3-pip ffmpeg && \
+# Security: Add labels for better container management
+LABEL maintainer="MediaNest Team"
+LABEL version="1.0.0"
+LABEL description="MediaNest - Unified Media Management Portal"
+
+# Install runtime dependencies and security updates
+RUN apk upgrade --no-cache && \
+    apk add --no-cache \
+        python3 \
+        py3-pip \
+        ffmpeg \
+        dumb-init \
+        curl && \
     pip3 install --no-cache-dir yt-dlp
 
 WORKDIR /app
 
-# Create non-root user
+# Create non-root user with specific UID/GID for consistency
 RUN addgroup -g 1000 -S nodejs && \
-    adduser -S nodejs -u 1000 -G nodejs
+    adduser -S nodejs -u 1000 -G nodejs && \
+    mkdir -p /app/uploads /app/downloads /app/logs && \
+    chown -R nodejs:nodejs /app
 
 # Copy built applications
 COPY --from=builder --chown=nodejs:nodejs /app/frontend ./frontend
@@ -63,9 +76,23 @@ RUN npm ci --production
 COPY --chown=nodejs:nodejs docker-entrypoint.sh /app/
 RUN chmod +x /app/docker-entrypoint.sh
 
+# Security: Set environment defaults
+ENV NODE_ENV=production \
+    NODE_OPTIONS="--max-old-space-size=1024" \
+    NPM_CONFIG_LOGLEVEL=warn
+
+# Health check for container orchestration
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:4000/api/health || exit 1
+
 # Switch to non-root user
 USER nodejs
 
+# Expose only necessary ports
 EXPOSE 3000 4000
 
-ENTRYPOINT ["/app/docker-entrypoint.sh"]
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start application
+CMD ["/app/docker-entrypoint.sh"]
