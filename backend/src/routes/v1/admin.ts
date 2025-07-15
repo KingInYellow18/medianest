@@ -1,8 +1,11 @@
 import { Router } from 'express';
 
+import { adminController } from '@/controllers/admin.controller';
 import { mediaController } from '@/controllers/media.controller';
 import { authenticate, requireAdmin } from '@/middleware/auth';
 import { asyncHandler } from '@/utils/async-handler';
+import { validate } from '@/middleware/validate';
+import { getUsersSchema, updateUserRoleSchema, deleteUserSchema } from '@/validations/admin';
 
 const router = Router();
 
@@ -10,19 +13,26 @@ const router = Router();
 router.use(authenticate);
 router.use(requireAdmin);
 
-// GET /api/admin/users - List all users
-router.get('/users', async (req, res) => {
-  // TODO: Implement list users
-  res.json({ message: 'Admin users endpoint' });
-});
+// User management
+router.get('/users', validate(getUsersSchema), asyncHandler(adminController.getUsers));
+router.patch(
+  '/users/:userId/role',
+  validate(updateUserRoleSchema),
+  asyncHandler(adminController.updateUserRole),
+);
+router.delete(
+  '/users/:userId',
+  validate(deleteUserSchema),
+  asyncHandler(adminController.deleteUser),
+);
 
-// GET /api/admin/services - Get all service configs
-router.get('/services', async (req, res) => {
-  // TODO: Implement get services
-  res.json({ message: 'Admin services endpoint' });
-});
+// Service management
+router.get('/services', asyncHandler(adminController.getServices));
 
-// GET /api/admin/requests - Get all media requests
+// Media requests
 router.get('/requests', asyncHandler(mediaController.getAllRequests));
+
+// System statistics
+router.get('/stats', asyncHandler(adminController.getSystemStats));
 
 export default router;
