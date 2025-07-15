@@ -13,7 +13,11 @@ export class JwtService {
   private readonly audience: string;
 
   constructor() {
-    this.secret = config.jwt?.secret || 'fallback-secret';
+    if (!config.jwt?.secret) {
+      throw new Error('JWT_SECRET is required for authentication');
+    }
+
+    this.secret = config.jwt.secret;
     this.issuer = config.jwt?.issuer || 'medianest';
     this.audience = config.jwt?.audience || 'medianest-users';
   }

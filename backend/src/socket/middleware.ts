@@ -18,7 +18,10 @@ export async function authenticateSocket(
     }
 
     // Verify JWT
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as any;
+    if (!process.env.JWT_SECRET) {
+      throw new Error('JWT_SECRET is not configured');
+    }
+    const decoded = jwt.verify(token, process.env.JWT_SECRET) as any;
 
     // Get user from database
     const user = await userRepository.findById(decoded.userId);
