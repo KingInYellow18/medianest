@@ -8,7 +8,7 @@ import { ServiceCard } from '../ServiceCard';
 
 // Mock date-fns
 vi.mock('date-fns', () => ({
-  formatDistanceToNow: () => '5 minutes ago',
+  formatDistanceToNow: (date: Date, options?: any) => '5 minutes',
 }));
 
 describe('ServiceCard', () => {
@@ -33,7 +33,7 @@ describe('ServiceCard', () => {
     expect(screen.getByText('Test Service')).toBeInTheDocument();
     expect(screen.getByText('150ms')).toBeInTheDocument();
     expect(screen.getByText('99.5%')).toBeInTheDocument();
-    expect(screen.getByText('5 minutes ago')).toBeInTheDocument();
+    expect(screen.getByText(/Last check: 5 minutes/)).toBeInTheDocument();
   });
 
   it('shows correct status indicator for up status', () => {

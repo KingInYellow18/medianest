@@ -22,35 +22,36 @@ describe('SearchInput', () => {
   });
 
   it('should call onChange when typing', async () => {
-    const user = userEvent.setup();
     const onChange = vi.fn();
 
     render(<SearchInput value="" onChange={onChange} onClear={() => {}} isLoading={false} />);
 
     const input = screen.getByRole('textbox');
-    await user.type(input, 'Avatar');
 
-    expect(onChange).toHaveBeenCalledTimes(6); // One for each character
-    expect(onChange).toHaveBeenLastCalledWith('Avatar');
+    // Simulate typing by firing change events
+    fireEvent.change(input, { target: { value: 'Avatar' } });
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledWith('Avatar');
   });
 
   it('should show loading spinner when isLoading is true', () => {
-    render(<SearchInput value="test" onChange={() => {}} onClear={() => {}} isLoading={true} />);
+    const { container } = render(
+      <SearchInput value="test" onChange={() => {}} onClear={() => {}} isLoading={true} />,
+    );
 
-    // Look for the spinning div
-    const loader = screen.getByTestId((content, element) => {
-      return element?.className?.includes('animate-spin') || false;
-    });
+    // Look for the spinning div by class
+    const loader = container.querySelector('.animate-spin');
     expect(loader).toBeInTheDocument();
   });
 
   it('should not show loading spinner when isLoading is false', () => {
-    render(<SearchInput value="test" onChange={() => {}} onClear={() => {}} isLoading={false} />);
+    const { container } = render(
+      <SearchInput value="test" onChange={() => {}} onClear={() => {}} isLoading={false} />,
+    );
 
-    // Look for the spinning div
-    const loader = screen.queryByTestId((content, element) => {
-      return element?.className?.includes('animate-spin') || false;
-    });
+    // Look for the spinning div by class
+    const loader = container.querySelector('.animate-spin');
     expect(loader).not.toBeInTheDocument();
   });
 

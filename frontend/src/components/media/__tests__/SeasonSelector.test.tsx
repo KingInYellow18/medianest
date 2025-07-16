@@ -102,11 +102,16 @@ describe('SeasonSelector', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /Season 2/i }));
-    expect(mockOnSeasonToggle).toHaveBeenCalledWith(2);
+    // Season 3 and 5 are unavailable, so they should be clickable
+    fireEvent.click(screen.getByRole('button', { name: /Season 3/i }));
+    expect(mockOnSeasonToggle).toHaveBeenCalledWith(3);
 
     fireEvent.click(screen.getByRole('button', { name: /Season 5/i }));
     expect(mockOnSeasonToggle).toHaveBeenCalledWith(5);
+
+    // Season 2 is available, so clicking it should NOT call the toggle
+    fireEvent.click(screen.getByRole('button', { name: /Season 2/i }));
+    expect(mockOnSeasonToggle).toHaveBeenCalledTimes(2); // Still only 2 calls
   });
 
   it('should render select/deselect all buttons', () => {

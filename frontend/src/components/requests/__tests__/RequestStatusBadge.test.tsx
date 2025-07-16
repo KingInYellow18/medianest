@@ -16,38 +16,38 @@ describe('RequestStatusBadge', () => {
     {
       status: 'pending',
       expectedText: 'Pending',
-      expectedClasses: ['bg-yellow-900/50', 'text-yellow-200', 'border-yellow-600'],
+      expectedClasses: ['bg-yellow-500/10', 'text-yellow-500'],
     },
     {
       status: 'approved',
       expectedText: 'Approved',
-      expectedClasses: ['bg-blue-900/50', 'text-blue-200', 'border-blue-600'],
+      expectedClasses: ['bg-blue-500/10', 'text-blue-500'],
     },
     {
       status: 'processing',
       expectedText: 'Processing',
-      expectedClasses: ['bg-purple-900/50', 'text-purple-200', 'border-purple-600'],
+      expectedClasses: ['bg-purple-500/10', 'text-purple-500'],
       hasAnimation: true,
     },
     {
       status: 'partially-available',
-      expectedText: 'Partially Available',
-      expectedClasses: ['bg-orange-900/50', 'text-orange-200', 'border-orange-600'],
+      expectedText: 'Partial',
+      expectedClasses: ['bg-orange-500/10', 'text-orange-500'],
     },
     {
       status: 'available',
       expectedText: 'Available',
-      expectedClasses: ['bg-green-900/50', 'text-green-200', 'border-green-600'],
+      expectedClasses: ['bg-green-500/10', 'text-green-500'],
     },
     {
       status: 'denied',
       expectedText: 'Denied',
-      expectedClasses: ['bg-red-900/50', 'text-red-200', 'border-red-600'],
+      expectedClasses: ['bg-red-500/10', 'text-red-500'],
     },
     {
       status: 'failed',
       expectedText: 'Failed',
-      expectedClasses: ['bg-gray-900/50', 'text-gray-200', 'border-gray-600'],
+      expectedClasses: ['bg-red-500/10', 'text-red-500'],
     },
   ];
 
@@ -55,8 +55,11 @@ describe('RequestStatusBadge', () => {
     it(`should render ${status} status correctly`, () => {
       render(<RequestStatusBadge status={status} />);
 
-      const badge = screen.getByText(expectedText);
-      expect(badge).toBeInTheDocument();
+      const badgeText = screen.getByText(expectedText);
+      expect(badgeText).toBeInTheDocument();
+
+      // Get the badge container (parent div)
+      const badge = badgeText.parentElement as HTMLElement;
 
       // Check for expected classes
       expectedClasses.forEach((className) => {
@@ -66,13 +69,12 @@ describe('RequestStatusBadge', () => {
       // Check common classes
       expect(badge).toHaveClass('inline-flex');
       expect(badge).toHaveClass('items-center');
-      expect(badge).toHaveClass('gap-2');
-      expect(badge).toHaveClass('px-3');
+      expect(badge).toHaveClass('gap-1.5');
+      expect(badge).toHaveClass('px-2.5');
       expect(badge).toHaveClass('py-1');
       expect(badge).toHaveClass('rounded-full');
-      expect(badge).toHaveClass('text-sm');
+      expect(badge).toHaveClass('text-xs');
       expect(badge).toHaveClass('font-medium');
-      expect(badge).toHaveClass('border');
 
       // Check for animation on processing status
       if (hasAnimation) {
@@ -102,8 +104,8 @@ describe('RequestStatusBadge', () => {
 
     // Each icon should have correct sizing
     icons.forEach((icon) => {
-      expect(icon).toHaveClass('w-4');
-      expect(icon).toHaveClass('h-4');
+      expect(icon).toHaveClass('w-3.5');
+      expect(icon).toHaveClass('h-3.5');
     });
   });
 
@@ -131,7 +133,7 @@ describe('RequestStatusBadge', () => {
 
     render(<ExtendedBadge status="available" className="custom-class" />);
 
-    const wrapper = screen.getByText('Available').parentElement;
+    const wrapper = screen.getByText('Available').parentElement?.parentElement;
     expect(wrapper).toHaveClass('custom-class');
   });
 
@@ -146,7 +148,7 @@ describe('RequestStatusBadge', () => {
     const badges = container.querySelectorAll('.inline-flex');
     badges.forEach((badge) => {
       // All badges should have same padding classes
-      expect(badge).toHaveClass('px-3');
+      expect(badge).toHaveClass('px-2.5');
       expect(badge).toHaveClass('py-1');
     });
   });

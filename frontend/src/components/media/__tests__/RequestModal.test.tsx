@@ -9,16 +9,25 @@ import { RequestModal } from '../RequestModal';
 
 // Mock the hooks
 vi.mock('@/hooks/useRateLimit');
+vi.mock('@/hooks/use-toast', () => ({
+  useToast: () => ({
+    toast: vi.fn(),
+  }),
+}));
 
 // Mock Headless UI Dialog
-vi.mock('@headlessui/react', () => ({
-  Dialog: ({ open, onClose, children }: any) => (open ? <div role="dialog">{children}</div> : null),
-  DialogPanel: ({ children }: any) => <div>{children}</div>,
-  DialogOverlay: ({ children }: any) => <div>{children}</div>,
-  DialogTitle: ({ children }: any) => <h3>{children}</h3>,
-  Transition: ({ children }: any) => <>{children}</>,
-  TransitionChild: ({ children }: any) => <>{children}</>,
-}));
+vi.mock('@headlessui/react', () => {
+  const Dialog = ({ open, onClose, children }: any) =>
+    open ? <div role="dialog">{children}</div> : null;
+  Dialog.Panel = ({ children }: any) => <div>{children}</div>;
+  Dialog.Title = ({ children }: any) => <h3>{children}</h3>;
+
+  return {
+    Dialog,
+    Transition: ({ children }: any) => <>{children}</>,
+    TransitionChild: ({ children }: any) => <>{children}</>,
+  };
+});
 
 // Mock SeasonSelector
 vi.mock('../SeasonSelector', () => ({
@@ -202,7 +211,7 @@ describe('RequestModal', () => {
     await waitFor(() => {
       expect(mockOnSubmit).toHaveBeenCalledWith({
         mediaType: 'movie',
-        tmdbId: 550,
+        mediaId: 550,
         seasons: undefined,
       });
     });
@@ -228,7 +237,7 @@ describe('RequestModal', () => {
     await waitFor(() => {
       expect(mockOnSubmit).toHaveBeenCalledWith({
         mediaType: 'tv',
-        tmdbId: 1396,
+        mediaId: 1396,
         seasons: [1, 3],
       });
     });

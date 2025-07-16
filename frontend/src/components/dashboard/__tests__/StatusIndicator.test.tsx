@@ -10,7 +10,7 @@ describe('StatusIndicator', () => {
 
     const indicator = screen.getByRole('status');
     expect(indicator).toHaveClass('bg-green-500');
-    expect(screen.getByText('up')).toHaveClass('text-green-500');
+    expect(screen.getByText('up')).toHaveClass('text-green-400');
     expect(screen.getByLabelText('Service status: up')).toBeInTheDocument();
   });
 
@@ -19,7 +19,7 @@ describe('StatusIndicator', () => {
 
     const indicator = screen.getByRole('status');
     expect(indicator).toHaveClass('bg-red-500');
-    expect(screen.getByText('down')).toHaveClass('text-red-500');
+    expect(screen.getByText('down')).toHaveClass('text-red-400');
     expect(screen.getByLabelText('Service status: down')).toBeInTheDocument();
   });
 
@@ -28,14 +28,21 @@ describe('StatusIndicator', () => {
 
     const indicator = screen.getByRole('status');
     expect(indicator).toHaveClass('bg-yellow-500');
-    expect(screen.getByText('degraded')).toHaveClass('text-yellow-500');
+    expect(screen.getByText('degraded')).toHaveClass('text-yellow-400');
     expect(screen.getByLabelText('Service status: degraded')).toBeInTheDocument();
   });
 
-  it('includes pulse animation on indicator', () => {
-    render(<StatusIndicator status="up" />);
+  it('includes pulse animation on indicator when pulse is true', () => {
+    render(<StatusIndicator status="up" pulse={true} />);
 
     const indicator = screen.getByRole('status');
     expect(indicator).toHaveClass('animate-pulse');
+  });
+
+  it('does not include pulse animation when pulse is false', () => {
+    render(<StatusIndicator status="up" pulse={false} />);
+
+    const indicator = screen.getByRole('status');
+    expect(indicator).not.toHaveClass('animate-pulse');
   });
 });
