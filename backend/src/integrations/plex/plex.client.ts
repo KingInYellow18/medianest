@@ -189,6 +189,81 @@ export class PlexClient {
     }
   }
 
+  // Refresh a specific library section
+  async refreshLibrary(sectionId: string): Promise<void> {
+    try {
+      await this.client.get(`/library/sections/${sectionId}/refresh`);
+      logger.info('Plex library refresh initiated', { sectionId });
+    } catch (error) {
+      throw new Error(`Failed to refresh library: ${error.message}`);
+    }
+  }
+
+  // Scan a specific directory within a library
+  async scanDirectory(sectionId: string, directory: string): Promise<void> {
+    const params = new URLSearchParams({
+      path: directory,
+    });
+
+    try {
+      await this.client.get(`/library/sections/${sectionId}/refresh?${params}`);
+      logger.info('Plex directory scan initiated', { sectionId, directory });
+    } catch (error) {
+      throw new Error(`Failed to scan directory: ${error.message}`);
+    }
+  }
+
+  // Get collections in a library
+  async getCollections(libraryKey: string): Promise<any[]> {
+    try {
+      const response = await this.client.get(`/library/sections/${libraryKey}/collections`);
+      const collections = response.data.MediaContainer.Metadata || [];
+      return collections;
+    } catch (error) {
+      throw new Error(`Failed to fetch collections: ${error.message}`);
+    }
+  }
+
+  // Get collection details with items
+  async getCollectionDetails(collectionKey: string): Promise<any> {
+    try {
+      const response = await this.client.get(collectionKey);
+      const collection = response.data.MediaContainer.Metadata[0];
+
+      // Get collection items
+      const itemsResponse = await this.client.get(`${collectionKey}/children`);
+      const items = itemsResponse.data.MediaContainer.Metadata || [];
+
+      return {
+        ...collection,
+        items,
+      };
+    } catch (error) {
+      throw new Error(`Failed to fetch collection details: ${error.message}`);
+    }
+  }
+
+  // Create a collection in a library
+  async createCollection(libraryKey: string, title: string, items: string[] = []): Promise<void> {
+    const params = new URLSearchParams({
+      type: '18', // Collection type
+      title,
+      smart: '0', // Not a smart collection
+    });
+
+    // Add items to collection
+    items.forEach((ratingKey) => {
+      params.append('item', ratingKey);
+    });
+
+    try {
+      await this.client.post(`/library/sections/${libraryKey}/collections?${params}`);
+      logger.info('Plex collection created', { libraryKey, title, itemCount: items.length });
+    } catch (error) {
+      throw new Error(`Failed to create collection: ${error.message}`);
+    }
+  }
+
   // Helper to map Plex metadata to our interface
   private mapMediaItem(item: any): PlexMediaItem {
     return {

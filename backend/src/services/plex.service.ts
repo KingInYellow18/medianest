@@ -140,6 +140,102 @@ export class PlexService {
     return items;
   }
 
+  async refreshLibrary(userId: string, libraryKey: string): Promise<void> {
+    const client = await this.getClientForUser(userId);
+    await client.refreshLibrary(libraryKey);
+
+    // Clear library cache after refresh
+    const cacheKey = `${this.cachePrefix}libraries:${userId}`;
+    await redisClient.del(cacheKey);
+  }
+
+  async scanDirectory(userId: string, libraryKey: string, directory: string): Promise<void> {
+    const client = await this.getClientForUser(userId);
+    await client.scanDirectory(libraryKey, directory);
+
+    // Clear related caches
+    const librariesKey = `${this.cachePrefix}libraries:${userId}`;
+    const recentKey = `${this.cachePrefix}recent:${userId}`;
+    await redisClient.del([librariesKey, recentKey]);
+  }
+
+  async getCollections(
+    userId: string,
+    libraryKey: string,
+    options?: { search?: string; sort?: string },
+  ) {
+    const client = await this.getClientForUser(userId);
+    const collections = await client.getCollections(libraryKey);
+
+    // Apply filters if provided
+    let filteredCollections = collections;
+
+    if (options?.search) {
+      const searchLower = options.search.toLowerCase();
+      filteredCollections = filteredCollections.filter((collection: any) =>
+        collection.title.toLowerCase().includes(searchLower),
+      );
+    }
+
+    // Apply sorting if provided
+    if (options?.sort) {
+      filteredCollections = [...filteredCollections].sort((a: any, b: any) => {
+        switch (options.sort) {
+          case 'title':
+            return a.title.localeCompare(b.title);
+          case 'addedAt':
+            return b.addedAt - a.addedAt;
+          case 'childCount':
+            return b.childCount - a.childCount;
+          default:
+            return 0;
+        }
+      });
+    }
+
+    return filteredCollections;
+  }
+
+  async getCollectionDetails(userId: string, collectionKey: string) {
+    const client = await this.getClientForUser(userId);
+    return client.getCollectionDetails(collectionKey);
+  }
+
+  async createCollection(
+    userId: string,
+    libraryKey: string,
+    title: string,
+    items: string[] = [],
+  ): Promise<void> {
+    const client = await this.getClientForUser(userId);
+    await client.createCollection(libraryKey, title, items);
+  }
+
+  // Find YouTube library section
+  async findYouTubeLibrary(userId: string): Promise<string | null> {
+    const libraries = await this.getLibraries(userId);
+
+    // Look for library with 'youtube' in the name or type
+    const youtubeLib = libraries.find(
+      (lib: any) =>
+        lib.title.toLowerCase().includes('youtube') ||
+        lib.type === 'youtube' ||
+        lib.type === 'other', // YouTube content might be in 'other' type library
+    );
+
+    if (youtubeLib) {
+      return youtubeLib.key;
+    }
+
+    // Fallback: look for 'Other Videos' or similar
+    const otherLib = libraries.find(
+      (lib: any) =>
+        lib.title.toLowerCase().includes('other') || lib.title.toLowerCase().includes('video'),
+    );
+
+    return otherLib ? otherLib.key : null;
+  }
+
   // Clean up idle clients periodically (every 30 minutes)
   startCleanupTimer(): void {
     setInterval(

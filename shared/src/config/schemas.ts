@@ -71,6 +71,7 @@ export const PlexConfigSchema = z.object({
   PLEX_CLIENT_SECRET: z.string().min(1, 'Plex client secret is required'),
   PLEX_CLIENT_IDENTIFIER: z.string().optional(),
   PLEX_SERVER_URL: z.string().url('Invalid Plex server URL').optional(),
+  PLEX_YOUTUBE_LIBRARY_PATH: z.string().min(1).default('/data/youtube'),
 });
 
 /**

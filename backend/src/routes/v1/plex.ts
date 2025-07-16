@@ -24,4 +24,10 @@ router.get('/search', asyncHandler(plexController.search));
 // Get recently added items
 router.get('/recently-added', asyncHandler(plexController.getRecentlyAdded));
 
+// Get collections for a library
+router.get('/libraries/:libraryKey/collections', asyncHandler(plexController.getCollections));
+
+// Get collection details
+router.get('/collections/:collectionKey', asyncHandler(plexController.getCollectionDetails));
+
 export default router;

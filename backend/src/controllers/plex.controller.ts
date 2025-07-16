@@ -121,6 +121,53 @@ export class PlexController {
       throw new AppError('Failed to retrieve recently added items', 500);
     }
   }
+
+  async getCollections(req: Request, res: Response) {
+    try {
+      const userId = req.user!.id;
+      const { libraryKey } = req.params;
+      const { search, sort } = req.query;
+
+      const collections = await plexService.getCollections(userId, libraryKey, {
+        search: search as string,
+        sort: sort as string,
+      });
+
+      res.json({
+        success: true,
+        data: collections,
+        meta: {
+          count: collections.length,
+        },
+      });
+    } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
+      logger.error('Failed to get collections', { error });
+      throw new AppError('Failed to retrieve collections', 500);
+    }
+  }
+
+  async getCollectionDetails(req: Request, res: Response) {
+    try {
+      const userId = req.user!.id;
+      const { collectionKey } = req.params;
+
+      const collection = await plexService.getCollectionDetails(userId, collectionKey);
+
+      res.json({
+        success: true,
+        data: collection,
+      });
+    } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
+      logger.error('Failed to get collection details', { error });
+      throw new AppError('Failed to retrieve collection details', 500);
+    }
+  }
 }
 
 export const plexController = new PlexController();
