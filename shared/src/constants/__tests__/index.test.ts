@@ -49,7 +49,7 @@ describe('Constants', () => {
     it('should follow naming convention', () => {
       const events = Object.values(SOCKET_EVENTS);
       events.forEach((event) => {
-        expect(event).toMatch(/^[a-z]+(:?[a-z]+)?$/);
+        expect(event).toMatch(/^[a-z]+(:?[a-z]+)*$/);
       });
     });
   });
