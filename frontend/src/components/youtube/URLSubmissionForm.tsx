@@ -35,7 +35,7 @@ interface URLSubmissionFormProps {
 
 export function URLSubmissionForm({
   onSubmit,
-  userQuota,
+  userQuota = { canDownload: false, limit: 0, used: 0, resetAt: new Date() },
   onUrlChange,
   onRefreshQuota,
 }: URLSubmissionFormProps) {
@@ -89,7 +89,7 @@ export function URLSubmissionForm({
   }, [urlValue, onUrlChange]);
 
   const onFormSubmit = async (data: FormData) => {
-    if (!userQuota.canDownload) {
+    if (!userQuota?.canDownload) {
       setUrlError('Download quota exceeded. Please try again later.');
       return;
     }
@@ -174,7 +174,7 @@ export function URLSubmissionForm({
           type="submit"
           variant="default"
           className="w-full mt-6"
-          disabled={!userQuota.canDownload || isSubmitting || isValidating || !!urlError}
+          disabled={!userQuota?.canDownload || isSubmitting || isValidating || !!urlError}
         >
           <Download className="w-4 h-4 mr-2" />
           {isSubmitting ? 'Queuing Download...' : 'Queue Download'}
