@@ -11,6 +11,8 @@ import {
 interface RequestOptions extends RequestInit {
   params?: Record<string, string>;
   timeout?: number;
+  cache?: RequestCache;
+  revalidate?: number; // seconds
 }
 
 class ApiClient {
@@ -122,9 +124,23 @@ class ApiClient {
 
   async get<T = any>(path: string, options: RequestOptions = {}): Promise<T> {
     const url = this.buildUrl(path, options.params);
+
+    // Add cache headers for better performance
+    const headers: HeadersInit = {
+      ...options.headers,
+    };
+
+    // Set cache control based on revalidate option
+    if (options.revalidate !== undefined) {
+      headers['Cache-Control'] =
+        `max-age=${options.revalidate}, stale-while-revalidate=${options.revalidate * 2}`;
+    }
+
     const response = await this.fetchWithTimeout(url, {
       ...options,
       method: 'GET',
+      headers,
+      cache: options.cache || 'default',
     });
     return this.handleResponse<T>(response);
   }

@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { PlexCollectionSummary } from '@/types/plex';
 
@@ -16,10 +17,13 @@ export function CollectionCard({ collection, onClick }: CollectionCardProps) {
     >
       <div className="relative aspect-[3/4] overflow-hidden rounded-t-lg">
         {collection.thumb ? (
-          <img
+          <Image
             src={collection.thumb}
             alt={collection.title}
-            className="w-full h-full object-cover transition-transform group-hover:scale-110"
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover transition-transform group-hover:scale-110"
+            loading="lazy"
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center">

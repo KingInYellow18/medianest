@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
-import { app } from '@/app';
+import { app } from '../../src/app';
 import { server, rest } from '../msw/setup';
 import { generateToken } from '@/utils/jwt.util';
 import { redisClient } from '@/config/redis';

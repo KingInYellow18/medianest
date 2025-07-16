@@ -1,15 +1,23 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useState, useCallback } from 'react';
 
 import { MediaGrid } from '@/components/media/MediaGrid';
-import { RequestModal } from '@/components/media/RequestModal';
 import { SearchFilters } from '@/components/media/SearchFilters';
 import { SearchInput } from '@/components/media/SearchInput';
 import { useMediaRequest } from '@/hooks/useMediaRequest';
 import { useMediaSearch } from '@/hooks/useMediaSearch';
 import { MediaSearchResult } from '@/types/media';
+
+// Dynamically import RequestModal to reduce initial bundle size
+const RequestModal = dynamic(
+  () => import('@/components/media/RequestModal').then((mod) => mod.RequestModal),
+  {
+    ssr: false,
+  },
+);
 
 export default function MediaSearchPage() {
   const router = useRouter();

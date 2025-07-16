@@ -1,10 +1,38 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useState } from 'react';
 
 import { PageHeader } from '@/components/ui/PageHeader';
-import { DownloadQueue } from '@/components/youtube/DownloadQueue';
-import { YouTubeDownloader } from '@/components/youtube/YouTubeDownloader';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Dynamically import heavy components
+const YouTubeDownloader = dynamic(
+  () => import('@/components/youtube/YouTubeDownloader').then((mod) => mod.YouTubeDownloader),
+  {
+    loading: () => (
+      <div className="max-w-2xl mx-auto space-y-4">
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-64 w-full" />
+        <Skeleton className="h-48 w-full" />
+      </div>
+    ),
+    ssr: false,
+  }
+);
+
+const DownloadQueue = dynamic(
+  () => import('@/components/youtube/DownloadQueue').then((mod) => mod.DownloadQueue),
+  {
+    loading: () => (
+      <div className="space-y-4">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    ),
+    ssr: false,
+  }
+);
 
 export default function YouTubePage() {
   const [activeTab, setActiveTab] = useState<'download' | 'queue'>('download');

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
-import { app } from '@/app';
+import { app } from '../../src/app';
 import { server, rest } from '../msw/setup';
 import { generateToken } from '@/utils/jwt.util';
 import prisma from '@/config/database';
@@ -118,14 +118,14 @@ describe('Service Status Endpoints', () => {
     ]);
   });
 
-  describe('GET /api/v1/services/status', () => {
+  describe('GET /api/v1/dashboard/status', () => {
     it('should return status for all configured services', async () => {
       // Mock cache miss
       (redisClient.get as any).mockResolvedValue(null);
 
       // Service status will be fetched fresh
       const response = await request(app)
-        .get('/api/v1/services/status')
+        .get('/api/v1/dashboard/status')
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
@@ -173,7 +173,7 @@ describe('Service Status Endpoints', () => {
       (redisClient.get as any).mockResolvedValue(JSON.stringify(cachedData));
 
       const response = await request(app)
-        .get('/api/v1/services/status')
+        .get('/api/v1/dashboard/status')
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
@@ -193,7 +193,7 @@ describe('Service Status Endpoints', () => {
       );
 
       const response = await request(app)
-        .get('/api/v1/services/status')
+        .get('/api/v1/dashboard/status')
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
@@ -206,7 +206,7 @@ describe('Service Status Endpoints', () => {
     });
 
     it('should require authentication', async () => {
-      const response = await request(app).get('/api/v1/services/status').expect(401);
+      const response = await request(app).get('/api/v1/dashboard/status').expect(401);
 
       expect(response.body.error.code).toBe('UNAUTHORIZED');
     });
@@ -220,7 +220,7 @@ describe('Service Status Endpoints', () => {
       (redisClient.get as any).mockResolvedValue(JSON.stringify(cachedData));
 
       const response = await request(app)
-        .get('/api/v1/services/status')
+        .get('/api/v1/dashboard/status')
         .query({ refresh: true })
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
@@ -231,7 +231,7 @@ describe('Service Status Endpoints', () => {
     });
   });
 
-  describe('GET /api/v1/services/:service/status', () => {
+  describe('GET /api/v1/dashboard/status/:service', () => {
     it('should return status for specific service', async () => {
       (prisma.serviceConfig.findUnique as any).mockResolvedValue({
         id: 'plex-config',
@@ -241,7 +241,7 @@ describe('Service Status Endpoints', () => {
       });
 
       const response = await request(app)
-        .get('/api/v1/services/plex/status')
+        .get('/api/v1/dashboard/status/plex')
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
@@ -260,7 +260,7 @@ describe('Service Status Endpoints', () => {
       (prisma.serviceConfig.findUnique as any).mockResolvedValue(null);
 
       const response = await request(app)
-        .get('/api/v1/services/plex/status')
+        .get('/api/v1/dashboard/status/plex')
         .set('Authorization', `Bearer ${authToken}`)
         .expect(404);
 
@@ -275,7 +275,7 @@ describe('Service Status Endpoints', () => {
 
     it('should validate service name', async () => {
       const response = await request(app)
-        .get('/api/v1/services/invalid-service/status')
+        .get('/api/v1/dashboard/status/invalid-service')
         .set('Authorization', `Bearer ${authToken}`)
         .expect(400);
 
@@ -283,7 +283,7 @@ describe('Service Status Endpoints', () => {
     });
   });
 
-  describe('GET /api/v1/services/uptime-kuma/monitors', () => {
+  describe('GET /api/v1/dashboard/uptime-kuma/monitors', () => {
     it('should return monitor list with stats', async () => {
       (prisma.serviceConfig.findUnique as any).mockResolvedValue({
         id: 'uptime-config',
@@ -294,7 +294,7 @@ describe('Service Status Endpoints', () => {
       });
 
       const response = await request(app)
-        .get('/api/v1/services/uptime-kuma/monitors')
+        .get('/api/v1/dashboard/uptime-kuma/monitors')
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
@@ -342,7 +342,7 @@ describe('Service Status Endpoints', () => {
       );
 
       const response = await request(app)
-        .get('/api/v1/services/uptime-kuma/monitors')
+        .get('/api/v1/dashboard/uptime-kuma/monitors')
         .set('Authorization', `Bearer ${authToken}`)
         .expect(503);
 
@@ -350,7 +350,7 @@ describe('Service Status Endpoints', () => {
     });
   });
 
-  describe('GET /api/v1/services/history', () => {
+  describe('GET /api/v1/dashboard/history', () => {
     it('should return service status history', async () => {
       const now = new Date();
       const history = [
@@ -381,7 +381,7 @@ describe('Service Status Endpoints', () => {
       (prisma.serviceStatus.findMany as any).mockResolvedValue(history);
 
       const response = await request(app)
-        .get('/api/v1/services/history')
+        .get('/api/v1/dashboard/history')
         .query({ service: 'PLEX', hours: 2 })
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
@@ -416,7 +416,7 @@ describe('Service Status Endpoints', () => {
       (prisma.serviceStatus.findMany as any).mockResolvedValue([]);
 
       await request(app)
-        .get('/api/v1/services/history')
+        .get('/api/v1/dashboard/history')
         .query({ service: 'PLEX' })
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
@@ -428,7 +428,7 @@ describe('Service Status Endpoints', () => {
 
     it('should validate parameters', async () => {
       const response = await request(app)
-        .get('/api/v1/services/history')
+        .get('/api/v1/dashboard/history')
         .query({ service: 'invalid', hours: 999 })
         .set('Authorization', `Bearer ${authToken}`)
         .expect(400);
@@ -438,10 +438,10 @@ describe('Service Status Endpoints', () => {
   });
 
   describe('Service Configuration Endpoints (Admin Only)', () => {
-    describe('GET /api/v1/services/config', () => {
+    describe('GET /api/v1/admin/services', () => {
       it('should return all service configurations for admin', async () => {
         const response = await request(app)
-          .get('/api/v1/services/config')
+          .get('/api/v1/admin/services')
           .set('Authorization', `Bearer ${adminToken}`)
           .expect(200);
 
@@ -473,7 +473,7 @@ describe('Service Status Endpoints', () => {
 
       it('should require admin role', async () => {
         const response = await request(app)
-          .get('/api/v1/services/config')
+          .get('/api/v1/admin/services')
           .set('Authorization', `Bearer ${authToken}`)
           .expect(403);
 
@@ -481,7 +481,7 @@ describe('Service Status Endpoints', () => {
       });
     });
 
-    describe('POST /api/v1/services/config', () => {
+    describe('POST /api/v1/admin/services', () => {
       it('should create new service configuration', async () => {
         (prisma.serviceConfig.create as any).mockResolvedValue({
           id: 'new-config',
@@ -495,7 +495,7 @@ describe('Service Status Endpoints', () => {
         });
 
         const response = await request(app)
-          .post('/api/v1/services/config')
+          .post('/api/v1/admin/services')
           .send({
             service: 'TAUTULLI',
             url: 'https://tautulli.example.com',
@@ -528,7 +528,7 @@ describe('Service Status Endpoints', () => {
 
       it('should validate service configuration', async () => {
         const response = await request(app)
-          .post('/api/v1/services/config')
+          .post('/api/v1/admin/services')
           .send({
             service: 'INVALID_SERVICE',
             url: 'not-a-url',
@@ -546,7 +546,7 @@ describe('Service Status Endpoints', () => {
         });
 
         const response = await request(app)
-          .post('/api/v1/services/config')
+          .post('/api/v1/admin/services')
           .send({
             service: 'PLEX',
             url: 'https://plex2.example.com',
@@ -564,7 +564,7 @@ describe('Service Status Endpoints', () => {
       });
     });
 
-    describe('PUT /api/v1/services/config/:id', () => {
+    describe('PUT /api/v1/admin/services/:id', () => {
       it('should update service configuration', async () => {
         (prisma.serviceConfig.findUnique as any).mockResolvedValue({
           id: 'plex-config',
@@ -582,7 +582,7 @@ describe('Service Status Endpoints', () => {
         });
 
         const response = await request(app)
-          .put('/api/v1/services/config/plex-config')
+          .put('/api/v1/admin/services/plex-config')
           .send({
             url: 'https://new-plex.example.com',
             isActive: false,
@@ -614,7 +614,7 @@ describe('Service Status Endpoints', () => {
         });
 
         await request(app)
-          .put('/api/v1/services/config/overseerr-config')
+          .put('/api/v1/admin/services/overseerr-config')
           .send({
             apiKey: 'new-api-key',
           })
@@ -630,7 +630,7 @@ describe('Service Status Endpoints', () => {
       });
     });
 
-    describe('DELETE /api/v1/services/config/:id', () => {
+    describe('DELETE /api/v1/admin/services/:id', () => {
       it('should delete service configuration', async () => {
         (prisma.serviceConfig.findUnique as any).mockResolvedValue({
           id: 'tautulli-config',
@@ -642,7 +642,7 @@ describe('Service Status Endpoints', () => {
         });
 
         const response = await request(app)
-          .delete('/api/v1/services/config/tautulli-config')
+          .delete('/api/v1/admin/services/tautulli-config')
           .set('Authorization', `Bearer ${adminToken}`)
           .expect(200);
 
@@ -662,7 +662,7 @@ describe('Service Status Endpoints', () => {
         (prisma.serviceConfig.findUnique as any).mockResolvedValue(null);
 
         const response = await request(app)
-          .delete('/api/v1/services/config/invalid-id')
+          .delete('/api/v1/admin/services/invalid-id')
           .set('Authorization', `Bearer ${adminToken}`)
           .expect(404);
 

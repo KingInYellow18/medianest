@@ -6,9 +6,10 @@ const { baseUrl: API_BASE_URL } = getApiConfig();
 export async function getServiceStatus(): Promise<ServiceStatus[]> {
   try {
     const response = await fetch(`${API_BASE_URL}/dashboard/status`, {
-      next: { revalidate: 60 }, // Cache for 60 seconds
+      next: { revalidate: 30 }, // Cache for 30 seconds for more responsive updates
       headers: {
         'Content-Type': 'application/json',
+        'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
       },
     });
 

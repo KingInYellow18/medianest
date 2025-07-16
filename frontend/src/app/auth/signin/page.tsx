@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
@@ -162,7 +163,13 @@ export default function SignInPage() {
                     </>
                   ) : (
                     <>
-                      <img src="/plex-logo.svg" alt="Plex" className="mr-2 h-5 w-5" />
+                      <Image
+                        src="/plex-logo.svg"
+                        alt="Plex"
+                        width={20}
+                        height={20}
+                        className="mr-2"
+                      />
                       Sign in with Plex
                     </>
                   )}
