@@ -5,9 +5,34 @@ import { logger } from '../utils/logger';
 // Create singleton instance
 let prisma: PrismaClient;
 
+// Parse DATABASE_URL to add connection pooling parameters
+function getDatabaseUrl(): string {
+  const baseUrl = process.env.DATABASE_URL;
+  if (!baseUrl) {
+    throw new Error('DATABASE_URL environment variable is not set');
+  }
+
+  // Parse the URL to add connection pooling parameters
+  const url = new URL(baseUrl);
+  
+  // Optimized for homelab with 10-20 users
+  // Conservative settings to avoid overwhelming a homelab database
+  url.searchParams.set('connection_limit', '20'); // Max 20 connections
+  url.searchParams.set('pool_timeout', '10'); // 10 second timeout
+  url.searchParams.set('connect_timeout', '10'); // 10 second connection timeout
+  url.searchParams.set('statement_timeout', '30000'); // 30 second statement timeout
+  
+  return url.toString();
+}
+
 export function getPrismaClient(): PrismaClient {
   if (!prisma) {
     prisma = new PrismaClient({
+      datasources: {
+        db: {
+          url: getDatabaseUrl(),
+        },
+      },
       log:
         process.env.NODE_ENV === 'development'
           ? [

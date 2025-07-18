@@ -214,9 +214,13 @@ export class MediaRequestRepository extends BaseRepository<
     );
   }
 
-  async getRecentRequests(limit: number = 10): Promise<MediaRequest[]> {
+  async getRecentRequests(
+    limit: number = 10,
+    offset: number = 0,
+  ): Promise<MediaRequest[]> {
     return this.prisma.mediaRequest.findMany({
       take: limit,
+      skip: offset,
       orderBy: { createdAt: 'desc' },
       include: {
         user: {

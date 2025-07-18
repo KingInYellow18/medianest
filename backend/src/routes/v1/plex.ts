@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { plexController } from '@/controllers/plex.controller';
 import { authenticate } from '@/middleware/auth';
 import { asyncHandler } from '@/utils/async-handler';
+import { cachePresets } from '@/middleware/cache-headers';
 
 const router = Router();
 
@@ -10,24 +11,24 @@ const router = Router();
 router.use(authenticate);
 
 // Get Plex server info
-router.get('/server', asyncHandler(plexController.getServerInfo));
+router.get('/server', cachePresets.apiLong, asyncHandler(plexController.getServerInfo));
 
 // Get all libraries
-router.get('/libraries', asyncHandler(plexController.getLibraries));
+router.get('/libraries', cachePresets.apiLong, asyncHandler(plexController.getLibraries));
 
 // Get items from a specific library
-router.get('/libraries/:libraryKey/items', asyncHandler(plexController.getLibraryItems));
+router.get('/libraries/:libraryKey/items', cachePresets.apiMedium, asyncHandler(plexController.getLibraryItems));
 
 // Search across all libraries
-router.get('/search', asyncHandler(plexController.search));
+router.get('/search', cachePresets.apiMedium, asyncHandler(plexController.search));
 
 // Get recently added items
-router.get('/recently-added', asyncHandler(plexController.getRecentlyAdded));
+router.get('/recently-added', cachePresets.apiMedium, asyncHandler(plexController.getRecentlyAdded));
 
 // Get collections for a library
-router.get('/libraries/:libraryKey/collections', asyncHandler(plexController.getCollections));
+router.get('/libraries/:libraryKey/collections', cachePresets.apiLong, asyncHandler(plexController.getCollections));
 
 // Get collection details
-router.get('/collections/:collectionKey', asyncHandler(plexController.getCollectionDetails));
+router.get('/collections/:collectionKey', cachePresets.apiLong, asyncHandler(plexController.getCollectionDetails));
 
 export default router;

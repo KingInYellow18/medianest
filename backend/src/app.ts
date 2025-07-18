@@ -8,6 +8,7 @@ import { createServer } from 'http';
 
 // Middleware imports
 import { errorHandler } from './middleware/error';
+import { timeoutPresets } from './middleware/timeout';
 
 // Route imports
 import { router as v1Router } from './routes/v1';
@@ -50,9 +51,28 @@ app.use(
 );
 
 app.use(helmet());
-app.use(compression());
+
+// Optimize compression for homelab
+app.use(
+  compression({
+    level: 6, // Balanced compression level (1-9, default is 6)
+    threshold: 1024, // Only compress responses > 1kb
+    filter: (req, res) => {
+      // Don't compress if client doesn't support it
+      if (req.headers['x-no-compression']) {
+        return false;
+      }
+      // Use default compression filter (text/json/javascript)
+      return compression.filter(req, res);
+    },
+  }),
+);
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Default request timeout (30 seconds)
+app.use(timeoutPresets.medium);
 
 // Logging middleware (skip in test environment)
 if (env.NODE_ENV !== 'test') {
@@ -71,15 +91,7 @@ if (env.NODE_ENV !== 'test') {
   });
 }
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    version: process.env.npm_package_version || '1.0.0',
-    uptime: process.uptime(),
-  });
-});
+// Health check endpoint moved to /api/v1/health
 
 // API routes
 app.use('/api/v1', v1Router);

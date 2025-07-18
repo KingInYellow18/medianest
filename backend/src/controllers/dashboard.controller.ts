@@ -3,13 +3,26 @@ import { Request, Response } from 'express';
 import { mediaRequestRepository, userRepository } from '@/repositories';
 import { plexService } from '@/services/plex.service';
 import { statusService } from '@/services/status.service';
+import { cacheService } from '@/services/cache.service';
 import { AppError } from '@medianest/shared';
 import { logger } from '@/utils/logger';
 
 export class DashboardController {
   async getServiceStatuses(req: Request, res: Response) {
     try {
-      const statuses = await statusService.getAllStatuses();
+      // Cache service statuses for 5 minutes
+      const cacheKey = 'service:statuses:all';
+      const statuses = await cacheService.getOrSet(
+        cacheKey,
+        () => statusService.getAllStatuses(),
+        300, // 5 minutes
+      );
+
+      // Set cache headers for client-side caching
+      res.set({
+        'Cache-Control': 'public, max-age=60', // Cache for 1 minute on client
+        'ETag': `"${Date.now()}"`,
+      });
 
       res.json({
         success: true,
@@ -28,11 +41,24 @@ export class DashboardController {
   async getServiceStatus(req: Request, res: Response) {
     try {
       const { service } = req.params;
-      const status = await statusService.getServiceStatus(service);
+      
+      // Cache individual service status for 5 minutes
+      const cacheKey = `service:status:${service}`;
+      const status = await cacheService.getOrSet(
+        cacheKey,
+        () => statusService.getServiceStatus(service),
+        300, // 5 minutes
+      );
 
       if (!status) {
         throw new AppError(`Service '${service}' not found`, 404);
       }
+
+      // Set cache headers
+      res.set({
+        'Cache-Control': 'public, max-age=60',
+        'ETag': `"${service}-${status.lastCheckAt}"`,
+      });
 
       res.json({
         success: true,

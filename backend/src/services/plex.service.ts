@@ -11,9 +11,11 @@ export class PlexService {
   private cachePrefix = 'plex:';
   private cacheTTL = {
     serverInfo: 3600, // 1 hour
-    libraries: 300, // 5 minutes
-    search: 60, // 1 minute
-    recentlyAdded: 300, // 5 minutes
+    libraries: 3600, // 1 hour (Plex libraries don't change often)
+    search: 300, // 5 minutes (search results can be cached longer for homelab)
+    recentlyAdded: 1800, // 30 minutes (recently added doesn't update that frequently)
+    libraryItems: 1800, // 30 minutes for library items
+    collections: 3600, // 1 hour for collections
   };
 
   async getClientForUser(userId: string): Promise<PlexClient> {
@@ -97,9 +99,25 @@ export class PlexService {
       limit?: number;
     },
   ) {
-    // Library items are not cached due to potential size
+    // Cache library items with pagination parameters
+    const offset = options?.offset || 0;
+    const limit = options?.limit || 50;
+    const cacheKey = `${this.cachePrefix}items:${userId}:${libraryKey}:${offset}:${limit}`;
+
+    // Check cache
+    const cached = await redisClient.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+
+    // Get from Plex
     const client = await this.getClientForUser(userId);
-    return client.getLibraryItems(libraryKey, options);
+    const items = await client.getLibraryItems(libraryKey, options);
+
+    // Cache result (30 minutes for library items)
+    await redisClient.setex(cacheKey, this.cacheTTL.libraryItems, JSON.stringify(items));
+
+    return items;
   }
 
   async search(userId: string, query: string) {

@@ -1,4 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
+import http from 'http';
+import https from 'https';
 
 import { ServiceUnavailableError, BadRequestError } from '@medianest/shared';
 
@@ -47,9 +49,34 @@ export abstract class BaseServiceClient {
       state: 'CLOSED',
     };
 
+    // Create HTTP(S) agents with connection pooling
+    // Optimized for homelab with 10-20 users
+    const httpAgent = new http.Agent({
+      keepAlive: true,
+      maxSockets: 10, // Max 10 concurrent connections per host
+      maxFreeSockets: 5, // Keep 5 sockets open in free state
+      timeout: this.timeout,
+      keepAliveMsecs: 1000,
+      scheduling: 'fifo', // First-in-first-out scheduling
+    });
+
+    const httpsAgent = new https.Agent({
+      keepAlive: true,
+      maxSockets: 10,
+      maxFreeSockets: 5,
+      timeout: this.timeout,
+      keepAliveMsecs: 1000,
+      scheduling: 'fifo',
+    });
+
     this.axios = axios.create({
       baseURL: this.baseURL,
       timeout: this.timeout,
+      httpAgent,
+      httpsAgent,
+      // Optimize for JSON responses
+      maxContentLength: 10 * 1024 * 1024, // 10MB max response size
+      maxBodyLength: 10 * 1024 * 1024, // 10MB max request body
     });
 
     this.setupInterceptors();

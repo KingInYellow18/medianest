@@ -5,6 +5,7 @@ import { authenticate } from '@/middleware/auth';
 import adminRoutes from './admin';
 import authRoutes from './auth';
 import dashboardRoutes from './dashboard';
+import healthRoutes from './health';
 import mediaRoutes from './media';
 import plexRoutes from './plex';
 import webhookRoutes from './webhooks';
@@ -15,6 +16,7 @@ const router = Router();
 
 // Public routes
 router.use('/auth', authRoutes);
+router.use('/health', healthRoutes);
 router.use('/webhooks', webhookRoutes); // Webhooks don't require auth
 
 // Protected routes
