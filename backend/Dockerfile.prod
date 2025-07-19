@@ -1,74 +1,150 @@
 # MediaNest Backend Production Dockerfile
-# Multi-stage build for optimized Express.js production image
+# Multi-stage build optimized for size and security
+# Target: <300MB final image with compiled TypeScript and Prisma
 
-# Stage 1: Builder
+# Build arguments
+ARG BUILD_DATE
+ARG VCS_REF
+
+# Stage 1: Dependencies
+FROM node:20-alpine AS deps
+WORKDIR /app
+
+# Install build dependencies for native modules
+RUN apk add --no-cache python3 make g++ libc6-compat
+
+# Copy package files and Prisma schema
+COPY package.json ./
+COPY prisma ./prisma/
+
+# Install production dependencies only with clean cache
+RUN npm install --production --ignore-scripts && \
+    npx prisma generate && \
+    npm cache clean --force
+
+# Stage 2: Builder
 FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Install build dependencies
-RUN apk add --no-cache python3 make g++
+RUN apk add --no-cache python3 make g++ libc6-compat
 
-# Copy package files and Prisma schema
-COPY package*.json ./
+# Copy package files and install all dependencies
+COPY package.json ./
 COPY prisma ./prisma/
+RUN npm install --ignore-scripts && \
+    npm cache clean --force
 
-# Install all dependencies
-RUN npm ci
+# Copy TypeScript source and configs
+COPY tsconfig.prod.json ./tsconfig.json
+COPY src ./src
 
-# Copy TypeScript source
-COPY . .
+# Generate Prisma client and build TypeScript
+RUN npx prisma generate && \
+    npm run build
 
-# Generate Prisma client
-RUN npx prisma generate
+# Remove unnecessary files
+RUN rm -rf src/ tests/ scripts/ *.md .eslintrc.* .prettierrc
 
-# Build TypeScript
-RUN npm run build
-
-# Remove development dependencies
-RUN npm prune --production
-
-# Stage 2: Production runner
+# Stage 3: Production Runner (<300MB target)
 FROM node:20-alpine AS runner
 WORKDIR /app
 
-# Install runtime dependencies
+# Install runtime dependencies only
 RUN apk add --no-cache \
     dumb-init \
     curl \
     ffmpeg \
     python3 \
-    py3-pip && \
-    pip3 install --no-cache-dir yt-dlp
+    py3-pip \
+    libc6-compat && \
+    pip3 install --no-cache-dir --break-system-packages yt-dlp==2024.1.9 && \
+    rm -rf /var/cache/apk/* /root/.cache
 
-# Create non-root user
-RUN addgroup -g 1001 nodejs && \
+# Create non-root user with specific UID/GID
+RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001 -G nodejs
 
-# Set production environment
-ENV NODE_ENV=production
+# Copy production dependencies from deps stage
+COPY --from=deps --chown=nodejs:nodejs /app/node_modules ./node_modules
 
-# Copy built application and dependencies
-COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
+# Copy built application from builder stage
 COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nodejs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nodejs:nodejs /app/package*.json ./
 
-# Create necessary directories
+# Create necessary directories with proper permissions
 RUN mkdir -p /app/uploads /app/downloads /app/logs && \
-    chown -R nodejs:nodejs /app/uploads /app/downloads /app/logs
+    chown -R nodejs:nodejs /app
+
+# Create entrypoint script for handling Docker secrets
+RUN cat << 'EOF' > /app/docker-entrypoint.sh
+#!/bin/sh
+set -e
+
+# Read secrets from files if they exist
+if [ -f "/run/secrets/database_url" ]; then
+    export DATABASE_URL=$(cat /run/secrets/database_url)
+fi
+
+if [ -f "/run/secrets/redis_url" ]; then
+    export REDIS_URL=$(cat /run/secrets/redis_url)
+fi
+
+if [ -f "/run/secrets/jwt_secret" ]; then
+    export JWT_SECRET=$(cat /run/secrets/jwt_secret)
+fi
+
+if [ -f "/run/secrets/encryption_key" ]; then
+    export ENCRYPTION_KEY=$(cat /run/secrets/encryption_key)
+fi
+
+if [ -f "/run/secrets/plex_client_id" ]; then
+    export PLEX_CLIENT_ID=$(cat /run/secrets/plex_client_id)
+fi
+
+if [ -f "/run/secrets/plex_client_secret" ]; then
+    export PLEX_CLIENT_SECRET=$(cat /run/secrets/plex_client_secret)
+fi
+
+# Run database migrations if needed
+if [ "$RUN_MIGRATIONS" = "true" ]; then
+    npx prisma migrate deploy
+fi
+
+# Execute the main process
+exec node dist/server.js
+EOF
+
+RUN chmod +x /app/docker-entrypoint.sh && \
+    chown nodejs:nodejs /app/docker-entrypoint.sh
+
+# Set runtime environment
+ENV NODE_ENV=production
+ENV PORT=4000
+ENV HOST=0.0.0.0
+
+# Add metadata labels
+LABEL org.opencontainers.image.created="${BUILD_DATE}" \
+      org.opencontainers.image.revision="${VCS_REF}" \
+      org.opencontainers.image.title="MediaNest Backend" \
+      org.opencontainers.image.description="Express.js backend for MediaNest" \
+      org.opencontainers.image.vendor="MediaNest" \
+      org.opencontainers.image.version="1.0.0" \
+      org.opencontainers.image.licenses="MIT"
 
 # Switch to non-root user
-USER nodejs
+USER nodejs:nodejs
 
 # Expose port
 EXPOSE 4000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD curl -f http://localhost:4000/api/health || exit 1
+# Health check with proper timing for container monitoring
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:4000/api/health || exit 1
 
 # Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]
 
-# Start the server
-CMD ["node", "dist/server.js"]
+# Start using the entrypoint script
+CMD ["/app/docker-entrypoint.sh"]

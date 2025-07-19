@@ -81,6 +81,7 @@ services:
       - FRONTEND_URL=${FRONTEND_URL}
       - CORS_ORIGIN=${CORS_ORIGIN}
       - LOG_LEVEL=${LOG_LEVEL:-info}
+      - RUN_MIGRATIONS=${RUN_MIGRATIONS:-false}
     volumes:
       - youtube_downloads:/app/downloads:rw
       - app_uploads:/app/uploads:rw
@@ -105,11 +106,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2'
+          cpus: '1.0'
           memory: 1G
         reservations:
           cpus: '0.5'
-          memory: 256M
+          memory: 512M
     healthcheck:
       test: ['CMD', 'curl', '-f', 'http://localhost:4000/api/health']
       interval: 30s
@@ -124,6 +125,8 @@ services:
     labels:
       - 'com.medianest.component=backend'
       - 'com.medianest.version=${VERSION:-latest}'
+      - 'com.medianest.build.date=${BUILD_DATE}'
+      - 'com.medianest.build.revision=${VCS_REF}'
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -160,10 +163,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2'
+          cpus: '0.5'
           memory: 512M
         reservations:
-          cpus: '0.5'
+          cpus: '0.25'
           memory: 256M
     healthcheck:
       test:
@@ -180,6 +183,8 @@ services:
     labels:
       - 'com.medianest.component=frontend'
       - 'com.medianest.version=${VERSION:-latest}'
+      - 'com.medianest.build.date=${BUILD_DATE}'
+      - 'com.medianest.build.revision=${VCS_REF}'
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -289,6 +294,37 @@ services:
     labels:
       - 'com.medianest.backup=daily'
 
+  # Certbot service for Let's Encrypt SSL certificates
+  certbot:
+    image: certbot/certbot:latest
+    container_name: medianest-certbot
+    volumes:
+      - certbot_webroot:/var/www/certbot:rw
+      - certbot_ssl:/etc/letsencrypt:rw
+      - certbot_logs:/var/log/letsencrypt:rw
+    environment:
+      - DOMAIN_NAME=${DOMAIN_NAME}
+      - CERTBOT_EMAIL=${CERTBOT_EMAIL}
+    depends_on:
+      - nginx
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet --no-self-upgrade; sleep 12h & wait $${!}; done;'"
+    restart: unless-stopped
+    networks:
+      - frontend-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 128M
+        reservations:
+          cpus: '0.05'
+          memory: 64M
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+
   # Optional: Backup service
   backup:
     image: postgres:15-alpine
@@ -301,7 +337,7 @@ services:
     secrets:
       - postgres_password
     networks:
-      - medianest-network
+      - backend-network
     depends_on:
       - postgres
     restart: 'no'
@@ -339,12 +375,18 @@ volumes:
       type: none
       o: bind
       device: ${DATA_PATH:-./data}/uploads
-  app_logs:
+  backend_logs:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: ${LOG_PATH:-./logs}/app
+      device: ${LOG_PATH:-./logs}/backend
+  frontend_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${LOG_PATH:-./logs}/frontend
   nginx_logs:
     driver: local
     driver_opts:
@@ -363,13 +405,36 @@ volumes:
       type: none
       o: bind
       device: ${BACKUP_PATH:-./backups}/redis
+  certbot_webroot:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_PATH:-./data}/certbot/webroot
+  certbot_ssl:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_PATH:-./data}/certbot/ssl
+  certbot_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${LOG_PATH:-./logs}/certbot
 
 networks:
-  medianest-network:
+  backend-network:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.20.0.0/16
+        - subnet: 172.20.0.0/24
+  frontend-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/24
 
 secrets:
   # Database secrets

@@ -111,6 +111,9 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
+
+  // Enable standalone output for Docker deployment
+  output: 'standalone',
 };
 
 // Bundle analyzer configuration

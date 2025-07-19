@@ -1,79 +1,116 @@
 # MediaNest Frontend Production Dockerfile
-# Multi-stage build for optimized Next.js 14 production image
+# Multi-stage build optimized for size and security
+# Target: <200MB final image with Next.js standalone output
+
+# Build arguments
+ARG BUILD_DATE
+ARG VCS_REF
 
 # Stage 1: Dependencies
 FROM node:20-alpine AS deps
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY package.json ./
 
-# Install production dependencies only
-RUN npm ci --only=production
+# Install production dependencies only with clean cache
+RUN npm install --production --ignore-scripts && \
+    npm cache clean --force
 
 # Stage 2: Builder
 FROM node:20-alpine AS builder
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy package files and install all dependencies for build
+COPY package.json ./
+RUN npm install --ignore-scripts && \
+    npm cache clean --force
 
-# Install all dependencies (including devDependencies for build)
-RUN npm ci
+# Copy necessary config files
+COPY tsconfig.prod.json ./tsconfig.json
+COPY next.config.js ./
+COPY postcss.config.js ./
+COPY tailwind.config.ts ./
+COPY .eslintrc.json ./
 
 # Copy application source
-COPY . .
+COPY src ./src
+COPY public ./public
 
-# Build Next.js application
+# Set build-time environment variables
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
+ENV NEXT_SHARP_PATH=/app/node_modules/sharp
 
-# Build the application
+# Build Next.js with standalone output mode
 RUN npm run build
 
-# Stage 3: Production runner
+# Remove development dependencies and source files
+RUN rm -rf src/ .next/cache
+
+# Stage 3: Production Runner (<200MB target)
 FROM node:20-alpine AS runner
 WORKDIR /app
 
 # Install dumb-init for proper signal handling
-RUN apk add --no-cache dumb-init
+RUN apk add --no-cache dumb-init && \
+    apk add --no-cache libc6-compat
 
-# Create non-root user
-RUN addgroup -g 1001 nodejs && \
-    adduser -S nodejs -u 1001 -G nodejs
+# Create non-root user with specific UID/GID
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001 -G nodejs
 
-# Set production environment
+# Copy only necessary files from builder
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Create entrypoint script for handling Docker secrets
+RUN cat << 'EOF' > /app/docker-entrypoint.sh
+#!/bin/sh
+set -e
+
+# Read secrets from files if they exist
+if [ -f "/run/secrets/nextauth_secret" ]; then
+    export NEXTAUTH_SECRET=$(cat /run/secrets/nextauth_secret)
+fi
+
+# Execute the main process
+exec node server.js
+EOF
+
+RUN chmod +x /app/docker-entrypoint.sh && \
+    chown nextjs:nodejs /app/docker-entrypoint.sh
+
+# Set runtime environment
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 
-# Copy necessary files from builder stage
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-
-# Create health check script
-RUN echo '#!/bin/sh\nwget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1' > /app/healthcheck.sh && \
-    chmod +x /app/healthcheck.sh
-
-# Set ownership
-RUN chown -R nodejs:nodejs /app
+# Add metadata labels
+LABEL org.opencontainers.image.created="${BUILD_DATE}" \
+      org.opencontainers.image.revision="${VCS_REF}" \
+      org.opencontainers.image.title="MediaNest Frontend" \
+      org.opencontainers.image.description="Next.js 14 frontend for MediaNest" \
+      org.opencontainers.image.vendor="MediaNest" \
+      org.opencontainers.image.version="1.0.0" \
+      org.opencontainers.image.licenses="MIT"
 
 # Switch to non-root user
-USER nodejs
+USER nextjs:nodejs
 
 # Expose port
 EXPOSE 3000
 
-# Set port for Next.js server
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD /app/healthcheck.sh
+# Health check with proper timing for container monitoring
+HEALTHCHECK --interval=30s --timeout=10s --start-period=45s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
 
 # Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]
 
-# Start the Next.js server
-CMD ["node", "server.js"]
+# Start using the entrypoint script
+CMD ["/app/docker-entrypoint.sh"]
