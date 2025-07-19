@@ -4,36 +4,50 @@ This index provides a comprehensive overview of all tasks reorganized into the M
 
 ## Summary Statistics
 
-- **Completed Tasks**: 35
-- **Pending Tasks**: 13
+- **Completed Tasks**: 41
+- **Pending Tasks**: 16
 - **Backlog Tasks**: 1
-- **Active Tasks**: 0
-- **Total Tasks**: 49
+- **Active Tasks**: 1
+- **Total Tasks**: 59
 
 ## Task Organization
 
-### 📋 Pending Tasks (13)
+### 🚀 Active Tasks (1)
 
-Ready to be worked on - prioritized for Phase 4 & 5
+Currently being worked on
 
-#### High Priority - Production Readiness (Phase 4)
+1. **task-20250119-1110-docker-production-setup.md** - Docker Production Setup
 
-1. **task-20250119-1045-configure-mcp-servers.md** - Configure MCP Servers for MediaNest
-2. **task-20250119-1100-api-endpoint-testing.md** - API Endpoint Testing
-3. **task-20250119-1101-manual-testing-checklist.md** - Manual Testing Checklist
-4. **task-20250119-1102-frontend-performance-optimization.md** - Frontend Performance Optimization
-5. **task-20250119-1103-backend-performance-optimization.md** - Backend Performance Optimization
-6. **task-20250119-1104-security-audit.md** - Security Audit
-7. **task-20250119-1105-production-configuration.md** - Production Configuration
+### 📋 Pending Tasks (16)
 
-#### Medium Priority - Launch Preparation (Phase 5)
+Ready to be worked on - prioritized for Phase 5 (Launch Preparation)
 
-8. **task-20250119-1106-user-documentation.md** - User Documentation
-9. **task-20250119-1107-technical-documentation.md** - Technical Documentation
-10. **task-20250119-1108-application-monitoring.md** - Application Monitoring
-11. **task-20250119-1109-infrastructure-monitoring.md** - Infrastructure Monitoring
-12. **task-20250119-1110-docker-production-setup.md** - Docker Production Setup
-13. **task-20250119-1111-deployment-launch-checklist.md** - Deployment Launch Checklist
+#### Critical Priority - MVP Launch Requirements
+
+1. **task-20250119-1830-ssl-certificate-configuration.md** - SSL Certificate Configuration (P0)
+2. **task-20250119-1831-backup-restore-strategy.md** - Backup and Restore Strategy (P0)
+3. **task-20250119-1850-final-deployment-checklist.md** - Final Deployment Checklist (P0)
+
+#### High Priority - Production Infrastructure
+
+4. **task-20250119-1835-production-deployment-scripts.md** - Production Deployment Scripts (P1)
+5. **task-20250119-1836-user-onboarding-flow.md** - User Onboarding Flow (P1)
+6. **task-20250119-1837-logging-monitoring-setup.md** - Logging and Monitoring Setup (P1)
+7. **task-20250119-1840-production-environment-template.md** - Production Environment Template (P1)
+8. **task-20250119-1845-health-check-implementation.md** - Health Check Implementation (P1)
+
+#### Medium Priority - Production Optimization
+
+9. **task-20250119-1841-rate-limiting-production-config.md** - Rate Limiting Production Configuration (P2)
+
+#### Legacy Tasks (To Review/Archive)
+
+10. **task-20250119-1045-configure-mcp-servers.md** - Configure MCP Servers for MediaNest
+11. **task-20250119-1106-user-documentation.md** - User Documentation
+12. **task-20250119-1107-technical-documentation.md** - Technical Documentation
+13. **task-20250119-1108-application-monitoring.md** - Application Monitoring
+14. **task-20250119-1109-infrastructure-monitoring.md** - Infrastructure Monitoring
+15. **task-20250119-1111-deployment-launch-checklist.md** - Deployment Launch Checklist
 
 ### 🗂️ Backlog Tasks (1)
 
@@ -91,18 +105,27 @@ Organized by development phase
 - yt-dlp Integration
 - Download Plex Integration
 
-#### Phase 4 - Production Readiness (1 task completed)
+#### Phase 4 - Production Readiness (7 tasks completed)
 
 - Critical Path Testing ✅
+- API Endpoint Testing ✅
+- Manual Testing Checklist ✅
+- Frontend Performance Optimization ✅
+- Backend Performance Optimization ✅
+- Security Audit ✅
+- Production Configuration ✅
 
 ## Next Steps
 
 ### Immediate Priority
 
-Start with Phase 4 production readiness tasks:
+Focus on MVP launch requirements for Phase 5:
 
-1. Move `task-20250119-1100-api-endpoint-testing.md` to `active/`
-2. Complete remaining Phase 4 tasks before Phase 5
+1. Complete active task: `task-20250119-1110-docker-production-setup.md`
+2. Start critical P0 tasks:
+   - SSL Certificate Configuration
+   - Backup and Restore Strategy
+3. Then proceed with P1 infrastructure tasks
 
 ### Task Workflow
 
