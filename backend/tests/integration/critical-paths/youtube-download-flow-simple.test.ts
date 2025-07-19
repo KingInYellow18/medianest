@@ -3,6 +3,8 @@ import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
 import { createTestApp, createTestJWT } from '../../helpers/test-app';
 import { server } from '../../msw/setup';
+import { cleanupDatabase } from '../../helpers/database-cleanup';
+
 const prisma = new PrismaClient();
 
 // Simple in-memory Redis mock for testing
@@ -50,10 +52,8 @@ describe('Critical Path: YouTube Download Flow (Simplified)', () => {
   beforeAll(async () => {
     // Redis mock already connected
 
-    // Clean up test database (order matters due to foreign keys)
-    await prisma.youtubeDownload.deleteMany();
-    await prisma.mediaRequest.deleteMany();
-    await prisma.user.deleteMany();
+    // Clean up test database using helper
+    await cleanupDatabase(prisma);
 
     // Clear Redis
     await redis.flushDb();
@@ -242,6 +242,32 @@ describe('Critical Path: YouTube Download Flow (Simplified)', () => {
     vi.clearAllMocks();
     // Clear rate limit counters
     await redis.flushDb();
+
+    // Clean database between tests for isolation
+    await cleanupDatabase(prisma);
+
+    // Re-create test users for each test
+    const user = await prisma.user.create({
+      data: {
+        plexId: 'test-plex-id',
+        plexUsername: 'testuser',
+        email: 'test@example.com',
+        role: 'USER',
+      },
+    });
+    userId = user.id;
+    authToken = createTestJWT({ userId: user.id, role: user.role });
+
+    const admin = await prisma.user.create({
+      data: {
+        plexId: 'admin-plex-id',
+        plexUsername: 'adminuser',
+        email: 'admin@example.com',
+        role: 'ADMIN',
+      },
+    });
+    adminId = admin.id;
+    adminToken = createTestJWT({ userId: admin.id, role: admin.role });
   });
 
   it('should complete full YouTube download flow from URL submission to queue', async () => {

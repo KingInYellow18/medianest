@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import { createTestApp } from '../../helpers/test-app';
 import { server } from '../../msw/setup';
 import { http, HttpResponse } from 'msw';
+import { cleanupDatabase } from '../../helpers/database-cleanup';
 
 const prisma = new PrismaClient();
 
@@ -12,11 +13,8 @@ describe('Critical Path: Plex OAuth Authentication Flow (Simplified)', () => {
   let app: any;
 
   beforeAll(async () => {
-    // Clean up test database (order matters due to foreign keys)
-    await prisma.session.deleteMany();
-    await prisma.youtubeDownload.deleteMany();
-    await prisma.mediaRequest.deleteMany();
-    await prisma.user.deleteMany();
+    // Clean up test database using helper
+    await cleanupDatabase(prisma);
 
     // Create test app with mock routes
     app = createTestApp();
@@ -150,9 +148,12 @@ describe('Critical Path: Plex OAuth Authentication Flow (Simplified)', () => {
     await prisma.$disconnect();
   });
 
-  beforeEach(() => {
+  beforeEach(async () => {
     // Reset MSW handlers to default
     server.resetHandlers();
+
+    // Clean database between tests for isolation
+    await cleanupDatabase(prisma);
   });
 
   it('should complete full authentication flow from PIN to JWT', async () => {
