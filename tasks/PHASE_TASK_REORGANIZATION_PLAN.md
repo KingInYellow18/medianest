@@ -86,7 +86,7 @@ These tasks will be moved to `pending/` and converted to MCP workflow format:
 
 These will be moved to `backlog/`:
 
-- phase3/12-plex-collection-creation.md (Marked for POST-MVP)
+- docs/archive/phases/phase3/12-plex-collection-creation.md (Marked for POST-MVP)
 
 ## Conversion Strategy
 

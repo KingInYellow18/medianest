@@ -5,10 +5,10 @@ This index provides a comprehensive overview of all tasks reorganized into the M
 ## Summary Statistics
 
 - **Completed Tasks**: 47
-- **Pending Tasks**: 27
+- **Pending Tasks**: 30
 - **Backlog Tasks**: 1
 - **Active Tasks**: 1
-- **Total Tasks**: 76
+- **Total Tasks**: 79
 
 ## Task Organization
 
@@ -16,7 +16,7 @@ This index provides a comprehensive overview of all tasks reorganized into the M
 
 Currently being worked on
 
-1. **task-20250119-1110-docker-production-setup.md** - Docker Production Setup
+1. **task-20250119-1424-relocate-test-documentation.md** - Relocate Test Documentation to Proper Docs Location
 
 ### 📋 Pending Tasks (27)
 
@@ -76,15 +76,12 @@ Ready to be worked on - prioritized by impact and dependencies
 
 #### Medium Priority - Documentation Cleanup (P2)
 
-29. **task-20250119-1420-create-archive-directory-structure.md** - Create Archive Directory Structure for Historical Documentation ✅
-30. **task-20250119-1421-archive-technical-debt-analysis-files.md** - Archive Technical Debt Analysis Files (P2)
-31. **task-20250119-1422-archive-planning-files.md** - Archive Planning Files (P2)
-32. **task-20250119-1423-archive-completed-phase-task-directories.md** - Archive Completed Phase Task Directories (P2)
-33. **task-20250119-1424-relocate-test-documentation.md** - Relocate Test Documentation to Proper Docs Location (P2)
+29. **task-20250119-1421-archive-technical-debt-analysis-files.md** - Archive Technical Debt Analysis Files (P2)
+30. **task-20250119-1422-archive-planning-files.md** - Archive Planning Files (P2)
 
 #### Low Priority - Code Organization (P3)
 
-34. **task-20250119-1425-update-task-system-remove-phase-legacy.md** - Update Task System to Remove Phase-Based Organization Legacy Files (P3)
+31. **task-20250119-1425-update-task-system-remove-phase-legacy.md** - Update Task System to Remove Phase-Based Organization Legacy Files (P3)
 
 ### 🗂️ Backlog Tasks (1)
 
@@ -92,7 +89,7 @@ Future enhancements - Post-MVP
 
 1. **task-20250119-1200-plex-collection-creation.md** - Plex Collection Creation (Advanced Features)
 
-### ✅ Completed Tasks (47)
+### ✅ Completed Tasks (48)
 
 Organized by development phase
 
@@ -171,7 +168,7 @@ Organized by development phase
 2. **Then**: `task-20250119-2101-complete-msw-v2-migration-all-handlers.md` (P0)
 3. **Next**: `task-20250119-2102-implement-shared-crypto-validation-utilities.md` (P1)
 4. **After testing fixed**: Continue with MVP launch requirements:
-   - Complete active task: `task-20250119-1110-docker-production-setup.md`
+   - Complete active task: `task-20250119-1424-relocate-test-documentation.md`
    - SSL Certificate Configuration
    - Backup and Restore Strategy
 
