@@ -10,6 +10,56 @@ This index provides a comprehensive overview of all tasks reorganized into the M
 - **Active Tasks**: 0
 - **Total Tasks**: 85
 
+## 📋 Task Templates Quick Reference
+
+Use standardized templates for consistent task creation. Located in `tasks/templates/`:
+
+### Core Development
+
+- **`quick-start-template.md`** - Fast task creation (< 2 hours)
+- **`feature-template.md`** - New features with user stories
+- **`bug-fix-template.md`** - Debug issues with reproduction steps
+- **`refactor-template.md`** - Code improvements with risk analysis
+
+### Specialized Development
+
+- **`testing-template.md`** - Test implementation with coverage analysis
+- **`integration-template.md`** - External service integrations (Plex, Overseerr)
+- **`performance-template.md`** - Speed optimization with benchmarks
+- **`security-template.md`** - Security audits and implementations
+
+### Operations & Documentation
+
+- **`deployment-template.md`** - Infrastructure and deployment tasks
+- **`documentation-template.md`** - User/technical documentation
+- **`investigation-template.md`** - Research and analysis tasks
+
+### Template Selection Guide
+
+| Task Type         | Template                    | Best For                   |
+| ----------------- | --------------------------- | -------------------------- |
+| Quick fixes       | `quick-start-template.md`   | Tasks < 2 hours            |
+| New features      | `feature-template.md`       | Major functionality        |
+| Bug fixes         | `bug-fix-template.md`       | Production issues          |
+| Code improvements | `refactor-template.md`      | Technical debt             |
+| Testing           | `testing-template.md`       | Unit/integration/E2E tests |
+| External APIs     | `integration-template.md`   | Service integrations       |
+| Performance       | `performance-template.md`   | Speed optimizations        |
+| Security          | `security-template.md`      | Auth/encryption/audits     |
+| Infrastructure    | `deployment-template.md`    | Docker/CI/CD/production    |
+| Documentation     | `documentation-template.md` | User guides/API docs       |
+| Research          | `investigation-template.md` | Analysis/feasibility       |
+
+**Quick Usage:**
+
+```bash
+# Copy template for new task
+cp tasks/templates/quick-start-template.md tasks/pending/task-$(date +%Y%m%d-%H%M)-my-task.md
+
+# View all templates
+ls tasks/templates/
+```
+
 ## ⚠️ CRITICAL STATUS: TEST INFRASTRUCTURE BROKEN
 
 **The entire test suite is currently broken and requires immediate attention.**
