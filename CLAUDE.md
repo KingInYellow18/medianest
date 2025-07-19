@@ -45,6 +45,17 @@ npm run docker:up        # Start all services (docker compose up -d)
 npm run docker:down      # Stop all containers (docker compose down)
 npm run docker:logs      # View container logs (docker compose logs -f)
 
+# End-to-end testing with Playwright
+npm run test:e2e         # Run all E2E tests
+npm run test:e2e:ui      # Run E2E tests with Playwright UI
+npm run test:e2e:headed  # Run E2E tests in headed mode
+npm run test:e2e:debug   # Debug E2E tests step-by-step
+npm run test:all         # Run both unit and E2E tests
+
+# Test coverage commands
+npm run test:coverage    # Generate coverage report
+npm run test:coverage:ui # View coverage report in UI
+
 # Frontend development
 cd frontend && npm run dev           # Start Next.js dev server (port 3000)
 cd frontend && npm run build         # Build production frontend
@@ -80,7 +91,14 @@ medianest/
 ├── shared/                # Shared types and utilities
 ├── scripts/               # Development and setup scripts
 ├── infrastructure/        # Docker and deployment configs
-└── docs/                  # Comprehensive documentation
+├── docs/                  # Comprehensive documentation
+└── tasks/                 # MCP workflow-based task management system
+    ├── active/            # Currently in progress (1 task)
+    ├── pending/           # Waiting to start (33 tasks)
+    ├── completed/         # Finished tasks organized by date (49+ tasks)
+    ├── blocked/           # External dependencies
+    ├── templates/         # Standardized task templates
+    └── backlog/           # Future tasks and ideas
 ```
 
 ### Frontend Structure (Next.js)
@@ -458,6 +476,41 @@ Phase 4 YouTube backend implementation is fully complete and ready for deploymen
 - `docs/04-security-design.md` - Security implementation details
 - `docs/05-api-design.md` - API endpoint documentation
 - `docs/08-deployment-plan.md` - Production deployment guide
+
+## Task Management System
+
+### MCP Workflow-Based Tasks
+
+The project uses a sophisticated task management system in `/tasks/` with standardized templates and MCP workflow integration:
+
+```bash
+# Task management commands
+ls tasks/active/          # View current tasks (should be 1 task max)
+ls tasks/pending/         # View upcoming tasks (currently 33 tasks)
+ls tasks/completed/       # View finished tasks organized by date
+
+# Move tasks through workflow
+mv tasks/pending/task-file.md tasks/active/     # Start working on task
+mv tasks/active/task-file.md tasks/completed/2025/01/  # Complete task
+
+# Search tasks
+grep -r "search-term" tasks/
+```
+
+### Task Templates
+
+Use standardized templates from `tasks/templates/`:
+
+- `bug-fix-template.md` - For bug fixes and issues
+- `feature-template.md` - For new feature development
+- `refactor-template.md` - For code refactoring tasks
+
+### Current Status (as of analysis)
+
+- **Active Tasks**: 1 (production environment template)
+- **Pending Tasks**: 33 (admin visibility features, production deployment, testing improvements)
+- **Completed Tasks**: 49+ organized in `completed/2025/01/`
+- **Template Tasks**: Bug fix, feature, and refactor templates available
 
 # important-instruction-reminders
 
