@@ -4,84 +4,99 @@ This index provides a comprehensive overview of all tasks reorganized into the M
 
 ## Summary Statistics
 
-- **Completed Tasks**: 47
-- **Pending Tasks**: 30
+- **Completed Tasks**: 53
+- **Pending Tasks**: 31 (4 NEW CRITICAL)
 - **Backlog Tasks**: 1
-- **Active Tasks**: 1
-- **Total Tasks**: 79
+- **Active Tasks**: 0
+- **Total Tasks**: 85
+
+## ⚠️ CRITICAL STATUS: TEST INFRASTRUCTURE BROKEN
+
+**The entire test suite is currently broken and requires immediate attention.**
+
+### Critical Issues Identified (2025-01-19):
+
+1. **Missing Shared Utilities** - crypto.ts and validation.ts files don't exist
+2. **Database Schema Missing** - Test database tables not created
+3. **ES Module Import Errors** - Integration tests can't load properly
+4. **Security Environment Variables** - Keys don't meet security standards
+
+### Impact:
+
+- 20+ test suites failing
+- No reliable testing until fixed
+- Production deployment blocked
+- Development workflow compromised
 
 ## Task Organization
 
-### 🚀 Active Tasks (1)
+### 🚀 Active Tasks (0)
 
-Currently being worked on
+No tasks currently being worked on
 
-1. **task-20250119-1424-relocate-test-documentation.md** - Relocate Test Documentation to Proper Docs Location
+### 📋 Pending Tasks (31)
 
-### 📋 Pending Tasks (27)
+**CRITICAL: Fix test infrastructure before any other work**
 
-Ready to be worked on - prioritized by impact and dependencies
+#### 🚨 IMMEDIATE CRITICAL PRIORITY (P0) - Test Infrastructure Broken
 
-#### Critical Priority - Testing Infrastructure (P0)
+**DO THESE FIRST - IN ORDER:**
 
-1. **task-20250119-2100-migrate-msw-v1-to-v2-plex-handlers.md** - MSW v1 to v2 Migration - Plex Handlers (P0)
-2. **task-20250119-2101-complete-msw-v2-migration-all-handlers.md** - Complete MSW v2 Migration - All Handlers (P0)
+1. **task-20250119-2120-fix-missing-shared-utilities.md** - Fix Missing Shared Utilities (crypto.ts, validation.ts) (P0)
+2. **task-20250119-2121-fix-database-schema-test-environment.md** - Fix Database Schema in Test Environment (P0)
+3. **task-20250119-2123-fix-msw-module-import-errors.md** - Fix MSW Module Import Errors (P0)
+4. **task-20250119-2122-fix-security-environment-variables.md** - Fix Security Environment Variables (P1)
+
+#### Secondary Critical Priority - Testing Infrastructure (P0)
+
+5. **task-20250119-2100-migrate-msw-v1-to-v2-plex-handlers.md** - MSW v1 to v2 Migration - Plex Handlers (P0)
+6. **task-20250119-2101-complete-msw-v2-migration-all-handlers.md** - Complete MSW v2 Migration - All Handlers (P0)
 
 #### High Priority - Missing Implementation (P1)
 
-3. **task-20250119-2102-implement-shared-crypto-validation-utilities.md** - Implement Shared Crypto/Validation Utilities (P1)
-4. **task-20250119-2103-implement-missing-frontend-components.md** - Implement Missing Frontend Components (P1)
+7. **task-20250119-2102-implement-shared-crypto-validation-utilities.md** - Implement Shared Crypto/Validation Utilities (P1) _[MAY BE OBSOLETE - check against task-20250119-2120]_
+8. **task-20250119-2103-implement-missing-frontend-components.md** - Implement Missing Frontend Components (P1)
 
 #### Medium Priority - Test Improvement (P2)
 
-5. **task-20250119-2104-implement-placeholder-frontend-tests.md** - Implement Placeholder Frontend Tests (P2)
+9. **task-20250119-2104-implement-placeholder-frontend-tests.md** - Implement Placeholder Frontend Tests (P2)
 
-#### Critical Priority - MVP Launch Requirements (P0)
+#### Critical Priority - MVP Launch Requirements (P0) _[BLOCKED UNTIL TESTS FIXED]_
 
-6. **task-20250119-1830-ssl-certificate-configuration.md** - SSL Certificate Configuration (P0)
-7. **task-20250119-1831-backup-restore-strategy.md** - Backup and Restore Strategy (P0)
-8. **task-20250119-1850-final-deployment-checklist.md** - Final Deployment Checklist (P0)
+10. **task-20250119-1830-ssl-certificate-configuration.md** - SSL Certificate Configuration (P0)
+11. **task-20250119-1831-backup-restore-strategy.md** - Backup and Restore Strategy (P0)
+12. **task-20250119-1850-final-deployment-checklist.md** - Final Deployment Checklist (P0)
 
-#### High Priority - Production Infrastructure (P1)
+#### High Priority - Production Infrastructure (P1) _[BLOCKED UNTIL TESTS FIXED]_
 
-9. **task-20250119-1835-production-deployment-scripts.md** - Production Deployment Scripts (P1)
-10. **task-20250119-1836-user-onboarding-flow.md** - User Onboarding Flow (P1)
-11. **task-20250119-1837-logging-monitoring-setup.md** - Logging and Monitoring Setup (P1)
-12. **task-20250119-1840-production-environment-template.md** - Production Environment Template (P1)
-13. **task-20250119-1845-health-check-implementation.md** - Health Check Implementation (P1)
+13. **task-20250119-1835-production-deployment-scripts.md** - Production Deployment Scripts (P1)
+14. **task-20250119-1836-user-onboarding-flow.md** - User Onboarding Flow (P1)
+15. **task-20250119-1837-logging-monitoring-setup.md** - Logging and Monitoring Setup (P1)
+16. **task-20250119-1845-health-check-implementation.md** - Health Check Implementation (P1)
 
 #### Medium Priority - Production Optimization (P2)
 
-14. **task-20250119-1841-rate-limiting-production-config.md** - Rate Limiting Production Configuration (P2)
+17. **task-20250119-1841-rate-limiting-production-config.md** - Rate Limiting Production Configuration (P2)
 
-#### Testing and Quality Improvement Tasks
+#### Testing and Quality Improvement Tasks _[BLOCKED UNTIL TESTS FIXED]_
 
-15. **task-20250119-2000-establish-test-coverage-baseline.md** - Establish Test Coverage Baseline (P2)
-16. **task-20250119-2001-implement-frontend-component-tests.md** - Implement Frontend Component Tests (P2)
-17. **task-20250119-2002-setup-cicd-test-automation.md** - Setup CI/CD Test Automation (P1)
-18. **task-20250119-2003-implement-e2e-browser-testing.md** - Implement E2E Browser Testing (P2)
-19. **task-20250119-2004-add-performance-testing.md** - Add Performance Testing (P2)
-20. **task-20250119-2005-expand-test-data-factories.md** - Expand Test Data Factories (P3)
-21. **task-20250119-2006-improve-test-documentation.md** - Improve Test Documentation (P3)
-22. **task-20250119-2007-setup-test-monitoring-dashboard.md** - Setup Test Monitoring Dashboard (P3)
+18. **task-20250119-2000-establish-test-coverage-baseline.md** - Establish Test Coverage Baseline (P2)
+19. **task-20250119-2001-implement-frontend-component-tests.md** - Implement Frontend Component Tests (P2)
+20. **task-20250119-2002-setup-cicd-test-automation.md** - Setup CI/CD Test Automation (P1)
+21. **task-20250119-2003-implement-e2e-browser-testing.md** - Implement E2E Browser Testing (P2)
+22. **task-20250119-2004-add-performance-testing.md** - Add Performance Testing (P2)
+23. **task-20250119-2005-expand-test-data-factories.md** - Expand Test Data Factories (P3)
+24. **task-20250119-2006-improve-test-documentation.md** - Improve Test Documentation (P3)
+25. **task-20250119-2007-setup-test-monitoring-dashboard.md** - Setup Test Monitoring Dashboard (P3)
 
-#### Legacy Tasks (To Review/Archive)
+#### Legacy Tasks (To Review/Archive) _[LOW PRIORITY UNTIL TESTS FIXED]_
 
-23. **task-20250119-1045-configure-mcp-servers.md** - Configure MCP Servers for MediaNest
-24. **task-20250119-1106-user-documentation.md** - User Documentation
-25. **task-20250119-1107-technical-documentation.md** - Technical Documentation
-26. **task-20250119-1108-application-monitoring.md** - Application Monitoring
-27. **task-20250119-1109-infrastructure-monitoring.md** - Infrastructure Monitoring
-28. **task-20250119-1111-deployment-launch-checklist.md** - Deployment Launch Checklist
-
-#### Medium Priority - Documentation Cleanup (P2)
-
-29. **task-20250119-1421-archive-technical-debt-analysis-files.md** - Archive Technical Debt Analysis Files (P2)
-30. **task-20250119-1422-archive-planning-files.md** - Archive Planning Files (P2)
-
-#### Low Priority - Code Organization (P3)
-
-31. **task-20250119-1425-update-task-system-remove-phase-legacy.md** - Update Task System to Remove Phase-Based Organization Legacy Files (P3)
+26. **task-20250119-1045-configure-mcp-servers.md** - Configure MCP Servers for MediaNest
+27. **task-20250119-1106-user-documentation.md** - User Documentation
+28. **task-20250119-1107-technical-documentation.md** - Technical Documentation
+29. **task-20250119-1108-application-monitoring.md** - Application Monitoring
+30. **task-20250119-1109-infrastructure-monitoring.md** - Infrastructure Monitoring
+31. **task-20250119-1111-deployment-launch-checklist.md** - Deployment Launch Checklist
 
 ### 🗂️ Backlog Tasks (1)
 
@@ -89,7 +104,7 @@ Future enhancements - Post-MVP
 
 1. **task-20250119-1200-plex-collection-creation.md** - Plex Collection Creation (Advanced Features)
 
-### ✅ Completed Tasks (48)
+### ✅ Completed Tasks (53)
 
 Organized by development phase
 
@@ -162,15 +177,18 @@ Organized by development phase
 
 ### Immediate Priority
 
-**CRITICAL: Fix Testing Infrastructure First** - All backend tests are currently broken due to MSW migration issues:
+**CRITICAL: Fix Test Infrastructure - PRODUCTION DEPLOYMENT BLOCKED**
 
-1. **Start immediately**: `task-20250119-2100-migrate-msw-v1-to-v2-plex-handlers.md` (P0)
-2. **Then**: `task-20250119-2101-complete-msw-v2-migration-all-handlers.md` (P0)
-3. **Next**: `task-20250119-2102-implement-shared-crypto-validation-utilities.md` (P1)
-4. **After testing fixed**: Continue with MVP launch requirements:
-   - Complete active task: `task-20250119-1424-relocate-test-documentation.md`
-   - SSL Certificate Configuration
-   - Backup and Restore Strategy
+**Test suite is completely broken. Must fix in this exact order:**
+
+1. **FIRST**: `task-20250119-2120-fix-missing-shared-utilities.md` (P0) - Create missing crypto.ts/validation.ts
+2. **SECOND**: `task-20250119-2121-fix-database-schema-test-environment.md` (P0) - Fix test database
+3. **THIRD**: `task-20250119-2123-fix-msw-module-import-errors.md` (P0) - Fix ES module imports
+4. **FOURTH**: `task-20250119-2122-fix-security-environment-variables.md` (P1) - Fix security vars
+5. **THEN**: Complete MSW migration tasks (2100, 2101)
+6. **FINALLY**: Resume MVP launch requirements only after all tests pass
+
+**⚠️ DO NOT WORK ON OTHER TASKS UNTIL TESTS ARE FIXED ⚠️**
 
 ### Task Workflow
 

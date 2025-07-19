@@ -1,8 +1,8 @@
 # MediaNest Task Management
 
-This directory contains task files for the MediaNest project using two organizational systems:
+This directory contains task files for the MediaNest project using the MCP workflow organization:
 
-## 🆕 MCP Workflow Organization (Current)
+## 🆕 MCP Workflow Organization
 
 Following the CLAUDE_CUSTOM.md workflow, tasks are now organized by status:
 
@@ -24,10 +24,7 @@ tasks/
 
 ### Quick Stats
 
-- **Completed**: 35 tasks (Phases 0-3 + partial Phase 4)
-- **Pending**: 13 tasks (Phase 4 & 5)
-- **Backlog**: 1 task (Post-MVP)
-- **Total**: 49 tasks
+See **TASK_INDEX.md** for current statistics and task counts.
 
 ### Key Documents
 
@@ -35,18 +32,9 @@ tasks/
 - **MCP_WORKFLOW_README.md** - Detailed workflow instructions
 - **PHASE_TASK_REORGANIZATION_PLAN.md** - Migration documentation
 
-## 📁 Phase-Based Organization (Legacy)
+## 📁 Phase-Based Organization (Archived)
 
-The original phase directories (phase0-5) are preserved for reference:
-
-### Phase Status Overview
-
-- **Phase 0: Project Setup** ✅ Complete (6/6 tasks)
-- **Phase 1: Core Foundation** ✅ Complete (9/9 tasks)
-- **Phase 2: External Service Integration** ✅ Complete (5/5 tasks)
-- **Phase 3: Feature Implementation** ✅ Complete (14/15 tasks)
-- **Phase 4: Production Readiness** 🚧 In Progress (1/7 tasks)
-- **Phase 5: Launch Preparation** 📋 Not Started (0/6 tasks)
+The original phase directories (phase0-5) have been archived to `docs/archive/phases/` for historical reference. All active task management now uses the MCP workflow structure described above.
 
 ## Current Focus
 

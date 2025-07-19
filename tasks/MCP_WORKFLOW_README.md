@@ -1,14 +1,10 @@
 # MCP Workflow Task Management System
 
-This directory now supports two task organization systems:
+This directory uses the MCP workflow for task management. The original phase-based organization has been archived to `docs/archive/phases/` for historical reference.
 
-## 1. Phase-Based Organization (Original)
+## MCP Workflow Organization
 
-The `phase0/` through `phase5/` directories contain the original MediaNest implementation roadmap organized by development phases.
-
-## 2. MCP Workflow Organization (New)
-
-Following the CLAUDE_CUSTOM.md workflow, tasks are now also organized by status:
+Following the CLAUDE_CUSTOM.md workflow, tasks are organized by status:
 
 ### Directory Structure
 
