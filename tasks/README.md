@@ -1,129 +1,110 @@
-# MediaNest Implementation Tasks
+# MediaNest Task Management
 
-This directory contains detailed task files for implementing MediaNest from Phase 3 onwards. Phases 0-2 have been completed as documented in the IMPLEMENTATION_ROADMAP.md.
+This directory contains task files for the MediaNest project using two organizational systems:
 
-## Overview
+## 🆕 MCP Workflow Organization (Current)
 
-MediaNest is progressing through a 5-phase implementation plan:
+Following the CLAUDE_CUSTOM.md workflow, tasks are now organized by status:
 
-- **Phase 0: Project Setup** ✅ Complete
-- **Phase 1: Core Foundation** ✅ Complete
-- **Phase 2: External Service Integration** ✅ Complete
-- **Phase 3: Feature Implementation** 🚧 In Progress
-- **Phase 4: Production Readiness** 📋 Planned
-- **Phase 5: Launch Preparation** 📋 Planned
+### Directory Structure
 
-## Current Status
+```
+tasks/
+├── active/           # Currently in progress tasks
+├── pending/          # Waiting to be started (13 tasks)
+├── completed/        # Finished tasks (35 tasks)
+│   └── 2025/01/      # Organized by year/month
+├── blocked/          # Tasks with external dependencies
+├── templates/        # Task templates
+│   ├── bug-fix-template.md
+│   ├── feature-template.md
+│   └── refactor-template.md
+└── backlog/          # Future tasks (1 task)
+```
 
-### Completed (Phases 0-2)
+### Quick Stats
 
-- ✅ Project structure and tooling
-- ✅ Plex OAuth authentication
-- ✅ Database schema and repositories
-- ✅ API structure with security
-- ✅ External service integrations (Plex, Overseerr, Uptime Kuma)
-- ✅ Comprehensive backend testing
+- **Completed**: 35 tasks (Phases 0-3 + partial Phase 4)
+- **Pending**: 13 tasks (Phase 4 & 5)
+- **Backlog**: 1 task (Post-MVP)
+- **Total**: 49 tasks
 
-### Remaining Work (Phases 3-5)
+### Key Documents
 
-#### Phase 3: Feature Implementation (UI & YouTube Backend)
+- **TASK_INDEX.md** - Complete index of all reorganized tasks
+- **MCP_WORKFLOW_README.md** - Detailed workflow instructions
+- **PHASE_TASK_REORGANIZATION_PLAN.md** - Migration documentation
 
-Frontend tasks already exist. Additional backend tasks:
+## 📁 Phase-Based Organization (Legacy)
 
-- `13-bullmq-queue-setup.md` - Background job processing for YouTube downloads
-- `14-ytdlp-integration.md` - YouTube download functionality
-- `15-download-plex-integration.md` - Plex library integration for downloads
+The original phase directories (phase0-5) are preserved for reference:
 
-#### Phase 4: Production Readiness
+### Phase Status Overview
 
-Testing & Quality:
+- **Phase 0: Project Setup** ✅ Complete (6/6 tasks)
+- **Phase 1: Core Foundation** ✅ Complete (9/9 tasks)
+- **Phase 2: External Service Integration** ✅ Complete (5/5 tasks)
+- **Phase 3: Feature Implementation** ✅ Complete (14/15 tasks)
+- **Phase 4: Production Readiness** 🚧 In Progress (1/7 tasks)
+- **Phase 5: Launch Preparation** 📋 Not Started (0/6 tasks)
 
-- `01-critical-path-testing.md` - End-to-end testing of core features
-- `02-api-endpoint-testing.md` - Comprehensive API testing with MSW
-- `03-manual-testing-checklist.md` - Real-world testing checklist
+## Current Focus
 
-Performance:
+### High Priority Tasks (Phase 4 - Production Readiness)
 
-- `04-frontend-performance-optimization.md` - Next.js optimization
-- `05-backend-performance-optimization.md` - API and database optimization
+1. **API Endpoint Testing** - Comprehensive API test coverage
+2. **Manual Testing Checklist** - Real-world testing scenarios
+3. **Frontend Performance** - Next.js optimizations
+4. **Backend Performance** - API and database tuning
+5. **Security Audit** - Vulnerability assessment
+6. **Production Configuration** - Secure deployment setup
 
-Security:
+### Getting Started with a Task
 
-- `06-security-audit.md` - Vulnerability assessment
-- `07-production-configuration.md` - Secure production setup
+```bash
+# 1. View pending tasks
+ls tasks/pending/
 
-#### Phase 5: Launch Preparation
+# 2. Choose a task and move to active
+mv tasks/pending/task-20250119-1100-api-endpoint-testing.md tasks/active/
 
-- `01-user-documentation.md` - User guides and tutorials
-- `02-technical-documentation.md` - API docs and runbooks
-- `03-application-monitoring.md` - Error tracking and metrics
-- `04-infrastructure-monitoring.md` - Backups and system monitoring
-- `05-docker-production-setup.md` - Production container configuration
-- `06-deployment-launch-checklist.md` - Final deployment steps
+# 3. Work on the task, updating progress log
 
-## Task Prioritization
+# 4. When complete, archive it
+mv tasks/active/task-20250119-1100-api-endpoint-testing.md tasks/completed/2025/01/
+```
 
-### High Priority (MVP Critical)
+## Task Workflow Process
 
-1. Phase 3 UI implementation (existing tasks)
-2. Phase 3 YouTube backend (13-15)
-3. Phase 4 Critical path testing
-4. Phase 4 Security audit
-5. Phase 5 Docker production setup
-6. Phase 5 Deployment checklist
+1. **Select Task**: Choose from `pending/` based on priority
+2. **Activate**: Move to `active/` when starting work
+3. **Track Progress**: Update task file with progress logs
+4. **Complete**: Move to `completed/YYYY/MM/` when done
+5. **Knowledge Capture**: Update Knowledge Graph with learnings
 
-### Medium Priority (Quality & Polish)
+## Key Achievements to Date
 
-1. Phase 4 API testing
-2. Phase 4 Performance optimization
-3. Phase 5 Documentation
-4. Phase 5 Monitoring setup
+### Infrastructure ✅
 
-### Low Priority (Nice to Have)
+- Monorepo with TypeScript, Docker, PostgreSQL, Redis
+- Next.js 14 frontend, Express backend
+- WebSocket real-time updates
 
-1. Phase 4 Manual testing (can be ongoing)
-2. Advanced monitoring features
-3. Performance optimizations beyond basics
+### Features ✅
 
-## Getting Started
+- Plex OAuth authentication
+- Service status dashboard
+- Media search & request system
+- Plex library browsing
+- YouTube downloader with queue
+- Real-time status updates
 
-1. **Complete Phase 3 UI tasks** - Follow existing frontend task files
-2. **Implement YouTube backend** - Start with task 13 (BullMQ setup)
-3. **Run tests** - Use Phase 4 testing tasks to verify functionality
-4. **Prepare for production** - Follow Phase 4 security and Phase 5 deployment tasks
+### Remaining Work
 
-## Time Estimates
-
-Based on the roadmap and task complexity:
-
-- **Phase 3 Completion**: 2 weeks (UI + YouTube backend)
-- **Phase 4 Testing & Optimization**: 2 weeks
-- **Phase 5 Documentation & Deployment**: 1 week
-
-**Total to MVP**: ~5 weeks from current state
-
-## Key Dependencies
-
-Before starting each phase, ensure:
-
-### Phase 3 YouTube Backend
-
-- Frontend YouTube UI complete
-- Redis configured for queues
-- Docker volume for downloads
-
-### Phase 4 Testing
-
-- All Phase 3 features implemented
-- Test database available
-- MSW configured
-
-### Phase 5 Deployment
-
-- All tests passing
-- Domain configured
-- SSL certificates ready
-- Backup location prepared
+- Comprehensive testing (6 tasks)
+- Performance & security (included above)
+- Documentation (3 tasks)
+- Production deployment (3 tasks)
 
 ## Success Metrics
 
@@ -135,10 +116,32 @@ The MVP is complete when:
 4. ✅ Users can request media via Overseerr
 5. ✅ Users can download YouTube content
 6. ✅ All services gracefully degrade
-7. ✅ Deployed with Docker in production
-8. ✅ Automated backups running
-9. ✅ Documentation complete
-10. ✅ 5-10 beta users successfully using the system
+7. 📋 Deployed with Docker in production
+8. 📋 Automated backups running
+9. 📋 Documentation complete
+10. 📋 5-10 beta users successfully using the system
+
+## Time Estimates
+
+- **Phase 4 Testing & Optimization**: ~2 weeks
+- **Phase 5 Documentation & Deployment**: ~1 week
+- **Total to Production MVP**: ~3 weeks
+
+## Quick Commands
+
+```bash
+# Check task status
+ls tasks/active/        # Current work
+ls tasks/pending/       # Next up
+ls tasks/completed/     # Done
+
+# Search for tasks
+grep -r "performance" tasks/
+grep -r "security" tasks/
+
+# Task templates
+ls tasks/templates/
+```
 
 ## Notes
 
