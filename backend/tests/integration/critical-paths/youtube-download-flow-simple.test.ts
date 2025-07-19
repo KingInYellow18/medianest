@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vites
 import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
 import { createTestApp, createTestJWT } from '../../helpers/test-app';
-import { server } from '../../mocks/server';
+import { server } from '../../msw/setup';
 const prisma = new PrismaClient();
 
 // Simple in-memory Redis mock for testing

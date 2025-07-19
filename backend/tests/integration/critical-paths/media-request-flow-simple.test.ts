@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
 import { createTestApp, createTestJWT } from '../../helpers/test-app';
-import { server } from '../../mocks/server';
+import { server } from '../../msw/setup';
 import { http, HttpResponse } from 'msw';
 
 const prisma = new PrismaClient();

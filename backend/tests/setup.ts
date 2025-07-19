@@ -1,5 +1,5 @@
-import { afterAll, afterEach, beforeAll, vi } from 'vitest'
-import { server } from './mocks/server'
+import { afterAll, afterEach, beforeAll, vi } from 'vitest';
+import { server } from './msw/setup';
 
 // Mock winston and logger completely for tests
 vi.mock('winston', () => ({
@@ -13,8 +13,8 @@ vi.mock('winston', () => ({
         info: vi.fn(),
         error: vi.fn(),
         debug: vi.fn(),
-        warn: vi.fn()
-      }))
+        warn: vi.fn(),
+      })),
     })),
     format: {
       combine: vi.fn(),
@@ -23,12 +23,12 @@ vi.mock('winston', () => ({
       splat: vi.fn(),
       json: vi.fn(),
       printf: vi.fn(),
-      colorize: vi.fn()
+      colorize: vi.fn(),
     },
     transports: {
       Console: vi.fn(),
-      File: vi.fn()
-    }
+      File: vi.fn(),
+    },
   },
   createLogger: vi.fn(() => ({
     info: vi.fn(),
@@ -39,8 +39,8 @@ vi.mock('winston', () => ({
       info: vi.fn(),
       error: vi.fn(),
       debug: vi.fn(),
-      warn: vi.fn()
-    }))
+      warn: vi.fn(),
+    })),
   })),
   format: {
     combine: vi.fn(),
@@ -49,46 +49,46 @@ vi.mock('winston', () => ({
     splat: vi.fn(),
     json: vi.fn(),
     printf: vi.fn(),
-    colorize: vi.fn()
+    colorize: vi.fn(),
   },
   transports: {
     Console: vi.fn(),
-    File: vi.fn()
-  }
-}))
+    File: vi.fn(),
+  },
+}));
 
 vi.mock('winston-daily-rotate-file', () => ({
-  default: vi.fn()
-}))
+  default: vi.fn(),
+}));
 
 // Setup MSW server
 beforeAll(() => {
-  server.listen({ 
-    onUnhandledRequest: 'bypass' // Let unhandled requests (local Express routes) pass through
-  })
-})
+  server.listen({
+    onUnhandledRequest: 'bypass', // Let unhandled requests (local Express routes) pass through
+  });
+});
 
 afterEach(() => {
-  server.resetHandlers()
-  vi.clearAllMocks()
-})
+  server.resetHandlers();
+  vi.clearAllMocks();
+});
 
 afterAll(() => {
-  server.close()
-})
+  server.close();
+});
 
 // Mock environment variables
-process.env.NODE_ENV = 'test'
-process.env.JWT_SECRET = 'test-jwt-secret'
-process.env.JWT_ISSUER = 'medianest'
-process.env.JWT_AUDIENCE = 'medianest-users'
-process.env.ENCRYPTION_KEY = 'test-encryption-key-32-bytes-long'
-process.env.DATABASE_URL = 'postgresql://test:test@localhost:5433/medianest_test'
-process.env.REDIS_URL = 'redis://localhost:6380'
-process.env.PLEX_CLIENT_ID = 'test-plex-client-id'
-process.env.PLEX_CLIENT_SECRET = 'test-plex-client-secret'
-process.env.FRONTEND_URL = 'http://localhost:3000'
-process.env.LOG_LEVEL = 'error' // Reduce noise during tests
+process.env.NODE_ENV = 'test';
+process.env.JWT_SECRET = 'test-jwt-secret';
+process.env.JWT_ISSUER = 'medianest';
+process.env.JWT_AUDIENCE = 'medianest-users';
+process.env.ENCRYPTION_KEY = 'test-encryption-key-32-bytes-long';
+process.env.DATABASE_URL = 'postgresql://test:test@localhost:5433/medianest_test';
+process.env.REDIS_URL = 'redis://localhost:6380';
+process.env.PLEX_CLIENT_ID = 'test-plex-client-id';
+process.env.PLEX_CLIENT_SECRET = 'test-plex-client-secret';
+process.env.FRONTEND_URL = 'http://localhost:3000';
+process.env.LOG_LEVEL = 'error'; // Reduce noise during tests
 
 // Global test utilities
 global.createTestUser = (overrides = {}) => ({
@@ -101,18 +101,18 @@ global.createTestUser = (overrides = {}) => ({
   lastLoginAt: new Date(),
   status: 'active',
   plexToken: null,
-  ...overrides
-})
+  ...overrides,
+});
 
 global.createTestJWT = (payload = {}) => {
-  const jwt = require('jsonwebtoken')
+  const jwt = require('jsonwebtoken');
   return jwt.sign(
     {
       userId: 'test-user-id',
       role: 'user',
-      ...payload
+      ...payload,
     },
     process.env.JWT_SECRET,
-    { expiresIn: '1h' }
-  )
-}
+    { expiresIn: '1h' },
+  );
+};
