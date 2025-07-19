@@ -4,11 +4,11 @@ This index provides a comprehensive overview of all tasks reorganized into the M
 
 ## Summary Statistics
 
-- **Completed Tasks**: 41
-- **Pending Tasks**: 16
+- **Completed Tasks**: 47
+- **Pending Tasks**: 21
 - **Backlog Tasks**: 1
 - **Active Tasks**: 1
-- **Total Tasks**: 59
+- **Total Tasks**: 70
 
 ## Task Organization
 
@@ -18,36 +18,61 @@ Currently being worked on
 
 1. **task-20250119-1110-docker-production-setup.md** - Docker Production Setup
 
-### 📋 Pending Tasks (16)
+### 📋 Pending Tasks (21)
 
-Ready to be worked on - prioritized for Phase 5 (Launch Preparation)
+Ready to be worked on - prioritized by impact and dependencies
 
-#### Critical Priority - MVP Launch Requirements
+#### Critical Priority - Testing Infrastructure (P0)
 
-1. **task-20250119-1830-ssl-certificate-configuration.md** - SSL Certificate Configuration (P0)
-2. **task-20250119-1831-backup-restore-strategy.md** - Backup and Restore Strategy (P0)
-3. **task-20250119-1850-final-deployment-checklist.md** - Final Deployment Checklist (P0)
+1. **task-20250119-2100-migrate-msw-v1-to-v2-plex-handlers.md** - MSW v1 to v2 Migration - Plex Handlers (P0)
+2. **task-20250119-2101-complete-msw-v2-migration-all-handlers.md** - Complete MSW v2 Migration - All Handlers (P0)
 
-#### High Priority - Production Infrastructure
+#### High Priority - Missing Implementation (P1)
 
-4. **task-20250119-1835-production-deployment-scripts.md** - Production Deployment Scripts (P1)
-5. **task-20250119-1836-user-onboarding-flow.md** - User Onboarding Flow (P1)
-6. **task-20250119-1837-logging-monitoring-setup.md** - Logging and Monitoring Setup (P1)
-7. **task-20250119-1840-production-environment-template.md** - Production Environment Template (P1)
-8. **task-20250119-1845-health-check-implementation.md** - Health Check Implementation (P1)
+3. **task-20250119-2102-implement-shared-crypto-validation-utilities.md** - Implement Shared Crypto/Validation Utilities (P1)
+4. **task-20250119-2103-implement-missing-frontend-components.md** - Implement Missing Frontend Components (P1)
 
-#### Medium Priority - Production Optimization
+#### Medium Priority - Test Improvement (P2)
 
-9. **task-20250119-1841-rate-limiting-production-config.md** - Rate Limiting Production Configuration (P2)
+5. **task-20250119-2104-implement-placeholder-frontend-tests.md** - Implement Placeholder Frontend Tests (P2)
+
+#### Critical Priority - MVP Launch Requirements (P0)
+
+6. **task-20250119-1830-ssl-certificate-configuration.md** - SSL Certificate Configuration (P0)
+7. **task-20250119-1831-backup-restore-strategy.md** - Backup and Restore Strategy (P0)
+8. **task-20250119-1850-final-deployment-checklist.md** - Final Deployment Checklist (P0)
+
+#### High Priority - Production Infrastructure (P1)
+
+9. **task-20250119-1835-production-deployment-scripts.md** - Production Deployment Scripts (P1)
+10. **task-20250119-1836-user-onboarding-flow.md** - User Onboarding Flow (P1)
+11. **task-20250119-1837-logging-monitoring-setup.md** - Logging and Monitoring Setup (P1)
+12. **task-20250119-1840-production-environment-template.md** - Production Environment Template (P1)
+13. **task-20250119-1845-health-check-implementation.md** - Health Check Implementation (P1)
+
+#### Medium Priority - Production Optimization (P2)
+
+14. **task-20250119-1841-rate-limiting-production-config.md** - Rate Limiting Production Configuration (P2)
+
+#### Testing and Quality Improvement Tasks
+
+15. **task-20250119-2000-establish-test-coverage-baseline.md** - Establish Test Coverage Baseline (P2)
+16. **task-20250119-2001-implement-frontend-component-tests.md** - Implement Frontend Component Tests (P2)
+17. **task-20250119-2002-setup-cicd-test-automation.md** - Setup CI/CD Test Automation (P1)
+18. **task-20250119-2003-implement-e2e-browser-testing.md** - Implement E2E Browser Testing (P2)
+19. **task-20250119-2004-add-performance-testing.md** - Add Performance Testing (P2)
+20. **task-20250119-2005-expand-test-data-factories.md** - Expand Test Data Factories (P3)
+21. **task-20250119-2006-improve-test-documentation.md** - Improve Test Documentation (P3)
+22. **task-20250119-2007-setup-test-monitoring-dashboard.md** - Setup Test Monitoring Dashboard (P3)
 
 #### Legacy Tasks (To Review/Archive)
 
-10. **task-20250119-1045-configure-mcp-servers.md** - Configure MCP Servers for MediaNest
-11. **task-20250119-1106-user-documentation.md** - User Documentation
-12. **task-20250119-1107-technical-documentation.md** - Technical Documentation
-13. **task-20250119-1108-application-monitoring.md** - Application Monitoring
-14. **task-20250119-1109-infrastructure-monitoring.md** - Infrastructure Monitoring
-15. **task-20250119-1111-deployment-launch-checklist.md** - Deployment Launch Checklist
+23. **task-20250119-1045-configure-mcp-servers.md** - Configure MCP Servers for MediaNest
+24. **task-20250119-1106-user-documentation.md** - User Documentation
+25. **task-20250119-1107-technical-documentation.md** - Technical Documentation
+26. **task-20250119-1108-application-monitoring.md** - Application Monitoring
+27. **task-20250119-1109-infrastructure-monitoring.md** - Infrastructure Monitoring
+28. **task-20250119-1111-deployment-launch-checklist.md** - Deployment Launch Checklist
 
 ### 🗂️ Backlog Tasks (1)
 
@@ -55,7 +80,7 @@ Future enhancements - Post-MVP
 
 1. **task-20250119-1200-plex-collection-creation.md** - Plex Collection Creation (Advanced Features)
 
-### ✅ Completed Tasks (35)
+### ✅ Completed Tasks (47)
 
 Organized by development phase
 
@@ -105,7 +130,7 @@ Organized by development phase
 - yt-dlp Integration
 - Download Plex Integration
 
-#### Phase 4 - Production Readiness (7 tasks completed)
+#### Phase 4 - Production Readiness (7 tasks)
 
 - Critical Path Testing ✅
 - API Endpoint Testing ✅
@@ -115,17 +140,28 @@ Organized by development phase
 - Security Audit ✅
 - Production Configuration ✅
 
+#### TEST_TASKS Migration - Bug Fixes (6 tasks)
+
+- Fix RequestModal Component UI Import Errors ✅
+- Fix SeasonSelector Missing UI Elements ✅
+- Fix useRateLimit Hook State Management ✅
+- Fix Frontend CSS Class Mismatches ✅
+- Fix ServiceCard Test Failures ✅
+- Fix SearchInput Test Failures ✅
+
 ## Next Steps
 
 ### Immediate Priority
 
-Focus on MVP launch requirements for Phase 5:
+**CRITICAL: Fix Testing Infrastructure First** - All backend tests are currently broken due to MSW migration issues:
 
-1. Complete active task: `task-20250119-1110-docker-production-setup.md`
-2. Start critical P0 tasks:
+1. **Start immediately**: `task-20250119-2100-migrate-msw-v1-to-v2-plex-handlers.md` (P0)
+2. **Then**: `task-20250119-2101-complete-msw-v2-migration-all-handlers.md` (P0)
+3. **Next**: `task-20250119-2102-implement-shared-crypto-validation-utilities.md` (P1)
+4. **After testing fixed**: Continue with MVP launch requirements:
+   - Complete active task: `task-20250119-1110-docker-production-setup.md`
    - SSL Certificate Configuration
    - Backup and Restore Strategy
-3. Then proceed with P1 infrastructure tasks
 
 ### Task Workflow
 
@@ -157,9 +193,9 @@ grep -r "security" tasks/
 | Phase 0 | ✅ Complete    | 6/6             | 6           |
 | Phase 1 | ✅ Complete    | 9/9             | 9           |
 | Phase 2 | ✅ Complete    | 5/5             | 5           |
-| Phase 3 | ✅ Complete    | 14/15           | 15          |
-| Phase 4 | 🚧 In Progress | 1/7             | 7           |
-| Phase 5 | 📋 Not Started | 0/6             | 6           |
+| Phase 3 | ✅ Complete    | 14/14           | 14          |
+| Phase 4 | ✅ Complete    | 7/7             | 7           |
+| Phase 5 | 🚧 In Progress | 0/10            | 10          |
 
 ## Key Achievements
 
@@ -190,8 +226,14 @@ grep -r "security" tasks/
 
 ### Remaining Work
 
-- Comprehensive testing (Phase 4)
-- Performance optimization (Phase 4)
-- Security audit (Phase 4)
-- Documentation (Phase 5)
-- Production deployment (Phase 5)
+Phase 5 - Launch Preparation:
+
+- SSL/TLS configuration for secure access
+- Backup and restore strategy
+- Production deployment automation
+- User onboarding experience
+- Logging and monitoring infrastructure
+- Health checks and status page
+- Final security hardening
+- Production environment setup
+- Launch checklist and validation
