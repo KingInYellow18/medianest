@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import { app } from '../../src/app';
-import { server, rest } from '../msw/setup';
+import { server, http, HttpResponse } from '../msw/setup';
 import { generateToken } from '@/utils/jwt.util';
 import prisma from '@/config/database';
 import { redisClient } from '@/config/redis';
@@ -153,8 +153,8 @@ describe('Media Endpoints', () => {
 
     it('should handle Overseerr service errors', async () => {
       server.use(
-        rest.get('*/api/v1/search/multi', (req, res, ctx) => {
-          return res(ctx.status(503), ctx.json({ error: 'Service unavailable' }));
+        http.get('*/api/v1/search/multi', () => {
+          return HttpResponse.json({ error: 'Service unavailable' }, { status: 503 });
         }),
       );
 
@@ -398,8 +398,8 @@ describe('Media Endpoints', () => {
       (prisma.mediaRequest.count as any).mockResolvedValue(0);
 
       server.use(
-        rest.post('*/api/v1/request', (req, res, ctx) => {
-          return res(ctx.status(500), ctx.json({ error: 'Internal server error' }));
+        http.post('*/api/v1/request', () => {
+          return HttpResponse.json({ error: 'Internal server error' }, { status: 500 });
         }),
       );
 

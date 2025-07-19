@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import { app } from '../../src/app';
-import { server, rest } from '../msw/setup';
+import { server, http, HttpResponse } from '../msw/setup';
 import { generateToken } from '@/utils/jwt.util';
 import { redisClient } from '@/config/redis';
 import prisma from '@/config/database';
@@ -56,8 +56,8 @@ describe('Authentication Endpoints', () => {
     it('should handle Plex API errors gracefully', async () => {
       // Override the handler to return an error
       server.use(
-        rest.post('https://plex.tv/api/v2/pins', (req, res, ctx) => {
-          return res(ctx.status(503), ctx.json({ error: 'Service unavailable' }));
+        http.post('https://plex.tv/api/v2/pins', () => {
+          return HttpResponse.json({ error: 'Service unavailable' }, { status: 503 });
         }),
       );
 
@@ -75,8 +75,8 @@ describe('Authentication Endpoints', () => {
     it('should handle network errors', async () => {
       // Override the handler to simulate network error
       server.use(
-        rest.post('https://plex.tv/api/v2/pins', (req, res, ctx) => {
-          return res.networkError('Failed to connect');
+        http.post('https://plex.tv/api/v2/pins', () => {
+          return HttpResponse.error();
         }),
       );
 
@@ -216,8 +216,8 @@ describe('Authentication Endpoints', () => {
 
     it('should handle Plex API errors', async () => {
       server.use(
-        rest.get('https://plex.tv/api/v2/pins/:pinId', (req, res, ctx) => {
-          return res(ctx.status(500), ctx.json({ error: 'Internal error' }));
+        http.get('https://plex.tv/api/v2/pins/:pinId', () => {
+          return HttpResponse.json({ error: 'Internal error' }, { status: 500 });
         }),
       );
 

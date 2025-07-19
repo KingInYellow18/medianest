@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import { app } from '../../src/app';
-import { server, rest } from '../msw/setup';
+import { server, http, HttpResponse } from '../msw/setup';
 import { generateToken } from '@/utils/jwt.util';
 import prisma from '@/config/database';
 import { redisClient } from '@/config/redis';
@@ -187,8 +187,8 @@ describe('Service Status Endpoints', () => {
 
       // Override Plex handler to return error
       server.use(
-        rest.get('*/library/sections', (req, res, ctx) => {
-          return res(ctx.status(500), ctx.json({ error: 'Internal error' }));
+        http.get('*/library/sections', () => {
+          return HttpResponse.json({ error: 'Internal error' }, { status: 500 });
         }),
       );
 
@@ -336,8 +336,8 @@ describe('Service Status Endpoints', () => {
       });
 
       server.use(
-        rest.get('*/api/monitors', (req, res, ctx) => {
-          return res(ctx.status(503), ctx.json({ error: 'Service unavailable' }));
+        http.get('*/api/monitors', () => {
+          return HttpResponse.json({ error: 'Service unavailable' }, { status: 503 });
         }),
       );
 

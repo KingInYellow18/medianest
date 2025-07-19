@@ -21,5 +21,5 @@ afterAll(() => {
   server.close();
 });
 
-// Export server for use in individual tests if needed
-export { rest } from 'msw';
+// Export server and http for use in individual tests if needed
+export { http, HttpResponse } from 'msw';

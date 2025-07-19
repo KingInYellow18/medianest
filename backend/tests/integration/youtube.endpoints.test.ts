@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import { app } from '../../src/app';
-import { server, rest } from '../msw/setup';
+import { server, http, HttpResponse } from '../msw/setup';
 import { generateToken } from '@/utils/jwt.util';
 import prisma from '@/config/database';
 import { redisClient } from '@/config/redis';
@@ -285,15 +285,15 @@ describe('YouTube Download Endpoints', () => {
 
     it('should handle YouTube API errors', async () => {
       server.use(
-        rest.get('https://www.googleapis.com/youtube/v3/videos', (req, res, ctx) => {
-          return res(
-            ctx.status(403),
-            ctx.json({
+        http.get('https://www.googleapis.com/youtube/v3/videos', () => {
+          return HttpResponse.json(
+            {
               error: {
                 code: 403,
                 message: 'API key quota exceeded',
               },
-            }),
+            },
+            { status: 403 },
           );
         }),
       );

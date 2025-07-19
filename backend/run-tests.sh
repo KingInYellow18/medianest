@@ -8,9 +8,9 @@ echo "Starting test environment..."
 cd "$(dirname "$0")/.."
 
 # Start test database if not running
-if ! docker-compose -f docker-compose.test.yml ps | grep -q "postgres-test.*Up"; then
+if ! docker compose -f docker-compose.test.yml ps | grep -q "postgres-test.*Up"; then
     echo "Starting test database..."
-    docker-compose -f docker-compose.test.yml up -d
+    docker compose -f docker-compose.test.yml up -d
     echo "Waiting for database to be ready..."
     sleep 5
 fi
@@ -32,7 +32,7 @@ read -p "Stop test database? (y/N) " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     cd ..
-    docker-compose -f docker-compose.test.yml down
+    docker compose -f docker-compose.test.yml down
 fi
 
 exit $TEST_EXIT_CODE

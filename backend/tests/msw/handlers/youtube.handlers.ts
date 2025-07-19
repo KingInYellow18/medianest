@@ -1,247 +1,244 @@
-import { rest } from 'msw';
+import { http, HttpResponse } from 'msw';
 
 export const youtubeHandlers = [
   // YouTube API - Video info
-  rest.get('https://www.googleapis.com/youtube/v3/videos', (req, res, ctx) => {
-    const id = req.url.searchParams.get('id');
-    const part = req.url.searchParams.get('part');
+  http.get('https://www.googleapis.com/youtube/v3/videos', ({ request }) => {
+    const url = new URL(request.url);
+    const id = url.searchParams.get('id');
+    const part = url.searchParams.get('part');
 
     if (!id || !part) {
-      return res(
-        ctx.status(400),
-        ctx.json({
+      return HttpResponse.json(
+        {
           error: {
             code: 400,
             message: 'Required parameters missing',
           },
-        }),
+        },
+        { status: 400 },
       );
     }
 
     if (id === 'test-video-id') {
-      return res(
-        ctx.json({
-          kind: 'youtube#videoListResponse',
-          etag: 'test-etag',
-          items: [
-            {
-              kind: 'youtube#video',
-              etag: 'test-video-etag',
-              id: 'test-video-id',
-              snippet: {
-                publishedAt: '2023-01-01T00:00:00Z',
-                channelId: 'test-channel-id',
+      return HttpResponse.json({
+        kind: 'youtube#videoListResponse',
+        etag: 'test-etag',
+        items: [
+          {
+            kind: 'youtube#video',
+            etag: 'test-video-etag',
+            id: 'test-video-id',
+            snippet: {
+              publishedAt: '2023-01-01T00:00:00Z',
+              channelId: 'test-channel-id',
+              title: 'Test Video Title',
+              description: 'Test video description',
+              thumbnails: {
+                default: {
+                  url: 'https://i.ytimg.com/vi/test-video-id/default.jpg',
+                  width: 120,
+                  height: 90,
+                },
+                medium: {
+                  url: 'https://i.ytimg.com/vi/test-video-id/mqdefault.jpg',
+                  width: 320,
+                  height: 180,
+                },
+                high: {
+                  url: 'https://i.ytimg.com/vi/test-video-id/hqdefault.jpg',
+                  width: 480,
+                  height: 360,
+                },
+              },
+              channelTitle: 'Test Channel',
+              tags: ['test', 'video'],
+              categoryId: '22',
+              liveBroadcastContent: 'none',
+              defaultLanguage: 'en',
+              localized: {
                 title: 'Test Video Title',
                 description: 'Test video description',
-                thumbnails: {
-                  default: {
-                    url: 'https://i.ytimg.com/vi/test-video-id/default.jpg',
-                    width: 120,
-                    height: 90,
-                  },
-                  medium: {
-                    url: 'https://i.ytimg.com/vi/test-video-id/mqdefault.jpg',
-                    width: 320,
-                    height: 180,
-                  },
-                  high: {
-                    url: 'https://i.ytimg.com/vi/test-video-id/hqdefault.jpg',
-                    width: 480,
-                    height: 360,
-                  },
-                },
-                channelTitle: 'Test Channel',
-                tags: ['test', 'video'],
-                categoryId: '22',
-                liveBroadcastContent: 'none',
-                defaultLanguage: 'en',
-                localized: {
-                  title: 'Test Video Title',
-                  description: 'Test video description',
-                },
-              },
-              contentDetails: {
-                duration: 'PT5M30S',
-                dimension: '2d',
-                definition: 'hd',
-                caption: 'false',
-                licensedContent: true,
-                projection: 'rectangular',
-              },
-              statistics: {
-                viewCount: '1000000',
-                likeCount: '50000',
-                dislikeCount: '500',
-                favoriteCount: '0',
-                commentCount: '10000',
               },
             },
-          ],
-          pageInfo: {
-            totalResults: 1,
-            resultsPerPage: 1,
+            contentDetails: {
+              duration: 'PT5M30S',
+              dimension: '2d',
+              definition: 'hd',
+              caption: 'false',
+              licensedContent: true,
+              projection: 'rectangular',
+            },
+            statistics: {
+              viewCount: '1000000',
+              likeCount: '50000',
+              dislikeCount: '500',
+              favoriteCount: '0',
+              commentCount: '10000',
+            },
           },
-        }),
-      );
+        ],
+        pageInfo: {
+          totalResults: 1,
+          resultsPerPage: 1,
+        },
+      });
     }
 
     if (id === 'playlist-video-id') {
-      return res(
-        ctx.json({
-          kind: 'youtube#videoListResponse',
-          etag: 'test-etag',
-          items: [
-            {
-              kind: 'youtube#video',
-              etag: 'test-video-etag',
-              id: 'playlist-video-id',
-              snippet: {
-                publishedAt: '2023-01-01T00:00:00Z',
-                channelId: 'test-channel-id',
-                title: 'Playlist Video Title',
-                description: 'Playlist video description',
-                thumbnails: {
-                  default: {
-                    url: 'https://i.ytimg.com/vi/playlist-video-id/default.jpg',
-                    width: 120,
-                    height: 90,
-                  },
+      return HttpResponse.json({
+        kind: 'youtube#videoListResponse',
+        etag: 'test-etag',
+        items: [
+          {
+            kind: 'youtube#video',
+            etag: 'test-video-etag',
+            id: 'playlist-video-id',
+            snippet: {
+              publishedAt: '2023-01-01T00:00:00Z',
+              channelId: 'test-channel-id',
+              title: 'Playlist Video Title',
+              description: 'Playlist video description',
+              thumbnails: {
+                default: {
+                  url: 'https://i.ytimg.com/vi/playlist-video-id/default.jpg',
+                  width: 120,
+                  height: 90,
                 },
-                channelTitle: 'Test Channel',
-                categoryId: '10',
-                liveBroadcastContent: 'none',
               },
-              contentDetails: {
-                duration: 'PT3M45S',
-                dimension: '2d',
-                definition: 'hd',
-                caption: 'false',
-                licensedContent: true,
-                projection: 'rectangular',
-              },
-              statistics: {
-                viewCount: '500000',
-                likeCount: '25000',
-                commentCount: '5000',
-              },
+              channelTitle: 'Test Channel',
+              categoryId: '10',
+              liveBroadcastContent: 'none',
             },
-          ],
-          pageInfo: {
-            totalResults: 1,
-            resultsPerPage: 1,
+            contentDetails: {
+              duration: 'PT3M45S',
+              dimension: '2d',
+              definition: 'hd',
+              caption: 'false',
+              licensedContent: true,
+              projection: 'rectangular',
+            },
+            statistics: {
+              viewCount: '500000',
+              likeCount: '25000',
+              commentCount: '5000',
+            },
           },
-        }),
-      );
+        ],
+        pageInfo: {
+          totalResults: 1,
+          resultsPerPage: 1,
+        },
+      });
     }
 
-    return res(
-      ctx.status(404),
-      ctx.json({
+    return HttpResponse.json(
+      {
         error: {
           code: 404,
           message: 'Video not found',
         },
-      }),
+      },
+      { status: 404 },
     );
   }),
 
   // YouTube API - Playlist info
-  rest.get('https://www.googleapis.com/youtube/v3/playlists', (req, res, ctx) => {
-    const id = req.url.searchParams.get('id');
-    const part = req.url.searchParams.get('part');
+  http.get('https://www.googleapis.com/youtube/v3/playlists', ({ request }) => {
+    const url = new URL(request.url);
+    const id = url.searchParams.get('id');
+    const part = url.searchParams.get('part');
 
     if (!id || !part) {
-      return res(
-        ctx.status(400),
-        ctx.json({
+      return HttpResponse.json(
+        {
           error: {
             code: 400,
             message: 'Required parameters missing',
           },
-        }),
+        },
+        { status: 400 },
       );
     }
 
     if (id === 'test-playlist-id') {
-      return res(
-        ctx.json({
-          kind: 'youtube#playlistListResponse',
-          etag: 'test-etag',
-          items: [
-            {
-              kind: 'youtube#playlist',
-              etag: 'test-playlist-etag',
-              id: 'test-playlist-id',
-              snippet: {
-                publishedAt: '2023-01-01T00:00:00Z',
-                channelId: 'test-channel-id',
+      return HttpResponse.json({
+        kind: 'youtube#playlistListResponse',
+        etag: 'test-etag',
+        items: [
+          {
+            kind: 'youtube#playlist',
+            etag: 'test-playlist-etag',
+            id: 'test-playlist-id',
+            snippet: {
+              publishedAt: '2023-01-01T00:00:00Z',
+              channelId: 'test-channel-id',
+              title: 'Test Playlist',
+              description: 'Test playlist description',
+              thumbnails: {
+                default: {
+                  url: 'https://i.ytimg.com/vi/test-video-id/default.jpg',
+                  width: 120,
+                  height: 90,
+                },
+                medium: {
+                  url: 'https://i.ytimg.com/vi/test-video-id/mqdefault.jpg',
+                  width: 320,
+                  height: 180,
+                },
+                high: {
+                  url: 'https://i.ytimg.com/vi/test-video-id/hqdefault.jpg',
+                  width: 480,
+                  height: 360,
+                },
+              },
+              channelTitle: 'Test Channel',
+              tags: ['test', 'playlist'],
+              defaultLanguage: 'en',
+              localized: {
                 title: 'Test Playlist',
                 description: 'Test playlist description',
-                thumbnails: {
-                  default: {
-                    url: 'https://i.ytimg.com/vi/test-video-id/default.jpg',
-                    width: 120,
-                    height: 90,
-                  },
-                  medium: {
-                    url: 'https://i.ytimg.com/vi/test-video-id/mqdefault.jpg',
-                    width: 320,
-                    height: 180,
-                  },
-                  high: {
-                    url: 'https://i.ytimg.com/vi/test-video-id/hqdefault.jpg',
-                    width: 480,
-                    height: 360,
-                  },
-                },
-                channelTitle: 'Test Channel',
-                tags: ['test', 'playlist'],
-                defaultLanguage: 'en',
-                localized: {
-                  title: 'Test Playlist',
-                  description: 'Test playlist description',
-                },
-              },
-              contentDetails: {
-                itemCount: 10,
               },
             },
-          ],
-          pageInfo: {
-            totalResults: 1,
-            resultsPerPage: 1,
+            contentDetails: {
+              itemCount: 10,
+            },
           },
-        }),
-      );
+        ],
+        pageInfo: {
+          totalResults: 1,
+          resultsPerPage: 1,
+        },
+      });
     }
 
-    return res(
-      ctx.status(404),
-      ctx.json({
+    return HttpResponse.json(
+      {
         error: {
           code: 404,
           message: 'Playlist not found',
         },
-      }),
+      },
+      { status: 404 },
     );
   }),
 
   // YouTube API - Playlist items
-  rest.get('https://www.googleapis.com/youtube/v3/playlistItems', (req, res, ctx) => {
-    const playlistId = req.url.searchParams.get('playlistId');
-    const part = req.url.searchParams.get('part');
-    const maxResults = req.url.searchParams.get('maxResults') || '50';
-    const pageToken = req.url.searchParams.get('pageToken');
+  http.get('https://www.googleapis.com/youtube/v3/playlistItems', ({ request }) => {
+    const url = new URL(request.url);
+    const playlistId = url.searchParams.get('playlistId');
+    const part = url.searchParams.get('part');
+    const maxResults = url.searchParams.get('maxResults') || '50';
+    const pageToken = url.searchParams.get('pageToken');
 
     if (!playlistId || !part) {
-      return res(
-        ctx.status(400),
-        ctx.json({
+      return HttpResponse.json(
+        {
           error: {
             code: 400,
             message: 'Required parameters missing',
           },
-        }),
+        },
+        { status: 400 },
       );
     }
 
@@ -282,63 +279,59 @@ export const youtubeHandlers = [
         });
       }
 
-      return res(
-        ctx.json({
-          kind: 'youtube#playlistItemListResponse',
-          etag: 'test-etag',
-          nextPageToken: !pageToken && numItems === 10 ? 'next-page-token' : undefined,
-          items,
-          pageInfo: {
-            totalResults: 15,
-            resultsPerPage: parseInt(maxResults),
-          },
-        }),
-      );
+      return HttpResponse.json({
+        kind: 'youtube#playlistItemListResponse',
+        etag: 'test-etag',
+        nextPageToken: !pageToken && numItems === 10 ? 'next-page-token' : undefined,
+        items,
+        pageInfo: {
+          totalResults: 15,
+          resultsPerPage: parseInt(maxResults),
+        },
+      });
     }
 
-    return res(
-      ctx.status(404),
-      ctx.json({
+    return HttpResponse.json(
+      {
         error: {
           code: 404,
           message: 'Playlist not found',
         },
-      }),
+      },
+      { status: 404 },
     );
   }),
 
   // Mock yt-dlp info extraction endpoint (if backend provides one)
-  rest.post('*/api/v1/youtube/extract-info', (req, res, ctx) => {
-    return res(
-      ctx.json({
-        id: 'test-video-id',
-        title: 'Test Video Title',
-        uploader: 'Test Channel',
-        uploaderId: 'test-channel-id',
-        uploaderUrl: 'https://www.youtube.com/channel/test-channel-id',
-        uploadDate: '20230101',
-        duration: 330,
-        viewCount: 1000000,
-        likeCount: 50000,
-        description: 'Test video description',
-        thumbnail: 'https://i.ytimg.com/vi/test-video-id/maxresdefault.jpg',
-        formats: [
-          {
-            formatId: '22',
-            ext: 'mp4',
-            quality: 'hd720',
-            format: '1280x720',
-            filesize: 104857600,
-          },
-          {
-            formatId: '18',
-            ext: 'mp4',
-            quality: 'medium',
-            format: '640x360',
-            filesize: 52428800,
-          },
-        ],
-      }),
-    );
+  http.post('*/api/v1/youtube/extract-info', () => {
+    return HttpResponse.json({
+      id: 'test-video-id',
+      title: 'Test Video Title',
+      uploader: 'Test Channel',
+      uploaderId: 'test-channel-id',
+      uploaderUrl: 'https://www.youtube.com/channel/test-channel-id',
+      uploadDate: '20230101',
+      duration: 330,
+      viewCount: 1000000,
+      likeCount: 50000,
+      description: 'Test video description',
+      thumbnail: 'https://i.ytimg.com/vi/test-video-id/maxresdefault.jpg',
+      formats: [
+        {
+          formatId: '22',
+          ext: 'mp4',
+          quality: 'hd720',
+          format: '1280x720',
+          filesize: 104857600,
+        },
+        {
+          formatId: '18',
+          ext: 'mp4',
+          quality: 'medium',
+          format: '640x360',
+          filesize: 52428800,
+        },
+      ],
+    });
   }),
 ];

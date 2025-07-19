@@ -1,100 +1,99 @@
-import { rest } from 'msw';
+import { http, HttpResponse } from 'msw';
 
 export const uptimeKumaHandlers = [
   // Get monitors
-  rest.get('*/api/monitors', (req, res, ctx) => {
-    const authHeader = req.headers.get('Authorization');
+  http.get('*/api/monitors', ({ request }) => {
+    const authHeader = request.headers.get('Authorization');
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res(ctx.status(401), ctx.json({ error: 'Unauthorized' }));
+      return HttpResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    return res(
-      ctx.json({
-        monitors: [
-          {
-            id: 1,
-            name: 'Plex Server',
-            url: 'https://plex.example.com',
-            method: 'GET',
-            hostname: null,
-            port: null,
-            maxretries: 0,
-            weight: 2000,
-            active: 1,
-            type: 'http',
-            interval: 60,
-            retryInterval: 60,
-            keyword: null,
-            ignoreTls: false,
-            upsideDown: false,
-            maxredirects: 10,
-            accepted_statuscodes: ['200-299'],
-            dns_resolve_type: 'A',
-            dns_resolve_server: '1.1.1.1',
-            proxyId: null,
-            notificationIDList: [],
-            tags: [],
-            maintenance: false,
-            mqttTopic: null,
-            mqttSuccessMessage: null,
-            databaseQuery: null,
-            authMethod: null,
-            grpcUrl: null,
-            grpcProtobuf: null,
-            grpcMethod: null,
-            grpcServiceName: null,
-            grpcEnableTls: false,
-            includeSensitiveData: true,
-          },
-          {
-            id: 2,
-            name: 'Overseerr',
-            url: 'https://overseerr.example.com',
-            method: 'GET',
-            hostname: null,
-            port: null,
-            maxretries: 0,
-            weight: 2000,
-            active: 1,
-            type: 'http',
-            interval: 60,
-            retryInterval: 60,
-            keyword: null,
-            ignoreTls: false,
-            upsideDown: false,
-            maxredirects: 10,
-            accepted_statuscodes: ['200-299'],
-            dns_resolve_type: 'A',
-            dns_resolve_server: '1.1.1.1',
-            proxyId: null,
-            notificationIDList: [],
-            tags: [],
-            maintenance: false,
-            mqttTopic: null,
-            mqttSuccessMessage: null,
-            databaseQuery: null,
-            authMethod: null,
-            grpcUrl: null,
-            grpcProtobuf: null,
-            grpcMethod: null,
-            grpcServiceName: null,
-            grpcEnableTls: false,
-            includeSensitiveData: true,
-          },
-        ],
-      }),
-    );
+    return HttpResponse.json({
+      monitors: [
+        {
+          id: 1,
+          name: 'Plex Server',
+          url: 'https://plex.example.com',
+          method: 'GET',
+          hostname: null,
+          port: null,
+          maxretries: 0,
+          weight: 2000,
+          active: 1,
+          type: 'http',
+          interval: 60,
+          retryInterval: 60,
+          keyword: null,
+          ignoreTls: false,
+          upsideDown: false,
+          maxredirects: 10,
+          accepted_statuscodes: ['200-299'],
+          dns_resolve_type: 'A',
+          dns_resolve_server: '1.1.1.1',
+          proxyId: null,
+          notificationIDList: [],
+          tags: [],
+          maintenance: false,
+          mqttTopic: null,
+          mqttSuccessMessage: null,
+          databaseQuery: null,
+          authMethod: null,
+          grpcUrl: null,
+          grpcProtobuf: null,
+          grpcMethod: null,
+          grpcServiceName: null,
+          grpcEnableTls: false,
+          includeSensitiveData: true,
+        },
+        {
+          id: 2,
+          name: 'Overseerr',
+          url: 'https://overseerr.example.com',
+          method: 'GET',
+          hostname: null,
+          port: null,
+          maxretries: 0,
+          weight: 2000,
+          active: 1,
+          type: 'http',
+          interval: 60,
+          retryInterval: 60,
+          keyword: null,
+          ignoreTls: false,
+          upsideDown: false,
+          maxredirects: 10,
+          accepted_statuscodes: ['200-299'],
+          dns_resolve_type: 'A',
+          dns_resolve_server: '1.1.1.1',
+          proxyId: null,
+          notificationIDList: [],
+          tags: [],
+          maintenance: false,
+          mqttTopic: null,
+          mqttSuccessMessage: null,
+          databaseQuery: null,
+          authMethod: null,
+          grpcUrl: null,
+          grpcProtobuf: null,
+          grpcMethod: null,
+          grpcServiceName: null,
+          grpcEnableTls: false,
+          includeSensitiveData: true,
+        },
+      ],
+    });
   }),
 
   // Get heartbeats
-  rest.get('*/api/monitors/:monitorId/beats', (req, res, ctx) => {
-    const authHeader = req.headers.get('Authorization');
-    const { monitorId } = req.params;
-    const hours = req.url.searchParams.get('hours') || '24';
+  http.get('*/api/monitors/:monitorId/beats', ({ request, params }) => {
+    const authHeader = request.headers.get('Authorization');
+    const { monitorId } = params;
+    const url = new URL(request.url);
+    const hours = url.searchParams.get('hours') || '24';
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res(ctx.status(401), ctx.json({ error: 'Unauthorized' }));
+      return HttpResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const now = Date.now();
@@ -116,110 +115,104 @@ export const uptimeKumaHandlers = [
       });
     }
 
-    return res(
-      ctx.json({
-        heartbeats: beats,
-      }),
-    );
+    return HttpResponse.json({
+      heartbeats: beats,
+    });
   }),
 
   // Get overall stats
-  rest.get('*/api/status-page/public', (req, res, ctx) => {
-    return res(
-      ctx.json({
-        maintenanceList: [],
-        publicGroupList: [
-          {
-            id: 1,
-            name: 'Services',
-            weight: 1000,
-            monitorList: [
-              {
-                id: 1,
-                name: 'Plex Server',
-                sendUrl: 0,
-                type: 'http',
-                active: true,
-                forceInactive: false,
-                tags: [],
-                maintenance: false,
-                heartbeatList: [
-                  {
-                    status: 1,
-                    time: new Date().toISOString(),
-                    ping: 25,
-                  },
-                ],
-                avgPing: 25,
-                uptime24: 100,
-                uptime30: 99.5,
-                uptime: 99.9,
-                certValid: true,
-                certDaysRemaining: 90,
-              },
-              {
-                id: 2,
-                name: 'Overseerr',
-                sendUrl: 0,
-                type: 'http',
-                active: true,
-                forceInactive: false,
-                tags: [],
-                maintenance: false,
-                heartbeatList: [
-                  {
-                    status: 1,
-                    time: new Date().toISOString(),
-                    ping: 30,
-                  },
-                ],
-                avgPing: 30,
-                uptime24: 99.9,
-                uptime30: 99.8,
-                uptime: 99.9,
-                certValid: true,
-                certDaysRemaining: 90,
-              },
-            ],
-          },
-        ],
-      }),
-    );
+  http.get('*/api/status-page/public', () => {
+    return HttpResponse.json({
+      maintenanceList: [],
+      publicGroupList: [
+        {
+          id: 1,
+          name: 'Services',
+          weight: 1000,
+          monitorList: [
+            {
+              id: 1,
+              name: 'Plex Server',
+              sendUrl: 0,
+              type: 'http',
+              active: true,
+              forceInactive: false,
+              tags: [],
+              maintenance: false,
+              heartbeatList: [
+                {
+                  status: 1,
+                  time: new Date().toISOString(),
+                  ping: 25,
+                },
+              ],
+              avgPing: 25,
+              uptime24: 100,
+              uptime30: 99.5,
+              uptime: 99.9,
+              certValid: true,
+              certDaysRemaining: 90,
+            },
+            {
+              id: 2,
+              name: 'Overseerr',
+              sendUrl: 0,
+              type: 'http',
+              active: true,
+              forceInactive: false,
+              tags: [],
+              maintenance: false,
+              heartbeatList: [
+                {
+                  status: 1,
+                  time: new Date().toISOString(),
+                  ping: 30,
+                },
+              ],
+              avgPing: 30,
+              uptime24: 99.9,
+              uptime30: 99.8,
+              uptime: 99.9,
+              certValid: true,
+              certDaysRemaining: 90,
+            },
+          ],
+        },
+      ],
+    });
   }),
 
   // Get important heartbeats
-  rest.get('*/api/important-heartbeats', (req, res, ctx) => {
-    const authHeader = req.headers.get('Authorization');
+  http.get('*/api/important-heartbeats', ({ request }) => {
+    const authHeader = request.headers.get('Authorization');
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res(ctx.status(401), ctx.json({ error: 'Unauthorized' }));
+      return HttpResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    return res(
-      ctx.json({
-        heartbeats: [
-          {
-            id: 1,
-            monitorID: 1,
-            status: 0,
-            time: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-            msg: 'Connection timeout',
-            important: 1,
-            duration: 0,
-            ping: null,
-          },
-          {
-            id: 2,
-            monitorID: 1,
-            status: 1,
-            time: new Date(Date.now() - 3000000).toISOString(), // 50 minutes ago
-            msg: 'OK',
-            important: 1,
-            duration: 0,
-            ping: 25,
-          },
-        ],
-      }),
-    );
+    return HttpResponse.json({
+      heartbeats: [
+        {
+          id: 1,
+          monitorID: 1,
+          status: 0,
+          time: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
+          msg: 'Connection timeout',
+          important: 1,
+          duration: 0,
+          ping: null,
+        },
+        {
+          id: 2,
+          monitorID: 1,
+          status: 1,
+          time: new Date(Date.now() - 3000000).toISOString(), // 50 minutes ago
+          msg: 'OK',
+          important: 1,
+          duration: 0,
+          ping: 25,
+        },
+      ],
+    });
   }),
 ];
