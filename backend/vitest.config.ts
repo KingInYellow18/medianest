@@ -4,7 +4,7 @@ import path from 'path';
 export default defineConfig({
   test: {
     environment: 'node',
-    setupFiles: ['./tests/setup.ts', './tests/msw/setup.ts'],
+    setupFiles: ['./tests/setup.ts'],
     globals: true,
     coverage: {
       provider: 'v8',
