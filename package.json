@@ -34,7 +34,7 @@
     "pre-commit": "npx lint-staged"
   },
   "devDependencies": {
-    "@types/node": "^20.11.0",
+    "@types/node": "^24.0.15",
     "concurrently": "^8.2.2",
     "lint-staged": "^15.2.0",
     "rimraf": "^5.0.5",
