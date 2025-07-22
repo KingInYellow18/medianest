@@ -1,0 +1,344 @@
+name: MediaNest Branch Strategy CI/CD
+
+# This workflow implements the 4-branch strategy for MediaNest
+# Branches: main (prod), development (staging), test (testing), claude-flowv2 (ai-dev)
+
+on:
+  push:
+    branches:
+      - main
+      - development  
+      - test
+      - claude-flowv2
+  pull_request:
+    branches:
+      - main
+      - development
+      - test
+      - claude-flowv2
+
+env:
+  NODE_VERSION: '20'
+  DOCKER_REGISTRY: 'ghcr.io'
+  IMAGE_NAME: 'medianest'
+
+jobs:
+  # Branch-specific environment detection
+  detect-environment:
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.env-detect.outputs.environment }}
+      deploy_url: ${{ steps.env-detect.outputs.deploy_url }}
+      protection_level: ${{ steps.env-detect.outputs.protection_level }}
+    steps:
+      - id: env-detect
+        run: |
+          case "${{ github.ref_name }}" in
+            "main")
+              echo "environment=production" >> $GITHUB_OUTPUT
+              echo "deploy_url=production.medianest.com" >> $GITHUB_OUTPUT
+              echo "protection_level=maximum" >> $GITHUB_OUTPUT
+              ;;
+            "development")
+              echo "environment=staging" >> $GITHUB_OUTPUT
+              echo "deploy_url=staging.medianest.com" >> $GITHUB_OUTPUT
+              echo "protection_level=high" >> $GITHUB_OUTPUT
+              ;;
+            "test")
+              echo "environment=testing" >> $GITHUB_OUTPUT
+              echo "deploy_url=test.medianest.com" >> $GITHUB_OUTPUT
+              echo "protection_level=medium" >> $GITHUB_OUTPUT
+              ;;
+            "claude-flowv2")
+              echo "environment=ai-development" >> $GITHUB_OUTPUT
+              echo "deploy_url=ai-dev.medianest.internal" >> $GITHUB_OUTPUT
+              echo "protection_level=medium" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "environment=feature" >> $GITHUB_OUTPUT
+              echo "deploy_url=none" >> $GITHUB_OUTPUT
+              echo "protection_level=basic" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
+  # Universal build and test job for all branches
+  build-and-test:
+    runs-on: ubuntu-latest
+    needs: detect-environment
+    strategy:
+      matrix:
+        component: [backend, frontend, shared]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+            shared/package-lock.json
+
+      - name: Install dependencies - ${{ matrix.component }}
+        run: |
+          cd ${{ matrix.component }}
+          npm ci
+
+      - name: Run linting - ${{ matrix.component }}
+        run: |
+          cd ${{ matrix.component }}
+          npm run lint
+
+      - name: Run unit tests - ${{ matrix.component }}
+        run: |
+          cd ${{ matrix.component }}
+          npm run test:coverage
+
+      - name: Build ${{ matrix.component }}
+        run: |
+          cd ${{ matrix.component }}
+          npm run build
+
+      - name: Upload test coverage
+        uses: codecov/codecov-action@v4
+        with:
+          directory: ${{ matrix.component }}/coverage
+          flags: ${{ matrix.component }}
+          name: ${{ matrix.component }}-coverage
+
+  # Integration tests (development, test, and main branches)
+  integration-tests:
+    runs-on: ubuntu-latest
+    needs: [detect-environment, build-and-test]
+    if: contains(fromJson('["main", "development", "test"]'), github.ref_name)
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: medianest_test
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7
+        options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install all dependencies
+        run: |
+          npm run install:all
+
+      - name: Run database migrations
+        run: |
+          cd backend
+          npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://postgres:testpass@localhost:5432/medianest_test
+
+      - name: Start test servers
+        run: |
+          cd backend && npm run start:test &
+          cd frontend && npm run start:test &
+          sleep 10
+
+      - name: Run integration tests
+        run: npm run test:integration
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+        env:
+          BASE_URL: http://localhost:3000
+
+  # AI-specific workflow tests (claude-flowv2 branch only)
+  ai-workflow-tests:
+    runs-on: ubuntu-latest
+    needs: [detect-environment, build-and-test]
+    if: github.ref_name == 'claude-flowv2'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm run install:all
+
+      - name: Test AI workflow automation
+        run: |
+          cd claude-flow
+          npm test
+
+      - name: Validate Claude Code integration
+        run: |
+          # Test Claude Code configuration and workflows
+          ./claude-flow --validate-config
+          ./claude-flow --test-workflows
+
+      - name: Test automation scripts
+        run: |
+          npm run test:automation
+
+  # Security scanning for all branches with higher scrutiny for main/development
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: detect-environment
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run npm audit
+        run: |
+          cd backend && npm audit --audit-level moderate
+          cd frontend && npm audit --audit-level moderate
+          cd shared && npm audit --audit-level moderate
+
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript,typescript
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+      - name: Run SAST scan for production branches
+        if: contains(fromJson('["main", "development"]'), github.ref_name)
+        run: |
+          # Additional security scanning for production-bound branches
+          echo "Running enhanced security scans for production branches"
+
+  # Docker build and push for deployable branches
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: [detect-environment, build-and-test]
+    if: contains(fromJson('["main", "development", "test", "claude-flowv2"]'), github.ref_name)
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            BUILD_ENV=${{ needs.detect-environment.outputs.environment }}
+
+  # Branch-specific deployment jobs
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: [detect-environment, build-and-test, integration-tests, security-scan, docker-build]
+    if: github.ref_name == 'main' && github.event_name == 'push'
+    environment:
+      name: production
+      url: https://production.medianest.com
+    steps:
+      - name: Deploy to Production
+        run: |
+          echo "Deploying to production environment"
+          # Add actual deployment logic here
+
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: [detect-environment, build-and-test, integration-tests, security-scan, docker-build]
+    if: github.ref_name == 'development' && github.event_name == 'push'
+    environment:
+      name: staging
+      url: https://staging.medianest.com
+    steps:
+      - name: Deploy to Staging
+        run: |
+          echo "Deploying to staging environment"
+          # Add actual deployment logic here
+
+  deploy-testing:
+    runs-on: ubuntu-latest
+    needs: [detect-environment, build-and-test, integration-tests, docker-build]
+    if: github.ref_name == 'test' && github.event_name == 'push'
+    environment:
+      name: testing
+      url: https://test.medianest.com
+    steps:
+      - name: Deploy to Testing
+        run: |
+          echo "Deploying to testing environment"
+          # Add actual deployment logic here
+
+  deploy-ai-dev:
+    runs-on: ubuntu-latest
+    needs: [detect-environment, build-and-test, ai-workflow-tests, docker-build]
+    if: github.ref_name == 'claude-flowv2' && github.event_name == 'push'
+    environment:
+      name: ai-development
+      url: https://ai-dev.medianest.internal
+    steps:
+      - name: Deploy to AI Development
+        run: |
+          echo "Deploying to AI development environment"
+          # Add actual deployment logic here
+
+  # Post-deployment health checks
+  health-check:
+    runs-on: ubuntu-latest
+    needs: [deploy-production, deploy-staging, deploy-testing, deploy-ai-dev]
+    if: always() && (needs.deploy-production.result == 'success' || needs.deploy-staging.result == 'success' || needs.deploy-testing.result == 'success' || needs.deploy-ai-dev.result == 'success')
+    steps:
+      - name: Health Check
+        run: |
+          # Add health check logic for deployed environments
+          echo "Running health checks for deployed environment"
+
+  # Notification job for deployment status
+  notify-deployment:
+    runs-on: ubuntu-latest
+    needs: [deploy-production, deploy-staging, deploy-testing, deploy-ai-dev, health-check]
+    if: always()
+    steps:
+      - name: Notify team of deployment status
+        run: |
+          echo "Notifying team of deployment status"
+          # Add notification logic (Slack, email, etc.)

@@ -1,0 +1,357 @@
+name: Auto Labeler & Issue Triage
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+  issues:
+    types: [opened, reopened, edited]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  auto-label-pr:
+    name: Auto Label Pull Requests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Auto-assign labels based on files changed
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            
+            let labels = new Set();
+            let additions = 0;
+            let deletions = 0;
+            
+            files.forEach(file => {
+              additions += file.additions;
+              deletions += file.deletions;
+              
+              // Component-based labels
+              if (file.filename.startsWith('backend/')) {
+                labels.add('backend');
+              }
+              if (file.filename.startsWith('frontend/')) {
+                labels.add('frontend');
+              }
+              if (file.filename.startsWith('shared/')) {
+                labels.add('shared');
+              }
+              if (file.filename.startsWith('docs/')) {
+                labels.add('documentation');
+              }
+              if (file.filename.startsWith('.github/')) {
+                labels.add('ci/cd');
+              }
+              if (file.filename.startsWith('docker/') || file.filename.startsWith('infrastructure/')) {
+                labels.add('infrastructure');
+              }
+              
+              // File type labels
+              if (file.filename.endsWith('.ts') || file.filename.endsWith('.tsx')) {
+                labels.add('typescript');
+              }
+              if (file.filename.endsWith('.js') || file.filename.endsWith('.jsx')) {
+                labels.add('javascript');
+              }
+              if (file.filename.endsWith('.test.ts') || file.filename.endsWith('.spec.ts')) {
+                labels.add('tests');
+              }
+              if (file.filename.includes('package.json') || file.filename.includes('package-lock.json')) {
+                labels.add('dependencies');
+              }
+              if (file.filename.endsWith('.yml') || file.filename.endsWith('.yaml')) {
+                labels.add('config');
+              }
+            });
+            
+            // Size labels
+            const totalChanges = additions + deletions;
+            if (totalChanges < 10) {
+              labels.add('size/XS');
+            } else if (totalChanges < 30) {
+              labels.add('size/S');
+            } else if (totalChanges < 100) {
+              labels.add('size/M');
+            } else if (totalChanges < 500) {
+              labels.add('size/L');
+            } else {
+              labels.add('size/XL');
+            }
+            
+            // PR type labels based on title
+            const title = context.payload.pull_request.title.toLowerCase();
+            if (title.startsWith('feat')) {
+              labels.add('enhancement');
+            } else if (title.startsWith('fix')) {
+              labels.add('bug');
+            } else if (title.startsWith('docs')) {
+              labels.add('documentation');
+            } else if (title.startsWith('refactor')) {
+              labels.add('refactor');
+            } else if (title.startsWith('test')) {
+              labels.add('tests');
+            } else if (title.startsWith('chore')) {
+              labels.add('maintenance');
+            } else if (title.startsWith('perf')) {
+              labels.add('performance');
+            }
+            
+            // Breaking change detection
+            if (title.includes('!') || (context.payload.pull_request.body && context.payload.pull_request.body.includes('BREAKING CHANGE'))) {
+              labels.add('breaking-change');
+            }
+            
+            // Apply labels
+            if (labels.size > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: Array.from(labels)
+              });
+            }
+
+  auto-triage-issues:
+    name: Auto Triage Issues
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issues'
+    
+    steps:
+      - name: Auto-assign labels and priority to issues
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const title = issue.title.toLowerCase();
+            const body = (issue.body || '').toLowerCase();
+            let labels = new Set();
+            
+            // Bug detection
+            if (title.includes('bug') || title.includes('error') || title.includes('crash') || 
+                body.includes('bug') || body.includes('error') || body.includes('exception')) {
+              labels.add('bug');
+              
+              // Priority based on severity keywords
+              if (body.includes('critical') || body.includes('urgent') || body.includes('production')) {
+                labels.add('priority/high');
+              } else if (body.includes('minor') || body.includes('cosmetic')) {
+                labels.add('priority/low');
+              } else {
+                labels.add('priority/medium');
+              }
+            }
+            
+            // Feature request detection
+            if (title.includes('feature') || title.includes('enhancement') || title.includes('request') ||
+                body.includes('feature') || body.includes('enhancement') || body.includes('would be nice')) {
+              labels.add('enhancement');
+              labels.add('priority/medium');
+            }
+            
+            // Documentation issues
+            if (title.includes('doc') || title.includes('readme') || 
+                body.includes('documentation') || body.includes('readme')) {
+              labels.add('documentation');
+              labels.add('priority/low');
+            }
+            
+            // Question detection
+            if (title.includes('how') || title.includes('?') || title.includes('question') ||
+                body.includes('how do i') || body.includes('how to')) {
+              labels.add('question');
+              labels.add('priority/low');
+            }
+            
+            // Security issues
+            if (title.includes('security') || title.includes('vulnerability') ||
+                body.includes('security') || body.includes('vulnerability') || body.includes('exploit')) {
+              labels.add('security');
+              labels.add('priority/high');
+            }
+            
+            // Performance issues
+            if (title.includes('performance') || title.includes('slow') || title.includes('memory') ||
+                body.includes('performance') || body.includes('slow') || body.includes('memory leak')) {
+              labels.add('performance');
+              labels.add('priority/medium');
+            }
+            
+            // Component detection
+            if (body.includes('backend') || body.includes('api') || body.includes('server')) {
+              labels.add('backend');
+            }
+            if (body.includes('frontend') || body.includes('ui') || body.includes('interface')) {
+              labels.add('frontend');
+            }
+            
+            // Apply labels
+            if (labels.size > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: Array.from(labels)
+              });
+            }
+            
+            // Add welcome comment for first-time contributors
+            const { data: issueEvents } = await github.rest.issues.listEventsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+            
+            const userIssues = issueEvents.filter(event => 
+              event.actor.login === issue.user.login && event.event === 'opened'
+            );
+            
+            if (userIssues.length === 1) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: `👋 Hello @${issue.user.login}! Thank you for opening your first issue in this repository. We appreciate your contribution and will review it soon.`
+              });
+            }
+
+  manage-stale-items:
+    name: Manage Stale Issues and PRs
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    
+    steps:
+      - name: Mark stale issues and PRs
+        uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          
+          # Stale issue settings
+          stale-issue-message: |
+            This issue has been automatically marked as stale because it has not had recent activity. 
+            It will be closed if no further activity occurs within 7 days. 
+            If you believe this issue is still relevant, please comment to keep it open.
+          stale-issue-label: 'stale'
+          days-before-issue-stale: 30
+          days-before-issue-close: 7
+          
+          # Stale PR settings  
+          stale-pr-message: |
+            This pull request has been automatically marked as stale because it has not had recent activity.
+            It will be closed if no further activity occurs within 7 days.
+            If you are still working on this PR, please comment to keep it open.
+          stale-pr-label: 'stale'
+          days-before-pr-stale: 21
+          days-before-pr-close: 7
+          
+          # Exemptions
+          exempt-issue-labels: 'pinned,security,in-progress'
+          exempt-pr-labels: 'pinned,work-in-progress,do-not-merge'
+          exempt-draft-pr: true
+
+  comment-commands:
+    name: Handle Comment Commands
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issue_comment' && github.event.issue.pull_request
+    
+    steps:
+      - name: Process comment commands
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comment = context.payload.comment.body.toLowerCase().trim();
+            const commenter = context.payload.comment.user.login;
+            
+            // Only allow repository collaborators to use commands
+            const { data: collaborator } = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: commenter
+            }).catch(() => ({ data: { permission: 'none' } }));
+            
+            if (!['admin', 'write'].includes(collaborator.permission)) {
+              return;
+            }
+            
+            const prNumber = context.issue.number;
+            
+            // /approve command
+            if (comment === '/approve') {
+              await github.rest.pulls.createReview({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+                event: 'APPROVE',
+                body: '✅ Approved via comment command'
+              });
+            }
+            
+            // /merge command
+            if (comment === '/merge') {
+              const { data: pr } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber
+              });
+              
+              if (pr.mergeable && pr.mergeable_state === 'clean') {
+                await github.rest.pulls.merge({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: prNumber,
+                  merge_method: 'squash'
+                });
+                
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  body: `🚀 PR merged by @${commenter} via comment command`
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  body: '❌ Cannot merge: PR is not in a mergeable state'
+                });
+              }
+            }
+            
+            // /label command
+            const labelMatch = comment.match(/^\/label (.+)$/);
+            if (labelMatch) {
+              const labels = labelMatch[1].split(',').map(l => l.trim());
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                labels: labels
+              });
+            }
+            
+            // /assign command
+            const assignMatch = comment.match(/^\/assign (@?\w+)$/);
+            if (assignMatch) {
+              const assignee = assignMatch[1].replace('@', '');
+              await github.rest.issues.addAssignees({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                assignees: [assignee]
+              });
+            }

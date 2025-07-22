@@ -1,0 +1,68 @@
+# CODEOWNERS file for MediaNest
+# This file defines who is responsible for different parts of the codebase
+# and ensures proper review assignments for pull requests.
+
+# Global owners (fallback for any file not matched below)
+* @KingInYellow18
+
+# Backend code requires backend team review
+/backend/ @backend-team @KingInYellow18
+/backend/src/controllers/ @backend-team @api-team
+/backend/src/models/ @backend-team @database-team
+/backend/src/services/ @backend-team @integration-team
+/backend/src/middleware/ @backend-team @security-team
+/backend/tests/ @backend-team @qa-team
+
+# Frontend code requires frontend team review
+/frontend/ @frontend-team @KingInYellow18
+/frontend/src/components/ @frontend-team @ui-team
+/frontend/src/hooks/ @frontend-team @react-specialists
+/frontend/src/services/ @frontend-team @integration-team
+/frontend/tests/ @frontend-team @qa-team
+
+# Shared code requires both teams
+/shared/ @backend-team @frontend-team @KingInYellow18
+/shared/src/types/ @backend-team @frontend-team @typescript-specialists
+/shared/src/utils/ @backend-team @frontend-team
+
+# Infrastructure and DevOps
+/.github/ @devops-team @KingInYellow18
+/docker/ @devops-team @backend-team
+/infrastructure/ @devops-team @security-team
+*.yml @devops-team
+*.yaml @devops-team
+Dockerfile* @devops-team @backend-team
+
+# Documentation
+/docs/ @docs-team @KingInYellow18
+README.md @docs-team @KingInYellow18
+*.md @docs-team
+
+# Configuration files
+package.json @KingInYellow18 @senior-developers
+package-lock.json @KingInYellow18 @senior-developers
+tsconfig*.json @typescript-specialists @KingInYellow18
+.env.example @devops-team @security-team @KingInYellow18
+
+# Database related
+/backend/prisma/ @database-team @backend-team
+/backend/migrations/ @database-team @backend-team
+*.sql @database-team @backend-team
+
+# Security sensitive files
+/backend/src/middleware/auth* @security-team @backend-team
+/backend/src/services/jwt* @security-team @backend-team
+/backend/src/utils/encryption* @security-team @backend-team
+*.key @security-team @KingInYellow18
+*.pem @security-team @KingInYellow18
+
+# Test configurations
+/tests/ @qa-team @KingInYellow18
+jest.config.* @qa-team @backend-team @frontend-team
+playwright.config.* @qa-team @frontend-team
+vitest.config.* @qa-team @backend-team @frontend-team
+
+# Performance critical files
+/backend/src/services/cache* @performance-team @backend-team
+/frontend/src/hooks/use*Performance* @performance-team @frontend-team
+/shared/src/utils/performance* @performance-team @backend-team @frontend-team
