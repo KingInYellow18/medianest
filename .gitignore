@@ -43,15 +43,20 @@ docker-secrets/
 *.csr
 certs/
 
-# Development & Testing (Exclude from production)
-test-results/
-junit.xml
-results.json
-visual-regression-diff/
-screenshot-diff/
-playwright-report/
-storybook-static/
+# Development & Testing (INCLUDE test artifacts on test branch)
+# test-results/ (keep for analysis)
+# junit.xml (keep for CI analysis)
+# results.json (keep for test data)
+# visual-regression-diff/ (keep for visual testing)
+# screenshot-diff/ (keep for visual validation)
+# playwright-report/ (keep for test reports)
+# storybook-static/ (keep for component testing)
+# .stryker-tmp/ (exclude - temporary mutation testing)
 .stryker-tmp/
+
+# Coverage data (exclude volatile, keep reports)
+coverage/
+.nyc_output
 
 # Personal IDE Settings (Keep shared configs)
 .vscode/launch.json
@@ -92,22 +97,25 @@ temp/
 docker-compose.override.yml
 
 # =============================================================================
-# CLAUDE FLOW & DEVELOPMENT TOOLS (Exclude from production)
+# TEST BRANCH: INCLUDE TEST ARTIFACTS & VALIDATION DATA
 # =============================================================================
-# Claude Flow generated files (exclude all)
+# Testing and QA coordination (include for test analysis)
+# .claude/ (include QA settings)
+# .swarm/ (include test coordination)
+# test-results/ (include for analysis)
+# playwright-report/ (include for debugging)
+# visual-regression-diff/ (include for validation)
+
+# Still exclude personal and production secrets
 .claude/settings.local.json
-.mcp.json
-claude-flow.config.json
 claude-flow
 claude-flow.bat
 claude-flow.ps1
-
-# Swarm & Coordination (exclude all)
-.swarm/
-.hive-mind/
-memory/
-coordination/
 hive-mind-prompt-*.txt
+
+# Include test memory and coordination for analysis
+# memory/ (keep test run data)
+# coordination/ (keep test orchestration)
 
 # Database files (exclude runtime)
 *.db
