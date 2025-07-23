@@ -92,22 +92,35 @@ temp/
 docker-compose.override.yml
 
 # =============================================================================
-# CLAUDE FLOW & DEVELOPMENT TOOLS (Exclude from production)
+# CLAUDE FLOW BRANCH: PERSONAL DEVELOPMENT (Include all tooling & experimental)
 # =============================================================================
-# Claude Flow generated files (exclude all)
-.claude/settings.local.json
-.mcp.json
-claude-flow.config.json
-claude-flow
-claude-flow.bat
-claude-flow.ps1
+# For claude-flow branch: INCLUDE development tools and coordination files
+# This branch is for AI-assisted development with full tooling access
 
-# Swarm & Coordination (exclude all)
-.swarm/
-.hive-mind/
-memory/
-coordination/
-hive-mind-prompt-*.txt
+# Claude Flow coordination files (INCLUDE on claude-flow branch)
+# NOTE: These are EXCLUDED on main/production but INCLUDED here
+# .claude/ (keep for development)
+# .mcp.json (keep for MCP integration) 
+# claude-flow.config.json (keep for configuration)
+# .swarm/ (keep for swarm coordination)
+# .hive-mind/ (keep for collective intelligence)
+# memory/ (keep for persistent memory)
+# coordination/ (keep for agent coordination)
+
+# Still exclude runtime data and large files
+*.db
+*.sqlite
+*.db-journal
+*.db-wal
+*.sqlite-journal  
+*.sqlite-wal
+
+# Large binaries and cache (exclude even on claude-flow)
+node_modules/
+build/
+dist/
+.cache/
+.parcel-cache/
 
 # Database files (exclude runtime)
 *.db
