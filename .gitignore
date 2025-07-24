@@ -106,7 +106,7 @@ hive-mind-prompt-*.txt
 # .swarm/ (KEEP swarm coordination data)  
 # .gitignore-templates/ (KEEP branch strategy templates)
 
-# Generated reports and backups
-LOCAL-CHANGES-CLEANUP-REPORT.md
-GITIGNORE-OPTIMIZATION.md
+# Generated reports and backups (KEEP cleanup reports for all branches)
+# LOCAL-CHANGES-CLEANUP-REPORT.md (KEEP for documentation)
+# GITIGNORE-OPTIMIZATION.md (KEEP for reference)
 *.backup
