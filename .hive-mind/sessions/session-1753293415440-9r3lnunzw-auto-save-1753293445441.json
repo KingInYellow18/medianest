@@ -1,0 +1,81 @@
+{
+  "sessionId": "session-1753293415440-9r3lnunzw",
+  "checkpointId": "checkpoint-1753293445441-hls3y95ut",
+  "checkpointName": "auto-save-1753293445441",
+  "timestamp": "2025-07-23T17:57:25.442Z",
+  "data": {
+    "timestamp": "2025-07-23T17:57:25.441Z",
+    "changeCount": 5,
+    "changesByType": {
+      "swarm_created": [
+        {
+          "type": "swarm_created",
+          "data": {
+            "swarmId": "swarm-1753293415440-dajebivog",
+            "swarmName": "hive-1753293415436",
+            "objective": "Perform comprehensive security audit on medianest project to identify and remove ALL hardcoded credentials, API keys, passwords, tokens, certificates, IP addresses, hostnames, internal network information, SSL certificates, private keys, internal service URLs, and sensitive test data. Scan entire git history using git-secrets and gitleaks. Create detailed security report documenting all findings and remediation actions. Ensure zero sensitive information remains in codebase or commit history.",
+            "workerCount": 8
+          },
+          "timestamp": "2025-07-23T17:56:55.441Z"
+        }
+      ],
+      "agent_activity": [
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1753293415440-dajebivog-0",
+            "activity": "spawned",
+            "data": {
+              "type": "researcher",
+              "name": "Researcher Worker 1"
+            }
+          },
+          "timestamp": "2025-07-23T17:56:55.442Z"
+        },
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1753293415440-dajebivog-1",
+            "activity": "spawned",
+            "data": {
+              "type": "coder",
+              "name": "Coder Worker 2"
+            }
+          },
+          "timestamp": "2025-07-23T17:56:55.442Z"
+        },
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1753293415440-dajebivog-2",
+            "activity": "spawned",
+            "data": {
+              "type": "analyst",
+              "name": "Analyst Worker 3"
+            }
+          },
+          "timestamp": "2025-07-23T17:56:55.442Z"
+        },
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1753293415440-dajebivog-3",
+            "activity": "spawned",
+            "data": {
+              "type": "tester",
+              "name": "Tester Worker 4"
+            }
+          },
+          "timestamp": "2025-07-23T17:56:55.442Z"
+        }
+      ]
+    },
+    "statistics": {
+      "tasksProcessed": 0,
+      "tasksCompleted": 0,
+      "memoryUpdates": 0,
+      "agentActivities": 4,
+      "consensusDecisions": 0
+    }
+  }
+}

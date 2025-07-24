@@ -1,0 +1,81 @@
+{
+  "sessionId": "session-1753126707952-o5akk3nj3",
+  "checkpointId": "checkpoint-1753126737953-pk2ww8i94",
+  "checkpointName": "auto-save-1753126737953",
+  "timestamp": "2025-07-21T19:38:57.953Z",
+  "data": {
+    "timestamp": "2025-07-21T19:38:57.953Z",
+    "changeCount": 5,
+    "changesByType": {
+      "swarm_created": [
+        {
+          "type": "swarm_created",
+          "data": {
+            "swarmId": "swarm-1753126707951-ybtu31rmo",
+            "swarmName": "hive-1753126707947",
+            "objective": "Analyze medianest repository structure: compare main branch with claude-flow2 branch, identify gaps, create comprehensive modernization plan with logical PR groupings for production-ready main branch",
+            "workerCount": 8
+          },
+          "timestamp": "2025-07-21T19:38:27.953Z"
+        }
+      ],
+      "agent_activity": [
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1753126707951-ybtu31rmo-0",
+            "activity": "spawned",
+            "data": {
+              "type": "researcher",
+              "name": "Researcher Worker 1"
+            }
+          },
+          "timestamp": "2025-07-21T19:38:27.954Z"
+        },
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1753126707951-ybtu31rmo-1",
+            "activity": "spawned",
+            "data": {
+              "type": "coder",
+              "name": "Coder Worker 2"
+            }
+          },
+          "timestamp": "2025-07-21T19:38:27.954Z"
+        },
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1753126707951-ybtu31rmo-2",
+            "activity": "spawned",
+            "data": {
+              "type": "analyst",
+              "name": "Analyst Worker 3"
+            }
+          },
+          "timestamp": "2025-07-21T19:38:27.954Z"
+        },
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1753126707951-ybtu31rmo-3",
+            "activity": "spawned",
+            "data": {
+              "type": "tester",
+              "name": "Tester Worker 4"
+            }
+          },
+          "timestamp": "2025-07-21T19:38:27.954Z"
+        }
+      ]
+    },
+    "statistics": {
+      "tasksProcessed": 0,
+      "tasksCompleted": 0,
+      "memoryUpdates": 0,
+      "agentActivities": 4,
+      "consensusDecisions": 0
+    }
+  }
+}

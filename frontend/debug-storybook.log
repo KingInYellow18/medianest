@@ -1,0 +1,22 @@
+[03:39:53.218] [INFO] Checking the health of your Storybook..
+[03:39:53.219] [DEBUG] Getting Storybook info...
+[03:39:53.220] [DEBUG] Loading main config...
+[03:39:53.318] [DEBUG] Getting stories paths...
+[03:39:53.348] [DEBUG] Getting package manager...
+[03:39:53.501] [DEBUG] Getting Storybook version...
+[03:39:56.673] [DEBUG] An issue occurred while trying to find dependencies metadata using npm.
+[03:39:56.673] [WARN] .storybook: 1 issue found
+[03:39:56.673] [INFO] You are currently using Storybook 9.0.17 but you have packages which are incompatible with it:
+
+- @storybook/addon-essentials@8.6.14 which depends on 8.6.14
+ Repo: https://github.com/storybookjs/storybook/tree/next/code/addons/essentials
+- @storybook/addon-interactions@8.6.14 which depends on 8.6.14
+ Repo: https://github.com/storybookjs/storybook/tree/next/code/addons/interactions
+
+Please consider updating your packages or contacting the maintainers for compatibility details.
+
+For more on Storybook 9 compatibility, see the linked GitHub issue:
+https://github.com/storybookjs/storybook/issues/30944
+[03:39:56.682] [INFO] Storybook doctor is complete!
+[03:39:56.682] [INFO] You can always recheck the health of your project(s) by running:
+npx storybook doctor

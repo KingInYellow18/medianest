@@ -1,0 +1,81 @@
+{
+  "sessionId": "session-1752952324926-9cvtlv6n8",
+  "checkpointId": "checkpoint-1752952354928-p5wq7fe1p",
+  "checkpointName": "auto-save-1752952354928",
+  "timestamp": "2025-07-19T19:12:34.928Z",
+  "data": {
+    "timestamp": "2025-07-19T19:12:34.928Z",
+    "changeCount": 5,
+    "changesByType": {
+      "swarm_created": [
+        {
+          "type": "swarm_created",
+          "data": {
+            "swarmId": "swarm-1752952324924-6njmz2zj0",
+            "swarmName": "hive-1752952324918",
+            "objective": "Can you do a technical debt audit in this software project, and attempt to resolve any critical issues",
+            "workerCount": 8
+          },
+          "timestamp": "2025-07-19T19:12:04.927Z"
+        }
+      ],
+      "agent_activity": [
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1752952324924-6njmz2zj0-0",
+            "activity": "spawned",
+            "data": {
+              "type": "researcher",
+              "name": "Researcher Worker 1"
+            }
+          },
+          "timestamp": "2025-07-19T19:12:04.928Z"
+        },
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1752952324924-6njmz2zj0-1",
+            "activity": "spawned",
+            "data": {
+              "type": "coder",
+              "name": "Coder Worker 2"
+            }
+          },
+          "timestamp": "2025-07-19T19:12:04.928Z"
+        },
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1752952324924-6njmz2zj0-2",
+            "activity": "spawned",
+            "data": {
+              "type": "analyst",
+              "name": "Analyst Worker 3"
+            }
+          },
+          "timestamp": "2025-07-19T19:12:04.928Z"
+        },
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1752952324924-6njmz2zj0-3",
+            "activity": "spawned",
+            "data": {
+              "type": "tester",
+              "name": "Tester Worker 4"
+            }
+          },
+          "timestamp": "2025-07-19T19:12:04.928Z"
+        }
+      ]
+    },
+    "statistics": {
+      "tasksProcessed": 0,
+      "tasksCompleted": 0,
+      "memoryUpdates": 0,
+      "agentActivities": 4,
+      "consensusDecisions": 0
+    }
+  }
+}
