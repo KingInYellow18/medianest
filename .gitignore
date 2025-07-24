@@ -1,8 +1,9 @@
 # =============================================================================
 # .gitignore for MediaNest Project - Unified Multi-Branch Configuration
+# Optimized for all branch strategies: production, development, testing, and experimentation
 # =============================================================================
 
-# Dependencies
+# Dependencies (Always exclude)
 node_modules/
 .pnp
 .pnp.js
@@ -11,7 +12,7 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# Build Outputs
+# Build Outputs (Exclude - rebuilt frequently)
 build/
 dist/
 out/
@@ -26,27 +27,46 @@ shared/**/*.d.ts
 shared/**/*.d.ts.map
 !shared/tsconfig.json
 
-# Environment & Secrets
+# Environment & Secrets (Critical exclusion - even for personal dev)
+.env.production*
+.env.prod*
+secrets/production/
+secrets/prod/
+docker-secrets/production/
+*.pem
+*.key
+*.crt
+*.csr
+certs/production/
+
+# Allow local development environments
+# .env.local (KEEP for personal dev)
+# .env.development* (KEEP for dev work)
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
-.env.production
-.env.prod
-.env.test
 .env.staging
 secrets/
 !secrets/.gitkeep
 .secrets/
 docker-secrets/
-*.pem
-*.key
-*.crt
-*.csr
 certs/
 
-# Testing & Coverage
+# Personal Development Tools (INCLUDE ALL for experimentation)
+# .claude/ (KEEP all settings and configurations)
+# .roo/ (KEEP all rules and experimental modes)  
+# .roomodes (KEEP mode configurations)
+# CLAUDE.md (KEEP project instructions and notes)
+# memory/ (KEEP all coordination and learning data)
+# .gitignore-templates/ (KEEP template experiments)
+# .mcp.json (KEEP MCP configurations)
+# .swarm/ (KEEP swarm experiments)
+# .hive-mind/ (KEEP collective intelligence data)
+# coordination/ (KEEP all coordination experiments)
+
+# Testing & Experimentation (INCLUDE for learning)
 test-results/
 junit.xml
 results.json
@@ -54,9 +74,19 @@ visual-regression-diff/
 screenshot-diff/
 playwright-report/
 storybook-static/
+# coverage/ (KEEP for optimization)
+# junit.xml (KEEP for pattern analysis)
+# playwright-report/ (KEEP for debugging)
+# visual-regression-diff/ (KEEP experiments)
+# screenshot-diff/ (KEEP visual experiments)
+# storybook-static/ (KEEP component experiments)
+
+# Only exclude volatile temp data
 .stryker-tmp/
 
-# IDE & OS
+# IDE Settings (Include personal configurations)
+# .vscode/ (KEEP personal IDE setup)
+# .idea/ (KEEP personal IDE setup)
 .vscode/launch.json
 .vscode/extensions.json
 .idea/workspace.xml
@@ -64,36 +94,53 @@ storybook-static/
 *.swp
 *.swo
 *~
+
+# OS Files (Still exclude)
 .DS_Store
 Thumbs.db
 .Trashes
 
-# Docker & Services
-docker-compose.override.yml
+# Runtime Data (Exclude volatile)
+logs/
 postgres_data/
 redis_data/
-
-# Media & Uploads
-uploads/
-youtube/
-downloads/
-
-# Cache & Temporary
-.cache/
-.parcel-cache/
-tmp/
-temp/
-logs/
-*.log
-.vercel
-
-# Database Files
 *.db
 *.db-journal
 *.db-wal
 *.sqlite
 *.sqlite-journal
 *.sqlite-wal
+
+# Media & Uploads (Exclude large files)
+uploads/
+youtube/
+downloads/
+
+# Cache & Temp (Exclude volatile)
+.cache/
+.parcel-cache/
+tmp/
+temp/
+*.log
+.vercel
+
+# Docker & Services
+docker-compose.override.yml
+
+# Large Backups (Exclude to save space)
+backups/
+*.backup
+*.bak
+
+# Generated executables and temporary files
+claude-flow
+claude-flow.bat
+claude-flow.ps1
+hive-mind-prompt-*.txt
+
+# Environment files with potential secrets (even staging templates)
+backend/.env.test
+frontend/.env.test
 
 # =============================================================================
 # DEVELOPMENT BRANCH: CONTRIBUTOR WORKFLOWS
@@ -110,15 +157,9 @@ memory/personal/
 .hive-mind/personal/
 
 # Personal development tools (exclude for privacy)
-hive-mind-prompt-*.txt
 *.personal.json
 .dev-personal/
 **/personal/
-
-# Generated executables and temporary files  
-claude-flow
-claude-flow.bat
-claude-flow.ps1
 
 # Keep shared development coordination files:
 # .claude/settings.json (shared team settings)
@@ -131,18 +172,14 @@ claude-flow.ps1
 # .swarm/ (KEEP swarm coordination data)  
 # .gitignore-templates/ (KEEP branch strategy templates)
 
-# Development artifacts
-backups/
-*.backup
-*.bak
-
 # Generated reports and backups (KEEP cleanup reports for all branches)
 # LOCAL-CHANGES-CLEANUP-REPORT.md (KEEP for documentation)
 # GITIGNORE-OPTIMIZATION.md (KEEP for reference)
 
 # =============================================================================
-# MAIN BRANCH INCLUSION STRATEGY
+# BRANCH STRATEGIES SUMMARY
 # =============================================================================
+# MAIN BRANCH: Production-ready code only
 # ✅ Essential source code only
 # ✅ Core configuration files (package.json, tsconfig.json)
 # ✅ Dockerfile and docker-compose.yml (production)
@@ -155,12 +192,20 @@ backups/
 # ❌ Build outputs (handled by CI/CD)
 # ❌ All sensitive data and secrets
 
-# Claude Flow generated files
-.claude/settings.local.json
+# CLAUDE-FLOW BRANCH: Maximum experimentation freedom
+# ✅ Include ALL development tools and configurations
+# ✅ Include ALL experimental and coordination files
+# ✅ Include ALL test artifacts for learning
+# ✅ Include personal IDE configurations
+# ✅ Include memory and coordination data
+# ✅ Allow local environment files for development
+# ❌ Only exclude production secrets and large files
+# ❌ Only exclude volatile runtime data
+# ❌ Only exclude executable binaries
+
+# Claude Flow generated files (excluding personal data)
 .mcp.json
 claude-flow.config.json
-.swarm/
-.hive-mind/
 memory/claude-flow-data.json
 memory/sessions/*
 !memory/sessions/README.md
