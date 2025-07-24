@@ -93,15 +93,30 @@ temp/
 docker-compose.override.yml
 
 # =============================================================================
-# CLAUDE FLOW & DEVELOPMENT TOOLS (Exclude from production)
+# DEVELOPMENT BRANCH: CONTRIBUTOR WORKFLOWS (Shared configs, no personal settings)  
 # =============================================================================
+# For development branch: Include shared team configs, exclude personal settings
+# This branch balances collaboration with personal privacy
 
-# Swarm & Coordination (exclude all)
-.swarm/
-.hive-mind/
-memory/
-coordination/
+# Claude Flow - Include shared, exclude personal
+.claude/settings.local.json
+.mcp.json.local
+claude-flow.config.local.json
+memory/personal/
+.swarm/agents/personal/
+.hive-mind/personal/
+
+# Personal development tools (exclude for privacy)
 hive-mind-prompt-*.txt
+*.personal.json
+.dev-personal/
+**/personal/
+
+# Keep shared development coordination files:
+# .claude/settings.json (shared team settings)
+# .swarm/ (shared swarm coordination) 
+# coordination/ (shared coordination files)
+# memory/shared/ (shared knowledge base)
 
 # Database files (exclude runtime)
 *.db
