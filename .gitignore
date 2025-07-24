@@ -100,11 +100,16 @@ backups/
 *.backup
 *.bak
 
-# Keep smaller experimental files but exclude large executables
+# Exclude generated executables and temporary files
 claude-flow
 claude-flow.bat
 claude-flow.ps1
-# hive-mind-prompt-*.txt (KEEP for experimentation)
+hive-mind-prompt-*.txt
+
+# Environment files with potential secrets (even staging templates)
+.env.staging
+backend/.env.test
+frontend/.env.test
 
 # =============================================================================
 # CLAUDE-FLOW BRANCH STRATEGY: MAXIMUM EXPERIMENTATION FREEDOM
