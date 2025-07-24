@@ -1,0 +1,81 @@
+{
+  "sessionId": "session-1753051840254-5mfdw7w0r",
+  "checkpointId": "checkpoint-1753051865385-sy8l2oe2x",
+  "checkpointName": "auto-save-1753051865384",
+  "timestamp": "2025-07-20T22:51:05.385Z",
+  "data": {
+    "timestamp": "2025-07-20T22:51:05.384Z",
+    "changeCount": 5,
+    "changesByType": {
+      "swarm_created": [
+        {
+          "type": "swarm_created",
+          "data": {
+            "swarmId": "swarm-1753051840249-2bpcy4mdh",
+            "swarmName": "hive-1753051840245",
+            "objective": "Audit and validate integrations with Plex, Overseerr, Uptime Kuma",
+            "workerCount": 8
+          },
+          "timestamp": "2025-07-20T22:50:40.255Z"
+        }
+      ],
+      "agent_activity": [
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1753051840249-2bpcy4mdh-0",
+            "activity": "spawned",
+            "data": {
+              "type": "researcher",
+              "name": "Researcher Worker 1"
+            }
+          },
+          "timestamp": "2025-07-20T22:50:40.255Z"
+        },
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1753051840249-2bpcy4mdh-1",
+            "activity": "spawned",
+            "data": {
+              "type": "coder",
+              "name": "Coder Worker 2"
+            }
+          },
+          "timestamp": "2025-07-20T22:50:40.255Z"
+        },
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1753051840249-2bpcy4mdh-2",
+            "activity": "spawned",
+            "data": {
+              "type": "analyst",
+              "name": "Analyst Worker 3"
+            }
+          },
+          "timestamp": "2025-07-20T22:50:40.256Z"
+        },
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1753051840249-2bpcy4mdh-3",
+            "activity": "spawned",
+            "data": {
+              "type": "tester",
+              "name": "Tester Worker 4"
+            }
+          },
+          "timestamp": "2025-07-20T22:50:40.256Z"
+        }
+      ]
+    },
+    "statistics": {
+      "tasksProcessed": 0,
+      "tasksCompleted": 0,
+      "memoryUpdates": 0,
+      "agentActivities": 4,
+      "consensusDecisions": 0
+    }
+  }
+}

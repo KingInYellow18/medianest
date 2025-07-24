@@ -1,16 +1,17 @@
 # =============================================================================
-# .gitignore for main branch (Production-Ready Branch)
-# Optimized for: Clean production deployments, minimal but essential files
+# .gitignore for MediaNest Project - Unified Multi-Branch Configuration
 # =============================================================================
 
-# Dependencies (Always exclude)
+# Dependencies
 node_modules/
+.pnp
+.pnp.js
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# Build Outputs (Exclude - CI/CD rebuilds)
+# Build Outputs
 build/
 dist/
 out/
@@ -18,13 +19,14 @@ out/
 coverage/
 .nyc_output
 *.tsbuildinfo
+next-env.d.ts
 shared/**/*.js
 shared/**/*.js.map
 shared/**/*.d.ts
 shared/**/*.d.ts.map
 !shared/tsconfig.json
 
-# Environment & Secrets (Critical exclusion)
+# Environment & Secrets
 .env
 .env.local
 .env.development.local
@@ -44,7 +46,7 @@ docker-secrets/
 *.csr
 certs/
 
-# Development & Testing (Exclude from production)
+# Testing & Coverage
 test-results/
 junit.xml
 results.json
@@ -54,7 +56,7 @@ playwright-report/
 storybook-static/
 .stryker-tmp/
 
-# Personal IDE Settings (Keep shared configs)
+# IDE & OS
 .vscode/launch.json
 .vscode/extensions.json
 .idea/workspace.xml
@@ -62,38 +64,39 @@ storybook-static/
 *.swp
 *.swo
 *~
-
-# OS Files
 .DS_Store
 Thumbs.db
 .Trashes
-*.log
 
-# Runtime Data
-logs/
+# Docker & Services
+docker-compose.override.yml
 postgres_data/
 redis_data/
-*.db-journal
-*.db-wal
-*.sqlite-journal
-*.sqlite-wal
 
 # Media & Uploads
 uploads/
 youtube/
 downloads/
 
-# Cache & Temp
+# Cache & Temporary
 .cache/
 .parcel-cache/
 tmp/
 temp/
+logs/
+*.log
+.vercel
 
-# Docker Runtime
-docker-compose.override.yml
+# Database Files
+*.db
+*.db-journal
+*.db-wal
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
 
 # =============================================================================
-# DEVELOPMENT BRANCH: CONTRIBUTOR WORKFLOWS (Shared configs, no personal settings)  
+# DEVELOPMENT BRANCH: CONTRIBUTOR WORKFLOWS
 # =============================================================================
 # For development branch: Include shared team configs, exclude personal settings
 # This branch balances collaboration with personal privacy
@@ -112,20 +115,30 @@ hive-mind-prompt-*.txt
 .dev-personal/
 **/personal/
 
+# Generated executables and temporary files  
+claude-flow
+claude-flow.bat
+claude-flow.ps1
+
 # Keep shared development coordination files:
 # .claude/settings.json (shared team settings)
 # .swarm/ (shared swarm coordination) 
 # coordination/ (shared coordination files)
 # memory/shared/ (shared knowledge base)
 
-# Database files (exclude runtime)
-*.db
-*.sqlite
+# Development coordination files (INCLUDE for test analysis)
+# .hive-mind/ (KEEP collective intelligence data)
+# .swarm/ (KEEP swarm coordination data)  
+# .gitignore-templates/ (KEEP branch strategy templates)
 
 # Development artifacts
 backups/
 *.backup
 *.bak
+
+# Generated reports and backups (KEEP cleanup reports for all branches)
+# LOCAL-CHANGES-CLEANUP-REPORT.md (KEEP for documentation)
+# GITIGNORE-OPTIMIZATION.md (KEEP for reference)
 
 # =============================================================================
 # MAIN BRANCH INCLUSION STRATEGY
@@ -156,13 +169,3 @@ memory/agents/*
 coordination/memory_bank/*
 coordination/subtasks/*
 coordination/orchestration/*
-*.db
-*.db-journal
-*.db-wal
-*.sqlite
-*.sqlite-journal
-*.sqlite-wal
-claude-flow
-claude-flow.bat
-claude-flow.ps1
-hive-mind-prompt-*.txt

@@ -1,0 +1,96 @@
+# =============================================================================
+# .gitignore for MAIN branch (Production-Ready Branch)
+# Purpose: Clean production deployments, essential files only
+# =============================================================================
+
+# Dependencies (Always exclude)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Build Outputs (Exclude - CI/CD rebuilds)
+build/
+dist/
+out/
+.next/
+coverage/
+.nyc_output
+*.tsbuildinfo
+
+# Environment & Secrets (Critical exclusion)
+.env*
+secrets/
+!secrets/.gitkeep
+.secrets/
+docker-secrets/
+*.pem
+*.key
+*.crt
+*.csr
+certs/
+
+# Development Tools & Testing (EXCLUDE on main)
+test-results/
+junit.xml
+playwright-report/
+storybook-static/
+visual-regression-diff/
+screenshot-diff/
+.stryker-tmp/
+
+# Personal Development Tools (EXCLUDE on main)
+.claude/
+.roo/
+.roomodes
+CLAUDE.md
+memory/
+.gitignore-templates/
+.mcp.json
+.swarm/
+.hive-mind/
+coordination/
+claude-flow*
+hive-mind-prompt-*.txt
+
+# IDE Settings (Keep shared configs only)
+.vscode/settings.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS Files
+.DS_Store
+Thumbs.db
+.Trashes
+*.log
+
+# Runtime Data
+logs/
+postgres_data/
+redis_data/
+*.db*
+*.sqlite*
+
+# Media & Uploads  
+uploads/
+youtube/
+downloads/
+
+# Cache & Temp
+.cache/
+.parcel-cache/
+tmp/
+temp/
+
+# Docker Runtime
+docker-compose.override.yml
+
+# Backups
+backups/
+*.backup
+*.bak

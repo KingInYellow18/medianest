@@ -1,0 +1,81 @@
+{
+  "sessionId": "session-1753078183713-lyurmel56",
+  "checkpointId": "checkpoint-1753078213714-o2hbrvw7v",
+  "checkpointName": "auto-save-1753078213714",
+  "timestamp": "2025-07-21T06:10:13.714Z",
+  "data": {
+    "timestamp": "2025-07-21T06:10:13.714Z",
+    "changeCount": 5,
+    "changesByType": {
+      "swarm_created": [
+        {
+          "type": "swarm_created",
+          "data": {
+            "swarmId": "swarm-1753078183712-1g6t5qkon",
+            "swarmName": "hive-1753078183702",
+            "objective": "Analyze truenas-proxmox working branch and create logical batched pull requests to dev branch. Apply best practices to filter files: include production code, test suites, and documentation. Exclude Claude configurations, IDE files, and build artifacts and whatever else doesn't belong in a development branch. Group changes into logical functional batches for clean PR workflow. Once you have established the PR workflow, please execute it and submit the pull requests",
+            "workerCount": 8
+          },
+          "timestamp": "2025-07-21T06:09:43.714Z"
+        }
+      ],
+      "agent_activity": [
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1753078183712-1g6t5qkon-0",
+            "activity": "spawned",
+            "data": {
+              "type": "researcher",
+              "name": "Researcher Worker 1"
+            }
+          },
+          "timestamp": "2025-07-21T06:09:43.716Z"
+        },
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1753078183712-1g6t5qkon-1",
+            "activity": "spawned",
+            "data": {
+              "type": "coder",
+              "name": "Coder Worker 2"
+            }
+          },
+          "timestamp": "2025-07-21T06:09:43.716Z"
+        },
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1753078183712-1g6t5qkon-2",
+            "activity": "spawned",
+            "data": {
+              "type": "analyst",
+              "name": "Analyst Worker 3"
+            }
+          },
+          "timestamp": "2025-07-21T06:09:43.716Z"
+        },
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1753078183712-1g6t5qkon-3",
+            "activity": "spawned",
+            "data": {
+              "type": "tester",
+              "name": "Tester Worker 4"
+            }
+          },
+          "timestamp": "2025-07-21T06:09:43.717Z"
+        }
+      ]
+    },
+    "statistics": {
+      "tasksProcessed": 0,
+      "tasksCompleted": 0,
+      "memoryUpdates": 0,
+      "agentActivities": 4,
+      "consensusDecisions": 0
+    }
+  }
+}
