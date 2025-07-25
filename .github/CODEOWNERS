@@ -1,47 +1,63 @@
-# Global code owners
+# Global code owners - all changes require review from maintainers
 * @maintainers
 
-# Backend code
+# Backend specific ownership
 /backend/ @backend-team @maintainers
-/backend/src/auth/ @security-team @backend-team
-/backend/src/api/ @api-team @backend-team
+/backend/src/controllers/ @backend-team @api-reviewers
+/backend/src/services/ @backend-team @senior-backend
+/backend/src/middleware/ @backend-team @security-reviewers
+/backend/prisma/ @backend-team @database-reviewers
+/backend/tests/ @backend-team @qa-team
 
-# Frontend code
+# Frontend specific ownership  
 /frontend/ @frontend-team @maintainers
-/frontend/src/components/ @ui-team @frontend-team
-/frontend/src/pages/ @frontend-team
+/frontend/src/components/ @frontend-team @ui-reviewers
+/frontend/src/pages/ @frontend-team @frontend-leads
+/frontend/src/hooks/ @frontend-team @react-experts
+/frontend/tests/ @frontend-team @qa-team
 
-# Shared code
-/shared/ @maintainers @backend-team @frontend-team
+# Shared code requires both teams
+/shared/ @backend-team @frontend-team @maintainers
+/shared/src/types/ @backend-team @frontend-team @typescript-experts
+/shared/src/utils/ @backend-team @frontend-team
+/shared/tests/ @backend-team @frontend-team @qa-team
 
 # Infrastructure and DevOps
 /.github/ @devops-team @maintainers
-/docker/ @devops-team
-/k8s/ @devops-team
-Dockerfile @devops-team
+/.github/workflows/ @devops-team @ci-cd-reviewers @security-reviewers
+/docker* @devops-team @infrastructure-team
+*.yml @devops-team
+*.yaml @devops-team
 
-# Documentation
-*.md @documentation-team @maintainers
-/docs/ @documentation-team
-
-# Security-sensitive files
-.github/workflows/ @security-team @devops-team @maintainers
-*.yml @devops-team @maintainers
-*.yaml @devops-team @maintainers
-
-# Configuration files
-package.json @maintainers
+# Configuration files - require extra scrutiny
+package.json @maintainers @security-reviewers
 package-lock.json @maintainers
 */package.json @maintainers
 */package-lock.json @maintainers
-tsconfig.json @maintainers
-*/tsconfig.json @maintainers
+.env* @maintainers @security-reviewers
+*.config.* @maintainers @devops-team
+
+# Database and migrations
+/prisma/ @backend-team @database-reviewers @maintainers
+*/migrations/ @backend-team @database-reviewers @maintainers
+**/schema.prisma @backend-team @database-reviewers @maintainers
+
+# Security sensitive files
+/.github/workflows/security-scanning.yml @security-reviewers @devops-team @maintainers
+/.github/workflows/branch-protection.yml @security-reviewers @devops-team @maintainers
+
+# Documentation
+/docs/ @documentation-team @maintainers
+README.md @documentation-team @maintainers
+*.md @documentation-team
+
+# Testing configuration
+/tests/ @qa-team @maintainers
+**/tests/ @qa-team
+*.test.* @qa-team
+*.spec.* @qa-team
 
 # Build and deployment
 /scripts/ @devops-team @maintainers
-/build/ @devops-team
-/dist/ @devops-team
-
-# Branch architecture and governance
-BRANCH_ARCHITECTURE.md @maintainers @devops-team
-CLAUDE.*.md @maintainers
+Dockerfile* @devops-team @infrastructure-team
+docker-compose* @devops-team @infrastructure-team

@@ -1,0 +1,523 @@
+name: Workflow Monitoring & Health Check
+# Comprehensive monitoring of GitHub Actions workflows with performance tracking and alerting
+
+on:
+  workflow_run:
+    workflows:
+      - "Multi-Package Sync Coordinator v2"
+      - "Automated PR Management & Validation"
+      - "Branch Protection & Policy Enforcement" 
+      - "CI/CD Pipeline"
+      - "MediaNest Branch Strategy CI/CD"
+    types: [completed, requested]
+  schedule:
+    - cron: '0 */6 * * *'  # Every 6 hours
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Monitoring action'
+        required: true
+        type: choice
+        options:
+          - health-check
+          - performance-analysis
+          - failure-analysis
+          - generate-report
+      timeframe:
+        description: 'Analysis timeframe'
+        required: false
+        default: '7d'
+        type: choice
+        options:
+          - '1d'
+          - '7d'
+          - '30d'
+          - '90d'
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+permissions:
+  contents: read
+  actions: read
+  checks: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  workflow-health-check:
+    name: Workflow Health Assessment
+    runs-on: ubuntu-latest
+    outputs:
+      health-score: ${{ steps.health-analysis.outputs.score }}
+      critical-workflows: ${{ steps.identify-critical.outputs.workflows }}
+      performance-trend: ${{ steps.performance-trend.outputs.trend }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Analyze workflow health
+        id: health-analysis
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🏥 Analyzing workflow health..."
+          
+          # Get workflow runs from last 7 days
+          since_date=$(date -d '7 days ago' -u +%Y-%m-%dT%H:%M:%SZ)
+          
+          # Fetch workflow run data
+          workflow_data=$(gh api repos/${{ github.repository }}/actions/runs \
+            --field created=">${since_date}" \
+            --field per_page=100 \
+            --jq '.workflow_runs[] | {id, name, status, conclusion, created_at, updated_at, run_started_at, html_url}')
+          
+          total_runs=0
+          successful_runs=0
+          failed_runs=0
+          cancelled_runs=0
+          total_duration=0
+          
+          # Process workflow data
+          while IFS= read -r run_data; do
+            if [[ -n "$run_data" ]]; then
+              status=$(echo "$run_data" | jq -r '.status')
+              conclusion=$(echo "$run_data" | jq -r '.conclusion')
+              created_at=$(echo "$run_data" | jq -r '.created_at')
+              updated_at=$(echo "$run_data" | jq -r '.updated_at')
+              
+              total_runs=$((total_runs + 1))
+              
+              case "$conclusion" in
+                "success") successful_runs=$((successful_runs + 1)) ;;
+                "failure") failed_runs=$((failed_runs + 1)) ;;
+                "cancelled") cancelled_runs=$((cancelled_runs + 1)) ;;
+              esac
+              
+              # Calculate duration
+              if [[ "$status" == "completed" ]]; then
+                start_time=$(date -d "$created_at" +%s)
+                end_time=$(date -d "$updated_at" +%s)
+                duration=$((end_time - start_time))
+                total_duration=$((total_duration + duration))
+              fi
+            fi
+          done <<< "$workflow_data"
+          
+          # Calculate health metrics
+          if [[ $total_runs -gt 0 ]]; then
+            success_rate=$(( (successful_runs * 100) / total_runs ))
+            failure_rate=$(( (failed_runs * 100) / total_runs ))
+            avg_duration=$(( total_duration / total_runs ))
+          else
+            success_rate=0
+            failure_rate=0
+            avg_duration=0
+          fi
+          
+          # Calculate health score (0-100)
+          health_score=100
+          
+          # Success rate impact (0-60 points)
+          if [[ $success_rate -ge 95 ]]; then
+            health_score=$((health_score - 0))
+          elif [[ $success_rate -ge 90 ]]; then
+            health_score=$((health_score - 10))
+          elif [[ $success_rate -ge 80 ]]; then
+            health_score=$((health_score - 25))
+          else
+            health_score=$((health_score - 50))
+          fi
+          
+          # Failure rate impact
+          if [[ $failure_rate -gt 20 ]]; then
+            health_score=$((health_score - 20))
+          elif [[ $failure_rate -gt 10 ]]; then
+            health_score=$((health_score - 10))
+          fi
+          
+          # Performance impact (duration in minutes)
+          avg_duration_mins=$((avg_duration / 60))
+          if [[ $avg_duration_mins -gt 30 ]]; then
+            health_score=$((health_score - 15))
+          elif [[ $avg_duration_mins -gt 15 ]]; then
+            health_score=$((health_score - 10))
+          fi
+          
+          echo "score=$health_score" >> $GITHUB_OUTPUT
+          echo "total-runs=$total_runs" >> $GITHUB_OUTPUT
+          echo "success-rate=$success_rate" >> $GITHUB_OUTPUT
+          echo "failure-rate=$failure_rate" >> $GITHUB_OUTPUT
+          echo "avg-duration=$avg_duration_mins" >> $GITHUB_OUTPUT
+          
+          echo "📊 Workflow Health Summary:"
+          echo "  Total Runs: $total_runs"
+          echo "  Success Rate: $success_rate%"
+          echo "  Failure Rate: $failure_rate%"
+          echo "  Avg Duration: ${avg_duration_mins}m"
+          echo "  Health Score: $health_score/100"
+
+      - name: Identify critical workflows
+        id: identify-critical
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🔍 Identifying critical workflows..."
+          
+          # Get workflows with high failure rates
+          critical_workflows=()
+          
+          # Analyze each workflow individually
+          workflows=$(gh api repos/${{ github.repository }}/actions/workflows --jq '.workflows[] | {id, name, state}')
+          
+          while IFS= read -r workflow; do
+            if [[ -n "$workflow" ]]; then
+              workflow_id=$(echo "$workflow" | jq -r '.id')
+              workflow_name=$(echo "$workflow" | jq -r '.name')
+              
+              # Get recent runs for this workflow
+              recent_runs=$(gh api repos/${{ github.repository }}/actions/workflows/$workflow_id/runs \
+                --field per_page=20 \
+                --jq '.workflow_runs[] | .conclusion')
+              
+              total_recent=0
+              failed_recent=0
+              
+              while IFS= read -r conclusion; do
+                if [[ -n "$conclusion" ]]; then
+                  total_recent=$((total_recent + 1))
+                  if [[ "$conclusion" == "failure" ]]; then
+                    failed_recent=$((failed_recent + 1))
+                  fi
+                fi
+              done <<< "$recent_runs"
+              
+              if [[ $total_recent -gt 0 ]]; then
+                failure_rate=$(( (failed_recent * 100) / total_recent ))
+                if [[ $failure_rate -gt 25 ]]; then
+                  critical_workflows+=("$workflow_name")
+                  echo "⚠️ Critical: $workflow_name (${failure_rate}% failure rate)"
+                fi
+              fi
+            fi
+          done <<< "$workflows"
+          
+          # Convert to JSON array
+          critical_json=$(printf '%s\n' "${critical_workflows[@]}" | jq -R . | jq -s .)
+          echo "workflows=$critical_json" >> $GITHUB_OUTPUT
+
+      - name: Analyze performance trends
+        id: performance-trend
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "📈 Analyzing performance trends..."
+          
+          # Get workflow runs from different time periods
+          current_week=$(gh api repos/${{ github.repository }}/actions/runs \
+            --field created=">$(date -d '7 days ago' -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --field per_page=50 \
+            --jq '.workflow_runs[] | select(.status == "completed") | .updated_at, .created_at' \
+            | while read -r line; do
+              if [[ -n "$line" ]]; then
+                echo "$line"
+              fi
+            done | wc -l)
+          
+          previous_week=$(gh api repos/${{ github.repository }}/actions/runs \
+            --field created=">$(date -d '14 days ago' -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --field created="<$(date -d '7 days ago' -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --field per_page=50 \
+            --jq '.workflow_runs[] | select(.status == "completed")' | wc -l)
+          
+          # Determine trend
+          if [[ $current_week -gt $((previous_week + 5)) ]]; then
+            trend="increasing"
+          elif [[ $current_week -lt $((previous_week - 5)) ]]; then
+            trend="decreasing"
+          else
+            trend="stable"
+          fi
+          
+          echo "trend=$trend" >> $GITHUB_OUTPUT
+          echo "current-week=$current_week" >> $GITHUB_OUTPUT
+          echo "previous-week=$previous_week" >> $GITHUB_OUTPUT
+          
+          echo "📊 Performance Trend: $trend"
+          echo "  Current Week: $current_week runs"
+          echo "  Previous Week: $previous_week runs"
+
+  failure-analysis:
+    name: Failure Analysis & Root Cause
+    runs-on: ubuntu-latest
+    needs: workflow-health-check
+    if: contains(needs.workflow-health-check.outputs.critical-workflows, '"')
+    steps:
+      - name: Analyze recent failures
+        id: failure-analysis
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🔍 Analyzing recent workflow failures..."
+          
+          # Get failed workflow runs from last 24 hours
+          since_date=$(date -d '24 hours ago' -u +%Y-%m-%dT%H:%M:%SZ)
+          
+          failed_runs=$(gh api repos/${{ github.repository }}/actions/runs \
+            --field created=">${since_date}" \
+            --field status=completed \
+            --field conclusion=failure \
+            --field per_page=10 \
+            --jq '.workflow_runs[] | {id, name, html_url, created_at, head_commit}')
+          
+          failure_patterns=()
+          common_errors=()
+          
+          # Analyze failure patterns
+          while IFS= read -r run_data; do
+            if [[ -n "$run_data" ]]; then
+              run_id=$(echo "$run_data" | jq -r '.id')
+              workflow_name=$(echo "$run_data" | jq -r '.name')
+              run_url=$(echo "$run_data" | jq -r '.html_url')
+              
+              echo "❌ Failed run: $workflow_name ($run_id)"
+              
+              # Get job details for this run
+              jobs=$(gh api repos/${{ github.repository }}/actions/runs/$run_id/jobs \
+                --jq '.jobs[] | select(.conclusion == "failure") | {name, steps}')
+              
+              # Analyze failed steps
+              while IFS= read -r job_data; do
+                if [[ -n "$job_data" ]]; then
+                  job_name=$(echo "$job_data" | jq -r '.name')
+                  failed_steps=$(echo "$job_data" | jq -r '.steps[] | select(.conclusion == "failure") | .name')
+                  
+                  while IFS= read -r step_name; do
+                    if [[ -n "$step_name" ]]; then
+                      failure_patterns+=("$workflow_name:$job_name:$step_name")
+                    fi
+                  done <<< "$failed_steps"
+                fi
+              done <<< "$jobs"
+            fi
+          done <<< "$failed_runs"
+          
+          # Identify most common failure patterns
+          if [[ ${#failure_patterns[@]} -gt 0 ]]; then
+            echo "🔍 Most common failure patterns:"
+            printf '%s\n' "${failure_patterns[@]}" | sort | uniq -c | sort -nr | head -5
+          else
+            echo "✅ No recent failures to analyze"
+          fi
+
+      - name: Generate failure report
+        run: |
+          echo "📝 Generating failure analysis report..."
+          
+          cat > failure-analysis.md << 'EOF'
+# Workflow Failure Analysis Report
+          
+## Summary
+- **Analysis Date:** $(date -u +%Y-%m-%d)
+- **Timeframe:** Last 24 hours
+- **Critical Workflows:** ${{ needs.workflow-health-check.outputs.critical-workflows }}
+          
+## Key Findings
+- High failure rate detected in critical workflows
+- Common failure patterns identified
+- Root cause analysis in progress
+          
+## Recommendations
+1. Review failing workflows for common issues
+2. Implement additional error handling
+3. Add retry mechanisms for transient failures
+4. Monitor resource usage and timeouts
+          
+## Next Steps
+- [ ] Fix identified issues
+- [ ] Update workflow configurations
+- [ ] Add monitoring alerts
+- [ ] Schedule follow-up analysis
+EOF
+          
+          echo "✅ Failure analysis report generated"
+
+      - name: Create failure tracking issue
+        if: steps.failure-analysis.outputs.critical-failures == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue create \
+            --title "🚨 Critical Workflow Failures Detected" \
+            --body "**Failure Analysis Report**
+
+Critical workflow failures have been detected in the following workflows:
+${{ needs.workflow-health-check.outputs.critical-workflows }}
+
+**Health Score:** ${{ needs.workflow-health-check.outputs.health-score }}/100
+
+**Immediate Actions Required:**
+- [ ] Review failure logs
+- [ ] Identify root causes  
+- [ ] Implement fixes
+- [ ] Monitor recovery
+
+**Details:**
+- Analysis Date: $(date -u +%Y-%m-%d)
+- Success Rate: ${{ needs.workflow-health-check.outputs.success-rate }}%
+- Failure Rate: ${{ needs.workflow-health-check.outputs.failure-rate }}%
+
+Please investigate and resolve these issues promptly." \
+            --label "critical,workflows,bug" \
+            --assignee "${{ github.repository_owner }}"
+
+  performance-monitoring:
+    name: Performance Monitoring
+    runs-on: ubuntu-latest
+    needs: workflow-health-check
+    steps:
+      - name: Monitor workflow performance
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "⚡ Monitoring workflow performance..."
+          
+          # Get performance metrics for each workflow
+          workflows=("Multi-Package Sync Coordinator v2" "Automated PR Management & Validation" "CI/CD Pipeline")
+          
+          for workflow_name in "${workflows[@]}"; do
+            echo "📊 Analyzing: $workflow_name"
+            
+            # Get recent runs for this workflow
+            workflow_id=$(gh api repos/${{ github.repository }}/actions/workflows \
+              --jq ".workflows[] | select(.name == \"$workflow_name\") | .id")
+            
+            if [[ -n "$workflow_id" ]]; then
+              recent_runs=$(gh api repos/${{ github.repository }}/actions/workflows/$workflow_id/runs \
+                --field per_page=10 \
+                --jq '.workflow_runs[] | select(.status == "completed") | {created_at, updated_at, conclusion}')
+              
+              durations=()
+              successes=0
+              total=0
+              
+              while IFS= read -r run_data; do
+                if [[ -n "$run_data" ]]; then
+                  created_at=$(echo "$run_data" | jq -r '.created_at')
+                  updated_at=$(echo "$run_data" | jq -r '.updated_at')
+                  conclusion=$(echo "$run_data" | jq -r '.conclusion')
+                  
+                  start_time=$(date -d "$created_at" +%s)
+                  end_time=$(date -d "$updated_at" +%s)
+                  duration=$((end_time - start_time))
+                  
+                  durations+=($duration)
+                  total=$((total + 1))
+                  
+                  if [[ "$conclusion" == "success" ]]; then
+                    successes=$((successes + 1))
+                  fi
+                fi
+              done <<< "$recent_runs"
+              
+              if [[ ${#durations[@]} -gt 0 ]]; then
+                # Calculate average duration
+                total_duration=0
+                for duration in "${durations[@]}"; do
+                  total_duration=$((total_duration + duration))
+                done
+                avg_duration=$((total_duration / ${#durations[@]}))
+                avg_duration_mins=$((avg_duration / 60))
+                
+                success_rate=$(( (successes * 100) / total ))
+                
+                echo "  ⏱️ Average Duration: ${avg_duration_mins}m"
+                echo "  ✅ Success Rate: ${success_rate}%"
+                
+                # Check for performance issues
+                if [[ $avg_duration_mins -gt 20 ]]; then
+                  echo "  ⚠️ Performance Warning: Duration exceeds 20 minutes"
+                fi
+                
+                if [[ $success_rate -lt 90 ]]; then
+                  echo "  ⚠️ Reliability Warning: Success rate below 90%"
+                fi
+              fi
+            fi
+            echo ""
+          done
+
+      - name: Generate performance metrics
+        run: |
+          timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          
+          # Create performance metrics file
+          cat > workflow-performance.json << EOF
+          {
+            "timestamp": "$timestamp",
+            "repository": "${{ github.repository }}",
+            "health_score": ${{ needs.workflow-health-check.outputs.health-score }},
+            "success_rate": "${{ needs.workflow-health-check.outputs.success-rate }}%",
+            "failure_rate": "${{ needs.workflow-health-check.outputs.failure-rate }}%",
+            "avg_duration": "${{ needs.workflow-health-check.outputs.avg-duration }}m",
+            "performance_trend": "${{ needs.workflow-health-check.outputs.performance-trend }}",
+            "critical_workflows": ${{ needs.workflow-health-check.outputs.critical-workflows }}
+          }
+          EOF
+          
+          echo "📊 Performance metrics saved"
+
+      - name: Upload performance data
+        uses: actions/upload-artifact@v4
+        with:
+          name: workflow-performance-${{ github.run_id }}
+          path: workflow-performance.json
+          retention-days: 90
+
+  monitoring-summary:
+    name: Monitoring Summary & Alerts  
+    runs-on: ubuntu-latest
+    needs: [workflow-health-check, failure-analysis, performance-monitoring]
+    if: always()
+    steps:
+      - name: Generate monitoring summary
+        run: |
+          health_score="${{ needs.workflow-health-check.outputs.health-score }}"
+          
+          echo "## 🔍 Workflow Monitoring Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Health Score:** $health_score/100" >> $GITHUB_STEP_SUMMARY
+          echo "**Success Rate:** ${{ needs.workflow-health-check.outputs.success-rate }}%" >> $GITHUB_STEP_SUMMARY
+          echo "**Performance Trend:** ${{ needs.workflow-health-check.outputs.performance-trend }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ $health_score -ge 90 ]]; then
+            echo "### ✅ Excellent Health" >> $GITHUB_STEP_SUMMARY
+            echo "All workflows are performing optimally." >> $GITHUB_STEP_SUMMARY
+          elif [[ $health_score -ge 70 ]]; then
+            echo "### ⚠️ Good Health" >> $GITHUB_STEP_SUMMARY  
+            echo "Most workflows are healthy with minor issues." >> $GITHUB_STEP_SUMMARY
+          elif [[ $health_score -ge 50 ]]; then
+            echo "### 🔶 Moderate Health" >> $GITHUB_STEP_SUMMARY
+            echo "Several workflows need attention." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Poor Health" >> $GITHUB_STEP_SUMMARY
+            echo "Critical issues detected requiring immediate attention." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📈 Key Metrics" >> $GITHUB_STEP_SUMMARY
+          echo "- **Total Runs:** ${{ needs.workflow-health-check.outputs.total-runs }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Average Duration:** ${{ needs.workflow-health-check.outputs.avg-duration }}m" >> $GITHUB_STEP_SUMMARY
+          echo "- **Critical Workflows:** $(echo '${{ needs.workflow-health-check.outputs.critical-workflows }}' | jq length)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Send health alerts
+        if: needs.workflow-health-check.outputs.health-score < 70
+        run: |
+          echo "🚨 Workflow health alert triggered"
+          echo "Health score: ${{ needs.workflow-health-check.outputs.health-score }}/100"
+          
+          # Here you would integrate with your alerting systems
+          # Examples: Slack, PagerDuty, email notifications, etc.
+          
+          echo "Alert notifications would be sent to configured channels"

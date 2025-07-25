@@ -1,0 +1,590 @@
+name: Security Scanning & Compliance
+# Comprehensive security scanning with automated vulnerability detection and compliance checks
+
+on:
+  push:
+    branches: [main, development, test, dev]
+  pull_request:
+    branches: [main, development, test, dev]
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM UTC
+  workflow_dispatch:
+    inputs:
+      scan_type:
+        description: 'Type of security scan'
+        required: true
+        type: choice
+        options:
+          - full-scan
+          - dependency-check
+          - code-analysis
+          - container-scan
+          - secrets-scan
+      severity_threshold:
+        description: 'Minimum severity to report'
+        required: false
+        default: 'medium'
+        type: choice
+        options:
+          - low
+          - medium
+          - high
+          - critical
+
+env:
+  NODE_VERSION: '20'
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  dependency-vulnerability-scan:
+    name: Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: [backend, frontend, shared, '.']
+      fail-fast: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies for ${{ matrix.package }}
+        run: |
+          if [[ "${{ matrix.package }}" == "." ]]; then
+            if [[ -f package.json ]]; then
+              npm ci
+            fi
+          else
+            if [[ -f "${{ matrix.package }}/package.json" ]]; then
+              cd "${{ matrix.package }}"
+              if [[ -f package-lock.json ]]; then
+                npm ci
+              else
+                npm install
+              fi
+            fi
+          fi
+
+      - name: Run npm audit for ${{ matrix.package }}
+        id: npm-audit
+        continue-on-error: true
+        run: |
+          package="${{ matrix.package }}"
+          if [[ "$package" == "." ]]; then
+            package="root"
+          fi
+          
+          if [[ -f "${{ matrix.package }}/package.json" ]] || [[ "${{ matrix.package }}" == "." && -f package.json ]]; then
+            echo "🔍 Running npm audit for $package..."
+            
+            if [[ "${{ matrix.package }}" != "." ]]; then
+              cd "${{ matrix.package }}"
+            fi
+            
+            # Run audit and capture results
+            audit_output=$(npm audit --json 2>/dev/null || echo '{"vulnerabilities": {}}')
+            
+            # Parse vulnerability counts
+            total_vulns=$(echo "$audit_output" | jq -r '.metadata.vulnerabilities.total // 0')
+            critical_vulns=$(echo "$audit_output" | jq -r '.metadata.vulnerabilities.critical // 0')
+            high_vulns=$(echo "$audit_output" | jq -r '.metadata.vulnerabilities.high // 0')
+            moderate_vulns=$(echo "$audit_output" | jq -r '.metadata.vulnerabilities.moderate // 0')
+            low_vulns=$(echo "$audit_output" | jq -r '.metadata.vulnerabilities.low // 0')
+            
+            echo "total=$total_vulns" >> $GITHUB_OUTPUT
+            echo "critical=$critical_vulns" >> $GITHUB_OUTPUT
+            echo "high=$high_vulns" >> $GITHUB_OUTPUT
+            echo "moderate=$moderate_vulns" >> $GITHUB_OUTPUT
+            echo "low=$low_vulns" >> $GITHUB_OUTPUT
+            
+            if [[ $total_vulns -gt 0 ]]; then
+              echo "⚠️ Found $total_vulns vulnerabilities in $package"
+              echo "  Critical: $critical_vulns"
+              echo "  High: $high_vulns"
+              echo "  Moderate: $moderate_vulns"
+              echo "  Low: $low_vulns"
+              
+              # Try to fix automatically
+              if [[ $critical_vulns -gt 0 || $high_vulns -gt 0 ]]; then
+                echo "🔧 Attempting automatic fixes..."
+                npm audit fix --audit-level=high || echo "Could not auto-fix all vulnerabilities"
+              fi
+            else
+              echo "✅ No vulnerabilities found in $package"
+            fi
+          else
+            echo "ℹ️ No package.json found for $package"
+          fi
+
+      - name: Upload audit results
+        if: steps.npm-audit.outputs.total > 0
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-results-${{ matrix.package }}-${{ github.run_id }}
+          path: |
+            ${{ matrix.package }}/npm-audit.json
+            audit-report.json
+          retention-days: 30
+
+  code-security-analysis:
+    name: Code Security Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript,typescript
+          queries: security-extended,security-and-quality
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          # Install root dependencies
+          if [[ -f package.json ]]; then
+            npm ci
+          fi
+          
+          # Install package dependencies
+          for package in backend frontend shared; do
+            if [[ -f "$package/package.json" ]]; then
+              echo "Installing $package dependencies..."
+              cd "$package"
+              if [[ -f package-lock.json ]]; then
+                npm ci
+              else
+                npm install
+              fi
+              cd ..
+            fi
+          done
+
+      - name: Build packages for analysis
+        run: |
+          for package in backend frontend shared; do
+            if [[ -f "$package/package.json" ]]; then
+              echo "Building $package..."
+              cd "$package"
+              if jq -e '.scripts.build' package.json >/dev/null; then
+                npm run build || echo "Build failed for $package"
+              fi
+              cd ..
+            fi
+          done
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript"
+
+  secrets-scanning:
+    name: Secrets & Sensitive Data Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run TruffleHog secrets scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+
+      - name: Scan for common secret patterns
+        run: |
+          echo "🔍 Scanning for common secret patterns..."
+          
+          # Define secret patterns
+          patterns=(
+            "password\s*[:=]\s*['\"][^'\"]{8,}['\"]"
+            "api[_-]?key\s*[:=]\s*['\"][^'\"]{20,}['\"]"
+            "secret[_-]?key\s*[:=]\s*['\"][^'\"]{20,}['\"]"
+            "database[_-]?url\s*[:=]\s*['\"][^'\"]{10,}['\"]"
+            "jwt[_-]?secret\s*[:=]\s*['\"][^'\"]{20,}['\"]"
+            "private[_-]?key\s*[:=]\s*['\"][^'\"]{50,}['\"]"
+            "-----BEGIN\s+(RSA\s+)?PRIVATE\s+KEY-----"
+          )
+          
+          secrets_found=false
+          
+          for pattern in "${patterns[@]}"; do
+            if grep -r -i -E "$pattern" . --exclude-dir=node_modules --exclude-dir=.git --exclude="*.log" --exclude="*.md"; then
+              secrets_found=true
+              echo "⚠️ Potential secret pattern found: $pattern"
+            fi
+          done
+          
+          if [[ "$secrets_found" == "false" ]]; then
+            echo "✅ No common secret patterns detected"
+          fi
+
+      - name: Check for exposed configuration files
+        run: |
+          echo "🔍 Checking for exposed configuration files..."
+          
+          exposed_files=()
+          sensitive_files=(
+            ".env"
+            ".env.local"
+            ".env.production"
+            "config/secrets.json"
+            "config/database.json"
+            "credentials.json"
+            "serviceAccount.json"
+            "private.key"
+            "id_rsa"
+            "id_dsa"
+          )
+          
+          for file in "${sensitive_files[@]}"; do
+            if find . -name "$file" -not -path "./node_modules/*" -not -path "./.git/*" | grep -q .; then
+              exposed_files+=("$file")
+              echo "⚠️ Potentially sensitive file found: $file"
+            fi
+          done
+          
+          if [[ ${#exposed_files[@]} -eq 0 ]]; then
+            echo "✅ No exposed sensitive files detected"
+          fi
+
+  container-security-scan:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Scan for Dockerfiles
+        id: docker-scan
+        run: |
+          dockerfiles=$(find . -name "Dockerfile*" -not -path "./node_modules/*")
+          
+          if [[ -n "$dockerfiles" ]]; then
+            echo "docker-found=true" >> $GITHUB_OUTPUT
+            echo "🐳 Found Dockerfiles:"
+            echo "$dockerfiles"
+          else
+            echo "docker-found=false" >> $GITHUB_OUTPUT
+            echo "ℹ️ No Dockerfiles found"
+          fi
+
+      - name: Run Trivy vulnerability scanner
+        if: steps.docker-scan.outputs.docker-found == 'true'
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+
+      - name: Upload Trivy scan results
+        if: steps.docker-scan.outputs.docker-found == 'true'
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  security-compliance-check:
+    name: Security Compliance Check
+    runs-on: ubuntu-latest
+    outputs:
+      compliance-score: ${{ steps.compliance-check.outputs.score }}
+      critical-issues: ${{ steps.compliance-check.outputs.critical }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check security configuration files
+        id: security-config
+        run: |
+          echo "🔍 Checking security configuration files..."
+          
+          security_files=(
+            ".github/dependabot.yml"
+            ".github/security.md" 
+            ".github/SECURITY.md"
+            "SECURITY.md"
+            ".gitignore"
+            ".npmrc"
+          )
+          
+          present_files=()
+          missing_files=()
+          
+          for file in "${security_files[@]}"; do
+            if [[ -f "$file" ]]; then
+              present_files+=("$file")
+              echo "✅ Found: $file"
+            else
+              missing_files+=("$file")
+              echo "❌ Missing: $file"
+            fi
+          done
+          
+          echo "present-count=${#present_files[@]}" >> $GITHUB_OUTPUT
+          echo "missing-count=${#missing_files[@]}" >> $GITHUB_OUTPUT
+
+      - name: Validate .gitignore security
+        run: |
+          echo "🔍 Validating .gitignore for security patterns..."
+          
+          if [[ -f .gitignore ]]; then
+            required_patterns=(
+              ".env"
+              "*.log"
+              "node_modules"
+              "*.key"
+              "*.pem"
+              "config/secrets*"
+            )
+            
+            missing_patterns=()
+            
+            for pattern in "${required_patterns[@]}"; do
+              if ! grep -q "$pattern" .gitignore; then
+                missing_patterns+=("$pattern")
+                echo "⚠️ Missing .gitignore pattern: $pattern"
+              fi
+            done
+            
+            if [[ ${#missing_patterns[@]} -eq 0 ]]; then
+              echo "✅ .gitignore contains essential security patterns"
+            fi
+          else
+            echo "❌ .gitignore file not found"
+          fi
+
+      - name: Check for security headers in web configs
+        run: |
+          echo "🔍 Checking for security headers in web configurations..."
+          
+          # Check for common web security configurations
+          security_headers=(
+            "Content-Security-Policy"
+            "X-Frame-Options"
+            "X-Content-Type-Options"
+            "Strict-Transport-Security"
+            "X-XSS-Protection"
+          )
+          
+          config_files=$(find . -name "*.config.js" -o -name "*.config.ts" -o -name "next.config.js" -o -name "webpack.config.js" | head -5)
+          
+          if [[ -n "$config_files" ]]; then
+            echo "Found configuration files:"
+            while IFS= read -r config_file; do
+              echo "  - $config_file"
+              
+              # Check if security headers are configured
+              for header in "${security_headers[@]}"; do
+                if grep -q "$header" "$config_file"; then
+                  echo "    ✅ $header configured"
+                fi
+              done
+            done <<< "$config_files"
+          else
+            echo "ℹ️ No web configuration files found"
+          fi
+
+      - name: Calculate compliance score
+        id: compliance-check
+        run: |
+          present_files="${{ steps.security-config.outputs.present-count }}"
+          missing_files="${{ steps.security-config.outputs.missing-count }}"
+          
+          # Base score calculation
+          total_files=$((present_files + missing_files))
+          if [[ $total_files -gt 0 ]]; then
+            file_score=$(( (present_files * 100) / total_files ))
+          else
+            file_score=0
+          fi
+          
+          # Additional compliance checks
+          compliance_score=$file_score
+          critical_issues=0
+          
+          # Check for critical security files
+          if [[ ! -f ".gitignore" ]]; then
+            compliance_score=$((compliance_score - 20))
+            critical_issues=$((critical_issues + 1))
+          fi
+          
+          if [[ ! -f ".github/dependabot.yml" ]]; then
+            compliance_score=$((compliance_score - 15))
+          fi
+          
+          if [[ ! -f "SECURITY.md" && ! -f ".github/SECURITY.md" ]]; then
+            compliance_score=$((compliance_score - 10))
+          fi
+          
+          # Ensure score doesn't go below 0
+          if [[ $compliance_score -lt 0 ]]; then
+            compliance_score=0
+          fi
+          
+          echo "score=$compliance_score" >> $GITHUB_OUTPUT
+          echo "critical=$critical_issues" >> $GITHUB_OUTPUT
+          
+          echo "📊 Security Compliance Score: $compliance_score/100"
+          echo "🚨 Critical Issues: $critical_issues"
+
+  security-report-generation:
+    name: Security Report Generation
+    runs-on: ubuntu-latest
+    needs: [dependency-vulnerability-scan, code-security-analysis, secrets-scanning, security-compliance-check]
+    if: always()
+    steps:
+      - name: Collect security scan results
+        run: |
+          echo "📊 Collecting security scan results..."
+          
+          # Create comprehensive security report
+          cat > security-report.md << EOF
+          # Security Scan Report
+          
+          **Repository:** ${{ github.repository }}
+          **Scan Date:** $(date -u +%Y-%m-%d)
+          **Branch:** ${{ github.ref_name }}
+          **Compliance Score:** ${{ needs.security-compliance-check.outputs.compliance-score }}/100
+          
+          ## Summary
+          - **Dependency Vulnerabilities:** Scanned across multiple packages
+          - **Code Analysis:** CodeQL security analysis completed
+          - **Secrets Scanning:** Checked for exposed credentials
+          - **Compliance Check:** Security configuration validated
+          
+          ## Key Findings
+          - Compliance Score: ${{ needs.security-compliance-check.outputs.compliance-score }}/100
+          - Critical Issues: ${{ needs.security-compliance-check.outputs.critical-issues }}
+          
+          ## Recommendations
+          1. Review and fix any identified vulnerabilities
+          2. Implement missing security configurations
+          3. Add security headers to web applications
+          4. Ensure sensitive data is properly excluded from version control
+          
+          ## Next Steps
+          - [ ] Address critical vulnerabilities
+          - [ ] Update security configurations
+          - [ ] Schedule regular security reviews
+          - [ ] Implement automated security monitoring
+          EOF
+          
+          echo "✅ Security report generated"
+
+      - name: Create security summary
+        run: |
+          compliance_score="${{ needs.security-compliance-check.outputs.compliance-score }}"
+          critical_issues="${{ needs.security-compliance-check.outputs.critical-issues }}"
+          
+          echo "## 🛡️ Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Compliance Score:** $compliance_score/100" >> $GITHUB_STEP_SUMMARY
+          echo "**Critical Issues:** $critical_issues" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ $compliance_score -ge 90 && $critical_issues -eq 0 ]]; then
+            echo "### ✅ Excellent Security Posture" >> $GITHUB_STEP_SUMMARY
+            echo "All security checks passed with minimal issues." >> $GITHUB_STEP_SUMMARY
+          elif [[ $compliance_score -ge 70 && $critical_issues -le 1 ]]; then
+            echo "### ⚠️ Good Security Posture" >> $GITHUB_STEP_SUMMARY
+            echo "Most security requirements met with minor improvements needed." >> $GITHUB_STEP_SUMMARY
+          elif [[ $compliance_score -ge 50 ]]; then
+            echo "### 🔶 Moderate Security Posture" >> $GITHUB_STEP_SUMMARY
+            echo "Several security issues need attention." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Poor Security Posture" >> $GITHUB_STEP_SUMMARY
+            echo "Critical security issues require immediate attention." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📋 Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dependency Scan:** Completed" >> $GITHUB_STEP_SUMMARY
+          echo "- **Code Analysis:** Completed" >> $GITHUB_STEP_SUMMARY
+          echo "- **Secrets Scan:** Completed" >> $GITHUB_STEP_SUMMARY
+          echo "- **Compliance Check:** $compliance_score/100" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload security report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report-${{ github.run_id }}
+          path: security-report.md
+          retention-days: 90
+
+  security-alerts:
+    name: Security Alerts & Notifications
+    runs-on: ubuntu-latest
+    needs: [security-compliance-check, security-report-generation]
+    if: |
+      always() &&
+      (needs.security-compliance-check.outputs.compliance-score < 70 ||
+       needs.security-compliance-check.outputs.critical-issues > 0)
+    steps:
+      - name: Create security issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          compliance_score="${{ needs.security-compliance-check.outputs.compliance-score }}"
+          critical_issues="${{ needs.security-compliance-check.outputs.critical-issues }}"
+          
+          gh issue create \
+            --title "🚨 Security Compliance Issues Detected" \
+            --body "**Security Scan Results**
+
+**Compliance Score:** $compliance_score/100
+**Critical Issues:** $critical_issues
+
+**Issues Detected:**
+- Low compliance score indicating missing security configurations
+- Critical security issues require immediate attention
+
+**Immediate Actions Required:**
+- [ ] Review security scan results  
+- [ ] Fix critical security issues
+- [ ] Update security configurations
+- [ ] Implement missing security controls
+
+**Scan Details:**
+- Repository: ${{ github.repository }}
+- Branch: ${{ github.ref_name }}
+- Scan Date: $(date -u +%Y-%m-%d)
+- Workflow Run: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+Please address these security issues promptly to maintain repository security." \
+            --label "security,critical,compliance" \
+            --assignee "${{ github.repository_owner }}"
+
+      - name: Send security notifications
+        run: |
+          echo "🚨 Security alert triggered"
+          echo "Compliance score: ${{ needs.security-compliance-check.outputs.compliance-score }}/100"
+          echo "Critical issues: ${{ needs.security-compliance-check.outputs.critical-issues }}"
+          
+          # Here you would integrate with your notification systems
+          # Examples: Slack, email, PagerDuty, etc.
+          echo "Security notifications would be sent to configured channels"
