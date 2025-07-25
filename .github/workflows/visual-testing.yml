@@ -63,7 +63,7 @@ jobs:
           npm run build-storybook
 
       - name: Run Chromatic Visual Tests
-        uses: chromaui/action@v1
+        uses: chromaui/action@v13
         with:
           projectToken: \${{ secrets.CHROMATIC_PROJECT_TOKEN }}
           workingDir: frontend
