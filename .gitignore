@@ -95,7 +95,11 @@ claude-flow.ps1
 
 # Personal swarm data (exclude individual sessions)
 .swarm/memory.db
+**/.swarm/memory.db
 .hive-mind/
+.hive-mind/*.db
+.hive-mind/hive.db
+swarm-memory.db
 memory/claude-flow-data.json
 memory/sessions/*
 !memory/sessions/README.md
