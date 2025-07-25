@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: medianest-app
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+      - '4000:4000'
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://medianest:medianest_password@postgres:5432/medianest?connection_limit=20&pool_timeout=30
+      - REDIS_URL=redis://redis:6379
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - PLEX_CLIENT_ID=${PLEX_CLIENT_ID}
+      - PLEX_CLIENT_SECRET=${PLEX_CLIENT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    volumes:
+      - ./youtube:/app/youtube:rw
+      - uploads:/app/uploads:rw
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    user: '1000:1000'
+    networks:
+      - medianest-network
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: medianest-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=medianest
+      - POSTGRES_USER=medianest
+      - POSTGRES_PASSWORD=medianest_password
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U medianest']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - medianest-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: medianest-redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - medianest-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  uploads:
+
+networks:
+  medianest-network:
+    driver: bridge

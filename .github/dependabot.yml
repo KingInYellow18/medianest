@@ -1,0 +1,58 @@
+version: 2
+updates:
+  # Root package.json
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '03:00'
+    open-pull-requests-limit: 5
+    groups:
+      development-dependencies:
+        patterns:
+          - '@types/*'
+          - 'eslint*'
+          - 'prettier*'
+          - '*test*'
+
+  # Frontend dependencies
+  - package-ecosystem: 'npm'
+    directory: '/frontend'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '03:00'
+    open-pull-requests-limit: 5
+    groups:
+      next-ecosystem:
+        patterns:
+          - 'next'
+          - '@next/*'
+          - 'react'
+          - 'react-dom'
+
+  # Backend dependencies
+  - package-ecosystem: 'npm'
+    directory: '/backend'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '03:00'
+    open-pull-requests-limit: 5
+
+  # Docker dependencies
+  - package-ecosystem: 'docker'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '03:00'
+
+  # GitHub Actions
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '03:00'

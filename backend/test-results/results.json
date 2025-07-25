@@ -1,0 +1,58 @@
+{
+  "numTotalTestSuites": 3,
+  "numPassedTestSuites": 3,
+  "numFailedTestSuites": 0,
+  "numPendingTestSuites": 0,
+  "numTotalTests": 2,
+  "numPassedTests": 0,
+  "numFailedTests": 0,
+  "numPendingTests": 2,
+  "numTodoTests": 0,
+  "snapshot": {
+    "added": 0,
+    "failure": false,
+    "filesAdded": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": [],
+    "filesUnmatched": 0,
+    "filesUpdated": 0,
+    "matched": 0,
+    "total": 0,
+    "unchecked": 0,
+    "uncheckedKeysByFile": [],
+    "unmatched": 0,
+    "updated": 0,
+    "didUpdate": false
+  },
+  "startTime": 1753079613425,
+  "success": true,
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["HealthService", "basic health checks"],
+          "fullName": "HealthService basic health checks should initialize successfully",
+          "status": "pending",
+          "title": "should initialize successfully",
+          "duration": 0.10323099999959595,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": ["HealthService", "basic health checks"],
+          "fullName": "HealthService basic health checks should be available for testing",
+          "status": "pending",
+          "title": "should be available for testing",
+          "duration": 0.022735999999895284,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1753079615925,
+      "endTime": 1753079615925.1033,
+      "status": "passed",
+      "message": "",
+      "name": "/home/kinginyellow/projects/medianest/backend/tests/unit/services/health.service.test.ts"
+    }
+  ]
+}
