@@ -140,6 +140,13 @@ memory/personal/
 .claude/
 .roo/
 .swarm/
+.hive-mind/
+claude-flow.config.json
+.roomodes
+.claude-flow-project.json
+.mcp.json
+CLAUDE.md
+
 # Personal development tools (exclude for privacy)
 *.personal.json
 .dev-personal/
