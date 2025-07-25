@@ -211,6 +211,7 @@ memory/personal/
 # ❌ Only exclude executable binaries
 
 
+
 # Claude Flow generated files
 .claude/settings.local.json
 .mcp.json
