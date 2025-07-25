@@ -117,9 +117,6 @@ redis_data/
 .hive-mind/*.db
 .hive-mind/hive.db
 swarm-memory.db
-.hive-mind/*.db
-.hive-mind/hive.db
-swarm-memory.db
 
 # Media & Uploads (Exclude large files)
 uploads/
