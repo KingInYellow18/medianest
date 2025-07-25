@@ -95,6 +95,13 @@ logs/
 *.sqlite-journal
 *.sqlite-wal
 
+# Swarm and Hive Databases (Exclude from all branches except claude-flow)
+.swarm/memory.db
+**/.swarm/memory.db
+.hive-mind/*.db
+.hive-mind/hive.db
+swarm-memory.db
+
 # =============================================================================
 # DEVELOPMENT BRANCH: CONTRIBUTOR WORKFLOWS
 # =============================================================================
