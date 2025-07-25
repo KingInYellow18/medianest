@@ -73,15 +73,18 @@ global.IntersectionObserver = vi.fn().mockImplementation((callback) => ({
 }));
 
 // Mock clipboard API for copy/paste testing
-Object.defineProperty(navigator, 'clipboard', {
-  value: {
-    writeText: vi.fn().mockResolvedValue(undefined),
-    readText: vi.fn().mockResolvedValue(''),
-    write: vi.fn().mockResolvedValue(undefined),
-    read: vi.fn().mockResolvedValue([]),
-  },
-  writable: true,
-});
+if (!navigator.clipboard) {
+  Object.defineProperty(navigator, 'clipboard', {
+    value: {
+      writeText: vi.fn().mockResolvedValue(undefined),
+      readText: vi.fn().mockResolvedValue(''),
+      write: vi.fn().mockResolvedValue(undefined),
+      read: vi.fn().mockResolvedValue([]),
+    },
+    writable: true,
+    configurable: true,
+  });
+}
 
 // Mock geolocation API for location-based components
 Object.defineProperty(navigator, 'geolocation', {
@@ -185,6 +188,20 @@ declare global {
 // Test environment detection
 if (typeof global !== 'undefined') {
   global.IS_REACT_ACT_ENVIRONMENT = true;
+}
+
+// Mock MediaQueryListEvent for jsdom environment
+if (typeof global.MediaQueryListEvent === 'undefined') {
+  global.MediaQueryListEvent = class MediaQueryListEvent extends Event {
+    matches: boolean;
+    media: string;
+    
+    constructor(type: string, eventInitDict?: { matches?: boolean; media?: string }) {
+      super(type);
+      this.matches = eventInitDict?.matches || false;
+      this.media = eventInitDict?.media || '';
+    }
+  } as any;
 }
 
 // Suppress console warnings in tests unless explicitly needed

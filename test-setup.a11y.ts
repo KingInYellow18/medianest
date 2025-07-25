@@ -123,4 +123,18 @@ Object.defineProperty(window, 'speechSynthesis', {
   }
 });
 
+// Mock MediaQueryListEvent for jsdom environment
+if (typeof global.MediaQueryListEvent === 'undefined') {
+  global.MediaQueryListEvent = class MediaQueryListEvent extends Event {
+    matches: boolean;
+    media: string;
+    
+    constructor(type: string, eventInitDict?: { matches?: boolean; media?: string }) {
+      super(type);
+      this.matches = eventInitDict?.matches || false;
+      this.media = eventInitDict?.media || '';
+    }
+  } as any;
+}
+
 console.log('🔍 Accessibility testing setup complete - axe-core integration enabled');
