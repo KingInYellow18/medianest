@@ -122,6 +122,13 @@ hive-mind-prompt-*.txt
 *.db
 *.sqlite
 
+# Swarm and Hive Databases (Exclude from all branches except claude-flow)
+.swarm/memory.db
+**/.swarm/memory.db
+.hive-mind/*.db
+.hive-mind/hive.db
+swarm-memory.db
+
 # Development artifacts
 backups/
 *.backup
