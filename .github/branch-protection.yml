@@ -1,0 +1,131 @@
+# Branch Protection Configuration for MediaNest
+# This file defines the branch protection rules for the 4-branch strategy
+
+branch_protection:
+  # Production branch - Maximum protection
+  main:
+    protection:
+      required_status_checks:
+        strict: true
+        contexts:
+          - "ci/backend-tests"
+          - "ci/frontend-tests" 
+          - "ci/shared-tests"
+          - "ci/e2e-tests"
+          - "ci/security-scan"
+          - "ci/performance-tests"
+          - "ci/docker-build"
+      enforce_admins: true
+      required_pull_request_reviews:
+        required_approving_review_count: 2
+        dismiss_stale_reviews: true
+        require_code_owner_reviews: true
+        require_last_push_approval: true
+      restrictions:
+        users: []
+        teams: ["medianest-admins"]
+        apps: ["dependabot"]
+      allow_force_pushes: false
+      allow_deletions: false
+      block_creations: false
+      required_conversation_resolution: true
+
+  # Integration/Staging branch - High protection
+  development:
+    protection:
+      required_status_checks:
+        strict: true
+        contexts:
+          - "ci/backend-tests"
+          - "ci/frontend-tests"
+          - "ci/shared-tests"
+          - "ci/integration-tests"
+          - "ci/docker-build"
+      enforce_admins: false
+      required_pull_request_reviews:
+        required_approving_review_count: 1
+        dismiss_stale_reviews: false
+        require_code_owner_reviews: false
+        require_last_push_approval: false
+      restrictions:
+        users: []
+        teams: ["medianest-developers", "medianest-admins"]
+        apps: ["dependabot"]
+      allow_force_pushes: false
+      allow_deletions: false
+      block_creations: false
+      required_conversation_resolution: true
+
+  # Testing branch - Medium protection
+  test:
+    protection:
+      required_status_checks:
+        strict: false
+        contexts:
+          - "ci/integration-tests"
+          - "ci/smoke-tests"
+      enforce_admins: false
+      required_pull_request_reviews:
+        required_approving_review_count: 1
+        dismiss_stale_reviews: false
+        require_code_owner_reviews: false
+        require_last_push_approval: false
+      restrictions:
+        users: []
+        teams: ["medianest-qa", "medianest-developers", "medianest-admins"]
+        apps: ["dependabot"]
+      allow_force_pushes: true
+      allow_deletions: false
+      block_creations: false
+      required_conversation_resolution: false
+
+  # AI Development branch - Specialized protection
+  claude-flowv2:
+    protection:
+      required_status_checks:
+        strict: false
+        contexts:
+          - "ci/ai-workflow-tests"
+          - "ci/automation-tests"
+          - "ci/security-scan"
+      enforce_admins: false
+      required_pull_request_reviews:
+        required_approving_review_count: 1
+        dismiss_stale_reviews: false
+        require_code_owner_reviews: true
+        require_last_push_approval: false
+      restrictions:
+        users: []
+        teams: ["medianest-ai-developers", "medianest-admins"]
+        apps: ["claude-code-bot"]
+      allow_force_pushes: true
+      allow_deletions: false
+      block_creations: false
+      required_conversation_resolution: true
+
+# Auto-merge configuration for dependency updates
+auto_merge:
+  dependabot:
+    branches: ["development", "test", "claude-flowv2"]
+    conditions:
+      - status_checks_pass: true
+      - reviews_approved: 1
+      - patch_updates_only: true
+    exclusions:
+      - security_updates: false  # Always require manual review for security updates
+      - major_updates: true      # Always require manual review for major updates
+
+# Branch naming conventions
+naming_conventions:
+  feature_branches: "feature/*"
+  bugfix_branches: "bugfix/*"
+  hotfix_branches: "hotfix/*"
+  ai_branches: "ai/*"
+  experimental_branches: "experiment/*"
+  
+  # Deprecated naming patterns (to be cleaned up)
+  deprecated:
+    - "pr-*"
+    - "pr/*"
+    - "codex/*"
+    - "*-codex/*"

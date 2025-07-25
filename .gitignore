@@ -1,16 +1,19 @@
 # =============================================================================
-# .gitignore for development branch (Full Development Branch)  
-# Optimized for: Complete codebase, documentation, development tools
+# .gitignore for MediaNest Project - Unified Multi-Branch Configuration
+# Optimized for all branch strategies: production, development, testing, and experimentation
+# Merged from test branch: Complete test suite modernization and dependency updates
 # =============================================================================
 
-# Node.js & NPM
+# Dependencies (Always exclude)
 node_modules/
+.pnp
+.pnp.js
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# Build Outputs (Exclude - regenerated)
+# Build Outputs (Exclude - rebuilt frequently)
 build/
 dist/
 out/
@@ -18,13 +21,33 @@ out/
 coverage/
 .nyc_output
 *.tsbuildinfo
+next-env.d.ts
 shared/**/*.js
 shared/**/*.js.map
 shared/**/*.d.ts
 shared/**/*.d.ts.map
 !shared/tsconfig.json
 
-# Testing Artifacts (Exclude - regenerated)
+# Environment & Secrets (Critical exclusion - even for personal dev)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.staging
+.env.production*
+.env.prod*
+secrets/
+!secrets/.gitkeep
+.secrets/
+docker-secrets/
+certs/
+*.pem
+*.key
+*.crt
+*.csr
+
+# Testing & Experimentation (Include for learning and development)
 test-results/
 junit.xml
 results.json
@@ -32,18 +55,11 @@ visual-regression-diff/
 screenshot-diff/
 playwright-report/
 storybook-static/
-
-# Environment Files (Sensitive)
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env.prod
-.env.test
-.env.staging
-
-# IDE Personal Settings (Keep .vscode/settings.json for team)
+# IDE Settings (Include personal configurations for development)
+# .vscode/ (KEEP personal IDE setup)
+# .idea/ (KEEP personal IDE setup)
+# Only exclude volatile temp data
+.stryker-tmp/
 .vscode/launch.json
 .vscode/extensions.json
 .idea/workspace.xml
@@ -52,71 +68,97 @@ storybook-static/
 *.swo
 *~
 
-# OS Files
+# OS Files (Exclude system files)
 .DS_Store
 Thumbs.db
+.Trashes
 
-# Runtime & Cache
+# Runtime Data (Exclude volatile data)
 *.log
 logs/
 .cache/
 .parcel-cache/
+postgres_data/
+redis_data/
+*.db
+*.db-journal
+*.db-wal
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+
+# Swarm and Hive Databases (Exclude runtime databases)
+.swarm/memory.db
+**/.swarm/memory.db
+.hive-mind/*.db
+.hive-mind/hive.db
+swarm-memory.db
 
 # Docker Runtime
 docker-compose.override.yml
-postgres_data/
-redis_data/
-*.db-journal
-*.db-wal
 
-# Media & Uploads
+# Media & Uploads (Exclude large files)
 uploads/
 youtube/
 downloads/
 
-# Secrets
-secrets/
-!secrets/.gitkeep
-.secrets/
-docker-secrets/
-*.pem
-*.key
-*.crt
-*.csr
-certs/
+# Cache & Temp (Exclude volatile)
+tmp/
+temp/
+.vercel
 
-# =============================================================================
-# DEVELOPMENT TOOLING (Minimal exclusions - keep most tools)
-# =============================================================================
-# Claude Flow runtime (exclude executables, keep configs for team)
+# Large Backups (Exclude to save space)
+backups/
+*.backup
+*.bak
+
+# Generated executables and temporary files
 claude-flow
-claude-flow.bat  
+claude-flow.bat
 claude-flow.ps1
+hive-mind-prompt-*.txt
 
-# Personal swarm data (exclude individual sessions)
-.swarm/memory.db
-**/.swarm/memory.db
-.hive-mind/
-.hive-mind/*.db
-.hive-mind/hive.db
-swarm-memory.db
+# Environment files with potential secrets
+backend/.env.test
+frontend/.env.test
+
+# =============================================================================
+# DEVELOPMENT BRANCH: CONTRIBUTOR WORKFLOWS
+# =============================================================================
+# For development branch: Include shared team configs, exclude personal settings
+# This branch balances collaboration with personal privacy
+
+# Claude Flow - Include shared, exclude personal
+.claude/settings.local.json
+.mcp.json.local
+claude-flow.config.local.json
+memory/personal/
+.swarm/agents/personal/
+.hive-mind/personal/
+
+# Personal development tools (exclude for privacy)
+*.personal.json
+.dev-personal/
+**/personal/
+
+# =============================================================================
+# BRANCH STRATEGIES SUMMARY
+# =============================================================================
+# MAIN BRANCH: Production-ready code only
+# DEV BRANCH: Full development with test suite modernization
+# TEST BRANCH: Complete test suite modernization and dependency updates
+# CLAUDE-FLOW BRANCH: Maximum experimentation freedom
+
+# Claude Flow generated files (exclude personal)
 memory/claude-flow-data.json
 memory/sessions/*
 !memory/sessions/README.md
 memory/agents/*
 !memory/agents/README.md
-
 # Runtime coordination (temporary)
 coordination/memory_bank/*
 coordination/subtasks/*
 coordination/orchestration/*
-
-# Personal prompt artifacts
-hive-mind-prompt-*.txt
-
-# Database runtime files
-*.db
-*.sqlite
 
 # =============================================================================
 # KEEP FOR DEVELOPMENT BRANCH

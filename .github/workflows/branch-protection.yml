@@ -1,0 +1,225 @@
+name: Branch Protection & Rules Enforcement
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: '0 2 * * 1'  # Weekly on Monday at 2 AM
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+  actions: read
+  repository-projects: read
+
+jobs:
+  enforce-branch-rules:
+    name: Enforce Branch Protection Rules
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Validate commit messages
+        if: github.event_name == 'push'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const commits = context.payload.commits || [];
+            const conventionalCommitRegex = /^(feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(\(.+\))?: .{1,50}/;
+            
+            let invalidCommits = [];
+            
+            commits.forEach(commit => {
+              if (!conventionalCommitRegex.test(commit.message)) {
+                invalidCommits.push({
+                  sha: commit.id.substring(0, 7),
+                  message: commit.message
+                });
+              }
+            });
+            
+            if (invalidCommits.length > 0) {
+              let errorMessage = '❌ **Invalid commit message format detected:**\n\n';
+              errorMessage += 'Commits must follow Conventional Commits format:\n';
+              errorMessage += '`type(scope): description`\n\n';
+              errorMessage += 'Valid types: feat, fix, docs, style, refactor, test, chore, perf, ci, build, revert\n\n';
+              errorMessage += '**Invalid commits:**\n';
+              invalidCommits.forEach(commit => {
+                errorMessage += `- ${commit.sha}: ${commit.message}\n`;
+              });
+              
+              core.setFailed(errorMessage);
+            } else {
+              console.log('✅ All commit messages follow conventional format');
+            }
+      
+      - name: Check for direct pushes to main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Allow direct pushes only from specific users or bots
+            const allowedUsers = ['github-actions[bot]', 'dependabot[bot]'];
+            const pusher = context.payload.pusher.name;
+            
+            if (!allowedUsers.includes(pusher)) {
+              core.setFailed(`❌ Direct pushes to main branch are not allowed. Please use a pull request.`);
+            }
+      
+      - name: Validate PR requirements
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            let errors = [];
+            
+            // Check PR title format
+            const titleRegex = /^(feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(\(.+\))?: .{1,50}/;
+            if (!titleRegex.test(pr.title)) {
+              errors.push('PR title must follow Conventional Commits format');
+            }
+            
+            // Check PR description
+            if (!pr.body || pr.body.trim().length < 10) {
+              errors.push('PR must have a meaningful description');
+            }
+            
+            // Check for breaking changes
+            if (pr.title.includes('!') || (pr.body && pr.body.includes('BREAKING CHANGE'))) {
+              // Require additional review for breaking changes
+              const { data: reviews } = await github.rest.pulls.listReviews({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number
+              });
+              
+              const approvals = reviews.filter(r => r.state === 'APPROVED').length;
+              if (approvals < 2) {
+                errors.push('Breaking changes require at least 2 approvals');
+              }
+            }
+            
+            if (errors.length > 0) {
+              const errorMessage = '❌ **PR validation failed:**\n\n' + errors.map(e => `- ${e}`).join('\n');
+              
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body: errorMessage
+              });
+              
+              core.setFailed('PR validation failed');
+            }
+
+  security-scan:
+    name: Security & Dependency Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+      
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+      
+      - name: Check for secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: moderate
+          allow-licenses: MIT, Apache-2.0, BSD-3-Clause, ISC
+      
+      - name: Check for vulnerable dependencies
+        run: |
+          echo "Checking for known vulnerabilities..."
+          if [ -f package.json ]; then
+            npm audit --audit-level=moderate
+          fi
+          
+          if [ -f backend/package.json ]; then
+            cd backend && npm audit --audit-level=moderate && cd ..
+          fi
+          
+          if [ -f frontend/package.json ]; then
+            cd frontend && npm audit --audit-level=moderate && cd ..
+          fi
+
+  branch-protection-status:
+    name: Branch Protection Status Report
+    runs-on: ubuntu-latest
+    needs: [enforce-branch-rules, security-scan, dependency-review]
+    if: always()
+    
+    steps:
+      - name: Generate protection status report
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const results = {
+              'Branch Rules': '${{ needs.enforce-branch-rules.result }}',
+              'Security Scan': '${{ needs.security-scan.result }}',
+              'Dependency Review': '${{ needs.dependency-review.result }}'
+            };
+            
+            let report = '## 🛡️ Branch Protection Status Report\n\n';
+            report += `**Branch:** ${context.ref}\n`;
+            report += `**Event:** ${context.eventName}\n`;
+            report += `**Timestamp:** ${new Date().toISOString()}\n\n`;
+            
+            Object.entries(results).forEach(([check, result]) => {
+              const status = result === 'success' ? '✅' : result === 'failure' ? '❌' : '⏭️';
+              report += `- **${check}:** ${status} ${result}\n`;
+            });
+            
+            const allPassed = Object.values(results).every(r => r === 'success' || r === 'skipped');
+            
+            if (allPassed) {
+              report += '\n🎉 **All protection checks passed!**';
+            } else {
+              report += '\n⚠️ **Some protection checks failed. Review required.**';
+            }
+            
+            console.log(report);
+            
+            // For PRs, add comment with status
+            if (context.eventName === 'pull_request') {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: report
+              });
+            }

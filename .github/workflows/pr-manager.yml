@@ -1,0 +1,339 @@
+name: PR Manager - Review & Multi-Reviewer Coordination
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+  pull_request_review:
+    types: [submitted, dismissed]
+  issue_comment:
+    types: [created, edited]
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+  issues: write
+
+jobs:
+  setup-reviewers:
+    name: Setup Multi-Reviewer Coordination
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened' || github.event.action == 'reopened'
+    outputs:
+      reviewers: ${{ steps.assign-reviewers.outputs.reviewers }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Assign reviewers based on changes
+        id: assign-reviewers
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            
+            let reviewers = new Set();
+            
+            // Define reviewer assignments based on file patterns
+            const reviewerMap = {
+              'backend/': ['backend-team'],
+              'frontend/': ['frontend-team'],
+              'shared/': ['frontend-team', 'backend-team'],
+              'docs/': ['docs-team'],
+              '.github/': ['devops-team'],
+              'docker/': ['devops-team'],
+              'infrastructure/': ['devops-team']
+            };
+            
+            files.forEach(file => {
+              Object.entries(reviewerMap).forEach(([pattern, teams]) => {
+                if (file.filename.startsWith(pattern)) {
+                  teams.forEach(team => reviewers.add(team));
+                }
+              });
+            });
+            
+            // Convert to array and filter out PR author
+            const finalReviewers = Array.from(reviewers).filter(
+              reviewer => reviewer !== context.payload.pull_request.user.login
+            );
+            
+            if (finalReviewers.length > 0) {
+              try {
+                await github.rest.pulls.requestReviewers({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: context.issue.number,
+                  reviewers: finalReviewers
+                });
+              } catch (error) {
+                console.log('Could not assign team reviewers, they may not exist yet');
+              }
+            }
+            
+            core.setOutput('reviewers', JSON.stringify(finalReviewers));
+            return finalReviewers;
+
+  quality-checks:
+    name: Quality & Security Checks
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: |
+          if [ -f package.json ]; then npm ci; fi
+          if [ -f backend/package.json ]; then cd backend && npm ci && cd ..; fi
+          if [ -f frontend/package.json ]; then cd frontend && npm ci && cd ..; fi
+      
+      - name: Run linting
+        run: |
+          echo "Running linting checks..."
+          if [ -f backend/package.json ]; then
+            cd backend
+            if npm run lint --if-present; then
+              echo "✅ Backend linting passed"
+            else
+              echo "❌ Backend linting failed"
+              exit 1
+            fi
+            cd ..
+          fi
+          
+          if [ -f frontend/package.json ]; then
+            cd frontend
+            if npm run lint --if-present; then
+              echo "✅ Frontend linting passed"
+            else
+              echo "❌ Frontend linting failed"
+              exit 1
+            fi
+            cd ..
+          fi
+      
+      - name: Run type checking
+        run: |
+          echo "Running type checks..."
+          if [ -f backend/package.json ]; then
+            cd backend
+            if npm run typecheck --if-present || npm run type-check --if-present; then
+              echo "✅ Backend type checking passed"
+            else
+              echo "❌ Backend type checking failed"
+              exit 1
+            fi
+            cd ..
+          fi
+          
+          if [ -f frontend/package.json ]; then
+            cd frontend
+            if npm run typecheck --if-present || npm run type-check --if-present; then
+              echo "✅ Frontend type checking passed"
+            else
+              echo "❌ Frontend type checking failed"
+              exit 1
+            fi
+            cd ..
+          fi
+      
+      - name: Run tests
+        run: |
+          echo "Running tests..."
+          if [ -f backend/package.json ]; then
+            cd backend
+            if npm test --if-present; then
+              echo "✅ Backend tests passed"
+            else
+              echo "❌ Backend tests failed"
+              exit 1
+            fi
+            cd ..
+          fi
+          
+          if [ -f frontend/package.json ]; then
+            cd frontend
+            if npm test --if-present; then
+              echo "✅ Frontend tests passed"
+            else
+              echo "❌ Frontend tests failed"
+              exit 1
+            fi
+            cd ..
+          fi
+      
+      - name: Security scan
+        uses: github/super-linter@v5
+        env:
+          DEFAULT_BRANCH: main
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATE_ALL_CODEBASE: false
+          VALIDATE_TYPESCRIPT_ES: true
+          VALIDATE_JAVASCRIPT_ES: true
+          VALIDATE_JSON: true
+          VALIDATE_YAML: true
+
+  review-coordination:
+    name: Review Coordination & Status
+    runs-on: ubuntu-latest
+    needs: [setup-reviewers, quality-checks]
+    if: always()
+    
+    steps:
+      - name: Update PR status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            
+            const { data: reviews } = await github.rest.pulls.listReviews({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            
+            const { data: checks } = await github.rest.checks.listForRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: pr.head.sha
+            });
+            
+            // Count review status
+            const approvals = reviews.filter(r => r.state === 'APPROVED').length;
+            const rejections = reviews.filter(r => r.state === 'CHANGES_REQUESTED').length;
+            const pending = pr.requested_reviewers.length;
+            
+            // Check if quality checks passed
+            const qualityChecksPassed = '${{ needs.quality-checks.result }}' === 'success';
+            
+            let statusMessage = `## PR Review Status\n\n`;
+            statusMessage += `**Quality Checks:** ${qualityChecksPassed ? '✅ Passed' : '❌ Failed'}\n`;
+            statusMessage += `**Reviews:** ${approvals} approved, ${rejections} requesting changes, ${pending} pending\n\n`;
+            
+            if (qualityChecksPassed && approvals >= 1 && rejections === 0) {
+              statusMessage += `🎉 **Ready to merge!** All checks passed and required approvals received.\n`;
+              
+              // Add merge-ready label
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: ['ready-to-merge']
+              });
+            } else {
+              statusMessage += `⏳ **Not ready to merge.**\n`;
+              if (!qualityChecksPassed) statusMessage += `- Quality checks must pass\n`;
+              if (approvals < 1) statusMessage += `- At least 1 approval required\n`;
+              if (rejections > 0) statusMessage += `- Address requested changes\n`;
+              
+              // Remove merge-ready label if it exists
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  name: 'ready-to-merge'
+                });
+              } catch (error) {
+                // Label doesn't exist, ignore
+              }
+            }
+            
+            // Find existing status comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('PR Review Status')
+            );
+            
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: statusMessage
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: statusMessage
+              });
+            }
+
+  auto-merge:
+    name: Auto-merge (if enabled)
+    runs-on: ubuntu-latest
+    needs: [quality-checks, review-coordination]
+    if: |
+      always() && 
+      needs.quality-checks.result == 'success' && 
+      contains(github.event.pull_request.labels.*.name, 'auto-merge')
+    
+    steps:
+      - name: Check merge readiness
+        id: check-merge
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            
+            const { data: reviews } = await github.rest.pulls.listReviews({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            
+            const approvals = reviews.filter(r => r.state === 'APPROVED').length;
+            const rejections = reviews.filter(r => r.state === 'CHANGES_REQUESTED').length;
+            
+            const canMerge = approvals >= 1 && rejections === 0 && pr.mergeable;
+            core.setOutput('can-merge', canMerge);
+            return canMerge;
+      
+      - name: Auto-merge PR
+        if: steps.check-merge.outputs.can-merge == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.pulls.merge({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              merge_method: 'squash',
+              commit_title: `${context.payload.pull_request.title} (#${context.issue.number})`,
+              commit_message: context.payload.pull_request.body || ''
+            });
+            
+            console.log('PR auto-merged successfully!');

@@ -1,0 +1,47 @@
+# Global code owners
+* @maintainers
+
+# Backend code
+/backend/ @backend-team @maintainers
+/backend/src/auth/ @security-team @backend-team
+/backend/src/api/ @api-team @backend-team
+
+# Frontend code
+/frontend/ @frontend-team @maintainers
+/frontend/src/components/ @ui-team @frontend-team
+/frontend/src/pages/ @frontend-team
+
+# Shared code
+/shared/ @maintainers @backend-team @frontend-team
+
+# Infrastructure and DevOps
+/.github/ @devops-team @maintainers
+/docker/ @devops-team
+/k8s/ @devops-team
+Dockerfile @devops-team
+
+# Documentation
+*.md @documentation-team @maintainers
+/docs/ @documentation-team
+
+# Security-sensitive files
+.github/workflows/ @security-team @devops-team @maintainers
+*.yml @devops-team @maintainers
+*.yaml @devops-team @maintainers
+
+# Configuration files
+package.json @maintainers
+package-lock.json @maintainers
+*/package.json @maintainers
+*/package-lock.json @maintainers
+tsconfig.json @maintainers
+*/tsconfig.json @maintainers
+
+# Build and deployment
+/scripts/ @devops-team @maintainers
+/build/ @devops-team
+/dist/ @devops-team
+
+# Branch architecture and governance
+BRANCH_ARCHITECTURE.md @maintainers @devops-team
+CLAUDE.*.md @maintainers

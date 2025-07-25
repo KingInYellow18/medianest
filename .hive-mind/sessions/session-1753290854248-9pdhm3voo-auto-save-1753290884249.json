@@ -1,0 +1,81 @@
+{
+  "sessionId": "session-1753290854248-9pdhm3voo",
+  "checkpointId": "checkpoint-1753290884249-vx138ilbn",
+  "checkpointName": "auto-save-1753290884249",
+  "timestamp": "2025-07-23T17:14:44.249Z",
+  "data": {
+    "timestamp": "2025-07-23T17:14:44.249Z",
+    "changeCount": 5,
+    "changesByType": {
+      "swarm_created": [
+        {
+          "type": "swarm_created",
+          "data": {
+            "swarmId": "swarm-1753290854247-zxpbpk50c",
+            "swarmName": "hive-1753290854236",
+            "objective": "Analyze and fix failing CI/CD pipeline by identifying and resolving build failures, Docker configuration issues, linting errors, security vulnerabilities, test failures, and PR validation problems",
+            "workerCount": 8
+          },
+          "timestamp": "2025-07-23T17:14:14.249Z"
+        }
+      ],
+      "agent_activity": [
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1753290854247-zxpbpk50c-0",
+            "activity": "spawned",
+            "data": {
+              "type": "researcher",
+              "name": "Researcher Worker 1"
+            }
+          },
+          "timestamp": "2025-07-23T17:14:14.249Z"
+        },
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1753290854247-zxpbpk50c-1",
+            "activity": "spawned",
+            "data": {
+              "type": "coder",
+              "name": "Coder Worker 2"
+            }
+          },
+          "timestamp": "2025-07-23T17:14:14.250Z"
+        },
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1753290854247-zxpbpk50c-2",
+            "activity": "spawned",
+            "data": {
+              "type": "analyst",
+              "name": "Analyst Worker 3"
+            }
+          },
+          "timestamp": "2025-07-23T17:14:14.250Z"
+        },
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1753290854247-zxpbpk50c-3",
+            "activity": "spawned",
+            "data": {
+              "type": "tester",
+              "name": "Tester Worker 4"
+            }
+          },
+          "timestamp": "2025-07-23T17:14:14.250Z"
+        }
+      ]
+    },
+    "statistics": {
+      "tasksProcessed": 0,
+      "tasksCompleted": 0,
+      "memoryUpdates": 0,
+      "agentActivities": 4,
+      "consensusDecisions": 0
+    }
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "sessionId": "session-1753119500746-lkdfvalc8",
+  "checkpointId": "checkpoint-1753119530746-2eskd9sci",
+  "checkpointName": "auto-save-1753119530746",
+  "timestamp": "2025-07-21T17:38:50.746Z",
+  "data": {
+    "timestamp": "2025-07-21T17:38:50.746Z",
+    "changeCount": 5,
+    "changesByType": {
+      "swarm_created": [
+        {
+          "type": "swarm_created",
+          "data": {
+            "swarmId": "swarm-1753119500745-lyk2hrnbw",
+            "swarmName": "hive-1753119500738",
+            "objective": "Conduct complete git repository review and optimize .gitignore files across all branches: claude-flow2 branch (include all dev tools, test suites, exclude sensitive data), development branch (master dev branch with full code, docs, dev documentation), main branch (production-only deployment files)",
+            "workerCount": 8
+          },
+          "timestamp": "2025-07-21T17:38:20.746Z"
+        }
+      ],
+      "agent_activity": [
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1753119500745-lyk2hrnbw-0",
+            "activity": "spawned",
+            "data": {
+              "type": "researcher",
+              "name": "Researcher Worker 1"
+            }
+          },
+          "timestamp": "2025-07-21T17:38:20.747Z"
+        },
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1753119500745-lyk2hrnbw-1",
+            "activity": "spawned",
+            "data": {
+              "type": "coder",
+              "name": "Coder Worker 2"
+            }
+          },
+          "timestamp": "2025-07-21T17:38:20.747Z"
+        },
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1753119500745-lyk2hrnbw-2",
+            "activity": "spawned",
+            "data": {
+              "type": "analyst",
+              "name": "Analyst Worker 3"
+            }
+          },
+          "timestamp": "2025-07-21T17:38:20.747Z"
+        },
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1753119500745-lyk2hrnbw-3",
+            "activity": "spawned",
+            "data": {
+              "type": "tester",
+              "name": "Tester Worker 4"
+            }
+          },
+          "timestamp": "2025-07-21T17:38:20.747Z"
+        }
+      ]
+    },
+    "statistics": {
+      "tasksProcessed": 0,
+      "tasksCompleted": 0,
+      "memoryUpdates": 0,
+      "agentActivities": 4,
+      "consensusDecisions": 0
+    }
+  }
+}

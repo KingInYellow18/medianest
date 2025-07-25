@@ -1,0 +1,115 @@
+# =============================================================================
+# .gitignore for CLAUDE-FLOW BRANCH (Experimental AI Development)
+# Purpose: Include all development tooling and personal configurations
+# =============================================================================
+
+# Dependencies (Always exclude - too large)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.npm/
+
+# Large Build Outputs (Exclude for space, keep small artifacts)
+build/
+dist/
+out/
+.next/
+
+# Compiled shared files (Keep for debugging)
+shared/**/*.js.map
+# shared/**/*.js      # KEEP for development debugging
+# shared/**/*.d.ts    # KEEP for development debugging
+shared/**/*.d.ts.map
+
+# Secrets Only (Keep development configs)
+secrets/
+!secrets/.gitkeep
+docker-secrets/
+*.pem
+*.key
+*.crt
+*.csr
+certs/
+# .env files are KEPT for development (.env.local, .env.dev, etc.)
+
+# Personal IDE Settings (INCLUDE ALL for personal development)
+# .vscode/           # KEEP ALL - personal development
+# .idea/             # KEEP ALL - personal development
+*.swp
+*.swo
+*~
+
+# Test Artifacts (INCLUDE ALL for analysis and debugging)
+# coverage/          # KEEP - needed for development analysis
+# .nyc_output        # KEEP - needed for coverage debugging
+# test-results/      # KEEP - needed for test development
+# junit.xml          # KEEP - needed for CI debugging
+# results.json       # KEEP - needed for test analysis
+# visual-regression-diff/  # KEEP - needed for UI development
+# screenshot-diff/   # KEEP - needed for visual debugging
+# playwright-report/ # KEEP - needed for test debugging
+# .stryker-tmp/      # KEEP - needed for mutation testing
+
+# OS Files
+.DS_Store
+Thumbs.db
+.Trashes
+
+# Runtime Data (INCLUDE for development debugging)
+# logs/              # KEEP - needed for debugging
+# postgres_data/     # KEEP - local development data
+# redis_data/        # KEEP - local development data
+# *.db               # KEEP - development databases
+# *.sqlite           # KEEP - development databases
+*.db-journal
+*.db-wal
+*.sqlite-journal
+*.sqlite-wal
+
+# Media & Uploads (INCLUDE small test files)
+uploads/large/      # Exclude only large files
+youtube/
+downloads/large/
+
+# Cache (Exclude large caches, keep small ones)
+.cache/large/
+.parcel-cache/
+tmp/
+temp/
+
+# Docker Development (INCLUDE ALL)
+# docker-compose.override.yml  # KEEP - personal development
+
+# Coordination Tools (INCLUDE ALL - this is AI development branch)
+# .swarm/            # KEEP - swarm coordination
+# .hive-mind/        # KEEP - hive mind coordination  
+# memory/            # KEEP - AI memory and learning
+# coordination/      # KEEP - task coordination
+# .claude/           # KEEP - Claude configuration
+# .mcp.json          # KEEP - MCP configuration
+# claude-flow*       # KEEP - Claude Flow tools
+# hive-mind-prompt-*.txt  # KEEP - AI prompts and learning
+
+# Development Artifacts (INCLUDE for experimentation)
+# backups/           # KEEP - personal backups
+# *.backup           # KEEP - development backups
+# *.bak              # KEEP - personal backup files
+
+# =============================================================================
+# CLAUDE-FLOW BRANCH INCLUSION STRATEGY
+# =============================================================================
+# ✅ ALL source code and tests
+# ✅ ALL development configurations
+# ✅ ALL IDE settings and personal preferences
+# ✅ ALL test results and coverage reports
+# ✅ ALL coordination and AI tooling
+# ✅ ALL memory and learning data
+# ✅ ALL experimental and backup files
+# ✅ Development databases and logs
+# ✅ Personal environment configurations
+# ❌ Large binary dependencies (node_modules)
+# ❌ Secrets and certificates
+# ❌ Large media and download files
+# ❌ Large cache directories only

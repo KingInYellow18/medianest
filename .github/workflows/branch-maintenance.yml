@@ -1,0 +1,407 @@
+name: Branch Maintenance & Cleanup
+
+# Automated branch maintenance for MediaNest 4-branch strategy
+# Runs daily to clean up stale branches and maintain branch health
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run in dry-run mode (no actual changes)'
+        required: false
+        default: 'true'
+        type: boolean
+      force_cleanup:
+        description: 'Force cleanup of protected patterns'
+        required: false
+        default: 'false'
+        type: boolean
+
+env:
+  # Protected branches that should never be deleted
+  PROTECTED_BRANCHES: 'main,development,test,claude-flowv2'
+  # Branch patterns to clean up
+  CLEANUP_PATTERNS: 'dependabot/*,codex/*,*-codex/*,pr-*,experiment/*'
+  # Age threshold for stale branches (in days)
+  STALE_THRESHOLD: 30
+  # Age threshold for merged branches (in days)  
+  MERGED_THRESHOLD: 7
+
+jobs:
+  branch-audit:
+    runs-on: ubuntu-latest
+    outputs:
+      stale-branches: ${{ steps.audit.outputs.stale-branches }}
+      merged-branches: ${{ steps.audit.outputs.merged-branches }}
+      cleanup-branches: ${{ steps.audit.outputs.cleanup-branches }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for all branches
+
+      - name: Setup Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Audit branches
+        id: audit
+        run: |
+          echo "Starting branch audit..."
+          
+          # Get current date for age calculations
+          current_date=$(date +%s)
+          stale_cutoff=$(date -d "${{ env.STALE_THRESHOLD }} days ago" +%s)
+          merged_cutoff=$(date -d "${{ env.MERGED_THRESHOLD }} days ago" +%s)
+          
+          # Initialize output files
+          echo "[]" > stale_branches.json
+          echo "[]" > merged_branches.json
+          echo "[]" > cleanup_branches.json
+          
+          # Function to check if branch is protected
+          is_protected() {
+            local branch="$1"
+            echo "${{ env.PROTECTED_BRANCHES }}" | grep -q "$branch"
+          }
+          
+          # Function to check if branch matches cleanup pattern
+          matches_cleanup_pattern() {
+            local branch="$1"
+            IFS=',' read -ra PATTERNS <<< "${{ env.CLEANUP_PATTERNS }}"
+            for pattern in "${PATTERNS[@]}"; do
+              if [[ "$branch" == ${pattern} ]]; then
+                return 0
+              fi
+            done
+            return 1
+          }
+          
+          # Audit remote branches
+          git for-each-ref --format='%(refname:short) %(committerdate:unix) %(authorname) %(subject)' refs/remotes/origin/ | while IFS=' ' read -r branch_ref commit_date author subject; do
+            branch=$(echo "$branch_ref" | sed 's|origin/||')
+            
+            # Skip HEAD and protected branches
+            if [[ "$branch" == "HEAD" ]] || is_protected "$branch"; then
+              continue
+            fi
+            
+            # Check if branch is stale
+            if [[ $commit_date -lt $stale_cutoff ]]; then
+              echo "Found stale branch: $branch (last commit: $(date -d @$commit_date))"
+              jq --arg branch "$branch" --arg date "$commit_date" --arg author "$author" \
+                 '. += [{"branch": $branch, "last_commit": $date, "author": $author}]' \
+                 stale_branches.json > tmp.json && mv tmp.json stale_branches.json
+            fi
+            
+            # Check if branch is merged and old enough to clean up
+            if git merge-base --is-ancestor "origin/$branch" origin/development || 
+               git merge-base --is-ancestor "origin/$branch" origin/main; then
+              if [[ $commit_date -lt $merged_cutoff ]]; then
+                echo "Found merged branch ready for cleanup: $branch"
+                jq --arg branch "$branch" --arg date "$commit_date" --arg author "$author" \
+                   '. += [{"branch": $branch, "last_commit": $date, "author": $author}]' \
+                   merged_branches.json > tmp.json && mv tmp.json merged_branches.json
+              fi
+            fi
+            
+            # Check if branch matches cleanup patterns
+            if matches_cleanup_pattern "$branch"; then
+              echo "Found branch matching cleanup pattern: $branch"
+              jq --arg branch "$branch" --arg date "$commit_date" --arg author "$author" \
+                 '. += [{"branch": $branch, "last_commit": $date, "author": $author}]' \
+                 cleanup_branches.json > tmp.json && mv tmp.json cleanup_branches.json
+            fi
+          done
+          
+          # Set outputs
+          echo "stale-branches=$(cat stale_branches.json)" >> $GITHUB_OUTPUT
+          echo "merged-branches=$(cat merged_branches.json)" >> $GITHUB_OUTPUT  
+          echo "cleanup-branches=$(cat cleanup_branches.json)" >> $GITHUB_OUTPUT
+          
+          # Generate summary
+          stale_count=$(jq length stale_branches.json)
+          merged_count=$(jq length merged_branches.json)
+          cleanup_count=$(jq length cleanup_branches.json)
+          
+          echo "Branch audit summary:"
+          echo "- Stale branches: $stale_count"
+          echo "- Merged branches ready for cleanup: $merged_count"
+          echo "- Pattern-matched branches: $cleanup_count"
+
+      - name: Upload audit artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: branch-audit-results
+          path: |
+            stale_branches.json
+            merged_branches.json
+            cleanup_branches.json
+
+  branch-cleanup:
+    runs-on: ubuntu-latest
+    needs: branch-audit
+    if: ${{ needs.branch-audit.outputs.stale-branches != '[]' || needs.branch-audit.outputs.merged-branches != '[]' || needs.branch-audit.outputs.cleanup-branches != '[]' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Download audit results
+        uses: actions/download-artifact@v4
+        with:
+          name: branch-audit-results
+
+      - name: Clean up merged branches
+        if: ${{ needs.branch-audit.outputs.merged-branches != '[]' }}
+        run: |
+          echo "Cleaning up merged branches..."
+          echo '${{ needs.branch-audit.outputs.merged-branches }}' | jq -r '.[].branch' | while read -r branch; do
+            if [[ "${{ inputs.dry_run }}" == "true" ]]; then
+              echo "[DRY RUN] Would delete merged branch: $branch"
+            else
+              echo "Deleting merged branch: $branch"
+              git push origin --delete "$branch" || echo "Failed to delete $branch (may already be deleted)"
+            fi
+          done
+
+      - name: Clean up stale branches (with confirmation)
+        if: ${{ needs.branch-audit.outputs.stale-branches != '[]' && inputs.force_cleanup == true }}
+        run: |
+          echo "Cleaning up stale branches..."
+          echo '${{ needs.branch-audit.outputs.stale-branches }}' | jq -r '.[].branch' | while read -r branch; do
+            if [[ "${{ inputs.dry_run }}" == "true" ]]; then
+              echo "[DRY RUN] Would delete stale branch: $branch"
+            else
+              echo "Deleting stale branch: $branch"
+              git push origin --delete "$branch" || echo "Failed to delete $branch (may already be deleted)"
+            fi
+          done
+
+      - name: Clean up pattern-matched branches
+        if: ${{ needs.branch-audit.outputs.cleanup-branches != '[]' }}
+        run: |
+          echo "Cleaning up pattern-matched branches..."
+          echo '${{ needs.branch-audit.outputs.cleanup-branches }}' | jq -r '.[].branch' | while read -r branch; do
+            if [[ "${{ inputs.dry_run }}" == "true" ]]; then
+              echo "[DRY RUN] Would delete pattern-matched branch: $branch"
+            else
+              echo "Deleting pattern-matched branch: $branch"
+              git push origin --delete "$branch" || echo "Failed to delete $branch (may already be deleted)"
+            fi
+          done
+
+  branch-health-check:
+    runs-on: ubuntu-latest
+    needs: [branch-audit, branch-cleanup]
+    if: always()
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check branch health metrics
+        id: health-check
+        run: |
+          echo "Checking branch health metrics..."
+          
+          # Get protected branches status
+          for branch in main development test claude-flowv2; do
+            if git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
+              last_commit=$(git log -1 --format="%ct" "origin/$branch")
+              days_since_commit=$(( ($(date +%s) - $last_commit) / 86400 ))
+              echo "✅ $branch: last commit $days_since_commit days ago"
+            else
+              echo "❌ $branch: missing!"
+            fi
+          done
+          
+          # Count total branches
+          total_branches=$(git branch -r | grep -v HEAD | wc -l)
+          echo "📊 Total remote branches: $total_branches"
+          
+          # Check for branches that need attention
+          echo "Branches needing attention:"
+          git for-each-ref --format='%(refname:short) %(committerdate:relative)' refs/remotes/origin/ | \
+          grep -E "(month|year)" | head -10
+
+      - name: Generate branch health report
+        run: |
+          cat > branch-health-report.md << EOF
+          # Branch Health Report - $(date +%Y-%m-%d)
+          
+          ## Summary
+          - **Audit Date**: $(date)
+          - **Total Remote Branches**: $(git branch -r | grep -v HEAD | wc -l)
+          - **Protected Branches Status**: 
+            $(for branch in main development test claude-flowv2; do
+                if git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
+                  echo "  - ✅ $branch"
+                else
+                  echo "  - ❌ $branch (missing)"
+                fi
+              done)
+          
+          ## Cleanup Summary
+          $(if [[ "${{ needs.branch-audit.outputs.merged-branches }}" != "[]" ]]; then
+              echo "### Merged Branches Cleaned Up"
+              echo '${{ needs.branch-audit.outputs.merged-branches }}' | jq -r '.[] | "- " + .branch + " (last commit: " + .last_commit + ")"'
+            fi)
+          
+          $(if [[ "${{ needs.branch-audit.outputs.stale-branches }}" != "[]" ]]; then
+              echo "### Stale Branches Found"
+              echo '${{ needs.branch-audit.outputs.stale-branches }}' | jq -r '.[] | "- " + .branch + " (last commit: " + .last_commit + ")"'
+              echo ""
+              echo "⚠️ **Note**: Stale branches require manual review or force cleanup flag"
+            fi)
+          
+          ## Recommendations
+          - Keep feature branches short-lived (< 7 days)
+          - Merge or close old pull requests
+          - Use proper branch naming conventions
+          - Regular cleanup of experimental branches
+          
+          ## Branch Strategy Compliance
+          - ✅ Using 4-branch strategy (main, development, test, claude-flowv2)
+          - ✅ Automated cleanup of merged branches
+          - ✅ Protection of core branches
+          - $(if [[ $(git branch -r | wc -l) -lt 20 ]]; then echo "✅"; else echo "⚠️"; fi) Total branch count $(if [[ $(git branch -r | wc -l) -lt 20 ]]; then echo "within"; else echo "exceeds"; fi) recommended limits
+          EOF
+
+      - name: Upload health report
+        uses: actions/upload-artifact@v4
+        with:
+          name: branch-health-report
+          path: branch-health-report.md
+
+  notify-team:
+    runs-on: ubuntu-latest
+    needs: [branch-audit, branch-cleanup, branch-health-check]
+    if: always() && (needs.branch-audit.outputs.stale-branches != '[]' || needs.branch-audit.outputs.merged-branches != '[]')
+    steps:
+      - name: Download health report
+        uses: actions/download-artifact@v4
+        with:
+          name: branch-health-report
+
+      - name: Create issue for manual attention
+        if: ${{ needs.branch-audit.outputs.stale-branches != '[]' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const staleBranches = JSON.parse('${{ needs.branch-audit.outputs.stale-branches }}');
+            
+            if (staleBranches.length > 0) {
+              const branchList = staleBranches.map(b => `- \`${b.branch}\` (last commit: ${new Date(b.last_commit * 1000).toISOString().split('T')[0]})`).join('\n');
+              
+              const issueBody = `## Stale Branches Requiring Manual Review
+            
+            The following branches have been inactive for more than ${{ env.STALE_THRESHOLD }} days:
+            
+            ${branchList}
+            
+            ### Actions Required:
+            - [ ] Review each branch for valuable work
+            - [ ] Merge valuable branches into appropriate targets
+            - [ ] Delete obsolete branches
+            - [ ] Update branch protection if needed
+            
+            ### To clean up automatically:
+            Run the branch maintenance workflow with \`force_cleanup: true\` parameter.
+            
+            ### Branch Health Report:
+            See the attached workflow artifacts for detailed analysis.
+            
+            ---
+            *This issue was automatically created by the branch maintenance workflow.*`;
+              
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `Branch Cleanup Required - ${staleBranches.length} stale branches found`,
+                body: issueBody,
+                labels: ['maintenance', 'branch-cleanup', 'tech-debt']
+              });
+            }
+
+  update-protection-rules:
+    runs-on: ubuntu-latest
+    needs: branch-cleanup
+    if: always()
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify branch protection compliance
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const protectedBranches = ['main', 'development', 'test', 'claude-flowv2'];
+            
+            for (const branch of protectedBranches) {
+              try {
+                const protection = await github.rest.repos.getBranchProtection({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  branch: branch
+                });
+                console.log(`✅ ${branch}: protection rules active`);
+              } catch (error) {
+                if (error.status === 404) {
+                  console.log(`❌ ${branch}: no protection rules found`);
+                  // Could automatically create protection rules here
+                } else {
+                  console.log(`⚠️ ${branch}: error checking protection - ${error.message}`);
+                }
+              }
+            }
+
+  # Cleanup job artifacts after successful run
+  cleanup-artifacts:
+    runs-on: ubuntu-latest
+    needs: [branch-audit, branch-cleanup, branch-health-check, notify-team]
+    if: always()
+    steps:
+      - name: Cleanup old workflow artifacts
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const artifacts = await github.rest.actions.listArtifactsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            
+            // Keep only the 5 most recent branch maintenance artifacts
+            const branchMaintenanceArtifacts = artifacts.data.artifacts
+              .filter(artifact => artifact.name.includes('branch-'))
+              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            
+            const toDelete = branchMaintenanceArtifacts.slice(5);
+            
+            for (const artifact of toDelete) {
+              if ((Date.now() - new Date(artifact.created_at)) > (7 * 24 * 60 * 60 * 1000)) { // 7 days old
+                try {
+                  await github.rest.actions.deleteArtifact({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    artifact_id: artifact.id,
+                  });
+                  console.log(`Deleted old artifact: ${artifact.name}`);
+                } catch (error) {
+                  console.log(`Failed to delete artifact ${artifact.name}: ${error.message}`);
+                }
+              }
+            }
