@@ -93,7 +93,9 @@ redis_data/
 .hive-mind/*.db
 .hive-mind/hive.db
 swarm-memory.db
-
+session-*
+./hive-mind
+# 
 # Docker Runtime
 docker-compose.override.yml
 
@@ -135,7 +137,9 @@ claude-flow.config.local.json
 memory/personal/
 .swarm/agents/personal/
 .hive-mind/personal/
-
+.claude/
+.roo/
+.swarm/
 # Personal development tools (exclude for privacy)
 *.personal.json
 .dev-personal/
