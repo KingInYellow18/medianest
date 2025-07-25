@@ -118,6 +118,13 @@ redis_data/
 .hive-mind/hive.db
 swarm-memory.db
 
+# Swarm and Hive Databases (Exclude from all branches except claude-flow)
+.swarm/memory.db
+**/.swarm/memory.db
+.hive-mind/*.db
+.hive-mind/hive.db
+swarm-memory.db
+
 # Media & Uploads (Exclude large files)
 uploads/
 youtube/
