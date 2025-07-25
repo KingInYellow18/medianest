@@ -1,0 +1,128 @@
+version: 2
+updates:
+  # Root package dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "maintainers"
+    assignees:
+      - "dependabot-reviewer"
+    labels:
+      - "dependencies"
+      - "automated"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+
+  # Backend dependencies
+  - package-ecosystem: "npm"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday" 
+      time: "04:30"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "backend-team"
+    assignees:
+      - "backend-lead"
+    labels:
+      - "dependencies"
+      - "backend"
+      - "automated"
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+
+  # Frontend dependencies
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "05:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "frontend-team"
+    assignees:
+      - "frontend-lead"
+    labels:
+      - "dependencies"
+      - "frontend"
+      - "automated"
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+
+  # Shared package dependencies
+  - package-ecosystem: "npm"
+    directory: "/shared"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "05:30"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "backend-team"
+      - "frontend-team"
+    assignees:
+      - "shared-maintainer"
+    labels:
+      - "dependencies"
+      - "shared"
+      - "automated"
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+
+  # GitHub Actions workflow dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/.github/workflows"
+    schedule:
+      interval: "monthly"
+      day: "1"
+      time: "06:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "devops-team"
+      - "security-reviewers"
+    assignees:
+      - "devops-lead"
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "infrastructure"
+    commit-message:
+      prefix: "ci"
+      prefix-development: "ci"
+      include: "scope"
+
+  # Docker dependencies (if using)
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "04:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "devops-team"
+      - "infrastructure-team"
+    assignees:
+      - "devops-lead"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "infrastructure"
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"

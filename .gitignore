@@ -1,8 +1,10 @@
 # =============================================================================
 # .gitignore for MediaNest Project - Unified Multi-Branch Configuration
+# Optimized for all branch strategies: production, development, testing, and experimentation
+# Merged from test branch: Complete test suite modernization and dependency updates
 # =============================================================================
 
-# Dependencies
+# Dependencies (Always exclude)
 node_modules/
 .pnp
 .pnp.js
@@ -11,7 +13,7 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# Build Outputs
+# Build Outputs (Exclude - rebuilt frequently)
 build/
 dist/
 out/
@@ -26,27 +28,26 @@ shared/**/*.d.ts
 shared/**/*.d.ts.map
 !shared/tsconfig.json
 
-# Environment & Secrets
+# Environment & Secrets (Critical exclusion - even for personal dev)
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
-.env.production
-.env.prod
-.env.test
 .env.staging
+.env.production*
+.env.prod*
 secrets/
 !secrets/.gitkeep
 .secrets/
 docker-secrets/
+certs/
 *.pem
 *.key
 *.crt
 *.csr
-certs/
 
-# Testing & Coverage
+# Testing & Experimentation (Include for learning and development)
 test-results/
 junit.xml
 results.json
@@ -54,9 +55,11 @@ visual-regression-diff/
 screenshot-diff/
 playwright-report/
 storybook-static/
+# IDE Settings (Include personal configurations for development)
+# .vscode/ (KEEP personal IDE setup)
+# .idea/ (KEEP personal IDE setup)
+# Only exclude volatile temp data
 .stryker-tmp/
-
-# IDE & OS
 .vscode/launch.json
 .vscode/extensions.json
 .idea/workspace.xml
@@ -64,36 +67,62 @@ storybook-static/
 *.swp
 *.swo
 *~
+
+# OS Files (Exclude system files)
 .DS_Store
 Thumbs.db
 .Trashes
 
-# Docker & Services
-docker-compose.override.yml
-postgres_data/
-redis_data/
-
-# Media & Uploads
-uploads/
-youtube/
-downloads/
-
-# Cache & Temporary
+# Runtime Data (Exclude volatile data)
+*.log
+logs/
 .cache/
 .parcel-cache/
-tmp/
-temp/
-logs/
-*.log
-.vercel
-
-# Database Files
+postgres_data/
+redis_data/
 *.db
 *.db-journal
 *.db-wal
 *.sqlite
 *.sqlite-journal
 *.sqlite-wal
+
+# Swarm and Hive Databases (Exclude runtime databases)
+.swarm/memory.db
+**/.swarm/memory.db
+.hive-mind/*.db
+.hive-mind/hive.db
+swarm-memory.db
+session-*
+./hive-mind
+# 
+# Docker Runtime
+docker-compose.override.yml
+
+# Media & Uploads (Exclude large files)
+uploads/
+youtube/
+downloads/
+
+# Cache & Temp (Exclude volatile)
+tmp/
+temp/
+.vercel
+
+# Large Backups (Exclude to save space)
+backups/
+*.backup
+*.bak
+
+# Generated executables and temporary files
+claude-flow
+claude-flow.bat
+claude-flow.ps1
+hive-mind-prompt-*.txt
+
+# Environment files with potential secrets
+backend/.env.test
+frontend/.env.test
 
 # Swarm and Hive Databases (Exclude from all branches except claude-flow)
 .swarm/memory.db
@@ -115,64 +144,50 @@ claude-flow.config.local.json
 memory/personal/
 .swarm/agents/personal/
 .hive-mind/personal/
+.claude/
+.roo/
+.swarm/
+.hive-mind/
+claude-flow.config.json
+.roomodes
+.claude-flow-project.json
+.mcp.json
+CLAUDE.md
 
 # Personal development tools (exclude for privacy)
-hive-mind-prompt-*.txt
 *.personal.json
 .dev-personal/
 **/personal/
 
-# Generated executables and temporary files  
-claude-flow
-claude-flow.bat
-claude-flow.ps1
-
-# Keep shared development coordination files:
-# .claude/settings.json (shared team settings)
-# .swarm/ (shared swarm coordination) 
-# coordination/ (shared coordination files)
-# memory/shared/ (shared knowledge base)
-
-# Development coordination files (INCLUDE for test analysis)
-# .hive-mind/ (KEEP collective intelligence data)
-# .swarm/ (KEEP swarm coordination data)  
-# .gitignore-templates/ (KEEP branch strategy templates)
-
-# Development artifacts
-backups/
-*.backup
-*.bak
-
-# Generated reports and backups (KEEP cleanup reports for all branches)
-# LOCAL-CHANGES-CLEANUP-REPORT.md (KEEP for documentation)
-# GITIGNORE-OPTIMIZATION.md (KEEP for reference)
-
 # =============================================================================
-# MAIN BRANCH INCLUSION STRATEGY
+# BRANCH STRATEGIES SUMMARY
 # =============================================================================
-# ✅ Essential source code only
-# ✅ Core configuration files (package.json, tsconfig.json)
-# ✅ Dockerfile and docker-compose.yml (production)
-# ✅ Essential documentation (README.md, core docs)
-# ✅ Production scripts only
-# ✅ Team IDE settings (.vscode/settings.json for consistency)
-# ❌ Development tools and coordination
-# ❌ Test artifacts and coverage reports
-# ❌ Personal development files
-# ❌ Build outputs (handled by CI/CD)
-# ❌ All sensitive data and secrets
+# MAIN BRANCH: Production-ready code only
+# DEV BRANCH: Full development with test suite modernization
+# TEST BRANCH: Complete test suite modernization and dependency updates
+# CLAUDE-FLOW BRANCH: Maximum experimentation freedom
 
-# Claude Flow generated files
-.claude/settings.local.json
-.mcp.json
-claude-flow.config.json
-.swarm/
-.hive-mind/
+# Claude Flow generated files (exclude personal)
 memory/claude-flow-data.json
 memory/sessions/*
 !memory/sessions/README.md
 memory/agents/*
 !memory/agents/README.md
+# Runtime coordination (temporary)
 coordination/memory_bank/*
 coordination/subtasks/*
 coordination/orchestration/*
+
+# =============================================================================
+# KEEP FOR DEVELOPMENT BRANCH
+# =============================================================================
+# ✅ All source code and components
+# ✅ All documentation and guides  
+# ✅ All configuration files
+# ✅ All test files and infrastructure
+# ✅ All development scripts
+# ✅ Team IDE settings (.vscode/settings.json)
+# ✅ Docker configurations
+# ✅ CI/CD configurations
+# ✅ Package management files
+# ✅ Development tooling configs (prettier, eslint, etc.)

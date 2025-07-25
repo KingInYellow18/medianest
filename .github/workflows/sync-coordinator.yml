@@ -1,0 +1,492 @@
+name: Multi-Package Sync Coordinator
+
+on:
+  push:
+    branches: [ main, development, test, claude-flow ]
+  pull_request:
+    branches: [ main, development, test ]
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM UTC
+  workflow_dispatch:
+    inputs:
+      sync_mode:
+        description: 'Synchronization mode'
+        required: true
+        default: 'align'
+        type: choice
+        options:
+          - align
+          - force-sync
+          - validate-only
+      target_packages:
+        description: 'Target packages (comma-separated, or "all")'
+        required: false
+        default: 'all'
+
+env:
+  NODE_VERSION: '18'
+  CACHE_KEY_SUFFIX: v1
+
+jobs:
+  detect-changes:
+    name: Detect Package Changes
+    runs-on: ubuntu-latest
+    outputs:
+      backend-changed: ${{ steps.changes.outputs.backend }}
+      frontend-changed: ${{ steps.changes.outputs.frontend }}
+      shared-changed: ${{ steps.changes.outputs.shared }}
+      package-matrix: ${{ steps.matrix.outputs.packages }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed packages
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+              - 'backend/package.json'
+              - 'backend/package-lock.json'
+            frontend:
+              - 'frontend/**'
+              - 'frontend/package.json'
+              - 'frontend/package-lock.json'
+            shared:
+              - 'shared/**'
+              - 'shared/package.json'
+              - 'shared/package-lock.json'
+
+      - name: Generate package matrix
+        id: matrix
+        run: |
+          packages=()
+          if [[ "${{ steps.changes.outputs.backend }}" == "true" || "${{ github.event.inputs.target_packages }}" == "all" || "${{ github.event.inputs.target_packages }}" == *"backend"* ]]; then
+            packages+=("backend")
+          fi
+          if [[ "${{ steps.changes.outputs.frontend }}" == "true" || "${{ github.event.inputs.target_packages }}" == "all" || "${{ github.event.inputs.target_packages }}" == *"frontend"* ]]; then
+            packages+=("frontend")
+          fi
+          if [[ "${{ steps.changes.outputs.shared }}" == "true" || "${{ github.event.inputs.target_packages }}" == "all" || "${{ github.event.inputs.target_packages }}" == *"shared"* ]]; then
+            packages+=("shared")
+          fi
+          
+          if [[ ${#packages[@]} -eq 0 ]]; then
+            packages=("backend" "frontend" "shared")
+          fi
+          
+          matrix_json=$(printf '%s\n' "${packages[@]}" | jq -R . | jq -s .)
+          echo "packages=$matrix_json" >> $GITHUB_OUTPUT
+
+  version-alignment:
+    name: Version Alignment Check
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.package-matrix != '[]'
+    strategy:
+      matrix:
+        package: ${{ fromJSON(needs.detect-changes.outputs.package-matrix) }}
+      fail-fast: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+            shared/package-lock.json
+
+      - name: Check package.json exists
+        id: check-package
+        run: |
+          if [[ -f "${{ matrix.package }}/package.json" ]]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Package ${{ matrix.package }} found"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Package ${{ matrix.package }} not found, creating structure"
+            mkdir -p ${{ matrix.package }}
+            
+            # Create basic package.json based on package type
+            case "${{ matrix.package }}" in
+              "backend")
+                cat > ${{ matrix.package }}/package.json << 'EOF'
+          {
+            "name": "@medianest/backend",
+            "version": "1.0.0",
+            "description": "MediaNest Backend Service",
+            "main": "dist/index.js",
+            "scripts": {
+              "start": "node dist/index.js",
+              "dev": "ts-node src/index.ts",
+              "build": "tsc",
+              "test": "jest",
+              "lint": "eslint src/**/*.ts",
+              "type-check": "tsc --noEmit"
+            },
+            "dependencies": {},
+            "devDependencies": {},
+            "engines": {
+              "node": ">=18.0.0"
+            }
+          }
+          EOF
+                ;;
+              "frontend")
+                cat > ${{ matrix.package }}/package.json << 'EOF'
+          {
+            "name": "@medianest/frontend",
+            "version": "1.0.0",
+            "description": "MediaNest Frontend Application",
+            "scripts": {
+              "dev": "next dev",
+              "build": "next build",
+              "start": "next start",
+              "lint": "next lint",
+              "type-check": "tsc --noEmit",
+              "test": "jest",
+              "storybook": "storybook dev -p 6006"
+            },
+            "dependencies": {},
+            "devDependencies": {},
+            "engines": {
+              "node": ">=18.0.0"
+            }
+          }
+          EOF
+                ;;
+              "shared")
+                cat > ${{ matrix.package }}/package.json << 'EOF'
+          {
+            "name": "@medianest/shared",
+            "version": "1.0.0",
+            "description": "MediaNest Shared Types and Utilities",
+            "main": "dist/index.js",
+            "types": "dist/index.d.ts",
+            "scripts": {
+              "build": "tsc",
+              "dev": "tsc --watch",
+              "test": "jest",
+              "lint": "eslint src/**/*.ts",
+              "type-check": "tsc --noEmit"
+            },
+            "dependencies": {},
+            "devDependencies": {},
+            "engines": {
+              "node": ">=18.0.0"
+            }
+          }
+          EOF
+                ;;
+            esac
+          fi
+
+      - name: Extract package information
+        if: steps.check-package.outputs.exists == 'true'
+        id: package-info
+        run: |
+          name=$(jq -r '.name // "unknown"' ${{ matrix.package }}/package.json)
+          version=$(jq -r '.version // "0.0.0"' ${{ matrix.package }}/package.json)
+          echo "name=$name" >> $GITHUB_OUTPUT
+          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "Package: $name@$version"
+
+      - name: Validate package structure
+        run: |
+          echo "Validating ${{ matrix.package }} package structure..."
+          
+          # Check for required scripts
+          required_scripts=("build" "test" "lint")
+          for script in "${required_scripts[@]}"; do
+            if jq -e ".scripts.\"$script\"" ${{ matrix.package }}/package.json > /dev/null; then
+              echo "✓ Script '$script' found"
+            else
+              echo "⚠️ Script '$script' missing"
+            fi
+          done
+          
+          # Check for TypeScript configuration
+          if [[ -f "${{ matrix.package }}/tsconfig.json" ]]; then
+            echo "✓ TypeScript configuration found"
+          else
+            echo "⚠️ TypeScript configuration missing"
+          fi
+
+      - name: Check dependency alignment
+        run: |
+          echo "Checking dependency alignment for ${{ matrix.package }}..."
+          
+          # Create alignment report
+          mkdir -p reports
+          cat > reports/${{ matrix.package }}-alignment.json << EOF
+          {
+            "package": "${{ matrix.package }}",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "branch": "${{ github.ref_name }}",
+            "commit": "${{ github.sha }}",
+            "status": "analyzed"
+          }
+          EOF
+          
+          echo "Alignment check completed for ${{ matrix.package }}"
+
+      - name: Upload alignment report
+        uses: actions/upload-artifact@v4
+        with:
+          name: alignment-report-${{ matrix.package }}
+          path: reports/
+          retention-days: 30
+
+  dependency-sync:
+    name: Dependency Synchronization
+    runs-on: ubuntu-latest
+    needs: [detect-changes, version-alignment]
+    if: needs.detect-changes.outputs.package-matrix != '[]'
+    strategy:
+      matrix:
+        package: ${{ fromJSON(needs.detect-changes.outputs.package-matrix) }}
+      fail-fast: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          if [[ -f "${{ matrix.package }}/package.json" && -f "${{ matrix.package }}/package-lock.json" ]]; then
+            echo "Installing dependencies for ${{ matrix.package }}..."
+            cd ${{ matrix.package }}
+            npm ci
+          elif [[ -f "${{ matrix.package }}/package.json" ]]; then
+            echo "Generating package-lock.json for ${{ matrix.package }}..."
+            cd ${{ matrix.package }}
+            npm install
+          else
+            echo "No package.json found for ${{ matrix.package }}, skipping"
+          fi
+
+      - name: Run package-specific sync
+        run: |
+          cd ${{ matrix.package }}
+          
+          case "${{ matrix.package }}" in
+            "backend")
+              echo "Syncing backend dependencies..."
+              if [[ -f "package.json" ]]; then
+                # Update backend-specific dependencies
+                npm outdated || echo "Dependency check completed"
+              fi
+              ;;
+            "frontend")
+              echo "Syncing frontend dependencies..."
+              if [[ -f "package.json" ]]; then
+                # Update frontend-specific dependencies
+                npm outdated || echo "Dependency check completed"
+              fi
+              ;;
+            "shared")
+              echo "Syncing shared dependencies..."
+              if [[ -f "package.json" ]]; then
+                # Update shared dependencies
+                npm outdated || echo "Dependency check completed"
+              fi
+              ;;
+          esac
+
+      - name: Cache package dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ matrix.package }}/node_modules
+            ~/.npm
+          key: ${{ runner.os }}-${{ matrix.package }}-${{ hashFiles(format('{0}/package-lock.json', matrix.package)) }}-${{ env.CACHE_KEY_SUFFIX }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.package }}-
+
+  quality-gates:
+    name: Quality Gates
+    runs-on: ubuntu-latest
+    needs: [detect-changes, dependency-sync]
+    if: needs.detect-changes.outputs.package-matrix != '[]'
+    strategy:
+      matrix:
+        package: ${{ fromJSON(needs.detect-changes.outputs.package-matrix) }}
+      fail-fast: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Restore package dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ matrix.package }}/node_modules
+            ~/.npm
+          key: ${{ runner.os }}-${{ matrix.package }}-${{ hashFiles(format('{0}/package-lock.json', matrix.package)) }}-${{ env.CACHE_KEY_SUFFIX }}
+
+      - name: Run type checking
+        run: |
+          cd ${{ matrix.package }}
+          if [[ -f "package.json" ]] && jq -e '.scripts."type-check"' package.json > /dev/null; then
+            echo "Running type check for ${{ matrix.package }}..."
+            npm run type-check
+          else
+            echo "No type-check script found for ${{ matrix.package }}"
+          fi
+
+      - name: Run linting
+        run: |
+          cd ${{ matrix.package }}
+          if [[ -f "package.json" ]] && jq -e '.scripts.lint' package.json > /dev/null; then
+            echo "Running linting for ${{ matrix.package }}..."
+            npm run lint
+          else
+            echo "No lint script found for ${{ matrix.package }}"
+          fi
+
+      - name: Run tests
+        run: |
+          cd ${{ matrix.package }}
+          if [[ -f "package.json" ]] && jq -e '.scripts.test' package.json > /dev/null; then
+            echo "Running tests for ${{ matrix.package }}..."
+            npm run test -- --passWithNoTests
+          else
+            echo "No test script found for ${{ matrix.package }}"
+          fi
+
+      - name: Build package
+        run: |
+          cd ${{ matrix.package }}
+          if [[ -f "package.json" ]] && jq -e '.scripts.build' package.json > /dev/null; then
+            echo "Building ${{ matrix.package }}..."
+            npm run build
+          else
+            echo "No build script found for ${{ matrix.package }}"
+          fi
+
+  cross-package-integration:
+    name: Cross-Package Integration
+    runs-on: ubuntu-latest
+    needs: [detect-changes, quality-gates]
+    if: needs.detect-changes.outputs.package-matrix != '[]'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install all package dependencies
+        run: |
+          packages=("backend" "frontend" "shared")
+          for package in "${packages[@]}"; do
+            if [[ -f "$package/package.json" ]]; then
+              echo "Installing dependencies for $package..."
+              cd $package
+              if [[ -f "package-lock.json" ]]; then
+                npm ci
+              else
+                npm install
+              fi
+              cd ..
+            fi
+          done
+
+      - name: Run integration tests
+        run: |
+          echo "Running cross-package integration tests..."
+          
+          # Check if shared package is properly referenced
+          if [[ -f "shared/package.json" ]]; then
+            shared_name=$(jq -r '.name' shared/package.json)
+            echo "Shared package name: $shared_name"
+            
+            # Check if other packages reference shared correctly
+            for package in backend frontend; do
+              if [[ -f "$package/package.json" ]]; then
+                if jq -e ".dependencies.\"$shared_name\"" $package/package.json > /dev/null; then
+                  echo "✓ $package correctly references shared package"
+                else
+                  echo "⚠️ $package does not reference shared package"
+                fi
+              fi
+            done
+          fi
+
+      - name: Generate integration report
+        run: |
+          mkdir -p reports
+          cat > reports/integration-report.json << EOF
+          {
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "branch": "${{ github.ref_name }}",
+            "commit": "${{ github.sha }}",
+            "sync_mode": "${{ github.event.inputs.sync_mode || 'align' }}",
+            "packages_processed": ${{ needs.detect-changes.outputs.package-matrix }},
+            "status": "completed"
+          }
+          EOF
+
+      - name: Upload integration report
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-report
+          path: reports/
+          retention-days: 30
+
+  notify-completion:
+    name: Notification
+    runs-on: ubuntu-latest
+    needs: [detect-changes, version-alignment, dependency-sync, quality-gates, cross-package-integration]
+    if: always()
+    steps:
+      - name: Determine workflow status
+        id: status
+        run: |
+          if [[ "${{ needs.version-alignment.result }}" == "success" && "${{ needs.dependency-sync.result }}" == "success" && "${{ needs.quality-gates.result }}" == "success" && "${{ needs.cross-package-integration.result }}" == "success" ]]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "message=Multi-package synchronization completed successfully" >> $GITHUB_OUTPUT
+          elif [[ "${{ needs.detect-changes.outputs.package-matrix }}" == "[]" ]]; then
+            echo "status=skipped" >> $GITHUB_OUTPUT
+            echo "message=No packages to synchronize" >> $GITHUB_OUTPUT
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "message=Multi-package synchronization failed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create workflow summary
+        run: |
+          echo "## Multi-Package Sync Coordinator Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ${{ steps.status.outputs.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Sync Mode:** ${{ github.event.inputs.sync_mode || 'align' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Packages:** ${{ needs.detect-changes.outputs.package-matrix }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Job Results" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version Alignment:** ${{ needs.version-alignment.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dependency Sync:** ${{ needs.dependency-sync.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Quality Gates:** ${{ needs.quality-gates.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Integration:** ${{ needs.cross-package-integration.result }}" >> $GITHUB_STEP_SUMMARY

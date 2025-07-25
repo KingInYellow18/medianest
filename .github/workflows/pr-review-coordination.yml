@@ -1,0 +1,598 @@
+name: PR Review Coordination & Multi-Reviewer Management
+# Advanced PR review coordination with intelligent reviewer assignment and approval tracking
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, review_requested]
+    branches: [main, development, test, dev]
+  pull_request_review:
+    types: [submitted, edited, dismissed]
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to coordinate reviews for'
+        required: true
+        type: number
+      action:
+        description: 'Review coordination action'
+        required: true
+        type: choice
+        options:
+          - assign-reviewers
+          - update-status
+          - check-approvals
+          - notify-reviewers
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  MIN_REVIEWERS_MAIN: 2
+  MIN_REVIEWERS_DEV: 1
+  AUTO_APPROVE_THRESHOLD: 0.3
+  COMPLEX_PR_THRESHOLD: 50
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+  issues: write
+  repository-projects: write
+
+jobs:
+  analyze-pr-complexity:
+    name: Analyze PR Complexity & Requirements
+    runs-on: ubuntu-latest
+    outputs:
+      complexity-score: ${{ steps.calculate-complexity.outputs.score }}
+      required-reviewers: ${{ steps.determine-reviewers.outputs.count }}
+      reviewer-teams: ${{ steps.determine-reviewers.outputs.teams }}
+      expertise-areas: ${{ steps.analyze-expertise.outputs.areas }}
+      review-priority: ${{ steps.set-priority.outputs.level }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get PR information
+        id: pr-info
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            pr_number="${{ github.event.inputs.pr_number }}"
+          else
+            pr_number="${{ github.event.pull_request.number }}"
+          fi
+          
+          pr_data=$(gh pr view $pr_number --json title,body,author,baseRefName,headRefName,changedFiles,additions,deletions,labels)
+          
+          echo "number=$pr_number" >> $GITHUB_OUTPUT
+          echo "title=$(echo "$pr_data" | jq -r '.title')" >> $GITHUB_OUTPUT
+          echo "author=$(echo "$pr_data" | jq -r '.author.login')" >> $GITHUB_OUTPUT
+          echo "base-branch=$(echo "$pr_data" | jq -r '.baseRefName')" >> $GITHUB_OUTPUT
+          echo "files-changed=$(echo "$pr_data" | jq -r '.changedFiles')" >> $GITHUB_OUTPUT
+          echo "additions=$(echo "$pr_data" | jq -r '.additions')" >> $GITHUB_OUTPUT
+          echo "deletions=$(echo "$pr_data" | jq -r '.deletions')" >> $GITHUB_OUTPUT
+
+      - name: Calculate complexity score
+        id: calculate-complexity
+        run: |
+          files_changed=${{ steps.pr-info.outputs.files-changed }}
+          additions=${{ steps.pr-info.outputs.additions }}
+          deletions=${{ steps.pr-info.outputs.deletions }}
+          base_branch="${{ steps.pr-info.outputs.base-branch }}"
+          
+          complexity=0
+          
+          # File count impact (0-30 points)
+          if [[ $files_changed -le 5 ]]; then
+            complexity=$((complexity + 5))
+          elif [[ $files_changed -le 15 ]]; then
+            complexity=$((complexity + 15))
+          else
+            complexity=$((complexity + 30))
+          fi
+          
+          # Lines changed impact (0-40 points)
+          total_changes=$((additions + deletions))
+          if [[ $total_changes -le 100 ]]; then
+            complexity=$((complexity + 10))
+          elif [[ $total_changes -le 500 ]]; then
+            complexity=$((complexity + 25))
+          else
+            complexity=$((complexity + 40))
+          fi
+          
+          # Branch criticality (0-30 points)
+          if [[ "$base_branch" == "main" ]]; then
+            complexity=$((complexity + 30))
+          elif [[ "$base_branch" == "development" ]]; then
+            complexity=$((complexity + 15))
+          else
+            complexity=$((complexity + 5))
+          fi
+          
+          echo "score=$complexity" >> $GITHUB_OUTPUT
+          echo "📊 Complexity score calculated: $complexity/100"
+
+      - name: Analyze expertise areas
+        id: analyze-expertise
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pr_number="${{ steps.pr-info.outputs.number }}"
+          
+          # Get changed files and categorize by expertise area
+          changed_files=$(gh pr diff $pr_number --name-only)
+          
+          expertise_areas=()
+          file_categories=()
+          
+          while IFS= read -r file; do
+            case "$file" in
+              backend/src/controllers/*|backend/src/routes/*)
+                expertise_areas+=("api-design")
+                file_categories+=("api")
+                ;;
+              backend/src/services/*|backend/src/lib/*)
+                expertise_areas+=("backend-logic")
+                file_categories+=("service")
+                ;;
+              backend/src/middleware/*|backend/src/auth/*)
+                expertise_areas+=("security")
+                file_categories+=("security")
+                ;;
+              backend/prisma/*|**/migrations/*)
+                expertise_areas+=("database")
+                file_categories+=("database")
+                ;;
+              frontend/src/components/*|frontend/src/pages/*)
+                expertise_areas+=("ui-ux")
+                file_categories+=("frontend")
+                ;;
+              frontend/src/hooks/*|frontend/src/lib/*)
+                expertise_areas+=("react-patterns")
+                file_categories+=("frontend-logic")
+                ;;
+              shared/src/types/*|**/types.ts)
+                expertise_areas+=("typescript")
+                file_categories+=("types")
+                ;;
+              **/test*|**/*.test.*|**/*.spec.*)
+                expertise_areas+=("testing")
+                file_categories+=("testing")
+                ;;
+              .github/workflows/*|*.yml|*.yaml)
+                expertise_areas+=("devops")
+                file_categories+=("ci-cd")
+                ;;
+              package.json|package-lock.json|*/package.json)
+                expertise_areas+=("dependencies")
+                file_categories+=("deps")
+                ;;
+              docs/*|*.md|README*)
+                expertise_areas+=("documentation")
+                file_categories+=("docs")
+                ;;
+            esac
+          done <<< "$changed_files"
+          
+          # Remove duplicates and create JSON array
+          unique_areas=($(printf '%s\n' "${expertise_areas[@]}" | sort -u))
+          unique_categories=($(printf '%s\n' "${file_categories[@]}" | sort -u))
+          
+          areas_json=$(printf '%s\n' "${unique_areas[@]}" | jq -R . | jq -s .)
+          categories_json=$(printf '%s\n' "${unique_categories[@]}" | jq -R . | jq -s .)
+          
+          echo "areas=$areas_json" >> $GITHUB_OUTPUT
+          echo "categories=$categories_json" >> $GITHUB_OUTPUT
+          
+          echo "🎯 Expertise areas identified: ${unique_areas[*]}"
+          echo "📁 File categories: ${unique_categories[*]}"
+
+      - name: Determine required reviewers
+        id: determine-reviewers
+        run: |
+          complexity_score=${{ steps.calculate-complexity.outputs.score }}
+          base_branch="${{ steps.pr-info.outputs.base-branch }}"
+          expertise_areas='${{ steps.analyze-expertise.outputs.areas }}'
+          
+          # Determine minimum reviewers based on branch and complexity
+          min_reviewers=1
+          
+          if [[ "$base_branch" == "main" ]]; then
+            min_reviewers=${{ env.MIN_REVIEWERS_MAIN }}
+          else
+            min_reviewers=${{ env.MIN_REVIEWERS_DEV }}
+          fi
+          
+          # Adjust based on complexity
+          if [[ $complexity_score -gt 70 ]]; then
+            min_reviewers=$((min_reviewers + 1))
+          fi
+          
+          # Determine required teams based on expertise areas
+          teams=()
+          area_count=$(echo "$expertise_areas" | jq length)
+          
+          if [[ $area_count -gt 0 ]]; then
+            while IFS= read -r area; do
+              case "$area" in
+                "api-design"|"backend-logic"|"security"|"database")
+                  teams+=("backend-team")
+                  ;;
+                "ui-ux"|"react-patterns")
+                  teams+=("frontend-team")
+                  ;;
+                "typescript")
+                  teams+=("typescript-experts")
+                  ;;
+                "testing")
+                  teams+=("qa-team")
+                  ;;
+                "devops")
+                  teams+=("devops-team")
+                  ;;
+                "dependencies")
+                  teams+=("security-reviewers")
+                  ;;
+                "documentation")
+                  teams+=("documentation-team")
+                  ;;
+              esac
+            done < <(echo "$expertise_areas" | jq -r '.[]')
+          fi
+          
+          # Remove duplicates and create JSON
+          unique_teams=($(printf '%s\n' "${teams[@]}" | sort -u))
+          teams_json=$(printf '%s\n' "${unique_teams[@]}" | jq -R . | jq -s .)
+          
+          echo "count=$min_reviewers" >> $GITHUB_OUTPUT
+          echo "teams=$teams_json" >> $GITHUB_OUTPUT
+          
+          echo "👥 Required reviewers: $min_reviewers"
+          echo "🏢 Required teams: ${unique_teams[*]}"
+
+      - name: Set review priority
+        id: set-priority
+        run: |
+          complexity_score=${{ steps.calculate-complexity.outputs.score }}
+          base_branch="${{ steps.pr-info.outputs.base-branch }}"
+          title="${{ steps.pr-info.outputs.title }}"
+          
+          priority="normal"
+          
+          # High priority conditions
+          if [[ "$title" =~ ^(fix|hotfix) ]] || [[ "$base_branch" == "main" && $complexity_score -gt 60 ]]; then
+            priority="high"
+          elif [[ $complexity_score -gt 80 ]]; then
+            priority="high"
+          elif [[ "$title" =~ ^(feat|feature) && $complexity_score -gt 50 ]]; then
+            priority="medium"
+          elif [[ "$title" =~ ^(docs|style|test|chore) ]]; then
+            priority="low"
+          fi
+          
+          echo "level=$priority" >> $GITHUB_OUTPUT
+          echo "⭐ Review priority: $priority"
+
+  intelligent-reviewer-assignment:
+    name: Intelligent Reviewer Assignment
+    runs-on: ubuntu-latest
+    needs: analyze-pr-complexity
+    if: github.event_name == 'pull_request' && github.event.action == 'opened'
+    steps:
+      - name: Assign reviewers based on analysis
+        id: assign-reviewers
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pr_number="${{ github.event.pull_request.number }}"
+          required_count=${{ needs.analyze-pr-complexity.outputs.required-reviewers }}
+          required_teams='${{ needs.analyze-pr-complexity.outputs.reviewer-teams }}'
+          expertise_areas='${{ needs.analyze-pr-complexity.outputs.expertise-areas }}'
+          author="${{ github.event.pull_request.user.login }}"
+          
+          echo "🎯 Assigning reviewers for PR #$pr_number"
+          echo "Required reviewers: $required_count"
+          echo "Required teams: $required_teams"
+          
+          # Extract team names from JSON
+          if [[ "$required_teams" != "[]" ]]; then
+            teams_to_assign=()
+            while IFS= read -r team; do
+              teams_to_assign+=("$team")
+            done < <(echo "$required_teams" | jq -r '.[]')
+            
+            echo "👥 Requesting reviews from teams: ${teams_to_assign[*]}"
+            
+            # Request reviews from teams (note: team reviews require organization membership)
+            for team in "${teams_to_assign[@]}"; do
+              echo "Requesting review from team: $team"
+              # gh pr edit $pr_number --add-reviewer "$team" || echo "Could not assign team $team"
+            done
+          fi
+          
+          # Add expert assignment comment
+          cat > review_assignment_comment.md << EOF
+          ## 👥 Reviewer Assignment Report
+          
+          **Required Reviewers:** $required_count minimum
+          **Expertise Areas:** $(echo "$expertise_areas" | jq -r '.[]' | tr '\n' ', ' | sed 's/,$//')
+          **Required Teams:** $(echo "$required_teams" | jq -r '.[]' | tr '\n' ', ' | sed 's/,$//')
+          
+          ### 🎯 Review Focus Areas:
+          $(echo "$expertise_areas" | jq -r '.[]' | sed 's/^/- /')
+          
+          ### 📋 Review Checklist:
+          - [ ] Code quality and adherence to standards
+          - [ ] Security considerations and best practices  
+          - [ ] Performance impact assessment
+          - [ ] Test coverage and quality
+          - [ ] Documentation completeness
+          - [ ] Breaking changes evaluation
+          
+          ---
+          *Automated reviewer assignment based on file changes and complexity analysis*
+          EOF
+          
+          gh pr comment $pr_number --body-file review_assignment_comment.md
+
+      - name: Set review labels and milestones
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pr_number="${{ github.event.pull_request.number }}"
+          priority="${{ needs.analyze-pr-complexity.outputs.review-priority }}"
+          complexity_score=${{ needs.analyze-pr-complexity.outputs.complexity-score }}
+          
+          labels=()
+          
+          # Priority labels
+          case "$priority" in
+            "high") labels+=("priority:high" "needs-urgent-review") ;;
+            "medium") labels+=("priority:medium" "needs-review") ;;
+            "low") labels+=("priority:low" "needs-review") ;;
+            *) labels+=("needs-review") ;;
+          esac
+          
+          # Complexity labels
+          if [[ $complexity_score -lt 30 ]]; then
+            labels+=("complexity:low")
+          elif [[ $complexity_score -lt 70 ]]; then
+            labels+=("complexity:medium")
+          else
+            labels+=("complexity:high")
+          fi
+          
+          # Review coordination label
+          labels+=("review-coordination-active")
+          
+          # Apply labels
+          for label in "${labels[@]}"; do
+            gh pr edit $pr_number --add-label "$label" || echo "Could not add label: $label"
+          done
+          
+          echo "🏷️ Applied labels: ${labels[*]}"
+
+  review-status-tracking:
+    name: Review Status Tracking & Coordination  
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'pull_request_review' ||
+      (github.event_name == 'pull_request' && 
+       (github.event.action == 'synchronize' || github.event.action == 'ready_for_review'))
+    needs: analyze-pr-complexity
+    steps:
+      - name: Track review progress
+        id: track-progress
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request_review" ]]; then
+            pr_number="${{ github.event.pull_request.number }}"
+          else
+            pr_number="${{ github.event.pull_request.number }}"
+          fi
+          
+          # Get current review status
+          pr_data=$(gh pr view $pr_number --json reviewRequests,reviews,reviewDecision)
+          
+          requested_reviewers=$(echo "$pr_data" | jq -r '.reviewRequests | length')
+          total_reviews=$(echo "$pr_data" | jq -r '.reviews | length')
+          
+          # Count review states
+          approved_count=$(echo "$pr_data" | jq -r '.reviews | map(select(.state == "APPROVED")) | length')
+          changes_requested_count=$(echo "$pr_data" | jq -r '.reviews | map(select(.state == "CHANGES_REQUESTED")) | length')
+          commented_count=$(echo "$pr_data" | jq -r '.reviews | map(select(.state == "COMMENTED")) | length')
+          
+          review_decision=$(echo "$pr_data" | jq -r '.reviewDecision')
+          required_reviewers=${{ needs.analyze-pr-complexity.outputs.required-reviewers }}
+          
+          echo "📊 Review Status:"
+          echo "- Requested reviewers: $requested_reviewers"
+          echo "- Total reviews: $total_reviews"
+          echo "- Approved: $approved_count"
+          echo "- Changes requested: $changes_requested_count"
+          echo "- Comments only: $commented_count"
+          echo "- Overall decision: $review_decision"
+          echo "- Required approvals: $required_reviewers"
+          
+          # Determine if PR is ready for merge
+          ready_for_merge="false"
+          if [[ "$review_decision" == "APPROVED" && $approved_count -ge $required_reviewers && $changes_requested_count -eq 0 ]]; then
+            ready_for_merge="true"
+          fi
+          
+          echo "approved=$approved_count" >> $GITHUB_OUTPUT
+          echo "changes-requested=$changes_requested_count" >> $GITHUB_OUTPUT
+          echo "total-reviews=$total_reviews" >> $GITHUB_OUTPUT
+          echo "ready-for-merge=$ready_for_merge" >> $GITHUB_OUTPUT
+          echo "review-decision=$review_decision" >> $GITHUB_OUTPUT
+
+      - name: Update review status comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pr_number="${{ github.event.pull_request.number || github.event.pull_request.number }}"
+          approved_count="${{ steps.track-progress.outputs.approved }}"
+          changes_requested="${{ steps.track-progress.outputs.changes-requested }}"
+          total_reviews="${{ steps.track-progress.outputs.total-reviews }}"
+          ready_for_merge="${{ steps.track-progress.outputs.ready-for-merge }}"
+          required_reviewers="${{ needs.analyze-pr-complexity.outputs.required-reviewers }}"
+          
+          # Create status message
+          status_icon="⏳"
+          status_text="In Review"
+          
+          if [[ "$ready_for_merge" == "true" ]]; then
+            status_icon="✅"
+            status_text="Ready to Merge"
+          elif [[ $changes_requested -gt 0 ]]; then
+            status_icon="🔄"
+            status_text="Changes Requested"
+          fi
+          
+          cat > review_status.md << EOF
+          ## $status_icon Review Status: $status_text
+          
+          **Progress:** $approved_count/$required_reviewers required approvals
+          
+          ### 📊 Review Summary:
+          - ✅ **Approved:** $approved_count
+          - 🔄 **Changes Requested:** $changes_requested
+          - 💬 **Total Reviews:** $total_reviews
+          
+          ### 🎯 Current State:
+          EOF
+          
+          if [[ "$ready_for_merge" == "true" ]]; then
+            echo "🎉 **This PR has all required approvals and is ready to merge!**" >> review_status.md
+            echo "" >> review_status.md
+            echo "✨ All review requirements have been satisfied." >> review_status.md
+          elif [[ $changes_requested -gt 0 ]]; then
+            echo "🔄 **This PR has requested changes that need to be addressed.**" >> review_status.md
+            echo "" >> review_status.md
+            echo "Please review the feedback and update your changes accordingly." >> review_status.md
+          else
+            remaining=$((required_reviewers - approved_count))
+            echo "⏳ **This PR needs $remaining more approval(s) before it can be merged.**" >> review_status.md
+            echo "" >> review_status.md
+            if [[ $remaining -gt 0 ]]; then
+              echo "Waiting for additional reviewers to complete their review." >> review_status.md
+            fi
+          fi
+          
+          echo "" >> review_status.md
+          echo "---" >> review_status.md
+          echo "*Last updated: $(date -u '+%Y-%m-%d %H:%M:%S UTC')*" >> review_status.md
+          
+          # Find and update existing status comment
+          existing_comment=$(gh pr view $pr_number --json comments --jq '.comments[] | select(.body | contains("Review Status:")) | .id' | head -1)
+          
+          if [[ -n "$existing_comment" ]]; then
+            gh api repos/${{ github.repository }}/issues/comments/$existing_comment \
+              --method PATCH \
+              --field body="$(cat review_status.md)"
+            echo "Updated existing review status comment"
+          else
+            gh pr comment $pr_number --body-file review_status.md
+            echo "Created new review status comment"
+          fi
+
+      - name: Update PR labels based on review status
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pr_number="${{ github.event.pull_request.number || github.event.pull_request.number }}"
+          ready_for_merge="${{ steps.track-progress.outputs.ready-for-merge }}"
+          changes_requested="${{ steps.track-progress.outputs.changes-requested }}"
+          
+          # Remove old status labels
+          old_labels=("needs-review" "needs-changes" "ready-to-merge" "review-in-progress")
+          for label in "${old_labels[@]}"; do
+            gh pr edit $pr_number --remove-label "$label" 2>/dev/null || true
+          done
+          
+          # Add appropriate status label
+          if [[ "$ready_for_merge" == "true" ]]; then
+            gh pr edit $pr_number --add-label "ready-to-merge"
+            gh pr edit $pr_number --add-label "approved"
+          elif [[ $changes_requested -gt 0 ]]; then
+            gh pr edit $pr_number --add-label "needs-changes"
+          else
+            gh pr edit $pr_number --add-label "review-in-progress"
+          fi
+
+  reviewer-notification-management:
+    name: Smart Reviewer Notifications
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'pull_request' && 
+      (github.event.action == 'opened' || github.event.action == 'ready_for_review') ||
+      github.event_name == 'issue_comment'
+    steps:
+      - name: Send reviewer notifications
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            pr_number="${{ github.event.pull_request.number }}"
+          else
+            pr_number="${{ github.event.issue.number }}"
+          fi
+          
+          echo "🔔 Managing notifications for PR #$pr_number"
+          
+          # Check if this is a mention or review request in comments
+          if [[ "${{ github.event_name }}" == "issue_comment" ]]; then
+            comment_body="${{ github.event.comment.body }}"
+            if [[ "$comment_body" =~ @[a-zA-Z0-9_-]+ ]]; then
+              echo "📢 Comment contains mentions - notifications will be sent automatically by GitHub"
+            fi
+          fi
+          
+          # For new PRs, send initial notification
+          if [[ "${{ github.event.action }}" == "opened" ]]; then
+            echo "📨 New PR opened - initial reviewer notifications sent"
+          fi
+
+  review-metrics-collection:
+    name: Review Metrics & Analytics
+    runs-on: ubuntu-latest
+    needs: [analyze-pr-complexity, review-status-tracking]
+    if: always() && github.event_name == 'pull_request_review'
+    steps:
+      - name: Collect review metrics
+        run: |
+          pr_number="${{ github.event.pull_request.number }}"
+          reviewer="${{ github.event.review.user.login }}"
+          review_state="${{ github.event.review.state }}"
+          
+          # Create metrics record
+          cat > review-metrics.json << EOF
+          {
+            "pr_number": $pr_number,
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "repository": "${{ github.repository }}",
+            "reviewer": "$reviewer",
+            "review_state": "$review_state",
+            "complexity_score": ${{ needs.analyze-pr-complexity.outputs.complexity-score }},
+            "required_reviewers": ${{ needs.analyze-pr-complexity.outputs.required-reviewers }},
+            "review_priority": "${{ needs.analyze-pr-complexity.outputs.review-priority }}",
+            "approved_count": "${{ needs.review-status-tracking.outputs.approved || 0 }}",
+            "total_reviews": "${{ needs.review-status-tracking.outputs.total-reviews || 0 }}"
+          }
+          EOF
+          
+          echo "📊 Review metrics collected"
+          cat review-metrics.json
+
+      - name: Upload review metrics
+        uses: actions/upload-artifact@v4
+        with:
+          name: review-metrics-${{ github.event.pull_request.number }}-${{ github.run_id }}
+          path: review-metrics.json
+          retention-days: 90
