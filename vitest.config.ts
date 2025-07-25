@@ -8,14 +8,36 @@ export default defineConfig({
     setupFiles: ['./test-setup.ts'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'],
+      reporter: ['text', 'json', 'html', 'lcov'],
       exclude: [
         'node_modules/**',
         'dist/**',
         '**/*.d.ts',
         'test-setup.ts',
-        'vitest.config.ts'
-      ]
+        'vitest.config.ts',
+        '**/*.stories.tsx',
+        '**/storybook-static/**'
+      ],
+      thresholds: {
+        global: {
+          branches: 90,
+          functions: 90,
+          lines: 90,
+          statements: 90
+        },
+        './frontend/src/components/': {
+          branches: 95,
+          functions: 95,
+          lines: 95,
+          statements: 95
+        },
+        './frontend/src/hooks/': {
+          branches: 92,
+          functions: 92,
+          lines: 92,
+          statements: 92
+        }
+      }
     }
   },
   resolve: {
