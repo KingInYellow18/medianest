@@ -2,24 +2,6 @@ import { vi } from 'vitest';
 import { configure } from '@testing-library/react'
 import '@testing-library/jest-dom';
 
-// Enhanced jsdom setup for Vitest v3
-import { JSDOM } from 'jsdom';
-
-// Mock getComputedStyle for better accessibility testing
-Object.defineProperty(window, 'getComputedStyle', {
-  value: vi.fn().mockImplementation(() => ({
-    getPropertyValue: vi.fn(() => ''),
-    display: 'block',
-    visibility: 'visible',
-    opacity: '1',
-    fontSize: '16px',
-    fontFamily: 'Arial, sans-serif',
-    color: 'rgb(0, 0, 0)',
-    backgroundColor: 'rgba(0, 0, 0, 0)',
-  })),
-  writable: true,
-});
-
 // Enhanced React Testing Library configuration for TDD
 configure({
   testIdAttribute: 'data-testid',

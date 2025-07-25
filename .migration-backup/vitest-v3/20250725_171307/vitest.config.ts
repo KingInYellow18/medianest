@@ -2,32 +2,13 @@ import { defineConfig } from 'vitest/config';
 import path from 'path';
 
 export default defineConfig({
-  // Vitest v3: Enhanced JSX support
-  esbuild: {
-    jsx: 'automatic',
-    jsxImportSource: 'react'
-  },
-  define: {
-    'process.env.NODE_ENV': '"test"'
-  },
   test: {
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./test-setup.ts'],
-    // Vitest v3: Updated pool configuration
-    pool: 'threads',
-    poolOptions: {
-      threads: {
-        singleThread: false,
-        minThreads: 1,
-        maxThreads: 4
-      }
-    },
     coverage: {
       provider: 'v8',
-      // Vitest v3: Updated reporter configuration
       reporter: ['text', 'json', 'html', 'lcov'],
-      reportOnFailure: true,
       exclude: [
         'node_modules/**',
         'dist/**',
