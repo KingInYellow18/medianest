@@ -1,0 +1,16 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./backend" },
+    { "path": "./frontend" },
+    { "path": "./shared" }
+  ],
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}

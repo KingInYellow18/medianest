@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # Database
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: medianest
+      POSTGRES_USER: medianest
+      POSTGRES_PASSWORD: medianest
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U medianest"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Cache
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # MediaNest Application
+  medianest:
+    build: .
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://medianest:medianest@postgres:5432/medianest
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-secure-jwt-secret-change-in-production}
+      PLEX_CLIENT_ID: ${PLEX_CLIENT_ID}
+      PLEX_CLIENT_SECRET: ${PLEX_CLIENT_SECRET}
+      OVERSEERR_URL: ${OVERSEERR_URL}
+      OVERSEERR_API_KEY: ${OVERSEERR_API_KEY}
+      FRONTEND_URL: http://localhost:3000
+    ports:
+      - "3000:3000"
+      - "8000:8000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  postgres_data:
+  redis_data:

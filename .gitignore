@@ -2,6 +2,7 @@
 # .gitignore for MediaNest Project - Unified Multi-Branch Configuration
 # Optimized for all branch strategies: production, development, testing, and experimentation
 # Merged from test branch: Complete test suite modernization and dependency updates
+# Enhanced by GitIgnore_Engineer: Comprehensive audit and performance optimization
 # =============================================================================
 
 # Dependencies (Always exclude)
@@ -12,6 +13,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+lerna-debug.log*
 
 # Build Outputs (Exclude - rebuilt frequently)
 build/
@@ -114,15 +116,118 @@ backups/
 *.backup
 *.bak
 
+# =============================================================================
+# DOCUMENTATION & BUILD SYSTEMS (Enhanced Coverage)
+# =============================================================================
+
+# MkDocs (Documentation system)
+site/
+mkdocs-env/
+.mkdocs/
+requirements.txt
+docs-venv/
+
+# Python Virtual Environments
+venv/
+env/
+ENV/
+.venv/
+.env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Documentation Build Artifacts
+**/node_modules/
+docs/build/
+storybook-static/
+.docusaurus/
+
 # Generated executables and temporary files
 claude-flow
 claude-flow.bat
 claude-flow.ps1
 hive-mind-prompt-*.txt
 
+# =============================================================================
+# SECURITY & SENSITIVE PATTERNS (Enhanced)
+# =============================================================================
+
+# Environment Files (Complete coverage)
+.env*
+!.env.example
+!.env.template
+.env.*.local
+.env.backup
+config.local.*
+
+# Certificate and Key Files (Enhanced patterns)
+*.pem
+*.key
+*.crt
+*.csr
+*.p12
+*.pfx
+*.cer
+*.der
+*.jks
+*.keystore
+*.truststore
+ca-certificates/
+
+# API Keys and Tokens
+**/api-keys/
+**/tokens/
+**/credentials/
+auth-config.json
+oauth-*.json
+
+# Cloud and Service Credentials
+.aws/
+.gcp/
+.azure/
+service-account*.json
+*-service-account.json
+
 # Environment files with potential secrets
 backend/.env.test
 frontend/.env.test
+
+# =============================================================================
+# PERFORMANCE & ANALYSIS ARTIFACTS
+# =============================================================================
+
+# Performance Analysis (Exclude large analysis directories)
+performance-analysis/
+performance-results/
+benchmarks/
+profiling/
+lighthouse-reports/
+
+# Audit and Report Files
+*-audit-report.json
+*-report.json
+link-check-report.json
+security-audit.json
+
+# Report and Analysis Files (Generated Documentation)
+*_COMPLETE.md
+*_REPORT.md
+*_SUMMARY.md
+*_GUIDE.md
+*_VALIDATION_REPORT.md
+*_IMPLEMENTATION_*.md
+*_OPTIMIZATION_*.md
+PRODUCTION_*.md
+QA_*.md
+QUALITY_*.md
+HIVE_MIND_*.md
+MKDOCS_*.md
+COMPREHENSIVE_*.md
 
 # Swarm and Hive Databases (Exclude from all branches except claude-flow)
 .swarm/memory.db
@@ -174,7 +279,49 @@ coordination/subtasks/*
 coordination/orchestration/*
 
 # =============================================================================
-# KEEP FOR DEVELOPMENT BRANCH
+# BRANCH-SPECIFIC OPTIMIZATION PATTERNS
+# =============================================================================
+
+# Development Branch: Enhanced Patterns
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.idea/workspace.xml
+!.idea/tasks.xml
+
+# Testing Branch: Allow test artifacts
+!test-results/
+!coverage/lcov.info
+!jest.config.js
+!vitest.config.ts
+
+# Production Branch: Strict exclusions
+production-*.log
+deploy-*.log
+monitoring/
+alerts/
+
+# =============================================================================
+# PERFORMANCE OPTIMIZATION PATTERNS  
+# =============================================================================
+
+# Build Cache Optimization
+.cache/
+.parcel-cache/
+.swc/
+.turbo/
+.nx/cache/
+.webpack/
+.vite/
+
+# Asset Optimization
+*.webp.tmp
+*.avif.tmp
+image-optimization/
+font-cache/
+
+# =============================================================================
+# KEEP FOR DEVELOPMENT BRANCH (Enhanced Guidelines)
 # =============================================================================
 # ✅ All source code and components
 # ✅ All documentation and guides  
@@ -186,6 +333,11 @@ coordination/orchestration/*
 # ✅ CI/CD configurations
 # ✅ Package management files
 # ✅ Development tooling configs (prettier, eslint, etc.)
+# ✅ Essential documentation (README.md, CONTRIBUTING.md)
+# ✅ Test configurations and fixtures
+# ✅ Build and deployment scripts
+
+
 
 # Claude Flow generated files
 .claude/settings.local.json
@@ -211,3 +363,10 @@ claude-flow
 claude-flow.bat
 claude-flow.ps1
 hive-mind-prompt-*.txt
+
+# Personal development files (development branch specific)
+personal-dev/
+*.personal.*
+*.experimental.*
+**/personal/
+.dev-personal/
