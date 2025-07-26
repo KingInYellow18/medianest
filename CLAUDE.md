@@ -1,76 +1,54 @@
-# MediaNest - Production Configuration
+# MediaNest Production Configuration
 
-## Project Overview
-MediaNest is a media management and automation platform that integrates with Plex, Overseerr, and other media services to provide a unified dashboard for managing your media library.
+## Production Environment Setup
 
-## Architecture
-- **Backend**: Node.js/Express API with Prisma ORM
-- **Frontend**: Next.js React application
-- **Database**: PostgreSQL with Redis for caching
-- **Authentication**: JWT-based with OAuth support
+This is the production-ready MediaNest deployment. This file contains configuration guidelines for production deployment and maintenance.
 
-## Quick Start
+## Build Commands
 
-### Prerequisites
-- Node.js 20+ and npm 10+
-- PostgreSQL database
-- Redis server
-
-### Installation
 ```bash
-# Install dependencies
-npm install
-
-# Setup database
-cd backend && npm run db:generate && npm run db:migrate
-
-# Build applications
+# Production build
 npm run build
 
 # Start production server
 npm start
+
+# Database operations
+npm run db:setup
+npm run db:migrate
+
+# Docker deployment
+npm run docker:prod
 ```
 
-### Configuration
-Create `.env` files in the appropriate directories with your configuration:
+## Environment Requirements
 
-**Backend** (`.env`):
-```
-DATABASE_URL="postgresql://user:password@localhost:5432/medianest"
-REDIS_URL="redis://localhost:6379"
-JWT_SECRET="your-jwt-secret"
-PLEX_CLIENT_ID="your-plex-client-id"
-```
+- Node.js 20+
+- PostgreSQL 14+
+- Redis 6+
+- Docker & Docker Compose (recommended)
 
-**Frontend** (`.env.local`):
-```
-NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="your-nextauth-secret"
-NEXT_PUBLIC_API_URL="http://localhost:8000"
-```
+## Security Configuration
+
+Ensure the following environment variables are properly configured for production:
+
+- `JWT_SECRET` - Strong secret key for JWT token signing
+- `DATABASE_URL` - Production PostgreSQL connection string
+- `REDIS_URL` - Production Redis connection string
+- `PLEX_CLIENT_ID` - Plex OAuth application ID
+- `PLEX_CLIENT_SECRET` - Plex OAuth application secret
 
 ## Production Deployment
 
-### Docker Deployment
-```bash
-# Build and run with Docker Compose
-docker-compose up -d
-```
+1. Clone repository
+2. Configure environment variables
+3. Run `docker-compose up -d`
+4. Access application at configured port
 
-### Manual Deployment
-```bash
-# Build for production
-npm run build
+## Monitoring
 
-# Start production server
-npm start
-```
+- Health check: `/api/health`
+- Metrics: `/api/metrics`
+- Logs: Available via Docker logs or log files
 
-## Available Scripts
-- `npm run build` - Build all applications
-- `npm start` - Start production server
-- `npm run docs:build` - Build documentation
-- `npm run docs:serve` - Serve documentation locally
-
-## Support
-For support and documentation, visit the project repository or contact the development team.
+This is a production-optimized configuration focused on deployment and operational excellence.

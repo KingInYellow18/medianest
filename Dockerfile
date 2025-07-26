@@ -1,5 +1,5 @@
-# MediaNest Production Dockerfile
-# Multi-stage build for optimal production image
+# MediaNest Test/Development Dockerfile
+# Multi-stage build for test and development use
 
 # Stage 1: Build stage
 FROM node:20-alpine AS builder

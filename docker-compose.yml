@@ -1,29 +1,28 @@
 version: '3.8'
 
 services:
-  # Database
+  # Database - Test Configuration
   postgres:
     image: postgres:15-alpine
     environment:
-      POSTGRES_DB: medianest
-      POSTGRES_USER: medianest
-      POSTGRES_PASSWORD: medianest
+      POSTGRES_DB: medianest_test
+      POSTGRES_USER: medianest_test
+      POSTGRES_PASSWORD: test_password_change_me
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./infrastructure/database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - postgres_test_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U medianest"]
+      test: ["CMD-SHELL", "pg_isready -U medianest_test"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Cache
+  # Cache - Test Configuration
   redis:
     image: redis:7-alpine
     volumes:
-      - redis_data:/data
+      - redis_test_data:/data
     ports:
       - "6379:6379"
     healthcheck:
@@ -32,25 +31,25 @@ services:
       timeout: 3s
       retries: 5
 
-  # MediaNest Application
+  # MediaNest Application - Test Mode
   medianest:
     build: .
     environment:
-      NODE_ENV: production
-      DATABASE_URL: postgresql://medianest:medianest@postgres:5432/medianest
+      NODE_ENV: test
+      DATABASE_URL: postgresql://medianest_test:test_password_change_me@postgres:5432/medianest_test
       REDIS_URL: redis://redis:6379/0
-      JWT_SECRET: ${JWT_SECRET:-secure-jwt-secret-change-in-production}
-      PLEX_CLIENT_ID: ${PLEX_CLIENT_ID}
-      PLEX_CLIENT_SECRET: ${PLEX_CLIENT_SECRET}
-      OVERSEERR_URL: ${OVERSEERR_URL}
-      OVERSEERR_API_KEY: ${OVERSEERR_API_KEY}
+      JWT_SECRET: ${JWT_SECRET:-test-jwt-secret-please-change-for-real-use}
+      PLEX_CLIENT_ID: ${PLEX_CLIENT_ID:-test-plex-client-id}
+      PLEX_CLIENT_SECRET: ${PLEX_CLIENT_SECRET:-test-plex-secret}
+      OVERSEERR_URL: ${OVERSEERR_URL:-http://localhost:5055}
+      OVERSEERR_API_KEY: ${OVERSEERR_API_KEY:-test-overseerr-key}
       FRONTEND_URL: http://localhost:3000
     ports:
       - "3000:3000"
       - "8000:8000"
     volumes:
-      - ./uploads:/app/uploads
-      - ./logs:/app/logs
+      - ./test-uploads:/app/uploads
+      - ./test-logs:/app/logs
     depends_on:
       postgres:
         condition: service_healthy
@@ -64,5 +63,5 @@ services:
       start_period: 40s
 
 volumes:
-  postgres_data:
-  redis_data:
+  postgres_test_data:
+  redis_test_data:
