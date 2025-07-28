@@ -1,413 +1,255 @@
-# =============================================================================
-# .gitignore for MediaNest Project - Unified Multi-Branch Configuration
-# Optimized for all branch strategies: production, development, testing, and experimentation
-# Merged from test branch: Complete test suite modernization and dependency updates
-# Enhanced by GitIgnore_Engineer: Comprehensive audit and performance optimization
-# =============================================================================
-
-# Dependencies (Always exclude)
+# Dependency directories
 node_modules/
-.pnp
-.pnp.js
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-.yarnrc.yml
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-pnpm-debug.log*
-lerna-debug.log*
-.rush/temp/
+jspm_packages/
 
-# Build Outputs (Exclude - rebuilt frequently)
-build/
-dist/
-out/
-.next/
-.nuxt/
-.output/
-coverage/
-.nyc_output
+# TypeScript cache
 *.tsbuildinfo
-next-env.d.ts
-.swc/
-.turbo/
 
-# TypeScript builds
-shared/**/*.js
-shared/**/*.js.map
-shared/**/*.d.ts
-shared/**/*.d.ts.map
-!shared/tsconfig.json
-*.tgz
+# Optional npm cache directory
+.npm
 
-# Next.js specific
-.vercel/
-.env*.local
+# Optional eslint cache
 .eslintcache
 
-# Environment & Secrets (Critical exclusion - even for personal dev)
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
 .env
+.env.test
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
-.env.staging
-.env.production*
-.env.prod*
-secrets/
-!secrets/.gitkeep
-.secrets/
-docker-secrets/
-certs/
-*.pem
-*.key
-*.crt
-*.csr
 
-# Testing & Experimentation (Include for learning and development)
-test-results/
-junit.xml
-results.json
-visual-regression-diff/
-screenshot-diff/
-playwright-report/
-storybook-static/
-.vitest/
-html/
-coverage-final.json
-lcov.info
-test-report.html
-# IDE Settings (Include personal configurations for development)
-# .vscode/ (KEEP personal IDE setup)
-# .idea/ (KEEP personal IDE setup)
-# Only exclude volatile temp data
-.stryker-tmp/
-.vscode/launch.json
-.vscode/extensions.json
-.idea/workspace.xml
-.idea/tasks.xml
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# next.js build output
+.next
+out
+
+# nuxt.js build output
+.nuxt
+
+# vuepress build output
+.vuepress/dist
+
+# Serverless directories
+.serverless
+
+# FuseBox cache
+.fusebox/
+
+# DynamoDB Local files
+.dynamodb/
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+
+# Temporary folders
+tmp/
+temp/
+
+# IDE files
+.vscode/
+.idea/
 *.swp
 *.swo
 *~
 
-# Modern IDEs
-.fleet/
-.cursor/
-.zed/
-*.sublime-workspace
-*.sublime-project
-.nova/
-
-# OS Files (Exclude system files)
+# OS generated files
 .DS_Store
-Thumbs.db
+.DS_Store?
+._*
+.Spotlight-V100
 .Trashes
+ehthumbs.db
+Thumbs.db
 
-# Runtime Data (Exclude volatile data)
+# Logs
+logs
 *.log
-logs/
-.cache/
-.parcel-cache/
-postgres_data/
-redis_data/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+.nyc_output/
+
+# Grunt intermediate storage (https://gruntjs.com/creating-plugins#storing-task-files)
+.grunt
+
+# Bower dependency directory (https://bower.io/)
+bower_components
+
+# node-waf configuration
+.lock-wscript
+
+# Compiled binary addons (https://nodejs.org/api/addons.html)
+build/Release
+
+# Project specific ignores
+
+# Database
+database.sqlite
 *.db
-*.db-journal
-*.db-wal
-*.sqlite
-*.sqlite-journal
-*.sqlite-wal
 
-# Prisma specific
-prisma/migrations/dev.db*
-prisma/*.db*
-prisma/dev.db*
-*.db-shm
+# Generated files
+dist/
+build/
 
-# Swarm and Hive Databases (Exclude runtime databases)
-.swarm/memory.db
-**/.swarm/memory.db
-.hive-mind/*.db
-.hive-mind/hive.db
-swarm-memory.db
-session-*
-./hive-mind
-# 
-# Docker Runtime
+# Testing
+coverage/
+
+## Docker
 docker-compose.override.yml
 
-# Media & Uploads (Exclude large files)
-uploads/
-youtube/
-downloads/
+# Configuration files
+.env.local
 
-# Cache & Temp (Exclude volatile)
-tmp/
-temp/
-.vercel
-
-# Large Backups (Exclude to save space)
-backups/
+# Backup files
 *.backup
 *.bak
 
-# =============================================================================
-# DOCUMENTATION & BUILD SYSTEMS (Enhanced Coverage)
-# =============================================================================
+# AI Files (Cursor, Aider, etc.)
+.aider*
+.cursor*
+*.aider.log
 
-# MkDocs (Documentation system)
-site/
-mkdocs-env/
-.mkdocs/
-requirements.txt
-docs-venv/
+# MCP
+.mcp*
 
-# Python Virtual Environments
-venv/
-env/
-ENV/
-.venv/
-.env/
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-pip-log.txt
-pip-delete-this-directory.txt
+# Local development
+.local
 
-# Documentation Build Artifacts
-**/node_modules/
-docs/build/
-storybook-static/
-.docusaurus/
+# Git hooks
+.lefthook*
 
-# Generated executables and temporary files
-claude-flow
-claude-flow.bat
-claude-flow.ps1
-hive-mind-prompt-*.txt
+# CloudFlare Tunnels
+.cloudflared/
 
-# =============================================================================
-# SECURITY & SENSITIVE PATTERNS (Enhanced)
-# =============================================================================
+# .NET Core
+obj/
+bin/
 
-# Environment Files (Complete coverage)
+# VS Code extensions
+.vscode/
+.devcontainer/
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Development tools
+.devcontainer.json
+.dockerignore.dev
+
+# Claude Code specific
+.claude/temp/
+.claude/logs/
+.claude/cache/
+
+# Ruv specific ignores
+.ruv/
+ruv.lock
+
+# Test outputs
+test-results/
+playwright-report/
+coverage/
+*.coverage
+
+# Development databases
+*.sqlite3
+*.db
+
+# Temporary build files
+dist/
+build/
+out/
+
+# Package manager files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files
 .env*
 !.env.example
-!.env.template
-.env.*.local
-.env.backup
-config.local.*
+!.env*.example
+!.env*.template
 
-# Certificate and Key Files (Enhanced patterns)
-*.pem
-*.key
-*.crt
-*.csr
-*.p12
-*.pfx
-*.cer
-*.der
-*.jks
-*.keystore
-*.truststore
-ca-certificates/
+# Logs
+*.log
+logs/
 
-# API Keys and Tokens
-**/api-keys/
-**/tokens/
-**/credentials/
-auth-config.json
-oauth-*.json
+# Runtime
+pids/
+*.pid
 
-# Cloud and Service Credentials
-.aws/
-.gcp/
-.azure/
-service-account*.json
-*-service-account.json
+# Coverage
+coverage/
+.nyc_output/
 
-# Environment files with potential secrets
-backend/.env.test
-frontend/.env.test
+# Generated reports and temporary analysis files
+*REPORT*.md
+*SUMMARY*.md
+*AUDIT*.md
+*_AUDIT_*.md
+*_REPORT*.md
+*_SUMMARY*.md
+coverage-*.txt
+backend-coverage-report.txt
+build-report.txt
+coverage-baseline-report.txt
 
-# =============================================================================
-# PERFORMANCE & ANALYSIS ARTIFACTS
-# =============================================================================
+# Temporary analysis and backup files  
+.gitignore.*
+Test_Tasks_MIGRATED_*/
+git-branch-audit-report.md
+claude-flow-example-prompts.md
 
-# Performance Analysis (Exclude large analysis directories)
-performance-analysis/
-performance-results/
-benchmarks/
-profiling/
-lighthouse-reports/
+# Archived/migrated content
+docs/archive/
 
-# Audit and Report Files
-*-audit-report.json
-*-report.json
-link-check-report.json
-security-audit.json
-
-# Report and Analysis Files (Generated Documentation)
-*_COMPLETE.md
-*_REPORT.md
-*_SUMMARY.md
-*_GUIDE.md
-*_VALIDATION_REPORT.md
-*_IMPLEMENTATION_*.md
-*_OPTIMIZATION_*.md
-PRODUCTION_*.md
-QA_*.md
-QUALITY_*.md
+# Task management files (temporary)
+TASK_*.md
+CLEANUP_*.md
+TECHNICAL_DEBT_*.md
 HIVE_MIND_*.md
-MKDOCS_*.md
-COMPREHENSIVE_*.md
-
-# Swarm and Hive Databases (Exclude from all branches except claude-flow)
-.swarm/memory.db
-**/.swarm/memory.db
-.hive-mind/*.db
-.hive-mind/hive.db
-swarm-memory.db
-
-# =============================================================================
-# DEVELOPMENT BRANCH: CONTRIBUTOR WORKFLOWS
-# =============================================================================
-# For development branch: Include shared team configs, exclude personal settings
-# This branch balances collaboration with personal privacy
-
-# Claude Flow - Include shared, exclude personal
-.claude/settings.local.json
-.mcp.json.local
-claude-flow.config.local.json
-memory/personal/
-.swarm/agents/personal/
-.hive-mind/personal/
-.claude/
-.roo/
-.swarm/
-.hive-mind/
-claude-flow.config.json
-.roomodes
-.claude-flow-project.json
-.mcp.json
-CLAUDE.md
-./claude 
-
-# Personal development tools (exclude for privacy)
-*.personal.json
-.dev-personal/
-**/personal/
-
-# =============================================================================
-# BRANCH STRATEGIES SUMMARY
-# =============================================================================
-# MAIN BRANCH: Production-ready code only
-# DEV BRANCH: Full development with test suite modernization
-# TEST BRANCH: Complete test suite modernization and dependency updates
-# CLAUDE-FLOW BRANCH: Maximum experimentation freedom
-
-
-# Runtime coordination (temporary)
-coordination/memory_bank/*
-coordination/subtasks/*
-coordination/orchestration/*
-
-# =============================================================================
-# BRANCH-SPECIFIC OPTIMIZATION PATTERNS
-# =============================================================================
-
-# Development Branch: Enhanced Patterns
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.idea/workspace.xml
-!.idea/tasks.xml
-
-# Testing Branch: Allow test artifacts
-!test-results/
-!coverage/lcov.info
-!jest.config.js
-!vitest.config.ts
-
-# Production Branch: Strict exclusions
-production-*.log
-deploy-*.log
-monitoring/
-alerts/
-
-# =============================================================================
-# PERFORMANCE OPTIMIZATION PATTERNS  
-# =============================================================================
-
-# Build Cache Optimization
-.cache/
-.parcel-cache/
-.swc/
-.turbo/
-.nx/cache/
-.webpack/
-.vite/
-
-# Asset Optimization
-*.webp.tmp
-*.avif.tmp
-image-optimization/
-font-cache/
-
-# =============================================================================
-# KEEP FOR DEVELOPMENT BRANCH (Enhanced Guidelines)
-# =============================================================================
-# ✅ All source code and components
-# ✅ All documentation and guides  
-# ✅ All configuration files
-# ✅ All test files and infrastructure
-# ✅ All development scripts
-# ✅ Team IDE settings (.vscode/settings.json)
-# ✅ Docker configurations
-# ✅ CI/CD configurations
-# ✅ Package management files
-# ✅ Development tooling configs (prettier, eslint, etc.)
-# ✅ Essential documentation (README.md, CONTRIBUTING.md)
-# ✅ Test configurations and fixtures
-# ✅ Build and deployment scripts
-
-
-
-
-# Personal development files (development branch specific)
-personal-dev/
-*.personal.*
-*.experimental.*
-**/personal/
-.dev-personal/
-
-# Claude Flow generated files
-.claude/settings.local.json
-.mcp.json
-claude-flow.config.json
-.swarm/
-.hive-mind/
-memory/claude-flow-data.json
-memory/sessions/*
-!memory/sessions/README.md
-memory/agents/*
-!memory/agents/README.md
-coordination/memory_bank/*
-coordination/subtasks/*
-coordination/orchestration/*
-*.db
-*.db-journal
-*.db-wal
-*.sqlite
-*.sqlite-journal
-*.sqlite-wal
-claude-flow
-claude-flow.bat
-claude-flow.ps1
-hive-mind-prompt-*.txt
+HOMELAB_*_OPTIMIZATION_*.md
+MCP_WORKFLOW_*.md

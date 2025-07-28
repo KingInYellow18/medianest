@@ -207,7 +207,7 @@ export class TestEnvironmentSetup {
     process.env.REDIS_PORT = TEST_CONFIG.redis.port.toString();
     process.env.REDIS_DB = TEST_CONFIG.redis.db.toString();
     process.env.JWT_SECRET = 'test-jwt-secret-key-for-testing-only';
-    process.env.ENCRYPTION_KEY = 'test-encryption-key-32-chars-long';
+    process.env.ENCRYPTION_KEY = '***REMOVED***';
     process.env.LOG_LEVEL = 'error'; // Reduce log noise in tests
   }
 

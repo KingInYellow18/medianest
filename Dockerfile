@@ -1,79 +1,98 @@
-# MediaNest Test/Development Dockerfile
-# Multi-stage build for test and development use
-
-# Stage 1: Build stage
+# Build stage
 FROM node:20-alpine AS builder
 
-# Set working directory
 WORKDIR /app
 
+# Install dependencies for building
+RUN apk add --no-cache python3 make g++
+
 # Copy package files
-COPY package*.json ./
-COPY backend/package*.json ./backend/
 COPY frontend/package*.json ./frontend/
-COPY shared/package*.json ./shared/
+COPY backend/package*.json ./backend/
 
 # Install dependencies
-RUN npm ci --only=production --workspaces
+WORKDIR /app/frontend
+RUN npm ci
+
+WORKDIR /app/backend
+RUN npm ci
 
 # Copy source code
-COPY . .
-
-# Build shared package first
-RUN npm run build --workspace=shared
-
-# Build backend
-RUN npm run build --workspace=backend
+WORKDIR /app
+COPY frontend ./frontend
+COPY backend ./backend
 
 # Build frontend
-RUN npm run build --workspace=frontend
+WORKDIR /app/frontend
+RUN npm run build
 
-# Stage 2: Production stage
-FROM node:20-alpine AS production
+# Build backend
+WORKDIR /app/backend
+RUN npx prisma generate
+RUN npm run build
 
-# Install dumb-init for proper signal handling
-RUN apk add --no-cache dumb-init
+# Production stage
+FROM node:20-alpine
 
-# Create app user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nextjs -u 1001
+# Security: Add labels for better container management
+LABEL maintainer="MediaNest Team"
+LABEL version="1.0.0"
+LABEL description="MediaNest - Unified Media Management Portal"
 
-# Set working directory
+# Install runtime dependencies and security updates
+RUN apk upgrade --no-cache && \
+    apk add --no-cache \
+        python3 \
+        py3-pip \
+        ffmpeg \
+        dumb-init \
+        curl && \
+    pip3 install --no-cache-dir yt-dlp
+
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-COPY backend/package*.json ./backend/
-COPY frontend/package*.json ./frontend/
-COPY shared/package*.json ./shared/
+# Create non-root user with specific UID/GID for consistency
+RUN addgroup -g 1000 -S nodejs && \
+    adduser -S nodejs -u 1000 -G nodejs && \
+    mkdir -p /app/uploads /app/downloads /app/logs && \
+    chown -R nodejs:nodejs /app
 
-# Install only production dependencies
-RUN npm ci --only=production --workspaces && npm cache clean --force
+# Copy built applications
+COPY --from=builder --chown=nodejs:nodejs /app/frontend ./frontend
+COPY --from=builder --chown=nodejs:nodejs /app/backend ./backend
 
-# Copy built applications from builder stage
-COPY --from=builder --chown=nextjs:nodejs /app/shared/dist ./shared/dist
-COPY --from=builder --chown=nextjs:nodejs /app/backend/dist ./backend/dist
-COPY --from=builder --chown=nextjs:nodejs /app/frontend/.next ./frontend/.next
-COPY --from=builder --chown=nextjs:nodejs /app/frontend/public ./frontend/public
+# Create directories for uploads and YouTube downloads
+RUN mkdir -p /app/uploads /app/youtube && \
+    chown -R nodejs:nodejs /app/uploads /app/youtube
 
-# Copy additional runtime files
-COPY --from=builder --chown=nextjs:nodejs /app/backend/prisma ./backend/prisma
+# Install production dependencies only
+WORKDIR /app/frontend
+RUN npm ci --production
 
-# Create necessary directories
-RUN mkdir -p logs uploads tmp && chown -R nextjs:nodejs logs uploads tmp
+WORKDIR /app/backend
+RUN npm ci --production
+
+# Copy startup script
+COPY --chown=nodejs:nodejs docker-entrypoint.sh /app/
+RUN chmod +x /app/docker-entrypoint.sh
+
+# Security: Set environment defaults
+ENV NODE_ENV=production \
+    NODE_OPTIONS="--max-old-space-size=1024" \
+    NPM_CONFIG_LOGLEVEL=warn
+
+# Health check for container orchestration
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:4000/api/health || exit 1
 
 # Switch to non-root user
-USER nextjs
+USER nodejs
 
-# Expose ports
-EXPOSE 3000 8000
+# Expose only necessary ports
+EXPOSE 3000 4000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node backend/dist/health-check.js
-
-# Use dumb-init for proper signal handling
+# Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]
 
-# Start the application
-CMD ["npm", "start"]
+# Start application
+CMD ["/app/docker-entrypoint.sh"]

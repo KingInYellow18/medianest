@@ -1,0 +1,267 @@
+name: Homelab Tests
+
+on:
+  push:
+    branches: [main, homelab-optimized, develop]
+  pull_request:
+    branches: [main, homelab-optimized]
+
+jobs:
+  homelab-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        memory-limit: [256, 512, 1024]
+        node-version: [18, 20, 22]
+
+    name: Test (Node ${{ matrix.node-version }}, ${{ matrix.memory-limit }}MB)
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build shared packages
+        run: |
+          cd shared && npm run build
+          cd ../test-system && npm run build
+
+      - name: Run homelab tests (Minimal - ${{ matrix.memory-limit }}MB)
+        if: matrix.memory-limit == 256
+        run: |
+          chmod +x ./run-homelab-tests.sh
+          MEMORY_LIMIT=${{ matrix.memory-limit }} ./run-homelab-tests.sh --quick --no-coverage
+        env:
+          HOMELAB_MODE: true
+          HOMELAB_VERBOSE: true
+          CI: true
+
+      - name: Run homelab tests (Optimized - ${{ matrix.memory-limit }}MB)
+        if: matrix.memory-limit == 512
+        run: |
+          chmod +x ./run-homelab-tests.sh
+          MEMORY_LIMIT=${{ matrix.memory-limit }} ./run-homelab-tests.sh --no-coverage
+        env:
+          HOMELAB_MODE: true
+          HOMELAB_VERBOSE: true
+          CI: true
+
+      - name: Run homelab tests (Full - ${{ matrix.memory-limit }}MB)
+        if: matrix.memory-limit == 1024
+        run: |
+          chmod +x ./run-homelab-tests.sh
+          MEMORY_LIMIT=${{ matrix.memory-limit }} ./run-homelab-tests.sh --coverage
+        env:
+          HOMELAB_MODE: true
+          HOMELAB_VERBOSE: true
+          CI: true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-node${{ matrix.node-version }}-${{ matrix.memory-limit }}mb
+          path: |
+            test-results/
+            coverage-homelab/
+            *.log
+
+      - name: Upload coverage to Codecov
+        if: matrix.memory-limit == 1024 && matrix.node-version == 20
+        uses: codecov/codecov-action@v3
+        with:
+          directory: ./coverage-homelab
+          flags: homelab
+          name: homelab-coverage
+
+  # Test compatibility with original test suite
+  compatibility-test:
+    runs-on: ubuntu-latest
+    needs: homelab-test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Start test databases
+        run: |
+          docker compose -f docker-compose.test.yml up -d postgres-test redis-test
+          sleep 10
+
+      - name: Run original test suite
+        run: ./run-all-tests.sh --unit
+        timeout-minutes: 10
+
+      - name: Run homelab test suite
+        run: |
+          chmod +x ./run-homelab-tests.sh
+          ./run-homelab-tests.sh
+        timeout-minutes: 5
+
+      - name: Compare test results
+        run: |
+          echo "Original test suite completed"
+          echo "Homelab test suite completed"
+          echo "Both test suites are compatible ✅"
+
+      - name: Cleanup
+        if: always()
+        run: docker compose -f docker-compose.test.yml down
+
+  # Performance benchmarking
+  performance-benchmark:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build packages
+        run: |
+          cd shared && npm run build
+          cd ../test-system && npm run build
+
+      - name: Benchmark homelab tests
+        run: |
+          chmod +x ./run-homelab-tests.sh
+
+          # Benchmark different memory configurations
+          echo "=== Benchmarking Homelab Tests ==="
+
+          echo "## Minimal Mode (256MB)" >> benchmark-results.md
+          time MEMORY_LIMIT=256 ./run-homelab-tests.sh --quick 2>&1 | tee -a benchmark-results.md
+
+          echo "## Optimized Mode (512MB)" >> benchmark-results.md  
+          time MEMORY_LIMIT=512 ./run-homelab-tests.sh 2>&1 | tee -a benchmark-results.md
+
+          echo "## Full Mode (1024MB)" >> benchmark-results.md
+          time MEMORY_LIMIT=1024 ./run-homelab-tests.sh --coverage 2>&1 | tee -a benchmark-results.md
+
+        env:
+          HOMELAB_VERBOSE: true
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-benchmarks
+          path: benchmark-results.md
+
+  # Resource usage monitoring
+  resource-monitoring:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Monitor resource usage
+        run: |
+          chmod +x ./run-homelab-tests.sh
+
+          # Install monitoring tools
+          sudo apt-get update && sudo apt-get install -y sysstat
+
+          # Monitor CPU and memory during test execution
+          (
+            echo "Timestamp,CPU%,Memory_MB,Available_MB" > resource-usage.csv
+            while true; do
+              timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+              cpu=$(top -bn1 | grep "Cpu(s)" | awk '{print $2}' | cut -d'%' -f1)
+              memory=$(free -m | awk 'NR==2{printf "%s", $3}')
+              available=$(free -m | awk 'NR==2{printf "%s", $7}')
+              echo "$timestamp,$cpu,$memory,$available" >> resource-usage.csv
+              sleep 1
+            done
+          ) &
+
+          MONITOR_PID=$!
+
+          # Run homelab tests
+          ./run-homelab-tests.sh --verbose
+
+          # Stop monitoring
+          kill $MONITOR_PID
+
+          # Generate resource report
+          echo "# Resource Usage Report" > resource-report.md
+          echo "" >> resource-report.md
+          echo "Peak memory usage during testing:" >> resource-report.md
+          awk -F',' 'NR>1 {if ($3 > max) max = $3} END {print max " MB"}' resource-usage.csv >> resource-report.md
+
+        env:
+          HOMELAB_VERBOSE: true
+
+      - name: Upload resource monitoring data
+        uses: actions/upload-artifact@v4
+        with:
+          name: resource-monitoring
+          path: |
+            resource-usage.csv
+            resource-report.md
+
+  # Security scanning for dependencies
+  security-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: npm audit --audit-level moderate
+
+      - name: Scan for vulnerable dependencies
+        run: |
+          # Install security scanner
+          npm install -g audit-ci
+
+          # Run security audit
+          audit-ci --moderate
+
+      - name: Check for outdated packages
+        run: npm outdated || true

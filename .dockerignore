@@ -1,108 +1,78 @@
-# Node.js
-node_modules/
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Dependencies
+node_modules
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+lerna-debug.log*
 .pnpm-debug.log*
 
-# Build outputs
-dist/
-build/
-.next/
-out/
-coverage/
+# Testing
+coverage
+.nyc_output
+*.test.ts
+*.spec.ts
+__tests__
+__mocks__
+test-results
 
-# Environment files
-.env
+# Development
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# IDE and editor files
-.vscode/
-.idea/
+.env.development
+.env.test
+*.log
+.DS_Store
+.vscode
+.idea
 *.swp
 *.swo
 *~
 
-# OS generated files
-.DS_Store
-Thumbs.db
-.Trashes
-
-# Runtime data
-*.log
-logs/
-*.db
-*.db-journal
-*.db-wal
-*.sqlite
-*.sqlite-journal
-*.sqlite-wal
-
-# Cache directories
-.cache/
-.parcel-cache/
-
-# Git
-.git/
-.gitignore
-
-# Development files
-*.md
-docs/
-site/
-.migration-backup/
-performance-analysis/
-testing_docs/
-tasks/
-scripts/qa-validation/
-
-# Temporary files
-tmp/
-temp/
-uploads/
-downloads/
-
-# Docker files
-Dockerfile
-docker-compose*.yml
-.dockerignore
-
-# Test files
-**/*.test.*
-**/*.spec.*
-**/__tests__/
-test-results/
-playwright-report/
+# Build artifacts
+dist
+build
+.next
+out
+.cache
+.turbo
 
 # Documentation
-README.md
-CHANGELOG.md
-CONTRIBUTING.md
+*.md
+docs
 LICENSE
 
 # CI/CD
-.github/
+.github
 .gitlab-ci.yml
 .travis.yml
 
-# Package manager
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
 
-# Backups
-backups/
-*.backup
-*.bak
+# Temporary files
+tmp
+temp
+*.tmp
+*.temp
 
-# Claude Flow and Hive Mind
-.claude/
-.swarm/
-.hive-mind/
-memory/
-coordination/
-claude-flow*
-hive-mind-prompt-*.txt
+# OS Files
+Thumbs.db
+Desktop.ini
+
+# Security - Never include these
+.env
+.env.production
+secrets
+*.key
+*.pem
+*.pfx
+*.p12
+*.crt
+*.csr
+private

@@ -1,229 +1,164 @@
-# MediaNest 🎬
+# MediaNest
 
-> **Production-ready unified web portal for managing Plex media server and related services**
+A unified web portal for managing Plex media server and related services.
 
-[![Production Status](https://img.shields.io/badge/status-production-green)]() [![Docker Ready](https://img.shields.io/badge/docker-ready-blue)]() [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
-
-## 🚀 Quick Deploy
-
-MediaNest is a production-ready media management portal that consolidates Plex media server access, request management, and system monitoring into a single secure interface.
-
-### One-Command Deployment
-
-```bash
-# Clone and deploy
-git clone https://github.com/your-org/medianest.git
-cd medianest
-
-# Configure environment
-cp .env.example .env
-# Edit .env with your production settings
-
-# Production deployment
-docker-compose up -d
-
-# Access at http://localhost:3000
-```
-
-## 🏗️ Architecture
-
-MediaNest uses a modern three-tier architecture:
-
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │   Backend API   │    │   Services      │
-│                 │    │                 │    │                 │
-│ • React + TS    │◄──►│ • Node.js + TS  │◄──►│ • PostgreSQL    │
-│ • TailwindCSS   │    │ • Express       │    │ • Redis         │
-│ • Component Lib │    │ • Prisma ORM    │    │ • File Storage  │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
-
-## ✨ Production Features
-
-- **🔐 Plex OAuth Integration** - Secure single sign-on authentication
-- **📺 Media Request Management** - Overseerr integration for content requests  
-- **📊 Real-time Monitoring** - System health and performance dashboards
-- **🎯 Queue Management** - YouTube content downloading and processing
-- **⚡ High Performance** - Optimized for production workloads
-- **🛡️ Enterprise Security** - JWT authentication, rate limiting, comprehensive logging
-- **📱 Mobile Ready** - Responsive design with accessibility compliance
-
-## 🔧 Production Setup
+## Quick Start
 
 ### Prerequisites
 
-- **Docker & Docker Compose** (recommended)
-- **Node.js** 20+ (for manual deployment)
-- **PostgreSQL** 14+
-- **Redis** 6+
+- Node.js 20.x or higher
+- Docker and Docker Compose
+- PostgreSQL 15.x (for local development)
+- Redis 7.x (for local development)
 
-### Environment Configuration
+### Development Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd medianest
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm run install:all
+   ```
+
+3. **Set up environment variables**
+   ```bash
+   cp .env.example .env
+   npm run generate-secrets
+   ```
+   Then edit `.env` with your configuration.
+
+4. **Set up the database**
+   ```bash
+   # Start PostgreSQL and Redis (if not using Docker)
+   # Then run migrations
+   npm run db:generate
+   npm run db:migrate
+   ```
+
+5. **Start development servers**
+   ```bash
+   npm run dev
+   ```
+
+   This starts:
+   - Frontend at http://localhost:3000
+   - Backend at http://localhost:4000
+
+### Docker Development
+
+To run the entire stack with Docker:
 
 ```bash
-# Required environment variables
-PLEX_CLIENT_ID=your_plex_client_id
-PLEX_CLIENT_SECRET=your_plex_client_secret
-DATABASE_URL=postgresql://user:password@localhost:5432/medianest
-REDIS_URL=redis://localhost:6379
-JWT_SECRET=your_jwt_secret_key
-```
-
-### Docker Deployment (Recommended)
-
-```bash
-# Production deployment
-docker-compose up -d
+# Build and start all services
+npm run docker:up
 
 # View logs
-docker-compose logs -f
+npm run docker:logs
 
-# Scale services
-docker-compose up -d --scale backend=2
+# Stop all services
+npm run docker:down
 ```
 
-### Manual Deployment
+## Project Structure
 
-```bash
-# Install dependencies
-npm install
-
-# Build all services
-npm run build
-
-# Database setup
-npm run db:setup
-
-# Start production server
-npm start
+```
+medianest/
+├── frontend/          # Next.js 14 frontend application
+│   ├── src/
+│   │   ├── app/      # App router pages and layouts
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── lib/
+│   │   └── services/
+│   └── server.js     # Custom server for Socket.io support
+├── backend/          # Express.js backend API
+│   ├── src/
+│   │   ├── config/
+│   │   ├── controllers/
+│   │   ├── integrations/
+│   │   ├── jobs/
+│   │   ├── middleware/
+│   │   ├── repositories/
+│   │   ├── routes/
+│   │   ├── services/
+│   │   ├── types/
+│   │   └── utils/
+│   └── prisma/       # Database schema and migrations
+├── infrastructure/   # Infrastructure configuration
+│   └── database/     # Database initialization scripts
+├── docs/            # Documentation
+└── scripts/         # Utility scripts
 ```
 
-## 🎯 Production Commands
+## Available Scripts
 
-```bash
-# Build for production
-npm run build
+### Root Commands
+- `npm run dev` - Start both frontend and backend in development mode
+- `npm run build` - Build both frontend and backend for production
+- `npm run lint` - Run linting for both frontend and backend
+- `npm run type-check` - Run TypeScript type checking
 
-# Start production servers
-npm start
+### Database Commands
+- `npm run db:generate` - Generate Prisma client
+- `npm run db:migrate` - Run database migrations
+- `npm run db:studio` - Open Prisma Studio
 
-# Database operations
-npm run db:setup
-npm run db:migrate
+### Docker Commands
+- `npm run docker:build` - Build Docker images
+- `npm run docker:up` - Start all services with Docker Compose
+- `npm run docker:down` - Stop all services
+- `npm run docker:logs` - View container logs
 
-# Docker operations
-npm run docker:build
-npm run docker:prod
+## Configuration
 
-# Maintenance
-npm run clean
+### Environment Variables
+
+See `.env.example` for all available configuration options. Key variables:
+
+- `DATABASE_URL` - PostgreSQL connection string
+- `REDIS_URL` - Redis connection string
+- `NEXTAUTH_SECRET` - Secret for NextAuth.js
+- `PLEX_CLIENT_ID/SECRET` - Plex OAuth credentials
+- `ENCRYPTION_KEY` - Key for encrypting sensitive data
+
+### External Services
+
+External service configurations (Plex, Overseerr, Uptime Kuma) are managed through the admin UI after deployment.
+
+## Reverse Proxy Configuration
+
+MediaNest is designed to work behind a reverse proxy. The application:
+- Trusts proxy headers (`X-Forwarded-*`)
+- Handles WebSocket upgrades for Socket.io
+- Supports path-based routing
+
+Example nginx configuration:
+
+```nginx
+location / {
+    proxy_pass http://localhost:3000;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_cache_bypass $http_upgrade;
+}
 ```
 
-## 🔄 Updates & Maintenance
+## Contributing
 
-### Updating MediaNest
+1. Create a feature branch
+2. Make your changes
+3. Run tests and linting
+4. Submit a pull request
 
-```bash
-# Pull latest changes
-git pull origin main
+## License
 
-# Rebuild and restart
-docker-compose down
-docker-compose build --no-cache
-docker-compose up -d
-```
-
-### Backup & Recovery
-
-```bash
-# Database backup
-docker exec medianest_db pg_dump -U postgres medianest > backup.sql
-
-# Restore database
-docker exec -i medianest_db psql -U postgres medianest < backup.sql
-```
-
-## 📊 Monitoring
-
-MediaNest includes built-in health checks and monitoring:
-
-- **Health Endpoint**: `GET /api/health`
-- **Metrics Endpoint**: `GET /api/metrics`
-- **Real-time Dashboard**: Available in the web interface
-
-### Production Monitoring
-
-```bash
-# Check service health
-curl http://localhost:3000/api/health
-
-# View application logs
-docker-compose logs backend
-
-# Monitor resource usage
-docker stats medianest_backend medianest_frontend
-```
-
-## 🛡️ Security
-
-MediaNest implements enterprise-grade security:
-
-- **JWT Authentication** with secure token rotation
-- **Rate Limiting** to prevent abuse
-- **CORS Protection** for cross-origin requests
-- **Input Validation** and sanitization
-- **Secure Headers** and HTTPS enforcement
-
-## 📈 Performance
-
-Optimized for production workloads:
-
-- **CDN Ready** - Static assets optimized for CDN delivery
-- **Database Optimization** - Efficient queries and connection pooling
-- **Caching Strategy** - Redis-based caching for improved performance
-- **Horizontal Scaling** - Supports load balancing and multiple instances
-
-## 🔗 External Integrations
-
-MediaNest connects to:
-
-- **Plex Media Server** - Primary media management
-- **Overseerr** - Media request handling
-- **YouTube API** - Content downloading (optional)
-
-### Configuration
-
-Set up integrations in your `.env` file:
-
-```bash
-# Plex Configuration
-PLEX_SERVER_URL=https://your-plex-server.com
-PLEX_TOKEN=your_plex_token
-
-# Overseerr Integration
-OVERSEERR_URL=https://your-overseerr.com
-OVERSEERR_API_KEY=your_overseerr_api_key
-```
-
-## 📄 License
-
-MediaNest is open source software licensed under the MIT License.
-
-## 🆘 Support
-
-For production support:
-
-- Check the health endpoint: `/api/health`
-- Review application logs via Docker or log files
-- Verify environment configuration
-- Ensure all required services are running
-
----
-
-<div align="center">
-
-**Production-ready media management for modern deployments**
-
-[Quick Deploy](#-quick-deploy) • [Configuration](#-production-setup) • [Monitoring](#-monitoring)
-
-</div>
+[Your License Here]

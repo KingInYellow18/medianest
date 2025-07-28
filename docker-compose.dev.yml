@@ -1,13 +1,17 @@
 version: '3.8'
 
+# Development-only services
+# Use with: docker-compose -f docker-compose.dev.yml up -d
+
 services:
-  # Database
-  postgres-dev:
+  postgres:
     image: postgres:15-alpine
+    container_name: medianest-postgres-dev
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: medianest_dev
-      POSTGRES_USER: medianest
-      POSTGRES_PASSWORD: medianest
+      - POSTGRES_DB=medianest
+      - POSTGRES_USER=medianest
+      - POSTGRES_PASSWORD=medianest_password
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
     ports:
@@ -18,9 +22,11 @@ services:
       timeout: 5s
       retries: 5
 
-  # Cache
-  redis-dev:
+  redis:
     image: redis:7-alpine
+    container_name: medianest-redis-dev
+    restart: unless-stopped
+    command: redis-server --appendonly yes
     volumes:
       - redis_dev_data:/data
     ports:
@@ -28,16 +34,8 @@ services:
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
-      timeout: 3s
+      timeout: 5s
       retries: 5
-
-  # Development services can be added here
-  # mailhog for email testing
-  mailhog:
-    image: mailhog/mailhog:latest
-    ports:
-      - "1025:1025"  # SMTP server
-      - "8025:8025"  # Web UI
 
 volumes:
   postgres_dev_data:
