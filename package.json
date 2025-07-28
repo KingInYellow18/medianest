@@ -23,7 +23,7 @@
     "db:migrate": "npm run db:migrate --workspace=backend"
   },
   "devDependencies": {
-    "@types/node": "^20.14.10",
+    "@types/node": "^24.1.0",
     "autoprefixer": "^10.4.21",
     "concurrently": "^8.2.2",
     "postcss": "^8.5.6",
