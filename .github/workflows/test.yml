@@ -92,7 +92,7 @@ jobs:
           JWT_SECRET: test-jwt-secret
           JWT_REFRESH_SECRET: test-jwt-refresh-secret
           SESSION_SECRET: test-session-secret
-          ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+          ENCRYPTION_KEY: ***REMOVED***
         run: |
           cd backend
           npm run test:coverage -- --reporter=json-summary --reporter=lcov
@@ -321,7 +321,7 @@ jobs:
           JWT_SECRET: test-jwt-secret
           JWT_REFRESH_SECRET: test-jwt-refresh-secret
           SESSION_SECRET: test-session-secret
-          ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+          ENCRYPTION_KEY: ***REMOVED***
         run: |
           cd backend
           ./run-critical-paths.sh

@@ -63,7 +63,7 @@ jobs:
           npm run build-storybook
 
       - name: Run Chromatic Visual Tests
-        uses: chromaui/action@v13
+        uses: chromaui/action@v1
         with:
           projectToken: \${{ secrets.CHROMATIC_PROJECT_TOKEN }}
           workingDir: frontend
@@ -122,15 +122,15 @@ jobs:
           COMPONENT_FILES=\$(find src/components -name "*.tsx" -not -name "*.stories.tsx" -not -name "*.test.tsx" | wc -l)
           STORY_FILES=\$(find src/components -name "*.stories.tsx" | wc -l)
           COVERAGE=\$((STORY_FILES * 100 / COMPONENT_FILES))
-
+          
           echo "Component files: \$COMPONENT_FILES"
           echo "Story files: \$STORY_FILES"
           echo "Coverage: \$COVERAGE%"
-
+          
           if [ \$COVERAGE -lt 80 ]; then
             echo "❌ Story coverage (\$COVERAGE%) is below minimum threshold (80%)"
             exit 1
           else
             echo "✅ Story coverage (\$COVERAGE%) meets minimum threshold (80%)"
           fi
-          EOF
+EOF < /dev/null

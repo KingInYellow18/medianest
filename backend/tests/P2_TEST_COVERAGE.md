@@ -333,7 +333,7 @@ NODE_ENV=test
 DATABASE_URL=postgresql://test:test@localhost:5432/medianest_test
 REDIS_URL=redis://localhost:6379
 JWT_SECRET=test-secret-key
-ENCRYPTION_KEY=test-encryption-key-32-chars-long
+ENCRYPTION_KEY=***REMOVED***
 ```
 
 ## Monitoring and Alerting
