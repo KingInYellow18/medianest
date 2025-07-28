@@ -1,38 +1,41 @@
 {
   "name": "@medianest/frontend",
   "version": "1.0.0",
-  "private": true,
+  "description": "MediaNest Frontend Application",
+  "type": "module",
   "scripts": {
-    "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "type-check": "tsc --noEmit",
-    "test": "vitest",
-    "test:e2e": "playwright test"
+    "clean": "rimraf .next out"
   },
   "dependencies": {
-    "next": "^15.4.2",
+    "@medianest/shared": "workspace:*",
+    "@radix-ui/react-dropdown-menu": "^2.1.15",
+    "@radix-ui/react-progress": "^1.1.7",
+    "@radix-ui/react-slot": "^1.2.3",
+    "@tanstack/react-query": "^5.83.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.525.0",
+    "next": "^15.4.4",
+    "next-auth": "^4.24.11",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "next-auth": "^4.24.8",
-    "axios": "^1.7.7",
-    "socket.io-client": "^4.7.5",
-    "@tanstack/react-query": "^5.62.9",
-    "lucide-react": "^0.525.0",
-    "tailwindcss": "^3.4.16",
-    "zod": "^4.0.10"
+    "tailwind-merge": "^3.3.1",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@types/node": "^24.0.15",
-    "@types/react": "^19.1.8",
-    "@types/react-dom": "^19.1.6",
-    "typescript": "^5.7.3",
-    "eslint": "^9.32.0",
-    "eslint-config-next": "^15.4.2",
-    "@playwright/test": "^1.49.1",
-    "vitest": "^3.2.4",
-    "autoprefixer": "^10.4.20",
-    "postcss": "^8.5.4"
+    "@types/node": "^20.14.10",
+    "@types/react": "^19.0.1",
+    "@types/react-dom": "^19.0.1",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "rimraf": "^5.0.5",
+    "tailwindcss": "^4.1.11",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
   }
 }

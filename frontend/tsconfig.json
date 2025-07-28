@@ -1,10 +1,17 @@
 {
-  "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "jsx": "preserve",
+    "lib": ["dom", "dom.iterable", "ES6"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
     "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
     "incremental": true,
     "plugins": [
       {
@@ -14,21 +21,10 @@
     "paths": {
       "@/*": ["./src/*"],
       "@/components/*": ["./src/components/*"],
-      "@/lib/*": ["./src/lib/*", "./lib/*"],
-      "@/hooks/*": ["./src/hooks/*", "./hooks/*"],
-      "@/services/*": ["./src/services/*", "./services/*"],
-      "@/contexts/*": ["./contexts/*"],
-      "@/types/*": ["./src/types/*", "./types/*"],
-      "@/utils/*": ["./utils/*"],
-      "@medianest/shared": ["../shared/dist"],
-      "@medianest/shared/*": ["../shared/dist/*"]
-    },
-    "baseUrl": ".",
-    "allowJs": true,
-    "noEmit": true,
-    "isolatedModules": true,
-    "moduleDetection": "force",
-    "moduleResolution": "bundler"
+      "@/hooks/*": ["./src/hooks/*"],
+      "@/lib/*": ["./src/lib/*"],
+      "@/styles/*": ["./src/styles/*"]
+    }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]

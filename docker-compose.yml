@@ -1,84 +1,67 @@
 version: '3.8'
 
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: medianest-app
-    restart: unless-stopped
-    ports:
-      - '3000:3000'
-      - '4000:4000'
+  # Database - Test Configuration
+  postgres:
+    image: postgres:15-alpine
     environment:
-      - NODE_ENV=production
-      - DATABASE_URL=postgresql://medianest:medianest_password@postgres:5432/medianest?connection_limit=20&pool_timeout=30
-      - REDIS_URL=redis://redis:6379
-      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
-      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
-      - PLEX_CLIENT_ID=${PLEX_CLIENT_ID}
-      - PLEX_CLIENT_SECRET=${PLEX_CLIENT_SECRET}
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      POSTGRES_DB: medianest_test
+      POSTGRES_USER: medianest_test
+      POSTGRES_PASSWORD: test_password_change_me
     volumes:
-      - ./youtube:/app/youtube:rw
-      - uploads:/app/uploads:rw
+      - postgres_test_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U medianest_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Cache - Test Configuration
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_test_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # MediaNest Application - Test Mode
+  medianest:
+    build: .
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://medianest_test:test_password_change_me@postgres:5432/medianest_test
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-test-jwt-secret-please-change-for-real-use}
+      PLEX_CLIENT_ID: ${PLEX_CLIENT_ID:-test-plex-client-id}
+      PLEX_CLIENT_SECRET: ${PLEX_CLIENT_SECRET:-test-plex-secret}
+      OVERSEERR_URL: ${OVERSEERR_URL:-http://localhost:5055}
+      OVERSEERR_API_KEY: ${OVERSEERR_API_KEY:-test-overseerr-key}
+      FRONTEND_URL: http://localhost:3000
+    ports:
+      - "3000:3000"
+      - "8000:8000"
+    volumes:
+      - ./test-uploads:/app/uploads
+      - ./test-logs:/app/logs
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-    user: '1000:1000'
-    networks:
-      - medianest-network
-
-  postgres:
-    image: postgres:15-alpine
-    container_name: medianest-postgres
-    restart: unless-stopped
-    environment:
-      - POSTGRES_DB=medianest
-      - POSTGRES_USER=medianest
-      - POSTGRES_PASSWORD=medianest_password
-      - POSTGRES_INITDB_ARGS=--encoding=UTF-8
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./infrastructure/database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
-    ports:
-      - '5432:5432'
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U medianest']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - medianest-network
-
-  redis:
-    image: redis:7-alpine
-    container_name: medianest-redis
-    restart: unless-stopped
-    command: >
-      redis-server
-      --appendonly yes
-      --maxmemory 256mb
-      --maxmemory-policy allkeys-lru
-    volumes:
-      - redis_data:/data
-    ports:
-      - '6379:6379'
-    healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - medianest-network
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 volumes:
-  postgres_data:
-  redis_data:
-  uploads:
-
-networks:
-  medianest-network:
-    driver: bridge
+  postgres_test_data:
+  redis_test_data:

@@ -1,0 +1,679 @@
+name: Smart Notification Management & Communication
+# Intelligent notification system for PR events, status updates, and team coordination
+
+on:
+  pull_request:
+    types: [opened, closed, reopened, ready_for_review, review_requested]
+    branches: [main, development, test, dev]
+  pull_request_review:
+    types: [submitted, dismissed]
+  issues:
+    types: [opened, closed, reopened, assigned]
+  issue_comment:
+    types: [created]
+  workflow_run:
+    workflows: ["Quality Gate Automation & Validation", "PR Review Coordination & Multi-Reviewer Management"]
+    types: [completed]
+  schedule:
+    - cron: '0 9 * * 1-5'  # Daily at 9 AM, weekdays only
+  workflow_dispatch:
+    inputs:
+      notification_type:
+        description: 'Type of notification to send'
+        required: true
+        type: choice
+        options:
+          - daily-summary
+          - weekly-report
+          - pr-reminder
+          - team-status-update
+      target_audience:
+        description: 'Who should receive the notification'
+        required: false
+        type: choice
+        options:
+          - all-teams
+          - maintainers
+          - reviewers
+          - contributors
+        default: 'maintainers'
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  NOTIFICATION_ENABLED: true
+  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+  TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: read
+  checks: read
+  actions: read
+
+jobs:
+  analyze-notification-context:
+    name: Analyze Notification Context
+    runs-on: ubuntu-latest
+    outputs:
+      notification-type: ${{ steps.determine-type.outputs.type }}
+      priority-level: ${{ steps.assess-priority.outputs.level }}
+      target-audience: ${{ steps.identify-audience.outputs.audience }}
+      message-template: ${{ steps.select-template.outputs.template }}
+      should-notify: ${{ steps.check-conditions.outputs.should-notify }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Determine notification type
+        id: determine-type
+        run: |
+          notification_type="general"
+          
+          case "${{ github.event_name }}" in
+            pull_request)
+              case "${{ github.event.action }}" in
+                opened) notification_type="pr-opened" ;;
+                closed) 
+                  if [[ "${{ github.event.pull_request.merged }}" == "true" ]]; then
+                    notification_type="pr-merged"
+                  else
+                    notification_type="pr-closed"
+                  fi
+                  ;;
+                ready_for_review) notification_type="pr-ready-for-review" ;;
+                review_requested) notification_type="review-requested" ;;
+              esac
+              ;;
+            pull_request_review)
+              case "${{ github.event.review.state }}" in
+                approved) notification_type="review-approved" ;;
+                changes_requested) notification_type="review-changes-requested" ;;
+                commented) notification_type="review-commented" ;;
+              esac
+              ;;
+            issues)
+              case "${{ github.event.action }}" in
+                opened) notification_type="issue-opened" ;;
+                closed) notification_type="issue-closed" ;;
+                assigned) notification_type="issue-assigned" ;;
+              esac
+              ;;
+            workflow_run)
+              notification_type="workflow-completed"
+              ;;
+            schedule)
+              notification_type="daily-summary"
+              ;;
+            workflow_dispatch)
+              notification_type="${{ github.event.inputs.notification_type }}"
+              ;;
+          esac
+          
+          echo "type=$notification_type" >> $GITHUB_OUTPUT
+          echo "🎯 Notification type: $notification_type"
+
+      - name: Assess priority level
+        id: assess-priority
+        run: |
+          notification_type="${{ steps.determine-type.outputs.type }}"
+          priority="normal"
+          
+          case "$notification_type" in
+            pr-opened|review-requested)
+              if [[ "${{ github.event.pull_request.base.ref }}" == "main" ]]; then
+                priority="high"
+              else
+                priority="normal"
+              fi
+              ;;
+            pr-merged)
+              if [[ "${{ github.event.pull_request.base.ref }}" == "main" ]]; then
+                priority="high"
+              else
+                priority="normal"
+              fi
+              ;;
+            review-changes-requested)
+              priority="medium"
+              ;;
+            workflow-completed)
+              if [[ "${{ github.event.workflow_run.conclusion }}" == "failure" ]]; then
+                priority="high"
+              else
+                priority="low"
+              fi
+              ;;
+            issue-opened)
+              # Check for critical issue labels when available
+              priority="medium"
+              ;;
+            daily-summary|weekly-report)
+              priority="low"
+              ;;
+          esac
+          
+          echo "level=$priority" >> $GITHUB_OUTPUT
+          echo "⭐ Priority level: $priority"
+
+      - name: Identify target audience
+        id: identify-audience
+        run: |
+          notification_type="${{ steps.determine-type.outputs.type }}"
+          
+          # Default from workflow input or infer from context
+          audience="${{ github.event.inputs.target_audience }}"
+          
+          if [[ -z "$audience" ]]; then
+            case "$notification_type" in
+              pr-opened|pr-ready-for-review)
+                audience="reviewers"
+                ;;
+              pr-merged|pr-closed)
+                audience="maintainers"
+                ;;
+              review-requested)
+                audience="reviewers"
+                ;;
+              review-approved|review-changes-requested|review-commented)
+                audience="contributors"
+                ;;
+              workflow-completed)
+                audience="maintainers"
+                ;;
+              issue-opened|issue-assigned)
+                audience="maintainers"
+                ;;
+              daily-summary|weekly-report)
+                audience="all-teams"
+                ;;
+              *)
+                audience="maintainers"
+                ;;
+            esac
+          fi
+          
+          echo "audience=$audience" >> $GITHUB_OUTPUT
+          echo "👥 Target audience: $audience"
+
+      - name: Select message template
+        id: select-template
+        run: |
+          notification_type="${{ steps.determine-type.outputs.type }}"
+          template="default"
+          
+          case "$notification_type" in
+            pr-opened) template="pr-opened" ;;
+            pr-merged) template="pr-merged" ;;
+            pr-closed) template="pr-closed" ;;
+            pr-ready-for-review) template="pr-ready" ;;
+            review-requested) template="review-request" ;;
+            review-approved) template="review-approved" ;;
+            review-changes-requested) template="review-changes" ;;
+            workflow-completed) template="workflow-result" ;;
+            issue-opened) template="issue-opened" ;;
+            daily-summary) template="daily-summary" ;;
+            weekly-report) template="weekly-report" ;;
+          esac
+          
+          echo "template=$template" >> $GITHUB_OUTPUT
+          echo "📄 Message template: $template"
+
+      - name: Check notification conditions
+        id: check-conditions
+        run: |
+          should_notify="true"
+          
+          # Skip notifications if disabled
+          if [[ "${{ env.NOTIFICATION_ENABLED }}" != "true" ]]; then
+            should_notify="false"
+            echo "ℹ️ Notifications are disabled"
+          fi
+          
+          # Skip notifications for draft PRs (unless specifically requested)
+          if [[ "${{ github.event.pull_request.draft }}" == "true" && "${{ steps.determine-type.outputs.type }}" != "pr-ready-for-review" ]]; then
+            should_notify="false"
+            echo "ℹ️ Skipping notification for draft PR"
+          fi
+          
+          # Skip notifications for bot PRs unless they're important
+          if [[ "${{ github.actor }}" =~ ^(dependabot|github-actions)\[bot\]$ ]]; then
+            case "${{ steps.determine-type.outputs.type }}" in
+              workflow-completed|pr-merged)
+                # Keep these notifications
+                ;;
+              *)
+                should_notify="false"
+                echo "ℹ️ Skipping notification for bot action"
+                ;;
+            esac
+          fi
+          
+          echo "should-notify=$should_notify" >> $GITHUB_OUTPUT
+          echo "🔔 Should notify: $should_notify"
+
+  gather-notification-data:
+    name: Gather Notification Data
+    runs-on: ubuntu-latest
+    needs: analyze-notification-context
+    if: needs.analyze-notification-context.outputs.should-notify == 'true'
+    outputs:
+      notification-data: ${{ steps.collect-data.outputs.data }}
+      formatted-message: ${{ steps.format-message.outputs.message }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Collect relevant data
+        id: collect-data
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          notification_type="${{ needs.analyze-notification-context.outputs.notification-type }}"
+          
+          # Initialize data structure
+          data='{}'
+          
+          case "$notification_type" in
+            pr-opened|pr-merged|pr-closed|pr-ready-for-review)
+              pr_number="${{ github.event.pull_request.number }}"
+              pr_data=$(gh pr view $pr_number --json title,author,url,baseRefName,headRefName,reviewRequests,reviews,mergeable,labels)
+              
+              data=$(echo "$pr_data" | jq '. + {
+                "pr_number": '$pr_number',
+                "repository": "${{ github.repository }}",
+                "event_type": "'$notification_type'"
+              }')
+              ;;
+            review-*)
+              pr_number="${{ github.event.pull_request.number }}"
+              reviewer="${{ github.event.review.user.login }}"
+              review_state="${{ github.event.review.state }}"
+              
+              data=$(jq -n --arg pr_number "$pr_number" \
+                           --arg reviewer "$reviewer" \
+                           --arg review_state "$review_state" \
+                           --arg repository "${{ github.repository }}" \
+                           --arg pr_title "${{ github.event.pull_request.title }}" \
+                           --arg pr_url "${{ github.event.pull_request.html_url }}" \
+                           --arg event_type "$notification_type" \
+                '{
+                  pr_number: $pr_number,
+                  reviewer: $reviewer,
+                  review_state: $review_state,
+                  repository: $repository,
+                  pr_title: $pr_title,
+                  pr_url: $pr_url,
+                  event_type: $event_type
+                }')
+              ;;
+            workflow-completed)
+              workflow_name="${{ github.event.workflow_run.name }}"
+              workflow_conclusion="${{ github.event.workflow_run.conclusion }}"
+              workflow_url="${{ github.event.workflow_run.html_url }}"
+              
+              data=$(jq -n --arg workflow_name "$workflow_name" \
+                           --arg conclusion "$workflow_conclusion" \
+                           --arg workflow_url "$workflow_url" \
+                           --arg repository "${{ github.repository }}" \
+                           --arg event_type "$notification_type" \
+                '{
+                  workflow_name: $workflow_name,
+                  conclusion: $conclusion,  
+                  workflow_url: $workflow_url,
+                  repository: $repository,
+                  event_type: $event_type
+                }')
+              ;;
+            issue-opened|issue-closed|issue-assigned)
+              issue_number="${{ github.event.issue.number }}"
+              issue_title="${{ github.event.issue.title }}"
+              issue_url="${{ github.event.issue.html_url }}"
+              issue_author="${{ github.event.issue.user.login }}"
+              
+              data=$(jq -n --arg issue_number "$issue_number" \
+                           --arg issue_title "$issue_title" \
+                           --arg issue_url "$issue_url" \
+                           --arg issue_author "$issue_author" \
+                           --arg repository "${{ github.repository }}" \
+                           --arg event_type "$notification_type" \
+                '{
+                  issue_number: $issue_number,
+                  issue_title: $issue_title,
+                  issue_url: $issue_url,
+                  issue_author: $issue_author,
+                  repository: $repository,
+                  event_type: $event_type
+                }')
+              ;;
+            daily-summary|weekly-report)
+              # Collect repository statistics
+              open_prs=$(gh pr list --state open --json number | jq length)
+              open_issues=$(gh issue list --state open --json number | jq length)
+              recent_activity=$(gh pr list --limit 5 --state all --json number,title,author,state,updatedAt)
+              
+              data=$(jq -n --arg repository "${{ github.repository }}" \
+                           --arg event_type "$notification_type" \
+                           --argjson open_prs "$open_prs" \
+                           --argjson open_issues "$open_issues" \
+                           --argjson recent_activity "$recent_activity" \
+                '{
+                  repository: $repository,
+                  event_type: $event_type,
+                  open_prs: $open_prs,
+                  open_issues: $open_issues,
+                  recent_activity: $recent_activity,
+                  generated_at: (now | strftime("%Y-%m-%d %H:%M:%S UTC"))
+                }')
+              ;;
+          esac
+          
+          # Store data (escape for GitHub output)
+          echo "data<<EOF" >> $GITHUB_OUTPUT
+          echo "$data" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Format notification message
+        id: format-message
+        run: |
+          notification_type="${{ needs.analyze-notification-context.outputs.notification-type }}"
+          template="${{ needs.analyze-notification-context.outputs.message-template }}"
+          data='${{ steps.collect-data.outputs.data }}'
+          
+          case "$template" in
+            pr-opened)
+              title=$(echo "$data" | jq -r '.title')
+              author=$(echo "$data" | jq -r '.author.login')
+              pr_number=$(echo "$data" | jq -r '.pr_number')
+              url=$(echo "$data" | jq -r '.url')
+              
+              message="🔄 **New Pull Request** #$pr_number opened by @$author
+              
+              **$title**
+              
+              🔗 [View PR]($url)
+              
+              Please review when you have a chance!"
+              ;;
+              
+            pr-merged)
+              title=$(echo "$data" | jq -r '.title')
+              author=$(echo "$data" | jq -r '.author.login')
+              pr_number=$(echo "$data" | jq -r '.pr_number')
+              base_branch=$(echo "$data" | jq -r '.baseRefName')
+              
+              message="✅ **Pull Request Merged** #$pr_number by @$author
+              
+              **$title**
+              
+              🎯 Merged into \`$base_branch\`
+              
+              Great work! 🎉"
+              ;;
+              
+            review-approved)
+              reviewer=$(echo "$data" | jq -r '.reviewer')
+              pr_title=$(echo "$data" | jq -r '.pr_title')
+              pr_number=$(echo "$data" | jq -r '.pr_number')
+              pr_url=$(echo "$data" | jq -r '.pr_url')
+              
+              message="✅ **PR Approved** by @$reviewer
+              
+              **$pr_title** (#$pr_number)
+              
+              🔗 [View PR]($pr_url)
+              
+              One step closer to merge! 🚀"
+              ;;
+              
+            review-changes)
+              reviewer=$(echo "$data" | jq -r '.reviewer')
+              pr_title=$(echo "$data" | jq -r '.pr_title')  
+              pr_number=$(echo "$data" | jq -r '.pr_number')
+              pr_url=$(echo "$data" | jq -r '.pr_url')
+              
+              message="🔄 **Changes Requested** by @$reviewer
+              
+              **$pr_title** (#$pr_number)
+              
+              🔗 [View PR]($pr_url)
+              
+              Please review the feedback and update accordingly."
+              ;;
+              
+            workflow-result)
+              workflow_name=$(echo "$data" | jq -r '.workflow_name')
+              conclusion=$(echo "$data" | jq -r '.conclusion')
+              workflow_url=$(echo "$data" | jq -r '.workflow_url')
+              
+              if [[ "$conclusion" == "success" ]]; then
+                status_icon="✅"
+                status_text="completed successfully"
+              else
+                status_icon="❌"
+                status_text="failed"
+              fi
+              
+              message="$status_icon **Workflow $status_text**
+              
+              **$workflow_name**
+              
+              🔗 [View workflow run]($workflow_url)
+              
+              $(if [[ "$conclusion" != "success" ]]; then echo "Please check the logs and fix any issues."; fi)"
+              ;;
+              
+            daily-summary)
+              open_prs=$(echo "$data" | jq -r '.open_prs')
+              open_issues=$(echo "$data" | jq -r '.open_issues')
+              generated_at=$(echo "$data" | jq -r '.generated_at')
+              
+              message="📊 **Daily Repository Summary**
+              
+              **Open Items:**
+              - 🔄 Pull Requests: $open_prs
+              - 🐛 Issues: $open_issues
+              
+              📅 Generated: $generated_at
+              
+              Have a productive day! 💪"
+              ;;
+              
+            *)
+              message="📢 **Repository Activity**
+              
+              Something happened in ${{ github.repository }}!
+              
+              Check the repository for more details."
+              ;;
+          esac
+          
+          # Store formatted message
+          echo "message<<EOF" >> $GITHUB_OUTPUT
+          echo "$message" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+  send-slack-notifications:
+    name: Send Slack Notifications
+    runs-on: ubuntu-latest
+    needs: [analyze-notification-context, gather-notification-data]
+    if: |
+      needs.analyze-notification-context.outputs.should-notify == 'true' &&
+      env.SLACK_WEBHOOK_URL != ''
+    steps:
+      - name: Send to Slack
+        run: |
+          priority="${{ needs.analyze-notification-context.outputs.priority-level }}"
+          audience="${{ needs.analyze-notification-context.outputs.target-audience }}"
+          message="${{ needs.gather-notification-data.outputs.formatted-message }}"
+          
+          # Determine Slack channel based on audience and priority
+          channel="#general"
+          case "$audience" in
+            maintainers) channel="#maintainers" ;;
+            reviewers) channel="#code-review" ;;
+            all-teams) channel="#general" ;;
+          esac
+          
+          # Add priority indicator
+          case "$priority" in
+            high) priority_indicator="🚨 " ;;
+            medium) priority_indicator="⚠️ " ;;
+            *) priority_indicator="" ;;
+          esac
+          
+          # Create Slack payload
+          payload=$(jq -n \
+            --arg channel "$channel" \
+            --arg text "$priority_indicator$message" \
+            --arg username "GitHub Bot" \
+            --arg icon_emoji ":github:" \
+            '{
+              channel: $channel,
+              text: $text,
+              username: $username,
+              icon_emoji: $icon_emoji,
+              blocks: [
+                {
+                  type: "section",
+                  text: {
+                    type: "mrkdwn",
+                    text: $text
+                  }
+                }
+              ]
+            }')
+          
+          # Send to Slack
+          curl -X POST -H 'Content-type: application/json' \
+               --data "$payload" \
+               "${{ env.SLACK_WEBHOOK_URL }}"
+          
+          echo "📤 Sent Slack notification to $channel"
+
+  send-teams-notifications:
+    name: Send Microsoft Teams Notifications  
+    runs-on: ubuntu-latest
+    needs: [analyze-notification-context, gather-notification-data]
+    if: |
+      needs.analyze-notification-context.outputs.should-notify == 'true' &&
+      env.TEAMS_WEBHOOK_URL != ''
+    steps:
+      - name: Send to Microsoft Teams
+        run: |
+          priority="${{ needs.analyze-notification-context.outputs.priority-level }}"
+          message="${{ needs.gather-notification-data.outputs.formatted-message }}"
+          notification_type="${{ needs.analyze-notification-context.outputs.notification-type }}"
+          
+          # Determine theme color based on priority and type
+          theme_color="0078D4"  # Default blue
+          case "$priority" in
+            high) theme_color="FF0000" ;;  # Red
+            medium) theme_color="FFA500" ;; # Orange
+          esac
+          
+          case "$notification_type" in
+            pr-merged|review-approved) theme_color="00FF00" ;;  # Green
+            workflow-completed)
+              if [[ "${{ github.event.workflow_run.conclusion }}" == "failure" ]]; then
+                theme_color="FF0000"  # Red
+              else
+                theme_color="00FF00"  # Green
+              fi
+              ;;
+          esac
+          
+          # Create Teams message card
+          payload=$(jq -n \
+            --arg type "MessageCard" \
+            --arg context "https://schema.org/extensions" \
+            --arg theme_color "$theme_color" \
+            --arg summary "$notification_type notification" \
+            --arg text "$message" \
+            '{
+              "@type": $type,
+              "@context": $context,
+              themeColor: $theme_color,
+              summary: $summary,
+              sections: [
+                {
+                  text: $text
+                }
+              ]
+            }')
+          
+          # Send to Teams
+          curl -X POST -H 'Content-Type: application/json' \
+               --data "$payload" \
+               "${{ env.TEAMS_WEBHOOK_URL }}"
+          
+          echo "📤 Sent Teams notification"
+
+  create-github-notifications:
+    name: Create GitHub Notifications
+    runs-on: ubuntu-latest
+    needs: [analyze-notification-context, gather-notification-data]
+    if: |
+      needs.analyze-notification-context.outputs.should-notify == 'true' &&
+      (github.event_name == 'workflow_run' || github.event_name == 'schedule')
+    steps:
+      - name: Create repository notification issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          notification_type="${{ needs.analyze-notification-context.outputs.notification-type }}"
+          message="${{ needs.gather-notification-data.outputs.formatted-message }}"
+          
+          # Only create issues for certain notification types
+          case "$notification_type" in
+            daily-summary|weekly-report|workflow-completed)
+              title="🔔 $notification_type - $(date +'%Y-%m-%d %H:%M UTC')"
+              
+              # Create issue with notification content
+              gh issue create \
+                --title "$title" \
+                --body "$message" \
+                --label "notification,automated" \
+                --assignee "${{ github.repository_owner }}"
+              
+              echo "📝 Created notification issue: $title"
+              ;;
+          esac
+
+  notification-metrics:
+    name: Collect Notification Metrics
+    runs-on: ubuntu-latest
+    needs: [analyze-notification-context, send-slack-notifications, send-teams-notifications, create-github-notifications]
+    if: always() && needs.analyze-notification-context.outputs.should-notify == 'true'
+    steps:
+      - name: Record notification metrics
+        run: |
+          notification_type="${{ needs.analyze-notification-context.outputs.notification-type }}"
+          priority="${{ needs.analyze-notification-context.outputs.priority-level }}"
+          audience="${{ needs.analyze-notification-context.outputs.target-audience }}"
+          
+          # Create metrics record
+          cat > notification-metrics.json << EOF
+          {
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "repository": "${{ github.repository }}",
+            "notification_type": "$notification_type",
+            "priority_level": "$priority",
+            "target_audience": "$audience",
+            "event_name": "${{ github.event_name }}",
+            "event_action": "${{ github.event.action }}",
+            "slack_sent": "${{ needs.send-slack-notifications.result == 'success' }}",
+            "teams_sent": "${{ needs.send-teams-notifications.result == 'success' }}",
+            "github_notification_created": "${{ needs.create-github-notifications.result == 'success' }}"
+          }
+          EOF
+          
+          echo "📊 Notification metrics recorded"
+          cat notification-metrics.json
+
+      - name: Upload notification metrics
+        uses: actions/upload-artifact@v4
+        with:
+          name: notification-metrics-${{ github.run_id }}
+          path: notification-metrics.json
+          retention-days: 30

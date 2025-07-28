@@ -1,0 +1,180 @@
+site_name: MediaNest Documentation
+site_description: Comprehensive documentation for MediaNest - A unified media management portal
+site_author: MediaNest Development Team
+site_url: https://medianest.io/docs
+
+repo_name: medianest/medianest
+repo_url: https://github.com/medianest/medianest
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    # Palette toggle for automatic mode
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - toc.follow
+    - toc.integrate
+  font:
+    text: Roboto
+    code: Roboto Mono
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search:
+      separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+  - tags:
+      tags_file: tags.md
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+      emoji_index: !!python/name:materialx.emoji.twemoji
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      user: medianest
+      repo: medianest
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Quick Start: getting-started.md
+    - Installation Guide: getting-started/installation.md
+    - Configuration: getting-started/configuration.md
+    - First Steps: getting-started/first-steps.md
+  - Architecture:
+    - Overview: architecture/overview.md
+    - System Design: architecture/system-design.md
+    - Database Schema: architecture/database.md
+    - API Design: architecture/api.md
+    - Security Model: architecture/security.md
+  - Development:
+    - Environment Setup: development/environment.md
+    - Project Structure: development/structure.md
+    - Coding Standards: development/standards.md
+    - Git Workflow: development/git-workflow.md
+    - Debugging Guide: development/debugging.md
+  - Backend:
+    - API Reference: backend/api-reference.md
+    - Authentication: backend/authentication.md
+    - Database Operations: backend/database.md
+    - Middleware: backend/middleware.md
+    - Services: backend/services.md
+    - WebSocket Integration: backend/websockets.md
+  - Frontend:
+    - Component Library: frontend/components.md
+    - State Management: frontend/state-management.md
+    - Routing: frontend/routing.md
+    - Styling Guide: frontend/styling.md
+    - Authentication Flow: frontend/auth-flow.md
+  - Testing:
+    - Testing Strategy: testing/strategy.md
+    - Unit Testing: testing/unit-tests.md
+    - Integration Testing: testing/integration-tests.md
+    - E2E Testing: testing/e2e-tests.md
+    - Performance Testing: testing/performance.md
+  - Validation:
+    - Quality Gates: validation/quality-gates.md
+    - Code Review Process: validation/code-review.md
+    - Security Validation: validation/security.md
+    - Performance Validation: validation/performance.md
+  - API Reference:
+    - Authentication Endpoints: api/auth.md
+    - Media Management: api/media.md
+    - User Management: api/users.md
+    - System Health: api/health.md
+    - WebSocket Events: api/websockets.md
+  - Hooks & Integrations:
+    - Plex Integration: hooks/plex.md
+    - Overseerr Integration: hooks/overseerr.md
+    - Monitoring Setup: hooks/monitoring.md
+    - CI/CD Hooks: hooks/cicd.md
+  - Contributing:
+    - Contribution Guide: contributing/guide.md
+    - Code of Conduct: contributing/code-of-conduct.md
+    - Issue Templates: contributing/issues.md
+    - Pull Request Process: contributing/pull-requests.md
+  - Reference:
+    - Environment Variables: reference/environment.md
+    - Docker Configuration: reference/docker.md
+    - Dependencies: reference/dependencies.md
+    - Troubleshooting: reference/troubleshooting.md
+    - FAQ: faq.md
+  - Tags: tags.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/medianest/medianest
+  generator: false
+  version:
+    provider: mike
+
+extra_css:
+  - assets/extra.css
+
+extra_javascript:
+  - assets/extra.js
