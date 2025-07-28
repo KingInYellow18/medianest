@@ -1,6 +1,6 @@
-# GitHub Workflows Documentation
+# GitHub Actions Workflows - Sync Coordinator System
 
-This directory contains the GitHub Actions workflows for the MediaNest project, implementing a comprehensive sync-coordinator mode for multi-package synchronization and version alignment.
+This directory contains the comprehensive GitHub Actions workflow automation system for MediaNest, implementing the **sync-coordinator** mode for multi-package synchronization and version alignment.
 
 ## Workflow Overview
 

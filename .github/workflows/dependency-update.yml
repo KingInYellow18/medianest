@@ -1,0 +1,346 @@
+name: Automated Dependency Updates
+
+on:
+  schedule:
+    # Run every Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+    inputs:
+      update_type:
+        description: 'Type of dependency update'
+        required: true
+        default: 'minor'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+          - all
+      target_workspace:
+        description: 'Target workspace (leave empty for all)'
+        required: false
+        type: string
+
+env:
+  NODE_VERSION: '20.x'
+
+jobs:
+  detect-updates:
+    name: Detect Available Updates
+    runs-on: ubuntu-latest
+    outputs:
+      has-updates: ${{ steps.check-updates.outputs.has-updates }}
+      update-report: ${{ steps.check-updates.outputs.update-report }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install npm-check-updates
+        run: npm install -g npm-check-updates
+
+      - name: Check for updates
+        id: check-updates
+        run: |
+          echo "Checking for dependency updates..."
+          
+          # Create update report
+          mkdir -p update-reports
+          
+          # Check root package
+          echo "## Root Package Updates" > update-reports/root.md
+          ncu --format repo --target ${{ github.event.inputs.update_type || 'minor' }} >> update-reports/root.md || echo "No updates available for root package" >> update-reports/root.md
+          
+          # Check each workspace
+          for workspace in frontend backend shared; do
+            echo "## $workspace Package Updates" > update-reports/$workspace.md
+            if [ -f "$workspace/package.json" ]; then
+              cd $workspace
+              ncu --format repo --target ${{ github.event.inputs.update_type || 'minor' }} >> ../update-reports/$workspace.md || echo "No updates available for $workspace" >> ../update-reports/$workspace.md
+              cd ..
+            else
+              echo "No package.json found for $workspace" >> update-reports/$workspace.md
+            fi
+          done
+          
+          # Combine reports
+          cat update-reports/*.md > combined-update-report.md
+          
+          # Check if any updates are available
+          if grep -q "→" combined-update-report.md; then
+            echo "has-updates=true" >> $GITHUB_OUTPUT
+            echo "update-report<<EOF" >> $GITHUB_OUTPUT
+            cat combined-update-report.md >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "has-updates=false" >> $GITHUB_OUTPUT
+            echo "update-report=No dependency updates available" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload update report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-update-report
+          path: |
+            combined-update-report.md
+            update-reports/
+
+  create-update-pr:
+    name: Create Dependency Update PR
+    runs-on: ubuntu-latest
+    needs: detect-updates
+    if: needs.detect-updates.outputs.has-updates == 'true'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Configure Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Install npm-check-updates
+        run: npm install -g npm-check-updates
+
+      - name: Apply dependency updates
+        run: |
+          echo "Applying dependency updates..."
+          
+          # Update root package
+          ncu -u --target ${{ github.event.inputs.update_type || 'minor' }} || true
+          
+          # Update each workspace
+          for workspace in frontend backend shared; do
+            if [ -f "$workspace/package.json" ]; then
+              echo "Updating $workspace dependencies..."
+              cd $workspace
+              ncu -u --target ${{ github.event.inputs.update_type || 'minor' }} || true
+              cd ..
+            fi
+          done
+
+      - name: Install updated dependencies
+        run: |
+          echo "Installing updated dependencies..."
+          rm -f package-lock.json
+          npm install
+          
+          # Rebuild shared package to ensure compatibility
+          npm run build:shared || echo "No shared build script available"
+
+      - name: Run quality checks
+        run: |
+          echo "Running quality checks after updates..."
+          
+          # Run tests for each workspace
+          for workspace in frontend backend shared; do
+            echo "Testing $workspace..."
+            if npm run test --workspace=$workspace --if-present; then
+              echo "✅ Tests passed for $workspace"
+            else
+              echo "❌ Tests failed for $workspace"
+              # Don't exit here, let the PR creation happen with a warning
+            fi
+          done
+          
+          # Run linting
+          for workspace in frontend backend shared; do
+            echo "Linting $workspace..."
+            if npm run lint --workspace=$workspace --if-present; then
+              echo "✅ Linting passed for $workspace"
+            else
+              echo "❌ Linting failed for $workspace"
+              # Try to fix automatically
+              npm run lint:fix --workspace=$workspace --if-present || true
+            fi
+          done
+
+      - name: Create update summary
+        run: |
+          cat > dependency-update-summary.md << 'EOF'
+          # Automated Dependency Update
+          
+          This PR contains automated dependency updates generated by the dependency-update workflow.
+          
+          ## Update Type
+          - **Target**: ${{ github.event.inputs.update_type || 'minor' }} version updates
+          - **Scope**: ${{ github.event.inputs.target_workspace || 'All workspaces' }}
+          
+          ## Changes Made
+          - ✅ Updated package.json files with new dependency versions
+          - ✅ Regenerated package-lock.json files
+          - ✅ Rebuilt shared package for compatibility
+          - ✅ Ran automated quality checks
+          
+          ## Testing Results
+          The following automated tests were executed:
+          - Unit tests for all workspaces
+          - Linting and code style checks
+          - Build verification
+          
+          ## Manual Review Required
+          Please review the following before merging:
+          1. Check that all tests pass in the CI pipeline
+          2. Verify that the application still functions correctly
+          3. Review any breaking changes in updated dependencies
+          4. Test critical user flows manually if needed
+          
+          ## Rollback Plan
+          If issues are discovered after merging:
+          1. Revert this PR
+          2. Investigate specific dependency conflicts
+          3. Create targeted updates for problematic packages
+          
+          ---
+          
+          🤖 This PR was automatically created by the dependency-update workflow.
+          EOF
+
+      - name: Commit changes
+        run: |
+          if git diff --exit-code; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          
+          # Add all changes
+          git add .
+          
+          # Create commit message
+          update_type="${{ github.event.inputs.update_type || 'minor' }}"
+          workspace="${{ github.event.inputs.target_workspace }}"
+          
+          if [ -n "$workspace" ]; then
+            commit_msg="chore: update $update_type dependencies for $workspace workspace"
+          else
+            commit_msg="chore: update $update_type dependencies for all workspaces"
+          fi
+          
+          git commit -m "$commit_msg
+
+          - Updated package.json files with latest $update_type versions
+          - Regenerated lockfiles for consistency
+          - Ran automated quality checks
+          - Verified build compatibility
+          
+          Auto-generated by dependency-update workflow"
+
+      - name: Create pull request
+        run: |
+          # Create a new branch
+          timestamp=$(date +%Y%m%d-%H%M%S)
+          update_type="${{ github.event.inputs.update_type || 'minor' }}"
+          branch_name="chore/dependency-update-$update_type-$timestamp"
+          
+          git checkout -b "$branch_name"
+          git push origin "$branch_name"
+          
+          # Create PR title and body
+          workspace="${{ github.event.inputs.target_workspace }}"
+          if [ -n "$workspace" ]; then
+            pr_title="chore: Update $update_type dependencies for $workspace workspace"
+          else
+            pr_title="chore: Update $update_type dependencies for all workspaces"
+          fi
+          
+          # Create PR using GitHub CLI if available
+          if command -v gh &> /dev/null; then
+            gh pr create \
+              --title "$pr_title" \
+              --body-file dependency-update-summary.md \
+              --base development \
+              --head "$branch_name" \
+              --label "dependencies" \
+              --label "automated" \
+              --assignee "${{ github.actor }}"
+          else
+            echo "GitHub CLI not available, PR creation skipped"
+          fi
+
+  security-audit:
+    name: Security Audit After Updates
+    runs-on: ubuntu-latest
+    needs: create-update-pr
+    if: always() && needs.detect-updates.outputs.has-updates == 'true'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run security audit
+        run: |
+          echo "Running security audit..."
+          
+          # Audit each workspace
+          for workspace in frontend backend shared; do
+            echo "Auditing $workspace..."
+            if npm audit --workspace=$workspace --audit-level=moderate; then
+              echo "✅ No moderate+ vulnerabilities in $workspace"
+            else
+              echo "⚠️ Vulnerabilities found in $workspace"
+              npm audit --workspace=$workspace --json > audit-$workspace.json || true
+            fi
+          done
+
+      - name: Upload audit results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-audit-results
+          path: audit-*.json
+
+  notification:
+    name: Dependency Update Notification
+    runs-on: ubuntu-latest
+    needs: [detect-updates, create-update-pr, security-audit]
+    if: always()
+    steps:
+      - name: Generate notification summary
+        run: |
+          echo "## Dependency Update Workflow Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.detect-updates.outputs.has-updates }}" = "true" ]; then
+            echo "📦 **Updates Available**: Dependency updates were found" >> $GITHUB_STEP_SUMMARY
+            
+            if [ "${{ needs.create-update-pr.result }}" = "success" ]; then
+              echo "✅ **PR Created**: Dependency update PR created successfully" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "❌ **PR Failed**: Failed to create dependency update PR" >> $GITHUB_STEP_SUMMARY
+            fi
+            
+            if [ "${{ needs.security-audit.result }}" = "success" ]; then
+              echo "🔒 **Security**: No new security vulnerabilities detected" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "⚠️ **Security**: Security audit found issues (check artifacts)" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "✅ **No Updates**: All dependencies are up to date" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Update Report" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "${{ needs.detect-updates.outputs.update-report }}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

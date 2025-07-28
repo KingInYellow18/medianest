@@ -379,6 +379,14 @@ font-cache/
 
 
 
+
+# Personal development files (development branch specific)
+personal-dev/
+*.personal.*
+*.experimental.*
+**/personal/
+.dev-personal/
+
 # Claude Flow generated files
 .claude/settings.local.json
 .mcp.json
@@ -403,10 +411,3 @@ claude-flow
 claude-flow.bat
 claude-flow.ps1
 hive-mind-prompt-*.txt
-
-# Personal development files (development branch specific)
-personal-dev/
-*.personal.*
-*.experimental.*
-**/personal/
-.dev-personal/
