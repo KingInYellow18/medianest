@@ -1,0 +1,18 @@
+{
+  "name": "@stryker-mutator/medianest-backend",
+  "version": "1.0.0",
+  "description": "Mutation testing configuration for MediaNest backend",
+  "scripts": {
+    "mutation:test": "stryker run",
+    "mutation:test:incremental": "stryker run --incremental",
+    "mutation:dashboard": "stryker dashboard",
+    "coverage:mutation": "npm run test:coverage && npm run mutation:test"
+  },
+  "devDependencies": {
+    "@stryker-mutator/core": "^8.6.0",
+    "@stryker-mutator/vitest-runner": "^8.6.0",
+    "@stryker-mutator/typescript-checker": "^8.6.0",
+    "@stryker-mutator/html-reporter": "^8.6.0",
+    "@stryker-mutator/dashboard-reporter": "^8.6.0"
+  }
+}

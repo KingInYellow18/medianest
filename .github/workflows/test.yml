@@ -1,0 +1,382 @@
+name: Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: '20'
+  COVERAGE_THRESHOLD: 60
+
+jobs:
+  # Lint and type check - runs quickly, fails fast
+  lint:
+    name: Lint and Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter
+        run: npm run lint
+
+      - name: Type check
+        run: npm run type-check
+
+  # Run tests in parallel for each workspace
+  test-backend:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: medianest_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup test environment
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/medianest_test
+        run: |
+          cd backend
+          npx prisma generate
+          npx prisma migrate deploy
+
+      - name: Run backend tests with coverage
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://test:test@localhost:5432/medianest_test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-jwt-secret
+          JWT_REFRESH_SECRET: test-jwt-refresh-secret
+          SESSION_SECRET: test-session-secret
+          ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+        run: |
+          cd backend
+          npm run test:coverage -- --reporter=json-summary --reporter=lcov
+
+      - name: Check coverage thresholds
+        run: |
+          cd backend
+          coverage_lines=$(cat coverage/coverage-summary.json | jq -r '.total.lines.pct')
+          echo "Backend line coverage: ${coverage_lines}%"
+          if (( $(echo "$coverage_lines < ${{ env.COVERAGE_THRESHOLD }}" | bc -l) )); then
+            echo "::warning::Backend coverage ${coverage_lines}% is below threshold of ${{ env.COVERAGE_THRESHOLD }}%"
+          fi
+
+      - name: Upload backend coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/coverage/
+
+  test-frontend:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run frontend tests with coverage
+        env:
+          NODE_ENV: test
+          NEXT_PUBLIC_API_URL: http://localhost:4000
+          NEXTAUTH_URL: http://localhost:3000
+          NEXTAUTH_SECRET: test-nextauth-secret
+        run: |
+          cd frontend
+          npm run test:coverage -- --reporter=json-summary --reporter=lcov
+
+      - name: Check coverage thresholds
+        run: |
+          cd frontend
+          if [ -f coverage/coverage-summary.json ]; then
+            coverage_lines=$(cat coverage/coverage-summary.json | jq -r '.total.lines.pct // 0')
+            echo "Frontend line coverage: ${coverage_lines}%"
+            if (( $(echo "$coverage_lines < ${{ env.COVERAGE_THRESHOLD }}" | bc -l) )); then
+              echo "::warning::Frontend coverage ${coverage_lines}% is below threshold of ${{ env.COVERAGE_THRESHOLD }}%"
+            fi
+          fi
+
+      - name: Upload frontend coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/
+
+  test-shared:
+    name: Shared Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run shared tests with coverage
+        run: |
+          cd shared
+          npm run test:coverage -- --reporter=json-summary --reporter=lcov
+
+      - name: Check coverage thresholds
+        run: |
+          cd shared
+          if [ -f coverage/coverage-summary.json ]; then
+            coverage_lines=$(cat coverage/coverage-summary.json | jq -r '.total.lines.pct // 0')
+            echo "Shared line coverage: ${coverage_lines}%"
+            if (( $(echo "$coverage_lines < ${{ env.COVERAGE_THRESHOLD }}" | bc -l) )); then
+              echo "::warning::Shared coverage ${coverage_lines}% is below threshold of ${{ env.COVERAGE_THRESHOLD }}%"
+            fi
+          fi
+
+      - name: Upload shared coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: shared-coverage
+          path: shared/coverage/
+
+  # Aggregate coverage reports
+  coverage:
+    name: Coverage Report
+    needs: [test-backend, test-frontend, test-shared]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download coverage artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: coverage-artifacts
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install coverage tools
+        run: |
+          npm install -g lcov-result-merger
+          npm install -g codecov
+
+      - name: Merge coverage reports
+        run: |
+          mkdir -p coverage
+          find coverage-artifacts -name "lcov.info" -exec cp {} coverage/ \;
+          lcov-result-merger 'coverage/*.info' 'coverage/lcov.info'
+
+      - name: Generate coverage summary
+        run: |
+          echo "# Coverage Summary" > coverage-summary.md
+          echo "" >> coverage-summary.md
+          echo "| Workspace | Coverage |" >> coverage-summary.md
+          echo "|-----------|----------|" >> coverage-summary.md
+
+          for workspace in backend frontend shared; do
+            if [ -f "coverage-artifacts/${workspace}-coverage/coverage-summary.json" ]; then
+              coverage=$(cat "coverage-artifacts/${workspace}-coverage/coverage-summary.json" | jq -r '.total.lines.pct // "N/A"')
+              echo "| ${workspace} | ${coverage}% |" >> coverage-summary.md
+            fi
+          done
+
+          cat coverage-summary.md
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: medianest-coverage
+
+      - name: Comment PR with coverage
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const coverage = fs.readFileSync('coverage-summary.md', 'utf8');
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: coverage
+            });
+
+  # Critical path tests - run after unit tests pass
+  critical-paths:
+    name: Critical Path Tests
+    needs: [test-backend]
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: medianest_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup test environment
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/medianest_test
+        run: |
+          cd backend
+          npx prisma generate
+          npx prisma migrate deploy
+
+      - name: Run critical path tests
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://test:test@localhost:5432/medianest_test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-jwt-secret
+          JWT_REFRESH_SECRET: test-jwt-refresh-secret
+          SESSION_SECRET: test-session-secret
+          ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+        run: |
+          cd backend
+          ./run-critical-paths.sh
+
+  # Build verification - ensures code builds properly
+  build:
+    name: Build Verification
+    needs: [lint]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build shared package
+        run: |
+          cd shared
+          npm run build
+
+      - name: Build backend
+        run: |
+          cd backend
+          npm run build
+
+      - name: Build frontend
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:4000
+        run: |
+          cd frontend
+          npm run build
+
+  # All tests must pass for PR to be mergeable
+  test-status:
+    name: Test Status Check
+    needs: [lint, test-backend, test-frontend, test-shared, critical-paths, build]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check test results
+        run: |
+          if [ "${{ needs.lint.result }}" != "success" ] || 
+             [ "${{ needs.test-backend.result }}" != "success" ] || 
+             [ "${{ needs.test-frontend.result }}" != "success" ] || 
+             [ "${{ needs.test-shared.result }}" != "success" ] || 
+             [ "${{ needs.critical-paths.result }}" != "success" ] || 
+             [ "${{ needs.build.result }}" != "success" ]; then
+            echo "::error::One or more test jobs failed"
+            exit 1
+          fi
+          echo "✅ All tests passed successfully!"

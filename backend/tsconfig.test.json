@@ -1,0 +1,36 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "rootDir": ".", // Changed to include both src and tests
+    "outDir": "./dist-test",
+    "noEmit": true, // Don't emit files for tests
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["vitest/globals", "node"],
+    "paths": {
+      "@/*": ["src/*"],
+      "@/controllers/*": ["src/controllers/*"],
+      "@/services/*": ["src/services/*"],
+      "@/middleware/*": ["src/middleware/*"],
+      "@/routes/*": ["src/routes/*"],
+      "@/models/*": ["src/models/*"],
+      "@/utils/*": ["src/utils/*"],
+      "@/integrations/*": ["src/integrations/*"],
+      "@/jobs/*": ["src/jobs/*"],
+      "@/repositories/*": ["src/repositories/*"],
+      "@/types/*": ["src/types/*"],
+      "@/config/*": ["src/config/*"],
+      "@tests/*": ["tests/*"],
+      "@medianest/shared": ["../shared/dist"],
+      "@medianest/shared/*": ["../shared/dist/*"]
+    }
+  },
+  "include": ["src/**/*", "tests/**/*", "config/**/*", "tests/global.d.ts"],
+  "exclude": ["node_modules", "dist"]
+}

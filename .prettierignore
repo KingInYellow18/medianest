@@ -1,0 +1,21 @@
+# Dependencies
+node_modules
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build outputs
+dist
+build
+.next
+out
+
+# Generated files
+*.generated.ts
+*.generated.js
+coverage
+*.lcov
+
+# Other
+.git
+.husky
