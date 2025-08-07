@@ -21,7 +21,7 @@
     "src"
   ],
   "dependencies": {
-    "zod": "^3.22.4"
+    "zod": "^4.0.15"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
