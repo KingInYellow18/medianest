@@ -75,13 +75,17 @@ class SocketManager {
     if (!this.socket) return;
 
     this.socket.on('connect', () => {
-      console.log('[Socket] Connected');
+      if (process.env.NODE_ENV === 'development') {
+        console.info('[Socket] Connected');
+      }
       this.reconnectAttempt = 0;
       this.emit('connection:status', { connected: true });
     });
 
     this.socket.on('disconnect', (reason) => {
-      console.log('[Socket] Disconnected:', reason);
+      if (process.env.NODE_ENV === 'development') {
+        console.info('[Socket] Disconnected:', reason);
+      }
       this.emit('connection:status', { connected: false });
     });
 
@@ -99,12 +103,16 @@ class SocketManager {
     });
 
     this.socket.io.on('reconnect_attempt', (attempt) => {
-      console.log('[Socket] Reconnection attempt:', attempt);
+      if (process.env.NODE_ENV === 'development') {
+        console.info('[Socket] Reconnection attempt:', attempt);
+      }
       this.reconnectAttempt = attempt;
     });
 
     this.socket.io.on('reconnect', (attempt) => {
-      console.log('[Socket] Reconnected after', attempt, 'attempts');
+      if (process.env.NODE_ENV === 'development') {
+        console.info('[Socket] Reconnected after', attempt, 'attempts');
+      }
       this.reconnectAttempt = 0;
     });
 

@@ -203,6 +203,7 @@ export class AuthController {
           },
           token,
           rememberToken,
+          csrfToken: res.locals.csrfToken, // Include CSRF token in response
         },
       });
     } catch (error) {

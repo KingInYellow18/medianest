@@ -19,7 +19,7 @@ export function useServiceStatus(initialServices: ServiceStatus[]) {
     };
 
     const handleServiceUpdate = (data: ServiceStatus) => {
-      console.log('Service status update:', data);
+      // Service status updated via socket
       setServices((prev) => {
         const existingService = prev.find((s) => s.id === data.id);
         if (existingService) {
@@ -40,7 +40,7 @@ export function useServiceStatus(initialServices: ServiceStatus[]) {
     };
 
     const handleBulkUpdate = (data: ServiceStatus[]) => {
-      console.log('Bulk service update:', data);
+      // Bulk service status update received
       setServices(
         data.map((service) => ({
           ...service,

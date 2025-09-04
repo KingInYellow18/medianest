@@ -67,7 +67,7 @@ export function RecentlyAdded({ libraryKey }: RecentlyAddedProps) {
                 media={item}
                 onClick={() => {
                   // TODO: Implement media detail modal
-                  console.log('Media clicked:', item);
+                  // Handle media click (TODO: navigate to details)"
                 }}
               />
             </div>

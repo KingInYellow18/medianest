@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
+import cookieParser from 'cookie-parser';
 // import { pinoHttp } from 'pino-http';
 import { Server as SocketIOServer } from 'socket.io';
 import { createServer } from 'http';
@@ -9,6 +10,7 @@ import { createServer } from 'http';
 // Middleware imports
 import { errorHandler } from './middleware/error';
 import { timeoutPresets } from './middleware/timeout';
+import { csrfProtection } from './middleware/csrf';
 
 // Route imports
 import { router as v1Router } from './routes/v1';
@@ -70,6 +72,9 @@ app.use(
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Cookie parser for CSRF tokens
+app.use(cookieParser());
 
 // Default request timeout (30 seconds)
 app.use(timeoutPresets.medium);

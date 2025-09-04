@@ -103,7 +103,7 @@ export function SearchResults({ results, isLoading, onItemClick }: SearchResults
                            focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 rounded-md"
                   onClick={() => {
                     // TODO: Implement "show more" functionality
-                    console.log('Show more for library:', group.library.title);
+                    // TODO: Implement show more functionality for library
                   }}
                 >
                   Show all {group.totalCount.toLocaleString()} results in {group.library.title}

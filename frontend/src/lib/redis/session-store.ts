@@ -188,7 +188,9 @@ export async function cleanupExpiredSessions(): Promise<number> {
     const cutoff = Date.now() - SESSION_TTL * 1000;
     const removed = await redis.zremrangebyscore(KEY_PREFIX.ACTIVE_SESSIONS, '-inf', cutoff);
 
-    console.log(`Cleaned up ${removed} expired sessions`);
+    if (process.env.NODE_ENV === 'development') {
+      console.info(`Cleaned up ${removed} expired sessions`);
+    }
     return removed;
   } catch (error) {
     console.error('Failed to cleanup expired sessions:', error);

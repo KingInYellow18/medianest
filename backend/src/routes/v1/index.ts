@@ -11,12 +11,14 @@ import plexRoutes from './plex';
 import webhookRoutes from './webhooks';
 import youtubeRoutes from './youtube';
 import { errorsRoutes } from './errors.routes';
+import { router as csrfRoutes } from './csrf';
 
 const router = Router();
 
 // Public routes
 router.use('/auth', authRoutes);
 router.use('/health', healthRoutes);
+router.use('/csrf', csrfRoutes); // CSRF endpoints available to all
 router.use('/webhooks', webhookRoutes); // Webhooks don't require auth
 
 // Protected routes

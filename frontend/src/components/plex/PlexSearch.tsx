@@ -64,7 +64,7 @@ export function PlexSearch({ initialQuery = '', onResultSelect }: PlexSearchProp
       onResultSelect(item);
     } else {
       // Default behavior - could navigate to item detail page
-      console.log('Selected item:', item);
+      // Handle item selection (TODO: implement proper routing/details)
     }
   };
 

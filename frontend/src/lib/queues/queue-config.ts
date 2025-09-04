@@ -87,7 +87,9 @@ export async function closeAllQueues(): Promise<void> {
   queues.clear();
   queueEvents.clear();
 
-  console.log('✅ All queue connections closed');
+  if (process.env.NODE_ENV === 'development') {
+    console.info('✅ All queue connections closed');
+  }
 }
 
 // Queue-specific configurations

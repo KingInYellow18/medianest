@@ -24,12 +24,12 @@ export function DashboardLayout({ initialServices, children }: DashboardLayoutPr
   useRealtimeStatus();
 
   const handleViewDetails = (serviceId: string) => {
-    console.log('View details for service:', serviceId);
+    // Handle service details view (TODO: implement modal/page)
     // TODO: Implement service details modal or navigation
   };
 
   const handleQuickAction = (action: QuickAction) => {
-    console.log('Quick action:', action);
+    // Handle quick action (TODO: implement action handlers)
 
     switch (action.type) {
       case 'navigate':
@@ -51,7 +51,7 @@ export function DashboardLayout({ initialServices, children }: DashboardLayoutPr
         }
         break;
       default:
-        console.log('Unknown action type:', action.type);
+      // TODO: Handle unknown action type
     }
   };
 

@@ -171,11 +171,15 @@ export async function getAuthOptions(): Promise<NextAuthOptions> {
 
     events: {
       async signIn({ user, account, profile: _profile, isNewUser: _isNewUser }) {
-        console.log(`User ${user.email} signed in via ${account?.provider}`);
+        if (process.env.NODE_ENV === 'development') {
+          console.info(`User ${user.email} signed in via ${account?.provider}`);
+        }
       },
 
       async signOut({ session: _session, token: _token }) {
-        console.log(`User signed out`);
+        if (process.env.NODE_ENV === 'development') {
+          console.info('User signed out');
+        }
       },
     },
 

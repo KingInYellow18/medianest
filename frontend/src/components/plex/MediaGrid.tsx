@@ -66,7 +66,7 @@ export function MediaGrid({ libraryKey, filters, searchQuery }: MediaGridProps) 
 
   const handleItemClick = (item: PlexMediaItem) => {
     // TODO: Implement media detail modal
-    console.log('Media clicked:', item);
+    // Handle media item click (TODO: implement proper navigation)
   };
 
   return (

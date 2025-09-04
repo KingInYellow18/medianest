@@ -47,7 +47,9 @@ export async function addYoutubeDownloadJob(
     },
   });
 
-  console.log(`📥 YouTube download job ${job.id} added for user ${data.userId}`);
+  if (process.env.NODE_ENV === 'development') {
+    console.info(`📥 YouTube download job ${job.id} added for user ${data.userId}`);
+  }
   return job;
 }
 
@@ -102,7 +104,9 @@ export async function cancelDownloadJob(jobId: string, userId: string): Promise<
 
   // Remove the job
   await job.remove();
-  console.log(`🚫 Cancelled download job ${jobId} for user ${userId}`);
+  if (process.env.NODE_ENV === 'development') {
+    console.info(`🚫 Cancelled download job ${jobId} for user ${userId}`);
+  }
 
   return true;
 }
@@ -136,7 +140,9 @@ export async function retryDownloadJob(
 
   // Retry the job
   await job.retry();
-  console.log(`🔄 Retrying download job ${jobId} for user ${userId}`);
+  if (process.env.NODE_ENV === 'development') {
+    console.info(`🔄 Retrying download job ${jobId} for user ${userId}`);
+  }
 
   return job;
 }
@@ -175,7 +181,9 @@ export async function getDownloadQueueStats() {
 export async function pauseDownloadQueue(): Promise<void> {
   const queue = getQueue(QUEUE_NAMES.YOUTUBE_DOWNLOAD);
   await queue.pause();
-  console.log('⏸️  YouTube download queue paused');
+  if (process.env.NODE_ENV === 'development') {
+    console.info('⏸️  YouTube download queue paused');
+  }
 }
 
 /**
@@ -184,7 +192,9 @@ export async function pauseDownloadQueue(): Promise<void> {
 export async function resumeDownloadQueue(): Promise<void> {
   const queue = getQueue(QUEUE_NAMES.YOUTUBE_DOWNLOAD);
   await queue.resume();
-  console.log('▶️  YouTube download queue resumed');
+  if (process.env.NODE_ENV === 'development') {
+    console.info('▶️  YouTube download queue resumed');
+  }
 }
 
 /**
@@ -214,6 +224,8 @@ export async function cleanOldDownloadJobs(olderThanDays: number = 7): Promise<n
     }
   }
 
-  console.log(`🧹 Cleaned ${cleaned} old download jobs`);
+  if (process.env.NODE_ENV === 'development') {
+    console.info(`🧹 Cleaned ${cleaned} old download jobs`);
+  }
   return cleaned;
 }

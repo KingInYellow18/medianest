@@ -27,8 +27,10 @@ export const config = loadBackendConfig();
  * Configuration logging utility
  */
 export const logConfiguration = () => {
-  const sanitized = configUtils.sanitizeConfigForLogging(config);
-  console.log('Backend configuration loaded:', {
+  // Import logger dynamically to avoid circular dependency
+  const { logger } = require('../utils/logger');
+
+  logger.info('Backend configuration loaded', {
     environment: config.NODE_ENV,
     port: config.PORT,
     databaseUrl: configUtils.maskSensitiveValue('DATABASE_URL', config.DATABASE_URL),

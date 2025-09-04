@@ -56,7 +56,7 @@ export function RequestFilters({ filters, onChange }: RequestFiltersProps) {
           className="flex items-center justify-center gap-2 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-400 hover:bg-gray-600 transition-colors"
           onClick={() => {
             // TODO: Implement date range picker
-            console.log('Date range picker not yet implemented');
+            // TODO: Implement date range picker
           }}
         >
           <Calendar className="w-4 h-4" />

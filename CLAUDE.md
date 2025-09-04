@@ -1,516 +1,359 @@
-# CLAUDE.md
+# Claude Code Configuration - SPARC Development Environment
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## 🚨 CRITICAL: CONCURRENT EXECUTION & FILE MANAGEMENT
+
+**ABSOLUTE RULES**:
+
+1. ALL operations MUST be concurrent/parallel in a single message
+2. **NEVER save working files, text/mds and tests to the root folder**
+3. ALWAYS organize files in appropriate subdirectories
+4. **USE CLAUDE CODE'S TASK TOOL** for spawning agents concurrently, not just MCP
+
+### ⚡ GOLDEN RULE: "1 MESSAGE = ALL RELATED OPERATIONS"
+
+**MANDATORY PATTERNS:**
+
+- **TodoWrite**: ALWAYS batch ALL todos in ONE call (5-10+ todos minimum)
+- **Task tool (Claude Code)**: ALWAYS spawn ALL agents in ONE message with full instructions
+- **File operations**: ALWAYS batch ALL reads/writes/edits in ONE message
+- **Bash commands**: ALWAYS batch ALL terminal operations in ONE message
+- **Memory operations**: ALWAYS batch ALL memory store/retrieve in ONE message
+
+### 🎯 CRITICAL: Claude Code Task Tool for Agent Execution
+
+**Claude Code's Task tool is the PRIMARY way to spawn agents:**
+
+```javascript
+// ✅ CORRECT: Use Claude Code's Task tool for parallel agent execution
+[Single Message]:
+  Task("Research agent", "Analyze requirements and patterns...", "researcher")
+  Task("Coder agent", "Implement core features...", "coder")
+  Task("Tester agent", "Create comprehensive tests...", "tester")
+  Task("Reviewer agent", "Review code quality...", "reviewer")
+  Task("Architect agent", "Design system architecture...", "system-architect")
+```
+
+**MCP tools are ONLY for coordination setup:**
+
+- `mcp__claude-flow__swarm_init` - Initialize coordination topology
+- `mcp__claude-flow__agent_spawn` - Define agent types for coordination
+- `mcp__claude-flow__task_orchestrate` - Orchestrate high-level workflows
+
+### 📁 File Organization Rules
+
+**NEVER save to root folder. Use these directories:**
+
+- `/src` - Source code files
+- `/tests` - Test files
+- `/docs` - Documentation and markdown files
+- `/config` - Configuration files
+- `/scripts` - Utility scripts
+- `/examples` - Example code
 
 ## Project Overview
 
-MediaNest is a unified web portal for managing a Plex media server and related services. It consolidates multiple tools (Overseerr, Uptime Kuma, YouTube downloaders, etc.) into a single authenticated interface for friends and family who access the Plex server.
+This project uses SPARC (Specification, Pseudocode, Architecture, Refinement, Completion) methodology with Claude-Flow orchestration for systematic Test-Driven Development.
 
-## Key Architecture Decisions
+## SPARC Commands
 
-- **Monolithic Architecture**: Single deployable unit for 10-20 concurrent users
-- **Technology Stack**:
-  - Frontend: Next.js 14.x with React, Tailwind CSS
-  - Backend: Express API with Node.js 20.x LTS
-  - Database: PostgreSQL 15.x (primary) + Redis 7.x (cache/queue)
-  - Authentication: NextAuth.js with Plex OAuth
-  - Real-time: Socket.io for WebSocket connections
-  - Queue: BullMQ for background job processing
-  - Container: Docker with Docker Compose
-  - Proxy: Nginx for SSL termination
+### Core Commands
 
-## Development Commands
+- `npx claude-flow sparc modes` - List available modes
+- `npx claude-flow sparc run <mode> "<task>"` - Execute specific mode
+- `npx claude-flow sparc tdd "<feature>"` - Run complete TDD workflow
+- `npx claude-flow sparc info <mode>` - Get mode details
+
+### Batchtools Commands
+
+- `npx claude-flow sparc batch <modes> "<task>"` - Parallel execution
+- `npx claude-flow sparc pipeline "<task>"` - Full pipeline processing
+- `npx claude-flow sparc concurrent <mode> "<tasks-file>"` - Multi-task processing
+
+### Build Commands
+
+- `npm run build` - Build project
+- `npm run test` - Run tests
+- `npm run lint` - Linting
+- `npm run typecheck` - Type checking
+
+## SPARC Workflow Phases
+
+1. **Specification** - Requirements analysis (`sparc run spec-pseudocode`)
+2. **Pseudocode** - Algorithm design (`sparc run spec-pseudocode`)
+3. **Architecture** - System design (`sparc run architect`)
+4. **Refinement** - TDD implementation (`sparc tdd`)
+5. **Completion** - Integration (`sparc run integration`)
+
+## Code Style & Best Practices
+
+- **Modular Design**: Files under 500 lines
+- **Environment Safety**: Never hardcode secrets
+- **Test-First**: Write tests before implementation
+- **Clean Architecture**: Separate concerns
+- **Documentation**: Keep updated
+
+## 🚀 Available Agents (54 Total)
+
+### Core Development
+
+`coder`, `reviewer`, `tester`, `planner`, `researcher`
+
+### Swarm Coordination
+
+`hierarchical-coordinator`, `mesh-coordinator`, `adaptive-coordinator`, `collective-intelligence-coordinator`, `swarm-memory-manager`
+
+### Consensus & Distributed
+
+`byzantine-coordinator`, `raft-manager`, `gossip-coordinator`, `consensus-builder`, `crdt-synchronizer`, `quorum-manager`, `security-manager`
+
+### Performance & Optimization
+
+`perf-analyzer`, `performance-benchmarker`, `task-orchestrator`, `memory-coordinator`, `smart-agent`
+
+### GitHub & Repository
+
+`github-modes`, `pr-manager`, `code-review-swarm`, `issue-tracker`, `release-manager`, `workflow-automation`, `project-board-sync`, `repo-architect`, `multi-repo-swarm`
+
+### SPARC Methodology
+
+`sparc-coord`, `sparc-coder`, `specification`, `pseudocode`, `architecture`, `refinement`
+
+### Specialized Development
+
+`backend-dev`, `mobile-dev`, `ml-developer`, `cicd-engineer`, `api-docs`, `system-architect`, `code-analyzer`, `base-template-generator`
+
+### Testing & Validation
+
+`tdd-london-swarm`, `production-validator`
+
+### Migration & Planning
+
+`migration-planner`, `swarm-init`
+
+## 🎯 Claude Code vs MCP Tools
+
+### Claude Code Handles ALL EXECUTION:
+
+- **Task tool**: Spawn and run agents concurrently for actual work
+- File operations (Read, Write, Edit, MultiEdit, Glob, Grep)
+- Code generation and programming
+- Bash commands and system operations
+- Implementation work
+- Project navigation and analysis
+- TodoWrite and task management
+- Git operations
+- Package management
+- Testing and debugging
+
+### MCP Tools ONLY COORDINATE:
+
+- Swarm initialization (topology setup)
+- Agent type definitions (coordination patterns)
+- Task orchestration (high-level planning)
+- Memory management
+- Neural features
+- Performance tracking
+- GitHub integration
+
+**KEY**: MCP coordinates the strategy, Claude Code's Task tool executes with real agents.
+
+## 🚀 Quick Setup
 
 ```bash
-# Workspace-level commands (from root)
-npm run dev              # Start both frontend and backend concurrently
-npm run build            # Build all workspaces
-npm run build:shared     # Build shared package only
-npm test                 # Run all tests across workspaces
-npm run test:watch       # Run tests in watch mode
-npm run test:coverage    # Generate coverage report
-npm run lint             # Lint all workspaces
-npm run type-check       # TypeScript validation across workspaces
-npm run generate-secrets # Generate secure keys for NextAuth and encryption
-npm run clean            # Clean build artifacts and dependencies
-
-# Database commands (from root)
-npm run db:generate      # Generate Prisma client
-npm run db:migrate       # Run database migrations
-npm run db:studio        # Open Prisma Studio GUI
-
-# Docker commands (from root) - Using Docker Compose V2
-npm run docker:build     # Build Docker images (docker compose build)
-npm run docker:up        # Start all services (docker compose up -d)
-npm run docker:down      # Stop all containers (docker compose down)
-npm run docker:logs      # View container logs (docker compose logs -f)
-
-# End-to-end testing with Playwright
-npm run test:e2e         # Run all E2E tests
-npm run test:e2e:ui      # Run E2E tests with Playwright UI
-npm run test:e2e:headed  # Run E2E tests in headed mode
-npm run test:e2e:debug   # Debug E2E tests step-by-step
-npm run test:all         # Run both unit and E2E tests
-
-# Test coverage commands
-npm run test:coverage    # Generate coverage report
-npm run test:coverage:ui # View coverage report in UI
-
-# Frontend development
-cd frontend && npm run dev           # Start Next.js dev server (port 3000)
-cd frontend && npm run build         # Build production frontend
-cd frontend && npm run lint          # Lint frontend code
-cd frontend && npm run type-check    # TypeScript validation
-cd frontend && npm test              # Run frontend tests
-cd frontend && npm run test:ui       # Open Vitest UI
-
-# Backend development
-cd backend && npm run dev            # Start Express dev server (port 4000)
-cd backend && npm run build          # Build backend
-cd backend && npm test               # Run tests with Vitest
-cd backend && npm run test:ui        # Open Vitest UI for debugging
-cd backend && npm run test:watch     # Run tests in watch mode
-cd backend && npm run test:coverage  # Generate test coverage report
-cd backend && npm run lint           # Lint backend code
-cd backend && npm run type-check     # TypeScript validation
-cd backend && ./run-tests.sh         # Run tests with automated DB setup
-
-# Development environments (Docker Compose V2)
-docker compose -f docker-compose.dev.yml up    # Local development with hot reload
-docker compose -f docker-compose.test.yml up   # Test environment setup
+# Add Claude Flow MCP server
+claude mcp add claude-flow npx claude-flow@alpha mcp start
 ```
 
-## Code Architecture
+## MCP Tool Categories
 
-### Monorepo Structure
+### Coordination
 
-```
-medianest/
-├── frontend/              # Next.js 14 application
-├── backend/               # Express.js API server
-├── shared/                # Shared types and utilities
-├── scripts/               # Development and setup scripts
-├── infrastructure/        # Docker and deployment configs
-├── docs/                  # Comprehensive documentation
-└── tasks/                 # MCP workflow-based task management system
-    ├── active/            # Currently in progress (1 task)
-    ├── pending/           # Waiting to start (33 tasks)
-    ├── completed/         # Finished tasks organized by date (49+ tasks)
-    ├── blocked/           # External dependencies
-    ├── templates/         # Standardized task templates
-    └── backlog/           # Future tasks and ideas
-```
+`swarm_init`, `agent_spawn`, `task_orchestrate`
 
-### Frontend Structure (Next.js)
+### Monitoring
 
-```
-frontend/
-├── src/
-│   ├── app/               # Next.js 14 app directory
-│   │   ├── (auth)/        # Auth-protected routes
-│   │   ├── api/           # API route handlers
-│   │   └── layout.tsx     # Root layout with providers
-│   ├── components/
-│   │   ├── dashboard/     # Dashboard components
-│   │   ├── media/         # Media browsing components
-│   │   └── shared/        # Reusable UI components
-│   ├── lib/
-│   │   ├── api/           # API client functions
-│   │   ├── hooks/         # Custom React hooks
-│   │   └── utils/         # Helper functions
-│   └── services/          # External service integrations
-└── public/                # Static assets
-```
+`swarm_status`, `agent_list`, `agent_metrics`, `task_status`, `task_results`
 
-### Backend Structure (Express)
+### Memory & Neural
 
-```
-backend/
-├── src/
-│   ├── controllers/       # Request handlers
-│   ├── services/          # Business logic layer
-│   ├── repositories/      # Database access layer
-│   ├── integrations/      # External API clients
-│   │   ├── plex/         # Plex API integration
-│   │   ├── overseerr/    # Overseerr API integration
-│   │   └── uptime-kuma/  # Uptime Kuma integration
-│   ├── jobs/              # Background job processors
-│   ├── middleware/        # Express middleware
-│   ├── utils/             # Helper functions
-│   └── types/             # TypeScript definitions
-├── prisma/
-│   ├── schema.prisma      # Database schema
-│   └── migrations/        # Database migrations
-└── tests/                 # Test suites
+`memory_usage`, `neural_status`, `neural_train`, `neural_patterns`
+
+### GitHub Integration
+
+`github_swarm`, `repo_analyze`, `pr_enhance`, `issue_triage`, `code_review`
+
+### System
+
+`benchmark_run`, `features_detect`, `swarm_monitor`
+
+## 🚀 Agent Execution Flow with Claude Code
+
+### The Correct Pattern:
+
+1. **Optional**: Use MCP tools to set up coordination topology
+2. **REQUIRED**: Use Claude Code's Task tool to spawn agents that do actual work
+3. **REQUIRED**: Each agent runs hooks for coordination
+4. **REQUIRED**: Batch all operations in single messages
+
+### Example Full-Stack Development:
+
+```javascript
+// Single message with all agent spawning via Claude Code's Task tool
+[Parallel Agent Execution]:
+  Task("Backend Developer", "Build REST API with Express. Use hooks for coordination.", "backend-dev")
+  Task("Frontend Developer", "Create React UI. Coordinate with backend via memory.", "coder")
+  Task("Database Architect", "Design PostgreSQL schema. Store schema in memory.", "code-analyzer")
+  Task("Test Engineer", "Write Jest tests. Check memory for API contracts.", "tester")
+  Task("DevOps Engineer", "Setup Docker and CI/CD. Document in memory.", "cicd-engineer")
+  Task("Security Auditor", "Review authentication. Report findings via hooks.", "reviewer")
+
+  // All todos batched together
+  TodoWrite { todos: [...8-10 todos...] }
+
+  // All file operations together
+  Write "backend/server.js"
+  Write "frontend/App.jsx"
+  Write "database/schema.sql"
 ```
 
-### Shared Package
+## 📋 Agent Coordination Protocol
 
-```
-shared/
-├── src/
-│   ├── types/             # Common TypeScript interfaces
-│   ├── constants/         # Shared constants
-│   └── utils/             # Shared utilities
-└── package.json           # Shared dependencies
-```
+### Every Agent Spawned via Task Tool MUST:
 
-## Key Integration Points
-
-### Plex Authentication Flow (PIN-based)
-
-1. User clicks "Login with Plex"
-2. Backend generates PIN via Plex API
-3. User enters PIN at plex.tv/link
-4. Frontend polls backend for authorization status
-5. Backend exchanges PIN for Plex token
-6. Fetch user details from Plex API
-7. Create/update local user record with encrypted token
-8. Issue JWT for session management
-
-### Service Integration Pattern
-
-```typescript
-// All external services follow this pattern:
-class ServiceClient {
-  constructor(config) {
-    this.baseURL = config.url;
-    this.apiKey = config.apiKey;
-    this.timeout = config.timeout || 5000;
-  }
-
-  async request(endpoint, options) {
-    // Circuit breaker logic
-    // Retry logic
-    // Error mapping
-  }
-}
-```
-
-### WebSocket Events
-
-- `service:status` - Service health updates
-- `request:update` - Media request status changes
-- `download:progress` - YouTube download progress
-- `user:notification` - User-specific alerts
-
-## Database Schema Highlights
-
-### Core Tables
-
-- `users` - Plex ID, email, role, preferences
-- `media_requests` - Links to Overseerr requests
-- `youtube_downloads` - Download queue and status
-- `service_status` - Cached service health data
-- `user_sessions` - Active JWT sessions
-
-### Redis Usage
-
-- Session storage with 24h TTL
-- Service status cache (5min TTL)
-- BullMQ job queue data
-- Rate limiting counters
-
-## Security Considerations
-
-- All routes require authentication except `/api/health`
-- Plex OAuth for primary authentication
-- JWT tokens with secure httpOnly cookies
-- Rate limiting: 100 req/min per user
-- Input validation with Joi/Zod
-- SQL injection prevention via Prisma ORM
-- XSS protection via React's built-in escaping
-
-## Error Handling
-
-- User-facing errors return friendly messages
-- Internal errors logged with full stack traces
-- Circuit breakers for external services
-- Graceful degradation when services unavailable
-- Structured logging with correlation IDs
-
-## Testing Strategy (Simplified for 10-20 Users)
-
-### Focus on What Matters
-
-- Test critical paths: Plex OAuth, media requests, service status
-- Use modern tools: Vitest, Supertest, MSW for mocking
-- Target 60-70% coverage overall (80% for auth/security)
-- Total test suite runs in <5 minutes
-
-### Priority Testing Areas
-
-1. **Plex Authentication**: PIN flow, user creation, token validation
-2. **Media Requests**: API endpoints, Overseerr integration
-3. **Service Monitoring**: Uptime Kuma status, graceful degradation
-4. **Rate Limiting**: Verify limits work (100/min API, 5/hr YouTube)
-5. **User Isolation**: Ensure users can't see each other's data
-
-### What NOT to Test
-
-- UI component internals
-- Simple CRUD operations
-- Third-party library behavior
-- Edge cases that won't happen with 20 users
-- Performance under extreme load
-
-### Test Structure
-
-```
-backend/tests/
-├── unit/              # Business logic tests
-├── integration/       # API endpoints + external services
-├── fixtures/          # Test data and mocks
-└── setup.ts           # Test configuration
-
-frontend/__tests__/    # Frontend tests (when implemented)
-└── components/        # Component tests
-```
-
-### Test Environment
-
-- Test database: PostgreSQL on port 5433
-- Test Redis: Redis on port 6380
-- Use `./run-tests.sh` in backend for automated test setup (uses Docker Compose V2)
-- MSW for mocking external API calls
-- Vitest UI available with `npm run test:ui`
-- Test containers managed via `docker compose -f docker-compose.test.yml`
-
-### Key Principles
-
-- If a test is flaky, fix it immediately or delete it
-- Mock external services with MSW for realistic request interception
-- Use Vitest's built-in features for fast, modern testing
-- Document only non-obvious test scenarios
-
-## Important Development Notes
-
-### MANDATORY: Use Context7 MCP Server Before Code Generation
-
-**CRITICAL REQUIREMENT**: You MUST use the Context7 MCP server before writing any code that uses external libraries or frameworks. This is not optional.
-
-1. **Before writing any code**, check for the latest documentation:
-
-   - Use `mcp__context7__resolve-library-id` to find the correct library ID
-   - Use `mcp__context7__get-library-docs` to retrieve up-to-date documentation
-   - This ensures code uses the latest APIs and best practices
-
-2. **Examples of when to use Context7**:
-
-   - Before using Next.js features or hooks
-   - Before implementing Prisma queries or schema changes
-   - Before using Socket.io server/client APIs
-   - Before implementing BullMQ job processing
-   - Before using any React hooks or patterns
-   - Before implementing authentication with NextAuth.js
-
-3. **How to use**:
-   ```
-   First: mcp__context7__resolve-library-id with library name (e.g., "next.js", "prisma", "socket.io")
-   Then: mcp__context7__get-library-docs with the resolved library ID
-   ```
-
-### Current Implementation Status
-
-Phase 1 (Core Infrastructure) is COMPLETE ✅:
-
-- ✅ Plex OAuth authentication with PIN flow
-- ✅ Database schema with Prisma ORM
-- ✅ Repository pattern with full CRUD operations
-- ✅ JWT authentication and RBAC middleware
-- ✅ Rate limiting with Redis Lua scripts
-- ✅ Winston logging with correlation IDs
-- ✅ Error handling with user-friendly messages
-- ✅ Basic monitoring and metrics
-- ✅ API versioning structure (/api/v1/)
-- ✅ Socket.io server configuration with JWT auth
-- ✅ AES-256-GCM encryption for sensitive data
-- ✅ Zod input validation schemas for all endpoints
-
-Phase 2 (External Service Integration) is COMPLETE ✅:
-
-- ✅ Plex API integration with PIN-based OAuth flow
-- ✅ Overseerr API integration for media requests
-- ✅ Uptime Kuma integration for service monitoring
-- ✅ Service configuration management with encryption
-- ✅ Circuit breaker pattern for all external services
-- ✅ Health check endpoints for all services
-
-Phase 3 (Dashboard & Media UI) is COMPLETE ✅:
-
-- ✅ Service status cards with real-time updates
-- ✅ Media browsing with Plex library integration
-- ✅ Media request UI with Overseerr integration
-- ✅ YouTube downloader frontend interface
-- ✅ WebSocket-powered status updates
-- ✅ Mobile-responsive dashboard
-
-Phase 4 (YouTube Integration) is COMPLETE ✅:
-
-- ✅ Frontend download interface complete
-- ✅ Backend YouTube downloader integration with yt-dlp
-- ✅ BullMQ job processing for downloads
-- ✅ User isolation for download queues
-- ✅ YouTube service with metadata caching and rate limiting
-- ✅ Repository pattern with full CRUD operations
-- ✅ Controller endpoints for all YouTube operations
-- ✅ Progress tracking with WebSocket updates
-- ✅ Automatic Plex library scanning integration
-- ✅ File management with user-isolated storage
-- ✅ Download cleanup and storage management
-
-Phase 4 YouTube backend implementation is fully complete and ready for deployment
-
-### Development Setup
-
-1. **Initial Setup**:
-
-   ```bash
-   npm install              # Install all dependencies (npm workspaces)
-   npm run generate-secrets # Generate security keys
-   cp .env.example .env     # Configure environment
-   npm run db:generate      # Generate Prisma client
-   npm run db:migrate       # Setup database
-   ```
-
-2. **Running Tests**:
-
-   ```bash
-   # Run all tests
-   npm test
-
-   # Run backend tests with test database
-   cd backend && ./run-tests.sh   # Uses docker compose for test DB
-
-   # Run single test file
-   cd backend && npm test src/controllers/__tests__/auth.controller.test.ts
-   cd frontend && npm test src/components/__tests__/ServiceCard.test.tsx
-
-   # Run tests matching pattern
-   cd backend && npm test -- -t "should authenticate"
-   ```
-
-3. **Environment Variables**:
-
-   - `NODE_ENV`: development | production | test
-   - `DATABASE_URL`: PostgreSQL connection string
-   - `REDIS_URL`: Redis connection string (or separate REDIS_HOST/PORT)
-   - `NEXTAUTH_SECRET`: Generated by generate-secrets script
-   - `PLEX_CLIENT_ID` & `PLEX_CLIENT_SECRET`: From Plex app settings
-   - `ENCRYPTION_KEY`: For encrypting service credentials
-   - See `.env.example` for complete list
-
-4. **Pre-commit Hooks**:
-   - Automatically runs ESLint and Prettier on staged files via `lint-staged`
-   - Frontend files use Next.js ESLint integration
-   - Backend/shared files use standard ESLint
-   - Prisma schema files are auto-formatted
-   - Ensures code quality before commits
-
-### Git Workflow
-
-- Use descriptive commit messages
-- Group related changes into logical commits
-- Run tests before committing: `npm test`
-- Lint code before committing: `npm run lint`
-- Follow conventional commits format when possible
-
-## Common Development Tasks
-
-### Adding a New API Endpoint
-
-1. Create validation schema in `backend/src/validations/`
-2. Add controller method in `backend/src/controllers/`
-3. Add service logic in `backend/src/services/`
-4. Add repository methods in `backend/src/repositories/`
-5. Register route in `backend/src/routes/v1/`
-6. Add tests for controller and service layers
-7. Update frontend API client in `frontend/src/lib/api/`
-
-### Working with External Services
-
-1. Create integration client in `backend/src/integrations/{service}/`
-2. Follow the ServiceClient pattern with circuit breaker and retry logic
-3. Add service configuration to database schema if needed
-4. Create service-specific endpoints in controllers
-5. Add frontend service card in `frontend/src/components/dashboard/cards/`
-
-### Database Changes
-
-1. Modify schema in `backend/prisma/schema.prisma`
-2. Run `npm run db:generate` to update Prisma client
-3. Create migration: `cd backend && npx prisma migrate dev --name description`
-4. Update repositories and types as needed
-5. Run tests to ensure nothing breaks
-
-### WebSocket Events
-
-1. Define event types in `shared/src/types/`
-2. Add server handler in `backend/src/socket/handlers/`
-3. Emit events from relevant services
-4. Add client listener in `frontend/src/hooks/useWebSocket.ts`
-5. Update components to react to events
-
-### Debugging Tips
-
-- Frontend runs on port 3000, backend on port 4000
-- Use `npm run db:studio` to inspect database
-- Check Redis with `redis-cli` on port 6379 (or 6380 for tests)
-- Socket.io admin UI available at `http://localhost:4000/admin` in development
-- Use correlation IDs in logs to trace requests
-- Enable debug logging with `LOG_LEVEL=debug`
-
-### Key Configuration Files
-
-- `.env.example` - Complete list of all environment variables
-- `docker-compose.yml` - Production deployment configuration
-- `docker-compose.dev.yml` - Development environment with hot reload
-- `docker-compose.test.yml` - Test environment setup
-- `vitest.workspace.ts` - Test configuration for all workspaces
-- `ARCHITECTURE.md` - Detailed system design documentation
-
-### Important Architecture Documents
-
-- `docs/01-project-overview.md` - Project goals and scope
-- `docs/02-architecture-decisions.md` - Key architectural choices
-- `docs/04-security-design.md` - Security implementation details
-- `docs/05-api-design.md` - API endpoint documentation
-- `docs/08-deployment-plan.md` - Production deployment guide
-
-## Task Management System
-
-### MCP Workflow-Based Tasks
-
-The project uses a sophisticated task management system in `/tasks/` with standardized templates and MCP workflow integration:
+**1️⃣ BEFORE Work:**
 
 ```bash
-# Task management commands
-ls tasks/active/          # View current tasks (should be 1 task max)
-ls tasks/pending/         # View upcoming tasks (currently 33 tasks)
-ls tasks/completed/       # View finished tasks organized by date
-
-# Move tasks through workflow
-mv tasks/pending/task-file.md tasks/active/     # Start working on task
-mv tasks/active/task-file.md tasks/completed/2025/01/  # Complete task
-
-# Search tasks
-grep -r "search-term" tasks/
+npx claude-flow@alpha hooks pre-task --description "[task]"
+npx claude-flow@alpha hooks session-restore --session-id "swarm-[id]"
 ```
 
-### Task Templates
+**2️⃣ DURING Work:**
 
-Use standardized templates from `tasks/templates/`:
+```bash
+npx claude-flow@alpha hooks post-edit --file "[file]" --memory-key "swarm/[agent]/[step]"
+npx claude-flow@alpha hooks notify --message "[what was done]"
+```
 
-- `bug-fix-template.md` - For bug fixes and issues
-- `feature-template.md` - For new feature development
-- `refactor-template.md` - For code refactoring tasks
+**3️⃣ AFTER Work:**
 
-### Current Status (as of analysis)
+```bash
+npx claude-flow@alpha hooks post-task --task-id "[task]"
+npx claude-flow@alpha hooks session-end --export-metrics true
+```
 
-- **Active Tasks**: 1 (production environment template)
-- **Pending Tasks**: 33 (admin visibility features, production deployment, testing improvements)
-- **Completed Tasks**: 49+ organized in `completed/2025/01/`
-- **Template Tasks**: Bug fix, feature, and refactor templates available
+## 🎯 Concurrent Execution Examples
+
+### ✅ CORRECT WORKFLOW: MCP Coordinates, Claude Code Executes
+
+```javascript
+// Step 1: MCP tools set up coordination (optional, for complex tasks)
+[Single Message - Coordination Setup]:
+  mcp__claude-flow__swarm_init { topology: "mesh", maxAgents: 6 }
+  mcp__claude-flow__agent_spawn { type: "researcher" }
+  mcp__claude-flow__agent_spawn { type: "coder" }
+  mcp__claude-flow__agent_spawn { type: "tester" }
+
+// Step 2: Claude Code Task tool spawns ACTUAL agents that do the work
+[Single Message - Parallel Agent Execution]:
+  // Claude Code's Task tool spawns real agents concurrently
+  Task("Research agent", "Analyze API requirements and best practices. Check memory for prior decisions.", "researcher")
+  Task("Coder agent", "Implement REST endpoints with authentication. Coordinate via hooks.", "coder")
+  Task("Database agent", "Design and implement database schema. Store decisions in memory.", "code-analyzer")
+  Task("Tester agent", "Create comprehensive test suite with 90% coverage.", "tester")
+  Task("Reviewer agent", "Review code quality and security. Document findings.", "reviewer")
+
+  // Batch ALL todos in ONE call
+  TodoWrite { todos: [
+    {id: "1", content: "Research API patterns", status: "in_progress", priority: "high"},
+    {id: "2", content: "Design database schema", status: "in_progress", priority: "high"},
+    {id: "3", content: "Implement authentication", status: "pending", priority: "high"},
+    {id: "4", content: "Build REST endpoints", status: "pending", priority: "high"},
+    {id: "5", content: "Write unit tests", status: "pending", priority: "medium"},
+    {id: "6", content: "Integration tests", status: "pending", priority: "medium"},
+    {id: "7", content: "API documentation", status: "pending", priority: "low"},
+    {id: "8", content: "Performance optimization", status: "pending", priority: "low"}
+  ]}
+
+  // Parallel file operations
+  Bash "mkdir -p app/{src,tests,docs,config}"
+  Write "app/package.json"
+  Write "app/src/server.js"
+  Write "app/tests/server.test.js"
+  Write "app/docs/API.md"
+```
+
+### ❌ WRONG (Multiple Messages):
+
+```javascript
+Message 1: mcp__claude-flow__swarm_init
+Message 2: Task("agent 1")
+Message 3: TodoWrite { todos: [single todo] }
+Message 4: Write "file.js"
+// This breaks parallel coordination!
+```
+
+## Performance Benefits
+
+- **84.8% SWE-Bench solve rate**
+- **32.3% token reduction**
+- **2.8-4.4x speed improvement**
+- **27+ neural models**
+
+## Hooks Integration
+
+### Pre-Operation
+
+- Auto-assign agents by file type
+- Validate commands for safety
+- Prepare resources automatically
+- Optimize topology by complexity
+- Cache searches
+
+### Post-Operation
+
+- Auto-format code
+- Train neural patterns
+- Update memory
+- Analyze performance
+- Track token usage
+
+### Session Management
+
+- Generate summaries
+- Persist state
+- Track metrics
+- Restore context
+- Export workflows
+
+## Advanced Features (v2.0.0)
+
+- 🚀 Automatic Topology Selection
+- ⚡ Parallel Execution (2.8-4.4x speed)
+- 🧠 Neural Training
+- 📊 Bottleneck Analysis
+- 🤖 Smart Auto-Spawning
+- 🛡️ Self-Healing Workflows
+- 💾 Cross-Session Memory
+- 🔗 GitHub Integration
+
+## Integration Tips
+
+1. Start with basic swarm init
+2. Scale agents gradually
+3. Use memory for context
+4. Monitor progress regularly
+5. Train patterns from success
+6. Enable hooks automation
+7. Use GitHub tools first
+
+## Support
+
+- Documentation: https://github.com/ruvnet/claude-flow
+- Issues: https://github.com/ruvnet/claude-flow/issues
+
+---
+
+Remember: **Claude Flow coordinates, Claude Code creates!**
 
 # important-instruction-reminders
 
@@ -518,3 +361,4 @@ Do what has been asked; nothing more, nothing less.
 NEVER create files unless they're absolutely necessary for achieving your goal.
 ALWAYS prefer editing an existing file to creating a new one.
 NEVER proactively create documentation files (\*.md) or README files. Only create documentation files if explicitly requested by the User.
+Never save working files, text/mds and tests to the root folder.

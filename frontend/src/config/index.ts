@@ -27,9 +27,14 @@ export const config = loadFrontendConfig();
  * Configuration logging utility (client-safe)
  */
 export const logConfiguration = () => {
+  if (process.env.NODE_ENV !== 'development') {
+    return; // Only log in development
+  }
+
   if (typeof window !== 'undefined') {
-    // Only log non-sensitive, public configuration in browser
-    console.log('Frontend configuration loaded:', {
+    // Client-side development logging
+    const { infoDev } = require('../utils/dev-logger');
+    infoDev('Frontend configuration loaded (client-side)', {
       environment: config.NODE_ENV,
       apiUrl: config.NEXT_PUBLIC_API_URL,
       backendUrl: config.NEXT_PUBLIC_BACKEND_URL,
@@ -39,8 +44,7 @@ export const logConfiguration = () => {
     });
   } else {
     // Server-side: can log more details but still mask sensitive values
-    const sanitized = configUtils.sanitizeConfigForLogging(config);
-    console.log('Frontend configuration loaded (server-side):', {
+    console.info('[SSR] Frontend configuration loaded (server-side):', {
       environment: config.NODE_ENV,
       nextAuthUrl: config.NEXTAUTH_URL,
       apiUrl: config.NEXT_PUBLIC_API_URL,
