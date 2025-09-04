@@ -46,22 +46,67 @@ export default defineConfig({
     navigationTimeout: 30000
   },
 
-  /* Configure projects for major browsers */
+  /* Configure projects for major browsers and devices */
   projects: [
+    // Desktop Browsers
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
     
-    // Uncomment to test in more browsers
-    // {
-    //   name: 'firefox',
-    //   use: { ...devices['Desktop Firefox'] },
-    // },
-    // {
-    //   name: 'webkit',
-    //   use: { ...devices['Desktop Safari'] },
-    // },
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+    
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
+    },
+
+    // Mobile Devices
+    {
+      name: 'mobile-chrome',
+      use: { ...devices['Pixel 5'] },
+    },
+    
+    {
+      name: 'mobile-safari',
+      use: { ...devices['iPhone 12'] },
+    },
+
+    // Tablet
+    {
+      name: 'tablet',
+      use: { ...devices['iPad Pro'] },
+    },
+
+    // Accessibility Testing (with high contrast and reduced motion)
+    {
+      name: 'accessibility',
+      use: {
+        ...devices['Desktop Chrome'],
+        colorScheme: 'dark',
+        reducedMotion: 'reduce',
+      },
+    },
+
+    // Performance Testing (throttled network)
+    {
+      name: 'performance',
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: {
+          slowMo: 100, // Slow down by 100ms
+        },
+      },
+    },
+
+    // Edge Browser
+    {
+      name: 'edge',
+      use: { ...devices['Desktop Edge'] },
+    },
   ],
 
   /* Run your local dev server before starting the tests */
