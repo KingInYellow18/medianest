@@ -52,7 +52,9 @@ app.prepare().then(() => {
 
   // Socket.io connection handling
   io.on('connection', (socket) => {
-    console.log('Client connected:', socket.id)
+    if (process.env.NODE_ENV === 'development') {
+      console.info('Client connected:', socket.id);
+    }
 
     // Handle Uptime Kuma status updates
     socket.on('subscribe:status', () => {
@@ -65,7 +67,9 @@ app.prepare().then(() => {
     })
 
     socket.on('disconnect', () => {
-      console.log('Client disconnected:', socket.id)
+      if (process.env.NODE_ENV === 'development') {
+        console.info('Client disconnected:', socket.id);
+      }
     })
   })
 
@@ -78,6 +82,6 @@ app.prepare().then(() => {
       process.exit(1)
     })
     .listen(port, () => {
-      console.log(`> Ready on http://${hostname}:${port}`)
+      console.info(`> Ready on http://${hostname}:${port}`)
     })
 })
