@@ -225,7 +225,7 @@ describe('Critical Path: Media Request Flow (Simplified)', () => {
     await prisma.$disconnect();
   });
 
-  it.skip('should complete full media request flow from search to submission', async () => {
+  it('should complete full media request flow from search to submission', async () => {
     // Step 1: Search for media
     const searchResponse = await request(app)
       .get('/api/v1/media/search')

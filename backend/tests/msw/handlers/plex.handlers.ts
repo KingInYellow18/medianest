@@ -1,176 +1,155 @@
 import { http, HttpResponse } from 'msw';
 
-const PLEX_API_BASE = 'https://plex.tv/api/v2';
-
 export const plexHandlers = [
-  // PIN generation
-  http.post(`${PLEX_API_BASE}/pins`, () => {
-    return HttpResponse.json({
-      id: 123456,
-      code: 'TEST-CODE',
-      product: 'MediaNest',
-      trusted: false,
-      qr: 'https://plex.tv/link/qr/TEST-CODE',
-      clientIdentifier: 'test-client-id',
-      location: {
-        code: 'US',
-        european_union_member: false,
-        continent_code: 'NA',
-        country: 'United States',
-        city: 'New York',
-        time_zone: 'America/New_York',
-        postal_code: '10001',
-        subdivisions: 'NY',
-        coordinates: '40.7128,-74.0060',
-      },
-      expiresIn: 1800,
-      createdAt: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 1800000).toISOString(),
-      authToken: null,
-      newRegistration: false,
-    });
+  // PIN generation - Plex returns XML format
+  http.post('https://plex.tv/pins.xml', () => {
+    return new HttpResponse(
+      `<?xml version="1.0" encoding="UTF-8"?>
+<pin>
+  <id>123456</id>
+  <code>TEST</code>
+  <product>MediaNest</product>
+  <trusted>0</trusted>
+  <clientIdentifier>test-client-id</clientIdentifier>
+  <location>
+    <code>US</code>
+    <european_union_member>false</european_union_member>
+    <continent_code>NA</continent_code>
+    <country>United States</country>
+    <city>New York</city>
+    <time_zone>America/New_York</time_zone>
+    <postal_code>10001</postal_code>
+    <subdivisions>NY</subdivisions>
+    <coordinates>40.7128,-74.0060</coordinates>
+  </location>
+  <expiresIn>1800</expiresIn>
+  <createdAt>${new Date().toISOString()}</createdAt>
+  <expiresAt>${new Date(Date.now() + 1800000).toISOString()}</expiresAt>
+  <authToken></authToken>
+  <newRegistration>false</newRegistration>
+</pin>`,
+      { headers: { 'Content-Type': 'application/xml' } },
+    );
   }),
 
-  // PIN check (not authorized)
-  http.get(`${PLEX_API_BASE}/pins/:pinId`, ({ params }) => {
+  // PIN check - Returns XML
+  http.get('https://plex.tv/pins/:pinId.xml', ({ params }) => {
     const { pinId } = params;
 
-    if (pinId === '123456') {
-      return HttpResponse.json({
-        id: 123456,
-        code: 'TEST-CODE',
-        product: 'MediaNest',
-        trusted: false,
-        qr: 'https://plex.tv/link/qr/TEST-CODE',
-        clientIdentifier: 'test-client-id',
-        location: {
-          code: 'US',
-          european_union_member: false,
-          continent_code: 'NA',
-          country: 'United States',
-          city: 'New York',
-          time_zone: 'America/New_York',
-          postal_code: '10001',
-          subdivisions: 'NY',
-          coordinates: '40.7128,-74.0060',
-        },
-        expiresIn: 1800,
-        createdAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 1800000).toISOString(),
-        authToken: null,
-        newRegistration: false,
-      });
+    // Not authorized PIN
+    if (pinId === 'test-pin-123' || pinId === 'unauthorized-pin') {
+      return new HttpResponse(
+        `<?xml version="1.0" encoding="UTF-8"?>
+<pin>
+  <id>${pinId}</id>
+  <code>TEST</code>
+  <product>MediaNest</product>
+  <trusted>0</trusted>
+  <clientIdentifier>test-client-id</clientIdentifier>
+  <expiresIn>1800</expiresIn>
+  <createdAt>${new Date().toISOString()}</createdAt>
+  <expiresAt>${new Date(Date.now() + 1800000).toISOString()}</expiresAt>
+  <authToken></authToken>
+  <newRegistration>false</newRegistration>
+</pin>`,
+        { headers: { 'Content-Type': 'application/xml' } },
+      );
     }
 
-    // Authorized PIN
-    if (pinId === '999999') {
-      return HttpResponse.json({
-        id: 999999,
-        code: 'AUTH-CODE',
-        product: 'MediaNest',
-        trusted: true,
-        qr: 'https://plex.tv/link/qr/AUTH-CODE',
-        clientIdentifier: 'test-client-id',
-        location: {
-          code: 'US',
-          european_union_member: false,
-          continent_code: 'NA',
-          country: 'United States',
-          city: 'New York',
-          time_zone: 'America/New_York',
-          postal_code: '10001',
-          subdivisions: 'NY',
-          coordinates: '40.7128,-74.0060',
-        },
-        expiresIn: 1800,
-        createdAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 1800000).toISOString(),
-        authToken: 'test-auth-token-123',
-        newRegistration: false,
-      });
+    // Authorized PINs
+    if (
+      ['test-pin-existing', 'test-pin-first-user', 'session-test-pin', 'logout-test-pin'].includes(
+        pinId as string,
+      )
+    ) {
+      return new HttpResponse(
+        `<?xml version="1.0" encoding="UTF-8"?>
+<pin>
+  <id>${pinId}</id>
+  <code>AUTHED</code>
+  <product>MediaNest</product>
+  <trusted>1</trusted>
+  <clientIdentifier>test-client-id</clientIdentifier>
+  <expiresIn>1800</expiresIn>
+  <createdAt>${new Date().toISOString()}</createdAt>
+  <expiresAt>${new Date(Date.now() + 1800000).toISOString()}</expiresAt>
+  <authToken>test-auth-token-${pinId}</authToken>
+  <newRegistration>false</newRegistration>
+</pin>`,
+        { headers: { 'Content-Type': 'application/xml' } },
+      );
     }
 
-    return HttpResponse.json({ error: 'PIN not found' }, { status: 404 });
+    // Invalid PIN
+    return HttpResponse.xml(
+      '<?xml version="1.0" encoding="UTF-8"?><errors><error>Invalid PIN</error></errors>',
+      { status: 404 },
+    );
   }),
 
-  // User info
-  http.get(`${PLEX_API_BASE}/user`, ({ request }) => {
+  // User info - Returns XML
+  http.get('https://plex.tv/users/account.xml', ({ request }) => {
     const authHeader = request.headers.get('X-Plex-Token');
 
-    if (authHeader === 'test-auth-token-123') {
-      return HttpResponse.json({
-        id: 1234567,
-        uuid: 'test-uuid-123',
+    if (authHeader?.startsWith('test-auth-token-')) {
+      const pinId = authHeader.replace('test-auth-token-', '');
+
+      // Different users based on PIN
+      const userMappings: Record<string, any> = {
+        'test-pin-existing': {
+          plexId: 'plex-test-123',
+          username: 'testuser',
+          email: 'test@example.com',
+        },
+        'test-pin-first-user': {
+          plexId: 'plex-first-user',
+          username: 'firstuser',
+          email: 'first@example.com',
+        },
+        'session-test-pin': {
+          plexId: 'plex-session-test',
+          username: 'sessionuser',
+          email: 'session@example.com',
+        },
+        'logout-test-pin': {
+          plexId: 'plex-logout-test',
+          username: 'logoutuser',
+          email: 'logout@example.com',
+        },
+      };
+
+      const userData = userMappings[pinId] || {
+        plexId: 'plex-default',
         username: 'testuser',
-        title: 'Test User',
         email: 'test@example.com',
-        friendlyName: 'Test User',
-        locale: 'en',
-        confirmed: true,
-        joinedAt: 1609459200,
-        emailOnlyAuth: false,
-        hasPassword: true,
-        protected: false,
-        thumb: 'https://plex.tv/users/test-uuid-123/avatar',
-        authToken: 'test-auth-token-123',
-        mailingListStatus: 'unsubscribed',
-        mailingListActive: false,
-        scrobbleTypes: '',
-        country: 'US',
-        subscription: {
-          active: true,
-          subscribedAt: '2021-01-01T00:00:00Z',
-          status: 'Active',
-          paymentService: 'stripe',
-          plan: 'lifetime',
-        },
-        subscriptionDescription: 'Lifetime Plex Pass',
-        restricted: false,
-        home: true,
-        guest: false,
-        homeSize: 5,
-        homeAdmin: true,
-        maxHomeSize: 15,
-        rememberExpiresAt: 1704067200,
-        profile: {
-          autoSelectAudio: true,
-          defaultAudioLanguage: 'en',
-          defaultSubtitleLanguage: 'en',
-          autoSelectSubtitle: 0,
-          defaultSubtitleAccessibility: 0,
-          defaultSubtitleForced: 0,
-        },
-        entitlements: [
-          'all_hardware_transcoding',
-          'cloudsync',
-          'content_filter',
-          'dvr',
-          'hardware_transcoding',
-          'home',
-          'lyrics',
-          'music_videos',
-          'pass',
-          'photo_autotags',
-          'premium_music_metadata',
-          'session_bandwidth_restrictions',
-          'sync',
-          'trailers',
-          'webhooks',
-        ],
-        roles: {
-          roles: ['plexpass'],
-        },
-        services: [],
-        adsConsent: null,
-        adsConsentSetAt: null,
-        adsConsentReminderAt: null,
-        experimentalFeatures: false,
-        twoFactorEnabled: false,
-        backupCodesCreated: false,
-      });
+      };
+
+      return new HttpResponse(
+        `<?xml version="1.0" encoding="UTF-8"?>
+<user>
+  <id>${userData.plexId}</id>
+  <username>${userData.username}</username>
+  <email>${userData.email}</email>
+  <title>${userData.username}</title>
+  <friendlyName>${userData.username}</friendlyName>
+  <locale>en</locale>
+  <confirmed>1</confirmed>
+  <joinedAt>1609459200</joinedAt>
+  <emailOnlyAuth>0</emailOnlyAuth>
+  <hasPassword>1</hasPassword>
+  <protected>0</protected>
+  <thumb>https://plex.tv/users/${userData.plexId}/avatar</thumb>
+  <authToken>${authHeader}</authToken>
+  <country>US</country>
+</user>`,
+        { headers: { 'Content-Type': 'application/xml' } },
+      );
     }
 
-    return HttpResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return HttpResponse.xml(
+      '<?xml version="1.0" encoding="UTF-8"?><errors><error>Unauthorized</error></errors>',
+      { status: 401 },
+    );
   }),
 
   // Library sections
@@ -178,7 +157,10 @@ export const plexHandlers = [
     const authHeader = request.headers.get('X-Plex-Token');
 
     if (!authHeader) {
-      return HttpResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return HttpResponse.xml(
+        '<?xml version="1.0" encoding="UTF-8"?><errors><error>Unauthorized</error></errors>',
+        { status: 401 },
+      );
     }
 
     return new HttpResponse(
