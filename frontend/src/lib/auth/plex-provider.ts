@@ -186,6 +186,27 @@ export async function checkPlexPin(
   return response.json();
 }
 
+export async function getPlexUser(
+  authToken: string,
+  clientIdentifier: string = generateClientIdentifier()
+): Promise<PlexProfile> {
+  const headers = getPlexHeaders(clientIdentifier)
+  const response = await fetch("https://plex.tv/api/v2/user", {
+    headers: {
+      ...headers,
+      "X-Plex-Token": authToken,
+      Accept: "application/json",
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch Plex user info")
+  }
+
+  const data = await response.json()
+  return data as PlexProfile
+}
+
 export function getPlexHeaders(
   clientIdentifier: string,
   product = 'MediaNest',

@@ -8,3 +8,6 @@ export * from './utils';
 
 // Export all shared constants
 export * from './constants';
+
+// Export configuration management
+export * from './config';

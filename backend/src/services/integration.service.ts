@@ -6,6 +6,7 @@ import { OverseerrApiClient } from '../integrations/overseerr/overseerr-api.clie
 import { PlexApiClient } from '../integrations/plex/plex-api.client';
 import { UptimeKumaClient } from '../integrations/uptime-kuma/uptime-kuma-client';
 import { logger } from '../utils/logger';
+import { asError, getErrorMessage } from '../utils/error-handling';
 
 export interface ServiceHealthStatus {
   service: string;
@@ -72,9 +73,7 @@ export class IntegrationService extends EventEmitter {
         enabledServices: Array.from(this.clients.keys()),
       });
     } catch (error) {
-      logger.error('Failed to initialize service integrations', {
-        error: error.message,
-      });
+      logger.error('Failed to initialize service integrations', { error: getErrorMessage(error) });
       throw error;
     }
   }
@@ -97,9 +96,7 @@ export class IntegrationService extends EventEmitter {
         logger.info('Plex integration initialized');
       }
     } catch (error) {
-      logger.error('Failed to initialize Plex integration', {
-        error: error.message,
-      });
+      logger.error('Failed to initialize Plex integration', { error: getErrorMessage(error) });
     }
   }
 
@@ -122,9 +119,7 @@ export class IntegrationService extends EventEmitter {
       this.clients.set('overseerr', overseerrClient);
       logger.info('Overseerr integration initialized');
     } catch (error) {
-      logger.error('Failed to initialize Overseerr integration', {
-        error: error.message,
-      });
+      logger.error('Failed to initialize Overseerr integration', { error: getErrorMessage(error) });
     }
   }
 
@@ -145,15 +140,15 @@ export class IntegrationService extends EventEmitter {
       });
 
       // Setup event handlers
-      uptimeKumaClient.on('monitorsUpdated', monitors => {
+      uptimeKumaClient.on('monitorsUpdated', (monitors) => {
         this.emit('uptimeKumaMonitorsUpdated', monitors);
       });
 
-      uptimeKumaClient.on('heartbeat', heartbeat => {
+      uptimeKumaClient.on('heartbeat', (heartbeat) => {
         this.emit('uptimeKumaHeartbeat', heartbeat);
       });
 
-      uptimeKumaClient.on('statsUpdated', stats => {
+      uptimeKumaClient.on('statsUpdated', (stats) => {
         this.emit('uptimeKumaStatsUpdated', stats);
       });
 
@@ -161,9 +156,7 @@ export class IntegrationService extends EventEmitter {
       this.clients.set('uptimeKuma', uptimeKumaClient);
       logger.info('Uptime Kuma integration initialized');
     } catch (error) {
-      logger.error('Failed to initialize Uptime Kuma integration', {
-        error: error.message,
-      });
+      logger.error('Failed to initialize Uptime Kuma integration', { error: getErrorMessage(error) });
     }
   }
 
@@ -195,8 +188,7 @@ export class IntegrationService extends EventEmitter {
               lastChecked: health.lastChecked,
               responseTime: health.responseTime,
               error: health.error,
-              circuitBreakerState:
-                client.getCircuitBreakerStats?.()?.state || 'UNKNOWN',
+              circuitBreakerState: client.getCircuitBreakerStats?.()?.state || 'UNKNOWN',
             };
           } else if (client.isHealthy) {
             // For Uptime Kuma client
@@ -205,8 +197,7 @@ export class IntegrationService extends EventEmitter {
               healthy: client.isHealthy(),
               lastChecked: new Date(),
               responseTime: Date.now() - startTime,
-              circuitBreakerState:
-                client.getCircuitBreakerStats?.()?.state || 'UNKNOWN',
+              circuitBreakerState: client.getCircuitBreakerStats?.()?.state || 'UNKNOWN',
             };
           } else {
             healthStatus = {
@@ -219,8 +210,7 @@ export class IntegrationService extends EventEmitter {
           }
 
           const previousStatus = this.healthStatuses.get(serviceName);
-          const hasChanged =
-            !previousStatus || previousStatus.healthy !== healthStatus.healthy;
+          const hasChanged = !previousStatus || previousStatus.healthy !== healthStatus.healthy;
 
           this.healthStatuses.set(serviceName, healthStatus);
 
@@ -235,16 +225,14 @@ export class IntegrationService extends EventEmitter {
             service: serviceName,
             healthy: false,
             lastChecked: new Date(),
-            error: error.message,
+            error: getErrorMessage(error),
             circuitBreakerState: 'OPEN',
           };
 
           this.healthStatuses.set(serviceName, healthStatus);
           this.emit('serviceHealthChanged', healthStatus);
 
-          logger.error(`Health check failed for ${serviceName}`, {
-            error: error.message,
-          });
+          logger.error(`Health check failed for ${serviceName}`, { error: getErrorMessage(error) });
         }
       }
     );
@@ -264,7 +252,7 @@ export class IntegrationService extends EventEmitter {
     } catch (error) {
       logger.error('Failed to cache service status', {
         service: serviceName,
-        error: error.message,
+        error: getErrorMessage(error),
       });
     }
   }
@@ -277,9 +265,7 @@ export class IntegrationService extends EventEmitter {
       try {
         return await PlexApiClient.createFromUserToken(userToken);
       } catch (error) {
-        logger.error('Failed to create user Plex client', {
-          error: error.message,
-        });
+        logger.error('Failed to create user Plex client', { error: getErrorMessage(error) });
         return null;
       }
     }
@@ -305,9 +291,7 @@ export class IntegrationService extends EventEmitter {
     return Array.from(this.healthStatuses.values());
   }
 
-  async getCachedServiceStatus(
-    serviceName: string
-  ): Promise<ServiceHealthStatus | null> {
+  async getCachedServiceStatus(serviceName: string): Promise<ServiceHealthStatus | null> {
     try {
       const cacheKey = `service:health:${serviceName}`;
       const cached = await this.redis.get(cacheKey);
@@ -318,7 +302,7 @@ export class IntegrationService extends EventEmitter {
     } catch (error) {
       logger.error('Failed to get cached service status', {
         service: serviceName,
-        error: error.message,
+        error: getErrorMessage(error),
       });
     }
 
@@ -332,7 +316,7 @@ export class IntegrationService extends EventEmitter {
     services: ServiceHealthStatus[];
   } {
     const services = this.getAllServiceHealth();
-    const healthyServices = services.filter(s => s.healthy).length;
+    const healthyServices = services.filter((s) => s.healthy).length;
 
     return {
       healthy: healthyServices === services.length && services.length > 0,

@@ -1,14 +1,15 @@
 // Backend-specific type declarations
 import { User } from '@medianest/shared';
-import { Request } from 'express';
 
-// Extend Express Request with user
-export interface AuthenticatedRequest extends Request {
-  user?: User;
-  correlationId?: string;
-}
+// Re-export all typed modules
+export * from './api/common.types';
+export * from './database/prisma.types';
+export * from './middleware/express.types';
+export * from './integration/external-apis.types';
+export * from './services/config.types';
+export * from './environment.types';
 
-// Service configuration types
+// Legacy exports for backward compatibility
 export interface ServiceConfig {
   plex: {
     url: string;
@@ -22,11 +23,4 @@ export interface ServiceConfig {
     url: string;
     token?: string;
   };
-}
-
-// Queue job types
-export interface YouTubeDownloadJob {
-  userId: string;
-  playlistUrl: string;
-  outputPath: string;
 }

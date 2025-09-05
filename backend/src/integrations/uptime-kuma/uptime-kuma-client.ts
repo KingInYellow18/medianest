@@ -4,6 +4,7 @@ import WebSocket from 'ws';
 
 import { CircuitBreaker } from '../../utils/circuit-breaker';
 import { logger } from '../../utils/logger';
+import { getErrorMessage } from '../../utils/error-handling';
 
 export interface UptimeKumaMonitor {
   id: number;
@@ -72,6 +73,7 @@ export class UptimeKumaClient extends EventEmitter {
   private heartbeatTimer: NodeJS.Timeout | null = null;
   private lastHeartbeat: Date | null = null;
   private circuitBreaker: CircuitBreaker;
+  // Message ID counter for WebSocket communication
   private messageId = 0;
 
   private monitors: Map<number, UptimeKumaMonitor> = new Map();
@@ -103,8 +105,8 @@ export class UptimeKumaClient extends EventEmitter {
       this.scheduleReconnect();
     });
 
-    this.on('error', error => {
-      logger.error('Uptime Kuma WebSocket error', { error: error.message });
+    this.on('error', (error) => {
+      logger.error('Uptime Kuma WebSocket error', { error: getErrorMessage(error) });
     });
   }
 
@@ -119,9 +121,7 @@ export class UptimeKumaClient extends EventEmitter {
       this.ws.close();
     }
 
-    const wsUrl =
-      this.config.url.replace(/^http/, 'ws') +
-      '/socket.io/?EIO=4&transport=websocket';
+    const wsUrl = this.config.url.replace(/^http/, 'ws') + '/socket.io/?EIO=4&transport=websocket';
 
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
@@ -142,7 +142,7 @@ export class UptimeKumaClient extends EventEmitter {
         resolve();
       });
 
-      this.ws.on('message', data => {
+      this.ws.on('message', (data) => {
         this.handleMessage(data.toString());
       });
 
@@ -152,7 +152,7 @@ export class UptimeKumaClient extends EventEmitter {
         this.emit('disconnect', { code, reason: reason.toString() });
       });
 
-      this.ws.on('error', error => {
+      this.ws.on('error', (error) => {
         clearTimeout(timeout);
         this.emit('error', error);
         reject(error);
@@ -193,23 +193,23 @@ export class UptimeKumaClient extends EventEmitter {
     } catch (error) {
       logger.error('Failed to parse Uptime Kuma message', {
         message: message.substring(0, 100),
-        error: error.message,
+        error: getErrorMessage(error),
       });
     }
   }
 
-  private handleEvent(eventName: string, data: any): void {
+  private handleEvent(eventName: string, data: unknown): void {
     switch (eventName) {
       case 'monitorList':
-        this.handleMonitorList(data);
+        this.handleMonitorList(data as Record<string, UptimeKumaMonitor>);
         break;
 
       case 'heartbeat':
-        this.handleHeartbeat(data);
+        this.handleHeartbeat(data as UptimeKumaHeartbeat);
         break;
 
       case 'heartbeatList':
-        this.handleHeartbeatList(data);
+        this.handleHeartbeatList(data as Record<string, UptimeKumaHeartbeat[]>);
         break;
 
       case 'info':
@@ -228,7 +228,7 @@ export class UptimeKumaClient extends EventEmitter {
   private handleMonitorList(monitors: Record<string, UptimeKumaMonitor>): void {
     this.monitors.clear();
 
-    Object.values(monitors).forEach(monitor => {
+    Object.values(monitors).forEach((monitor) => {
       this.monitors.set(monitor.id, monitor);
     });
 
@@ -242,9 +242,7 @@ export class UptimeKumaClient extends EventEmitter {
     this.emit('heartbeat', heartbeat);
   }
 
-  private handleHeartbeatList(
-    heartbeats: Record<string, UptimeKumaHeartbeat[]>
-  ): void {
+  private handleHeartbeatList(heartbeats: Record<string, UptimeKumaHeartbeat[]>): void {
     Object.entries(heartbeats).forEach(([monitorId, monitorHeartbeats]) => {
       const latest = monitorHeartbeats[monitorHeartbeats.length - 1];
       if (latest) {
@@ -259,7 +257,7 @@ export class UptimeKumaClient extends EventEmitter {
   private updateStats(): void {
     this.stats = { up: 0, down: 0, unknown: 0, pause: 0 };
 
-    this.monitors.forEach(monitor => {
+    this.monitors.forEach((monitor) => {
       if (!monitor.active) {
         this.stats.pause++;
         return;
@@ -296,7 +294,7 @@ export class UptimeKumaClient extends EventEmitter {
     }
   }
 
-  private sendMessage(event: string, data?: any): void {
+  private sendMessage(event: string, data?: unknown): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
       logger.warn('Cannot send message, WebSocket not connected', { event });
       return;
@@ -312,10 +310,7 @@ export class UptimeKumaClient extends EventEmitter {
     const interval = this.config.heartbeatInterval || 30000;
 
     this.heartbeatTimer = setInterval(() => {
-      if (
-        this.lastHeartbeat &&
-        Date.now() - this.lastHeartbeat.getTime() > interval * 2
-      ) {
+      if (this.lastHeartbeat && Date.now() - this.lastHeartbeat.getTime() > interval * 2) {
         logger.warn('Uptime Kuma heartbeat timeout, reconnecting');
         this.disconnect();
         this.scheduleReconnect();
@@ -340,8 +335,8 @@ export class UptimeKumaClient extends EventEmitter {
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null;
       logger.info('Attempting to reconnect to Uptime Kuma');
-      this.connect().catch(error => {
-        logger.error('Reconnection failed', { error: error.message });
+      this.connect().catch((error) => {
+        logger.error('Reconnection failed', { error: getErrorMessage(error) });
         this.scheduleReconnect();
       });
     }, interval);
@@ -388,9 +383,7 @@ export class UptimeKumaClient extends EventEmitter {
   }
 
   isHealthy(): boolean {
-    return (
-      this.isConnected && this.circuitBreaker.getStats().state === 'CLOSED'
-    );
+    return this.isConnected && this.circuitBreaker.getStats().state === 'CLOSED';
   }
 
   getCircuitBreakerStats() {

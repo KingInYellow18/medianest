@@ -9,14 +9,14 @@ export interface CreateServiceConfigInput {
   serviceUrl: string;
   apiKey?: string;
   enabled?: boolean;
-  configData?: any;
+  configData?: Record<string, unknown>;
 }
 
 export interface UpdateServiceConfigInput {
   serviceUrl?: string;
   apiKey?: string;
   enabled?: boolean;
-  configData?: any;
+  configData?: Record<string, unknown>;
   updatedBy?: string;
 }
 
@@ -181,7 +181,7 @@ export class ServiceConfigRepository extends BaseRepository<
     url: string;
     apiKey?: string;
     enabled: boolean;
-    configData?: any;
+    configData?: Record<string, unknown>;
   } | null> {
     const config = await this.findByName(serviceName);
 

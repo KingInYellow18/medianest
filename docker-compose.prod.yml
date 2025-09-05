@@ -1,0 +1,290 @@
+# MediaNest Production Docker Compose
+# Hardened configuration for production deployment
+# Features: Security, monitoring, performance optimization
+
+services:
+  # =============================================================================
+  # FRONTEND SERVICE (Next.js)
+  # =============================================================================
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: frontend-production
+      args:
+        - NODE_ENV=production
+    image: medianest/frontend:latest
+    container_name: medianest-frontend-prod
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-https://app.medianest.com}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-medianest}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-medianest}?connection_limit=10&pool_timeout=20
+      - JWT_SECRET=${JWT_SECRET}
+      - PLEX_CLIENT_ID=${PLEX_CLIENT_ID}
+      - PLEX_CLIENT_SECRET=${PLEX_CLIENT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    volumes:
+      - frontend_logs:/app/logs:rw
+    depends_on:
+      backend:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - medianest-internal
+      - medianest-external
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=100m
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # =============================================================================
+  # BACKEND SERVICE (Express.js)
+  # =============================================================================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: backend-production
+      args:
+        - NODE_ENV=production
+    image: medianest/backend:latest
+    container_name: medianest-backend-prod
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-medianest}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-medianest}?connection_limit=20&pool_timeout=30
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_ISSUER=${JWT_ISSUER:-medianest}
+      - JWT_AUDIENCE=${JWT_AUDIENCE:-medianest-users}
+      - PLEX_CLIENT_ID=${PLEX_CLIENT_ID}
+      - PLEX_CLIENT_SECRET=${PLEX_CLIENT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - FRONTEND_URL=${FRONTEND_URL:-https://app.medianest.com}
+    volumes:
+      - backend_logs:/app/logs:rw
+      - backend_uploads:/app/uploads:rw
+      - youtube_storage:/app/youtube:rw
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - medianest-internal
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=200m
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # =============================================================================
+  # DATABASE SERVICE (PostgreSQL)
+  # =============================================================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: medianest-postgres-prod
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-medianest}
+      - POSTGRES_USER=${POSTGRES_USER:-medianest}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --auth-local=trust --auth-host=scram-sha-256
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - postgres_backups:/backups
+      - ./infrastructure/database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    networks:
+      - medianest-internal
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-medianest} -d ${POSTGRES_DB:-medianest}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_stat_statements
+      -c pg_stat_statements.track=all
+      -c max_connections=100
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c work_mem=4MB
+      -c maintenance_work_mem=64MB
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+
+  # =============================================================================
+  # CACHE SERVICE (Redis)
+  # =============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: medianest-redis-prod
+    restart: unless-stopped
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfsync everysec
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --tcp-keepalive 300
+      --timeout 0
+      --tcp-backlog 511
+      --databases 16
+    volumes:
+      - redis_data:/data
+      - redis_logs:/var/log/redis
+    networks:
+      - medianest-internal
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # =============================================================================
+  # MONITORING SERVICE (Optional - Uncomment for production monitoring)
+  # =============================================================================
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: medianest-nginx-prod
+  #   restart: unless-stopped
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - ./nginx/ssl:/etc/nginx/ssl:ro
+  #     - nginx_logs:/var/log/nginx
+  #   depends_on:
+  #     - frontend
+  #     - backend
+  #   networks:
+  #     - medianest-external
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 256M
+  #         cpus: '0.25'
+
+# =============================================================================
+# VOLUMES
+# =============================================================================
+volumes:
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_DIR:-./data}/postgres
+  postgres_backups:
+    driver: local
+  redis_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_DIR:-./data}/redis
+  redis_logs:
+    driver: local
+  backend_logs:
+    driver: local
+  backend_uploads:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${UPLOADS_DIR:-./uploads}
+  frontend_logs:
+    driver: local
+  youtube_storage:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${YOUTUBE_DIR:-./youtube}
+  nginx_logs:
+    driver: local
+
+# =============================================================================
+# NETWORKS
+# =============================================================================
+networks:
+  medianest-internal:
+    driver: bridge
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+  medianest-external:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16

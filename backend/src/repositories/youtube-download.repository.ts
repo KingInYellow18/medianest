@@ -17,7 +17,7 @@ export interface CreateYoutubeDownloadInput {
 export interface UpdateYoutubeDownloadInput {
   status?: string;
   playlistTitle?: string;
-  filePaths?: any;
+  filePaths?: string[];
   plexCollectionId?: string;
   completedAt?: Date;
 }

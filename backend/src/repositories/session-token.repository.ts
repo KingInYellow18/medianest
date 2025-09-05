@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 
-import { SessionToken, Prisma } from '@prisma/client';
+import { SessionToken, Prisma, PrismaClient } from '@prisma/client';
 
 import { getPrismaClient } from '../db/prisma';
 import { NotFoundError } from '../utils/errors';
@@ -13,12 +13,17 @@ export interface CreateSessionTokenInput {
   expiresAt: Date;
 }
 
+export interface UpdateSessionTokenInput {
+  expiresAt?: Date;
+  lastUsedAt?: Date;
+}
+
 export class SessionTokenRepository extends BaseRepository<
   SessionToken,
   CreateSessionTokenInput,
-  any
+  UpdateSessionTokenInput
 > {
-  constructor(prisma?: any) {
+  constructor(prisma?: PrismaClient) {
     super(prisma || getPrismaClient());
   }
   private hashToken(token: string): string {

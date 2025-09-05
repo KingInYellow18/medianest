@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 
 import { logger } from '../utils/logger';
+import { PrismaQueryEvent, PrismaErrorEvent } from '../types/database/prisma.types';
 
 // Create singleton instance
 let prisma: PrismaClient;
@@ -17,7 +18,7 @@ export function getPrismaClient(): PrismaClient {
 
     // Log queries in development
     if (process.env.NODE_ENV === 'development') {
-      prisma.$on('query', (e: any) => {
+      prisma.$on('query', (e: PrismaQueryEvent) => {
         logger.debug('Prisma Query', {
           query: e.query,
           params: e.params,
@@ -27,7 +28,7 @@ export function getPrismaClient(): PrismaClient {
     }
 
     // Log slow queries in all environments
-    prisma.$on('query', (e: any) => {
+    prisma.$on('query', (e: PrismaQueryEvent) => {
       if (e.duration > 1000) {
         logger.warn('Slow query detected', {
           query: e.query,
@@ -37,7 +38,7 @@ export function getPrismaClient(): PrismaClient {
     });
 
     // Log errors
-    prisma.$on('error', (e: any) => {
+    prisma.$on('error', (e: PrismaErrorEvent) => {
       logger.error('Prisma error', {
         message: e.message,
         target: e.target,

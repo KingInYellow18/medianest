@@ -44,7 +44,7 @@ export const requestLogger = (
     metrics.recordDuration(duration);
 
     return res.send(data);
-  } as any;
+  } as typeof originalSend;
 
   next();
 };
