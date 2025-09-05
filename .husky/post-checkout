@@ -1,0 +1,27 @@
+#!/bin/sh
+# MediaNest - Automatic Branch-Specific GitIgnore Switching
+# This hook runs after git checkout to apply branch-specific gitignore rules
+
+# Check if we're switching branches (not just checking out files)
+# $3 is 1 for branch checkout, 0 for file checkout
+if [ "$3" = "1" ]; then
+  echo "🔄 Branch switched - updating gitignore rules..."
+  
+  # Get current branch name
+  current_branch=$(git branch --show-current)
+  
+  if [ -n "$current_branch" ]; then
+    echo "📍 Current branch: $current_branch"
+    
+    # Run the gitignore manager
+    if [ -f "scripts/gitignore-manager.js" ]; then
+      node scripts/gitignore-manager.js "$current_branch"
+    else
+      echo "⚠️  GitIgnore manager script not found at scripts/gitignore-manager.js"
+    fi
+  else
+    echo "⚠️  Could not determine current branch"
+  fi
+else
+  echo "📁 File checkout detected - no gitignore changes needed"
+fi

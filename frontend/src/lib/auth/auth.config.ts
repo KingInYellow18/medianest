@@ -4,7 +4,7 @@ import { prisma } from '../db/prisma';
 import PlexProvider from './plex-provider';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { z } from 'zod';
-import bcrypt from 'bcryptjs';
+import { getPlexAuthConfig } from '@/config';
 
 // Admin credentials schema
 const adminCredentialsSchema = z.object({
@@ -18,12 +18,10 @@ export async function getAuthOptions(): Promise<NextAuthOptions> {
   const userCount = await prisma.user.count();
   const isFirstRun = userCount === 0;
 
-  const providers = [
+  const providers: any[] = [
     // Plex OAuth provider
     PlexProvider({
-      clientId: process.env.AUTH_PLEX_CLIENT_ID!,
-      clientSecret: process.env.AUTH_PLEX_CLIENT_SECRET!,
-      clientIdentifier: process.env.PLEX_CLIENT_IDENTIFIER,
+      ...getPlexAuthConfig(),
       product: 'MediaNest',
       device: 'Web',
       deviceName: 'MediaNest Web Portal',
@@ -51,10 +49,7 @@ export async function getAuthOptions(): Promise<NextAuthOptions> {
           }
 
           // Only allow admin/admin on first run
-          if (
-            parsed.data.username === 'admin' &&
-            parsed.data.password === 'admin'
-          ) {
+          if (parsed.data.username === 'admin' && parsed.data.password === 'admin') {
             // Create the admin user
             const adminUser = await prisma.user.create({
               data: {
@@ -79,12 +74,12 @@ export async function getAuthOptions(): Promise<NextAuthOptions> {
 
           return null;
         },
-      })
+      }),
     );
   }
 
   return {
-    adapter: PrismaAdapter(prisma) as any,
+    adapter: PrismaAdapter(prisma as any) as any,
     providers,
     session: {
       strategy: 'jwt',
@@ -137,8 +132,7 @@ export async function getAuthOptions(): Promise<NextAuthOptions> {
         if (token) {
           session.user.id = token.id as string;
           session.user.role = token.role as string;
-          session.user.requiresPasswordChange =
-            token.requiresPasswordChange as boolean;
+          session.user.requiresPasswordChange = token.requiresPasswordChange as boolean;
         }
 
         return session;
@@ -176,12 +170,16 @@ export async function getAuthOptions(): Promise<NextAuthOptions> {
     },
 
     events: {
-      async signIn({ user, account, profile, isNewUser }) {
-        console.log(`User ${user.email} signed in via ${account?.provider}`);
+      async signIn({ user, account, profile: _profile, isNewUser: _isNewUser }) {
+        if (process.env.NODE_ENV === 'development') {
+          console.info(`User ${user.email} signed in via ${account?.provider}`);
+        }
       },
 
-      async signOut({ session, token }) {
-        console.log(`User signed out`);
+      async signOut({ session: _session, token: _token }) {
+        if (process.env.NODE_ENV === 'development') {
+          console.info('User signed out');
+        }
       },
     },
 

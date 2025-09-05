@@ -1,8 +1,8 @@
 # MediaNest System Architecture
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Date:** January 2025  
-**Status:** Draft
+**Status:** Active Implementation
 
 ## Table of Contents
 
@@ -24,11 +24,20 @@
 MediaNest is a unified web portal that consolidates multiple media management services into a single authenticated interface. The architecture follows a monolithic design pattern optimized for 10-20 concurrent users, leveraging modern web technologies and containerization for easy deployment and maintenance.
 
 ### Key Architectural Decisions
+
 - **Monolithic Architecture**: Simplified deployment and maintenance for small user base
-- **Container-First Design**: Docker Compose for consistent environments
+- **Container-First Design**: Docker Compose V2 for consistent environments
 - **Real-time Communication**: Socket.io for live status updates
-- **Secure by Default**: Plex OAuth, rate limiting, and encrypted storage
-- **Service Resilience**: Graceful degradation when external services unavailable
+- **Secure by Default**: Plex OAuth, rate limiting, and AES-256-GCM encrypted storage
+- **Service Resilience**: Circuit breakers with graceful degradation when external services unavailable
+
+### Implementation Status
+
+- **Phase 1 (Core Infrastructure)**: ✅ Complete
+- **Phase 2 (External Service Integration)**: ✅ Complete
+- **Phase 3 (Dashboard & Media Search UI)**: ✅ Complete
+- **Phase 4 (YouTube Integration)**: ⏳ In Progress (Frontend complete, backend pending)
+- **Phase 5 (Advanced Features)**: 📋 Planned
 
 ## 2. System Overview
 
@@ -116,44 +125,91 @@ MediaNest is a unified web portal that consolidates multiple media management se
 
 ## 4. Component Architecture
 
-### 4.1 Frontend Components
+### 4.1 Frontend Components (Next.js 14 App Router)
 
 ```
-frontend/
+frontend/src/
+├── app/                # Next.js 14 App Directory
+│   ├── (auth)/        # Authenticated routes group
+│   │   └── dashboard/ # Dashboard page
+│   ├── api/           # API route handlers
+│   │   └── auth/      # NextAuth.js endpoints
+│   ├── auth/          # Auth pages (signin, change-password)
+│   ├── media/         # Media browsing page
+│   ├── layout.tsx     # Root layout with providers
+│   └── page.tsx       # Home page
 ├── components/
-│   ├── auth/           # Authentication components
-│   ├── dashboard/      # Dashboard widgets
-│   ├── media/          # Media browsing/request components
-│   ├── youtube/        # YouTube download manager
-│   ├── admin/          # Admin panel components
-│   │   ├── ServiceConfig.tsx    # Service URL configuration
-│   │   ├── UserManagement.tsx   # User list and controls
-│   │   └── SystemSettings.tsx   # General settings
-│   └── common/         # Shared UI components
-├── hooks/              # Custom React hooks
-├── lib/                # Utility functions
-├── pages/              # Next.js pages
-│   ├── dashboard.tsx   # Main dashboard
-│   ├── media/          # Media browsing pages
-│   ├── youtube/        # YouTube manager pages
-│   ├── admin/          # Admin section (role-protected)
-│   └── docs/           # Documentation pages
-├── services/           # API client services
-└── styles/             # Global styles and Tailwind config
+│   ├── dashboard/     # Dashboard components
+│   │   ├── cards/     # Service-specific cards (Plex, Overseerr, Uptime Kuma)
+│   │   ├── ConnectionStatus.tsx
+│   │   ├── ServiceCard.tsx
+│   │   ├── StatusIndicator.tsx
+│   │   └── QuickActions.tsx
+│   ├── media/         # Media components
+│   │   ├── MediaGrid.tsx
+│   │   ├── MediaCard.tsx
+│   │   ├── SearchInput.tsx
+│   │   ├── SearchFilters.tsx
+│   │   └── RequestButton.tsx
+│   ├── providers/     # React context providers
+│   └── ui/            # Reusable UI components (shadcn/ui)
+├── hooks/             # Custom React hooks
+│   ├── useWebSocket.ts
+│   ├── useRealtimeStatus.ts
+│   ├── useServiceStatus.ts
+│   └── useMediaSearch.ts
+├── lib/               # Utility functions and API clients
+│   ├── api/           # API client functions
+│   ├── auth/          # NextAuth configuration
+│   ├── db/            # Prisma client
+│   ├── queues/        # BullMQ queue configuration
+│   ├── redis/         # Redis clients and utilities
+│   └── socket.ts      # Socket.io client
+└── types/             # TypeScript type definitions
 ```
 
 ### 4.2 Backend Components
 
 ```
-backend/
+backend/src/
 ├── controllers/        # Request handlers
-├── services/           # Business logic
+│   ├── auth.controller.ts
+│   ├── dashboard.controller.ts
+│   ├── media.controller.ts
+│   ├── plex.controller.ts
+│   └── youtube.controller.ts
+├── services/           # Business logic layer
+│   ├── encryption.service.ts
+│   ├── jwt.service.ts
+│   ├── overseerr.service.ts
+│   ├── plex.service.ts
+│   └── status.service.ts
 ├── repositories/       # Data access layer
-├── middleware/         # Express middleware
-├── jobs/              # Background job processors
+│   ├── base.repository.ts
+│   ├── user.repository.ts
+│   ├── media-request.repository.ts
+│   ├── service-status.repository.ts
+│   └── youtube-download.repository.ts
 ├── integrations/      # External service clients
+│   ├── plex/          # Plex API client with circuit breaker
+│   ├── overseerr/     # Overseerr API client
+│   └── uptime-kuma/   # Uptime Kuma monitoring client
+├── middleware/         # Express middleware
+│   ├── auth.ts        # JWT authentication
+│   ├── error.ts       # Global error handler
+│   ├── logging.ts     # Winston request logging
+│   ├── rate-limit.ts  # Redis-based rate limiting
+│   └── validate.ts    # Zod schema validation
+├── socket/            # WebSocket handlers
+│   ├── handlers/      # Event handlers
+│   └── middleware.ts  # Socket.io authentication
+├── jobs/              # Background job processors (minimal)
 ├── utils/             # Helper functions
-└── config/            # Configuration management
+├── config/            # Configuration files
+│   ├── database.ts
+│   ├── redis.ts
+│   └── queues.ts
+└── validations/       # Zod validation schemas
 ```
 
 ### 4.3 Component Interactions
@@ -215,7 +271,7 @@ CREATE TABLE youtube_downloads (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     completed_at TIMESTAMP,
     -- Ensure users can only see their own downloads
-    CONSTRAINT youtube_downloads_user_isolation 
+    CONSTRAINT youtube_downloads_user_isolation
         CHECK (user_id IS NOT NULL)
 );
 
@@ -289,6 +345,7 @@ remember:{tokenHash} -> {userId, createdAt, deviceFingerprint}
 ```
 
 #### Rate Limiting Lua Script
+
 ```lua
 -- Atomic rate limit check and increment
 local key = KEYS[1]
@@ -383,17 +440,46 @@ PUT    /api/admin/config    # Update system settings
 }
 ```
 
-### 6.3 Error Handling Best Practices
+### 6.3 WebSocket Events
+
+```typescript
+// Implemented WebSocket events
+interface WebSocketEvents {
+  // Service status updates
+  'service:status': {
+    service: string;
+    status: 'online' | 'offline' | 'degraded';
+    responseTime?: number;
+    error?: string;
+  };
+
+  // Real-time notifications
+  notification: {
+    type: 'info' | 'success' | 'warning' | 'error';
+    message: string;
+    timestamp: string;
+  };
+
+  // Connection events
+  connect: void;
+  disconnect: void;
+  error: { message: string };
+}
+```
+
+### 6.4 Error Handling Best Practices
 
 For comprehensive error handling implementation, see `/docs/ERROR_HANDLING_LOGGING_STRATEGY.md`.
 
 #### Key Principles
+
 - **User-friendly error messages**: Clear, actionable feedback without technical jargon
 - **Correlation ID tracking**: Trace requests across services and logs
 - **Circuit breakers**: Prevent cascading failures from external services
 - **Graceful degradation**: Maintain core functionality when services fail
 
 #### Error Response Strategy
+
 1. **Client Errors (4xx)**: Clear, actionable messages with error codes
 2. **Server Errors (5xx)**: Generic user messages, detailed internal logging
 3. **External Service Errors**: Circuit breakers with fallback responses
@@ -432,11 +518,13 @@ sequenceDiagram
 #### Remember Me Functionality
 
 1. **Token Generation**
+
    - Generate secure random token on login
    - Hash token before storing in database
    - Set HTTP-only cookie with 90-day expiry
 
 2. **Token Validation**
+
    - Check remember token if session expired
    - Validate token hash and expiry
    - Regenerate session with fresh expiry
@@ -450,11 +538,13 @@ sequenceDiagram
 ### 7.2 Security Layers
 
 1. **Network Security**
+
    - SSL/TLS encryption (Let's Encrypt)
    - Nginx rate limiting
    - CORS configuration
 
 2. **Application Security**
+
    - JWT token validation
    - CSRF protection
    - Input sanitization
@@ -469,7 +559,9 @@ sequenceDiagram
 ### 7.3 Role-Based Access Control
 
 #### User Roles
+
 1. **Admin Role**
+
    - Full system access
    - Service configuration management
    - User management capabilities
@@ -484,13 +576,14 @@ sequenceDiagram
    - Cannot access admin sections
 
 #### Access Control Implementation
+
 ```typescript
 // Middleware for role checking
 export const requireAdmin = async (req, res, next) => {
   const session = await getSession(req);
   if (session?.user?.role !== 'admin') {
-    return res.status(403).json({ 
-      error: USER_ERRORS.PERMISSION_DENIED 
+    return res.status(403).json({
+      error: USER_ERRORS.PERMISSION_DENIED,
     });
   }
   next();
@@ -500,8 +593,8 @@ export const requireAdmin = async (req, res, next) => {
 router.get('/api/admin/*', requireAdmin);
 router.get('/api/youtube/downloads', async (req, res) => {
   // Automatically filter by user ID
-  const downloads = await getDownloads({ 
-    userId: req.session.user.id 
+  const downloads = await getDownloads({
+    userId: req.session.user.id,
   });
   res.json(downloads);
 });
@@ -545,21 +638,34 @@ router.get('/api/youtube/downloads', async (req, res) => {
 ### 8.2 Service Resilience
 
 #### Circuit Breaker Implementation
-Using the `opossum` library for Node.js:
-```javascript
-import CircuitBreaker from 'opossum';
 
-const plexBreaker = new CircuitBreaker(plexApiCall, {
-  timeout: 3000,
-  errorThresholdPercentage: 50,
-  resetTimeout: 30000
-});
+All external service clients implement circuit breaker pattern:
 
-plexBreaker.fallback(() => ({ 
-  status: 'degraded', 
-  data: cacheService.getLastKnownGood('plex') 
-}));
-```
+````typescript
+// Example from plex.client.ts
+class PlexClient extends ServiceClient {
+  constructor(config: PlexConfig) {
+    super({
+      serviceName: 'plex',
+      baseURL: config.url,
+      timeout: 10000,
+      circuitBreaker: {
+        errorThresholdPercentage: 50,
+        resetTimeout: 30000
+      }
+    });
+  }
+
+  // Automatic retry with exponential backoff
+  private async withRetry<T>(operation: () => Promise<T>): Promise<T> {
+    return retry(operation, {
+      retries: 3,
+      factor: 2,
+      minTimeout: 1000,
+      maxTimeout: 10000
+    });
+  }
+}
 
 #### Connection Pooling for HTTP
 ```javascript
@@ -576,7 +682,7 @@ const axiosConfig = {
   timeout: 10000,
   validateStatus: (status) => status < 500
 };
-```
+````
 
 - **Retry Logic**: Exponential backoff with jitter (1s, 2s, 4s + random)
 - **Fallback Behavior**: Return cached data or degraded functionality
@@ -587,6 +693,7 @@ const axiosConfig = {
 ### 9.1 Docker Compose Configuration
 
 ```yaml
+# docker-compose.yml (Production)
 version: '3.8'
 
 services:
@@ -596,8 +703,8 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - ./certs:/etc/nginx/certs
     ports:
-      - "443:443"
-      - "80:80"
+      - '443:443'
+      - '80:80'
     depends_on:
       - app
 
@@ -613,7 +720,7 @@ services:
     secrets:
       - encryption_key
       - nextauth_secret
-    user: "1000:1000"  # Run as non-root
+    user: '1000:1000' # Run as non-root
     depends_on:
       - postgres
       - redis
@@ -648,37 +755,68 @@ secrets:
     file: ./secrets/encryption_key
   nextauth_secret:
     file: ./secrets/nextauth_secret
+# Additional environments:
+# - docker-compose.dev.yml: Development with hot reload
+# - docker-compose.test.yml: Test environment (root and backend specific)
 ```
 
-#### Custom Server for Socket.io
-Since Next.js doesn't natively support WebSockets, we need a custom server:
+#### Frontend Custom Server
+
+The frontend uses a custom server.js to support WebSocket connections with Next.js:
 
 ```javascript
-// server.js
-import { createServer } from 'http';
-import { Server } from 'socket.io';
-import next from 'next';
-import { authenticateSocket } from './lib/auth';
+// frontend/server.js
+const { createServer } = require('http');
+const { parse } = require('url');
+const next = require('next');
+const { Server } = require('socket.io');
 
-const app = next({ dev: process.env.NODE_ENV !== 'production' });
-const handler = app.getRequestHandler();
+const dev = process.env.NODE_ENV !== 'production';
+const app = next({ dev });
+const handle = app.getRequestHandler();
 
-app.prepare().then(() => {
-  const httpServer = createServer(handler);
-  const io = new Server(httpServer);
+// Custom server enables Socket.io integration with Next.js
+// Required for real-time status updates and notifications
+// Handles both development and production modes
+```
 
-  // JWT authentication for WebSocket connections
+#### Socket.io Implementation
+
+WebSocket support is implemented in the Express backend server:
+
+```typescript
+// backend/src/socket/index.ts
+export const initializeSocket = (server: Server) => {
+  const io = new SocketIOServer(server, {
+    cors: {
+      origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+      credentials: true,
+    },
+  });
+
+  // JWT authentication middleware
   io.use(authenticateSocket);
 
   io.on('connection', (socket) => {
-    // Handle Uptime Kuma status updates
+    logger.info('Client connected', { socketId: socket.id });
+
+    // Join user-specific room for targeted updates
+    socket.on('join:user', (userId: string) => {
+      socket.join(`user:${userId}`);
+    });
+
+    // Subscribe to service status updates
     socket.on('subscribe:status', () => {
       socket.join('status-updates');
     });
+
+    socket.on('disconnect', () => {
+      logger.info('Client disconnected', { socketId: socket.id });
+    });
   });
 
-  httpServer.listen(3000);
-});
+  return io;
+};
 ```
 
 ### 9.2 Environment Configuration
@@ -717,11 +855,13 @@ ENCRYPTION_KEY=<generated-32-byte-key>
 External service configurations are managed through the admin UI after initial deployment:
 
 1. **Initial Setup**
+
    - Admin logs in with bootstrap credentials
    - Navigates to Admin → Service Configuration
    - Configures each service URL and API key
 
 2. **Service Configuration UI**
+
    ```
    ┌─────────────────────────────────────┐
    │     Service Configuration Panel      │
@@ -762,48 +902,42 @@ export function encrypt(text) {
   const key = keyDerivation(process.env.ENCRYPTION_KEY);
   const iv = crypto.randomBytes(16);
   const cipher = crypto.createCipheriv(algorithm, key, iv);
-  
+
   let encrypted = cipher.update(text, 'utf8', 'hex');
   encrypted += cipher.final('hex');
   const authTag = cipher.getAuthTag();
-  
+
   return {
     encrypted,
     iv: iv.toString('hex'),
-    authTag: authTag.toString('hex')
+    authTag: authTag.toString('hex'),
   };
 }
 
 export function decrypt(data) {
   const key = keyDerivation(process.env.ENCRYPTION_KEY);
-  const decipher = crypto.createDecipheriv(
-    algorithm, 
-    key, 
-    Buffer.from(data.iv, 'hex')
-  );
-  
+  const decipher = crypto.createDecipheriv(algorithm, key, Buffer.from(data.iv, 'hex'));
+
   decipher.setAuthTag(Buffer.from(data.authTag, 'hex'));
   let decrypted = decipher.update(data.encrypted, 'hex', 'utf8');
   decrypted += decipher.final('utf8');
-  
+
   return decrypted;
 }
 ```
 
 ### 9.5 BullMQ Configuration
 
-```javascript
-// lib/queues/youtubeQueue.js
-import { Queue, Worker } from 'bullmq';
-import { spawn } from 'child_process';
+````typescript
+// backend/src/config/queues.ts
+import { Queue, QueueOptions } from 'bullmq';
 
-const connection = {
-  host: 'redis',
-  port: 6379
-};
-
-export const youtubeQueue = new Queue('youtube-downloads', {
-  connection,
+const defaultQueueOptions: QueueOptions = {
+  connection: {
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT || '6379'),
+    password: process.env.REDIS_PASSWORD
+  },
   defaultJobOptions: {
     attempts: 3,
     backoff: {
@@ -818,37 +952,19 @@ export const youtubeQueue = new Queue('youtube-downloads', {
       age: 86400 // 24 hours
     }
   }
+};
+
+// YouTube download queue configuration
+export const youtubeDownloadQueue = new Queue('youtube-downloads', {
+  ...defaultQueueOptions,
+  defaultJobOptions: {
+    ...defaultQueueOptions.defaultJobOptions,
+    // Rate limit: 5 downloads per hour per user
+    rateLimiterKey: 'youtube-rate-limiter'
+  }
 });
 
-// Worker to process jobs
-export const youtubeWorker = new Worker(
-  'youtube-downloads',
-  async (job) => {
-    const { url, userId, outputPath } = job.data;
-    
-    return new Promise((resolve, reject) => {
-      const ytdlp = spawn('yt-dlp', [
-        url,
-        '-o', `${outputPath}/${userId}/%(title)s.%(ext)s`,
-        '--newline',
-        '--no-warnings'
-      ]);
-
-      ytdlp.stdout.on('data', (data) => {
-        const match = data.toString().match(/\[download\]\s+(\d+\.\d+)%/);
-        if (match) {
-          job.updateProgress(parseFloat(match[1]));
-        }
-      });
-
-      ytdlp.on('close', (code) => {
-        if (code === 0) resolve({ success: true });
-        else reject(new Error(`yt-dlp exited with code ${code}`));
-      });
-    });
-  },
-  { connection }
-);
+// Note: Worker implementation pending for Phase 4
 
 ## 10. Performance & Scalability
 
@@ -905,7 +1021,7 @@ For detailed logging implementation and configuration, see `/docs/ERROR_HANDLING
 
 #### Log Levels
 - ERROR: System errors, failed integrations
-- WARN: Rate limit violations, service degradation  
+- WARN: Rate limit violations, service degradation
 - INFO: User actions, successful operations
 - DEBUG: Detailed execution flow (dev only)
 
@@ -998,20 +1114,81 @@ Based on architectural research, the following considerations are critical for s
 
 ### A. Technology Versions
 
+#### Frontend (package.json versions)
 - Node.js: 20.x LTS
-- Next.js: 14.x
+- Next.js: 14.2.30
+- React: 18.x
+- TypeScript: 5.x
+- Prisma Client: 6.11.1
+- Socket.io Client: 4.7.5
+- NextAuth.js: 4.24.7
+- Tailwind CSS: 3.4.1
+- Vitest: 1.6.1
+- Zod: 3.24.1
+- BullMQ: 5.1.2
+
+#### Backend (package.json versions)
+- Node.js: 20.x LTS
+- Express: 4.18.2
+- TypeScript: 5.3.3
+- Prisma: 5.18.0
+- Socket.io: 4.6.1
+- BullMQ: 5.1.2
+- Winston: 3.11.0
+- Zod: 3.22.4
+- Redis Client: 4.6.12
+- bcrypt: 5.1.1
+- jsonwebtoken: 9.0.2
+
+#### Infrastructure
 - PostgreSQL: 15.x
 - Redis: 7.x
-- Docker: 24.x
+- Docker: 24.x with Compose V2
 - Nginx: 1.25.x
-- yt-dlp: Latest version
-- BullMQ: 5.x
-- opossum: 8.x
-- Socket.io: 4.x
+- yt-dlp: Latest version (for future YouTube integration)
 
 ### B. Development Setup
 
-See `/docs/DEVELOPMENT.md` for local setup instructions.
+#### Quick Start
+```bash
+# Clone and install
+git clone https://github.com/yourusername/medianest.git
+cd medianest
+npm install
+
+# Generate security keys
+npm run generate-secrets
+
+# Setup environment
+cp .env.example .env
+# Edit .env with your configuration
+
+# Database setup
+npm run db:generate
+npm run db:migrate
+
+# Start development servers
+npm run dev  # Starts both frontend (3000) and backend (4000)
+````
+
+#### Testing
+
+```bash
+# Run all tests across workspaces
+npm test
+
+# Backend tests with test database
+cd backend && ./run-tests.sh
+
+# Frontend tests
+cd frontend && npm test
+
+# Vitest UI for debugging
+cd backend && npm run test:ui
+cd frontend && npm run test:ui
+```
+
+See `/docs/DEVELOPMENT.md` for detailed setup instructions.
 
 ### C. API Documentation
 
@@ -1025,13 +1202,42 @@ See `/docs/API.md` for detailed API specifications.
 
 ### E. Security Checklist
 
-- [ ] All containers run as non-root users
-- [ ] Secrets stored in Docker secrets, not environment variables
-- [ ] API keys encrypted with AES-256-GCM before database storage
-- [ ] Rate limiting implemented with Redis Lua scripts
-- [ ] Circuit breakers configured for all external services
-- [ ] Remember me tokens use one-time regeneration
-- [ ] WebSocket connections authenticated with JWT
-- [ ] File uploads isolated by user ID
-- [ ] HTTPS enforced for all connections
-- [ ] Input validation on all endpoints
+- [x] All containers run as non-root users (1000:1000)
+- [x] Secrets stored in environment variables (Docker secrets for production)
+- [x] API keys encrypted with AES-256-GCM before database storage
+- [x] Rate limiting implemented with Redis Lua scripts
+- [x] Circuit breakers configured for all external services
+- [x] Session tokens with secure httpOnly cookies
+- [x] WebSocket connections authenticated with JWT
+- [ ] File uploads isolated by user ID (pending YouTube implementation)
+- [x] HTTPS configuration ready (Nginx)
+- [x] Input validation on all endpoints with Zod
+
+### F. Current Implementation Gaps
+
+1. **YouTube Download Feature** (Phase 4)
+
+   - ✅ Database schema ready
+   - ✅ API routes registered
+   - ✅ Queue configuration exists
+   - ✅ Frontend components fully implemented
+   - ❌ Backend controller implementation
+   - ❌ Worker implementation
+   - ❌ yt-dlp integration
+
+2. **Admin UI** (Phase 5)
+
+   - API endpoints exist
+   - Missing: Frontend admin components
+   - Missing: Service configuration UI
+
+3. **Advanced Monitoring**
+
+   - Basic metrics collection implemented
+   - Missing: Prometheus integration
+   - Missing: Grafana dashboards
+
+4. **Documentation**
+   - Architecture documentation current
+   - Missing: API documentation
+   - Missing: User documentation

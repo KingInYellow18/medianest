@@ -1,4 +1,5 @@
 import { Job } from 'bullmq';
+
 import { getQueue, QUEUE_NAMES } from './queue-config';
 
 export interface YoutubeDownloadJobData {
@@ -26,7 +27,7 @@ export interface YoutubeDownloadProgress {
  * Add a YouTube download job to the queue
  */
 export async function addYoutubeDownloadJob(
-  data: YoutubeDownloadJobData
+  data: YoutubeDownloadJobData,
 ): Promise<Job<YoutubeDownloadJobData>> {
   const queue = getQueue(QUEUE_NAMES.YOUTUBE_DOWNLOAD);
 
@@ -46,9 +47,9 @@ export async function addYoutubeDownloadJob(
     },
   });
 
-  console.log(
-    `📥 YouTube download job ${job.id} added for user ${data.userId}`
-  );
+  if (process.env.NODE_ENV === 'development') {
+    console.info(`📥 YouTube download job ${job.id} added for user ${data.userId}`);
+  }
   return job;
 }
 
@@ -60,14 +61,14 @@ export async function getUserDownloadJobs(
   statuses: Array<'completed' | 'failed' | 'delayed' | 'active' | 'waiting'> = [
     'active',
     'waiting',
-  ]
+  ],
 ): Promise<Job<YoutubeDownloadJobData>[]> {
   const queue = getQueue(QUEUE_NAMES.YOUTUBE_DOWNLOAD);
   const jobs: Job<YoutubeDownloadJobData>[] = [];
 
   for (const status of statuses) {
     const statusJobs = await queue.getJobs(status);
-    const userJobs = statusJobs.filter(job => job.data.userId === userId);
+    const userJobs = statusJobs.filter((job) => job.data.userId === userId);
     jobs.push(...userJobs);
   }
 
@@ -77,9 +78,7 @@ export async function getUserDownloadJobs(
 /**
  * Get download job by ID
  */
-export async function getDownloadJob(
-  jobId: string
-): Promise<Job<YoutubeDownloadJobData> | null> {
+export async function getDownloadJob(jobId: string): Promise<Job<YoutubeDownloadJobData> | null> {
   const queue = getQueue(QUEUE_NAMES.YOUTUBE_DOWNLOAD);
   const job = await queue.getJob(jobId);
 
@@ -89,10 +88,7 @@ export async function getDownloadJob(
 /**
  * Cancel a download job
  */
-export async function cancelDownloadJob(
-  jobId: string,
-  userId: string
-): Promise<boolean> {
+export async function cancelDownloadJob(jobId: string, userId: string): Promise<boolean> {
   const job = await getDownloadJob(jobId);
 
   if (!job) {
@@ -108,7 +104,9 @@ export async function cancelDownloadJob(
 
   // Remove the job
   await job.remove();
-  console.log(`🚫 Cancelled download job ${jobId} for user ${userId}`);
+  if (process.env.NODE_ENV === 'development') {
+    console.info(`🚫 Cancelled download job ${jobId} for user ${userId}`);
+  }
 
   return true;
 }
@@ -118,7 +116,7 @@ export async function cancelDownloadJob(
  */
 export async function retryDownloadJob(
   jobId: string,
-  userId: string
+  userId: string,
 ): Promise<Job<YoutubeDownloadJobData> | null> {
   const job = await getDownloadJob(jobId);
 
@@ -142,7 +140,9 @@ export async function retryDownloadJob(
 
   // Retry the job
   await job.retry();
-  console.log(`🔄 Retrying download job ${jobId} for user ${userId}`);
+  if (process.env.NODE_ENV === 'development') {
+    console.info(`🔄 Retrying download job ${jobId} for user ${userId}`);
+  }
 
   return job;
 }
@@ -153,15 +153,16 @@ export async function retryDownloadJob(
 export async function getDownloadQueueStats() {
   const queue = getQueue(QUEUE_NAMES.YOUTUBE_DOWNLOAD);
 
-  const [waiting, active, completed, failed, delayed, paused] =
-    await Promise.all([
-      queue.getWaitingCount(),
-      queue.getActiveCount(),
-      queue.getCompletedCount(),
-      queue.getFailedCount(),
-      queue.getDelayedCount(),
-      queue.getPausedCount(),
-    ]);
+  const [waiting, active, completed, failed, delayed] = await Promise.all([
+    queue.getWaitingCount(),
+    queue.getActiveCount(),
+    queue.getCompletedCount(),
+    queue.getFailedCount(),
+    queue.getDelayedCount(),
+  ]);
+
+  // Note: getPausedCount is not available in this BullMQ version
+  const paused = 0;
 
   return {
     waiting,
@@ -180,7 +181,9 @@ export async function getDownloadQueueStats() {
 export async function pauseDownloadQueue(): Promise<void> {
   const queue = getQueue(QUEUE_NAMES.YOUTUBE_DOWNLOAD);
   await queue.pause();
-  console.log('⏸️  YouTube download queue paused');
+  if (process.env.NODE_ENV === 'development') {
+    console.info('⏸️  YouTube download queue paused');
+  }
 }
 
 /**
@@ -189,15 +192,15 @@ export async function pauseDownloadQueue(): Promise<void> {
 export async function resumeDownloadQueue(): Promise<void> {
   const queue = getQueue(QUEUE_NAMES.YOUTUBE_DOWNLOAD);
   await queue.resume();
-  console.log('▶️  YouTube download queue resumed');
+  if (process.env.NODE_ENV === 'development') {
+    console.info('▶️  YouTube download queue resumed');
+  }
 }
 
 /**
  * Clean old completed/failed jobs
  */
-export async function cleanOldDownloadJobs(
-  olderThanDays: number = 7
-): Promise<number> {
+export async function cleanOldDownloadJobs(olderThanDays: number = 7): Promise<number> {
   const queue = getQueue(QUEUE_NAMES.YOUTUBE_DOWNLOAD);
   const cutoffTime = Date.now() - olderThanDays * 24 * 60 * 60 * 1000;
 
@@ -221,6 +224,8 @@ export async function cleanOldDownloadJobs(
     }
   }
 
-  console.log(`🧹 Cleaned ${cleaned} old download jobs`);
+  if (process.env.NODE_ENV === 'development') {
+    console.info(`🧹 Cleaned ${cleaned} old download jobs`);
+  }
   return cleaned;
 }

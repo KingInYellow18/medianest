@@ -1,20 +1,16 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { signIn } from 'next-auth/react';
+import Image from 'next/image';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { signIn } from 'next-auth/react';
+import { useState, useEffect, useCallback } from 'react';
+
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, AlertCircle } from 'lucide-react';
 
 export default function SignInPage() {
   const router = useRouter();
@@ -67,9 +63,7 @@ export default function SignInPage() {
     if (!plexSessionId || !isPolling) return;
 
     try {
-      const response = await fetch(
-        `/api/auth/plex/pin?sessionId=${plexSessionId}`
-      );
+      const response = await fetch(`/api/auth/plex/pin?sessionId=${plexSessionId}`);
 
       if (!response.ok) {
         throw new Error('Failed to check authorization');
@@ -138,9 +132,7 @@ export default function SignInPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">
-            Sign in to MediaNest
-          </CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">Sign in to MediaNest</CardTitle>
           <CardDescription className="text-center">
             Access your media server and services
           </CardDescription>
@@ -163,12 +155,7 @@ export default function SignInPage() {
           {!showAdminLogin ? (
             <>
               {!plexPin ? (
-                <Button
-                  onClick={startPlexAuth}
-                  disabled={isLoading}
-                  className="w-full"
-                  size="lg"
-                >
+                <Button onClick={startPlexAuth} disabled={isLoading} className="w-full" size="lg">
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -176,10 +163,12 @@ export default function SignInPage() {
                     </>
                   ) : (
                     <>
-                      <img
+                      <Image
                         src="/plex-logo.svg"
                         alt="Plex"
-                        className="mr-2 h-5 w-5"
+                        width={20}
+                        height={20}
+                        className="mr-2"
                       />
                       Sign in with Plex
                     </>
@@ -191,20 +180,12 @@ export default function SignInPage() {
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       Enter this PIN on the Plex website:
                     </p>
-                    <p className="text-4xl font-bold tracking-wider">
-                      {plexPin}
-                    </p>
+                    <p className="text-4xl font-bold tracking-wider">{plexPin}</p>
                   </div>
 
                   {plexAuthUrl && (
                     <Button
-                      onClick={() =>
-                        window.open(
-                          plexAuthUrl,
-                          'plexAuth',
-                          'width=800,height=600'
-                        )
-                      }
+                      onClick={() => window.open(plexAuthUrl, 'plexAuth', 'width=800,height=600')}
                       variant="outline"
                       className="w-full"
                     >
@@ -245,11 +226,7 @@ export default function SignInPage() {
                 </div>
               </div>
 
-              <Button
-                onClick={() => setShowAdminLogin(true)}
-                variant="outline"
-                className="w-full"
-              >
+              <Button onClick={() => setShowAdminLogin(true)} variant="outline" className="w-full">
                 Admin Setup
               </Button>
             </>
@@ -261,7 +238,7 @@ export default function SignInPage() {
                   id="username"
                   type="text"
                   value={adminUsername}
-                  onChange={e => setAdminUsername(e.target.value)}
+                  onChange={(e) => setAdminUsername(e.target.value)}
                   disabled
                   required
                 />
@@ -273,7 +250,7 @@ export default function SignInPage() {
                   id="password"
                   type="password"
                   value={adminPassword}
-                  onChange={e => setAdminPassword(e.target.value)}
+                  onChange={(e) => setAdminPassword(e.target.value)}
                   placeholder="Default: admin"
                   required
                 />

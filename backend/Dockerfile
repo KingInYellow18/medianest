@@ -1,89 +1,63 @@
-# MediaNest Backend Docker Build  
-# Specialized build for backend-only deployment
-# Optimized for Node.js/Express with security hardening
+# MediaNest Backend Dockerfile
+# Implements :ContainerOrchestration pattern for :Flask v3.x + :Python v3.11+
+# Supports development workflow with hot-reload capabilities
 
-# =============================================================================
-# BUILD STAGE
-# =============================================================================
-FROM node:20-alpine AS builder
+# Use Python 3.11+ official slim image for security and size optimization
+FROM python:3.11-slim
+
+# Set environment variables for Python optimization and Flask configuration
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app \
+    FLASK_APP=app.py \
+    FLASK_ENV=development \
+    FLASK_DEBUG=1
+
+# Create non-root user for security (:SecurityFirst principle)
+RUN groupadd --gid 1000 appuser && \
+    useradd --uid 1000 --gid appuser --shell /bin/bash --create-home appuser
+
+# Set working directory
 WORKDIR /app
 
-# Security hardening - install build dependencies
-RUN apk add --no-cache \
-    python3 \
-    make \
-    g++ \
-    git \
-    curl \
-    && rm -rf /var/cache/apk/*
+# Install system dependencies required for Python packages
+# Update package lists and install essential build tools
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        gcc \
+        g++ \
+        libc6-dev \
+        libffi-dev \
+        libssl-dev \
+        curl \
+        && rm -rf /var/lib/apt/lists/* \
+        && apt-get clean
 
-# Copy package files for optimal caching
-COPY package*.json ./
-COPY tsconfig.json ./
-COPY nodemon.json ./
-COPY prisma ./prisma
+# Copy requirements file first for better Docker layer caching
+COPY requirements.txt .
 
-# Install dependencies
-RUN npm ci --no-audit --no-fund
+# Install Python dependencies
+# Use --no-cache-dir to reduce image size and avoid :MemoryLeak
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
-# Generate Prisma client
-RUN npx prisma generate
+# Create necessary directories with proper permissions
+RUN mkdir -p /app/config /app/logs && \
+    chown -R appuser:appuser /app
 
-# Copy source code
-COPY src ./src
+# Switch to non-root user (:SecurityFirst - mitigate :SecurityVulnerability)
+USER appuser
 
-# Build TypeScript to JavaScript
-RUN npm run build
+# Copy application code (excluding sensitive files via .dockerignore)
+COPY --chown=appuser:appuser . .
 
-# =============================================================================
-# PRODUCTION STAGE
-# =============================================================================
-FROM node:20-alpine AS production
-
-# Security hardening
-RUN apk add --no-cache \
-    dumb-init \
-    curl \
-    && rm -rf /var/cache/apk/*
-
-WORKDIR /app
-
-# Create non-root user for security
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S medianest -u 1001 -G nodejs
-
-# Copy package files
-COPY package*.json ./
-COPY prisma ./prisma
-
-# Install only production runtime dependencies
-RUN npm ci --only=production --no-audit --no-fund --ignore-scripts && \
-    npm cache clean --force && \
-    rm -rf ~/.npm /tmp/*
-
-# Generate Prisma client for production
-RUN npx prisma generate
-
-# Copy built application with proper ownership
-COPY --from=builder --chown=medianest:nodejs /app/dist ./dist
-
-# Create application directories
-RUN mkdir -p logs uploads && \
-    chown -R medianest:nodejs logs uploads
-
-# Security: Run as non-root user
-USER medianest
+# Expose Flask development server port
+EXPOSE 5000
 
 # Health check for container orchestration
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:3001/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:5000/health || exit 1
 
-# Expose port
-EXPOSE 3001
-
-# Production environment variables
-ENV NODE_ENV=production
-
-# Use dumb-init for proper signal handling
-ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "dist/server.js"]
+# Default command for Flask development server with hot-reload
+# Supports development workflow with volume mounting
+CMD ["python", "-m", "flask", "run", "--host=0.0.0.0", "--port=5000", "--reload"]

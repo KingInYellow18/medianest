@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { signIn } from 'next-auth/react';
+
 import { getPlexHeaders } from '@/lib/auth/plex-provider';
 
 export async function POST(request: NextRequest) {
@@ -7,15 +8,11 @@ export async function POST(request: NextRequest) {
     const { authToken } = await request.json();
 
     if (!authToken) {
-      return NextResponse.json(
-        { error: 'No auth token provided' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'No auth token provided' }, { status: 400 });
     }
 
     // Fetch user info from Plex using the auth token
-    const clientIdentifier =
-      process.env.PLEX_CLIENT_IDENTIFIER || generateClientIdentifier();
+    const clientIdentifier = process.env.PLEX_CLIENT_IDENTIFIER || generateClientIdentifier();
     const headers = getPlexHeaders(clientIdentifier);
 
     const userResponse = await fetch('https://plex.tv/api/v2/user', {
@@ -62,15 +59,12 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Failed to complete Plex authentication:', error);
-    return NextResponse.json(
-      { error: 'Failed to complete authentication' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to complete authentication' }, { status: 500 });
   }
 }
 
 function generateClientIdentifier(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
     const v = c === 'x' ? r : (r & 0x3) | 0x8;
     return v.toString(16);

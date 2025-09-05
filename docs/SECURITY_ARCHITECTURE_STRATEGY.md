@@ -326,7 +326,7 @@ openssl rand -hex 32 > .env.JWT_SECRET
 
 #### Production Environment
 ```yaml
-# docker compose.yml
+# docker-compose.yml
 secrets:
   encryption_key:
     file: ./secrets/encryption_key
@@ -430,7 +430,7 @@ iptables -A OUTPUT -p udp --dport 123 -j ACCEPT
 ### 6.3 Docker Network Security
 
 ```yaml
-# docker compose.yml
+# docker-compose.yml
 networks:
   frontend:
     driver: bridge
@@ -1546,7 +1546,7 @@ echo "Backing up configuration..."
 tar -czf "$BACKUP_DIR/$DATE/config.tar.gz" \
   --exclude='.env*' \
   --exclude='secrets/*' \
-  ./docker compose.yml \
+  ./docker-compose.yml \
   ./nginx.conf
 
 # Encrypt backup
@@ -1586,11 +1586,11 @@ openssl enc -d -aes-256-cbc -in "$BACKUP_FILE" \
 
 # Stop services
 echo "Stopping services..."
-docker compose down
+docker-compose down
 
 # Restore database
 echo "Restoring PostgreSQL..."
-docker compose up -d postgres
+docker-compose up -d postgres
 sleep 10
 gunzip -c "$RESTORE_DIR/*/postgres.sql.gz" | \
   docker exec -i postgres psql -U medianest
@@ -1598,7 +1598,7 @@ gunzip -c "$RESTORE_DIR/*/postgres.sql.gz" | \
 # Restore Redis
 echo "Restoring Redis..."
 docker cp "$RESTORE_DIR/*/redis.rdb" redis:/data/dump.rdb
-docker compose restart redis
+docker-compose restart redis
 
 # Restore uploads
 echo "Restoring uploads..."
@@ -1606,7 +1606,7 @@ tar -xzf "$RESTORE_DIR/*/uploads.tar.gz" -C /
 
 # Start services
 echo "Starting services..."
-docker compose up -d
+docker-compose up -d
 
 echo "Recovery completed"
 ```

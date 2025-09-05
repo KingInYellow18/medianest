@@ -1,7 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 
-import { AppError } from '../utils/errors';
-import { PrismaFindManyOptions } from '../types/database/prisma.types';
+import { AppError } from '@medianest/shared';
 
 export interface PaginationOptions {
   page?: number;
@@ -20,20 +19,18 @@ export interface PaginatedResult<T> {
 export abstract class BaseRepository<T, CreateInput, UpdateInput> {
   constructor(protected prisma: PrismaClient) {}
 
-  protected handleDatabaseError(error: unknown): never {
+  protected handleDatabaseError(error: any): never {
     // Handle Prisma-specific errors
-    const prismaError = error as { code?: string; message?: string };
-    
-    if (prismaError.code === 'P2002') {
+    if (error.code === 'P2002') {
       throw new AppError('Duplicate entry', 409, 'DUPLICATE_ENTRY');
     }
-    if (prismaError.code === 'P2025') {
+    if (error.code === 'P2025') {
       throw new AppError('Record not found', 404, 'NOT_FOUND');
     }
-    if (prismaError.code === 'P2003') {
+    if (error.code === 'P2003') {
       throw new AppError('Foreign key constraint failed', 400, 'FOREIGN_KEY_ERROR');
     }
-    if (prismaError.code === 'P2016') {
+    if (error.code === 'P2016') {
       throw new AppError('Query interpretation error', 400, 'QUERY_ERROR');
     }
 
@@ -50,14 +47,11 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput> {
   }
 
   protected async paginate<M>(
-    model: {
-      findMany: (args: PrismaFindManyOptions<M>) => Promise<M[]>;
-      count: (args: { where?: Partial<M> }) => Promise<number>;
-    },
-    where: Partial<M> = {},
+    model: any,
+    where: any = {},
     options: PaginationOptions = {},
-    select?: Record<string, boolean>,
-    include?: Record<string, boolean>
+    select?: any,
+    include?: any,
   ): Promise<PaginatedResult<M>> {
     const { page, limit, skip, take } = this.getPaginationParams(options);
 

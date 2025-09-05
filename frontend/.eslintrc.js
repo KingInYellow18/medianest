@@ -1,26 +1,16 @@
 module.exports = {
   extends: ['../.eslintrc.js', 'next/core-web-vitals'],
   parserOptions: {
-    project: ['./tsconfig.json'],
     tsconfigRootDir: __dirname,
+    project: './tsconfig.json',
   },
   env: {
     browser: true,
     node: true,
   },
   rules: {
-    // React specific
-    'react/prop-types': 'off',
+    '@next/next/no-img-element': 'off',
+    // React/Next.js specific rules
     'react/react-in-jsx-scope': 'off',
-    'react-hooks/rules-of-hooks': 'error',
-    'react-hooks/exhaustive-deps': 'warn',
-    
-    // Next.js specific
-    '@next/next/no-html-link-for-pages': 'error',
-  },
-  settings: {
-    react: {
-      version: 'detect',
-    },
   },
 };

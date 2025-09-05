@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   postgres-test:
     image: postgres:15-alpine
@@ -6,12 +8,17 @@ services:
       POSTGRES_USER: test
       POSTGRES_PASSWORD: test
     ports:
-      - "5433:5432"
+      - '5433:5432'
     tmpfs:
       - /var/lib/postgresql/data
+    # Performance optimizations for faster test execution
+    command: postgres -c fsync=off -c synchronous_commit=off -c full_page_writes=off
 
   redis-test:
     image: redis:7-alpine
     ports:
-      - "6380:6379"
-    command: redis-server --save ""
+      - '6380:6379'
+    tmpfs:
+      - /data
+    # Disable persistence for faster test execution
+    command: redis-server --save "" --appendonly no

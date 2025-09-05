@@ -1,4 +1,5 @@
 import { Queue, Worker, QueueEvents, ConnectionOptions } from 'bullmq';
+
 import { createRedisConnection } from '../redis/redis-client';
 
 // Queue names
@@ -16,7 +17,7 @@ export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
 const connectionOptions: ConnectionOptions = {
   maxRetriesPerRequest: null, // Important for workers
   enableOfflineQueue: true,
-  retryStrategy: (times: number) => {
+  retryStrategy: (times: number): number => {
     const delay = Math.min(times * 50, 2000);
     return delay;
   },
@@ -31,9 +32,9 @@ const queueEvents = new Map<QueueName, QueueEvents>();
  */
 export function getQueue(name: QueueName): Queue {
   if (!queues.has(name)) {
-    const connection = createRedisConnection(connectionOptions);
+    const connection = createRedisConnection(connectionOptions as any);
     const queue = new Queue(name, {
-      connection,
+      connection: connection as any,
       defaultJobOptions: {
         removeOnComplete: {
           age: 3600, // Keep completed jobs for 1 hour
@@ -57,8 +58,8 @@ export function getQueue(name: QueueName): Queue {
  */
 export function getQueueEvents(name: QueueName): QueueEvents {
   if (!queueEvents.has(name)) {
-    const connection = createRedisConnection(connectionOptions);
-    const events = new QueueEvents(name, { connection });
+    const connection = createRedisConnection(connectionOptions as any);
+    const events = new QueueEvents(name, { connection: connection as any });
     queueEvents.set(name, events);
   }
 
@@ -86,7 +87,9 @@ export async function closeAllQueues(): Promise<void> {
   queues.clear();
   queueEvents.clear();
 
-  console.log('✅ All queue connections closed');
+  if (process.env.NODE_ENV === 'development') {
+    console.info('✅ All queue connections closed');
+  }
 }
 
 // Queue-specific configurations
@@ -130,18 +133,18 @@ export const QUEUE_CONFIGS = {
 export function createWorker<T = any>(
   name: QueueName,
   processor: (job: any) => Promise<T>,
-  customOptions?: Partial<(typeof QUEUE_CONFIGS)[QueueName]>
+  customOptions?: Partial<(typeof QUEUE_CONFIGS)[QueueName]>,
 ): Worker<T> {
   const connection = createRedisConnection({
     ...connectionOptions,
     maxRetriesPerRequest: null, // Workers should keep trying
-  });
+  } as any);
 
   const config = QUEUE_CONFIGS[name];
   const options = {
     ...config,
     ...customOptions,
-    connection,
+    connection: connection as any,
   };
 
   return new Worker(name, processor, options);

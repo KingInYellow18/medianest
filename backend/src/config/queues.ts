@@ -1,16 +1,17 @@
-import Queue from 'bull';
+import { Queue, QueueEvents } from 'bullmq';
 
 import { logger } from '../utils/logger';
 
 import { getRedis } from './redis';
 
-export let youtubeQueue: Queue.Queue;
+export let youtubeQueue: Queue;
+export let youtubeQueueEvents: QueueEvents;
 
 export const initializeQueues = async () => {
   const redis = getRedis();
 
   youtubeQueue = new Queue('youtube-downloads', {
-    redis: {
+    connection: {
       host: redis.options.host,
       port: redis.options.port as number,
       password: redis.options.password,
@@ -21,21 +22,36 @@ export const initializeQueues = async () => {
         type: 'exponential',
         delay: 3000,
       },
-      removeOnComplete: 100,
-      removeOnFail: 500,
+      removeOnComplete: {
+        count: 100,
+        age: 24 * 60 * 60, // 24 hours
+      },
+      removeOnFail: {
+        count: 500,
+        age: 7 * 24 * 60 * 60, // 7 days
+      },
+    },
+  });
+
+  // Create queue events listener
+  youtubeQueueEvents = new QueueEvents('youtube-downloads', {
+    connection: {
+      host: redis.options.host,
+      port: redis.options.port as number,
+      password: redis.options.password,
     },
   });
 
   // Queue event handlers
-  youtubeQueue.on('completed', job => {
-    logger.info(`YouTube download completed: ${job.id}`);
+  youtubeQueueEvents.on('completed', ({ jobId }) => {
+    logger.info(`YouTube download completed: ${jobId}`);
   });
 
-  youtubeQueue.on('failed', (job, err) => {
-    logger.error(`YouTube download failed: ${job.id}`, err);
+  youtubeQueueEvents.on('failed', ({ jobId, failedReason }) => {
+    logger.error(`YouTube download failed: ${jobId}`, { reason: failedReason });
   });
 
-  youtubeQueue.on('stalled', job => {
-    logger.warn(`YouTube download stalled: ${job.id}`);
+  youtubeQueueEvents.on('stalled', ({ jobId }) => {
+    logger.warn(`YouTube download stalled: ${jobId}`);
   });
 };

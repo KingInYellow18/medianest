@@ -1,4 +1,5 @@
 import { getRedisClient } from './redis-client';
+import { RATE_LIMITS } from '@medianest/shared';
 
 export interface RateLimitConfig {
   windowMs: number; // Time window in milliseconds
@@ -13,40 +14,12 @@ export interface RateLimitResult {
   retryAfter?: number; // Seconds until next allowed request
 }
 
-// Default rate limit configurations
-export const RATE_LIMITS = {
-  // General API rate limit: 100 requests per minute
-  API: {
-    windowMs: 60 * 1000,
-    max: 100,
-    keyPrefix: 'rate:api:',
-  },
-  // YouTube download rate limit: 5 downloads per hour
-  YOUTUBE_DOWNLOAD: {
-    windowMs: 60 * 60 * 1000,
-    max: 5,
-    keyPrefix: 'rate:youtube:',
-  },
-  // Auth attempts: 5 per 15 minutes
-  AUTH: {
-    windowMs: 15 * 60 * 1000,
-    max: 5,
-    keyPrefix: 'rate:auth:',
-  },
-  // Media requests: 20 per hour
-  MEDIA_REQUEST: {
-    windowMs: 60 * 60 * 1000,
-    max: 20,
-    keyPrefix: 'rate:media:',
-  },
-};
-
 /**
  * Check rate limit for a given key
  */
 export async function checkRateLimit(
   identifier: string,
-  config: RateLimitConfig
+  config: RateLimitConfig,
 ): Promise<RateLimitResult> {
   const redis = getRedisClient();
   const key = `${config.keyPrefix || 'rate:'}${identifier}`;
@@ -90,7 +63,7 @@ export async function checkRateLimit(
       now.toString(),
       windowStart.toString(),
       config.max.toString(),
-      config.windowMs.toString()
+      config.windowMs.toString(),
     )) as [number, number, number];
 
     const [allowed, remaining, resetTime] = result;
@@ -121,10 +94,7 @@ export async function checkRateLimit(
 /**
  * Reset rate limit for a given key
  */
-export async function resetRateLimit(
-  identifier: string,
-  keyPrefix?: string
-): Promise<void> {
+export async function resetRateLimit(identifier: string, keyPrefix?: string): Promise<void> {
   const redis = getRedisClient();
   const key = `${keyPrefix || 'rate:'}${identifier}`;
 
@@ -140,7 +110,7 @@ export async function resetRateLimit(
  */
 export async function getRateLimitStatus(
   identifier: string,
-  config: RateLimitConfig
+  config: RateLimitConfig,
 ): Promise<RateLimitResult> {
   const redis = getRedisClient();
   const key = `${config.keyPrefix || 'rate:'}${identifier}`;
@@ -159,7 +129,7 @@ export async function getRateLimitStatus(
     const oldestEntry = await redis.zrange(key, 0, 0, 'WITHSCORES');
     let resetAt: Date;
 
-    if (oldestEntry.length >= 2) {
+    if (oldestEntry.length >= 2 && oldestEntry[1]) {
       const oldestTime = parseInt(oldestEntry[1]);
       resetAt = new Date(oldestTime + config.windowMs);
     } else {
@@ -170,10 +140,7 @@ export async function getRateLimitStatus(
       allowed: remaining > 0,
       remaining,
       resetAt,
-      retryAfter:
-        remaining === 0
-          ? Math.ceil((resetAt.getTime() - now) / 1000)
-          : undefined,
+      retryAfter: remaining === 0 ? Math.ceil((resetAt.getTime() - now) / 1000) : undefined,
     };
   } catch (error) {
     console.error('Failed to get rate limit status:', error);
@@ -189,9 +156,7 @@ export async function getRateLimitStatus(
  * Middleware-style rate limiter for Next.js API routes
  */
 export function createRateLimitMiddleware(config: RateLimitConfig) {
-  return async function rateLimitMiddleware(
-    identifier: string
-  ): Promise<RateLimitResult> {
+  return async function rateLimitMiddleware(identifier: string): Promise<RateLimitResult> {
     return checkRateLimit(identifier, config);
   };
 }
@@ -199,9 +164,7 @@ export function createRateLimitMiddleware(config: RateLimitConfig) {
 /**
  * Get rate limit headers for HTTP response
  */
-export function getRateLimitHeaders(
-  result: RateLimitResult
-): Record<string, string> {
+export function getRateLimitHeaders(result: RateLimitResult): Record<string, string> {
   const headers: Record<string, string> = {
     'X-RateLimit-Limit': result.allowed ? '100' : '0',
     'X-RateLimit-Remaining': result.remaining.toString(),

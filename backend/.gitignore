@@ -1,0 +1,70 @@
+# Dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# Testing
+/coverage
+test-output.log
+/tests/e2e/test-results/
+/tests/e2e/reports/html/
+/tests/e2e/reports/junit/
+/tests/e2e/reports/json/
+/tests/e2e/reports/allure-results/
+/tests/e2e/reports/allure-report/
+/tests/e2e/reports/lighthouse-ci/
+/tests/e2e/reports/*.json
+/tests/e2e/reports/*.xml
+/tests/e2e/reports/*.tar.gz
+/tests/e2e/fixtures/test-tokens.json
+/playwright-report/
+/playwright/.cache/
+
+# Production
+/build
+/dist
+
+# Generated files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+.npm
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor directories and files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+
+# Prisma
+/prisma/migrations/dev.db
+/prisma/dev.db
+
+# Docker
+.docker/
+
+# Temporary files
+*.tmp
+*.temp

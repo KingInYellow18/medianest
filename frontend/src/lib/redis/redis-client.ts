@@ -39,15 +39,19 @@ export function getRedisClient(config?: Partial<RedisConfig>): Redis {
     redisClient = new Redis(finalConfig);
 
     redisClient.on('connect', () => {
-      console.log('✅ Redis client connected');
+      if (process.env.NODE_ENV === 'development') {
+        console.info('✅ Redis client connected');
+      }
     });
 
-    redisClient.on('error', err => {
+    redisClient.on('error', (err) => {
       console.error('❌ Redis client error:', err);
     });
 
     redisClient.on('ready', () => {
-      console.log('✅ Redis client ready');
+      if (process.env.NODE_ENV === 'development') {
+        console.info('✅ Redis client ready');
+      }
     });
   }
 
@@ -67,10 +71,12 @@ export function getRedisSubscriber(config?: Partial<RedisConfig>): Redis {
     redisSubscriber = new Redis(finalConfig);
 
     redisSubscriber.on('connect', () => {
-      console.log('✅ Redis subscriber connected');
+      if (process.env.NODE_ENV === 'development') {
+        console.info('✅ Redis subscriber connected');
+      }
     });
 
-    redisSubscriber.on('error', err => {
+    redisSubscriber.on('error', (err) => {
       console.error('❌ Redis subscriber error:', err);
     });
   }
@@ -85,7 +91,7 @@ export function createRedisConnection(config?: Partial<RedisConfig>): Redis {
   const finalConfig = { ...defaultConfig, ...config };
   const connection = new Redis(finalConfig);
 
-  connection.on('error', err => {
+  connection.on('error', (err) => {
     console.error('❌ Redis connection error:', err);
   });
 
@@ -109,7 +115,9 @@ export async function closeRedisConnections(): Promise<void> {
   }
 
   await Promise.all(promises);
-  console.log('✅ All Redis connections closed');
+  if (process.env.NODE_ENV === 'development') {
+    console.info('✅ All Redis connections closed');
+  }
 }
 
 // Connection health check

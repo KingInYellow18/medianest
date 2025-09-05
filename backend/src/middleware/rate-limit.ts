@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 
 import { getRedis } from '../config/redis';
-import { RateLimitError } from '../utils/errors';
+import { getRateLimitConfig } from '../config';
+import { RateLimitError } from '@medianest/shared';
 import { logger } from '../utils/logger';
 
 interface RateLimitOptions {
@@ -20,7 +21,7 @@ export function createRateLimit(options: RateLimitOptions) {
     keyGenerator = defaultKeyGenerator,
     skipSuccessfulRequests = false,
     skipFailedRequests = false,
-    message: _message = 'Too many requests',
+    message = 'Too many requests',
   } = options;
 
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -49,13 +50,7 @@ export function createRateLimit(options: RateLimitOptions) {
         end
       `;
 
-      const result = (await redis.eval(
-        luaScript,
-        1,
-        key,
-        max,
-        windowSeconds
-      )) as [number, number];
+      const result = (await redis.eval(luaScript, 1, key, max, windowSeconds)) as [number, number];
 
       const [blocked, ttl] = result;
 
@@ -63,12 +58,9 @@ export function createRateLimit(options: RateLimitOptions) {
       res.setHeader('X-RateLimit-Limit', max);
       res.setHeader(
         'X-RateLimit-Remaining',
-        Math.max(0, max - parseInt((await redis.get(key)) || '0'))
+        Math.max(0, max - parseInt((await redis.get(key)) || '0')),
       );
-      res.setHeader(
-        'X-RateLimit-Reset',
-        new Date(Date.now() + ttl * 1000).toISOString()
-      );
+      res.setHeader('X-RateLimit-Reset', new Date(Date.now() + ttl * 1000).toISOString());
 
       if (blocked) {
         res.setHeader('Retry-After', ttl);
@@ -78,7 +70,7 @@ export function createRateLimit(options: RateLimitOptions) {
       // Store original end function to handle skip options
       if (skipSuccessfulRequests || skipFailedRequests) {
         const originalEnd = res.end;
-        res.end = function (...args: unknown[]) {
+        res.end = function (...args: any[]) {
           const shouldSkip =
             (skipSuccessfulRequests && res.statusCode < 400) ||
             (skipFailedRequests && res.statusCode >= 400);
@@ -87,13 +79,11 @@ export function createRateLimit(options: RateLimitOptions) {
             // Decrement counter
             redis
               .decr(key)
-              .catch(err =>
-                logger.error('Failed to decrement rate limit counter', err)
-              );
+              .catch((err) => logger.error('Failed to decrement rate limit counter', err));
           }
 
-          return originalEnd.apply(res, args as Parameters<typeof originalEnd>);
-        };
+          return originalEnd.apply(res, args);
+        } as any;
       }
 
       next();
@@ -115,31 +105,34 @@ function defaultKeyGenerator(req: Request): string {
   return req.user?.id || req.ip || 'unknown';
 }
 
+// Get configuration once at module load
+const rateLimitConfig = getRateLimitConfig();
+
 // Pre-configured rate limiters
 export const apiRateLimit = createRateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 100,
+  windowMs: rateLimitConfig.api.window,
+  max: rateLimitConfig.api.requests,
   message: 'Too many API requests',
 });
 
 export const authRateLimit = createRateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5,
-  keyGenerator: req => req.ip || 'unknown',
+  windowMs: 15 * 60 * 1000, // 15 minutes - static value for security
+  max: 5, // Fixed for security - not configurable
+  keyGenerator: (req) => req.ip || 'unknown',
   message: 'Too many authentication attempts',
 });
 
 export const youtubeRateLimit = createRateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 5,
-  keyGenerator: req => req.user?.id || req.ip || 'unknown',
+  windowMs: rateLimitConfig.youtube.window,
+  max: rateLimitConfig.youtube.requests,
+  keyGenerator: (req) => req.user?.id || req.ip || 'unknown',
   message: 'YouTube download limit exceeded',
 });
 
 export const mediaRequestRateLimit = createRateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 20,
-  keyGenerator: req => req.user?.id || req.ip || 'unknown',
+  windowMs: rateLimitConfig.media.window,
+  max: rateLimitConfig.media.requests,
+  keyGenerator: (req) => req.user?.id || req.ip || 'unknown',
   message: 'Media request limit exceeded',
 });
 
@@ -147,7 +140,7 @@ export const mediaRequestRateLimit = createRateLimit({
 export const strictRateLimit = createRateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 3,
-  keyGenerator: req => req.ip || 'unknown',
+  keyGenerator: (req) => req.ip || 'unknown',
   skipSuccessfulRequests: false,
   skipFailedRequests: false,
   message: 'Too many attempts for this operation',

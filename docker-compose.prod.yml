@@ -1,290 +1,464 @@
-# MediaNest Production Docker Compose
-# Hardened configuration for production deployment
-# Features: Security, monitoring, performance optimization
+# MediaNest Production Docker Compose Configuration
+# Multi-service architecture with security hardening and monitoring
+
+version: '3.8'
 
 services:
-  # =============================================================================
-  # FRONTEND SERVICE (Next.js)
-  # =============================================================================
-  frontend:
+  nginx:
     build:
-      context: .
+      context: ./infrastructure/nginx
       dockerfile: Dockerfile
-      target: frontend-production
-      args:
-        - NODE_ENV=production
-    image: medianest/frontend:latest
-    container_name: medianest-frontend-prod
-    restart: unless-stopped
+    image: medianest/nginx:${VERSION:-latest}
+    container_name: medianest-nginx
+    volumes:
+      - ./infrastructure/nginx/nginx-prod.conf:/etc/nginx/nginx.conf:ro
+      - ./infrastructure/nginx/ssl:/etc/nginx/ssl:ro
+      - ./infrastructure/nginx/html:/usr/share/nginx/html:ro
+      - nginx_logs:/var/log/nginx
+      - certbot_webroot:/var/www/certbot:ro
+      - certbot_ssl:/etc/letsencrypt:ro
     ports:
-      - "3000:3000"
+      - '80:80'
+      - '443:443'
+    environment:
+      - DOMAIN_NAME=${DOMAIN_NAME}
+    depends_on:
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - frontend-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost/nginx_status']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - NET_BIND_SERVICE
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+      args:
+        - BUILD_DATE=${BUILD_DATE:-$(date -u +'%Y-%m-%dT%H:%M:%SZ')}
+        - VCS_REF=${VCS_REF:-$(git rev-parse --short HEAD)}
+    image: medianest/backend:${VERSION:-latest}
+    container_name: medianest-backend
     environment:
       - NODE_ENV=production
-      - NEXT_TELEMETRY_DISABLED=1
-      - NEXTAUTH_URL=${NEXTAUTH_URL:-https://app.medianest.com}
-      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-medianest}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-medianest}?connection_limit=10&pool_timeout=20
-      - JWT_SECRET=${JWT_SECRET}
-      - PLEX_CLIENT_ID=${PLEX_CLIENT_ID}
-      - PLEX_CLIENT_SECRET=${PLEX_CLIENT_SECRET}
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - PORT=4000
+      - HOST=0.0.0.0
+      - DATABASE_URL_FILE=/run/secrets/database_url
+      - REDIS_URL_FILE=/run/secrets/redis_url
+      - JWT_SECRET_FILE=/run/secrets/jwt_secret
+      - ENCRYPTION_KEY_FILE=/run/secrets/encryption_key
+      - PLEX_CLIENT_ID_FILE=/run/secrets/plex_client_id
+      - PLEX_CLIENT_SECRET_FILE=/run/secrets/plex_client_secret
+      - FRONTEND_URL=${FRONTEND_URL}
+      - CORS_ORIGIN=${CORS_ORIGIN}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - RUN_MIGRATIONS=${RUN_MIGRATIONS:-false}
+    volumes:
+      - youtube_downloads:/app/downloads:rw
+      - app_uploads:/app/uploads:rw
+      - backend_logs:/app/logs:rw
+    secrets:
+      - database_url
+      - redis_url
+      - jwt_secret
+      - encryption_key
+      - plex_client_id
+      - plex_client_secret
+    user: '1001:1001'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - backend-network
+      - frontend-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:4000/api/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: '50m'
+        max-file: '5'
+    labels:
+      - 'com.medianest.component=backend'
+      - 'com.medianest.version=${VERSION:-latest}'
+      - 'com.medianest.build.date=${BUILD_DATE}'
+      - 'com.medianest.build.revision=${VCS_REF}'
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        - BUILD_DATE=${BUILD_DATE:-$(date -u +'%Y-%m-%dT%H:%M:%SZ')}
+        - VCS_REF=${VCS_REF:-$(git rev-parse --short HEAD)}
+    image: medianest/frontend:${VERSION:-latest}
+    container_name: medianest-frontend
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+      - NEXT_PUBLIC_WS_URL=${NEXT_PUBLIC_WS_URL}
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+      - NEXTAUTH_SECRET_FILE=/run/secrets/nextauth_secret
     volumes:
       - frontend_logs:/app/logs:rw
+    secrets:
+      - nextauth_secret
+    user: '1001:1001'
     depends_on:
       backend:
         condition: service_healthy
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    networks:
-      - medianest-internal
-      - medianest-external
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: '0.5'
-        reservations:
-          memory: 256M
-          cpus: '0.25'
-    security_opt:
-      - no-new-privileges:true
-    read_only: true
-    tmpfs:
-      - /tmp:noexec,nosuid,size=100m
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
-  # =============================================================================
-  # BACKEND SERVICE (Express.js)
-  # =============================================================================
-  backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: backend-production
-      args:
-        - NODE_ENV=production
-    image: medianest/backend:latest
-    container_name: medianest-backend-prod
     restart: unless-stopped
-    ports:
-      - "3001:3001"
-    environment:
-      - NODE_ENV=production
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-medianest}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-medianest}?connection_limit=20&pool_timeout=30
-      - REDIS_URL=redis://redis:6379
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_ISSUER=${JWT_ISSUER:-medianest}
-      - JWT_AUDIENCE=${JWT_AUDIENCE:-medianest-users}
-      - PLEX_CLIENT_ID=${PLEX_CLIENT_ID}
-      - PLEX_CLIENT_SECRET=${PLEX_CLIENT_SECRET}
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
-      - FRONTEND_URL=${FRONTEND_URL:-https://app.medianest.com}
-    volumes:
-      - backend_logs:/app/logs:rw
-      - backend_uploads:/app/uploads:rw
-      - youtube_storage:/app/youtube:rw
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
     networks:
-      - medianest-internal
+      - frontend-network
     deploy:
       resources:
         limits:
-          memory: 1G
-          cpus: '1.0'
-        reservations:
-          memory: 512M
           cpus: '0.5'
-    security_opt:
-      - no-new-privileges:true
-    read_only: true
-    tmpfs:
-      - /tmp:noexec,nosuid,size=200m
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      test:
+        ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:3000/api/health']
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 60s
+      start_period: 45s
+    logging:
+      driver: json-file
+      options:
+        max-size: '20m'
+        max-file: '3'
+    labels:
+      - 'com.medianest.component=frontend'
+      - 'com.medianest.version=${VERSION:-latest}'
+      - 'com.medianest.build.date=${BUILD_DATE}'
+      - 'com.medianest.build.revision=${VCS_REF}'
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
 
-  # =============================================================================
-  # DATABASE SERVICE (PostgreSQL)
-  # =============================================================================
   postgres:
     image: postgres:15-alpine
-    container_name: medianest-postgres-prod
-    restart: unless-stopped
+    container_name: medianest-postgres
     environment:
-      - POSTGRES_DB=${POSTGRES_DB:-medianest}
-      - POSTGRES_USER=${POSTGRES_USER:-medianest}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --auth-local=trust --auth-host=scram-sha-256
-      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_DB=medianest
+      - POSTGRES_USER=medianest
+      - POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+      # Performance tuning
+      - POSTGRES_MAX_CONNECTIONS=100
+      - POSTGRES_SHARED_BUFFERS=256MB
+      - POSTGRES_EFFECTIVE_CACHE_SIZE=1GB
+      - POSTGRES_MAINTENANCE_WORK_MEM=64MB
+      - POSTGRES_CHECKPOINT_COMPLETION_TARGET=0.9
+      - POSTGRES_WAL_BUFFERS=16MB
+      - POSTGRES_DEFAULT_STATISTICS_TARGET=100
+      - POSTGRES_RANDOM_PAGE_COST=1.1
+      - POSTGRES_EFFECTIVE_IO_CONCURRENCY=200
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - postgres_backups:/backups
-      - ./infrastructure/database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ./infrastructure/database/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+    secrets:
+      - postgres_password
+    restart: unless-stopped
     networks:
-      - medianest-internal
+      - backend-network
     deploy:
       resources:
         limits:
+          cpus: '1'
           memory: 1G
-          cpus: '1.0'
         reservations:
-          memory: 512M
-          cpus: '0.5'
-    security_opt:
-      - no-new-privileges:true
+          cpus: '0.25'
+          memory: 256M
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-medianest} -d ${POSTGRES_DB:-medianest}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      test: ['CMD-SHELL', 'pg_isready -U medianest -d medianest']
+      interval: 30s
+      timeout: 10s
+      retries: 3
       start_period: 30s
-    command: >
-      postgres
-      -c shared_preload_libraries=pg_stat_statements
-      -c pg_stat_statements.track=all
-      -c max_connections=100
-      -c shared_buffers=256MB
-      -c effective_cache_size=1GB
-      -c work_mem=4MB
-      -c maintenance_work_mem=64MB
-      -c random_page_cost=1.1
-      -c effective_io_concurrency=200
-      -c checkpoint_completion_target=0.9
-      -c wal_buffers=16MB
-      -c default_statistics_target=100
+    logging:
+      driver: json-file
+      options:
+        max-size: '20m'
+        max-file: '3'
+    labels:
+      - 'com.medianest.backup=daily'
 
-  # =============================================================================
-  # CACHE SERVICE (Redis)
-  # =============================================================================
   redis:
     image: redis:7-alpine
-    container_name: medianest-redis-prod
-    restart: unless-stopped
+    container_name: medianest-redis
     command: >
-      redis-server
-      --appendonly yes
+      redis-server 
+      --appendonly yes 
       --appendfsync everysec
+      --maxmemory 512mb 
+      --maxmemory-policy allkeys-lru
+      --requirepass-file /run/secrets/redis_password
+      --tcp-backlog 511
+      --timeout 300
+      --tcp-keepalive 300
+      --supervised no
       --save 900 1
       --save 300 10
       --save 60 10000
-      --maxmemory 512mb
-      --maxmemory-policy allkeys-lru
-      --tcp-keepalive 300
-      --timeout 0
-      --tcp-backlog 511
-      --databases 16
     volumes:
       - redis_data:/data
-      - redis_logs:/var/log/redis
+      - redis_backups:/backups
+    secrets:
+      - redis_password
+    restart: unless-stopped
     networks:
-      - medianest-internal
+      - backend-network
     deploy:
       resources:
         limits:
-          memory: 512M
           cpus: '0.5'
+          memory: 512M
         reservations:
-          memory: 256M
-          cpus: '0.25'
-    security_opt:
-      - no-new-privileges:true
+          cpus: '0.1'
+          memory: 128M
     healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+      test:
+        [
+          'CMD',
+          'redis-cli',
+          '--no-auth-warning',
+          '-a',
+          '$$(cat /run/secrets/redis_password)',
+          'ping',
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+    labels:
+      - 'com.medianest.backup=daily'
 
-  # =============================================================================
-  # MONITORING SERVICE (Optional - Uncomment for production monitoring)
-  # =============================================================================
-  # nginx:
-  #   image: nginx:alpine
-  #   container_name: medianest-nginx-prod
-  #   restart: unless-stopped
-  #   ports:
-  #     - "80:80"
-  #     - "443:443"
-  #   volumes:
-  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-  #     - ./nginx/ssl:/etc/nginx/ssl:ro
-  #     - nginx_logs:/var/log/nginx
-  #   depends_on:
-  #     - frontend
-  #     - backend
-  #   networks:
-  #     - medianest-external
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         memory: 256M
-  #         cpus: '0.25'
+  # Certbot service for Let's Encrypt SSL certificates
+  certbot:
+    image: certbot/certbot:latest
+    container_name: medianest-certbot
+    volumes:
+      - certbot_webroot:/var/www/certbot:rw
+      - certbot_ssl:/etc/letsencrypt:rw
+      - certbot_logs:/var/log/letsencrypt:rw
+    environment:
+      - DOMAIN_NAME=${DOMAIN_NAME}
+      - CERTBOT_EMAIL=${CERTBOT_EMAIL}
+    depends_on:
+      - nginx
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet --no-self-upgrade; sleep 12h & wait $${!}; done;'"
+    restart: unless-stopped
+    networks:
+      - frontend-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 128M
+        reservations:
+          cpus: '0.05'
+          memory: 64M
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
 
-# =============================================================================
-# VOLUMES
-# =============================================================================
+  # Optional: Backup service
+  backup:
+    image: postgres:15-alpine
+    container_name: medianest-backup
+    environment:
+      - POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
+    volumes:
+      - postgres_backups:/backups
+      - ./scripts/backup.sh:/backup.sh:ro
+    secrets:
+      - postgres_password
+    networks:
+      - backend-network
+    depends_on:
+      - postgres
+    restart: 'no'
+    profiles:
+      - backup
+    command:
+      [
+        '/bin/sh',
+        '-c',
+        "echo 'Backup service ready. Run with: docker compose run backup /backup.sh'",
+      ]
+
 volumes:
   postgres_data:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: ${DATA_DIR:-./data}/postgres
-  postgres_backups:
-    driver: local
+      device: ${DATA_PATH:-./data}/postgres
   redis_data:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: ${DATA_DIR:-./data}/redis
-  redis_logs:
+      device: ${DATA_PATH:-./data}/redis
+  youtube_downloads:
     driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_PATH:-./data}/downloads
+  app_uploads:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_PATH:-./data}/uploads
   backend_logs:
     driver: local
-  backend_uploads:
-    driver: local
     driver_opts:
       type: none
       o: bind
-      device: ${UPLOADS_DIR:-./uploads}
+      device: ${LOG_PATH:-./logs}/backend
   frontend_logs:
     driver: local
-  youtube_storage:
+    driver_opts:
+      type: none
+      o: bind
+      device: ${LOG_PATH:-./logs}/frontend
+  nginx_logs:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: ${YOUTUBE_DIR:-./youtube}
-  nginx_logs:
+      device: ${LOG_PATH:-./logs}/nginx
+  postgres_backups:
     driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${BACKUP_PATH:-./backups}/postgres
+  redis_backups:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${BACKUP_PATH:-./backups}/redis
+  certbot_webroot:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_PATH:-./data}/certbot/webroot
+  certbot_ssl:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_PATH:-./data}/certbot/ssl
+  certbot_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${LOG_PATH:-./logs}/certbot
 
-# =============================================================================
-# NETWORKS
-# =============================================================================
 networks:
-  medianest-internal:
-    driver: bridge
-    internal: true
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16
-  medianest-external:
+  backend-network:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.21.0.0/16
+        - subnet: 172.20.0.0/24
+  frontend-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/24
+
+secrets:
+  # Database secrets
+  database_url:
+    file: ./secrets/database_url
+  postgres_password:
+    file: ./secrets/postgres_password
+
+  # Redis secrets
+  redis_url:
+    file: ./secrets/redis_url
+  redis_password:
+    file: ./secrets/redis_password
+
+  # Application secrets
+  nextauth_secret:
+    file: ./secrets/nextauth_secret
+  jwt_secret:
+    file: ./secrets/jwt_secret
+  encryption_key:
+    file: ./secrets/encryption_key
+
+  # OAuth secrets
+  plex_client_id:
+    file: ./secrets/plex_client_id
+  plex_client_secret:
+    file: ./secrets/plex_client_secret

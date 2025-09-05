@@ -3,10 +3,9 @@
   "compilerOptions": {
     "target": "ES2017",
     "lib": ["dom", "dom.iterable", "esnext"],
-    "jsx": "preserve", 
+    "jsx": "preserve",
     "module": "esnext",
     "incremental": true,
-    "skipLibCheck": true,
     "plugins": [
       {
         "name": "next"
@@ -19,27 +18,18 @@
       "@/hooks/*": ["./src/hooks/*", "./hooks/*"],
       "@/services/*": ["./src/services/*", "./services/*"],
       "@/contexts/*": ["./contexts/*"],
-      "@/types/*": ["./types/*"],
+      "@/types/*": ["./src/types/*", "./types/*"],
       "@/utils/*": ["./utils/*"],
-      "@medianest/shared": ["../shared/src"],
-      "@medianest/shared/*": ["../shared/src/*"]
+      "@medianest/shared": ["../shared/dist"],
+      "@medianest/shared/*": ["../shared/dist/*"]
     },
     "baseUrl": ".",
     "allowJs": true,
     "noEmit": true,
     "isolatedModules": true,
-    "moduleDetection": "force", 
-    "moduleResolution": "bundler",
-    "types": ["node", "vitest/globals"]
+    "moduleDetection": "force",
+    "moduleResolution": "bundler"
   },
-  "include": [
-    "next-env.d.ts",
-    "types/vitest.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
 }

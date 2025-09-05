@@ -1,4 +1,5 @@
 import NextAuth from 'next-auth';
+
 import { getAuthOptions } from '@/lib/auth/auth.config';
 
 // Create the handler with dynamic options

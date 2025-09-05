@@ -1,6 +1,7 @@
-import { getRedisClient } from './redis-client';
 import type { Session } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
+
+import { getRedisClient } from './redis-client';
 
 // Session TTL in seconds (30 days to match NextAuth config)
 const SESSION_TTL = 30 * 24 * 60 * 60; // 30 days
@@ -21,10 +22,7 @@ export interface SessionData {
 /**
  * Store session in Redis
  */
-export async function storeSession(
-  sessionToken: string,
-  data: SessionData
-): Promise<void> {
+export async function storeSession(sessionToken: string, data: SessionData): Promise<void> {
   const redis = getRedisClient();
   const key = `${KEY_PREFIX.SESSION}${sessionToken}`;
 
@@ -50,9 +48,7 @@ export async function storeSession(
 /**
  * Retrieve session from Redis
  */
-export async function getSession(
-  sessionToken: string
-): Promise<SessionData | null> {
+export async function getSession(sessionToken: string): Promise<SessionData | null> {
   const redis = getRedisClient();
   const key = `${KEY_PREFIX.SESSION}${sessionToken}`;
 
@@ -81,7 +77,7 @@ export async function getSession(
  */
 export async function updateSession(
   sessionToken: string,
-  updates: Partial<SessionData>
+  updates: Partial<SessionData>,
 ): Promise<boolean> {
   const redis = getRedisClient();
   const key = `${KEY_PREFIX.SESSION}${sessionToken}`;
@@ -153,9 +149,7 @@ export async function getUserSessions(userId: string): Promise<SessionData[]> {
       }
     }
 
-    return sessions.sort(
-      (a, b) => b.lastAccessed.getTime() - a.lastAccessed.getTime()
-    );
+    return sessions.sort((a, b) => b.lastAccessed.getTime() - a.lastAccessed.getTime());
   } catch (error) {
     console.error('Failed to get user sessions:', error);
     return [];
@@ -166,16 +160,20 @@ export async function getUserSessions(userId: string): Promise<SessionData[]> {
  * Delete all sessions for a user
  */
 export async function deleteUserSessions(userId: string): Promise<void> {
-  const sessions = await getUserSessions(userId);
+  const redis = getRedisClient();
+  const userKey = `${KEY_PREFIX.USER_SESSIONS}${userId}`;
 
-  for (const session of sessions) {
-    // Find session token from user sessions
-    const userKey = `${KEY_PREFIX.USER_SESSIONS}${userId}`;
-    const tokens = await getRedisClient().smembers(userKey);
+  try {
+    // Get all session tokens for the user
+    const tokens = await redis.smembers(userKey);
 
+    // Delete each session
     for (const token of tokens) {
       await deleteSession(token);
     }
+  } catch (error) {
+    console.error('Failed to delete user sessions:', error);
+    throw error;
   }
 }
 
@@ -188,13 +186,11 @@ export async function cleanupExpiredSessions(): Promise<number> {
   try {
     // Remove sessions older than SESSION_TTL from sorted set
     const cutoff = Date.now() - SESSION_TTL * 1000;
-    const removed = await redis.zremrangebyscore(
-      KEY_PREFIX.ACTIVE_SESSIONS,
-      '-inf',
-      cutoff
-    );
+    const removed = await redis.zremrangebyscore(KEY_PREFIX.ACTIVE_SESSIONS, '-inf', cutoff);
 
-    console.log(`Cleaned up ${removed} expired sessions`);
+    if (process.env.NODE_ENV === 'development') {
+      console.info(`Cleaned up ${removed} expired sessions`);
+    }
     return removed;
   } catch (error) {
     console.error('Failed to cleanup expired sessions:', error);

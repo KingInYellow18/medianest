@@ -1,90 +1,63 @@
-# MediaNest Frontend Docker Build
-# Specialized build for frontend-only deployment
-# Optimized for Next.js with security hardening
+# MediaNest Frontend Dockerfile
+# Implements :ContainerOrchestration pattern for :React v18 + :Node.js LTS
+# Supports development workflow with hot-reload capabilities and integration with :Flask backend
 
-# =============================================================================
-# BUILD STAGE
-# =============================================================================
-FROM node:20-alpine AS builder
+# Use Node.js LTS official image for stability and security
+FROM node:18-alpine
+
+# Set environment variables for Node.js optimization and React configuration
+ENV NODE_ENV=development \
+    REACT_APP_API_URL=http://backend:5000/api \
+    REACT_APP_ENVIRONMENT=development \
+    NPM_CONFIG_LOGLEVEL=warn \
+    NPM_CONFIG_PROGRESS=false
+
+# Create non-root user for security (:SecurityFirst principle)
+# Handle existing gid 1000 in Alpine base image
+RUN addgroup -g 1001 appuser && \
+    adduser -u 1001 -G appuser -s /bin/sh -D appuser
+
+# Set working directory
 WORKDIR /app
 
-# Security hardening - install build dependencies
+# Install system dependencies for potential native modules
+# Keep minimal for Alpine Linux security and size optimization
 RUN apk add --no-cache \
+    git \
     python3 \
     make \
     g++ \
-    git \
-    curl \
     && rm -rf /var/cache/apk/*
 
-# Copy package files for optimal caching
-COPY package*.json ./
-COPY next.config.js ./
-COPY tailwind.config.ts ./
-COPY postcss.config.mjs ./
-COPY tsconfig.json ./
-COPY vitest.config.ts ./
-
-# Install dependencies
-RUN npm ci --no-audit --no-fund
-
-# Copy source code and assets
-COPY src ./src
-COPY public ./public
-COPY prisma ./prisma
-COPY server.js ./
-
-# Build application with Next.js standalone output
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV NODE_ENV=production
-RUN npm run build
-
-# =============================================================================
-# PRODUCTION STAGE
-# =============================================================================
-FROM node:20-alpine AS production
-
-# Security hardening
-RUN apk add --no-cache \
-    dumb-init \
-    curl \
-    && rm -rf /var/cache/apk/*
-
-WORKDIR /app
-
-# Create non-root user for security
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nextjs -u 1001 -G nodejs
-
-# Copy package files
+# Copy package files first for better Docker layer caching
 COPY package*.json ./
 
-# Install only production runtime dependencies
-RUN npm ci --only=production --no-audit --no-fund --ignore-scripts && \
-    npm cache clean --force && \
-    rm -rf ~/.npm /tmp/*
+# Install Node.js dependencies
+# Use npm install since no package-lock.json exists yet
+# Use --no-cache to reduce image size and avoid :MemoryLeak
+RUN npm install --silent && \
+    npm cache clean --force
 
-# Copy built Next.js application with proper ownership
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/server.js ./
+# Create necessary directories with proper permissions
+RUN mkdir -p /app/src /app/public /app/build && \
+    chown -R appuser:appuser /app
 
-# Security: Run as non-root user
-USER nextjs
+# Switch to non-root user (:SecurityFirst - mitigate :SecurityVulnerability)
+USER appuser
 
-# Health check for container orchestration
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:3000/api/health || exit 1
+# Copy application code (excluding sensitive files via .dockerignore)
+# Note: src and public will be volume-mounted in development for hot-reload
+COPY --chown=1001:1001 . .
 
-# Expose port
+# Expose React development server port
 EXPOSE 3000
 
-# Production environment variables
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV PORT=3000
+# Health check for container orchestration
+# Check if React dev server is responding
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
 
-# Use dumb-init for proper signal handling
-ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "server.js"]
+# Default command for React development server with hot-reload
+# Supports development workflow with volume mounting for src and public
+# Binds to 0.0.0.0 to allow external access from docker-compose network
+CMD ["npm", "start"]

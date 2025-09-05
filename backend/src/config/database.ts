@@ -29,9 +29,7 @@ export const getDatabase = () => {
 
 export const getRepositories = (): Repositories => {
   if (!repositories) {
-    throw new Error(
-      'Repositories not initialized. Call initializeDatabase first.'
-    );
+    throw new Error('Repositories not initialized. Call initializeDatabase first.');
   }
   return repositories;
 };

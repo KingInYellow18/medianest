@@ -1,5 +1,9 @@
 // Common types used across frontend and backend
 
+// Re-export all types from specific modules
+export * from './service';
+export * from './request';
+
 export interface User {
   id: string;
   plexId: string;
@@ -9,26 +13,6 @@ export interface User {
   status: 'active' | 'inactive';
   createdAt: Date;
   lastLoginAt?: Date;
-}
-
-export interface MediaRequest {
-  id: string;
-  userId: string;
-  title: string;
-  mediaType: 'movie' | 'tv';
-  tmdbId?: string;
-  status: 'pending' | 'approved' | 'completed' | 'failed';
-  overseerrId?: string;
-  createdAt: Date;
-  completedAt?: Date;
-}
-
-export interface ServiceStatus {
-  name: string;
-  status: 'up' | 'down' | 'degraded';
-  responseTime?: number;
-  lastCheck?: Date;
-  uptime?: number;
 }
 
 export interface ApiResponse<T = any> {

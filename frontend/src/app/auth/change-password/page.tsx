@@ -1,20 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { useState } from 'react';
+
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, AlertCircle } from 'lucide-react';
 
 export default function ChangePasswordPage() {
   const router = useRouter();
@@ -83,9 +78,7 @@ export default function ChangePasswordPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">
-            Change Your Password
-          </CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">Change Your Password</CardTitle>
           <CardDescription className="text-center">
             You must change your password before continuing
           </CardDescription>
@@ -105,9 +98,7 @@ export default function ChangePasswordPage() {
                 id="currentPassword"
                 type="password"
                 value={formData.currentPassword}
-                onChange={e =>
-                  setFormData({ ...formData, currentPassword: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
                 placeholder="Enter current password"
                 required
               />
@@ -120,15 +111,11 @@ export default function ChangePasswordPage() {
                 id="newPassword"
                 type="password"
                 value={formData.newPassword}
-                onChange={e =>
-                  setFormData({ ...formData, newPassword: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
                 placeholder="Enter new password"
                 required
               />
-              <p className="text-xs text-gray-500">
-                Must be at least 8 characters long
-              </p>
+              <p className="text-xs text-gray-500">Must be at least 8 characters long</p>
             </div>
 
             <div className="space-y-2">
@@ -137,9 +124,7 @@ export default function ChangePasswordPage() {
                 id="confirmPassword"
                 type="password"
                 value={formData.confirmPassword}
-                onChange={e =>
-                  setFormData({ ...formData, confirmPassword: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                 placeholder="Confirm new password"
                 required
               />

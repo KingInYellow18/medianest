@@ -12,15 +12,15 @@ Welcome to the MediaNest documentation directory. This folder contains detailed 
 ### Implementation Guides
 
 - **[ERROR_HANDLING_LOGGING_STRATEGY.md](ERROR_HANDLING_LOGGING_STRATEGY.md)** - Comprehensive error handling and logging implementation
-- **[API.md](API.md)** - Detailed API endpoint documentation *(coming soon)*
-- **[DEVELOPMENT.md](DEVELOPMENT.md)** - Local development setup and guidelines *(coming soon)*
+- **[API.md](API.md)** - Detailed API endpoint documentation _(coming soon)_
+- **[DEVELOPMENT.md](DEVELOPMENT.md)** - Local development setup and guidelines _(coming soon)_
 
 ### Future Documentation
 
 Located in the `future/` subdirectory:
 
-- **[SECURITY_STRATEGY.md](future/SECURITY_STRATEGY.md)** - Security implementation details *(planned)*
-- **[PERFORMANCE_STRATEGY.md](future/PERFORMANCE_STRATEGY.md)** - Performance optimization guide *(planned)*
+- **[SECURITY_STRATEGY.md](future/SECURITY_STRATEGY.md)** - Security implementation details _(planned)_
+- **[PERFORMANCE_STRATEGY.md](future/PERFORMANCE_STRATEGY.md)** - Performance optimization guide _(planned)_
 
 ## Documentation Philosophy
 
@@ -31,6 +31,7 @@ We follow a principle of **progressive disclosure**:
 3. **API/Development docs** offer practical, hands-on information
 
 This separation ensures that:
+
 - Readers can quickly understand the system at the appropriate level
 - Implementation details don't clutter architectural discussions
 - Each document remains focused and maintainable
@@ -50,4 +51,4 @@ When adding new documentation:
 
 - [Project README](/README.md)
 - [Claude.md Instructions](/CLAUDE.md)
-- [Project Blueprint](/medianest_blueprint.md)
+- [Project Blueprint](/docs/archive/planning/medianest_blueprint.md)

@@ -45,10 +45,9 @@ export default function PlexProvider<P extends PlexProfile>(
     platform?: string;
     platformVersion?: string;
     version?: string;
-  }
+  },
 ): OAuthConfig<P> {
-  const clientIdentifier =
-    options.clientIdentifier || generateClientIdentifier();
+  const clientIdentifier = options.clientIdentifier || generateClientIdentifier();
   const product = options.product || 'MediaNest';
   const device = options.device || 'Web';
   const deviceName = options.deviceName || 'MediaNest Web';
@@ -84,7 +83,7 @@ export default function PlexProvider<P extends PlexProfile>(
     },
     token: {
       url: 'https://plex.tv/api/v2/pins/{pinId}',
-      async request({ client, params, checks, provider }) {
+      async request({ client: _client, params: _params, checks: _checks, provider: _provider }) {
         // This is a custom token exchange for Plex PIN auth
         // In practice, we'll need to poll this endpoint until the user authorizes
         throw new Error('Plex PIN auth requires custom implementation');
@@ -92,7 +91,7 @@ export default function PlexProvider<P extends PlexProfile>(
     },
     userinfo: {
       url: 'https://plex.tv/api/v2/user',
-      async request({ client, tokens }) {
+      async request({ client: _client, tokens }) {
         const response = await fetch('https://plex.tv/api/v2/user', {
           headers: {
             'X-Plex-Token': tokens.authToken as string,
@@ -120,6 +119,7 @@ export default function PlexProvider<P extends PlexProfile>(
         name: profile.username,
         email: profile.email,
         image: profile.thumb,
+        role: 'USER', // Default role for Plex users
       };
     },
     style: {
@@ -135,7 +135,7 @@ export default function PlexProvider<P extends PlexProfile>(
 
 function generateClientIdentifier(): string {
   // Generate a UUID v4 for the client identifier
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
     const v = c === 'x' ? r : (r & 0x3) | 0x8;
     return v.toString(16);
@@ -145,7 +145,7 @@ function generateClientIdentifier(): string {
 // Helper functions for PIN-based authentication flow
 export async function createPlexPin(
   clientIdentifier: string,
-  headers: Record<string, string>
+  headers: Record<string, string>,
 ): Promise<PlexPinResponse> {
   const response = await fetch('https://plex.tv/api/v2/pins', {
     method: 'POST',
@@ -169,8 +169,8 @@ export async function createPlexPin(
 
 export async function checkPlexPin(
   pinId: number,
-  clientIdentifier: string,
-  headers: Record<string, string>
+  _clientIdentifier: string,
+  headers: Record<string, string>,
 ): Promise<PlexPinResponse> {
   const response = await fetch(`https://plex.tv/api/v2/pins/${pinId}`, {
     headers: {
@@ -186,27 +186,6 @@ export async function checkPlexPin(
   return response.json();
 }
 
-export async function getPlexUser(
-  authToken: string,
-  clientIdentifier: string = generateClientIdentifier()
-): Promise<PlexProfile> {
-  const headers = getPlexHeaders(clientIdentifier)
-  const response = await fetch("https://plex.tv/api/v2/user", {
-    headers: {
-      ...headers,
-      "X-Plex-Token": authToken,
-      Accept: "application/json",
-    },
-  })
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch Plex user info")
-  }
-
-  const data = await response.json()
-  return data as PlexProfile
-}
-
 export function getPlexHeaders(
   clientIdentifier: string,
   product = 'MediaNest',
@@ -214,7 +193,7 @@ export function getPlexHeaders(
   platform = 'Web',
   platformVersion = '1.0',
   device = 'Web',
-  deviceName = 'MediaNest Web'
+  deviceName = 'MediaNest Web',
 ): Record<string, string> {
   return {
     'X-Plex-Client-Identifier': clientIdentifier,

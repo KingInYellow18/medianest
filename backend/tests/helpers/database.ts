@@ -33,56 +33,29 @@ export async function disconnectDatabase() {
   }
 }
 
-// Global test utilities for creating test users
-export async function createTestUser(overrides: any = {}) {
-  const prisma = getTestPrismaClient()
-  
-  const defaultUser = {
-    plexId: `test-plex-${Date.now()}-${Math.random()}`,
-    plexUsername: `testuser-${Date.now()}`,
-    email: `test-${Date.now()}@example.com`,
-    role: 'user',
-    status: 'active',
-    ...overrides
-  }
-
-  return await prisma.user.create({
-    data: defaultUser
-  })
-}
-
-export async function createTestAdmin(overrides: any = {}) {
-  return await createTestUser({
-    role: 'admin',
-    plexUsername: `admin-${Date.now()}`,
-    email: `admin-${Date.now()}@example.com`,
-    ...overrides
-  })
-}
-
 export async function seedTestData() {
   const prisma = getTestPrismaClient()
   
   // Create test users
-  const testUser = await createTestUser({
-    plexId: 'test-plex-id-1',
-    plexUsername: 'testuser1',
-    email: 'test1@example.com'
+  const testUser = await prisma.user.create({
+    data: {
+      plexId: 'test-plex-id-1',
+      username: 'testuser1',
+      email: 'test1@example.com',
+      role: 'user',
+      status: 'active'
+    }
   })
 
-  const adminUser = await createTestUser({
-    plexId: 'test-plex-id-admin',
-    plexUsername: 'admin1',
-    email: 'admin1@example.com',
-    role: 'admin'
+  const adminUser = await prisma.user.create({
+    data: {
+      plexId: 'test-plex-id-admin',
+      username: 'testadmin',
+      email: 'admin@example.com',
+      role: 'admin',
+      status: 'active'
+    }
   })
 
   return { testUser, adminUser }
 }
-
-// Make createTestUser available globally for tests
-declare global {
-  var createTestUser: typeof createTestUser
-}
-
-global.createTestUser = createTestUser

@@ -4,7 +4,7 @@ import { createServer } from 'http';
 
 import compression from 'compression';
 import cors from 'cors';
-import express from 'express';
+import express, { json, urlencoded } from 'express';
 import helmet from 'helmet';
 
 import { initializeDatabase } from './config/database';
@@ -14,8 +14,8 @@ import { correlationIdMiddleware } from './middleware/correlation-id';
 import { errorHandler } from './middleware/error';
 import { requestLogger } from './middleware/logging';
 import { setupRoutes } from './routes';
-import { setIntegrationService } from './routes/integrations';
-import { IntegrationService } from './services/integration.service';
+import { socketService } from './services/socket.service';
+import { initializeSocketServer } from './socket';
 import { logger } from './utils/logger';
 
 const app = express();
@@ -36,17 +36,17 @@ app.use(
         imgSrc: ["'self'", 'data:', 'https:'],
       },
     },
-  })
+  }),
 );
 app.use(
   cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true,
-  })
+  }),
 );
 app.use(compression());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(json());
+app.use(urlencoded({ extended: true }));
 app.use(correlationIdMiddleware);
 app.use(requestLogger);
 
@@ -65,8 +65,10 @@ app.get('/metrics', (req, res) => {
     }
   }
 
-  const { metrics } = require('./utils/monitoring');
-  res.json(metrics.getMetrics());
+  void (async () => {
+    const monitoring = await import('./utils/monitoring');
+    res.json(monitoring.metrics.getMetrics());
+  })();
 });
 
 // Setup routes
@@ -90,30 +92,13 @@ async function startServer() {
     await initializeQueues();
     logger.info('Queues initialized');
 
-    // Initialize integration service
-    const integrationService = new IntegrationService({
-      plex: {
-        enabled: process.env.PLEX_ENABLED === 'true',
-        defaultToken: process.env.PLEX_DEFAULT_TOKEN,
-        serverUrl: process.env.PLEX_SERVER_URL,
-      },
-      overseerr: {
-        enabled: process.env.OVERSEERR_ENABLED === 'true',
-        url: process.env.OVERSEERR_URL,
-        apiKey: process.env.OVERSEERR_API_KEY,
-      },
-      uptimeKuma: {
-        enabled: process.env.UPTIME_KUMA_ENABLED === 'true',
-        url: process.env.UPTIME_KUMA_URL,
-        username: process.env.UPTIME_KUMA_USERNAME,
-        password: process.env.UPTIME_KUMA_PASSWORD,
-      },
-    });
+    // Initialize Socket.io
+    const io = initializeSocketServer(httpServer);
+    socketService.initialize(io);
+    logger.info('Socket.io initialized');
 
-    await integrationService.initialize();
-    setIntegrationService(integrationService);
-    globalIntegrationService = integrationService;
-    logger.info('External service integrations initialized');
+    // Initialize external services
+    await initializeServices();
 
     // Start server
     httpServer.listen(PORT, () => {
@@ -121,25 +106,62 @@ async function startServer() {
     });
   } catch (error) {
     logger.error('Failed to start server:', error);
-    process.exit(1);
+    throw error;
   }
 }
 
-// Store integration service for graceful shutdown
-let globalIntegrationService: IntegrationService | null = null;
+// Initialize external services
+async function initializeServices() {
+  try {
+    // Initialize Plex service
+    const { plexService } = await import('./services/plex.service');
+    plexService.startCleanupTimer();
+    logger.info('Plex service initialized');
+
+    // Initialize Overseerr service
+    const { overseerrService } = await import('./services/overseerr.service');
+    await overseerrService.initialize();
+    logger.info('Overseerr service initialized');
+
+    // Initialize Status service (Uptime Kuma)
+    const { statusService } = await import('./services/status.service');
+    await statusService.initialize();
+    logger.info('Status service initialized');
+
+    // Initialize YouTube download processor
+    const { YouTubeDownloadProcessor } = await import('./jobs/youtube-download.processor');
+    const youtubeProcessor = new YouTubeDownloadProcessor();
+    await youtubeProcessor.start();
+    logger.info('YouTube download processor initialized');
+  } catch (error) {
+    logger.error('Failed to initialize services:', error);
+    // Continue running even if external services fail
+  }
+}
 
 // Graceful shutdown
-process.on('SIGTERM', async () => {
+process.on('SIGTERM', () => {
   logger.info('SIGTERM received, shutting down gracefully');
 
-  if (globalIntegrationService) {
-    await globalIntegrationService.shutdown();
-    logger.info('Integration service shutdown complete');
-  }
+  // Disconnect services
+  void (async () => {
+    const { statusService } = await import('./services/status.service');
+    statusService.disconnect();
+  })();
 
   httpServer.close(() => {
     logger.info('HTTP server closed');
+    // Allow process to exit naturally
   });
+
+  // Force exit after 10 seconds if graceful shutdown fails
+  setTimeout(() => {
+    logger.error('Graceful shutdown timed out, forcing exit');
+    // eslint-disable-next-line no-process-exit
+    process.exit(0);
+  }, 10000).unref();
 });
 
-startServer();
+void startServer();
+// Test comment
+// Test comment for lint-staged

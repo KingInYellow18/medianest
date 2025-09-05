@@ -1,34 +1,71 @@
-# Dependencies
+# ===================================
+# CORE DEPENDENCIES & PACKAGE MANAGERS
+# ===================================
 node_modules/
 .pnp
 .pnp.js
-pnpm-lock.yaml
 
-# Package manager cache
-.npm/
-.yarn/
-.pnpm-store/
-.turbo/
+# ===================================
+# BUILD OUTPUTS & DISTRIBUTIONS
+# ===================================
+# Next.js
+.next/
+out/
 
-# Testing
+# General build directories
+build/
+dist/
+
+# TypeScript build info
+*.tsbuildinfo
+next-env.d.ts
+
+# Compiled shared library files
+shared/src/**/*.js
+shared/src/**/*.js.map
+shared/src/**/*.d.ts
+shared/src/**/*.d.ts.map
+
+# ===================================
+# TESTING & COVERAGE
+# ===================================
 coverage/
 .nyc_output
 test-results/
 playwright-report/
+*.coverage
+.vitest-cache/
 
-# Next.js
-.next/
-out/
-build/
-dist/
+# ===================================
+# ENVIRONMENT & CONFIGURATION
+# ===================================
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.prod
+.env.test
 
-# Misc
+# ===================================
+# CLOUD DEPLOYMENT
+# ===================================
+.vercel
+
+# ===================================
+# DEVELOPMENT TOOLS & IDE
+# ===================================
+# IDE and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
 Thumbs.db
-*.tmp
-*.temp
-*.bak
-*.backup
 
 # Debug logs
 npm-debug.log*
@@ -37,54 +74,34 @@ yarn-error.log*
 .pnpm-debug.log*
 debug.log
 
-# Environment files
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env.*.local
-
-# Cloud deployment
-.vercel
-.netlify
-
-# TypeScript
-*.tsbuildinfo
-next-env.d.ts
-shared/src/**/*.js
-shared/src/**/*.js.map
-shared/src/**/*.d.ts
-shared/src/**/*.d.ts.map
-
-# IDE and editors
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.history/
-
-# Docker
-docker-compose.override.yml
-
+# ===================================
+# RUNTIME & TEMPORARY FILES
+# ===================================
 # Runtime directories
 uploads/
 youtube/
-downloads/
-cache/
-.cache/
 
-# Secrets and credentials
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Logs
+logs/
+*.log
+
+# ===================================
+# SECURITY & CREDENTIALS
+# ===================================
 secrets/*
 !secrets/.gitkeep
-*.key
-*.crt
-*.csr
-*.pem
-certs/
+.secrets/
+docker-secrets/
 
-# Database files
+# ===================================
+# DATABASE FILES
+# ===================================
 postgres_data/
 redis_data/
 *.db
@@ -92,38 +109,46 @@ redis_data/
 *.sqlite3
 *.db-shm
 *.db-wal
+*.db-journal
+*.sqlite-journal
+*.sqlite-wal
 
-# Logs
-logs/
-*.log
+# ===================================
+# DOCKER & CONTAINERS
+# ===================================
+docker-compose.override.yml
 
-# AI Development System Files (Claude, Swarm, etc.)
+# Certificates
+*.pem
+*.key
+*.crt
+*.csr
+certs/
+
+# ===================================
+# AI DEVELOPMENT SYSTEM FILES
+# ===================================
+# Claude & AI Development Tools
 .claude/
 .claude-flow/
 .swarm/
 .hive-mind/
+.neural-cache/
+
+# AI Configuration Files
 claude-flow.config.json
-memory/
+.mcp.json
 ruv-memory.db*
 *.memory.json
 .ai-session*
-.neural-cache/
 
-# Claude Flow generated files
-.claude/settings.local.json
-.mcp.json
-memory/claude-flow-data.json
-memory/sessions/*
-!memory/sessions/README.md
-memory/agents/*
-!memory/agents/README.md
+# AI Memory & Coordination
+memory/
 coordination/memory_bank/*
 coordination/subtasks/*
 coordination/orchestration/*
-*.db-journal
-*.db-wal
-*.sqlite-journal
-*.sqlite-wal
+
+# AI Generated Executables
 claude-flow
 claude-flow.bat
 claude-flow.ps1

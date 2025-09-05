@@ -1,44 +1,35 @@
 /**
- * Centralized Configuration Management
- * 
- * This module provides a unified configuration system for the entire MediaNest application.
- * It includes environment loading, validation, and type-safe configuration access.
+ * Centralized configuration management for MediaNest
+ *
+ * This module provides:
+ * - Environment variable validation with Zod schemas
+ * - Support for Docker secrets in production
+ * - Environment-specific configuration loading
+ * - Type-safe configuration objects
+ * - Utility functions for configuration management
  */
 
-// Configuration schemas and types
-export * from './base.config';
-export * from './env.config';
-export * from './logging.config';
+export * from './schemas';
+export * from './utils';
 
-// Re-export commonly used types
-export type {
-  CompleteConfig,
-  BaseConfig,
-  DatabaseConfig,
-  RedisConfig,
-  ServerConfig,
-  ExternalServicesConfig,
-  ConfigValidationError,
-} from './base.config';
-
-export type {
+// Re-export commonly used types and validators
+export {
+  BackendConfig,
+  FrontendConfig,
+  TestConfig,
+  Environment,
   LogLevel,
-  LogContext,
-  LogEntry,
-  LoggerConfigOptions,
-} from './logging.config';
-
-// Re-export convenience functions
-export {
-  loadConfig,
-  getConfig,
-  getConfigSection,
-  validateEnvironment,
-} from './env.config';
+  createConfigValidator,
+  formatValidationError,
+} from './schemas';
 
 export {
-  createServiceLogger,
-  createCorrelatedLogger,
-  createPerformanceLogger,
-  logging,
-} from './logging.config';
+  EnvironmentConfigLoader,
+  environmentLoader,
+  createConfiguration,
+  configUtils,
+  ProcessEnvLoader,
+  DockerSecretsLoader,
+  DotenvLoader,
+  CompositeEnvLoader,
+} from './utils';

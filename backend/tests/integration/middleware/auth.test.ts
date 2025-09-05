@@ -1,204 +1,175 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { Request, Response, NextFunction } from 'express'
-import { authenticate, requireRole } from '@/middleware/auth'
-import { createAuthToken, createExpiredToken, createInvalidToken } from '../../helpers/auth'
-import { AuthenticationError, AuthorizationError } from '@/utils/errors'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import request from 'supertest';
+import { app } from '@/app';
+import { prisma } from '@/db/prisma';
+import { databaseCleanup } from '../../helpers/database-cleanup';
+import {
+  createAuthToken,
+  createAdminToken,
+  createExpiredToken,
+  createInvalidToken,
+} from '../../helpers/auth';
+import { testUsers } from '../../fixtures/test-data';
 
-// Mock the repository
-vi.mock('@/repositories', () => ({
-  userRepository: {
-    findById: vi.fn()
-  }
-}))
+describe('Auth Middleware - Critical Path', () => {
+  let userToken: string;
+  let adminToken: string;
+  let testUser: any;
+  let adminUser: any;
 
-describe('Authentication Middleware', () => {
-  let req: Partial<Request>
-  let res: Partial<Response>
-  let next: NextFunction
+  beforeAll(async () => {
+    await databaseCleanup.cleanAll();
 
-  beforeEach(() => {
-    req = {
-      headers: {},
-      cookies: {}
-    }
-    res = {
-      status: vi.fn().mockReturnThis(),
-      json: vi.fn()
-    }
-    next = vi.fn()
-  })
+    // Create test users
+    testUser = await prisma.user.create({
+      data: {
+        plexId: testUsers[0].plexId,
+        plexUsername: testUsers[0].username,
+        email: testUsers[0].email,
+        role: testUsers[0].role,
+        status: testUsers[0].status,
+        plexToken: 'encrypted-token',
+      },
+    });
 
-  describe('authenticate', () => {
-    it('should authenticate valid Bearer token', async () => {
-      const token = createAuthToken()
-      req.headers = { authorization: `Bearer ${token}` }
+    adminUser = await prisma.user.create({
+      data: {
+        plexId: testUsers[1].plexId,
+        plexUsername: testUsers[1].username,
+        email: testUsers[1].email,
+        role: testUsers[1].role,
+        status: testUsers[1].status,
+        plexToken: 'encrypted-admin-token',
+      },
+    });
 
-      const { userRepository } = await import('@/repositories')
-      vi.mocked(userRepository.findById).mockResolvedValue({
-        id: 'test-user-id',
-        plexId: 'plex-123',
-        username: 'testuser',
-        email: 'test@example.com',
-        role: 'user',
-        status: 'active',
-        createdAt: new Date(),
-        lastLoginAt: new Date(),
-        plexToken: null
-      })
+    userToken = createAuthToken(testUser);
+    adminToken = createAuthToken(adminUser);
+  });
 
-      await authenticate()(req as Request, res as Response, next)
+  afterAll(async () => {
+    await databaseCleanup.cleanAll();
+    await prisma.$disconnect();
+  });
 
-      expect(req.user).toBeDefined()
-      expect(req.user?.id).toBe('test-user-id')
-      expect(req.user?.role).toBe('user')
-      expect(next).toHaveBeenCalled()
-    })
+  describe('JWT Validation', () => {
+    it('should accept valid JWT tokens', async () => {
+      const response = await request(app)
+        .get('/api/v1/auth/session')
+        .set('Authorization', `Bearer ${userToken}`)
+        .expect(200);
 
-    it('should authenticate token from cookie', async () => {
-      const token = createAuthToken()
-      req.cookies = { token }
+      expect(response.body).toMatchObject({
+        success: true,
+        data: {
+          user: {
+            id: testUser.id,
+            role: 'user',
+          },
+        },
+      });
+    });
 
-      const { userRepository } = await import('@/repositories')
-      vi.mocked(userRepository.findById).mockResolvedValue({
-        id: 'test-user-id',
-        plexId: 'plex-123',
-        username: 'testuser',
-        email: 'test@example.com',
-        role: 'user',
-        status: 'active',
-        createdAt: new Date(),
-        lastLoginAt: new Date(),
-        plexToken: null
-      })
+    it('should reject expired tokens', async () => {
+      const expiredToken = createExpiredToken();
 
-      await authenticate()(req as Request, res as Response, next)
+      const response = await request(app)
+        .get('/api/v1/auth/session')
+        .set('Authorization', `Bearer ${expiredToken}`)
+        .expect(401);
 
-      expect(req.user).toBeDefined()
-      expect(next).toHaveBeenCalled()
-    })
+      expect(response.body.success).toBe(false);
+    });
 
-    it('should reject expired token', async () => {
-      const token = createExpiredToken()
-      req.headers = { authorization: `Bearer ${token}` }
+    it('should reject malformed tokens', async () => {
+      const invalidToken = createInvalidToken();
 
-      await authenticate()(req as Request, res as Response, next)
+      const response = await request(app)
+        .get('/api/v1/auth/session')
+        .set('Authorization', `Bearer ${invalidToken}`)
+        .expect(401);
 
-      expect(next).toHaveBeenCalledWith(expect.any(AuthenticationError))
-    })
+      expect(response.body.success).toBe(false);
+    });
 
-    it('should reject invalid token', async () => {
-      const token = createInvalidToken()
-      req.headers = { authorization: `Bearer ${token}` }
+    it('should require Authorization header', async () => {
+      const response = await request(app).get('/api/v1/auth/session').expect(401);
 
-      await authenticate()(req as Request, res as Response, next)
+      expect(response.body.success).toBe(false);
+    });
+  });
 
-      expect(next).toHaveBeenCalledWith(expect.any(AuthenticationError))
-    })
+  describe('Role-based Access Control', () => {
+    it('should allow user access to user endpoints', async () => {
+      const response = await request(app)
+        .get('/api/v1/media/search')
+        .query({ query: 'test' })
+        .set('Authorization', `Bearer ${userToken}`)
+        .expect(200);
 
-    it('should reject if no token provided', async () => {
-      await authenticate()(req as Request, res as Response, next)
+      expect(response.body.success).toBe(true);
+    });
 
-      expect(next).toHaveBeenCalledWith(expect.any(AuthenticationError))
-    })
+    it('should allow admin access to admin endpoints', async () => {
+      const response = await request(app)
+        .get('/api/v1/media/requests/all')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(200);
 
-    it('should reject if user not found', async () => {
-      const token = createAuthToken()
-      req.headers = { authorization: `Bearer ${token}` }
+      expect(response.body.success).toBe(true);
+    });
 
-      const { userRepository } = await import('@/repositories')
-      vi.mocked(userRepository.findById).mockResolvedValue(null)
+    it('should deny user access to admin endpoints', async () => {
+      const response = await request(app)
+        .get('/api/v1/media/requests/all')
+        .set('Authorization', `Bearer ${userToken}`)
+        .expect(403);
 
-      await authenticate()(req as Request, res as Response, next)
+      expect(response.body).toMatchObject({
+        success: false,
+        error: {
+          message: 'Access denied',
+        },
+      });
+    });
 
-      expect(next).toHaveBeenCalledWith(expect.any(AuthenticationError))
-    })
+    it('should enforce user isolation', async () => {
+      // Create another user
+      const otherUser = await prisma.user.create({
+        data: {
+          plexId: 'isolation-test-user',
+          plexUsername: 'isolationuser',
+          email: 'isolation@example.com',
+          role: 'user',
+          status: 'active',
+          plexToken: 'encrypted-isolation-token',
+        },
+      });
 
-    it('should reject if user is inactive', async () => {
-      const token = createAuthToken()
-      req.headers = { authorization: `Bearer ${token}` }
+      // Create a request for the other user
+      const otherRequest = await prisma.mediaRequest.create({
+        data: {
+          userId: otherUser.id,
+          title: 'Isolation Test Movie',
+          mediaType: 'movie',
+          tmdbId: '777777',
+          status: 'pending',
+          requestedAt: new Date(),
+        },
+      });
 
-      const { userRepository } = await import('@/repositories')
-      vi.mocked(userRepository.findById).mockResolvedValue({
-        id: 'test-user-id',
-        plexId: 'plex-123',
-        username: 'testuser',
-        email: 'test@example.com',
-        role: 'user',
-        status: 'inactive',
-        createdAt: new Date(),
-        lastLoginAt: new Date(),
-        plexToken: null
-      })
+      // Test user should not access other user's request
+      const response = await request(app)
+        .get(`/api/v1/media/requests/${otherRequest.id}`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .expect(403);
 
-      await authenticate()(req as Request, res as Response, next)
-
-      expect(next).toHaveBeenCalledWith(expect.any(AuthenticationError))
-    })
-  })
-
-  describe('requireRole', () => {
-    it('should allow user with required role', () => {
-      req.user = {
-        id: 'admin-user-id',
-        plexId: 'plex-admin',
-        username: 'admin',
-        email: 'admin@example.com',
-        role: 'admin',
-        status: 'active',
-        createdAt: new Date(),
-        lastLoginAt: new Date(),
-        plexToken: null
-      }
-
-      requireRole('admin')(req as Request, res as Response, next)
-
-      expect(next).toHaveBeenCalled()
-      expect(res.status).not.toHaveBeenCalled()
-    })
-
-    it('should reject user without required role', () => {
-      req.user = {
-        id: 'test-user-id',
-        plexId: 'plex-123',
-        username: 'testuser',
-        email: 'test@example.com',
-        role: 'user',
-        status: 'active',
-        createdAt: new Date(),
-        lastLoginAt: new Date(),
-        plexToken: null
-      }
-
-      requireRole('admin')(req as Request, res as Response, next)
-
-      expect(next).toHaveBeenCalledWith(expect.any(AuthorizationError))
-    })
-
-    it('should reject if no user in request', () => {
-      req.user = undefined
-
-      requireRole('admin')(req as Request, res as Response, next)
-
-      expect(next).toHaveBeenCalledWith(expect.any(AuthorizationError))
-    })
-
-    it('should allow multiple roles', () => {
-      req.user = {
-        id: 'test-user-id',
-        plexId: 'plex-123',
-        username: 'testuser',
-        email: 'test@example.com',
-        role: 'user',
-        status: 'active',
-        createdAt: new Date(),
-        lastLoginAt: new Date(),
-        plexToken: null
-      }
-
-      requireRole('user', 'admin')(req as Request, res as Response, next)
-
-      expect(next).toHaveBeenCalled()
-      expect(res.status).not.toHaveBeenCalled()
-    })
-  })
-})
+      expect(response.body).toMatchObject({
+        success: false,
+        error: {
+          message: 'Access denied',
+        },
+      });
+    });
+  });
+});
