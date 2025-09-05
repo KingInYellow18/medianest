@@ -2,8 +2,8 @@ import { afterAll, afterEach, beforeAll, vi } from 'vitest'
 import { server } from './mocks/server'
 
 // Mock winston and logger completely for tests
-vi.mock('winston', () => ({
-  createLogger: vi.fn(() => ({
+vi.mock('winston', () => {
+  const mockLogger = {
     info: vi.fn(),
     error: vi.fn(),
     debug: vi.fn(),
@@ -14,24 +14,70 @@ vi.mock('winston', () => ({
       debug: vi.fn(),
       warn: vi.fn()
     }))
-  })),
-  format: {
-    combine: vi.fn(),
-    timestamp: vi.fn(),
-    errors: vi.fn(),
-    splat: vi.fn(),
-    json: vi.fn(),
-    printf: vi.fn(),
-    colorize: vi.fn()
-  },
-  transports: {
-    Console: vi.fn(),
-    File: vi.fn()
   }
-}))
+
+  return {
+    default: {
+      createLogger: vi.fn(() => mockLogger),
+      format: {
+        combine: vi.fn(),
+        timestamp: vi.fn(),
+        errors: vi.fn(),
+        splat: vi.fn(),
+        json: vi.fn(),
+        printf: vi.fn(),
+        colorize: vi.fn()
+      },
+      transports: {
+        Console: vi.fn(),
+        File: vi.fn()
+      }
+    },
+    createLogger: vi.fn(() => mockLogger),
+    format: {
+      combine: vi.fn(),
+      timestamp: vi.fn(),
+      errors: vi.fn(),
+      splat: vi.fn(),
+      json: vi.fn(),
+      printf: vi.fn(),
+      colorize: vi.fn()
+    },
+    transports: {
+      Console: vi.fn(),
+      File: vi.fn()
+    }
+  }
+})
 
 vi.mock('winston-daily-rotate-file', () => ({
   default: vi.fn()
+}))
+
+// Mock Prisma client
+vi.mock('@prisma/client', () => ({
+  PrismaClient: vi.fn(() => ({
+    $connect: vi.fn(),
+    $disconnect: vi.fn(),
+    user: {
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn()
+    },
+    sessionToken: {
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      deleteMany: vi.fn()
+    },
+    $queryRaw: vi.fn(),
+    $executeRaw: vi.fn()
+  }))
 }))
 
 // Setup MSW server
