@@ -1,0 +1,253 @@
+import { config as dotenvConfig } from 'dotenv';
+import { resolve, join } from 'path';
+import { existsSync } from 'fs';
+import { z } from 'zod';
+
+import {
+  CompleteConfigSchema,
+  CompleteConfig,
+  ConfigValidationError,
+  validateConfig,
+} from './base.config';
+
+/**
+ * Environment Configuration Loader
+ * Handles loading and validating environment variables across workspaces
+ */
+export class EnvironmentConfig {
+  private static instance: EnvironmentConfig | null = null;
+  private _config: CompleteConfig | null = null;
+  private _isLoaded = false;
+
+  private constructor() {}
+
+  /**
+   * Singleton instance getter
+   */
+  public static getInstance(): EnvironmentConfig {
+    if (!EnvironmentConfig.instance) {
+      EnvironmentConfig.instance = new EnvironmentConfig();
+    }
+    return EnvironmentConfig.instance;
+  }
+
+  /**
+   * Load environment configuration
+   */
+  public load(options: {
+    envPath?: string;
+    projectRoot?: string;
+    validateOnly?: boolean;
+    additionalEnvFiles?: string[];
+  } = {}): CompleteConfig {
+    if (this._isLoaded && this._config && !options.validateOnly) {
+      return this._config;
+    }
+
+    const {
+      envPath,
+      projectRoot = this.findProjectRoot(),
+      validateOnly = false,
+      additionalEnvFiles = [],
+    } = options;
+
+    // Load environment files
+    this.loadEnvFiles(projectRoot, envPath, additionalEnvFiles);
+
+    // Validate and parse configuration
+    try {
+      this._config = validateConfig(
+        CompleteConfigSchema,
+        process.env,
+        'environment variables'
+      );
+      
+      if (!validateOnly) {
+        this._isLoaded = true;
+      }
+
+      return this._config;
+    } catch (error) {
+      if (error instanceof ConfigValidationError) {
+        throw new ConfigValidationError(error.errors);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Get configuration (must be loaded first)
+   */
+  public getConfig(): CompleteConfig {
+    if (!this._config) {
+      throw new Error('Configuration not loaded. Call load() first.');
+    }
+    return this._config;
+  }
+
+  /**
+   * Get specific configuration section
+   */
+  public getSection<K extends keyof CompleteConfig>(
+    section: K
+  ): CompleteConfig[K] {
+    const config = this.getConfig();
+    return config[section];
+  }
+
+  /**
+   * Check if configuration is loaded
+   */
+  public isLoaded(): boolean {
+    return this._isLoaded;
+  }
+
+  /**
+   * Reload configuration
+   */
+  public reload(options?: Parameters<typeof this.load>[0]): CompleteConfig {
+    this._isLoaded = false;
+    this._config = null;
+    return this.load(options);
+  }
+
+  /**
+   * Validate current environment without loading
+   */
+  public validate(): { valid: boolean; errors?: z.ZodError } {
+    try {
+      this.load({ validateOnly: true });
+      return { valid: true };
+    } catch (error) {
+      if (error instanceof ConfigValidationError) {
+        return { valid: false, errors: error.errors };
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Load environment files in order of precedence
+   */
+  private loadEnvFiles(
+    projectRoot: string,
+    envPath?: string,
+    additionalEnvFiles: string[] = []
+  ): void {
+    const envFiles = [
+      // Default environment files (lowest precedence)
+      join(projectRoot, '.env.defaults'),
+      join(projectRoot, '.env'),
+      join(projectRoot, `.env.${process.env.NODE_ENV || 'development'}`),
+      join(projectRoot, '.env.local'),
+      
+      // Workspace-specific environment files
+      ...this.getWorkspaceEnvFiles(projectRoot),
+      
+      // Additional environment files
+      ...additionalEnvFiles,
+      
+      // Custom environment file (highest precedence)
+      ...(envPath ? [resolve(envPath)] : []),
+    ];
+
+    // Load existing files in order
+    envFiles.forEach((filePath) => {
+      if (existsSync(filePath)) {
+        dotenvConfig({ path: filePath, override: false });
+      }
+    });
+  }
+
+  /**
+   * Get workspace-specific environment files
+   */
+  private getWorkspaceEnvFiles(projectRoot: string): string[] {
+    const workspaces = ['backend', 'frontend', 'shared'];
+    const envFiles: string[] = [];
+
+    workspaces.forEach((workspace) => {
+      const workspacePath = join(projectRoot, workspace);
+      if (existsSync(workspacePath)) {
+        envFiles.push(
+          join(workspacePath, '.env'),
+          join(workspacePath, `.env.${process.env.NODE_ENV || 'development'}`),
+          join(workspacePath, '.env.local')
+        );
+      }
+    });
+
+    return envFiles;
+  }
+
+  /**
+   * Find project root directory
+   */
+  private findProjectRoot(): string {
+    let currentDir = process.cwd();
+    const maxDepth = 10;
+    let depth = 0;
+
+    while (depth < maxDepth) {
+      // Look for package.json with workspaces
+      const packageJsonPath = join(currentDir, 'package.json');
+      if (existsSync(packageJsonPath)) {
+        try {
+          const packageJson = require(packageJsonPath);
+          if (packageJson.workspaces) {
+            return currentDir;
+          }
+        } catch {
+          // Ignore errors reading package.json
+        }
+      }
+
+      // Move up one directory
+      const parentDir = resolve(currentDir, '..');
+      if (parentDir === currentDir) {
+        break; // Reached root directory
+      }
+      currentDir = parentDir;
+      depth++;
+    }
+
+    // Fallback to current working directory
+    return process.cwd();
+  }
+}
+
+// Convenience functions for common usage patterns
+export const env = EnvironmentConfig.getInstance();
+
+/**
+ * Load environment configuration with default options
+ */
+export function loadConfig(options?: Parameters<typeof env.load>[0]): CompleteConfig {
+  return env.load(options);
+}
+
+/**
+ * Get loaded configuration
+ */
+export function getConfig(): CompleteConfig {
+  return env.getConfig();
+}
+
+/**
+ * Get specific configuration section
+ */
+export function getConfigSection<K extends keyof CompleteConfig>(
+  section: K
+): CompleteConfig[K] {
+  return env.getSection(section);
+}
+
+/**
+ * Validate environment configuration
+ */
+export function validateEnvironment(): { valid: boolean; errors?: z.ZodError } {
+  return env.validate();
+}
+
+// Export type for convenience
+export type { CompleteConfig, ConfigValidationError };

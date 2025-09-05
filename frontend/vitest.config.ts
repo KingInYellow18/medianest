@@ -1,9 +1,10 @@
 /// <reference types="vitest" />
-import { defineConfig } from 'vitest/config'
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 import path from 'path'
 
 export default defineConfig({
-  plugins: [],
+  plugins: [react()],
   esbuild: {
     jsxInject: `import React from 'react'`,
   },
@@ -12,6 +13,10 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.tsx'],
     css: true,
+    // Define global imports for tests
+    define: {
+      global: 'globalThis',
+    },
     // Include TypeScript declaration files
     include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     exclude: [

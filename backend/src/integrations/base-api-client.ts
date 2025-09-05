@@ -92,9 +92,9 @@ export abstract class BaseApiClient {
         const contentType = response.headers.get('content-type') || '';
 
         if (contentType.includes('application/json')) {
-          data = await response.json();
+          data = await response.json() as T;
         } else {
-          data = (await response.text()) as any;
+          data = await response.text() as T;
         }
 
         const apiResponse: ApiResponse<T> = {
@@ -125,12 +125,13 @@ export abstract class BaseApiClient {
       } catch (error) {
         clearTimeout(timeoutId);
 
-        if (error.name === 'AbortError') {
+        const errorObj = error as Error;
+        if (errorObj.name === 'AbortError') {
           throw new Error(`${this.serviceName} request timeout after ${timeout}ms`);
         }
 
         logger.error(`${this.serviceName} API request failed`, {
-          error: error.message,
+          error: errorObj.message,
           url,
           method: options.method || 'GET',
         });
@@ -158,7 +159,7 @@ export abstract class BaseApiClient {
         logger.warn(`${this.serviceName} request failed, retrying`, {
           attempt,
           maxRetries,
-          error: error.message,
+          error: (error as Error).message,
           retryIn: retryDelay,
         });
 
@@ -188,7 +189,7 @@ export abstract class BaseApiClient {
       this.lastHealthCheck = {
         healthy: false,
         lastChecked: new Date(),
-        error: error.message,
+        error: (error as Error).message,
         circuitBreakerState: this.circuitBreaker.getStats().state,
       };
 

@@ -4,6 +4,7 @@ import { UserRepository } from '../repositories/user.repository';
 import { AppError } from '../utils/errors';
 import { generateToken } from '../utils/jwt';
 import { logger } from '../utils/logger';
+import { PlexUser as PlexUserType, PlexAuthPin } from '../types/integration/external-apis.types';
 
 export interface PlexPin {
   id: number;
@@ -251,7 +252,7 @@ export class PlexAuthService {
    * Complete OAuth flow: exchange PIN for user session
    */
   async completeOAuth(pinId: number): Promise<{
-    user: any;
+    user: PlexUserType;
     token: string;
     isNewUser: boolean;
   }> {
@@ -273,11 +274,11 @@ export class PlexAuthService {
       if (!user) {
         // Create new user
         user = await this.userRepository.create({
-          email: plexUser.email,
+          email: plexUser.email || '',
           name: plexUser.username,
           plexId: plexUser.id.toString(),
           plexUsername: plexUser.username,
-          plexToken: plexUser.authToken,
+          plexToken: plexUser.authenticationToken,
           role: 'user',
         });
         isNewUser = true;
@@ -290,7 +291,7 @@ export class PlexAuthService {
       } else {
         // Update existing user with new token and login time
         user = await this.userRepository.update(user.id, {
-          plexToken: plexUser.authToken,
+          plexToken: plexUser.authenticationToken,
           lastLoginAt: new Date(),
           name: plexUser.username, // Update name in case it changed
         });

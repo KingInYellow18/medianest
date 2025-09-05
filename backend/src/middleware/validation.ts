@@ -4,14 +4,22 @@ import { z, ZodError, ZodSchema } from 'zod';
 import { AppError } from '../utils/errors';
 import { logger } from '../utils/logger';
 
+interface ValidationData {
+  body?: unknown;
+  params?: unknown;
+  query?: unknown;
+  headers?: unknown;
+  cookies?: unknown;
+}
+
 /**
  * Validation middleware factory for Zod schemas
  */
 export function validate(schema: ZodSchema) {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     try {
       // Create validation object from request
-      const validationData: any = {};
+      const validationData: ValidationData = {};
 
       // Include body if present
       if (req.body && Object.keys(req.body).length > 0) {
@@ -121,7 +129,7 @@ export const validateRequest = (schemas: {
   query?: ZodSchema;
   headers?: ZodSchema;
 }) => {
-  const schemaObject: any = {};
+  const schemaObject: Record<string, ZodSchema> = {};
 
   if (schemas.body) schemaObject.body = schemas.body;
   if (schemas.params) schemaObject.params = schemas.params;

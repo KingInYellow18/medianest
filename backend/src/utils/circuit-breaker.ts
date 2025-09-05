@@ -65,7 +65,7 @@ export class CircuitBreaker {
     }
   }
 
-  private onFailure(error: any): void {
+  private onFailure(error: unknown): void {
     this.failures++;
     this.lastFailureTime = new Date();
 
@@ -79,10 +79,13 @@ export class CircuitBreaker {
     }
   }
 
-  private isExpectedError(error: any): boolean {
+  private isExpectedError(error: unknown): boolean {
     if (!this.options.expectedErrors) return false;
 
-    const errorMessage = error?.message || error?.toString() || '';
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : String(error);
+    
     return this.options.expectedErrors.some((expected) =>
       errorMessage.toLowerCase().includes(expected.toLowerCase())
     );

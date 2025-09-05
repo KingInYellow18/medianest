@@ -1,7 +1,27 @@
 import '@testing-library/jest-dom'
+import React from 'react'
 import { beforeAll, afterEach, afterAll, vi } from 'vitest'
 import { cleanup } from '@testing-library/react'
 import { server } from './mocks/server'
+
+// Make React and hooks globally available for tests
+global.React = React
+const { useState, useEffect, useContext, useReducer, useCallback, useMemo, useRef, useImperativeHandle, useLayoutEffect, useDebugValue } = React
+
+// Export hooks globally for tests
+Object.assign(globalThis, {
+  React,
+  useState,
+  useEffect,
+  useContext,
+  useReducer,
+  useCallback,
+  useMemo,
+  useRef,
+  useImperativeHandle,
+  useLayoutEffect,
+  useDebugValue
+})
 
 // Setup MSW server
 beforeAll(() => {

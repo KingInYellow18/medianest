@@ -32,7 +32,7 @@ export function generateToken(
   const expiresIn = rememberMe ? REMEMBER_ME_TOKEN_EXPIRY : DEFAULT_TOKEN_EXPIRY;
 
   const tokenOptions: jwt.SignOptions = {
-    expiresIn: options?.expiresIn || expiresIn,
+    expiresIn: (options?.expiresIn as string | number | undefined) || expiresIn,
     issuer: options?.issuer || JWT_ISSUER,
     audience: options?.audience || JWT_AUDIENCE,
     algorithm: 'HS256',
@@ -77,8 +77,8 @@ export function generateRefreshToken(): string {
 
 export function getTokenExpiry(token: string): Date | null {
   try {
-    const decoded = jwt.decode(token) as any;
-    if (decoded && decoded.exp) {
+    const decoded = jwt.decode(token) as jwt.JwtPayload;
+    if (decoded && typeof decoded.exp === 'number') {
       return new Date(decoded.exp * 1000);
     }
     return null;

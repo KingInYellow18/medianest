@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+import { Logger } from 'winston';
 
 import { createChildLogger } from '../utils/logger';
 
@@ -8,7 +9,7 @@ declare global {
   namespace Express {
     interface Request {
       correlationId: string;
-      logger: any;
+      logger: Logger;
     }
   }
 }

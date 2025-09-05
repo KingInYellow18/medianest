@@ -4,6 +4,7 @@ import { authMiddleware } from '../middleware/auth';
 import { IntegrationService } from '../services/integration.service';
 import { asyncHandler } from '../utils/async-handler';
 import { logger } from '../utils/logger';
+import { asError, getErrorMessage } from '../utils/error-handling';
 
 const router = express.Router();
 
@@ -69,7 +70,7 @@ router.get(
         data: plexUser,
       });
     } catch (error) {
-      logger.error('Failed to get Plex user', { userId: user.id, error: error.message });
+      logger.error('Failed to get Plex user', { userId: user.id, error: getErrorMessage(error) });
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve Plex user data',
@@ -99,7 +100,7 @@ router.get(
         data: servers,
       });
     } catch (error) {
-      logger.error('Failed to get Plex servers', { userId: user.id, error: error.message });
+      logger.error('Failed to get Plex servers', { userId: user.id, error: getErrorMessage(error) });
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve Plex servers',
@@ -130,7 +131,7 @@ router.get(
         data: libraries,
       });
     } catch (error) {
-      logger.error('Failed to get Plex libraries', { userId: user.id, error: error.message });
+      logger.error('Failed to get Plex libraries', { userId: user.id, error: getErrorMessage(error) });
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve Plex libraries',
@@ -164,7 +165,7 @@ router.get(
         data: recentlyAdded,
       });
     } catch (error) {
-      logger.error('Failed to get recently added media', { userId: user.id, error: error.message });
+      logger.error('Failed to get recently added media', { userId: user.id, error: getErrorMessage(error) });
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve recently added media',
@@ -203,7 +204,7 @@ router.get(
         data: results,
       });
     } catch (error) {
-      logger.error('Failed to search Plex media', { userId: user.id, query, error: error.message });
+      logger.error('Failed to search Plex media', { userId: user.id, query, error: getErrorMessage(error) });
       res.status(500).json({
         success: false,
         message: 'Failed to search media',
@@ -233,7 +234,7 @@ router.get(
         data: status,
       });
     } catch (error) {
-      logger.error('Failed to get Overseerr status', { error: error.message });
+      logger.error('Failed to get Overseerr status', { error: getErrorMessage(error) });
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve Overseerr status',
@@ -267,7 +268,7 @@ router.get(
         data: requests,
       });
     } catch (error) {
-      logger.error('Failed to get Overseerr requests', { error: error.message });
+      logger.error('Failed to get Overseerr requests', { error: getErrorMessage(error) });
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve media requests',
@@ -307,7 +308,7 @@ router.post(
       logger.error('Failed to create Overseerr request', {
         userId: req.user!.id,
         body: req.body,
-        error: error.message,
+        error: getErrorMessage(error),
       });
       res.status(500).json({
         success: false,
@@ -350,7 +351,7 @@ router.get(
         data: results,
       });
     } catch (error) {
-      logger.error('Failed to search media in Overseerr', { query, error: error.message });
+      logger.error('Failed to search media in Overseerr', { query, error: getErrorMessage(error) });
       res.status(500).json({
         success: false,
         message: 'Failed to search media',

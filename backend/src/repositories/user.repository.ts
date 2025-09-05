@@ -85,14 +85,14 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
         const hashedPassword = await bcrypt.hash(data.password, 10);
 
         // Create password hash field for admin bootstrap
-        const userData: any = {
-          ...data,
+        const { password, ...userDataWithoutPassword } = data;
+        const userData = {
+          ...userDataWithoutPassword,
           passwordHash: hashedPassword,
         };
-        delete userData.password;
 
         return await this.prisma.user.create({
-          data: userData,
+          data: userData as Prisma.UserCreateInput,
         });
       }
 

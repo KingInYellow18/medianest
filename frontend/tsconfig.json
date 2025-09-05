@@ -3,9 +3,10 @@
   "compilerOptions": {
     "target": "ES2017",
     "lib": ["dom", "dom.iterable", "esnext"],
-    "jsx": "preserve",
+    "jsx": "preserve", 
     "module": "esnext",
     "incremental": true,
+    "skipLibCheck": true,
     "plugins": [
       {
         "name": "next"
@@ -27,11 +28,13 @@
     "allowJs": true,
     "noEmit": true,
     "isolatedModules": true,
-    "moduleDetection": "force",
-    "moduleResolution": "bundler"
+    "moduleDetection": "force", 
+    "moduleResolution": "bundler",
+    "types": ["node", "vitest/globals"]
   },
   "include": [
     "next-env.d.ts",
+    "types/vitest.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"

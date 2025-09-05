@@ -1,5 +1,6 @@
 import { logger } from '../../utils/logger';
 import { BaseApiClient, ApiClientConfig } from '../base-api-client';
+import { getErrorMessage } from '../../utils/error-handling';
 
 export interface PlexServer {
   name: string;
@@ -129,8 +130,8 @@ export class PlexApiClient extends BaseApiClient {
 
       return response.data.user;
     } catch (error) {
-      logger.error('Failed to get Plex user data', { error: error.message });
-      throw new Error(`Failed to get Plex user: ${error.message}`);
+      logger.error('Failed to get Plex user data', { error: getErrorMessage(error) });
+      throw new Error(`Failed to get Plex user: ${getErrorMessage(error)}`);
     }
   }
 
@@ -143,8 +144,8 @@ export class PlexApiClient extends BaseApiClient {
 
       return response.data.MediaContainer?.Server || [];
     } catch (error) {
-      logger.error('Failed to get Plex servers', { error: error.message });
-      throw new Error(`Failed to get Plex servers: ${error.message}`);
+      logger.error('Failed to get Plex servers', { error: getErrorMessage(error) });
+      throw new Error(`Failed to get Plex servers: ${getErrorMessage(error)}`);
     }
   }
 
@@ -162,8 +163,8 @@ export class PlexApiClient extends BaseApiClient {
 
       return response.data.MediaContainer?.Directory || [];
     } catch (error) {
-      logger.error('Failed to get Plex libraries', { error: error.message });
-      throw new Error(`Failed to get Plex libraries: ${error.message}`);
+      logger.error('Failed to get Plex libraries', { error: getErrorMessage(error) });
+      throw new Error(`Failed to get Plex libraries: ${getErrorMessage(error)}`);
     }
   }
 
@@ -182,9 +183,9 @@ export class PlexApiClient extends BaseApiClient {
     } catch (error) {
       logger.error('Failed to get library content', {
         libraryKey,
-        error: error.message,
+        error: getErrorMessage(error),
       });
-      throw new Error(`Failed to get library content: ${error.message}`);
+      throw new Error(`Failed to get library content: ${getErrorMessage(error)}`);
     }
   }
 
@@ -204,9 +205,9 @@ export class PlexApiClient extends BaseApiClient {
     } catch (error) {
       logger.error('Failed to search Plex media', {
         query,
-        error: error.message,
+        error: getErrorMessage(error),
       });
-      throw new Error(`Failed to search media: ${error.message}`);
+      throw new Error(`Failed to search media: ${getErrorMessage(error)}`);
     }
   }
 
@@ -226,13 +227,17 @@ export class PlexApiClient extends BaseApiClient {
         throw new Error(`Media item not found: ${ratingKey}`);
       }
 
-      return items[0];
+      const item = items[0];
+      if (!item) {
+        throw new Error(`Media item not found: ${ratingKey}`);
+      }
+      return item;
     } catch (error) {
       logger.error('Failed to get Plex media item', {
         ratingKey,
-        error: error.message,
+        error: getErrorMessage(error),
       });
-      throw new Error(`Failed to get media item: ${error.message}`);
+      throw new Error(`Failed to get media item: ${getErrorMessage(error)}`);
     }
   }
 
@@ -249,8 +254,8 @@ export class PlexApiClient extends BaseApiClient {
 
       return response.data.MediaContainer?.Metadata || [];
     } catch (error) {
-      logger.error('Failed to get recently added media', { error: error.message });
-      throw new Error(`Failed to get recently added media: ${error.message}`);
+      logger.error('Failed to get recently added media', { error: getErrorMessage(error) });
+      throw new Error(`Failed to get recently added media: ${getErrorMessage(error)}`);
     }
   }
 
@@ -270,7 +275,7 @@ export class PlexApiClient extends BaseApiClient {
     try {
       await this.getUser();
     } catch (error) {
-      throw new Error(`Plex health check failed: ${error.message}`);
+      throw new Error(`Plex health check failed: ${getErrorMessage(error)}`);
     }
   }
 

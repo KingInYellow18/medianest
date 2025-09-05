@@ -40,7 +40,7 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
     metrics.recordDuration(duration);
 
     return res.send(data);
-  } as any;
+  } as typeof originalSend;
 
   next();
 };

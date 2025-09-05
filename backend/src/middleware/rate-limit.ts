@@ -20,7 +20,7 @@ export function createRateLimit(options: RateLimitOptions) {
     keyGenerator = defaultKeyGenerator,
     skipSuccessfulRequests = false,
     skipFailedRequests = false,
-    message = 'Too many requests',
+    message: _message = 'Too many requests',
   } = options;
 
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -69,7 +69,7 @@ export function createRateLimit(options: RateLimitOptions) {
       // Store original end function to handle skip options
       if (skipSuccessfulRequests || skipFailedRequests) {
         const originalEnd = res.end;
-        res.end = function (...args: any[]) {
+        res.end = function (...args: unknown[]) {
           const shouldSkip =
             (skipSuccessfulRequests && res.statusCode < 400) ||
             (skipFailedRequests && res.statusCode >= 400);
@@ -81,8 +81,8 @@ export function createRateLimit(options: RateLimitOptions) {
               .catch((err) => logger.error('Failed to decrement rate limit counter', err));
           }
 
-          return originalEnd.apply(res, args);
-        } as any;
+          return originalEnd.apply(res, args as Parameters<typeof originalEnd>);
+        };
       }
 
       next();

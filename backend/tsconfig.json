@@ -19,15 +19,14 @@
       "@/jobs/*": ["jobs/*"],
       "@/repositories/*": ["repositories/*"],
       "@/types/*": ["types/*"],
-      "@/config/*": ["config/*"],
-      "@medianest/shared": ["../../shared/src"],
-      "@medianest/shared/*": ["../../shared/src/*"]
+      "@/config/*": ["config/*"]
     },
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "resolveJsonModule": true,
     "allowJs": false,
-    "noEmit": false
+    "noEmit": false,
+    "types": ["node", "vitest/globals"]
   },
   "include": [
     "src/**/*",

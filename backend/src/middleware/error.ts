@@ -3,12 +3,10 @@ import { ZodError } from 'zod';
 
 import {
   AppError,
-  ValidationError,
-  AuthenticationError,
-  AuthorizationError,
   RateLimitError,
 } from '../utils/errors';
 import { metrics } from '../utils/monitoring';
+import { logger } from '../utils/logger';
 
 // User-friendly error messages
 const USER_ERRORS: Record<string, string> = {
@@ -42,23 +40,31 @@ const USER_ERRORS: Record<string, string> = {
 
 // Sanitize request data before logging
 function sanitizeRequest(req: Request) {
-  const sanitized: any = {
+  const sanitized: {
+    method: string;
+    path: string;
+    query: unknown;
+    params: unknown;
+    userAgent?: string;
+    ip?: string;
+    correlationId?: string;
+    body?: unknown;
+  } = {
     method: req.method,
     path: req.path,
     query: req.query,
     params: req.params,
-    headers: { ...req.headers },
+    userAgent: req.get('User-Agent'),
+    ip: req.ip,
+    correlationId: req.correlationId,
     body: { ...req.body },
   };
 
-  // Remove sensitive headers
-  delete sanitized.headers.authorization;
-  delete sanitized.headers['x-plex-token'];
-  delete sanitized.headers.cookie;
+  // Headers are not included for security reasons
 
   // Remove sensitive body fields
-  if (sanitized.body?.password) {
-    sanitized.body.password = '[REDACTED]';
+  if (sanitized.body && typeof sanitized.body === 'object' && 'password' in sanitized.body) {
+    (sanitized.body as any).password = '[REDACTED]';
   }
 
   return sanitized;
@@ -101,7 +107,7 @@ export const errorHandler = (
   if (req.logger) {
     req.logger.error(logData);
   } else {
-    console.error(logData);
+    logger.error('Unhandled error', logData);
   }
 
   // Record metrics
