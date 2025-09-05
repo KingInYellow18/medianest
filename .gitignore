@@ -2,10 +2,19 @@
 node_modules/
 .pnp
 .pnp.js
+pnpm-lock.yaml
+
+# Package manager cache
+.npm/
+.yarn/
+.pnpm-store/
+.turbo/
 
 # Testing
 coverage/
 .nyc_output
+test-results/
+playwright-report/
 
 # Next.js
 .next/
@@ -13,29 +22,32 @@ out/
 build/
 dist/
 
-# Production
-build/
-dist/
-
 # Misc
 .DS_Store
-*.pem
+Thumbs.db
+*.tmp
+*.temp
+*.bak
+*.backup
 
-# Debug
+# Debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+debug.log
 
-# Local env files
+# Environment files
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env.*.local
 
-# Vercel
+# Cloud deployment
 .vercel
+.netlify
 
 # TypeScript
 *.tsbuildinfo
@@ -45,39 +57,54 @@ shared/src/**/*.js.map
 shared/src/**/*.d.ts
 shared/src/**/*.d.ts.map
 
-# IDE
+# IDE and editors
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-
-# OS
-.DS_Store
-Thumbs.db
+.history/
 
 # Docker
 docker-compose.override.yml
 
-# Uploads and downloads
+# Runtime directories
 uploads/
 youtube/
+downloads/
+cache/
+.cache/
 
-# Secrets
+# Secrets and credentials
 secrets/*
 !secrets/.gitkeep
+*.key
+*.crt
+*.csr
+*.pem
+certs/
 
-# Database
+# Database files
 postgres_data/
 redis_data/
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
 
 # Logs
 logs/
 *.log
 
-# Certificates
-*.pem
-*.key
-*.crt
-*.csr
-certs/
+# AI Development System Files (Claude, Swarm, etc.)
+.claude/
+.claude-flow/
+.swarm/
+.hive-mind/
+claude-flow.config.json
+memory/
+ruv-memory.db*
+*.memory.json
+.ai-session*
+.neural-cache/
