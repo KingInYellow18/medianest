@@ -20,9 +20,10 @@ describe('Authentication Middleware Comprehensive Tests', () => {
   let inactiveUser: any
 
   beforeEach(async () => {
-    // Setup Express app
+    // Setup Express app  
     app = express()
     app.use(express.json())
+    app.use(require('cookie-parser')())
 
     // Setup repositories
     prisma = getTestPrismaClient()
