@@ -1,67 +1,155 @@
-import { randomBytes } from 'crypto';
-
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 
-import { getJWTConfig } from '../config';
 import { AppError } from './errors';
+import { logger } from './logger';
 
 interface JWTPayload {
   userId: string;
   email: string;
   role: string;
   plexId?: string;
+  sessionId?: string;
+  deviceId?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  tokenVersion?: number;
 }
 
 interface JWTOptions {
   expiresIn?: string | number;
   issuer?: string;
   audience?: string;
+  sessionId?: string;
+  deviceId?: string;
+  ipAddress?: string;
+  userAgent?: string;
 }
 
-// Default expiry times
-const DEFAULT_TOKEN_EXPIRY = '24h';
-const REMEMBER_ME_TOKEN_EXPIRY = '30d';
+interface TokenRotationInfo {
+  newToken: string;
+  refreshToken: string;
+  expiresAt: Date;
+}
 
-/**
- * Get JWT configuration from centralized config
- */
-const getJWTSettings = () => {
-  const config = getJWTConfig();
-  return {
-    secret: config.secret,
-    issuer: config.issuer,
-    audience: config.audience,
-    defaultExpiry: config.expiresIn || DEFAULT_TOKEN_EXPIRY,
-  };
-};
+// Get JWT secret from environment with rotation support
+const JWT_SECRET =
+  process.env.JWT_SECRET || 'development-secret-change-in-production';
+const JWT_SECRET_ROTATION = process.env.JWT_SECRET_ROTATION;
+const JWT_ISSUER = process.env.JWT_ISSUER || 'medianest';
+const JWT_AUDIENCE = process.env.JWT_AUDIENCE || 'medianest-users';
+
+// Default expiry times
+const DEFAULT_TOKEN_EXPIRY = '15m'; // Shorter for security
+const REFRESH_TOKEN_EXPIRY = '7d';
+const REMEMBER_ME_TOKEN_EXPIRY = '30d';
+const TOKEN_ROTATION_THRESHOLD = 5 * 60 * 1000; // 5 minutes before expiry
 
 export function generateToken(
   payload: JWTPayload,
   rememberMe: boolean = false,
-  options?: JWTOptions,
+  options?: JWTOptions
 ): string {
-  const settings = getJWTSettings();
-  const expiresIn = rememberMe ? REMEMBER_ME_TOKEN_EXPIRY : settings.defaultExpiry;
+  const expiresIn = rememberMe
+    ? REMEMBER_ME_TOKEN_EXPIRY
+    : DEFAULT_TOKEN_EXPIRY;
+
+  // Enhanced payload with security metadata
+  const enhancedPayload: JWTPayload = {
+    ...payload,
+    sessionId: options?.sessionId || generateSecureId(),
+    deviceId: options?.deviceId,
+    ipAddress: options?.ipAddress,
+    userAgent: options?.userAgent ? hashUserAgent(options.userAgent) : undefined,
+    tokenVersion: 1,
+    iat: Math.floor(Date.now() / 1000),
+    jti: generateSecureId() // JWT ID for tracking
+  };
 
   const tokenOptions: jwt.SignOptions = {
     expiresIn: options?.expiresIn || expiresIn,
-    issuer: options?.issuer || settings.issuer,
-    audience: options?.audience || settings.audience,
+    issuer: options?.issuer || JWT_ISSUER,
+    audience: options?.audience || JWT_AUDIENCE,
     algorithm: 'HS256',
+    notBefore: 0, // Token valid immediately
   };
 
-  return jwt.sign(payload, settings.secret, tokenOptions);
+  const token = jwt.sign(enhancedPayload, JWT_SECRET, tokenOptions);
+  
+  // Log token generation for security audit
+  logger.info('JWT token generated', {
+    userId: payload.userId,
+    sessionId: enhancedPayload.sessionId,
+    expiresIn,
+    rememberMe,
+    ipAddress: options?.ipAddress
+  });
+
+  return token;
 }
 
-export function verifyToken(token: string, options?: Partial<JWTOptions>): JWTPayload {
+export function verifyToken(token: string, options?: { 
+  allowRotation?: boolean;
+  ipAddress?: string;
+  userAgent?: string;
+}): JWTPayload {
   try {
-    const settings = getJWTSettings();
+    let decoded: JWTPayload;
+    
+    try {
+      // Try with current secret first
+      decoded = jwt.verify(token, JWT_SECRET, {
+        issuer: JWT_ISSUER,
+        audience: JWT_AUDIENCE,
+        algorithms: ['HS256'],
+      }) as JWTPayload;
+    } catch (error) {
+      // If rotation secret exists, try with old secret
+      if (JWT_SECRET_ROTATION && error instanceof jwt.JsonWebTokenError) {
+        try {
+          decoded = jwt.verify(token, JWT_SECRET_ROTATION, {
+            issuer: JWT_ISSUER,
+            audience: JWT_AUDIENCE,
+            algorithms: ['HS256'],
+          }) as JWTPayload;
+          
+          logger.info('Token verified with rotation secret', {
+            userId: decoded.userId,
+            sessionId: decoded.sessionId
+          });
+        } catch {
+          throw error; // Throw original error if both secrets fail
+        }
+      } else {
+        throw error;
+      }
+    }
 
-    const decoded = jwt.verify(token, settings.secret, {
-      issuer: options?.issuer || settings.issuer,
-      audience: options?.audience || settings.audience,
-      algorithms: ['HS256'],
-    }) as JWTPayload;
+    // Additional security validations
+    if (options) {
+      // Verify IP address if provided
+      if (options.ipAddress && decoded.ipAddress && decoded.ipAddress !== options.ipAddress) {
+        logger.warn('Token IP address mismatch', {
+          userId: decoded.userId,
+          tokenIP: decoded.ipAddress,
+          requestIP: options.ipAddress,
+          sessionId: decoded.sessionId
+        });
+        throw new AppError('Token IP mismatch', 401, 'TOKEN_IP_MISMATCH');
+      }
+
+      // Verify user agent hash if provided
+      if (options.userAgent && decoded.userAgent) {
+        const hashedUA = hashUserAgent(options.userAgent);
+        if (hashedUA !== decoded.userAgent) {
+          logger.warn('Token user agent mismatch', {
+            userId: decoded.userId,
+            sessionId: decoded.sessionId
+          });
+          // Don't fail on user agent mismatch, just log for monitoring
+        }
+      }
+    }
 
     return decoded;
   } catch (error) {
@@ -71,10 +159,14 @@ export function verifyToken(token: string, options?: Partial<JWTOptions>): JWTPa
     if (error instanceof jwt.JsonWebTokenError) {
       throw new AppError('Invalid token', 401, 'INVALID_TOKEN');
     }
-    if (error instanceof jwt.NotBeforeError) {
-      throw new AppError('Token not active yet', 401, 'TOKEN_NOT_ACTIVE');
+    if (error instanceof AppError) {
+      throw error;
     }
-    throw new AppError('Token verification failed', 401, 'TOKEN_VERIFICATION_FAILED');
+    throw new AppError(
+      'Token verification failed',
+      401,
+      'TOKEN_VERIFICATION_FAILED'
+    );
   }
 }
 
@@ -86,9 +178,27 @@ export function decodeToken(token: string): JWTPayload | null {
   }
 }
 
-export function generateRefreshToken(): string {
-  // Generate a cryptographically secure random refresh token
-  return randomBytes(32).toString('hex');
+export function generateRefreshToken(payload?: { userId: string; sessionId: string }): string {
+  if (payload) {
+    // Generate structured refresh token with payload
+    const refreshPayload = {
+      userId: payload.userId,
+      sessionId: payload.sessionId,
+      type: 'refresh',
+      iat: Math.floor(Date.now() / 1000),
+      jti: generateSecureId()
+    };
+
+    return jwt.sign(refreshPayload, JWT_SECRET, {
+      expiresIn: REFRESH_TOKEN_EXPIRY,
+      issuer: JWT_ISSUER,
+      audience: JWT_AUDIENCE,
+      algorithm: 'HS256'
+    });
+  } else {
+    // Generate a random refresh token
+    return crypto.randomBytes(32).toString('hex');
+  }
 }
 
 export function getTokenExpiry(token: string): Date | null {
@@ -103,68 +213,140 @@ export function getTokenExpiry(token: string): Date | null {
   }
 }
 
+// Get token issued at time
+export function getTokenIssuedAt(token: string): Date | null {
+  try {
+    const decoded = jwt.decode(token) as any;
+    if (decoded && decoded.iat) {
+      return new Date(decoded.iat * 1000);
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export function isTokenExpired(token: string): boolean {
   const expiry = getTokenExpiry(token);
   if (!expiry) return true;
   return expiry < new Date();
 }
 
-/**
- * Extract token from Authorization header
- */
-export function extractTokenFromHeader(authHeader: string | undefined): string | null {
-  if (!authHeader) return null;
-
-  const parts = authHeader.split(' ');
-  if (parts.length !== 2 || parts[0] !== 'Bearer') return null;
-
-  return parts[1];
+// Check if token needs rotation
+export function shouldRotateToken(token: string): boolean {
+  const expiry = getTokenExpiry(token);
+  if (!expiry) return true;
+  
+  const timeUntilExpiry = expiry.getTime() - Date.now();
+  return timeUntilExpiry <= TOKEN_ROTATION_THRESHOLD;
 }
 
-/**
- * Create a JWT token payload from user data
- */
-export function createTokenPayload(user: {
-  id: string;
-  email: string;
-  role: string;
-  plexId?: string;
-}): JWTPayload {
+// Rotate token if needed
+export function rotateTokenIfNeeded(
+  token: string,
+  payload: JWTPayload,
+  options?: JWTOptions
+): TokenRotationInfo | null {
+  if (!shouldRotateToken(token)) {
+    return null;
+  }
+
+  const newToken = generateToken(payload, false, options);
+  const refreshToken = generateRefreshToken({ 
+    userId: payload.userId, 
+    sessionId: payload.sessionId || generateSecureId() 
+  });
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+  logger.info('Token rotated', {
+    userId: payload.userId,
+    sessionId: payload.sessionId,
+    oldTokenExpiry: getTokenExpiry(token),
+    newTokenExpiry: expiresAt
+  });
+
   return {
-    userId: user.id,
-    email: user.email,
-    role: user.role,
-    plexId: user.plexId,
+    newToken,
+    refreshToken,
+    expiresAt
   };
 }
 
-/**
- * Validate JWT configuration at startup
- */
-export function validateJWTConfig(): void {
-  const settings = getJWTSettings();
+// Verify refresh token
+export function verifyRefreshToken(refreshToken: string): { userId: string; sessionId: string } {
+  try {
+    const decoded = jwt.verify(refreshToken, JWT_SECRET, {
+      issuer: JWT_ISSUER,
+      audience: JWT_AUDIENCE,
+      algorithms: ['HS256']
+    }) as any;
 
-  if (!settings.secret || settings.secret.length < 32) {
-    throw new Error('JWT secret must be at least 32 characters long');
-  }
+    if (decoded.type !== 'refresh') {
+      throw new AppError('Invalid refresh token type', 401, 'INVALID_REFRESH_TOKEN');
+    }
 
-  if (!settings.issuer) {
-    throw new Error('JWT issuer is required');
-  }
-
-  if (!settings.audience) {
-    throw new Error('JWT audience is required');
+    return {
+      userId: decoded.userId,
+      sessionId: decoded.sessionId
+    };
+  } catch (error) {
+    if (error instanceof jwt.TokenExpiredError) {
+      throw new AppError('Refresh token has expired', 401, 'REFRESH_TOKEN_EXPIRED');
+    }
+    if (error instanceof jwt.JsonWebTokenError) {
+      throw new AppError('Invalid refresh token', 401, 'INVALID_REFRESH_TOKEN');
+    }
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError('Refresh token verification failed', 401, 'REFRESH_TOKEN_VERIFICATION_FAILED');
   }
 }
 
-/**
- * Get JWT configuration for external use (without secret)
- */
-export function getJWTInfo() {
-  const settings = getJWTSettings();
-  return {
-    issuer: settings.issuer,
-    audience: settings.audience,
-    defaultExpiry: settings.defaultExpiry,
-  };
+// Generate secure ID
+function generateSecureId(length: number = 16): string {
+  return crypto.randomBytes(length).toString('base64url');
+}
+
+// Hash user agent for privacy
+function hashUserAgent(userAgent: string): string {
+  return crypto.createHash('sha256').update(userAgent).digest('hex').substring(0, 16);
+}
+
+// Blacklist token (would typically be stored in Redis)
+const tokenBlacklist = new Set<string>();
+
+export function blacklistToken(tokenId: string): void {
+  tokenBlacklist.add(tokenId);
+  logger.info('Token blacklisted', { tokenId });
+}
+
+export function isTokenBlacklisted(tokenId: string): boolean {
+  return tokenBlacklist.has(tokenId);
+}
+
+// Get token metadata
+export function getTokenMetadata(token: string): {
+  userId?: string;
+  sessionId?: string;
+  deviceId?: string;
+  issuedAt?: Date;
+  expiresAt?: Date;
+  tokenId?: string;
+} {
+  try {
+    const decoded = jwt.decode(token) as any;
+    if (!decoded) return {};
+
+    return {
+      userId: decoded.userId,
+      sessionId: decoded.sessionId,
+      deviceId: decoded.deviceId,
+      issuedAt: decoded.iat ? new Date(decoded.iat * 1000) : undefined,
+      expiresAt: decoded.exp ? new Date(decoded.exp * 1000) : undefined,
+      tokenId: decoded.jti
+    };
+  } catch {
+    return {};
+  }
 }

@@ -1,8 +1,8 @@
 # MediaNest Authentication Architecture and Implementation Guide
 
-**Version:** 1.0  
+**Version:** 2.0  
 **Date:** January 2025  
-**Status:** Active  
+**Status:** Enhanced - System Architecture Review Complete  
 
 ## Table of Contents
 
@@ -15,9 +15,13 @@
 7. [Session Management](#7-session-management)
 8. [Role-Based Access Control](#8-role-based-access-control)
 9. [API Authentication](#9-api-authentication)
-10. [Code Examples](#10-code-examples)
-11. [Testing Strategy](#11-testing-strategy)
-12. [Troubleshooting](#12-troubleshooting)
+10. [Enhanced Security Features](#10-enhanced-security-features)
+11. [Scalability Architecture](#11-scalability-architecture)
+12. [Integration Patterns](#12-integration-patterns)
+13. [Code Examples](#13-code-examples)
+14. [Testing Strategy](#14-testing-strategy)
+15. [Migration Strategy](#15-migration-strategy)
+16. [Troubleshooting](#16-troubleshooting)
 
 ## 1. Overview
 
@@ -25,19 +29,26 @@ MediaNest's authentication system is designed to provide secure, seamless access
 
 ### Key Features
 
-- **Primary Authentication**: Plex OAuth PIN flow
-- **Admin Bootstrap**: Initial admin/admin login for system setup
-- **Session Management**: JWT tokens with Redis-backed sessions
-- **Remember Me**: 90-day persistent authentication
+- **Primary Authentication**: Plex OAuth PIN flow with enhanced security
+- **Admin Bootstrap**: Initial admin/admin login with forced password change
+- **Session Management**: JWT tokens with Redis-backed sessions and automatic cleanup
+- **Remember Me**: 90-day persistent authentication with rotation
 - **Role-Based Access**: Admin and User roles with granular permissions
-- **API Security**: JWT-protected endpoints with rate limiting
+- **API Security**: JWT-protected endpoints with sophisticated rate limiting
+- **Enhanced Security**: Password reset flows, email verification, 2FA readiness
+- **Multi-Provider Support**: Architecture ready for GitHub, Google OAuth
+- **Audit Logging**: Comprehensive authentication event tracking
+- **Scalability**: Distributed session management and horizontal scaling support
 
 ### Design Principles
 
-1. **Security First**: All sensitive data encrypted, tokens rotated regularly
-2. **User-Friendly**: Single sign-on with Plex credentials
-3. **Stateless API**: JWT tokens for horizontal scalability
-4. **Graceful Degradation**: System functions even if Plex auth is temporarily unavailable
+1. **Security First**: All sensitive data encrypted, tokens rotated regularly, zero-trust architecture
+2. **User-Friendly**: Single sign-on with Plex credentials, fallback authentication methods
+3. **Stateless API**: JWT tokens for horizontal scalability with Redis session coordination
+4. **Graceful Degradation**: System functions even if external auth providers are unavailable
+5. **Enterprise-Ready**: Audit trails, compliance features, and administrative controls
+6. **Future-Proof**: Modular architecture supporting additional authentication methods
+7. **Performance**: Optimized for 10-20 users with ability to scale to 100+
 
 ## 2. Architecture Design
 
@@ -1004,9 +1015,1011 @@ export function requireRole(role: string) {
 }
 ```
 
-## 10. Code Examples
+## 10. Enhanced Security Features
 
-### 10.1 Complete Sign-In Page
+### 10.1 Password Reset Architecture
+
+#### Secure Password Reset Flow
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant Backend
+    participant Email
+    participant Redis
+    participant Database
+
+    User->>Frontend: Request password reset
+    Frontend->>Backend: POST /api/auth/password-reset
+    Backend->>Database: Verify user exists
+    Database->>Backend: User confirmation
+    Backend->>Redis: Store reset token (15min TTL)
+    Backend->>Email: Send reset email with token
+    Email->>User: Reset email delivered
+    User->>Frontend: Click reset link
+    Frontend->>Backend: GET /api/auth/reset/{token}
+    Backend->>Redis: Validate token
+    Redis->>Backend: Token valid
+    Frontend->>User: Show password reset form
+    User->>Frontend: Submit new password
+    Frontend->>Backend: POST /api/auth/reset/{token}
+    Backend->>Database: Update password hash
+    Backend->>Redis: Invalidate all user sessions
+    Backend->>Frontend: Success response
+```
+
+#### Implementation
+```typescript
+// lib/auth/password-reset.ts
+import crypto from 'crypto';
+import { getRedisClient } from '../redis/redis-client';
+import { prisma } from '../db/prisma';
+import { sendPasswordResetEmail } from '../email/templates';
+
+const RESET_TOKEN_TTL = 15 * 60; // 15 minutes
+const MAX_RESET_ATTEMPTS = 3;
+
+export class PasswordResetService {
+  private redis = getRedisClient();
+
+  async requestPasswordReset(email: string): Promise<boolean> {
+    // Check rate limiting
+    const attemptKey = `pwd_reset_attempts:${email}`;
+    const attempts = await this.redis.get(attemptKey);
+    
+    if (attempts && parseInt(attempts) >= MAX_RESET_ATTEMPTS) {
+      throw new Error('Too many reset attempts. Please try again later.');
+    }
+
+    // Verify user exists
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      // Don't reveal if email exists - always return success
+      return true;
+    }
+
+    // Generate secure token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+    // Store token in Redis
+    const tokenKey = `pwd_reset_token:${tokenHash}`;
+    await this.redis.setex(tokenKey, RESET_TOKEN_TTL, JSON.stringify({
+      userId: user.id,
+      email: user.email,
+      createdAt: new Date().toISOString()
+    }));
+
+    // Track attempt
+    await this.redis.incr(attemptKey);
+    await this.redis.expire(attemptKey, 3600); // 1 hour window
+
+    // Send email
+    await sendPasswordResetEmail(user.email, resetToken);
+
+    return true;
+  }
+
+  async validateResetToken(token: string): Promise<{ userId: string; email: string } | null> {
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const tokenKey = `pwd_reset_token:${tokenHash}`;
+
+    const tokenData = await this.redis.get(tokenKey);
+    if (!tokenData) {
+      return null;
+    }
+
+    return JSON.parse(tokenData);
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<boolean> {
+    const tokenData = await this.validateResetToken(token);
+    if (!tokenData) {
+      throw new Error('Invalid or expired reset token');
+    }
+
+    // Hash new password
+    const bcrypt = await import('bcryptjs');
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+    // Update password in database
+    await prisma.user.update({
+      where: { id: tokenData.userId },
+      data: { 
+        password: hashedPassword,
+        // Force password change flag off
+        requiresPasswordChange: false,
+        // Update password changed timestamp
+        passwordChangedAt: new Date()
+      }
+    });
+
+    // Invalidate all user sessions
+    await this.invalidateUserSessions(tokenData.userId);
+
+    // Remove reset token
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    await this.redis.del(`pwd_reset_token:${tokenHash}`);
+
+    return true;
+  }
+
+  private async invalidateUserSessions(userId: string): Promise<void> {
+    // Get all user sessions from Redis
+    const sessionKeys = await this.redis.keys(`session:*`);
+    
+    for (const sessionKey of sessionKeys) {
+      const sessionData = await this.redis.get(sessionKey);
+      if (sessionData) {
+        const session = JSON.parse(sessionData);
+        if (session.user?.id === userId) {
+          await this.redis.del(sessionKey);
+        }
+      }
+    }
+  }
+}
+```
+
+### 10.2 Email Verification System
+
+#### Email Verification Architecture
+```typescript
+// lib/auth/email-verification.ts
+export class EmailVerificationService {
+  private redis = getRedisClient();
+
+  async sendVerificationEmail(userId: string, email: string): Promise<void> {
+    // Generate verification token
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(verificationToken).digest('hex');
+
+    // Store token with 24-hour expiry
+    const tokenKey = `email_verify:${tokenHash}`;
+    await this.redis.setex(tokenKey, 24 * 60 * 60, JSON.stringify({
+      userId,
+      email,
+      createdAt: new Date().toISOString()
+    }));
+
+    // Send verification email
+    await sendEmailVerificationEmail(email, verificationToken);
+  }
+
+  async verifyEmail(token: string): Promise<boolean> {
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const tokenKey = `email_verify:${tokenHash}`;
+
+    const tokenData = await this.redis.get(tokenKey);
+    if (!tokenData) {
+      return false;
+    }
+
+    const { userId, email } = JSON.parse(tokenData);
+
+    // Update user as verified
+    await prisma.user.update({
+      where: { id: userId },
+      data: { 
+        emailVerified: new Date(),
+        email: email
+      }
+    });
+
+    // Remove verification token
+    await this.redis.del(tokenKey);
+
+    return true;
+  }
+}
+```
+
+### 10.3 Multi-Factor Authentication (2FA) Architecture
+
+#### 2FA Implementation Framework
+```typescript
+// lib/auth/two-factor.ts
+import { authenticator } from 'otplib';
+import QRCode from 'qrcode';
+
+export class TwoFactorService {
+  async generateTwoFactorSecret(userId: string): Promise<{
+    secret: string;
+    qrCodeUrl: string;
+    backupCodes: string[];
+  }> {
+    const secret = authenticator.generateSecret();
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    
+    if (!user) throw new Error('User not found');
+
+    // Generate QR code
+    const otpUrl = authenticator.keyuri(
+      user.email,
+      'MediaNest',
+      secret
+    );
+    const qrCodeUrl = await QRCode.toDataURL(otpUrl);
+
+    // Generate backup codes
+    const backupCodes = Array.from({ length: 10 }, () =>
+      crypto.randomBytes(4).toString('hex').toUpperCase()
+    );
+
+    // Store encrypted secret and backup codes
+    const encryptedSecret = await this.encryptTwoFactorData({
+      secret,
+      backupCodes
+    });
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        twoFactorSecret: encryptedSecret,
+        twoFactorEnabled: false // Not enabled until verified
+      }
+    });
+
+    return { secret, qrCodeUrl, backupCodes };
+  }
+
+  async enableTwoFactor(userId: string, token: string): Promise<boolean> {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user?.twoFactorSecret) return false;
+
+    const decryptedData = await this.decryptTwoFactorData(user.twoFactorSecret);
+    const isValid = authenticator.verify({ token, secret: decryptedData.secret });
+
+    if (isValid) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { twoFactorEnabled: true }
+      });
+      return true;
+    }
+
+    return false;
+  }
+
+  async verifyTwoFactor(userId: string, token: string): Promise<boolean> {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user?.twoFactorSecret || !user.twoFactorEnabled) return false;
+
+    const decryptedData = await this.decryptTwoFactorData(user.twoFactorSecret);
+
+    // Check TOTP token
+    if (authenticator.verify({ token, secret: decryptedData.secret })) {
+      return true;
+    }
+
+    // Check backup codes
+    const backupCodeIndex = decryptedData.backupCodes.indexOf(token.toUpperCase());
+    if (backupCodeIndex !== -1) {
+      // Remove used backup code
+      decryptedData.backupCodes.splice(backupCodeIndex, 1);
+      
+      const encryptedData = await this.encryptTwoFactorData(decryptedData);
+      await prisma.user.update({
+        where: { id: userId },
+        data: { twoFactorSecret: encryptedData }
+      });
+      
+      return true;
+    }
+
+    return false;
+  }
+
+  private async encryptTwoFactorData(data: any): Promise<string> {
+    // Implement AES-256-GCM encryption
+    const algorithm = 'aes-256-gcm';
+    const key = Buffer.from(process.env.TWO_FACTOR_ENCRYPTION_KEY!, 'hex');
+    const iv = crypto.randomBytes(16);
+    
+    const cipher = crypto.createCipheriv(algorithm, key, iv);
+    let encrypted = cipher.update(JSON.stringify(data), 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    
+    const authTag = cipher.getAuthTag();
+    
+    return JSON.stringify({
+      encrypted,
+      iv: iv.toString('hex'),
+      authTag: authTag.toString('hex')
+    });
+  }
+
+  private async decryptTwoFactorData(encryptedData: string): Promise<any> {
+    const { encrypted, iv, authTag } = JSON.parse(encryptedData);
+    const algorithm = 'aes-256-gcm';
+    const key = Buffer.from(process.env.TWO_FACTOR_ENCRYPTION_KEY!, 'hex');
+    
+    const decipher = crypto.createDecipheriv(algorithm, key, Buffer.from(iv, 'hex'));
+    decipher.setAuthTag(Buffer.from(authTag, 'hex'));
+    
+    let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    
+    return JSON.parse(decrypted);
+  }
+}
+```
+
+## 11. Scalability Architecture
+
+### 11.1 Distributed Session Management
+
+#### Session Clustering Strategy
+```typescript
+// lib/auth/distributed-session.ts
+export class DistributedSessionManager {
+  private redis = getRedisClient();
+
+  async storeSession(sessionToken: string, sessionData: SessionData, nodeId: string): Promise<void> {
+    const pipeline = this.redis.pipeline();
+    
+    // Store session data
+    const sessionKey = `session:${sessionToken}`;
+    pipeline.setex(sessionKey, SESSION_TTL, JSON.stringify({
+      ...sessionData,
+      nodeId,
+      lastAccessed: new Date().toISOString()
+    }));
+
+    // Update node session count
+    const nodeKey = `node:${nodeId}:sessions`;
+    pipeline.sadd(nodeKey, sessionToken);
+    pipeline.expire(nodeKey, SESSION_TTL);
+
+    // Update global session registry
+    pipeline.zadd('global:active_sessions', Date.now(), sessionToken);
+
+    await pipeline.exec();
+  }
+
+  async getSessionWithLoadBalancing(sessionToken: string): Promise<SessionData | null> {
+    const sessionData = await this.redis.get(`session:${sessionToken}`);
+    if (!sessionData) return null;
+
+    const parsed = JSON.parse(sessionData);
+    
+    // Update access patterns for load balancing
+    await this.redis.zadd('session:access_patterns', Date.now(), sessionToken);
+    
+    return parsed;
+  }
+
+  async redistributeSessions(): Promise<void> {
+    // Get all active nodes
+    const nodes = await this.redis.keys('node:*:sessions');
+    const sessionCounts: Record<string, number> = {};
+
+    // Count sessions per node
+    for (const nodeKey of nodes) {
+      const nodeId = nodeKey.split(':')[1];
+      const sessionCount = await this.redis.scard(nodeKey);
+      sessionCounts[nodeId] = sessionCount;
+    }
+
+    // Identify overloaded nodes and redistribute
+    const avgSessions = Object.values(sessionCounts).reduce((a, b) => a + b, 0) / nodes.length;
+    
+    for (const [nodeId, count] of Object.entries(sessionCounts)) {
+      if (count > avgSessions * 1.5) {
+        await this.redistributeNodeSessions(nodeId, count - Math.floor(avgSessions));
+      }
+    }
+  }
+
+  private async redistributeNodeSessions(overloadedNodeId: string, sessionsToMove: number): Promise<void> {
+    // Implementation for moving sessions to less loaded nodes
+    const sessionsToRedistribute = await this.redis.srandmember(
+      `node:${overloadedNodeId}:sessions`,
+      sessionsToMove
+    );
+
+    // Find least loaded node
+    const targetNode = await this.findLeastLoadedNode();
+    
+    for (const sessionToken of sessionsToRedistribute) {
+      await this.moveSession(sessionToken, overloadedNodeId, targetNode);
+    }
+  }
+}
+```
+
+### 11.2 Horizontal Scaling Architecture
+
+#### API Gateway Pattern
+```typescript
+// lib/gateway/auth-gateway.ts
+export class AuthenticationGateway {
+  private nodes: Array<{ id: string; url: string; weight: number }> = [];
+  private healthCheck = new Map<string, boolean>();
+
+  async routeAuthRequest(request: AuthRequest): Promise<AuthResponse> {
+    // Select optimal node based on load and health
+    const selectedNode = await this.selectOptimalNode(request.type);
+    
+    if (!selectedNode) {
+      throw new Error('No healthy authentication nodes available');
+    }
+
+    try {
+      // Forward request to selected node
+      const response = await this.forwardRequest(selectedNode, request);
+      
+      // Update node health status
+      this.healthCheck.set(selectedNode.id, true);
+      
+      return response;
+    } catch (error) {
+      // Mark node as unhealthy and retry
+      this.healthCheck.set(selectedNode.id, false);
+      
+      const fallbackNode = await this.selectFallbackNode(selectedNode.id);
+      if (fallbackNode) {
+        return this.forwardRequest(fallbackNode, request);
+      }
+      
+      throw error;
+    }
+  }
+
+  private async selectOptimalNode(requestType: string): Promise<AuthNode | null> {
+    // Implement weighted round-robin with health checks
+    const healthyNodes = this.nodes.filter(node => 
+      this.healthCheck.get(node.id) !== false
+    );
+
+    if (healthyNodes.length === 0) return null;
+
+    // For auth-heavy operations, prefer nodes with auth specialization
+    if (requestType === 'plex-oauth') {
+      const plexSpecializedNodes = healthyNodes.filter(node => 
+        node.capabilities?.includes('plex-oauth')
+      );
+      if (plexSpecializedNodes.length > 0) {
+        return this.weightedSelection(plexSpecializedNodes);
+      }
+    }
+
+    return this.weightedSelection(healthyNodes);
+  }
+
+  async performHealthChecks(): Promise<void> {
+    const healthPromises = this.nodes.map(async node => {
+      try {
+        const response = await fetch(`${node.url}/health`, { 
+          timeout: 5000 
+        });
+        this.healthCheck.set(node.id, response.ok);
+      } catch {
+        this.healthCheck.set(node.id, false);
+      }
+    });
+
+    await Promise.allSettled(healthPromises);
+  }
+}
+```
+
+## 12. Integration Patterns
+
+### 12.1 Multi-Provider OAuth Architecture
+
+#### OAuth Provider Registry
+```typescript
+// lib/auth/oauth-registry.ts
+export class OAuthProviderRegistry {
+  private providers = new Map<string, OAuthProviderConfig>();
+
+  registerProvider(name: string, config: OAuthProviderConfig): void {
+    this.providers.set(name, {
+      ...config,
+      enabled: config.enabled ?? true,
+      priority: config.priority ?? 0
+    });
+  }
+
+  async authenticateWithProvider(
+    provider: string, 
+    credentials: any
+  ): Promise<AuthResult> {
+    const providerConfig = this.providers.get(provider);
+    if (!providerConfig || !providerConfig.enabled) {
+      throw new Error(`Provider ${provider} not available`);
+    }
+
+    const authHandler = this.getProviderHandler(provider);
+    return authHandler.authenticate(credentials);
+  }
+
+  getAvailableProviders(): Array<{ name: string; displayName: string; icon: string }> {
+    return Array.from(this.providers.entries())
+      .filter(([, config]) => config.enabled)
+      .sort(([, a], [, b]) => b.priority - a.priority)
+      .map(([name, config]) => ({
+        name,
+        displayName: config.displayName,
+        icon: config.icon
+      }));
+  }
+
+  // Provider-specific handlers
+  private getProviderHandler(provider: string): AuthProviderHandler {
+    switch (provider) {
+      case 'plex':
+        return new PlexOAuthHandler();
+      case 'github':
+        return new GitHubOAuthHandler();
+      case 'google':
+        return new GoogleOAuthHandler();
+      default:
+        throw new Error(`Unsupported provider: ${provider}`);
+    }
+  }
+}
+
+// Initialize providers
+const oauthRegistry = new OAuthProviderRegistry();
+
+oauthRegistry.registerProvider('plex', {
+  displayName: 'Plex',
+  icon: 'plex-icon',
+  priority: 100,
+  enabled: true,
+  clientId: process.env.AUTH_PLEX_CLIENT_ID!,
+  clientSecret: process.env.AUTH_PLEX_CLIENT_SECRET!
+});
+
+oauthRegistry.registerProvider('github', {
+  displayName: 'GitHub',
+  icon: 'github-icon',
+  priority: 50,
+  enabled: !!process.env.AUTH_GITHUB_CLIENT_ID,
+  clientId: process.env.AUTH_GITHUB_CLIENT_ID!,
+  clientSecret: process.env.AUTH_GITHUB_CLIENT_SECRET!
+});
+```
+
+### 12.2 Audit Trail Implementation
+
+#### Comprehensive Audit Logging
+```typescript
+// lib/audit/audit-logger.ts
+export class AuditLogger {
+  private redis = getRedisClient();
+
+  async logAuthEvent(event: AuthAuditEvent): Promise<void> {
+    const auditEntry: AuditEntry = {
+      id: crypto.randomUUID(),
+      timestamp: new Date().toISOString(),
+      eventType: event.type,
+      userId: event.userId,
+      sessionId: event.sessionId,
+      ipAddress: event.ipAddress,
+      userAgent: event.userAgent,
+      details: event.details,
+      success: event.success,
+      risk_score: await this.calculateRiskScore(event)
+    };
+
+    // Store in both Redis (for recent events) and database (for long-term storage)
+    await Promise.all([
+      this.storeInRedis(auditEntry),
+      this.storeInDatabase(auditEntry)
+    ]);
+
+    // Check for suspicious patterns
+    await this.checkSuspiciousActivity(auditEntry);
+  }
+
+  private async calculateRiskScore(event: AuthAuditEvent): Promise<number> {
+    let riskScore = 0;
+
+    // Failed authentication attempts
+    if (!event.success) {
+      riskScore += 10;
+    }
+
+    // Multiple IPs for same user
+    const userIPs = await this.redis.smembers(`user_ips:${event.userId}`);
+    if (userIPs.length > 3) {
+      riskScore += 20;
+    }
+
+    // Unusual time patterns
+    const hour = new Date().getHours();
+    if (hour < 6 || hour > 23) {
+      riskScore += 5;
+    }
+
+    // Geographic anomalies (if IP geolocation available)
+    const previousLocation = await this.redis.get(`user_location:${event.userId}`);
+    if (previousLocation && event.location && 
+        this.calculateDistance(previousLocation, event.location) > 1000) {
+      riskScore += 15;
+    }
+
+    return Math.min(riskScore, 100);
+  }
+
+  async getAuditTrail(
+    userId: string, 
+    options: { limit?: number; startDate?: Date; endDate?: Date }
+  ): Promise<AuditEntry[]> {
+    return prisma.auditEntry.findMany({
+      where: {
+        userId,
+        timestamp: {
+          gte: options.startDate,
+          lte: options.endDate
+        }
+      },
+      orderBy: { timestamp: 'desc' },
+      take: options.limit ?? 50
+    });
+  }
+
+  async detectAnomalies(): Promise<SecurityAnomaly[]> {
+    // Implement ML-based anomaly detection
+    const anomalies: SecurityAnomaly[] = [];
+
+    // Check for brute force patterns
+    const recentFailures = await this.redis.hgetall('auth_failures');
+    for (const [ip, failures] of Object.entries(recentFailures)) {
+      if (parseInt(failures) > 10) {
+        anomalies.push({
+          type: 'brute_force',
+          severity: 'high',
+          details: { ip, failures: parseInt(failures) },
+          timestamp: new Date()
+        });
+      }
+    }
+
+    return anomalies;
+  }
+}
+```
+
+## 14. Testing Strategy
+
+### 14.1 Authentication Testing Framework
+
+#### Test Categories
+1. **Unit Tests**: Authentication service logic, token generation/validation
+2. **Integration Tests**: OAuth flows, session management, database operations
+3. **Security Tests**: Penetration testing, vulnerability scanning
+4. **Performance Tests**: Session load testing, concurrent authentication
+5. **E2E Tests**: Complete user authentication journeys
+
+#### Sample Test Implementation
+```typescript
+// tests/auth/plex-oauth.test.ts
+describe('Plex OAuth Authentication', () => {
+  it('should complete PIN-based OAuth flow', async () => {
+    const authService = new PlexOAuthService();
+    
+    // Generate PIN
+    const pin = await authService.generatePin();
+    expect(pin.code).toHaveLength(4);
+    
+    // Simulate PIN verification
+    const mockPlexResponse = {
+      authToken: 'test-token',
+      user: { id: '123', email: 'test@example.com' }
+    };
+    
+    jest.spyOn(authService, 'verifyPin')
+      .mockResolvedValue(mockPlexResponse);
+    
+    // Complete authentication
+    const result = await authService.authenticate(pin.id);
+    expect(result.user.email).toBe('test@example.com');
+  });
+});
+```
+
+## 15. Migration Strategy
+
+### 15.1 Current State Assessment
+
+Based on analysis of the existing codebase, the current implementation includes:
+
+**✅ Already Implemented:**
+- NextAuth.js 4.x integration
+- Plex OAuth provider with PIN flow
+- Redis session storage
+- Admin bootstrap functionality
+- Basic role-based access control
+- JWT token management
+
+**🔧 Needs Enhancement:**
+- Password reset functionality
+- Email verification system
+- 2FA/MFA implementation
+- Multi-provider OAuth support
+- Audit logging system
+- Enhanced rate limiting
+
+### 15.2 Migration Phases
+
+#### Phase 1: Core Security Enhancements (Week 1-2)
+```typescript
+// Migration checklist
+const phase1Tasks = [
+  'Implement password reset service',
+  'Add email verification system',
+  'Enhance rate limiting with Redis Lua scripts',
+  'Implement comprehensive audit logging',
+  'Add session security improvements'
+];
+```
+
+#### Phase 2: Multi-Factor Authentication (Week 3-4)
+```typescript
+const phase2Tasks = [
+  'Implement TOTP-based 2FA',
+  'Add backup codes system',
+  'Create 2FA enrollment UI',
+  'Add 2FA verification middleware',
+  'Implement 2FA recovery flows'
+];
+```
+
+#### Phase 3: Scalability & Multi-Provider (Week 5-6)
+```typescript
+const phase3Tasks = [
+  'Add GitHub OAuth provider',
+  'Implement distributed session management',
+  'Add API gateway patterns',
+  'Implement horizontal scaling support',
+  'Add performance monitoring'
+];
+```
+
+### 15.3 Database Schema Updates
+
+#### Required Schema Additions
+```sql
+-- Add new columns to existing users table
+ALTER TABLE users ADD COLUMN IF NOT EXISTS password VARCHAR(255);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified TIMESTAMP;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_secret TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_enabled BOOLEAN DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS password_changed_at TIMESTAMP;
+
+-- Create audit log table
+CREATE TABLE IF NOT EXISTS audit_entries (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id),
+  event_type VARCHAR(100) NOT NULL,
+  ip_address INET,
+  user_agent TEXT,
+  success BOOLEAN NOT NULL,
+  risk_score INTEGER DEFAULT 0,
+  details JSONB,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create session management table (backup to Redis)
+CREATE TABLE IF NOT EXISTS user_sessions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id),
+  session_token VARCHAR(255) UNIQUE NOT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  ip_address INET,
+  user_agent TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  last_accessed TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for performance
+CREATE INDEX idx_audit_entries_user_id ON audit_entries(user_id);
+CREATE INDEX idx_audit_entries_created_at ON audit_entries(created_at);
+CREATE INDEX idx_user_sessions_user_id ON user_sessions(user_id);
+CREATE INDEX idx_user_sessions_expires_at ON user_sessions(expires_at);
+```
+
+### 15.4 Environment Variables Update
+
+#### New Environment Variables
+```bash
+# Enhanced security
+TWO_FACTOR_ENCRYPTION_KEY=32-byte-hex-key
+PASSWORD_RESET_TOKEN_TTL=900  # 15 minutes
+EMAIL_VERIFICATION_TTL=86400  # 24 hours
+
+# Multi-provider OAuth
+AUTH_GITHUB_CLIENT_ID=github-client-id
+AUTH_GITHUB_CLIENT_SECRET=github-client-secret
+AUTH_GOOGLE_CLIENT_ID=google-client-id
+AUTH_GOOGLE_CLIENT_SECRET=google-client-secret
+
+# Email service
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USER=noreply@medianest.com
+SMTP_PASS=smtp-password
+EMAIL_FROM=noreply@medianest.com
+
+# Audit and monitoring
+AUDIT_LOG_RETENTION_DAYS=365
+SECURITY_ALERT_EMAIL=admin@medianest.com
+```
+
+## 16. Troubleshooting
+
+### 16.1 Common Issues and Solutions
+
+#### Authentication Flow Issues
+```typescript
+// Debug authentication issues
+export class AuthDebugger {
+  async diagnoseAuthIssue(sessionToken: string): Promise<DiagnosticReport> {
+    const report: DiagnosticReport = {
+      timestamp: new Date(),
+      sessionToken: sessionToken?.substring(0, 8) + '...',
+      issues: []
+    };
+
+    // Check session existence
+    const sessionExists = await this.redis.exists(`session:${sessionToken}`);
+    if (!sessionExists) {
+      report.issues.push({
+        type: 'session_not_found',
+        severity: 'high',
+        description: 'Session does not exist in Redis'
+      });
+    }
+
+    // Check JWT validity
+    try {
+      const decoded = jwt.verify(sessionToken, process.env.JWT_SECRET!);
+      report.jwtPayload = decoded;
+    } catch (error) {
+      report.issues.push({
+        type: 'invalid_jwt',
+        severity: 'high',
+        description: `JWT validation failed: ${error.message}`
+      });
+    }
+
+    // Check user existence
+    if (report.jwtPayload?.sub) {
+      const user = await prisma.user.findUnique({
+        where: { id: report.jwtPayload.sub }
+      });
+      
+      if (!user) {
+        report.issues.push({
+          type: 'user_not_found',
+          severity: 'high',
+          description: 'User referenced in JWT does not exist'
+        });
+      }
+    }
+
+    return report;
+  }
+}
+```
+
+#### Session Management Issues
+```typescript
+// Session cleanup and diagnostics
+export class SessionDiagnostics {
+  async cleanupOrphanedSessions(): Promise<number> {
+    const redis = getRedisClient();
+    let cleaned = 0;
+
+    // Find all session keys
+    const sessionKeys = await redis.keys('session:*');
+    
+    for (const sessionKey of sessionKeys) {
+      const sessionData = await redis.get(sessionKey);
+      
+      if (!sessionData) continue;
+
+      try {
+        const session = JSON.parse(sessionData);
+        
+        // Check if user still exists
+        const user = await prisma.user.findUnique({
+          where: { id: session.user?.id }
+        });
+
+        if (!user) {
+          await redis.del(sessionKey);
+          cleaned++;
+        }
+      } catch (error) {
+        // Invalid session data, remove it
+        await redis.del(sessionKey);
+        cleaned++;
+      }
+    }
+
+    return cleaned;
+  }
+
+  async getSessionStats(): Promise<SessionStats> {
+    const redis = getRedisClient();
+    
+    const totalSessions = await redis.dbsize();
+    const activeSessions = await redis.zcard('global:active_sessions');
+    const nodeSessionCounts = await this.getNodeSessionCounts();
+    
+    return {
+      totalSessions,
+      activeSessions,
+      nodeDistribution: nodeSessionCounts,
+      memoryUsage: await this.getRedisMemoryUsage()
+    };
+  }
+}
+```
+
+#### Performance Troubleshooting
+```typescript
+// Performance monitoring and optimization
+export class AuthPerformanceMonitor {
+  async analyzeAuthPerformance(): Promise<PerformanceReport> {
+    const redis = getRedisClient();
+    
+    // Measure Redis response times
+    const redisLatency = await this.measureRedisLatency();
+    
+    // Check database connection pool
+    const dbStats = await this.getDatabaseStats();
+    
+    // Analyze session access patterns
+    const sessionPatterns = await this.analyzeSessionPatterns();
+    
+    return {
+      redisLatency,
+      databaseStats: dbStats,
+      sessionPatterns,
+      recommendations: this.generateRecommendations({
+        redisLatency,
+        dbStats,
+        sessionPatterns
+      })
+    };
+  }
+
+  private async measureRedisLatency(): Promise<number> {
+    const redis = getRedisClient();
+    const start = Date.now();
+    
+    await redis.ping();
+    
+    return Date.now() - start;
+  }
+
+  private generateRecommendations(stats: any): string[] {
+    const recommendations: string[] = [];
+    
+    if (stats.redisLatency > 10) {
+      recommendations.push('Consider Redis optimization or scaling');
+    }
+    
+    if (stats.dbStats.activeConnections > 15) {
+      recommendations.push('Consider increasing database connection pool');
+    }
+    
+    if (stats.sessionPatterns.averageSessionDuration < 300) {
+      recommendations.push('Consider adjusting session timeout settings');
+    }
+    
+    return recommendations;
+  }
+}
+```
+
+## 13. Code Examples
 
 ```typescript
 // app/auth/signin/page.tsx
