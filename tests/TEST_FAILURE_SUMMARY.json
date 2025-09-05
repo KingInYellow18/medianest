@@ -1,0 +1,180 @@
+{
+  "analysis_date": "2025-09-05T18:40:00.000Z",
+  "task_id": "task-1757097591021-malvqa9ap",
+  "project": "medianest",
+  "test_execution_status": "CRITICAL_FAILURE",
+  
+  "summary": {
+    "total_test_files": 45,
+    "failing_test_files": 41,
+    "passing_test_files": 4,
+    "failure_rate": "91.1%",
+    "backend_failure_rate": "100%",
+    "frontend_failure_rate": "0%"
+  },
+  
+  "critical_issues": [
+    {
+      "category": "Configuration",
+      "severity": "CRITICAL",
+      "impact": "BLOCKS_ALL_BACKEND_TESTS",
+      "description": "Vitest path alias resolution failing for @/ imports",
+      "affected_files": 41,
+      "priority": "P0",
+      "estimated_fix_time": "2-4 hours"
+    },
+    {
+      "category": "Infrastructure", 
+      "severity": "HIGH",
+      "impact": "REDIS_DEPENDENT_TESTS",
+      "description": "Redis server not running on test port 6380",
+      "affected_files": 14,
+      "priority": "P1",
+      "estimated_fix_time": "1-2 hours"
+    },
+    {
+      "category": "Database",
+      "severity": "HIGH", 
+      "impact": "REPOSITORY_SERVICE_TESTS",
+      "description": "Database connection and Prisma setup for tests missing",
+      "affected_files": 15,
+      "priority": "P1",
+      "estimated_fix_time": "2-4 hours"
+    }
+  ],
+  
+  "failure_categories": {
+    "path_resolution": {
+      "count": 41,
+      "severity": "CRITICAL",
+      "description": "Cannot resolve @/ aliased imports",
+      "example_error": "Failed to load url @/middleware/rate-limit",
+      "fix_priority": "P0"
+    },
+    "redis_timeouts": {
+      "count": 14,
+      "severity": "HIGH",
+      "description": "Redis connection timeouts in rate limiting tests",
+      "example_error": "Test timed out in 30000ms",
+      "fix_priority": "P1"
+    },
+    "database_connection": {
+      "count": 15,
+      "severity": "HIGH", 
+      "description": "Database setup incomplete for repository tests",
+      "example_error": "Prisma client not configured",
+      "fix_priority": "P1"
+    },
+    "environment_setup": {
+      "count": 45,
+      "severity": "MEDIUM",
+      "description": "Test environment variables and configuration missing",
+      "fix_priority": "P2"
+    }
+  },
+  
+  "backend_test_breakdown": {
+    "total_files": 41,
+    "integration_tests": 33,
+    "unit_tests": 8,
+    "categories": {
+      "api_tests": 3,
+      "auth_tests": 2, 
+      "integration_client_tests": 3,
+      "middleware_tests": 7,
+      "repository_tests": 4,
+      "security_tests": 6,
+      "service_tests": 3,
+      "utility_tests": 1,
+      "websocket_tests": 1,
+      "unit_middleware_tests": 1,
+      "unit_utility_tests": 2
+    }
+  },
+  
+  "frontend_test_breakdown": {
+    "total_files": 4,
+    "passing_files": 4,
+    "test_count": 16,
+    "categories": {
+      "component_tests": 3,
+      "page_tests": 1
+    },
+    "status": "ALL_PASSING"
+  },
+  
+  "fix_roadmap": {
+    "phase_1_p0": {
+      "title": "Configuration Fixes",
+      "duration": "2-4 hours",
+      "tasks": [
+        "Fix Vitest path alias configuration",
+        "Update TypeScript path mapping",
+        "Verify file structure alignment"
+      ],
+      "success_criteria": "Backend tests can import modules without errors"
+    },
+    "phase_2_p1": {
+      "title": "Infrastructure Setup", 
+      "duration": "4-6 hours",
+      "tasks": [
+        "Start Redis test instance on port 6380",
+        "Configure Prisma test database",
+        "Setup environment variables for tests"
+      ],
+      "success_criteria": "Database and Redis dependent tests can connect"
+    },
+    "phase_3_p2": {
+      "title": "Test Environment Completion",
+      "duration": "6-8 hours", 
+      "tasks": [
+        "Configure service mocks",
+        "Setup test data fixtures",
+        "Implement authentication test helpers"
+      ],
+      "success_criteria": "All tests can execute and pass/fail on logic"
+    }
+  },
+  
+  "business_impact": {
+    "current_risk": "CRITICAL",
+    "deployment_safety": "UNSAFE",
+    "code_quality_assurance": "MISSING",
+    "development_velocity": "SEVERELY_IMPACTED",
+    "regression_detection": "IMPOSSIBLE"
+  },
+  
+  "recommendations": {
+    "immediate": [
+      "Fix Vitest configuration to resolve path aliases",
+      "Start Redis test instance", 
+      "Setup basic test database connection",
+      "Verify one test file can execute successfully"
+    ],
+    "short_term": [
+      "Implement comprehensive test environment setup",
+      "Configure all necessary service mocks",
+      "Create test data management system",
+      "Document test execution procedures"
+    ],
+    "long_term": [
+      "Integrate tests into CI/CD pipeline", 
+      "Establish test coverage requirements",
+      "Create test quality guidelines",
+      "Setup automated test monitoring"
+    ]
+  },
+  
+  "coordination_data": {
+    "memory_key": "swarm/tests/failures",
+    "catalog_location": "/home/kinginyellow/projects/medianest-tests/tests/FAILING_TESTS_CATALOG.md",
+    "next_agents_needed": [
+      "config-fixer",
+      "database-setup-agent", 
+      "test-infrastructure-agent",
+      "devops-agent"
+    ],
+    "estimated_total_fix_time": "12-18 hours",
+    "complexity": "HIGH"
+  }
+}

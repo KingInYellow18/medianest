@@ -36,6 +36,12 @@ export function createRateLimit(options: RateLimitOptions) {
         local window = tonumber(ARGV[2])
         local current = redis.call('GET', key)
         
+        -- Handle zero or negative limits immediately
+        if limit <= 0 then
+          local ttl = redis.call('TTL', key) or window
+          return {1, ttl}
+        end
+        
         if current and tonumber(current) >= limit then
           local ttl = redis.call('TTL', key)
           return {1, ttl}
@@ -63,7 +69,7 @@ export function createRateLimit(options: RateLimitOptions) {
 
       if (blocked) {
         res.setHeader('Retry-After', ttl);
-        throw new RateLimitError(ttl);
+        throw new RateLimitError(message, ttl);
       }
 
       // Store original end function to handle skip options

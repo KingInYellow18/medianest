@@ -122,7 +122,12 @@ export const errorHandler = (
   }
 
   if (err instanceof AppError) {
-    const userMessage = USER_ERRORS[err.code || ''] || err.message;
+    // For RateLimitError, use the custom message if provided, otherwise use the default
+    const userMessage = err instanceof RateLimitError 
+      ? err.message !== 'Too many requests' 
+        ? err.message 
+        : USER_ERRORS[err.code || ''] || err.message
+      : USER_ERRORS[err.code || ''] || err.message;
     const statusCode = err.statusCode || 500;
 
     return res.status(statusCode).json({

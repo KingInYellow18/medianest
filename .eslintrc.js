@@ -63,5 +63,5 @@ module.exports = {
     'coverage',
     '*.config.js',
     '*.config.ts',
-  ],
+  ]
 };

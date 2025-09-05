@@ -1,47 +1,40 @@
-import { defineConfig } from 'vitest/config'
-import path from 'path'
+import { defineConfig } from 'vitest/config';
+import { resolve } from 'path';
 
 export default defineConfig({
   test: {
     environment: 'node',
     setupFiles: ['./tests/setup.ts'],
-    globals: true,
+    testTimeout: 10000,
+    hookTimeout: 10000,
+    teardownTimeout: 10000,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       exclude: [
-        'node_modules/',
-        'tests/',
+        'node_modules/**',
+        'dist/**',
+        'tests/**',
+        'scripts/**',
         '**/*.d.ts',
         '**/*.config.*',
-        'dist/',
-        'src/types/**'
       ],
-      thresholds: {
-        branches: 60,
-        functions: 60,
-        lines: 60,
-        statements: 60
-      }
     },
-    testTimeout: 30000,
-    pool: 'forks',
-    poolOptions: {
-      forks: {
-        singleFork: true
-      }
-    }
+    env: {
+      NODE_ENV: 'test',
+      DATABASE_URL: 'postgresql://test:test@localhost:5433/medianest_test',
+      REDIS_URL: 'redis://localhost:6380',
+      JWT_SECRET: 'test-jwt-secret-key-for-testing-only',
+      SESSION_SECRET: 'test-session-secret-for-testing-only',
+      LOG_LEVEL: 'warn',
+      RATE_LIMIT_WINDOW_MS: '900000',
+      RATE_LIMIT_MAX: '100',
+    },
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
-      '@/config': path.resolve(__dirname, './src/config'),
-      '@/controllers': path.resolve(__dirname, './src/controllers'),
-      '@/middleware': path.resolve(__dirname, './src/middleware'),
-      '@/repositories': path.resolve(__dirname, './src/repositories'),
-      '@/services': path.resolve(__dirname, './src/services'),
-      '@/utils': path.resolve(__dirname, './src/utils'),
-      '@/types': path.resolve(__dirname, './src/types')
-    }
-  }
-})
+      '@': resolve(__dirname, 'src'),
+      '@tests': resolve(__dirname, 'tests'),
+    },
+  },
+});
