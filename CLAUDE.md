@@ -38,8 +38,8 @@ cd backend && npm run test:ui # Open Vitest UI for debugging
 cd backend && npm run lint    # Lint backend code
 
 # Full stack
-docker-compose up            # Run entire stack in containers
-docker-compose down          # Stop all containers
+docker compose up            # Run entire stack in containers
+docker compose down          # Stop all containers
 
 # Testing commands (both frontend and backend)
 npm test                     # Run all tests

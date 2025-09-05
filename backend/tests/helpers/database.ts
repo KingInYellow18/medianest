@@ -40,7 +40,7 @@ export async function seedTestData() {
   const testUser = await prisma.user.create({
     data: {
       plexId: 'test-plex-id-1',
-      username: 'testuser1',
+      plexUsername: 'testuser1',
       email: 'test1@example.com',
       role: 'user',
       status: 'active'
@@ -50,7 +50,7 @@ export async function seedTestData() {
   const adminUser = await prisma.user.create({
     data: {
       plexId: 'test-plex-id-admin',
-      username: 'testadmin',
+      plexUsername: 'testadmin',
       email: 'admin@example.com',
       role: 'admin',
       status: 'active'
