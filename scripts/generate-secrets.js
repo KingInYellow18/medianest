@@ -1,5 +1,10 @@
 #!/usr/bin/env node
 
+/**
+ * Secure secret generation script for MediaNest
+ * Generates cryptographically secure secrets for production use
+ */
+
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');

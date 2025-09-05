@@ -51,8 +51,8 @@
     "@types/supertest": "^6.0.2",
     "@typescript-eslint/eslint-plugin": "^7.16.1",
     "@typescript-eslint/parser": "^7.16.1",
-    "@vitest/coverage-v8": "^1.2.0",
-    "@vitest/ui": "^1.2.0",
+    "@vitest/coverage-v8": "^2.1.5",
+    "@vitest/ui": "^2.1.5",
     "eslint": "^8.57.0",
     "eslint-plugin-import": "^2.32.0",
     "ioredis-mock": "^8.9.0",
@@ -63,6 +63,6 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.5.3",
-    "vitest": "^1.2.0"
+    "vitest": "^2.1.5"
   }
 }
