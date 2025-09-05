@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   app:
     build:
@@ -12,13 +10,17 @@ services:
       - "4000:4000"
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgresql://medianest:medianest_password@postgres:5432/medianest?connection_limit=20&pool_timeout=30
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-medianest}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-medianest}?connection_limit=20&pool_timeout=30
       - REDIS_URL=redis://redis:6379
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_ISSUER=${JWT_ISSUER:-medianest}
+      - JWT_AUDIENCE=${JWT_AUDIENCE:-medianest-users}
       - PLEX_CLIENT_ID=${PLEX_CLIENT_ID}
       - PLEX_CLIENT_SECRET=${PLEX_CLIENT_SECRET}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
     volumes:
       - ./youtube:/app/youtube:rw
       - uploads:/app/uploads:rw
@@ -36,17 +38,17 @@ services:
     container_name: medianest-postgres
     restart: unless-stopped
     environment:
-      - POSTGRES_DB=medianest
-      - POSTGRES_USER=medianest
-      - POSTGRES_PASSWORD=medianest_password
+      - POSTGRES_DB=${POSTGRES_DB:-medianest}
+      - POSTGRES_USER=${POSTGRES_USER:-medianest}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_INITDB_ARGS=--encoding=UTF-8
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./infrastructure/database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
-    ports:
-      - "5432:5432"
+    # ports:
+      # - "5432:5432"  # Removed for security - use internal networking only
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U medianest"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-medianest}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -64,8 +66,8 @@ services:
       --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
-    ports:
-      - "6379:6379"
+    # ports:
+      # - "6379:6379"  # Removed for security - use internal networking only
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s

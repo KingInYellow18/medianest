@@ -1,40 +1,40 @@
-import { logger } from '../utils/logger'
-import { getPrismaClient, disconnectPrisma } from '../db/prisma'
-import { createRepositories, Repositories } from '../repositories'
+import { getPrismaClient, disconnectPrisma } from '../db/prisma';
+import { createRepositories, Repositories } from '../repositories';
+import { logger } from '../utils/logger';
 
-let repositories: Repositories
+let repositories: Repositories;
 
 export const initializeDatabase = async () => {
-  const prisma = getPrismaClient()
-  
+  const prisma = getPrismaClient();
+
   try {
     // Test connection
-    await prisma.$connect()
-    logger.info('Database connected successfully')
-    
+    await prisma.$connect();
+    logger.info('Database connected successfully');
+
     // Create repositories
-    repositories = createRepositories(prisma)
-    logger.info('Repositories initialized')
-    
-    return prisma
+    repositories = createRepositories(prisma);
+    logger.info('Repositories initialized');
+
+    return prisma;
   } catch (error) {
-    logger.error('Failed to connect to database', error)
-    throw error
+    logger.error('Failed to connect to database', error);
+    throw error;
   }
-}
+};
 
 export const getDatabase = () => {
-  return getPrismaClient()
-}
+  return getPrismaClient();
+};
 
 export const getRepositories = (): Repositories => {
   if (!repositories) {
-    throw new Error('Repositories not initialized. Call initializeDatabase first.')
+    throw new Error('Repositories not initialized. Call initializeDatabase first.');
   }
-  return repositories
-}
+  return repositories;
+};
 
 // Graceful shutdown
 process.on('beforeExit', async () => {
-  await disconnectPrisma()
-})
+  await disconnectPrisma();
+});

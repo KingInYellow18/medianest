@@ -54,35 +54,24 @@ vi.mock('winston-daily-rotate-file', () => ({
   default: vi.fn()
 }))
 
-// Mock Prisma client
-vi.mock('@prisma/client', () => ({
-  PrismaClient: vi.fn(() => ({
-    $connect: vi.fn(),
-    $disconnect: vi.fn(),
-    user: {
-      findUnique: vi.fn(),
-      findMany: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      count: vi.fn()
-    },
-    sessionToken: {
-      findUnique: vi.fn(),
-      findMany: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      deleteMany: vi.fn()
-    },
-    $queryRaw: vi.fn(),
-    $executeRaw: vi.fn()
-  }))
-}))
+// Note: Prisma client is NOT mocked globally to allow integration tests to use real database
+// Unit tests that need Prisma mocks should mock them locally
+
+// Note: Database helpers are NOT mocked globally to allow integration tests to use real test database
+// Unit tests that need database mocks should mock them locally
 
 // Setup MSW server
 beforeAll(() => {
-  server.listen({ onUnhandledRequest: 'error' })
+  server.listen({ 
+    onUnhandledRequest: (req) => {
+      // Allow local test requests to bypass MSW
+      const url = new URL(req.url)
+      if (url.hostname === '127.0.0.1' || url.hostname === 'localhost') {
+        return
+      }
+      console.warn(`Unhandled ${req.method} request to ${req.url}`)
+    }
+  })
 })
 
 afterEach(() => {

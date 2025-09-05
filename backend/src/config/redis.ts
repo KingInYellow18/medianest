@@ -1,7 +1,8 @@
-import Redis from 'ioredis'
-import { logger } from '../utils/logger'
+import Redis from 'ioredis';
 
-let redisClient: Redis
+import { logger } from '../utils/logger';
+
+let redisClient: Redis;
 
 export const initializeRedis = async (): Promise<Redis> => {
   if (!redisClient) {
@@ -11,32 +12,32 @@ export const initializeRedis = async (): Promise<Redis> => {
       password: process.env.REDIS_PASSWORD,
       maxRetriesPerRequest: 3,
       retryStrategy: (times) => {
-        const delay = Math.min(times * 50, 2000)
-        return delay
+        const delay = Math.min(times * 50, 2000);
+        return delay;
       },
-    })
+    });
 
     redisClient.on('connect', () => {
-      logger.info('Redis connected')
-    })
+      logger.info('Redis connected');
+    });
 
     redisClient.on('error', (err) => {
-      logger.error('Redis error:', err)
-    })
+      logger.error('Redis error:', err);
+    });
 
     // Test connection
-    await redisClient.ping()
+    await redisClient.ping();
   }
 
-  return redisClient
-}
+  return redisClient;
+};
 
 export const getRedis = (): Redis => {
   if (!redisClient) {
-    throw new Error('Redis not initialized')
+    throw new Error('Redis not initialized');
   }
-  return redisClient
-}
+  return redisClient;
+};
 
 // Rate limiting Lua script
 export const rateLimitScript = `
@@ -54,4 +55,4 @@ else
   end
   return 0
 end
-`
+`;

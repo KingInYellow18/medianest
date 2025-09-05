@@ -13,7 +13,7 @@ export class AppError extends Error {
     this.statusCode = statusCode;
     this.code = code;
     this.details = details;
-    
+
     // Maintain proper stack trace for debugging
     Error.captureStackTrace(this, this.constructor);
   }
@@ -39,7 +39,7 @@ export class AuthorizationError extends AppError {
 
 export class NotFoundError extends AppError {
   constructor(resource: string) {
-    super(`${resource} not found`, 404, 'NOT_FOUND');
+    super(`${resource} not found`, 404, 'NOT_FOUND_ERROR');
   }
 }
 
@@ -50,8 +50,11 @@ export class ConflictError extends AppError {
 }
 
 export class RateLimitError extends AppError {
+  public readonly retryAfter?: number;
+
   constructor(retryAfter?: number) {
     super('Too many requests', 429, 'RATE_LIMIT_EXCEEDED', { retryAfter });
+    this.retryAfter = retryAfter;
   }
 }
 

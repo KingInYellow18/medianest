@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+
 import { AppError } from './errors';
 
 interface JWTPayload {
@@ -29,12 +30,12 @@ export function generateToken(
   options?: JWTOptions
 ): string {
   const expiresIn = rememberMe ? REMEMBER_ME_TOKEN_EXPIRY : DEFAULT_TOKEN_EXPIRY;
-  
+
   const tokenOptions: jwt.SignOptions = {
     expiresIn: options?.expiresIn || expiresIn,
     issuer: options?.issuer || JWT_ISSUER,
     audience: options?.audience || JWT_AUDIENCE,
-    algorithm: 'HS256'
+    algorithm: 'HS256',
   };
 
   return jwt.sign(payload, JWT_SECRET, tokenOptions);
@@ -45,7 +46,7 @@ export function verifyToken(token: string): JWTPayload {
     const decoded = jwt.verify(token, JWT_SECRET, {
       issuer: JWT_ISSUER,
       audience: JWT_AUDIENCE,
-      algorithms: ['HS256']
+      algorithms: ['HS256'],
     }) as JWTPayload;
 
     return decoded;
