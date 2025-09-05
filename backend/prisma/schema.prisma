@@ -15,6 +15,7 @@ model User {
   name                   String?
   role                   String    @default("USER")
   plexToken              String?   @map("plex_token")
+  passwordHash           String?   @map("password_hash")
   image                  String?
   requiresPasswordChange Boolean   @default(false) @map("requires_password_change")
   createdAt              DateTime  @default(now()) @map("created_at")

@@ -1,0 +1,83 @@
+# Root .dockerignore for MediaNest
+
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+docs/
+project_plan/
+tasks/
+ARCHITECTURE*.md
+IMPLEMENTATION_ROADMAP.md
+MediaNest.PRD
+PHASE*.md
+*.txt
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+secrets/
+*.pem
+*.key
+
+# Node modules and build artifacts
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Coverage and test reports
+coverage/
+*.lcov
+test-results/
+
+# Logs
+logs/
+*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Temp files
+.tmp/
+*.tmp
+*.temp
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Testing artifacts
+tests/
+__tests__/
+*.test.js
+*.spec.js
+
+# Development only files
+docker-compose.dev.yml
+docker-compose.test.yml
+*.dev.*
+*.local.*
+
+# Backup files
+*.bak
+*.backup

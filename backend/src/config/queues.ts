@@ -1,11 +1,13 @@
-import Queue from 'bull'
-import { logger } from '../utils/logger'
-import { getRedis } from './redis'
+import Queue from 'bull';
 
-export let youtubeQueue: Queue.Queue
+import { logger } from '../utils/logger';
+
+import { getRedis } from './redis';
+
+export let youtubeQueue: Queue.Queue;
 
 export const initializeQueues = async () => {
-  const redis = getRedis()
+  const redis = getRedis();
 
   youtubeQueue = new Queue('youtube-downloads', {
     redis: {
@@ -22,18 +24,18 @@ export const initializeQueues = async () => {
       removeOnComplete: 100,
       removeOnFail: 500,
     },
-  })
+  });
 
   // Queue event handlers
   youtubeQueue.on('completed', (job) => {
-    logger.info(`YouTube download completed: ${job.id}`)
-  })
+    logger.info(`YouTube download completed: ${job.id}`);
+  });
 
   youtubeQueue.on('failed', (job, err) => {
-    logger.error(`YouTube download failed: ${job.id}`, err)
-  })
+    logger.error(`YouTube download failed: ${job.id}`, err);
+  });
 
   youtubeQueue.on('stalled', (job) => {
-    logger.warn(`YouTube download stalled: ${job.id}`)
-  })
-}
+    logger.warn(`YouTube download stalled: ${job.id}`);
+  });
+};

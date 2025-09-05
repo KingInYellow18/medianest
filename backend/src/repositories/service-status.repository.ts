@@ -1,6 +1,8 @@
 import { ServiceStatus, Prisma, Decimal } from '@prisma/client';
-import { BaseRepository } from './base.repository';
+
 import { NotFoundError } from '../utils/errors';
+
+import { BaseRepository } from './base.repository';
 
 export interface ServiceStatusUpdate {
   status?: string;
@@ -9,11 +11,15 @@ export interface ServiceStatusUpdate {
   uptimePercentage?: number;
 }
 
-export class ServiceStatusRepository extends BaseRepository<ServiceStatus, any, ServiceStatusUpdate> {
+export class ServiceStatusRepository extends BaseRepository<
+  ServiceStatus,
+  any,
+  ServiceStatusUpdate
+> {
   async findByName(serviceName: string): Promise<ServiceStatus | null> {
     try {
       return await this.prisma.serviceStatus.findUnique({
-        where: { serviceName }
+        where: { serviceName },
       });
     } catch (error) {
       this.handleDatabaseError(error);
@@ -23,7 +29,7 @@ export class ServiceStatusRepository extends BaseRepository<ServiceStatus, any, 
   async findAll(): Promise<ServiceStatus[]> {
     try {
       return await this.prisma.serviceStatus.findMany({
-        orderBy: { serviceName: 'asc' }
+        orderBy: { serviceName: 'asc' },
       });
     } catch (error) {
       this.handleDatabaseError(error);
@@ -34,7 +40,7 @@ export class ServiceStatusRepository extends BaseRepository<ServiceStatus, any, 
     try {
       const updateData: Prisma.ServiceStatusUpdateInput = {
         ...data,
-        lastCheckAt: data.lastCheckAt || new Date()
+        lastCheckAt: data.lastCheckAt || new Date(),
       };
 
       if (data.uptimePercentage !== undefined) {
@@ -46,25 +52,29 @@ export class ServiceStatusRepository extends BaseRepository<ServiceStatus, any, 
         update: updateData,
         create: {
           serviceName,
-          ...updateData
-        }
+          ...updateData,
+        },
       });
     } catch (error) {
       this.handleDatabaseError(error);
     }
   }
 
-  async updateStatus(serviceName: string, status: string, responseTimeMs?: number): Promise<ServiceStatus> {
+  async updateStatus(
+    serviceName: string,
+    status: string,
+    responseTimeMs?: number
+  ): Promise<ServiceStatus> {
     return this.upsert(serviceName, {
       status,
       responseTimeMs,
-      lastCheckAt: new Date()
+      lastCheckAt: new Date(),
     });
   }
 
   async updateUptimePercentage(serviceName: string, percentage: number): Promise<ServiceStatus> {
     return this.upsert(serviceName, {
-      uptimePercentage: percentage
+      uptimePercentage: percentage,
     });
   }
 
@@ -72,9 +82,9 @@ export class ServiceStatusRepository extends BaseRepository<ServiceStatus, any, 
     try {
       return await this.prisma.serviceStatus.findMany({
         where: {
-          status: 'healthy'
+          status: 'healthy',
         },
-        orderBy: { serviceName: 'asc' }
+        orderBy: { serviceName: 'asc' },
       });
     } catch (error) {
       this.handleDatabaseError(error);
@@ -85,12 +95,9 @@ export class ServiceStatusRepository extends BaseRepository<ServiceStatus, any, 
     try {
       return await this.prisma.serviceStatus.findMany({
         where: {
-          OR: [
-            { status: { not: 'healthy' } },
-            { status: null }
-          ]
+          OR: [{ status: { not: 'healthy' } }, { status: null }],
         },
-        orderBy: { serviceName: 'asc' }
+        orderBy: { serviceName: 'asc' },
       });
     } catch (error) {
       this.handleDatabaseError(error);
@@ -104,12 +111,9 @@ export class ServiceStatusRepository extends BaseRepository<ServiceStatus, any, 
     try {
       return await this.prisma.serviceStatus.findMany({
         where: {
-          OR: [
-            { lastCheckAt: { lt: threshold } },
-            { lastCheckAt: null }
-          ]
+          OR: [{ lastCheckAt: { lt: threshold } }, { lastCheckAt: null }],
         },
-        orderBy: { serviceName: 'asc' }
+        orderBy: { serviceName: 'asc' },
       });
     } catch (error) {
       this.handleDatabaseError(error);
@@ -120,7 +124,7 @@ export class ServiceStatusRepository extends BaseRepository<ServiceStatus, any, 
     return this.upsert(serviceName, {
       status: null,
       responseTimeMs: null,
-      lastCheckAt: new Date()
+      lastCheckAt: new Date(),
     });
   }
 
@@ -129,8 +133,8 @@ export class ServiceStatusRepository extends BaseRepository<ServiceStatus, any, 
       const result = await this.prisma.serviceStatus.aggregate({
         where: { serviceName },
         _avg: {
-          responseTimeMs: true
-        }
+          responseTimeMs: true,
+        },
       });
 
       return result._avg.responseTimeMs;

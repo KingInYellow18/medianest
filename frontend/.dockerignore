@@ -1,0 +1,74 @@
+# Frontend .dockerignore for MediaNest
+
+# Version control
+.git
+.gitignore
+
+# Documentation
+*.md
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Next.js build output
+.next/
+out/
+build/
+
+# Development files
+.next/
+.swc/
+
+# Coverage and test reports
+coverage/
+.nyc_output
+*.lcov
+
+# Logs
+*.log
+logs/
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Temp files
+.tmp/
+*.tmp
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Development only
+docker-compose*.yml
+Dockerfile
+.dockerignore
+
+# Prisma development files
+prisma/dev.db*
+prisma/migrations/
+
+# Test files
+__tests__/
+*.test.*
+*.spec.*
+cypress/
+playwright/
+test-results/

@@ -1,6 +1,8 @@
 import { ServiceConfig, Prisma } from '@prisma/client';
-import { BaseRepository } from './base.repository';
+
 import { NotFoundError } from '../utils/errors';
+
+import { BaseRepository } from './base.repository';
 
 export interface CreateServiceConfigInput {
   serviceName: string;
@@ -18,7 +20,11 @@ export interface UpdateServiceConfigInput {
   updatedBy?: string;
 }
 
-export class ServiceConfigRepository extends BaseRepository<ServiceConfig, CreateServiceConfigInput, UpdateServiceConfigInput> {
+export class ServiceConfigRepository extends BaseRepository<
+  ServiceConfig,
+  CreateServiceConfigInput,
+  UpdateServiceConfigInput
+> {
   async findByName(serviceName: string): Promise<ServiceConfig | null> {
     try {
       return await this.prisma.serviceConfig.findUnique({
@@ -28,10 +34,10 @@ export class ServiceConfigRepository extends BaseRepository<ServiceConfig, Creat
             select: {
               id: true,
               email: true,
-              name: true
-            }
-          }
-        }
+              name: true,
+            },
+          },
+        },
       });
     } catch (error) {
       this.handleDatabaseError(error);
@@ -47,10 +53,10 @@ export class ServiceConfigRepository extends BaseRepository<ServiceConfig, Creat
             select: {
               id: true,
               email: true,
-              name: true
-            }
-          }
-        }
+              name: true,
+            },
+          },
+        },
       });
     } catch (error) {
       this.handleDatabaseError(error);
@@ -61,7 +67,7 @@ export class ServiceConfigRepository extends BaseRepository<ServiceConfig, Creat
     try {
       return await this.prisma.serviceConfig.findMany({
         where: { enabled: true },
-        orderBy: { serviceName: 'asc' }
+        orderBy: { serviceName: 'asc' },
       });
     } catch (error) {
       this.handleDatabaseError(error);
@@ -77,10 +83,10 @@ export class ServiceConfigRepository extends BaseRepository<ServiceConfig, Creat
             select: {
               id: true,
               email: true,
-              name: true
-            }
-          }
-        }
+              name: true,
+            },
+          },
+        },
       });
     } catch (error) {
       this.handleDatabaseError(error);
@@ -91,7 +97,7 @@ export class ServiceConfigRepository extends BaseRepository<ServiceConfig, Creat
     try {
       const exists = await this.prisma.serviceConfig.findUnique({
         where: { serviceName },
-        select: { id: true }
+        select: { id: true },
       });
 
       if (!exists) {
@@ -102,17 +108,17 @@ export class ServiceConfigRepository extends BaseRepository<ServiceConfig, Creat
         where: { serviceName },
         data: {
           ...data,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         },
         include: {
           updatedByUser: {
             select: {
               id: true,
               email: true,
-              name: true
-            }
-          }
-        }
+              name: true,
+            },
+          },
+        },
       });
     } catch (error) {
       this.handleDatabaseError(error);
@@ -125,22 +131,22 @@ export class ServiceConfigRepository extends BaseRepository<ServiceConfig, Creat
         where: { serviceName },
         update: {
           ...data,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         },
         create: {
           serviceName,
           serviceUrl: data.serviceUrl || '',
-          ...data
+          ...data,
         },
         include: {
           updatedByUser: {
             select: {
               id: true,
               email: true,
-              name: true
-            }
-          }
-        }
+              name: true,
+            },
+          },
+        },
       });
     } catch (error) {
       this.handleDatabaseError(error);
@@ -154,7 +160,7 @@ export class ServiceConfigRepository extends BaseRepository<ServiceConfig, Creat
   async delete(serviceName: string): Promise<ServiceConfig> {
     try {
       return await this.prisma.serviceConfig.delete({
-        where: { serviceName }
+        where: { serviceName },
       });
     } catch (error) {
       this.handleDatabaseError(error);
@@ -168,14 +174,14 @@ export class ServiceConfigRepository extends BaseRepository<ServiceConfig, Creat
     configData?: any;
   } | null> {
     const config = await this.findByName(serviceName);
-    
+
     if (!config) return null;
 
     return {
       url: config.serviceUrl,
       apiKey: config.apiKey || undefined,
       enabled: config.enabled,
-      configData: config.configData
+      configData: config.configData,
     };
   }
 

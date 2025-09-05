@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+
 import { AppError } from '../utils/errors';
 
 export interface PaginationOptions {
@@ -32,7 +33,7 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput> {
     if (error.code === 'P2016') {
       throw new AppError('Query interpretation error', 400, 'QUERY_ERROR');
     }
-    
+
     // Re-throw unknown errors
     throw error;
   }
@@ -62,9 +63,9 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput> {
           take,
           orderBy: options.orderBy || { createdAt: 'desc' },
           ...(select && { select }),
-          ...(include && { include })
+          ...(include && { include }),
         }),
-        model.count({ where })
+        model.count({ where }),
       ]);
 
       return {
@@ -72,7 +73,7 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput> {
         total,
         page,
         limit,
-        totalPages: Math.ceil(total / limit)
+        totalPages: Math.ceil(total / limit),
       };
     } catch (error) {
       this.handleDatabaseError(error);

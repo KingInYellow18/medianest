@@ -1,7 +1,10 @@
 import { User, Prisma } from '@prisma/client';
-import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
+import bcrypt from 'bcrypt';
+
+import { getPrismaClient } from '../db/prisma';
 import { NotFoundError } from '../utils/errors';
-import bcrypt from 'bcryptjs';
+
+import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
 
 export interface CreateUserInput {
   email: string;
@@ -25,10 +28,13 @@ export interface UpdateUserInput {
 }
 
 export class UserRepository extends BaseRepository<User, CreateUserInput, UpdateUserInput> {
+  constructor() {
+    super(getPrismaClient());
+  }
   async findById(id: string): Promise<User | null> {
     try {
       return await this.prisma.user.findUnique({
-        where: { id }
+        where: { id },
       });
     } catch (error) {
       this.handleDatabaseError(error);
@@ -38,7 +44,7 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
   async findByEmail(email: string): Promise<User | null> {
     try {
       return await this.prisma.user.findUnique({
-        where: { email }
+        where: { email },
       });
     } catch (error) {
       this.handleDatabaseError(error);
@@ -48,7 +54,7 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
   async findByPlexId(plexId: string): Promise<User | null> {
     try {
       return await this.prisma.user.findUnique({
-        where: { plexId }
+        where: { plexId },
       });
     } catch (error) {
       this.handleDatabaseError(error);
@@ -56,29 +62,20 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
   }
 
   async findAll(options: PaginationOptions = {}): Promise<PaginatedResult<User>> {
-    return this.paginate<User>(
-      this.prisma.user,
-      {},
-      options,
-      {
-        id: true,
-        email: true,
-        name: true,
-        plexUsername: true,
-        role: true,
-        status: true,
-        createdAt: true,
-        lastLoginAt: true
-      }
-    );
+    return this.paginate<User>(this.prisma.user, {}, options, {
+      id: true,
+      email: true,
+      name: true,
+      plexUsername: true,
+      role: true,
+      status: true,
+      createdAt: true,
+      lastLoginAt: true,
+    });
   }
 
   async findByRole(role: string, options: PaginationOptions = {}): Promise<PaginatedResult<User>> {
-    return this.paginate<User>(
-      this.prisma.user,
-      { role },
-      options
-    );
+    return this.paginate<User>(this.prisma.user, { role }, options);
   }
 
   async create(data: CreateUserInput): Promise<User> {
@@ -86,21 +83,21 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
       // Hash password if provided
       if (data.password) {
         const hashedPassword = await bcrypt.hash(data.password, 10);
-        
+
         // Create password hash field for admin bootstrap
         const userData: any = {
           ...data,
-          passwordHash: hashedPassword
+          passwordHash: hashedPassword,
         };
         delete userData.password;
-        
+
         return await this.prisma.user.create({
-          data: userData
+          data: userData,
         });
       }
 
       return await this.prisma.user.create({
-        data: data as Prisma.UserCreateInput
+        data: data as Prisma.UserCreateInput,
       });
     } catch (error) {
       this.handleDatabaseError(error);
@@ -112,7 +109,7 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
       // Verify user exists
       const exists = await this.prisma.user.findUnique({
         where: { id },
-        select: { id: true }
+        select: { id: true },
       });
 
       if (!exists) {
@@ -121,7 +118,7 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
 
       return await this.prisma.user.update({
         where: { id },
-        data
+        data,
       });
     } catch (error) {
       this.handleDatabaseError(error);
@@ -135,7 +132,7 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
   async delete(id: string): Promise<User> {
     try {
       return await this.prisma.user.delete({
-        where: { id }
+        where: { id },
       });
     } catch (error) {
       this.handleDatabaseError(error);
@@ -148,7 +145,7 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
 
   async countByRole(role: string): Promise<number> {
     return this.prisma.user.count({
-      where: { role }
+      where: { role },
     });
   }
 
@@ -162,11 +159,7 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
   }
 
   async findActiveUsers(options: PaginationOptions = {}): Promise<PaginatedResult<User>> {
-    return this.paginate<User>(
-      this.prisma.user,
-      { status: 'active' },
-      options
-    );
+    return this.paginate<User>(this.prisma.user, { status: 'active' }, options);
   }
 
   async updatePassword(id: string, newPasswordHash: string): Promise<User> {
@@ -175,8 +168,8 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
         where: { id },
         data: {
           passwordHash: newPasswordHash,
-          requiresPasswordChange: false
-        }
+          requiresPasswordChange: false,
+        },
       });
     } catch (error) {
       this.handleDatabaseError(error);
