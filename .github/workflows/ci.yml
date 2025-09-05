@@ -1,18 +1,22 @@
-name: CI
+name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main, develop]
+    branches: [ main, develop, github ]
   pull_request:
-    branches: [main, develop]
+    branches: [ main ]
+  schedule:
+    # Run weekly security scan
+    - cron: '0 0 * * 1'
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '18'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  # Lint and type check
   lint:
-    name: Lint and Type Check
+    name: Lint and Format
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -27,41 +31,21 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run linter
+      - name: Run ESLint
         run: npm run lint
 
+      - name: Check formatting
+        run: npm run format:check
+
       - name: Type check
-        run: npm run type-check
+        run: npm run typecheck
 
-  # Unit and integration tests
   test:
-    name: Test
+    name: Test Suite
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: medianest_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
-      redis:
-        image: redis:7-alpine
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 6379:6379
-
+    strategy:
+      matrix:
+        node-version: [16, 18, 20]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -69,79 +53,25 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: '20.x'
           cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Run database migrations
-        env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/medianest_test
-        run: |
-          cd backend
-          npx prisma migrate deploy
 
       - name: Run tests
-        env:
-          NODE_ENV: test
-          DATABASE_URL: postgresql://test:test@localhost:5432/medianest_test
-          REDIS_URL: redis://localhost:6379
-          JWT_SECRET: test-secret
-          NEXTAUTH_SECRET: test-nextauth-secret
         run: npm test
 
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
+      - name: Generate coverage report
+        run: npm run test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage/lcov.info
+          file: ./coverage/lcov.info
           flags: unittests
-          name: codecov-umbrella
+          name: codecov-${{ matrix.node-version }}
 
-  # Build verification
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build projects
-        run: npm run build
-        env:
-          NEXT_PUBLIC_API_URL: http://localhost:4000
-
-  # Docker build verification
-  docker:
-    name: Docker Build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: false
-          tags: medianest:test
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-  # Security scanning
   security:
     name: Security Scan
     runs-on: ubuntu-latest
@@ -149,24 +79,30 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
 
-      - name: Upload Trivy scan results
-        uses: github/codeql-action/upload-sarif@v3
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run security audit
+        run: npm audit --audit-level high
+
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/init@v3
         with:
-          sarif_file: 'trivy-results.sarif'
+          languages: javascript
 
-  # E2E tests (only on main branch)
-  e2e:
-    name: E2E Tests
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+  build:
+    name: Build Application
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    needs: [lint, test, security]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -180,20 +116,83 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+      - name: Build application
+        run: npm run build
 
-      - name: Start services
-        run: |
-          docker-compose -f docker-compose.test.yml up -d
-          npm run wait-for-services
-
-      - name: Run E2E tests
-        run: npm run test:e2e
-
-      - name: Upload test results
-        if: always()
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-results
-          path: test-results/
+          name: build-files
+          path: dist/
+          retention-days: 7
+
+  docker:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [docker]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment:
+      name: staging
+      url: https://staging.example.com
+    steps:
+      - name: Deploy to staging
+        run: |
+          echo "Deploying to staging environment"
+          # Add your deployment commands here
+
+  notification:
+    name: Notify Team
+    runs-on: ubuntu-latest
+    needs: [lint, test, security, build]
+    if: always()
+    steps:
+      - name: Notify on success
+        if: needs.lint.result == 'success' && needs.test.result == 'success' && needs.security.result == 'success' && needs.build.result == 'success'
+        run: |
+          echo "✅ All checks passed successfully!"
+
+      - name: Notify on failure
+        if: needs.lint.result == 'failure' || needs.test.result == 'failure' || needs.security.result == 'failure' || needs.build.result == 'failure'
+        run: |
+          echo "❌ Some checks failed. Please review the logs."

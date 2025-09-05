@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Simple lint and format check only
+echo "🔍 Linting and formatting staged files..."
+npx lint-staged
+
+# Skip tests and type checking for faster commits
+# Use --no-verify to bypass: git commit --no-verify -m "message"
+echo "✅ Pre-commit checks passed! (type check & tests skipped for speed)"

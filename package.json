@@ -18,6 +18,9 @@
     "build:backend": "npm run build --workspace=backend",
     "test": "npm run test --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
+    "lint:fix": "npm run lint:fix --workspaces --if-present",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "clean": "npm run clean --workspaces --if-present && rimraf node_modules",
     "type-check": "npm run type-check --workspaces --if-present",
     "docker:build": "docker compose build",
@@ -33,15 +36,28 @@
     "test:watch": "npm run test:watch --workspaces --if-present",
     "test:coverage": "npm run test:coverage --workspaces --if-present",
     "test:e2e": "echo \"E2E tests not yet implemented\"",
-    "prepare": "simple-git-hooks"
+    "commit": "cz",
+    "commit:retry": "cz --retry",
+    "hooks:install": "husky install",
+    "hooks:add": "husky add",
+    "prepare": "husky"
   },
-  "simple-git-hooks": {
-    "pre-commit": "npx lint-staged"
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
     "@types/node": "^20.11.0",
+    "commitizen": "^4.3.1",
     "concurrently": "^8.2.2",
+    "cz-conventional-changelog": "^3.3.0",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
     "lint-staged": "^15.2.0",
+    "prettier": "^3.6.2",
     "rimraf": "^5.0.5",
     "simple-git-hooks": "^2.13.0",
     "tsx": "^4.20.3"

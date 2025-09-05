@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Simplified pre-push for development
+echo "🚀 Running light pre-push checks..."
+
+# Quick lint check only
+npm run lint
+
+# Skip heavy operations for dev speed
+# Use git push --no-verify to bypass if needed
+echo "✅ Light validation passed! (tests & build skipped for speed)"

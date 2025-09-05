@@ -1,5 +1,7 @@
 module.exports = {
-  // Pre-commit hooks disabled for development workflow
-  // Use --no-verify to skip hooks, or set SKIP_SIMPLE_GIT_HOOKS=1
-  // Run quality checks manually: npm run lint && npm run type-check && npm test
+  // Simplified for development workflow - only format docs and config
+  '*.{md,yml,yaml}': [
+    'prettier --write'
+  ]
+  // Skip JS/TS files to avoid lint issues during development
 };

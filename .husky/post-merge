@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔄 Post-merge hook triggered..."
+
+# Check if package-lock.json was changed and reinstall dependencies
+if [ -n "$(git diff HEAD@{1} HEAD --name-only | grep package-lock.json)" ]; then
+  echo "📦 package-lock.json changed, reinstalling dependencies..."
+  npm ci
+fi
+
+# Check if database migrations were added
+if [ -n "$(git diff HEAD@{1} HEAD --name-only | grep 'migrations')" ]; then
+  echo "🗃️ Database migrations detected, consider running migrations..."
+  echo "Run: npm run db:migrate"
+fi
+
+echo "✅ Post-merge hook completed!"
