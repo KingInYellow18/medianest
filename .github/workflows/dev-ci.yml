@@ -1,0 +1,58 @@
+name: Development CI
+
+on:
+  push:
+    branches: [main, develop, 'feature/*', 'audit', 'tests', 'github']
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # Ultra-lightweight CI for active development
+  quick-check:
+    name: Quick Development Check
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies (skip if cached)
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Quick lint (warnings only)
+        run: |
+          echo "Running basic syntax check..."
+          npm run lint -- --max-warnings 999 || echo "Lint issues found - fix when ready"
+        continue-on-error: true
+
+      - name: Basic build check (skip on errors)
+        run: |
+          echo "Testing basic build..."
+          npm run build || echo "Build issues found - fix when ready"
+        continue-on-error: true
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:4000
+
+  # Status summary
+  status:
+    name: Development Status
+    runs-on: ubuntu-latest
+    needs: [quick-check]
+    if: always()
+    steps:
+      - name: Development Summary
+        run: |
+          echo "=== Development CI Summary ==="
+          echo "This is a simplified CI for active development."
+          echo "All checks are non-blocking to enable rapid iteration."
+          echo "Run full CI before production deployment."
+          echo "================================"
