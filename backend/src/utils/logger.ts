@@ -12,10 +12,12 @@ if (!fs.existsSync(logsDir)) {
 }
 
 // Define log format for development
-const devFormat = winston.format.printf(({ level, message, timestamp, correlationId, ...meta }) => {
-  const metaStr = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : '';
-  return `${timestamp} [${correlationId || 'no-correlation-id'}] ${level}: ${message}${metaStr}`;
-});
+const devFormat = winston.format.printf(
+  ({ level, message, timestamp, correlationId, ...meta }) => {
+    const metaStr = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : '';
+    return `${timestamp} [${correlationId || 'no-correlation-id'}] ${level}: ${message}${metaStr}`;
+  }
+);
 
 // Define log format for production
 const prodFormat = winston.format.combine(

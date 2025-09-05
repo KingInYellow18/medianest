@@ -29,28 +29,26 @@ export async function addYoutubeDownloadJob(
   data: YoutubeDownloadJobData
 ): Promise<Job<YoutubeDownloadJobData>> {
   const queue = getQueue(QUEUE_NAMES.YOUTUBE_DOWNLOAD);
-  
-  const job = await queue.add(
-    'download-playlist',
-    data,
-    {
-      attempts: 3,
-      backoff: {
-        type: 'exponential',
-        delay: 5000 // Start with 5 second delay
-      },
-      removeOnComplete: {
-        age: 3600, // Keep for 1 hour after completion
-        count: 10 // Keep last 10 completed per user
-      },
-      removeOnFail: {
-        age: 86400, // Keep for 24 hours after failure
-        count: 5 // Keep last 5 failed per user
-      }
-    }
-  );
 
-  console.log(`📥 YouTube download job ${job.id} added for user ${data.userId}`);
+  const job = await queue.add('download-playlist', data, {
+    attempts: 3,
+    backoff: {
+      type: 'exponential',
+      delay: 5000, // Start with 5 second delay
+    },
+    removeOnComplete: {
+      age: 3600, // Keep for 1 hour after completion
+      count: 10, // Keep last 10 completed per user
+    },
+    removeOnFail: {
+      age: 86400, // Keep for 24 hours after failure
+      count: 5, // Keep last 5 failed per user
+    },
+  });
+
+  console.log(
+    `📥 YouTube download job ${job.id} added for user ${data.userId}`
+  );
   return job;
 }
 
@@ -59,7 +57,10 @@ export async function addYoutubeDownloadJob(
  */
 export async function getUserDownloadJobs(
   userId: string,
-  statuses: Array<'completed' | 'failed' | 'delayed' | 'active' | 'waiting'> = ['active', 'waiting']
+  statuses: Array<'completed' | 'failed' | 'delayed' | 'active' | 'waiting'> = [
+    'active',
+    'waiting',
+  ]
 ): Promise<Job<YoutubeDownloadJobData>[]> {
   const queue = getQueue(QUEUE_NAMES.YOUTUBE_DOWNLOAD);
   const jobs: Job<YoutubeDownloadJobData>[] = [];
@@ -70,9 +71,7 @@ export async function getUserDownloadJobs(
     jobs.push(...userJobs);
   }
 
-  return jobs.sort((a, b) => 
-    (b.timestamp || 0) - (a.timestamp || 0)
-  );
+  return jobs.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 }
 
 /**
@@ -83,7 +82,7 @@ export async function getDownloadJob(
 ): Promise<Job<YoutubeDownloadJobData> | null> {
   const queue = getQueue(QUEUE_NAMES.YOUTUBE_DOWNLOAD);
   const job = await queue.getJob(jobId);
-  
+
   return job as Job<YoutubeDownloadJobData> | null;
 }
 
@@ -95,7 +94,7 @@ export async function cancelDownloadJob(
   userId: string
 ): Promise<boolean> {
   const job = await getDownloadJob(jobId);
-  
+
   if (!job) {
     console.error(`Job ${jobId} not found`);
     return false;
@@ -110,7 +109,7 @@ export async function cancelDownloadJob(
   // Remove the job
   await job.remove();
   console.log(`🚫 Cancelled download job ${jobId} for user ${userId}`);
-  
+
   return true;
 }
 
@@ -122,7 +121,7 @@ export async function retryDownloadJob(
   userId: string
 ): Promise<Job<YoutubeDownloadJobData> | null> {
   const job = await getDownloadJob(jobId);
-  
+
   if (!job) {
     console.error(`Job ${jobId} not found`);
     return null;
@@ -144,7 +143,7 @@ export async function retryDownloadJob(
   // Retry the job
   await job.retry();
   console.log(`🔄 Retrying download job ${jobId} for user ${userId}`);
-  
+
   return job;
 }
 
@@ -153,22 +152,16 @@ export async function retryDownloadJob(
  */
 export async function getDownloadQueueStats() {
   const queue = getQueue(QUEUE_NAMES.YOUTUBE_DOWNLOAD);
-  
-  const [
-    waiting,
-    active,
-    completed,
-    failed,
-    delayed,
-    paused
-  ] = await Promise.all([
-    queue.getWaitingCount(),
-    queue.getActiveCount(),
-    queue.getCompletedCount(),
-    queue.getFailedCount(),
-    queue.getDelayedCount(),
-    queue.getPausedCount()
-  ]);
+
+  const [waiting, active, completed, failed, delayed, paused] =
+    await Promise.all([
+      queue.getWaitingCount(),
+      queue.getActiveCount(),
+      queue.getCompletedCount(),
+      queue.getFailedCount(),
+      queue.getDelayedCount(),
+      queue.getPausedCount(),
+    ]);
 
   return {
     waiting,
@@ -177,7 +170,7 @@ export async function getDownloadQueueStats() {
     failed,
     delayed,
     paused,
-    total: waiting + active + completed + failed + delayed + paused
+    total: waiting + active + completed + failed + delayed + paused,
   };
 }
 
@@ -206,8 +199,8 @@ export async function cleanOldDownloadJobs(
   olderThanDays: number = 7
 ): Promise<number> {
   const queue = getQueue(QUEUE_NAMES.YOUTUBE_DOWNLOAD);
-  const cutoffTime = Date.now() - (olderThanDays * 24 * 60 * 60 * 1000);
-  
+  const cutoffTime = Date.now() - olderThanDays * 24 * 60 * 60 * 1000;
+
   let cleaned = 0;
 
   // Clean completed jobs

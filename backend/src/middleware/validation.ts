@@ -80,7 +80,7 @@ export function validate(schema: ZodSchema) {
  * Format Zod validation errors into user-friendly format
  */
 function formatZodError(error: ZodError) {
-  const details = error.errors.map((err) => {
+  const details = error.errors.map(err => {
     const path = err.path.join('.');
     return {
       field: path,
@@ -108,9 +108,12 @@ function formatZodError(error: ZodError) {
 /**
  * Validation middleware for specific request parts
  */
-export const validateBody = (schema: ZodSchema) => validate(z.object({ body: schema }));
-export const validateParams = (schema: ZodSchema) => validate(z.object({ params: schema }));
-export const validateQuery = (schema: ZodSchema) => validate(z.object({ query: schema }));
+export const validateBody = (schema: ZodSchema) =>
+  validate(z.object({ body: schema }));
+export const validateParams = (schema: ZodSchema) =>
+  validate(z.object({ params: schema }));
+export const validateQuery = (schema: ZodSchema) =>
+  validate(z.object({ query: schema }));
 
 /**
  * Combined validation for multiple request parts

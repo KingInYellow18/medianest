@@ -87,7 +87,9 @@ export function requireRole(...roles: string[]) {
     }
 
     if (!roles.includes(req.user.role)) {
-      return next(new AuthorizationError(`Required role: ${roles.join(' or ')}`));
+      return next(
+        new AuthorizationError(`Required role: ${roles.join(' or ')}`)
+      );
     }
 
     next();
@@ -107,7 +109,9 @@ export function optionalAuth() {
     try {
       // Extract token from Authorization header
       const authHeader = req.headers.authorization;
-      const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
+      const token = authHeader?.startsWith('Bearer ')
+        ? authHeader.substring(7)
+        : null;
 
       if (!token) {
         // No token, but that's OK for optional auth

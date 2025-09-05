@@ -1,13 +1,13 @@
-import React, { ReactElement } from 'react'
-import { render, RenderOptions, RenderResult } from '@testing-library/react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { SessionProvider } from 'next-auth/react'
-import userEvent from '@testing-library/user-event'
+import React, { ReactElement } from 'react';
+import { render, RenderOptions, RenderResult } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { SessionProvider } from 'next-auth/react';
+import userEvent from '@testing-library/user-event';
 
 // Custom render function with providers
 interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
-  session?: any
-  queryClient?: QueryClient
+  session?: any;
+  queryClient?: QueryClient;
 }
 
 export function renderWithProviders(
@@ -25,13 +25,13 @@ export function renderWithProviders(
           {children}
         </QueryClientProvider>
       </SessionProvider>
-    )
-  }
+    );
+  };
 
   return {
     user: userEvent.setup(),
     ...render(ui, { wrapper: Wrapper, ...renderOptions }),
-  }
+  };
 }
 
 // Create a test QueryClient with sensible defaults
@@ -52,7 +52,7 @@ export function createTestQueryClient(): QueryClient {
       warn: () => {},
       error: () => {},
     },
-  })
+  });
 }
 
 // Mock session data generators
@@ -64,7 +64,7 @@ export const mockSession = {
     role: 'user' as const,
   },
   expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-}
+};
 
 export const mockAdminSession = {
   ...mockSession,
@@ -72,20 +72,20 @@ export const mockAdminSession = {
     ...mockSession.user,
     role: 'admin' as const,
   },
-}
+};
 
 // Test helper functions
 export function waitForLoadingToFinish() {
-  return new Promise((resolve) => {
-    setTimeout(resolve, 0)
-  })
+  return new Promise(resolve => {
+    setTimeout(resolve, 0);
+  });
 }
 
 export async function clickAndWait(element: HTMLElement) {
-  await userEvent.click(element)
-  await waitForLoadingToFinish()
+  await userEvent.click(element);
+  await waitForLoadingToFinish();
 }
 
 // Custom matchers can be added here if needed
-export * from '@testing-library/react'
-export { userEvent }
+export * from '@testing-library/react';
+export { userEvent };

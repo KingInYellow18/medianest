@@ -1,9 +1,9 @@
 import { getRedisClient } from './redis-client';
 
 export interface CacheOptions {
-  ttl?: number;          // Time to live in seconds
-  keyPrefix?: string;    // Custom key prefix
-  compress?: boolean;    // Whether to compress large values
+  ttl?: number; // Time to live in seconds
+  keyPrefix?: string; // Custom key prefix
+  compress?: boolean; // Whether to compress large values
 }
 
 // Default cache configurations
@@ -11,23 +11,23 @@ export const CACHE_CONFIG = {
   // Service status cache: 5 minutes
   SERVICE_STATUS: {
     ttl: 5 * 60,
-    keyPrefix: 'cache:service:'
+    keyPrefix: 'cache:service:',
   },
   // Plex library cache: 30 minutes
   PLEX_LIBRARY: {
     ttl: 30 * 60,
-    keyPrefix: 'cache:plex:'
+    keyPrefix: 'cache:plex:',
   },
   // User preferences: 1 hour
   USER_PREFERENCES: {
     ttl: 60 * 60,
-    keyPrefix: 'cache:user:pref:'
+    keyPrefix: 'cache:user:pref:',
   },
   // Media metadata: 24 hours
   MEDIA_METADATA: {
     ttl: 24 * 60 * 60,
-    keyPrefix: 'cache:media:'
-  }
+    keyPrefix: 'cache:media:',
+  },
 };
 
 /**
@@ -40,10 +40,10 @@ export async function setCache<T>(
 ): Promise<void> {
   const redis = getRedisClient();
   const fullKey = `${options.keyPrefix || 'cache:'}${key}`;
-  
+
   try {
     const serialized = JSON.stringify(value);
-    
+
     if (options.ttl) {
       await redis.setex(fullKey, options.ttl, serialized);
     } else {
@@ -64,11 +64,11 @@ export async function getCache<T>(
 ): Promise<T | null> {
   const redis = getRedisClient();
   const fullKey = `${options.keyPrefix || 'cache:'}${key}`;
-  
+
   try {
     const value = await redis.get(fullKey);
     if (!value) return null;
-    
+
     return JSON.parse(value) as T;
   } catch (error) {
     console.error('Failed to get cache:', error);
@@ -85,7 +85,7 @@ export async function deleteCache(
 ): Promise<void> {
   const redis = getRedisClient();
   const fullKey = `${options.keyPrefix || 'cache:'}${key}`;
-  
+
   try {
     await redis.del(fullKey);
   } catch (error) {
@@ -98,11 +98,11 @@ export async function deleteCache(
  */
 export async function deleteCachePattern(pattern: string): Promise<number> {
   const redis = getRedisClient();
-  
+
   try {
     const keys = await redis.keys(pattern);
     if (keys.length === 0) return 0;
-    
+
     return await redis.del(...keys);
   } catch (error) {
     console.error('Failed to delete cache pattern:', error);
@@ -119,9 +119,9 @@ export async function cacheExists(
 ): Promise<boolean> {
   const redis = getRedisClient();
   const fullKey = `${options.keyPrefix || 'cache:'}${key}`;
-  
+
   try {
-    return await redis.exists(fullKey) === 1;
+    return (await redis.exists(fullKey)) === 1;
   } catch (error) {
     console.error('Failed to check cache existence:', error);
     return false;
@@ -137,7 +137,7 @@ export async function getCacheTTL(
 ): Promise<number> {
   const redis = getRedisClient();
   const fullKey = `${options.keyPrefix || 'cache:'}${key}`;
-  
+
   try {
     return await redis.ttl(fullKey);
   } catch (error) {
@@ -159,13 +159,13 @@ export async function cacheWrapper<T>(
   if (cached !== null) {
     return cached;
   }
-  
+
   // Compute the value
   const value = await compute();
-  
+
   // Store in cache for next time
   await setCache(key, value, options);
-  
+
   return value;
 }
 
@@ -185,13 +185,13 @@ export async function batchGetCache<T>(
 ): Promise<Map<string, T>> {
   const redis = getRedisClient();
   const result = new Map<string, T>();
-  
+
   if (keys.length === 0) return result;
-  
+
   try {
     const fullKeys = keys.map(key => `${options.keyPrefix || 'cache:'}${key}`);
     const values = await redis.mget(...fullKeys);
-    
+
     keys.forEach((key, index) => {
       const value = values[index];
       if (value) {
@@ -205,7 +205,7 @@ export async function batchGetCache<T>(
   } catch (error) {
     console.error('Failed to batch get cache:', error);
   }
-  
+
   return result;
 }
 
@@ -217,23 +217,23 @@ export async function batchSetCache<T>(
   options: CacheOptions = {}
 ): Promise<void> {
   const redis = getRedisClient();
-  
+
   if (entries.size === 0) return;
-  
+
   try {
     const pipeline = redis.pipeline();
-    
+
     for (const [key, value] of entries) {
       const fullKey = `${options.keyPrefix || 'cache:'}${key}`;
       const serialized = JSON.stringify(value);
-      
+
       if (options.ttl) {
         pipeline.setex(fullKey, options.ttl, serialized);
       } else {
         pipeline.set(fullKey, serialized);
       }
     }
-    
+
     await pipeline.exec();
   } catch (error) {
     console.error('Failed to batch set cache:', error);

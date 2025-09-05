@@ -83,7 +83,7 @@ export class CircuitBreaker {
     if (!this.options.expectedErrors) return false;
 
     const errorMessage = error?.message || error?.toString() || '';
-    return this.options.expectedErrors.some((expected) =>
+    return this.options.expectedErrors.some(expected =>
       errorMessage.toLowerCase().includes(expected.toLowerCase())
     );
   }

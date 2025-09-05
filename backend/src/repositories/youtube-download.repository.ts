@@ -2,7 +2,11 @@ import { YoutubeDownload, Prisma } from '@prisma/client';
 
 import { NotFoundError } from '../utils/errors';
 
-import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
+import {
+  BaseRepository,
+  PaginationOptions,
+  PaginatedResult,
+} from './base.repository';
 
 export interface CreateYoutubeDownloadInput {
   userId: string;
@@ -87,16 +91,22 @@ export class YoutubeDownloadRepository extends BaseRepository<
       if (filters.createdBefore) where.createdAt.lte = filters.createdBefore;
     }
 
-    return this.paginate<YoutubeDownload>(this.prisma.youtubeDownload, where, options, undefined, {
-      user: {
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          plexUsername: true,
+    return this.paginate<YoutubeDownload>(
+      this.prisma.youtubeDownload,
+      where,
+      options,
+      undefined,
+      {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            plexUsername: true,
+          },
         },
-      },
-    });
+      }
+    );
   }
 
   async create(data: CreateYoutubeDownloadInput): Promise<YoutubeDownload> {
@@ -119,7 +129,10 @@ export class YoutubeDownloadRepository extends BaseRepository<
     }
   }
 
-  async update(id: string, data: UpdateYoutubeDownloadInput): Promise<YoutubeDownload> {
+  async update(
+    id: string,
+    data: UpdateYoutubeDownloadInput
+  ): Promise<YoutubeDownload> {
     try {
       const exists = await this.prisma.youtubeDownload.findUnique({
         where: { id },
@@ -235,7 +248,10 @@ export class YoutubeDownloadRepository extends BaseRepository<
     });
   }
 
-  async getUserDownloadsInPeriod(userId: string, hours: number): Promise<number> {
+  async getUserDownloadsInPeriod(
+    userId: string,
+    hours: number
+  ): Promise<number> {
     const since = new Date();
     since.setHours(since.getHours() - hours);
 

@@ -11,7 +11,7 @@ export const initializeRedis = async (): Promise<Redis> => {
       port: parseInt(process.env.REDIS_PORT || '6379'),
       password: process.env.REDIS_PASSWORD,
       maxRetriesPerRequest: 3,
-      retryStrategy: (times) => {
+      retryStrategy: times => {
         const delay = Math.min(times * 50, 2000);
         return delay;
       },
@@ -21,7 +21,7 @@ export const initializeRedis = async (): Promise<Redis> => {
       logger.info('Redis connected');
     });
 
-    redisClient.on('error', (err) => {
+    redisClient.on('error', err => {
       logger.error('Redis error:', err);
     });
 

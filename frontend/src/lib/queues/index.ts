@@ -6,7 +6,7 @@ export {
   createWorker,
   QUEUE_NAMES,
   QUEUE_CONFIGS,
-  type QueueName
+  type QueueName,
 } from './queue-config';
 
 // YouTube download queue exports
@@ -21,5 +21,5 @@ export {
   resumeDownloadQueue,
   cleanOldDownloadJobs,
   type YoutubeDownloadJobData,
-  type YoutubeDownloadProgress
+  type YoutubeDownloadProgress,
 } from './youtube-download-queue';

@@ -106,7 +106,8 @@ export class PlexApiClient extends BaseApiClient {
       baseURL: config.baseURL || 'https://plex.tv',
       headers: {
         'X-Plex-Token': config.plexToken,
-        'X-Plex-Client-Identifier': process.env.PLEX_CLIENT_IDENTIFIER || 'medianest-server',
+        'X-Plex-Client-Identifier':
+          process.env.PLEX_CLIENT_IDENTIFIER || 'medianest-server',
         'X-Plex-Product': 'MediaNest',
         'X-Plex-Version': '1.0.0',
         'X-Plex-Platform': 'Web',
@@ -123,9 +124,12 @@ export class PlexApiClient extends BaseApiClient {
 
   async getUser(): Promise<PlexUserData> {
     try {
-      const response = await this.request<{ user: PlexUserData }>('/api/v2/user', {
-        method: 'GET',
-      });
+      const response = await this.request<{ user: PlexUserData }>(
+        '/api/v2/user',
+        {
+          method: 'GET',
+        }
+      );
 
       return response.data.user;
     } catch (error) {
@@ -136,10 +140,9 @@ export class PlexApiClient extends BaseApiClient {
 
   async getServers(): Promise<PlexServer[]> {
     try {
-      const response = await this.request<{ MediaContainer: { Server: PlexServer[] } }>(
-        '/api/v2/resources',
-        { method: 'GET' }
-      );
+      const response = await this.request<{
+        MediaContainer: { Server: PlexServer[] };
+      }>('/api/v2/resources', { method: 'GET' });
 
       return response.data.MediaContainer?.Server || [];
     } catch (error) {
@@ -155,10 +158,9 @@ export class PlexApiClient extends BaseApiClient {
     }
 
     try {
-      const response = await this.requestToServer<{ MediaContainer: { Directory: PlexLibrary[] } }>(
-        baseUrl,
-        '/library/sections'
-      );
+      const response = await this.requestToServer<{
+        MediaContainer: { Directory: PlexLibrary[] };
+      }>(baseUrl, '/library/sections');
 
       return response.data.MediaContainer?.Directory || [];
     } catch (error) {
@@ -167,7 +169,10 @@ export class PlexApiClient extends BaseApiClient {
     }
   }
 
-  async getLibraryContent(libraryKey: string, serverUrl?: string): Promise<PlexMediaItem[]> {
+  async getLibraryContent(
+    libraryKey: string,
+    serverUrl?: string
+  ): Promise<PlexMediaItem[]> {
     const baseUrl = serverUrl || this.serverUrl;
     if (!baseUrl) {
       throw new Error('No Plex server URL configured');
@@ -188,7 +193,10 @@ export class PlexApiClient extends BaseApiClient {
     }
   }
 
-  async searchMedia(query: string, serverUrl?: string): Promise<PlexMediaItem[]> {
+  async searchMedia(
+    query: string,
+    serverUrl?: string
+  ): Promise<PlexMediaItem[]> {
     const baseUrl = serverUrl || this.serverUrl;
     if (!baseUrl) {
       throw new Error('No Plex server URL configured');
@@ -210,7 +218,10 @@ export class PlexApiClient extends BaseApiClient {
     }
   }
 
-  async getMediaItem(ratingKey: string, serverUrl?: string): Promise<PlexMediaItem> {
+  async getMediaItem(
+    ratingKey: string,
+    serverUrl?: string
+  ): Promise<PlexMediaItem> {
     const baseUrl = serverUrl || this.serverUrl;
     if (!baseUrl) {
       throw new Error('No Plex server URL configured');
@@ -236,7 +247,10 @@ export class PlexApiClient extends BaseApiClient {
     }
   }
 
-  async getRecentlyAdded(serverUrl?: string, limit: number = 10): Promise<PlexMediaItem[]> {
+  async getRecentlyAdded(
+    serverUrl?: string,
+    limit: number = 10
+  ): Promise<PlexMediaItem[]> {
     const baseUrl = serverUrl || this.serverUrl;
     if (!baseUrl) {
       throw new Error('No Plex server URL configured');
@@ -249,7 +263,9 @@ export class PlexApiClient extends BaseApiClient {
 
       return response.data.MediaContainer?.Metadata || [];
     } catch (error) {
-      logger.error('Failed to get recently added media', { error: error.message });
+      logger.error('Failed to get recently added media', {
+        error: error.message,
+      });
       throw new Error(`Failed to get recently added media: ${error.message}`);
     }
   }
@@ -283,7 +299,10 @@ export class PlexApiClient extends BaseApiClient {
     }
   }
 
-  static async createFromUserToken(plexToken: string, serverUrl?: string): Promise<PlexApiClient> {
+  static async createFromUserToken(
+    plexToken: string,
+    serverUrl?: string
+  ): Promise<PlexApiClient> {
     const client = new PlexApiClient({
       plexToken,
       serverUrl,

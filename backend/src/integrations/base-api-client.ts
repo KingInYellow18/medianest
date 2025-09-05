@@ -1,4 +1,7 @@
-import { CircuitBreaker, CircuitBreakerOptions } from '../utils/circuit-breaker';
+import {
+  CircuitBreaker,
+  CircuitBreakerOptions,
+} from '../utils/circuit-breaker';
 import { logger } from '../utils/logger';
 
 export interface ApiClientConfig {
@@ -73,7 +76,9 @@ export abstract class BaseApiClient {
         logger.debug(`${this.serviceName} API request`, {
           method: options.method || 'GET',
           url,
-          headers: this.sanitizeHeaders(requestOptions.headers as Record<string, string>),
+          headers: this.sanitizeHeaders(
+            requestOptions.headers as Record<string, string>
+          ),
         });
 
         const response = await fetch(url, {
@@ -126,7 +131,9 @@ export abstract class BaseApiClient {
         clearTimeout(timeoutId);
 
         if (error.name === 'AbortError') {
-          throw new Error(`${this.serviceName} request timeout after ${timeout}ms`);
+          throw new Error(
+            `${this.serviceName} request timeout after ${timeout}ms`
+          );
         }
 
         logger.error(`${this.serviceName} API request failed`, {
@@ -162,11 +169,13 @@ export abstract class BaseApiClient {
           retryIn: retryDelay,
         });
 
-        await new Promise((resolve) => setTimeout(resolve, retryDelay * attempt));
+        await new Promise(resolve => setTimeout(resolve, retryDelay * attempt));
       }
     }
 
-    throw new Error(`${this.serviceName} request failed after ${maxRetries} attempts`);
+    throw new Error(
+      `${this.serviceName} request failed after ${maxRetries} attempts`
+    );
   }
 
   async healthCheck(): Promise<HealthStatus> {
@@ -211,7 +220,9 @@ export abstract class BaseApiClient {
     logger.info(`${this.serviceName} circuit breaker reset`);
   }
 
-  private sanitizeHeaders(headers: Record<string, string>): Record<string, string> {
+  private sanitizeHeaders(
+    headers: Record<string, string>
+  ): Record<string, string> {
     const sanitized = { ...headers };
     const sensitiveKeys = ['authorization', 'x-api-key', 'x-plex-token'];
 

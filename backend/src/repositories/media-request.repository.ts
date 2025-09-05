@@ -2,7 +2,11 @@ import { MediaRequest, Prisma } from '@prisma/client';
 
 import { NotFoundError } from '../utils/errors';
 
-import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
+import {
+  BaseRepository,
+  PaginationOptions,
+  PaginatedResult,
+} from './base.repository';
 
 export interface CreateMediaRequestInput {
   userId: string;
@@ -55,16 +59,22 @@ export class MediaRequestRepository extends BaseRepository<
     userId: string,
     options: PaginationOptions = {}
   ): Promise<PaginatedResult<MediaRequest>> {
-    return this.paginate<MediaRequest>(this.prisma.mediaRequest, { userId }, options, undefined, {
-      user: {
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          plexUsername: true,
+    return this.paginate<MediaRequest>(
+      this.prisma.mediaRequest,
+      { userId },
+      options,
+      undefined,
+      {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            plexUsername: true,
+          },
         },
-      },
-    });
+      }
+    );
   }
 
   async findByFilters(
@@ -83,16 +93,22 @@ export class MediaRequestRepository extends BaseRepository<
       if (filters.createdBefore) where.createdAt.lte = filters.createdBefore;
     }
 
-    return this.paginate<MediaRequest>(this.prisma.mediaRequest, where, options, undefined, {
-      user: {
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          plexUsername: true,
+    return this.paginate<MediaRequest>(
+      this.prisma.mediaRequest,
+      where,
+      options,
+      undefined,
+      {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            plexUsername: true,
+          },
         },
-      },
-    });
+      }
+    );
   }
 
   async create(data: CreateMediaRequestInput): Promise<MediaRequest> {
@@ -115,7 +131,10 @@ export class MediaRequestRepository extends BaseRepository<
     }
   }
 
-  async update(id: string, data: UpdateMediaRequestInput): Promise<MediaRequest> {
+  async update(
+    id: string,
+    data: UpdateMediaRequestInput
+  ): Promise<MediaRequest> {
     try {
       const exists = await this.prisma.mediaRequest.findUnique({
         where: { id },
@@ -155,7 +174,10 @@ export class MediaRequestRepository extends BaseRepository<
     return this.update(id, data);
   }
 
-  async bulkUpdateStatus(requestIds: string[], status: string): Promise<number> {
+  async bulkUpdateStatus(
+    requestIds: string[],
+    status: string
+  ): Promise<number> {
     try {
       const data: Prisma.MediaRequestUpdateManyMutationInput = { status };
 

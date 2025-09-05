@@ -4,7 +4,11 @@ import bcrypt from 'bcrypt';
 import { getPrismaClient } from '../db/prisma';
 import { NotFoundError } from '../utils/errors';
 
-import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
+import {
+  BaseRepository,
+  PaginationOptions,
+  PaginatedResult,
+} from './base.repository';
 
 export interface CreateUserInput {
   email: string;
@@ -27,7 +31,11 @@ export interface UpdateUserInput {
   requiresPasswordChange?: boolean;
 }
 
-export class UserRepository extends BaseRepository<User, CreateUserInput, UpdateUserInput> {
+export class UserRepository extends BaseRepository<
+  User,
+  CreateUserInput,
+  UpdateUserInput
+> {
   constructor() {
     super(getPrismaClient());
   }
@@ -61,7 +69,9 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
     }
   }
 
-  async findAll(options: PaginationOptions = {}): Promise<PaginatedResult<User>> {
+  async findAll(
+    options: PaginationOptions = {}
+  ): Promise<PaginatedResult<User>> {
     return this.paginate<User>(this.prisma.user, {}, options, {
       id: true,
       email: true,
@@ -74,7 +84,10 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
     });
   }
 
-  async findByRole(role: string, options: PaginationOptions = {}): Promise<PaginatedResult<User>> {
+  async findByRole(
+    role: string,
+    options: PaginationOptions = {}
+  ): Promise<PaginatedResult<User>> {
     return this.paginate<User>(this.prisma.user, { role }, options);
   }
 
@@ -158,7 +171,9 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
     return this.update(id, { plexToken });
   }
 
-  async findActiveUsers(options: PaginationOptions = {}): Promise<PaginatedResult<User>> {
+  async findActiveUsers(
+    options: PaginationOptions = {}
+  ): Promise<PaginatedResult<User>> {
     return this.paginate<User>(this.prisma.user, { status: 'active' }, options);
   }
 

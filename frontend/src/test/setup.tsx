@@ -1,25 +1,25 @@
-import '@testing-library/jest-dom'
-import { beforeAll, afterEach, afterAll, vi } from 'vitest'
-import { cleanup } from '@testing-library/react'
-import { server } from './mocks/server'
+import '@testing-library/jest-dom';
+import { beforeAll, afterEach, afterAll, vi } from 'vitest';
+import { cleanup } from '@testing-library/react';
+import { server } from './mocks/server';
 
 // Setup MSW server
 beforeAll(() => {
   server.listen({
     onUnhandledRequest: 'warn',
-  })
-})
+  });
+});
 
 // Cleanup after each test
 afterEach(() => {
-  cleanup()
-  server.resetHandlers()
-})
+  cleanup();
+  server.resetHandlers();
+});
 
 // Cleanup after all tests
 afterAll(() => {
-  server.close()
-})
+  server.close();
+});
 
 // Mock NextAuth.js
 vi.mock('next-auth/react', () => ({
@@ -31,7 +31,7 @@ vi.mock('next-auth/react', () => ({
   signOut: vi.fn(),
   getSession: vi.fn(),
   SessionProvider: ({ children }: { children: React.ReactNode }) => children,
-}))
+}));
 
 // Mock Next.js router
 vi.mock('next/navigation', () => ({
@@ -46,21 +46,21 @@ vi.mock('next/navigation', () => ({
   useSearchParams: vi.fn(() => new URLSearchParams()),
   usePathname: vi.fn(() => '/'),
   useParams: vi.fn(() => ({})),
-}))
+}));
 
 // Mock Next.js Image component
 vi.mock('next/image', () => ({
   default: (props: any) => {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img {...props} />
+    return <img {...props} />;
   },
-}))
+}));
 
 // Mock window.open for Plex auth
 Object.defineProperty(window, 'open', {
   writable: true,
   value: vi.fn(),
-})
+});
 
 // Mock localStorage
 Object.defineProperty(window, 'localStorage', {
@@ -71,21 +71,21 @@ Object.defineProperty(window, 'localStorage', {
     clear: vi.fn(),
   },
   writable: true,
-})
+});
 
 // Mock fetch if not available in test environment
-global.fetch = global.fetch || vi.fn()
+global.fetch = global.fetch || vi.fn();
 
 // Suppress console errors in tests unless needed
-const originalError = console.error
+const originalError = console.error;
 beforeAll(() => {
   console.error = (...args: any[]) => {
     if (
       typeof args[0] === 'string' &&
       args[0].includes('Warning: ReactDOM.render is no longer supported')
     ) {
-      return
+      return;
     }
-    originalError.call(console, ...args)
-  }
-})
+    originalError.call(console, ...args);
+  };
+});

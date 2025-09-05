@@ -5,7 +5,8 @@ export const authFixtures = {
     success: {
       pin: '1234',
       sessionId: 'test-session-id',
-      authUrl: 'https://plex.tv/auth#!?clientID=test-client&context[device][product]=MediaNest&context[device][version]=1.0.0&context[device][platform]=Web&context[device][platformVersion]=1.0.0&context[device][device]=Web&context[device][deviceName]=MediaNest&context[device][model]=Web&context[device][screenResolution]=1920x1080&code=1234',
+      authUrl:
+        'https://plex.tv/auth#!?clientID=test-client&context[device][product]=MediaNest&context[device][version]=1.0.0&context[device][platform]=Web&context[device][platformVersion]=1.0.0&context[device][device]=Web&context[device][deviceName]=MediaNest&context[device][model]=Web&context[device][screenResolution]=1920x1080&code=1234',
     },
     authorized: {
       authorized: true,
@@ -68,4 +69,4 @@ export const authFixtures = {
       expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     },
   },
-}
+};

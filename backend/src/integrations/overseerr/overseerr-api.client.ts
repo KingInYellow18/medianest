@@ -124,10 +124,14 @@ export class OverseerrApiClient extends BaseApiClient {
 
   async getSettings(): Promise<OverseerrSettings> {
     try {
-      const response = await this.request<OverseerrSettings>('/api/v1/settings/main');
+      const response = await this.request<OverseerrSettings>(
+        '/api/v1/settings/main'
+      );
       return response.data;
     } catch (error) {
-      logger.error('Failed to get Overseerr settings', { error: error.message });
+      logger.error('Failed to get Overseerr settings', {
+        error: error.message,
+      });
       throw new Error(`Failed to get Overseerr settings: ${error.message}`);
     }
   }
@@ -135,7 +139,13 @@ export class OverseerrApiClient extends BaseApiClient {
   async getRequests(
     take: number = 20,
     skip: number = 0,
-    filter?: 'all' | 'approved' | 'available' | 'pending' | 'processing' | 'unavailable'
+    filter?:
+      | 'all'
+      | 'approved'
+      | 'available'
+      | 'pending'
+      | 'processing'
+      | 'unavailable'
   ): Promise<{
     results: OverseerrMediaRequest[];
     pageInfo: { pages: number; pageSize: number; total: number; page: number };
@@ -149,19 +159,28 @@ export class OverseerrApiClient extends BaseApiClient {
 
       const response = await this.request<{
         results: OverseerrMediaRequest[];
-        pageInfo: { pages: number; pageSize: number; total: number; page: number };
+        pageInfo: {
+          pages: number;
+          pageSize: number;
+          total: number;
+          page: number;
+        };
       }>(`/api/v1/request?${params}`);
 
       return response.data;
     } catch (error) {
-      logger.error('Failed to get Overseerr requests', { error: error.message });
+      logger.error('Failed to get Overseerr requests', {
+        error: error.message,
+      });
       throw new Error(`Failed to get Overseerr requests: ${error.message}`);
     }
   }
 
   async getRequestById(requestId: number): Promise<OverseerrMediaRequest> {
     try {
-      const response = await this.request<OverseerrMediaRequest>(`/api/v1/request/${requestId}`);
+      const response = await this.request<OverseerrMediaRequest>(
+        `/api/v1/request/${requestId}`
+      );
       return response.data;
     } catch (error) {
       logger.error('Failed to get Overseerr request', {
@@ -172,12 +191,17 @@ export class OverseerrApiClient extends BaseApiClient {
     }
   }
 
-  async createRequest(requestData: CreateMediaRequestInput): Promise<OverseerrMediaRequest> {
+  async createRequest(
+    requestData: CreateMediaRequestInput
+  ): Promise<OverseerrMediaRequest> {
     try {
-      const response = await this.request<OverseerrMediaRequest>('/api/v1/request', {
-        method: 'POST',
-        body: JSON.stringify(requestData),
-      });
+      const response = await this.request<OverseerrMediaRequest>(
+        '/api/v1/request',
+        {
+          method: 'POST',
+          body: JSON.stringify(requestData),
+        }
+      );
 
       logger.info('Overseerr media request created', {
         requestId: response.data.id,
@@ -200,10 +224,13 @@ export class OverseerrApiClient extends BaseApiClient {
     updateData: Partial<CreateMediaRequestInput>
   ): Promise<OverseerrMediaRequest> {
     try {
-      const response = await this.request<OverseerrMediaRequest>(`/api/v1/request/${requestId}`, {
-        method: 'PUT',
-        body: JSON.stringify(updateData),
-      });
+      const response = await this.request<OverseerrMediaRequest>(
+        `/api/v1/request/${requestId}`,
+        {
+          method: 'PUT',
+          body: JSON.stringify(updateData),
+        }
+      );
 
       logger.info('Overseerr request updated', { requestId, updateData });
 
@@ -214,7 +241,9 @@ export class OverseerrApiClient extends BaseApiClient {
         updateData,
         error: error.message,
       });
-      throw new Error(`Failed to update request ${requestId}: ${error.message}`);
+      throw new Error(
+        `Failed to update request ${requestId}: ${error.message}`
+      );
     }
   }
 
@@ -233,11 +262,16 @@ export class OverseerrApiClient extends BaseApiClient {
         requestId,
         error: error.message,
       });
-      throw new Error(`Failed to approve request ${requestId}: ${error.message}`);
+      throw new Error(
+        `Failed to approve request ${requestId}: ${error.message}`
+      );
     }
   }
 
-  async declineRequest(requestId: number, reason?: string): Promise<OverseerrMediaRequest> {
+  async declineRequest(
+    requestId: number,
+    reason?: string
+  ): Promise<OverseerrMediaRequest> {
     try {
       const response = await this.request<OverseerrMediaRequest>(
         `/api/v1/request/${requestId}/decline`,
@@ -255,7 +289,9 @@ export class OverseerrApiClient extends BaseApiClient {
         requestId,
         error: error.message,
       });
-      throw new Error(`Failed to decline request ${requestId}: ${error.message}`);
+      throw new Error(
+        `Failed to decline request ${requestId}: ${error.message}`
+      );
     }
   }
 
@@ -271,7 +307,9 @@ export class OverseerrApiClient extends BaseApiClient {
         requestId,
         error: error.message,
       });
-      throw new Error(`Failed to delete request ${requestId}: ${error.message}`);
+      throw new Error(
+        `Failed to delete request ${requestId}: ${error.message}`
+      );
     }
   }
 
@@ -291,7 +329,12 @@ export class OverseerrApiClient extends BaseApiClient {
 
       const response = await this.request<{
         results: OverseerrMediaRequest[];
-        pageInfo: { pages: number; pageSize: number; total: number; page: number };
+        pageInfo: {
+          pages: number;
+          pageSize: number;
+          total: number;
+          page: number;
+        };
       }>(`/api/v1/user/${userId}/requests?${params}`);
 
       return response.data;
@@ -371,7 +414,10 @@ export class OverseerrApiClient extends BaseApiClient {
     }
   }
 
-  static async createFromConfig(overseerrUrl: string, apiKey: string): Promise<OverseerrApiClient> {
+  static async createFromConfig(
+    overseerrUrl: string,
+    apiKey: string
+  ): Promise<OverseerrApiClient> {
     const client = new OverseerrApiClient({
       overseerrUrl,
       apiKey,

@@ -9,7 +9,7 @@ const SESSION_TTL = 30 * 24 * 60 * 60; // 30 days
 const KEY_PREFIX = {
   SESSION: 'session:',
   USER_SESSIONS: 'user_sessions:',
-  ACTIVE_SESSIONS: 'active_sessions'
+  ACTIVE_SESSIONS: 'active_sessions',
 };
 
 export interface SessionData {
@@ -27,14 +27,10 @@ export async function storeSession(
 ): Promise<void> {
   const redis = getRedisClient();
   const key = `${KEY_PREFIX.SESSION}${sessionToken}`;
-  
+
   try {
     // Store session data
-    await redis.setex(
-      key,
-      SESSION_TTL,
-      JSON.stringify(data)
-    );
+    await redis.setex(key, SESSION_TTL, JSON.stringify(data));
 
     // Add to user's session set (for listing user sessions)
     if (data.session.user?.id) {
@@ -44,11 +40,7 @@ export async function storeSession(
     }
 
     // Track in active sessions sorted set
-    await redis.zadd(
-      KEY_PREFIX.ACTIVE_SESSIONS,
-      Date.now(),
-      sessionToken
-    );
+    await redis.zadd(KEY_PREFIX.ACTIVE_SESSIONS, Date.now(), sessionToken);
   } catch (error) {
     console.error('Failed to store session:', error);
     throw error;
@@ -58,7 +50,9 @@ export async function storeSession(
 /**
  * Retrieve session from Redis
  */
-export async function getSession(sessionToken: string): Promise<SessionData | null> {
+export async function getSession(
+  sessionToken: string
+): Promise<SessionData | null> {
   const redis = getRedisClient();
   const key = `${KEY_PREFIX.SESSION}${sessionToken}`;
 
@@ -67,17 +61,13 @@ export async function getSession(sessionToken: string): Promise<SessionData | nu
     if (!data) return null;
 
     const sessionData = JSON.parse(data) as SessionData;
-    
+
     // Update last accessed time
     sessionData.lastAccessed = new Date();
     await redis.setex(key, SESSION_TTL, JSON.stringify(sessionData));
-    
+
     // Update active sessions score
-    await redis.zadd(
-      KEY_PREFIX.ACTIVE_SESSIONS,
-      Date.now(),
-      sessionToken
-    );
+    await redis.zadd(KEY_PREFIX.ACTIVE_SESSIONS, Date.now(), sessionToken);
 
     return sessionData;
   } catch (error) {
@@ -103,7 +93,7 @@ export async function updateSession(
     const updated: SessionData = {
       ...existing,
       ...updates,
-      lastAccessed: new Date()
+      lastAccessed: new Date(),
     };
 
     await redis.setex(key, SESSION_TTL, JSON.stringify(updated));
@@ -124,7 +114,7 @@ export async function deleteSession(sessionToken: string): Promise<void> {
   try {
     // Get session to find user ID
     const sessionData = await getSession(sessionToken);
-    
+
     // Delete session
     await redis.del(key);
 
@@ -163,8 +153,8 @@ export async function getUserSessions(userId: string): Promise<SessionData[]> {
       }
     }
 
-    return sessions.sort((a, b) => 
-      b.lastAccessed.getTime() - a.lastAccessed.getTime()
+    return sessions.sort(
+      (a, b) => b.lastAccessed.getTime() - a.lastAccessed.getTime()
     );
   } catch (error) {
     console.error('Failed to get user sessions:', error);
@@ -177,12 +167,12 @@ export async function getUserSessions(userId: string): Promise<SessionData[]> {
  */
 export async function deleteUserSessions(userId: string): Promise<void> {
   const sessions = await getUserSessions(userId);
-  
+
   for (const session of sessions) {
     // Find session token from user sessions
     const userKey = `${KEY_PREFIX.USER_SESSIONS}${userId}`;
     const tokens = await getRedisClient().smembers(userKey);
-    
+
     for (const token of tokens) {
       await deleteSession(token);
     }
@@ -194,10 +184,10 @@ export async function deleteUserSessions(userId: string): Promise<void> {
  */
 export async function cleanupExpiredSessions(): Promise<number> {
   const redis = getRedisClient();
-  
+
   try {
     // Remove sessions older than SESSION_TTL from sorted set
-    const cutoff = Date.now() - (SESSION_TTL * 1000);
+    const cutoff = Date.now() - SESSION_TTL * 1000;
     const removed = await redis.zremrangebyscore(
       KEY_PREFIX.ACTIVE_SESSIONS,
       '-inf',
@@ -217,7 +207,7 @@ export async function cleanupExpiredSessions(): Promise<number> {
  */
 export async function getActiveSessionCount(): Promise<number> {
   const redis = getRedisClient();
-  
+
   try {
     return await redis.zcard(KEY_PREFIX.ACTIVE_SESSIONS);
   } catch (error) {
@@ -232,9 +222,9 @@ export async function getActiveSessionCount(): Promise<number> {
 export async function sessionExists(sessionToken: string): Promise<boolean> {
   const redis = getRedisClient();
   const key = `${KEY_PREFIX.SESSION}${sessionToken}`;
-  
+
   try {
-    return await redis.exists(key) === 1;
+    return (await redis.exists(key)) === 1;
   } catch (error) {
     console.error('Failed to check session existence:', error);
     return false;

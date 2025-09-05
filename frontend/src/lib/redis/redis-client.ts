@@ -27,7 +27,7 @@ const defaultConfig: RedisConfig = {
   retryStrategy: (times: number) => {
     const delay = Math.min(times * 50, 2000);
     return delay;
-  }
+  },
 };
 
 /**
@@ -42,7 +42,7 @@ export function getRedisClient(config?: Partial<RedisConfig>): Redis {
       console.log('✅ Redis client connected');
     });
 
-    redisClient.on('error', (err) => {
+    redisClient.on('error', err => {
       console.error('❌ Redis client error:', err);
     });
 
@@ -59,10 +59,10 @@ export function getRedisClient(config?: Partial<RedisConfig>): Redis {
  */
 export function getRedisSubscriber(config?: Partial<RedisConfig>): Redis {
   if (!redisSubscriber) {
-    const finalConfig = { 
-      ...defaultConfig, 
+    const finalConfig = {
+      ...defaultConfig,
       ...config,
-      maxRetriesPerRequest: null // Keep trying for subscribers
+      maxRetriesPerRequest: null, // Keep trying for subscribers
     };
     redisSubscriber = new Redis(finalConfig);
 
@@ -70,7 +70,7 @@ export function getRedisSubscriber(config?: Partial<RedisConfig>): Redis {
       console.log('✅ Redis subscriber connected');
     });
 
-    redisSubscriber.on('error', (err) => {
+    redisSubscriber.on('error', err => {
       console.error('❌ Redis subscriber error:', err);
     });
   }
@@ -85,7 +85,7 @@ export function createRedisConnection(config?: Partial<RedisConfig>): Redis {
   const finalConfig = { ...defaultConfig, ...config };
   const connection = new Redis(finalConfig);
 
-  connection.on('error', (err) => {
+  connection.on('error', err => {
     console.error('❌ Redis connection error:', err);
   });
 

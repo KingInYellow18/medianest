@@ -16,7 +16,8 @@ interface JWTOptions {
 }
 
 // Get JWT secret from environment
-const JWT_SECRET = process.env.JWT_SECRET || 'development-secret-change-in-production';
+const JWT_SECRET =
+  process.env.JWT_SECRET || 'development-secret-change-in-production';
 const JWT_ISSUER = process.env.JWT_ISSUER || 'medianest';
 const JWT_AUDIENCE = process.env.JWT_AUDIENCE || 'medianest-users';
 
@@ -29,7 +30,9 @@ export function generateToken(
   rememberMe: boolean = false,
   options?: JWTOptions
 ): string {
-  const expiresIn = rememberMe ? REMEMBER_ME_TOKEN_EXPIRY : DEFAULT_TOKEN_EXPIRY;
+  const expiresIn = rememberMe
+    ? REMEMBER_ME_TOKEN_EXPIRY
+    : DEFAULT_TOKEN_EXPIRY;
 
   const tokenOptions: jwt.SignOptions = {
     expiresIn: options?.expiresIn || expiresIn,
@@ -57,7 +60,11 @@ export function verifyToken(token: string): JWTPayload {
     if (error instanceof jwt.JsonWebTokenError) {
       throw new AppError('Invalid token', 401, 'INVALID_TOKEN');
     }
-    throw new AppError('Token verification failed', 401, 'TOKEN_VERIFICATION_FAILED');
+    throw new AppError(
+      'Token verification failed',
+      401,
+      'TOKEN_VERIFICATION_FAILED'
+    );
   }
 }
 

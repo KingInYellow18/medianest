@@ -36,7 +36,10 @@ export class ServiceStatusRepository extends BaseRepository<
     }
   }
 
-  async upsert(serviceName: string, data: ServiceStatusUpdate): Promise<ServiceStatus> {
+  async upsert(
+    serviceName: string,
+    data: ServiceStatusUpdate
+  ): Promise<ServiceStatus> {
     try {
       const updateData: Prisma.ServiceStatusUpdateInput = {
         ...data,
@@ -72,7 +75,10 @@ export class ServiceStatusRepository extends BaseRepository<
     });
   }
 
-  async updateUptimePercentage(serviceName: string, percentage: number): Promise<ServiceStatus> {
+  async updateUptimePercentage(
+    serviceName: string,
+    percentage: number
+  ): Promise<ServiceStatus> {
     return this.upsert(serviceName, {
       uptimePercentage: percentage,
     });

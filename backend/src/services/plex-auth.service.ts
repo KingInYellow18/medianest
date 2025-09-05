@@ -77,10 +77,14 @@ export class PlexAuthService {
   private readonly platform: string;
   private readonly deviceName: string;
 
-  constructor(userRepository: UserRepository, sessionTokenRepository: SessionTokenRepository) {
+  constructor(
+    userRepository: UserRepository,
+    sessionTokenRepository: SessionTokenRepository
+  ) {
     this.userRepository = userRepository;
     this.sessionTokenRepository = sessionTokenRepository;
-    this.clientIdentifier = process.env.PLEX_CLIENT_ID || this.generateClientId();
+    this.clientIdentifier =
+      process.env.PLEX_CLIENT_ID || this.generateClientId();
     this.product = process.env.PLEX_PRODUCT || 'MediaNest';
     this.version = process.env.PLEX_VERSION || '1.0.0';
     this.platform = process.env.PLEX_PLATFORM || 'Web';
@@ -91,7 +95,7 @@ export class PlexAuthService {
    * Generate Plex client identifier
    */
   private generateClientId(): string {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
       const r = (Math.random() * 16) | 0;
       const v = c === 'x' ? r : (r & 0x3) | 0x8;
       return v.toString(16);
@@ -142,7 +146,11 @@ export class PlexAuthService {
           status: response.status,
           error: errorText,
         });
-        throw new AppError('Unable to connect to Plex services', 503, 'PLEX_UNAVAILABLE');
+        throw new AppError(
+          'Unable to connect to Plex services',
+          503,
+          'PLEX_UNAVAILABLE'
+        );
       }
 
       const data = (await response.json()) as PlexPin;
@@ -158,7 +166,11 @@ export class PlexAuthService {
       if (error instanceof AppError) throw error;
 
       logger.error('Error creating Plex PIN', { error });
-      throw new AppError('Failed to initialize Plex authentication', 500, 'PLEX_PIN_ERROR');
+      throw new AppError(
+        'Failed to initialize Plex authentication',
+        500,
+        'PLEX_PIN_ERROR'
+      );
     }
   }
 
@@ -185,7 +197,11 @@ export class PlexAuthService {
           status: response.status,
           error: errorText,
         });
-        throw new AppError('Unable to verify PIN status', 503, 'PLEX_UNAVAILABLE');
+        throw new AppError(
+          'Unable to verify PIN status',
+          503,
+          'PLEX_UNAVAILABLE'
+        );
       }
 
       const data = (await response.json()) as PlexPin;
@@ -201,7 +217,11 @@ export class PlexAuthService {
       if (error instanceof AppError) throw error;
 
       logger.error('Error checking Plex PIN', { error, pinId });
-      throw new AppError('Failed to check PIN status', 500, 'PLEX_PIN_CHECK_ERROR');
+      throw new AppError(
+        'Failed to check PIN status',
+        500,
+        'PLEX_PIN_CHECK_ERROR'
+      );
     }
   }
 
@@ -227,7 +247,11 @@ export class PlexAuthService {
           status: response.status,
           error: errorText,
         });
-        throw new AppError('Unable to fetch user information', 503, 'PLEX_USER_ERROR');
+        throw new AppError(
+          'Unable to fetch user information',
+          503,
+          'PLEX_USER_ERROR'
+        );
       }
 
       const data = (await response.json()) as PlexUser;
@@ -243,7 +267,11 @@ export class PlexAuthService {
       if (error instanceof AppError) throw error;
 
       logger.error('Error getting Plex user', { error });
-      throw new AppError('Failed to fetch user information', 500, 'PLEX_USER_FETCH_ERROR');
+      throw new AppError(
+        'Failed to fetch user information',
+        500,
+        'PLEX_USER_FETCH_ERROR'
+      );
     }
   }
 
@@ -260,7 +288,11 @@ export class PlexAuthService {
       const pin = await this.checkPin(pinId);
 
       if (!pin.authToken) {
-        throw new AppError('PIN not yet authorized by user', 400, 'PIN_NOT_AUTHORIZED');
+        throw new AppError(
+          'PIN not yet authorized by user',
+          400,
+          'PIN_NOT_AUTHORIZED'
+        );
       }
 
       // Get user info from Plex
@@ -331,7 +363,11 @@ export class PlexAuthService {
       if (error instanceof AppError) throw error;
 
       logger.error('Error completing Plex OAuth', { error, pinId });
-      throw new AppError('Failed to complete authentication', 500, 'OAUTH_COMPLETION_ERROR');
+      throw new AppError(
+        'Failed to complete authentication',
+        500,
+        'OAUTH_COMPLETION_ERROR'
+      );
     }
   }
 }

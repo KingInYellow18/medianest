@@ -40,7 +40,7 @@ export const adminBootstrapSchema = z.object({
       name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
       confirmPassword: z.string(),
     })
-    .refine((data) => data.password === data.confirmPassword, {
+    .refine(data => data.password === data.confirmPassword, {
       message: 'Passwords do not match',
       path: ['confirmPassword'],
     }),
@@ -78,7 +78,7 @@ export const changePasswordSchema = z.object({
         ),
       confirmNewPassword: z.string(),
     })
-    .refine((data) => data.newPassword === data.confirmNewPassword, {
+    .refine(data => data.newPassword === data.confirmNewPassword, {
       message: 'New passwords do not match',
       path: ['confirmNewPassword'],
     }),
@@ -92,7 +92,7 @@ export const sessionSchema = z
         authorization: z
           .string()
           .regex(/^Bearer .+$/, 'Invalid authorization header format')
-          .transform((val) => val.replace('Bearer ', ''))
+          .transform(val => val.replace('Bearer ', ''))
           .optional(),
       })
       .optional(),
@@ -102,7 +102,7 @@ export const sessionSchema = z
       })
       .optional(),
   })
-  .refine((data) => data.headers?.authorization || data.cookies?.['auth-token'], {
+  .refine(data => data.headers?.authorization || data.cookies?.['auth-token'], {
     message: 'Authentication token is required',
     path: ['authorization'],
   });

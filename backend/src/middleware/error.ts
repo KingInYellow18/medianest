@@ -105,7 +105,8 @@ export const errorHandler = (
   }
 
   // Record metrics
-  const errorCode = err instanceof AppError ? err.code || 'UNKNOWN' : 'INTERNAL_ERROR';
+  const errorCode =
+    err instanceof AppError ? err.code || 'UNKNOWN' : 'INTERNAL_ERROR';
   metrics.incrementError(errorCode);
 
   // Handle specific error types
@@ -116,7 +117,8 @@ export const errorHandler = (
         message: USER_ERRORS.VALIDATION_ERROR,
         code: 'VALIDATION_ERROR',
         correlationId,
-        details: process.env.NODE_ENV === 'development' ? err.errors : undefined,
+        details:
+          process.env.NODE_ENV === 'development' ? err.errors : undefined,
       },
     });
   }

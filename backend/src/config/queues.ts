@@ -27,7 +27,7 @@ export const initializeQueues = async () => {
   });
 
   // Queue event handlers
-  youtubeQueue.on('completed', (job) => {
+  youtubeQueue.on('completed', job => {
     logger.info(`YouTube download completed: ${job.id}`);
   });
 
@@ -35,7 +35,7 @@ export const initializeQueues = async () => {
     logger.error(`YouTube download failed: ${job.id}`, err);
   });
 
-  youtubeQueue.on('stalled', (job) => {
+  youtubeQueue.on('stalled', job => {
     logger.warn(`YouTube download stalled: ${job.id}`);
   });
 };

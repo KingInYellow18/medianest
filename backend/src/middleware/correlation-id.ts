@@ -13,7 +13,11 @@ declare global {
   }
 }
 
-export function correlationIdMiddleware(req: Request, res: Response, next: NextFunction) {
+export function correlationIdMiddleware(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   // Extract or generate correlation ID (case-insensitive)
   const correlationId =
     req.headers['x-correlation-id'] ||

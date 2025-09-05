@@ -93,7 +93,10 @@ export class ServiceConfigRepository extends BaseRepository<
     }
   }
 
-  async update(serviceName: string, data: UpdateServiceConfigInput): Promise<ServiceConfig> {
+  async update(
+    serviceName: string,
+    data: UpdateServiceConfigInput
+  ): Promise<ServiceConfig> {
     try {
       const exists = await this.prisma.serviceConfig.findUnique({
         where: { serviceName },
@@ -125,7 +128,10 @@ export class ServiceConfigRepository extends BaseRepository<
     }
   }
 
-  async upsert(serviceName: string, data: UpdateServiceConfigInput): Promise<ServiceConfig> {
+  async upsert(
+    serviceName: string,
+    data: UpdateServiceConfigInput
+  ): Promise<ServiceConfig> {
     try {
       return await this.prisma.serviceConfig.upsert({
         where: { serviceName },
@@ -153,7 +159,11 @@ export class ServiceConfigRepository extends BaseRepository<
     }
   }
 
-  async toggle(serviceName: string, enabled: boolean, updatedBy?: string): Promise<ServiceConfig> {
+  async toggle(
+    serviceName: string,
+    enabled: boolean,
+    updatedBy?: string
+  ): Promise<ServiceConfig> {
     return this.update(serviceName, { enabled, updatedBy });
   }
 

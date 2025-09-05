@@ -28,7 +28,11 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput> {
       throw new AppError('Record not found', 404, 'NOT_FOUND');
     }
     if (error.code === 'P2003') {
-      throw new AppError('Foreign key constraint failed', 400, 'FOREIGN_KEY_ERROR');
+      throw new AppError(
+        'Foreign key constraint failed',
+        400,
+        'FOREIGN_KEY_ERROR'
+      );
     }
     if (error.code === 'P2016') {
       throw new AppError('Query interpretation error', 400, 'QUERY_ERROR');

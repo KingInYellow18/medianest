@@ -25,7 +25,10 @@ const router = Router();
 // Repository instances - these should ideally be injected in production
 const userRepository = new UserRepository();
 const sessionTokenRepository = new SessionTokenRepository();
-const plexAuthService = new PlexAuthService(userRepository, sessionTokenRepository);
+const plexAuthService = new PlexAuthService(
+  userRepository,
+  sessionTokenRepository
+);
 
 // POST /api/auth/plex/pin - Create Plex OAuth PIN
 router.post(
@@ -111,7 +114,11 @@ router.post(
     // Check if this is the first user (admin bootstrap)
     const isFirstUser = await userRepository.isFirstUser();
     if (!isFirstUser) {
-      throw new AppError('Admin user already exists. Use regular login.', 400, 'ADMIN_EXISTS');
+      throw new AppError(
+        'Admin user already exists. Use regular login.',
+        400,
+        'ADMIN_EXISTS'
+      );
     }
 
     // Create admin user
@@ -177,7 +184,11 @@ router.post(
     // Find user by email
     const user = await userRepository.findByEmail(email);
     if (!user) {
-      throw new AppError('Invalid email or password', 401, 'INVALID_CREDENTIALS');
+      throw new AppError(
+        'Invalid email or password',
+        401,
+        'INVALID_CREDENTIALS'
+      );
     }
 
     // Check if user has a password (for admin bootstrap users)
@@ -192,7 +203,11 @@ router.post(
     // Verify password
     const isValidPassword = await bcrypt.compare(password, user.passwordHash);
     if (!isValidPassword) {
-      throw new AppError('Invalid email or password', 401, 'INVALID_CREDENTIALS');
+      throw new AppError(
+        'Invalid email or password',
+        401,
+        'INVALID_CREDENTIALS'
+      );
     }
 
     // Update last login
@@ -332,12 +347,23 @@ router.post(
 
     // Verify current password (only for users with passwords)
     if (fullUser.passwordHash) {
-      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, fullUser.passwordHash);
+      const isCurrentPasswordValid = await bcrypt.compare(
+        currentPassword,
+        fullUser.passwordHash
+      );
       if (!isCurrentPasswordValid) {
-        throw new AppError('Current password is incorrect', 400, 'INVALID_CURRENT_PASSWORD');
+        throw new AppError(
+          'Current password is incorrect',
+          400,
+          'INVALID_CURRENT_PASSWORD'
+        );
       }
     } else if (user.role === 'admin') {
-      throw new AppError('Admin users must have a password', 400, 'PASSWORD_REQUIRED');
+      throw new AppError(
+        'Admin users must have a password',
+        400,
+        'PASSWORD_REQUIRED'
+      );
     }
 
     // Hash new password
