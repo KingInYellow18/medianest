@@ -1,33 +1,45 @@
-# Dependencies
+# ===================================
+# CORE DEPENDENCIES & PACKAGE MANAGERS
+# ===================================
 node_modules/
 .pnp
 .pnp.js
 
-# Testing
-coverage/
-.nyc_output
-
+# ===================================
+# BUILD OUTPUTS & DISTRIBUTIONS
+# ===================================
 # Next.js
 .next/
 out/
+
+# General build directories
 build/
 dist/
 
-# Production
-build/
-dist/
+# TypeScript build info
+*.tsbuildinfo
+next-env.d.ts
 
-# Misc
-.DS_Store
-*.pem
+# Compiled shared library files
+shared/src/**/*.js
+shared/src/**/*.js.map
+shared/src/**/*.d.ts
+shared/src/**/*.d.ts.map
 
-# Debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
+# ===================================
+# TESTING & COVERAGE
+# ===================================
+coverage/
+.nyc_output
+test-results/
+playwright-report/
+*.coverage
+.vitest-cache/
 
-# Local env files
+# ===================================
+# ENVIRONMENT & CONFIGURATION
+# ===================================
+# Environment files
 .env
 .env.local
 .env.development.local
@@ -36,19 +48,15 @@ yarn-error.log*
 .env.prod
 .env.test
 
-# Vercel
+# ===================================
+# CLOUD DEPLOYMENT
+# ===================================
 .vercel
 
-# TypeScript
-*.tsbuildinfo
-next-env.d.ts
-shared/**/*.js
-shared/**/*.js.map
-shared/**/*.d.ts
-shared/**/*.d.ts.map
-!shared/tsconfig.json
-
-# IDE
+# ===================================
+# DEVELOPMENT TOOLS & IDE
+# ===================================
+# IDE and editors
 .vscode/
 .idea/
 *.swp
@@ -59,26 +67,56 @@ shared/**/*.d.ts.map
 .DS_Store
 Thumbs.db
 
-# Docker
-docker-compose.override.yml
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+debug.log
 
-# Uploads and downloads
+# ===================================
+# RUNTIME & TEMPORARY FILES
+# ===================================
+# Runtime directories
 uploads/
 youtube/
 
-# Secrets and sensitive configuration
-secrets/
-!secrets/.gitkeep
-.secrets/
-docker-secrets/
-
-# Database
-postgres_data/
-redis_data/
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
 
 # Logs
 logs/
 *.log
+
+# ===================================
+# SECURITY & CREDENTIALS
+# ===================================
+secrets/*
+!secrets/.gitkeep
+.secrets/
+docker-secrets/
+
+# ===================================
+# DATABASE FILES
+# ===================================
+postgres_data/
+redis_data/
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+*.db-journal
+*.sqlite-journal
+*.sqlite-wal
+
+# ===================================
+# DOCKER & CONTAINERS
+# ===================================
+docker-compose.override.yml
 
 # Certificates
 *.pem
@@ -87,26 +125,30 @@ logs/
 *.csr
 certs/
 
-# Claude Flow generated files
-.claude/settings.local.json
-.mcp.json
-claude-flow.config.json
+# ===================================
+# AI DEVELOPMENT SYSTEM FILES
+# ===================================
+# Claude & AI Development Tools
+.claude/
+.claude-flow/
 .swarm/
 .hive-mind/
-memory/claude-flow-data.json
-memory/sessions/*
-!memory/sessions/README.md
-memory/agents/*
-!memory/agents/README.md
+.neural-cache/
+
+# AI Configuration Files
+claude-flow.config.json
+.mcp.json
+ruv-memory.db*
+*.memory.json
+.ai-session*
+
+# AI Memory & Coordination
+memory/
 coordination/memory_bank/*
 coordination/subtasks/*
 coordination/orchestration/*
-*.db
-*.db-journal
-*.db-wal
-*.sqlite
-*.sqlite-journal
-*.sqlite-wal
+
+# AI Generated Executables
 claude-flow
 claude-flow.bat
 claude-flow.ps1

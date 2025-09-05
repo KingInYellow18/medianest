@@ -38,7 +38,10 @@
     "db:generate": "npm run prisma:generate --workspace=backend",
     "db:studio": "npm run prisma:studio --workspace=backend",
     "generate-secrets": "node scripts/generate-secrets.js",
-    "prepare": "simple-git-hooks"
+    "prepare": "simple-git-hooks",
+    "gitignore:status": "node scripts/gitignore-manager.js --status",
+    "gitignore:apply": "node scripts/gitignore-manager.js",
+    "gitignore:list": "node scripts/gitignore-manager.js --list"
   },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged"

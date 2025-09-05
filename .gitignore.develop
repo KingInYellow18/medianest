@@ -1,0 +1,123 @@
+# ===================================
+# DEVELOPMENT BRANCH SPECIFIC IGNORES
+# ===================================
+# This file contains additional ignore patterns for the develop branch
+# These rules are ADDED to the base .gitignore rules
+
+# ===================================
+# DEVELOPMENT & EXPERIMENTATION
+# ===================================
+# Temporary development files
+dev-*
+tmp-*
+*.dev
+*.tmp.*
+experiment-*
+test-*
+temp-*
+scratch.*
+draft-*
+
+# Development logs and debugging
+dev.log*
+development.log*
+debug-*.log
+trace-*.log
+*.debug
+performance-*.json
+benchmark-*.json
+
+# Development databases and caches
+dev.db*
+development.db*
+dev-cache/
+dev-data/
+test-data/
+mock-data/
+
+# ===================================
+# AI DEVELOPMENT ARTIFACTS
+# ===================================
+# Training and experimentation data
+training-data/
+ai-experiments/
+model-checkpoints/
+neural-training-*
+ai-debug-*
+swarm-debug-*
+
+# Development AI sessions and memory
+memory/dev-*
+memory/experiments/
+.ai-dev-session*
+.swarm-dev-*
+.neural-dev-*
+
+# AI development outputs
+ai-output-*
+swarm-output-*
+training-logs/
+inference-logs/
+
+# ===================================
+# TESTING & PERFORMANCE ARTIFACTS
+# ===================================
+# Extended test artifacts
+test-output/
+test-reports/
+*.test.log
+perf-test-*
+load-test-*
+e2e-results/
+
+# Coverage and analysis artifacts
+coverage-dev/
+analysis-output/
+profiling-*
+benchmarks/
+
+# ===================================
+# DEVELOPMENT TOOLS
+# ===================================
+# Development scripts and utilities
+dev-scripts/
+dev-tools/
+utilities/dev-*
+
+# IDE development configurations
+.vscode/dev-*
+.idea/dev-*
+
+# Development environment configs
+.dev-env
+dev.config.*
+development.config.*
+
+# ===================================
+# RAPID ITERATION FILES
+# ===================================
+# Quick prototypes and experiments
+prototype-*
+poc-*
+sandbox-*
+playground-*
+
+# Development assets
+dev-assets/
+temp-assets/
+test-assets/
+
+# Development uploads and media
+dev-uploads/
+temp-media/
+test-media/
+
+# ===================================
+# DOCUMENTATION DRAFTS
+# ===================================
+# Development documentation
+DRAFT-*
+TODO-*
+NOTES-*
+dev-notes.*
+development-notes.*

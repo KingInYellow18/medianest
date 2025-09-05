@@ -1,0 +1,107 @@
+# ===================================
+# STAGING BRANCH SPECIFIC IGNORES
+# ===================================
+# This file contains additional ignore patterns for the staging branch
+# These rules are ADDED to the base .gitignore rules
+# More selective than develop, but allows necessary staging artifacts
+
+# ===================================
+# STAGING & PRE-PRODUCTION
+# ===================================
+# Staging-specific temporary files
+staging-*
+stage-*
+*.staging
+pre-prod-*
+*.preprod
+
+# Staging logs and monitoring
+staging.log*
+stage.log*
+staging-debug.log
+staging-error.log
+performance-staging-*.json
+
+# Staging databases and test data
+staging.db*
+staging-data/
+stage-cache/
+staging-uploads/
+
+# ===================================
+# AI SYSTEM STAGING
+# ===================================
+# Staging AI memory and sessions
+memory/staging-*
+memory/stage-*
+.ai-staging-session*
+.swarm-staging-*
+
+# AI staging outputs and training
+ai-staging-*
+swarm-staging-*
+staging-training-logs/
+staging-model-*
+
+# Neural network staging artifacts
+.neural-staging-*
+neural-staging-cache/
+
+# ===================================
+# TESTING & VALIDATION
+# ===================================
+# Staging test artifacts
+staging-test-*
+stage-test-*
+integration-test-staging/
+acceptance-test-*/
+uat-results/
+
+# Performance testing on staging
+perf-staging-*
+load-test-staging-*
+stress-test-staging-*
+
+# Test coverage for staging
+coverage-staging/
+staging-coverage/
+
+# ===================================
+# DEPLOYMENT & RELEASE ARTIFACTS
+# ===================================
+# Staging deployment artifacts
+deployment-staging/
+staging-build-*/
+release-candidate-*/
+staging-assets-*/
+
+# Pre-production validation
+validation-staging-*/
+staging-validation-*
+pre-release-*
+
+# ===================================
+# MONITORING & ANALYTICS
+# ===================================
+# Staging monitoring files
+monitoring-staging/
+metrics-staging-*/
+analytics-staging-*/
+staging-reports/
+
+# Performance monitoring
+apm-staging-*/
+profiling-staging-*/
+
+# ===================================
+# DOCUMENTATION & REPORTS
+# ===================================
+# Staging-specific documentation
+STAGING-*
+staging-notes.*
+staging-report-*
+staging-analysis-*
+
+# Release documentation drafts
+RELEASE-NOTES-DRAFT-*
+CHANGELOG-DRAFT-*
