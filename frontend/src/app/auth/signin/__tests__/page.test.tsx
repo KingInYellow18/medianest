@@ -7,11 +7,12 @@ import { renderWithProviders } from '@/test/utils';
 vi.mock('next/navigation');
 vi.mock('next-auth/react');
 
+// Mock fetch globally
+global.fetch = vi.fn();
+
 const mockPush = vi.fn();
 const mockUseRouter = useRouter as vi.MockedFunction<typeof useRouter>;
-const mockUseSearchParams = useSearchParams as vi.MockedFunction<
-  typeof useSearchParams
->;
+const mockUseSearchParams = useSearchParams as vi.MockedFunction<typeof useSearchParams>;
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -26,6 +27,43 @@ beforeEach(() => {
   } as any);
 
   mockUseSearchParams.mockReturnValue(new URLSearchParams());
+
+  // Setup fetch mock responses
+  (global.fetch as vi.MockedFunction<typeof fetch>).mockImplementation((url) => {
+    if (url === '/api/auth/plex/pin') {
+      return Promise.resolve(
+        new Response(
+          JSON.stringify({
+            pin: '1234',
+            sessionId: 'test-session-id',
+          }),
+          { status: 200 },
+        ),
+      );
+    }
+    if (url === '/api/auth/session') {
+      return Promise.resolve(
+        new Response(
+          JSON.stringify({
+            user: { email: 'test@example.com' },
+            expires: '2024-01-01T00:00:00.000Z',
+          }),
+          { status: 200 },
+        ),
+      );
+    }
+    if (url === '/api/auth/signin/admin-bootstrap') {
+      return Promise.resolve(
+        new Response(
+          JSON.stringify({
+            error: 'Invalid credentials',
+          }),
+          { status: 401 },
+        ),
+      );
+    }
+    return Promise.resolve(new Response('Not found', { status: 404 }));
+  });
 });
 
 describe('Authentication Infrastructure Tests', () => {
