@@ -1,0 +1,10 @@
+./commitlint.config.js:7:    // Customize rules if needed
+./playwright.config.ts:78:    // Tablet
+./playwright.config.ts:94:    // Performance Testing (throttled network)
+./shared/dist/utils/performance-monitor.js:189://# sourceMappingURL=performance-monitor.js.map
+./shared/dist/utils/format.d.ts:11://# sourceMappingURL=format.d.ts.map
+./shared/dist/utils/performance-monitor.d.ts:68://# sourceMappingURL=performance-monitor.d.ts.map
+./shared/dist/utils/format.js:134://# sourceMappingURL=format.js.map
+./shared/coverage/block-navigation.js:70:            // if we're currently focused on the search input, we don't want to navigate
+./shared/coverage/sorter.js:22:    // returns the th element for nth column
+./shared/coverage/sorter.js:45:                // If a valid regex was created, use it for matching

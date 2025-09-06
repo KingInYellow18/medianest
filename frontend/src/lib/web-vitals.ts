@@ -37,17 +37,7 @@ function sendToAnalytics(metric: NextWebVitalsMetric) {
     });
   }
 
-  // Or send to a custom endpoint:
-  // fetch('/api/analytics', {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify({
-  //     metric: metric.name,
-  //     value: metric.value,
-  //     id: metric.id,
-  //     label: metric.label,
-  //   }),
-  // });
+  // Or send to a custom endpoint when needed
 }
 
 export function reportWebVitals(metric: NextWebVitalsMetric) {

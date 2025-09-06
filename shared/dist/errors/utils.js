@@ -26,9 +26,9 @@ function serializeError(error) {
 function parseApiError(response) {
     if (response?.error) {
         const { message, code, statusCode, details } = response.error;
-        return new types_1.AppError(message || 'An error occurred', statusCode || 500, code || 'API_ERROR', details);
+        return new types_1.AppError(code || 'API_ERROR', message || 'An error occurred', statusCode || 500, details);
     }
-    return new types_1.AppError('An unknown error occurred', 'UNKNOWN_ERROR', 500);
+    return new types_1.AppError('UNKNOWN_ERROR', 'An unknown error occurred', 500);
 }
 function logError(error, context) {
     const entry = {

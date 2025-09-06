@@ -1,0 +1,10 @@
+./shared/src/constants/index.d.ts.bak
+./shared/src/types/index.d.ts.bak
+./shared/src/index.d.ts.bak
+./shared/src/utils/index.d.ts.bak
+./shared/node_modules/console-control-strings/README.md~
+./frontend/.next/cache/webpack/edge-server-production/index.pack.old
+./frontend/.next/cache/webpack/server-production/index.pack.old
+./eslint-backup/.eslintrc.js.backup
+./backend/src/middleware/security-audit.ts.backup
+./backend/node_modules/console-control-strings/README.md~

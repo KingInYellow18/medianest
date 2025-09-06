@@ -265,22 +265,22 @@ export const setupGlobalMocks = () => {
 
   // Mock missing middleware modules
   vi.mock('@/middleware/rbac', () => ({
-    authorize: vi.fn(() => (req: any, res: any, next: any) => next()),
-    requireRole: vi.fn(() => (req: any, res: any, next: any) => next()),
+    authorize: vi.fn(() => (_req: any, _res: any, next: any) => next()),
+    requireRole: vi.fn(() => (_req: any, _res: any, next: any) => next()),
   }));
 
   // Mock auth middleware modules
   vi.mock('@/middleware/auth.middleware', () => ({
-    authMiddleware: vi.fn(() => (req: any, res: any, next: any) => next()),
+    authMiddleware: vi.fn(() => (_req: any, _res: any, next: any) => next()),
   }));
 
   // Also mock relative paths for middleware
   vi.mock('../../middleware/auth.middleware', () => ({
-    authMiddleware: vi.fn(() => (req: any, res: any, next: any) => next()),
+    authMiddleware: vi.fn(() => (_req: any, _res: any, next: any) => next()),
   }));
 
   vi.mock('../../middleware/validation.middleware', () => ({
-    validateRequest: vi.fn(() => (req: any, res: any, next: any) => next()),
+    validateRequest: vi.fn(() => (_req: any, _res: any, next: any) => next()),
   }));
 
   vi.mock('../../lib/logger', () => ({

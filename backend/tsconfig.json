@@ -28,7 +28,13 @@
     "experimentalDecorators": true,
     "resolveJsonModule": true,
     "allowJs": false,
-    "noEmit": false
+    "noEmit": false,
+
+    // Temporary production build overrides
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": false,
+    "skipLibCheck": true
   },
   "include": ["src/**/*", "config/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"],

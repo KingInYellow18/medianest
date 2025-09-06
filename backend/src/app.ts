@@ -3,14 +3,12 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
-// import { pinoHttp } from 'pino-http';
 import { Server as SocketIOServer } from 'socket.io';
 import { createServer } from 'http';
 
 // Middleware imports
 import { errorHandler } from './middleware/error';
 import { timeoutPresets } from './middleware/timeout';
-// import { csrfProtection } from './middleware/csrf';
 
 // Route imports
 import v1Router from './routes/v1';
