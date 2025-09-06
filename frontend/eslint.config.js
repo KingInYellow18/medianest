@@ -5,8 +5,6 @@ const importPlugin = require("eslint-plugin-import");
 const prettier = require("eslint-plugin-prettier");
 const react = require("eslint-plugin-react");
 const reactHooks = require("eslint-plugin-react-hooks");
-// Note: @next/eslint-plugin-next might not be available in flat config format yet
-// const nextPlugin = require("@next/eslint-plugin-next");
 const js = require("@eslint/js");
 
 module.exports = [
