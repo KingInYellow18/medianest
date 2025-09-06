@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   AppError,
   ValidationError,
@@ -313,6 +313,16 @@ describe('Error Classes', () => {
 });
 
 describe('Error Utilities', () => {
+  // Mock console methods to prevent test noise and capture calls
+  let consoleErrorSpy: any;
+
+  beforeEach(() => {
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
+  });
   describe('serializeError', () => {
     it('should serialize AppError correctly', () => {
       const error = new ValidationError('Invalid input', { field: 'email' });
@@ -415,6 +425,9 @@ describe('Error Utilities', () => {
       expect(entry.context).toEqual(context);
       expect(entry.timestamp).toBeDefined();
       expect(new Date(entry.timestamp)).toBeInstanceOf(Date);
+
+      // Verify console.error was called with correct arguments
+      expect(consoleErrorSpy).toHaveBeenCalledWith('[Error]', error, context);
     });
 
     it('should handle error without context', () => {
@@ -423,6 +436,66 @@ describe('Error Utilities', () => {
 
       expect(entry.error).toBe(error);
       expect(entry.context).toBeUndefined();
+
+      // Verify console.error was called without context
+      expect(consoleErrorSpy).toHaveBeenCalledWith('[Error]', error, undefined);
+    });
+
+    it('should handle production environment logging', () => {
+      const originalEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+
+      const error = new ValidationError('Production test error');
+      const context = { userId: '456', action: 'update' };
+
+      const entry = logError(error, context);
+
+      expect(entry.error).toBe(error);
+      expect(entry.context).toEqual(context);
+      expect(entry.timestamp).toBeDefined();
+
+      // In production, full entry should be logged instead of individual parts
+      expect(consoleErrorSpy).toHaveBeenCalledWith('[Error]', entry);
+
+      // Restore environment
+      process.env.NODE_ENV = originalEnv;
+    });
+
+    it('should handle browser environment detection safely', () => {
+      // Mock globalThis.window for browser detection
+      const originalWindow = (globalThis as any).window;
+      const mockWindow = {
+        navigator: { userAgent: 'TestAgent/1.0' },
+        location: { href: 'https://test.example.com/page' },
+      };
+
+      (globalThis as any).window = mockWindow;
+
+      const error = new AuthenticationError('Browser test error');
+      const entry = logError(error);
+
+      expect(entry.userAgent).toBe('TestAgent/1.0');
+      expect(entry.url).toBe('https://test.example.com/page');
+
+      // Restore original window
+      (globalThis as any).window = originalWindow;
+    });
+
+    it('should handle missing browser properties gracefully', () => {
+      // Mock incomplete window object
+      const originalWindow = (globalThis as any).window;
+      const mockWindow = {}; // No navigator or location
+
+      (globalThis as any).window = mockWindow;
+
+      const error = new NotFoundError('Resource');
+      const entry = logError(error);
+
+      expect(entry.userAgent).toBeUndefined();
+      expect(entry.url).toBeUndefined();
+
+      // Restore
+      (globalThis as any).window = originalWindow;
     });
   });
 

@@ -1,3 +1,6 @@
-export * from './mock-data';
-export * from './test-helpers';
-export * from './test-factories';
+// Shared test utilities - applying proven 24-agent success patterns
+
+export * from './error-factories';
+
+// Re-export commonly used test utilities for consistency
+export { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';

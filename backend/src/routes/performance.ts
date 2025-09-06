@@ -15,11 +15,19 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
-// WAVE 2 AGENT #11: INTEGRATION ORCHESTRATOR - CONDITIONAL REDIS IMPORT
+// WAVE 3 AGENT #9: API ROUTES - ENHANCED REDIS CONDITIONAL IMPORT
 // Only import Redis if not in test environment or if Redis is explicitly enabled
 let Redis: any;
-if (process.env.NODE_ENV !== 'test' && process.env.SKIP_REDIS !== 'true') {
-  Redis = require('ioredis').Redis;
+if (
+  process.env.NODE_ENV !== 'test' &&
+  process.env.SKIP_REDIS !== 'true' &&
+  process.env.DISABLE_REDIS !== 'true'
+) {
+  try {
+    Redis = require('ioredis').Redis;
+  } catch (error) {
+    console.warn('Redis not available, continuing without caching:', error.message);
+  }
 }
 import { logger } from '../utils/logger';
 import { PerformanceMonitor } from '../../../shared/src/utils/performance-monitor';
@@ -59,11 +67,11 @@ router.get(
       const performanceStats = PerformanceMonitor.getStats(timeWindowMinutes);
       const systemStats = PerformanceMonitor.getSystemStats();
 
-      // Get cache metrics if Redis is available
+      // Get cache metrics if Redis is available - WAVE 3 AGENT #9 FIX
       let cacheMetrics = null;
       try {
         const redis = req.app.get('redis') as Redis;
-        if (redis) {
+        if (redis && process.env.NODE_ENV !== 'test' && process.env.SKIP_REDIS !== 'true') {
           const info = await redis.info('memory');
           const keyspace = await redis.info('keyspace');
           const stats = await redis.info('stats');

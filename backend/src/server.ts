@@ -13,13 +13,13 @@ import { initializeQueues } from './config/queues';
 import { initializeRedis } from './config/redis';
 import { correlationIdMiddleware } from './middleware/correlation-id';
 import { errorHandler } from './middleware/error';
-import { 
-  handleUncaughtException, 
-  handleUnhandledRejection, 
+import {
+  handleUncaughtException,
+  handleUnhandledRejection,
   notFoundHandler,
-  secureErrorHandler 
+  secureErrorHandler,
 } from './middleware/secure-error';
-import { securityHeadersMiddleware } from './middleware/security';
+import { securityHeaders } from './middleware/security';
 import { requestLogger } from './middleware/logging';
 import { setupRoutes } from './routes';
 import { setIntegrationService } from './routes/integrations';
@@ -56,7 +56,7 @@ app.use(
       includeSubDomains: true,
       preload: true,
     },
-  })
+  }),
 );
 
 // Rate limiting
@@ -82,16 +82,20 @@ const apiLimiter = rateLimit({
 app.use('/api', apiLimiter);
 
 // CORS configuration
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || process.env.FRONTEND_URL || 'http://localhost:3000')
+const allowedOrigins = (
+  process.env.ALLOWED_ORIGINS ||
+  process.env.FRONTEND_URL ||
+  'http://localhost:3000'
+)
   .split(',')
-  .map(origin => origin.trim());
+  .map((origin) => origin.trim());
 
 app.use(
   cors({
     origin: (origin, callback) => {
       // Allow requests with no origin (mobile apps, etc.)
       if (!origin) return callback(null, true);
-      
+
       if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -102,7 +106,7 @@ app.use(
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-correlation-id'],
-  })
+  }),
 );
 
 // Body parsing with size limits
@@ -110,7 +114,7 @@ app.use(compression());
 app.use(express.json({ limit: '10mb' })); // Reasonable limit for API requests
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(correlationIdMiddleware);
-app.use(securityHeadersMiddleware());
+app.use(securityHeaders());
 app.use(requestLogger);
 
 // Health check endpoint

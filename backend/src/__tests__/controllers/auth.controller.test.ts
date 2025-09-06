@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { Request, Response } from 'express';
+import type { Request, Response, NextFunction } from 'express';
+import axios from 'axios';
 import { AuthController } from '../../controllers/auth.controller';
+import { AppError } from '@medianest/shared';
 import {
   mockPrismaClient,
   mockRedisClient,
@@ -8,343 +10,537 @@ import {
   createTestRequest,
   createTestResponse,
   createTestJWT,
+  mockAxios,
 } from '../setup';
 
-// Import the actual controller - we'll need to mock its dependencies
+// Mock dependencies
+vi.mock('axios');
 vi.mock('../../config/database', () => ({
   prisma: mockPrismaClient,
 }));
-
 vi.mock('../../config/redis', () => ({
   redis: mockRedisClient,
+}));
+vi.mock('../../repositories/instances', () => ({
+  userRepository: {
+    findByPlexId: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    isFirstUser: vi.fn(),
+  },
+}));
+vi.mock('../../services/encryption.service', () => ({
+  encryptionService: {
+    encryptForStorage: vi.fn().mockReturnValue('encrypted-token'),
+  },
+}));
+vi.mock('../../services/jwt.service', () => ({
+  jwtService: {
+    generateAccessToken: vi.fn().mockReturnValue('test-access-token'),
+    generateRememberToken: vi.fn().mockReturnValue('test-remember-token'),
+  },
+}));
+vi.mock('@/config', () => ({
+  config: {
+    plex: {
+      clientId: 'test-client-id',
+    },
+  },
 }));
 
 describe('AuthController', () => {
   let authController: AuthController;
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
+  let mockNext: NextFunction;
 
   beforeEach(() => {
     authController = new AuthController();
     mockRequest = createTestRequest();
     mockResponse = createTestResponse();
+    mockNext = vi.fn();
+    vi.clearAllMocks();
   });
 
-  describe('login', () => {
-    it('should login successfully with valid credentials', async () => {
-      const testUser = createTestUser({
-        email: 'test@example.com',
-        password: 'hashed-password',
+  describe('generatePin', () => {
+    it('should generate a Plex PIN successfully', async () => {
+      const plexResponse = `
+        <pin>
+          <id>123456</id>
+          <code>ABCD1234</code>
+          <expires>2024-01-01T01:00:00Z</expires>
+        </pin>
+      `;
+
+      vi.mocked(axios.post).mockResolvedValueOnce({
+        data: plexResponse,
       });
 
       mockRequest.body = {
-        email: 'test@example.com',
-        password: 'password123',
+        clientName: 'MediaNest Test',
       };
 
-      mockPrismaClient.user.findUnique.mockResolvedValueOnce(testUser);
+      await authController.generatePin(mockRequest as Request, mockResponse as Response, mockNext);
 
-      // Mock bcrypt compare
-      const bcrypt = await import('bcrypt');
-      vi.mocked(bcrypt.compare).mockResolvedValueOnce(true);
-
-      await authController.login(mockRequest as Request, mockResponse as Response);
-
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockResponse.json).toHaveBeenCalledWith(
+      expect(axios.post).toHaveBeenCalledWith(
+        'https://plex.tv/pins.xml',
+        null,
         expect.objectContaining({
-          success: true,
-          user: expect.objectContaining({
+          headers: expect.objectContaining({
+            'X-Plex-Client-Identifier': 'test-client-id',
+            'X-Plex-Product': 'MediaNest',
+            'X-Plex-Device-Name': 'MediaNest Test',
+          }),
+          timeout: 10000,
+        }),
+      );
+
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: true,
+        data: {
+          id: '123456',
+          code: 'ABCD1234',
+          qrUrl: 'https://plex.tv/link/?pin=ABCD1234',
+          expiresIn: 900,
+        },
+      });
+    });
+
+    it('should use default client name when none provided', async () => {
+      const plexResponse = `
+        <pin>
+          <id>123456</id>
+          <code>ABCD1234</code>
+        </pin>
+      `;
+
+      vi.mocked(axios.post).mockResolvedValueOnce({
+        data: plexResponse,
+      });
+
+      mockRequest.body = {}; // No client name
+
+      await authController.generatePin(mockRequest as Request, mockResponse as Response, mockNext);
+
+      expect(axios.post).toHaveBeenCalledWith(
+        'https://plex.tv/pins.xml',
+        null,
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'X-Plex-Device-Name': 'MediaNest', // Default
+          }),
+        }),
+      );
+    });
+
+    it('should handle invalid Plex response', async () => {
+      vi.mocked(axios.post).mockResolvedValueOnce({
+        data: '<invalid>response</invalid>',
+      });
+
+      mockRequest.body = {};
+
+      await authController.generatePin(mockRequest as Request, mockResponse as Response, mockNext);
+
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'PLEX_ERROR',
+          message: 'Invalid response from Plex',
+          statusCode: 502,
+        }),
+      );
+    });
+
+    it('should handle Plex connection errors', async () => {
+      const connectionError = new Error('Connection refused') as any;
+      connectionError.code = 'ECONNREFUSED';
+      vi.mocked(axios.post).mockRejectedValueOnce(connectionError);
+
+      mockRequest.body = {};
+
+      await authController.generatePin(mockRequest as Request, mockResponse as Response, mockNext);
+
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'PLEX_UNREACHABLE',
+          message: 'Cannot connect to Plex server. Please try again.',
+          statusCode: 503,
+        }),
+      );
+    });
+
+    it('should handle Plex timeout errors', async () => {
+      const timeoutError = new Error('Timeout') as any;
+      timeoutError.code = 'ETIMEDOUT';
+      vi.mocked(axios.post).mockRejectedValueOnce(timeoutError);
+
+      await authController.generatePin(mockRequest as Request, mockResponse as Response, mockNext);
+
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'PLEX_TIMEOUT',
+          statusCode: 504,
+        }),
+      );
+    });
+  });
+
+  describe('verifyPin', () => {
+    const { userRepository } = require('../../repositories/instances');
+    const { encryptionService } = require('../../services/encryption.service');
+    const { jwtService } = require('../../services/jwt.service');
+
+    it('should verify PIN and create new user successfully', async () => {
+      const pinResponse = `
+        <pin>
+          <authToken>plex-auth-token</authToken>
+        </pin>
+      `;
+
+      const userResponse = `
+        <user>
+          <id>12345</id>
+          <username>testuser</username>
+          <email>test@example.com</email>
+        </user>
+      `;
+
+      const testUser = createTestUser({
+        plexId: '12345',
+        plexUsername: 'testuser',
+        email: 'test@example.com',
+        role: 'admin', // First user
+      });
+
+      vi.mocked(axios.get)
+        .mockResolvedValueOnce({ data: pinResponse })
+        .mockResolvedValueOnce({ data: userResponse });
+
+      userRepository.findByPlexId.mockResolvedValueOnce(null); // New user
+      userRepository.isFirstUser.mockResolvedValueOnce(true);
+      userRepository.create.mockResolvedValueOnce(testUser);
+
+      mockRequest.body = {
+        pinId: '123456',
+        rememberMe: true,
+      };
+
+      mockResponse.locals = { csrfToken: 'test-csrf-token' };
+
+      await authController.verifyPin(mockRequest as Request, mockResponse as Response, mockNext);
+
+      expect(userRepository.create).toHaveBeenCalledWith({
+        plexId: '12345',
+        plexUsername: 'testuser',
+        email: 'test@example.com',
+        plexToken: 'encrypted-token',
+        role: 'admin',
+      });
+
+      expect(mockResponse.cookie).toHaveBeenCalledWith(
+        'token',
+        'test-access-token',
+        expect.any(Object),
+      );
+      expect(mockResponse.cookie).toHaveBeenCalledWith(
+        'rememberToken',
+        'test-remember-token',
+        expect.any(Object),
+      );
+
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: true,
+        data: {
+          user: {
             id: testUser.id,
-            email: testUser.email,
-          }),
-          token: expect.any(String),
-        }),
-      );
+            username: 'testuser',
+            email: 'test@example.com',
+            role: 'admin',
+          },
+          token: 'test-access-token',
+          rememberToken: 'test-remember-token',
+          csrfToken: 'test-csrf-token',
+        },
+      });
     });
 
-    it('should return 401 for invalid credentials', async () => {
-      mockRequest.body = {
-        email: 'test@example.com',
-        password: 'wrongpassword',
-      };
+    it('should verify PIN and update existing user', async () => {
+      const pinResponse = `<pin><authToken>plex-auth-token</authToken></pin>`;
+      const userResponse = `
+        <user>
+          <id>12345</id>
+          <username>updateduser</username>
+          <email>updated@example.com</email>
+        </user>
+      `;
 
-      mockPrismaClient.user.findUnique.mockResolvedValueOnce(null);
-
-      await authController.login(mockRequest as Request, mockResponse as Response);
-
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockResponse.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          success: false,
-          error: expect.stringContaining('Invalid'),
-        }),
-      );
-    });
-
-    it('should return 401 for wrong password', async () => {
-      const testUser = createTestUser({
-        email: 'test@example.com',
-        password: 'hashed-password',
+      const existingUser = createTestUser({ plexId: '12345' });
+      const updatedUser = createTestUser({
+        plexId: '12345',
+        plexUsername: 'updateduser',
+        email: 'updated@example.com',
       });
 
-      mockRequest.body = {
-        email: 'test@example.com',
-        password: 'wrongpassword',
-      };
+      vi.mocked(axios.get)
+        .mockResolvedValueOnce({ data: pinResponse })
+        .mockResolvedValueOnce({ data: userResponse });
 
-      mockPrismaClient.user.findUnique.mockResolvedValueOnce(testUser);
+      userRepository.findByPlexId.mockResolvedValueOnce(existingUser);
+      userRepository.update.mockResolvedValueOnce(updatedUser);
 
-      // Mock bcrypt compare to return false
-      const bcrypt = await import('bcrypt');
-      vi.mocked(bcrypt.compare).mockResolvedValueOnce(false);
+      mockRequest.body = { pinId: '123456', rememberMe: false };
+      mockResponse.locals = { csrfToken: 'test-csrf-token' };
 
-      await authController.login(mockRequest as Request, mockResponse as Response);
+      await authController.verifyPin(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockResponse.json).toHaveBeenCalledWith(
+      expect(userRepository.update).toHaveBeenCalledWith(
+        existingUser.id,
         expect.objectContaining({
-          success: false,
-          error: expect.stringContaining('Invalid'),
+          plexUsername: 'updateduser',
+          email: 'updated@example.com',
+          plexToken: 'encrypted-token',
+          lastLoginAt: expect.any(Date),
         }),
       );
     });
 
-    it('should handle database errors gracefully', async () => {
-      mockRequest.body = {
-        email: 'test@example.com',
-        password: 'password123',
-      };
+    it('should handle PIN not authorized yet', async () => {
+      const pinResponse = `<pin><authToken></authToken></pin>`; // Empty token
 
-      mockPrismaClient.user.findUnique.mockRejectedValueOnce(new Error('Database error'));
+      vi.mocked(axios.get).mockResolvedValueOnce({ data: pinResponse });
 
-      await authController.login(mockRequest as Request, mockResponse as Response);
+      mockRequest.body = { pinId: '123456' };
 
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-      expect(mockResponse.json).toHaveBeenCalledWith(
+      await authController.verifyPin(mockRequest as Request, mockResponse as Response, mockNext);
+
+      expect(mockNext).toHaveBeenCalledWith(
         expect.objectContaining({
-          success: false,
-          error: expect.stringContaining('Internal server error'),
+          type: 'PIN_NOT_AUTHORIZED',
+          message: 'PIN has not been authorized yet. Please complete authorization on plex.tv/link',
+          statusCode: 400,
         }),
       );
     });
 
-    it('should validate required fields', async () => {
-      mockRequest.body = {
-        email: 'test@example.com',
-        // missing password
-      };
+    it('should handle invalid PIN ID', async () => {
+      const error = new Error('Not Found') as any;
+      error.response = { status: 404 };
+      vi.mocked(axios.get).mockRejectedValueOnce(error);
 
-      await authController.login(mockRequest as Request, mockResponse as Response);
+      mockRequest.body = { pinId: 'invalid-pin' };
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith(
+      await authController.verifyPin(mockRequest as Request, mockResponse as Response, mockNext);
+
+      expect(mockNext).toHaveBeenCalledWith(
         expect.objectContaining({
-          success: false,
-          error: expect.stringContaining('required'),
-        }),
-      );
-    });
-  });
-
-  describe('register', () => {
-    it('should register a new user successfully', async () => {
-      const userData = {
-        username: 'newuser',
-        email: 'new@example.com',
-        password: 'password123',
-      };
-
-      mockRequest.body = userData;
-      mockPrismaClient.user.findUnique.mockResolvedValueOnce(null); // Email not exists
-      mockPrismaClient.user.create.mockResolvedValueOnce(
-        createTestUser({
-          username: userData.username,
-          email: userData.email,
-        }),
-      );
-
-      await authController.register(mockRequest as Request, mockResponse as Response);
-
-      expect(mockResponse.status).toHaveBeenCalledWith(201);
-      expect(mockResponse.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          success: true,
-          user: expect.objectContaining({
-            username: userData.username,
-            email: userData.email,
-          }),
+          type: 'INVALID_PIN',
+          message: 'Invalid or expired PIN',
+          statusCode: 400,
         }),
       );
     });
 
-    it('should return 409 for existing email', async () => {
-      const userData = {
-        username: 'newuser',
-        email: 'existing@example.com',
-        password: 'password123',
-      };
+    it('should handle database errors', async () => {
+      const pinResponse = `<pin><authToken>plex-auth-token</authToken></pin>`;
+      const userResponse = `<user><id>12345</id><username>testuser</username></user>`;
 
-      mockRequest.body = userData;
-      mockPrismaClient.user.findUnique.mockResolvedValueOnce(
-        createTestUser({
-          email: userData.email,
-        }),
-      );
+      vi.mocked(axios.get)
+        .mockResolvedValueOnce({ data: pinResponse })
+        .mockResolvedValueOnce({ data: userResponse });
 
-      await authController.register(mockRequest as Request, mockResponse as Response);
+      userRepository.findByPlexId.mockRejectedValueOnce(new Error('Database error'));
 
-      expect(mockResponse.status).toHaveBeenCalledWith(409);
-      expect(mockResponse.json).toHaveBeenCalledWith(
+      mockRequest.body = { pinId: '123456' };
+
+      await authController.verifyPin(mockRequest as Request, mockResponse as Response, mockNext);
+
+      expect(mockNext).toHaveBeenCalledWith(
         expect.objectContaining({
-          success: false,
-          error: expect.stringContaining('already exists'),
-        }),
-      );
-    });
-
-    it('should validate email format', async () => {
-      mockRequest.body = {
-        username: 'newuser',
-        email: 'invalid-email',
-        password: 'password123',
-      };
-
-      await authController.register(mockRequest as Request, mockResponse as Response);
-
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          success: false,
-          error: expect.stringContaining('email'),
+          type: 'DATABASE_ERROR',
+          message: 'Failed to save user information',
+          statusCode: 503,
         }),
       );
     });
 
-    it('should validate password strength', async () => {
-      mockRequest.body = {
-        username: 'newuser',
-        email: 'new@example.com',
-        password: '123', // too weak
-      };
+    it('should handle invalid user data from Plex', async () => {
+      const pinResponse = `<pin><authToken>plex-auth-token</authToken></pin>`;
+      const invalidUserResponse = `<user><invalid>data</invalid></user>`; // Missing required fields
 
-      await authController.register(mockRequest as Request, mockResponse as Response);
+      vi.mocked(axios.get)
+        .mockResolvedValueOnce({ data: pinResponse })
+        .mockResolvedValueOnce({ data: invalidUserResponse });
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith(
+      mockRequest.body = { pinId: '123456' };
+
+      await authController.verifyPin(mockRequest as Request, mockResponse as Response, mockNext);
+
+      expect(mockNext).toHaveBeenCalledWith(
         expect.objectContaining({
-          success: false,
-          error: expect.stringContaining('password'),
+          type: 'PLEX_ERROR',
+          message: 'Invalid user data from Plex',
+          statusCode: 502,
         }),
       );
     });
   });
 
   describe('logout', () => {
-    it('should logout successfully', async () => {
-      const token = createTestJWT();
-      mockRequest.headers = { authorization: `Bearer ${token}` };
-      mockRedisClient.del.mockResolvedValueOnce(1);
-
+    it('should logout successfully and clear cookies', async () => {
       await authController.logout(mockRequest as Request, mockResponse as Response);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockResponse.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          success: true,
-          message: expect.stringContaining('Logged out'),
-        }),
-      );
-      expect(mockRedisClient.del).toHaveBeenCalledWith(expect.stringContaining(token));
+      expect(mockResponse.clearCookie).toHaveBeenCalledWith('token');
+      expect(mockResponse.clearCookie).toHaveBeenCalledWith('rememberToken');
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: true,
+        message: 'Logged out successfully',
+      });
     });
 
-    it('should handle missing token', async () => {
+    it('should always succeed regardless of request state', async () => {
+      // Even with no cookies or tokens, logout should succeed
       mockRequest.headers = {};
 
       await authController.logout(mockRequest as Request, mockResponse as Response);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockResponse.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          success: false,
-          error: expect.stringContaining('token'),
-        }),
-      );
+      expect(mockResponse.clearCookie).toHaveBeenCalledWith('token');
+      expect(mockResponse.clearCookie).toHaveBeenCalledWith('rememberToken');
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: true,
+        message: 'Logged out successfully',
+      });
     });
   });
 
-  describe('refresh', () => {
-    it('should refresh token successfully', async () => {
-      const token = createTestJWT();
-      const testUser = createTestUser();
+  describe('getSession', () => {
+    it('should return current user session successfully', async () => {
+      const testUser = createTestUser({
+        plexUsername: 'sessionuser',
+        email: 'session@example.com',
+        role: 'user',
+      });
 
-      mockRequest.headers = { authorization: `Bearer ${token}` };
       mockRequest.user = testUser;
-      mockPrismaClient.user.findUnique.mockResolvedValueOnce(testUser);
 
-      await authController.refresh(mockRequest as Request, mockResponse as Response);
+      await authController.getSession(mockRequest as Request, mockResponse as Response);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockResponse.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          success: true,
-          token: expect.any(String),
-          user: expect.objectContaining({
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: true,
+        data: {
+          user: {
             id: testUser.id,
-          }),
-        }),
-      );
+            username: 'sessionuser',
+            email: 'session@example.com',
+            role: 'user',
+          },
+        },
+      });
     });
 
-    it('should return 401 for invalid user', async () => {
-      const token = createTestJWT();
+    it('should handle user with no plex username', async () => {
+      const testUser = createTestUser({
+        plexUsername: null,
+        email: 'session@example.com',
+        role: 'user',
+      });
 
-      mockRequest.headers = { authorization: `Bearer ${token}` };
-      mockRequest.user = { id: 'invalid-user-id' };
-      mockPrismaClient.user.findUnique.mockResolvedValueOnce(null);
-
-      await authController.refresh(mockRequest as Request, mockResponse as Response);
-
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockResponse.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          success: false,
-          error: expect.stringContaining('Invalid'),
-        }),
-      );
-    });
-  });
-
-  describe('me', () => {
-    it('should return current user info', async () => {
-      const testUser = createTestUser();
       mockRequest.user = testUser;
-      mockPrismaClient.user.findUnique.mockResolvedValueOnce(testUser);
 
-      await authController.me(mockRequest as Request, mockResponse as Response);
+      await authController.getSession(mockRequest as Request, mockResponse as Response);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockResponse.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          success: true,
-          user: expect.objectContaining({
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: true,
+        data: {
+          user: {
             id: testUser.id,
-            email: testUser.email,
-          }),
-        }),
-      );
+            username: 'session@example.com', // Falls back to email
+            email: 'session@example.com',
+            role: 'user',
+          },
+        },
+      });
     });
 
-    it('should handle missing user', async () => {
+    it('should throw AppError for missing user in request', async () => {
       mockRequest.user = undefined;
 
-      await authController.me(mockRequest as Request, mockResponse as Response);
-
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockResponse.json).toHaveBeenCalledWith(
+      await expect(() =>
+        authController.getSession(mockRequest as Request, mockResponse as Response),
+      ).rejects.toThrow(
         expect.objectContaining({
-          success: false,
-          error: expect.stringContaining('authenticated'),
+          type: 'UNAUTHORIZED',
+          message: 'User not found in request',
+          statusCode: 401,
+        }),
+      );
+    });
+  });
+
+  describe('Input validation and error handling', () => {
+    it('should handle malformed request body in generatePin', async () => {
+      // Even with malformed input, generatePin should use defaults
+      mockRequest.body = { invalidField: 'test' };
+
+      const plexResponse = `<pin><id>123456</id><code>ABCD1234</code></pin>`;
+      vi.mocked(axios.post).mockResolvedValueOnce({ data: plexResponse });
+
+      await authController.generatePin(mockRequest as Request, mockResponse as Response, mockNext);
+
+      expect(axios.post).toHaveBeenCalledWith(
+        'https://plex.tv/pins.xml',
+        null,
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'X-Plex-Device-Name': 'MediaNest', // Should use default
+          }),
+        }),
+      );
+    });
+
+    it('should handle malformed request body in verifyPin', async () => {
+      mockRequest.body = { invalidField: 'test' }; // Missing required pinId
+
+      await authController.verifyPin(mockRequest as Request, mockResponse as Response, mockNext);
+
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'VALIDATION_ERROR',
+          message: 'Invalid request data',
+          statusCode: 400,
+        }),
+      );
+    });
+
+    it('should handle JWT generation failure', async () => {
+      const { jwtService } = require('../../services/jwt.service');
+
+      const pinResponse = `<pin><authToken>plex-auth-token</authToken></pin>`;
+      const userResponse = `<user><id>12345</id><username>testuser</username></user>`;
+      const testUser = createTestUser();
+
+      vi.mocked(axios.get)
+        .mockResolvedValueOnce({ data: pinResponse })
+        .mockResolvedValueOnce({ data: userResponse });
+
+      const { userRepository } = require('../../repositories/instances');
+      userRepository.findByPlexId.mockResolvedValueOnce(null);
+      userRepository.isFirstUser.mockResolvedValueOnce(false);
+      userRepository.create.mockResolvedValueOnce(testUser);
+
+      // Mock JWT generation failure
+      jwtService.generateAccessToken.mockImplementationOnce(() => {
+        throw new Error('JWT generation failed');
+      });
+
+      mockRequest.body = { pinId: '123456' };
+
+      await authController.verifyPin(mockRequest as Request, mockResponse as Response, mockNext);
+
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'TOKEN_ERROR',
+          message: 'Failed to generate authentication tokens',
+          statusCode: 503,
         }),
       );
     });

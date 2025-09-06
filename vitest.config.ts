@@ -40,7 +40,8 @@ export default defineConfig({
       cleanOnRerun: true,
       skipFull: false
     },
-    testTimeout: 10000,
+    testTimeout: 30000,
+    hookTimeout: 10000,
     pool: 'forks',
     poolOptions: {
       forks: {

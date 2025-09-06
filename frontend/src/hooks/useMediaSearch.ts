@@ -36,6 +36,7 @@ export function useMediaSearch(initialQuery = '') {
     results: data?.results || [],
     totalResults: data?.totalResults || 0,
     isLoading,
+    isDebouncing: query !== debouncedQuery,
     error,
     refetch,
   };

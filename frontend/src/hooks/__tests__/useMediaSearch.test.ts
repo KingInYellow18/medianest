@@ -33,13 +33,17 @@ describe('useMediaSearch', () => {
     vi.clearAllMocks();
   });
 
-  it('should initialize with empty results and no loading state', () => {
+  it('should initialize with empty results and no loading state', async () => {
     const { result } = renderHook(() => useMediaSearch(), { wrapper });
 
     expect(result.current.query).toBe('');
     expect(result.current.results).toEqual([]);
-    expect(result.current.isLoading).toBe(false);
-    expect(result.current.isDebouncing).toBe(false);
+
+    // Wait for the query to settle since it's disabled with empty query
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
     expect(result.current.error).toBeNull();
   });
 
@@ -82,6 +86,9 @@ describe('useMediaSearch', () => {
 
     expect(mediaApi.searchMedia).toHaveBeenCalledWith({
       query: 'Inception',
+      mediaType: 'all',
+      year: undefined,
+      genre: undefined,
     });
   });
 

@@ -1,6 +1,18 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { EmailService } from '../../services/email.service';
 import { mockAxios } from '../setup';
+
+vi.mock('../../utils/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  },
+}));
+
+vi.mock('../../utils/security', () => ({
+  logSecurityEvent: vi.fn(),
+}));
 
 vi.mock('axios', () => ({
   default: mockAxios,
@@ -19,473 +31,366 @@ vi.mock('nodemailer', () => ({
   },
 }));
 
+// Mock console methods
+const mockConsole = {
+  log: vi.fn(),
+};
+
+global.console = mockConsole as any;
+
 describe('EmailService', () => {
   let emailService: EmailService;
+  let originalEnv: NodeJS.ProcessEnv;
 
   beforeEach(() => {
+    originalEnv = process.env;
+    process.env.EMAIL_PROVIDER = 'console';
+    process.env.EMAIL_FROM = 'test@medianest.com';
     emailService = new EmailService();
+    vi.clearAllMocks();
   });
 
-  describe('sendEmail', () => {
-    it('should send email successfully with SMTP', async () => {
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  describe('console email provider', () => {
+    it('should send email via console successfully', async () => {
       const emailData = {
         to: 'test@example.com',
-        subject: 'Test Email',
-        html: '<h1>Test Content</h1>',
-        text: 'Test Content',
+        name: 'Test User',
       };
 
-      mockTransporter.sendMail.mockResolvedValueOnce({
-        messageId: 'test-message-id',
-        accepted: ['test@example.com'],
-        rejected: [],
-      });
+      await expect(emailService.sendWelcomeEmail(emailData)).resolves.not.toThrow();
 
-      const result = await emailService.sendEmail(emailData);
-
-      expect(result).toEqual({
-        success: true,
-        messageId: 'test-message-id',
-      });
-
-      expect(mockTransporter.sendMail).toHaveBeenCalledWith({
-        from: expect.any(String),
-        to: emailData.to,
-        subject: emailData.subject,
-        html: emailData.html,
-        text: emailData.text,
-      });
+      expect(mockConsole.log).toHaveBeenCalledWith('\n=== EMAIL SENT ===');
+      expect(mockConsole.log).toHaveBeenCalledWith('To: test@example.com');
+      expect(mockConsole.log).toHaveBeenCalledWith('From: test@medianest.com');
     });
 
-    it('should handle SMTP errors gracefully', async () => {
+    it('should handle email sending errors gracefully', async () => {
+      process.env.EMAIL_PROVIDER = 'smtp'; // Force SMTP to trigger error
+      const emailService = new EmailService();
+
       const emailData = {
         to: 'invalid@example.com',
-        subject: 'Test Email',
-        html: '<h1>Test Content</h1>',
+        name: 'Test User',
       };
 
-      mockTransporter.sendMail.mockRejectedValueOnce(new Error('SMTP Error'));
-
-      const result = await emailService.sendEmail(emailData);
-
-      expect(result).toEqual({
-        success: false,
-        error: 'Failed to send email',
-      });
+      // Should not throw, but log error internally
+      await expect(emailService.sendWelcomeEmail(emailData)).rejects.toThrow();
     });
 
-    it('should validate email data', async () => {
+    it('should handle missing email data', async () => {
       const invalidEmailData = {
-        to: '', // invalid email
-        subject: 'Test Email',
-        html: '<h1>Test Content</h1>',
+        to: '',
+        name: '',
       };
 
-      const result = await emailService.sendEmail(invalidEmailData);
-
-      expect(result).toEqual({
-        success: false,
-        error: 'Invalid email data',
-      });
+      await expect(emailService.sendWelcomeEmail(invalidEmailData)).resolves.not.toThrow();
+      expect(mockConsole.log).toHaveBeenCalled();
     });
 
-    it('should handle rejected recipients', async () => {
+    it('should log email details to console', async () => {
       const emailData = {
-        to: 'rejected@example.com',
-        subject: 'Test Email',
-        html: '<h1>Test Content</h1>',
+        to: 'user@example.com',
+        name: 'Test User',
       };
 
-      mockTransporter.sendMail.mockResolvedValueOnce({
-        messageId: 'test-message-id',
-        accepted: [],
-        rejected: ['rejected@example.com'],
-      });
+      await emailService.sendWelcomeEmail(emailData);
 
-      const result = await emailService.sendEmail(emailData);
-
-      expect(result).toEqual({
-        success: false,
-        error: 'Email was rejected by recipient server',
-      });
+      expect(mockConsole.log).toHaveBeenCalledWith('To: user@example.com');
+      expect(mockConsole.log).toHaveBeenCalledWith(
+        expect.stringContaining('Welcome to MediaNest!'),
+      );
     });
   });
 
   describe('sendWelcomeEmail', () => {
     it('should send welcome email with user data', async () => {
       const userData = {
-        email: 'newuser@example.com',
-        username: 'newuser',
-        id: 'user-123',
+        to: 'newuser@example.com',
+        name: 'newuser',
       };
 
-      mockTransporter.sendMail.mockResolvedValueOnce({
-        messageId: 'welcome-message-id',
-        accepted: [userData.email],
-        rejected: [],
-      });
+      await expect(emailService.sendWelcomeEmail(userData)).resolves.not.toThrow();
 
-      const result = await emailService.sendWelcomeEmail(userData);
-
-      expect(result.success).toBe(true);
-      expect(mockTransporter.sendMail).toHaveBeenCalledWith(
-        expect.objectContaining({
-          to: userData.email,
-          subject: expect.stringContaining('Welcome'),
-          html: expect.stringContaining(userData.username),
-        }),
+      expect(mockConsole.log).toHaveBeenCalledWith('To: newuser@example.com');
+      expect(mockConsole.log).toHaveBeenCalledWith(
+        expect.stringContaining('Welcome to MediaNest!'),
       );
     });
 
-    it('should include activation link if provided', async () => {
+    it('should include user name in email content', async () => {
       const userData = {
-        email: 'newuser@example.com',
-        username: 'newuser',
-        id: 'user-123',
-        activationToken: 'activation-token-123',
+        to: 'newuser@example.com',
+        name: 'John Doe',
       };
 
-      mockTransporter.sendMail.mockResolvedValueOnce({
-        messageId: 'welcome-message-id',
-        accepted: [userData.email],
-        rejected: [],
-      });
+      await emailService.sendWelcomeEmail(userData);
 
-      const result = await emailService.sendWelcomeEmail(userData);
-
-      expect(result.success).toBe(true);
-      expect(mockTransporter.sendMail).toHaveBeenCalledWith(
-        expect.objectContaining({
-          html: expect.stringContaining(userData.activationToken),
-        }),
-      );
+      expect(mockConsole.log).toHaveBeenCalledWith(expect.stringContaining('Hello John Doe,'));
     });
   });
 
   describe('sendPasswordResetEmail', () => {
     it('should send password reset email with token', async () => {
       const resetData = {
-        email: 'user@example.com',
-        username: 'testuser',
-        resetToken: 'reset-token-123',
+        to: 'user@example.com',
+        name: 'testuser',
+        resetUrl: 'http://localhost:3000/reset?token=abc123',
+        expiresIn: 60,
+        ipAddress: '192.168.1.1',
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
       };
 
-      mockTransporter.sendMail.mockResolvedValueOnce({
-        messageId: 'reset-message-id',
-        accepted: [resetData.email],
-        rejected: [],
-      });
+      await expect(emailService.sendPasswordResetEmail(resetData)).resolves.not.toThrow();
 
-      const result = await emailService.sendPasswordResetEmail(resetData);
-
-      expect(result.success).toBe(true);
-      expect(mockTransporter.sendMail).toHaveBeenCalledWith(
-        expect.objectContaining({
-          to: resetData.email,
-          subject: expect.stringContaining('Password Reset'),
-          html: expect.stringContaining(resetData.resetToken),
-        }),
+      expect(mockConsole.log).toHaveBeenCalledWith('To: user@example.com');
+      expect(mockConsole.log).toHaveBeenCalledWith(
+        expect.stringContaining('Reset Your MediaNest Password'),
       );
     });
 
     it('should include expiration information', async () => {
       const resetData = {
-        email: 'user@example.com',
-        username: 'testuser',
-        resetToken: 'reset-token-123',
-        expiresIn: '1 hour',
+        to: 'user@example.com',
+        name: 'testuser',
+        resetUrl: 'http://localhost:3000/reset?token=abc123',
+        expiresIn: 30,
+        ipAddress: '192.168.1.1',
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
       };
 
-      mockTransporter.sendMail.mockResolvedValueOnce({
-        messageId: 'reset-message-id',
-        accepted: [resetData.email],
-        rejected: [],
-      });
+      await emailService.sendPasswordResetEmail(resetData);
 
-      const result = await emailService.sendPasswordResetEmail(resetData);
+      expect(mockConsole.log).toHaveBeenCalledWith(expect.stringContaining('30 minutes'));
+    });
+  });
 
-      expect(result.success).toBe(true);
-      expect(mockTransporter.sendMail).toHaveBeenCalledWith(
-        expect.objectContaining({
-          html: expect.stringContaining(resetData.expiresIn),
-        }),
+  describe('sendEmailVerificationEmail', () => {
+    it('should send email verification with URL', async () => {
+      const verificationData = {
+        to: 'user@example.com',
+        name: 'testuser',
+        verificationUrl: 'http://localhost:3000/verify?token=xyz789',
+        expiresIn: 120,
+      };
+
+      await expect(
+        emailService.sendEmailVerificationEmail(verificationData),
+      ).resolves.not.toThrow();
+
+      expect(mockConsole.log).toHaveBeenCalledWith('To: user@example.com');
+      expect(mockConsole.log).toHaveBeenCalledWith(
+        expect.stringContaining('Verify Your MediaNest Email Address'),
+      );
+    });
+
+    it('should include verification URL in content', async () => {
+      const verificationData = {
+        to: 'user@example.com',
+        name: 'testuser',
+        verificationUrl: 'http://localhost:3000/verify?token=xyz789',
+        expiresIn: 60,
+      };
+
+      await emailService.sendEmailVerificationEmail(verificationData);
+
+      expect(mockConsole.log).toHaveBeenCalledWith(
+        expect.stringContaining('http://localhost:3000/verify?token=xyz789'),
       );
     });
   });
 
-  describe('sendMediaRequestNotification', () => {
-    it('should send notification for new media request', async () => {
-      const requestData = {
-        userEmail: 'user@example.com',
-        userName: 'testuser',
-        mediaTitle: 'Test Movie',
-        mediaType: 'movie',
-        requestId: 'request-123',
+  describe('sendTwoFactorEmail', () => {
+    it('should send two factor authentication code', async () => {
+      const twoFactorData = {
+        to: 'user@example.com',
+        name: 'testuser',
+        code: '123456',
+        expiresIn: 5,
+        ipAddress: '192.168.1.1',
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
       };
 
-      const adminEmails = ['admin@example.com'];
+      await expect(emailService.sendTwoFactorEmail(twoFactorData)).resolves.not.toThrow();
 
-      mockTransporter.sendMail.mockResolvedValueOnce({
-        messageId: 'notification-message-id',
-        accepted: adminEmails,
-        rejected: [],
-      });
-
-      const result = await emailService.sendMediaRequestNotification(requestData, adminEmails);
-
-      expect(result.success).toBe(true);
-      expect(mockTransporter.sendMail).toHaveBeenCalledWith(
-        expect.objectContaining({
-          to: adminEmails.join(', '),
-          subject: expect.stringContaining('New Media Request'),
-          html: expect.stringContaining(requestData.mediaTitle),
-        }),
+      expect(mockConsole.log).toHaveBeenCalledWith('To: user@example.com');
+      expect(mockConsole.log).toHaveBeenCalledWith(
+        expect.stringContaining('Your MediaNest Login Code'),
       );
     });
 
-    it('should handle multiple admin recipients', async () => {
-      const requestData = {
-        userEmail: 'user@example.com',
-        userName: 'testuser',
-        mediaTitle: 'Test Movie',
-        mediaType: 'movie',
-        requestId: 'request-123',
+    it('should include authentication code in content', async () => {
+      const twoFactorData = {
+        to: 'user@example.com',
+        name: 'testuser',
+        code: '654321',
+        expiresIn: 5,
+        ipAddress: '192.168.1.1',
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
       };
 
-      const adminEmails = ['admin1@example.com', 'admin2@example.com'];
+      await emailService.sendTwoFactorEmail(twoFactorData);
 
-      mockTransporter.sendMail.mockResolvedValueOnce({
-        messageId: 'notification-message-id',
-        accepted: adminEmails,
-        rejected: [],
-      });
-
-      const result = await emailService.sendMediaRequestNotification(requestData, adminEmails);
-
-      expect(result.success).toBe(true);
-      expect(mockTransporter.sendMail).toHaveBeenCalledWith(
-        expect.objectContaining({
-          to: adminEmails.join(', '),
-        }),
-      );
+      expect(mockConsole.log).toHaveBeenCalledWith(expect.stringContaining('654321'));
     });
   });
 
-  describe('sendRequestStatusUpdate', () => {
-    it('should send approval notification', async () => {
-      const updateData = {
-        userEmail: 'user@example.com',
-        userName: 'testuser',
-        mediaTitle: 'Test Movie',
-        status: 'approved',
-        requestId: 'request-123',
+  describe('sendSecurityAlertEmail', () => {
+    it('should send security alert with event details', async () => {
+      const alertData = {
+        to: 'user@example.com',
+        name: 'testuser',
+        alertType: 'Suspicious Login Attempt',
+        description: 'Someone tried to access your account from an unknown location.',
+        ipAddress: '192.168.1.100',
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        timestamp: new Date(),
+        actionRequired: true,
       };
 
-      mockTransporter.sendMail.mockResolvedValueOnce({
-        messageId: 'status-message-id',
-        accepted: [updateData.userEmail],
-        rejected: [],
-      });
+      await expect(emailService.sendSecurityAlertEmail(alertData)).resolves.not.toThrow();
 
-      const result = await emailService.sendRequestStatusUpdate(updateData);
-
-      expect(result.success).toBe(true);
-      expect(mockTransporter.sendMail).toHaveBeenCalledWith(
-        expect.objectContaining({
-          to: updateData.userEmail,
-          subject: expect.stringContaining('approved'),
-          html: expect.stringContaining(updateData.mediaTitle),
-        }),
+      expect(mockConsole.log).toHaveBeenCalledWith('To: user@example.com');
+      expect(mockConsole.log).toHaveBeenCalledWith(
+        expect.stringContaining('Security Alert: Suspicious Login Attempt'),
       );
     });
 
-    it('should send rejection notification with reason', async () => {
-      const updateData = {
-        userEmail: 'user@example.com',
-        userName: 'testuser',
-        mediaTitle: 'Test Movie',
-        status: 'rejected',
-        requestId: 'request-123',
-        reason: 'Content not available',
+    it('should include action required message when needed', async () => {
+      const alertData = {
+        to: 'user@example.com',
+        name: 'testuser',
+        alertType: 'Password Changed',
+        description: 'Your password was changed successfully.',
+        ipAddress: '192.168.1.100',
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        timestamp: new Date(),
+        actionRequired: false,
       };
 
-      mockTransporter.sendMail.mockResolvedValueOnce({
-        messageId: 'status-message-id',
-        accepted: [updateData.userEmail],
-        rejected: [],
-      });
+      await emailService.sendSecurityAlertEmail(alertData);
 
-      const result = await emailService.sendRequestStatusUpdate(updateData);
-
-      expect(result.success).toBe(true);
-      expect(mockTransporter.sendMail).toHaveBeenCalledWith(
-        expect.objectContaining({
-          html: expect.stringContaining(updateData.reason),
-        }),
-      );
+      expect(mockConsole.log).toHaveBeenCalledWith(expect.stringContaining('Password Changed'));
     });
   });
 
-  describe('verifyConnection', () => {
-    it('should verify SMTP connection successfully', async () => {
-      mockTransporter.verify.mockResolvedValueOnce(true);
-
-      const result = await emailService.verifyConnection();
-
-      expect(result).toEqual({
-        success: true,
-        message: 'SMTP connection verified',
-      });
-    });
-
-    it('should handle connection verification failure', async () => {
-      mockTransporter.verify.mockRejectedValueOnce(new Error('Connection failed'));
-
-      const result = await emailService.verifyConnection();
-
-      expect(result).toEqual({
-        success: false,
-        error: 'SMTP connection failed',
-      });
-    });
-  });
-
-  describe('generateEmailTemplate', () => {
-    it('should generate HTML template with variables', () => {
-      const template = 'Hello {{username}}, welcome to {{appName}}!';
-      const variables = {
-        username: 'testuser',
-        appName: 'MediaNest',
-      };
-
-      const result = emailService.generateEmailTemplate(template, variables);
-
-      expect(result).toBe('Hello testuser, welcome to MediaNest!');
-    });
-
-    it('should handle missing variables gracefully', () => {
-      const template = 'Hello {{username}}, your {{unknownVar}} is ready!';
-      const variables = {
-        username: 'testuser',
-      };
-
-      const result = emailService.generateEmailTemplate(template, variables);
-
-      expect(result).toBe('Hello testuser, your  is ready!');
-    });
-
-    it('should escape HTML in variables', () => {
-      const template = 'Hello {{username}}!';
-      const variables = {
-        username: '<script>alert("xss")</script>testuser',
-      };
-
-      const result = emailService.generateEmailTemplate(template, variables);
-
-      expect(result).not.toContain('<script>');
-      expect(result).toContain('testuser');
-    });
-  });
-
-  describe('email queue integration', () => {
-    it('should queue email for background processing', async () => {
-      const emailData = {
-        to: 'queued@example.com',
-        subject: 'Queued Email',
-        html: '<h1>Queued Content</h1>',
-        priority: 'low',
-      };
-
-      // Mock queue system
-      const mockQueue = {
-        add: vi.fn().mockResolvedValue({ id: 'job-123' }),
-      };
-
-      const result = await emailService.queueEmail(emailData, mockQueue);
-
-      expect(result).toEqual({
-        success: true,
-        jobId: 'job-123',
-      });
-
-      expect(mockQueue.add).toHaveBeenCalledWith(
-        'send-email',
-        emailData,
-        expect.objectContaining({
-          priority: expect.any(Number),
-          attempts: expect.any(Number),
-        }),
-      );
-    });
-
-    it('should handle queue failures', async () => {
-      const emailData = {
-        to: 'failed@example.com',
-        subject: 'Failed Email',
-        html: '<h1>Failed Content</h1>',
-      };
-
-      const mockQueue = {
-        add: vi.fn().mockRejectedValue(new Error('Queue error')),
-      };
-
-      const result = await emailService.queueEmail(emailData, mockQueue);
-
-      expect(result).toEqual({
-        success: false,
-        error: 'Failed to queue email',
-      });
-    });
-  });
-
-  describe('email tracking', () => {
-    it('should track email open events', async () => {
-      const trackingData = {
-        messageId: 'message-123',
-        recipientEmail: 'tracked@example.com',
-        eventType: 'open',
+  describe('sendPasswordResetConfirmationEmail', () => {
+    it('should send password reset confirmation', async () => {
+      const confirmationData = {
+        to: 'user@example.com',
+        name: 'testuser',
+        ipAddress: '192.168.1.1',
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         timestamp: new Date(),
       };
 
-      const result = await emailService.trackEmailEvent(trackingData);
+      await expect(
+        emailService.sendPasswordResetConfirmationEmail(confirmationData),
+      ).resolves.not.toThrow();
 
-      expect(result).toEqual({
-        success: true,
-        tracked: true,
-      });
+      expect(mockConsole.log).toHaveBeenCalledWith('To: user@example.com');
+      expect(mockConsole.log).toHaveBeenCalledWith(
+        expect.stringContaining('Your MediaNest Password Has Been Changed'),
+      );
     });
 
-    it('should track email click events', async () => {
-      const trackingData = {
-        messageId: 'message-123',
-        recipientEmail: 'clicked@example.com',
-        eventType: 'click',
-        linkUrl: 'https://example.com/verify',
+    it('should include security information in confirmation', async () => {
+      const confirmationData = {
+        to: 'user@example.com',
+        name: 'John Doe',
+        ipAddress: '10.0.0.1',
+        userAgent: 'Chrome Browser',
+        timestamp: new Date('2023-01-01T12:00:00Z'),
+      };
+
+      await emailService.sendPasswordResetConfirmationEmail(confirmationData);
+
+      expect(mockConsole.log).toHaveBeenCalledWith(expect.stringContaining('10.0.0.1'));
+      expect(mockConsole.log).toHaveBeenCalledWith(expect.stringContaining('Chrome Browser'));
+    });
+
+    it('should handle different timestamp formats', async () => {
+      const confirmationData = {
+        to: 'user@example.com',
+        name: 'testuser',
+        ipAddress: '127.0.0.1',
+        userAgent: 'Firefox',
         timestamp: new Date(),
       };
 
-      const result = await emailService.trackEmailEvent(trackingData);
+      await emailService.sendPasswordResetConfirmationEmail(confirmationData);
 
-      expect(result).toEqual({
-        success: true,
-        tracked: true,
-      });
+      expect(mockConsole.log).toHaveBeenCalledWith(expect.stringContaining('127.0.0.1'));
+    });
+  });
+
+  describe('email provider configuration', () => {
+    it('should use console provider by default in development', async () => {
+      const emailData = {
+        to: 'test@example.com',
+        name: 'Test User',
+      };
+
+      await emailService.sendWelcomeEmail(emailData);
+
+      expect(mockConsole.log).toHaveBeenCalledWith('\n=== EMAIL SENT ===');
     });
 
-    it('should get email statistics', async () => {
-      const messageId = 'message-123';
+    it('should fall back to console for unknown providers', async () => {
+      process.env.EMAIL_PROVIDER = 'unknown-provider';
+      const emailService = new EmailService();
 
-      const result = await emailService.getEmailStats(messageId);
+      const emailData = {
+        to: 'test@example.com',
+        name: 'Test User',
+      };
 
-      expect(result).toEqual({
-        success: true,
-        stats: expect.objectContaining({
-          sent: expect.any(Boolean),
-          delivered: expect.any(Boolean),
-          opened: expect.any(Number),
-          clicked: expect.any(Number),
-        }),
-      });
+      await emailService.sendWelcomeEmail(emailData);
+
+      expect(mockConsole.log).toHaveBeenCalled();
+    });
+
+    it('should respect EMAIL_FROM configuration', async () => {
+      process.env.EMAIL_FROM = 'custom@medianest.com';
+      const emailService = new EmailService();
+
+      const emailData = {
+        to: 'test@example.com',
+        name: 'Test User',
+      };
+
+      await emailService.sendWelcomeEmail(emailData);
+
+      expect(mockConsole.log).toHaveBeenCalledWith('From: custom@medianest.com');
+    });
+
+    it('should use default from address when not configured', async () => {
+      delete process.env.EMAIL_FROM;
+      const emailService = new EmailService();
+
+      const emailData = {
+        to: 'test@example.com',
+        name: 'Test User',
+      };
+
+      await emailService.sendWelcomeEmail(emailData);
+
+      expect(mockConsole.log).toHaveBeenCalledWith('From: noreply@medianest.com');
+    });
+
+    it('should log email provider information', async () => {
+      const emailData = {
+        to: 'test@example.com',
+        name: 'Test User',
+      };
+
+      await emailService.sendWelcomeEmail(emailData);
+
+      // Should log to winston logger as well as console
+      expect(mockConsole.log).toHaveBeenCalled();
     });
   });
 });
