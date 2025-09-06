@@ -86,15 +86,22 @@ describe('API Components Validation', () => {
   it('should validate app can be constructed', async () => {
     // Mock Express and related dependencies
     vi.mock('express', () => ({
-      default: vi.fn(() => ({
-        use: vi.fn(),
-        get: vi.fn(),
-        post: vi.fn(),
-        put: vi.fn(),
-        patch: vi.fn(),
-        delete: vi.fn(),
-        listen: vi.fn(),
-      })),
+      default: Object.assign(
+        vi.fn(() => ({
+          use: vi.fn(),
+          get: vi.fn(),
+          post: vi.fn(),
+          put: vi.fn(),
+          patch: vi.fn(),
+          delete: vi.fn(),
+          listen: vi.fn(),
+        })),
+        {
+          json: vi.fn(() => ({})),
+          urlencoded: vi.fn(() => ({})),
+          static: vi.fn(() => ({})),
+        },
+      ),
       Router: vi.fn(() => ({
         use: vi.fn(),
         get: vi.fn(),
