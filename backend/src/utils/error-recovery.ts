@@ -1,5 +1,4 @@
 import { logger } from './logger';
-import { retryWithBackoff } from './retry';
 import { CircuitBreakerFactory } from './circuit-breaker';
 import IORedis from 'ioredis';
 
@@ -56,7 +55,7 @@ export class ErrorRecoveryManager {
 
         // Reset circuit breaker if it exists
         const circuitBreaker = CircuitBreakerFactory.get(`${context.service}-db`);
-        if (circuitBreaker?.isOpen) {
+        if (circuitBreaker && circuitBreaker.isOpen) {
           circuitBreaker.reset();
           logger.info('Database circuit breaker reset');
         }
@@ -86,7 +85,7 @@ export class ErrorRecoveryManager {
           }
         } catch (cacheError) {
           logger.warn('Cache fallback failed', {
-            error: (cacheError as Error).message,
+            error: cacheError instanceof Error ? cacheError.message : String(cacheError),
             cacheKey: context.metadata.cacheKey,
           });
         }
@@ -256,7 +255,8 @@ export class ErrorRecoveryManager {
       } catch (recoveryError) {
         logger.warn(`Recovery action ${action.name} failed`, {
           originalError: error.message,
-          recoveryError: (recoveryError as Error).message,
+          recoveryError:
+            recoveryError instanceof Error ? recoveryError.message : String(recoveryError),
           operation: context.operation,
         });
 
@@ -329,9 +329,11 @@ export class ErrorRecoveryManager {
     try {
       const key = `recovery:history:${operation}`;
       const history = await this.redis.lrange(key, 0, -1);
-      return history.map((record) => JSON.parse(record));
+      return history.map((record: string) => JSON.parse(record));
     } catch (error) {
-      logger.error('Failed to retrieve recovery history', { error });
+      logger.error('Failed to retrieve recovery history', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       return [];
     }
   }
@@ -353,7 +355,7 @@ export class ErrorRecoveryManager {
       ...retryOptions,
     };
 
-    let lastError: Error;
+    let lastError: Error | undefined;
 
     for (let attempt = 1; attempt <= options.maxAttempts; attempt++) {
       try {
@@ -382,7 +384,8 @@ export class ErrorRecoveryManager {
             logger.info('Recovery succeeded, retrying original operation');
           } catch (recoveryError) {
             logger.warn('Recovery failed, will retry operation', {
-              recoveryError: (recoveryError as Error).message,
+              recoveryError:
+                recoveryError instanceof Error ? recoveryError.message : String(recoveryError),
             });
           }
         }
@@ -395,7 +398,7 @@ export class ErrorRecoveryManager {
       }
     }
 
-    throw lastError!;
+    throw lastError || new Error('Operation failed after all attempts');
   }
 
   // Cascade failure prevention

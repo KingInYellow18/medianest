@@ -11,13 +11,13 @@ export interface CircuitBreakerOptions {
 }
 
 export interface CircuitBreakerStats {
-  state: 'CLOSED' | 'OPEN' | 'HALF_OPEN';
-  failureCount: number;
-  successCount: number;
-  totalRequests: number;
+  state: CircuitBreakerState;
+  failures: number;
+  successes: number;
+  requests: number;
   lastFailureTime: Date | null;
   lastSuccessTime: Date | null;
-  nextRetryAt: Date | null;
+  nextAttempt?: Date;
   errorRate: number;
 }
 
@@ -54,9 +54,7 @@ export class CircuitBreaker extends EventEmitter {
       if (this.shouldAttemptReset()) {
         this.transitionToHalfOpen();
       } else {
-        const error = new Error(
-          `Circuit breaker is OPEN for ${this.name}. Next retry at: ${this.nextRetryAt?.toISOString()}`,
-        );
+        const error = new Error(`Circuit breaker ${this.name} is OPEN`);
         error.name = 'CircuitBreakerError';
         this.emit('callRejected', error);
         throw error;
@@ -92,7 +90,10 @@ export class CircuitBreaker extends EventEmitter {
       return result;
     } catch (error) {
       const duration = Date.now() - startTime;
-      this.onFailure(error as Error, duration);
+      // Convert non-Error objects to Error for internal processing
+      const errorObj = error instanceof Error ? error : new Error(String(error));
+      this.onFailure(errorObj, duration);
+      // Re-throw the original error/value
       throw error;
     }
   }
@@ -106,13 +107,12 @@ export class CircuitBreaker extends EventEmitter {
     if (this.state === CircuitBreakerState.HALF_OPEN) {
       this.transitionToClosed();
     } else if (this.state === CircuitBreakerState.CLOSED) {
-      // Reset failure count on successful calls
-      this.failureCount = Math.max(0, this.failureCount - 1);
+      // Reset failure count on successful calls only in closed state
+      this.failureCount = 0;
     }
   }
 
   private onFailure(error: Error, duration: number): void {
-    this.failureCount++;
     this.lastFailureTime = new Date();
 
     this.emit('callFailed', { error, duration, state: this.state });
@@ -122,8 +122,11 @@ export class CircuitBreaker extends EventEmitter {
         error: error.message,
         state: this.state,
       });
-      return;
+      return; // Don't count expected errors as failures
     }
+
+    // Only count unexpected errors as failures
+    this.failureCount++;
 
     if (this.state === CircuitBreakerState.HALF_OPEN || this.shouldTransitionToOpen()) {
       this.transitionToOpen();
@@ -200,12 +203,12 @@ export class CircuitBreaker extends EventEmitter {
 
     return {
       state: this.state,
-      failureCount: this.failureCount,
-      successCount: this.successCount,
-      totalRequests: this.totalRequests,
+      failures: this.failureCount,
+      successes: this.successCount,
+      requests: this.totalRequests,
       lastFailureTime: this.lastFailureTime,
       lastSuccessTime: this.lastSuccessTime,
-      nextRetryAt: this.nextRetryAt,
+      ...(this.nextRetryAt ? { nextAttempt: this.nextRetryAt } : {}),
       errorRate: Math.round(errorRate * 100) / 100,
     };
   }
@@ -244,6 +247,28 @@ export class CircuitBreaker extends EventEmitter {
 
   get isHalfOpen(): boolean {
     return this.state === CircuitBreakerState.HALF_OPEN;
+  }
+
+  // Manual state controls for testing
+  forceOpen(): void {
+    logger.warn(`Circuit breaker ${this.name} manually forced to OPEN state`);
+
+    this.state = CircuitBreakerState.OPEN;
+    this.nextRetryAt = new Date(Date.now() + this.options.resetTimeout);
+    this.halfOpenCalls = 0;
+
+    this.emit('stateChange', this.state, this.getStats());
+  }
+
+  forceClosed(): void {
+    logger.info(`Circuit breaker ${this.name} manually forced to CLOSED state`);
+
+    this.state = CircuitBreakerState.CLOSED;
+    this.failureCount = 0;
+    this.halfOpenCalls = 0;
+    this.nextRetryAt = null;
+
+    this.emit('stateChange', this.state, this.getStats());
   }
 }
 
