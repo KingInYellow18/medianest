@@ -29,6 +29,14 @@ export const mockAxios = {
       common: {},
     },
   },
+  interceptors: {
+    request: {
+      use: vi.fn(),
+    },
+    response: {
+      use: vi.fn(),
+    },
+  },
 };
 
 // Test utilities
@@ -156,7 +164,10 @@ export const setupGlobalMocks = () => {
 
   // Mock axios
   vi.mock('axios', () => ({
-    default: mockAxios,
+    default: {
+      ...mockAxios,
+      create: vi.fn(() => mockAxios),
+    },
     create: vi.fn(() => mockAxios),
   }));
 
@@ -210,6 +221,12 @@ export const setupGlobalMocks = () => {
       JWT_EXPIRES_IN: '1h',
       DATABASE_URL: 'postgresql://test:test@localhost:5433/medianest_test',
       REDIS_URL: 'redis://localhost:6380/0',
+      jwt: {
+        secret: 'test-jwt-secret-key-32-bytes-long',
+        issuer: 'medianest-test',
+        audience: 'medianest-test-users',
+        expiresIn: '1h',
+      },
     },
     getJWTConfig: () => ({
       secret: 'test-jwt-secret-key-32-bytes-long',
@@ -229,8 +246,33 @@ export const setupGlobalMocks = () => {
   // Mock Redis client
   vi.mock('@/config/redis', () => ({
     default: mockRedisClient,
+    getRedis: vi.fn(() => mockRedisClient),
     getRedisClient: vi.fn(() => mockRedisClient),
     disconnectRedis: vi.fn(),
+  }));
+
+  // Mock missing middleware modules
+  vi.mock('@/middleware/rbac', () => ({
+    authorize: vi.fn(() => (req: any, res: any, next: any) => next()),
+    requireRole: vi.fn(() => (req: any, res: any, next: any) => next()),
+  }));
+
+  // Mock auth middleware modules
+  vi.mock('@/middleware/auth.middleware', () => ({
+    authMiddleware: vi.fn(() => (req: any, res: any, next: any) => next()),
+  }));
+
+  // Also mock relative paths for middleware
+  vi.mock('../../middleware/auth.middleware', () => ({
+    authMiddleware: vi.fn(() => (req: any, res: any, next: any) => next()),
+  }));
+
+  vi.mock('../../middleware/validation.middleware', () => ({
+    validateRequest: vi.fn(() => (req: any, res: any, next: any) => next()),
+  }));
+
+  vi.mock('../../lib/logger', () => ({
+    logger: mockLogger,
   }));
 };
 

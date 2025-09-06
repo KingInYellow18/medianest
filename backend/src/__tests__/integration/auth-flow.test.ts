@@ -1,7 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import request from 'supertest';
-import { createApp } from '../../app';
-import { mockPrismaClient, mockRedisClient, createTestUser, createTestJWT, setupTestEnvironment } from '../setup';
+import { app as expressApp } from '../../app';
+import {
+  mockPrismaClient,
+  mockRedisClient,
+  createTestUser,
+  createTestJWT,
+  setupTestEnvironment,
+} from '../setup';
 
 // Ensure test environment is set up
 setupTestEnvironment();
@@ -12,7 +18,7 @@ describe('Authentication Flow Integration Tests', () => {
   let app: any;
 
   beforeEach(() => {
-    app = createApp();
+    app = expressApp;
   });
 
   afterEach(() => {
