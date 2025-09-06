@@ -2,8 +2,22 @@
 const nextConfig = {
   // Trust proxy headers for correct protocol detection
   experimental: {
-    // Optimize package imports for better tree-shaking
-    optimizePackageImports: ['lucide-react', '@headlessui/react', 'date-fns'],
+    // AGGRESSIVE OPTIMIZATION: Optimize package imports for better tree-shaking
+    optimizePackageImports: [
+      'lucide-react',
+      '@headlessui/react',
+      'date-fns',
+      '@tanstack/react-query',
+      'framer-motion',
+      'react-hook-form',
+      '@hookform/resolvers',
+      'axios',
+      'clsx',
+      'tailwind-merge',
+      'class-variance-authority',
+    ],
+    // Enable experimental optimizations for bundle size reduction
+    optimizeServerReact: true,
   },
 
   webpack: (config, { isServer }) => {
@@ -16,6 +30,68 @@ const nextConfig = {
         crypto: false,
       };
     }
+
+    // AGGRESSIVE OPTIMIZATION: Enable advanced webpack optimizations
+    config.optimization = {
+      ...config.optimization,
+      // Enable aggressive code splitting - TARGET: Reduce 7.3MB main-app.js by 70%
+      splitChunks: {
+        chunks: 'all',
+        maxInitialRequests: 25,
+        maxAsyncRequests: 20,
+        cacheGroups: {
+          // Vendor chunk for third-party libraries
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+            maxSize: 200000, // 200KB max per chunk
+            priority: 10,
+          },
+          // Framework chunk (React, Next.js)
+          framework: {
+            test: /[\\/]node_modules[\\/](react|react-dom|next)[\\/]/,
+            name: 'framework',
+            chunks: 'all',
+            maxSize: 200000,
+            priority: 20,
+          },
+          // UI libraries chunk
+          ui: {
+            test: /[\\/]node_modules[\\/](@headlessui|@tabler|lucide-react|framer-motion)[\\/]/,
+            name: 'ui-libs',
+            chunks: 'all',
+            maxSize: 150000,
+            priority: 15,
+          },
+          // Auth libraries chunk
+          auth: {
+            test: /[\\/]node_modules[\\/](next-auth|@auth)[\\/]/,
+            name: 'auth',
+            chunks: 'all',
+            maxSize: 100000,
+            priority: 12,
+          },
+          // Common shared code
+          common: {
+            minChunks: 2,
+            name: 'common',
+            chunks: 'all',
+            maxSize: 100000,
+            priority: 8,
+          },
+        },
+      },
+      // Enable module concatenation for smaller bundles
+      concatenateModules: true,
+      // Enable aggressive tree shaking
+      usedExports: true,
+      sideEffects: false,
+    };
+
+    // PERFORMANCE: Enable lighter dependency aliases (disabled due to compatibility)
+    // The aliases were causing import resolution errors with framer-motion
+
     return config;
   },
 
