@@ -11,35 +11,16 @@ import {
   createTestJWT,
 } from '../setup';
 
-// Mock user repository
-const mockUserRepository = {
-  findByPlexId: vi.fn(),
-  create: vi.fn(),
-  update: vi.fn(),
-  isFirstUser: vi.fn(),
-};
-
-// Mock services
-const mockEncryptionService = {
-  encryptForStorage: vi.fn().mockReturnValue('encrypted-token'),
-};
-
-const mockJwtService = {
-  generateAccessToken: vi.fn().mockReturnValue('test-access-token'),
-  generateRememberToken: vi.fn().mockReturnValue('test-remember-token'),
-};
-
-// Mock axios
-const mockAxios = {
+// Mock dependencies with proper hoisting
+vi.mock('axios', () => ({
+  default: {
+    post: vi.fn(),
+    get: vi.fn(),
+    isAxiosError: vi.fn(),
+  },
   post: vi.fn(),
   get: vi.fn(),
   isAxiosError: vi.fn(),
-};
-
-// Mock dependencies
-vi.mock('axios', () => ({
-  default: mockAxios,
-  ...mockAxios,
 }));
 
 vi.mock('../../config/database', () => ({
@@ -51,15 +32,25 @@ vi.mock('../../config/redis', () => ({
 }));
 
 vi.mock('../../repositories/instances', () => ({
-  userRepository: mockUserRepository,
+  userRepository: {
+    findByPlexId: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    isFirstUser: vi.fn(),
+  },
 }));
 
 vi.mock('../../services/encryption.service', () => ({
-  encryptionService: mockEncryptionService,
+  encryptionService: {
+    encryptForStorage: vi.fn().mockReturnValue('encrypted-token'),
+  },
 }));
 
 vi.mock('../../services/jwt.service', () => ({
-  jwtService: mockJwtService,
+  jwtService: {
+    generateAccessToken: vi.fn().mockReturnValue('test-access-token'),
+    generateRememberToken: vi.fn().mockReturnValue('test-remember-token'),
+  },
 }));
 
 vi.mock('@/config', () => ({
@@ -69,6 +60,17 @@ vi.mock('@/config', () => ({
     },
   },
 }));
+
+// Import mocked modules after mocking
+import axios from 'axios';
+import { userRepository } from '../../repositories/instances';
+import { encryptionService } from '../../services/encryption.service';
+import { jwtService } from '../../services/jwt.service';
+
+const mockAxios = vi.mocked(axios);
+const mockUserRepository = vi.mocked(userRepository);
+const mockEncryptionService = vi.mocked(encryptionService);
+const mockJwtService = vi.mocked(jwtService);
 
 describe('AuthController', () => {
   let authController: AuthController;
@@ -84,16 +86,6 @@ describe('AuthController', () => {
 
     // Reset all mocks
     vi.clearAllMocks();
-    mockAxios.post.mockReset();
-    mockAxios.get.mockReset();
-    mockAxios.isAxiosError.mockReset();
-    mockUserRepository.findByPlexId.mockReset();
-    mockUserRepository.create.mockReset();
-    mockUserRepository.update.mockReset();
-    mockUserRepository.isFirstUser.mockReset();
-    mockEncryptionService.encryptForStorage.mockReturnValue('encrypted-token');
-    mockJwtService.generateAccessToken.mockReturnValue('test-access-token');
-    mockJwtService.generateRememberToken.mockReturnValue('test-remember-token');
   });
 
   describe('generatePin', () => {
