@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "outDir": "./dist",
+    "composite": false,
+    "noEmit": false,
+    "incremental": true
+  },
+  "files": [],
+  "include": [],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    "frontend/**/*",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "tests/**/*",
+    "coverage/**/*"
+  ],
+  "references": [{ "path": "./shared" }, { "path": "./backend" }]
+}
