@@ -18,7 +18,7 @@ vi.mock('@/lib/socket', () => ({
 
 describe('useRealtimeStatus', () => {
   let queryClient: QueryClient;
-  let wrapper: ({ children }: { children: React.ReactNode }) => React.ReactElement;
+  let wrapper: ({ children }: { children: React.ReactNode }) => React.ReactElement<any>;
 
   beforeEach(() => {
     vi.clearAllMocks();

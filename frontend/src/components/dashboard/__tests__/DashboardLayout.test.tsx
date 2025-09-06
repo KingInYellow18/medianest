@@ -71,7 +71,7 @@ describe('DashboardLayout', () => {
     });
   });
 
-  const renderWithProviders = (component: React.ReactElement) => {
+  const renderWithProviders = (component: React.ReactElement<any>) => {
     return render(<QueryClientProvider client={queryClient}>{component}</QueryClientProvider>);
   };
 
