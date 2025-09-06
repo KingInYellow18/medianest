@@ -40,6 +40,7 @@ exports.PlexConfigSchema = zod_1.z.object({
     PLEX_CLIENT_SECRET: zod_1.z.string().min(1, 'Plex client secret is required'),
     PLEX_CLIENT_IDENTIFIER: zod_1.z.string().optional(),
     PLEX_SERVER_URL: zod_1.z.string().url('Invalid Plex server URL').optional(),
+    PLEX_YOUTUBE_LIBRARY_PATH: zod_1.z.string().min(1).default('/data/youtube'),
 });
 exports.EncryptionConfigSchema = zod_1.z.object({
     ENCRYPTION_KEY: zod_1.z.string().min(32, 'Encryption key must be at least 32 characters'),

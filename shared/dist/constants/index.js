@@ -1,58 +1,97 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ERROR_CODES = exports.SERVICES = exports.RATE_LIMITS = exports.APP_VERSION = exports.APP_NAME = void 0;
+exports.RATE_LIMITS = exports.ERROR_CODES = exports.SOCKET_EVENTS = exports.SERVICES = exports.API_ENDPOINTS = exports.APP_VERSION = exports.APP_NAME = void 0;
 exports.APP_NAME = 'MediaNest';
 exports.APP_VERSION = '1.0.0';
-__exportStar(require("./events"), exports);
-__exportStar(require("./api"), exports);
+exports.API_ENDPOINTS = {
+    AUTH: {
+        LOGIN: '/api/v1/auth/login',
+        LOGOUT: '/api/v1/auth/logout',
+        SESSION: '/api/v1/auth/session',
+        PLEX: {
+            PIN: '/api/v1/auth/plex/pin',
+            VERIFY: '/api/v1/auth/plex/verify',
+        },
+    },
+    MEDIA: {
+        SEARCH: '/api/v1/media/search',
+        REQUEST: '/api/v1/media/request',
+        REQUESTS: '/api/v1/media/requests',
+    },
+    SERVICES: {
+        BASE: '/api/v1/services',
+        STATUS: '/api/v1/services/status',
+        CONFIG: '/api/v1/services/config',
+    },
+    YOUTUBE: {
+        VALIDATE: '/api/v1/youtube/validate',
+        DOWNLOAD: '/api/v1/youtube/download',
+        QUEUE: '/api/v1/youtube/queue',
+    },
+    USERS: {
+        PROFILE: '/api/v1/users/profile',
+        PREFERENCES: '/api/v1/users/preferences',
+        QUOTA: '/api/v1/users/quota',
+    },
+};
+exports.SERVICES = {
+    PLEX: 'plex',
+    OVERSEERR: 'overseerr',
+    UPTIME_KUMA: 'uptime-kuma',
+    YOUTUBE_DL: 'youtube-dl',
+};
+exports.SOCKET_EVENTS = {
+    CONNECTION: 'connection',
+    CONNECT: 'connect',
+    DISCONNECT: 'disconnect',
+    SERVICE_STATUS: 'service:status',
+    SERVICE_STATUS_ALL: 'service:status:all',
+    REQUEST_UPDATE: 'request:update',
+    REQUEST_CREATED: 'request:created',
+    DOWNLOAD_PROGRESS: 'download:progress',
+    DOWNLOAD_COMPLETE: 'download:complete',
+    DOWNLOAD_ERROR: 'download:error',
+    USER_NOTIFICATION: 'user:notification',
+    NOTIFICATION: 'notification',
+};
+exports.ERROR_CODES = {
+    VALIDATION_ERROR: 'VALIDATION_ERROR',
+    INVALID_INPUT: 'INVALID_INPUT',
+    MISSING_REQUIRED_FIELD: 'MISSING_REQUIRED_FIELD',
+    AUTHENTICATION_ERROR: 'AUTHENTICATION_ERROR',
+    UNAUTHORIZED: 'UNAUTHORIZED',
+    TOKEN_EXPIRED: 'TOKEN_EXPIRED',
+    INVALID_TOKEN: 'INVALID_TOKEN',
+    AUTHORIZATION_ERROR: 'AUTHORIZATION_ERROR',
+    FORBIDDEN: 'FORBIDDEN',
+    INSUFFICIENT_PERMISSIONS: 'INSUFFICIENT_PERMISSIONS',
+    NOT_FOUND: 'NOT_FOUND',
+    CONFLICT: 'CONFLICT',
+    RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
+    INTERNAL_ERROR: 'INTERNAL_ERROR',
+    SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
+    BAD_REQUEST: 'BAD_REQUEST',
+};
 exports.RATE_LIMITS = {
-    GENERAL_API: {
-        windowMs: 60 * 1000,
+    API: {
+        windowMs: 60000,
         max: 100,
         keyPrefix: 'rate:api:',
     },
-    YOUTUBE_DOWNLOAD: {
-        windowMs: 60 * 60 * 1000,
+    AUTH: {
+        windowMs: 900000,
+        max: 5,
+        keyPrefix: 'rate:auth:',
+    },
+    YOUTUBE: {
+        windowMs: 3600000,
         max: 5,
         keyPrefix: 'rate:youtube:',
     },
     MEDIA_REQUEST: {
-        windowMs: 60 * 60 * 1000,
+        windowMs: 3600000,
         max: 20,
-        keyPrefix: 'rate:media:',
+        keyPrefix: 'rate:request:',
     },
-    AUTH: {
-        windowMs: 15 * 60 * 1000,
-        max: 5,
-        keyPrefix: 'rate:auth:',
-    },
-};
-exports.SERVICES = {
-    PLEX: 'Plex',
-    OVERSEERR: 'Overseerr',
-    UPTIME_KUMA: 'Uptime Kuma',
-    YOUTUBE_DL: 'YouTube Downloader',
-};
-exports.ERROR_CODES = {
-    AUTHENTICATION_FAILED: 'AUTH_001',
-    UNAUTHORIZED: 'AUTH_002',
-    RATE_LIMIT_EXCEEDED: 'RATE_001',
-    SERVICE_UNAVAILABLE: 'SERVICE_001',
-    VALIDATION_ERROR: 'VAL_001',
-    INTERNAL_ERROR: 'INT_001',
 };
 //# sourceMappingURL=index.js.map

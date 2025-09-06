@@ -82,9 +82,11 @@ export declare const PlexConfigSchema: z.ZodObject<{
     PLEX_CLIENT_SECRET: z.ZodString;
     PLEX_CLIENT_IDENTIFIER: z.ZodOptional<z.ZodString>;
     PLEX_SERVER_URL: z.ZodOptional<z.ZodString>;
+    PLEX_YOUTUBE_LIBRARY_PATH: z.ZodDefault<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     PLEX_CLIENT_ID: string;
     PLEX_CLIENT_SECRET: string;
+    PLEX_YOUTUBE_LIBRARY_PATH: string;
     PLEX_CLIENT_IDENTIFIER?: string | undefined;
     PLEX_SERVER_URL?: string | undefined;
 }, {
@@ -92,6 +94,7 @@ export declare const PlexConfigSchema: z.ZodObject<{
     PLEX_CLIENT_SECRET: string;
     PLEX_CLIENT_IDENTIFIER?: string | undefined;
     PLEX_SERVER_URL?: string | undefined;
+    PLEX_YOUTUBE_LIBRARY_PATH?: string | undefined;
 }>;
 export declare const EncryptionConfigSchema: z.ZodObject<{
     ENCRYPTION_KEY: z.ZodString;
@@ -237,6 +240,7 @@ export declare const BackendConfigSchema: z.ZodObject<{
     PLEX_CLIENT_SECRET: z.ZodString;
     PLEX_CLIENT_IDENTIFIER: z.ZodOptional<z.ZodString>;
     PLEX_SERVER_URL: z.ZodOptional<z.ZodString>;
+    PLEX_YOUTUBE_LIBRARY_PATH: z.ZodDefault<z.ZodString>;
 } & {
     ENCRYPTION_KEY: z.ZodString;
 } & {
@@ -290,6 +294,7 @@ export declare const BackendConfigSchema: z.ZodObject<{
     JWT_EXPIRES_IN: string;
     PLEX_CLIENT_ID: string;
     PLEX_CLIENT_SECRET: string;
+    PLEX_YOUTUBE_LIBRARY_PATH: string;
     ENCRYPTION_KEY: string;
     RATE_LIMIT_API_REQUESTS: number;
     RATE_LIMIT_API_WINDOW: number;
@@ -346,6 +351,7 @@ export declare const BackendConfigSchema: z.ZodObject<{
     JWT_EXPIRES_IN?: string | undefined;
     PLEX_CLIENT_IDENTIFIER?: string | undefined;
     PLEX_SERVER_URL?: string | undefined;
+    PLEX_YOUTUBE_LIBRARY_PATH?: string | undefined;
     RATE_LIMIT_API_REQUESTS?: number | undefined;
     RATE_LIMIT_API_WINDOW?: number | undefined;
     RATE_LIMIT_YOUTUBE_REQUESTS?: number | undefined;
@@ -396,14 +402,15 @@ export declare const FrontendConfigSchema: z.ZodObject<{
     PLEX_CLIENT_SECRET: z.ZodString;
     PLEX_CLIENT_IDENTIFIER: z.ZodOptional<z.ZodString>;
     PLEX_SERVER_URL: z.ZodOptional<z.ZodString>;
+    PLEX_YOUTUBE_LIBRARY_PATH: z.ZodDefault<z.ZodString>;
 }, "PLEX_CLIENT_ID" | "PLEX_CLIENT_SECRET">, "strip", z.ZodTypeAny, {
-    NEXT_PUBLIC_API_URL: string;
     NODE_ENV: "production" | "development" | "test";
     LOG_LEVEL: "error" | "warn" | "info" | "debug";
     NEXTAUTH_URL: string;
     NEXTAUTH_SECRET: string;
     PLEX_CLIENT_ID: string;
     PLEX_CLIENT_SECRET: string;
+    NEXT_PUBLIC_API_URL: string;
     NEXT_PUBLIC_BACKEND_URL: string;
     NEXT_PUBLIC_WS_URL: string;
     NEXT_PUBLIC_APP_NAME: string;
@@ -416,9 +423,9 @@ export declare const FrontendConfigSchema: z.ZodObject<{
     NEXTAUTH_SECRET: string;
     PLEX_CLIENT_ID: string;
     PLEX_CLIENT_SECRET: string;
-    NEXT_PUBLIC_API_URL?: string | undefined;
     NODE_ENV?: "production" | "development" | "test" | undefined;
     LOG_LEVEL?: "error" | "warn" | "info" | "debug" | undefined;
+    NEXT_PUBLIC_API_URL?: string | undefined;
     NEXT_PUBLIC_BACKEND_URL?: string | undefined;
     NEXT_PUBLIC_WS_URL?: string | undefined;
     NEXT_PUBLIC_PLEX_URL?: string | undefined;
@@ -453,6 +460,7 @@ export declare const TestConfigSchema: z.ZodObject<{
     PLEX_CLIENT_SECRET: z.ZodString;
     PLEX_CLIENT_IDENTIFIER: z.ZodOptional<z.ZodString>;
     PLEX_SERVER_URL: z.ZodOptional<z.ZodString>;
+    PLEX_YOUTUBE_LIBRARY_PATH: z.ZodDefault<z.ZodString>;
 } & {
     ENCRYPTION_KEY: z.ZodString;
 } & {
@@ -511,6 +519,7 @@ export declare const TestConfigSchema: z.ZodObject<{
     JWT_EXPIRES_IN: string;
     PLEX_CLIENT_ID: string;
     PLEX_CLIENT_SECRET: string;
+    PLEX_YOUTUBE_LIBRARY_PATH: string;
     ENCRYPTION_KEY: string;
     RATE_LIMIT_API_REQUESTS: number;
     RATE_LIMIT_API_WINDOW: number;
@@ -571,6 +580,7 @@ export declare const TestConfigSchema: z.ZodObject<{
     JWT_EXPIRES_IN?: string | undefined;
     PLEX_CLIENT_IDENTIFIER?: string | undefined;
     PLEX_SERVER_URL?: string | undefined;
+    PLEX_YOUTUBE_LIBRARY_PATH?: string | undefined;
     RATE_LIMIT_API_REQUESTS?: number | undefined;
     RATE_LIMIT_API_WINDOW?: number | undefined;
     RATE_LIMIT_YOUTUBE_REQUESTS?: number | undefined;

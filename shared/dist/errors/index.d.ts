@@ -1,8 +1,8 @@
 export declare class AppError extends Error {
     readonly statusCode: number;
     readonly code: string;
-    readonly details?: any;
-    constructor(message: string, statusCode?: number, code?: string, details?: any);
+    readonly details: any;
+    constructor(code: string, message: string, statusCode?: number, details?: any);
 }
 export declare class ValidationError extends AppError {
     constructor(message: string, details?: any);
@@ -14,16 +14,16 @@ export declare class AuthorizationError extends AppError {
     constructor(message?: string);
 }
 export declare class NotFoundError extends AppError {
-    constructor(resource: string);
+    constructor(resource?: string);
 }
 export declare class ConflictError extends AppError {
     constructor(message: string);
 }
 export declare class RateLimitError extends AppError {
-    constructor(retryAfter?: number);
+    constructor(message?: string, retryAfter?: number);
 }
 export declare class ServiceUnavailableError extends AppError {
-    constructor(service: string);
+    constructor(service?: string);
 }
 export declare class BadRequestError extends AppError {
     constructor(message: string, details?: any);
@@ -33,5 +33,13 @@ export declare class InternalServerError extends AppError {
 }
 export declare function isAppError(error: any): error is AppError;
 export declare function toAppError(error: any): AppError;
+export declare function toErrorResponse(error: any): {
+    success: boolean;
+    error: {
+        code: string;
+        message: string;
+        details: any;
+    };
+};
 export * from './utils';
 //# sourceMappingURL=index.d.ts.map
