@@ -1,11 +1,198 @@
 // Set required environment variables BEFORE importing anything
+process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = 'test-jwt-secret-for-auth-endpoints';
 process.env.PLEX_CLIENT_IDENTIFIER = 'test-client-id';
 process.env.PLEX_CLIENT_SECRET = 'test-client-secret';
 process.env.DATABASE_URL = process.env.DATABASE_URL || 'file:./test.db';
+process.env.REDIS_URL = 'redis://mock-redis:6379/0';
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import request from 'supertest';
+
+// Mock Redis BEFORE any imports that might use it
+vi.mock('ioredis', () => {
+  const mockRedisClient = {
+    ping: vi.fn().mockResolvedValue('PONG'),
+    get: vi.fn().mockResolvedValue(null),
+    set: vi.fn().mockResolvedValue('OK'),
+    del: vi.fn().mockResolvedValue(1),
+    incr: vi.fn().mockResolvedValue(1),
+    pexpire: vi.fn().mockResolvedValue(1),
+    pttl: vi.fn().mockResolvedValue(-1),
+    eval: vi.fn().mockResolvedValue(0),
+    on: vi.fn(),
+    off: vi.fn(),
+    connect: vi.fn().mockResolvedValue(undefined),
+    disconnect: vi.fn().mockResolvedValue(undefined),
+    quit: vi.fn().mockResolvedValue('OK'),
+    flushall: vi.fn().mockResolvedValue('OK'),
+    status: 'ready',
+  };
+
+  return {
+    default: vi.fn(() => mockRedisClient),
+    __esModule: true,
+  };
+});
+
+// Mock the entire Redis config module
+vi.mock('@/config/redis', () => ({
+  initializeRedis: vi.fn().mockResolvedValue({
+    ping: vi.fn().mockResolvedValue('PONG'),
+    on: vi.fn(),
+    quit: vi.fn().mockResolvedValue('OK'),
+  }),
+  getRedis: vi.fn().mockReturnValue({
+    ping: vi.fn().mockResolvedValue('PONG'),
+    get: vi.fn().mockResolvedValue(null),
+    set: vi.fn().mockResolvedValue('OK'),
+    del: vi.fn().mockResolvedValue(1),
+    incr: vi.fn().mockResolvedValue(1),
+    pexpire: vi.fn().mockResolvedValue(1),
+    pttl: vi.fn().mockResolvedValue(-1),
+    eval: vi.fn().mockResolvedValue(0),
+  }),
+  redisClient: {
+    ping: vi.fn().mockResolvedValue('PONG'),
+    on: vi.fn(),
+    quit: vi.fn().mockResolvedValue('OK'),
+  },
+  closeRedis: vi.fn().mockResolvedValue(undefined),
+  checkRedisHealth: vi.fn().mockResolvedValue(true),
+  checkRateLimit: vi.fn().mockResolvedValue({ allowed: true }),
+}));
+
+// Mock ALL services that use Redis to prevent connection attempts
+vi.mock('@/services/integration.service', () => ({
+  IntegrationService: vi.fn().mockImplementation(() => ({
+    initialize: vi.fn().mockResolvedValue(undefined),
+    shutdown: vi.fn().mockResolvedValue(undefined),
+    getHealthStatuses: vi.fn().mockReturnValue(new Map()),
+    on: vi.fn(),
+    off: vi.fn(),
+    emit: vi.fn(),
+  })),
+}));
+
+vi.mock('@/services/youtube.service', () => ({
+  YouTubeService: vi.fn().mockImplementation(() => ({
+    downloadVideo: vi.fn().mockResolvedValue({ success: true }),
+    getProgress: vi.fn().mockResolvedValue({ progress: 0 }),
+  })),
+}));
+
+vi.mock('@/services/cache.service', () => ({
+  CacheService: vi.fn().mockImplementation(() => ({
+    get: vi.fn().mockResolvedValue(null),
+    set: vi.fn().mockResolvedValue('OK'),
+    del: vi.fn().mockResolvedValue(1),
+  })),
+}));
+
+vi.mock('@/services/plex.service', () => ({
+  PlexService: vi.fn().mockImplementation(() => ({
+    authenticate: vi.fn().mockResolvedValue({ success: true }),
+    getLibraries: vi.fn().mockResolvedValue([]),
+  })),
+}));
+
+vi.mock('@/config/queues', () => ({
+  initializeQueues: vi.fn().mockResolvedValue(undefined),
+}));
+
+// Mock axios for external API calls
+vi.mock('axios', () => {
+  const mockAxiosInstance = {
+    get: vi.fn().mockResolvedValue({ data: {} }),
+    post: vi.fn().mockResolvedValue({ data: {} }),
+    put: vi.fn().mockResolvedValue({ data: {} }),
+    delete: vi.fn().mockResolvedValue({ data: {} }),
+    defaults: { headers: {} },
+    interceptors: {
+      request: { use: vi.fn(), eject: vi.fn() },
+      response: { use: vi.fn(), eject: vi.fn() },
+    },
+  };
+
+  return {
+    default: {
+      post: vi.fn().mockImplementation((url: string, data: any, config: any) => {
+        if (url.includes('plex.tv/pins.xml')) {
+          return Promise.resolve({
+            data: '<id>test-pin-12345</id><code>ABCD1234</code>',
+          });
+        }
+        if (url.includes('pin/test-pin-first-user')) {
+          return Promise.resolve({
+            data: `
+              <pin>
+                <id>test-pin-first-user</id>
+                <code>ABCD1234</code>
+                <authToken>mock-plex-token-first-user</authToken>
+                <user>
+                  <id>12345</id>
+                  <title>TestUser</title>
+                  <email>test@example.com</email>
+                </user>
+              </pin>
+            `,
+          });
+        }
+        if (url.includes('pin/test-pin-existing')) {
+          return Promise.resolve({
+            data: `
+              <pin>
+                <id>test-pin-existing</id>
+                <code>EFGH5678</code>
+                <authToken>mock-plex-token-existing</authToken>
+                <user>
+                  <id>67890</id>
+                  <title>ExistingUser</title>
+                  <email>existing@example.com</email>
+                </user>
+              </pin>
+            `,
+          });
+        }
+        if (url.includes('pin/unauthorized-pin')) {
+          return Promise.reject({
+            response: { status: 400 },
+            message: 'PIN not authorized',
+          });
+        }
+        return Promise.resolve({ data: {} });
+      }),
+      get: vi.fn().mockResolvedValue({ data: {} }),
+      create: vi.fn(() => mockAxiosInstance),
+      isAxiosError: vi.fn().mockReturnValue(false),
+    },
+  };
+});
+
+// Mock CSRF middleware to bypass in tests
+vi.mock('@/middleware/csrf', () => ({
+  generateCSRFToken: (req: any, res: any, next: any) => {
+    res.locals.csrfToken = 'mock-csrf-token';
+    next();
+  },
+  validateCSRFToken: (req: any, res: any, next: any) => {
+    next();
+  },
+  refreshCSRFToken: (req: any, res: any, next: any) => {
+    res.locals.csrfToken = 'mock-refreshed-csrf-token';
+    next();
+  },
+  optionalAuth: () => (req: any, res: any, next: any) => next(),
+  csrfController: {
+    getToken: (req: any, res: any) => {
+      res.json({ success: true, data: { csrfToken: 'mock-csrf-token' } });
+    },
+    refreshToken: (req: any, res: any) => {
+      res.json({ success: true, data: { csrfToken: 'mock-refreshed-csrf-token' } });
+    },
+  },
+}));
+
 import { app } from '@/app';
 import { prisma } from '@/db/prisma';
 import { databaseCleanup } from '../helpers/database-cleanup';
