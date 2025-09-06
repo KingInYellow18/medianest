@@ -2,8 +2,26 @@
   "name": "@medianest/shared",
   "version": "1.0.0",
   "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kinginyellow/medianest.git",
+    "directory": "shared"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.js"
+    },
+    "./config": {
+      "types": "./dist/config/index.d.ts",
+      "require": "./dist/config/index.js",
+      "import": "./dist/config/index.js"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "clean": "rimraf dist",
@@ -37,6 +55,6 @@
     "prettier": "^3.6.2",
     "rimraf": "^5.0.5",
     "typescript": "^5.5.3",
-    "vitest": "^1.6.1"
+    "vitest": "^3.2.4"
   }
 }
