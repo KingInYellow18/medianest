@@ -1,98 +1,186 @@
-# Build stage
-FROM node:20-alpine AS builder
+# Multi-stage Docker build for MediaNest
+# Optimized for production deployment with minimal image size
 
+# Build stage for shared dependencies
+FROM node:20-alpine AS shared-builder
 WORKDIR /app
 
-# Install dependencies for building
-RUN apk add --no-cache python3 make g++
+# Copy package files for dependency installation
+COPY package*.json ./
+COPY shared/package*.json ./shared/
+COPY shared/tsconfig.json ./shared/
+
+# Install dependencies with exact versions
+RUN npm ci --only=production --no-audit --no-fund
+
+# Copy shared source code
+COPY shared/src ./shared/src
+
+# Build shared package
+WORKDIR /app/shared
+RUN npm run build
+
+# Build stage for backend
+FROM node:20-alpine AS backend-builder
+WORKDIR /app
+
+# Copy root package files
+COPY package*.json ./
+COPY backend/package*.json ./backend/
+COPY backend/tsconfig.json ./backend/
+COPY backend/prisma ./backend/prisma
+
+# Copy shared build from previous stage
+COPY --from=shared-builder /app/shared/dist ./shared/dist
+COPY --from=shared-builder /app/shared/package.json ./shared/
+
+# Install backend dependencies
+RUN npm ci --workspace=backend --only=production --no-audit --no-fund
+
+# Generate Prisma client
+WORKDIR /app/backend
+RUN npx prisma generate
+
+# Copy backend source code
+COPY backend/src ./src
+
+# Build backend
+RUN npm run build
+
+# Build stage for frontend
+FROM node:20-alpine AS frontend-builder
+WORKDIR /app
 
 # Copy package files
+COPY package*.json ./
 COPY frontend/package*.json ./frontend/
-COPY backend/package*.json ./backend/
+COPY frontend/next.config.js ./frontend/
+COPY frontend/tailwind.config.ts ./frontend/
+COPY frontend/postcss.config.mjs ./frontend/
+COPY frontend/tsconfig.json ./frontend/
 
-# Install dependencies
-WORKDIR /app/frontend
-RUN npm ci
+# Copy shared build
+COPY --from=shared-builder /app/shared/dist ./shared/dist
+COPY --from=shared-builder /app/shared/package.json ./shared/
 
-WORKDIR /app/backend
-RUN npm ci
+# Install frontend dependencies
+RUN npm ci --workspace=frontend --only=production --no-audit --no-fund
 
-# Copy source code
-WORKDIR /app
-COPY frontend ./frontend
-COPY backend ./backend
+# Copy frontend source code
+COPY frontend/src ./frontend/src
+COPY frontend/public ./frontend/public
+COPY frontend/prisma ./frontend/prisma
 
 # Build frontend
 WORKDIR /app/frontend
 RUN npm run build
 
-# Build backend
-WORKDIR /app/backend
-RUN npx prisma generate
-RUN npm run build
-
-# Production stage
-FROM node:20-alpine
-
-# Security: Add labels for better container management
-LABEL maintainer="MediaNest Team"
-LABEL version="1.0.0"
-LABEL description="MediaNest - Unified Media Management Portal"
-
-# Install runtime dependencies and security updates
-RUN apk upgrade --no-cache && \
-    apk add --no-cache \
-        python3 \
-        py3-pip \
-        ffmpeg \
-        dumb-init \
-        curl && \
-    pip3 install --no-cache-dir yt-dlp
-
+# Production stage for backend
+FROM node:20-alpine AS backend-production
 WORKDIR /app
 
-# Create non-root user with specific UID/GID for consistency
-RUN addgroup -g 1000 -S nodejs && \
-    adduser -S nodejs -u 1000 -G nodejs && \
-    mkdir -p /app/uploads /app/downloads /app/logs && \
-    chown -R nodejs:nodejs /app
-
-# Copy built applications
-COPY --from=builder --chown=nodejs:nodejs /app/frontend ./frontend
-COPY --from=builder --chown=nodejs:nodejs /app/backend ./backend
-
-# Create directories for uploads and YouTube downloads
-RUN mkdir -p /app/uploads /app/youtube && \
-    chown -R nodejs:nodejs /app/uploads /app/youtube
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S medianest -u 1001
 
 # Install production dependencies only
-WORKDIR /app/frontend
-RUN npm ci --production
+COPY --from=backend-builder /app/package*.json ./
+COPY --from=backend-builder /app/backend/package*.json ./backend/
+COPY --from=backend-builder /app/shared/package.json ./shared/
 
-WORKDIR /app/backend
-RUN npm ci --production
+# Install runtime dependencies
+RUN npm ci --workspace=backend --only=production --no-audit --no-fund \
+    && npm cache clean --force \
+    && rm -rf ~/.npm
 
-# Copy startup script
-COPY --chown=nodejs:nodejs docker-entrypoint.sh /app/
-RUN chmod +x /app/docker-entrypoint.sh
+# Copy built applications
+COPY --from=backend-builder --chown=medianest:nodejs /app/backend/dist ./backend/dist
+COPY --from=backend-builder --chown=medianest:nodejs /app/backend/prisma ./backend/prisma
+COPY --from=shared-builder --chown=medianest:nodejs /app/shared/dist ./shared/dist
 
-# Security: Set environment defaults
-ENV NODE_ENV=production \
-    NODE_OPTIONS="--max-old-space-size=1024" \
-    NPM_CONFIG_LOGLEVEL=warn
+# Copy entrypoint script
+COPY --chown=medianest:nodejs docker-entrypoint.sh ./
+RUN chmod +x docker-entrypoint.sh
 
-# Health check for container orchestration
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:4000/api/health || exit 1
+# Create logs directory
+RUN mkdir -p logs && chown medianest:nodejs logs
 
 # Switch to non-root user
-USER nodejs
+USER medianest
 
-# Expose only necessary ports
-EXPOSE 3000 4000
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD node backend/dist/health-check.js || exit 1
 
-# Use dumb-init to handle signals properly
-ENTRYPOINT ["dumb-init", "--"]
+EXPOSE 3001
 
-# Start application
-CMD ["/app/docker-entrypoint.sh"]
+ENTRYPOINT ["./docker-entrypoint.sh"]
+CMD ["node", "backend/dist/server.js"]
+
+# Production stage for frontend
+FROM node:20-alpine AS frontend-production
+WORKDIR /app
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nextjs -u 1001
+
+# Install production dependencies
+COPY --from=frontend-builder /app/package*.json ./
+COPY --from=frontend-builder /app/frontend/package*.json ./frontend/
+COPY --from=frontend-builder /app/shared/package.json ./shared/
+
+RUN npm ci --workspace=frontend --only=production --no-audit --no-fund \
+    && npm cache clean --force \
+    && rm -rf ~/.npm
+
+# Copy built applications
+COPY --from=frontend-builder --chown=nextjs:nodejs /app/frontend/.next/standalone ./
+COPY --from=frontend-builder --chown=nextjs:nodejs /app/frontend/.next/static ./frontend/.next/static
+COPY --from=frontend-builder --chown=nextjs:nodejs /app/frontend/public ./frontend/public
+
+# Switch to non-root user
+USER nextjs
+
+EXPOSE 3000
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+CMD ["node", "frontend/server.js"]
+
+# Development stage (multi-service)
+FROM node:20-alpine AS development
+WORKDIR /app
+
+# Install system dependencies for development
+RUN apk add --no-cache git curl
+
+# Create app user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S app -u 1001
+
+# Copy package files
+COPY package*.json ./
+COPY shared/package*.json ./shared/
+COPY backend/package*.json ./backend/
+COPY frontend/package*.json ./frontend/
+
+# Install all dependencies (including dev dependencies)
+RUN npm ci --no-audit --no-fund
+
+# Copy source code
+COPY --chown=app:nodejs . .
+
+# Create logs directory
+RUN mkdir -p logs && chown app:nodejs logs
+
+# Switch to app user
+USER app
+
+# Generate Prisma client
+RUN npm run db:generate
+
+EXPOSE 3000 3001
+
+CMD ["npm", "run", "dev"]

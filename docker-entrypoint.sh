@@ -62,7 +62,7 @@ TIMEOUT=60
 ELAPSED=0
 
 while [ $ELAPSED -lt $TIMEOUT ]; do
-    if curl -f http://localhost:${PORT:-4000}/api/health > /dev/null 2>&1; then
+    if curl -f http://localhost:${PORT:-4000}/health > /dev/null 2>&1; then
         echo "Backend is ready!"
         break
     fi
@@ -105,7 +105,7 @@ while true; do
     fi
     
     # Check health endpoint
-    if ! curl -f http://localhost:${PORT:-4000}/api/health > /dev/null 2>&1; then
+    if ! curl -f http://localhost:${PORT:-4000}/health > /dev/null 2>&1; then
         echo "WARNING: Backend health check failed"
     fi
     
