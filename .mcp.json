@@ -1,59 +1,22 @@
 {
   "mcpServers": {
-    "perplexity-server": {
-      "type": "stdio",
-      "command": "node",
-      "args": ["/home/kinginyellow/Documents/Claude/MCP/perplexity-mcp/build/index.js"],
-      "env": {
-        "PERPLEXITY_API_KEY": "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"
-      }
-    },
-    "context7": {
-      "type": "stdio",
+    "claude-flow": {
       "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp"],
-      "env": {
-        "DEFAULT_MINIMUM_TOKENS": "1000"
-      }
-    },
-    "filesystem": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/"]
-    },
-    "puppeteer": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
-    },
-    "brave-search": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
-      "env": {
-        "BRAVE_API_KEY": "BSAN3b_0DrRSAXTIYh7M0FzzVmMOT06"
-      }
-    },
-    "github": {
-      "type": "stdio",
-      "command": "docker",
       "args": [
-        "run",
-        "-i",
-        "--rm",
-        "-e",
-        "GITHUB_PERSONAL_ACCESS_TOKEN",
-        "-e",
-        "GITHUB_TOOLSETS",
-        "-e",
-        "GITHUB_READ_ONLY",
-        "ghcr.io/github/github-mcp-server"
+        "claude-flow@alpha",
+        "mcp",
+        "start"
       ],
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "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",
-        "GITHUB_TOOLSETS": "",
-        "GITHUB_READ_ONLY": ""
-      }
+      "type": "stdio"
+    },
+    "ruv-swarm": {
+      "command": "npx",
+      "args": [
+        "ruv-swarm@latest",
+        "mcp",
+        "start"
+      ],
+      "type": "stdio"
     }
   }
 }

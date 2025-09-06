@@ -1,228 +1,332 @@
-# CLAUDE.md
+# Claude Code Configuration - SPARC Development Environment
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## 🚨 CRITICAL: CONCURRENT EXECUTION & FILE MANAGEMENT
+
+**ABSOLUTE RULES**:
+1. ALL operations MUST be concurrent/parallel in a single message
+2. **NEVER save working files, text/mds and tests to the root folder**
+3. ALWAYS organize files in appropriate subdirectories
+4. **USE CLAUDE CODE'S TASK TOOL** for spawning agents concurrently, not just MCP
+
+### ⚡ GOLDEN RULE: "1 MESSAGE = ALL RELATED OPERATIONS"
+
+**MANDATORY PATTERNS:**
+- **TodoWrite**: ALWAYS batch ALL todos in ONE call (5-10+ todos minimum)
+- **Task tool (Claude Code)**: ALWAYS spawn ALL agents in ONE message with full instructions
+- **File operations**: ALWAYS batch ALL reads/writes/edits in ONE message
+- **Bash commands**: ALWAYS batch ALL terminal operations in ONE message
+- **Memory operations**: ALWAYS batch ALL memory store/retrieve in ONE message
+
+### 🎯 CRITICAL: Claude Code Task Tool for Agent Execution
+
+**Claude Code's Task tool is the PRIMARY way to spawn agents:**
+```javascript
+// ✅ CORRECT: Use Claude Code's Task tool for parallel agent execution
+[Single Message]:
+  Task("Research agent", "Analyze requirements and patterns...", "researcher")
+  Task("Coder agent", "Implement core features...", "coder")
+  Task("Tester agent", "Create comprehensive tests...", "tester")
+  Task("Reviewer agent", "Review code quality...", "reviewer")
+  Task("Architect agent", "Design system architecture...", "system-architect")
+```
+
+**MCP tools are ONLY for coordination setup:**
+- `mcp__claude-flow__swarm_init` - Initialize coordination topology
+- `mcp__claude-flow__agent_spawn` - Define agent types for coordination
+- `mcp__claude-flow__task_orchestrate` - Orchestrate high-level workflows
+
+### 📁 File Organization Rules
+
+**NEVER save to root folder. Use these directories:**
+- `/src` - Source code files
+- `/tests` - Test files
+- `/docs` - Documentation and markdown files
+- `/config` - Configuration files
+- `/scripts` - Utility scripts
+- `/examples` - Example code
 
 ## Project Overview
 
-MediaNest is a unified web portal for managing a Plex media server and related services. It consolidates multiple tools (Overseerr, Uptime Kuma, YouTube downloaders, etc.) into a single authenticated interface for friends and family who access the Plex server.
+This project uses SPARC (Specification, Pseudocode, Architecture, Refinement, Completion) methodology with Claude-Flow orchestration for systematic Test-Driven Development.
 
-## Key Architecture Decisions
+## SPARC Commands
 
-- **Monolithic Architecture**: Single deployable unit for 10-20 concurrent users
-- **Technology Stack**:
-  - Frontend: Next.js 14.x with React, Tailwind CSS
-  - Backend: Express API with Node.js 20.x LTS
-  - Database: PostgreSQL 15.x (primary) + Redis 7.x (cache/queue)
-  - Authentication: NextAuth.js with Plex OAuth
-  - Real-time: Socket.io for WebSocket connections
-  - Queue: BullMQ for background job processing
-  - Container: Docker with Docker Compose
-  - Proxy: Nginx for SSL termination
+### Core Commands
+- `npx claude-flow sparc modes` - List available modes
+- `npx claude-flow sparc run <mode> "<task>"` - Execute specific mode
+- `npx claude-flow sparc tdd "<feature>"` - Run complete TDD workflow
+- `npx claude-flow sparc info <mode>` - Get mode details
 
-## Development Commands
+### Batchtools Commands
+- `npx claude-flow sparc batch <modes> "<task>"` - Parallel execution
+- `npx claude-flow sparc pipeline "<task>"` - Full pipeline processing
+- `npx claude-flow sparc concurrent <mode> "<tasks-file>"` - Multi-task processing
 
-Once the project is initialized, use these commands:
+### Build Commands
+- `npm run build` - Build project
+- `npm run test` - Run tests
+- `npm run lint` - Linting
+- `npm run typecheck` - Type checking
+
+## SPARC Workflow Phases
+
+1. **Specification** - Requirements analysis (`sparc run spec-pseudocode`)
+2. **Pseudocode** - Algorithm design (`sparc run spec-pseudocode`)
+3. **Architecture** - System design (`sparc run architect`)
+4. **Refinement** - TDD implementation (`sparc tdd`)
+5. **Completion** - Integration (`sparc run integration`)
+
+## Code Style & Best Practices
+
+- **Modular Design**: Files under 500 lines
+- **Environment Safety**: Never hardcode secrets
+- **Test-First**: Write tests before implementation
+- **Clean Architecture**: Separate concerns
+- **Documentation**: Keep updated
+
+## 🚀 Available Agents (54 Total)
+
+### Core Development
+`coder`, `reviewer`, `tester`, `planner`, `researcher`
+
+### Swarm Coordination
+`hierarchical-coordinator`, `mesh-coordinator`, `adaptive-coordinator`, `collective-intelligence-coordinator`, `swarm-memory-manager`
+
+### Consensus & Distributed
+`byzantine-coordinator`, `raft-manager`, `gossip-coordinator`, `consensus-builder`, `crdt-synchronizer`, `quorum-manager`, `security-manager`
+
+### Performance & Optimization
+`perf-analyzer`, `performance-benchmarker`, `task-orchestrator`, `memory-coordinator`, `smart-agent`
+
+### GitHub & Repository
+`github-modes`, `pr-manager`, `code-review-swarm`, `issue-tracker`, `release-manager`, `workflow-automation`, `project-board-sync`, `repo-architect`, `multi-repo-swarm`
+
+### SPARC Methodology
+`sparc-coord`, `sparc-coder`, `specification`, `pseudocode`, `architecture`, `refinement`
+
+### Specialized Development
+`backend-dev`, `mobile-dev`, `ml-developer`, `cicd-engineer`, `api-docs`, `system-architect`, `code-analyzer`, `base-template-generator`
+
+### Testing & Validation
+`tdd-london-swarm`, `production-validator`
+
+### Migration & Planning
+`migration-planner`, `swarm-init`
+
+## 🎯 Claude Code vs MCP Tools
+
+### Claude Code Handles ALL EXECUTION:
+- **Task tool**: Spawn and run agents concurrently for actual work
+- File operations (Read, Write, Edit, MultiEdit, Glob, Grep)
+- Code generation and programming
+- Bash commands and system operations
+- Implementation work
+- Project navigation and analysis
+- TodoWrite and task management
+- Git operations
+- Package management
+- Testing and debugging
+
+### MCP Tools ONLY COORDINATE:
+- Swarm initialization (topology setup)
+- Agent type definitions (coordination patterns)
+- Task orchestration (high-level planning)
+- Memory management
+- Neural features
+- Performance tracking
+- GitHub integration
+
+**KEY**: MCP coordinates the strategy, Claude Code's Task tool executes with real agents.
+
+## 🚀 Quick Setup
+
 ```bash
-# Frontend development
-cd frontend && npm run dev    # Start Next.js dev server (port 3000)
-cd frontend && npm run build  # Build production frontend
-cd frontend && npm test       # Run tests with Vitest
-cd frontend && npm run test:ui # Open Vitest UI for debugging
-cd frontend && npm run lint   # Lint frontend code
-
-# Backend development  
-cd backend && npm run dev     # Start Express dev server (port 4000)
-cd backend && npm run build   # Build backend
-cd backend && npm test        # Run tests with Vitest
-cd backend && npm run test:ui # Open Vitest UI for debugging
-cd backend && npm run lint    # Lint backend code
-
-# Full stack
-docker compose up            # Run entire stack in containers
-docker compose down          # Stop all containers
-
-# Testing commands (both frontend and backend)
-npm test                     # Run all tests
-npm run test:watch          # Run tests in watch mode
-npm run test:coverage       # Generate coverage report
-npm run test:e2e            # Run E2E tests with Playwright
+# Add Claude Flow MCP server
+claude mcp add claude-flow npx claude-flow@alpha mcp start
 ```
 
-## Code Architecture
+## MCP Tool Categories
 
-### Frontend Structure (Next.js)
-```
-frontend/
-├── app/                    # Next.js 14 app directory
-│   ├── (auth)/            # Auth-protected routes
-│   ├── api/               # API route handlers
-│   └── layout.tsx         # Root layout with providers
-├── components/
-│   ├── dashboard/         # Dashboard components
-│   ├── media/             # Media browsing components
-│   └── shared/            # Reusable UI components
-├── lib/
-│   ├── api/               # API client functions
-│   ├── hooks/             # Custom React hooks
-│   └── utils/             # Helper functions
-└── services/              # External service integrations
-```
+### Coordination
+`swarm_init`, `agent_spawn`, `task_orchestrate`
 
-### Backend Structure (Express)
-```
-backend/
-├── src/
-│   ├── controllers/       # Request handlers
-│   ├── services/          # Business logic
-│   ├── integrations/      # External API clients
-│   │   ├── plex/         # Plex API integration
-│   │   ├── overseerr/    # Overseerr API integration
-│   │   └── uptime-kuma/  # Uptime Kuma integration
-│   ├── jobs/              # Background job processors
-│   ├── middleware/        # Express middleware
-│   └── models/            # Database models
-└── config/                # Configuration files
-```
+### Monitoring
+`swarm_status`, `agent_list`, `agent_metrics`, `task_status`, `task_results`
 
-## Key Integration Points
+### Memory & Neural
+`memory_usage`, `neural_status`, `neural_train`, `neural_patterns`
 
-### Plex Authentication Flow
-1. User clicks "Login with Plex"
-2. Redirect to Plex OAuth with client ID
-3. Plex redirects back with auth code
-4. Exchange code for Plex token
-5. Fetch user details from Plex API
-6. Create/update local user record
-7. Issue JWT for session management
+### GitHub Integration
+`github_swarm`, `repo_analyze`, `pr_enhance`, `issue_triage`, `code_review`
 
-### Service Integration Pattern
-```typescript
-// All external services follow this pattern:
-class ServiceClient {
-  constructor(config) {
-    this.baseURL = config.url;
-    this.apiKey = config.apiKey;
-    this.timeout = config.timeout || 5000;
-  }
+### System
+`benchmark_run`, `features_detect`, `swarm_monitor`
+
+## 🚀 Agent Execution Flow with Claude Code
+
+### The Correct Pattern:
+
+1. **Optional**: Use MCP tools to set up coordination topology
+2. **REQUIRED**: Use Claude Code's Task tool to spawn agents that do actual work
+3. **REQUIRED**: Each agent runs hooks for coordination
+4. **REQUIRED**: Batch all operations in single messages
+
+### Example Full-Stack Development:
+
+```javascript
+// Single message with all agent spawning via Claude Code's Task tool
+[Parallel Agent Execution]:
+  Task("Backend Developer", "Build REST API with Express. Use hooks for coordination.", "backend-dev")
+  Task("Frontend Developer", "Create React UI. Coordinate with backend via memory.", "coder")
+  Task("Database Architect", "Design PostgreSQL schema. Store schema in memory.", "code-analyzer")
+  Task("Test Engineer", "Write Jest tests. Check memory for API contracts.", "tester")
+  Task("DevOps Engineer", "Setup Docker and CI/CD. Document in memory.", "cicd-engineer")
+  Task("Security Auditor", "Review authentication. Report findings via hooks.", "reviewer")
   
-  async request(endpoint, options) {
-    // Circuit breaker logic
-    // Retry logic
-    // Error mapping
-  }
-}
+  // All todos batched together
+  TodoWrite { todos: [...8-10 todos...] }
+  
+  // All file operations together
+  Write "backend/server.js"
+  Write "frontend/App.jsx"
+  Write "database/schema.sql"
 ```
 
-### WebSocket Events
-- `service:status` - Service health updates
-- `request:update` - Media request status changes
-- `download:progress` - YouTube download progress
-- `user:notification` - User-specific alerts
+## 📋 Agent Coordination Protocol
 
-## Database Schema Highlights
+### Every Agent Spawned via Task Tool MUST:
 
-### Core Tables
-- `users` - Plex ID, email, role, preferences
-- `media_requests` - Links to Overseerr requests
-- `youtube_downloads` - Download queue and status
-- `service_status` - Cached service health data
-- `user_sessions` - Active JWT sessions
-
-### Redis Usage
-- Session storage with 24h TTL
-- Service status cache (5min TTL)
-- BullMQ job queue data
-- Rate limiting counters
-
-## Security Considerations
-
-- All routes require authentication except `/api/health`
-- Plex OAuth for primary authentication
-- JWT tokens with secure httpOnly cookies
-- Rate limiting: 100 req/min per user
-- Input validation with Joi/Zod
-- SQL injection prevention via Prisma ORM
-- XSS protection via React's built-in escaping
-
-## Error Handling
-
-- User-facing errors return friendly messages
-- Internal errors logged with full stack traces
-- Circuit breakers for external services
-- Graceful degradation when services unavailable
-- Structured logging with correlation IDs
-
-## Testing Strategy (Simplified for 10-20 Users)
-
-### Focus on What Matters
-- Test critical paths: Plex OAuth, media requests, service status
-- Use modern tools: Vitest, Supertest, MSW for mocking
-- Target 60-70% coverage overall (80% for auth/security)
-- Total test suite runs in <5 minutes
-
-### Priority Testing Areas
-1. **Plex Authentication**: PIN flow, user creation, token validation
-2. **Media Requests**: API endpoints, Overseerr integration
-3. **Service Monitoring**: Uptime Kuma status, graceful degradation
-4. **Rate Limiting**: Verify limits work (100/min API, 5/hr YouTube)
-5. **User Isolation**: Ensure users can't see each other's data
-
-### What NOT to Test
-- UI component internals
-- Simple CRUD operations
-- Third-party library behavior
-- Edge cases that won't happen with 20 users
-- Performance under extreme load
-
-### Simple Test Structure
-```
-tests/
-├── unit/          # Business logic only
-├── integration/   # API endpoints + external services
-└── e2e/           # 2-3 critical user flows
+**1️⃣ BEFORE Work:**
+```bash
+npx claude-flow@alpha hooks pre-task --description "[task]"
+npx claude-flow@alpha hooks session-restore --session-id "swarm-[id]"
 ```
 
-### Key Principles
-- If a test is flaky, fix it immediately or delete it
-- Mock external services with MSW for realistic request interception
-- Use Vitest's built-in features for fast, modern testing
-- Document only non-obvious test scenarios
+**2️⃣ DURING Work:**
+```bash
+npx claude-flow@alpha hooks post-edit --file "[file]" --memory-key "swarm/[agent]/[step]"
+npx claude-flow@alpha hooks notify --message "[what was done]"
+```
 
-## Important Development Notes
+**3️⃣ AFTER Work:**
+```bash
+npx claude-flow@alpha hooks post-task --task-id "[task]"
+npx claude-flow@alpha hooks session-end --export-metrics true
+```
 
-### ALWAYS Use Context7 MCP Server Before Code Generation
-- **REQUIRED**: Before writing any code, use the Context7 MCP server to check for the latest documentation
-- Use `mcp__context7__resolve-library-id` to find the correct library
-- Use `mcp__context7__get-library-docs` to get up-to-date documentation
-- This ensures code is using the latest APIs and best practices
+## 🎯 Concurrent Execution Examples
 
-### Current Implementation Status
-Phase 1 (Core Infrastructure) is complete:
-- ✅ Plex OAuth authentication with PIN flow
-- ✅ Database schema with Prisma ORM
-- ✅ Repository pattern with full CRUD operations
-- ✅ JWT authentication and RBAC middleware
-- ✅ Rate limiting with Redis Lua scripts
-- ✅ Winston logging with correlation IDs
-- ✅ Error handling with user-friendly messages
-- ✅ Basic monitoring and metrics
+### ✅ CORRECT WORKFLOW: MCP Coordinates, Claude Code Executes
 
-Remaining infrastructure tasks:
-- API versioning structure (implement when needed)
-- Socket.io server configuration (for real-time features)
-- AES-256-GCM encryption for sensitive data
+```javascript
+// Step 1: MCP tools set up coordination (optional, for complex tasks)
+[Single Message - Coordination Setup]:
+  mcp__claude-flow__swarm_init { topology: "mesh", maxAgents: 6 }
+  mcp__claude-flow__agent_spawn { type: "researcher" }
+  mcp__claude-flow__agent_spawn { type: "coder" }
+  mcp__claude-flow__agent_spawn { type: "tester" }
 
-Next phase: External Service Integration (Plex, Overseerr, Uptime Kuma)
+// Step 2: Claude Code Task tool spawns ACTUAL agents that do the work
+[Single Message - Parallel Agent Execution]:
+  // Claude Code's Task tool spawns real agents concurrently
+  Task("Research agent", "Analyze API requirements and best practices. Check memory for prior decisions.", "researcher")
+  Task("Coder agent", "Implement REST endpoints with authentication. Coordinate via hooks.", "coder")
+  Task("Database agent", "Design and implement database schema. Store decisions in memory.", "code-analyzer")
+  Task("Tester agent", "Create comprehensive test suite with 90% coverage.", "tester")
+  Task("Reviewer agent", "Review code quality and security. Document findings.", "reviewer")
+  
+  // Batch ALL todos in ONE call
+  TodoWrite { todos: [
+    {id: "1", content: "Research API patterns", status: "in_progress", priority: "high"},
+    {id: "2", content: "Design database schema", status: "in_progress", priority: "high"},
+    {id: "3", content: "Implement authentication", status: "pending", priority: "high"},
+    {id: "4", content: "Build REST endpoints", status: "pending", priority: "high"},
+    {id: "5", content: "Write unit tests", status: "pending", priority: "medium"},
+    {id: "6", content: "Integration tests", status: "pending", priority: "medium"},
+    {id: "7", content: "API documentation", status: "pending", priority: "low"},
+    {id: "8", content: "Performance optimization", status: "pending", priority: "low"}
+  ]}
+  
+  // Parallel file operations
+  Bash "mkdir -p app/{src,tests,docs,config}"
+  Write "app/package.json"
+  Write "app/src/server.js"
+  Write "app/tests/server.test.js"
+  Write "app/docs/API.md"
+```
 
-### Git Workflow
-- Use descriptive commit messages
-- Group related changes into logical commits
-- Run tests before committing: `npm test`
-- Lint code before committing: `npm run lint`
-- Follow conventional commits format when possible
+### ❌ WRONG (Multiple Messages):
+```javascript
+Message 1: mcp__claude-flow__swarm_init
+Message 2: Task("agent 1")
+Message 3: TodoWrite { todos: [single todo] }
+Message 4: Write "file.js"
+// This breaks parallel coordination!
+```
+
+## Performance Benefits
+
+- **84.8% SWE-Bench solve rate**
+- **32.3% token reduction**
+- **2.8-4.4x speed improvement**
+- **27+ neural models**
+
+## Hooks Integration
+
+### Pre-Operation
+- Auto-assign agents by file type
+- Validate commands for safety
+- Prepare resources automatically
+- Optimize topology by complexity
+- Cache searches
+
+### Post-Operation
+- Auto-format code
+- Train neural patterns
+- Update memory
+- Analyze performance
+- Track token usage
+
+### Session Management
+- Generate summaries
+- Persist state
+- Track metrics
+- Restore context
+- Export workflows
+
+## Advanced Features (v2.0.0)
+
+- 🚀 Automatic Topology Selection
+- ⚡ Parallel Execution (2.8-4.4x speed)
+- 🧠 Neural Training
+- 📊 Bottleneck Analysis
+- 🤖 Smart Auto-Spawning
+- 🛡️ Self-Healing Workflows
+- 💾 Cross-Session Memory
+- 🔗 GitHub Integration
+
+## Integration Tips
+
+1. Start with basic swarm init
+2. Scale agents gradually
+3. Use memory for context
+4. Monitor progress regularly
+5. Train patterns from success
+6. Enable hooks automation
+7. Use GitHub tools first
+
+## Support
+
+- Documentation: https://github.com/ruvnet/claude-flow
+- Issues: https://github.com/ruvnet/claude-flow/issues
+
+---
+
+Remember: **Claude Flow coordinates, Claude Code creates!**
 
 # important-instruction-reminders
 Do what has been asked; nothing more, nothing less.
 NEVER create files unless they're absolutely necessary for achieving your goal.
 ALWAYS prefer editing an existing file to creating a new one.
 NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
+Never save working files, text/mds and tests to the root folder.
