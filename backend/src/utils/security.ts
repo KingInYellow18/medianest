@@ -22,20 +22,35 @@ export const DEFAULT_PASSWORD_POLICY: PasswordPolicy = {
   requireSpecialChars: true,
   maxLength: 128,
   preventCommon: true,
-  preventReuse: 5
+  preventReuse: 5,
 };
 
 // Common weak passwords to prevent
 const COMMON_PASSWORDS = new Set([
-  'password', '123456', '12345678', 'qwerty', 'abc123', 'password123',
-  'admin', 'welcome', 'login', '1234567890', 'letmein', 'monkey',
-  'dragon', 'princess', 'football', 'sunshine', 'master', 'shadow'
+  'password',
+  '123456',
+  '12345678',
+  'qwerty',
+  'abc123',
+  'password123',
+  'admin',
+  'welcome',
+  'login',
+  '1234567890',
+  'letmein',
+  'monkey',
+  'dragon',
+  'princess',
+  'football',
+  'sunshine',
+  'master',
+  'shadow',
 ]);
 
 // Password strength validation
 export function validatePasswordStrength(
   password: string,
-  policy: PasswordPolicy = DEFAULT_PASSWORD_POLICY
+  policy: PasswordPolicy = DEFAULT_PASSWORD_POLICY,
 ): { isValid: boolean; errors: string[]; score: number } {
   const errors: string[] = [];
   let score = 0;
@@ -85,15 +100,16 @@ export function validatePasswordStrength(
   if (password.length >= 12) score += 1;
   if (/[A-Z].*[A-Z]/.test(password)) score += 1; // Multiple uppercase
   if (/\d.*\d/.test(password)) score += 1; // Multiple numbers
-  if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?].*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) score += 1; // Multiple special chars
-  
+  if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?].*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password))
+    score += 1; // Multiple special chars
+
   const maxScore = 8;
-  const normalizedScore = Math.min(score / maxScore * 100, 100);
+  const normalizedScore = Math.min((score / maxScore) * 100, 100);
 
   return {
     isValid: errors.length === 0,
     errors,
-    score: Math.round(normalizedScore)
+    score: Math.round(normalizedScore),
   };
 }
 
@@ -107,11 +123,11 @@ export function generateRandomString(length: number = 16): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   const bytes = crypto.randomBytes(length);
   let result = '';
-  
+
   for (let i = 0; i < length; i++) {
-    result += chars[bytes[i] % chars.length];
+    result += chars[bytes?.[i] % chars.length];
   }
-  
+
   return result;
 }
 
@@ -130,7 +146,7 @@ export function timeSafeEquals(a: string, b: string): boolean {
   if (a.length !== b.length) {
     return false;
   }
-  
+
   return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
 }
 
@@ -138,57 +154,60 @@ export function timeSafeEquals(a: string, b: string): boolean {
 export function generateOTP(length: number = 6): string {
   const digits = '0123456789';
   let otp = '';
-  
+
   for (let i = 0; i < length; i++) {
     const randomIndex = crypto.randomInt(0, digits.length);
     otp += digits[randomIndex];
   }
-  
+
   return otp;
 }
 
 // Generate backup codes for 2FA
 export function generateBackupCodes(count: number = 10): string[] {
   const codes: string[] = [];
-  
+
   for (let i = 0; i < count; i++) {
     // Generate 8-character alphanumeric codes
     const code = generateRandomString(8).toLowerCase();
     codes.push(code);
   }
-  
+
   return codes;
 }
 
 // Encrypt sensitive data
-export function encryptSensitiveData(data: string, key?: string): { encrypted: string; iv: string } {
+export function encryptSensitiveData(
+  data: string,
+  key?: string,
+): { encrypted: string; iv: string } {
   const algorithm = 'aes-256-gcm';
   const secretKey = key || process.env.ENCRYPTION_KEY || 'default-key-change-in-production';
   const keyHash = crypto.createHash('sha256').update(secretKey).digest();
-  
+
   const iv = crypto.randomBytes(16);
   const cipher = crypto.createCipher(algorithm, keyHash);
-  
+
   let encrypted = cipher.update(data, 'utf8', 'hex');
   encrypted += cipher.final('hex');
-  
+
   return {
     encrypted,
-    iv: iv.toString('hex')
+    iv: iv.toString('hex'),
   };
 }
 
 // Decrypt sensitive data
-export function decryptSensitiveData(encryptedData: string, iv: string, key?: string): string {
+export function decryptSensitiveData(encryptedData: string, _iv: string, key?: string): string {
   const algorithm = 'aes-256-gcm';
   const secretKey = key || process.env.ENCRYPTION_KEY || 'default-key-change-in-production';
   const keyHash = crypto.createHash('sha256').update(secretKey).digest();
-  
+
   const decipher = crypto.createDecipher(algorithm, keyHash);
-  
+
   let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
   decrypted += decipher.final('utf8');
-  
+
   return decrypted;
 }
 
@@ -198,21 +217,28 @@ export function generateRateLimitKey(identifier: string, action: string): string
 }
 
 // Security event logging
-export function logSecurityEvent(event: string, details: any, level: 'info' | 'warn' | 'error' = 'warn'): void {
+export function logSecurityEvent(
+  event: string,
+  details: any,
+  level: 'info' | 'warn' | 'error' = 'warn',
+): void {
   const securityLog = {
     event,
     timestamp: new Date().toISOString(),
-    ...details
+    ...details,
   };
-  
+
   logger[level]('Security Event', securityLog);
 }
 
 // Check if password has been previously used
-export function checkPasswordReuse(newPassword: string, previousPasswords: string[]): Promise<boolean> {
-  return Promise.all(
-    previousPasswords.map(oldHash => bcrypt.compare(newPassword, oldHash))
-  ).then(results => results.some(Boolean));
+export function checkPasswordReuse(
+  newPassword: string,
+  previousPasswords: string[],
+): Promise<boolean> {
+  return Promise.all(previousPasswords.map((oldHash) => bcrypt.compare(newPassword, oldHash))).then(
+    (results) => results.some(Boolean),
+  );
 }
 
 // Generate secure session ID
@@ -221,7 +247,11 @@ export function generateSessionId(): string {
 }
 
 // Device fingerprinting
-export function generateDeviceFingerprint(userAgent: string, ip: string, acceptLanguage?: string): string {
+export function generateDeviceFingerprint(
+  userAgent: string,
+  ip: string,
+  acceptLanguage?: string,
+): string {
   const data = `${userAgent}:${ip}:${acceptLanguage || ''}`;
   return crypto.createHash('sha256').update(data).digest('hex');
 }

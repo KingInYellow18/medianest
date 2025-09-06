@@ -75,7 +75,7 @@ export class CSRFController {
   /**
    * Get CSRF protection statistics (admin only)
    */
-  async getStats(req: Request, res: Response): Promise<void> {
+  async getStats(_req: Request, res: Response): Promise<void> {
     const stats = csrfProtection.getStats();
 
     res.json({

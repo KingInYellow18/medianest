@@ -43,15 +43,18 @@ export const initializeQueues = async () => {
   });
 
   // Queue event handlers
-  youtubeQueueEvents.on('completed', ({ jobId }) => {
+  youtubeQueueEvents.on('completed', ({ jobId }: { jobId: string }) => {
     logger.info(`YouTube download completed: ${jobId}`);
   });
 
-  youtubeQueueEvents.on('failed', ({ jobId, failedReason }) => {
-    logger.error(`YouTube download failed: ${jobId}`, { reason: failedReason });
-  });
+  youtubeQueueEvents.on(
+    'failed',
+    ({ jobId, failedReason }: { jobId: string; failedReason: string }) => {
+      logger.error(`YouTube download failed: ${jobId}`, { reason: failedReason });
+    },
+  );
 
-  youtubeQueueEvents.on('stalled', ({ jobId }) => {
+  youtubeQueueEvents.on('stalled', ({ jobId }: { jobId: string }) => {
     logger.warn(`YouTube download stalled: ${jobId}`);
   });
 };

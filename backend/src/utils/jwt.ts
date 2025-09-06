@@ -14,6 +14,8 @@ interface JWTPayload {
   ipAddress?: string;
   userAgent?: string;
   tokenVersion?: number;
+  iat?: number;
+  jti?: string;
 }
 
 interface JWTOptions {
@@ -33,8 +35,7 @@ interface TokenRotationInfo {
 }
 
 // Get JWT secret from environment with rotation support
-const JWT_SECRET =
-  process.env.JWT_SECRET || 'development-secret-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || 'development-secret-change-in-production';
 const JWT_SECRET_ROTATION = process.env.JWT_SECRET_ROTATION;
 const JWT_ISSUER = process.env.JWT_ISSUER || 'medianest';
 const JWT_AUDIENCE = process.env.JWT_AUDIENCE || 'medianest-users';
@@ -48,11 +49,9 @@ const TOKEN_ROTATION_THRESHOLD = 5 * 60 * 1000; // 5 minutes before expiry
 export function generateToken(
   payload: JWTPayload,
   rememberMe: boolean = false,
-  options?: JWTOptions
+  options?: JWTOptions,
 ): string {
-  const expiresIn = rememberMe
-    ? REMEMBER_ME_TOKEN_EXPIRY
-    : DEFAULT_TOKEN_EXPIRY;
+  const expiresIn = rememberMe ? REMEMBER_ME_TOKEN_EXPIRY : DEFAULT_TOKEN_EXPIRY;
 
   // Enhanced payload with security metadata
   const enhancedPayload: JWTPayload = {
@@ -63,7 +62,7 @@ export function generateToken(
     userAgent: options?.userAgent ? hashUserAgent(options.userAgent) : undefined,
     tokenVersion: 1,
     iat: Math.floor(Date.now() / 1000),
-    jti: generateSecureId() // JWT ID for tracking
+    jti: generateSecureId(), // JWT ID for tracking
   };
 
   const tokenOptions: jwt.SignOptions = {
@@ -75,27 +74,30 @@ export function generateToken(
   };
 
   const token = jwt.sign(enhancedPayload, JWT_SECRET, tokenOptions);
-  
+
   // Log token generation for security audit
   logger.info('JWT token generated', {
     userId: payload.userId,
     sessionId: enhancedPayload.sessionId,
     expiresIn,
     rememberMe,
-    ipAddress: options?.ipAddress
+    ipAddress: options?.ipAddress,
   });
 
   return token;
 }
 
-export function verifyToken(token: string, options?: { 
-  allowRotation?: boolean;
-  ipAddress?: string;
-  userAgent?: string;
-}): JWTPayload {
+export function verifyToken(
+  token: string,
+  options?: {
+    allowRotation?: boolean;
+    ipAddress?: string;
+    userAgent?: string;
+  },
+): JWTPayload {
   try {
     let decoded: JWTPayload;
-    
+
     try {
       // Try with current secret first
       decoded = jwt.verify(token, JWT_SECRET, {
@@ -112,10 +114,10 @@ export function verifyToken(token: string, options?: {
             audience: JWT_AUDIENCE,
             algorithms: ['HS256'],
           }) as JWTPayload;
-          
+
           logger.info('Token verified with rotation secret', {
             userId: decoded.userId,
-            sessionId: decoded.sessionId
+            sessionId: decoded.sessionId,
           });
         } catch {
           throw error; // Throw original error if both secrets fail
@@ -133,9 +135,9 @@ export function verifyToken(token: string, options?: {
           userId: decoded.userId,
           tokenIP: decoded.ipAddress,
           requestIP: options.ipAddress,
-          sessionId: decoded.sessionId
+          sessionId: decoded.sessionId,
         });
-        throw new AppError('Token IP mismatch', 401, 'TOKEN_IP_MISMATCH');
+        throw new AppError('TOKEN_IP_MISMATCH', 'Token IP mismatch', 401);
       }
 
       // Verify user agent hash if provided
@@ -144,7 +146,7 @@ export function verifyToken(token: string, options?: {
         if (hashedUA !== decoded.userAgent) {
           logger.warn('Token user agent mismatch', {
             userId: decoded.userId,
-            sessionId: decoded.sessionId
+            sessionId: decoded.sessionId,
           });
           // Don't fail on user agent mismatch, just log for monitoring
         }
@@ -154,19 +156,15 @@ export function verifyToken(token: string, options?: {
     return decoded;
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
-      throw new AppError('Token has expired', 401, 'TOKEN_EXPIRED');
+      throw new AppError('TOKEN_EXPIRED', 'Token has expired', 401);
     }
     if (error instanceof jwt.JsonWebTokenError) {
-      throw new AppError('Invalid token', 401, 'INVALID_TOKEN');
+      throw new AppError('INVALID_TOKEN', 'Invalid token', 401);
     }
     if (error instanceof AppError) {
       throw error;
     }
-    throw new AppError(
-      'Token verification failed',
-      401,
-      'TOKEN_VERIFICATION_FAILED'
-    );
+    throw new AppError('TOKEN_VERIFICATION_FAILED', 'Token verification failed', 401);
   }
 }
 
@@ -186,14 +184,14 @@ export function generateRefreshToken(payload?: { userId: string; sessionId: stri
       sessionId: payload.sessionId,
       type: 'refresh',
       iat: Math.floor(Date.now() / 1000),
-      jti: generateSecureId()
+      jti: generateSecureId(),
     };
 
     return jwt.sign(refreshPayload, JWT_SECRET, {
       expiresIn: REFRESH_TOKEN_EXPIRY,
       issuer: JWT_ISSUER,
       audience: JWT_AUDIENCE,
-      algorithm: 'HS256'
+      algorithm: 'HS256',
     });
   } else {
     // Generate a random refresh token
@@ -236,7 +234,7 @@ export function isTokenExpired(token: string): boolean {
 export function shouldRotateToken(token: string): boolean {
   const expiry = getTokenExpiry(token);
   if (!expiry) return true;
-  
+
   const timeUntilExpiry = expiry.getTime() - Date.now();
   return timeUntilExpiry <= TOKEN_ROTATION_THRESHOLD;
 }
@@ -245,16 +243,16 @@ export function shouldRotateToken(token: string): boolean {
 export function rotateTokenIfNeeded(
   token: string,
   payload: JWTPayload,
-  options?: JWTOptions
+  options?: JWTOptions,
 ): TokenRotationInfo | null {
   if (!shouldRotateToken(token)) {
     return null;
   }
 
   const newToken = generateToken(payload, false, options);
-  const refreshToken = generateRefreshToken({ 
-    userId: payload.userId, 
-    sessionId: payload.sessionId || generateSecureId() 
+  const refreshToken = generateRefreshToken({
+    userId: payload.userId,
+    sessionId: payload.sessionId || generateSecureId(),
   });
   const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
@@ -262,13 +260,13 @@ export function rotateTokenIfNeeded(
     userId: payload.userId,
     sessionId: payload.sessionId,
     oldTokenExpiry: getTokenExpiry(token),
-    newTokenExpiry: expiresAt
+    newTokenExpiry: expiresAt,
   });
 
   return {
     newToken,
     refreshToken,
-    expiresAt
+    expiresAt,
   };
 }
 
@@ -278,28 +276,32 @@ export function verifyRefreshToken(refreshToken: string): { userId: string; sess
     const decoded = jwt.verify(refreshToken, JWT_SECRET, {
       issuer: JWT_ISSUER,
       audience: JWT_AUDIENCE,
-      algorithms: ['HS256']
+      algorithms: ['HS256'],
     }) as any;
 
     if (decoded.type !== 'refresh') {
-      throw new AppError('Invalid refresh token type', 401, 'INVALID_REFRESH_TOKEN');
+      throw new AppError('INVALID_REFRESH_TOKEN', 'Invalid refresh token type', 401);
     }
 
     return {
       userId: decoded.userId,
-      sessionId: decoded.sessionId
+      sessionId: decoded.sessionId,
     };
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
-      throw new AppError('Refresh token has expired', 401, 'REFRESH_TOKEN_EXPIRED');
+      throw new AppError('REFRESH_TOKEN_EXPIRED', 'Refresh token has expired', 401);
     }
     if (error instanceof jwt.JsonWebTokenError) {
-      throw new AppError('Invalid refresh token', 401, 'INVALID_REFRESH_TOKEN');
+      throw new AppError('INVALID_REFRESH_TOKEN', 'Invalid refresh token', 401);
     }
     if (error instanceof AppError) {
       throw error;
     }
-    throw new AppError('Refresh token verification failed', 401, 'REFRESH_TOKEN_VERIFICATION_FAILED');
+    throw new AppError(
+      'REFRESH_TOKEN_VERIFICATION_FAILED',
+      'Refresh token verification failed',
+      401,
+    );
   }
 }
 
@@ -344,7 +346,7 @@ export function getTokenMetadata(token: string): {
       deviceId: decoded.deviceId,
       issuedAt: decoded.iat ? new Date(decoded.iat * 1000) : undefined,
       expiresAt: decoded.exp ? new Date(decoded.exp * 1000) : undefined,
-      tokenId: decoded.jti
+      tokenId: decoded.jti,
     };
   } catch {
     return {};

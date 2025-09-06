@@ -4,13 +4,13 @@ import qrcode from 'qrcode';
 import { UserRepository } from '../repositories/user.repository';
 import { AppError } from '../utils/errors';
 import { logger } from '../utils/logger';
-import { 
-  generateSecureToken, 
-  generateOTP, 
+import {
+  generateSecureToken,
+  generateOTP,
   generateBackupCodes,
   hashSensitiveData,
   verifySensitiveData,
-  logSecurityEvent 
+  logSecurityEvent,
 } from '../utils/security';
 import { EmailService } from './email.service';
 
@@ -53,14 +53,14 @@ interface TwoFactorVerification {
 export class TwoFactorService {
   private userRepository: UserRepository;
   private emailService: EmailService;
-  
+
   // In-memory storage for challenges - use Redis in production
   private challenges: Map<string, TwoFactorChallenge> = new Map();
-  
+
   constructor(userRepository: UserRepository, emailService: EmailService) {
     this.userRepository = userRepository;
     this.emailService = emailService;
-    
+
     // Cleanup expired challenges every 5 minutes
     setInterval(() => this.cleanupExpiredChallenges(), 5 * 60 * 1000);
   }
@@ -78,35 +78,37 @@ export class TwoFactorService {
     const secret = speakeasy.generateSecret({
       name: `MediaNest (${user.email})`,
       issuer: 'MediaNest',
-      length: 32
+      length: 32,
     });
 
     // Generate QR code
     const qrCodeUrl = await qrcode.toDataURL(secret.otpauth_url!);
-    
+
     // Generate backup codes
     const backupCodes = generateBackupCodes(10);
-    const hashedBackupCodes = await Promise.all(
-      backupCodes.map(code => hashSensitiveData(code))
-    );
+    const hashedBackupCodes = await Promise.all(backupCodes.map((code) => hashSensitiveData(code)));
 
     // Store the secret and backup codes (temporarily until verified)
     await this.userRepository.update(userId, {
       twoFactorSecret: secret.base32,
       twoFactorBackupCodes: hashedBackupCodes,
-      twoFactorEnabled: false // Not enabled until verified
+      twoFactorEnabled: false, // Not enabled until verified
     });
 
-    logSecurityEvent('2FA_SETUP_INITIATED', {
-      userId,
-      method: 'totp'
-    }, 'info');
+    logSecurityEvent(
+      '2FA_SETUP_INITIATED',
+      {
+        userId,
+        method: 'totp',
+      },
+      'info',
+    );
 
     return {
       secret: secret.base32!,
       qrCodeUrl,
       manualEntryKey: secret.base32!,
-      backupCodes
+      backupCodes,
     };
   }
 
@@ -114,12 +116,12 @@ export class TwoFactorService {
    * Verify and enable TOTP
    */
   async verifyAndEnableTOTP(
-    userId: string, 
+    userId: string,
     token: string,
     options: {
       ipAddress: string;
       userAgent: string;
-    }
+    },
   ): Promise<{ success: boolean; backupCodes?: string[] }> {
     const user = await this.userRepository.findById(userId);
     if (!user || !user.twoFactorSecret) {
@@ -131,17 +133,21 @@ export class TwoFactorService {
       secret: user.twoFactorSecret,
       encoding: 'base32',
       token,
-      window: 2 // Allow some time drift
+      window: 2, // Allow some time drift
     });
 
     if (!verified) {
-      logSecurityEvent('2FA_VERIFICATION_FAILED', {
-        userId,
-        method: 'totp',
-        ipAddress: options.ipAddress,
-        reason: 'invalid_token'
-      }, 'warn');
-      
+      logSecurityEvent(
+        '2FA_VERIFICATION_FAILED',
+        {
+          userId,
+          method: 'totp',
+          ipAddress: options.ipAddress,
+          reason: 'invalid_token',
+        },
+        'warn',
+      );
+
       throw new AppError('Invalid authentication code', 400, 'INVALID_2FA_TOKEN');
     }
 
@@ -149,22 +155,26 @@ export class TwoFactorService {
     await this.userRepository.update(userId, {
       twoFactorEnabled: true,
       twoFactorVerified: true,
-      twoFactorMethod: 'totp'
+      twoFactorMethod: 'totp',
     });
 
     // Get backup codes
     const backupCodes = await this.getBackupCodes(userId);
 
-    logSecurityEvent('2FA_ENABLED', {
-      userId,
-      method: 'totp',
-      ipAddress: options.ipAddress,
-      userAgent: options.userAgent
-    }, 'info');
+    logSecurityEvent(
+      '2FA_ENABLED',
+      {
+        userId,
+        method: 'totp',
+        ipAddress: options.ipAddress,
+        userAgent: options.userAgent,
+      },
+      'info',
+    );
 
     return {
       success: true,
-      backupCodes
+      backupCodes,
     };
   }
 
@@ -185,13 +195,17 @@ export class TwoFactorService {
     await this.userRepository.update(userId, {
       twoFactorEnabled: true,
       twoFactorVerified: true,
-      twoFactorMethod: 'email'
+      twoFactorMethod: 'email',
     });
 
-    logSecurityEvent('2FA_EMAIL_ENABLED', {
-      userId,
-      email: user.email
-    }, 'info');
+    logSecurityEvent(
+      '2FA_EMAIL_ENABLED',
+      {
+        userId,
+        email: user.email,
+      },
+      'info',
+    );
 
     return { success: true };
   }
@@ -205,7 +219,7 @@ export class TwoFactorService {
     options: {
       ipAddress: string;
       userAgent: string;
-    }
+    },
   ): Promise<{ challengeId: string; method: string; expiresIn: number }> {
     const user = await this.userRepository.findById(userId);
     if (!user) {
@@ -222,7 +236,7 @@ export class TwoFactorService {
       return {
         challengeId: existingChallenge.id,
         method: existingChallenge.method,
-        expiresIn: Math.floor((existingChallenge.expiresAt.getTime() - Date.now()) / 1000)
+        expiresIn: Math.floor((existingChallenge.expiresAt.getTime() - Date.now()) / 1000),
       };
     }
 
@@ -235,7 +249,7 @@ export class TwoFactorService {
       // Generate 6-digit code for email
       code = generateOTP(6);
       hashedCode = crypto.createHash('sha256').update(code).digest('hex');
-      
+
       // Send email
       await this.emailService.sendTwoFactorEmail({
         to: user.email,
@@ -243,7 +257,7 @@ export class TwoFactorService {
         code,
         expiresIn: 5,
         ipAddress: options.ipAddress,
-        userAgent: options.userAgent
+        userAgent: options.userAgent,
       });
     } else if (method === 'sms') {
       // SMS not implemented yet
@@ -266,22 +280,26 @@ export class TwoFactorService {
       maxAttempts: method === 'totp' ? 3 : 5,
       createdAt: new Date(),
       ipAddress: options.ipAddress,
-      userAgent: options.userAgent
+      userAgent: options.userAgent,
     };
 
     this.challenges.set(challengeId, challenge);
 
-    logSecurityEvent('2FA_CHALLENGE_CREATED', {
-      challengeId,
-      userId,
-      method,
-      ipAddress: options.ipAddress
-    }, 'info');
+    logSecurityEvent(
+      '2FA_CHALLENGE_CREATED',
+      {
+        challengeId,
+        userId,
+        method,
+        ipAddress: options.ipAddress,
+      },
+      'info',
+    );
 
     return {
       challengeId,
       method,
-      expiresIn: 300 // 5 minutes in seconds
+      expiresIn: 300, // 5 minutes in seconds
     };
   }
 
@@ -294,7 +312,7 @@ export class TwoFactorService {
     options?: {
       ipAddress?: string;
       userAgent?: string;
-    }
+    },
   ): Promise<TwoFactorVerification> {
     const challenge = this.challenges.get(challengeId);
     if (!challenge) {
@@ -310,12 +328,16 @@ export class TwoFactorService {
     // Check max attempts
     if (challenge.attempts >= challenge.maxAttempts) {
       this.challenges.delete(challengeId);
-      logSecurityEvent('2FA_MAX_ATTEMPTS_EXCEEDED', {
-        challengeId,
-        userId: challenge.userId,
-        method: challenge.method,
-        attempts: challenge.attempts
-      }, 'error');
+      logSecurityEvent(
+        '2FA_MAX_ATTEMPTS_EXCEEDED',
+        {
+          challengeId,
+          userId: challenge.userId,
+          method: challenge.method,
+          attempts: challenge.attempts,
+        },
+        'error',
+      );
       throw new AppError('Maximum attempts exceeded', 400, 'MAX_ATTEMPTS_EXCEEDED');
     }
 
@@ -330,7 +352,7 @@ export class TwoFactorService {
       const providedHash = crypto.createHash('sha256').update(code).digest('hex');
       verified = crypto.timingSafeEqual(
         Buffer.from(challenge.hashedCode, 'hex'),
-        Buffer.from(providedHash, 'hex')
+        Buffer.from(providedHash, 'hex'),
       );
     } else if (challenge.method === 'sms') {
       // SMS verification not implemented
@@ -340,31 +362,39 @@ export class TwoFactorService {
     if (verified) {
       challenge.verified = true;
       this.challenges.delete(challengeId);
-      
-      logSecurityEvent('2FA_VERIFICATION_SUCCESS', {
-        challengeId,
-        userId: challenge.userId,
-        method: challenge.method,
-        attempts: challenge.attempts,
-        ipAddress: options?.ipAddress
-      }, 'info');
+
+      logSecurityEvent(
+        '2FA_VERIFICATION_SUCCESS',
+        {
+          challengeId,
+          userId: challenge.userId,
+          method: challenge.method,
+          attempts: challenge.attempts,
+          ipAddress: options?.ipAddress,
+        },
+        'info',
+      );
 
       return { success: true };
     } else {
       this.challenges.set(challengeId, challenge);
-      
-      logSecurityEvent('2FA_VERIFICATION_FAILED', {
-        challengeId,
-        userId: challenge.userId,
-        method: challenge.method,
-        attempts: challenge.attempts,
-        remainingAttempts: challenge.maxAttempts - challenge.attempts,
-        ipAddress: options?.ipAddress
-      }, 'warn');
+
+      logSecurityEvent(
+        '2FA_VERIFICATION_FAILED',
+        {
+          challengeId,
+          userId: challenge.userId,
+          method: challenge.method,
+          attempts: challenge.attempts,
+          remainingAttempts: challenge.maxAttempts - challenge.attempts,
+          ipAddress: options?.ipAddress,
+        },
+        'warn',
+      );
 
       return {
         success: false,
-        remainingAttempts: challenge.maxAttempts - challenge.attempts
+        remainingAttempts: challenge.maxAttempts - challenge.attempts,
       };
     }
   }
@@ -382,7 +412,7 @@ export class TwoFactorService {
       secret: user.twoFactorSecret,
       encoding: 'base32',
       token,
-      window: 2 // Allow some time drift
+      window: 2, // Allow some time drift
     });
   }
 
@@ -395,7 +425,7 @@ export class TwoFactorService {
     options: {
       ipAddress: string;
       userAgent: string;
-    }
+    },
   ): Promise<{ success: boolean; remainingCodes: number }> {
     const user = await this.userRepository.findById(userId);
     if (!user || !user.twoFactorBackupCodes) {
@@ -410,4 +440,41 @@ export class TwoFactorService {
         codeIndex = i;
         break;
       }
-    }\n\n    if (codeIndex === -1) {\n      logSecurityEvent('2FA_BACKUP_CODE_INVALID', {\n        userId,\n        ipAddress: options.ipAddress\n      }, 'warn');\n      \n      return { success: false, remainingCodes: user.twoFactorBackupCodes.length };\n    }\n\n    // Remove the used backup code\n    const updatedBackupCodes = user.twoFactorBackupCodes.filter((_, index) => index !== codeIndex);\n    await this.userRepository.update(userId, {\n      twoFactorBackupCodes: updatedBackupCodes\n    });\n\n    logSecurityEvent('2FA_BACKUP_CODE_USED', {\n      userId,\n      remainingCodes: updatedBackupCodes.length,\n      ipAddress: options.ipAddress,\n      userAgent: options.userAgent\n    }, 'info');\n\n    return {\n      success: true,\n      remainingCodes: updatedBackupCodes.length\n    };\n  }\n\n  /**\n   * Generate new backup codes\n   */\n  async generateNewBackupCodes(userId: string): Promise<string[]> {\n    const user = await this.userRepository.findById(userId);\n    if (!user) {\n      throw new AppError('User not found', 404, 'USER_NOT_FOUND');\n    }\n\n    const backupCodes = generateBackupCodes(10);\n    const hashedBackupCodes = await Promise.all(\n      backupCodes.map(code => hashSensitiveData(code))\n    );\n\n    await this.userRepository.update(userId, {\n      twoFactorBackupCodes: hashedBackupCodes\n    });\n\n    logSecurityEvent('2FA_BACKUP_CODES_REGENERATED', {\n      userId,\n      codesCount: backupCodes.length\n    }, 'info');\n\n    return backupCodes;\n  }\n\n  /**\n   * Get backup codes (only return count for security)\n   */\n  async getBackupCodes(userId: string): Promise<string[]> {\n    const user = await this.userRepository.findById(userId);\n    if (!user || !user.twoFactorBackupCodes) {\n      return [];\n    }\n\n    // For security, we don't return the actual codes, just generate new ones\n    // This should only be called during setup or regeneration\n    return this.generateNewBackupCodes(userId);\n  }\n\n  /**\n   * Get backup codes count\n   */\n  async getBackupCodesCount(userId: string): Promise<number> {\n    const user = await this.userRepository.findById(userId);\n    if (!user || !user.twoFactorBackupCodes) {\n      return 0;\n    }\n\n    return user.twoFactorBackupCodes.length;\n  }\n\n  /**\n   * Disable 2FA\n   */\n  async disable2FA(\n    userId: string,\n    verificationCode: string,\n    options: {\n      ipAddress: string;\n      userAgent: string;\n    }\n  ): Promise<{ success: boolean }> {\n    const user = await this.userRepository.findById(userId);\n    if (!user) {\n      throw new AppError('User not found', 404, 'USER_NOT_FOUND');\n    }\n\n    if (!user.twoFactorEnabled) {\n      throw new AppError('Two-factor authentication is not enabled', 400, '2FA_NOT_ENABLED');\n    }\n\n    // Verify the code before disabling\n    let verified = false;\n    if (user.twoFactorMethod === 'totp') {\n      verified = await this.verifyTOTP(userId, verificationCode);\n    } else {\n      // For email 2FA, we'd need to create a challenge first\n      throw new AppError('Please verify through email challenge first', 400, 'EMAIL_CHALLENGE_REQUIRED');\n    }\n\n    if (!verified) {\n      logSecurityEvent('2FA_DISABLE_FAILED', {\n        userId,\n        reason: 'invalid_code',\n        ipAddress: options.ipAddress\n      }, 'warn');\n      throw new AppError('Invalid verification code', 400, 'INVALID_2FA_CODE');\n    }\n\n    // Disable 2FA\n    await this.userRepository.update(userId, {\n      twoFactorEnabled: false,\n      twoFactorVerified: false,\n      twoFactorSecret: null,\n      twoFactorMethod: null,\n      twoFactorBackupCodes: []\n    });\n\n    logSecurityEvent('2FA_DISABLED', {\n      userId,\n      ipAddress: options.ipAddress,\n      userAgent: options.userAgent\n    }, 'info');\n\n    return { success: true };\n  }\n\n  /**\n   * Get 2FA status for user\n   */\n  async get2FAStatus(userId: string): Promise<{\n    enabled: boolean;\n    method?: string;\n    verified: boolean;\n    backupCodesCount: number;\n    setupUrl?: string;\n  }> {\n    const user = await this.userRepository.findById(userId);\n    if (!user) {\n      throw new AppError('User not found', 404, 'USER_NOT_FOUND');\n    }\n\n    return {\n      enabled: user.twoFactorEnabled || false,\n      method: user.twoFactorMethod || undefined,\n      verified: user.twoFactorVerified || false,\n      backupCodesCount: await this.getBackupCodesCount(userId),\n      setupUrl: user.twoFactorSecret && !user.twoFactorEnabled \n        ? speakeasy.otpauthURL({\n            secret: user.twoFactorSecret,\n            label: `MediaNest (${user.email})`,\n            issuer: 'MediaNest',\n            encoding: 'base32'\n          })\n        : undefined\n    };\n  }\n\n  /**\n   * Find active challenge for user\n   */\n  private findActiveChallenge(userId: string): TwoFactorChallenge | undefined {\n    return Array.from(this.challenges.values())\n      .find(challenge => \n        challenge.userId === userId && \n        !challenge.verified && \n        new Date() < challenge.expiresAt\n      );\n  }\n\n  /**\n   * Clean up expired challenges\n   */\n  private cleanupExpiredChallenges(): void {\n    const now = new Date();\n    let cleaned = 0;\n\n    for (const [id, challenge] of this.challenges.entries()) {\n      if (now > challenge.expiresAt || challenge.verified) {\n        this.challenges.delete(id);\n        cleaned++;\n      }\n    }\n\n    if (cleaned > 0) {\n      logger.info('Cleaned up expired 2FA challenges', { count: cleaned });\n    }\n  }\n\n  /**\n   * Get 2FA statistics\n   */\n  async getStatistics(): Promise<{\n    activeChallenges: number;\n    totalUsersWithTwoFactor: number;\n    methodBreakdown: {\n      totp: number;\n      email: number;\n      sms: number;\n    };\n  }> {\n    // Clean up first\n    this.cleanupExpiredChallenges();\n\n    const users = await this.userRepository.findAll();\n    const usersWithTwoFactor = users.filter(u => u.twoFactorEnabled);\n\n    return {\n      activeChallenges: this.challenges.size,\n      totalUsersWithTwoFactor: usersWithTwoFactor.length,\n      methodBreakdown: {\n        totp: usersWithTwoFactor.filter(u => u.twoFactorMethod === 'totp').length,\n        email: usersWithTwoFactor.filter(u => u.twoFactorMethod === 'email').length,\n        sms: usersWithTwoFactor.filter(u => u.twoFactorMethod === 'sms').length\n      }\n    };\n  }\n}\n\n// We need to add these dependencies to package.json:\n// npm install speakeasy qrcode\n// npm install --save-dev @types/speakeasy @types/qrcode
+    }
+
+    if (codeIndex === -1) {
+      logSecurityEvent(
+        '2FA_BACKUP_CODE_INVALID',
+        {
+          userId,
+          ipAddress: options.ipAddress,
+        },
+        'warn',
+      );
+
+      return { success: false, remainingCodes: user.twoFactorBackupCodes.length };
+    }
+
+    // Remove the used backup code
+    const updatedBackupCodes = user.twoFactorBackupCodes.filter((_, index) => index !== codeIndex);
+    await this.userRepository.update(userId, {
+      twoFactorBackupCodes: updatedBackupCodes,
+    });
+
+    logSecurityEvent(
+      '2FA_BACKUP_CODE_USED',
+      {
+        userId,
+        remainingCodes: updatedBackupCodes.length,
+        ipAddress: options.ipAddress,
+        userAgent: options.userAgent,
+      },
+      'info',
+    );
+
+    return {
+      success: true,
+      remainingCodes: updatedBackupCodes.length,
+    };
+  }
+}

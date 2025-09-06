@@ -5,7 +5,7 @@ import { Server, Socket } from 'socket.io';
 import { logger } from '@/utils/logger';
 
 import { registerHandlers } from './handlers';
-import { authenticateSocket, authenticateAdminSocket } from './middleware';
+import { authenticateSocket } from './middleware';
 import { setSocketServer } from './server';
 import { setupNamespaces } from './namespaces';
 

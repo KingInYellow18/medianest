@@ -8,7 +8,7 @@ import { AppError } from '@medianest/shared';
 import { logger } from '@/utils/logger';
 
 export class DashboardController {
-  async getServiceStatuses(req: Request, res: Response) {
+  async getServiceStatuses(_req: Request, res: Response) {
     try {
       // Cache service statuses for 5 minutes
       const cacheKey = 'service:statuses:all';
@@ -21,7 +21,7 @@ export class DashboardController {
       // Set cache headers for client-side caching
       res.set({
         'Cache-Control': 'public, max-age=60', // Cache for 1 minute on client
-        'ETag': `"${Date.now()}"`,
+        ETag: `"${Date.now()}"`,
       });
 
       res.json({
@@ -34,14 +34,18 @@ export class DashboardController {
       });
     } catch (error) {
       logger.error('Failed to get service statuses', { error });
-      throw new AppError('Failed to retrieve service statuses', 500);
+      throw new AppError('DASHBOARD_ERROR', 'Failed to retrieve service statuses', 500);
     }
   }
 
   async getServiceStatus(req: Request, res: Response) {
     try {
       const { service } = req.params;
-      
+
+      if (!service) {
+        throw new AppError('BAD_REQUEST', 'Service parameter is required', 400);
+      }
+
       // Cache individual service status for 5 minutes
       const cacheKey = `service:status:${service}`;
       const status = await cacheService.getOrSet(
@@ -51,13 +55,13 @@ export class DashboardController {
       );
 
       if (!status) {
-        throw new AppError(`Service '${service}' not found`, 404);
+        throw new AppError('SERVICE_NOT_FOUND', `Service '${service}' not found`, 404);
       }
 
       // Set cache headers
       res.set({
         'Cache-Control': 'public, max-age=60',
-        'ETag': `"${service}-${status.lastCheckAt}"`,
+        ETag: `"${service}-${status.lastCheckAt}"`,
       });
 
       res.json({
@@ -69,7 +73,7 @@ export class DashboardController {
         throw error;
       }
       logger.error('Failed to get service status', { error });
-      throw new AppError('Failed to retrieve service status', 500);
+      throw new AppError('SERVICE_STATUS_ERROR', 'Failed to retrieve service status', 500);
     }
   }
 
@@ -79,7 +83,7 @@ export class DashboardController {
 
       // Get user's recent requests
       const recentRequests = await mediaRequestRepository.findByUser(userId, {
-        take: 5,
+        limit: 5,
         orderBy: { createdAt: 'desc' },
       });
 
@@ -120,11 +124,11 @@ export class DashboardController {
       });
     } catch (error) {
       logger.error('Failed to get dashboard stats', { error });
-      throw new AppError('Failed to retrieve dashboard statistics', 500);
+      throw new AppError('DASHBOARD_STATS_ERROR', 'Failed to retrieve dashboard statistics', 500);
     }
   }
 
-  async getNotifications(req: Request, res: Response) {
+  async getNotifications(_req: Request, res: Response) {
     try {
       // For MVP, return empty notifications
       // In production, you'd fetch from a notifications table using req.user!.id
@@ -137,7 +141,7 @@ export class DashboardController {
       });
     } catch (error) {
       logger.error('Failed to get notifications', { error });
-      throw new AppError('Failed to retrieve notifications', 500);
+      throw new AppError('NOTIFICATIONS_ERROR', 'Failed to retrieve notifications', 500);
     }
   }
 }

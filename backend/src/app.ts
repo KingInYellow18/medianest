@@ -10,10 +10,10 @@ import { createServer } from 'http';
 // Middleware imports
 import { errorHandler } from './middleware/error';
 import { timeoutPresets } from './middleware/timeout';
-import { csrfProtection } from './middleware/csrf';
+// import { csrfProtection } from './middleware/csrf';
 
 // Route imports
-import { router as v1Router } from './routes/v1';
+import v1Router from './routes/v1';
 
 // Utils
 import { logger } from './utils/logger';

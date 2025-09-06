@@ -49,7 +49,7 @@ export class AuthController {
       const codeMatch = responseData.match(/<code>([A-Z0-9]+)<\/code>/);
 
       if (!pinMatch || !codeMatch) {
-        throw new AppError('Invalid response from Plex', 500, 'PLEX_ERROR');
+        throw new AppError('PLEX_ERROR', 'Invalid response from Plex', 500);
       }
 
       const pinId = pinMatch[1];
@@ -72,9 +72,9 @@ export class AuthController {
         if (error.response?.status === 503 || error.code === 'ECONNREFUSED') {
           next(
             new AppError(
+              'PLEX_UNREACHABLE',
               'Cannot connect to Plex server. Please try again.',
               503,
-              'PLEX_UNREACHABLE',
             ),
           );
           return;
@@ -107,9 +107,9 @@ export class AuthController {
 
       if (!authTokenMatch) {
         throw new AppError(
+          'PIN_NOT_AUTHORIZED',
           'PIN has not been authorized yet. Please complete authorization on plex.tv/link',
           400,
-          'PIN_NOT_AUTHORIZED',
         );
       }
 
@@ -131,22 +131,22 @@ export class AuthController {
       const emailMatch = userResponseData.match(/<email>([^<]+)<\/email>/);
 
       if (!plexIdMatch || !usernameMatch) {
-        throw new AppError('Invalid user data from Plex', 500, 'PLEX_ERROR');
+        throw new AppError('PLEX_ERROR', 'Invalid user data from Plex', 500);
       }
 
       const plexId = plexIdMatch[1];
       const username = usernameMatch[1];
-      const email = emailMatch?.[1] || null;
+      const email = emailMatch?.[1] || undefined;
 
       // Check if user exists
-      let user = await userRepository.findByPlexId(plexId);
+      let user = await userRepository.findByPlexId(plexId!);
 
       if (user) {
         // Update existing user
         user = await userRepository.update(user.id, {
-          username,
-          email,
-          plexToken: encryptionService.encryptForStorage(plexToken),
+          plexUsername: username,
+          email: email || undefined,
+          plexToken: encryptionService.encryptForStorage(plexToken!),
           lastLoginAt: new Date(),
         });
       } else {
@@ -154,11 +154,10 @@ export class AuthController {
         const isFirstUser = await userRepository.isFirstUser();
         user = await userRepository.create({
           plexId,
-          username,
-          email,
-          plexToken: encryptionService.encryptForStorage(plexToken),
+          plexUsername: username,
+          email: email || '',
+          plexToken: encryptionService.encryptForStorage(plexToken!),
           role: isFirstUser ? 'admin' : 'user',
-          lastLoginAt: new Date(),
         });
       }
 
@@ -211,11 +210,11 @@ export class AuthController {
       logger.error('Failed to verify Plex PIN', { error: errorMessage });
 
       if (axios.isAxiosError(error) && error.response?.status === 404) {
-        next(new AppError('Invalid or expired PIN', 400, 'INVALID_PIN'));
+        next(new AppError('INVALID_PIN', 'Invalid or expired PIN', 400));
       } else if (error instanceof AppError) {
         next(error);
       } else {
-        next(new AppError('Authentication failed. Please try again.', 500, 'AUTH_ERROR'));
+        next(new AppError('AUTH_ERROR', 'Authentication failed. Please try again.', 500));
       }
     }
   }
@@ -223,7 +222,7 @@ export class AuthController {
   /**
    * Logout user
    */
-  async logout(req: Request, res: Response): Promise<void> {
+  async logout(_req: Request, res: Response): Promise<void> {
     // Clear cookies
     res.clearCookie('token');
     res.clearCookie('rememberToken');
@@ -243,7 +242,7 @@ export class AuthController {
     const user = authReq.user;
 
     if (!user) {
-      throw new AppError('User not found in request', 401, 'UNAUTHORIZED');
+      throw new AppError('UNAUTHORIZED', 'User not found in request', 401);
     }
 
     res.json({

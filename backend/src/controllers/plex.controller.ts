@@ -19,7 +19,7 @@ export class PlexController {
         throw error;
       }
       logger.error('Failed to get server info', { error });
-      throw new AppError('Failed to retrieve server information', 500);
+      throw new AppError('SERVER_ERROR', 'Failed to retrieve server information', 500);
     }
   }
 
@@ -40,7 +40,7 @@ export class PlexController {
         throw error;
       }
       logger.error('Failed to get libraries', { error });
-      throw new AppError('Failed to retrieve libraries', 500);
+      throw new AppError('SERVER_ERROR', 'Failed to retrieve libraries', 500);
     }
   }
 
@@ -69,7 +69,7 @@ export class PlexController {
         throw error;
       }
       logger.error('Failed to get library items', { error });
-      throw new AppError('Failed to retrieve library items', 500);
+      throw new AppError('SERVER_ERROR', 'Failed to retrieve library items', 500);
     }
   }
 
@@ -79,7 +79,7 @@ export class PlexController {
       const { query } = req.query;
 
       if (!query || typeof query !== 'string') {
-        throw new AppError('Search query is required', 400);
+        throw new AppError('VALIDATION_ERROR', 'Search query is required', 400);
       }
 
       const results = await plexService.search(userId, query);
@@ -97,7 +97,7 @@ export class PlexController {
         throw error;
       }
       logger.error('Search failed', { error });
-      throw new AppError('Search failed', 500);
+      throw new AppError('SERVER_ERROR', 'Search failed', 500);
     }
   }
 
@@ -118,7 +118,7 @@ export class PlexController {
         throw error;
       }
       logger.error('Failed to get recently added', { error });
-      throw new AppError('Failed to retrieve recently added items', 500);
+      throw new AppError('SERVER_ERROR', 'Failed to retrieve recently added items', 500);
     }
   }
 
@@ -145,7 +145,7 @@ export class PlexController {
         throw error;
       }
       logger.error('Failed to get collections', { error });
-      throw new AppError('Failed to retrieve collections', 500);
+      throw new AppError('SERVER_ERROR', 'Failed to retrieve collections', 500);
     }
   }
 
@@ -165,7 +165,7 @@ export class PlexController {
         throw error;
       }
       logger.error('Failed to get collection details', { error });
-      throw new AppError('Failed to retrieve collection details', 500);
+      throw new AppError('SERVER_ERROR', 'Failed to retrieve collection details', 500);
     }
   }
 }

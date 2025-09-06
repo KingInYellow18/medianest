@@ -25,18 +25,18 @@ export class CircuitBreaker {
   private successes: number = 0;
   private requests: number = 0;
   private nextAttempt: Date | null = null;
-  private lastFailureTime: Date | null = null;
+  private _lastFailureTime: Date | null = null;
 
   constructor(
     private name: string,
-    private options: CircuitBreakerOptions
+    private options: CircuitBreakerOptions,
   ) {}
 
   async execute<T>(operation: () => Promise<T>): Promise<T> {
     if (this.state === CircuitState.OPEN) {
       if (this.nextAttempt && new Date() < this.nextAttempt) {
         throw new Error(
-          `Circuit breaker ${this.name} is OPEN. Next attempt at ${this.nextAttempt.toISOString()}`
+          `Circuit breaker ${this.name} is OPEN. Next attempt at ${this.nextAttempt.toISOString()}`,
         );
       }
 
@@ -82,12 +82,10 @@ export class CircuitBreaker {
   private isExpectedError(error: unknown): boolean {
     if (!this.options.expectedErrors) return false;
 
-    const errorMessage = error instanceof Error 
-      ? error.message 
-      : String(error);
-    
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
     return this.options.expectedErrors.some((expected) =>
-      errorMessage.toLowerCase().includes(expected.toLowerCase())
+      errorMessage.toLowerCase().includes(expected.toLowerCase()),
     );
   }
 

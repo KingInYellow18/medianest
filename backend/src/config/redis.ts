@@ -80,6 +80,11 @@ export const getRedis = (): Redis => {
 };
 
 /**
+ * Export redisClient for backwards compatibility
+ */
+export { redisClient };
+
+/**
  * Close Redis connection gracefully
  */
 export const closeRedis = async (): Promise<void> => {

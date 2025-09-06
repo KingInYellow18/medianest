@@ -5,9 +5,9 @@ import { redisClient } from '@/config/redis';
 import { logger } from '@/utils/logger';
 
 export class HealthController {
-  async getHealth(req: Request, res: Response) {
-    const startTime = Date.now();
-    
+  async getHealth(_req: Request, res: Response) {
+    // const _startTime = Date.now();
+
     try {
       // Basic health check
       const health = {
@@ -28,10 +28,10 @@ export class HealthController {
     }
   }
 
-  async getMetrics(req: Request, res: Response) {
+  async getMetrics(_req: Request, res: Response) {
     try {
       const prisma = getPrismaClient();
-      
+
       // Get database connection status
       const dbStartTime = Date.now();
       await prisma.$queryRaw`SELECT 1`;
@@ -91,8 +91,8 @@ export class HealthController {
       // Set cache headers for metrics endpoint
       res.set({
         'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0',
+        Pragma: 'no-cache',
+        Expires: '0',
       });
 
       res.json(metrics);
@@ -100,7 +100,7 @@ export class HealthController {
       logger.error('Failed to get metrics', { error });
       res.status(500).json({
         error: 'Failed to retrieve metrics',
-        message: error.message,
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -125,8 +125,8 @@ export class HealthController {
     // performance hooks or the perf_hooks module for more accurate measurements
     const start = process.hrtime();
     setImmediate(() => {
-      const [seconds, nanoseconds] = process.hrtime(start);
-      const delay = seconds * 1000 + nanoseconds / 1000000;
+      const [_seconds, _nanoseconds] = process.hrtime(start);
+      // const _delay = seconds * 1000 + nanoseconds / 1000000;
       // Store this somewhere for the next request
     });
     return 'measuring...';

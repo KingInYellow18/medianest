@@ -1,6 +1,5 @@
 import { Server as HttpServer } from 'http';
 import { Server as SocketIOServer, Socket } from 'socket.io';
-import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 
 import {
   handleSocketDisconnect,
@@ -45,9 +44,13 @@ export class MediaNestSocketServer {
     // CORS validation middleware
     this.io.use((socket, next) => {
       const origin = socket.handshake.headers.origin;
-      const allowedOrigins = (process.env.ALLOWED_ORIGINS || process.env.FRONTEND_URL || 'http://localhost:3000')
+      const allowedOrigins = (
+        process.env.ALLOWED_ORIGINS ||
+        process.env.FRONTEND_URL ||
+        'http://localhost:3000'
+      )
         .split(',')
-        .map(o => o.trim());
+        .map((o) => o.trim());
 
       if (!origin || allowedOrigins.includes(origin)) {
         next();
@@ -108,7 +111,7 @@ export class MediaNestSocketServer {
 
   private handleConnection(socket: Socket, namespace: string) {
     const user = socket.user;
-    
+
     logger.info(`Socket connected to ${namespace} namespace`, {
       socketId: socket.id,
       namespace,
@@ -178,7 +181,7 @@ export class MediaNestSocketServer {
     // Join media-specific rooms based on user permissions
     socket.on('join-media-room', (data: { roomId: string }) => {
       const { roomId } = data;
-      
+
       // Validate room ID
       if (typeof roomId !== 'string' || !roomId.match(/^[a-zA-Z0-9_-]+$/)) {
         socket.emit('error', { message: 'Invalid room ID' });
@@ -187,7 +190,7 @@ export class MediaNestSocketServer {
 
       socket.join(`media:${roomId}`);
       socket.emit('joined-room', { roomId });
-      
+
       logger.info('User joined media room', {
         userId: socket.user?.id,
         socketId: socket.id,
@@ -204,7 +207,7 @@ export class MediaNestSocketServer {
     // Media playback status events
     socket.on('media-status', (data) => {
       // Broadcast to other users in the same rooms
-      socket.rooms.forEach(room => {
+      socket.rooms.forEach((room) => {
         if (room.startsWith('media:')) {
           socket.to(room).emit('media-status', {
             ...data,
@@ -242,7 +245,7 @@ export class MediaNestSocketServer {
 
   private handleDisconnection(socket: Socket, namespace: string, reason: string) {
     const user = socket.user;
-    
+
     logger.info(`Socket disconnected from ${namespace} namespace`, {
       socketId: socket.id,
       namespace,
@@ -255,7 +258,7 @@ export class MediaNestSocketServer {
     if (user && this.connectedUsers.has(user.id)) {
       const userSockets = this.connectedUsers.get(user.id)!;
       userSockets.delete(socket.id);
-      
+
       if (userSockets.size === 0) {
         this.connectedUsers.delete(user.id);
         logger.info('User fully disconnected', { userId: user.id });
@@ -287,7 +290,7 @@ export class MediaNestSocketServer {
   public emitToUser(userId: string, event: string, data: any) {
     const userSockets = this.connectedUsers.get(userId);
     if (userSockets) {
-      userSockets.forEach(socketId => {
+      userSockets.forEach((socketId) => {
         this.io.to(socketId).emit(event, data);
       });
     }
@@ -297,9 +300,7 @@ export class MediaNestSocketServer {
    * Emit event to media namespace
    */
   public emitToMedia(event: string, data: any, roomId?: string) {
-    const target = roomId 
-      ? this.io.of('/media').to(`media:${roomId}`)
-      : this.io.of('/media');
+    const target = roomId ? this.io.of('/media').to(`media:${roomId}`) : this.io.of('/media');
     target.emit(event, data);
   }
 

@@ -4,7 +4,8 @@ import path from 'path';
 import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 
-import { generateCorrelationId } from '@medianest/shared';
+// import { generateCorrelationId } from '@medianest/shared';
+const generateCorrelationId = () => Math.random().toString(36).substr(2, 9);
 
 // Ensure logs directory exists
 const logsDir = path.join(process.cwd(), 'logs');

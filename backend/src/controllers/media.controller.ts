@@ -11,7 +11,7 @@ export class MediaController {
       const { query, page = 1 } = req.query;
 
       if (!query || typeof query !== 'string') {
-        throw new AppError('Search query is required', 400);
+        throw new AppError('VALIDATION_ERROR', 'Search query is required', 400);
       }
 
       const results = await overseerrService.searchMedia(query, Number(page));
@@ -30,7 +30,7 @@ export class MediaController {
         throw error;
       }
       logger.error('Media search failed', { error });
-      throw new AppError('Search failed', 500);
+      throw new AppError('INTERNAL_ERROR', 'Search failed', 500);
     }
   }
 
@@ -38,8 +38,12 @@ export class MediaController {
     try {
       const { mediaType, tmdbId } = req.params;
 
+      if (!mediaType) {
+        throw new AppError('VALIDATION_ERROR', 'Media type is required', 400);
+      }
+
       if (!['movie', 'tv'].includes(mediaType)) {
-        throw new AppError('Invalid media type', 400);
+        throw new AppError('VALIDATION_ERROR', 'Invalid media type', 400);
       }
 
       const details = await overseerrService.getMediaDetails(
@@ -56,7 +60,7 @@ export class MediaController {
         throw error;
       }
       logger.error('Failed to get media details', { error });
-      throw new AppError('Failed to get media details', 500);
+      throw new AppError('INTERNAL_ERROR', 'Failed to get media details', 500);
     }
   }
 
@@ -66,11 +70,11 @@ export class MediaController {
       const { mediaType, tmdbId, seasons } = req.body;
 
       if (!mediaType || !tmdbId) {
-        throw new AppError('mediaType and tmdbId are required', 400);
+        throw new AppError('VALIDATION_ERROR', 'mediaType and tmdbId are required', 400);
       }
 
       if (!['movie', 'tv'].includes(mediaType)) {
-        throw new AppError('Invalid media type', 400);
+        throw new AppError('VALIDATION_ERROR', 'Invalid media type', 400);
       }
 
       const request = await overseerrService.requestMedia(userId, {
@@ -88,7 +92,7 @@ export class MediaController {
         throw error;
       }
       logger.error('Failed to request media', { error });
-      throw new AppError('Failed to submit media request', 500);
+      throw new AppError('INTERNAL_ERROR', 'Failed to submit media request', 500);
     }
   }
 
@@ -149,8 +153,7 @@ export class MediaController {
         orderBy.status = sortOrder;
       }
 
-      const requests = await mediaRequestRepository.findMany({
-        where: filters,
+      const requests = await mediaRequestRepository.findMany(filters, {
         skip,
         take: Number(pageSize),
         orderBy,
@@ -167,7 +170,7 @@ export class MediaController {
       });
     } catch (error) {
       logger.error('Failed to get user requests', { error });
-      throw new AppError('Failed to get requests', 500);
+      throw new AppError('INTERNAL_ERROR', 'Failed to get requests', 500);
     }
   }
 
@@ -176,15 +179,19 @@ export class MediaController {
       const userId = req.user!.id;
       const { requestId } = req.params;
 
+      if (!requestId) {
+        throw new AppError('VALIDATION_ERROR', 'Request ID is required', 400);
+      }
+
       const request = await mediaRequestRepository.findById(requestId);
 
       if (!request) {
-        throw new AppError('Request not found', 404);
+        throw new AppError('NOT_FOUND', 'Request not found', 404);
       }
 
       // Ensure user can only see their own requests
       if (request.userId !== userId && req.user!.role !== 'admin') {
-        throw new AppError('Access denied', 403);
+        throw new AppError('ACCESS_DENIED', 'Access denied', 403);
       }
 
       res.json({
@@ -196,7 +203,7 @@ export class MediaController {
         throw error;
       }
       logger.error('Failed to get request details', { error });
-      throw new AppError('Failed to get request details', 500);
+      throw new AppError('INTERNAL_ERROR', 'Failed to get request details', 500);
     }
   }
 
@@ -205,20 +212,24 @@ export class MediaController {
       const userId = req.user!.id;
       const { requestId } = req.params;
 
+      if (!requestId) {
+        throw new AppError('VALIDATION_ERROR', 'Request ID is required', 400);
+      }
+
       const request = await mediaRequestRepository.findById(requestId);
 
       if (!request) {
-        throw new AppError('Request not found', 404);
+        throw new AppError('NOT_FOUND', 'Request not found', 404);
       }
 
       // Ensure user can only delete their own requests
       if (request.userId !== userId && req.user!.role !== 'admin') {
-        throw new AppError('Access denied', 403);
+        throw new AppError('ACCESS_DENIED', 'Access denied', 403);
       }
 
       // Only allow deletion of pending requests
       if (request.status !== 'pending') {
-        throw new AppError('Can only delete pending requests', 400);
+        throw new AppError('VALIDATION_ERROR', 'Can only delete pending requests', 400);
       }
 
       await mediaRequestRepository.delete(requestId);
@@ -232,7 +243,7 @@ export class MediaController {
         throw error;
       }
       logger.error('Failed to delete request', { error });
-      throw new AppError('Failed to delete request', 500);
+      throw new AppError('INTERNAL_ERROR', 'Failed to delete request', 500);
     }
   }
 
@@ -240,7 +251,7 @@ export class MediaController {
     try {
       // Only admins can access this endpoint
       if (req.user!.role !== 'admin') {
-        throw new AppError('Access denied', 403);
+        throw new AppError('ACCESS_DENIED', 'Access denied', 403);
       }
 
       const {
@@ -302,20 +313,10 @@ export class MediaController {
         orderBy.status = sortOrder;
       }
 
-      const requests = await mediaRequestRepository.findMany({
-        where: filters,
+      const requests = await mediaRequestRepository.findMany(filters, {
         skip,
         take: Number(pageSize),
         orderBy,
-        include: {
-          user: {
-            select: {
-              id: true,
-              plexUsername: true,
-              email: true,
-            },
-          },
-        },
       });
 
       res.json({
@@ -332,7 +333,7 @@ export class MediaController {
         throw error;
       }
       logger.error('Failed to get all requests', { error });
-      throw new AppError('Failed to get requests', 500);
+      throw new AppError('INTERNAL_ERROR', 'Failed to get requests', 500);
     }
   }
 }

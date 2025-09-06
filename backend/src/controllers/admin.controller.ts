@@ -60,7 +60,7 @@ class AdminController {
           plexId: true,
           plexUsername: true,
           email: true,
-          thumb: true,
+          image: true,
           role: true,
           createdAt: true,
           lastLoginAt: true,
@@ -87,19 +87,19 @@ class AdminController {
       });
     } catch (error) {
       logger.error('Failed to get users', { error });
-      throw new AppError('Failed to get users', 500);
+      throw new AppError('INTERNAL_ERROR', 'Failed to get users', 500);
     }
   }
 
   /**
    * Get service configurations
    */
-  async getServices(req: Request, res: Response) {
+  async getServices(_req: Request, res: Response) {
     try {
       // Service configurations don't need pagination as there are only a few
       const services = await prisma.serviceConfig.findMany({
         orderBy: {
-          service: 'asc',
+          serviceName: 'asc',
         },
       });
 
@@ -116,7 +116,7 @@ class AdminController {
       });
     } catch (error) {
       logger.error('Failed to get services', { error });
-      throw new AppError('Failed to get services', 500);
+      throw new AppError('INTERNAL_ERROR', 'Failed to get services', 500);
     }
   }
 
@@ -130,12 +130,12 @@ class AdminController {
 
       // Validate role
       if (!['user', 'admin'].includes(role)) {
-        throw new AppError('Invalid role', 400);
+        throw new AppError('VALIDATION_ERROR', 'Invalid role', 400);
       }
 
       // Prevent admin from removing their own admin role
       if (userId === req.user!.id && role !== 'admin') {
-        throw new AppError('Cannot remove your own admin role', 400);
+        throw new AppError('VALIDATION_ERROR', 'Cannot remove your own admin role', 400);
       }
 
       // Update user role
@@ -165,7 +165,7 @@ class AdminController {
         throw error;
       }
       logger.error('Failed to update user role', { error });
-      throw new AppError('Failed to update user role', 500);
+      throw new AppError('INTERNAL_ERROR', 'Failed to update user role', 500);
     }
   }
 
@@ -178,7 +178,7 @@ class AdminController {
 
       // Prevent admin from deleting their own account
       if (userId === req.user!.id) {
-        throw new AppError('Cannot delete your own account', 400);
+        throw new AppError('VALIDATION_ERROR', 'Cannot delete your own account', 400);
       }
 
       // Check if user exists
@@ -187,7 +187,7 @@ class AdminController {
       });
 
       if (!user) {
-        throw new AppError('User not found', 404);
+        throw new AppError('NOT_FOUND', 'User not found', 404);
       }
 
       // Delete user (cascades to related records)
@@ -210,14 +210,14 @@ class AdminController {
         throw error;
       }
       logger.error('Failed to delete user', { error });
-      throw new AppError('Failed to delete user', 500);
+      throw new AppError('INTERNAL_ERROR', 'Failed to delete user', 500);
     }
   }
 
   /**
    * Get system statistics
    */
-  async getSystemStats(req: Request, res: Response) {
+  async getSystemStats(_req: Request, res: Response) {
     try {
       const [
         totalUsers,
@@ -264,7 +264,7 @@ class AdminController {
       });
     } catch (error) {
       logger.error('Failed to get system stats', { error });
-      throw new AppError('Failed to get system statistics', 500);
+      throw new AppError('INTERNAL_ERROR', 'Failed to get system statistics', 500);
     }
   }
 }

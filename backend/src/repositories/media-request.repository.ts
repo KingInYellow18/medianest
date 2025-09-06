@@ -214,10 +214,7 @@ export class MediaRequestRepository extends BaseRepository<
     );
   }
 
-  async getRecentRequests(
-    limit: number = 10,
-    offset: number = 0,
-  ): Promise<MediaRequest[]> {
+  async getRecentRequests(limit: number = 10, offset: number = 0): Promise<MediaRequest[]> {
     return this.prisma.mediaRequest.findMany({
       take: limit,
       skip: offset,
@@ -262,5 +259,63 @@ export class MediaRequestRepository extends BaseRepository<
       available: counts.available || 0,
       failed: counts.failed || 0,
     };
+  }
+
+  async count(filters: MediaRequestFilters = {}): Promise<number> {
+    const where: any = {};
+
+    if (filters.userId) where.userId = filters.userId;
+    if (filters.status) where.status = filters.status;
+    if (filters.mediaType) where.mediaType = filters.mediaType;
+
+    if (filters.createdAfter || filters.createdBefore) {
+      where.createdAt = {};
+      if (filters.createdAfter) where.createdAt.gte = filters.createdAfter;
+      if (filters.createdBefore) where.createdAt.lte = filters.createdBefore;
+    }
+
+    try {
+      return await this.prisma.mediaRequest.count({ where });
+    } catch (error) {
+      this.handleDatabaseError(error);
+    }
+  }
+
+  async findMany(
+    filters: MediaRequestFilters = {},
+    options: { skip?: number; take?: number; orderBy?: any } = {},
+  ): Promise<MediaRequest[]> {
+    const where: any = {};
+
+    if (filters.userId) where.userId = filters.userId;
+    if (filters.status) where.status = filters.status;
+    if (filters.mediaType) where.mediaType = filters.mediaType;
+
+    if (filters.createdAfter || filters.createdBefore) {
+      where.createdAt = {};
+      if (filters.createdAfter) where.createdAt.gte = filters.createdAfter;
+      if (filters.createdBefore) where.createdAt.lte = filters.createdBefore;
+    }
+
+    try {
+      return await this.prisma.mediaRequest.findMany({
+        where,
+        skip: options.skip,
+        take: options.take,
+        orderBy: options.orderBy,
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              plexUsername: true,
+            },
+          },
+        },
+      });
+    } catch (error) {
+      this.handleDatabaseError(error);
+    }
   }
 }
