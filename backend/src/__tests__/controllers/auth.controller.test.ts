@@ -555,7 +555,7 @@ describe('AuthController', () => {
       mockUserRepository.create.mockResolvedValueOnce(testUser);
 
       // Mock JWT generation failure
-      jwtService.generateAccessToken.mockImplementationOnce(() => {
+      mockJwtService.generateAccessToken.mockImplementationOnce(() => {
         throw new Error('JWT generation failed');
       });
 
