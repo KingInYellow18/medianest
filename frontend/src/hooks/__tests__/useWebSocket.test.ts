@@ -1,11 +1,9 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import { socketManager } from '@/lib/socket';
-
 import { useWebSocket } from '../useWebSocket';
 
-// Mock the socket manager
+// Mock both socket managers
 vi.mock('@/lib/socket', () => ({
   socketManager: {
     connect: vi.fn(),
@@ -17,77 +15,141 @@ vi.mock('@/lib/socket', () => ({
   },
 }));
 
+vi.mock('@/lib/enhanced-socket', () => {
+  const mockSocket = {
+    connected: false,
+    on: vi.fn(),
+    emit: vi.fn(),
+    disconnect: vi.fn(),
+  };
+
+  return {
+    enhancedSocketManager: {
+      connect: vi.fn(() => mockSocket),
+      onStateChange: vi.fn((callback) => {
+        // Return unsubscribe function
+        return vi.fn();
+      }),
+      on: vi.fn(),
+      off: vi.fn(),
+      emit: vi.fn(),
+      disconnect: vi.fn(),
+      checkConnectionQuality: vi.fn(() => Promise.resolve('good')),
+    },
+    ConnectionState: {},
+  };
+});
+
 describe('useWebSocket', () => {
   let mockSocket: any;
+  let mockEnhancedSocketManager: any;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
 
     mockSocket = {
       connected: false,
       on: vi.fn(),
       emit: vi.fn(),
+      disconnect: vi.fn(),
     };
 
-    vi.mocked(socketManager.connect).mockReturnValue(mockSocket);
+    // Get the mocked enhanced socket manager
+    const { enhancedSocketManager } = await import('@/lib/enhanced-socket');
+    mockEnhancedSocketManager = enhancedSocketManager;
+
+    vi.mocked(mockEnhancedSocketManager.connect).mockReturnValue(mockSocket);
+    vi.mocked(mockEnhancedSocketManager.onStateChange).mockImplementation((callback) => {
+      // Simulate initial state
+      setTimeout(() => {
+        callback({
+          connected: false,
+          connecting: false,
+          quality: 'unknown',
+          reconnectAttempt: 0,
+        });
+      }, 0);
+      return vi.fn(); // unsubscribe function
+    });
   });
 
   it('should initialize connection on mount', () => {
     renderHook(() => useWebSocket());
 
-    expect(socketManager.connect).toHaveBeenCalled();
+    expect(mockEnhancedSocketManager.connect).toHaveBeenCalled();
   });
 
   it('should subscribe to status updates when connected', () => {
     mockSocket.connected = true;
+    vi.mocked(mockEnhancedSocketManager.connect).mockReturnValue(mockSocket);
 
     renderHook(() => useWebSocket());
 
     expect(mockSocket.emit).toHaveBeenCalledWith('subscribe:status');
   });
 
-  it('should handle connection status updates', () => {
+  it('should handle connection status updates', async () => {
+    let stateCallback: any;
+    vi.mocked(mockEnhancedSocketManager.onStateChange).mockImplementation((callback) => {
+      stateCallback = callback;
+      return vi.fn();
+    });
+
     const { result } = renderHook(() => useWebSocket());
 
-    // Get the connection status handler
-    const connectionHandler = vi
-      .mocked(socketManager.on)
-      .mock.calls.find((call) => call[0] === 'connection:status')?.[1];
-
-    // Simulate connection
-    act(() => {
-      connectionHandler?.({ connected: true });
+    // Simulate connection state change
+    await act(async () => {
+      stateCallback({
+        connected: true,
+        connecting: false,
+        quality: 'good',
+        reconnectAttempt: 0,
+      });
     });
 
     expect(result.current.isConnected).toBe(true);
     expect(result.current.connectionError).toBeNull();
   });
 
-  it('should handle connection errors', () => {
+  it('should handle connection errors', async () => {
+    let stateCallback: any;
+    vi.mocked(mockEnhancedSocketManager.onStateChange).mockImplementation((callback) => {
+      stateCallback = callback;
+      return vi.fn();
+    });
+
     const { result } = renderHook(() => useWebSocket());
 
-    // Get the error handler
-    const errorHandler = vi
-      .mocked(socketManager.on)
-      .mock.calls.find((call) => call[0] === 'error')?.[1];
-
-    // Simulate error
-    act(() => {
-      errorHandler?.({ message: 'Connection failed' });
+    // Simulate error state
+    await act(async () => {
+      stateCallback({
+        connected: false,
+        connecting: false,
+        quality: 'poor',
+        reconnectAttempt: 0,
+        lastError: 'Connection failed',
+      });
     });
 
     expect(result.current.connectionError).toBe('Connection failed');
   });
 
-  it('should track reconnection attempts', () => {
+  it('should track reconnection attempts', async () => {
+    let stateCallback: any;
+    vi.mocked(mockEnhancedSocketManager.onStateChange).mockImplementation((callback) => {
+      stateCallback = callback;
+      return vi.fn();
+    });
+
     const { result } = renderHook(() => useWebSocket());
 
-    const connectionHandler = vi
-      .mocked(socketManager.on)
-      .mock.calls.find((call) => call[0] === 'connection:status')?.[1];
-
-    act(() => {
-      connectionHandler?.({ connected: false, reconnectAttempt: 3 });
+    await act(async () => {
+      stateCallback({
+        connected: false,
+        connecting: true,
+        quality: 'unknown',
+        reconnectAttempt: 3,
+      });
     });
 
     expect(result.current.reconnectAttempt).toBe(3);
@@ -100,22 +162,33 @@ describe('useWebSocket', () => {
       result.current.refreshService('plex');
     });
 
-    expect(socketManager.emit).toHaveBeenCalledWith('request:refresh', 'plex');
+    expect(mockEnhancedSocketManager.emit).toHaveBeenCalledWith('request:refresh', 'plex');
   });
 
-  it('should provide reconnect function', () => {
+  it('should provide reconnect function', async () => {
+    vi.useFakeTimers();
     const { result } = renderHook(() => useWebSocket());
 
     act(() => {
       result.current.reconnect();
     });
 
-    expect(socketManager.disconnect).toHaveBeenCalled();
-    expect(socketManager.connect).toHaveBeenCalledTimes(2); // Initial + reconnect
+    expect(mockEnhancedSocketManager.disconnect).toHaveBeenCalled();
+
+    // Fast forward the timeout
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+
+    expect(mockEnhancedSocketManager.connect).toHaveBeenCalledTimes(2); // Initial + reconnect
+
+    vi.useRealTimers();
   });
 
   it('should clean up on unmount', () => {
     mockSocket.connected = true;
+    vi.mocked(mockEnhancedSocketManager.connect).mockReturnValue(mockSocket);
+
     const { unmount } = renderHook(() => useWebSocket());
 
     unmount();
@@ -124,8 +197,7 @@ describe('useWebSocket', () => {
     expect(mockSocket.emit).toHaveBeenCalledWith('unsubscribe:status');
 
     // Should remove event listeners
-    expect(socketManager.off).toHaveBeenCalledWith('connection:status', expect.any(Function));
-    expect(socketManager.off).toHaveBeenCalledWith('error', expect.any(Function));
+    expect(mockEnhancedSocketManager.off).toHaveBeenCalledWith('error', expect.any(Function));
   });
 
   it('should subscribe on connect event', () => {

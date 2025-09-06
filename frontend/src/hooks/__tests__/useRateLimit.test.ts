@@ -3,14 +3,38 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 import { useRateLimit } from '../useRateLimit';
 
+// Mock localStorage
+const localStorageMock = (() => {
+  let store: Record<string, string> = {};
+  return {
+    getItem: vi.fn((key: string) => store[key] || null),
+    setItem: vi.fn((key: string, value: string) => {
+      store[key] = value;
+    }),
+    removeItem: vi.fn((key: string) => {
+      delete store[key];
+    }),
+    clear: vi.fn(() => {
+      store = {};
+    }),
+  };
+})();
+
+// Define global
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock,
+});
+
 describe('useRateLimit', () => {
   const STORAGE_KEY = 'mediaRequestTimestamps';
   const MAX_REQUESTS = 20;
   const WINDOW_MS = 3600000; // 1 hour
 
   beforeEach(() => {
-    // Clear localStorage
-    localStorage.clear();
+    // Clear localStorage mock
+    localStorageMock.clear();
+    vi.clearAllMocks();
+
     // Mock current time
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2023-01-01T12:00:00Z'));
@@ -37,10 +61,11 @@ describe('useRateLimit', () => {
     expect(result.current.remainingRequests).toBe(MAX_REQUESTS - 1);
     expect(result.current.canRequest).toBe(true);
 
-    // Check localStorage
-    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    expect(stored).toHaveLength(1);
-    expect(stored[0]).toBe(new Date('2023-01-01T12:00:00Z').getTime());
+    // Check localStorage was called correctly
+    expect(localStorageMock.setItem).toHaveBeenCalledWith(
+      STORAGE_KEY,
+      JSON.stringify([new Date('2023-01-01T12:00:00Z').getTime()]),
+    );
   });
 
   it('should prevent requests when limit is reached', () => {
@@ -112,7 +137,7 @@ describe('useRateLimit', () => {
   });
 
   it('should handle empty localStorage gracefully', () => {
-    localStorage.setItem(STORAGE_KEY, '');
+    localStorageMock.setItem(STORAGE_KEY, '');
 
     const { result } = renderHook(() => useRateLimit());
 
@@ -121,7 +146,7 @@ describe('useRateLimit', () => {
   });
 
   it('should handle invalid localStorage data', () => {
-    localStorage.setItem(STORAGE_KEY, 'invalid-json');
+    localStorageMock.setItem(STORAGE_KEY, 'invalid-json');
 
     const { result } = renderHook(() => useRateLimit());
 
@@ -176,11 +201,12 @@ describe('useRateLimit', () => {
 
     expect(result.current.remainingRequests).toBe(MAX_REQUESTS - 10);
 
-    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    expect(stored).toHaveLength(10);
-    // All timestamps should be the same
-    const uniqueTimestamps = new Set(stored);
-    expect(uniqueTimestamps.size).toBe(1);
+    // Check localStorage was called with correct data
+    const expectedTimestamps = Array(10).fill(new Date('2023-01-01T12:00:00Z').getTime());
+    expect(localStorageMock.setItem).toHaveBeenCalledWith(
+      STORAGE_KEY,
+      JSON.stringify(expectedTimestamps),
+    );
   });
 
   it('should maintain accurate count with mixed old and new requests', () => {
