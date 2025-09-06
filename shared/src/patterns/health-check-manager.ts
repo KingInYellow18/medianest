@@ -20,7 +20,7 @@ export class HealthCheckManager extends EventEmitter {
   constructor(intervalMs: number = 2 * 60 * 1000) {
     super();
     this.intervalMs = intervalMs;
-    
+
     // Initialize Redis client using shared configuration
     try {
       this.redis = redisConfig.getRedisClient('health-monitor');
@@ -28,7 +28,7 @@ export class HealthCheckManager extends EventEmitter {
       // Redis client not initialized yet - will be set up later
       this.redis = null;
     }
-    
+
     this.setupEventHandlers();
   }
 
@@ -54,7 +54,7 @@ export class HealthCheckManager extends EventEmitter {
    */
   registerClient(serviceName: string, client: ServiceClient): void {
     this.clients.set(serviceName, client);
-    logger.debug(`Registered health monitoring for ${serviceName}`);
+    this.logger.debug(`Registered health monitoring for ${serviceName}`);
   }
 
   /**
@@ -63,7 +63,7 @@ export class HealthCheckManager extends EventEmitter {
   unregisterClient(serviceName: string): void {
     this.clients.delete(serviceName);
     this.healthStatuses.delete(serviceName);
-    logger.debug(`Unregistered health monitoring for ${serviceName}`);
+    this.logger.debug(`Unregistered health monitoring for ${serviceName}`);
   }
 
   /**
@@ -74,14 +74,11 @@ export class HealthCheckManager extends EventEmitter {
     this.performHealthChecks();
 
     // Schedule regular health checks
-    this.healthCheckInterval = setInterval(
-      () => {
-        this.performHealthChecks();
-      },
-      this.intervalMs
-    );
+    this.healthCheckInterval = setInterval(() => {
+      this.performHealthChecks();
+    }, this.intervalMs);
 
-    logger.info('Health check monitoring started', {
+    this.logger.info('Health check monitoring started', {
       interval: this.intervalMs,
       services: Array.from(this.clients.keys()),
     });
@@ -94,7 +91,7 @@ export class HealthCheckManager extends EventEmitter {
     if (this.healthCheckInterval) {
       clearInterval(this.healthCheckInterval);
       this.healthCheckInterval = null;
-      logger.info('Health check monitoring stopped');
+      this.logger.info('Health check monitoring stopped');
     }
   }
 
@@ -143,14 +140,16 @@ export class HealthCheckManager extends EventEmitter {
             service: serviceName,
             healthy: false,
             lastChecked: new Date(),
-            error: error.message,
+            error: error instanceof Error ? error.message : String(error),
             circuitBreakerState: 'OPEN',
           };
 
           await this.updateHealthStatus(serviceName, healthStatus);
-          logger.error(`Health check failed for ${serviceName}`, { error: error.message });
+          this.logger.error(`Health check failed for ${serviceName}`, {
+            error: error instanceof Error ? error.message : String(error),
+          });
         }
-      }
+      },
     );
 
     await Promise.allSettled(healthCheckPromises);
@@ -161,7 +160,7 @@ export class HealthCheckManager extends EventEmitter {
    */
   private async updateHealthStatus(
     serviceName: string,
-    healthStatus: ServiceHealthStatus
+    healthStatus: ServiceHealthStatus,
   ): Promise<void> {
     const previousStatus = this.healthStatuses.get(serviceName);
     const hasChanged = !previousStatus || previousStatus.healthy !== healthStatus.healthy;
@@ -181,7 +180,7 @@ export class HealthCheckManager extends EventEmitter {
    */
   private async cacheServiceStatus(
     serviceName: string,
-    status: ServiceHealthStatus
+    status: ServiceHealthStatus,
   ): Promise<void> {
     try {
       const cacheKey = `service:health:${serviceName}`;
@@ -189,9 +188,9 @@ export class HealthCheckManager extends EventEmitter {
 
       await this.redis.setex(cacheKey, 300, cacheValue); // Cache for 5 minutes
     } catch (error) {
-      logger.error('Failed to cache service status', {
+      this.logger.error('Failed to cache service status', {
         service: serviceName,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -222,9 +221,9 @@ export class HealthCheckManager extends EventEmitter {
         return JSON.parse(cached);
       }
     } catch (error) {
-      logger.error('Failed to get cached service status', {
+      this.logger.error('Failed to get cached service status', {
         service: serviceName,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       });
     }
 
@@ -259,6 +258,6 @@ export class HealthCheckManager extends EventEmitter {
     this.clients.clear();
     this.healthStatuses.clear();
     this.removeAllListeners();
-    logger.info('Health check manager shutdown complete');
+    this.logger.info('Health check manager shutdown complete');
   }
 }

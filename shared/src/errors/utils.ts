@@ -42,7 +42,7 @@ export function parseApiError(response: any): AppError {
     );
   }
 
-  return new AppError('An unknown error occurred', 500, 'UNKNOWN_ERROR');
+  return new AppError('An unknown error occurred', 'UNKNOWN_ERROR', 500);
 }
 
 // Error logger for frontend
@@ -61,9 +61,15 @@ export function logError(error: Error | AppError, context?: any): ErrorLogEntry 
     timestamp: new Date().toISOString(),
   };
 
-  if (typeof window !== 'undefined') {
-    entry.userAgent = window.navigator.userAgent;
-    entry.url = window.location.href;
+  // Browser environment check - safely handle window object
+  if (
+    typeof globalThis !== 'undefined' &&
+    'window' in globalThis &&
+    typeof (globalThis as any).window !== 'undefined'
+  ) {
+    const win = (globalThis as any).window;
+    entry.userAgent = win.navigator?.userAgent;
+    entry.url = win.location?.href;
   }
 
   // In production, send to error tracking service
@@ -108,19 +114,19 @@ export const USER_FRIENDLY_MESSAGES: Record<string, string> = {
 // Get user-friendly message
 export function getUserFriendlyMessage(error: Error | AppError): string {
   if (error instanceof AppError) {
-    return USER_FRIENDLY_MESSAGES[error.code] || error.message;
+    return USER_FRIENDLY_MESSAGES[error.code] ?? error.message;
   }
 
   // Check for common error patterns
   const message = error.message.toLowerCase();
   if (message.includes('network') || message.includes('fetch')) {
-    return USER_FRIENDLY_MESSAGES.NETWORK_ERROR;
+    return USER_FRIENDLY_MESSAGES.NETWORK_ERROR ?? 'Network error occurred';
   }
   if (message.includes('timeout')) {
-    return USER_FRIENDLY_MESSAGES.TIMEOUT_ERROR;
+    return USER_FRIENDLY_MESSAGES.TIMEOUT_ERROR ?? 'Request timeout occurred';
   }
 
-  return USER_FRIENDLY_MESSAGES.UNKNOWN_ERROR;
+  return USER_FRIENDLY_MESSAGES.UNKNOWN_ERROR ?? 'An unexpected error occurred';
 }
 
 // Check if error is retryable

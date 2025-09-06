@@ -2,11 +2,12 @@ export * from './service';
 export * from './request';
 export interface User {
     id: string;
-    plexId: string;
-    plexUsername: string;
-    email?: string;
-    role: 'admin' | 'user';
-    status: 'active' | 'inactive';
+    plexId?: string;
+    plexUsername?: string;
+    email: string;
+    name?: string;
+    role: string;
+    status: string;
     createdAt: Date;
     lastLoginAt?: Date;
 }

@@ -185,7 +185,10 @@ export class EnvironmentConfigLoader {
    * Determine if we should load .env file
    */
   private shouldLoadDotenv(): boolean {
-    const env = this.getEnvironment();
+    // Check NODE_ENV directly from process.env to avoid circular dependency
+    const nodeEnv = process.env.NODE_ENV?.toLowerCase();
+    const env =
+      nodeEnv === 'production' ? 'production' : nodeEnv === 'test' ? 'test' : 'development';
     return env === 'development' || env === 'test';
   }
 
@@ -194,7 +197,11 @@ export class EnvironmentConfigLoader {
    */
   private shouldUseDockerSecrets(): boolean {
     const useDockerSecrets = process.env.USE_DOCKER_SECRETS?.toLowerCase();
-    return useDockerSecrets === 'true' || this.getEnvironment() === 'production';
+    // Check NODE_ENV directly from process.env to avoid circular dependency
+    const nodeEnv = process.env.NODE_ENV?.toLowerCase();
+    const env =
+      nodeEnv === 'production' ? 'production' : nodeEnv === 'test' ? 'test' : 'development';
+    return useDockerSecrets === 'true' || env === 'production';
   }
 }
 

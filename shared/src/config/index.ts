@@ -19,6 +19,9 @@ export {
   TestConfig,
   Environment,
   LogLevel,
+  PlexServiceConfig,
+  OverseerrServiceConfig,
+  ServiceConfigs,
   createConfigValidator,
   formatValidationError,
 } from './schemas';

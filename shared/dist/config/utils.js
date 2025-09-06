@@ -127,12 +127,15 @@ class EnvironmentConfigLoader {
         return 'development';
     }
     shouldLoadDotenv() {
-        const env = this.getEnvironment();
+        const nodeEnv = process.env.NODE_ENV?.toLowerCase();
+        const env = nodeEnv === 'production' ? 'production' : nodeEnv === 'test' ? 'test' : 'development';
         return env === 'development' || env === 'test';
     }
     shouldUseDockerSecrets() {
         const useDockerSecrets = process.env.USE_DOCKER_SECRETS?.toLowerCase();
-        return useDockerSecrets === 'true' || this.getEnvironment() === 'production';
+        const nodeEnv = process.env.NODE_ENV?.toLowerCase();
+        const env = nodeEnv === 'production' ? 'production' : nodeEnv === 'test' ? 'test' : 'development';
+        return useDockerSecrets === 'true' || env === 'production';
     }
 }
 exports.EnvironmentConfigLoader = EnvironmentConfigLoader;

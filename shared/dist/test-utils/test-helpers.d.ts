@@ -4,11 +4,11 @@ export declare function generateId(prefix?: string): string;
 export declare function mockDate(date: string | Date): () => void;
 export declare function mockConsole(): () => void;
 export declare function createMockWebSocket(): {
-    on: import("vitest").Mock<any, any>;
-    off: import("vitest").Mock<any, any>;
-    emit: import("vitest").Mock<any, any>;
-    disconnect: import("vitest").Mock<any, any>;
-    connect: import("vitest").Mock<any, any>;
+    on: import("vitest").Mock<(...args: any[]) => any>;
+    off: import("vitest").Mock<(...args: any[]) => any>;
+    emit: import("vitest").Mock<(...args: any[]) => any>;
+    disconnect: import("vitest").Mock<(...args: any[]) => any>;
+    connect: import("vitest").Mock<(...args: any[]) => any>;
     connected: boolean;
     id: string;
 };
@@ -23,57 +23,57 @@ export declare function createTestContext(): TestContext & {
 };
 export declare function expectToReject(promise: Promise<any>, expectedError?: string | RegExp | Error): Promise<void>;
 export declare function createMockRedisClient(): {
-    get: import("vitest").Mock<[key: string], Promise<string | null>>;
-    set: import("vitest").Mock<[key: string, value: string], Promise<string>>;
-    del: import("vitest").Mock<[key: string], Promise<0 | 1>>;
-    exists: import("vitest").Mock<[key: string], Promise<0 | 1>>;
-    expire: import("vitest").Mock<[], Promise<number>>;
-    ttl: import("vitest").Mock<[], Promise<number>>;
-    incr: import("vitest").Mock<[key: string], Promise<number>>;
-    zadd: import("vitest").Mock<any, any>;
-    zrange: import("vitest").Mock<[], Promise<never[]>>;
-    pipeline: import("vitest").Mock<[], {
-        exec: import("vitest").Mock<[], Promise<never[]>>;
+    get: import("vitest").Mock<(key: string) => Promise<string | null>>;
+    set: import("vitest").Mock<(key: string, value: string) => Promise<string>>;
+    del: import("vitest").Mock<(key: string) => Promise<0 | 1>>;
+    exists: import("vitest").Mock<(key: string) => Promise<0 | 1>>;
+    expire: import("vitest").Mock<() => Promise<number>>;
+    ttl: import("vitest").Mock<() => Promise<number>>;
+    incr: import("vitest").Mock<(key: string) => Promise<number>>;
+    zadd: import("vitest").Mock<(...args: any[]) => any>;
+    zrange: import("vitest").Mock<() => Promise<never[]>>;
+    pipeline: import("vitest").Mock<() => {
+        exec: import("vitest").Mock<() => Promise<never[]>>;
     }>;
-    quit: import("vitest").Mock<any, any>;
-    disconnect: import("vitest").Mock<any, any>;
+    quit: import("vitest").Mock<(...args: any[]) => any>;
+    disconnect: import("vitest").Mock<(...args: any[]) => any>;
     _store: Map<string, string>;
 };
 export declare function createMockPrismaClient(): {
     user: {
-        findUnique: import("vitest").Mock<any, any>;
-        findMany: import("vitest").Mock<any, any>;
-        create: import("vitest").Mock<any, any>;
-        update: import("vitest").Mock<any, any>;
-        delete: import("vitest").Mock<any, any>;
-        count: import("vitest").Mock<any, any>;
+        findUnique: import("vitest").Mock<(...args: any[]) => any>;
+        findMany: import("vitest").Mock<(...args: any[]) => any>;
+        create: import("vitest").Mock<(...args: any[]) => any>;
+        update: import("vitest").Mock<(...args: any[]) => any>;
+        delete: import("vitest").Mock<(...args: any[]) => any>;
+        count: import("vitest").Mock<(...args: any[]) => any>;
     };
     mediaRequest: {
-        findUnique: import("vitest").Mock<any, any>;
-        findMany: import("vitest").Mock<any, any>;
-        create: import("vitest").Mock<any, any>;
-        update: import("vitest").Mock<any, any>;
-        delete: import("vitest").Mock<any, any>;
-        count: import("vitest").Mock<any, any>;
+        findUnique: import("vitest").Mock<(...args: any[]) => any>;
+        findMany: import("vitest").Mock<(...args: any[]) => any>;
+        create: import("vitest").Mock<(...args: any[]) => any>;
+        update: import("vitest").Mock<(...args: any[]) => any>;
+        delete: import("vitest").Mock<(...args: any[]) => any>;
+        count: import("vitest").Mock<(...args: any[]) => any>;
     };
     youtubeDownload: {
-        findUnique: import("vitest").Mock<any, any>;
-        findMany: import("vitest").Mock<any, any>;
-        create: import("vitest").Mock<any, any>;
-        update: import("vitest").Mock<any, any>;
-        delete: import("vitest").Mock<any, any>;
-        count: import("vitest").Mock<any, any>;
+        findUnique: import("vitest").Mock<(...args: any[]) => any>;
+        findMany: import("vitest").Mock<(...args: any[]) => any>;
+        create: import("vitest").Mock<(...args: any[]) => any>;
+        update: import("vitest").Mock<(...args: any[]) => any>;
+        delete: import("vitest").Mock<(...args: any[]) => any>;
+        count: import("vitest").Mock<(...args: any[]) => any>;
     };
     serviceStatus: {
-        findUnique: import("vitest").Mock<any, any>;
-        findMany: import("vitest").Mock<any, any>;
-        create: import("vitest").Mock<any, any>;
-        update: import("vitest").Mock<any, any>;
-        upsert: import("vitest").Mock<any, any>;
-        delete: import("vitest").Mock<any, any>;
+        findUnique: import("vitest").Mock<(...args: any[]) => any>;
+        findMany: import("vitest").Mock<(...args: any[]) => any>;
+        create: import("vitest").Mock<(...args: any[]) => any>;
+        update: import("vitest").Mock<(...args: any[]) => any>;
+        upsert: import("vitest").Mock<(...args: any[]) => any>;
+        delete: import("vitest").Mock<(...args: any[]) => any>;
     };
-    $transaction: import("vitest").Mock<any, any>;
-    $disconnect: import("vitest").Mock<any, any>;
-    $connect: import("vitest").Mock<any, any>;
+    $transaction: import("vitest").Mock<(...args: any[]) => any>;
+    $disconnect: import("vitest").Mock<(...args: any[]) => any>;
+    $connect: import("vitest").Mock<(...args: any[]) => any>;
 };
 //# sourceMappingURL=test-helpers.d.ts.map

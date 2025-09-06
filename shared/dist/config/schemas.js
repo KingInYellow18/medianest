@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createConfigValidator = exports.formatValidationError = exports.TestConfigSchema = exports.FrontendConfigSchema = exports.BackendConfigSchema = exports.DockerSecretsSchema = exports.MonitoringConfigSchema = exports.ServiceEndpointsSchema = exports.ServerConfigSchema = exports.AdminConfigSchema = exports.YouTubeConfigSchema = exports.RateLimitConfigSchema = exports.EncryptionConfigSchema = exports.PlexConfigSchema = exports.NextAuthConfigSchema = exports.JWTConfigSchema = exports.RedisConfigSchema = exports.DatabaseConfigSchema = exports.BaseConfigSchema = exports.LogLevelSchema = exports.EnvironmentSchema = void 0;
+exports.createConfigValidator = exports.formatValidationError = exports.TestConfigSchema = exports.FrontendConfigSchema = exports.BackendConfigSchema = exports.RawBackendConfigSchema = exports.ServiceConfigsSchema = exports.OverseerrServiceConfigSchema = exports.PlexServiceConfigSchema = exports.DockerSecretsSchema = exports.MonitoringConfigSchema = exports.ServiceEndpointsSchema = exports.ServerConfigSchema = exports.AdminConfigSchema = exports.YouTubeConfigSchema = exports.RateLimitConfigSchema = exports.EncryptionConfigSchema = exports.PlexConfigSchema = exports.NextAuthConfigSchema = exports.JWTConfigSchema = exports.RedisConfigSchema = exports.DatabaseConfigSchema = exports.BaseConfigSchema = exports.LogLevelSchema = exports.EnvironmentSchema = void 0;
 const zod_1 = require("zod");
 exports.EnvironmentSchema = zod_1.z.enum(['development', 'test', 'production']);
 exports.LogLevelSchema = zod_1.z.enum(['error', 'warn', 'info', 'debug']);
@@ -40,6 +40,8 @@ exports.PlexConfigSchema = zod_1.z.object({
     PLEX_CLIENT_SECRET: zod_1.z.string().min(1, 'Plex client secret is required'),
     PLEX_CLIENT_IDENTIFIER: zod_1.z.string().optional(),
     PLEX_SERVER_URL: zod_1.z.string().url('Invalid Plex server URL').optional(),
+    PLEX_TOKEN: zod_1.z.string().optional(),
+    PLEX_REDIRECT_URI: zod_1.z.string().optional(),
     PLEX_YOUTUBE_LIBRARY_PATH: zod_1.z.string().min(1).default('/data/youtube'),
 });
 exports.EncryptionConfigSchema = zod_1.z.object({
@@ -87,7 +89,32 @@ exports.DockerSecretsSchema = zod_1.z.object({
     DOCKER_SECRETS_PATH: zod_1.z.string().default('/run/secrets'),
     USE_DOCKER_SECRETS: zod_1.z.coerce.boolean().default(false),
 });
-exports.BackendConfigSchema = exports.BaseConfigSchema.merge(exports.DatabaseConfigSchema)
+exports.PlexServiceConfigSchema = zod_1.z.object({
+    enabled: zod_1.z.boolean().default(true),
+    clientId: zod_1.z.string(),
+    clientSecret: zod_1.z.string(),
+    clientIdentifier: zod_1.z.string().optional(),
+    serverUrl: zod_1.z.string().optional(),
+    defaultToken: zod_1.z.string().optional(),
+    product: zod_1.z.string().default('MediaNest'),
+    version: zod_1.z.string().default('1.0.0'),
+    platform: zod_1.z.string().default('Web'),
+    device: zod_1.z.string().default('MediaNest Server'),
+    redirectUri: zod_1.z.string().optional(),
+    baseUrl: zod_1.z.string().default('https://plex.tv'),
+});
+exports.OverseerrServiceConfigSchema = zod_1.z.object({
+    enabled: zod_1.z.boolean().default(false),
+    url: zod_1.z.string().optional(),
+    apiKey: zod_1.z.string().optional(),
+    timeout: zod_1.z.number().default(5000),
+    retries: zod_1.z.number().default(3),
+});
+exports.ServiceConfigsSchema = zod_1.z.object({
+    plex: exports.PlexServiceConfigSchema.optional(),
+    overseerr: exports.OverseerrServiceConfigSchema.optional(),
+});
+exports.RawBackendConfigSchema = exports.BaseConfigSchema.merge(exports.DatabaseConfigSchema)
     .merge(exports.RedisConfigSchema)
     .merge(exports.JWTConfigSchema)
     .merge(exports.PlexConfigSchema)
@@ -99,6 +126,33 @@ exports.BackendConfigSchema = exports.BaseConfigSchema.merge(exports.DatabaseCon
     .merge(exports.ServiceEndpointsSchema)
     .merge(exports.MonitoringConfigSchema)
     .merge(exports.DockerSecretsSchema);
+exports.BackendConfigSchema = exports.RawBackendConfigSchema.transform((data) => {
+    const transformed = {
+        ...data,
+        plex: {
+            enabled: Boolean(data.PLEX_CLIENT_ID && data.PLEX_CLIENT_SECRET),
+            clientId: data.PLEX_CLIENT_ID,
+            clientSecret: data.PLEX_CLIENT_SECRET,
+            clientIdentifier: data.PLEX_CLIENT_IDENTIFIER || data.PLEX_CLIENT_ID,
+            serverUrl: data.PLEX_SERVER_URL,
+            defaultToken: data.PLEX_TOKEN,
+            product: 'MediaNest',
+            version: '1.0.0',
+            platform: 'Web',
+            device: 'MediaNest Server',
+            baseUrl: 'https://plex.tv',
+            redirectUri: data.PLEX_REDIRECT_URI,
+        },
+        overseerr: {
+            enabled: Boolean(data.OVERSEERR_URL && data.OVERSEERR_API_KEY),
+            url: data.OVERSEERR_URL,
+            apiKey: data.OVERSEERR_API_KEY,
+            timeout: 5000,
+            retries: 3,
+        },
+    };
+    return transformed;
+});
 exports.FrontendConfigSchema = exports.BaseConfigSchema.merge(exports.NextAuthConfigSchema)
     .merge(zod_1.z.object({
     NEXT_PUBLIC_API_URL: zod_1.z.string().url('Invalid API URL').default('http://localhost:4000/api'),
@@ -117,12 +171,38 @@ exports.FrontendConfigSchema = exports.BaseConfigSchema.merge(exports.NextAuthCo
     NEXT_PUBLIC_APP_VERSION: zod_1.z.string().default('1.0.0'),
 }))
     .merge(exports.PlexConfigSchema.pick({ PLEX_CLIENT_ID: true, PLEX_CLIENT_SECRET: true }));
-exports.TestConfigSchema = exports.BackendConfigSchema.merge(zod_1.z.object({
+exports.TestConfigSchema = exports.RawBackendConfigSchema.merge(zod_1.z.object({
     TEST_DATABASE_URL: zod_1.z.string().url('Invalid test database URL').optional(),
     TEST_REDIS_URL: zod_1.z.string().url('Invalid test Redis URL').optional(),
     TEST_PORT: zod_1.z.coerce.number().int().min(1).max(65535).default(4001),
     TEST_TIMEOUT: zod_1.z.coerce.number().int().min(1000).default(30000),
-}));
+})).transform((data) => {
+    const transformed = {
+        ...data,
+        plex: {
+            enabled: Boolean(data.PLEX_CLIENT_ID && data.PLEX_CLIENT_SECRET),
+            clientId: data.PLEX_CLIENT_ID,
+            clientSecret: data.PLEX_CLIENT_SECRET,
+            clientIdentifier: data.PLEX_CLIENT_IDENTIFIER || data.PLEX_CLIENT_ID,
+            serverUrl: data.PLEX_SERVER_URL,
+            defaultToken: data.PLEX_TOKEN,
+            product: 'MediaNest',
+            version: '1.0.0',
+            platform: 'Web',
+            device: 'MediaNest Server',
+            baseUrl: 'https://plex.tv',
+            redirectUri: data.PLEX_REDIRECT_URI,
+        },
+        overseerr: {
+            enabled: Boolean(data.OVERSEERR_URL && data.OVERSEERR_API_KEY),
+            url: data.OVERSEERR_URL,
+            apiKey: data.OVERSEERR_API_KEY,
+            timeout: 5000,
+            retries: 3,
+        },
+    };
+    return transformed;
+});
 const formatValidationError = (error) => {
     const issues = error.issues.map((issue) => {
         const path = issue.path.join('.');

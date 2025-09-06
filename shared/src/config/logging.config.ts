@@ -102,7 +102,7 @@ export class LoggingConfig {
     } = options;
 
     const loggerKey = `${service}-${level}-${logFormat}`;
-    
+
     // Return existing logger if available
     if (this.loggers.has(loggerKey)) {
       return this.loggers.get(loggerKey)!;
@@ -114,7 +114,7 @@ export class LoggingConfig {
     // Create logger instance
     const logger = createLogger({
       level,
-      defaultMeta: { 
+      defaultMeta: {
         service,
         ...this.globalContext,
         ...(correlationId && { correlationId }),
@@ -123,7 +123,7 @@ export class LoggingConfig {
         format.errors({ stack: true }),
         format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
         format.splat(),
-        this.createLogFormat(logFormat)
+        this.createLogFormat(logFormat),
       ),
       transports: this.createTransports({
         service,
@@ -136,20 +136,24 @@ export class LoggingConfig {
         maxSize,
         logFormat,
       }),
-      exceptionHandlers: enableFile ? [
-        new transports.File({
-          filename: join(logsDir, `${service}-exceptions.log`),
-          maxsize: 10485760, // 10MB
-          maxFiles: 3,
-        }),
-      ] : [],
-      rejectionHandlers: enableFile ? [
-        new transports.File({
-          filename: join(logsDir, `${service}-rejections.log`),
-          maxsize: 10485760, // 10MB
-          maxFiles: 3,
-        }),
-      ] : [],
+      exceptionHandlers: enableFile
+        ? [
+            new transports.File({
+              filename: join(logsDir, `${service}-exceptions.log`),
+              maxsize: 10485760, // 10MB
+              maxFiles: 3,
+            }),
+          ]
+        : [],
+      rejectionHandlers: enableFile
+        ? [
+            new transports.File({
+              filename: join(logsDir, `${service}-rejections.log`),
+              maxsize: 10485760, // 10MB
+              maxFiles: 3,
+            }),
+          ]
+        : [],
     });
 
     // Cache logger
@@ -163,7 +167,7 @@ export class LoggingConfig {
   public createLoggerFromConfig(
     config: CompleteConfig,
     service: string,
-    additionalOptions: Partial<LoggerConfigOptions> = {}
+    additionalOptions: Partial<LoggerConfigOptions> = {},
   ): Logger {
     return this.createLogger({
       service,
@@ -178,10 +182,7 @@ export class LoggingConfig {
   /**
    * Create child logger with additional context
    */
-  public createChildLogger(
-    parentLogger: Logger,
-    context: LogContext
-  ): Logger {
+  public createChildLogger(parentLogger: Logger, context: LogContext): Logger {
     return parentLogger.child(context);
   }
 
@@ -190,7 +191,7 @@ export class LoggingConfig {
    */
   public setGlobalContext(context: LogContext): void {
     this.globalContext = { ...this.globalContext, ...context };
-    
+
     // Update existing loggers
     this.loggers.forEach((logger) => {
       logger.defaultMeta = { ...logger.defaultMeta, ...context };
@@ -228,10 +229,7 @@ export class LoggingConfig {
       });
     }
 
-    return format.combine(
-      format.json(),
-      format.prettyPrint({ depth: 3 })
-    );
+    return format.combine(format.json(), format.prettyPrint({ depth: 3 }));
   }
 
   /**
@@ -265,13 +263,11 @@ export class LoggingConfig {
       transportList.push(
         new transports.Console({
           level: process.env.NODE_ENV === 'production' ? LogLevel.INFO : LogLevel.DEBUG,
-          format: process.env.NODE_ENV === 'development' && logFormat === 'simple'
-            ? format.combine(
-                format.colorize(),
-                this.createLogFormat('simple')
-              )
-            : undefined,
-        })
+          format:
+            process.env.NODE_ENV === 'development' && logFormat === 'simple'
+              ? format.combine(format.colorize(), this.createLogFormat('simple'))
+              : undefined,
+        }),
       );
     }
 
@@ -284,7 +280,7 @@ export class LoggingConfig {
           level: LogLevel.ERROR,
           maxsize: 10485760, // 10MB
           maxFiles: 5,
-        })
+        }),
       );
 
       // Combined log file
@@ -297,7 +293,7 @@ export class LoggingConfig {
             maxFiles: `${maxFiles}d`,
             level,
             auditFile: join(logsDir, `${service}-audit.json`),
-          })
+          }),
         );
       } else {
         transportList.push(
@@ -306,7 +302,7 @@ export class LoggingConfig {
             level,
             maxsize: 20971520, // 20MB
             maxFiles: maxFiles,
-          })
+          }),
         );
       }
     }
@@ -339,7 +335,7 @@ export const logging = LoggingConfig.getInstance();
  */
 export function createServiceLogger(
   service: string,
-  options?: Partial<LoggerConfigOptions>
+  options?: Partial<LoggerConfigOptions>,
 ): Logger {
   return logging.createLogger({
     service,
@@ -351,10 +347,7 @@ export function createServiceLogger(
 /**
  * Create child logger with correlation ID
  */
-export function createCorrelatedLogger(
-  parentLogger: Logger,
-  correlationId?: string
-): Logger {
+export function createCorrelatedLogger(parentLogger: Logger, correlationId?: string): Logger {
   return logging.createChildLogger(parentLogger, {
     correlationId: correlationId || uuidv4(),
   });
@@ -383,5 +376,4 @@ export function createPerformanceLogger(logger: Logger) {
   };
 }
 
-// Export types and utilities
-export { LogLevel, type LogContext, type LogEntry, type LoggerConfigOptions };
+// LogLevel is already exported as enum above - no need for type export

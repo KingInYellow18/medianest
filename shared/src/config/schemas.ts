@@ -71,6 +71,8 @@ export const PlexConfigSchema = z.object({
   PLEX_CLIENT_SECRET: z.string().min(1, 'Plex client secret is required'),
   PLEX_CLIENT_IDENTIFIER: z.string().optional(),
   PLEX_SERVER_URL: z.string().url('Invalid Plex server URL').optional(),
+  PLEX_TOKEN: z.string().optional(),
+  PLEX_REDIRECT_URI: z.string().optional(),
   PLEX_YOUTUBE_LIBRARY_PATH: z.string().min(1).default('/data/youtube'),
 });
 
@@ -152,9 +154,46 @@ export const DockerSecretsSchema = z.object({
 });
 
 /**
- * Complete backend configuration schema
+ * Structured Plex service configuration schema
  */
-export const BackendConfigSchema = BaseConfigSchema.merge(DatabaseConfigSchema)
+export const PlexServiceConfigSchema = z.object({
+  enabled: z.boolean().default(true),
+  clientId: z.string(),
+  clientSecret: z.string(),
+  clientIdentifier: z.string().optional(),
+  serverUrl: z.string().optional(),
+  defaultToken: z.string().optional(),
+  product: z.string().default('MediaNest'),
+  version: z.string().default('1.0.0'),
+  platform: z.string().default('Web'),
+  device: z.string().default('MediaNest Server'),
+  redirectUri: z.string().optional(),
+  baseUrl: z.string().default('https://plex.tv'),
+});
+
+/**
+ * Structured Overseerr service configuration schema
+ */
+export const OverseerrServiceConfigSchema = z.object({
+  enabled: z.boolean().default(false),
+  url: z.string().optional(),
+  apiKey: z.string().optional(),
+  timeout: z.number().default(5000),
+  retries: z.number().default(3),
+});
+
+/**
+ * Structured service configuration schema
+ */
+export const ServiceConfigsSchema = z.object({
+  plex: PlexServiceConfigSchema.optional(),
+  overseerr: OverseerrServiceConfigSchema.optional(),
+});
+
+/**
+ * Raw backend configuration schema (environment variables only)
+ */
+export const RawBackendConfigSchema = BaseConfigSchema.merge(DatabaseConfigSchema)
   .merge(RedisConfigSchema)
   .merge(JWTConfigSchema)
   .merge(PlexConfigSchema)
@@ -167,7 +206,42 @@ export const BackendConfigSchema = BaseConfigSchema.merge(DatabaseConfigSchema)
   .merge(MonitoringConfigSchema)
   .merge(DockerSecretsSchema);
 
+/**
+ * Complete backend configuration schema with structured services
+ */
+export const BackendConfigSchema = RawBackendConfigSchema.transform((data) => {
+  // Transform flat environment variables into structured service configs
+  const transformed = {
+    ...data,
+    plex: {
+      enabled: Boolean(data.PLEX_CLIENT_ID && data.PLEX_CLIENT_SECRET),
+      clientId: data.PLEX_CLIENT_ID,
+      clientSecret: data.PLEX_CLIENT_SECRET,
+      clientIdentifier: data.PLEX_CLIENT_IDENTIFIER || data.PLEX_CLIENT_ID,
+      serverUrl: data.PLEX_SERVER_URL,
+      defaultToken: data.PLEX_TOKEN,
+      product: 'MediaNest',
+      version: '1.0.0',
+      platform: 'Web',
+      device: 'MediaNest Server',
+      baseUrl: 'https://plex.tv',
+      redirectUri: data.PLEX_REDIRECT_URI,
+    },
+    overseerr: {
+      enabled: Boolean(data.OVERSEERR_URL && data.OVERSEERR_API_KEY),
+      url: data.OVERSEERR_URL,
+      apiKey: data.OVERSEERR_API_KEY,
+      timeout: 5000,
+      retries: 3,
+    },
+  };
+  return transformed;
+});
+
 export type BackendConfig = z.infer<typeof BackendConfigSchema>;
+export type PlexServiceConfig = z.infer<typeof PlexServiceConfigSchema>;
+export type OverseerrServiceConfig = z.infer<typeof OverseerrServiceConfigSchema>;
+export type ServiceConfigs = z.infer<typeof ServiceConfigsSchema>;
 
 /**
  * Frontend-specific configuration schema
@@ -198,14 +272,41 @@ export type FrontendConfig = z.infer<typeof FrontendConfigSchema>;
 /**
  * Test environment configuration schema
  */
-export const TestConfigSchema = BackendConfigSchema.merge(
+export const TestConfigSchema = RawBackendConfigSchema.merge(
   z.object({
     TEST_DATABASE_URL: z.string().url('Invalid test database URL').optional(),
     TEST_REDIS_URL: z.string().url('Invalid test Redis URL').optional(),
     TEST_PORT: z.coerce.number().int().min(1).max(65535).default(4001),
     TEST_TIMEOUT: z.coerce.number().int().min(1000).default(30000),
   }),
-);
+).transform((data) => {
+  // Apply the same transformations as BackendConfigSchema for testing
+  const transformed = {
+    ...data,
+    plex: {
+      enabled: Boolean(data.PLEX_CLIENT_ID && data.PLEX_CLIENT_SECRET),
+      clientId: data.PLEX_CLIENT_ID,
+      clientSecret: data.PLEX_CLIENT_SECRET,
+      clientIdentifier: data.PLEX_CLIENT_IDENTIFIER || data.PLEX_CLIENT_ID,
+      serverUrl: data.PLEX_SERVER_URL,
+      defaultToken: data.PLEX_TOKEN,
+      product: 'MediaNest',
+      version: '1.0.0',
+      platform: 'Web',
+      device: 'MediaNest Server',
+      baseUrl: 'https://plex.tv',
+      redirectUri: data.PLEX_REDIRECT_URI,
+    },
+    overseerr: {
+      enabled: Boolean(data.OVERSEERR_URL && data.OVERSEERR_API_KEY),
+      url: data.OVERSEERR_URL,
+      apiKey: data.OVERSEERR_API_KEY,
+      timeout: 5000,
+      retries: 3,
+    },
+  };
+  return transformed;
+});
 
 export type TestConfig = z.infer<typeof TestConfigSchema>;
 

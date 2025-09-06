@@ -17,5 +17,6 @@ export * from './config';
 
 // Export test utilities (only for test environments)
 if (process.env.NODE_ENV === 'test') {
-  export * from './test-utils';
+  // Test utilities only exported in test environment
+  // export * from './test-utils';
 }

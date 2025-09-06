@@ -28,7 +28,7 @@ function parseApiError(response) {
         const { message, code, statusCode, details } = response.error;
         return new index_1.AppError(message || 'An error occurred', statusCode || 500, code || 'API_ERROR', details);
     }
-    return new index_1.AppError('An unknown error occurred', 500, 'UNKNOWN_ERROR');
+    return new index_1.AppError('An unknown error occurred', 'UNKNOWN_ERROR', 500);
 }
 function logError(error, context) {
     const entry = {
@@ -36,9 +36,10 @@ function logError(error, context) {
         context,
         timestamp: new Date().toISOString(),
     };
-    if (typeof window !== 'undefined') {
-        entry.userAgent = window.navigator.userAgent;
-        entry.url = window.location.href;
+    if (typeof globalThis !== 'undefined' && 'window' in globalThis && typeof globalThis.window !== 'undefined') {
+        const win = globalThis.window;
+        entry.userAgent = win.navigator?.userAgent;
+        entry.url = win.location?.href;
     }
     if (process.env.NODE_ENV === 'production') {
         console.error('[Error]', entry);
@@ -65,16 +66,16 @@ exports.USER_FRIENDLY_MESSAGES = {
 };
 function getUserFriendlyMessage(error) {
     if (error instanceof index_1.AppError) {
-        return exports.USER_FRIENDLY_MESSAGES[error.code] || error.message;
+        return exports.USER_FRIENDLY_MESSAGES[error.code] ?? error.message;
     }
     const message = error.message.toLowerCase();
     if (message.includes('network') || message.includes('fetch')) {
-        return exports.USER_FRIENDLY_MESSAGES.NETWORK_ERROR;
+        return exports.USER_FRIENDLY_MESSAGES.NETWORK_ERROR ?? 'Network error occurred';
     }
     if (message.includes('timeout')) {
-        return exports.USER_FRIENDLY_MESSAGES.TIMEOUT_ERROR;
+        return exports.USER_FRIENDLY_MESSAGES.TIMEOUT_ERROR ?? 'Request timeout occurred';
     }
-    return exports.USER_FRIENDLY_MESSAGES.UNKNOWN_ERROR;
+    return exports.USER_FRIENDLY_MESSAGES.UNKNOWN_ERROR ?? 'An unexpected error occurred';
 }
 function isRetryableError(error) {
     if (error instanceof index_1.AppError) {

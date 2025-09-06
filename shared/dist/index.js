@@ -20,6 +20,5 @@ __exportStar(require("./constants"), exports);
 __exportStar(require("./errors"), exports);
 __exportStar(require("./config"), exports);
 if (process.env.NODE_ENV === 'test') {
-    export * from './test-utils';
 }
 //# sourceMappingURL=index.js.map

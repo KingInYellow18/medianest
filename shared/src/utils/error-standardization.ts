@@ -36,7 +36,10 @@ export enum ErrorCategory {
 /**
  * Standardized error messages for consistent user experience
  */
-export const ERROR_MESSAGES: Record<string, { message: string; category: ErrorCategory; statusCode: number }> = {
+export const ERROR_MESSAGES: Record<
+  string,
+  { message: string; category: ErrorCategory; statusCode: number }
+> = {
   // Authentication Errors
   AUTH_FAILED: {
     message: 'Authentication failed. Please log in again.',
@@ -167,15 +170,15 @@ export class StandardizedError extends Error {
     details?: any,
     retryAfter?: number,
     path?: string,
-    userId?: string
+    userId?: string,
   ) {
     const errorInfo = ERROR_MESSAGES[code] || ERROR_MESSAGES.INTERNAL_ERROR;
-    super(errorInfo.message);
-    
+    super(errorInfo?.message ?? 'Unknown error');
+
     this.name = 'StandardizedError';
     this.code = code;
-    this.statusCode = errorInfo.statusCode;
-    this.category = errorInfo.category;
+    this.statusCode = errorInfo?.statusCode ?? 500;
+    this.category = errorInfo?.category ?? ErrorCategory.INTERNAL_SERVER;
     this.correlationId = correlationId;
     this.timestamp = new Date();
     this.details = details;
@@ -248,7 +251,7 @@ export class ErrorHandler {
     error: any,
     correlationId: string,
     path?: string,
-    userId?: string
+    userId?: string,
   ): StandardizedError {
     // Already standardized error
     if (error instanceof StandardizedError) {
@@ -263,7 +266,7 @@ export class ErrorHandler {
         this.formatZodError(error),
         undefined,
         path,
-        userId
+        userId,
       );
     }
 
@@ -275,7 +278,7 @@ export class ErrorHandler {
         { originalError: error.message },
         undefined,
         path,
-        userId
+        userId,
       );
     }
 
@@ -287,7 +290,7 @@ export class ErrorHandler {
         { message: 'Unique constraint violation', field: error.meta?.target },
         undefined,
         path,
-        userId
+        userId,
       );
     }
 
@@ -299,7 +302,7 @@ export class ErrorHandler {
         undefined,
         error.retryAfter || 60,
         path,
-        userId
+        userId,
       );
     }
 
@@ -310,7 +313,7 @@ export class ErrorHandler {
       process.env.NODE_ENV === 'development' ? { originalError: error.message } : undefined,
       undefined,
       path,
-      userId
+      userId,
     );
   }
 
@@ -319,7 +322,7 @@ export class ErrorHandler {
    */
   private static formatZodError(error: ZodError): any {
     return {
-      validationErrors: error.errors.map(err => ({
+      validationErrors: error.errors.map((err) => ({
         field: err.path.join('.'),
         message: err.message,
         code: err.code,
@@ -331,14 +334,9 @@ export class ErrorHandler {
    * Express error handler middleware
    */
   static middleware() {
-    return (err: any, req: Request, res: Response, next: NextFunction) => {
-      const correlationId = req.correlationId || 'no-correlation-id';
-      const standardError = this.createStandardError(
-        err,
-        correlationId,
-        req.path,
-        req.user?.id
-      );
+    return (err: any, req: Request, res: Response, _next: NextFunction) => {
+      const correlationId = (req as any).correlationId || 'no-correlation-id';
+      const standardError = this.createStandardError(err, correlationId, req.path, req.user?.id);
 
       // Log error with full context
       const logData = {
@@ -372,13 +370,13 @@ export class ErrorHandler {
    * Async error handler wrapper
    */
   static asyncHandler<T extends any[], R>(
-    fn: (...args: T) => Promise<R>
+    fn: (...args: T) => Promise<R>,
   ): (...args: T) => Promise<R | void> {
     return async (...args: T): Promise<R | void> => {
       try {
         return await fn(...args);
       } catch (error) {
-        const [req, res, next] = args as any;
+        const [_req, _res, next] = args as any;
         if (next && typeof next === 'function') {
           next(error);
         } else {
@@ -391,7 +389,7 @@ export class ErrorHandler {
   /**
    * Get error statistics for monitoring
    */
-  static getErrorStats(timeWindowMinutes = 5): {
+  static getErrorStats(_timeWindowMinutes = 5): {
     totalErrors: number;
     errorsByCategory: Record<string, number>;
     topErrorCodes: Array<{ code: string; count: number }>;

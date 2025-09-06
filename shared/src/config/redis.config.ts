@@ -9,16 +9,24 @@ import { createServiceLogger } from './logging.config';
  */
 export const RedisClusterConfigSchema = z.object({
   enabled: z.coerce.boolean().default(false),
-  nodes: z.array(z.object({
-    host: z.string(),
-    port: z.coerce.number(),
-  })).default([]),
-  options: z.object({
-    enableOfflineQueue: z.coerce.boolean().default(false),
-    redisOptions: z.object({
-      password: z.string().optional(),
-    }).optional(),
-  }).optional(),
+  nodes: z
+    .array(
+      z.object({
+        host: z.string(),
+        port: z.coerce.number(),
+      }),
+    )
+    .default([]),
+  options: z
+    .object({
+      enableOfflineQueue: z.coerce.boolean().default(false),
+      redisOptions: z
+        .object({
+          password: z.string().optional(),
+        })
+        .optional(),
+    })
+    .optional(),
 });
 
 export type RedisClusterConfig = z.infer<typeof RedisClusterConfigSchema>;
@@ -35,7 +43,6 @@ export const RedisPoolConfigSchema = z.object({
   maxRetriesPerRequest: z.coerce.number().default(3),
   retryDelayOnFailover: z.coerce.number().default(100),
   enableAutoPipelining: z.coerce.boolean().default(true),
-  maxRetriesPerRequest: z.coerce.number().default(3),
 });
 
 export type RedisPoolConfig = z.infer<typeof RedisPoolConfigSchema>;
@@ -72,7 +79,7 @@ export class RedisConfigManager {
       pool?: Partial<RedisPoolConfig>;
       keyPrefix?: string;
       enableReadyCheck?: boolean;
-    } = {}
+    } = {},
   ): Redis | Cluster {
     const {
       clientId = 'default',
@@ -133,13 +140,9 @@ export class RedisConfigManager {
       maxRetries?: number;
       retryDelay?: number;
       healthCheck?: boolean;
-    } = {}
+    } = {},
   ): Promise<void> {
-    const {
-      maxRetries = 3,
-      retryDelay = 2000,
-      healthCheck = true,
-    } = options;
+    const { maxRetries = 3, retryDelay = 2000, healthCheck = true } = options;
 
     const client = this.getRedisClient(clientId);
     let retries = 0;
@@ -147,7 +150,7 @@ export class RedisConfigManager {
     while (retries < maxRetries) {
       try {
         await client.connect();
-        
+
         if (healthCheck) {
           // Perform basic health check
           await client.ping();
@@ -210,7 +213,7 @@ export class RedisConfigManager {
             error: error instanceof Error ? error.message : error,
           });
         }
-      }
+      },
     );
 
     await Promise.all(disconnectPromises);
@@ -230,21 +233,21 @@ export class RedisConfigManager {
     try {
       const client = this.getRedisClient(clientId);
       const startTime = Date.now();
-      
+
       await client.ping();
-      
+
       const latency = Date.now() - startTime;
-      
+
       // Get memory info
       const info = await client.info('memory');
       const memoryMatch = info.match(/used_memory_human:([^\r\n]+)/);
       const peakMatch = info.match(/used_memory_peak_human:([^\r\n]+)/);
-      
+
       const memory = {
         used: memoryMatch?.[1] || 'unknown',
         peak: peakMatch?.[1] || 'unknown',
       };
-      
+
       return { healthy: true, latency, memory };
     } catch (error) {
       return {
@@ -261,7 +264,7 @@ export class RedisConfigManager {
     config: RedisConfig,
     pool: Partial<RedisPoolConfig>,
     keyPrefix?: string,
-    enableReadyCheck: boolean = true
+    enableReadyCheck: boolean = true,
   ): Redis {
     const redisOptions: RedisOptions = {
       host: config.REDIS_HOST,
@@ -277,11 +280,16 @@ export class RedisConfigManager {
       },
       // Pool configuration
       family: pool.family ? parseInt(pool.family) : 4,
-      keepAlive: pool.keepAlive ?? true,
+      keepAlive:
+        typeof pool.keepAlive === 'boolean'
+          ? pool.keepAlive
+            ? 30000
+            : 0
+          : (pool.keepAlive ?? 30000),
       connectTimeout: pool.connectTimeout ?? 10000,
       commandTimeout: pool.commandTimeout ?? 5000,
       lazyConnect: pool.lazyConnect ?? true,
-      retryDelayOnFailover: pool.retryDelayOnFailover ?? 100,
+      // retryDelayOnFailover: pool.retryDelayOnFailover ?? 100, // Not available in current ioredis types
       enableAutoPipelining: pool.enableAutoPipelining ?? true,
     };
 
@@ -300,7 +308,7 @@ export class RedisConfigManager {
     config: RedisConfig,
     cluster: RedisClusterConfig,
     pool: Partial<RedisPoolConfig>,
-    keyPrefix?: string
+    keyPrefix?: string,
   ): Cluster {
     const clusterOptions = {
       enableOfflineQueue: cluster.options?.enableOfflineQueue ?? false,
@@ -309,11 +317,16 @@ export class RedisConfigManager {
         keyPrefix: keyPrefix || config.REDIS_KEY_PREFIX,
         // Pool configuration
         family: pool.family ? parseInt(pool.family) : 4,
-        keepAlive: pool.keepAlive ?? true,
+        keepAlive:
+          typeof pool.keepAlive === 'boolean'
+            ? pool.keepAlive
+              ? 30000
+              : 0
+            : (pool.keepAlive ?? 30000),
         connectTimeout: pool.connectTimeout ?? 10000,
         commandTimeout: pool.commandTimeout ?? 5000,
         maxRetriesPerRequest: config.REDIS_MAX_RETRIES,
-        retryDelayOnFailover: pool.retryDelayOnFailover ?? 100,
+        // retryDelayOnFailover: pool.retryDelayOnFailover ?? 100, // Not available in current ioredis types
         ...cluster.options?.redisOptions,
       },
     };
@@ -324,10 +337,7 @@ export class RedisConfigManager {
   /**
    * Setup Redis event listeners
    */
-  private setupRedisEventListeners(
-    client: Redis | Cluster,
-    clientId: string
-  ): void {
+  private setupRedisEventListeners(client: Redis | Cluster, clientId: string): void {
     client.on('connect', () => {
       this.logger.info('Redis client connected', { clientId });
     });
@@ -366,7 +376,7 @@ export const redisConfig = RedisConfigManager.getInstance();
  */
 export function createRedisClient(
   config: RedisConfig,
-  options?: Parameters<typeof redisConfig.createRedisClient>[1]
+  options?: Parameters<typeof redisConfig.createRedisClient>[1],
 ): Redis | Cluster {
   return redisConfig.createRedisClient(config, options);
 }
@@ -376,7 +386,7 @@ export function createRedisClient(
  */
 export async function connectRedis(
   clientId?: string,
-  options?: Parameters<typeof redisConfig.connectRedis>[1]
+  options?: Parameters<typeof redisConfig.connectRedis>[1],
 ): Promise<void> {
   return redisConfig.connectRedis(clientId, options);
 }
@@ -392,10 +402,9 @@ export async function disconnectRedis(clientId?: string): Promise<void> {
  * Check Redis health
  */
 export async function checkRedisHealth(
-  clientId?: string
+  clientId?: string,
 ): Promise<ReturnType<typeof redisConfig.checkHealth>> {
   return redisConfig.checkHealth(clientId);
 }
 
 // Export types
-export type { RedisClusterConfig, RedisPoolConfig };

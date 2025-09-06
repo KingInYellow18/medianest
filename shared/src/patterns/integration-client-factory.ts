@@ -65,7 +65,7 @@ export class IntegrationClientFactory {
   static async getClient<T extends ServiceClient>(
     serviceName: string,
     config: ClientConfig,
-    createFn: (config: ClientConfig) => Promise<T>
+    createFn: (config: ClientConfig) => Promise<T>,
   ): Promise<T | null> {
     const cacheKey = `${serviceName}-${JSON.stringify(config)}`;
 
@@ -86,7 +86,7 @@ export class IntegrationClientFactory {
       return client;
     } catch (error) {
       logger.error(`Failed to create ${serviceName} client`, {
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       });
       return null;
     }
@@ -122,7 +122,7 @@ export class ClientInitializer {
     serviceName: string,
     initFn: () => Promise<T>,
     maxRetries: number = 3,
-    retryDelay: number = 1000
+    retryDelay: number = 1000,
   ): Promise<T | null> {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
@@ -131,7 +131,7 @@ export class ClientInitializer {
         return result;
       } catch (error) {
         logger.warn(`${serviceName} initialization attempt ${attempt} failed`, {
-          error: error.message,
+          error: error instanceof Error ? error.message : String(error),
           attemptsRemaining: maxRetries - attempt,
         });
 

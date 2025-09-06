@@ -52,7 +52,7 @@ export class PerformanceMonitor {
           method: req.method,
           statusCode: res.statusCode,
           userId: req.user?.id,
-          correlationId: req.correlationId,
+          correlationId: (req as any).correlationId,
         };
 
         // Store metrics
@@ -66,7 +66,7 @@ export class PerformanceMonitor {
             path: req.path,
             method: req.method,
             statusCode: res.statusCode,
-            correlationId: req.correlationId,
+            correlationId: (req as any).correlationId,
             memoryDelta: {
               heapUsed: endMemory.heapUsed - startMemory.heapUsed,
               heapTotal: endMemory.heapTotal - startMemory.heapTotal,
@@ -80,7 +80,7 @@ export class PerformanceMonitor {
             heapUsed: `${Math.round(endMemory.heapUsed / 1024 / 1024)}MB`,
             heapTotal: `${Math.round(endMemory.heapTotal / 1024 / 1024)}MB`,
             path: req.path,
-            correlationId: req.correlationId,
+            correlationId: (req as any).correlationId,
           });
         }
       });
@@ -94,7 +94,7 @@ export class PerformanceMonitor {
    */
   private static recordMetrics(metrics: PerformanceMetrics): void {
     this.metrics.push(metrics);
-    
+
     // Keep only the last N metrics to prevent memory leaks
     if (this.metrics.length > this.maxMetrics) {
       this.metrics = this.metrics.slice(-this.maxMetrics);
@@ -120,8 +120,8 @@ export class PerformanceMonitor {
     topSlowPaths: Array<{ path: string; averageTime: number; count: number }>;
   } {
     const cutoff = new Date(Date.now() - timeWindowMinutes * 60 * 1000);
-    const recentMetrics = this.metrics.filter(m => m.timestamp > cutoff);
-    
+    const recentMetrics = this.metrics.filter((m) => m.timestamp > cutoff);
+
     if (recentMetrics.length === 0) {
       return {
         totalRequests: 0,
@@ -138,19 +138,25 @@ export class PerformanceMonitor {
 
     // Calculate statistics
     const totalRequests = recentMetrics.length;
-    const averageResponseTime = recentMetrics.reduce((sum, m) => sum + m.requestDuration, 0) / totalRequests;
-    const slowRequests = recentMetrics.filter(m => m.requestDuration > this.thresholds.slow).length;
-    const errorRequests = recentMetrics.filter(m => m.statusCode >= 400).length;
+    const averageResponseTime =
+      recentMetrics.reduce((sum, m) => sum + m.requestDuration, 0) / totalRequests;
+    const slowRequests = recentMetrics.filter(
+      (m) => m.requestDuration > this.thresholds.slow,
+    ).length;
+    const errorRequests = recentMetrics.filter((m) => m.statusCode >= 400).length;
     const errorRate = (errorRequests / totalRequests) * 100;
 
     // Memory statistics
-    const avgHeapUsed = recentMetrics.reduce((sum, m) => sum + m.memoryUsage.heapUsed, 0) / totalRequests;
-    const avgHeapTotal = recentMetrics.reduce((sum, m) => sum + m.memoryUsage.heapTotal, 0) / totalRequests;
-    const avgExternal = recentMetrics.reduce((sum, m) => sum + m.memoryUsage.external, 0) / totalRequests;
+    const avgHeapUsed =
+      recentMetrics.reduce((sum, m) => sum + m.memoryUsage.heapUsed, 0) / totalRequests;
+    const avgHeapTotal =
+      recentMetrics.reduce((sum, m) => sum + m.memoryUsage.heapTotal, 0) / totalRequests;
+    const avgExternal =
+      recentMetrics.reduce((sum, m) => sum + m.memoryUsage.external, 0) / totalRequests;
 
     // Top slow paths
     const pathStats = new Map<string, { totalTime: number; count: number }>();
-    recentMetrics.forEach(m => {
+    recentMetrics.forEach((m) => {
       const existing = pathStats.get(m.path) || { totalTime: 0, count: 0 };
       pathStats.set(m.path, {
         totalTime: existing.totalTime + m.requestDuration,
@@ -187,7 +193,10 @@ export class PerformanceMonitor {
   /**
    * Get detailed metrics for a specific path
    */
-  static getPathMetrics(path: string, timeWindowMinutes = 5): {
+  static getPathMetrics(
+    path: string,
+    timeWindowMinutes = 5,
+  ): {
     requests: number;
     averageTime: number;
     minTime: number;
@@ -197,8 +206,8 @@ export class PerformanceMonitor {
   } {
     const cutoff = new Date(Date.now() - timeWindowMinutes * 60 * 1000);
     const pathMetrics = this.metrics
-      .filter(m => m.timestamp > cutoff && m.path === path)
-      .map(m => ({ duration: m.requestDuration, status: m.statusCode }));
+      .filter((m) => m.timestamp > cutoff && m.path === path)
+      .map((m) => ({ duration: m.requestDuration, status: m.statusCode }));
 
     if (pathMetrics.length === 0) {
       return {
@@ -211,18 +220,18 @@ export class PerformanceMonitor {
       };
     }
 
-    const durations = pathMetrics.map(m => m.duration).sort((a, b) => a - b);
-    const errors = pathMetrics.filter(m => m.status >= 400).length;
-    
+    const durations = pathMetrics.map((m) => m.duration).sort((a, b) => a - b);
+    const errors = pathMetrics.filter((m) => m.status >= 400).length;
+
     return {
       requests: pathMetrics.length,
       averageTime: Math.round(durations.reduce((sum, d) => sum + d, 0) / durations.length),
-      minTime: durations[0],
-      maxTime: durations[durations.length - 1],
+      minTime: durations[0] ?? 0,
+      maxTime: durations[durations.length - 1] ?? 0,
       percentiles: {
-        p50: durations[Math.floor(durations.length * 0.5)],
-        p95: durations[Math.floor(durations.length * 0.95)],
-        p99: durations[Math.floor(durations.length * 0.99)],
+        p50: durations[Math.floor(durations.length * 0.5)] ?? 0,
+        p95: durations[Math.floor(durations.length * 0.95)] ?? 0,
+        p99: durations[Math.floor(durations.length * 0.99)] ?? 0,
       },
       errorRate: Math.round((errors / pathMetrics.length) * 10000) / 100,
     };
@@ -283,11 +292,15 @@ export class PerformanceMonitor {
     }
 
     if (systemStats.memory.heapUsed > this.thresholds.memory_warning) {
-      recommendations.push('Memory usage is high. Consider implementing memory optimization strategies.');
+      recommendations.push(
+        'Memory usage is high. Consider implementing memory optimization strategies.',
+      );
     }
 
     if (stats.slowRequests / stats.totalRequests > 0.1) {
-      recommendations.push('More than 10% of requests are slow. Review database queries and external API calls.');
+      recommendations.push(
+        'More than 10% of requests are slow. Review database queries and external API calls.',
+      );
     }
 
     return {
