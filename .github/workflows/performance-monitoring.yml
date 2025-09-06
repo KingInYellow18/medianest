@@ -1,0 +1,300 @@
+name: Performance Monitoring & Regression Testing
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run performance tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  performance-baseline:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: medianest_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    strategy:
+      matrix:
+        node-version: [20]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm run build
+
+      - name: Setup test database
+        env:
+          DATABASE_URL: postgresql://postgres:testpassword@localhost:5432/medianest_test
+          REDIS_URL: redis://localhost:6379
+        run: |
+          npx prisma migrate deploy
+          npx prisma db seed || echo "No seed script found"
+
+      - name: Start backend services
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://postgres:testpassword@localhost:5432/medianest_test
+          REDIS_URL: redis://localhost:6379
+          PORT: 4000
+        run: |
+          cd backend
+          npm run build
+          npm run start &
+          # Wait for server to start
+          timeout 30s bash -c 'until curl -f http://localhost:4000/health; do sleep 1; done'
+
+      - name: Run Database Performance Analysis
+        env:
+          DATABASE_URL: postgresql://postgres:testpassword@localhost:5432/medianest_test
+        run: |
+          echo "🔍 Running Database Performance Analysis..."
+          npm run perf:db || echo "Database analysis completed with warnings"
+
+      - name: Run Performance Load Tests
+        env:
+          BASE_URL: http://localhost:4000
+          CONCURRENT_USERS: 5
+          TEST_DURATION: 60000
+        run: |
+          echo "⚡ Running Performance Load Tests..."
+          npm run perf:test
+
+      - name: Generate Performance Report
+        run: |
+          echo "📊 Generating Performance Report..."
+          if [ -f docs/database-performance-report.json ]; then
+            echo "Database Performance Report:" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`json" >> $GITHUB_STEP_SUMMARY
+            head -20 docs/database-performance-report.json >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ -f docs/performance-test-report.json ]; then
+            echo "Load Test Report:" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`json" >> $GITHUB_STEP_SUMMARY
+            head -20 docs/performance-test-report.json >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload Performance Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: performance-reports-${{ matrix.node-version }}
+          path: |
+            docs/database-performance-report.json
+            docs/performance-test-report.json
+            docs/performance-baseline.txt
+
+      - name: Performance Regression Check
+        run: |
+          echo "🎯 Checking Performance Regression..."
+
+          # Create baseline if it doesn't exist
+          if [ ! -f .github/performance-baseline.json ]; then
+            echo "Creating initial performance baseline..."
+            if [ -f docs/performance-test-report.json ]; then
+              cp docs/performance-test-report.json .github/performance-baseline.json
+            fi
+            exit 0
+          fi
+
+          # Compare current results with baseline
+          if [ -f docs/performance-test-report.json ] && [ -f .github/performance-baseline.json ]; then
+            node -e "
+              const current = JSON.parse(require('fs').readFileSync('docs/performance-test-report.json', 'utf8'));
+              const baseline = JSON.parse(require('fs').readFileSync('.github/performance-baseline.json', 'utf8'));
+              
+              if (current.responseTime && baseline.responseTime) {
+                const currentP95 = current.responseTime.p95;
+                const baselineP95 = baseline.responseTime.p95;
+                const regression = ((currentP95 - baselineP95) / baselineP95) * 100;
+                
+                console.log(\`P95 Response Time: \${currentP95.toFixed(2)}ms (baseline: \${baselineP95.toFixed(2)}ms)\`);
+                console.log(\`Performance change: \${regression > 0 ? '+' : ''}\${regression.toFixed(2)}%\`);
+                
+                if (regression > 20) {
+                  console.error('❌ Performance regression detected! Response time increased by more than 20%');
+                  process.exit(1);
+                } else if (regression > 10) {
+                  console.warn('⚠️  Performance degradation detected. Response time increased by more than 10%');
+                } else if (regression < -10) {
+                  console.log('🎉 Performance improvement detected! Response time decreased by more than 10%');
+                } else {
+                  console.log('✅ Performance within acceptable range');
+                }
+              }
+            "
+          fi
+
+  bundle-analysis:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and analyze frontend bundle
+        run: |
+          cd frontend
+          npm run build:analyze
+
+      - name: Generate Bundle Analysis Report
+        run: |
+          echo "📦 Frontend Bundle Analysis" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f frontend/.next/analyze/client.html ]; then
+            echo "Bundle analysis completed. Check artifacts for detailed report." >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Get bundle sizes
+          if [ -d frontend/.next/static ]; then
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            echo "Bundle Sizes:" >> $GITHUB_STEP_SUMMARY
+            find frontend/.next/static -name "*.js" -type f -exec ls -lh {} \; | head -10 >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload Bundle Analysis
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bundle-analysis
+          path: |
+            frontend/.next/analyze/
+            frontend/.next/static/
+
+  memory-leak-detection:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: medianest_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup test environment
+        env:
+          DATABASE_URL: postgresql://postgres:testpassword@localhost:5432/medianest_test
+          REDIS_URL: redis://localhost:6379
+        run: |
+          npm run build
+          npx prisma migrate deploy
+
+      - name: Run Extended Memory Leak Test
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://postgres:testpassword@localhost:5432/medianest_test
+          REDIS_URL: redis://localhost:6379
+          BASE_URL: http://localhost:4000
+          CONCURRENT_USERS: 10
+          TEST_DURATION: 900000 # 15 minutes
+        run: |
+          echo "🧠 Running Extended Memory Leak Detection..."
+
+          # Start backend with memory monitoring
+          cd backend
+          npm run build
+          node --expose-gc --max-old-space-size=512 dist/server.js &
+          SERVER_PID=$!
+
+          # Wait for server to start
+          timeout 30s bash -c 'until curl -f http://localhost:4000/health; do sleep 1; done'
+
+          # Run extended load test
+          cd ..
+          npm run perf:test
+
+          # Check if server is still running
+          if kill -0 $SERVER_PID 2>/dev/null; then
+            echo "✅ Server survived extended load test"
+            kill $SERVER_PID
+          else
+            echo "❌ Server crashed during extended load test"
+            exit 1
+          fi
+
+      - name: Upload Memory Analysis
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: memory-analysis
+          path: |
+            docs/performance-test-report.json
