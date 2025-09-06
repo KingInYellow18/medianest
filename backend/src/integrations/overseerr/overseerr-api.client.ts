@@ -96,8 +96,8 @@ export interface OverseerrApiConfig extends ApiClientConfig {
 }
 
 export class OverseerrApiClient extends BaseApiClient {
-  private overseerrUrl: string;
-  private apiKey: string;
+  private _overseerrUrl: string;
+  private _apiKey: string;
 
   constructor(config: OverseerrApiConfig) {
     super('Overseerr', {
@@ -109,8 +109,8 @@ export class OverseerrApiClient extends BaseApiClient {
       },
     });
 
-    this.overseerrUrl = config.overseerrUrl;
-    this.apiKey = config.apiKey;
+    this._overseerrUrl = config.overseerrUrl;
+    this._apiKey = config.apiKey;
   }
 
   async getStatus(): Promise<OverseerrStatus> {
@@ -136,7 +136,7 @@ export class OverseerrApiClient extends BaseApiClient {
   async getRequests(
     take: number = 20,
     skip: number = 0,
-    filter?: 'all' | 'approved' | 'available' | 'pending' | 'processing' | 'unavailable'
+    filter?: 'all' | 'approved' | 'available' | 'pending' | 'processing' | 'unavailable',
   ): Promise<{
     results: OverseerrMediaRequest[];
     pageInfo: { pages: number; pageSize: number; total: number; page: number };
@@ -198,7 +198,7 @@ export class OverseerrApiClient extends BaseApiClient {
 
   async updateRequest(
     requestId: number,
-    updateData: Partial<CreateMediaRequestInput>
+    updateData: Partial<CreateMediaRequestInput>,
   ): Promise<OverseerrMediaRequest> {
     try {
       const response = await this.request<OverseerrMediaRequest>(`/api/v1/request/${requestId}`, {
@@ -223,7 +223,7 @@ export class OverseerrApiClient extends BaseApiClient {
     try {
       const response = await this.request<OverseerrMediaRequest>(
         `/api/v1/request/${requestId}/approve`,
-        { method: 'POST' }
+        { method: 'POST' },
       );
 
       logger.info('Overseerr request approved', { requestId });
@@ -245,7 +245,7 @@ export class OverseerrApiClient extends BaseApiClient {
         {
           method: 'POST',
           ...(reason && { body: JSON.stringify({ reason }) }),
-        }
+        },
       );
 
       logger.info('Overseerr request declined', { requestId, reason });
@@ -279,7 +279,7 @@ export class OverseerrApiClient extends BaseApiClient {
   async getUserRequests(
     userId: number,
     take: number = 20,
-    skip: number = 0
+    skip: number = 0,
   ): Promise<{
     results: OverseerrMediaRequest[];
     pageInfo: { pages: number; pageSize: number; total: number; page: number };
@@ -308,7 +308,7 @@ export class OverseerrApiClient extends BaseApiClient {
   async searchMedia(
     query: string,
     type?: 'movie' | 'tv',
-    page: number = 1
+    page: number = 1,
   ): Promise<{
     page: number;
     totalPages: number;

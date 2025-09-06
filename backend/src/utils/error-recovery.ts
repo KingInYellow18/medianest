@@ -2,10 +2,13 @@ import { logger } from './logger';
 import { CircuitBreakerFactory } from './circuit-breaker';
 // WAVE 2 AGENT #11: INTEGRATION ORCHESTRATOR - CONDITIONAL REDIS IMPORT
 // Only import Redis if not in test environment or if Redis is explicitly enabled
-let IORedis: any;
+let IORedisClass: any;
 if (process.env.NODE_ENV !== 'test' && process.env.SKIP_REDIS !== 'true') {
-  IORedis = require('ioredis').default;
+  IORedisClass = require('ioredis').default;
 }
+
+// Type for Redis instances
+type RedisInstance = any;
 
 export interface ErrorContext {
   operation: string;
@@ -31,9 +34,9 @@ export class ErrorRecoveryManager {
     string,
     Array<{ error: Error; context: ErrorContext; timestamp: Date }>
   >();
-  private redis?: IORedis;
+  private redis?: RedisInstance;
 
-  constructor(redis?: IORedis) {
+  constructor(redis?: RedisInstance) {
     this.redis = redis;
     this.registerDefaultRecoveryActions();
   }
@@ -364,8 +367,8 @@ export class ErrorRecoveryManager {
 
     for (let attempt = 1; attempt <= options.maxAttempts; attempt++) {
       try {
-        // Enhanced context with attempt number
-        const _enhancedContext = { ...context, attempt };
+        // Enhanced context with attempt number - available for future logging
+        // const enhancedContext = { ...context, attempt };
         return await operation();
       } catch (error) {
         lastError = error as Error;

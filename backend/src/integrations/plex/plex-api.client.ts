@@ -98,7 +98,7 @@ export interface PlexApiConfig extends ApiClientConfig {
 }
 
 export class PlexApiClient extends BaseApiClient {
-  private plexToken: string;
+  private _plexToken: string;
   private serverUrl?: string;
 
   constructor(config: PlexApiConfig) {
@@ -118,7 +118,7 @@ export class PlexApiClient extends BaseApiClient {
       },
     });
 
-    this.plexToken = config.plexToken;
+    this._plexToken = config.plexToken;
     this.serverUrl = config.serverUrl;
   }
 
@@ -139,7 +139,7 @@ export class PlexApiClient extends BaseApiClient {
     try {
       const response = await this.request<{ MediaContainer: { Server: PlexServer[] } }>(
         '/api/v2/resources',
-        { method: 'GET' }
+        { method: 'GET' },
       );
 
       return response.data.MediaContainer?.Server || [];
@@ -158,7 +158,7 @@ export class PlexApiClient extends BaseApiClient {
     try {
       const response = await this.requestToServer<{ MediaContainer: { Directory: PlexLibrary[] } }>(
         baseUrl,
-        '/library/sections'
+        '/library/sections',
       );
 
       return response.data.MediaContainer?.Directory || [];

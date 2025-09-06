@@ -130,7 +130,7 @@ export class OverseerrClient {
       const response = await this.client.post('/request', request);
       return response.data;
     } catch (error) {
-      if (error.message === 'Media already requested') {
+      if (error instanceof Error && error.message === 'Media already requested') {
         throw error;
       }
       logger.error('Failed to request media', { request, error });

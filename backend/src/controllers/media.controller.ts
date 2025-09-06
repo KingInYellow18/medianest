@@ -67,10 +67,13 @@ export class MediaController {
   async requestMedia(req: Request, res: Response) {
     try {
       const userId = req.user!.id;
-      const { mediaType, tmdbId, seasons } = req.body;
+      const { mediaId, mediaType, tmdbId, seasons } = req.body;
 
-      if (!mediaType || !tmdbId) {
-        throw new AppError('VALIDATION_ERROR', 'mediaType and tmdbId are required', 400);
+      // Support both mediaId and tmdbId for backward compatibility
+      const finalTmdbId = tmdbId || mediaId;
+
+      if (!mediaType || !finalTmdbId) {
+        throw new AppError('VALIDATION_ERROR', 'mediaType and mediaId/tmdbId are required', 400);
       }
 
       if (!['movie', 'tv'].includes(mediaType)) {
@@ -79,13 +82,16 @@ export class MediaController {
 
       const request = await overseerrService.requestMedia(userId, {
         mediaType,
-        tmdbId: Number(tmdbId),
+        tmdbId: Number(finalTmdbId),
         seasons,
       });
 
       res.status(201).json({
         success: true,
         data: request,
+        meta: {
+          timestamp: new Date().toISOString(),
+        },
       });
     } catch (error) {
       if (error instanceof AppError) {
@@ -161,11 +167,12 @@ export class MediaController {
 
       res.json({
         success: true,
-        data: {
-          requests,
+        data: requests,
+        meta: {
           totalCount,
           totalPages,
           currentPage: Number(page),
+          timestamp: new Date().toISOString(),
         },
       });
     } catch (error) {
@@ -321,11 +328,12 @@ export class MediaController {
 
       res.json({
         success: true,
-        data: {
-          requests,
+        data: requests,
+        meta: {
           totalCount,
           totalPages,
           currentPage: Number(page),
+          timestamp: new Date().toISOString(),
         },
       });
     } catch (error) {
