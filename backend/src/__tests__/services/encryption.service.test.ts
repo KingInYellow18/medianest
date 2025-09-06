@@ -19,24 +19,31 @@ import { EncryptionService } from '../../services/encryption.service';
 
 describe('EncryptionService', () => {
   let encryptionService: EncryptionService;
+  let mockCrypto: any;
+
+  beforeAll(async () => {
+    // Get mocked crypto module
+    const crypto = await import('crypto');
+    mockCrypto = vi.mocked(crypto, true);
+  });
 
   beforeEach(() => {
     // Mock environment variable
     process.env.ENCRYPTION_KEY = 'test-encryption-key-that-is-32-chars-long!';
-    
+
     // Reset all mocks
     vi.clearAllMocks();
-    
-    // Setup default mocks
+
+    // Setup default mocks for each test
     const mockSalt = Buffer.from('mock-salt-32-bytes-long-for-testing!!');
     const mockIv = Buffer.from('mock-iv-16-bytes!');
     const mockKey = Buffer.from('mock-derived-key-32-bytes-long!!!!');
-    
-    mockRandomBytes
+
+    mockCrypto.randomBytes
       .mockReturnValueOnce(mockSalt) // for salt
-      .mockReturnValueOnce(mockIv);  // for IV
-      
-    mockScryptSync.mockReturnValue(mockKey);
+      .mockReturnValueOnce(mockIv); // for IV
+
+    mockCrypto.scryptSync.mockReturnValue(mockKey);
 
     encryptionService = new EncryptionService();
   });
@@ -44,14 +51,18 @@ describe('EncryptionService', () => {
   describe('constructor', () => {
     it('should throw error if encryption key is missing', () => {
       delete process.env.ENCRYPTION_KEY;
-      
-      expect(() => new EncryptionService()).toThrow('Encryption key must be at least 32 characters');
+
+      expect(() => new EncryptionService()).toThrow(
+        'Encryption key must be at least 32 characters',
+      );
     });
 
     it('should throw error if encryption key is too short', () => {
       process.env.ENCRYPTION_KEY = 'short-key';
-      
-      expect(() => new EncryptionService()).toThrow('Encryption key must be at least 32 characters');
+
+      expect(() => new EncryptionService()).toThrow(
+        'Encryption key must be at least 32 characters',
+      );
     });
   });
 
@@ -63,7 +74,7 @@ describe('EncryptionService', () => {
         getAuthTag: vi.fn().mockReturnValue(Buffer.from('auth-tag-16-bytes!')),
       };
 
-      mockCreateCipheriv.mockReturnValue(mockCipher);
+      mockCrypto.createCipheriv.mockReturnValue(mockCipher);
 
       const result = encryptionService.encrypt('test-plaintext');
 
@@ -74,13 +85,17 @@ describe('EncryptionService', () => {
         salt: expect.any(String),
       });
 
-      expect(mockCreateCipheriv).toHaveBeenCalledWith('aes-256-gcm', expect.any(Buffer), expect.any(Buffer));
+      expect(mockCrypto.createCipheriv).toHaveBeenCalledWith(
+        'aes-256-gcm',
+        expect.any(Buffer),
+        expect.any(Buffer),
+      );
       expect(mockCipher.update).toHaveBeenCalledWith('test-plaintext', 'utf8', 'hex');
       expect(mockCipher.final).toHaveBeenCalledWith('hex');
     });
 
     it('should handle encryption errors', () => {
-      mockCreateCipheriv.mockImplementation(() => {
+      mockCrypto.createCipheriv.mockImplementation(() => {
         throw new Error('Cipher creation failed');
       });
 
@@ -96,7 +111,7 @@ describe('EncryptionService', () => {
         final: vi.fn().mockReturnValue('final-part'),
       };
 
-      mockCreateDecipheriv.mockReturnValue(mockDecipher);
+      mockCrypto.createDecipheriv.mockReturnValue(mockDecipher);
 
       const encryptedData = {
         encrypted: 'encrypted-text',
@@ -108,14 +123,18 @@ describe('EncryptionService', () => {
       const result = encryptionService.decrypt(encryptedData);
 
       expect(result).toBe('decrypted-partfinal-part');
-      expect(mockCreateDecipheriv).toHaveBeenCalledWith('aes-256-gcm', expect.any(Buffer), expect.any(Buffer));
+      expect(mockCrypto.createDecipheriv).toHaveBeenCalledWith(
+        'aes-256-gcm',
+        expect.any(Buffer),
+        expect.any(Buffer),
+      );
       expect(mockDecipher.setAuthTag).toHaveBeenCalled();
       expect(mockDecipher.update).toHaveBeenCalledWith('encrypted-text', 'hex', 'utf8');
       expect(mockDecipher.final).toHaveBeenCalledWith('utf8');
     });
 
     it('should handle decryption errors', () => {
-      mockCreateDecipheriv.mockImplementation(() => {
+      mockCrypto.createDecipheriv.mockImplementation(() => {
         throw new Error('Decipher creation failed');
       });
 
@@ -138,7 +157,7 @@ describe('EncryptionService', () => {
         getAuthTag: vi.fn().mockReturnValue(Buffer.from('auth-tag-16-bytes!')),
       };
 
-      mockCreateCipheriv.mockReturnValue(mockCipher);
+      mockCrypto.createCipheriv.mockReturnValue(mockCipher);
 
       const result = encryptionService.encryptForStorage('test-data');
 
@@ -154,7 +173,7 @@ describe('EncryptionService', () => {
         final: vi.fn().mockReturnValue(''),
       };
 
-      mockCreateDecipheriv.mockReturnValue(mockDecipher);
+      mockCrypto.createDecipheriv.mockReturnValue(mockDecipher);
 
       const storedData = 'encrypted:iv:authTag:salt';
       const result = encryptionService.decryptFromStorage(storedData);
@@ -165,26 +184,28 @@ describe('EncryptionService', () => {
     it('should throw error for invalid storage format', () => {
       const invalidData = 'invalid-format';
 
-      expect(() => encryptionService.decryptFromStorage(invalidData)).toThrow('Invalid encrypted data format');
+      expect(() => encryptionService.decryptFromStorage(invalidData)).toThrow(
+        'Invalid encrypted data format',
+      );
     });
   });
 
   describe('isEncrypted', () => {
     it('should return true for properly formatted encrypted data', () => {
       const encryptedData = 'abc123:def456:789abc:def123';
-      
+
       expect(encryptionService.isEncrypted(encryptedData)).toBe(true);
     });
 
     it('should return false for invalid format', () => {
       const invalidData = 'not-encrypted-data';
-      
+
       expect(encryptionService.isEncrypted(invalidData)).toBe(false);
     });
 
     it('should return false for data with non-hex characters', () => {
       const invalidData = 'abc123:def456:789xyz:def123'; // 'xyz' is not hex
-      
+
       expect(encryptionService.isEncrypted(invalidData)).toBe(false);
     });
   });
