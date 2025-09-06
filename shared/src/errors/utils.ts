@@ -35,14 +35,14 @@ export function parseApiError(response: any): AppError {
   if (response?.error) {
     const { message, code, statusCode, details } = response.error;
     return new AppError(
+      code || 'API_ERROR',
       message || 'An error occurred',
       statusCode || 500,
-      code || 'API_ERROR',
       details,
     );
   }
 
-  return new AppError('An unknown error occurred', 'UNKNOWN_ERROR', 500);
+  return new AppError('UNKNOWN_ERROR', 'An unknown error occurred', 500);
 }
 
 // Error logger for frontend
