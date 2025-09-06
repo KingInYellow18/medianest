@@ -1,9 +1,84 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import { app } from '@/app';
-import { setupTestDB, cleanupTestDB } from '../helpers/database';
-import { createTestUser } from '../helpers/auth';
 import { User } from '@prisma/client';
+
+// Mock Redis to prevent connection errors
+vi.mock('@/config/redis', () => ({
+  redisClient: {
+    ping: vi.fn().mockResolvedValue('PONG'),
+    get: vi.fn(),
+    set: vi.fn(),
+    del: vi.fn(),
+    quit: vi.fn(),
+  },
+  getRedis: vi.fn(() => ({
+    ping: vi.fn().mockResolvedValue('PONG'),
+    get: vi.fn(),
+    set: vi.fn(),
+    del: vi.fn(),
+    quit: vi.fn(),
+  })),
+}));
+
+// Mock Prisma to prevent database connection
+vi.mock('@/lib/prisma', () => ({
+  prisma: {
+    $on: vi.fn(),
+    $queryRaw: vi.fn().mockResolvedValue([{ '1': 1 }]),
+    user: {
+      findFirst: vi.fn(),
+      findUnique: vi.fn(),
+      create: vi.fn(),
+    },
+    $disconnect: vi.fn(),
+  },
+}));
+
+// Mock database setup functions
+const setupTestDB = vi.fn().mockResolvedValue(undefined);
+const cleanupTestDB = vi.fn().mockResolvedValue(undefined);
+
+// Mock axios to prevent network calls
+vi.mock('axios', () => ({
+  default: {
+    create: vi.fn(() => ({
+      post: vi.fn().mockRejectedValue(new Error('Network error - mocked')),
+      get: vi.fn().mockRejectedValue(new Error('Network error - mocked')),
+      put: vi.fn().mockRejectedValue(new Error('Network error - mocked')),
+      delete: vi.fn().mockRejectedValue(new Error('Network error - mocked')),
+      interceptors: {
+        request: {
+          use: vi.fn(),
+        },
+        response: {
+          use: vi.fn(),
+        },
+      },
+    })),
+    post: vi.fn().mockRejectedValue(new Error('Network error - mocked')),
+    get: vi.fn().mockRejectedValue(new Error('Network error - mocked')),
+    isAxiosError: vi.fn().mockReturnValue(true),
+  },
+}));
+
+// Mock user creation
+function createTestUser(options: { role?: string } = {}) {
+  const user: User = {
+    id: 'test-user-id',
+    plexId: 'test-plex-id',
+    username: 'testuser',
+    email: 'test@example.com',
+    role: options.role || 'user',
+    status: 'active',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  } as User;
+
+  const token = 'mock-jwt-token';
+
+  return Promise.resolve({ user, token });
+}
 
 describe('CSRF Protection', () => {
   let testUser: User;

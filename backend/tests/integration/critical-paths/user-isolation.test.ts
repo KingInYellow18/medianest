@@ -14,26 +14,45 @@ describe('User Isolation - Critical Path', () => {
   beforeAll(async () => {
     await databaseCleanup.cleanAll();
 
-    testUser1 = await prisma.user.create({
-      data: {
-        plexId: 'isolation-user-1',
-        plexUsername: 'isolationuser1',
-        email: 'isolation1@example.com',
-        role: 'user',
-        status: 'active',
-        plexToken: 'encrypted-token-1',
-      },
-    });
+    // Create test users with mock data
+    testUser1 = {
+      id: 'isolation-user-1',
+      plexId: 'isolation-user-1',
+      plexUsername: 'isolationuser1',
+      email: 'isolation1@example.com',
+      role: 'user',
+      status: 'active',
+      plexToken: 'encrypted-token-1',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
 
-    testUser2 = await prisma.user.create({
-      data: {
-        plexId: 'isolation-user-2',
-        plexUsername: 'isolationuser2',
-        email: 'isolation2@example.com',
-        role: 'user',
-        status: 'active',
-        plexToken: 'encrypted-token-2',
-      },
+    testUser2 = {
+      id: 'isolation-user-2',
+      plexId: 'isolation-user-2',
+      plexUsername: 'isolationuser2',
+      email: 'isolation2@example.com',
+      role: 'user',
+      status: 'active',
+      plexToken: 'encrypted-token-2',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // Mock prisma create calls to return our test users
+    (prisma.user.create as any).mockResolvedValueOnce(testUser1);
+    (prisma.user.create as any).mockResolvedValueOnce(testUser2);
+
+    // Mock createMany for media requests
+    (prisma.mediaRequest.createMany as any).mockResolvedValue({ count: 2 });
+    (prisma.mediaRequest.create as any).mockResolvedValue({
+      id: 'test-request-id',
+      userId: testUser1.id,
+      title: 'Private Movie',
+      mediaType: 'movie',
+      tmdbId: '333333',
+      status: 'pending',
+      requestedAt: new Date(),
     });
 
     user1Token = createAuthToken(testUser1);

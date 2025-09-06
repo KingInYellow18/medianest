@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import request from 'supertest';
 import { app } from '@/app';
 import { prisma } from '@/db/prisma';
@@ -6,12 +6,47 @@ import { databaseCleanup } from '../../helpers/database-cleanup';
 import { createAuthToken } from '../../helpers/auth';
 import { testUsers } from '../../fixtures/test-data';
 
+// Mock ioredis to prevent actual Redis connections
+vi.mock('ioredis', () => {
+  const mockRedis = {
+    ping: vi.fn().mockResolvedValue('PONG'),
+    disconnect: vi.fn().mockResolvedValue(undefined),
+    on: vi.fn(),
+    info: vi.fn().mockResolvedValue(''),
+    flushdb: vi.fn().mockResolvedValue(0),
+  };
+
+  return {
+    default: vi.fn().mockImplementation(() => mockRedis),
+    Redis: vi.fn().mockImplementation(() => mockRedis),
+  };
+});
+
+// Mock Redis config to return mock client
+vi.mock('@/config/redis', () => ({
+  initializeRedis: vi.fn().mockResolvedValue({
+    ping: vi.fn().mockResolvedValue('PONG'),
+    disconnect: vi.fn().mockResolvedValue(undefined),
+    on: vi.fn(),
+  }),
+  getRedis: vi.fn().mockReturnValue({
+    ping: vi.fn().mockResolvedValue('PONG'),
+    disconnect: vi.fn().mockResolvedValue(undefined),
+    on: vi.fn(),
+  }),
+  redisClient: {
+    ping: vi.fn().mockResolvedValue('PONG'),
+    disconnect: vi.fn().mockResolvedValue(undefined),
+    on: vi.fn(),
+  },
+}));
+
 describe('Service Monitoring - Critical Path', () => {
   let userToken: string;
   let testUser: any;
 
   beforeAll(async () => {
-    await databaseCleanup.cleanAll();
+    await databaseCleanup.cleanAll(prisma);
 
     testUser = await prisma.user.create({
       data: {
@@ -28,7 +63,7 @@ describe('Service Monitoring - Critical Path', () => {
   });
 
   afterAll(async () => {
-    await databaseCleanup.cleanAll();
+    await databaseCleanup.cleanAll(prisma);
     await prisma.$disconnect();
   });
 

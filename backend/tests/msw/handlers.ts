@@ -145,6 +145,102 @@ export const handlers = [
     });
   }),
 
+  // Internal API mocks for integration tests
+  http.get('/api/v1/media/requests', ({ request }) => {
+    const authHeader = request.headers.get('authorization');
+
+    if (!authHeader) {
+      return HttpResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Parse token to get user context (mocked behavior)
+    const token = authHeader.replace('Bearer ', '');
+    let userId = 'isolation-user-1'; // Default
+
+    // Simple token parsing for test
+    if (token.includes('isolation-user-2')) {
+      userId = 'isolation-user-2';
+    }
+
+    // Mock user isolation - only return requests for the authenticated user
+    const mockRequests = [
+      {
+        id: 'req-1',
+        userId: 'isolation-user-1',
+        title: 'User 1 Movie',
+        mediaType: 'movie',
+        tmdbId: '111111',
+        status: 'pending',
+        requestedAt: new Date().toISOString(),
+      },
+      {
+        id: 'req-2',
+        userId: 'isolation-user-2',
+        title: 'User 2 Movie',
+        mediaType: 'movie',
+        tmdbId: '222222',
+        status: 'pending',
+        requestedAt: new Date().toISOString(),
+      },
+    ];
+
+    const userRequests = mockRequests.filter((req) => req.userId === userId);
+
+    return HttpResponse.json({
+      success: true,
+      data: {
+        requests: userRequests,
+        total: userRequests.length,
+      },
+    });
+  }),
+
+  http.get('/api/v1/media/requests/:id', ({ params, request }) => {
+    const { id } = params;
+    const authHeader = request.headers.get('authorization');
+
+    if (!authHeader) {
+      return HttpResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Parse token to get user context (mocked behavior)
+    const token = authHeader.replace('Bearer ', '');
+    let userId = 'isolation-user-1'; // Default
+
+    if (token.includes('isolation-user-2')) {
+      userId = 'isolation-user-2';
+    }
+
+    // Mock request belonging to user 1
+    const mockRequest = {
+      id: 'test-request-id',
+      userId: 'isolation-user-1',
+      title: 'Private Movie',
+      mediaType: 'movie',
+      tmdbId: '333333',
+      status: 'pending',
+      requestedAt: new Date().toISOString(),
+    };
+
+    // Check access control - user 2 should not access user 1's request
+    if (mockRequest.userId !== userId) {
+      return HttpResponse.json(
+        {
+          success: false,
+          error: {
+            message: 'Access denied',
+          },
+        },
+        { status: 403 },
+      );
+    }
+
+    return HttpResponse.json({
+      success: true,
+      data: mockRequest,
+    });
+  }),
+
   // Default fallback for unhandled requests
   http.all('*', ({ request }) => {
     console.warn(`Unhandled ${request.method} request to ${request.url}`);

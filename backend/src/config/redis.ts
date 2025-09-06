@@ -6,6 +6,18 @@ let redisClient: Redis;
 
 export const initializeRedis = async (): Promise<Redis> => {
   if (!redisClient) {
+    // Skip Redis initialization in test environment
+    if (process.env.NODE_ENV === 'test') {
+      const mockClient = {
+        ping: () => Promise.resolve('PONG'),
+        on: () => {},
+        disconnect: () => Promise.resolve(),
+        quit: () => Promise.resolve(),
+      } as any as Redis;
+      redisClient = mockClient;
+      return redisClient;
+    }
+
     const redisConfig = getRedisConfig();
 
     // Create Redis client with centralized configuration

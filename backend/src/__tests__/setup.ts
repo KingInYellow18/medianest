@@ -137,9 +137,10 @@ export const setupGlobalMocks = () => {
     PrismaClient: vi.fn(() => mockPrismaClient),
   }));
 
-  // Mock Redis
+  // Mock ioredis module completely
   vi.mock('ioredis', () => ({
-    default: vi.fn(() => mockRedisClient),
+    default: vi.fn().mockImplementation(() => mockRedisClient),
+    Redis: vi.fn().mockImplementation(() => mockRedisClient),
   }));
 
   // Mock Logger
@@ -187,6 +188,11 @@ export const setupGlobalMocks = () => {
 
   // Mock JWT
   vi.mock('jsonwebtoken', () => ({
+    default: {
+      sign: vi.fn().mockReturnValue('test-jwt-token'),
+      verify: vi.fn().mockReturnValue({ userId: 'test-user-id', role: 'USER' }),
+      decode: vi.fn().mockReturnValue({ userId: 'test-user-id', role: 'USER' }),
+    },
     sign: vi.fn().mockReturnValue('test-jwt-token'),
     verify: vi.fn().mockReturnValue({ userId: 'test-user-id', role: 'USER' }),
     decode: vi.fn().mockReturnValue({ userId: 'test-user-id', role: 'USER' }),
@@ -239,6 +245,7 @@ export const setupGlobalMocks = () => {
   // Mock Prisma client directly
   vi.mock('@/db/prisma', () => ({
     default: mockPrismaClient,
+    prisma: mockPrismaClient,
     getPrismaClient: vi.fn(() => mockPrismaClient),
     disconnectPrisma: vi.fn(),
   }));
@@ -246,8 +253,13 @@ export const setupGlobalMocks = () => {
   // Mock Redis client
   vi.mock('@/config/redis', () => ({
     default: mockRedisClient,
+    redisClient: mockRedisClient,
+    initializeRedis: vi.fn().mockResolvedValue(mockRedisClient),
     getRedis: vi.fn(() => mockRedisClient),
     getRedisClient: vi.fn(() => mockRedisClient),
+    closeRedis: vi.fn().mockResolvedValue(undefined),
+    checkRedisHealth: vi.fn().mockResolvedValue(true),
+    checkRateLimit: vi.fn().mockResolvedValue({ allowed: true }),
     disconnectRedis: vi.fn(),
   }));
 

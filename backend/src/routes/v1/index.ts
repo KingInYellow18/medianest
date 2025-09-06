@@ -8,6 +8,7 @@ import dashboardRoutes from './dashboard';
 import healthRoutes from './health';
 import mediaRoutes from './media';
 import plexRoutes from './plex';
+import servicesRoutes from './services';
 import webhookRoutes from './webhooks';
 import youtubeRoutes from './youtube';
 import { errorsRoutes } from './errors.routes';
@@ -31,6 +32,7 @@ router.use('/dashboard', authenticate, dashboardRoutes);
 router.use('/media', authenticate, mediaRoutes);
 router.use('/performance', authenticate, performanceRoutes);
 router.use('/plex', authenticate, plexRoutes);
+router.use('/services', authenticate, servicesRoutes);
 router.use('/youtube', authenticate, youtubeRoutes);
 router.use('/errors', authenticate, errorsRoutes);
 
