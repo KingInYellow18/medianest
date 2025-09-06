@@ -1,0 +1,100 @@
+{
+  "auditReportVersion": 2,
+  "vulnerabilities": {
+    "fengari": {
+      "name": "fengari",
+      "severity": "low",
+      "isDirect": false,
+      "via": [
+        "tmp"
+      ],
+      "effects": [
+        "fengari-interop",
+        "ioredis-mock"
+      ],
+      "range": "*",
+      "nodes": [
+        "node_modules/fengari"
+      ],
+      "fixAvailable": true
+    },
+    "fengari-interop": {
+      "name": "fengari-interop",
+      "severity": "low",
+      "isDirect": false,
+      "via": [
+        "fengari"
+      ],
+      "effects": [],
+      "range": "*",
+      "nodes": [
+        "node_modules/fengari-interop"
+      ],
+      "fixAvailable": true
+    },
+    "ioredis-mock": {
+      "name": "ioredis-mock",
+      "severity": "low",
+      "isDirect": true,
+      "via": [
+        "fengari",
+        "fengari-interop"
+      ],
+      "effects": [],
+      "range": ">=4.8.0",
+      "nodes": [
+        "node_modules/ioredis-mock"
+      ],
+      "fixAvailable": true
+    },
+    "tmp": {
+      "name": "tmp",
+      "severity": "low",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1106849,
+          "name": "tmp",
+          "dependency": "tmp",
+          "title": "tmp allows arbitrary temporary file / directory write via symbolic link `dir` parameter",
+          "url": "https://github.com/advisories/GHSA-52f5-9888-hmc6",
+          "severity": "low",
+          "cwe": [
+            "CWE-59"
+          ],
+          "cvss": {
+            "score": 2.5,
+            "vectorString": "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:N/I:L/A:N"
+          },
+          "range": "<=0.2.3"
+        }
+      ],
+      "effects": [
+        "fengari"
+      ],
+      "range": "<=0.2.3",
+      "nodes": [
+        "node_modules/tmp"
+      ],
+      "fixAvailable": true
+    }
+  },
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 4,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 4
+    },
+    "dependencies": {
+      "prod": 270,
+      "dev": 534,
+      "optional": 57,
+      "peer": 0,
+      "peerOptional": 0,
+      "total": 811
+    }
+  }
+}

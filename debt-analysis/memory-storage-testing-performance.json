@@ -1,0 +1,113 @@
+{
+  "testCoverage": {
+    "totalSourceFiles": 65,
+    "totalTestFiles": 5,
+    "testFramework": "Vitest/Jest",
+    "backendTestResults": {
+      "failed": 106,
+      "passed": 211,
+      "total": 317,
+      "failureRate": 33.4
+    },
+    "frontendTestResults": {
+      "failed": 11,
+      "passed": 70,
+      "total": 81,
+      "failureRate": 13.6
+    },
+    "overallFailureRate": 25.8,
+    "coverageReporting": "Limited - needs automation",
+    "testStability": "CRITICAL - High failure rate"
+  },
+  "skippedTests": [
+    {
+      "file": "./backend/tests/e2e/specs/performance/core-web-vitals.spec.ts",
+      "line": 321,
+      "reason": "Chromium-only memory tracking with conditional skip",
+      "pattern": "test.skip()"
+    },
+    {
+      "file": "./backend/tests/integration/security/session-management-security.test.ts",
+      "pattern": "Conditional test execution",
+      "reason": "Browser compatibility checks"
+    }
+  ],
+  "focusedTests": [],
+  "bundleSizes": {
+    "dist": "92K",
+    "sharedDist": "968K",
+    "totalSize": "1.06MB",
+    "optimization": "Shared library needs analysis"
+  },
+  "buildTiming": {
+    "totalTime": "11.633s",
+    "userTime": "23.14s",
+    "systemTime": "0.53s",
+    "cpuUsage": "203%",
+    "performance": "Acceptable with good parallelization"
+  },
+  "performanceTests": {
+    "coreWebVitals": "Implemented but potentially unstable",
+    "networkThrottling": "Available",
+    "memoryTracking": "Chromium-only with fallbacks",
+    "resourceOptimization": "Basic checks implemented"
+  },
+  "technicalDebtScores": {
+    "testHealth": {
+      "score": 2.1,
+      "level": "CRITICAL",
+      "factors": [
+        "25.8% test failure rate",
+        "Limited coverage visibility",
+        "Low test stability",
+        "Partial performance testing"
+      ]
+    },
+    "bundlePerformance": {
+      "score": 6.5,
+      "level": "ACCEPTABLE",
+      "factors": [
+        "Reasonable bundle sizes",
+        "Acceptable build time",
+        "Good CPU utilization",
+        "Optimization opportunities present"
+      ]
+    }
+  },
+  "criticalIssues": [
+    "33.4% backend test failure rate is CRITICAL",
+    "13.6% frontend test failure rate needs immediate attention",
+    "No automated coverage reporting",
+    "Test suite instability risks CI/CD pipeline",
+    "Shared library bundle size needs optimization"
+  ],
+  "recommendations": {
+    "immediate": [
+      "Fix 106 failing backend tests",
+      "Stabilize authentication test suite",
+      "Implement automated coverage reporting",
+      "Set minimum coverage thresholds"
+    ],
+    "shortTerm": [
+      "Optimize shared library dependencies",
+      "Implement code splitting",
+      "Standardize test data management",
+      "Improve test isolation patterns"
+    ],
+    "longTerm": [
+      "Automated performance regression testing",
+      "Bundle size monitoring in CI",
+      "Core Web Vitals integration",
+      "Comprehensive test data lifecycle management"
+    ]
+  },
+  "successCriteria": {
+    "testFailureRate": "<5%",
+    "unitTestCoverage": ">80%",
+    "integrationCoverage": ">70%",
+    "e2eCriticalPathCoverage": ">90%",
+    "bundleSize": "<1.5MB total",
+    "buildTime": "<15 seconds",
+    "testSuiteTime": "<5 minutes"
+  }
+}

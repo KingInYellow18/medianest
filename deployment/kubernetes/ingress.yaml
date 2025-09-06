@@ -1,0 +1,190 @@
+# MediaNest Production Ingress Configuration
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: medianest-ingress
+  namespace: medianest-prod
+  labels:
+    app: medianest
+    component: ingress
+  annotations:
+    # Nginx Ingress Controller Annotations
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "30"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "30"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "30"
+    
+    # Rate Limiting
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+    nginx.ingress.kubernetes.io/rate-limit-connections: "10"
+    
+    # Security Headers
+    nginx.ingress.kubernetes.io/server-snippet: |
+      add_header X-Frame-Options "SAMEORIGIN" always;
+      add_header X-Content-Type-Options "nosniff" always;
+      add_header X-XSS-Protection "1; mode=block" always;
+      add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+      add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' wss:; frame-src 'self';" always;
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    
+    # SSL Configuration
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-ciphers: "ECDHE-RSA-AES128-GCM-SHA256,ECDHE-RSA-AES256-GCM-SHA384,ECDHE-RSA-AES128-SHA,ECDHE-RSA-AES256-SHA,ECDHE-RSA-AES128-SHA256,ECDHE-RSA-AES256-SHA384"
+    nginx.ingress.kubernetes.io/ssl-protocols: "TLSv1.2 TLSv1.3"
+    
+    # Caching
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+      }
+spec:
+  tls:
+  - hosts:
+    - medianest.yourdomain.com
+    - api.medianest.yourdomain.com
+    secretName: medianest-tls
+  rules:
+  - host: medianest.yourdomain.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: medianest-frontend-service
+            port:
+              number: 3000
+  - host: api.medianest.yourdomain.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: medianest-backend-service
+            port:
+              number: 4000
+---
+# Cert-Manager ClusterIssuer for Let's Encrypt
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: admin@yourdomain.com
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    solvers:
+    - http01:
+        ingress:
+          class: nginx
+---
+# Alternative Ingress for API with separate domain
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: medianest-api-ingress
+  namespace: medianest-prod
+  labels:
+    app: medianest-backend
+    component: api-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://medianest.yourdomain.com"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Content-Type, Authorization, X-Requested-With"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    
+    # API Rate Limiting (more restrictive)
+    nginx.ingress.kubernetes.io/rate-limit: "200"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+    nginx.ingress.kubernetes.io/rate-limit-connections: "20"
+spec:
+  tls:
+  - hosts:
+    - api.medianest.yourdomain.com
+    secretName: medianest-api-tls
+  rules:
+  - host: api.medianest.yourdomain.com
+    http:
+      paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: medianest-backend-service
+            port:
+              number: 4000
+      - path: /health
+        pathType: Prefix
+        backend:
+          service:
+            name: medianest-backend-service
+            port:
+              number: 4000
+      - path: /metrics
+        pathType: Prefix
+        backend:
+          service:
+            name: medianest-backend-service
+            port:
+              number: 4000
+---
+# Network Policy for Ingress Traffic
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: medianest-ingress-network-policy
+  namespace: medianest-prod
+spec:
+  podSelector:
+    matchLabels:
+      app: medianest-frontend
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: medianest-backend-ingress-network-policy
+  namespace: medianest-prod
+spec:
+  podSelector:
+    matchLabels:
+      app: medianest-backend
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 4000
+  - from:
+    - podSelector:
+        matchLabels:
+          app: medianest-frontend
+    ports:
+    - protocol: TCP
+      port: 4000
