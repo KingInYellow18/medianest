@@ -1,27 +1,619 @@
 import { z } from 'zod';
-export declare const EnvironmentSchema: any;
+export declare const EnvironmentSchema: z.ZodEnum<["development", "test", "production"]>;
 export type Environment = z.infer<typeof EnvironmentSchema>;
-export declare const LogLevelSchema: any;
+export declare const LogLevelSchema: z.ZodEnum<["error", "warn", "info", "debug"]>;
 export type LogLevel = z.infer<typeof LogLevelSchema>;
-export declare const BaseConfigSchema: any;
-export declare const DatabaseConfigSchema: any;
-export declare const RedisConfigSchema: any;
-export declare const JWTConfigSchema: any;
-export declare const NextAuthConfigSchema: any;
-export declare const PlexConfigSchema: any;
-export declare const EncryptionConfigSchema: any;
-export declare const RateLimitConfigSchema: any;
-export declare const YouTubeConfigSchema: any;
-export declare const AdminConfigSchema: any;
-export declare const ServerConfigSchema: any;
-export declare const ServiceEndpointsSchema: any;
-export declare const MonitoringConfigSchema: any;
-export declare const DockerSecretsSchema: any;
-export declare const BackendConfigSchema: any;
+export declare const BaseConfigSchema: z.ZodObject<{
+    NODE_ENV: z.ZodDefault<z.ZodEnum<["development", "test", "production"]>>;
+    LOG_LEVEL: z.ZodDefault<z.ZodEnum<["error", "warn", "info", "debug"]>>;
+}, "strip", z.ZodTypeAny, {
+    NODE_ENV: "production" | "development" | "test";
+    LOG_LEVEL: "error" | "warn" | "info" | "debug";
+}, {
+    NODE_ENV?: "production" | "development" | "test" | undefined;
+    LOG_LEVEL?: "error" | "warn" | "info" | "debug" | undefined;
+}>;
+export declare const DatabaseConfigSchema: z.ZodObject<{
+    DATABASE_URL: z.ZodString;
+    DATABASE_POOL_SIZE: z.ZodDefault<z.ZodNumber>;
+    DATABASE_TIMEOUT: z.ZodDefault<z.ZodNumber>;
+}, "strip", z.ZodTypeAny, {
+    DATABASE_URL: string;
+    DATABASE_POOL_SIZE: number;
+    DATABASE_TIMEOUT: number;
+}, {
+    DATABASE_URL: string;
+    DATABASE_POOL_SIZE?: number | undefined;
+    DATABASE_TIMEOUT?: number | undefined;
+}>;
+export declare const RedisConfigSchema: z.ZodObject<{
+    REDIS_URL: z.ZodOptional<z.ZodString>;
+    REDIS_HOST: z.ZodDefault<z.ZodString>;
+    REDIS_PORT: z.ZodDefault<z.ZodNumber>;
+    REDIS_PASSWORD: z.ZodOptional<z.ZodString>;
+    REDIS_USERNAME: z.ZodOptional<z.ZodString>;
+    REDIS_DATABASE: z.ZodDefault<z.ZodNumber>;
+    REDIS_TLS: z.ZodDefault<z.ZodBoolean>;
+}, "strip", z.ZodTypeAny, {
+    REDIS_HOST: string;
+    REDIS_PORT: number;
+    REDIS_DATABASE: number;
+    REDIS_TLS: boolean;
+    REDIS_URL?: string | undefined;
+    REDIS_PASSWORD?: string | undefined;
+    REDIS_USERNAME?: string | undefined;
+}, {
+    REDIS_URL?: string | undefined;
+    REDIS_HOST?: string | undefined;
+    REDIS_PORT?: number | undefined;
+    REDIS_PASSWORD?: string | undefined;
+    REDIS_USERNAME?: string | undefined;
+    REDIS_DATABASE?: number | undefined;
+    REDIS_TLS?: boolean | undefined;
+}>;
+export declare const JWTConfigSchema: z.ZodObject<{
+    JWT_SECRET: z.ZodString;
+    JWT_ISSUER: z.ZodDefault<z.ZodString>;
+    JWT_AUDIENCE: z.ZodDefault<z.ZodString>;
+    JWT_EXPIRES_IN: z.ZodDefault<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    JWT_SECRET: string;
+    JWT_ISSUER: string;
+    JWT_AUDIENCE: string;
+    JWT_EXPIRES_IN: string;
+}, {
+    JWT_SECRET: string;
+    JWT_ISSUER?: string | undefined;
+    JWT_AUDIENCE?: string | undefined;
+    JWT_EXPIRES_IN?: string | undefined;
+}>;
+export declare const NextAuthConfigSchema: z.ZodObject<{
+    NEXTAUTH_URL: z.ZodString;
+    NEXTAUTH_SECRET: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    NEXTAUTH_URL: string;
+    NEXTAUTH_SECRET: string;
+}, {
+    NEXTAUTH_URL: string;
+    NEXTAUTH_SECRET: string;
+}>;
+export declare const PlexConfigSchema: z.ZodObject<{
+    PLEX_CLIENT_ID: z.ZodString;
+    PLEX_CLIENT_SECRET: z.ZodString;
+    PLEX_CLIENT_IDENTIFIER: z.ZodOptional<z.ZodString>;
+    PLEX_SERVER_URL: z.ZodOptional<z.ZodString>;
+    PLEX_YOUTUBE_LIBRARY_PATH: z.ZodDefault<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    PLEX_CLIENT_ID: string;
+    PLEX_CLIENT_SECRET: string;
+    PLEX_YOUTUBE_LIBRARY_PATH: string;
+    PLEX_CLIENT_IDENTIFIER?: string | undefined;
+    PLEX_SERVER_URL?: string | undefined;
+}, {
+    PLEX_CLIENT_ID: string;
+    PLEX_CLIENT_SECRET: string;
+    PLEX_CLIENT_IDENTIFIER?: string | undefined;
+    PLEX_SERVER_URL?: string | undefined;
+    PLEX_YOUTUBE_LIBRARY_PATH?: string | undefined;
+}>;
+export declare const EncryptionConfigSchema: z.ZodObject<{
+    ENCRYPTION_KEY: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    ENCRYPTION_KEY: string;
+}, {
+    ENCRYPTION_KEY: string;
+}>;
+export declare const RateLimitConfigSchema: z.ZodObject<{
+    RATE_LIMIT_API_REQUESTS: z.ZodDefault<z.ZodNumber>;
+    RATE_LIMIT_API_WINDOW: z.ZodDefault<z.ZodNumber>;
+    RATE_LIMIT_YOUTUBE_REQUESTS: z.ZodDefault<z.ZodNumber>;
+    RATE_LIMIT_YOUTUBE_WINDOW: z.ZodDefault<z.ZodNumber>;
+    RATE_LIMIT_MEDIA_REQUESTS: z.ZodDefault<z.ZodNumber>;
+    RATE_LIMIT_MEDIA_WINDOW: z.ZodDefault<z.ZodNumber>;
+}, "strip", z.ZodTypeAny, {
+    RATE_LIMIT_API_REQUESTS: number;
+    RATE_LIMIT_API_WINDOW: number;
+    RATE_LIMIT_YOUTUBE_REQUESTS: number;
+    RATE_LIMIT_YOUTUBE_WINDOW: number;
+    RATE_LIMIT_MEDIA_REQUESTS: number;
+    RATE_LIMIT_MEDIA_WINDOW: number;
+}, {
+    RATE_LIMIT_API_REQUESTS?: number | undefined;
+    RATE_LIMIT_API_WINDOW?: number | undefined;
+    RATE_LIMIT_YOUTUBE_REQUESTS?: number | undefined;
+    RATE_LIMIT_YOUTUBE_WINDOW?: number | undefined;
+    RATE_LIMIT_MEDIA_REQUESTS?: number | undefined;
+    RATE_LIMIT_MEDIA_WINDOW?: number | undefined;
+}>;
+export declare const YouTubeConfigSchema: z.ZodObject<{
+    YOUTUBE_DOWNLOAD_PATH: z.ZodDefault<z.ZodString>;
+    YOUTUBE_MAX_CONCURRENT_DOWNLOADS: z.ZodDefault<z.ZodNumber>;
+    YOUTUBE_RATE_LIMIT: z.ZodDefault<z.ZodNumber>;
+}, "strip", z.ZodTypeAny, {
+    YOUTUBE_DOWNLOAD_PATH: string;
+    YOUTUBE_MAX_CONCURRENT_DOWNLOADS: number;
+    YOUTUBE_RATE_LIMIT: number;
+}, {
+    YOUTUBE_DOWNLOAD_PATH?: string | undefined;
+    YOUTUBE_MAX_CONCURRENT_DOWNLOADS?: number | undefined;
+    YOUTUBE_RATE_LIMIT?: number | undefined;
+}>;
+export declare const AdminConfigSchema: z.ZodObject<{
+    ADMIN_USERNAME: z.ZodDefault<z.ZodString>;
+    ADMIN_PASSWORD: z.ZodDefault<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    ADMIN_USERNAME: string;
+    ADMIN_PASSWORD: string;
+}, {
+    ADMIN_USERNAME?: string | undefined;
+    ADMIN_PASSWORD?: string | undefined;
+}>;
+export declare const ServerConfigSchema: z.ZodObject<{
+    PORT: z.ZodDefault<z.ZodNumber>;
+    HOST: z.ZodDefault<z.ZodString>;
+    FRONTEND_URL: z.ZodDefault<z.ZodString>;
+    BACKEND_URL: z.ZodDefault<z.ZodString>;
+    API_PREFIX: z.ZodDefault<z.ZodString>;
+    API_VERSION: z.ZodDefault<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    PORT: number;
+    HOST: string;
+    FRONTEND_URL: string;
+    BACKEND_URL: string;
+    API_PREFIX: string;
+    API_VERSION: string;
+}, {
+    PORT?: number | undefined;
+    HOST?: string | undefined;
+    FRONTEND_URL?: string | undefined;
+    BACKEND_URL?: string | undefined;
+    API_PREFIX?: string | undefined;
+    API_VERSION?: string | undefined;
+}>;
+export declare const ServiceEndpointsSchema: z.ZodObject<{
+    OVERSEERR_URL: z.ZodOptional<z.ZodString>;
+    OVERSEERR_API_KEY: z.ZodOptional<z.ZodString>;
+    UPTIME_KUMA_URL: z.ZodOptional<z.ZodString>;
+    UPTIME_KUMA_TOKEN: z.ZodOptional<z.ZodString>;
+    PLEX_URL: z.ZodOptional<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    OVERSEERR_URL?: string | undefined;
+    OVERSEERR_API_KEY?: string | undefined;
+    UPTIME_KUMA_URL?: string | undefined;
+    UPTIME_KUMA_TOKEN?: string | undefined;
+    PLEX_URL?: string | undefined;
+}, {
+    OVERSEERR_URL?: string | undefined;
+    OVERSEERR_API_KEY?: string | undefined;
+    UPTIME_KUMA_URL?: string | undefined;
+    UPTIME_KUMA_TOKEN?: string | undefined;
+    PLEX_URL?: string | undefined;
+}>;
+export declare const MonitoringConfigSchema: z.ZodObject<{
+    METRICS_TOKEN: z.ZodOptional<z.ZodString>;
+    METRICS_ENDPOINT: z.ZodOptional<z.ZodString>;
+    ERROR_REPORTING_ENDPOINT: z.ZodOptional<z.ZodString>;
+    HEALTH_CHECK_INTERVAL: z.ZodDefault<z.ZodNumber>;
+}, "strip", z.ZodTypeAny, {
+    HEALTH_CHECK_INTERVAL: number;
+    METRICS_TOKEN?: string | undefined;
+    METRICS_ENDPOINT?: string | undefined;
+    ERROR_REPORTING_ENDPOINT?: string | undefined;
+}, {
+    METRICS_TOKEN?: string | undefined;
+    METRICS_ENDPOINT?: string | undefined;
+    ERROR_REPORTING_ENDPOINT?: string | undefined;
+    HEALTH_CHECK_INTERVAL?: number | undefined;
+}>;
+export declare const DockerSecretsSchema: z.ZodObject<{
+    DOCKER_SECRETS_PATH: z.ZodDefault<z.ZodString>;
+    USE_DOCKER_SECRETS: z.ZodDefault<z.ZodBoolean>;
+}, "strip", z.ZodTypeAny, {
+    DOCKER_SECRETS_PATH: string;
+    USE_DOCKER_SECRETS: boolean;
+}, {
+    DOCKER_SECRETS_PATH?: string | undefined;
+    USE_DOCKER_SECRETS?: boolean | undefined;
+}>;
+export declare const BackendConfigSchema: z.ZodObject<{
+    NODE_ENV: z.ZodDefault<z.ZodEnum<["development", "test", "production"]>>;
+    LOG_LEVEL: z.ZodDefault<z.ZodEnum<["error", "warn", "info", "debug"]>>;
+} & {
+    DATABASE_URL: z.ZodString;
+    DATABASE_POOL_SIZE: z.ZodDefault<z.ZodNumber>;
+    DATABASE_TIMEOUT: z.ZodDefault<z.ZodNumber>;
+} & {
+    REDIS_URL: z.ZodOptional<z.ZodString>;
+    REDIS_HOST: z.ZodDefault<z.ZodString>;
+    REDIS_PORT: z.ZodDefault<z.ZodNumber>;
+    REDIS_PASSWORD: z.ZodOptional<z.ZodString>;
+    REDIS_USERNAME: z.ZodOptional<z.ZodString>;
+    REDIS_DATABASE: z.ZodDefault<z.ZodNumber>;
+    REDIS_TLS: z.ZodDefault<z.ZodBoolean>;
+} & {
+    JWT_SECRET: z.ZodString;
+    JWT_ISSUER: z.ZodDefault<z.ZodString>;
+    JWT_AUDIENCE: z.ZodDefault<z.ZodString>;
+    JWT_EXPIRES_IN: z.ZodDefault<z.ZodString>;
+} & {
+    PLEX_CLIENT_ID: z.ZodString;
+    PLEX_CLIENT_SECRET: z.ZodString;
+    PLEX_CLIENT_IDENTIFIER: z.ZodOptional<z.ZodString>;
+    PLEX_SERVER_URL: z.ZodOptional<z.ZodString>;
+    PLEX_YOUTUBE_LIBRARY_PATH: z.ZodDefault<z.ZodString>;
+} & {
+    ENCRYPTION_KEY: z.ZodString;
+} & {
+    RATE_LIMIT_API_REQUESTS: z.ZodDefault<z.ZodNumber>;
+    RATE_LIMIT_API_WINDOW: z.ZodDefault<z.ZodNumber>;
+    RATE_LIMIT_YOUTUBE_REQUESTS: z.ZodDefault<z.ZodNumber>;
+    RATE_LIMIT_YOUTUBE_WINDOW: z.ZodDefault<z.ZodNumber>;
+    RATE_LIMIT_MEDIA_REQUESTS: z.ZodDefault<z.ZodNumber>;
+    RATE_LIMIT_MEDIA_WINDOW: z.ZodDefault<z.ZodNumber>;
+} & {
+    YOUTUBE_DOWNLOAD_PATH: z.ZodDefault<z.ZodString>;
+    YOUTUBE_MAX_CONCURRENT_DOWNLOADS: z.ZodDefault<z.ZodNumber>;
+    YOUTUBE_RATE_LIMIT: z.ZodDefault<z.ZodNumber>;
+} & {
+    ADMIN_USERNAME: z.ZodDefault<z.ZodString>;
+    ADMIN_PASSWORD: z.ZodDefault<z.ZodString>;
+} & {
+    PORT: z.ZodDefault<z.ZodNumber>;
+    HOST: z.ZodDefault<z.ZodString>;
+    FRONTEND_URL: z.ZodDefault<z.ZodString>;
+    BACKEND_URL: z.ZodDefault<z.ZodString>;
+    API_PREFIX: z.ZodDefault<z.ZodString>;
+    API_VERSION: z.ZodDefault<z.ZodString>;
+} & {
+    OVERSEERR_URL: z.ZodOptional<z.ZodString>;
+    OVERSEERR_API_KEY: z.ZodOptional<z.ZodString>;
+    UPTIME_KUMA_URL: z.ZodOptional<z.ZodString>;
+    UPTIME_KUMA_TOKEN: z.ZodOptional<z.ZodString>;
+    PLEX_URL: z.ZodOptional<z.ZodString>;
+} & {
+    METRICS_TOKEN: z.ZodOptional<z.ZodString>;
+    METRICS_ENDPOINT: z.ZodOptional<z.ZodString>;
+    ERROR_REPORTING_ENDPOINT: z.ZodOptional<z.ZodString>;
+    HEALTH_CHECK_INTERVAL: z.ZodDefault<z.ZodNumber>;
+} & {
+    DOCKER_SECRETS_PATH: z.ZodDefault<z.ZodString>;
+    USE_DOCKER_SECRETS: z.ZodDefault<z.ZodBoolean>;
+}, "strip", z.ZodTypeAny, {
+    NODE_ENV: "production" | "development" | "test";
+    LOG_LEVEL: "error" | "warn" | "info" | "debug";
+    DATABASE_URL: string;
+    DATABASE_POOL_SIZE: number;
+    DATABASE_TIMEOUT: number;
+    REDIS_HOST: string;
+    REDIS_PORT: number;
+    REDIS_DATABASE: number;
+    REDIS_TLS: boolean;
+    JWT_SECRET: string;
+    JWT_ISSUER: string;
+    JWT_AUDIENCE: string;
+    JWT_EXPIRES_IN: string;
+    PLEX_CLIENT_ID: string;
+    PLEX_CLIENT_SECRET: string;
+    PLEX_YOUTUBE_LIBRARY_PATH: string;
+    ENCRYPTION_KEY: string;
+    RATE_LIMIT_API_REQUESTS: number;
+    RATE_LIMIT_API_WINDOW: number;
+    RATE_LIMIT_YOUTUBE_REQUESTS: number;
+    RATE_LIMIT_YOUTUBE_WINDOW: number;
+    RATE_LIMIT_MEDIA_REQUESTS: number;
+    RATE_LIMIT_MEDIA_WINDOW: number;
+    YOUTUBE_DOWNLOAD_PATH: string;
+    YOUTUBE_MAX_CONCURRENT_DOWNLOADS: number;
+    YOUTUBE_RATE_LIMIT: number;
+    ADMIN_USERNAME: string;
+    ADMIN_PASSWORD: string;
+    PORT: number;
+    HOST: string;
+    FRONTEND_URL: string;
+    BACKEND_URL: string;
+    API_PREFIX: string;
+    API_VERSION: string;
+    HEALTH_CHECK_INTERVAL: number;
+    DOCKER_SECRETS_PATH: string;
+    USE_DOCKER_SECRETS: boolean;
+    REDIS_URL?: string | undefined;
+    REDIS_PASSWORD?: string | undefined;
+    REDIS_USERNAME?: string | undefined;
+    PLEX_CLIENT_IDENTIFIER?: string | undefined;
+    PLEX_SERVER_URL?: string | undefined;
+    OVERSEERR_URL?: string | undefined;
+    OVERSEERR_API_KEY?: string | undefined;
+    UPTIME_KUMA_URL?: string | undefined;
+    UPTIME_KUMA_TOKEN?: string | undefined;
+    PLEX_URL?: string | undefined;
+    METRICS_TOKEN?: string | undefined;
+    METRICS_ENDPOINT?: string | undefined;
+    ERROR_REPORTING_ENDPOINT?: string | undefined;
+}, {
+    DATABASE_URL: string;
+    JWT_SECRET: string;
+    PLEX_CLIENT_ID: string;
+    PLEX_CLIENT_SECRET: string;
+    ENCRYPTION_KEY: string;
+    NODE_ENV?: "production" | "development" | "test" | undefined;
+    LOG_LEVEL?: "error" | "warn" | "info" | "debug" | undefined;
+    DATABASE_POOL_SIZE?: number | undefined;
+    DATABASE_TIMEOUT?: number | undefined;
+    REDIS_URL?: string | undefined;
+    REDIS_HOST?: string | undefined;
+    REDIS_PORT?: number | undefined;
+    REDIS_PASSWORD?: string | undefined;
+    REDIS_USERNAME?: string | undefined;
+    REDIS_DATABASE?: number | undefined;
+    REDIS_TLS?: boolean | undefined;
+    JWT_ISSUER?: string | undefined;
+    JWT_AUDIENCE?: string | undefined;
+    JWT_EXPIRES_IN?: string | undefined;
+    PLEX_CLIENT_IDENTIFIER?: string | undefined;
+    PLEX_SERVER_URL?: string | undefined;
+    PLEX_YOUTUBE_LIBRARY_PATH?: string | undefined;
+    RATE_LIMIT_API_REQUESTS?: number | undefined;
+    RATE_LIMIT_API_WINDOW?: number | undefined;
+    RATE_LIMIT_YOUTUBE_REQUESTS?: number | undefined;
+    RATE_LIMIT_YOUTUBE_WINDOW?: number | undefined;
+    RATE_LIMIT_MEDIA_REQUESTS?: number | undefined;
+    RATE_LIMIT_MEDIA_WINDOW?: number | undefined;
+    YOUTUBE_DOWNLOAD_PATH?: string | undefined;
+    YOUTUBE_MAX_CONCURRENT_DOWNLOADS?: number | undefined;
+    YOUTUBE_RATE_LIMIT?: number | undefined;
+    ADMIN_USERNAME?: string | undefined;
+    ADMIN_PASSWORD?: string | undefined;
+    PORT?: number | undefined;
+    HOST?: string | undefined;
+    FRONTEND_URL?: string | undefined;
+    BACKEND_URL?: string | undefined;
+    API_PREFIX?: string | undefined;
+    API_VERSION?: string | undefined;
+    OVERSEERR_URL?: string | undefined;
+    OVERSEERR_API_KEY?: string | undefined;
+    UPTIME_KUMA_URL?: string | undefined;
+    UPTIME_KUMA_TOKEN?: string | undefined;
+    PLEX_URL?: string | undefined;
+    METRICS_TOKEN?: string | undefined;
+    METRICS_ENDPOINT?: string | undefined;
+    ERROR_REPORTING_ENDPOINT?: string | undefined;
+    HEALTH_CHECK_INTERVAL?: number | undefined;
+    DOCKER_SECRETS_PATH?: string | undefined;
+    USE_DOCKER_SECRETS?: boolean | undefined;
+}>;
 export type BackendConfig = z.infer<typeof BackendConfigSchema>;
-export declare const FrontendConfigSchema: any;
+export declare const FrontendConfigSchema: z.ZodObject<{
+    NODE_ENV: z.ZodDefault<z.ZodEnum<["development", "test", "production"]>>;
+    LOG_LEVEL: z.ZodDefault<z.ZodEnum<["error", "warn", "info", "debug"]>>;
+} & {
+    NEXTAUTH_URL: z.ZodString;
+    NEXTAUTH_SECRET: z.ZodString;
+} & {
+    NEXT_PUBLIC_API_URL: z.ZodDefault<z.ZodString>;
+    NEXT_PUBLIC_BACKEND_URL: z.ZodDefault<z.ZodString>;
+    NEXT_PUBLIC_WS_URL: z.ZodDefault<z.ZodString>;
+    NEXT_PUBLIC_PLEX_URL: z.ZodOptional<z.ZodString>;
+    NEXT_PUBLIC_OVERSEERR_URL: z.ZodOptional<z.ZodString>;
+    NEXT_PUBLIC_ERROR_REPORTING_ENDPOINT: z.ZodOptional<z.ZodString>;
+    NEXT_PUBLIC_APP_NAME: z.ZodDefault<z.ZodString>;
+    NEXT_PUBLIC_APP_VERSION: z.ZodDefault<z.ZodString>;
+} & Pick<{
+    PLEX_CLIENT_ID: z.ZodString;
+    PLEX_CLIENT_SECRET: z.ZodString;
+    PLEX_CLIENT_IDENTIFIER: z.ZodOptional<z.ZodString>;
+    PLEX_SERVER_URL: z.ZodOptional<z.ZodString>;
+    PLEX_YOUTUBE_LIBRARY_PATH: z.ZodDefault<z.ZodString>;
+}, "PLEX_CLIENT_ID" | "PLEX_CLIENT_SECRET">, "strip", z.ZodTypeAny, {
+    NODE_ENV: "production" | "development" | "test";
+    LOG_LEVEL: "error" | "warn" | "info" | "debug";
+    NEXTAUTH_URL: string;
+    NEXTAUTH_SECRET: string;
+    PLEX_CLIENT_ID: string;
+    PLEX_CLIENT_SECRET: string;
+    NEXT_PUBLIC_API_URL: string;
+    NEXT_PUBLIC_BACKEND_URL: string;
+    NEXT_PUBLIC_WS_URL: string;
+    NEXT_PUBLIC_APP_NAME: string;
+    NEXT_PUBLIC_APP_VERSION: string;
+    NEXT_PUBLIC_PLEX_URL?: string | undefined;
+    NEXT_PUBLIC_OVERSEERR_URL?: string | undefined;
+    NEXT_PUBLIC_ERROR_REPORTING_ENDPOINT?: string | undefined;
+}, {
+    NEXTAUTH_URL: string;
+    NEXTAUTH_SECRET: string;
+    PLEX_CLIENT_ID: string;
+    PLEX_CLIENT_SECRET: string;
+    NODE_ENV?: "production" | "development" | "test" | undefined;
+    LOG_LEVEL?: "error" | "warn" | "info" | "debug" | undefined;
+    NEXT_PUBLIC_API_URL?: string | undefined;
+    NEXT_PUBLIC_BACKEND_URL?: string | undefined;
+    NEXT_PUBLIC_WS_URL?: string | undefined;
+    NEXT_PUBLIC_PLEX_URL?: string | undefined;
+    NEXT_PUBLIC_OVERSEERR_URL?: string | undefined;
+    NEXT_PUBLIC_ERROR_REPORTING_ENDPOINT?: string | undefined;
+    NEXT_PUBLIC_APP_NAME?: string | undefined;
+    NEXT_PUBLIC_APP_VERSION?: string | undefined;
+}>;
 export type FrontendConfig = z.infer<typeof FrontendConfigSchema>;
-export declare const TestConfigSchema: any;
+export declare const TestConfigSchema: z.ZodObject<{
+    NODE_ENV: z.ZodDefault<z.ZodEnum<["development", "test", "production"]>>;
+    LOG_LEVEL: z.ZodDefault<z.ZodEnum<["error", "warn", "info", "debug"]>>;
+} & {
+    DATABASE_URL: z.ZodString;
+    DATABASE_POOL_SIZE: z.ZodDefault<z.ZodNumber>;
+    DATABASE_TIMEOUT: z.ZodDefault<z.ZodNumber>;
+} & {
+    REDIS_URL: z.ZodOptional<z.ZodString>;
+    REDIS_HOST: z.ZodDefault<z.ZodString>;
+    REDIS_PORT: z.ZodDefault<z.ZodNumber>;
+    REDIS_PASSWORD: z.ZodOptional<z.ZodString>;
+    REDIS_USERNAME: z.ZodOptional<z.ZodString>;
+    REDIS_DATABASE: z.ZodDefault<z.ZodNumber>;
+    REDIS_TLS: z.ZodDefault<z.ZodBoolean>;
+} & {
+    JWT_SECRET: z.ZodString;
+    JWT_ISSUER: z.ZodDefault<z.ZodString>;
+    JWT_AUDIENCE: z.ZodDefault<z.ZodString>;
+    JWT_EXPIRES_IN: z.ZodDefault<z.ZodString>;
+} & {
+    PLEX_CLIENT_ID: z.ZodString;
+    PLEX_CLIENT_SECRET: z.ZodString;
+    PLEX_CLIENT_IDENTIFIER: z.ZodOptional<z.ZodString>;
+    PLEX_SERVER_URL: z.ZodOptional<z.ZodString>;
+    PLEX_YOUTUBE_LIBRARY_PATH: z.ZodDefault<z.ZodString>;
+} & {
+    ENCRYPTION_KEY: z.ZodString;
+} & {
+    RATE_LIMIT_API_REQUESTS: z.ZodDefault<z.ZodNumber>;
+    RATE_LIMIT_API_WINDOW: z.ZodDefault<z.ZodNumber>;
+    RATE_LIMIT_YOUTUBE_REQUESTS: z.ZodDefault<z.ZodNumber>;
+    RATE_LIMIT_YOUTUBE_WINDOW: z.ZodDefault<z.ZodNumber>;
+    RATE_LIMIT_MEDIA_REQUESTS: z.ZodDefault<z.ZodNumber>;
+    RATE_LIMIT_MEDIA_WINDOW: z.ZodDefault<z.ZodNumber>;
+} & {
+    YOUTUBE_DOWNLOAD_PATH: z.ZodDefault<z.ZodString>;
+    YOUTUBE_MAX_CONCURRENT_DOWNLOADS: z.ZodDefault<z.ZodNumber>;
+    YOUTUBE_RATE_LIMIT: z.ZodDefault<z.ZodNumber>;
+} & {
+    ADMIN_USERNAME: z.ZodDefault<z.ZodString>;
+    ADMIN_PASSWORD: z.ZodDefault<z.ZodString>;
+} & {
+    PORT: z.ZodDefault<z.ZodNumber>;
+    HOST: z.ZodDefault<z.ZodString>;
+    FRONTEND_URL: z.ZodDefault<z.ZodString>;
+    BACKEND_URL: z.ZodDefault<z.ZodString>;
+    API_PREFIX: z.ZodDefault<z.ZodString>;
+    API_VERSION: z.ZodDefault<z.ZodString>;
+} & {
+    OVERSEERR_URL: z.ZodOptional<z.ZodString>;
+    OVERSEERR_API_KEY: z.ZodOptional<z.ZodString>;
+    UPTIME_KUMA_URL: z.ZodOptional<z.ZodString>;
+    UPTIME_KUMA_TOKEN: z.ZodOptional<z.ZodString>;
+    PLEX_URL: z.ZodOptional<z.ZodString>;
+} & {
+    METRICS_TOKEN: z.ZodOptional<z.ZodString>;
+    METRICS_ENDPOINT: z.ZodOptional<z.ZodString>;
+    ERROR_REPORTING_ENDPOINT: z.ZodOptional<z.ZodString>;
+    HEALTH_CHECK_INTERVAL: z.ZodDefault<z.ZodNumber>;
+} & {
+    DOCKER_SECRETS_PATH: z.ZodDefault<z.ZodString>;
+    USE_DOCKER_SECRETS: z.ZodDefault<z.ZodBoolean>;
+} & {
+    TEST_DATABASE_URL: z.ZodOptional<z.ZodString>;
+    TEST_REDIS_URL: z.ZodOptional<z.ZodString>;
+    TEST_PORT: z.ZodDefault<z.ZodNumber>;
+    TEST_TIMEOUT: z.ZodDefault<z.ZodNumber>;
+}, "strip", z.ZodTypeAny, {
+    NODE_ENV: "production" | "development" | "test";
+    LOG_LEVEL: "error" | "warn" | "info" | "debug";
+    DATABASE_URL: string;
+    DATABASE_POOL_SIZE: number;
+    DATABASE_TIMEOUT: number;
+    REDIS_HOST: string;
+    REDIS_PORT: number;
+    REDIS_DATABASE: number;
+    REDIS_TLS: boolean;
+    JWT_SECRET: string;
+    JWT_ISSUER: string;
+    JWT_AUDIENCE: string;
+    JWT_EXPIRES_IN: string;
+    PLEX_CLIENT_ID: string;
+    PLEX_CLIENT_SECRET: string;
+    PLEX_YOUTUBE_LIBRARY_PATH: string;
+    ENCRYPTION_KEY: string;
+    RATE_LIMIT_API_REQUESTS: number;
+    RATE_LIMIT_API_WINDOW: number;
+    RATE_LIMIT_YOUTUBE_REQUESTS: number;
+    RATE_LIMIT_YOUTUBE_WINDOW: number;
+    RATE_LIMIT_MEDIA_REQUESTS: number;
+    RATE_LIMIT_MEDIA_WINDOW: number;
+    YOUTUBE_DOWNLOAD_PATH: string;
+    YOUTUBE_MAX_CONCURRENT_DOWNLOADS: number;
+    YOUTUBE_RATE_LIMIT: number;
+    ADMIN_USERNAME: string;
+    ADMIN_PASSWORD: string;
+    PORT: number;
+    HOST: string;
+    FRONTEND_URL: string;
+    BACKEND_URL: string;
+    API_PREFIX: string;
+    API_VERSION: string;
+    HEALTH_CHECK_INTERVAL: number;
+    DOCKER_SECRETS_PATH: string;
+    USE_DOCKER_SECRETS: boolean;
+    TEST_PORT: number;
+    TEST_TIMEOUT: number;
+    REDIS_URL?: string | undefined;
+    REDIS_PASSWORD?: string | undefined;
+    REDIS_USERNAME?: string | undefined;
+    PLEX_CLIENT_IDENTIFIER?: string | undefined;
+    PLEX_SERVER_URL?: string | undefined;
+    OVERSEERR_URL?: string | undefined;
+    OVERSEERR_API_KEY?: string | undefined;
+    UPTIME_KUMA_URL?: string | undefined;
+    UPTIME_KUMA_TOKEN?: string | undefined;
+    PLEX_URL?: string | undefined;
+    METRICS_TOKEN?: string | undefined;
+    METRICS_ENDPOINT?: string | undefined;
+    ERROR_REPORTING_ENDPOINT?: string | undefined;
+    TEST_DATABASE_URL?: string | undefined;
+    TEST_REDIS_URL?: string | undefined;
+}, {
+    DATABASE_URL: string;
+    JWT_SECRET: string;
+    PLEX_CLIENT_ID: string;
+    PLEX_CLIENT_SECRET: string;
+    ENCRYPTION_KEY: string;
+    NODE_ENV?: "production" | "development" | "test" | undefined;
+    LOG_LEVEL?: "error" | "warn" | "info" | "debug" | undefined;
+    DATABASE_POOL_SIZE?: number | undefined;
+    DATABASE_TIMEOUT?: number | undefined;
+    REDIS_URL?: string | undefined;
+    REDIS_HOST?: string | undefined;
+    REDIS_PORT?: number | undefined;
+    REDIS_PASSWORD?: string | undefined;
+    REDIS_USERNAME?: string | undefined;
+    REDIS_DATABASE?: number | undefined;
+    REDIS_TLS?: boolean | undefined;
+    JWT_ISSUER?: string | undefined;
+    JWT_AUDIENCE?: string | undefined;
+    JWT_EXPIRES_IN?: string | undefined;
+    PLEX_CLIENT_IDENTIFIER?: string | undefined;
+    PLEX_SERVER_URL?: string | undefined;
+    PLEX_YOUTUBE_LIBRARY_PATH?: string | undefined;
+    RATE_LIMIT_API_REQUESTS?: number | undefined;
+    RATE_LIMIT_API_WINDOW?: number | undefined;
+    RATE_LIMIT_YOUTUBE_REQUESTS?: number | undefined;
+    RATE_LIMIT_YOUTUBE_WINDOW?: number | undefined;
+    RATE_LIMIT_MEDIA_REQUESTS?: number | undefined;
+    RATE_LIMIT_MEDIA_WINDOW?: number | undefined;
+    YOUTUBE_DOWNLOAD_PATH?: string | undefined;
+    YOUTUBE_MAX_CONCURRENT_DOWNLOADS?: number | undefined;
+    YOUTUBE_RATE_LIMIT?: number | undefined;
+    ADMIN_USERNAME?: string | undefined;
+    ADMIN_PASSWORD?: string | undefined;
+    PORT?: number | undefined;
+    HOST?: string | undefined;
+    FRONTEND_URL?: string | undefined;
+    BACKEND_URL?: string | undefined;
+    API_PREFIX?: string | undefined;
+    API_VERSION?: string | undefined;
+    OVERSEERR_URL?: string | undefined;
+    OVERSEERR_API_KEY?: string | undefined;
+    UPTIME_KUMA_URL?: string | undefined;
+    UPTIME_KUMA_TOKEN?: string | undefined;
+    PLEX_URL?: string | undefined;
+    METRICS_TOKEN?: string | undefined;
+    METRICS_ENDPOINT?: string | undefined;
+    ERROR_REPORTING_ENDPOINT?: string | undefined;
+    HEALTH_CHECK_INTERVAL?: number | undefined;
+    DOCKER_SECRETS_PATH?: string | undefined;
+    USE_DOCKER_SECRETS?: boolean | undefined;
+    TEST_DATABASE_URL?: string | undefined;
+    TEST_REDIS_URL?: string | undefined;
+    TEST_PORT?: number | undefined;
+    TEST_TIMEOUT?: number | undefined;
+}>;
 export type TestConfig = z.infer<typeof TestConfigSchema>;
 export declare const formatValidationError: (error: z.ZodError) => string;
 export declare const createConfigValidator: <T extends z.ZodSchema>(schema: T) => (env: Record<string, unknown>) => z.infer<T>;
