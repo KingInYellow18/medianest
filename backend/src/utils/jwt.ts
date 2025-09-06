@@ -70,7 +70,7 @@ export function generateToken(
     issuer: options?.issuer || JWT_ISSUER,
     audience: options?.audience || JWT_AUDIENCE,
     algorithm: 'HS256',
-    notBefore: 0, // Token valid immediately
+    notBefore: '0s', // Token valid immediately
   };
 
   const token = jwt.sign(enhancedPayload, JWT_SECRET, tokenOptions);

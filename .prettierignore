@@ -1,21 +1,62 @@
 # Dependencies
-node_modules
+node_modules/
+**/node_modules/
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
 # Build outputs
-dist
-build
-.next
-out
+dist/
+build/
+.next/
+out/
+coverage/
 
 # Generated files
+**/*.d.ts
+**/*.map
 *.generated.ts
 *.generated.js
-coverage
 *.lcov
 
-# Other
-.git
-.husky
+# Config files that should maintain their format
+.eslintrc.js
+eslint.config.js
+next.config.js
+tailwind.config.js
+postcss.config.js
+vitest.config.ts
+
+# Environment files
+.env*
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary folders
+.tmp/
+.temp/
+.claude/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git
+.git/
+.husky/
+
+# Database
+*.db
+*.sqlite
+
+# Documentation build
+docs/build/

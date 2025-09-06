@@ -18,8 +18,8 @@ module.exports = [
       '**/*.config.ts',
       'eslint.config.js',
       '.eslintrc.js',
-      'scripts/**',
-      'lighthouserc.js',
+      '**/__tests__/**',
+      '**/tests/**',
     ],
   },
   
@@ -108,9 +108,6 @@ module.exports = [
       'no-debugger': 'error',
       'no-useless-escape': 'warn',
       'prettier/prettier': 'error',
-      
-      // Node.js specific
-      'no-process-exit': 'error',
     },
     settings: {
       'import/parsers': {

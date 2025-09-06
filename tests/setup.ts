@@ -56,6 +56,16 @@ vi.mock('winston', () => ({
   },
 }));
 
+// Mock fetch for tests
+global.fetch = vi.fn();
+
+// Mock next-auth for tests
+vi.mock('next-auth/react', () => ({
+  signIn: vi.fn(() => Promise.resolve({ error: null })),
+  signOut: vi.fn(() => Promise.resolve()),
+  useSession: vi.fn(() => ({ data: null, status: 'unauthenticated' })),
+}));
+
 vi.mock('winston-daily-rotate-file', () => ({
   default: vi.fn(),
 }));

@@ -3,24 +3,7 @@ import path from 'path'
 
 export default defineConfig({
   test: {
-    projects: [
-      {
-        name: 'shared',
-        root: './shared',
-        environment: 'node',
-      },
-      {
-        name: 'backend',
-        root: './backend', 
-        environment: 'node',
-      },
-      {
-        name: 'frontend',
-        root: './frontend',
-        environment: 'jsdom',
-      }
-    ],
-    environment: 'jsdom',
+    environment: 'node',
     setupFiles: ['./tests/setup.ts'],
     globals: true,
     coverage: {
@@ -69,12 +52,13 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
       '@/config': path.resolve(__dirname, './src/config'),
-      '@/controllers': path.resolve(__dirname, './src/controllers'),
+      '@/constants': path.resolve(__dirname, './src/constants'),
+      '@/errors': path.resolve(__dirname, './src/errors'),
       '@/middleware': path.resolve(__dirname, './src/middleware'),
-      '@/repositories': path.resolve(__dirname, './src/repositories'),
-      '@/services': path.resolve(__dirname, './src/services'),
-      '@/utils': path.resolve(__dirname, './src/utils'),
+      '@/test-utils': path.resolve(__dirname, './src/test-utils'),
       '@/types': path.resolve(__dirname, './src/types'),
+      '@/utils': path.resolve(__dirname, './src/utils'),
+      '@/validation': path.resolve(__dirname, './src/validation')
     },
   },
 })

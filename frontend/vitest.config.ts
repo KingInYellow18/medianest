@@ -50,7 +50,7 @@ export default defineConfig({
       '@/contexts': path.resolve(__dirname, './src/contexts'),
       '@/types': path.resolve(__dirname, './types'),
       '@/utils': path.resolve(__dirname, './src/utils'),
-      '@medianest/shared': path.resolve(__dirname, '../shared/src'),
+      '@medianest/shared': path.resolve(__dirname, '../shared/dist'),
     },
   },
   resolve: {
@@ -63,7 +63,7 @@ export default defineConfig({
       '@/contexts': path.resolve(__dirname, './src/contexts'),
       '@/types': path.resolve(__dirname, './types'),
       '@/utils': path.resolve(__dirname, './src/utils'),
-      '@medianest/shared': path.resolve(__dirname, '../shared/src'),
+      '@medianest/shared': path.resolve(__dirname, '../shared/dist'),
     },
   },
 })

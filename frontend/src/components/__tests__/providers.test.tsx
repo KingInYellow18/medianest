@@ -2,6 +2,19 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { Providers } from '../providers';
 
+// Mock @/config (specific to this test)
+vi.mock('@/config', () => ({
+  getErrorReportingConfig: vi.fn(() => ({
+    endpoint: 'http://localhost:3000/api/errors',
+  })),
+  isProduction: vi.fn(() => false),
+}));
+
+// Mock @/lib/error-logger (specific to this test)
+vi.mock('@/lib/error-logger', () => ({
+  initializeErrorLogger: vi.fn(),
+}));
+
 // Mock the providers
 vi.mock('next-auth/react', () => ({
   SessionProvider: ({ children }: { children: React.ReactNode }) => (
@@ -23,7 +36,7 @@ describe('Providers', () => {
     render(
       <Providers>
         <div data-testid="test-child">Test Content</div>
-      </Providers>
+      </Providers>,
     );
 
     expect(screen.getByTestId('session-provider')).toBeInTheDocument();
@@ -35,7 +48,7 @@ describe('Providers', () => {
     render(
       <Providers>
         <div data-testid="nested-content">Nested Content</div>
-      </Providers>
+      </Providers>,
     );
 
     const sessionProvider = screen.getByTestId('session-provider');
@@ -54,7 +67,7 @@ describe('Providers', () => {
         <div data-testid="child-1">Child 1</div>
         <div data-testid="child-2">Child 2</div>
         <span data-testid="child-3">Child 3</span>
-      </Providers>
+      </Providers>,
     );
 
     expect(screen.getByTestId('child-1')).toBeInTheDocument();

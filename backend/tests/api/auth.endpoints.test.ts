@@ -1,3 +1,9 @@
+// Set required environment variables BEFORE importing anything
+process.env.JWT_SECRET = 'test-jwt-secret-for-auth-endpoints';
+process.env.PLEX_CLIENT_IDENTIFIER = 'test-client-id';
+process.env.PLEX_CLIENT_SECRET = 'test-client-secret';
+process.env.DATABASE_URL = process.env.DATABASE_URL || 'file:./test.db';
+
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import { app } from '@/app';

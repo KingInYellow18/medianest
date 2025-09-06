@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { logger } from './logger';
+// Note: Logger would be injected or imported from appropriate backend package in real usage
 
 export interface PerformanceMetrics {
   requestDuration: number;
@@ -61,7 +61,7 @@ export class PerformanceMonitor {
         // Log slow requests
         if (duration > this.thresholds.slow) {
           const level = duration > this.thresholds.very_slow ? 'warn' : 'info';
-          logger[level]('Slow request detected', {
+          console[level]('Slow request detected', {
             duration: `${duration}ms`,
             path: req.path,
             method: req.method,
@@ -76,7 +76,7 @@ export class PerformanceMonitor {
 
         // Log memory warnings
         if (endMemory.heapUsed > this.thresholds.memory_warning) {
-          logger.warn('High memory usage detected', {
+          console.warn('High memory usage detected', {
             heapUsed: `${Math.round(endMemory.heapUsed / 1024 / 1024)}MB`,
             heapTotal: `${Math.round(endMemory.heapTotal / 1024 / 1024)}MB`,
             path: req.path,
@@ -242,7 +242,7 @@ export class PerformanceMonitor {
    */
   static updateThresholds(thresholds: Partial<PerformanceThresholds>): void {
     this.thresholds = { ...this.thresholds, ...thresholds };
-    logger.info('Performance thresholds updated', this.thresholds);
+    console.info('Performance thresholds updated', this.thresholds);
   }
 
   /**
@@ -250,7 +250,7 @@ export class PerformanceMonitor {
    */
   static clearMetrics(): void {
     this.metrics = [];
-    logger.info('Performance metrics cleared');
+    console.info('Performance metrics cleared');
   }
 
   /**

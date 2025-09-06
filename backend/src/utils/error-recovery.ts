@@ -44,7 +44,7 @@ export class ErrorRecoveryManager {
         error.message.includes('ETIMEDOUT') ||
         error.message.includes('database') ||
         context.service === 'database',
-      execute: async (error, context) => {
+      execute: async (_error, context) => {
         logger.info('Attempting database recovery', {
           operation: context.operation,
           attempt: context.attempt,
@@ -69,7 +69,7 @@ export class ErrorRecoveryManager {
       name: 'cache-fallback',
       priority: 8,
       shouldExecute: (error, context) => context.metadata?.fallbackToCache === true,
-      execute: async (error, context) => {
+      execute: async (_error, context) => {
         if (!this.redis || !context.metadata?.cacheKey) {
           throw new Error('Cache not available for fallback');
         }
@@ -99,7 +99,7 @@ export class ErrorRecoveryManager {
       name: 'default-response',
       priority: 6,
       shouldExecute: (error, context) => context.metadata?.defaultResponse !== undefined,
-      execute: async (error, context) => {
+      execute: async (_error, context) => {
         logger.info('Using default response for recovery', {
           operation: context.operation,
         });
@@ -112,7 +112,7 @@ export class ErrorRecoveryManager {
       name: 'graceful-degradation',
       priority: 5,
       shouldExecute: (error, context) => context.metadata?.enableGracefulDegradation === true,
-      execute: async (error, context) => {
+      execute: async (_error, context) => {
         logger.info('Applying graceful degradation', {
           operation: context.operation,
           service: context.service,
@@ -171,7 +171,7 @@ export class ErrorRecoveryManager {
       priority: 7,
       shouldExecute: (error, context) =>
         error.name === 'CircuitBreakerError' && context.metadata?.allowCircuitBreakerReset === true,
-      execute: async (error, context) => {
+      execute: async (_error, context) => {
         const circuitBreakerName =
           context.metadata?.circuitBreakerName || `${context.service}-circuit-breaker`;
 
@@ -359,7 +359,8 @@ export class ErrorRecoveryManager {
 
     for (let attempt = 1; attempt <= options.maxAttempts; attempt++) {
       try {
-        const enhancedContext = { ...context, attempt };
+        // Enhanced context with attempt number
+        const _enhancedContext = { ...context, attempt };
         return await operation();
       } catch (error) {
         lastError = error as Error;
@@ -430,9 +431,9 @@ export class ErrorRecoveryManager {
     // Check for errors in related services
     const affectedServices = new Set<string>();
     this.errorHistory.forEach((errors, key) => {
-      const [op, svc] = key.split(':');
+      const [_op, svc] = key.split(':');
       if (errors.some((e) => Date.now() - e.timestamp.getTime() < 300000)) {
-        affectedServices.add(svc);
+        if (svc) affectedServices.add(svc);
       }
     });
 

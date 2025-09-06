@@ -19,6 +19,5 @@ __exportStar(require("./utils"), exports);
 __exportStar(require("./constants"), exports);
 __exportStar(require("./errors"), exports);
 __exportStar(require("./config"), exports);
-if (process.env.NODE_ENV === 'test') {
-}
+__exportStar(require("./validation"), exports);
 //# sourceMappingURL=index.js.map

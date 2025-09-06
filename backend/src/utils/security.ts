@@ -125,7 +125,8 @@ export function generateRandomString(length: number = 16): string {
   let result = '';
 
   for (let i = 0; i < length; i++) {
-    result += chars[bytes?.[i] % chars.length];
+    result +=
+      chars[bytes?.[i] ? bytes[i] % chars.length : Math.floor(Math.random() * chars.length)];
   }
 
   return result;
