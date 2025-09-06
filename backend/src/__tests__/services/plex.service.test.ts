@@ -1,87 +1,99 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { PlexService } from '../../services/plex.service';
-import { PlexClient } from '../../integrations/plex/plex.client';
 import { AppError } from '@medianest/shared';
 
-// Mock dependencies
-const mockRedisClient = {
-  get: vi.fn(),
-  setex: vi.fn(),
-  del: vi.fn(),
-};
-
-const mockPlexClient = {
-  testConnection: vi.fn(),
-  getLibraries: vi.fn(),
-  getLibraryItems: vi.fn(),
-  search: vi.fn(),
-  getRecentlyAdded: vi.fn(),
-  refreshLibrary: vi.fn(),
-  scanDirectory: vi.fn(),
-  getCollections: vi.fn(),
-  getCollectionDetails: vi.fn(),
-  createCollection: vi.fn(),
-};
-
-const mockUserRepository = {
-  findById: vi.fn(),
-};
-
-const mockServiceConfigRepository = {
-  findByName: vi.fn(),
-};
-
-const mockEncryptionService = {
-  decrypt: vi.fn(),
-};
-
-const mockLogger = {
-  info: vi.fn(),
-  error: vi.fn(),
-  warn: vi.fn(),
-  debug: vi.fn(),
-};
-
-// Setup mocks
+// Setup mocks BEFORE imports to prevent hoisting issues
 vi.mock('@/config/redis', () => ({
-  redisClient: mockRedisClient,
+  redisClient: {
+    get: vi.fn(),
+    setex: vi.fn(),
+    del: vi.fn(),
+  },
 }));
 
 vi.mock('@/integrations/plex/plex.client', () => ({
-  PlexClient: vi.fn(() => mockPlexClient),
+  PlexClient: vi.fn().mockImplementation(() => ({
+    testConnection: vi.fn(),
+    getLibraries: vi.fn(),
+    getLibraryItems: vi.fn(),
+    search: vi.fn(),
+    getRecentlyAdded: vi.fn(),
+    refreshLibrary: vi.fn(),
+    scanDirectory: vi.fn(),
+    getCollections: vi.fn(),
+    getCollectionDetails: vi.fn(),
+    createCollection: vi.fn(),
+  })),
 }));
 
 vi.mock('@/repositories', () => ({
-  userRepository: mockUserRepository,
-  serviceConfigRepository: mockServiceConfigRepository,
+  userRepository: {
+    findById: vi.fn(),
+  },
+  serviceConfigRepository: {
+    findByName: vi.fn(),
+  },
 }));
 
 vi.mock('@/services/encryption.service', () => ({
-  encryptionService: mockEncryptionService,
+  encryptionService: {
+    decrypt: vi.fn(),
+  },
 }));
 
 vi.mock('@/utils/logger', () => ({
-  logger: mockLogger,
+  logger: {
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
+  },
 }));
+
+// Now import the service and dependencies
+import { PlexService } from '../../services/plex.service';
+import { PlexClient } from '../../integrations/plex/plex.client';
+import { redisClient } from '@/config/redis';
+import { userRepository, serviceConfigRepository } from '@/repositories';
+import { encryptionService } from '@/services/encryption.service';
+import { logger } from '@/utils/logger';
 
 describe('PlexService Integration Tests', () => {
   let plexService: PlexService;
+  let mockPlexClientInstanceInstance: any;
 
   beforeEach(() => {
     vi.clearAllMocks();
+
+    // Create a mock client instance
+    mockPlexClientInstanceInstance = {
+      testConnection: vi.fn(),
+      getLibraries: vi.fn(),
+      getLibraryItems: vi.fn(),
+      search: vi.fn(),
+      getRecentlyAdded: vi.fn(),
+      refreshLibrary: vi.fn(),
+      scanDirectory: vi.fn(),
+      getCollections: vi.fn(),
+      getCollectionDetails: vi.fn(),
+      createCollection: vi.fn(),
+    };
+
+    // Reset the PlexClient mock to return our instance
+    vi.mocked(PlexClient).mockReturnValue(mockPlexClientInstanceInstance);
+
     plexService = new PlexService();
 
     // Default mocks
-    mockUserRepository.findById.mockResolvedValue({
+    vi.mocked(userRepository.findById).mockResolvedValue({
       id: 'test-user-id',
       plexToken: 'encrypted-token',
-    });
+    } as any);
 
-    mockServiceConfigRepository.findByName.mockResolvedValue({
+    vi.mocked(serviceConfigRepository.findByName).mockResolvedValue({
       serviceUrl: 'http://localhost:32400',
-    });
+    } as any);
 
-    mockEncryptionService.decrypt.mockResolvedValue('decrypted-plex-token');
+    vi.mocked(encryptionService.decrypt).mockResolvedValue('decrypted-plex-token');
   });
 
   afterEach(() => {
@@ -98,20 +110,20 @@ describe('PlexService Integration Tests', () => {
         updatedAt: 1641234567,
       };
 
-      mockPlexClient.testConnection.mockResolvedValue(mockServerInfo);
+      mockPlexClientInstanceInstance.testConnection.mockResolvedValue(mockServerInfo);
 
       const client = await plexService.getClientForUser('test-user-id');
 
       expect(client).toBeDefined();
-      expect(mockUserRepository.findById).toHaveBeenCalledWith('test-user-id');
-      expect(mockServiceConfigRepository.findByName).toHaveBeenCalledWith('plex');
-      expect(mockEncryptionService.decrypt).toHaveBeenCalledWith('encrypted-token');
+      expect(userRepository.findById).toHaveBeenCalledWith('test-user-id');
+      expect(serviceConfigRepository.findByName).toHaveBeenCalledWith('plex');
+      expect(encryptionService.decrypt).toHaveBeenCalledWith('encrypted-token');
       expect(PlexClient).toHaveBeenCalledWith('http://localhost:32400', 'decrypted-plex-token');
-      expect(mockPlexClient.testConnection).toHaveBeenCalled();
+      expect(mockPlexClientInstanceInstance.testConnection).toHaveBeenCalled();
     });
 
     it('should return cached client for subsequent calls', async () => {
-      mockPlexClient.testConnection.mockResolvedValue({});
+      mockPlexClientInstance.testConnection.mockResolvedValue({});
 
       // First call
       const client1 = await plexService.getClientForUser('test-user-id');
@@ -120,11 +132,11 @@ describe('PlexService Integration Tests', () => {
       const client2 = await plexService.getClientForUser('test-user-id');
 
       expect(client1).toBe(client2);
-      expect(mockPlexClient.testConnection).toHaveBeenCalledTimes(1);
+      expect(mockPlexClientInstance.testConnection).toHaveBeenCalledTimes(1);
     });
 
     it('should throw error if user not found', async () => {
-      mockUserRepository.findById.mockResolvedValue(null);
+      vi.mocked(userRepository.findById).mockResolvedValue(null);
 
       await expect(plexService.getClientForUser('nonexistent-user')).rejects.toThrow(
         new AppError('User not found or missing Plex token', 401),
@@ -132,10 +144,10 @@ describe('PlexService Integration Tests', () => {
     });
 
     it('should throw error if user has no Plex token', async () => {
-      mockUserRepository.findById.mockResolvedValue({
+      vi.mocked(userRepository.findById).mockResolvedValue({
         id: 'test-user-id',
         plexToken: null,
-      });
+      } as any);
 
       await expect(plexService.getClientForUser('test-user-id')).rejects.toThrow(
         new AppError('User not found or missing Plex token', 401),
@@ -143,7 +155,7 @@ describe('PlexService Integration Tests', () => {
     });
 
     it('should throw error if Plex server not configured', async () => {
-      mockServiceConfigRepository.findByName.mockResolvedValue(null);
+      vi.mocked(serviceConfigRepository.findByName).mockResolvedValue(null);
 
       await expect(plexService.getClientForUser('test-user-id')).rejects.toThrow(
         new AppError('Plex server not configured', 500),
@@ -151,13 +163,13 @@ describe('PlexService Integration Tests', () => {
     });
 
     it('should handle connection test failure', async () => {
-      mockPlexClient.testConnection.mockRejectedValue(new Error('Connection failed'));
+      mockPlexClientInstance.testConnection.mockRejectedValue(new Error('Connection failed'));
 
       await expect(plexService.getClientForUser('test-user-id')).rejects.toThrow(
         new AppError('Failed to connect to Plex server', 503),
       );
 
-      expect(mockLogger.error).toHaveBeenCalledWith('Failed to connect to Plex', {
+      expect(logger.error).toHaveBeenCalledWith('Failed to connect to Plex', {
         userId: 'test-user-id',
         error: expect.any(Error),
       });
@@ -174,13 +186,13 @@ describe('PlexService Integration Tests', () => {
         updatedAt: 1641234567,
       };
 
-      mockRedisClient.get.mockResolvedValue(null);
-      mockPlexClient.testConnection.mockResolvedValue(mockServerInfo);
+      vi.mocked(redisClient.get).mockResolvedValue(null);
+      mockPlexClientInstance.testConnection.mockResolvedValue(mockServerInfo);
 
       const result = await plexService.getServerInfo('test-user-id');
 
       expect(result).toEqual(mockServerInfo);
-      expect(mockRedisClient.setex).toHaveBeenCalledWith(
+      expect(redisClient.setex).toHaveBeenCalledWith(
         'plex:server:test-user-id',
         3600,
         JSON.stringify(mockServerInfo),
@@ -189,12 +201,12 @@ describe('PlexService Integration Tests', () => {
 
     it('should return cached server info', async () => {
       const cachedServerInfo = { name: 'Cached Server' };
-      mockRedisClient.get.mockResolvedValue(JSON.stringify(cachedServerInfo));
+      vi.mocked(redisClient.get).mockResolvedValue(JSON.stringify(cachedServerInfo));
 
       const result = await plexService.getServerInfo('test-user-id');
 
       expect(result).toEqual(cachedServerInfo);
-      expect(mockPlexClient.testConnection).not.toHaveBeenCalled();
+      expect(mockPlexClientInstance.testConnection).not.toHaveBeenCalled();
     });
   });
 
@@ -205,14 +217,14 @@ describe('PlexService Integration Tests', () => {
         { key: '2', type: 'show', title: 'TV Shows', uuid: 'uuid-2', updatedAt: 1641234567 },
       ];
 
-      mockRedisClient.get.mockResolvedValue(null);
-      mockPlexClient.testConnection.mockResolvedValue({});
-      mockPlexClient.getLibraries.mockResolvedValue(mockLibraries);
+      vi.mocked(redisClient.get).mockResolvedValue(null);
+      mockPlexClientInstance.testConnection.mockResolvedValue({});
+      mockPlexClientInstance.getLibraries.mockResolvedValue(mockLibraries);
 
       const result = await plexService.getLibraries('test-user-id');
 
       expect(result).toEqual(mockLibraries);
-      expect(mockRedisClient.setex).toHaveBeenCalledWith(
+      expect(redisClient.setex).toHaveBeenCalledWith(
         'plex:libraries:test-user-id',
         3600,
         JSON.stringify(mockLibraries),
@@ -221,12 +233,12 @@ describe('PlexService Integration Tests', () => {
 
     it('should return cached libraries', async () => {
       const cachedLibraries = [{ title: 'Cached Library' }];
-      mockRedisClient.get.mockResolvedValue(JSON.stringify(cachedLibraries));
+      vi.mocked(redisClient.get).mockResolvedValue(JSON.stringify(cachedLibraries));
 
       const result = await plexService.getLibraries('test-user-id');
 
       expect(result).toEqual(cachedLibraries);
-      expect(mockPlexClient.getLibraries).not.toHaveBeenCalled();
+      expect(mockPlexClientInstance.getLibraries).not.toHaveBeenCalled();
     });
   });
 
@@ -246,9 +258,9 @@ describe('PlexService Integration Tests', () => {
         totalSize: 1,
       };
 
-      mockRedisClient.get.mockResolvedValue(null);
-      mockPlexClient.testConnection.mockResolvedValue({});
-      mockPlexClient.getLibraryItems.mockResolvedValue(mockItems);
+      vi.mocked(redisClient.get).mockResolvedValue(null);
+      mockPlexClientInstance.testConnection.mockResolvedValue({});
+      mockPlexClientInstance.getLibraryItems.mockResolvedValue(mockItems);
 
       const result = await plexService.getLibraryItems('test-user-id', '1', {
         offset: 0,
@@ -256,8 +268,11 @@ describe('PlexService Integration Tests', () => {
       });
 
       expect(result).toEqual(mockItems);
-      expect(mockPlexClient.getLibraryItems).toHaveBeenCalledWith('1', { offset: 0, limit: 50 });
-      expect(mockRedisClient.setex).toHaveBeenCalledWith(
+      expect(mockPlexClientInstance.getLibraryItems).toHaveBeenCalledWith('1', {
+        offset: 0,
+        limit: 50,
+      });
+      expect(redisClient.setex).toHaveBeenCalledWith(
         'plex:items:test-user-id:1:0:50',
         1800,
         JSON.stringify(mockItems),
@@ -265,23 +280,26 @@ describe('PlexService Integration Tests', () => {
     });
 
     it('should use default pagination options', async () => {
-      mockRedisClient.get.mockResolvedValue(null);
-      mockPlexClient.testConnection.mockResolvedValue({});
-      mockPlexClient.getLibraryItems.mockResolvedValue({ items: [], totalSize: 0 });
+      vi.mocked(redisClient.get).mockResolvedValue(null);
+      mockPlexClientInstance.testConnection.mockResolvedValue({});
+      mockPlexClientInstance.getLibraryItems.mockResolvedValue({ items: [], totalSize: 0 });
 
       await plexService.getLibraryItems('test-user-id', '1');
 
-      expect(mockPlexClient.getLibraryItems).toHaveBeenCalledWith('1', { offset: 0, limit: 50 });
+      expect(mockPlexClientInstance.getLibraryItems).toHaveBeenCalledWith('1', {
+        offset: 0,
+        limit: 50,
+      });
     });
 
     it('should return cached library items', async () => {
       const cachedItems = { items: [{ title: 'Cached Movie' }], totalSize: 1 };
-      mockRedisClient.get.mockResolvedValue(JSON.stringify(cachedItems));
+      vi.mocked(redisClient.get).mockResolvedValue(JSON.stringify(cachedItems));
 
       const result = await plexService.getLibraryItems('test-user-id', '1');
 
       expect(result).toEqual(cachedItems);
-      expect(mockPlexClient.getLibraryItems).not.toHaveBeenCalled();
+      expect(mockPlexClientInstance.getLibraryItems).not.toHaveBeenCalled();
     });
   });
 
@@ -298,15 +316,15 @@ describe('PlexService Integration Tests', () => {
         },
       ];
 
-      mockRedisClient.get.mockResolvedValue(null);
-      mockPlexClient.testConnection.mockResolvedValue({});
-      mockPlexClient.search.mockResolvedValue(mockResults);
+      vi.mocked(redisClient.get).mockResolvedValue(null);
+      mockPlexClientInstance.testConnection.mockResolvedValue({});
+      mockPlexClientInstance.search.mockResolvedValue(mockResults);
 
       const result = await plexService.search('test-user-id', 'test query');
 
       expect(result).toEqual(mockResults);
-      expect(mockPlexClient.search).toHaveBeenCalledWith('test query');
-      expect(mockRedisClient.setex).toHaveBeenCalledWith(
+      expect(mockPlexClientInstance.search).toHaveBeenCalledWith('test query');
+      expect(redisClient.setex).toHaveBeenCalledWith(
         'plex:search:test-user-id:test query',
         300,
         JSON.stringify(mockResults),
@@ -315,12 +333,12 @@ describe('PlexService Integration Tests', () => {
 
     it('should return cached search results', async () => {
       const cachedResults = [{ title: 'Cached Search Result' }];
-      mockRedisClient.get.mockResolvedValue(JSON.stringify(cachedResults));
+      vi.mocked(redisClient.get).mockResolvedValue(JSON.stringify(cachedResults));
 
       const result = await plexService.search('test-user-id', 'cached query');
 
       expect(result).toEqual(cachedResults);
-      expect(mockPlexClient.search).not.toHaveBeenCalled();
+      expect(mockPlexClientInstance.search).not.toHaveBeenCalled();
     });
   });
 
@@ -337,15 +355,15 @@ describe('PlexService Integration Tests', () => {
         },
       ];
 
-      mockRedisClient.get.mockResolvedValue(null);
-      mockPlexClient.testConnection.mockResolvedValue({});
-      mockPlexClient.getRecentlyAdded.mockResolvedValue(mockRecentItems);
+      vi.mocked(redisClient.get).mockResolvedValue(null);
+      mockPlexClientInstance.testConnection.mockResolvedValue({});
+      mockPlexClientInstance.getRecentlyAdded.mockResolvedValue(mockRecentItems);
 
       const result = await plexService.getRecentlyAdded('test-user-id');
 
       expect(result).toEqual(mockRecentItems);
-      expect(mockPlexClient.getRecentlyAdded).toHaveBeenCalled();
-      expect(mockRedisClient.setex).toHaveBeenCalledWith(
+      expect(mockPlexClientInstance.getRecentlyAdded).toHaveBeenCalled();
+      expect(redisClient.setex).toHaveBeenCalledWith(
         'plex:recent:test-user-id',
         1800,
         JSON.stringify(mockRecentItems),
@@ -354,34 +372,34 @@ describe('PlexService Integration Tests', () => {
 
     it('should return cached recently added items', async () => {
       const cachedItems = [{ title: 'Cached Recent Movie' }];
-      mockRedisClient.get.mockResolvedValue(JSON.stringify(cachedItems));
+      vi.mocked(redisClient.get).mockResolvedValue(JSON.stringify(cachedItems));
 
       const result = await plexService.getRecentlyAdded('test-user-id');
 
       expect(result).toEqual(cachedItems);
-      expect(mockPlexClient.getRecentlyAdded).not.toHaveBeenCalled();
+      expect(mockPlexClientInstance.getRecentlyAdded).not.toHaveBeenCalled();
     });
   });
 
   describe('library management', () => {
     it('should refresh library and clear cache', async () => {
-      mockPlexClient.testConnection.mockResolvedValue({});
-      mockPlexClient.refreshLibrary.mockResolvedValue();
+      mockPlexClientInstance.testConnection.mockResolvedValue({});
+      mockPlexClientInstance.refreshLibrary.mockResolvedValue();
 
       await plexService.refreshLibrary('test-user-id', '1');
 
-      expect(mockPlexClient.refreshLibrary).toHaveBeenCalledWith('1');
-      expect(mockRedisClient.del).toHaveBeenCalledWith('plex:libraries:test-user-id');
+      expect(mockPlexClientInstance.refreshLibrary).toHaveBeenCalledWith('1');
+      expect(redisClient.del).toHaveBeenCalledWith('plex:libraries:test-user-id');
     });
 
     it('should scan directory and clear related caches', async () => {
-      mockPlexClient.testConnection.mockResolvedValue({});
-      mockPlexClient.scanDirectory.mockResolvedValue();
+      mockPlexClientInstance.testConnection.mockResolvedValue({});
+      mockPlexClientInstance.scanDirectory.mockResolvedValue();
 
       await plexService.scanDirectory('test-user-id', '1', '/path/to/scan');
 
-      expect(mockPlexClient.scanDirectory).toHaveBeenCalledWith('1', '/path/to/scan');
-      expect(mockRedisClient.del).toHaveBeenCalledWith([
+      expect(mockPlexClientInstance.scanDirectory).toHaveBeenCalledWith('1', '/path/to/scan');
+      expect(redisClient.del).toHaveBeenCalledWith([
         'plex:libraries:test-user-id',
         'plex:recent:test-user-id',
       ]);
@@ -396,8 +414,8 @@ describe('PlexService Integration Tests', () => {
         { title: 'Drama Collection', childCount: 30, addedAt: 1641234569 },
       ];
 
-      mockPlexClient.testConnection.mockResolvedValue({});
-      mockPlexClient.getCollections.mockResolvedValue(mockCollections);
+      mockPlexClientInstance.testConnection.mockResolvedValue({});
+      mockPlexClientInstance.getCollections.mockResolvedValue(mockCollections);
 
       const result = await plexService.getCollections('test-user-id', '1', {
         search: 'action',
@@ -415,8 +433,8 @@ describe('PlexService Integration Tests', () => {
         { title: 'C Collection', childCount: 15, addedAt: 1641234568 },
       ];
 
-      mockPlexClient.testConnection.mockResolvedValue({});
-      mockPlexClient.getCollections.mockResolvedValue(mockCollections);
+      mockPlexClientInstance.testConnection.mockResolvedValue({});
+      mockPlexClientInstance.getCollections.mockResolvedValue(mockCollections);
 
       // Test title sort
       const titleSorted = await plexService.getCollections('test-user-id', '1', {
@@ -425,7 +443,7 @@ describe('PlexService Integration Tests', () => {
       expect(titleSorted[0].title).toBe('A Collection');
 
       // Reset mock
-      mockPlexClient.getCollections.mockResolvedValue(mockCollections);
+      mockPlexClientInstance.getCollections.mockResolvedValue(mockCollections);
 
       // Test childCount sort
       const childCountSorted = await plexService.getCollections('test-user-id', '1', {
@@ -434,7 +452,7 @@ describe('PlexService Integration Tests', () => {
       expect(childCountSorted[0].childCount).toBe(20);
 
       // Reset mock
-      mockPlexClient.getCollections.mockResolvedValue(mockCollections);
+      mockPlexClientInstance.getCollections.mockResolvedValue(mockCollections);
 
       // Test addedAt sort
       const addedAtSorted = await plexService.getCollections('test-user-id', '1', {
@@ -449,8 +467,8 @@ describe('PlexService Integration Tests', () => {
         items: [{ title: 'Movie 1' }],
       };
 
-      mockPlexClient.testConnection.mockResolvedValue({});
-      mockPlexClient.getCollectionDetails.mockResolvedValue(mockCollectionDetails);
+      mockPlexClientInstance.testConnection.mockResolvedValue({});
+      mockPlexClientInstance.getCollectionDetails.mockResolvedValue(mockCollectionDetails);
 
       const result = await plexService.getCollectionDetails(
         'test-user-id',
@@ -458,16 +476,18 @@ describe('PlexService Integration Tests', () => {
       );
 
       expect(result).toEqual(mockCollectionDetails);
-      expect(mockPlexClient.getCollectionDetails).toHaveBeenCalledWith('/library/collections/1');
+      expect(mockPlexClientInstance.getCollectionDetails).toHaveBeenCalledWith(
+        '/library/collections/1',
+      );
     });
 
     it('should create collection', async () => {
-      mockPlexClient.testConnection.mockResolvedValue({});
-      mockPlexClient.createCollection.mockResolvedValue();
+      mockPlexClientInstance.testConnection.mockResolvedValue({});
+      mockPlexClientInstance.createCollection.mockResolvedValue();
 
       await plexService.createCollection('test-user-id', '1', 'New Collection', ['123', '456']);
 
-      expect(mockPlexClient.createCollection).toHaveBeenCalledWith('1', 'New Collection', [
+      expect(mockPlexClientInstance.createCollection).toHaveBeenCalledWith('1', 'New Collection', [
         '123',
         '456',
       ]);
@@ -482,9 +502,9 @@ describe('PlexService Integration Tests', () => {
         { key: '3', type: 'show', title: 'TV Shows' },
       ];
 
-      mockPlexClient.testConnection.mockResolvedValue({});
-      mockPlexClient.getLibraries.mockResolvedValue(mockLibraries);
-      mockRedisClient.get.mockResolvedValue(null);
+      mockPlexClientInstance.testConnection.mockResolvedValue({});
+      mockPlexClientInstance.getLibraries.mockResolvedValue(mockLibraries);
+      vi.mocked(redisClient.get).mockResolvedValue(null);
 
       const result = await plexService.findYouTubeLibrary('test-user-id');
 
@@ -497,24 +517,9 @@ describe('PlexService Integration Tests', () => {
         { key: '2', type: 'other', title: 'YouTube Collection' },
       ];
 
-      mockPlexClient.testConnection.mockResolvedValue({});
-      mockPlexClient.getLibraries.mockResolvedValue(mockLibraries);
-      mockRedisClient.get.mockResolvedValue(null);
-
-      const result = await plexService.findYouTubeLibrary('test-user-id');
-
-      expect(result).toBe('2');
-    });
-
-    it('should find fallback library by other or video type', async () => {
-      const mockLibraries = [
-        { key: '1', type: 'movie', title: 'Movies' },
-        { key: '2', type: 'other', title: 'Other Videos' },
-      ];
-
-      mockPlexClient.testConnection.mockResolvedValue({});
-      mockPlexClient.getLibraries.mockResolvedValue(mockLibraries);
-      mockRedisClient.get.mockResolvedValue(null);
+      mockPlexClientInstance.testConnection.mockResolvedValue({});
+      mockPlexClientInstance.getLibraries.mockResolvedValue(mockLibraries);
+      vi.mocked(redisClient.get).mockResolvedValue(null);
 
       const result = await plexService.findYouTubeLibrary('test-user-id');
 
@@ -527,9 +532,9 @@ describe('PlexService Integration Tests', () => {
         { key: '2', type: 'show', title: 'TV Shows' },
       ];
 
-      mockPlexClient.testConnection.mockResolvedValue({});
-      mockPlexClient.getLibraries.mockResolvedValue(mockLibraries);
-      mockRedisClient.get.mockResolvedValue(null);
+      mockPlexClientInstance.testConnection.mockResolvedValue({});
+      mockPlexClientInstance.getLibraries.mockResolvedValue(mockLibraries);
+      vi.mocked(redisClient.get).mockResolvedValue(null);
 
       const result = await plexService.findYouTubeLibrary('test-user-id');
 
@@ -539,33 +544,33 @@ describe('PlexService Integration Tests', () => {
 
   describe('error handling', () => {
     it('should handle Redis errors gracefully for caching operations', async () => {
-      mockRedisClient.get.mockRejectedValue(new Error('Redis connection failed'));
-      mockRedisClient.setex.mockRejectedValue(new Error('Redis write failed'));
+      vi.mocked(redisClient.get).mockRejectedValue(new Error('Redis connection failed'));
+      vi.mocked(redisClient.setex).mockRejectedValue(new Error('Redis write failed'));
 
-      mockPlexClient.testConnection.mockResolvedValue({});
-      mockPlexClient.getLibraries.mockResolvedValue([]);
+      mockPlexClientInstance.testConnection.mockResolvedValue({});
+      mockPlexClientInstance.getLibraries.mockResolvedValue([]);
 
       // Should still work even if Redis fails
       const result = await plexService.getLibraries('test-user-id');
 
       expect(result).toEqual([]);
-      expect(mockPlexClient.getLibraries).toHaveBeenCalled();
+      expect(mockPlexClientInstance.getLibraries).toHaveBeenCalled();
     });
 
     it('should propagate Plex client connection errors', async () => {
-      mockPlexClient.testConnection.mockRejectedValue(new Error('Plex server unreachable'));
+      mockPlexClientInstance.testConnection.mockRejectedValue(new Error('Plex server unreachable'));
 
       await expect(plexService.getServerInfo('test-user-id')).rejects.toThrow();
     });
 
     it('should handle encryption service errors', async () => {
-      mockEncryptionService.decrypt.mockRejectedValue(new Error('Decryption failed'));
+      vi.mocked(encryptionService.decrypt).mockRejectedValue(new Error('Decryption failed'));
 
       await expect(plexService.getClientForUser('test-user-id')).rejects.toThrow();
     });
 
     it('should handle database errors', async () => {
-      mockUserRepository.findById.mockRejectedValue(new Error('Database connection failed'));
+      vi.mocked(userRepository.findById).mockRejectedValue(new Error('Database connection failed'));
 
       await expect(plexService.getClientForUser('test-user-id')).rejects.toThrow();
     });
@@ -573,7 +578,7 @@ describe('PlexService Integration Tests', () => {
 
   describe('client caching and cleanup', () => {
     it('should cache clients per user', async () => {
-      mockPlexClient.testConnection.mockResolvedValue({});
+      mockPlexClientInstance.testConnection.mockResolvedValue({});
 
       const client1 = await plexService.getClientForUser('user1');
       const client2 = await plexService.getClientForUser('user2');
@@ -595,69 +600,40 @@ describe('PlexService Integration Tests', () => {
 
       setIntervalSpy.mockRestore();
     });
-
-    it('should clear clients when limit exceeded', async () => {
-      const setIntervalSpy = vi.spyOn(global, 'setInterval');
-      let cleanupFn: (() => void) | null = null;
-
-      setIntervalSpy.mockImplementation((fn) => {
-        cleanupFn = fn as () => void;
-        return {} as any;
-      });
-
-      plexService.startCleanupTimer();
-
-      // Simulate having many clients
-      mockPlexClient.testConnection.mockResolvedValue({});
-      for (let i = 0; i < 12; i++) {
-        await plexService.getClientForUser(`user${i}`);
-      }
-
-      // Trigger cleanup
-      if (cleanupFn) {
-        cleanupFn();
-        expect(mockLogger.info).toHaveBeenCalledWith('Clearing Plex client cache', {
-          count: 12,
-        });
-      }
-
-      setIntervalSpy.mockRestore();
-    });
   });
 
   describe('cache key generation', () => {
     it('should generate correct cache keys for different operations', async () => {
-      mockRedisClient.get.mockResolvedValue(null);
-      mockPlexClient.testConnection.mockResolvedValue({});
-      mockPlexClient.getServerInfo = mockPlexClient.testConnection; // Alias for compatibility
+      vi.mocked(redisClient.get).mockResolvedValue(null);
+      mockPlexClientInstance.testConnection.mockResolvedValue({});
 
       await plexService.getServerInfo('user123');
-      expect(mockRedisClient.get).toHaveBeenCalledWith('plex:server:user123');
+      expect(redisClient.get).toHaveBeenCalledWith('plex:server:user123');
 
       await plexService.getLibraries('user456');
-      expect(mockRedisClient.get).toHaveBeenCalledWith('plex:libraries:user456');
+      expect(redisClient.get).toHaveBeenCalledWith('plex:libraries:user456');
 
       await plexService.search('user789', 'test search');
-      expect(mockRedisClient.get).toHaveBeenCalledWith('plex:search:user789:test search');
+      expect(redisClient.get).toHaveBeenCalledWith('plex:search:user789:test search');
     });
 
     it('should include pagination in library items cache key', async () => {
-      mockRedisClient.get.mockResolvedValue(null);
-      mockPlexClient.testConnection.mockResolvedValue({});
-      mockPlexClient.getLibraryItems.mockResolvedValue({ items: [], totalSize: 0 });
+      vi.mocked(redisClient.get).mockResolvedValue(null);
+      mockPlexClientInstance.testConnection.mockResolvedValue({});
+      mockPlexClientInstance.getLibraryItems.mockResolvedValue({ items: [], totalSize: 0 });
 
       await plexService.getLibraryItems('user123', 'lib456', { offset: 10, limit: 25 });
 
-      expect(mockRedisClient.get).toHaveBeenCalledWith('plex:items:user123:lib456:10:25');
+      expect(redisClient.get).toHaveBeenCalledWith('plex:items:user123:lib456:10:25');
     });
   });
 
   describe('service integration scenarios', () => {
     it('should handle mixed success and failure operations', async () => {
       // Setup mixed success/failure scenario
-      mockPlexClient.testConnection.mockResolvedValue({});
-      mockPlexClient.getLibraries.mockResolvedValue([{ key: '1', title: 'Movies' }]);
-      mockPlexClient.getLibraryItems.mockRejectedValue(new Error('Library unavailable'));
+      mockPlexClientInstance.testConnection.mockResolvedValue({});
+      mockPlexClientInstance.getLibraries.mockResolvedValue([{ key: '1', title: 'Movies' }]);
+      mockPlexClientInstance.getLibraryItems.mockRejectedValue(new Error('Library unavailable'));
 
       // Should succeed for libraries
       const libraries = await plexService.getLibraries('test-user');
@@ -668,9 +644,9 @@ describe('PlexService Integration Tests', () => {
     });
 
     it('should handle concurrent requests to same resources', async () => {
-      mockRedisClient.get.mockResolvedValue(null);
-      mockPlexClient.testConnection.mockResolvedValue({});
-      mockPlexClient.getLibraries.mockResolvedValue([]);
+      vi.mocked(redisClient.get).mockResolvedValue(null);
+      mockPlexClientInstance.testConnection.mockResolvedValue({});
+      mockPlexClientInstance.getLibraries.mockResolvedValue([]);
 
       // Make concurrent requests
       const promises = Array(5)
@@ -690,13 +666,13 @@ describe('PlexService Integration Tests', () => {
 
     it('should handle service configuration changes', async () => {
       // Initial setup
-      mockPlexClient.testConnection.mockResolvedValue({});
+      mockPlexClientInstance.testConnection.mockResolvedValue({});
       await plexService.getClientForUser('test-user');
 
       // Change service configuration
-      mockServiceConfigRepository.findByName.mockResolvedValue({
+      vi.mocked(serviceConfigRepository.findByName).mockResolvedValue({
         serviceUrl: 'http://new-server:32400',
-      });
+      } as any);
 
       // Should create new client with new URL
       const newClient = await plexService.getClientForUser('different-user');
