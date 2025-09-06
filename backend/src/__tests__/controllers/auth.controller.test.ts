@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Request, Response, NextFunction } from 'express';
-import axios from 'axios';
 import { AuthController } from '../../controllers/auth.controller';
 import { AppError } from '@medianest/shared';
 import {
@@ -10,36 +9,59 @@ import {
   createTestRequest,
   createTestResponse,
   createTestJWT,
-  mockAxios,
 } from '../setup';
 
+// Mock user repository
+const mockUserRepository = {
+  findByPlexId: vi.fn(),
+  create: vi.fn(),
+  update: vi.fn(),
+  isFirstUser: vi.fn(),
+};
+
+// Mock services
+const mockEncryptionService = {
+  encryptForStorage: vi.fn().mockReturnValue('encrypted-token'),
+};
+
+const mockJwtService = {
+  generateAccessToken: vi.fn().mockReturnValue('test-access-token'),
+  generateRememberToken: vi.fn().mockReturnValue('test-remember-token'),
+};
+
+// Mock axios
+const mockAxios = {
+  post: vi.fn(),
+  get: vi.fn(),
+  isAxiosError: vi.fn(),
+};
+
 // Mock dependencies
-vi.mock('axios');
+vi.mock('axios', () => ({
+  default: mockAxios,
+  ...mockAxios,
+}));
+
 vi.mock('../../config/database', () => ({
   prisma: mockPrismaClient,
 }));
+
 vi.mock('../../config/redis', () => ({
   redis: mockRedisClient,
 }));
+
 vi.mock('../../repositories/instances', () => ({
-  userRepository: {
-    findByPlexId: vi.fn(),
-    create: vi.fn(),
-    update: vi.fn(),
-    isFirstUser: vi.fn(),
-  },
+  userRepository: mockUserRepository,
 }));
+
 vi.mock('../../services/encryption.service', () => ({
-  encryptionService: {
-    encryptForStorage: vi.fn().mockReturnValue('encrypted-token'),
-  },
+  encryptionService: mockEncryptionService,
 }));
+
 vi.mock('../../services/jwt.service', () => ({
-  jwtService: {
-    generateAccessToken: vi.fn().mockReturnValue('test-access-token'),
-    generateRememberToken: vi.fn().mockReturnValue('test-remember-token'),
-  },
+  jwtService: mockJwtService,
 }));
+
 vi.mock('@/config', () => ({
   config: {
     plex: {
@@ -59,7 +81,19 @@ describe('AuthController', () => {
     mockRequest = createTestRequest();
     mockResponse = createTestResponse();
     mockNext = vi.fn();
+
+    // Reset all mocks
     vi.clearAllMocks();
+    mockAxios.post.mockReset();
+    mockAxios.get.mockReset();
+    mockAxios.isAxiosError.mockReset();
+    mockUserRepository.findByPlexId.mockReset();
+    mockUserRepository.create.mockReset();
+    mockUserRepository.update.mockReset();
+    mockUserRepository.isFirstUser.mockReset();
+    mockEncryptionService.encryptForStorage.mockReturnValue('encrypted-token');
+    mockJwtService.generateAccessToken.mockReturnValue('test-access-token');
+    mockJwtService.generateRememberToken.mockReturnValue('test-remember-token');
   });
 
   describe('generatePin', () => {
@@ -72,7 +106,7 @@ describe('AuthController', () => {
         </pin>
       `;
 
-      vi.mocked(axios.post).mockResolvedValueOnce({
+      mockAxios.post.mockResolvedValueOnce({
         data: plexResponse,
       });
 
@@ -82,7 +116,7 @@ describe('AuthController', () => {
 
       await authController.generatePin(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(axios.post).toHaveBeenCalledWith(
+      expect(mockAxios.post).toHaveBeenCalledWith(
         'https://plex.tv/pins.xml',
         null,
         expect.objectContaining({
@@ -114,7 +148,7 @@ describe('AuthController', () => {
         </pin>
       `;
 
-      vi.mocked(axios.post).mockResolvedValueOnce({
+      mockAxios.post.mockResolvedValueOnce({
         data: plexResponse,
       });
 
@@ -122,7 +156,7 @@ describe('AuthController', () => {
 
       await authController.generatePin(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(axios.post).toHaveBeenCalledWith(
+      expect(mockAxios.post).toHaveBeenCalledWith(
         'https://plex.tv/pins.xml',
         null,
         expect.objectContaining({
@@ -134,7 +168,7 @@ describe('AuthController', () => {
     });
 
     it('should handle invalid Plex response', async () => {
-      vi.mocked(axios.post).mockResolvedValueOnce({
+      mockAxios.post.mockResolvedValueOnce({
         data: '<invalid>response</invalid>',
       });
 
@@ -154,7 +188,7 @@ describe('AuthController', () => {
     it('should handle Plex connection errors', async () => {
       const connectionError = new Error('Connection refused') as any;
       connectionError.code = 'ECONNREFUSED';
-      vi.mocked(axios.post).mockRejectedValueOnce(connectionError);
+      mockAxios.post.mockRejectedValueOnce(connectionError);
 
       mockRequest.body = {};
 
@@ -172,7 +206,7 @@ describe('AuthController', () => {
     it('should handle Plex timeout errors', async () => {
       const timeoutError = new Error('Timeout') as any;
       timeoutError.code = 'ETIMEDOUT';
-      vi.mocked(axios.post).mockRejectedValueOnce(timeoutError);
+      mockAxios.post.mockRejectedValueOnce(timeoutError);
 
       await authController.generatePin(mockRequest as Request, mockResponse as Response, mockNext);
 
@@ -186,10 +220,6 @@ describe('AuthController', () => {
   });
 
   describe('verifyPin', () => {
-    const { userRepository } = require('../../repositories/instances');
-    const { encryptionService } = require('../../services/encryption.service');
-    const { jwtService } = require('../../services/jwt.service');
-
     it('should verify PIN and create new user successfully', async () => {
       const pinResponse = `
         <pin>
@@ -212,13 +242,13 @@ describe('AuthController', () => {
         role: 'admin', // First user
       });
 
-      vi.mocked(axios.get)
+      mockAxios.get
         .mockResolvedValueOnce({ data: pinResponse })
         .mockResolvedValueOnce({ data: userResponse });
 
-      userRepository.findByPlexId.mockResolvedValueOnce(null); // New user
-      userRepository.isFirstUser.mockResolvedValueOnce(true);
-      userRepository.create.mockResolvedValueOnce(testUser);
+      mockUserRepository.findByPlexId.mockResolvedValueOnce(null); // New user
+      mockUserRepository.isFirstUser.mockResolvedValueOnce(true);
+      mockUserRepository.create.mockResolvedValueOnce(testUser);
 
       mockRequest.body = {
         pinId: '123456',
@@ -229,7 +259,7 @@ describe('AuthController', () => {
 
       await authController.verifyPin(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(userRepository.create).toHaveBeenCalledWith({
+      expect(mockUserRepository.create).toHaveBeenCalledWith({
         plexId: '12345',
         plexUsername: 'testuser',
         email: 'test@example.com',
@@ -281,19 +311,19 @@ describe('AuthController', () => {
         email: 'updated@example.com',
       });
 
-      vi.mocked(axios.get)
+      mockAxios.get
         .mockResolvedValueOnce({ data: pinResponse })
         .mockResolvedValueOnce({ data: userResponse });
 
-      userRepository.findByPlexId.mockResolvedValueOnce(existingUser);
-      userRepository.update.mockResolvedValueOnce(updatedUser);
+      mockUserRepository.findByPlexId.mockResolvedValueOnce(existingUser);
+      mockUserRepository.update.mockResolvedValueOnce(updatedUser);
 
       mockRequest.body = { pinId: '123456', rememberMe: false };
       mockResponse.locals = { csrfToken: 'test-csrf-token' };
 
       await authController.verifyPin(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(userRepository.update).toHaveBeenCalledWith(
+      expect(mockUserRepository.update).toHaveBeenCalledWith(
         existingUser.id,
         expect.objectContaining({
           plexUsername: 'updateduser',
@@ -307,7 +337,7 @@ describe('AuthController', () => {
     it('should handle PIN not authorized yet', async () => {
       const pinResponse = `<pin><authToken></authToken></pin>`; // Empty token
 
-      vi.mocked(axios.get).mockResolvedValueOnce({ data: pinResponse });
+      mockAxios.get.mockResolvedValueOnce({ data: pinResponse });
 
       mockRequest.body = { pinId: '123456' };
 
@@ -325,7 +355,7 @@ describe('AuthController', () => {
     it('should handle invalid PIN ID', async () => {
       const error = new Error('Not Found') as any;
       error.response = { status: 404 };
-      vi.mocked(axios.get).mockRejectedValueOnce(error);
+      mockAxios.get.mockRejectedValueOnce(error);
 
       mockRequest.body = { pinId: 'invalid-pin' };
 
@@ -344,11 +374,11 @@ describe('AuthController', () => {
       const pinResponse = `<pin><authToken>plex-auth-token</authToken></pin>`;
       const userResponse = `<user><id>12345</id><username>testuser</username></user>`;
 
-      vi.mocked(axios.get)
+      mockAxios.get
         .mockResolvedValueOnce({ data: pinResponse })
         .mockResolvedValueOnce({ data: userResponse });
 
-      userRepository.findByPlexId.mockRejectedValueOnce(new Error('Database error'));
+      mockUserRepository.findByPlexId.mockRejectedValueOnce(new Error('Database error'));
 
       mockRequest.body = { pinId: '123456' };
 
@@ -367,7 +397,7 @@ describe('AuthController', () => {
       const pinResponse = `<pin><authToken>plex-auth-token</authToken></pin>`;
       const invalidUserResponse = `<user><invalid>data</invalid></user>`; // Missing required fields
 
-      vi.mocked(axios.get)
+      mockAxios.get
         .mockResolvedValueOnce({ data: pinResponse })
         .mockResolvedValueOnce({ data: invalidUserResponse });
 
@@ -482,11 +512,11 @@ describe('AuthController', () => {
       mockRequest.body = { invalidField: 'test' };
 
       const plexResponse = `<pin><id>123456</id><code>ABCD1234</code></pin>`;
-      vi.mocked(axios.post).mockResolvedValueOnce({ data: plexResponse });
+      mockAxios.post.mockResolvedValueOnce({ data: plexResponse });
 
       await authController.generatePin(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(axios.post).toHaveBeenCalledWith(
+      expect(mockAxios.post).toHaveBeenCalledWith(
         'https://plex.tv/pins.xml',
         null,
         expect.objectContaining({
@@ -512,20 +542,17 @@ describe('AuthController', () => {
     });
 
     it('should handle JWT generation failure', async () => {
-      const { jwtService } = require('../../services/jwt.service');
-
       const pinResponse = `<pin><authToken>plex-auth-token</authToken></pin>`;
       const userResponse = `<user><id>12345</id><username>testuser</username></user>`;
       const testUser = createTestUser();
 
-      vi.mocked(axios.get)
+      mockAxios.get
         .mockResolvedValueOnce({ data: pinResponse })
         .mockResolvedValueOnce({ data: userResponse });
 
-      const { userRepository } = require('../../repositories/instances');
-      userRepository.findByPlexId.mockResolvedValueOnce(null);
-      userRepository.isFirstUser.mockResolvedValueOnce(false);
-      userRepository.create.mockResolvedValueOnce(testUser);
+      mockUserRepository.findByPlexId.mockResolvedValueOnce(null);
+      mockUserRepository.isFirstUser.mockResolvedValueOnce(false);
+      mockUserRepository.create.mockResolvedValueOnce(testUser);
 
       // Mock JWT generation failure
       jwtService.generateAccessToken.mockImplementationOnce(() => {

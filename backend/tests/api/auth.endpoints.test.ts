@@ -5,11 +5,13 @@ process.env.PLEX_CLIENT_IDENTIFIER = 'test-client-id';
 process.env.PLEX_CLIENT_SECRET = 'test-client-secret';
 process.env.DATABASE_URL = process.env.DATABASE_URL || 'file:./test.db';
 process.env.REDIS_URL = 'redis://mock-redis:6379/0';
+process.env.SKIP_REDIS = 'true';
+process.env.DISABLE_REDIS = 'true';
 
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import request from 'supertest';
 
-// Mock Redis BEFORE any imports that might use it
+// Mock Redis BEFORE any imports that might use it - WAVE 3 AGENT #9 FIX
 vi.mock('ioredis', () => {
   const mockRedisClient = {
     ping: vi.fn().mockResolvedValue('PONG'),
@@ -20,29 +22,29 @@ vi.mock('ioredis', () => {
     pexpire: vi.fn().mockResolvedValue(1),
     pttl: vi.fn().mockResolvedValue(-1),
     eval: vi.fn().mockResolvedValue(0),
-    on: vi.fn(),
-    off: vi.fn(),
+    on: vi.fn().mockReturnThis(),
+    off: vi.fn().mockReturnThis(),
     connect: vi.fn().mockResolvedValue(undefined),
     disconnect: vi.fn().mockResolvedValue(undefined),
     quit: vi.fn().mockResolvedValue('OK'),
     flushall: vi.fn().mockResolvedValue('OK'),
     status: 'ready',
+    ready: true,
   };
 
+  // Complete Redis class mock
+  const MockRedis = vi.fn().mockImplementation(() => mockRedisClient);
+
   return {
-    default: vi.fn(() => mockRedisClient),
+    default: MockRedis,
+    Redis: MockRedis,
     __esModule: true,
   };
 });
 
-// Mock the entire Redis config module
-vi.mock('@/config/redis', () => ({
-  initializeRedis: vi.fn().mockResolvedValue({
-    ping: vi.fn().mockResolvedValue('PONG'),
-    on: vi.fn(),
-    quit: vi.fn().mockResolvedValue('OK'),
-  }),
-  getRedis: vi.fn().mockReturnValue({
+// Mock the entire Redis config module - WAVE 3 AGENT #9 ENHANCED
+vi.mock('@/config/redis', () => {
+  const mockRedisClient = {
     ping: vi.fn().mockResolvedValue('PONG'),
     get: vi.fn().mockResolvedValue(null),
     set: vi.fn().mockResolvedValue('OK'),
@@ -51,16 +53,30 @@ vi.mock('@/config/redis', () => ({
     pexpire: vi.fn().mockResolvedValue(1),
     pttl: vi.fn().mockResolvedValue(-1),
     eval: vi.fn().mockResolvedValue(0),
-  }),
-  redisClient: {
-    ping: vi.fn().mockResolvedValue('PONG'),
-    on: vi.fn(),
+    on: vi.fn().mockReturnThis(),
+    off: vi.fn().mockReturnThis(),
     quit: vi.fn().mockResolvedValue('OK'),
-  },
-  closeRedis: vi.fn().mockResolvedValue(undefined),
-  checkRedisHealth: vi.fn().mockResolvedValue(true),
-  checkRateLimit: vi.fn().mockResolvedValue({ allowed: true }),
-}));
+    status: 'ready',
+    ready: true,
+  };
+
+  return {
+    initializeRedis: vi.fn().mockResolvedValue(mockRedisClient),
+    getRedis: vi.fn().mockReturnValue(mockRedisClient),
+    redisClient: mockRedisClient,
+    closeRedis: vi.fn().mockResolvedValue(undefined),
+    checkRedisHealth: vi.fn().mockResolvedValue(true),
+    checkRateLimit: vi
+      .fn()
+      .mockResolvedValue({
+        allowed: true,
+        remainingHits: 100,
+        totalHits: 1,
+        resetTime: Date.now() + 60000,
+      }),
+    __esModule: true,
+  };
+});
 
 // Mock ALL services that use Redis to prevent connection attempts
 vi.mock('@/services/integration.service', () => ({

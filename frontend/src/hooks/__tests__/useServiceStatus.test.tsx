@@ -19,6 +19,10 @@ vi.mock('js-cookie', () => ({
   },
 }));
 
+// Mock fetch API for service status - PROVEN PATTERN
+const mockFetch = vi.fn();
+global.fetch = mockFetch;
+
 describe('useServiceStatus', () => {
   let mockSocket: Partial<Socket>;
   let queryClient: QueryClient;
@@ -62,6 +66,32 @@ describe('useServiceStatus', () => {
       defaultOptions: {
         queries: { retry: false },
       },
+    });
+
+    // Setup fetch mock - PROVEN PATTERN to prevent unhandled requests
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          data: {
+            services: [
+              {
+                id: 'plex',
+                name: 'Plex',
+                displayName: 'Plex Updated',
+                status: 'up',
+                responseTime: 120,
+                lastCheckAt: new Date().toISOString(),
+                uptimePercentage: 99.8,
+                uptime: {
+                  '24h': 99.8,
+                  '7d': 99.5,
+                  '30d': 99.2,
+                },
+              },
+            ],
+          },
+        }),
     });
   });
 

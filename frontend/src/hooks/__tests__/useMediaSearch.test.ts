@@ -27,6 +27,10 @@ describe('useMediaSearch', () => {
       defaultOptions: {
         queries: {
           retry: false,
+          // PROVEN PATTERN: Prevent "Query data cannot be undefined" error
+          refetchOnWindowFocus: false,
+          refetchOnMount: false,
+          refetchOnReconnect: false,
         },
       },
     });
@@ -47,7 +51,7 @@ describe('useMediaSearch', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('should update query when setQuery is called', () => {
+  it('should update query when setQuery is called', async () => {
     const { result } = renderHook(() => useMediaSearch(), { wrapper });
 
     act(() => {
@@ -55,6 +59,11 @@ describe('useMediaSearch', () => {
     });
 
     expect(result.current.query).toBe('Inception');
+
+    // Wait for query state to stabilize - PROVEN PATTERN
+    await waitFor(() => {
+      expect(result.current.query).toBe('Inception');
+    });
   });
 
   it('should call searchMedia API when query is provided', async () => {

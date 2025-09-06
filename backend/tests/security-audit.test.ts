@@ -5,7 +5,7 @@ import { z } from 'zod';
 describe('Security Audit - Input Validation', () => {
   it('should reject HTML/script tags in string inputs', () => {
     const testSchema = z.string().min(1).max(500);
-    
+
     // XSS attempts
     const xssInputs = [
       '<script>alert("xss")</script>',
@@ -18,7 +18,7 @@ describe('Security Audit - Input Validation', () => {
     ];
 
     // All should pass validation (but would be escaped by React)
-    xssInputs.forEach(input => {
+    xssInputs.forEach((input) => {
       const result = testSchema.safeParse(input);
       expect(result.success).toBe(true);
       // Note: XSS prevention happens at render time in React
@@ -27,18 +27,18 @@ describe('Security Audit - Input Validation', () => {
 
   it('should reject SQL injection attempts via validation', () => {
     const searchSchema = z.string().min(1);
-    
+
     // SQL injection attempts
     const sqlInputs = [
       "'; DROP TABLE users; --",
       '" OR "1"="1',
       "admin' --",
       "1' OR '1' = '1",
-      "1; DELETE FROM users WHERE 1=1; --",
+      '1; DELETE FROM users WHERE 1=1; --',
     ];
 
     // All should pass string validation (Prisma prevents SQL injection)
-    sqlInputs.forEach(input => {
+    sqlInputs.forEach((input) => {
       const result = searchSchema.safeParse(input);
       expect(result.success).toBe(true);
       // Note: Prisma ORM parameterizes all queries
@@ -46,8 +46,21 @@ describe('Security Audit - Input Validation', () => {
   });
 
   it('should validate URL inputs properly', () => {
-    const urlSchema = z.string().url();
-    
+    const urlSchema = z
+      .string()
+      .url()
+      .refine(
+        (url) => {
+          try {
+            const parsed = new URL(url);
+            return ['http:', 'https:'].includes(parsed.protocol);
+          } catch {
+            return false;
+          }
+        },
+        { message: 'Only HTTP and HTTPS URLs are allowed' },
+      );
+
     const validUrls = [
       'https://youtube.com/watch?v=123',
       'http://localhost:3000',
@@ -62,22 +75,19 @@ describe('Security Audit - Input Validation', () => {
       'not-a-url',
     ];
 
-    validUrls.forEach(url => {
+    validUrls.forEach((url) => {
       expect(urlSchema.safeParse(url).success).toBe(true);
     });
 
-    invalidUrls.forEach(url => {
+    invalidUrls.forEach((url) => {
       expect(urlSchema.safeParse(url).success).toBe(false);
     });
   });
 
   it('should enforce email validation', () => {
     const emailSchema = z.string().email();
-    
-    const validEmails = [
-      'user@example.com',
-      'test.user+tag@domain.co.uk',
-    ];
+
+    const validEmails = ['user@example.com', 'test.user+tag@domain.co.uk'];
 
     const invalidEmails = [
       'not-an-email',
@@ -87,18 +97,18 @@ describe('Security Audit - Input Validation', () => {
       '<script>@example.com',
     ];
 
-    validEmails.forEach(email => {
+    validEmails.forEach((email) => {
       expect(emailSchema.safeParse(email).success).toBe(true);
     });
 
-    invalidEmails.forEach(email => {
+    invalidEmails.forEach((email) => {
       expect(emailSchema.safeParse(email).success).toBe(false);
     });
   });
 
   it('should enforce UUID validation', () => {
     const uuidSchema = z.string().uuid();
-    
+
     const validUuids = [
       '550e8400-e29b-41d4-a716-446655440000',
       '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
@@ -111,11 +121,11 @@ describe('Security Audit - Input Validation', () => {
       '../../../etc/passwd',
     ];
 
-    validUuids.forEach(uuid => {
+    validUuids.forEach((uuid) => {
       expect(uuidSchema.safeParse(uuid).success).toBe(true);
     });
 
-    invalidUuids.forEach(uuid => {
+    invalidUuids.forEach((uuid) => {
       expect(uuidSchema.safeParse(uuid).success).toBe(false);
     });
   });
@@ -135,7 +145,7 @@ describe('Security Audit - Path Traversal Prevention', () => {
       'downloads/../../../secrets',
     ];
 
-    maliciousPaths.forEach(path => {
+    maliciousPaths.forEach((path) => {
       const sanitized = sanitizePath(path);
       expect(sanitized).not.toContain('..');
       expect(sanitized).not.toMatch(/^\/etc/);
@@ -145,17 +155,13 @@ describe('Security Audit - Path Traversal Prevention', () => {
 
 describe('Security Audit - Environment Variables', () => {
   it('should verify critical security environment variables are set', () => {
-    const criticalVars = [
-      'JWT_SECRET',
-      'ENCRYPTION_KEY',
-      'DATABASE_URL',
-    ];
+    const criticalVars = ['JWT_SECRET', 'ENCRYPTION_KEY', 'DATABASE_URL'];
 
-    criticalVars.forEach(varName => {
+    criticalVars.forEach((varName) => {
       // In test environment, these should be set
       if (process.env.NODE_ENV === 'test') {
         expect(process.env[varName]).toBeDefined();
-        
+
         // Check minimum lengths for secrets
         if (varName.includes('SECRET') || varName.includes('KEY')) {
           expect(process.env[varName]!.length).toBeGreaterThanOrEqual(32);
@@ -177,7 +183,7 @@ describe('Security Audit - JWT Configuration', () => {
     expect(jwtConfig.expiresIn).toBeDefined();
     expect(jwtConfig.issuer).toBeDefined();
     expect(jwtConfig.audience).toBeDefined();
-    
+
     // Token should not be too long-lived
     const hoursMatch = jwtConfig.expiresIn.match(/(\d+)h/);
     if (hoursMatch) {
