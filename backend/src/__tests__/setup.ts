@@ -1,46 +1,13 @@
 import { vi, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
-// import type { PrismaClient } from '@prisma/client';
 import { createHash } from 'crypto';
+import { createMockPrismaClient, resetMockPrismaClient } from '../config/test-database';
+import { createMockRedisClient, RedisTestUtils } from '../config/test-redis';
 
 // Mock Prisma Client for unit tests
-export const mockPrismaClient = {
-  user: {
-    findUnique: vi.fn(),
-    findMany: vi.fn(),
-    create: vi.fn(),
-    update: vi.fn(),
-    upsert: vi.fn(),
-    delete: vi.fn(),
-  },
-  mediaRequest: {
-    findMany: vi.fn(),
-    findUnique: vi.fn(),
-    create: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn(),
-  },
-  sessionToken: {
-    create: vi.fn(),
-    findUnique: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn(),
-  },
-  $transaction: vi.fn(),
-  $connect: vi.fn(),
-  $disconnect: vi.fn(),
-};
+export const mockPrismaClient = createMockPrismaClient();
 
 // Mock Redis Client
-export const mockRedisClient = {
-  get: vi.fn(),
-  set: vi.fn(),
-  del: vi.fn(),
-  setex: vi.fn(),
-  exists: vi.fn(),
-  expire: vi.fn(),
-  flushall: vi.fn(),
-  quit: vi.fn(),
-};
+export const mockRedisClient = createMockRedisClient();
 
 // Mock Logger
 export const mockLogger = {
@@ -68,16 +35,17 @@ export const mockAxios = {
 export const createTestUser = (overrides = {}) => ({
   id: 'test-user-id',
   plexId: 'test-plex-id',
-  username: 'testuser',
+  plexUsername: 'testuser',
   email: 'test@example.com',
-  role: 'user',
+  name: 'Test User',
+  role: 'USER',
   createdAt: new Date('2024-01-01T00:00:00Z'),
   updatedAt: new Date('2024-01-01T00:00:00Z'),
   lastLoginAt: new Date('2024-01-01T00:00:00Z'),
   status: 'active',
   plexToken: null,
-  avatar: null,
-  preferences: null,
+  image: null,
+  requiresPasswordChange: false,
   ...overrides,
 });
 
@@ -88,8 +56,9 @@ export const createTestMediaRequest = (overrides = {}) => ({
   tmdbId: '12345',
   title: 'Test Movie',
   status: 'pending',
+  overseerrId: null,
   createdAt: new Date('2024-01-01T00:00:00Z'),
-  updatedAt: new Date('2024-01-01T00:00:00Z'),
+  completedAt: null,
   ...overrides,
 });
 
@@ -98,7 +67,7 @@ export const createTestJWT = (payload = {}) => {
   return jwt.sign(
     {
       userId: 'test-user-id',
-      role: 'user',
+      role: 'USER',
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour
       ...payload,
@@ -201,8 +170,8 @@ export const setupGlobalMocks = () => {
   // Mock JWT
   vi.mock('jsonwebtoken', () => ({
     sign: vi.fn().mockReturnValue('test-jwt-token'),
-    verify: vi.fn().mockReturnValue({ userId: 'test-user-id', role: 'user' }),
-    decode: vi.fn().mockReturnValue({ userId: 'test-user-id', role: 'user' }),
+    verify: vi.fn().mockReturnValue({ userId: 'test-user-id', role: 'USER' }),
+    decode: vi.fn().mockReturnValue({ userId: 'test-user-id', role: 'USER' }),
   }));
 
   // Mock crypto for encryption
@@ -210,26 +179,59 @@ export const setupGlobalMocks = () => {
     ...(await vi.importActual('crypto')),
     randomBytes: vi.fn().mockReturnValue(Buffer.from('test-random-bytes')),
   }));
+
+  // Mock database config
+  vi.mock('@/config/database', () => ({
+    getDatabase: vi.fn(() => mockPrismaClient),
+    initializeDatabase: vi.fn().mockResolvedValue(mockPrismaClient),
+    getRepositories: vi.fn(() => ({
+      user: mockPrismaClient.user,
+      mediaRequest: mockPrismaClient.mediaRequest,
+      sessionToken: mockPrismaClient.sessionToken,
+      serviceStatus: mockPrismaClient.serviceStatus,
+      serviceConfig: mockPrismaClient.serviceConfig,
+    })),
+  }));
+
+  // Mock Prisma client directly
+  vi.mock('@/db/prisma', () => ({
+    default: mockPrismaClient,
+    getPrismaClient: vi.fn(() => mockPrismaClient),
+    disconnectPrisma: vi.fn(),
+  }));
+
+  // Mock Redis client
+  vi.mock('@/config/redis', () => ({
+    default: mockRedisClient,
+    getRedisClient: vi.fn(() => mockRedisClient),
+    disconnectRedis: vi.fn(),
+  }));
 };
 
 // Reset all mocks
 export const resetAllMocks = () => {
   vi.clearAllMocks();
-  Object.values(mockPrismaClient).forEach((mock) => {
-    if (typeof mock === 'object' && mock !== null) {
-      Object.values(mock).forEach((fn) => {
+
+  // Reset Prisma mocks
+  Object.values(mockPrismaClient).forEach((model: any) => {
+    if (typeof model === 'object' && model !== null) {
+      Object.values(model).forEach((fn: any) => {
         if (vi.isMockFunction(fn)) {
           fn.mockReset();
         }
       });
+    } else if (vi.isMockFunction(model)) {
+      model.mockReset();
     }
   });
-  Object.values(mockRedisClient).forEach((fn) => {
-    if (vi.isMockFunction(fn)) {
-      fn.mockReset();
-    }
-  });
-  Object.values(mockLogger).forEach((fn) => {
+
+  // Reset Redis mocks
+  if (mockRedisClient && typeof mockRedisClient === 'object') {
+    RedisTestUtils.resetMockClient();
+  }
+
+  // Reset logger mocks
+  Object.values(mockLogger).forEach((fn: any) => {
     if (vi.isMockFunction(fn)) {
       fn.mockReset();
     }
@@ -244,12 +246,15 @@ beforeAll(() => {
 
 beforeEach(() => {
   resetAllMocks();
+  resetMockPrismaClient();
+  RedisTestUtils.resetMockClient();
 });
 
 afterEach(() => {
   vi.clearAllTimers();
 });
 
-afterAll(() => {
+afterAll(async () => {
+  await RedisTestUtils.cleanup();
   vi.restoreAllMocks();
 });

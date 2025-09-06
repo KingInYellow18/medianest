@@ -66,7 +66,7 @@ describe('Resilience Integration Tests', () => {
 
       // Next call should be rejected by circuit breaker
       await expect(circuitBreaker.execute(failingOperation)).rejects.toThrow(
-        'Circuit breaker is OPEN',
+        'Circuit breaker test-service is OPEN',
       );
 
       // Original operation shouldn't be called
@@ -102,12 +102,11 @@ describe('Resilience Integration Tests', () => {
 
       expect(stats).toMatchObject({
         state: 'CLOSED',
-        failureCount: 0,
-        successCount: 0,
-        totalRequests: 0,
+        failures: 0,
+        successes: 0,
+        requests: 0,
         lastFailureTime: null,
         lastSuccessTime: null,
-        nextRetryAt: null,
         errorRate: 0,
       });
     });

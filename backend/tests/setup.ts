@@ -1,5 +1,7 @@
 import { afterAll, afterEach, beforeAll, vi } from 'vitest';
 import { server } from './msw/setup';
+import { createMockPrismaClient, resetMockPrismaClient } from '../src/config/test-database';
+import { createMockRedisClient, RedisTestUtils } from '../src/config/test-redis';
 
 // Mock winston and logger completely for tests
 vi.mock('winston', () => ({
@@ -77,11 +79,12 @@ afterAll(() => {
   server.close();
 });
 
-// Mock environment variables
+// Mock environment variables BEFORE any imports
 process.env.NODE_ENV = 'test';
-process.env.JWT_SECRET = 'test-jwt-secret';
+process.env.JWT_SECRET = 'test-jwt-secret-key-32-bytes-long';
 process.env.JWT_ISSUER = 'medianest';
 process.env.JWT_AUDIENCE = 'medianest-users';
+process.env.NEXTAUTH_SECRET = 'test-nextauth-secret-key-32-bytes-long';
 process.env.ENCRYPTION_KEY = 'test-encryption-key-32-bytes-long';
 process.env.DATABASE_URL = 'postgresql://test:test@localhost:5433/medianest_test';
 process.env.REDIS_URL = 'redis://localhost:6380';
@@ -89,6 +92,36 @@ process.env.PLEX_CLIENT_ID = 'test-plex-client-id';
 process.env.PLEX_CLIENT_SECRET = 'test-plex-client-secret';
 process.env.FRONTEND_URL = 'http://localhost:3000';
 process.env.LOG_LEVEL = 'error'; // Reduce noise during tests
+
+// Mock the config module to return test configuration
+vi.mock('@/config', () => ({
+  config: {
+    NODE_ENV: 'test',
+    PORT: 3001,
+    DATABASE_URL: 'postgresql://test:test@localhost:5433/medianest_test',
+    REDIS_URL: 'redis://localhost:6380',
+    jwt: {
+      secret: 'test-jwt-secret-key-32-bytes-long',
+      issuer: 'medianest-test',
+      audience: 'medianest-test-users',
+      expiresIn: '1h',
+    },
+    encryption: {
+      key: 'test-encryption-key-32-bytes-long',
+    },
+    plex: {
+      clientId: 'test-plex-client-id',
+      clientSecret: 'test-plex-client-secret',
+    },
+    FRONTEND_URL: 'http://localhost:3000',
+    LOG_LEVEL: 'silent',
+  },
+  logConfiguration: vi.fn(),
+  validateRequiredConfig: vi.fn(),
+  isDevelopment: vi.fn(() => false),
+  isTest: vi.fn(() => true),
+  isProduction: vi.fn(() => false),
+}));
 
 // Global test utilities
 global.createTestUser = (overrides = {}) => ({
