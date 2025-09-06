@@ -3,7 +3,24 @@ import path from 'path'
 
 export default defineConfig({
   test: {
-    environment: 'node',
+    projects: [
+      {
+        name: 'shared',
+        root: './shared',
+        environment: 'node',
+      },
+      {
+        name: 'backend',
+        root: './backend', 
+        environment: 'node',
+      },
+      {
+        name: 'frontend',
+        root: './frontend',
+        environment: 'jsdom',
+      }
+    ],
+    environment: 'jsdom',
     setupFiles: ['./tests/setup.ts'],
     globals: true,
     coverage: {
