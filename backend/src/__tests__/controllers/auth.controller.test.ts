@@ -170,7 +170,7 @@ describe('AuthController', () => {
 
       expect(mockNext).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'PLEX_ERROR',
+          code: 'PLEX_ERROR',
           message: 'Invalid response from Plex',
           statusCode: 502,
         }),
@@ -188,7 +188,7 @@ describe('AuthController', () => {
 
       expect(mockNext).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'PLEX_UNREACHABLE',
+          code: 'PLEX_UNREACHABLE',
           message: 'Cannot connect to Plex server. Please try again.',
           statusCode: 503,
         }),
@@ -204,7 +204,7 @@ describe('AuthController', () => {
 
       expect(mockNext).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'PLEX_TIMEOUT',
+          code: 'PLEX_TIMEOUT',
           statusCode: 504,
         }),
       );
@@ -337,7 +337,7 @@ describe('AuthController', () => {
 
       expect(mockNext).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'PIN_NOT_AUTHORIZED',
+          code: 'PIN_NOT_AUTHORIZED',
           message: 'PIN has not been authorized yet. Please complete authorization on plex.tv/link',
           statusCode: 400,
         }),
@@ -355,7 +355,7 @@ describe('AuthController', () => {
 
       expect(mockNext).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'INVALID_PIN',
+          code: 'INVALID_PIN',
           message: 'Invalid or expired PIN',
           statusCode: 400,
         }),
@@ -378,7 +378,7 @@ describe('AuthController', () => {
 
       expect(mockNext).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'DATABASE_ERROR',
+          code: 'DATABASE_ERROR',
           message: 'Failed to save user information',
           statusCode: 503,
         }),
@@ -399,7 +399,7 @@ describe('AuthController', () => {
 
       expect(mockNext).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'PLEX_ERROR',
+          code: 'PLEX_ERROR',
           message: 'Invalid user data from Plex',
           statusCode: 502,
         }),
@@ -490,7 +490,7 @@ describe('AuthController', () => {
         authController.getSession(mockRequest as Request, mockResponse as Response),
       ).rejects.toThrow(
         expect.objectContaining({
-          type: 'UNAUTHORIZED',
+          code: 'UNAUTHORIZED',
           message: 'User not found in request',
           statusCode: 401,
         }),
@@ -526,7 +526,7 @@ describe('AuthController', () => {
 
       expect(mockNext).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'VALIDATION_ERROR',
+          code: 'VALIDATION_ERROR',
           message: 'Invalid request data',
           statusCode: 400,
         }),
@@ -557,7 +557,7 @@ describe('AuthController', () => {
 
       expect(mockNext).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'TOKEN_ERROR',
+          code: 'TOKEN_ERROR',
           message: 'Failed to generate authentication tokens',
           statusCode: 503,
         }),
