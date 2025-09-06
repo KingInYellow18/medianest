@@ -69,15 +69,4 @@ module.exports = {
     'no-debugger': 'error',
     'prettier/prettier': 'error',
   },
-  ignorePatterns: [
-    'dist',
-    'build',
-    '.next',
-    'node_modules',
-    'coverage',
-    '*.config.js',
-    '*.config.ts',
-    '*.mjs',
-    'vitest.config.ts',
-  ],
 };
