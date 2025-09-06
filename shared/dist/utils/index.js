@@ -14,8 +14,11 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.generateCorrelationId = void 0;
 __exportStar(require("./format"), exports);
 __exportStar(require("./generators"), exports);
 __exportStar(require("./crypto"), exports);
 __exportStar(require("./validation"), exports);
+var generators_1 = require("./generators");
+Object.defineProperty(exports, "generateCorrelationId", { enumerable: true, get: function () { return generators_1.generateCorrelationId; } });
 //# sourceMappingURL=index.js.map

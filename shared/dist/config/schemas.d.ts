@@ -7,10 +7,10 @@ export declare const BaseConfigSchema: z.ZodObject<{
     NODE_ENV: z.ZodDefault<z.ZodEnum<["development", "test", "production"]>>;
     LOG_LEVEL: z.ZodDefault<z.ZodEnum<["error", "warn", "info", "debug"]>>;
 }, "strip", z.ZodTypeAny, {
-    NODE_ENV: "development" | "test" | "production";
+    NODE_ENV: "production" | "development" | "test";
     LOG_LEVEL: "error" | "warn" | "info" | "debug";
 }, {
-    NODE_ENV?: "development" | "test" | "production" | undefined;
+    NODE_ENV?: "production" | "development" | "test" | undefined;
     LOG_LEVEL?: "error" | "warn" | "info" | "debug" | undefined;
 }>;
 export declare const DatabaseConfigSchema: z.ZodObject<{
@@ -268,16 +268,16 @@ export declare const OverseerrServiceConfigSchema: z.ZodObject<{
     timeout: z.ZodDefault<z.ZodNumber>;
     retries: z.ZodDefault<z.ZodNumber>;
 }, "strip", z.ZodTypeAny, {
-    enabled: boolean;
     timeout: number;
+    enabled: boolean;
     retries: number;
     url?: string | undefined;
     apiKey?: string | undefined;
 }, {
+    timeout?: number | undefined;
     enabled?: boolean | undefined;
     url?: string | undefined;
     apiKey?: string | undefined;
-    timeout?: number | undefined;
     retries?: number | undefined;
 }>;
 export declare const ServiceConfigsSchema: z.ZodObject<{
@@ -328,16 +328,16 @@ export declare const ServiceConfigsSchema: z.ZodObject<{
         timeout: z.ZodDefault<z.ZodNumber>;
         retries: z.ZodDefault<z.ZodNumber>;
     }, "strip", z.ZodTypeAny, {
-        enabled: boolean;
         timeout: number;
+        enabled: boolean;
         retries: number;
         url?: string | undefined;
         apiKey?: string | undefined;
     }, {
+        timeout?: number | undefined;
         enabled?: boolean | undefined;
         url?: string | undefined;
         apiKey?: string | undefined;
-        timeout?: number | undefined;
         retries?: number | undefined;
     }>>;
 }, "strip", z.ZodTypeAny, {
@@ -356,8 +356,8 @@ export declare const ServiceConfigsSchema: z.ZodObject<{
         redirectUri?: string | undefined;
     } | undefined;
     overseerr?: {
-        enabled: boolean;
         timeout: number;
+        enabled: boolean;
         retries: number;
         url?: string | undefined;
         apiKey?: string | undefined;
@@ -378,10 +378,10 @@ export declare const ServiceConfigsSchema: z.ZodObject<{
         baseUrl?: string | undefined;
     } | undefined;
     overseerr?: {
+        timeout?: number | undefined;
         enabled?: boolean | undefined;
         url?: string | undefined;
         apiKey?: string | undefined;
-        timeout?: number | undefined;
         retries?: number | undefined;
     } | undefined;
 }>;
@@ -451,7 +451,7 @@ export declare const RawBackendConfigSchema: z.ZodObject<{
     DOCKER_SECRETS_PATH: z.ZodDefault<z.ZodString>;
     USE_DOCKER_SECRETS: z.ZodDefault<z.ZodBoolean>;
 }, "strip", z.ZodTypeAny, {
-    NODE_ENV: "development" | "test" | "production";
+    NODE_ENV: "production" | "development" | "test";
     LOG_LEVEL: "error" | "warn" | "info" | "debug";
     DATABASE_URL: string;
     DATABASE_POOL_SIZE: number;
@@ -509,7 +509,7 @@ export declare const RawBackendConfigSchema: z.ZodObject<{
     PLEX_CLIENT_ID: string;
     PLEX_CLIENT_SECRET: string;
     ENCRYPTION_KEY: string;
-    NODE_ENV?: "development" | "test" | "production" | undefined;
+    NODE_ENV?: "production" | "development" | "test" | undefined;
     LOG_LEVEL?: "error" | "warn" | "info" | "debug" | undefined;
     DATABASE_POOL_SIZE?: number | undefined;
     DATABASE_TIMEOUT?: number | undefined;
@@ -623,7 +623,7 @@ export declare const BackendConfigSchema: z.ZodEffects<z.ZodObject<{
     DOCKER_SECRETS_PATH: z.ZodDefault<z.ZodString>;
     USE_DOCKER_SECRETS: z.ZodDefault<z.ZodBoolean>;
 }, "strip", z.ZodTypeAny, {
-    NODE_ENV: "development" | "test" | "production";
+    NODE_ENV: "production" | "development" | "test";
     LOG_LEVEL: "error" | "warn" | "info" | "debug";
     DATABASE_URL: string;
     DATABASE_POOL_SIZE: number;
@@ -681,7 +681,7 @@ export declare const BackendConfigSchema: z.ZodEffects<z.ZodObject<{
     PLEX_CLIENT_ID: string;
     PLEX_CLIENT_SECRET: string;
     ENCRYPTION_KEY: string;
-    NODE_ENV?: "development" | "test" | "production" | undefined;
+    NODE_ENV?: "production" | "development" | "test" | undefined;
     LOG_LEVEL?: "error" | "warn" | "info" | "debug" | undefined;
     DATABASE_POOL_SIZE?: number | undefined;
     DATABASE_TIMEOUT?: number | undefined;
@@ -750,7 +750,7 @@ export declare const BackendConfigSchema: z.ZodEffects<z.ZodObject<{
         timeout: number;
         retries: number;
     };
-    NODE_ENV: "development" | "test" | "production";
+    NODE_ENV: "production" | "development" | "test";
     LOG_LEVEL: "error" | "warn" | "info" | "debug";
     DATABASE_URL: string;
     DATABASE_POOL_SIZE: number;
@@ -808,7 +808,7 @@ export declare const BackendConfigSchema: z.ZodEffects<z.ZodObject<{
     PLEX_CLIENT_ID: string;
     PLEX_CLIENT_SECRET: string;
     ENCRYPTION_KEY: string;
-    NODE_ENV?: "development" | "test" | "production" | undefined;
+    NODE_ENV?: "production" | "development" | "test" | undefined;
     LOG_LEVEL?: "error" | "warn" | "info" | "debug" | undefined;
     DATABASE_POOL_SIZE?: number | undefined;
     DATABASE_TIMEOUT?: number | undefined;
@@ -884,7 +884,7 @@ export declare const FrontendConfigSchema: z.ZodObject<{
     PLEX_REDIRECT_URI: z.ZodOptional<z.ZodString>;
     PLEX_YOUTUBE_LIBRARY_PATH: z.ZodDefault<z.ZodString>;
 }, "PLEX_CLIENT_ID" | "PLEX_CLIENT_SECRET">, "strip", z.ZodTypeAny, {
-    NODE_ENV: "development" | "test" | "production";
+    NODE_ENV: "production" | "development" | "test";
     LOG_LEVEL: "error" | "warn" | "info" | "debug";
     NEXTAUTH_URL: string;
     NEXTAUTH_SECRET: string;
@@ -903,7 +903,7 @@ export declare const FrontendConfigSchema: z.ZodObject<{
     NEXTAUTH_SECRET: string;
     PLEX_CLIENT_ID: string;
     PLEX_CLIENT_SECRET: string;
-    NODE_ENV?: "development" | "test" | "production" | undefined;
+    NODE_ENV?: "production" | "development" | "test" | undefined;
     LOG_LEVEL?: "error" | "warn" | "info" | "debug" | undefined;
     NEXT_PUBLIC_API_URL?: string | undefined;
     NEXT_PUBLIC_BACKEND_URL?: string | undefined;
@@ -986,7 +986,7 @@ export declare const TestConfigSchema: z.ZodEffects<z.ZodObject<{
     TEST_PORT: z.ZodDefault<z.ZodNumber>;
     TEST_TIMEOUT: z.ZodDefault<z.ZodNumber>;
 }, "strip", z.ZodTypeAny, {
-    NODE_ENV: "development" | "test" | "production";
+    NODE_ENV: "production" | "development" | "test";
     LOG_LEVEL: "error" | "warn" | "info" | "debug";
     DATABASE_URL: string;
     DATABASE_POOL_SIZE: number;
@@ -1048,7 +1048,7 @@ export declare const TestConfigSchema: z.ZodEffects<z.ZodObject<{
     PLEX_CLIENT_ID: string;
     PLEX_CLIENT_SECRET: string;
     ENCRYPTION_KEY: string;
-    NODE_ENV?: "development" | "test" | "production" | undefined;
+    NODE_ENV?: "production" | "development" | "test" | undefined;
     LOG_LEVEL?: "error" | "warn" | "info" | "debug" | undefined;
     DATABASE_POOL_SIZE?: number | undefined;
     DATABASE_TIMEOUT?: number | undefined;
@@ -1121,7 +1121,7 @@ export declare const TestConfigSchema: z.ZodEffects<z.ZodObject<{
         timeout: number;
         retries: number;
     };
-    NODE_ENV: "development" | "test" | "production";
+    NODE_ENV: "production" | "development" | "test";
     LOG_LEVEL: "error" | "warn" | "info" | "debug";
     DATABASE_URL: string;
     DATABASE_POOL_SIZE: number;
@@ -1183,7 +1183,7 @@ export declare const TestConfigSchema: z.ZodEffects<z.ZodObject<{
     PLEX_CLIENT_ID: string;
     PLEX_CLIENT_SECRET: string;
     ENCRYPTION_KEY: string;
-    NODE_ENV?: "development" | "test" | "production" | undefined;
+    NODE_ENV?: "production" | "development" | "test" | undefined;
     LOG_LEVEL?: "error" | "warn" | "info" | "debug" | undefined;
     DATABASE_POOL_SIZE?: number | undefined;
     DATABASE_TIMEOUT?: number | undefined;

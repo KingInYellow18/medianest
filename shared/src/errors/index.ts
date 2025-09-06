@@ -1,26 +1,9 @@
 // Shared error classes
 
-export class AppError extends Error {
-  public readonly statusCode: number;
-  public readonly code: string;
-  public readonly details: any;
+// Import core types from separate module to avoid circular dependencies
+import { AppError, isAppError } from './types';
 
-  constructor(code: string, message: string, statusCode: number = 500, details: any = {}) {
-    super(message);
-    this.code = code;
-    this.message = message;
-    this.statusCode = statusCode;
-    this.details = details;
-
-    // Maintain proper stack trace for debugging
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, this.constructor);
-    }
-
-    // Set the name property for better error identification
-    this.name = this.constructor.name;
-  }
-}
+export { AppError, isAppError };
 
 export class ValidationError extends AppError {
   constructor(message: string, details?: any) {
@@ -83,11 +66,6 @@ export class InternalServerError extends AppError {
   constructor(message: string = 'An internal server error occurred', details?: any) {
     super('INTERNAL_ERROR', message, 500, details);
   }
-}
-
-// Type guard for AppError
-export function isAppError(error: any): error is AppError {
-  return error instanceof AppError;
 }
 
 // Convert any error to AppError

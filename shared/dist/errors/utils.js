@@ -7,9 +7,9 @@ exports.logError = logError;
 exports.getUserFriendlyMessage = getUserFriendlyMessage;
 exports.isRetryableError = isRetryableError;
 exports.extractErrorDetails = extractErrorDetails;
-const index_1 = require("./index");
+const types_1 = require("./types");
 function serializeError(error) {
-    if (error instanceof index_1.AppError) {
+    if (error instanceof types_1.AppError) {
         return {
             message: error.message,
             code: error.code,
@@ -26,9 +26,9 @@ function serializeError(error) {
 function parseApiError(response) {
     if (response?.error) {
         const { message, code, statusCode, details } = response.error;
-        return new index_1.AppError(message || 'An error occurred', statusCode || 500, code || 'API_ERROR', details);
+        return new types_1.AppError(message || 'An error occurred', statusCode || 500, code || 'API_ERROR', details);
     }
-    return new index_1.AppError('An unknown error occurred', 'UNKNOWN_ERROR', 500);
+    return new types_1.AppError('An unknown error occurred', 'UNKNOWN_ERROR', 500);
 }
 function logError(error, context) {
     const entry = {
@@ -36,7 +36,9 @@ function logError(error, context) {
         context,
         timestamp: new Date().toISOString(),
     };
-    if (typeof globalThis !== 'undefined' && 'window' in globalThis && typeof globalThis.window !== 'undefined') {
+    if (typeof globalThis !== 'undefined' &&
+        'window' in globalThis &&
+        typeof globalThis.window !== 'undefined') {
         const win = globalThis.window;
         entry.userAgent = win.navigator?.userAgent;
         entry.url = win.location?.href;
@@ -65,7 +67,7 @@ exports.USER_FRIENDLY_MESSAGES = {
     CONFLICT_ERROR: 'This action conflicts with another operation.',
 };
 function getUserFriendlyMessage(error) {
-    if (error instanceof index_1.AppError) {
+    if (error instanceof types_1.AppError) {
         return exports.USER_FRIENDLY_MESSAGES[error.code] ?? error.message;
     }
     const message = error.message.toLowerCase();
@@ -78,7 +80,7 @@ function getUserFriendlyMessage(error) {
     return exports.USER_FRIENDLY_MESSAGES.UNKNOWN_ERROR ?? 'An unexpected error occurred';
 }
 function isRetryableError(error) {
-    if (error instanceof index_1.AppError) {
+    if (error instanceof types_1.AppError) {
         const retryableStatusCodes = [408, 429, 500, 502, 503, 504];
         return retryableStatusCodes.includes(error.statusCode);
     }
@@ -91,7 +93,7 @@ function extractErrorDetails(error) {
         name: error.name,
         stack: error.stack,
     };
-    if (error instanceof index_1.AppError) {
+    if (error instanceof types_1.AppError) {
         details.code = error.code;
         details.statusCode = error.statusCode;
         details.details = error.details;

@@ -1,6 +1,6 @@
 // Error utility functions for frontend and backend
 
-import { AppError } from './index';
+import { AppError } from './types';
 
 // Error serialization for API responses
 export interface SerializedError {
