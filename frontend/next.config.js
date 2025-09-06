@@ -2,10 +2,21 @@
 const nextConfig = {
   // Trust proxy headers for correct protocol detection
   experimental: {
-    // Enable instrumentation for OpenTelemetry if needed
-    instrumentationHook: true,
     // Optimize package imports for better tree-shaking
     optimizePackageImports: ['lucide-react', '@headlessui/react', 'date-fns'],
+  },
+
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+        os: false,
+        crypto: false,
+      };
+    }
+    return config;
   },
 
   // Image optimization configuration
