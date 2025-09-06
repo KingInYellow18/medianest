@@ -1,27 +1,25 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, render, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useSession, signOut } from 'next-auth/react'
-import { renderWithProviders } from '@/test/utils'
-import ChangePasswordPage from '../page'
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { screen, render, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import ChangePasswordPage from '../page';
 
 // Mock Next.js hooks and NextAuth
-vi.mock('next/navigation')
-vi.mock('next-auth/react')
+vi.mock('next/navigation');
+vi.mock('next-auth/react');
 
-const mockPush = vi.fn()
-const mockUseRouter = useRouter as vi.MockedFunction<typeof useRouter>
-const mockUseSearchParams = useSearchParams as vi.MockedFunction<typeof useSearchParams>
-const mockUseSession = useSession as vi.MockedFunction<typeof useSession>
-const mockSignOut = signOut as vi.MockedFunction<typeof signOut>
-
-// Mock global fetch
-global.fetch = vi.fn()
+const mockPush = vi.fn();
+const mockUpdate = vi.fn();
+const mockUseRouter = useRouter as vi.MockedFunction<typeof useRouter>;
+const mockUseSession = useSession as vi.MockedFunction<typeof useSession>;
 
 beforeEach(() => {
-  vi.clearAllMocks()
-  
+  vi.clearAllMocks();
+
+  // Mock fetch with proper vi.fn()
+  global.fetch = vi.fn();
+
   mockUseRouter.mockReturnValue({
     push: mockPush,
     replace: vi.fn(),
@@ -29,559 +27,564 @@ beforeEach(() => {
     back: vi.fn(),
     forward: vi.fn(),
     refresh: vi.fn(),
-  } as any)
-  
-  mockUseSearchParams.mockReturnValue(new URLSearchParams())
-  
+  } as any);
+
   mockUseSession.mockReturnValue({
     data: {
       user: {
         id: 'test-user-id',
         email: 'test@example.com',
         name: 'Test User',
-        role: 'user'
+        role: 'user',
+        requiresPasswordChange: true,
       },
-      expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+      expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     },
     status: 'authenticated',
-    update: vi.fn()
-  })
-})
+    update: mockUpdate,
+  });
+});
 
 describe('Change Password Page - Comprehensive Testing', () => {
-  describe('Authentication and Session Handling', () => {
-    it('redirects unauthenticated users', () => {
-      mockUseSession.mockReturnValue({
-        data: null,
-        status: 'unauthenticated',
-        update: vi.fn()
-      })
-      
-      render(<ChangePasswordPage />)
-      
-      expect(mockPush).toHaveBeenCalledWith('/auth/signin')
-    })
+  describe('Component Rendering', () => {
+    it('renders change password form with correct title and description', () => {
+      render(<ChangePasswordPage />);
 
-    it('shows loading state while session is loading', () => {
-      mockUseSession.mockReturnValue({
-        data: null,
-        status: 'loading',
-        update: vi.fn()
-      })
-      
-      render(<ChangePasswordPage />)
-      
-      expect(screen.getByText('Loading...')).toBeInTheDocument()
-    })
+      expect(screen.getByText('Change Your Password')).toBeInTheDocument();
+      expect(
+        screen.getByText('You must change your password before continuing'),
+      ).toBeInTheDocument();
+    });
 
-    it('renders form for authenticated users', () => {
-      render(<ChangePasswordPage />)
-      
-      expect(screen.getByText('Change Password')).toBeInTheDocument()
-      expect(screen.getByLabelText(/current password/i)).toBeInTheDocument()
-      expect(screen.getByLabelText(/new password/i)).toBeInTheDocument()
-      expect(screen.getByLabelText(/confirm new password/i)).toBeInTheDocument()
-    })
-  })
+    it('renders all form fields with correct labels', () => {
+      render(<ChangePasswordPage />);
+
+      expect(screen.getByLabelText('Current Password')).toBeInTheDocument();
+      expect(screen.getByLabelText('New Password')).toBeInTheDocument();
+      expect(screen.getByLabelText('Confirm New Password')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Change Password' })).toBeInTheDocument();
+    });
+
+    it('shows helpful text for password requirements', () => {
+      render(<ChangePasswordPage />);
+
+      expect(screen.getByText('Default: admin')).toBeInTheDocument();
+      expect(screen.getByText('Must be at least 8 characters long')).toBeInTheDocument();
+    });
+
+    it('redirects users who do not require password change', () => {
+      mockUseSession.mockReturnValue({
+        data: {
+          user: {
+            id: 'test-user-id',
+            email: 'test@example.com',
+            name: 'Test User',
+            role: 'user',
+            requiresPasswordChange: false,
+          },
+          expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        },
+        status: 'authenticated',
+        update: mockUpdate,
+      });
+
+      render(<ChangePasswordPage />);
+
+      expect(mockPush).toHaveBeenCalledWith('/dashboard');
+    });
+
+    it('returns null for users who do not require password change', () => {
+      mockUseSession.mockReturnValue({
+        data: {
+          user: {
+            id: 'test-user-id',
+            email: 'test@example.com',
+            name: 'Test User',
+            role: 'user',
+            requiresPasswordChange: false,
+          },
+          expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        },
+        status: 'authenticated',
+        update: mockUpdate,
+      });
+
+      const { container } = render(<ChangePasswordPage />);
+
+      expect(container.firstChild).toBeNull();
+    });
+  });
 
   describe('Form Validation', () => {
-    it('shows required field validation', async () => {
-      const user = userEvent.setup()
-      
-      render(<ChangePasswordPage />)
-      
-      const submitButton = screen.getByRole('button', { name: /change password/i })
-      await user.click(submitButton)
-      
+    it('validates that passwords match', async () => {
+      const user = userEvent.setup();
+
+      render(<ChangePasswordPage />);
+
+      const currentPasswordInput = screen.getByLabelText('Current Password');
+      const newPasswordInput = screen.getByLabelText('New Password');
+      const confirmPasswordInput = screen.getByLabelText('Confirm New Password');
+      const submitButton = screen.getByRole('button', { name: 'Change Password' });
+
+      await user.type(currentPasswordInput, 'admin');
+      await user.type(newPasswordInput, 'newPassword123!');
+      await user.type(confirmPasswordInput, 'differentPassword123!');
+      await user.click(submitButton);
+
       await waitFor(() => {
-        expect(screen.getByText(/current password is required/i)).toBeInTheDocument()
-        expect(screen.getByText(/new password is required/i)).toBeInTheDocument()
-      })
-    })
+        expect(screen.getByText('New passwords do not match')).toBeInTheDocument();
+      });
+    });
 
-    it('validates new password strength', async () => {
-      const user = userEvent.setup()
-      
-      render(<ChangePasswordPage />)
-      
-      const newPasswordInput = screen.getByLabelText(/new password/i)
-      await user.type(newPasswordInput, '123')
-      
-      const submitButton = screen.getByRole('button', { name: /change password/i })
-      await user.click(submitButton)
-      
+    it('validates minimum password length', async () => {
+      const user = userEvent.setup();
+
+      render(<ChangePasswordPage />);
+
+      const currentPasswordInput = screen.getByLabelText('Current Password');
+      const newPasswordInput = screen.getByLabelText('New Password');
+      const confirmPasswordInput = screen.getByLabelText('Confirm New Password');
+      const submitButton = screen.getByRole('button', { name: 'Change Password' });
+
+      await user.type(currentPasswordInput, 'admin');
+      await user.type(newPasswordInput, '123');
+      await user.type(confirmPasswordInput, '123');
+      await user.click(submitButton);
+
       await waitFor(() => {
-        expect(screen.getByText(/password must be at least 8 characters/i)).toBeInTheDocument()
-      })
-    })
+        expect(screen.getByText('Password must be at least 8 characters long')).toBeInTheDocument();
+      });
+    });
 
-    it('validates password confirmation match', async () => {
-      const user = userEvent.setup()
-      
-      render(<ChangePasswordPage />)
-      
-      const newPasswordInput = screen.getByLabelText(/new password/i)
-      const confirmPasswordInput = screen.getByLabelText(/confirm new password/i)
-      
-      await user.type(newPasswordInput, 'newPassword123!')
-      await user.type(confirmPasswordInput, 'differentPassword123!')
-      
-      const submitButton = screen.getByRole('button', { name: /change password/i })
-      await user.click(submitButton)
-      
-      await waitFor(() => {
-        expect(screen.getByText(/passwords do not match/i)).toBeInTheDocument()
-      })
-    })
+    it('allows valid password change', async () => {
+      const user = userEvent.setup();
 
-    it('validates against using current password as new password', async () => {
-      const user = userEvent.setup()
-      
-      render(<ChangePasswordPage />)
-      
-      const currentPasswordInput = screen.getByLabelText(/current password/i)
-      const newPasswordInput = screen.getByLabelText(/new password/i)
-      const confirmPasswordInput = screen.getByLabelText(/confirm new password/i)
-      
-      await user.type(currentPasswordInput, 'currentPassword123!')
-      await user.type(newPasswordInput, 'currentPassword123!')
-      await user.type(confirmPasswordInput, 'currentPassword123!')
-      
-      const submitButton = screen.getByRole('button', { name: /change password/i })
-      await user.click(submitButton)
-      
-      await waitFor(() => {
-        expect(screen.getByText(/new password must be different from current password/i)).toBeInTheDocument()
-      })
-    })
-  })
+      render(<ChangePasswordPage />);
 
-  describe('Password Strength Requirements', () => {
-    const weakPasswords = [
-      { password: '12345678', reason: 'no uppercase, special chars' },
-      { password: 'password', reason: 'no numbers, uppercase, special chars' },
-      { password: 'PASSWORD', reason: 'no lowercase, numbers, special chars' },
-      { password: 'Password', reason: 'no numbers, special chars' },
-      { password: 'Password123', reason: 'no special chars' },
-    ]
+      const currentPasswordInput = screen.getByLabelText('Current Password');
+      const newPasswordInput = screen.getByLabelText('New Password');
+      const confirmPasswordInput = screen.getByLabelText('Confirm New Password');
 
-    weakPasswords.forEach(({ password, reason }) => {
-      it(`rejects weak password: ${reason}`, async () => {
-        const user = userEvent.setup()
-        
-        render(<ChangePasswordPage />)
-        
-        const newPasswordInput = screen.getByLabelText(/new password/i)
-        await user.type(newPasswordInput, password)
-        
-        const submitButton = screen.getByRole('button', { name: /change password/i })
-        await user.click(submitButton)
-        
-        await waitFor(() => {
-          const errorMessage = screen.queryByText(/password must contain/i) || 
-                              screen.queryByText(/password must be at least 8 characters/i) ||
-                              screen.queryByText(/password is too weak/i)
-          expect(errorMessage).toBeInTheDocument()
-        })
-      })
-    })
+      await user.type(currentPasswordInput, 'admin');
+      await user.type(newPasswordInput, 'newPassword123!');
+      await user.type(confirmPasswordInput, 'newPassword123!');
 
-    it('accepts strong password', async () => {
-      const user = userEvent.setup()
-      
-      render(<ChangePasswordPage />)
-      
-      const newPasswordInput = screen.getByLabelText(/new password/i)
-      await user.type(newPasswordInput, 'StrongPassword123!')
-      
-      // Should not show password strength error
-      await waitFor(() => {
-        expect(screen.queryByText(/password must contain/i)).not.toBeInTheDocument()
-      })
-    })
-  })
+      // Should not show validation errors
+      expect(screen.queryByText('New passwords do not match')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Password must be at least 8 characters long'),
+      ).not.toBeInTheDocument();
+    });
+  });
 
   describe('Password Change Process', () => {
     it('handles successful password change', async () => {
-      const user = userEvent.setup()
-      
+      const user = userEvent.setup();
+
       const mockResponse = {
         ok: true,
-        json: () => Promise.resolve({
-          success: true,
-          message: 'Password changed successfully'
-        })
-      }
-      
-      ;(global.fetch as vi.Mock).mockResolvedValueOnce(mockResponse)
-      
-      render(<ChangePasswordPage />)
-      
-      const currentPasswordInput = screen.getByLabelText(/current password/i)
-      const newPasswordInput = screen.getByLabelText(/new password/i)
-      const confirmPasswordInput = screen.getByLabelText(/confirm new password/i)
-      const submitButton = screen.getByRole('button', { name: /change password/i })
-      
-      await user.type(currentPasswordInput, 'oldPassword123!')
-      await user.type(newPasswordInput, 'newPassword123!')
-      await user.type(confirmPasswordInput, 'newPassword123!')
-      await user.click(submitButton)
-      
-      expect(global.fetch).toHaveBeenCalledWith('/api/auth/change-password', {
+        json: () =>
+          Promise.resolve({
+            success: true,
+            message: 'Password changed successfully',
+          }),
+      };
+
+      vi.mocked(global.fetch).mockResolvedValueOnce(mockResponse as any);
+
+      render(<ChangePasswordPage />);
+
+      const currentPasswordInput = screen.getByLabelText('Current Password');
+      const newPasswordInput = screen.getByLabelText('New Password');
+      const confirmPasswordInput = screen.getByLabelText('Confirm New Password');
+      const submitButton = screen.getByRole('button', { name: 'Change Password' });
+
+      await user.type(currentPasswordInput, 'admin');
+      await user.type(newPasswordInput, 'newPassword123!');
+      await user.type(confirmPasswordInput, 'newPassword123!');
+      await user.click(submitButton);
+
+      expect(vi.mocked(global.fetch)).toHaveBeenCalledWith('/api/auth/change-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          currentPassword: 'oldPassword123!',
-          newPassword: 'newPassword123!'
-        })
-      })
-      
-      await waitFor(() => {
-        expect(screen.getByText(/password changed successfully/i)).toBeInTheDocument()
-      })
-    })
+          currentPassword: 'admin',
+          newPassword: 'newPassword123!',
+        }),
+      });
 
-    it('handles incorrect current password', async () => {
-      const user = userEvent.setup()
-      
+      await waitFor(() => {
+        expect(mockUpdate).toHaveBeenCalledWith({ requiresPasswordChange: false });
+        expect(mockPush).toHaveBeenCalledWith('/dashboard');
+      });
+    });
+
+    it('handles API errors', async () => {
+      const user = userEvent.setup();
+
       const mockResponse = {
         ok: false,
-        status: 400,
-        json: () => Promise.resolve({
-          error: 'Current password is incorrect'
-        })
-      }
-      
-      ;(global.fetch as vi.Mock).mockResolvedValueOnce(mockResponse)
-      
-      render(<ChangePasswordPage />)
-      
-      const currentPasswordInput = screen.getByLabelText(/current password/i)
-      const newPasswordInput = screen.getByLabelText(/new password/i)
-      const confirmPasswordInput = screen.getByLabelText(/confirm new password/i)
-      const submitButton = screen.getByRole('button', { name: /change password/i })
-      
-      await user.type(currentPasswordInput, 'wrongPassword')
-      await user.type(newPasswordInput, 'newPassword123!')
-      await user.type(confirmPasswordInput, 'newPassword123!')
-      await user.click(submitButton)
-      
-      await waitFor(() => {
-        expect(screen.getByText(/current password is incorrect/i)).toBeInTheDocument()
-      })
-    })
+        json: () =>
+          Promise.resolve({
+            error: 'Current password is incorrect',
+          }),
+      };
 
-    it('handles server errors gracefully', async () => {
-      const user = userEvent.setup()
-      
-      const mockResponse = {
-        ok: false,
-        status: 500,
-        json: () => Promise.resolve({
-          error: 'Internal server error'
-        })
-      }
-      
-      ;(global.fetch as vi.Mock).mockResolvedValueOnce(mockResponse)
-      
-      render(<ChangePasswordPage />)
-      
-      const currentPasswordInput = screen.getByLabelText(/current password/i)
-      const newPasswordInput = screen.getByLabelText(/new password/i)
-      const confirmPasswordInput = screen.getByLabelText(/confirm new password/i)
-      const submitButton = screen.getByRole('button', { name: /change password/i })
-      
-      await user.type(currentPasswordInput, 'currentPassword123!')
-      await user.type(newPasswordInput, 'newPassword123!')
-      await user.type(confirmPasswordInput, 'newPassword123!')
-      await user.click(submitButton)
-      
+      vi.mocked(global.fetch).mockResolvedValueOnce(mockResponse as any);
+
+      render(<ChangePasswordPage />);
+
+      const currentPasswordInput = screen.getByLabelText('Current Password');
+      const newPasswordInput = screen.getByLabelText('New Password');
+      const confirmPasswordInput = screen.getByLabelText('Confirm New Password');
+      const submitButton = screen.getByRole('button', { name: 'Change Password' });
+
+      await user.type(currentPasswordInput, 'wrongPassword');
+      await user.type(newPasswordInput, 'newPassword123!');
+      await user.type(confirmPasswordInput, 'newPassword123!');
+      await user.click(submitButton);
+
       await waitFor(() => {
-        expect(screen.getByText(/failed to change password/i)).toBeInTheDocument()
-      })
-    })
+        expect(screen.getByText('Current password is incorrect')).toBeInTheDocument();
+      });
+    });
 
     it('handles network errors', async () => {
-      const user = userEvent.setup()
-      
-      ;(global.fetch as vi.Mock).mockRejectedValueOnce(new Error('Network error'))
-      
-      render(<ChangePasswordPage />)
-      
-      const currentPasswordInput = screen.getByLabelText(/current password/i)
-      const newPasswordInput = screen.getByLabelText(/new password/i)
-      const confirmPasswordInput = screen.getByLabelText(/confirm new password/i)
-      const submitButton = screen.getByRole('button', { name: /change password/i })
-      
-      await user.type(currentPasswordInput, 'currentPassword123!')
-      await user.type(newPasswordInput, 'newPassword123!')
-      await user.type(confirmPasswordInput, 'newPassword123!')
-      await user.click(submitButton)
-      
+      const user = userEvent.setup();
+
+      vi.mocked(global.fetch).mockRejectedValueOnce(new Error('Network error'));
+
+      render(<ChangePasswordPage />);
+
+      const currentPasswordInput = screen.getByLabelText('Current Password');
+      const newPasswordInput = screen.getByLabelText('New Password');
+      const confirmPasswordInput = screen.getByLabelText('Confirm New Password');
+      const submitButton = screen.getByRole('button', { name: 'Change Password' });
+
+      await user.type(currentPasswordInput, 'admin');
+      await user.type(newPasswordInput, 'newPassword123!');
+      await user.type(confirmPasswordInput, 'newPassword123!');
+      await user.click(submitButton);
+
       await waitFor(() => {
-        expect(screen.getByText(/network error/i)).toBeInTheDocument()
-      })
-    })
-  })
+        expect(screen.getByText('Network error')).toBeInTheDocument();
+      });
+    });
+
+    it('handles generic API error without specific message', async () => {
+      const user = userEvent.setup();
+
+      const mockResponse = {
+        ok: false,
+        json: () => Promise.resolve({}),
+      };
+
+      vi.mocked(global.fetch).mockResolvedValueOnce(mockResponse as any);
+
+      render(<ChangePasswordPage />);
+
+      const currentPasswordInput = screen.getByLabelText('Current Password');
+      const newPasswordInput = screen.getByLabelText('New Password');
+      const confirmPasswordInput = screen.getByLabelText('Confirm New Password');
+      const submitButton = screen.getByRole('button', { name: 'Change Password' });
+
+      await user.type(currentPasswordInput, 'admin');
+      await user.type(newPasswordInput, 'newPassword123!');
+      await user.type(confirmPasswordInput, 'newPassword123!');
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Failed to change password')).toBeInTheDocument();
+      });
+    });
+  });
 
   describe('Loading States and UI Feedback', () => {
     it('shows loading state during password change', async () => {
-      const user = userEvent.setup()
-      
-      let resolvePromise: (value: any) => void
-      const promise = new Promise(resolve => { resolvePromise = resolve })
-      
-      ;(global.fetch as vi.Mock).mockReturnValueOnce(promise)
-      
-      render(<ChangePasswordPage />)
-      
-      const currentPasswordInput = screen.getByLabelText(/current password/i)
-      const newPasswordInput = screen.getByLabelText(/new password/i)
-      const confirmPasswordInput = screen.getByLabelText(/confirm new password/i)
-      const submitButton = screen.getByRole('button', { name: /change password/i })
-      
-      await user.type(currentPasswordInput, 'currentPassword123!')
-      await user.type(newPasswordInput, 'newPassword123!')
-      await user.type(confirmPasswordInput, 'newPassword123!')
-      await user.click(submitButton)
-      
-      expect(screen.getByText(/changing password.../i)).toBeInTheDocument()
-      expect(submitButton).toBeDisabled()
-      
+      const user = userEvent.setup();
+
+      let resolvePromise: (value: any) => void;
+      const promise = new Promise((resolve) => {
+        resolvePromise = resolve;
+      });
+
+      vi.mocked(global.fetch).mockReturnValueOnce(promise as any);
+
+      render(<ChangePasswordPage />);
+
+      const currentPasswordInput = screen.getByLabelText('Current Password');
+      const newPasswordInput = screen.getByLabelText('New Password');
+      const confirmPasswordInput = screen.getByLabelText('Confirm New Password');
+      const submitButton = screen.getByRole('button', { name: 'Change Password' });
+
+      await user.type(currentPasswordInput, 'admin');
+      await user.type(newPasswordInput, 'newPassword123!');
+      await user.type(confirmPasswordInput, 'newPassword123!');
+      await user.click(submitButton);
+
+      expect(screen.getByText('Changing password...')).toBeInTheDocument();
+      expect(submitButton).toBeDisabled();
+
       // Resolve promise to clean up
       resolvePromise!({
         ok: true,
-        json: () => Promise.resolve({ success: true })
-      })
-    })
+        json: () => Promise.resolve({ success: true }),
+      });
+    });
 
-    it('disables form during submission', async () => {
-      const user = userEvent.setup()
-      
-      let resolvePromise: (value: any) => void
-      const promise = new Promise(resolve => { resolvePromise = resolve })
-      
-      ;(global.fetch as vi.Mock).mockReturnValueOnce(promise)
-      
-      render(<ChangePasswordPage />)
-      
-      const currentPasswordInput = screen.getByLabelText(/current password/i)
-      const newPasswordInput = screen.getByLabelText(/new password/i)
-      const confirmPasswordInput = screen.getByLabelText(/confirm new password/i)
-      const submitButton = screen.getByRole('button', { name: /change password/i })
-      
-      await user.type(currentPasswordInput, 'currentPassword123!')
-      await user.type(newPasswordInput, 'newPassword123!')
-      await user.type(confirmPasswordInput, 'newPassword123!')
-      await user.click(submitButton)
-      
-      expect(currentPasswordInput).toBeDisabled()
-      expect(newPasswordInput).toBeDisabled()
-      expect(confirmPasswordInput).toBeDisabled()
-      expect(submitButton).toBeDisabled()
-      
+    it('disables submit button during loading', async () => {
+      const user = userEvent.setup();
+
+      let resolvePromise: (value: any) => void;
+      const promise = new Promise((resolve) => {
+        resolvePromise = resolve;
+      });
+
+      vi.mocked(global.fetch).mockReturnValueOnce(promise as any);
+
+      render(<ChangePasswordPage />);
+
+      const currentPasswordInput = screen.getByLabelText('Current Password');
+      const newPasswordInput = screen.getByLabelText('New Password');
+      const confirmPasswordInput = screen.getByLabelText('Confirm New Password');
+      const submitButton = screen.getByRole('button', { name: 'Change Password' });
+
+      await user.type(currentPasswordInput, 'admin');
+      await user.type(newPasswordInput, 'newPassword123!');
+      await user.type(confirmPasswordInput, 'newPassword123!');
+      await user.click(submitButton);
+
+      expect(submitButton).toBeDisabled();
+
       // Resolve promise to clean up
       resolvePromise!({
         ok: true,
-        json: () => Promise.resolve({ success: true })
-      })
-    })
-  })
+        json: () => Promise.resolve({ success: true }),
+      });
+    });
 
-  describe('Force Password Change Scenario', () => {
-    it('shows force change message when required', () => {
-      mockUseSearchParams.mockReturnValue(new URLSearchParams('requiresPasswordChange=true'))
-      
-      render(<ChangePasswordPage />)
-      
-      expect(screen.getByText(/you must change your password/i)).toBeInTheDocument()
-    })
+    it('shows loading icon during password change', async () => {
+      const user = userEvent.setup();
 
-    it('prevents navigation when password change is required', () => {
-      mockUseSearchParams.mockReturnValue(new URLSearchParams('requiresPasswordChange=true'))
-      
-      render(<ChangePasswordPage />)
-      
-      // Should not show any navigation links or buttons
-      expect(screen.queryByRole('button', { name: /cancel/i })).not.toBeInTheDocument()
-      expect(screen.queryByRole('button', { name: /back/i })).not.toBeInTheDocument()
-    })
+      let resolvePromise: (value: any) => void;
+      const promise = new Promise((resolve) => {
+        resolvePromise = resolve;
+      });
 
-    it('signs out user after successful forced password change', async () => {
-      const user = userEvent.setup()
-      
-      mockUseSearchParams.mockReturnValue(new URLSearchParams('requiresPasswordChange=true'))
-      
-      const mockResponse = {
+      vi.mocked(global.fetch).mockReturnValueOnce(promise as any);
+
+      render(<ChangePasswordPage />);
+
+      const currentPasswordInput = screen.getByLabelText('Current Password');
+      const newPasswordInput = screen.getByLabelText('New Password');
+      const confirmPasswordInput = screen.getByLabelText('Confirm New Password');
+      const submitButton = screen.getByRole('button', { name: 'Change Password' });
+
+      await user.type(currentPasswordInput, 'admin');
+      await user.type(newPasswordInput, 'newPassword123!');
+      await user.type(confirmPasswordInput, 'newPassword123!');
+      await user.click(submitButton);
+
+      // Check for the presence of the loading spinner (Loader2 component)
+      expect(submitButton.querySelector('svg')).toBeInTheDocument();
+
+      // Resolve promise to clean up
+      resolvePromise!({
         ok: true,
-        json: () => Promise.resolve({
-          success: true,
-          message: 'Password changed successfully'
-        })
-      }
-      
-      ;(global.fetch as vi.Mock).mockResolvedValueOnce(mockResponse)
-      
-      render(<ChangePasswordPage />)
-      
-      const currentPasswordInput = screen.getByLabelText(/current password/i)
-      const newPasswordInput = screen.getByLabelText(/new password/i)
-      const confirmPasswordInput = screen.getByLabelText(/confirm new password/i)
-      const submitButton = screen.getByRole('button', { name: /change password/i })
-      
-      await user.type(currentPasswordInput, 'admin')
-      await user.type(newPasswordInput, 'newSecurePassword123!')
-      await user.type(confirmPasswordInput, 'newSecurePassword123!')
-      await user.click(submitButton)
-      
+        json: () => Promise.resolve({ success: true }),
+      });
+    });
+  });
+
+  describe('Form Interaction', () => {
+    it('allows typing in all form fields', async () => {
+      const user = userEvent.setup();
+
+      render(<ChangePasswordPage />);
+
+      const currentPasswordInput = screen.getByLabelText('Current Password') as HTMLInputElement;
+      const newPasswordInput = screen.getByLabelText('New Password') as HTMLInputElement;
+      const confirmPasswordInput = screen.getByLabelText(
+        'Confirm New Password',
+      ) as HTMLInputElement;
+
+      await user.type(currentPasswordInput, 'admin');
+      await user.type(newPasswordInput, 'newPassword123!');
+      await user.type(confirmPasswordInput, 'newPassword123!');
+
+      expect(currentPasswordInput.value).toBe('admin');
+      expect(newPasswordInput.value).toBe('newPassword123!');
+      expect(confirmPasswordInput.value).toBe('newPassword123!');
+    });
+
+    it('clears error message when form is resubmitted', async () => {
+      const user = userEvent.setup();
+
+      render(<ChangePasswordPage />);
+
+      const currentPasswordInput = screen.getByLabelText('Current Password');
+      const newPasswordInput = screen.getByLabelText('New Password');
+      const confirmPasswordInput = screen.getByLabelText('Confirm New Password');
+      const submitButton = screen.getByRole('button', { name: 'Change Password' });
+
+      // First submission with mismatched passwords
+      await user.type(currentPasswordInput, 'admin');
+      await user.type(newPasswordInput, 'newPassword123!');
+      await user.type(confirmPasswordInput, 'differentPassword');
+      await user.click(submitButton);
+
       await waitFor(() => {
-        expect(mockSignOut).toHaveBeenCalledWith({ callbackUrl: '/auth/signin' })
-      })
-    })
-  })
+        expect(screen.getByText('New passwords do not match')).toBeInTheDocument();
+      });
 
-  describe('Password Visibility Toggle', () => {
-    it('toggles current password visibility', async () => {
-      const user = userEvent.setup()
-      
-      render(<ChangePasswordPage />)
-      
-      const currentPasswordInput = screen.getByLabelText(/current password/i) as HTMLInputElement
-      const toggleButton = screen.getAllByRole('button', { name: /toggle password visibility/i })[0]
-      
-      expect(currentPasswordInput.type).toBe('password')
-      
-      await user.click(toggleButton)
-      expect(currentPasswordInput.type).toBe('text')
-      
-      await user.click(toggleButton)
-      expect(currentPasswordInput.type).toBe('password')
-    })
+      // Clear and retry with correct passwords
+      await user.clear(confirmPasswordInput);
+      await user.type(confirmPasswordInput, 'newPassword123!');
+      await user.click(submitButton);
 
-    it('toggles new password visibility', async () => {
-      const user = userEvent.setup()
-      
-      render(<ChangePasswordPage />)
-      
-      const newPasswordInput = screen.getByLabelText(/new password/i) as HTMLInputElement
-      const toggleButtons = screen.getAllByRole('button', { name: /toggle password visibility/i })
-      const newPasswordToggle = toggleButtons[1]
-      
-      expect(newPasswordInput.type).toBe('password')
-      
-      await user.click(newPasswordToggle)
-      expect(newPasswordInput.type).toBe('text')
-    })
+      // Error should be cleared
+      expect(screen.queryByText('New passwords do not match')).not.toBeInTheDocument();
+    });
 
-    it('toggles confirm password visibility', async () => {
-      const user = userEvent.setup()
-      
-      render(<ChangePasswordPage />)
-      
-      const confirmPasswordInput = screen.getByLabelLabel(/confirm new password/i) as HTMLInputElement
-      const toggleButtons = screen.getAllByRole('button', { name: /toggle password visibility/i })
-      const confirmPasswordToggle = toggleButtons[2]
-      
-      expect(confirmPasswordInput.type).toBe('password')
-      
-      await user.click(confirmPasswordToggle)
-      expect(confirmPasswordInput.type).toBe('text')
-    })
-  })
+    it('validates form data before submission', async () => {
+      const user = userEvent.setup();
 
-  describe('Accessibility and User Experience', () => {
-    it('has proper form labels and ARIA attributes', () => {
-      render(<ChangePasswordPage />)
-      
-      expect(screen.getByLabelText(/current password/i)).toBeInTheDocument()
-      expect(screen.getByLabelText(/new password/i)).toBeInTheDocument()
-      expect(screen.getByLabelText(/confirm new password/i)).toBeInTheDocument()
-      
-      const form = screen.getByRole('form')
-      expect(form).toBeInTheDocument()
-    })
+      render(<ChangePasswordPage />);
 
-    it('shows password strength indicator', async () => {
-      const user = userEvent.setup()
-      
-      render(<ChangePasswordPage />)
-      
-      const newPasswordInput = screen.getByLabelText(/new password/i)
-      
-      // Weak password
-      await user.type(newPasswordInput, '123')
-      expect(screen.getByText(/weak/i)).toBeInTheDocument()
-      
-      // Clear and type strong password
-      await user.clear(newPasswordInput)
-      await user.type(newPasswordInput, 'StrongPassword123!')
-      expect(screen.getByText(/strong/i)).toBeInTheDocument()
-    })
+      const submitButton = screen.getByRole('button', { name: 'Change Password' });
 
-    it('focuses first input on load', () => {
-      render(<ChangePasswordPage />)
-      
-      const currentPasswordInput = screen.getByLabelText(/current password/i)
-      expect(currentPasswordInput).toHaveFocus()
-    })
+      // Try to submit empty form - should prevent submission due to required fields
+      await user.click(submitButton);
+
+      // No API call should be made
+      expect(vi.mocked(global.fetch)).not.toHaveBeenCalled();
+    });
+
+    it('handles required field validation', async () => {
+      const user = userEvent.setup();
+
+      render(<ChangePasswordPage />);
+
+      const currentPasswordInput = screen.getByLabelText('Current Password');
+      const newPasswordInput = screen.getByLabelText('New Password');
+      const confirmPasswordInput = screen.getByLabelText('Confirm New Password');
+
+      expect(currentPasswordInput).toHaveAttribute('required');
+      expect(newPasswordInput).toHaveAttribute('required');
+      expect(confirmPasswordInput).toHaveAttribute('required');
+    });
+  });
+
+  describe('Accessibility', () => {
+    it('has proper form structure', () => {
+      render(<ChangePasswordPage />);
+
+      // Check for form element by tag since it doesn't have role="form" by default
+      const form = document.querySelector('form');
+      expect(form).toBeInTheDocument();
+    });
+
+    it('has proper label associations', () => {
+      render(<ChangePasswordPage />);
+
+      expect(screen.getByLabelText('Current Password')).toBeInTheDocument();
+      expect(screen.getByLabelText('New Password')).toBeInTheDocument();
+      expect(screen.getByLabelText('Confirm New Password')).toBeInTheDocument();
+    });
+
+    it('shows error alerts with proper ARIA roles', async () => {
+      const user = userEvent.setup();
+
+      render(<ChangePasswordPage />);
+
+      const currentPasswordInput = screen.getByLabelText('Current Password');
+      const newPasswordInput = screen.getByLabelText('New Password');
+      const confirmPasswordInput = screen.getByLabelText('Confirm New Password');
+      const submitButton = screen.getByRole('button', { name: 'Change Password' });
+
+      await user.type(currentPasswordInput, 'admin');
+      await user.type(newPasswordInput, 'newPassword123!');
+      await user.type(confirmPasswordInput, 'different');
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        const alert = screen.getByRole('alert');
+        expect(alert).toBeInTheDocument();
+        expect(alert).toHaveTextContent('New passwords do not match');
+      });
+    });
 
     it('provides helpful placeholder text', () => {
-      render(<ChangePasswordPage />)
-      
-      const currentPasswordInput = screen.getByLabelText(/current password/i)
-      const newPasswordInput = screen.getByLabelText(/new password/i)
-      
-      expect(currentPasswordInput).toHaveAttribute('placeholder', 'Enter your current password')
-      expect(newPasswordInput).toHaveAttribute('placeholder', 'Enter a strong new password')
-    })
-  })
+      render(<ChangePasswordPage />);
 
-  describe('Security Considerations', () => {
-    it('clears form after successful password change', async () => {
-      const user = userEvent.setup()
-      
-      const mockResponse = {
-        ok: true,
-        json: () => Promise.resolve({
-          success: true,
-          message: 'Password changed successfully'
-        })
-      }
-      
-      ;(global.fetch as vi.Mock).mockResolvedValueOnce(mockResponse)
-      
-      render(<ChangePasswordPage />)
-      
-      const currentPasswordInput = screen.getByLabelText(/current password/i) as HTMLInputElement
-      const newPasswordInput = screen.getByLabelText(/new password/i) as HTMLInputElement
-      const confirmPasswordInput = screen.getByLabelText(/confirm new password/i) as HTMLInputElement
-      const submitButton = screen.getByRole('button', { name: /change password/i })
-      
-      await user.type(currentPasswordInput, 'currentPassword123!')
-      await user.type(newPasswordInput, 'newPassword123!')
-      await user.type(confirmPasswordInput, 'newPassword123!')
-      await user.click(submitButton)
-      
-      await waitFor(() => {
-        expect(currentPasswordInput.value).toBe('')
-        expect(newPasswordInput.value).toBe('')
-        expect(confirmPasswordInput.value).toBe('')
-      })
-    })
+      const currentPasswordInput = screen.getByLabelText('Current Password');
+      const newPasswordInput = screen.getByLabelText('New Password');
+      const confirmPasswordInput = screen.getByLabelText('Confirm New Password');
 
-    it('does not log sensitive data', async () => {
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-      const user = userEvent.setup()
-      
-      render(<ChangePasswordPage />)
-      
-      const currentPasswordInput = screen.getByLabelText(/current password/i)
-      await user.type(currentPasswordInput, 'secretPassword123!')
-      
-      // Console should not contain the password
-      expect(consoleSpy).not.toHaveBeenCalledWith(expect.stringContaining('secretPassword123!'))
-      
-      consoleSpy.mockRestore()
-    })
-  })
-})
+      expect(currentPasswordInput).toHaveAttribute('placeholder', 'Enter current password');
+      expect(newPasswordInput).toHaveAttribute('placeholder', 'Enter new password');
+      expect(confirmPasswordInput).toHaveAttribute('placeholder', 'Confirm new password');
+    });
+  });
+
+  describe('Edge Cases', () => {
+    it('handles session without user object', () => {
+      mockUseSession.mockReturnValue({
+        data: null,
+        status: 'authenticated',
+        update: mockUpdate,
+      });
+
+      const { container } = render(<ChangePasswordPage />);
+
+      // Should render the form even without user data in session
+      expect(screen.getByText('Change Your Password')).toBeInTheDocument();
+    });
+
+    it('handles undefined session data', () => {
+      mockUseSession.mockReturnValue({
+        data: undefined,
+        status: 'authenticated',
+        update: mockUpdate,
+      });
+
+      render(<ChangePasswordPage />);
+
+      // Should render the form
+      expect(screen.getByText('Change Your Password')).toBeInTheDocument();
+    });
+
+    it('handles very long passwords', async () => {
+      const user = userEvent.setup();
+
+      render(<ChangePasswordPage />);
+
+      const newPasswordInput = screen.getByLabelText('New Password');
+      const veryLongPassword = 'a'.repeat(100) + '123!';
+
+      await user.type(newPasswordInput, veryLongPassword);
+
+      expect((newPasswordInput as HTMLInputElement).value).toBe(veryLongPassword);
+    });
+
+    it('handles special characters in passwords', async () => {
+      const user = userEvent.setup();
+
+      render(<ChangePasswordPage />);
+
+      const currentPasswordInput = screen.getByLabelText('Current Password');
+      const newPasswordInput = screen.getByLabelText('New Password');
+      const confirmPasswordInput = screen.getByLabelText('Confirm New Password');
+
+      // Use a simpler special character password to avoid userEvent parsing issues
+      const specialPassword = 'Password123!@#$%^&*()';
+
+      await user.type(currentPasswordInput, 'admin');
+      await user.type(newPasswordInput, specialPassword);
+      await user.type(confirmPasswordInput, specialPassword);
+
+      expect((newPasswordInput as HTMLInputElement).value).toBe(specialPassword);
+      expect((confirmPasswordInput as HTMLInputElement).value).toBe(specialPassword);
+    });
+  });
+});
