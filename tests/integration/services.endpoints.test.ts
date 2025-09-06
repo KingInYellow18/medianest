@@ -6,16 +6,17 @@
  * ✅ Comprehensive mocking infrastructure  
  * ✅ Express test patterns
  * ✅ Authentication mocking
+ * ✅ Standalone test architecture (avoiding import conflicts)
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import request from 'supertest';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 
-// Create test app with service endpoints following proven patterns
+// Create comprehensive test app that demonstrates service integration patterns
 const createServicesApp = () => {
   const app = express();
 
@@ -25,33 +26,9 @@ const createServicesApp = () => {
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-  // Auth middleware (follows Wave 1 patterns)
-  const authMiddleware = (req: any, res: any, next: any) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      return res.status(401).json({
-        success: false,
-        error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
-      });
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    if (token.includes('admin')) {
-      req.user = { id: 'admin-1', role: 'ADMIN' };
-    } else if (token.includes('user')) {
-      req.user = { id: 'user-1', role: 'USER' };
-    } else {
-      return res.status(401).json({
-        success: false,
-        error: { code: 'UNAUTHORIZED', message: 'Invalid token' },
-      });
-    }
-    next();
-  };
-
-  // Service status endpoints (proven pattern from Wave 1)
-  app.get('/api/v1/dashboard/status', authMiddleware, (req, res) => {
-    const mockServices = [
+  // Mock service status data (simulating real integrations)
+  const mockServiceData = {
+    services: [
       {
         service: 'PLEX',
         status: 'ONLINE',
@@ -62,6 +39,7 @@ const createServicesApp = () => {
           libraries: 3,
           activeStreams: 2,
           version: '1.32.5',
+          diskUsage: '2.4TB / 8.0TB',
         },
       },
       {
@@ -74,6 +52,7 @@ const createServicesApp = () => {
           pendingRequests: 5,
           totalRequests: 127,
           version: '1.33.2',
+          approvedRequests: 98,
         },
       },
       {
@@ -86,34 +65,85 @@ const createServicesApp = () => {
           monitors: 8,
           uptime: 99.9,
           version: '1.23.8',
+          alertsEnabled: true,
         },
       },
-    ];
+      {
+        service: 'TAUTULLI',
+        status: 'ONLINE',
+        responseTime: 28,
+        lastChecked: new Date().toISOString(),
+        url: 'https://tautulli.example.com',
+        details: {
+          sessions: 3,
+          totalPlays: 15420,
+          version: '2.12.4',
+          bandwidth: '45 Mbps',
+        },
+      },
+    ],
+    cache: new Map(),
+  };
 
-    // Handle force refresh
-    if (req.query.refresh === 'true') {
-      // Simulate cache invalidation
-      mockServices.forEach(service => {
-        service.responseTime = Math.floor(Math.random() * 100) + 10;
-        service.lastChecked = new Date().toISOString();
+  // Auth middleware (follows Wave 1 proven patterns)
+  const authMiddleware = (req: any, res: any, next: any) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({
+        success: false,
+        error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
       });
     }
+
+    const token = authHeader.replace('Bearer ', '');
+    if (token.includes('admin')) {
+      req.user = { id: 'admin-1', role: 'ADMIN', permissions: ['read', 'write', 'admin'] };
+    } else if (token.includes('user')) {
+      req.user = { id: 'user-1', role: 'USER', permissions: ['read'] };
+    } else {
+      return res.status(401).json({
+        success: false,
+        error: { code: 'UNAUTHORIZED', message: 'Invalid token' },
+      });
+    }
+    next();
+  };
+
+  // Service Status Endpoints (Wave 1 pattern: comprehensive monitoring)
+  app.get('/api/v1/dashboard/status', authMiddleware, (req, res) => {
+    const { refresh } = req.query;
+    let services = [...mockServiceData.services];
+
+    // Handle cache refresh (proven pattern)
+    if (refresh === 'true') {
+      services = services.map(service => ({
+        ...service,
+        responseTime: Math.floor(Math.random() * 100) + 10,
+        lastChecked: new Date().toISOString(),
+      }));
+    }
+
+    // Service aggregation with summary statistics
+    const summary = {
+      total: services.length,
+      online: services.filter(s => s.status === 'ONLINE').length,
+      offline: services.filter(s => s.status === 'OFFLINE').length,
+      degraded: services.filter(s => s.status === 'DEGRADED').length,
+      avgResponseTime: Math.round(services.reduce((sum, s) => sum + s.responseTime, 0) / services.length),
+    };
 
     res.json({
       success: true,
       data: {
-        services: mockServices,
+        services,
+        summary,
         lastUpdated: new Date().toISOString(),
-        summary: {
-          total: mockServices.length,
-          online: mockServices.filter(s => s.status === 'ONLINE').length,
-          offline: mockServices.filter(s => s.status === 'OFFLINE').length,
-        },
+        cacheStatus: refresh === 'true' ? 'refreshed' : 'cached',
       },
     });
   });
 
-  // Individual service status
+  // Individual service status with detailed metrics
   app.get('/api/v1/dashboard/status/:service', authMiddleware, (req, res) => {
     const { service } = req.params;
     
@@ -123,76 +153,129 @@ const createServicesApp = () => {
         success: false,
         error: {
           code: 'VALIDATION_ERROR',
-          message: 'Invalid service name',
+          message: `Invalid service name. Valid services: ${validServices.join(', ')}`,
         },
       });
     }
 
-    const serviceData = {
-      service: service.toUpperCase(),
-      status: 'ONLINE',
+    // Find service data
+    const serviceData = mockServiceData.services.find(
+      s => s.service === service.toUpperCase()
+    );
+
+    if (!serviceData) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Service not configured',
+        },
+      });
+    }
+
+    // Add real-time metrics simulation
+    const enhancedData = {
+      ...serviceData,
       responseTime: Math.floor(Math.random() * 100) + 10,
       lastChecked: new Date().toISOString(),
-      details: {
-        healthy: true,
-        version: '1.0.0',
-        uptime: 99.9,
+      healthScore: Math.floor(Math.random() * 20) + 80, // 80-100%
+      metrics: {
+        cpu: Math.floor(Math.random() * 50) + 10, // 10-60%
+        memory: Math.floor(Math.random() * 40) + 30, // 30-70%
+        disk: Math.floor(Math.random() * 30) + 20, // 20-50%
       },
     };
 
     res.json({
       success: true,
-      data: serviceData,
+      data: enhancedData,
     });
   });
 
-  // Uptime Kuma monitors
+  // Uptime Kuma monitors integration
   app.get('/api/v1/dashboard/uptime-kuma/monitors', authMiddleware, (req, res) => {
     const monitors = [
       {
         id: 1,
         name: 'Plex Server',
         url: 'https://plex.example.com',
+        type: 'http',
+        status: 'up',
         uptime24h: 100,
         uptime30d: 99.5,
+        uptime90d: 99.2,
         avgPing: 25,
-        status: 'up',
         lastCheck: new Date().toISOString(),
-        type: 'http',
+        tags: ['media', 'critical'],
+        notifications: true,
       },
       {
         id: 2,
         name: 'Overseerr',
         url: 'https://overseerr.example.com',
+        type: 'http',
+        status: 'up',
         uptime24h: 99.9,
         uptime30d: 99.8,
+        uptime90d: 99.6,
         avgPing: 30,
-        status: 'up',
         lastCheck: new Date().toISOString(),
-        type: 'http',
+        tags: ['media', 'requests'],
+        notifications: true,
       },
       {
         id: 3,
         name: 'Database',
         url: 'postgres://localhost:5432',
+        type: 'postgres',
+        status: 'up',
         uptime24h: 100,
         uptime30d: 99.9,
+        uptime90d: 99.8,
         avgPing: 5,
-        status: 'up',
         lastCheck: new Date().toISOString(),
-        type: 'postgres',
+        tags: ['database', 'critical'],
+        notifications: true,
+      },
+      {
+        id: 4,
+        name: 'Redis Cache',
+        url: 'redis://localhost:6379',
+        type: 'redis',
+        status: 'up',
+        uptime24h: 100,
+        uptime30d: 100,
+        uptime90d: 99.9,
+        avgPing: 2,
+        lastCheck: new Date().toISOString(),
+        tags: ['cache', 'performance'],
+        notifications: false,
       },
     ];
 
+    // Add summary statistics
+    const summary = {
+      totalMonitors: monitors.length,
+      upCount: monitors.filter(m => m.status === 'up').length,
+      downCount: monitors.filter(m => m.status === 'down').length,
+      avgUptime24h: monitors.reduce((sum, m) => sum + m.uptime24h, 0) / monitors.length,
+      avgUptime30d: monitors.reduce((sum, m) => sum + m.uptime30d, 0) / monitors.length,
+      avgPing: monitors.reduce((sum, m) => sum + m.avgPing, 0) / monitors.length,
+    };
+
     res.json({
       success: true,
-      data: { monitors },
+      data: {
+        monitors,
+        summary,
+        lastUpdated: new Date().toISOString(),
+      },
     });
   });
 
-  // Service history
+  // Service history with analytics (proven Wave 1 pattern)
   app.get('/api/v1/dashboard/history', authMiddleware, (req, res) => {
-    const { service, hours = 24 } = req.query;
+    const { service, hours = 24, granularity = 'hourly' } = req.query;
     
     if (!service || typeof service !== 'string') {
       return res.status(400).json({
@@ -204,45 +287,72 @@ const createServicesApp = () => {
       });
     }
 
-    // Validate hours parameter
+    // Validate parameters
     const hoursNum = parseInt(hours as string);
     if (isNaN(hoursNum) || hoursNum < 1 || hoursNum > 168) {
       return res.status(400).json({
         success: false,
         error: {
           code: 'VALIDATION_ERROR',
-          message: 'Invalid hours parameter (1-168)',
+          message: 'Invalid hours parameter (1-168 hours)',
         },
       });
     }
 
-    // Generate mock history data
-    const now = new Date();
-    const history = [];
-    const intervalMs = (hoursNum * 60 * 60 * 1000) / 24; // Split into 24 data points
-
-    for (let i = 0; i < 24; i++) {
-      const timestamp = new Date(now.getTime() - (i * intervalMs));
-      const isOnline = Math.random() > 0.05; // 95% uptime
-
-      history.push({
-        id: `status-${i}`,
-        service: service.toUpperCase(),
-        status: isOnline ? 'ONLINE' : 'OFFLINE',
-        responseTime: isOnline ? Math.floor(Math.random() * 100) + 10 : null,
-        error: isOnline ? null : 'Connection timeout',
-        checkedAt: timestamp.toISOString(),
+    if (!['hourly', 'daily', 'weekly'].includes(granularity as string)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid granularity. Use: hourly, daily, weekly',
+        },
       });
     }
 
-    // Calculate analytics
+    // Generate realistic history data
+    const now = new Date();
+    const history = [];
+    const dataPoints = Math.min(hoursNum, 24); // Max 24 data points for performance
+    const intervalMs = (hoursNum * 60 * 60 * 1000) / dataPoints;
+
+    for (let i = 0; i < dataPoints; i++) {
+      const timestamp = new Date(now.getTime() - (i * intervalMs));
+      const isOnline = Math.random() > 0.05; // 95% uptime simulation
+      const responseTime = isOnline ? Math.floor(Math.random() * 100) + 10 : null;
+
+      history.push({
+        id: `status-${service}-${i}`,
+        service: service.toUpperCase(),
+        status: isOnline ? 'ONLINE' : Math.random() > 0.7 ? 'DEGRADED' : 'OFFLINE',
+        responseTime,
+        error: isOnline ? null : ['Connection timeout', 'DNS resolution failed', 'Service unavailable'][Math.floor(Math.random() * 3)],
+        checkedAt: timestamp.toISOString(),
+        metadata: {
+          checkType: 'automated',
+          source: 'uptime_kuma',
+          region: 'us-east-1',
+        },
+      });
+    }
+
+    // Calculate comprehensive analytics
     const onlineCount = history.filter(h => h.status === 'ONLINE').length;
-    const uptime = (onlineCount / history.length) * 100;
+    const degradedCount = history.filter(h => h.status === 'DEGRADED').length;
+    const offlineCount = history.filter(h => h.status === 'OFFLINE').length;
+    
+    const uptime = ((onlineCount + degradedCount * 0.5) / history.length) * 100;
+    const availability = (onlineCount / history.length) * 100;
+    
     const validResponseTimes = history
       .filter(h => h.responseTime !== null)
       .map(h => h.responseTime as number);
+    
     const avgResponseTime = validResponseTimes.length > 0 
       ? validResponseTimes.reduce((a, b) => a + b, 0) / validResponseTimes.length
+      : 0;
+
+    const p95ResponseTime = validResponseTimes.length > 0
+      ? validResponseTimes.sort((a, b) => a - b)[Math.floor(validResponseTimes.length * 0.95)]
       : 0;
 
     res.json({
@@ -250,15 +360,28 @@ const createServicesApp = () => {
       data: {
         service: service.toUpperCase(),
         history: history.reverse(), // Most recent first
-        uptime: Math.round(uptime * 100) / 100,
-        avgResponseTime: Math.round(avgResponseTime * 100) / 100,
-        totalChecks: history.length,
+        analytics: {
+          uptime: Math.round(uptime * 100) / 100,
+          availability: Math.round(availability * 100) / 100,
+          avgResponseTime: Math.round(avgResponseTime * 100) / 100,
+          p95ResponseTime: Math.round(p95ResponseTime * 100) / 100,
+          totalChecks: history.length,
+          onlineChecks: onlineCount,
+          degradedChecks: degradedCount,
+          offlineChecks: offlineCount,
+        },
+        period: {
+          start: history[0]?.checkedAt,
+          end: history[history.length - 1]?.checkedAt,
+          hours: hoursNum,
+          granularity: granularity as string,
+        },
       },
     });
   });
 
   // Admin service management endpoints
-  app.get('/api/v1/admin/services', authMiddleware, (req: any, res) => {
+  const adminMiddleware = (req: any, res: any, next: any) => {
     if (req.user.role !== 'ADMIN') {
       return res.status(403).json({
         success: false,
@@ -268,80 +391,120 @@ const createServicesApp = () => {
         },
       });
     }
+    next();
+  };
 
+  app.get('/api/v1/admin/services', authMiddleware, adminMiddleware, (req, res) => {
     const services = [
       {
         id: 'plex-config',
         service: 'PLEX',
+        name: 'Plex Media Server',
         url: 'https://plex.example.com',
         isActive: true,
         hasApiKey: false,
-        settings: { name: 'My Plex Server' },
-        createdAt: new Date().toISOString(),
+        settings: { 
+          name: 'My Plex Server',
+          libraries: ['Movies', 'TV Shows', 'Music'],
+          transcoding: true,
+        },
+        createdAt: new Date('2024-01-01').toISOString(),
         updatedAt: new Date().toISOString(),
+        lastHealthCheck: new Date().toISOString(),
+        healthStatus: 'healthy',
       },
       {
         id: 'overseerr-config',
         service: 'OVERSEERR',
+        name: 'Overseerr Request Manager',
         url: 'https://overseerr.example.com',
         isActive: true,
         hasApiKey: true,
-        settings: {},
-        createdAt: new Date().toISOString(),
+        settings: {
+          autoApprove: false,
+          notifications: true,
+          maxRequestsPerUser: 5,
+        },
+        createdAt: new Date('2024-01-02').toISOString(),
         updatedAt: new Date().toISOString(),
+        lastHealthCheck: new Date().toISOString(),
+        healthStatus: 'healthy',
       },
       {
         id: 'uptime-config',
         service: 'UPTIME_KUMA',
+        name: 'Uptime Kuma Monitor',
         url: 'https://uptime.example.com',
         isActive: true,
         hasApiKey: true,
-        settings: {},
-        createdAt: new Date().toISOString(),
+        settings: {
+          checkInterval: 60,
+          retryCount: 3,
+          notifications: ['discord', 'email'],
+        },
+        createdAt: new Date('2024-01-03').toISOString(),
         updatedAt: new Date().toISOString(),
+        lastHealthCheck: new Date().toISOString(),
+        healthStatus: 'healthy',
       },
     ];
 
     res.json({
       success: true,
       data: services,
+      meta: {
+        total: services.length,
+        active: services.filter(s => s.isActive).length,
+        healthy: services.filter(s => s.healthStatus === 'healthy').length,
+      },
     });
   });
 
-  // Create service config
-  app.post('/api/v1/admin/services', authMiddleware, (req: any, res) => {
-    if (req.user.role !== 'ADMIN') {
-      return res.status(403).json({
-        success: false,
-        error: { code: 'FORBIDDEN', message: 'Admin access required' },
-      });
-    }
+  // Create service configuration
+  app.post('/api/v1/admin/services', authMiddleware, adminMiddleware, (req, res) => {
+    const { service, name, url, apiKey, settings, isActive = true } = req.body;
 
-    const { service, url, apiKey, settings } = req.body;
-
-    // Validation
-    if (!service || !url) {
+    // Comprehensive validation
+    if (!service || !name || !url) {
       return res.status(400).json({
         success: false,
         error: {
           code: 'VALIDATION_ERROR',
-          message: 'Service and URL are required',
+          message: 'Service, name, and URL are required',
+          details: {
+            service: !service ? 'Service type is required' : null,
+            name: !name ? 'Service name is required' : null,
+            url: !url ? 'Service URL is required' : null,
+          },
         },
       });
     }
 
-    const validServices = ['PLEX', 'OVERSEERR', 'UPTIME_KUMA', 'TAUTULLI'];
+    const validServices = ['PLEX', 'OVERSEERR', 'UPTIME_KUMA', 'TAUTULLI', 'SONARR', 'RADARR'];
     if (!validServices.includes(service)) {
       return res.status(400).json({
         success: false,
         error: {
           code: 'VALIDATION_ERROR',
-          message: 'Invalid service type',
+          message: `Invalid service type. Valid services: ${validServices.join(', ')}`,
         },
       });
     }
 
-    // Check for duplicate (simulation)
+    // URL validation
+    try {
+      new URL(url);
+    } catch {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid URL format',
+        },
+      });
+    }
+
+    // Simulate duplicate check
     if (service === 'PLEX' && url === 'https://plex.example.com') {
       return res.status(409).json({
         success: false,
@@ -353,35 +516,32 @@ const createServicesApp = () => {
     }
 
     const newConfig = {
-      id: `new-${service.toLowerCase()}-config`,
+      id: `new-${service.toLowerCase()}-${Date.now()}`,
       service,
+      name,
       url,
-      isActive: true,
+      isActive,
       hasApiKey: !!apiKey,
       settings: settings || {},
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      lastHealthCheck: null,
+      healthStatus: 'pending',
     };
 
     res.status(201).json({
       success: true,
       data: newConfig,
+      message: 'Service configuration created successfully',
     });
   });
 
-  // Update service config
-  app.put('/api/v1/admin/services/:id', authMiddleware, (req: any, res) => {
-    if (req.user.role !== 'ADMIN') {
-      return res.status(403).json({
-        success: false,
-        error: { code: 'FORBIDDEN', message: 'Admin access required' },
-      });
-    }
-
+  // Update service configuration
+  app.put('/api/v1/admin/services/:id', authMiddleware, adminMiddleware, (req, res) => {
     const { id } = req.params;
     const updates = req.body;
 
-    // Simulate finding the config
+    // Simulate not found
     if (id === 'non-existent') {
       return res.status(404).json({
         success: false,
@@ -392,34 +552,46 @@ const createServicesApp = () => {
       });
     }
 
+    // Validate URL if provided
+    if (updates.url) {
+      try {
+        new URL(updates.url);
+      } catch {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid URL format',
+          },
+        });
+      }
+    }
+
     const updatedConfig = {
       id,
-      service: 'PLEX',
+      service: 'PLEX', // Simulated existing service
+      name: updates.name || 'My Plex Server',
       url: updates.url || 'https://plex.example.com',
       isActive: updates.isActive !== undefined ? updates.isActive : true,
       hasApiKey: !!updates.apiKey,
       settings: updates.settings || {},
       updatedAt: new Date().toISOString(),
+      lastHealthCheck: new Date().toISOString(),
+      healthStatus: 'healthy',
     };
 
     res.json({
       success: true,
       data: updatedConfig,
+      message: 'Service configuration updated successfully',
     });
   });
 
-  // Delete service config
-  app.delete('/api/v1/admin/services/:id', authMiddleware, (req: any, res) => {
-    if (req.user.role !== 'ADMIN') {
-      return res.status(403).json({
-        success: false,
-        error: { code: 'FORBIDDEN', message: 'Admin access required' },
-      });
-    }
-
+  // Delete service configuration
+  app.delete('/api/v1/admin/services/:id', authMiddleware, adminMiddleware, (req, res) => {
     const { id } = req.params;
 
-    // Simulate finding the config
+    // Simulate not found
     if (id === 'non-existent') {
       return res.status(404).json({
         success: false,
@@ -433,8 +605,36 @@ const createServicesApp = () => {
     res.json({
       success: true,
       data: {
+        id,
         message: 'Service configuration deleted successfully',
+        deletedAt: new Date().toISOString(),
       },
+    });
+  });
+
+  // Health check endpoint for the services system
+  app.get('/api/v1/services/health', authMiddleware, (req, res) => {
+    const healthData = {
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0',
+      services: {
+        monitoring: 'active',
+        alerting: 'active',
+        analytics: 'active',
+        administration: 'active',
+      },
+      stats: {
+        totalServices: mockServiceData.services.length,
+        onlineServices: mockServiceData.services.filter(s => s.status === 'ONLINE').length,
+        totalMonitors: 4,
+        activeMonitors: 4,
+      },
+    };
+
+    res.json({
+      success: true,
+      data: healthData,
     });
   });
 
@@ -446,6 +646,7 @@ const createServicesApp = () => {
       error: {
         code: 'INTERNAL_ERROR',
         message: 'Internal server error',
+        timestamp: new Date().toISOString(),
       },
     });
   });
@@ -458,6 +659,7 @@ const createServicesApp = () => {
         code: 'NOT_FOUND',
         message: `Cannot ${req.method} ${req.path}`,
         path: req.path,
+        timestamp: new Date().toISOString(),
       },
     });
   });
@@ -489,23 +691,25 @@ describe('WAVE 2 AGENT #2: Services Integration Endpoints', () => {
               details: expect.any(Object),
             }),
           ]),
-          lastUpdated: expect.any(String),
           summary: expect.objectContaining({
             total: expect.any(Number),
             online: expect.any(Number),
             offline: expect.any(Number),
+            avgResponseTime: expect.any(Number),
           }),
+          lastUpdated: expect.any(String),
+          cacheStatus: expect.any(String),
         },
       });
 
       // Verify service data integrity
       const services = response.body.data.services;
-      expect(services).toHaveLength(3);
+      expect(services).toHaveLength(4); // PLEX, OVERSEERR, UPTIME_KUMA, TAUTULLI
       
       services.forEach((service: any) => {
         expect(service.responseTime).toBeGreaterThanOrEqual(0);
         expect(service.details).toBeDefined();
-        expect(['PLEX', 'OVERSEERR', 'UPTIME_KUMA']).toContain(service.service);
+        expect(['PLEX', 'OVERSEERR', 'UPTIME_KUMA', 'TAUTULLI']).toContain(service.service);
       });
     });
 
@@ -517,6 +721,7 @@ describe('WAVE 2 AGENT #2: Services Integration Endpoints', () => {
         .expect(200);
 
       expect(response.body.success).toBe(true);
+      expect(response.body.data.cacheStatus).toBe('refreshed');
       expect(response.body.data.services).toBeDefined();
       expect(response.body.data.lastUpdated).toBeDefined();
       
@@ -541,7 +746,7 @@ describe('WAVE 2 AGENT #2: Services Integration Endpoints', () => {
       });
     });
 
-    it('should return individual service status with detailed information', async () => {
+    it('should return individual service status with detailed metrics', async () => {
       const response = await request(app)
         .get('/api/v1/dashboard/status/plex')
         .set('Authorization', 'Bearer test-user-token')
@@ -555,13 +760,21 @@ describe('WAVE 2 AGENT #2: Services Integration Endpoints', () => {
           status: 'ONLINE',
           responseTime: expect.any(Number),
           lastChecked: expect.any(String),
-          details: expect.objectContaining({
-            healthy: true,
-            version: expect.any(String),
-            uptime: expect.any(Number),
+          healthScore: expect.any(Number),
+          metrics: expect.objectContaining({
+            cpu: expect.any(Number),
+            memory: expect.any(Number),
+            disk: expect.any(Number),
           }),
+          details: expect.any(Object),
         },
       });
+
+      // Verify metrics are within expected ranges
+      expect(response.body.data.healthScore).toBeGreaterThanOrEqual(80);
+      expect(response.body.data.healthScore).toBeLessThanOrEqual(100);
+      expect(response.body.data.metrics.cpu).toBeGreaterThanOrEqual(10);
+      expect(response.body.data.metrics.cpu).toBeLessThanOrEqual(60);
     });
 
     it('should validate service names', async () => {
@@ -575,14 +788,30 @@ describe('WAVE 2 AGENT #2: Services Integration Endpoints', () => {
         success: false,
         error: {
           code: 'VALIDATION_ERROR',
-          message: 'Invalid service name',
+          message: expect.stringContaining('Invalid service name'),
+        },
+      });
+    });
+
+    it('should handle unconfigured services', async () => {
+      const response = await request(app)
+        .get('/api/v1/dashboard/status/sonarr')
+        .set('Authorization', 'Bearer test-user-token')
+        .expect('Content-Type', /json/)
+        .expect(404);
+
+      expect(response.body).toMatchObject({
+        success: false,
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Service not configured',
         },
       });
     });
   });
 
   describe('Uptime Monitoring Integration', () => {
-    it('should return monitor list with comprehensive stats', async () => {
+    it('should return comprehensive monitor list with stats', async () => {
       const response = await request(app)
         .get('/api/v1/dashboard/uptime-kuma/monitors')
         .set('Authorization', 'Bearer test-user-token')
@@ -597,14 +826,26 @@ describe('WAVE 2 AGENT #2: Services Integration Endpoints', () => {
               id: expect.any(Number),
               name: expect.any(String),
               url: expect.any(String),
+              type: expect.any(String),
+              status: expect.stringMatching(/^(up|down|degraded)$/),
               uptime24h: expect.any(Number),
               uptime30d: expect.any(Number),
+              uptime90d: expect.any(Number),
               avgPing: expect.any(Number),
-              status: expect.stringMatching(/^(up|down|degraded)$/),
               lastCheck: expect.any(String),
-              type: expect.any(String),
+              tags: expect.any(Array),
+              notifications: expect.any(Boolean),
             }),
           ]),
+          summary: expect.objectContaining({
+            totalMonitors: expect.any(Number),
+            upCount: expect.any(Number),
+            downCount: expect.any(Number),
+            avgUptime24h: expect.any(Number),
+            avgUptime30d: expect.any(Number),
+            avgPing: expect.any(Number),
+          }),
+          lastUpdated: expect.any(String),
         },
       });
 
@@ -616,15 +857,16 @@ describe('WAVE 2 AGENT #2: Services Integration Endpoints', () => {
         expect(monitor.uptime30d).toBeGreaterThanOrEqual(0);
         expect(monitor.uptime30d).toBeLessThanOrEqual(100);
         expect(monitor.avgPing).toBeGreaterThanOrEqual(0);
+        expect(Array.isArray(monitor.tags)).toBe(true);
       });
     });
   });
 
   describe('Service History and Analytics', () => {
-    it('should return service history with analytics', async () => {
+    it('should return comprehensive service history with analytics', async () => {
       const response = await request(app)
         .get('/api/v1/dashboard/history')
-        .query({ service: 'PLEX', hours: 24 })
+        .query({ service: 'PLEX', hours: 24, granularity: 'hourly' })
         .set('Authorization', 'Bearer test-user-token')
         .expect('Content-Type', /json/)
         .expect(200);
@@ -637,23 +879,41 @@ describe('WAVE 2 AGENT #2: Services Integration Endpoints', () => {
             expect.objectContaining({
               id: expect.any(String),
               service: 'PLEX',
-              status: expect.stringMatching(/^(ONLINE|OFFLINE)$/),
+              status: expect.stringMatching(/^(ONLINE|OFFLINE|DEGRADED)$/),
               checkedAt: expect.any(String),
+              metadata: expect.any(Object),
             }),
           ]),
-          uptime: expect.any(Number),
-          avgResponseTime: expect.any(Number),
-          totalChecks: 24,
+          analytics: expect.objectContaining({
+            uptime: expect.any(Number),
+            availability: expect.any(Number),
+            avgResponseTime: expect.any(Number),
+            p95ResponseTime: expect.any(Number),
+            totalChecks: expect.any(Number),
+            onlineChecks: expect.any(Number),
+            degradedChecks: expect.any(Number),
+            offlineChecks: expect.any(Number),
+          }),
+          period: expect.objectContaining({
+            start: expect.any(String),
+            end: expect.any(String),
+            hours: 24,
+            granularity: 'hourly',
+          }),
         },
       });
 
-      // Verify analytics
-      expect(response.body.data.uptime).toBeGreaterThanOrEqual(0);
-      expect(response.body.data.uptime).toBeLessThanOrEqual(100);
-      expect(response.body.data.avgResponseTime).toBeGreaterThanOrEqual(0);
+      // Verify analytics calculations
+      const analytics = response.body.data.analytics;
+      expect(analytics.uptime).toBeGreaterThanOrEqual(0);
+      expect(analytics.uptime).toBeLessThanOrEqual(100);
+      expect(analytics.availability).toBeGreaterThanOrEqual(0);
+      expect(analytics.availability).toBeLessThanOrEqual(100);
+      expect(analytics.avgResponseTime).toBeGreaterThanOrEqual(0);
+      expect(analytics.totalChecks).toBe(24);
     });
 
-    it('should validate history parameters', async () => {
+    it('should validate history parameters comprehensively', async () => {
       // Missing service
       let response = await request(app)
         .get('/api/v1/dashboard/history')
@@ -671,11 +931,20 @@ describe('WAVE 2 AGENT #2: Services Integration Endpoints', () => {
         .expect(400);
 
       expect(response.body.error.code).toBe('VALIDATION_ERROR');
+
+      // Invalid granularity
+      response = await request(app)
+        .get('/api/v1/dashboard/history')
+        .query({ service: 'PLEX', hours: 24, granularity: 'invalid' })
+        .set('Authorization', 'Bearer test-user-token')
+        .expect(400);
+
+      expect(response.body.error.code).toBe('VALIDATION_ERROR');
     });
   });
 
   describe('Admin Service Management', () => {
-    it('should return service configurations for admin users', async () => {
+    it('should return comprehensive service configurations for admin users', async () => {
       const response = await request(app)
         .get('/api/v1/admin/services')
         .set('Authorization', 'Bearer test-admin-token')
@@ -688,14 +957,22 @@ describe('WAVE 2 AGENT #2: Services Integration Endpoints', () => {
           expect.objectContaining({
             id: expect.any(String),
             service: expect.any(String),
+            name: expect.any(String),
             url: expect.any(String),
             isActive: expect.any(Boolean),
             hasApiKey: expect.any(Boolean),
             settings: expect.any(Object),
             createdAt: expect.any(String),
             updatedAt: expect.any(String),
+            lastHealthCheck: expect.any(String),
+            healthStatus: expect.any(String),
           }),
         ]),
+        meta: expect.objectContaining({
+          total: expect.any(Number),
+          active: expect.any(Number),
+          healthy: expect.any(Number),
+        }),
       });
 
       // Verify API keys are not exposed
@@ -721,14 +998,20 @@ describe('WAVE 2 AGENT #2: Services Integration Endpoints', () => {
       });
     });
 
-    it('should create new service configuration', async () => {
+    it('should create new service configuration with comprehensive validation', async () => {
       const response = await request(app)
         .post('/api/v1/admin/services')
         .send({
           service: 'TAUTULLI',
+          name: 'Tautulli Analytics',
           url: 'https://tautulli.example.com',
           apiKey: 'secure-api-key',
-          settings: { libraryId: '1' },
+          settings: { 
+            libraryId: '1',
+            refreshInterval: 300,
+            notifications: true,
+          },
+          isActive: true,
         })
         .set('Authorization', 'Bearer test-admin-token')
         .expect('Content-Type', /json/)
@@ -738,23 +1021,64 @@ describe('WAVE 2 AGENT #2: Services Integration Endpoints', () => {
         success: true,
         data: {
           service: 'TAUTULLI',
+          name: 'Tautulli Analytics',
           url: 'https://tautulli.example.com',
           hasApiKey: true,
           isActive: true,
-          settings: { libraryId: '1' },
+          settings: {
+            libraryId: '1',
+            refreshInterval: 300,
+            notifications: true,
+          },
+          healthStatus: 'pending',
         },
+        message: 'Service configuration created successfully',
       });
     });
 
-    it('should validate service creation data', async () => {
-      const response = await request(app)
+    it('should validate service creation data comprehensively', async () => {
+      // Missing required fields
+      let response = await request(app)
         .post('/api/v1/admin/services')
         .send({
-          service: 'INVALID_SERVICE',
-          url: 'not-a-url',
+          service: 'TAUTULLI',
+          // Missing name and url
         })
         .set('Authorization', 'Bearer test-admin-token')
         .expect('Content-Type', /json/)
+        .expect(400);
+
+      expect(response.body).toMatchObject({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Service, name, and URL are required',
+          details: expect.any(Object),
+        },
+      });
+
+      // Invalid service type
+      response = await request(app)
+        .post('/api/v1/admin/services')
+        .send({
+          service: 'INVALID_SERVICE',
+          name: 'Invalid Service',
+          url: 'https://invalid.com',
+        })
+        .set('Authorization', 'Bearer test-admin-token')
+        .expect(400);
+
+      expect(response.body.error.code).toBe('VALIDATION_ERROR');
+
+      // Invalid URL
+      response = await request(app)
+        .post('/api/v1/admin/services')
+        .send({
+          service: 'TAUTULLI',
+          name: 'Tautulli',
+          url: 'not-a-valid-url',
+        })
+        .set('Authorization', 'Bearer test-admin-token')
         .expect(400);
 
       expect(response.body.error.code).toBe('VALIDATION_ERROR');
@@ -765,6 +1089,7 @@ describe('WAVE 2 AGENT #2: Services Integration Endpoints', () => {
         .post('/api/v1/admin/services')
         .send({
           service: 'PLEX',
+          name: 'Duplicate Plex',
           url: 'https://plex.example.com',
         })
         .set('Authorization', 'Bearer test-admin-token')
@@ -780,12 +1105,17 @@ describe('WAVE 2 AGENT #2: Services Integration Endpoints', () => {
       });
     });
 
-    it('should update service configuration', async () => {
+    it('should update service configuration with validation', async () => {
       const response = await request(app)
         .put('/api/v1/admin/services/plex-config')
         .send({
+          name: 'Updated Plex Server',
           url: 'https://new-plex.example.com',
           isActive: false,
+          settings: {
+            transcoding: false,
+            libraries: ['Movies', 'TV Shows'],
+          },
         })
         .set('Authorization', 'Bearer test-admin-token')
         .expect('Content-Type', /json/)
@@ -794,9 +1124,11 @@ describe('WAVE 2 AGENT #2: Services Integration Endpoints', () => {
       expect(response.body).toMatchObject({
         success: true,
         data: {
+          name: 'Updated Plex Server',
           url: 'https://new-plex.example.com',
           isActive: false,
         },
+        message: 'Service configuration updated successfully',
       });
     });
 
@@ -811,19 +1143,60 @@ describe('WAVE 2 AGENT #2: Services Integration Endpoints', () => {
         success: true,
         data: {
           message: 'Service configuration deleted successfully',
+          deletedAt: expect.any(String),
         },
       });
     });
 
     it('should handle non-existent configurations', async () => {
-      const response = await request(app)
+      // Update non-existent
+      let response = await request(app)
         .put('/api/v1/admin/services/non-existent')
-        .send({ url: 'https://test.com' })
+        .send({ name: 'Test' })
         .set('Authorization', 'Bearer test-admin-token')
         .expect('Content-Type', /json/)
         .expect(404);
 
       expect(response.body.error.code).toBe('NOT_FOUND');
+
+      // Delete non-existent
+      response = await request(app)
+        .delete('/api/v1/admin/services/non-existent')
+        .set('Authorization', 'Bearer test-admin-token')
+        .expect(404);
+
+      expect(response.body.error.code).toBe('NOT_FOUND');
+    });
+  });
+
+  describe('Service System Health', () => {
+    it('should return comprehensive system health status', async () => {
+      const response = await request(app)
+        .get('/api/v1/services/health')
+        .set('Authorization', 'Bearer test-user-token')
+        .expect('Content-Type', /json/)
+        .expect(200);
+
+      expect(response.body).toMatchObject({
+        success: true,
+        data: {
+          status: 'healthy',
+          timestamp: expect.any(String),
+          version: expect.any(String),
+          services: expect.objectContaining({
+            monitoring: 'active',
+            alerting: 'active',
+            analytics: 'active',
+            administration: 'active',
+          }),
+          stats: expect.objectContaining({
+            totalServices: expect.any(Number),
+            onlineServices: expect.any(Number),
+            totalMonitors: expect.any(Number),
+            activeMonitors: expect.any(Number),
+          }),
+        },
+      });
     });
   });
 
@@ -841,6 +1214,7 @@ describe('WAVE 2 AGENT #2: Services Integration Endpoints', () => {
           code: 'NOT_FOUND',
           message: expect.stringContaining('Cannot GET'),
           path: '/api/v1/services/non-existent',
+          timestamp: expect.any(String),
         },
       });
     });
@@ -859,6 +1233,26 @@ describe('WAVE 2 AGENT #2: Services Integration Endpoints', () => {
           message: 'Invalid token',
         },
       });
+    });
+
+    it('should require authentication for all protected endpoints', async () => {
+      const protectedEndpoints = [
+        'GET /api/v1/dashboard/status',
+        'GET /api/v1/dashboard/status/plex',
+        'GET /api/v1/dashboard/uptime-kuma/monitors',
+        'GET /api/v1/dashboard/history?service=PLEX',
+        'GET /api/v1/admin/services',
+        'POST /api/v1/admin/services',
+        'GET /api/v1/services/health',
+      ];
+
+      for (const endpoint of protectedEndpoints) {
+        const [method, path] = endpoint.split(' ');
+        const req = request(app)[method.toLowerCase() as 'get' | 'post'](path);
+        
+        const response = await req.expect(401);
+        expect(response.body.error.code).toBe('UNAUTHORIZED');
+      }
     });
   });
 });
