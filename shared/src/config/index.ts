@@ -1,38 +1,21 @@
-/**
- * Centralized configuration management for MediaNest
- *
- * This module provides:
- * - Environment variable validation with Zod schemas
- * - Support for Docker secrets in production
- * - Environment-specific configuration loading
- * - Type-safe configuration objects
- * - Utility functions for configuration management
- */
-
+// Config exports for shared package
 export * from './schemas';
 export * from './utils';
 
-// Re-export commonly used types and validators
-export {
-  BackendConfig,
-  FrontendConfig,
-  TestConfig,
-  Environment,
-  LogLevel,
-  PlexServiceConfig,
-  OverseerrServiceConfig,
-  ServiceConfigs,
-  createConfigValidator,
-  formatValidationError,
-} from './schemas';
+export interface ConfigurationOptions {
+  environment: 'development' | 'test' | 'production';
+  logLevel: 'debug' | 'info' | 'warn' | 'error';
+}
 
-export {
-  EnvironmentConfigLoader,
-  environmentLoader,
-  createConfiguration,
-  configUtils,
-  ProcessEnvLoader,
-  DockerSecretsLoader,
-  DotenvLoader,
-  CompositeEnvLoader,
-} from './utils';
+export const createConfiguration = (options: ConfigurationOptions) => {
+  return {
+    ...options,
+    created: new Date().toISOString(),
+  };
+};
+
+export const environmentLoader = {
+  getEnvironment: (): string => {
+    return process.env.NODE_ENV || 'development';
+  },
+};

@@ -7,9 +7,9 @@ export * from './request';
 export interface User {
   id: string;
   plexId?: string;
-  plexUsername?: string;
+  plexUsername?: string | null;
   email: string;
-  name?: string;
+  name?: string | null;
   role: string;
   status: string;
   createdAt: Date;
@@ -19,13 +19,22 @@ export interface User {
 export interface ApiResponse<T = any> {
   success: boolean;
   data?: T;
-  error?: {
-    code: string;
-    message: string;
-    details?: any;
-  };
+  message?: string;
+  error?: ApiError;
   meta?: {
-    timestamp: string;
-    version: string;
+    timestamp?: Date | string;
+    count?: number;
+    page?: number;
+    totalPages?: number;
+    totalCount?: number;
+    currentPage?: number;
+    version?: string;
   };
+}
+
+export interface ApiError {
+  code: string;
+  message: string;
+  details?: Record<string, unknown>;
+  stack?: string;
 }

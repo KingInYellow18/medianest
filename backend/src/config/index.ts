@@ -1,10 +1,11 @@
 import {
   BackendConfigSchema,
-  createConfiguration,
   environmentLoader,
   configUtils,
   type BackendConfig,
 } from '@medianest/shared/config';
+
+import { createConfiguration } from '@medianest/shared/config/utils';
 
 /**
  * Load and validate backend configuration

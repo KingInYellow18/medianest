@@ -4,7 +4,7 @@ import path from 'path'
 export default defineConfig({
   test: {
     environment: 'node',
-    setupFiles: ['./tests/setup.ts'],
+    setupFiles: ['./tests/setup-enhanced.ts'],
     globals: true,
     coverage: {
       provider: 'v8',
@@ -40,14 +40,20 @@ export default defineConfig({
       cleanOnRerun: true,
       skipFull: false
     },
-    testTimeout: 30000,
-    hookTimeout: 10000,
+    // **CRITICAL TIMEOUT FIXES**
+    testTimeout: 15000,     // Reduced from 30s to prevent hanging
+    hookTimeout: 5000,      // Reduced from 10s
+    teardownTimeout: 5000,  // Added explicit teardown timeout
     pool: 'forks',
     poolOptions: {
       forks: {
         singleFork: true,
+        isolate: false,     // Improve performance
       },
     },
+    // **PREVENT HANGING TESTS**
+    bail: 1,                // Stop on first failure to prevent cascade timeouts
+    retry: 0,               // Disable retries that can cause hanging
   },
   resolve: {
     alias: {

@@ -7,7 +7,6 @@
  */
 
 const http = require('http');
-const process = require('process');
 
 const options = {
   hostname: 'localhost',
@@ -17,7 +16,7 @@ const options = {
   timeout: 5000,
 };
 
-const req = http.request(options, (res) => {
+const req = http.request(options, (res: any) => {
   if (res.statusCode === 200) {
     console.log('Health check passed');
     process.exit(0);
@@ -27,7 +26,7 @@ const req = http.request(options, (res) => {
   }
 });
 
-req.on('error', (err) => {
+req.on('error', (err: any) => {
   console.error('Health check failed with error:', err.message);
   process.exit(1);
 });
