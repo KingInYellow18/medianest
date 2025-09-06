@@ -9,12 +9,12 @@ async function createHandler() {
 }
 
 // Export dynamic route handlers
-export async function GET(req: Request, res: Response) {
+export async function GET(req: Request) {
   const handler = await createHandler();
-  return handler(req, res);
+  return handler(req);
 }
 
-export async function POST(req: Request, res: Response) {
+export async function POST(req: Request) {
   const handler = await createHandler();
-  return handler(req, res);
+  return handler(req);
 }

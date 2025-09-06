@@ -5,7 +5,11 @@ import { getAuthOptions } from '@/lib/auth/auth.config';
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:4000';
 
-export async function GET(_request: NextRequest, { params }: { params: { requestId: string } }) {
+export async function GET(
+  _request: NextRequest,
+  props: { params: Promise<{ requestId: string }> },
+) {
+  const params = await props.params;
   try {
     const authOptions = await getAuthOptions();
     const session = await getServerSession(authOptions);
@@ -33,7 +37,11 @@ export async function GET(_request: NextRequest, { params }: { params: { request
   }
 }
 
-export async function DELETE(_request: NextRequest, { params }: { params: { requestId: string } }) {
+export async function DELETE(
+  _request: NextRequest,
+  props: { params: Promise<{ requestId: string }> },
+) {
+  const params = await props.params;
   try {
     const authOptions = await getAuthOptions();
     const session = await getServerSession(authOptions);
