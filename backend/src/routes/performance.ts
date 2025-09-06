@@ -15,7 +15,12 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
-import { Redis } from 'ioredis';
+// WAVE 2 AGENT #11: INTEGRATION ORCHESTRATOR - CONDITIONAL REDIS IMPORT
+// Only import Redis if not in test environment or if Redis is explicitly enabled
+let Redis: any;
+if (process.env.NODE_ENV !== 'test' && process.env.SKIP_REDIS !== 'true') {
+  Redis = require('ioredis').Redis;
+}
 import { logger } from '../utils/logger';
 import { PerformanceMonitor } from '../../../shared/src/utils/performance-monitor';
 import { DatabaseOptimizer } from '../../../shared/src/utils/database-optimizations';

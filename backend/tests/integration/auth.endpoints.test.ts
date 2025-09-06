@@ -1,3 +1,9 @@
+// WAVE 2 AGENT #11: INTEGRATION ORCHESTRATOR - ENVIRONMENT SETUP
+// CRITICAL: Set environment variables before any imports to prevent Redis connections
+process.env.NODE_ENV = 'test';
+process.env.SKIP_REDIS = 'true';
+process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-jwt-secret-auth-integration';
+
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import { app } from '../../src/app';
@@ -7,14 +13,50 @@ import { redisClient } from '@/config/redis';
 import prisma from '@/config/database';
 import { encrypt } from '@/utils/encryption.util';
 
-// Mock Redis and Prisma
+// WAVE 2 AGENT #11: INTEGRATION ORCHESTRATOR - REDIS FIX
+// Mock Redis completely to prevent ECONNREFUSED errors
+vi.mock('ioredis', () => {
+  const mockClient = {
+    ping: vi.fn().mockResolvedValue('PONG'),
+    get: vi.fn().mockResolvedValue(null),
+    set: vi.fn().mockResolvedValue('OK'),
+    setex: vi.fn().mockResolvedValue('OK'),
+    del: vi.fn().mockResolvedValue(1),
+    incr: vi.fn().mockResolvedValue(1),
+    eval: vi.fn().mockResolvedValue(0),
+    on: vi.fn(),
+    off: vi.fn(),
+    connect: vi.fn().mockResolvedValue(undefined),
+    disconnect: vi.fn().mockResolvedValue(undefined),
+    quit: vi.fn().mockResolvedValue('OK'),
+    status: 'ready',
+  };
+  return { default: vi.fn(() => mockClient) };
+});
+
 vi.mock('@/config/redis', () => ({
+  initializeRedis: vi.fn().mockResolvedValue({
+    ping: vi.fn().mockResolvedValue('PONG'),
+    on: vi.fn(),
+    quit: vi.fn().mockResolvedValue('OK'),
+  }),
+  getRedis: vi.fn().mockReturnValue({
+    ping: vi.fn().mockResolvedValue('PONG'),
+    get: vi.fn().mockResolvedValue(null),
+    set: vi.fn().mockResolvedValue('OK'),
+    del: vi.fn().mockResolvedValue(1),
+    eval: vi.fn().mockResolvedValue(0),
+  }),
   redisClient: {
-    get: vi.fn(),
-    set: vi.fn(),
-    del: vi.fn(),
-    eval: vi.fn(),
+    ping: vi.fn().mockResolvedValue('PONG'),
+    get: vi.fn().mockResolvedValue(null),
+    set: vi.fn().mockResolvedValue('OK'),
+    del: vi.fn().mockResolvedValue(1),
+    eval: vi.fn().mockResolvedValue(0),
   },
+  closeRedis: vi.fn().mockResolvedValue(undefined),
+  checkRedisHealth: vi.fn().mockResolvedValue(true),
+  checkRateLimit: vi.fn().mockResolvedValue({ allowed: true }),
 }));
 
 vi.mock('@/config/database', () => ({

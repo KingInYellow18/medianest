@@ -1,6 +1,11 @@
 import { logger } from './logger';
 import { CircuitBreakerFactory } from './circuit-breaker';
-import IORedis from 'ioredis';
+// WAVE 2 AGENT #11: INTEGRATION ORCHESTRATOR - CONDITIONAL REDIS IMPORT
+// Only import Redis if not in test environment or if Redis is explicitly enabled
+let IORedis: any;
+if (process.env.NODE_ENV !== 'test' && process.env.SKIP_REDIS !== 'true') {
+  IORedis = require('ioredis').default;
+}
 
 export interface ErrorContext {
   operation: string;
