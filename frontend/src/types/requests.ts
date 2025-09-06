@@ -1,7 +1,7 @@
 import { MediaSearchResult } from './media';
 
 // Re-export from shared package
-export {
+export type {
   MediaRequest,
   RequestStatus,
   SeasonRequest,

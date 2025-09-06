@@ -1,5 +1,5 @@
 // Re-export types from shared package
-export { ServiceStatus, ServiceStatusUpdate } from '@medianest/shared';
+export type { ServiceStatus, ServiceStatusUpdate } from '@medianest/shared';
 
 export interface QuickAction {
   type: 'navigate' | 'refresh' | 'configure';
