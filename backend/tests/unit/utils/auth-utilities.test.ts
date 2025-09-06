@@ -1,8 +1,19 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import bcrypt from 'bcryptjs'
+import * as bcrypt from 'bcryptjs'
 import crypto from 'crypto'
 import { generateToken, verifyToken, decodeToken, generateRefreshToken, getTokenExpiry, isTokenExpired } from '@/utils/jwt'
 import { AppError } from '@/utils/errors'
+
+vi.mock('jsonwebtoken', async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    default: actual
+  }
+})
+
+// Don't mock bcryptjs - use the real implementation
+vi.unmock('bcryptjs')
 
 describe('Authentication Utilities Unit Tests', () => {
   describe('JWT Token Management', () => {

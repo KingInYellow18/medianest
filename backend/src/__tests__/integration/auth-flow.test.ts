@@ -1,16 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../../app';
-import { mockPrismaClient, mockRedisClient, createTestUser, createTestJWT } from '../setup';
+import { mockPrismaClient, mockRedisClient, createTestUser, createTestJWT, setupTestEnvironment } from '../setup';
 
-// Mock dependencies
-vi.mock('../../config/database', () => ({
-  prisma: mockPrismaClient,
-}));
+// Ensure test environment is set up
+setupTestEnvironment();
 
-vi.mock('../../config/redis', () => ({
-  redis: mockRedisClient,
-}));
+// Config is mocked globally via setup
 
 describe('Authentication Flow Integration Tests', () => {
   let app: any;

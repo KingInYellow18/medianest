@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { logger } from './logger';
 
 // Password Policy Configuration

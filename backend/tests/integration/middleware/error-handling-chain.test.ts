@@ -45,7 +45,7 @@ describe('Error Handling Middleware Chain Integration Tests', () => {
     })
 
     app.get('/error/rate-limit', (req, res, next) => {
-      next(new RateLimitError(60))
+      next(new RateLimitError('Too many requests', 60))
     })
 
     app.get('/error/not-found', (req, res, next) => {
@@ -200,7 +200,7 @@ describe('Error Handling Middleware Chain Integration Tests', () => {
       expect(response.body).toMatchObject({
         success: false,
         error: {
-          code: 'AUTHENTICATION_ERROR',
+          code: 'UNAUTHORIZED',
           correlationId: expect.any(String)
         }
       })
@@ -214,7 +214,7 @@ describe('Error Handling Middleware Chain Integration Tests', () => {
       expect(response.body).toMatchObject({
         success: false,
         error: {
-          code: 'AUTHORIZATION_ERROR',
+          code: 'FORBIDDEN',
           correlationId: expect.any(String)
         }
       })
@@ -243,7 +243,7 @@ describe('Error Handling Middleware Chain Integration Tests', () => {
       expect(response.body).toMatchObject({
         success: false,
         error: {
-          code: 'NOT_FOUND_ERROR',
+          code: 'NOT_FOUND',
           correlationId: expect.any(String)
         }
       })

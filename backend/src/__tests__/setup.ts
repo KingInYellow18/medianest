@@ -167,6 +167,13 @@ export const setupGlobalMocks = () => {
     genSalt: vi.fn().mockResolvedValue('salt'),
   }));
 
+  // Mock bcryptjs (alternative bcrypt implementation)
+  vi.mock('bcryptjs', () => ({
+    hash: vi.fn().mockResolvedValue('hashed-password'),
+    compare: vi.fn().mockResolvedValue(true),
+    genSalt: vi.fn().mockResolvedValue('salt'),
+  }));
+
   // Mock JWT
   vi.mock('jsonwebtoken', () => ({
     sign: vi.fn().mockReturnValue('test-jwt-token'),
@@ -191,6 +198,25 @@ export const setupGlobalMocks = () => {
       serviceStatus: mockPrismaClient.serviceStatus,
       serviceConfig: mockPrismaClient.serviceConfig,
     })),
+  }));
+
+  // Mock main config module
+  vi.mock('@/config', () => ({
+    config: {
+      NODE_ENV: 'test',
+      JWT_SECRET: 'test-jwt-secret-key-32-bytes-long',
+      JWT_ISSUER: 'medianest-test',
+      JWT_AUDIENCE: 'medianest-test-users',
+      JWT_EXPIRES_IN: '1h',
+      DATABASE_URL: 'postgresql://test:test@localhost:5433/medianest_test',
+      REDIS_URL: 'redis://localhost:6380/0',
+    },
+    getJWTConfig: () => ({
+      secret: 'test-jwt-secret-key-32-bytes-long',
+      issuer: 'medianest-test',
+      audience: 'medianest-test-users',
+      expiresIn: '1h',
+    }),
   }));
 
   // Mock Prisma client directly

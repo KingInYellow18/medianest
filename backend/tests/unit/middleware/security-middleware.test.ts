@@ -4,6 +4,23 @@ import { authMiddleware, requireRole, requireAdmin, optionalAuth } from '../../.
 import { validateOrigin, csrfProtection } from '../../../src/middleware/security';
 import { rateLimiter } from '../../../src/middleware/rate-limit';
 
+// Mock JWT utilities
+vi.mock('../../../src/utils/jwt', () => ({
+  verifyToken: vi.fn(),
+  getTokenMetadata: vi.fn(() => ({ expired: true })),
+  decodeToken: vi.fn()
+}));
+
+// Mock config
+vi.mock('@/config', () => ({
+  getRateLimitConfig: vi.fn(() => ({
+    windowMs: 60000,
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false
+  }))
+}));
+
 describe('Security Middleware Unit Tests', () => {
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
@@ -16,6 +33,10 @@ describe('Security Middleware Unit Tests', () => {
       ip: '127.0.0.1',
       method: 'GET',
       path: '/api/test',
+      get: vi.fn((name: string) => {
+        const headers = (mockRequest.headers as Record<string, string>) || {};
+        return headers[name.toLowerCase()] || headers[name];
+      }),
     };
     
     mockResponse = {
@@ -36,7 +57,7 @@ describe('Security Middleware Unit Tests', () => {
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
       
       expect(nextFunction).toHaveBeenCalledWith(expect.objectContaining({
-        status: 401,
+        statusCode: 401,
         message: 'Authentication required',
       }));
     });
@@ -48,7 +69,7 @@ describe('Security Middleware Unit Tests', () => {
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
       
       expect(nextFunction).toHaveBeenCalledWith(expect.objectContaining({
-        status: 401,
+        statusCode: 401,
       }));
     });
 
@@ -59,7 +80,7 @@ describe('Security Middleware Unit Tests', () => {
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
       
       expect(nextFunction).toHaveBeenCalledWith(expect.objectContaining({
-        status: 401,
+        statusCode: 401,
       }));
     });
 
@@ -72,7 +93,7 @@ describe('Security Middleware Unit Tests', () => {
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
       
       expect(nextFunction).toHaveBeenCalledWith(expect.objectContaining({
-        status: 401,
+        statusCode: 401,
       }));
     });
 
@@ -91,7 +112,7 @@ describe('Security Middleware Unit Tests', () => {
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
       
       expect(nextFunction).toHaveBeenCalledWith(expect.objectContaining({
-        status: 401,
+        statusCode: 401,
         message: expect.stringContaining('session'),
       }));
     });
@@ -150,7 +171,7 @@ describe('Security Middleware Unit Tests', () => {
       middleware(mockRequest as Request, mockResponse as Response, nextFunction);
       
       expect(nextFunction).toHaveBeenCalledWith(expect.objectContaining({
-        status: 403,
+        statusCode: 403,
         message: expect.stringContaining('admin'),
       }));
     });
@@ -169,7 +190,7 @@ describe('Security Middleware Unit Tests', () => {
       middleware(mockRequest as Request, mockResponse as Response, nextFunction);
       
       expect(nextFunction).toHaveBeenCalledWith(expect.objectContaining({
-        status: 401,
+        statusCode: 401,
         message: 'Authentication required',
       }));
     });
@@ -196,7 +217,7 @@ describe('Security Middleware Unit Tests', () => {
       middleware(mockRequest as Request, mockResponse as Response, nextFunction);
       
       expect(nextFunction).toHaveBeenCalledWith(expect.objectContaining({
-        status: 403,
+        statusCode: 403,
       }));
     });
   });
@@ -249,7 +270,7 @@ describe('Security Middleware Unit Tests', () => {
       middleware(mockRequest as Request, mockResponse as Response, nextFunction);
       
       expect(nextFunction).toHaveBeenCalledWith(expect.objectContaining({
-        status: 403,
+        statusCode: 403,
         code: 'CSRF_TOKEN_MISSING',
       }));
     });
@@ -262,7 +283,7 @@ describe('Security Middleware Unit Tests', () => {
       middleware(mockRequest as Request, mockResponse as Response, nextFunction);
       
       expect(nextFunction).toHaveBeenCalledWith(expect.objectContaining({
-        status: 403,
+        statusCode: 403,
         code: 'INVALID_CSRF_TOKEN',
       }));
     });
@@ -276,7 +297,7 @@ describe('Security Middleware Unit Tests', () => {
       middleware(mockRequest as Request, mockResponse as Response, nextFunction);
       
       expect(nextFunction).toHaveBeenCalledWith(expect.objectContaining({
-        status: 403,
+        statusCode: 403,
         code: 'CSRF_TOKEN_MISMATCH',
       }));
     });
@@ -304,7 +325,7 @@ describe('Security Middleware Unit Tests', () => {
       middleware(mockRequest as Request, mockResponse as Response, nextFunction);
       
       expect(nextFunction).toHaveBeenCalledWith(expect.objectContaining({
-        status: 403,
+        statusCode: 403,
         code: 'INVALID_ORIGIN',
       }));
     });
@@ -327,7 +348,7 @@ describe('Security Middleware Unit Tests', () => {
       middleware(mockRequest as Request, mockResponse as Response, nextFunction);
       
       expect(nextFunction).toHaveBeenCalledWith(expect.objectContaining({
-        status: 403,
+        statusCode: 403,
         code: 'INVALID_ORIGIN',
       }));
     });
@@ -347,7 +368,7 @@ describe('Security Middleware Unit Tests', () => {
         middleware(mockRequest as Request, mockResponse as Response, nextFunction);
         
         expect(nextFunction).toHaveBeenCalledWith(expect.objectContaining({
-          status: 403,
+          statusCode: 403,
         }));
       });
     });
@@ -368,7 +389,7 @@ describe('Security Middleware Unit Tests', () => {
       middleware(mockRequest as Request, mockResponse as Response, nextFunction);
       
       expect(nextFunction).toHaveBeenCalledWith(expect.objectContaining({
-        status: 400,
+        statusCode: 400,
         code: 'ORIGIN_REQUIRED',
       }));
     });

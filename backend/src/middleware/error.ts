@@ -107,7 +107,7 @@ export const errorHandler = (
         message: userMessage,
         code: err.code || 'INTERNAL_ERROR',
         correlationId,
-        ...(err instanceof RateLimitError && { retryAfter: err.retryAfter }),
+        ...(err instanceof RateLimitError && err.details?.retryAfter && { retryAfter: err.details.retryAfter }),
         ...(process.env.NODE_ENV === 'development' && { details: err.details }),
       },
     });
