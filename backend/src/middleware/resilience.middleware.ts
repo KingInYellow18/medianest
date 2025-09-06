@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from 'express';
-import { AppError } from '@medianest/shared';
 import { logger } from '../utils/logger';
 import { resilienceService } from '../services/resilience.service';
 import { retryWithBackoff } from '../utils/retry';

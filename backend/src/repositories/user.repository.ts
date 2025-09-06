@@ -1,5 +1,5 @@
 import { User, Prisma } from '@prisma/client';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 
 import { encryptionService } from '../services/encryption.service';
 import { NotFoundError } from '@medianest/shared';

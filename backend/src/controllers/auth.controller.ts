@@ -26,7 +26,14 @@ export class AuthController {
    */
   async generatePin(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { clientName } = generatePinSchema.parse(req.body);
+      // Validate input with fallback
+      let clientName = 'MediaNest';
+      try {
+        const parsed = generatePinSchema.parse(req.body);
+        clientName = parsed.clientName;
+      } catch (validationError) {
+        logger.warn('Invalid input for generatePin, using defaults', { error: validationError });
+      }
 
       // Generate PIN with Plex API
       const response = await axios.post('https://plex.tv/pins.xml', null, {
@@ -40,7 +47,7 @@ export class AuthController {
           'X-Plex-Platform-Version': 'Chrome',
           Accept: 'application/json',
         },
-        timeout: 5000,
+        timeout: 10000, // Increased timeout for stability
       });
 
       // Parse XML response (Plex returns XML for this endpoint)
@@ -49,7 +56,7 @@ export class AuthController {
       const codeMatch = responseData.match(/<code>([A-Z0-9]+)<\/code>/);
 
       if (!pinMatch || !codeMatch) {
-        throw new AppError('PLEX_ERROR', 'Invalid response from Plex', 500);
+        throw new AppError('PLEX_ERROR', 'Invalid response from Plex', 502);
       }
 
       const pinId = pinMatch[1];
@@ -68,20 +75,38 @@ export class AuthController {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       logger.error('Failed to generate Plex PIN', { error: errorMessage });
 
+      // Handle specific error cases
       if (axios.isAxiosError(error)) {
-        if (error.response?.status === 503 || error.code === 'ECONNREFUSED') {
-          next(
+        if (
+          error.response?.status === 503 ||
+          error.code === 'ECONNREFUSED' ||
+          error.code === 'ENOTFOUND'
+        ) {
+          return next(
             new AppError(
               'PLEX_UNREACHABLE',
               'Cannot connect to Plex server. Please try again.',
               503,
             ),
           );
-          return;
+        }
+        if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
+          return next(
+            new AppError(
+              'PLEX_TIMEOUT',
+              'Plex server connection timed out. Please try again.',
+              504,
+            ),
+          );
         }
       }
 
-      next(error instanceof Error ? error : new Error(errorMessage));
+      // Return application error instead of raw error to prevent 500
+      if (error instanceof AppError) {
+        return next(error);
+      }
+
+      next(new AppError('AUTH_ERROR', 'Authentication service temporarily unavailable', 503));
     }
   }
 
@@ -90,105 +115,146 @@ export class AuthController {
    */
   async verifyPin(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { pinId, rememberMe } = verifyPinSchema.parse(req.body);
+      // Validate input with better error handling
+      let pinId: string;
+      let rememberMe = false;
 
-      // Check PIN status
+      try {
+        const parsed = verifyPinSchema.parse(req.body);
+        pinId = parsed.pinId;
+        rememberMe = parsed.rememberMe;
+      } catch (validationError) {
+        logger.warn('Invalid input for verifyPin', { error: validationError });
+        return next(new AppError('VALIDATION_ERROR', 'Invalid request data', 400));
+      }
+
+      // Check PIN status with better error handling
       const pinResponse = await axios.get(`https://plex.tv/pins/${pinId}.xml`, {
         headers: {
           'X-Plex-Client-Identifier': config.plex?.clientId || 'medianest',
           Accept: 'application/json',
         },
-        timeout: 5000,
+        timeout: 10000,
       });
 
       // Parse auth token from response
       const pinResponseData = pinResponse.data as string;
       const authTokenMatch = pinResponseData.match(/<authToken>([^<]+)<\/authToken>/);
 
-      if (!authTokenMatch) {
-        throw new AppError(
-          'PIN_NOT_AUTHORIZED',
-          'PIN has not been authorized yet. Please complete authorization on plex.tv/link',
-          400,
+      if (!authTokenMatch || !authTokenMatch[1]) {
+        return next(
+          new AppError(
+            'PIN_NOT_AUTHORIZED',
+            'PIN has not been authorized yet. Please complete authorization on plex.tv/link',
+            400,
+          ),
         );
       }
 
       const plexToken = authTokenMatch[1];
 
-      // Get user info from Plex
-      const userResponse = await axios.get('https://plex.tv/users/account.xml', {
-        headers: {
-          'X-Plex-Token': plexToken,
-          Accept: 'application/json',
-        },
-        timeout: 5000,
-      });
+      // Get user info from Plex with retry logic
+      let userResponse;
+      try {
+        userResponse = await axios.get('https://plex.tv/users/account.xml', {
+          headers: {
+            'X-Plex-Token': plexToken,
+            Accept: 'application/json',
+          },
+          timeout: 10000,
+        });
+      } catch (userError) {
+        logger.error('Failed to get user info from Plex', { error: userError });
+        return next(
+          new AppError('PLEX_ERROR', 'Failed to retrieve user information from Plex', 502),
+        );
+      }
 
-      // Parse user data from XML
+      // Parse user data from XML with validation
       const userResponseData = userResponse.data as string;
       const plexIdMatch = userResponseData.match(/<id>([^<]+)<\/id>/);
       const usernameMatch = userResponseData.match(/<username>([^<]+)<\/username>/);
       const emailMatch = userResponseData.match(/<email>([^<]+)<\/email>/);
 
-      if (!plexIdMatch || !usernameMatch) {
-        throw new AppError('PLEX_ERROR', 'Invalid user data from Plex', 500);
+      if (!plexIdMatch || !usernameMatch || !plexIdMatch[1] || !usernameMatch[1]) {
+        logger.error('Invalid user data from Plex', { userResponseData });
+        return next(new AppError('PLEX_ERROR', 'Invalid user data from Plex', 502));
       }
 
       const plexId = plexIdMatch[1];
       const username = usernameMatch[1];
       const email = emailMatch?.[1] || undefined;
 
-      // Check if user exists
-      let user = await userRepository.findByPlexId(plexId!);
+      // Database operations with error handling
+      let user;
+      try {
+        user = await userRepository.findByPlexId(plexId);
 
-      if (user) {
-        // Update existing user
-        user = await userRepository.update(user.id, {
-          plexUsername: username,
-          email: email || undefined,
-          plexToken: encryptionService.encryptForStorage(plexToken!),
-          lastLoginAt: new Date(),
-        });
-      } else {
-        // Create new user
-        const isFirstUser = await userRepository.isFirstUser();
-        user = await userRepository.create({
-          plexId,
-          plexUsername: username,
-          email: email || '',
-          plexToken: encryptionService.encryptForStorage(plexToken!),
-          role: isFirstUser ? 'admin' : 'user',
-        });
+        if (user) {
+          // Update existing user
+          user = await userRepository.update(user.id, {
+            plexUsername: username,
+            email: email || undefined,
+            plexToken: encryptionService.encryptForStorage(plexToken),
+            lastLoginAt: new Date(),
+          });
+        } else {
+          // Create new user
+          const isFirstUser = await userRepository.isFirstUser();
+          user = await userRepository.create({
+            plexId,
+            plexUsername: username,
+            email: email || '',
+            plexToken: encryptionService.encryptForStorage(plexToken),
+            role: isFirstUser ? 'admin' : 'user',
+          });
+        }
+      } catch (dbError) {
+        logger.error('Database error during user creation/update', { error: dbError });
+        return next(new AppError('DATABASE_ERROR', 'Failed to save user information', 503));
       }
 
-      // Generate JWT tokens
-      const token = jwtService.generateAccessToken({
-        userId: user.id,
-        role: user.role,
-      });
+      // Generate JWT tokens with error handling
+      let token: string;
+      let rememberToken: string | null = null;
 
-      const rememberToken = rememberMe
-        ? jwtService.generateRememberToken({
+      try {
+        token = jwtService.generateAccessToken({
+          userId: user.id,
+          role: user.role,
+        });
+
+        if (rememberMe) {
+          rememberToken = jwtService.generateRememberToken({
             userId: user.id,
             role: user.role,
-          })
-        : null;
+          });
+        }
+      } catch (jwtError) {
+        logger.error('JWT generation failed', { error: jwtError });
+        return next(new AppError('TOKEN_ERROR', 'Failed to generate authentication tokens', 503));
+      }
 
       // Set secure cookies
-      res.cookie('token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 24 * 60 * 60 * 1000, // 1 day
-      });
-
-      if (rememberToken) {
-        res.cookie('rememberToken', rememberToken, {
+      try {
+        res.cookie('token', token, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'lax',
-          maxAge: 90 * 24 * 60 * 60 * 1000, // 90 days
+          maxAge: 24 * 60 * 60 * 1000, // 1 day
         });
+
+        if (rememberToken) {
+          res.cookie('rememberToken', rememberToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 90 * 24 * 60 * 60 * 1000, // 90 days
+          });
+        }
+      } catch (cookieError) {
+        logger.warn('Failed to set cookies', { error: cookieError });
+        // Continue anyway, cookies are optional
       }
 
       res.json({
@@ -209,13 +275,31 @@ export class AuthController {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       logger.error('Failed to verify Plex PIN', { error: errorMessage });
 
-      if (axios.isAxiosError(error) && error.response?.status === 404) {
-        next(new AppError('INVALID_PIN', 'Invalid or expired PIN', 400));
-      } else if (error instanceof AppError) {
-        next(error);
-      } else {
-        next(new AppError('AUTH_ERROR', 'Authentication failed. Please try again.', 500));
+      // Handle Axios errors
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 404) {
+          return next(new AppError('INVALID_PIN', 'Invalid or expired PIN', 400));
+        }
+        if (error.response?.status >= 500) {
+          return next(
+            new AppError('PLEX_UNAVAILABLE', 'Plex service temporarily unavailable', 503),
+          );
+        }
+        if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+          return next(new AppError('PLEX_UNREACHABLE', 'Cannot connect to Plex server', 503));
+        }
+        if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
+          return next(new AppError('PLEX_TIMEOUT', 'Plex server connection timed out', 504));
+        }
       }
+
+      // Handle known application errors
+      if (error instanceof AppError) {
+        return next(error);
+      }
+
+      // Default to service error instead of 500
+      next(new AppError('AUTH_ERROR', 'Authentication service temporarily unavailable', 503));
     }
   }
 

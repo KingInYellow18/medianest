@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { z } from 'zod';
 
 import { plexService } from '@/services/plex.service';
@@ -47,7 +47,7 @@ export const getLibraryItems = async (req: AuthRequest, res: Response) => {
   const { offset = 0, limit = 50 } = req.query;
 
   try {
-    const items = await plexService.getLibraryItems(req.user!.id, libraryKey, {
+    const items = await plexService.getLibraryItems(req.user!.id, libraryKey!, {
       offset: Number(offset),
       limit: Number(limit),
     });
@@ -170,7 +170,7 @@ export const getCollections = async (req: AuthRequest, res: Response) => {
   const { search, sort } = req.query;
 
   try {
-    const collections = await plexService.getCollections(req.user!.id, libraryKey, {
+    const collections = await plexService.getCollections(req.user!.id, libraryKey!, {
       search: search as string,
       sort: sort as string,
     });
@@ -189,7 +189,7 @@ export const getCollectionDetails = async (req: AuthRequest, res: Response) => {
   const { collectionKey } = req.params;
 
   try {
-    const collection = await plexService.getCollectionDetails(req.user!.id, collectionKey);
+    const collection = await plexService.getCollectionDetails(req.user!.id, collectionKey!);
     res.json(collection);
   } catch (error: any) {
     logger.error('Failed to get collection details', {

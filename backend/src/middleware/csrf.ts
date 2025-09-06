@@ -64,13 +64,6 @@ export class CSRFProtection {
   }
 
   /**
-   * Create a secure hash for double-submit pattern
-   */
-  private createTokenHash(token: string, secret: string): string {
-    return createHash('sha256').update(`${token}-${secret}`).digest('hex');
-  }
-
-  /**
    * Verify CSRF token using timing-safe comparison
    */
   private verifyToken(token1: string, token2: string): boolean {
@@ -136,7 +129,7 @@ export class CSRFProtection {
    * Token validation middleware
    */
   validateTokenMiddleware = () => {
-    return (req: Request, res: Response, next: NextFunction) => {
+    return (req: Request, _res: Response, next: NextFunction) => {
       try {
         // Skip validation for ignored methods
         if (this.options.ignoreMethods.includes(req.method)) {

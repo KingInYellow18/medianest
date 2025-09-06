@@ -10,7 +10,7 @@ declare global {
         plexUsername?: string;
         [key: string]: any;
       };
-      correlationId?: string;
+      correlationId: string;
       plex?: any;
     }
   }

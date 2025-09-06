@@ -50,7 +50,7 @@ export class PlexController {
       const { libraryKey } = req.params;
       const { offset = 0, limit = 50 } = req.query;
 
-      const result = await plexService.getLibraryItems(userId, libraryKey, {
+      const result = await plexService.getLibraryItems(userId, libraryKey!, {
         offset: Number(offset),
         limit: Number(limit),
       });
@@ -128,7 +128,7 @@ export class PlexController {
       const { libraryKey } = req.params;
       const { search, sort } = req.query;
 
-      const collections = await plexService.getCollections(userId, libraryKey, {
+      const collections = await plexService.getCollections(userId, libraryKey!, {
         search: search as string,
         sort: sort as string,
       });
@@ -154,7 +154,7 @@ export class PlexController {
       const userId = req.user!.id;
       const { collectionKey } = req.params;
 
-      const collection = await plexService.getCollectionDetails(userId, collectionKey);
+      const collection = await plexService.getCollectionDetails(userId, collectionKey!);
 
       res.json({
         success: true,

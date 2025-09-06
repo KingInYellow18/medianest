@@ -1,4 +1,4 @@
-import { ResilienceConfig } from '../services/resilience.service';
+// ResilienceConfig interface is defined inline below
 import { CircuitBreakerOptions } from '../utils/circuit-breaker';
 
 export interface ResilienceConfiguration {
@@ -153,13 +153,15 @@ export const getEnvironmentConfig = (): Partial<ResilienceConfiguration> => {
           // More lenient thresholds for development
           ...Object.keys(defaultResilienceConfig.circuitBreakers).reduce(
             (acc, key) => {
+              const defaultCB = defaultResilienceConfig.circuitBreakers[key];
+              if (!defaultCB) return acc;
               acc[key] = {
-                ...defaultResilienceConfig.circuitBreakers[key],
-                failureThreshold: defaultResilienceConfig.circuitBreakers[key].failureThreshold + 2,
-                resetTimeout: Math.min(
-                  defaultResilienceConfig.circuitBreakers[key].resetTimeout,
-                  15000,
-                ),
+                failureThreshold: defaultCB.failureThreshold + 2,
+                resetTimeout: Math.min(defaultCB.resetTimeout, 15000),
+                monitoringPeriod: defaultCB.monitoringPeriod,
+                expectedErrors: defaultCB.expectedErrors,
+                halfOpenMaxCalls: defaultCB.halfOpenMaxCalls,
+                enableMetrics: defaultCB.enableMetrics,
               };
               return acc;
             },
@@ -207,12 +209,15 @@ export const getEnvironmentConfig = (): Partial<ResilienceConfiguration> => {
           // Slightly more aggressive than production for early detection
           ...Object.keys(defaultResilienceConfig.circuitBreakers).reduce(
             (acc, key) => {
+              const defaultCB = defaultResilienceConfig.circuitBreakers[key];
+              if (!defaultCB) return acc;
               acc[key] = {
-                ...defaultResilienceConfig.circuitBreakers[key],
-                failureThreshold: Math.max(
-                  3,
-                  defaultResilienceConfig.circuitBreakers[key].failureThreshold - 1,
-                ),
+                failureThreshold: Math.max(3, defaultCB.failureThreshold - 1),
+                resetTimeout: defaultCB.resetTimeout,
+                monitoringPeriod: defaultCB.monitoringPeriod,
+                expectedErrors: defaultCB.expectedErrors,
+                halfOpenMaxCalls: defaultCB.halfOpenMaxCalls,
+                enableMetrics: defaultCB.enableMetrics,
               };
               return acc;
             },

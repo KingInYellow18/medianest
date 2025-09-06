@@ -171,7 +171,7 @@ export function globalErrorHandler() {
 
 // Not found handler
 export function notFoundHandler() {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     const error = new AppError(`Route ${req.method} ${req.path} not found`, 404, 'ROUTE_NOT_FOUND');
     next(error);
   };
@@ -186,7 +186,7 @@ export function asyncErrorHandler(fn: Function) {
 
 // Validation error handler
 export function validationErrorHandler() {
-  return (error: any, req: Request, res: Response, next: NextFunction) => {
+  return (error: any, _req: Request, _res: Response, next: NextFunction) => {
     if (error.name === 'ZodError') {
       const validationError = new AppError('Validation failed', 400, 'VALIDATION_ERROR');
 
@@ -207,7 +207,7 @@ export function validationErrorHandler() {
 
 // Rate limiting error handler
 export function rateLimitErrorHandler() {
-  return (error: any, req: Request, res: Response, next: NextFunction) => {
+  return (error: any, req: Request, _res: Response, next: NextFunction) => {
     if (error.name === 'RateLimitError' || error.code === 'RATE_LIMIT_EXCEEDED') {
       const rateLimitError = new AppError(
         'Too many requests, please try again later',
@@ -230,7 +230,7 @@ export function rateLimitErrorHandler() {
 
 // Database error handler
 export function databaseErrorHandler() {
-  return (error: any, req: Request, res: Response, next: NextFunction) => {
+  return (error: any, _req: Request, _res: Response, next: NextFunction) => {
     // Prisma errors
     if (error.code && error.code.startsWith('P')) {
       let message = 'Database operation failed';
@@ -276,7 +276,7 @@ export function databaseErrorHandler() {
 
 // Authentication error handler
 export function authErrorHandler() {
-  return (error: any, req: Request, res: Response, next: NextFunction) => {
+  return (error: any, _req: Request, _res: Response, next: NextFunction) => {
     if (error.name === 'JsonWebTokenError') {
       const authError = new AppError('Invalid authentication token', 401, 'INVALID_TOKEN');
       return next(authError);
@@ -314,7 +314,7 @@ function sanitizeHeaders(headers: any): Record<string, any> {
   return sanitized;
 }
 
-function getDefaultResponse(path: string, method: string): any {
+function getDefaultResponse(path: string, _method: string): any {
   // Return appropriate default responses based on path
   if (path.includes('/users')) {
     return { users: [], message: 'User service temporarily unavailable' };

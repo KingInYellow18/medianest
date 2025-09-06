@@ -1,13 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
 
-import {
-  AppError,
-  ValidationError,
-  AuthenticationError,
-  AuthorizationError,
-  RateLimitError,
-} from '@medianest/shared';
+import { AppError, RateLimitError } from '@medianest/shared';
 import { metrics } from '../utils/monitoring';
 
 // User-friendly error messages

@@ -1,10 +1,14 @@
 import { Express } from 'express';
 
 import { healthRouter } from './health';
+import { simpleHealthRouter } from './simple-health';
 import v1Routes from './v1';
 
 export const setupRoutes = (app: Express) => {
-  // Health check (no auth required, unversioned)
+  // Simple health check for Docker (no auth required)
+  app.use('/health', simpleHealthRouter);
+
+  // Detailed health check (no auth required, unversioned)
   app.use('/api/health', healthRouter);
 
   // API v1 routes

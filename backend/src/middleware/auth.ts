@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 
 import { SessionTokenRepository } from '../repositories/session-token.repository';
 import { UserRepository } from '../repositories/user.repository';
-import { AuthenticationError, AuthorizationError } from '../utils/errors';
+import { AuthenticationError } from '../utils/errors';
 import { verifyToken } from '../utils/jwt';
 import { logger } from '../utils/logger';
 import { DeviceSessionService } from '../services/device-session.service';
@@ -13,7 +13,7 @@ import {
   extractTokenOptional,
   TokenValidationContext,
 } from './auth/token-validator';
-import { validateUser, validateUserOptional, AuthenticatedUser } from './auth/user-validator';
+import { validateUser, validateUserOptional } from './auth/user-validator';
 import {
   validateSessionToken,
   registerAndAssessDevice,

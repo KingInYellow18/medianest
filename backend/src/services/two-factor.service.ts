@@ -477,4 +477,71 @@ export class TwoFactorService {
       remainingCodes: updatedBackupCodes.length,
     };
   }
+
+  /**
+   * Disable 2FA for user
+   */
+  async disableTwoFactor(
+    userId: string,
+    options: {
+      ipAddress: string;
+      userAgent: string;
+    },
+  ): Promise<{ success: boolean }> {
+    await this.userRepository.update(userId, {
+      twoFactorEnabled: false,
+      twoFactorSecret: null,
+      twoFactorBackupCodes: null,
+      twoFactorMethod: null,
+    });
+
+    logSecurityEvent(
+      '2FA_DISABLED',
+      {
+        userId,
+        ipAddress: options.ipAddress,
+        userAgent: options.userAgent,
+      },
+      'info',
+    );
+
+    return { success: true };
+  }
+
+  /**
+   * Get backup codes for user
+   */
+  private async getBackupCodes(userId: string): Promise<string[]> {
+    const user = await this.userRepository.findById(userId);
+    if (!user || !user.twoFactorBackupCodes) {
+      return [];
+    }
+
+    // Return placeholder codes (actual codes shouldn't be retrievable)
+    return user.twoFactorBackupCodes.map((_, index) => `backup-code-${index + 1}`);
+  }
+
+  /**
+   * Find active challenge for user
+   */
+  private findActiveChallenge(userId: string): TwoFactorChallenge | undefined {
+    for (const challenge of this.challenges.values()) {
+      if (challenge.userId === userId && new Date() < challenge.expiresAt) {
+        return challenge;
+      }
+    }
+    return undefined;
+  }
+
+  /**
+   * Cleanup expired challenges
+   */
+  private cleanupExpiredChallenges(): void {
+    const now = new Date();
+    for (const [id, challenge] of this.challenges.entries()) {
+      if (now > challenge.expiresAt) {
+        this.challenges.delete(id);
+      }
+    }
+  }
 }
