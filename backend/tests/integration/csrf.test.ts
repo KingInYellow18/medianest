@@ -1,7 +1,12 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import request from 'supertest';
-import { app } from '@/app';
 import { User } from '@prisma/client';
+
+// Set test environment variables to prevent real connections
+process.env.NODE_ENV = 'test';
+process.env.JWT_SECRET = 'test-jwt-secret-key-for-testing-only';
+process.env.REDIS_URL = 'redis://mock-redis:6379';
+process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test';
 
 // Mock IORedis directly to prevent any real Redis connections
 vi.mock('ioredis', () => ({
@@ -97,6 +102,9 @@ vi.mock('axios', () => ({
     isAxiosError: vi.fn().mockReturnValue(true),
   },
 }));
+
+// Import app AFTER all mocks are set up
+import { app } from '../../src/app';
 
 // Mock user creation
 function createTestUser(options: { role?: string } = {}) {
