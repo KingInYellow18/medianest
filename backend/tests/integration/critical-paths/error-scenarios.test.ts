@@ -4,6 +4,27 @@ import { databaseCleanup } from '../../helpers/database-cleanup';
 import { createAuthToken } from '../../helpers/auth';
 import { testUsers } from '../../fixtures/test-data';
 
+// Mock ioredis directly to prevent any Redis connections
+vi.mock('ioredis', () => {
+  const mockRedis = {
+    ping: vi.fn().mockResolvedValue('PONG'),
+    get: vi.fn().mockResolvedValue(null),
+    set: vi.fn().mockResolvedValue('OK'),
+    del: vi.fn().mockResolvedValue(1),
+    quit: vi.fn().mockResolvedValue('OK'),
+    incr: vi.fn().mockResolvedValue(1),
+    expire: vi.fn().mockResolvedValue(1),
+    exists: vi.fn().mockResolvedValue(0),
+    connect: vi.fn().mockResolvedValue(undefined),
+    disconnect: vi.fn().mockResolvedValue(undefined),
+  };
+
+  return {
+    default: vi.fn().mockImplementation(() => mockRedis),
+    Redis: vi.fn().mockImplementation(() => mockRedis),
+  };
+});
+
 // Mock external dependencies before importing app
 vi.mock('@/config/redis', () => ({
   redisClient: {
@@ -73,6 +94,14 @@ vi.mock('axios', () => {
     post: vi.fn().mockRejectedValue(new Error('Network error - mocked')),
     get: vi.fn().mockRejectedValue(new Error('Network error - mocked')),
     isAxiosError: vi.fn().mockReturnValue(true),
+    interceptors: {
+      request: {
+        use: vi.fn(),
+      },
+      response: {
+        use: vi.fn(),
+      },
+    },
   };
 
   return {

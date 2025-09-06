@@ -3,6 +3,35 @@ import request from 'supertest';
 import { app } from '@/app';
 import { User } from '@prisma/client';
 
+// Mock IORedis directly to prevent any real Redis connections
+vi.mock('ioredis', () => ({
+  default: vi.fn(() => ({
+    ping: vi.fn().mockResolvedValue('PONG'),
+    get: vi.fn(),
+    set: vi.fn(),
+    setex: vi.fn(),
+    del: vi.fn(),
+    quit: vi.fn(),
+    disconnect: vi.fn(),
+    status: 'ready',
+    options: {
+      host: 'localhost',
+      port: 6379,
+      password: undefined,
+    },
+    on: vi.fn(),
+    info: vi.fn().mockResolvedValue('redis_version:6.2.0'),
+    dbsize: vi.fn().mockResolvedValue(0),
+    keys: vi.fn().mockResolvedValue([]),
+    eval: vi.fn().mockResolvedValue(0),
+    flushdb: vi.fn().mockResolvedValue('OK'),
+    zadd: vi.fn().mockResolvedValue(1),
+    lrange: vi.fn().mockResolvedValue([]),
+    lpush: vi.fn().mockResolvedValue(1),
+    expire: vi.fn().mockResolvedValue(1),
+  })),
+}));
+
 // Mock Redis to prevent connection errors
 vi.mock('@/config/redis', () => ({
   redisClient: {
@@ -16,9 +45,16 @@ vi.mock('@/config/redis', () => ({
     ping: vi.fn().mockResolvedValue('PONG'),
     get: vi.fn(),
     set: vi.fn(),
+    setex: vi.fn(),
     del: vi.fn(),
     quit: vi.fn(),
+    options: {
+      host: 'localhost',
+      port: 6379,
+      password: undefined,
+    },
   })),
+  initializeRedis: vi.fn().mockResolvedValue(undefined),
 }));
 
 // Mock Prisma to prevent database connection
