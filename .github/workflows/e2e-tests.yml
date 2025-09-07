@@ -1,0 +1,443 @@
+name: E2E Tests - MediaNest Playwright
+
+on:
+  push:
+    branches: [main, develop, 'feature/*']
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run nightly at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      test_tag:
+        description: 'Test tag to run (e.g., @smoke, @regression)'
+        required: false
+        default: '@smoke'
+      browser:
+        description: 'Browser to test'
+        required: false
+        default: 'chromium'
+        type: choice
+        options:
+          - chromium
+          - firefox
+          - webkit
+          - all
+
+env:
+  NODE_VERSION: '20'
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+
+jobs:
+  # Setup and build job
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      cache-key: ${{ steps.cache-key.outputs.key }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Generate cache key
+        id: cache-key
+        run: echo "key=deps-${{ runner.os }}-${{ hashFiles('package-lock.json') }}" >> $GITHUB_OUTPUT
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            frontend/node_modules
+            backend/node_modules
+            shared/node_modules
+            ~/.cache/ms-playwright
+          key: ${{ steps.cache-key.outputs.key }}
+          restore-keys: |
+            deps-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npx playwright install chromium firefox webkit
+          npx playwright install-deps
+
+      - name: Build application
+        run: |
+          npm run build
+          cd frontend && npm run build
+          cd ../backend && npm run build
+
+  # Smoke tests - run on every push/PR
+  smoke-tests:
+    needs: setup
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium]
+        shard: [1, 2]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Restore dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            frontend/node_modules
+            backend/node_modules
+            shared/node_modules
+            ~/.cache/ms-playwright
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Setup test environment
+        run: |
+          cp .medianest-e2e/config/.env.test.example .env.test.local
+          echo "CI=true" >> .env.test.local
+          echo "PLAYWRIGHT_WORKERS=1" >> .env.test.local
+          echo "HEADLESS=true" >> .env.test.local
+
+      - name: Start services
+        run: |
+          docker-compose -f docker-compose.test.yml up -d
+          sleep 30 # Wait for services to be ready
+
+      - name: Run smoke tests
+        run: |
+          npx playwright test \
+            --project=${{ matrix.browser }}-desktop \
+            --grep="@smoke" \
+            --shard=${{ matrix.shard }}/2 \
+            --reporter=github
+        env:
+          CI: true
+          PLAYWRIGHT_WORKERS: 1
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-results-${{ matrix.browser }}-shard-${{ matrix.shard }}
+          path: |
+            .medianest-e2e/reports/
+            .medianest-e2e/test-results/
+          retention-days: 7
+
+      - name: Stop services
+        if: always()
+        run: docker-compose -f docker-compose.test.yml down
+
+  # Full regression tests - run on schedule and manual trigger
+  regression-tests:
+    needs: setup
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+        test-group: [auth, dashboard, plex, requests, api]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Restore dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            frontend/node_modules
+            backend/node_modules
+            shared/node_modules
+            ~/.cache/ms-playwright
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Setup test environment
+        run: |
+          cp .medianest-e2e/config/.env.test.example .env.test.local
+          echo "CI=true" >> .env.test.local
+          echo "PLAYWRIGHT_WORKERS=2" >> .env.test.local
+          echo "PLAYWRIGHT_RETRIES=2" >> .env.test.local
+
+      - name: Start services with full stack
+        run: |
+          docker-compose -f docker-compose.test.yml up -d
+          sleep 45 # Wait for all services
+
+      - name: Run regression tests
+        run: |
+          npx playwright test \
+            --project=${{ matrix.browser }}-desktop \
+            --grep="@${{ matrix.test-group }}" \
+            --reporter=list,html,allure-playwright
+        env:
+          CI: true
+          PLAYWRIGHT_WORKERS: 2
+
+      - name: Generate Allure report
+        if: always()
+        run: |
+          npx allure generate .medianest-e2e/reports/allure-results -o .medianest-e2e/reports/allure-report
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-test-results-${{ matrix.browser }}-${{ matrix.test-group }}
+          path: |
+            .medianest-e2e/reports/
+            .medianest-e2e/test-results/
+            .medianest-e2e/screenshots/
+          retention-days: 30
+
+      - name: Stop services
+        if: always()
+        run: docker-compose -f docker-compose.test.yml down -v
+
+  # Visual regression tests
+  visual-tests:
+    needs: setup
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Need full history for visual comparison
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Restore dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            frontend/node_modules
+            backend/node_modules
+            shared/node_modules
+            ~/.cache/ms-playwright
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Setup visual testing
+        run: |
+          cp .medianest-e2e/config/.env.test.example .env.test.local
+          echo "CI=true" >> .env.test.local
+          echo "UPDATE_SNAPSHOTS=false" >> .env.test.local
+          echo "VISUAL_THRESHOLD=0.2" >> .env.test.local
+
+      - name: Start services
+        run: |
+          docker-compose -f docker-compose.test.yml up -d
+          sleep 30
+
+      - name: Run visual regression tests
+        run: |
+          npx playwright test \
+            --project=visual-chrome \
+            --grep="@visual" \
+            --reporter=html
+        env:
+          CI: true
+
+      - name: Upload visual test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-test-results
+          path: |
+            .medianest-e2e/reports/html/
+            .medianest-e2e/test-results/
+          retention-days: 14
+
+  # Accessibility tests
+  accessibility-tests:
+    needs: setup
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.event_name == 'schedule'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Restore dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            frontend/node_modules
+            backend/node_modules
+            shared/node_modules
+            ~/.cache/ms-playwright
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Setup accessibility testing
+        run: |
+          cp .medianest-e2e/config/.env.test.example .env.test.local
+          echo "CI=true" >> .env.test.local
+          echo "A11Y_THRESHOLD=0" >> .env.test.local
+
+      - name: Start services
+        run: |
+          docker-compose -f docker-compose.test.yml up -d
+          sleep 30
+
+      - name: Run accessibility tests
+        run: |
+          npx playwright test \
+            --project=accessibility \
+            --grep="@accessibility" \
+            --reporter=list,html
+        env:
+          CI: true
+
+      - name: Upload accessibility results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: accessibility-test-results
+          path: |
+            .medianest-e2e/reports/
+            .medianest-e2e/test-results/
+          retention-days: 14
+
+  # Performance tests
+  performance-tests:
+    needs: setup
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.test_tag == '@performance')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Restore dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            frontend/node_modules
+            backend/node_modules
+            shared/node_modules
+            ~/.cache/ms-playwright
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Setup performance testing
+        run: |
+          cp .medianest-e2e/config/.env.test.example .env.test.local
+          echo "CI=true" >> .env.test.local
+          echo "RUN_PERFORMANCE_TESTS=true" >> .env.test.local
+
+      - name: Start services with production config
+        run: |
+          docker-compose -f docker-compose.prod.yml up -d
+          sleep 60 # Wait longer for production build
+
+      - name: Run performance tests
+        run: |
+          npx playwright test \
+            --project=performance \
+            --grep="@performance" \
+            --reporter=list
+        env:
+          CI: true
+
+      - name: Upload performance results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-test-results
+          path: |
+            .medianest-e2e/reports/
+            .medianest-e2e/test-results/
+          retention-days: 30
+
+  # Consolidate and publish results
+  publish-results:
+    needs: [smoke-tests, regression-tests, visual-tests, accessibility-tests]
+    runs-on: ubuntu-latest
+    if: always() && (needs.smoke-tests.result != 'skipped' || needs.regression-tests.result != 'skipped')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./test-results
+
+      - name: Publish test results
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: 'Playwright Test Results'
+          path: './test-results/**/junit/results.xml'
+          reporter: 'java-junit'
+          fail-on-error: false
+
+      - name: Generate test summary
+        if: always()
+        run: |
+          echo "## 🎭 Playwright Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [[ "${{ needs.smoke-tests.result }}" == "success" ]]; then
+            echo "✅ Smoke Tests: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Smoke Tests: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [[ "${{ needs.regression-tests.result }}" == "success" ]]; then
+            echo "✅ Regression Tests: Passed" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ needs.regression-tests.result }}" != "skipped" ]]; then
+            echo "❌ Regression Tests: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [[ "${{ needs.visual-tests.result }}" == "success" ]]; then
+            echo "✅ Visual Tests: Passed" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ needs.visual-tests.result }}" != "skipped" ]]; then
+            echo "❌ Visual Tests: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [[ "${{ needs.accessibility-tests.result }}" == "success" ]]; then
+            echo "✅ Accessibility Tests: Passed" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ needs.accessibility-tests.result }}" != "skipped" ]]; then
+            echo "❌ Accessibility Tests: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📊 [View detailed results in artifacts](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
