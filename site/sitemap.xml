@@ -1,723 +1,731 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://medianest.example.com/docs/</loc>
+         <loc>https://docs.medianest.com/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/API_ENDPOINT_TESTING_SUMMARY/</loc>
+         <loc>https://docs.medianest.com/API_IMPLEMENTATION_GUIDE/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/API_IMPLEMENTATION_GUIDE/</loc>
+         <loc>https://docs.medianest.com/API_REFERENCE/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/API_REFERENCE/</loc>
+         <loc>https://docs.medianest.com/APM_IMPLEMENTATION/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/APM_IMPLEMENTATION/</loc>
+         <loc>https://docs.medianest.com/ARCHITECTURE_DECISIONS/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/ARCHITECTURE_DECISIONS/</loc>
+         <loc>https://docs.medianest.com/ARCHITECTURE_DECISION_RECORDS/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/ARCHITECTURE_DECISION_RECORDS/</loc>
+         <loc>https://docs.medianest.com/AUTHENTICATION_ARCHITECTURE/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/AUTHENTICATION_ARCHITECTURE/</loc>
+         <loc>https://docs.medianest.com/BACKEND_IMPLEMENTATION_GUIDE/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/BACKEND_IMPLEMENTATION_GUIDE/</loc>
+         <loc>https://docs.medianest.com/CHANGELOG/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/BUILD_SYSTEM_RESTORATION_REPORT/</loc>
+         <loc>https://docs.medianest.com/CI_CD_AUTOMATION/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/BUILD_VALIDATION_REPORT/</loc>
+         <loc>https://docs.medianest.com/COMPONENT_DOCUMENTATION/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/CHANGELOG/</loc>
+         <loc>https://docs.medianest.com/CONFIGURATION_MANAGEMENT/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/CODE_QUALITY_ANALYSIS_REPORT/</loc>
+         <loc>https://docs.medianest.com/CONFIGURATION_MIGRATION_GUIDE/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/CODE_QUALITY_ENFORCEMENT_REPORT/</loc>
+         <loc>https://docs.medianest.com/CSRF_IMPLEMENTATION/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/CODE_QUALITY_ENFORCEMENT_SUMMARY/</loc>
+         <loc>https://docs.medianest.com/DEPLOYMENT_GUIDE/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/CODE_QUALITY_VERIFICATION_REPORT/</loc>
+         <loc>https://docs.medianest.com/DEVELOPMENT/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/COMPONENT_DOCUMENTATION/</loc>
+         <loc>https://docs.medianest.com/DOCUMENTATION_CONSOLIDATION_EXECUTION_PLAN/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_REPORT/</loc>
+         <loc>https://docs.medianest.com/DOCUMENTATION_MIGRATION_GUIDE/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/CONFIGURATION_MANAGEMENT/</loc>
+         <loc>https://docs.medianest.com/DOCUMENTATION_MIGRATION_MAPPING/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/CONFIGURATION_MIGRATION_GUIDE/</loc>
+         <loc>https://docs.medianest.com/DUPLICATE_ELIMINATION_STRATEGY/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/CSRF_IMPLEMENTATION/</loc>
+         <loc>https://docs.medianest.com/ERROR_HANDLING_LOGGING_STRATEGY/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/DATABASE_TEST_RECOVERY_SUMMARY/</loc>
+         <loc>https://docs.medianest.com/FRONTEND_ARCHITECTURE_GUIDE/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/DEPENDENCY-AUDIT/</loc>
+         <loc>https://docs.medianest.com/FRONTEND_ERROR_HANDLING_GUIDE/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/DEPENDENCY_INSTALLATION_REPORT/</loc>
+         <loc>https://docs.medianest.com/GITIGNORE_STRATEGY/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/DEPENDENCY_SECURITY_AUDIT_REPORT/</loc>
+         <loc>https://docs.medianest.com/HEALTH_MONITORING_DASHBOARD/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/DEPLOYMENT_GUIDE/</loc>
+         <loc>https://docs.medianest.com/HIVE_MIND_IMPLEMENTATION_COMPLETE/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/DEPLOYMENT_READINESS_COMPREHENSIVE_REPORT/</loc>
+         <loc>https://docs.medianest.com/INTEGRATION_PROOF/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/DEVELOPMENT/</loc>
+         <loc>https://docs.medianest.com/MANUAL_TESTING_CHECKLIST/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/DOCUMENTATION_AUDIT_REORGANIZATION_REPORT/</loc>
+         <loc>https://docs.medianest.com/MANUAL_TESTING_GUIDE/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/DOCUMENTATION_CONSOLIDATION_EXECUTION_PLAN/</loc>
+         <loc>https://docs.medianest.com/MIGRATION-LOG/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/DOCUMENTATION_MIGRATION_GUIDE/</loc>
+         <loc>https://docs.medianest.com/OPENAPI_SETUP/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/DOCUMENTATION_MIGRATION_MAPPING/</loc>
+         <loc>https://docs.medianest.com/OPTIMAL_DOCUMENTATION_STRUCTURE/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/DOCUMENTATION_REPAIR_SUMMARY/</loc>
+         <loc>https://docs.medianest.com/PAGINATION_IMPLEMENTATION/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/DUPLICATE_ELIMINATION_STRATEGY/</loc>
+         <loc>https://docs.medianest.com/PERFORMANCE_MONITORING_RECOMMENDATIONS/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/EMERGENCY_BUILD_FIXES_TECHNICAL_DEBT/</loc>
+         <loc>https://docs.medianest.com/PERFORMANCE_OPTIMIZATION_STRATEGY/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/ERROR_HANDLING_LOGGING_STRATEGY/</loc>
+         <loc>https://docs.medianest.com/PERFORMANCE_STRATEGY/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/EXECUTIVE_SUMMARY/</loc>
+         <loc>https://docs.medianest.com/PRODUCTION_DEPLOYMENT/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/FINAL_ASSESSMENT_REPORT/</loc>
+         <loc>https://docs.medianest.com/PRODUCTION_READINESS_ASSESSMENT/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/FRONTEND_ARCHITECTURE_GUIDE/</loc>
+         <loc>https://docs.medianest.com/PROJECT_STATUS_REALITY/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/FRONTEND_ERROR_HANDLING_GUIDE/</loc>
+         <loc>https://docs.medianest.com/RESPONSE_ENVELOPE_STANDARD/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/GITIGNORE_STRATEGY/</loc>
+         <loc>https://docs.medianest.com/SECURITY/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/HEALTH_MONITORING_DASHBOARD/</loc>
+         <loc>https://docs.medianest.com/SECURITY_ARCHITECTURE_STRATEGY/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/HIVE_MIND_IMPLEMENTATION_COMPLETE/</loc>
+         <loc>https://docs.medianest.com/SECURITY_BEST_PRACTICES/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/INFRASTRUCTURE_AUDIT_REPORT/</loc>
+         <loc>https://docs.medianest.com/SYSTEM_ARCHITECTURE_DIAGRAMS/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/INTEGRATION_PROOF/</loc>
+         <loc>https://docs.medianest.com/TECHNICAL_DEBT_PRIORITIZATION_MATRIX/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/LEGACY_DOCUMENTATION_CLEANUP_REPORT/</loc>
+         <loc>https://docs.medianest.com/TESTING_ARCHITECTURE/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/MANUAL_TESTING_CHECKLIST/</loc>
+         <loc>https://docs.medianest.com/code-quality-optimization-report/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/MANUAL_TESTING_GUIDE/</loc>
+         <loc>https://docs.medianest.com/docker-analysis/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/MIGRATION-LOG/</loc>
+         <loc>https://docs.medianest.com/docker-security-audit/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/OPENAPI_SETUP/</loc>
+         <loc>https://docs.medianest.com/implementation-strategy/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/OPTIMAL_DOCUMENTATION_STRUCTURE/</loc>
+         <loc>https://docs.medianest.com/observability-architecture/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/PAGINATION_IMPLEMENTATION/</loc>
+         <loc>https://docs.medianest.com/production-deployment/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/PERFORMANCE_BASELINE_AUDIT/</loc>
+         <loc>https://docs.medianest.com/production-readiness-report/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/PERFORMANCE_IMPLEMENTATION_SUMMARY/</loc>
+         <loc>https://docs.medianest.com/security-audit/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/PERFORMANCE_MONITORING_RECOMMENDATIONS/</loc>
+         <loc>https://docs.medianest.com/system-health-dashboard/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/PERFORMANCE_OPTIMIZATION_STRATEGY/</loc>
+         <loc>https://docs.medianest.com/tracing-setup/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/PERFORMANCE_STRATEGY/</loc>
+         <loc>https://docs.medianest.com/youtube-plex-setup/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/PRODUCTION_DEPLOYMENT/</loc>
+         <loc>https://docs.medianest.com/01-getting-started/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/PRODUCTION_READINESS_ASSESSMENT/</loc>
+         <loc>https://docs.medianest.com/02-architecture/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/PROJECT_STATUS_REALITY/</loc>
+         <loc>https://docs.medianest.com/02-architecture/system-architecture/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/RESPONSE_ENVELOPE_STANDARD/</loc>
+         <loc>https://docs.medianest.com/03-api-reference/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/SECURITY/</loc>
+         <loc>https://docs.medianest.com/03-api-reference/authentication-api/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/SECURITY_ANALYST_REPORT/</loc>
+         <loc>https://docs.medianest.com/04-implementation-guides/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/SECURITY_ARCHITECTURE_STRATEGY/</loc>
+         <loc>https://docs.medianest.com/05-testing/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/SECURITY_BEST_PRACTICES/</loc>
+         <loc>https://docs.medianest.com/06-deployment/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/SECURITY_IMPLEMENTATION_REPORT/</loc>
+         <loc>https://docs.medianest.com/07-security/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/STAGING_DEPLOYMENT_REPORT/</loc>
+         <loc>https://docs.medianest.com/08-monitoring/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/SYSTEM_ARCHITECTURE_DIAGRAMS/</loc>
+         <loc>https://docs.medianest.com/09-configuration/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/SYSTEM_HEALTH_MONITORING_REPORT/</loc>
+         <loc>https://docs.medianest.com/10-troubleshooting/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/TECHNICAL_DEBT_PRIORITIZATION_MATRIX/</loc>
+         <loc>https://docs.medianest.com/11-performance/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/TESTING_ARCHITECTURE/</loc>
+         <loc>https://docs.medianest.com/12-maintenance/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/TESTING_DOCUMENTATION_ANALYSIS_REPORT/</loc>
+         <loc>https://docs.medianest.com/13-reference/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/TYPESCRIPT_EMERGENCY_PATCHES_ANALYSIS/</loc>
+         <loc>https://docs.medianest.com/14-tutorials/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/VALIDATION_TRUTH_REPORT/</loc>
+         <loc>https://docs.medianest.com/analysis/detailed-test-recovery-plan/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/code-quality-optimization-report/</loc>
+         <loc>https://docs.medianest.com/api/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/implementation-strategy/</loc>
+         <loc>https://docs.medianest.com/api/API_Endpoints_Summary/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/integration-fixes-summary/</loc>
+         <loc>https://docs.medianest.com/api/MediaNest_API_Comprehensive_Documentation/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/integration-testing-coordination-summary/</loc>
+         <loc>https://docs.medianest.com/api/Middleware_Analysis/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/observability-architecture/</loc>
+         <loc>https://docs.medianest.com/api/api-workflows/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/phase1-dependency-inventory/</loc>
+         <loc>https://docs.medianest.com/api/authentication-flow/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/production-deployment/</loc>
+         <loc>https://docs.medianest.com/api/client-examples/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/resilience-framework-implementation/</loc>
+         <loc>https://docs.medianest.com/api/interactive-docs/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/security-audit/</loc>
+         <loc>https://docs.medianest.com/api/testing-guide/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/system-health-dashboard/</loc>
+         <loc>https://docs.medianest.com/architecture/ARCHITECTURE_CONTAINERS/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/test-coordination-strategy/</loc>
+         <loc>https://docs.medianest.com/architecture/ARCHITECTURE_OVERVIEW/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/test-recovery-success-report/</loc>
+         <loc>https://docs.medianest.com/architecture/api-design/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/tracing-setup/</loc>
+         <loc>https://docs.medianest.com/architecture/architecture-summary/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/youtube-plex-setup/</loc>
+         <loc>https://docs.medianest.com/architecture/component-relationships/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/01-getting-started/</loc>
+         <loc>https://docs.medianest.com/architecture/database-schema/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/02-architecture/</loc>
+         <loc>https://docs.medianest.com/architecture/security-architecture/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/02-architecture/system-architecture/</loc>
+         <loc>https://docs.medianest.com/architecture/service-integration-patterns/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/03-api-reference/</loc>
+         <loc>https://docs.medianest.com/architecture/system-architecture/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/03-api-reference/authentication-api/</loc>
+         <loc>https://docs.medianest.com/architecture/system-overview/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/04-implementation-guides/</loc>
+         <loc>https://docs.medianest.com/architecture/technology-stack/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/05-testing/</loc>
+         <loc>https://docs.medianest.com/architecture/adrs/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/06-deployment/</loc>
+         <loc>https://docs.medianest.com/architecture/adrs/001-monorepo-architecture/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/07-security/</loc>
+         <loc>https://docs.medianest.com/architecture/adrs/003-database-choice/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/08-monitoring/</loc>
+         <loc>https://docs.medianest.com/architecture/adrs/004-authentication-strategy/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/09-configuration/</loc>
+         <loc>https://docs.medianest.com/audit/HIVE-MIND-STRATEGIC-ROADMAP/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/10-troubleshooting/</loc>
+         <loc>https://docs.medianest.com/audit/architecture-analysis/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/11-performance/</loc>
+         <loc>https://docs.medianest.com/audit/architecture-assessment/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/12-maintenance/</loc>
+         <loc>https://docs.medianest.com/audit/code-review-analysis/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/13-reference/</loc>
+         <loc>https://docs.medianest.com/audit/codebase-structure/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/14-tutorials/</loc>
+         <loc>https://docs.medianest.com/audit/comprehensive-hive-mind-audit-report/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/analysis/detailed-test-recovery-plan/</loc>
+         <loc>https://docs.medianest.com/audit/dependencies-analysis/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/analysis/test-failure-analysis/</loc>
+         <loc>https://docs.medianest.com/audit/feature-branches/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/api/</loc>
+         <loc>https://docs.medianest.com/audit/feature-inventory/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/api/API_Endpoints_Summary/</loc>
+         <loc>https://docs.medianest.com/audit/implementation-roadmap/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/api/MediaNest_API_Comprehensive_Documentation/</loc>
+         <loc>https://docs.medianest.com/audit/performance-analysis/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/api/Middleware_Analysis/</loc>
+         <loc>https://docs.medianest.com/audit/prioritized-recommendations/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/architecture/ARCHITECTURE_CONTAINERS/</loc>
+         <loc>https://docs.medianest.com/audit/priority-matrix/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/architecture/ARCHITECTURE_OVERVIEW/</loc>
+         <loc>https://docs.medianest.com/audit/quality-gates/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/architecture/architecture-summary/</loc>
+         <loc>https://docs.medianest.com/audit/refactoring-strategy/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/architecture/component-relationships/</loc>
+         <loc>https://docs.medianest.com/audit/security-quality-analysis/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/architecture/database-schema/</loc>
+         <loc>https://docs.medianest.com/audit/security-review/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/architecture/service-integration-patterns/</loc>
+         <loc>https://docs.medianest.com/audit/technical-debt/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/architecture/system-overview/</loc>
+         <loc>https://docs.medianest.com/audit/testing-roadmap/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/architecture/technology-stack/</loc>
+         <loc>https://docs.medianest.com/audit/testing-strategy/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/architecture/adrs/</loc>
+         <loc>https://docs.medianest.com/audit/worktree-structure/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/architecture/adrs/001-monorepo-architecture/</loc>
+         <loc>https://docs.medianest.com/deployment/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/architecture/adrs/003-database-choice/</loc>
+         <loc>https://docs.medianest.com/deployment/PRODUCTION_DEPLOYMENT_GUIDE/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/architecture/adrs/004-authentication-strategy/</loc>
+         <loc>https://docs.medianest.com/deployment/SECURITY_HARDENING_CHECKLIST/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/audit/HIVE-MIND-STRATEGIC-ROADMAP/</loc>
+         <loc>https://docs.medianest.com/deployment/backup-recovery-procedures/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/audit/architecture-analysis/</loc>
+         <loc>https://docs.medianest.com/deployment/configuration-management/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/audit/architecture-assessment/</loc>
+         <loc>https://docs.medianest.com/deployment/development-setup/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/audit/code-review-analysis/</loc>
+         <loc>https://docs.medianest.com/deployment/docker-architecture/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/audit/codebase-structure/</loc>
+         <loc>https://docs.medianest.com/deployment/infrastructure-topology/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/audit/comprehensive-hive-mind-audit-report/</loc>
+         <loc>https://docs.medianest.com/deployment/monitoring-logging-setup/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/audit/dependencies-analysis/</loc>
+         <loc>https://docs.medianest.com/deployment/production-deployment-guide/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/audit/feature-branches/</loc>
+         <loc>https://docs.medianest.com/deployment/self-hosted-installation/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/audit/feature-inventory/</loc>
+         <loc>https://docs.medianest.com/deployment/troubleshooting-guide/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/audit/implementation-roadmap/</loc>
+         <loc>https://docs.medianest.com/developers/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/audit/performance-analysis/</loc>
+         <loc>https://docs.medianest.com/getting-started/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/audit/prioritized-recommendations/</loc>
+         <loc>https://docs.medianest.com/getting-started/first-setup/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/audit/priority-matrix/</loc>
+         <loc>https://docs.medianest.com/getting-started/quickstart/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/audit/quality-gates/</loc>
+         <loc>https://docs.medianest.com/getting-started/requirements/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/audit/refactoring-strategy/</loc>
+         <loc>https://docs.medianest.com/installation/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/audit/security-quality-analysis/</loc>
+         <loc>https://docs.medianest.com/installation/configuration/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/audit/security-review/</loc>
+         <loc>https://docs.medianest.com/installation/database/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/audit/technical-debt/</loc>
+         <loc>https://docs.medianest.com/installation/docker/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/audit/test-coverage-analysis/</loc>
+         <loc>https://docs.medianest.com/installation/environment/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/audit/testing-roadmap/</loc>
+         <loc>https://docs.medianest.com/installation/manual/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/audit/testing-strategy/</loc>
+         <loc>https://docs.medianest.com/legacy-archive/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/audit/worktree-structure/</loc>
+         <loc>https://docs.medianest.com/legacy-archive/API_ENDPOINT_TESTING_SUMMARY/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/consolidated/ARCHITECTURE_REPORT/</loc>
+         <loc>https://docs.medianest.com/legacy-archive/BUILD_SYSTEM_RESTORATION_REPORT/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/consolidated/CLAUDE_TASK_MANAGER/</loc>
+         <loc>https://docs.medianest.com/legacy-archive/BUILD_VALIDATION_REPORT/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/consolidated/CLEANUP_RECOMMENDATIONS/</loc>
+         <loc>https://docs.medianest.com/legacy-archive/CODE_QUALITY_ENFORCEMENT_REPORT/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/consolidated/COMPREHENSIVE_ARCHITECTURE_REVIEW/</loc>
+         <loc>https://docs.medianest.com/legacy-archive/CODE_QUALITY_ENFORCEMENT_SUMMARY/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/consolidated/COMPREHENSIVE_PROJECT_AUDIT/</loc>
+         <loc>https://docs.medianest.com/legacy-archive/DATABASE_TEST_RECOVERY_SUMMARY/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/consolidated/CSRF_IMPLEMENTATION_REPORT/</loc>
+         <loc>https://docs.medianest.com/legacy-archive/DEPENDENCY-AUDIT/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/consolidated/DOCKER_SECURITY_NOTICE/</loc>
+         <loc>https://docs.medianest.com/legacy-archive/DEPENDENCY_INSTALLATION_REPORT/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/consolidated/DOCKER_SUCCESS_REPORT/</loc>
+         <loc>https://docs.medianest.com/legacy-archive/DOCUMENTATION_AUDIT_REORGANIZATION_REPORT/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/consolidated/DOCUMENTATION_AUDIT_REPORT/</loc>
+         <loc>https://docs.medianest.com/legacy-archive/DOCUMENTATION_OPTIMIZATION_SUMMARY/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/consolidated/MEDIANEST_TEST_AUDIT_REPORT/</loc>
+         <loc>https://docs.medianest.com/legacy-archive/DOCUMENTATION_REPAIR_SUMMARY/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/consolidated/PHASE1_TEST_SUMMARY/</loc>
+         <loc>https://docs.medianest.com/legacy-archive/EXECUTIVE_SUMMARY/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/consolidated/REDIS_TEST_INFRASTRUCTURE_FIX_REPORT/</loc>
+         <loc>https://docs.medianest.com/legacy-archive/FINAL_ASSESSMENT_REPORT/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/consolidated/TASK_STATUS_UPDATE/</loc>
+         <loc>https://docs.medianest.com/legacy-archive/INFRASTRUCTURE_AUDIT_REPORT/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/consolidated/TEST_CHECKLIST/</loc>
+         <loc>https://docs.medianest.com/legacy-archive/LEGACY_DOCUMENTATION_CLEANUP_REPORT/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/consolidated/TEST_REPORT/</loc>
+         <loc>https://docs.medianest.com/legacy-archive/MKDOCS_ENHANCEMENT_SUMMARY/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/consolidated/coordination/</loc>
+         <loc>https://docs.medianest.com/legacy-archive/PERFORMANCE_BASELINE_AUDIT/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/consolidated/memory-bank/</loc>
+         <loc>https://docs.medianest.com/legacy-archive/PERFORMANCE_IMPLEMENTATION_SUMMARY/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/deployment/</loc>
+         <loc>https://docs.medianest.com/legacy-archive/SECURITY_ANALYST_REPORT/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/deployment/PRODUCTION_DEPLOYMENT_GUIDE/</loc>
+         <loc>https://docs.medianest.com/legacy-archive/SECURITY_IMPLEMENTATION_REPORT/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/deployment/SECURITY_HARDENING_CHECKLIST/</loc>
+         <loc>https://docs.medianest.com/legacy-archive/STAGING_DEPLOYMENT_REPORT/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/deployment/backup-recovery-procedures/</loc>
+         <loc>https://docs.medianest.com/legacy-archive/SYSTEM_HEALTH_MONITORING_REPORT/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/deployment/configuration-management/</loc>
+         <loc>https://docs.medianest.com/legacy-archive/TESTING_DOCUMENTATION_ANALYSIS_REPORT/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/deployment/development-setup/</loc>
+         <loc>https://docs.medianest.com/legacy-archive/TYPESCRIPT_EMERGENCY_PATCHES_ANALYSIS/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/deployment/monitoring-logging-setup/</loc>
+         <loc>https://docs.medianest.com/legacy-archive/VALIDATION_TRUTH_REPORT/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/deployment/production-deployment-guide/</loc>
+         <loc>https://docs.medianest.com/monitoring/grafana-dashboard-guide/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/deployment/self-hosted-installation/</loc>
+         <loc>https://docs.medianest.com/monitoring/observability-guide/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/deployment/troubleshooting-guide/</loc>
+         <loc>https://docs.medianest.com/reference/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/developers/</loc>
+         <loc>https://docs.medianest.com/reference/tags/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/getting-started/</loc>
+         <loc>https://docs.medianest.com/roadmap/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/getting-started/quickstart/</loc>
+         <loc>https://docs.medianest.com/roadmap/dependencies-timeline/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/installation/</loc>
+         <loc>https://docs.medianest.com/roadmap/feature-matrix/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/monitoring/grafana-dashboard-guide/</loc>
+         <loc>https://docs.medianest.com/roadmap/quarterly-milestones/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/monitoring/observability-guide/</loc>
+         <loc>https://docs.medianest.com/roadmap/success-metrics/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/reference/</loc>
+         <loc>https://docs.medianest.com/troubleshooting/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/troubleshooting/</loc>
+         <loc>https://docs.medianest.com/user-guides/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
     <url>
-         <loc>https://medianest.example.com/docs/user-guides/</loc>
+         <loc>https://docs.medianest.com/user-guides/file-organization/</loc>
+         <lastmod>2025-09-07</lastmod>
+    </url>
+    <url>
+         <loc>https://docs.medianest.com/user-guides/media-management/</loc>
+         <lastmod>2025-09-07</lastmod>
+    </url>
+    <url>
+         <loc>https://docs.medianest.com/user-guides/user-journey-flows/</loc>
          <lastmod>2025-09-07</lastmod>
     </url>
 </urlset>
