@@ -220,12 +220,14 @@ export class AuthController {
       try {
         token = jwtService.generateAccessToken({
           userId: user.id,
+          email: user.email,
           role: user.role,
         });
 
         if (rememberMe) {
           rememberToken = jwtService.generateRememberToken({
             userId: user.id,
+            email: user.email,
             role: user.role,
           });
         }

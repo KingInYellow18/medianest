@@ -121,7 +121,7 @@ export class CSRFProtection {
         next();
       } catch (error: CatchError) {
         logger.error('CSRF token generation failed', { error });
-        next(new AppError('Token generation failed', 500, 'CSRF_GENERATION_ERROR'));
+        next(new AppError('CSRF_GENERATION_ERROR', 'Token generation failed', 500));
       }
     };
   };
@@ -146,13 +146,13 @@ export class CSRFProtection {
         const storedTokenData = csrfTokenStore.get(sessionId);
 
         if (!storedTokenData) {
-          throw new AppError('CSRF token not found', 403, 'CSRF_TOKEN_NOT_FOUND');
+          throw new AppError('CSRF_TOKEN_NOT_FOUND', 'CSRF token not found', 403);
         }
 
         // Check token expiration
         if (Date.now() - storedTokenData.createdAt > CSRF_TOKEN_TTL) {
           csrfTokenStore.delete(sessionId);
-          throw new AppError('CSRF token expired', 403, 'CSRF_TOKEN_EXPIRED');
+          throw new AppError('CSRF_TOKEN_EXPIRED', 'CSRF token expired', 403);
         }
 
         let clientToken: string | undefined;
@@ -166,17 +166,17 @@ export class CSRFProtection {
           clientToken = headerToken || bodyToken;
 
           if (!cookieToken || !clientToken) {
-            throw new AppError('CSRF token missing', 403, 'CSRF_TOKEN_MISSING');
+            throw new AppError('CSRF_TOKEN_MISSING', 'CSRF token missing', 403);
           }
 
           // Verify cookie matches header/body token
           if (!this.verifyToken(cookieToken, clientToken)) {
-            throw new AppError('CSRF token mismatch', 403, 'CSRF_TOKEN_MISMATCH');
+            throw new AppError('CSRF_TOKEN_MISMATCH', 'CSRF token mismatch', 403);
           }
 
           // Verify against stored token
           if (!this.verifyToken(storedTokenData.token, clientToken)) {
-            throw new AppError('Invalid CSRF token', 403, 'CSRF_TOKEN_INVALID');
+            throw new AppError('CSRF_TOKEN_INVALID', 'Invalid CSRF token', 403);
           }
         } else {
           // Synchronizer token pattern: check header/body against stored token
@@ -186,11 +186,11 @@ export class CSRFProtection {
           clientToken = headerToken || bodyToken;
 
           if (!clientToken) {
-            throw new AppError('CSRF token missing', 403, 'CSRF_TOKEN_MISSING');
+            throw new AppError('CSRF_TOKEN_MISSING', 'CSRF token missing', 403);
           }
 
           if (!this.verifyToken(storedTokenData.token, clientToken)) {
-            throw new AppError('Invalid CSRF token', 403, 'CSRF_TOKEN_INVALID');
+            throw new AppError('CSRF_TOKEN_INVALID', 'Invalid CSRF token', 403);
           }
         }
 
@@ -207,7 +207,7 @@ export class CSRFProtection {
           next(error);
         } else {
           logger.error('CSRF validation error', { error });
-          next(new AppError('CSRF validation failed', 500, 'CSRF_VALIDATION_ERROR'));
+          next(new AppError('CSRF_VALIDATION_ERROR', 'CSRF validation failed', 500));
         }
       }
     };

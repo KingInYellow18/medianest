@@ -35,15 +35,15 @@ export function extractToken(req: Request): string {
  */
 export function validateTokenBlacklist(
   token: string,
-  tokenMetadata: unknown,
+  tokenMetadata: Record<string, unknown>,
   context: TokenValidationContext
 ): void {
-  if (tokenMetadata.tokenId && isTokenBlacklisted(tokenMetadata.tokenId)) {
+  if (tokenMetadata.tokenId && isTokenBlacklisted(tokenMetadata.tokenId as string)) {
     logSecurityEvent(
       'BLACKLISTED_TOKEN_USED',
       {
-        tokenId: tokenMetadata.tokenId,
-        userId: tokenMetadata.userId,
+        tokenId: tokenMetadata.tokenId as string,
+        userId: tokenMetadata.userId as string,
         ipAddress: context.ipAddress,
         userAgent: context.userAgent,
       },

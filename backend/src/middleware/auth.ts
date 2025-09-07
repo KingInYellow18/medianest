@@ -1,3 +1,4 @@
+/// <reference path="../types/express.d.ts" />
 import { Request, Response, NextFunction } from 'express';
 
 import { SessionTokenRepository } from '../repositories/session-token.repository';
@@ -5,6 +6,7 @@ import { UserRepository } from '../repositories/user.repository';
 import { AuthenticationError } from '../utils/errors';
 import { logger } from '../utils/logger';
 import { DeviceSessionService } from '../services/device-session.service';
+import { prisma } from '../lib/prisma';
 
 // Import unified authentication facade
 import { AuthenticationFacade, AuthenticatedUser } from '../auth';
@@ -12,13 +14,10 @@ import { CatchError } from '../types/common';
 
 // Types are extended in types/express.d.ts
 
-// Repository instances - these should ideally be injected in production
-// @ts-ignore
-const userRepository = new UserRepository(undefined as any) as any;
-// @ts-ignore
-const sessionTokenRepository = new SessionTokenRepository(undefined as any) as any;
-// @ts-ignore
-const deviceSessionService = new DeviceSessionService() as any;
+// Repository instances with proper Prisma client injection
+const userRepository = new UserRepository(prisma);
+const sessionTokenRepository = new SessionTokenRepository(prisma);
+const deviceSessionService = new DeviceSessionService(userRepository, sessionTokenRepository);
 
 // Initialize authentication facade
 const authFacade = new AuthenticationFacade(
@@ -34,7 +33,7 @@ export function authMiddleware() {
       const authResult = await authFacade.authenticate(req);
 
       // Attach authentication data to request
-      req.user = authResult.user;
+      req.user = authResult.user as AuthenticatedUser;
       req.token = authResult.token;
       req.deviceId = authResult.deviceId;
       req.sessionId = authResult.sessionId;
@@ -42,18 +41,17 @@ export function authMiddleware() {
       // Handle token rotation through facade
       if (req.token && req.user) {
         if (authFacade.shouldRotateToken(req.token)) {
-          await authFacade.handleTokenRotation(
-            req,
-            res,
-            req.token,
-            {
-              userId: req.user.id,
-              email: req.user.email,
-              role: req.user.role,
-              sessionId: req.sessionId,
-            },
-            req.user.id
-          );
+          // Ensure user has required properties for token rotation
+          const tokenPayload = {
+            userId: req.user.id,
+            email: req.user.email || '',
+            role: req.user.role || 'user',
+            plexId: req.user.plexId || undefined,
+            sessionId: req.sessionId || '',
+            deviceId: req.deviceId,
+          };
+
+          await authFacade.handleTokenRotation(req, res, req.token, tokenPayload, req.user.id);
         }
       }
 
@@ -95,7 +93,7 @@ export function optionalAuth() {
       const authResult = await authFacade.authenticateOptional(req);
 
       if (authResult) {
-        req.user = authResult.user;
+        req.user = authResult.user as AuthenticatedUser;
         req.token = authResult.token;
       }
 

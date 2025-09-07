@@ -461,11 +461,11 @@ export class OAuthProvidersService {
       // Create new user
       user = await this.userRepository.create({
         email: userInfo.email,
-        name: userInfo.name || null,
+        name: userInfo.name,
         role: 'user',
         status: 'active',
         emailVerified: userInfo.verified,
-        avatar: userInfo.avatar,
+        image: userInfo.avatar,
         [`${provider}Id`]: userInfo.id,
         [`${provider}Username`]: userInfo.username,
       });
@@ -487,7 +487,7 @@ export class OAuthProvidersService {
       await this.userRepository.update(user.id, {
         [`${provider}Id`]: userInfo.id,
         [`${provider}Username`]: userInfo.username,
-        avatar: userInfo.avatar || user.avatar,
+        image: userInfo.avatar || user.image,
         lastLoginAt: new Date(),
       });
 
@@ -498,12 +498,13 @@ export class OAuthProvidersService {
       }
     }
 
-    // Generate JWT token
+    // Generate JWT token with complete payload
     const token = generateToken(
       {
         userId: user.id,
         email: user.email,
         role: user.role,
+        plexId: user.plexId || undefined,
         [`${provider}Id`]: userInfo.id,
       },
       false,
@@ -516,7 +517,7 @@ export class OAuthProvidersService {
     // Create session token
     await this.sessionTokenRepository.create({
       userId: user.id,
-      hashedToken: token,
+      token: token,
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
       deviceId: crypto
         .createHash('sha256')
@@ -531,7 +532,6 @@ export class OAuthProvidersService {
         email: user.email,
         name: user.name,
         role: user.role,
-        avatar: user.avatar,
       },
       token,
       isNewUser,
@@ -619,15 +619,16 @@ export class OAuthProvidersService {
       plex: number;
     };
   }> {
-    const users = await this.userRepository.findAll();
+    const usersResult = await this.userRepository.findAll();
+    const users = Array.isArray(usersResult) ? usersResult : usersResult.items || [];
     const oauthStates = await this.redisService.getAllOAuthStates();
 
     return {
       activeStates: oauthStates.length,
       totalUsers: {
-        github: users.filter((u) => u.githubId).length,
-        google: users.filter((u) => u.googleId).length,
-        plex: users.filter((u) => u.plexId).length,
+        github: users.filter((u: any) => u.githubId).length,
+        google: users.filter((u: any) => u.googleId).length,
+        plex: users.filter((u: any) => u.plexId).length,
       },
     };
   }

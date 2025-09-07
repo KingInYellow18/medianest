@@ -3,6 +3,7 @@ import { DeviceSessionService } from '../../services/device-session.service';
 import { SessionTokenRepository } from '../../repositories/session-token.repository';
 import { AuthenticationError } from '../../utils/errors';
 import { logSecurityEvent } from '../../utils/security';
+import { UnknownRecord } from '../../types/common';
 
 export interface DeviceRegistrationResult {
   deviceId: string;
@@ -25,7 +26,7 @@ export interface SessionUpdateContext {
  */
 export async function validateSessionToken(
   token: string,
-  tokenMetadata: unknown,
+  tokenMetadata: UnknownRecord,
   sessionTokenRepository: SessionTokenRepository,
   context: { userId: string; ipAddress?: string; userAgent?: string }
 ): Promise<void> {
@@ -36,7 +37,7 @@ export async function validateSessionToken(
       'INVALID_SESSION_TOKEN_USED',
       {
         userId: context.userId,
-        tokenId: tokenMetadata.tokenId,
+        tokenId: tokenMetadata.tokenId as string,
         ipAddress: context.ipAddress,
         userAgent: context.userAgent,
       },

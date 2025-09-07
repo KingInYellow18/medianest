@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { UserRepository } from '../repositories/user.repository';
 import { SessionTokenRepository } from '../repositories/session-token.repository';
 import { DeviceSessionService } from '../services/device-session.service';
+import { UnknownRecord } from '../types/common';
 import { AuthenticationError, AppError } from '../utils/errors';
 import { logger } from '../utils/logger';
 import { CatchError } from '../types/common';
@@ -92,7 +93,7 @@ export class AuthenticationFacade {
       const user = await validateUserUtil(payload.userId, this.userRepository, context);
 
       // Validate session token
-      await validateSessionToken(token, metadata, this.sessionTokenRepository, {
+      await validateSessionToken(token, metadata as UnknownRecord, this.sessionTokenRepository, {
         userId: payload.userId,
         ...context,
       });

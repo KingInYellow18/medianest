@@ -70,20 +70,17 @@ export function generateToken(
     ipAddress: options?.ipAddress,
     userAgent: options?.userAgent ? hashUserAgent(options.userAgent) : undefined,
     tokenVersion: 1,
-    iat: Math.floor(Date.now() / 1000),
+    iat: Math.floor(Date.now() / 1000) as any,
     jti: generateSecureId(), // JWT ID for tracking
   };
 
   const tokenOptions: jwt.SignOptions = {
-    expiresIn:
-      typeof options?.expiresIn === 'number'
-        ? options.expiresIn
-        : (options?.expiresIn as string) || expiresIn,
+    expiresIn: options?.expiresIn || expiresIn,
     issuer: options?.issuer || JWT_ISSUER,
     audience: options?.audience || JWT_AUDIENCE,
     algorithm: 'HS256',
-    notBefore: '0s', // Token valid immediately
-  };
+    notBefore: 0, // Token valid immediately
+  } as jwt.SignOptions;
 
   const token = jwt.sign(enhancedPayload, JWT_SECRET, tokenOptions);
 
@@ -197,7 +194,7 @@ export function generateRefreshToken(payload?: { userId: string; sessionId: stri
       userId: payload.userId,
       sessionId: payload.sessionId,
       type: 'refresh',
-      iat: Math.floor(Date.now() / 1000),
+      iat: Math.floor(Date.now() / 1000) as any,
       jti: generateSecureId(),
     };
 

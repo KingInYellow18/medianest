@@ -39,6 +39,7 @@ import { AppError, AuthenticationError } from '../utils/errors';
 import { generateToken, verifyToken } from '../utils/jwt';
 import { logger } from '../utils/logger';
 import { validatePasswordStrength, generateDeviceFingerprint } from '../utils/security';
+import { prisma } from '../lib/prisma';
 
 const router = Router();
 
@@ -47,24 +48,25 @@ router.use(securityHeaders());
 router.use(sanitizeInput());
 router.use(securityAuditMiddleware());
 
-// Repository instances - these should ideally be injected in production
-const userRepository = new UserRepository();
-const sessionTokenRepository = new SessionTokenRepository();
+// Repository instances with proper Prisma client injection
+const userRepository = new UserRepository(prisma);
+const sessionTokenRepository = new SessionTokenRepository(prisma);
 // const emailService = new EmailService(); // REMOVED - email system disabled
 const plexAuthService = new PlexAuthService(userRepository, sessionTokenRepository);
+const redisService = new (require('../services/redis.service').RedisService)();
 const passwordResetService = new PasswordResetService(
   userRepository,
-  sessionTokenRepository
-  // emailService, // REMOVED - email system disabled
+  sessionTokenRepository,
+  redisService
 );
-const oauthService = new OAuthProvidersService(userRepository, sessionTokenRepository);
-const twoFactorService = new TwoFactorService(userRepository /* emailService - REMOVED */);
-const deviceSessionService = new DeviceSessionService(userRepository, sessionTokenRepository);
-const sessionAnalyticsService = new SessionAnalyticsService(
+const oauthService = new OAuthProvidersService(
   userRepository,
   sessionTokenRepository,
-  deviceSessionService
+  redisService
 );
+const twoFactorService = new TwoFactorService(userRepository, redisService);
+const deviceSessionService = new DeviceSessionService(userRepository, sessionTokenRepository);
+const sessionAnalyticsService = new SessionAnalyticsService();
 
 // POST /api/auth/plex/pin - Create Plex OAuth PIN
 router.post(
@@ -92,7 +94,7 @@ router.get(
   '/plex/pin/:id/status',
   validate(checkPinSchema),
   asyncHandler(async (req, res) => {
-    const pinId = req.params.id as unknown as number;
+    const pinId = parseInt(req.params.id, 10);
     const pin = await plexAuthService.checkPin(pinId);
 
     res.json({
@@ -126,7 +128,7 @@ router.post(
       userId: result.user.id,
       isNewUser: result.isNewUser,
       method: 'plex',
-      correlationId: req.correlationId,
+      correlationId: String(req.correlationId || 'unknown'),
     });
 
     res.json({
@@ -150,7 +152,7 @@ router.post(
     // Check if this is the first user (admin bootstrap)
     const isFirstUser = await userRepository.isFirstUser();
     if (!isFirstUser) {
-      throw new AppError('Admin user already exists. Use regular login.', 400, 'ADMIN_EXISTS');
+      throw new AppError('ADMIN_EXISTS', 'Admin user already exists. Use regular login.', 400);
     }
 
     // Create admin user
@@ -162,17 +164,18 @@ router.post(
       role: 'admin',
     });
 
-    // Generate JWT
+    // Generate JWT with complete payload
     const token = generateToken({
       userId: user.id,
       email: user.email,
       role: user.role,
+      plexId: user.plexId || undefined,
     });
 
     // Create session token
     await sessionTokenRepository.create({
       userId: user.id,
-      hashedToken: token,
+      token: token,
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
     });
 
@@ -187,7 +190,7 @@ router.post(
     logger.info('Admin user created and authenticated', {
       userId: user.id,
       email: user.email,
-      correlationId: req.correlationId,
+      correlationId: String(req.correlationId || 'unknown'),
     });
 
     res.json({
@@ -222,7 +225,7 @@ router.post(
         reason: 'user_not_found',
       });
 
-      throw new AppError('Invalid email or password', 401, 'INVALID_CREDENTIALS');
+      throw new AppError('INVALID_CREDENTIALS', 'Invalid email or password', 401);
     }
 
     // Check if user has a password (for admin bootstrap users)
@@ -233,9 +236,9 @@ router.post(
       });
 
       throw new AppError(
+        'NO_PASSWORD_SET',
         'This user cannot login with password. Please use Plex authentication.',
-        400,
-        'NO_PASSWORD_SET'
+        400
       );
     }
 
@@ -247,13 +250,13 @@ router.post(
         reason: 'invalid_password',
       });
 
-      throw new AppError('Invalid email or password', 401, 'INVALID_CREDENTIALS');
+      throw new AppError('INVALID_CREDENTIALS', 'Invalid email or password', 401);
     }
 
     // Update last login
     await userRepository.updateLastLogin(user.id);
 
-    // Generate JWT
+    // Generate JWT with complete payload
     const token = generateToken(
       {
         userId: user.id,
@@ -271,7 +274,7 @@ router.post(
 
     await sessionTokenRepository.create({
       userId: user.id,
-      hashedToken: token,
+      token: token,
       expiresAt,
     });
 
@@ -287,7 +290,7 @@ router.post(
       userId: user.id,
       email: user.email,
       rememberMe,
-      correlationId: req.correlationId,
+      correlationId: String(req.correlationId || 'unknown'),
     });
 
     res.json({
@@ -320,7 +323,7 @@ router.post(
       await sessionTokenRepository.deleteByUserId(user.id);
       logger.info('All user sessions deleted', {
         userId: user.id,
-        correlationId: req.correlationId,
+        correlationId: String(req.correlationId || 'unknown'),
       });
     } else {
       // Delete current session only
@@ -330,7 +333,7 @@ router.post(
       }
       logger.info('User session deleted', {
         userId: user.id,
-        correlationId: req.correlationId,
+        correlationId: String(req.correlationId || 'unknown'),
       });
     }
 
@@ -389,10 +392,10 @@ router.post(
     if (fullUser.passwordHash) {
       const isCurrentPasswordValid = await bcrypt.compare(currentPassword, fullUser.passwordHash);
       if (!isCurrentPasswordValid) {
-        throw new AppError('Current password is incorrect', 400, 'INVALID_CURRENT_PASSWORD');
+        throw new AppError('INVALID_CURRENT_PASSWORD', 'Current password is incorrect', 400);
       }
     } else if (user.role === 'admin') {
-      throw new AppError('Admin users must have a password', 400, 'PASSWORD_REQUIRED');
+      throw new AppError('PASSWORD_REQUIRED', 'Admin users must have a password', 400);
     }
 
     // Hash new password
@@ -403,7 +406,7 @@ router.post(
 
     logger.info('User password changed', {
       userId: user.id,
-      correlationId: req.correlationId,
+      correlationId: String(req.correlationId || 'unknown'),
     });
 
     res.json({

@@ -3,6 +3,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { logger } from '../utils/logger';
 import { CatchError } from '../types/common';
+import { getErrorMessage } from '../types/error-types';
 
 interface SecurityEvent {
   id: string;
@@ -32,14 +33,7 @@ interface AuditConfig {
   sensitiveFields?: string[];
 }
 
-declare global {
-  namespace Express {
-    interface Request {
-      user?: { id: string };
-      correlationId?: string;
-    }
-  }
-}
+// Note: correlationId is already declared in src/types/express.d.ts
 
 class SecurityAuditLogger {
   private config: AuditConfig;
@@ -170,7 +164,8 @@ class SecurityAuditLogger {
         await this.rotateLogFile();
       }
     } catch (error: CatchError) {
-      if (((error as any).code as any) !== 'ENOENT') {
+      const nodeError = error as NodeJS.ErrnoException;
+      if (nodeError.code !== 'ENOENT') {
         logger.warn('Error checking log file size', { error, logFile: this.config.logFile });
       }
     }
@@ -254,7 +249,7 @@ class SecurityAuditLogger {
       }
 
       if (typeof obj === 'object') {
-        const result: unknown = {};
+        const result: Record<string, unknown> = {};
         for (const [key, value] of Object.entries(obj)) {
           result[key] = sanitizeValue(sanitizeObject(value), key);
         }
@@ -338,7 +333,10 @@ export function securityAuditMiddleware() {
       try {
         await auditLogger.logEvent(event);
       } catch (error: CatchError) {
-        logger.error('Failed to log security audit event', { error, event });
+        logger.error('Failed to log security audit event', {
+          error: getErrorMessage(error),
+          event,
+        });
       }
     });
 
@@ -364,6 +362,31 @@ export function logAuthEvent(
     details: {
       path: req.path,
       method: req.method,
+      ...details,
+    },
+    correlationId: req.correlationId,
+  });
+}
+
+export function logCriticalSecurityEvent(
+  event: string,
+  req: Request,
+  details: Record<string, any> = {}
+): void {
+  auditLogger.logEvent({
+    level: 'critical',
+    category: 'system',
+    event,
+    userId: req.user?.id,
+    sessionId: (req as any).sessionID,
+    ipAddress: req.ip || req.socket.remoteAddress || '',
+    userAgent: req.get('user-agent') || '',
+    outcome: 'blocked',
+    riskScore: 100, // Critical events get max risk score
+    details: {
+      path: req.path,
+      method: req.method,
+      severity: 'CRITICAL',
       ...details,
     },
     correlationId: req.correlationId,
