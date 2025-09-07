@@ -176,7 +176,7 @@ export interface ConfigValidationResult {
  */
 export interface ConfigSource {
   key: string;
-  value: any;
+  value: unknown;
   source: 'env' | 'docker_secret' | 'default';
   isSecret: boolean;
 }

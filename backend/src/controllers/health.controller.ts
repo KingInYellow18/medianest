@@ -3,6 +3,7 @@ import { cacheService } from '@/services/cache.service';
 import { getPrismaClient } from '@/db/prisma';
 import { redisClient } from '@/config/redis';
 import { logger } from '@/utils/logger';
+import { CatchError } from '../types/common';
 
 export class HealthController {
   async getHealth(_req: Request, res: Response) {
@@ -19,7 +20,7 @@ export class HealthController {
 
       // Always return 200 for basic health check to support container health checks
       res.status(200).json(health);
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Health check failed', { error });
 
       // Even on error, return basic status for container health checks
@@ -109,7 +110,7 @@ export class HealthController {
       });
 
       res.json(metrics);
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get metrics', { error });
       res.status(500).json({
         error: 'Failed to retrieve metrics',

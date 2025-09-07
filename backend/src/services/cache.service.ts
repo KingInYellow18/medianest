@@ -22,7 +22,7 @@ export class CacheService {
   /**
    * Set cached value with automatic JSON stringification
    */
-  async set(key: string, value: any, ttl?: number): Promise<void> {
+  async set(key: string, value: unknown, ttl?: number): Promise<void> {
     const ttlSeconds = ttl || this.defaultTTL;
     const jsonValue = safeJsonStringify(value);
 

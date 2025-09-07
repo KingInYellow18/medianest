@@ -15,7 +15,7 @@ export interface SessionUpdateContext {
   method: string;
   path: string;
   query: any;
-  params: any;
+  params: UnknownRecord;
   ipAddress: string;
   userAgent: string;
 }
@@ -25,9 +25,9 @@ export interface SessionUpdateContext {
  */
 export async function validateSessionToken(
   token: string,
-  tokenMetadata: any,
+  tokenMetadata: unknown,
   sessionTokenRepository: SessionTokenRepository,
-  context: { userId: string; ipAddress?: string; userAgent?: string },
+  context: { userId: string; ipAddress?: string; userAgent?: string }
 ): Promise<void> {
   const sessionToken = await sessionTokenRepository.validate(token);
 
@@ -40,7 +40,7 @@ export async function validateSessionToken(
         ipAddress: context.ipAddress,
         userAgent: context.userAgent,
       },
-      'warn',
+      'warn'
     );
 
     throw new AuthenticationError('Invalid session');
@@ -53,7 +53,7 @@ export async function validateSessionToken(
 export async function registerAndAssessDevice(
   userId: string,
   req: Request,
-  deviceSessionService: DeviceSessionService,
+  deviceSessionService: DeviceSessionService
 ): Promise<DeviceRegistrationResult> {
   const deviceRegistration = await (deviceSessionService as any).registerDevice(userId, {
     userAgent: req.get('user-agent') || '',
@@ -73,7 +73,7 @@ export async function registerAndAssessDevice(
         ipAddress: req.ip,
         userAgent: req.get('user-agent'),
       },
-      'error',
+      'error'
     );
 
     throw new AuthenticationError('Device blocked due to high risk score');
@@ -93,7 +93,7 @@ export async function registerAndAssessDevice(
 export async function updateSessionActivity(
   sessionId: string | undefined,
   context: SessionUpdateContext,
-  deviceSessionService: DeviceSessionService,
+  deviceSessionService: DeviceSessionService
 ): Promise<void> {
   if (!sessionId) return;
 

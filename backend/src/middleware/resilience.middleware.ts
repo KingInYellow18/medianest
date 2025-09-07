@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { logger } from '../utils/logger';
 import { resilienceService } from '../services/resilience.service';
 import { retryWithBackoff } from '../utils/retry';
+import { CatchError } from '../types/common';
 
 export interface ResilienceMiddlewareOptions {
   enableCircuitBreaker?: boolean;
@@ -45,7 +46,7 @@ export function circuitBreakerMiddleware(serviceName: string) {
       }
 
       next();
-    } catch (error: any) {
+    } catch (error: CatchError) {
       next(error);
     }
   };
@@ -62,9 +63,9 @@ export function bulkheadMiddleware(compartmentName: string, maxConcurrent = 10) 
           (req as any).compartment = compartmentName;
           next();
         },
-        maxConcurrent,
+        maxConcurrent
       );
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if ((error as Error).name === 'BulkheadError') {
         logger.warn(`Bulkhead limit exceeded for compartment: ${compartmentName}`);
         return res.status(429).json({
@@ -85,7 +86,7 @@ export function retryMiddleware(options: { maxAttempts?: number; initialDelay?: 
     const originalJson = res.json.bind(res);
 
     // Override response methods to catch 5xx errors
-    res.send = function (data: any) {
+    res.send = function (data: unknown) {
       if (res.statusCode >= 500 && res.statusCode < 600) {
         handleRetryableError(req, res, new Error(`HTTP ${res.statusCode}`), options);
         return res;
@@ -93,7 +94,7 @@ export function retryMiddleware(options: { maxAttempts?: number; initialDelay?: 
       return originalSend(data);
     };
 
-    res.json = function (data: any) {
+    res.json = function (data: unknown) {
       if (res.statusCode >= 500 && res.statusCode < 600) {
         handleRetryableError(req, res, new Error(`HTTP ${res.statusCode}`), options);
         return res;
@@ -127,7 +128,7 @@ export function gracefulDegradationMiddleware(fallbackStrategies: {
           if (cachedResponse) {
             logger.info('Serving cached response due to error', {
               path: req.path,
-              error: error.message as any,
+              error: error instanceof Error ? error.message : ('Unknown error' as any),
             });
 
             return res.status(200).json({
@@ -141,7 +142,7 @@ export function gracefulDegradationMiddleware(fallbackStrategies: {
         if (fallbackStrategies.defaultResponse) {
           logger.info('Serving default response due to error', {
             path: req.path,
-            error: error.message as any,
+            error: error instanceof Error ? error.message : ('Unknown error' as any),
           });
 
           return res.status(200).json({
@@ -198,7 +199,7 @@ export function comprehensiveResilienceMiddleware(options: ResilienceMiddlewareO
           async () => {
             // Continue with request processing
           },
-          maxConcurrent,
+          maxConcurrent
         );
       }
 
@@ -254,7 +255,7 @@ export function comprehensiveResilienceMiddleware(options: ResilienceMiddlewareO
       });
 
       next();
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Resilience middleware error', {
         error: (error as Error).message,
         path: req.path,
@@ -322,7 +323,7 @@ async function getFallbackResponse(serviceName: string, req: Request): Promise<a
 
     // Return default response based on service
     return getDefaultResponse(serviceName, req.path);
-  } catch (error: any) {
+  } catch (error: CatchError) {
     logger.error('Failed to get fallback response', { error, serviceName });
     return null;
   }
@@ -332,7 +333,7 @@ async function getCachedResponseForRequest(req: Request): Promise<any> {
   try {
     const cacheKey = `response:${req.method}:${req.path}`;
     return await getCachedData(cacheKey);
-  } catch (error: any) {
+  } catch (error: CatchError) {
     logger.error('Failed to get cached response', { error, path: req.path });
     return null;
   }
@@ -372,7 +373,7 @@ async function handleRetryableError(
   req: Request,
   res: Response,
   error: Error,
-  options: { maxAttempts?: number; initialDelay?: number },
+  options: { maxAttempts?: number; initialDelay?: number }
 ): Promise<void> {
   const { maxAttempts = 3, initialDelay = 1000 } = options;
 
@@ -387,12 +388,12 @@ async function handleRetryableError(
         initialDelay,
         maxDelay: 10000,
         factor: 2,
-      },
+      }
     );
   } catch (retryError) {
     logger.error('Request retry failed', {
       path: req.path,
-      error: error.message as any,
+      error: error instanceof Error ? error.message : ('Unknown error' as any),
       retryError: (retryError as Error).message,
     });
   }

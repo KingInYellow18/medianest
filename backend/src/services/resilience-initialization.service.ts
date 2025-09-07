@@ -12,6 +12,7 @@ import {
 } from '../config/resilience.config';
 import { PrismaClient } from '@prisma/client';
 import IORedis from 'ioredis';
+import { CatchError } from '../types/common';
 
 export class ResilienceInitializationService {
   private initialized = false;
@@ -54,7 +55,7 @@ export class ResilienceInitializationService {
 
       // Log system status
       await this.logSystemStatus();
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to initialize resilience system', {
         error: (error as Error).message,
         stack: (error as Error).stack,
@@ -63,7 +64,7 @@ export class ResilienceInitializationService {
     }
   }
 
-  private async initializeCircuitBreakers(config: any): Promise<void> {
+  private async initializeCircuitBreakers(config: UnknownRecord): Promise<void> {
     logger.info('Initializing circuit breakers...');
 
     for (const [name, options] of Object.entries(config.circuitBreakers)) {
@@ -90,7 +91,7 @@ export class ResilienceInitializationService {
         circuitBreaker.on('callFailed', ({ error, duration, state }) => {
           logger.warn(`Circuit breaker ${name} call failed`, {
             circuitBreaker: name,
-            error: error.message as any,
+            error: error instanceof Error ? error.message : ('Unknown error' as any),
             duration,
             state,
           });
@@ -99,12 +100,12 @@ export class ResilienceInitializationService {
         circuitBreaker.on('callRejected', (error) => {
           logger.warn(`Circuit breaker ${name} rejected call`, {
             circuitBreaker: name,
-            error: error.message as any,
+            error: error instanceof Error ? error.message : ('Unknown error' as any),
           });
         });
 
         logger.debug(`Initialized circuit breaker: ${name}`, options);
-      } catch (error: any) {
+      } catch (error: CatchError) {
         logger.error(`Failed to initialize circuit breaker: ${name}`, {
           error: (error as Error).message,
           options,
@@ -130,7 +131,7 @@ export class ResilienceInitializationService {
 
         resilienceService.registerDependency(enhancedDependency);
         logger.debug(`Registered service dependency: ${dependency.name}`);
-      } catch (error: any) {
+      } catch (error: CatchError) {
         logger.error(`Failed to register service dependency: ${dependency.name}`, {
           error: (error as Error).message,
         });
@@ -143,7 +144,7 @@ export class ResilienceInitializationService {
   private async createHealthCheckFunction(
     dependency: any,
     prisma?: PrismaClient,
-    redis?: IORedis,
+    redis?: IORedis
   ): Promise<() => Promise<any>> {
     switch (dependency.name) {
       case 'database':
@@ -315,7 +316,7 @@ export class ResilienceInitializationService {
         const queueData = {
           operation: context.operation,
           context,
-          error: error.message as any,
+          error: error instanceof Error ? error.message : ('Unknown error' as any),
           queuedAt: new Date(),
           priority,
           retryAfter: Date.now() + (context.metadata?.retryDelay || 30000),
@@ -479,7 +480,7 @@ export class ResilienceInitializationService {
           responseTime: c.responseTime,
         })),
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to log system status', {
         error: (error as Error).message,
       });
@@ -531,7 +532,7 @@ export class ResilienceInitializationService {
       this.initialized = false;
 
       logger.info('Resilience system shutdown completed');
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Error during resilience system shutdown', {
         error: (error as Error).message,
       });

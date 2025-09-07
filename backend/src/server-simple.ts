@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import promClient from 'prom-client';
+import { CatchError } from '../types/common';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -53,7 +54,7 @@ app.use((req, res, next) => {
         method: req.method,
         route,
       },
-      duration,
+      duration
     );
   });
 
@@ -73,7 +74,7 @@ app.get('/metrics', async (req, res) => {
   try {
     res.set('Content-Type', register.contentType);
     res.end(await register.metrics());
-  } catch (error: any) {
+  } catch (error: CatchError) {
     console.error('Error generating metrics:', error);
     res.status(500).end('Error generating metrics');
   }

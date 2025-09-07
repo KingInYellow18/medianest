@@ -6,6 +6,7 @@ import {
 } from '@medianest/shared';
 
 import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
+import { CatchError } from '../types/common';
 
 export interface CreateYoutubeDownloadInput {
   userId: string;
@@ -48,14 +49,14 @@ export class YoutubeDownloadRepository extends BaseRepository<
           },
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
 
   async findByUser(
     userId: string,
-    options: PaginationOptions = {},
+    options: PaginationOptions = {}
   ): Promise<PaginatedResult<YoutubeDownload>> {
     return this.paginate<YoutubeDownload>(
       this.prisma.youtubeDownload,
@@ -71,13 +72,13 @@ export class YoutubeDownloadRepository extends BaseRepository<
             plexUsername: true,
           },
         },
-      },
+      }
     );
   }
 
   async findByFilters(
     filters: YoutubeDownloadFilters,
-    options: PaginationOptions = {},
+    options: PaginationOptions = {}
   ): Promise<PaginatedResult<YoutubeDownload>> {
     const where: Prisma.YoutubeDownloadWhereInput = {};
 
@@ -117,7 +118,7 @@ export class YoutubeDownloadRepository extends BaseRepository<
           },
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -147,7 +148,7 @@ export class YoutubeDownloadRepository extends BaseRepository<
           },
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -167,7 +168,7 @@ export class YoutubeDownloadRepository extends BaseRepository<
       return await this.prisma.youtubeDownload.delete({
         where: { id },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -191,13 +192,10 @@ export class YoutubeDownloadRepository extends BaseRepository<
       _count: true,
     });
 
-    return downloads.reduce(
-      (acc, item) => {
-        acc[item.status] = item._count;
-        return acc;
-      },
-      {} as Record<string, number>,
-    );
+    return downloads.reduce((acc, item) => {
+      acc[item.status] = item._count;
+      return acc;
+    }, {} as Record<string, number>);
   }
 
   async getActiveDownloads(): Promise<YoutubeDownload[]> {

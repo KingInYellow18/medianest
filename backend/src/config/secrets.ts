@@ -1,6 +1,7 @@
 import { readFileSync, existsSync } from 'fs';
 import path from 'path';
 import { logger } from '../utils/logger';
+import { CatchError } from '../types/common';
 
 /**
  * Reads a secret from Docker secrets or falls back to environment variable
@@ -24,10 +25,10 @@ export function readSecret(secretName: string, envVar: string, defaultValue = ''
         if (secret) {
           return secret;
         }
-      } catch (error: any) {
+      } catch (error: CatchError) {
         logger.warn('Failed to read Docker secret', {
           secretName,
-          error: error.message,
+          error: error instanceof Error ? error.message : 'Unknown error',
           operation: 'secret_read',
         });
       }
@@ -56,10 +57,10 @@ export function readSecretFromFile(envVar: string, defaultValue = ''): string {
   if (existsSync(filePath)) {
     try {
       return readFileSync(filePath, 'utf8').trim();
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.warn('Failed to read secret from file', {
         filePath,
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
         operation: 'file_read',
       });
     }

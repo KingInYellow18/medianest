@@ -9,6 +9,7 @@ import {
 } from '@medianest/shared';
 
 import { logger } from '@/utils/logger';
+import { CatchError } from '../types/common';
 
 export interface ServiceConfig {
   name: string;
@@ -99,7 +100,7 @@ export abstract class BaseServiceClient {
       (error) => {
         logger.error(`${this.name} API request error`, { error });
         return Promise.reject(error);
-      },
+      }
     );
 
     // Response interceptor
@@ -115,10 +116,10 @@ export abstract class BaseServiceClient {
         logger.error(`${this.name} API response error`, {
           status: error.response?.status,
           url: error.config?.url,
-          error: error.message as any,
+          error: error instanceof Error ? error.message : ('Unknown error' as any),
         });
         return Promise.reject(error);
-      },
+      }
     );
   }
 
@@ -148,7 +149,7 @@ export abstract class BaseServiceClient {
       }
 
       return result;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleCircuitBreakerFailure();
       throw error;
     }
@@ -169,7 +170,7 @@ export abstract class BaseServiceClient {
   protected async executeWithRetry<T>(operation: () => Promise<T>, attempt = 1): Promise<T> {
     try {
       return await operation();
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (attempt >= this.retryAttempts) {
         throw this.mapError(error);
       }
@@ -182,7 +183,7 @@ export abstract class BaseServiceClient {
       const delay = this.retryDelay * Math.pow(2, attempt - 1); // Exponential backoff
       logger.warn(`${this.name} API retry attempt ${attempt}`, {
         delay,
-        error: error.message as any,
+        error: error instanceof Error ? error.message : ('Unknown error' as any),
       });
 
       await new Promise((resolve) => setTimeout(resolve, delay));

@@ -177,7 +177,10 @@ export async function processBatchWithErrors<T, R>(
  * @param delay - Debounce delay in milliseconds
  * @returns Debounced function
  */
-export function debounceAsync<T extends (...args: any[]) => Promise<any>>(fn: T, delay: number): T {
+export function debounceAsync<T extends (...args: unknown[]) => Promise<any>>(
+  fn: T,
+  delay: number
+): T {
   let timeoutId: NodeJS.Timeout | null = null;
   let latestResolve: ((value: any) => void) | null = null;
   let latestReject: ((reason?: any) => void) | null = null;
@@ -209,7 +212,10 @@ export function debounceAsync<T extends (...args: any[]) => Promise<any>>(fn: T,
  * @param limit - Time limit in milliseconds
  * @returns Throttled function
  */
-export function throttleAsync<T extends (...args: any[]) => Promise<any>>(fn: T, limit: number): T {
+export function throttleAsync<T extends (...args: unknown[]) => Promise<any>>(
+  fn: T,
+  limit: number
+): T {
   let lastExecuted = 0;
   let pending = false;
 
@@ -253,7 +259,7 @@ export function throttleAsync<T extends (...args: any[]) => Promise<any>>(fn: T,
  * @param options - Circuit breaker options
  * @returns Circuit breaker wrapped function
  */
-export function createCircuitBreaker<T extends (...args: any[]) => Promise<any>>(
+export function createCircuitBreaker<T extends (...args: unknown[]) => Promise<any>>(
   fn: T,
   options: {
     failureThreshold?: number;

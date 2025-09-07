@@ -7,6 +7,7 @@
 
 import { Router, Request, Response } from 'express';
 import { logger } from '../utils/logger';
+import { CatchError } from '../types/common';
 
 const router = Router();
 
@@ -50,11 +51,11 @@ router.get('/ready', (req: Request, res: Response) => {
       name: 'database',
       status: prisma ? 'ready' : 'not_configured',
     });
-  } catch (error: any) {
+  } catch (error: CatchError) {
     checks.push({
       name: 'database',
       status: 'error',
-      error: error.message as any,
+      error: error instanceof Error ? error.message : ('Unknown error' as any),
     });
     allReady = false;
   }
@@ -66,11 +67,11 @@ router.get('/ready', (req: Request, res: Response) => {
       name: 'cache',
       status: redis ? 'ready' : 'not_configured',
     });
-  } catch (error: any) {
+  } catch (error: CatchError) {
     checks.push({
       name: 'cache',
       status: 'error',
-      error: error.message as any,
+      error: error instanceof Error ? error.message : ('Unknown error' as any),
     });
     allReady = false;
   }

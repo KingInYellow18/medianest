@@ -132,7 +132,7 @@ export function secureErrorHandler(
   trackErrorsByIP(req.ip);
 
   // Send sanitized response
-  const response: any = {
+  const response: unknown = {
     error: true,
     message,
     ...(details && { details }),

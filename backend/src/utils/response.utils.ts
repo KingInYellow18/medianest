@@ -1,5 +1,6 @@
 import { Response } from 'express';
 import { logger } from './logger';
+import { CatchError } from '../types/common';
 
 /**
  * Standard API response structure
@@ -247,7 +248,7 @@ export function asyncHandler(handler: (req: any, res: Response, next: any) => Pr
   return async (req: any, res: Response, next: any): Promise<void> => {
     try {
       await handler(req, res, next);
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Async handler error', {
         path: req.path,
         method: req.method,

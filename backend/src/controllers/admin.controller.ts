@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/utils/logger';
 import { AppError } from '../utils/errors';
+import { CatchError } from '../types/common';
 
 class AdminController {
   /**
@@ -85,7 +86,7 @@ class AdminController {
           },
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get users', { error });
       throw new AppError('INTERNAL_ERROR', 'Failed to get users', 500);
     }
@@ -114,7 +115,7 @@ class AdminController {
         success: true,
         data: decryptedServices,
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get services', { error });
       throw new AppError('INTERNAL_ERROR', 'Failed to get services', 500);
     }
@@ -160,7 +161,7 @@ class AdminController {
         success: true,
         data: updatedUser,
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (error instanceof AppError) {
         throw error;
       }
@@ -205,7 +206,7 @@ class AdminController {
         success: true,
         message: 'User deleted successfully',
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (error instanceof AppError) {
         throw error;
       }
@@ -262,7 +263,7 @@ class AdminController {
           },
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get system stats', { error });
       throw new AppError('INTERNAL_ERROR', 'Failed to get system statistics', 500);
     }

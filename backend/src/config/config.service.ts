@@ -428,7 +428,7 @@ export class ConfigService {
 
   private recordConfigSource(
     key: string,
-    value: any,
+    value: unknown,
     source: 'env' | 'docker_secret' | 'default',
     isSecret: boolean
   ): void {

@@ -6,6 +6,7 @@ import { SessionTokenRepository } from '../repositories/session-token.repository
 import { RedisService } from './redis.service';
 import { AppError } from '../utils/errors';
 import { logger } from '../utils/logger';
+import { CatchError } from '../types/common';
 import {
   generateSecureToken,
   validatePasswordStrength,
@@ -195,7 +196,7 @@ export class PasswordResetService {
         message: 'Password reset via email is currently disabled. Please contact an administrator.',
         resetId,
       };
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Password reset initiation failed', {
         error,
         email,
@@ -258,7 +259,7 @@ export class PasswordResetService {
         userId: tokenRecord.userId,
         expiresAt: tokenRecord.expiresAt,
       };
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Token verification failed', { error, tokenId });
       return { valid: false };
     }
@@ -358,7 +359,7 @@ export class PasswordResetService {
         success: true,
         message: 'Password has been reset successfully. Please log in with your new password.',
       };
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (error instanceof AppError) {
         throw error;
       }

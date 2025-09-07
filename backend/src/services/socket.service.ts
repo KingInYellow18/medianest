@@ -13,7 +13,7 @@ export const socketService = {
   },
 
   // Emit to all clients in a room
-  emitToRoom(room: string, event: string, data: any): void {
+  emitToRoom(room: string, event: string, data: unknown): void {
     if (!io) {
       console.warn('Socket.io not initialized');
       return;
@@ -22,7 +22,7 @@ export const socketService = {
   },
 
   // Emit to specific user
-  emitToUser(userId: string, event: string, data: any): void {
+  emitToUser(userId: string, event: string, data: unknown): void {
     this.emitToRoom(`user:${userId}`, event, data);
   },
 
@@ -41,7 +41,7 @@ export const socketService = {
   },
 
   // Emit to all connected clients
-  emit(event: string, data: any): void {
+  emit(event: string, data: unknown): void {
     if (!io) {
       console.warn('Socket.io not initialized');
       return;

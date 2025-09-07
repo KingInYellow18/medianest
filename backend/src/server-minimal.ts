@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import { logger } from './utils/logger';
+import { CatchError } from './types/common';
+import { CatchError } from '../types/common';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -59,18 +61,18 @@ try {
     try {
       res.set('Content-Type', register.contentType);
       res.end(await register.metrics());
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Error generating metrics', {
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
         endpoint: '/metrics',
         timestamp: new Date().toISOString(),
       });
       res.status(500).end('Error generating metrics');
     }
   });
-} catch (error: any) {
+} catch (error: CatchError) {
   logger.warn('Some monitoring middleware missing, continuing without middleware', {
-    error: error.message,
+    error: error instanceof Error ? error.message : 'Unknown error',
     missingMiddleware: ['metrics', 'correlation-id', 'logging'],
     timestamp: new Date().toISOString(),
   });
@@ -98,7 +100,7 @@ app.get('/api/users', async (req, res) => {
     ];
 
     res.json({ users });
-  } catch (error: any) {
+  } catch (error: CatchError) {
     res.status(500).json({ error: 'Failed to fetch users' });
   }
 });
@@ -118,7 +120,7 @@ app.post('/api/users', async (req, res) => {
     const user = { id: Date.now(), name, email };
 
     res.status(201).json({ user });
-  } catch (error: any) {
+  } catch (error: CatchError) {
     res.status(500).json({ error: 'Failed to create user' });
   }
 });
@@ -126,7 +128,7 @@ app.post('/api/users', async (req, res) => {
 // Error handling middleware
 app.use((error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   logger.error('Unhandled server error', {
-    error: error.message,
+    error: error instanceof Error ? error.message : 'Unknown error',
     stack: error.stack,
     correlationId: req.correlationId || 'no-correlation',
     timestamp: new Date().toISOString(),

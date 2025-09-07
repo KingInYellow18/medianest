@@ -8,6 +8,7 @@ import { logger } from '../../utils/logger';
 import { asyncHandler } from '../../utils/async-handler';
 import { validate } from '../../middleware/validate';
 import { z } from 'zod';
+import { CatchError } from '../types/common';
 
 const router = Router();
 
@@ -53,7 +54,7 @@ router.get(
       data: healthStatus,
       timestamp: new Date(),
     });
-  }),
+  })
 );
 
 /**
@@ -80,7 +81,7 @@ router.get(
       data: componentHealth,
       timestamp: new Date(),
     });
-  }),
+  })
 );
 
 /**
@@ -110,7 +111,7 @@ router.get(
         },
       },
     });
-  }),
+  })
 );
 
 /**
@@ -151,7 +152,7 @@ router.get(
         circuitBreakers: stats,
       },
     });
-  }),
+  })
 );
 
 /**
@@ -218,7 +219,7 @@ router.post(
         message: result,
         data: circuitBreaker.getStats(),
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error(`Failed to perform circuit breaker action`, {
         circuitBreaker: name,
         action,
@@ -230,7 +231,7 @@ router.post(
         error: `Failed to perform action: ${(error as Error).message}`,
       });
     }
-  }),
+  })
 );
 
 /**
@@ -251,7 +252,7 @@ router.get(
         timestamp: healthStatus.timestamp,
       },
     });
-  }),
+  })
 );
 
 /**
@@ -286,7 +287,7 @@ router.post(
         message: 'Service dependency registered successfully',
         data: dependency,
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to register service dependency', {
         error: (error as Error).message,
         dependency: req.body,
@@ -297,7 +298,7 @@ router.post(
         error: `Failed to register dependency: ${(error as Error).message}`,
       });
     }
-  }),
+  })
 );
 
 /**
@@ -328,7 +329,7 @@ router.get(
           totalRecoveries: recoveryHistory.length,
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to retrieve recovery history', {
         error: (error as Error).message,
         operation,
@@ -339,7 +340,7 @@ router.get(
         error: 'Failed to retrieve recovery history',
       });
     }
-  }),
+  })
 );
 
 /**
@@ -381,7 +382,7 @@ router.post(
           context: errorContext,
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.warn('Error recovery test failed', {
         originalError: errorMessage,
         recoveryError: (error as Error).message,
@@ -400,7 +401,7 @@ router.post(
         },
       });
     }
-  }),
+  })
 );
 
 /**
@@ -423,7 +424,7 @@ router.get(
     try {
       const riskAssessment = await errorRecoveryManager.checkCascadeRisk(
         operation,
-        typeof service === 'string' ? service : undefined,
+        typeof service === 'string' ? service : undefined
       );
 
       res.json({
@@ -435,7 +436,7 @@ router.get(
           timestamp: new Date(),
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to assess cascade risk', {
         error: (error as Error).message,
         operation,
@@ -447,7 +448,7 @@ router.get(
         error: 'Failed to assess cascade risk',
       });
     }
-  }),
+  })
 );
 
 /**
@@ -469,7 +470,7 @@ router.delete(
         success: true,
         message: 'Error recovery history cleared successfully',
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to clear recovery history', {
         error: (error as Error).message,
       });
@@ -479,7 +480,7 @@ router.delete(
         error: 'Failed to clear recovery history',
       });
     }
-  }),
+  })
 );
 
 /**
@@ -505,7 +506,7 @@ router.get(
 
     // Deduct points for open circuit breakers
     const openCircuitBreakers = Object.values(circuitBreakerStats).filter(
-      (s) => s.state === 'OPEN',
+      (s) => s.state === 'OPEN'
     );
     resilienceScore -= openCircuitBreakers.length * 15;
 
@@ -524,10 +525,10 @@ router.get(
           resilienceScore >= 80
             ? 'excellent'
             : resilienceScore >= 60
-              ? 'good'
-              : resilienceScore >= 40
-                ? 'fair'
-                : 'poor',
+            ? 'good'
+            : resilienceScore >= 40
+            ? 'fair'
+            : 'poor',
         systemHealth: healthStatus,
         serviceHealth: resilienceStatus,
         circuitBreakers: {
@@ -541,19 +542,19 @@ router.get(
           healthStatus,
           circuitBreakerStats,
           errorStats,
-          performanceMetrics,
+          performanceMetrics
         ),
         timestamp: new Date(),
       },
     });
-  }),
+  })
 );
 
 function generateRecommendations(
   healthStatus: any,
   circuitBreakerStats: any,
   errorStats: any,
-  performanceMetrics: any,
+  performanceMetrics: any
 ): string[] {
   const recommendations: string[] = [];
 
@@ -561,37 +562,41 @@ function generateRecommendations(
   const unhealthyComponents = healthStatus.components.filter((c: any) => c.status === 'unhealthy');
   if (unhealthyComponents.length > 0) {
     recommendations.push(
-      `Address ${unhealthyComponents.length} unhealthy component(s): ${unhealthyComponents.map((c: any) => c.name).join(', ')}`,
+      `Address ${unhealthyComponents.length} unhealthy component(s): ${unhealthyComponents
+        .map((c: any) => c.name)
+        .join(', ')}`
     );
   }
 
   // Circuit breaker recommendations
   const openCircuitBreakers = Object.entries(circuitBreakerStats).filter(
-    ([, stats]: [string, any]) => stats.state === 'OPEN',
+    ([, stats]: [string, any]) => stats.state === 'OPEN'
   );
   if (openCircuitBreakers.length > 0) {
     recommendations.push(
-      `Investigate ${openCircuitBreakers.length} open circuit breaker(s): ${openCircuitBreakers.map(([name]) => name).join(', ')}`,
+      `Investigate ${openCircuitBreakers.length} open circuit breaker(s): ${openCircuitBreakers
+        .map(([name]) => name)
+        .join(', ')}`
     );
   }
 
   // Performance recommendations
   if (performanceMetrics.errorRate > 5) {
     recommendations.push(
-      `High error rate detected (${performanceMetrics.errorRate}%), investigate root causes`,
+      `High error rate detected (${performanceMetrics.errorRate}%), investigate root causes`
     );
   }
 
   if (performanceMetrics.avgResponseTime > 2000) {
     recommendations.push(
-      `High average response time (${performanceMetrics.avgResponseTime}ms), consider performance optimization`,
+      `High average response time (${performanceMetrics.avgResponseTime}ms), consider performance optimization`
     );
   }
 
   // Error recovery recommendations
   if (errorStats.recentErrors > 10) {
     recommendations.push(
-      `High recent error count (${errorStats.recentErrors}), monitor for cascade failures`,
+      `High recent error count (${errorStats.recentErrors}), monitor for cascade failures`
     );
   }
 

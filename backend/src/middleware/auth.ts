@@ -8,6 +8,7 @@ import { DeviceSessionService } from '../services/device-session.service';
 
 // Import unified authentication facade
 import { AuthenticationFacade, AuthenticatedUser } from '../auth';
+import { CatchError } from '../types/common';
 
 // Types are extended in types/express.d.ts
 
@@ -57,7 +58,7 @@ export function authMiddleware() {
       }
 
       next();
-    } catch (error: any) {
+    } catch (error: CatchError) {
       next(error);
     }
   };
@@ -99,9 +100,11 @@ export function optionalAuth() {
       }
 
       next();
-    } catch (error: any) {
+    } catch (error: CatchError) {
       // Log error but continue - auth is optional
-      logger.debug('Optional auth failed', { error: error.message });
+      logger.debug('Optional auth failed', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
       next();
     }
   };

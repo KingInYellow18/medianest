@@ -739,7 +739,7 @@ export class RedisService {
   /**
    * Set cache value with TTL
    */
-  async setCache(key: string, value: any, ttlSeconds: number = 3600): Promise<void> {
+  async setCache(key: string, value: unknown, ttlSeconds: number = 3600): Promise<void> {
     try {
       const cacheKey = `${RedisService.KEY_PREFIXES.CACHE}${key}`;
       const serializedValue = JSON.stringify(value);

@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { csrfProtection } from '@/middleware/csrf';
 import { logger } from '@/utils/logger';
+import { CatchError } from '../types/common';
 
 export class CSRFController {
   /**
@@ -37,7 +38,7 @@ export class CSRFController {
           expiresIn: 3600, // 1 hour
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get CSRF token', { error });
       next(error);
     }
@@ -66,7 +67,7 @@ export class CSRFController {
           expiresIn: 3600,
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to refresh CSRF token', { error });
       next(error);
     }

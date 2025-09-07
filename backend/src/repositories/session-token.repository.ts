@@ -8,6 +8,7 @@ import {
 } from '@medianest/shared';
 
 import { BaseRepository } from './base.repository';
+import { CatchError } from '../types/common';
 
 export interface CreateSessionTokenInput {
   userId: string;
@@ -24,7 +25,7 @@ export class SessionTokenRepository extends BaseRepository<
   }
 
   async create(
-    data: CreateSessionTokenInput,
+    data: CreateSessionTokenInput
   ): Promise<{ token: string; sessionToken: SessionToken }> {
     try {
       // Generate a secure random token
@@ -54,7 +55,7 @@ export class SessionTokenRepository extends BaseRepository<
         token: rawToken,
         sessionToken,
       };
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -77,7 +78,7 @@ export class SessionTokenRepository extends BaseRepository<
           },
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -88,7 +89,7 @@ export class SessionTokenRepository extends BaseRepository<
         where: { userId },
         orderBy: { createdAt: 'desc' },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -119,7 +120,7 @@ export class SessionTokenRepository extends BaseRepository<
         where: { id },
         data: { lastUsedAt: new Date() },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -129,7 +130,7 @@ export class SessionTokenRepository extends BaseRepository<
       return await this.prisma.sessionToken.delete({
         where: { id },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -141,7 +142,7 @@ export class SessionTokenRepository extends BaseRepository<
       return await this.prisma.sessionToken.delete({
         where: { tokenHash },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -153,7 +154,7 @@ export class SessionTokenRepository extends BaseRepository<
       });
 
       return result.count;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -169,7 +170,7 @@ export class SessionTokenRepository extends BaseRepository<
       });
 
       return result.count;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -184,7 +185,7 @@ export class SessionTokenRepository extends BaseRepository<
           },
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -195,7 +196,7 @@ export class SessionTokenRepository extends BaseRepository<
         where: { id },
         data: { expiresAt: newExpiryDate },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }

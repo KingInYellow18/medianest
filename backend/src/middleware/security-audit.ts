@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import fs from 'fs/promises';
 import path from 'path';
 import { logger } from '../utils/logger';
+import { CatchError } from '../types/common';
 
 interface SecurityEvent {
   id: string;
@@ -106,7 +107,7 @@ class SecurityAuditLogger {
       if (this.config.logToDatabase) {
         await this.logToDatabase(events);
       }
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to flush security audit buffer', { error, eventsCount: events.length });
       this.logBuffer.unshift(...events);
     }
@@ -146,7 +147,7 @@ class SecurityAuditLogger {
     try {
       await this.rotateLogFileIfNeeded();
       await fs.appendFile(this.config.logFile, logEntries, 'utf8');
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to write security audit log to file', {
         error,
         logFile: this.config.logFile,
@@ -168,7 +169,7 @@ class SecurityAuditLogger {
       if (stats.size >= this.config.maxFileSize) {
         await this.rotateLogFile();
       }
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (((error as any).code as any) !== 'ENOENT') {
         logger.warn('Error checking log file size', { error, logFile: this.config.logFile });
       }
@@ -205,7 +206,7 @@ class SecurityAuditLogger {
         originalFile: this.config.logFile,
         rotatedFile,
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to rotate security audit log file', {
         error,
         logFile: this.config.logFile,
@@ -225,7 +226,7 @@ class SecurityAuditLogger {
       try {
         await fs.mkdir(logDir, { recursive: true });
         logger.info('Created security audit log directory', { logDir });
-      } catch (error: any) {
+      } catch (error: CatchError) {
         logger.error('Failed to create log directory', { error, logDir });
       }
     }
@@ -253,7 +254,7 @@ class SecurityAuditLogger {
       }
 
       if (typeof obj === 'object') {
-        const result: any = {};
+        const result: unknown = {};
         for (const [key, value] of Object.entries(obj)) {
           result[key] = sanitizeValue(sanitizeObject(value), key);
         }
@@ -336,7 +337,7 @@ export function securityAuditMiddleware() {
 
       try {
         await auditLogger.logEvent(event);
-      } catch (error: any) {
+      } catch (error: CatchError) {
         logger.error('Failed to log security audit event', { error, event });
       }
     });

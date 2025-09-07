@@ -7,6 +7,7 @@ import {
 
 import { logger } from '@/utils/logger';
 import { getRedis } from '@/config/redis';
+import { CatchError } from '../types/common';
 
 export interface RateLimiterOptions {
   windowMs: number;
@@ -63,7 +64,7 @@ export function rateLimiter(options: RateLimiterOptions) {
       }
 
       next();
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (error instanceof RateLimitError) {
         next(error);
       } else {

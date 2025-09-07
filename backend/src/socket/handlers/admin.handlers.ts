@@ -3,6 +3,7 @@ import { Server, Socket } from 'socket.io';
 import { logger } from '@/utils/logger';
 import { statusService } from '@/services/status.service';
 import { userRepository } from '@/repositories';
+import { CatchError } from '../types/common';
 
 interface AdminBroadcastData {
   type: 'announcement' | 'maintenance' | 'warning' | 'info';
@@ -109,14 +110,17 @@ export function registerAdminHandlers(io: Server, socket: Socket): void {
           recipientCount: sentCount,
         });
       }
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to broadcast admin message', {
         adminId: userId,
-        error: error.message as any,
+        error: error instanceof Error ? error.message : ('Unknown error' as any),
       });
 
       if (callback) {
-        callback({ success: false, error: error.message as any });
+        callback({
+          success: false,
+          error: error instanceof Error ? error.message : ('Unknown error' as any),
+        });
       }
     }
   });
@@ -138,14 +142,17 @@ export function registerAdminHandlers(io: Server, socket: Socket): void {
       if (callback) {
         callback({ success: true, serviceCount: statuses.length });
       }
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to refresh all services', {
         adminId: userId,
-        error: error.message as any,
+        error: error instanceof Error ? error.message : ('Unknown error' as any),
       });
 
       if (callback) {
-        callback({ success: false, error: error.message as any });
+        callback({
+          success: false,
+          error: error instanceof Error ? error.message : ('Unknown error' as any),
+        });
       }
     }
   });
@@ -176,14 +183,17 @@ export function registerAdminHandlers(io: Server, socket: Socket): void {
       if (callback) {
         callback({ success: true, data: systemStatus });
       }
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get system overview', {
         adminId: userId,
-        error: error.message as any,
+        error: error instanceof Error ? error.message : ('Unknown error' as any),
       });
 
       if (callback) {
-        callback({ success: false, error: error.message as any });
+        callback({
+          success: false,
+          error: error instanceof Error ? error.message : ('Unknown error' as any),
+        });
       }
     }
   });
@@ -213,14 +223,17 @@ export function registerAdminHandlers(io: Server, socket: Socket): void {
           },
         });
       }
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get connected users', {
         adminId: userId,
-        error: error.message as any,
+        error: error instanceof Error ? error.message : ('Unknown error' as any),
       });
 
       if (callback) {
-        callback({ success: false, error: error.message as any });
+        callback({
+          success: false,
+          error: error instanceof Error ? error.message : ('Unknown error' as any),
+        });
       }
     }
   });
@@ -253,15 +266,18 @@ export function registerAdminHandlers(io: Server, socket: Socket): void {
           disconnectedSockets: disconnectedCount,
         });
       }
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to disconnect user', {
         adminId: userId,
         targetUserId,
-        error: error.message as any,
+        error: error instanceof Error ? error.message : ('Unknown error' as any),
       });
 
       if (callback) {
-        callback({ success: false, error: error.message as any });
+        callback({
+          success: false,
+          error: error instanceof Error ? error.message : ('Unknown error' as any),
+        });
       }
     }
   });
@@ -287,7 +303,7 @@ export function emitAdminActivity(
     description: string;
     userId?: string;
     metadata?: Record<string, any>;
-  },
+  }
 ): void {
   io.of('/admin')
     .to('admin-activity')

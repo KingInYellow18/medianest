@@ -8,6 +8,7 @@ import { logger } from '../utils/logger';
 import { generateToken } from '../utils/jwt';
 import { generateSecureToken, logSecurityEvent } from '../utils/security';
 import { configService } from '../config/config.service';
+import { CatchError } from '../types/common';
 
 interface OAuthConfig {
   clientId: string;
@@ -212,7 +213,7 @@ export class OAuthProvidersService {
       );
 
       return result;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       // Clean up state on error
       await this.redisService.deleteOAuthState(state);
 

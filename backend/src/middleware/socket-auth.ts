@@ -6,6 +6,7 @@ import { UserRepository } from '../repositories/user.repository';
 import { AuthenticationError } from '../utils/errors';
 import { verifyToken } from '../utils/jwt';
 import { logger } from '../utils/logger';
+import { CatchError } from '../types/common';
 
 // Extend Socket interface
 declare module 'socket.io' {
@@ -41,7 +42,7 @@ export const socketAuthMiddleware = (
     .catch((error: any) => {
       logger.warn('Socket authentication failed', {
         socketId: socket.id,
-        error: error.message as any,
+        error: error instanceof Error ? error.message : ('Unknown error' as any),
         ip: socket.handshake.address,
       });
       next(new Error('Authentication failed'));
@@ -145,7 +146,7 @@ async function authenticateSocket(
       ip: socket.handshake.address,
       userAgent: socket.handshake.headers['user-agent'],
     });
-  } catch (error: any) {
+  } catch (error: CatchError) {
     if (optional) {
       // For optional auth, log but don't throw
       logger.debug('Optional socket auth failed', {

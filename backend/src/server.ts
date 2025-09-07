@@ -34,6 +34,7 @@ import { setIntegrationService } from './routes/integrations';
 import { IntegrationService } from './services/integration.service';
 import { MediaNestSocketServer } from './socket/socket-server';
 import { logger } from './utils/logger';
+import { CatchError } from '../types/common';
 
 const app = express();
 const httpServer = createServer(app);
@@ -207,7 +208,7 @@ async function startServer() {
       logger.info(`Server running on port ${PORT}`);
       logger.info('Available namespaces: /, /authenticated, /admin, /media, /system');
     });
-  } catch (error: any) {
+  } catch (error: CatchError) {
     logger.error('Failed to start server:', error);
     process.exit(1);
   }

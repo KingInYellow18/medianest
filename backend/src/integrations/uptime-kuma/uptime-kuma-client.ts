@@ -5,6 +5,7 @@ import WebSocket from 'ws';
 import { CircuitBreaker } from '../../utils/circuit-breaker';
 import { logger } from '../../utils/logger';
 import { getErrorMessage } from '../../utils/error-handling';
+import { CatchError } from '../types/common';
 
 export interface UptimeKumaMonitor {
   id: number;
@@ -190,7 +191,7 @@ export class UptimeKumaClient extends EventEmitter {
         this.ws?.send('3'); // Pong
         this.lastHeartbeat = new Date();
       }
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to parse Uptime Kuma message', {
         message: message.substring(0, 100),
         error: getErrorMessage(error),
@@ -198,7 +199,7 @@ export class UptimeKumaClient extends EventEmitter {
     }
   }
 
-  private handleEvent(eventName: string, data: any): void {
+  private handleEvent(eventName: string, data: unknown): void {
     switch (eventName) {
       case 'monitorList':
         this.handleMonitorList(data as Record<string, UptimeKumaMonitor>);

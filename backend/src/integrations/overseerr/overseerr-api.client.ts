@@ -1,6 +1,7 @@
 import { logger } from '../../utils/logger';
 import { BaseApiClient, ApiClientConfig } from '../base-api-client';
 import { getErrorMessage } from '../../utils/error-handling';
+import { CatchError } from '../types/common';
 
 export interface OverseerrMediaRequest {
   id: number;
@@ -117,7 +118,7 @@ export class OverseerrApiClient extends BaseApiClient {
     try {
       const response = await this.request<OverseerrStatus>('/api/v1/status');
       return response.data;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get Overseerr status', { error: getErrorMessage(error) });
       throw new Error(`Failed to get Overseerr status: ${getErrorMessage(error)}`);
     }
@@ -127,7 +128,7 @@ export class OverseerrApiClient extends BaseApiClient {
     try {
       const response = await this.request<OverseerrSettings>('/api/v1/settings/main');
       return response.data;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get Overseerr settings', { error: getErrorMessage(error) });
       throw new Error(`Failed to get Overseerr settings: ${getErrorMessage(error)}`);
     }
@@ -136,7 +137,7 @@ export class OverseerrApiClient extends BaseApiClient {
   async getRequests(
     take: number = 20,
     skip: number = 0,
-    filter?: 'all' | 'approved' | 'available' | 'pending' | 'processing' | 'unavailable',
+    filter?: 'all' | 'approved' | 'available' | 'pending' | 'processing' | 'unavailable'
   ): Promise<{
     results: OverseerrMediaRequest[];
     pageInfo: { pages: number; pageSize: number; total: number; page: number };
@@ -154,7 +155,7 @@ export class OverseerrApiClient extends BaseApiClient {
       }>(`/api/v1/request?${params}`);
 
       return response.data;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get Overseerr requests', { error: getErrorMessage(error) });
       throw new Error(`Failed to get Overseerr requests: ${getErrorMessage(error)}`);
     }
@@ -164,7 +165,7 @@ export class OverseerrApiClient extends BaseApiClient {
     try {
       const response = await this.request<OverseerrMediaRequest>(`/api/v1/request/${requestId}`);
       return response.data;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get Overseerr request', {
         requestId,
         error: getErrorMessage(error),
@@ -187,7 +188,7 @@ export class OverseerrApiClient extends BaseApiClient {
       });
 
       return response.data;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to create Overseerr request', {
         requestData,
         error: getErrorMessage(error),
@@ -198,7 +199,7 @@ export class OverseerrApiClient extends BaseApiClient {
 
   async updateRequest(
     requestId: number,
-    updateData: Partial<CreateMediaRequestInput>,
+    updateData: Partial<CreateMediaRequestInput>
   ): Promise<OverseerrMediaRequest> {
     try {
       const response = await this.request<OverseerrMediaRequest>(`/api/v1/request/${requestId}`, {
@@ -209,7 +210,7 @@ export class OverseerrApiClient extends BaseApiClient {
       logger.info('Overseerr request updated', { requestId, updateData });
 
       return response.data;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to update Overseerr request', {
         requestId,
         updateData,
@@ -223,13 +224,13 @@ export class OverseerrApiClient extends BaseApiClient {
     try {
       const response = await this.request<OverseerrMediaRequest>(
         `/api/v1/request/${requestId}/approve`,
-        { method: 'POST' },
+        { method: 'POST' }
       );
 
       logger.info('Overseerr request approved', { requestId });
 
       return response.data;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to approve Overseerr request', {
         requestId,
         error: getErrorMessage(error),
@@ -245,13 +246,13 @@ export class OverseerrApiClient extends BaseApiClient {
         {
           method: 'POST',
           ...(reason && { body: JSON.stringify({ reason }) }),
-        },
+        }
       );
 
       logger.info('Overseerr request declined', { requestId, reason });
 
       return response.data;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to decline Overseerr request', {
         requestId,
         error: getErrorMessage(error),
@@ -267,7 +268,7 @@ export class OverseerrApiClient extends BaseApiClient {
       });
 
       logger.info('Overseerr request deleted', { requestId });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to delete Overseerr request', {
         requestId,
         error: getErrorMessage(error),
@@ -279,7 +280,7 @@ export class OverseerrApiClient extends BaseApiClient {
   async getUserRequests(
     userId: number,
     take: number = 20,
-    skip: number = 0,
+    skip: number = 0
   ): Promise<{
     results: OverseerrMediaRequest[];
     pageInfo: { pages: number; pageSize: number; total: number; page: number };
@@ -296,7 +297,7 @@ export class OverseerrApiClient extends BaseApiClient {
       }>(`/api/v1/user/${userId}/requests?${params}`);
 
       return response.data;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get user requests from Overseerr', {
         userId,
         error: getErrorMessage(error),
@@ -308,12 +309,12 @@ export class OverseerrApiClient extends BaseApiClient {
   async searchMedia(
     query: string,
     type?: 'movie' | 'tv',
-    page: number = 1,
+    page: number = 1
   ): Promise<{
     page: number;
     totalPages: number;
     totalResults: number;
-    results: any[];
+    results: unknown[];
   }> {
     try {
       const params = new URLSearchParams({
@@ -326,11 +327,11 @@ export class OverseerrApiClient extends BaseApiClient {
         page: number;
         totalPages: number;
         totalResults: number;
-        results: any[];
+        results: unknown[];
       }>(`/api/v1/search?${params}`);
 
       return response.data;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to search media in Overseerr', {
         query,
         type,
@@ -344,7 +345,7 @@ export class OverseerrApiClient extends BaseApiClient {
     try {
       const response = await this.request(`/api/v1/${mediaType}/${tmdbId}`);
       return response.data;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get media info from Overseerr', {
         mediaType,
         tmdbId,
@@ -357,7 +358,7 @@ export class OverseerrApiClient extends BaseApiClient {
   protected async performHealthCheck(): Promise<void> {
     try {
       await this.getStatus();
-    } catch (error: any) {
+    } catch (error: CatchError) {
       throw new Error(`Overseerr health check failed: ${getErrorMessage(error)}`);
     }
   }

@@ -4,10 +4,11 @@ import { ExtendedError } from 'socket.io/dist/namespace';
 
 import { userRepository } from '@/repositories';
 import { logger } from '@/utils/logger';
+import { CatchError } from '../types/common';
 
 export async function authenticateSocket(
   socket: Socket,
-  next: (err?: ExtendedError) => void,
+  next: (err?: ExtendedError) => void
 ): Promise<void> {
   try {
     const token =
@@ -38,7 +39,7 @@ export async function authenticateSocket(
     };
 
     next();
-  } catch (error: any) {
+  } catch (error: CatchError) {
     logger.error('Socket authentication failed', { error });
     next(new Error('Authentication failed'));
   }
@@ -49,7 +50,7 @@ export async function authenticateSocket(
  */
 export async function authenticateAdminSocket(
   socket: Socket,
-  next: (err?: ExtendedError) => void,
+  next: (err?: ExtendedError) => void
 ): Promise<void> {
   try {
     const token =
@@ -85,7 +86,7 @@ export async function authenticateAdminSocket(
     };
 
     next();
-  } catch (error: any) {
+  } catch (error: CatchError) {
     logger.error('Admin socket authentication failed', { error });
     next(new Error('Admin authentication failed'));
   }

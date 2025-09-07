@@ -5,6 +5,7 @@ import { SessionTokenRepository } from '../repositories/session-token.repository
 import { DeviceSessionService } from '../services/device-session.service';
 import { AuthenticationError } from '../utils/errors';
 import { logger } from '../utils/logger';
+import { CatchError } from '../types/common';
 
 // Extended request interface
 export interface AuthenticatedRequest extends Request {
@@ -67,7 +68,7 @@ export class AuthMiddleware {
         }
 
         next();
-      } catch (error: any) {
+      } catch (error: CatchError) {
         next(error);
       }
     };
@@ -87,8 +88,9 @@ export class AuthMiddleware {
         }
 
         next();
-      } catch (error: any) {
-        logger.debug('Optional auth failed', { error: error.message });
+      } catch (error: CatchError) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        logger.debug('Optional auth failed', { error: errorMessage });
         next();
       }
     };

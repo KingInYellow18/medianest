@@ -1,6 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
 
 import { logger } from '@/utils/logger';
+import { CatchError } from '../types/common';
 
 export interface OverseerrConfig {
   url: string;
@@ -75,7 +76,7 @@ export class OverseerrClient {
         }
 
         return Promise.reject(error);
-      },
+      }
     );
   }
 
@@ -84,7 +85,7 @@ export class OverseerrClient {
     try {
       const response = await this.client.get('/status');
       return response.data.status === 'ok';
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Overseerr connection test failed', { error });
       return false;
     }
@@ -93,7 +94,7 @@ export class OverseerrClient {
   // Search for media (simplified)
   async searchMedia(
     query: string,
-    page = 1,
+    page = 1
   ): Promise<{
     results: MediaSearchResult[];
     totalPages: number;
@@ -107,7 +108,7 @@ export class OverseerrClient {
         results: response.data.results.map(this.mapSearchResult),
         totalPages: response.data.totalPages,
       };
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Search failed', { query, error });
       throw new Error('Failed to search media');
     }
@@ -118,7 +119,7 @@ export class OverseerrClient {
     try {
       const response = await this.client.get(`/${mediaType}/${tmdbId}`);
       return this.mapSearchResult(response.data);
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get media details', { mediaType, tmdbId, error });
       throw new Error('Failed to get media details');
     }
@@ -129,7 +130,7 @@ export class OverseerrClient {
     try {
       const response = await this.client.post('/request', request);
       return response.data;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if ((error as Error) && (error.message as any) === 'Media already requested') {
         throw error;
       }
@@ -143,7 +144,7 @@ export class OverseerrClient {
     options: {
       take?: number;
       skip?: number;
-    } = {},
+    } = {}
   ): Promise<{
     results: MediaRequestInfo[];
     pageInfo: {
@@ -160,14 +161,14 @@ export class OverseerrClient {
       });
 
       return response.data;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get user requests', { error });
       throw new Error('Failed to get user requests');
     }
   }
 
   // Helper to map Overseerr data to our interface
-  private mapSearchResult(data: any): MediaSearchResult {
+  private mapSearchResult(data: unknown): MediaSearchResult {
     return {
       id: data.id,
       mediaType: data.mediaType,

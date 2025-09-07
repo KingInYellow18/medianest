@@ -6,6 +6,7 @@ import { AppError } from '../utils/errors';
 import { logger } from '@/utils/logger';
 
 import { encryptionService } from './encryption.service';
+import { CatchError } from '../types/common';
 
 export class PlexService {
   private clients: Map<string, PlexClient> = new Map();
@@ -48,7 +49,7 @@ export class PlexService {
       await client.testConnection();
       this.clients.set(userId, client);
       return client;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to connect to Plex', { userId, error });
       throw new AppError('Failed to connect to Plex server', 503);
     }
@@ -98,7 +99,7 @@ export class PlexService {
     options?: {
       offset?: number;
       limit?: number;
-    },
+    }
   ) {
     // Cache library items with pagination parameters
     const offset = options?.offset || 0;
@@ -181,7 +182,7 @@ export class PlexService {
   async getCollections(
     userId: string,
     libraryKey: string,
-    options?: { search?: string; sort?: string },
+    options?: { search?: string; sort?: string }
   ) {
     const client = await this.getClientForUser(userId);
     const collections = await client.getCollections(libraryKey);
@@ -192,7 +193,7 @@ export class PlexService {
     if (options?.search) {
       const searchLower = options.search.toLowerCase();
       filteredCollections = filteredCollections.filter((collection: any) =>
-        collection.title.toLowerCase().includes(searchLower),
+        collection.title.toLowerCase().includes(searchLower)
       );
     }
 
@@ -224,7 +225,7 @@ export class PlexService {
     userId: string,
     libraryKey: string,
     title: string,
-    items: string[] = [],
+    items: string[] = []
   ): Promise<void> {
     const client = await this.getClientForUser(userId);
     await client.createCollection(libraryKey, title, items);
@@ -239,7 +240,7 @@ export class PlexService {
       (lib: any) =>
         lib.title.toLowerCase().includes('youtube') ||
         lib.type === 'youtube' ||
-        lib.type === 'other', // YouTube content might be in 'other' type library
+        lib.type === 'other' // YouTube content might be in 'other' type library
     );
 
     if (youtubeLib) {
@@ -249,7 +250,7 @@ export class PlexService {
     // Fallback: look for 'Other Videos' or similar
     const otherLib = libraries.find(
       (lib: any) =>
-        lib.title.toLowerCase().includes('other') || lib.title.toLowerCase().includes('video'),
+        lib.title.toLowerCase().includes('other') || lib.title.toLowerCase().includes('video')
     );
 
     return otherLib ? otherLib.key : null;
@@ -257,20 +258,17 @@ export class PlexService {
 
   // Clean up idle clients periodically (every 30 minutes)
   startCleanupTimer(): void {
-    setInterval(
-      () => {
-        const now = Date.now();
-        const maxIdleTime = 30 * 60 * 1000; // 30 minutes
+    setInterval(() => {
+      const now = Date.now();
+      const maxIdleTime = 30 * 60 * 1000; // 30 minutes
 
-        // In a production app, we'd track last access time
-        // For MVP, just clear all clients periodically
-        if (this.clients.size > 10) {
-          logger.info('Clearing Plex client cache', { count: this.clients.size });
-          this.clients.clear();
-        }
-      },
-      30 * 60 * 1000,
-    );
+      // In a production app, we'd track last access time
+      // For MVP, just clear all clients periodically
+      if (this.clients.size > 10) {
+        logger.info('Clearing Plex client cache', { count: this.clients.size });
+        this.clients.clear();
+      }
+    }, 30 * 60 * 1000);
   }
 }
 

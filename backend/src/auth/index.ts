@@ -4,6 +4,7 @@ import { SessionTokenRepository } from '../repositories/session-token.repository
 import { DeviceSessionService } from '../services/device-session.service';
 import { AuthenticationError, AppError } from '../utils/errors';
 import { logger } from '../utils/logger';
+import { CatchError } from '../types/common';
 
 // JWT utilities
 import {
@@ -120,7 +121,7 @@ export class AuthenticationFacade {
         deviceId: deviceRegistration.deviceId,
         sessionId: payload.sessionId,
       };
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Authentication failed', { error: error.message, ip: req.ip });
       throw error;
     }
@@ -152,7 +153,7 @@ export class AuthenticationFacade {
       }
 
       return { user, token };
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.debug('Optional auth failed', { error: error.message });
       return null;
     }
@@ -215,7 +216,7 @@ export class AuthenticationFacade {
         refreshToken: newRefreshToken,
         user,
       };
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Token refresh failed', { error: error.message });
       throw error;
     }
@@ -271,7 +272,7 @@ export class AuthenticationFacade {
         userId: metadata.userId,
         sessionId: metadata.sessionId,
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Logout failed', { error: error.message });
       throw error;
     }

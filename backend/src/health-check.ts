@@ -6,8 +6,20 @@
  * and exits with appropriate status codes for Docker health checking.
  */
 
-const http = require('http');
-const { logger } = require('./utils/logger');
+import * as http from 'http';
+import { logger } from './utils/logger';
+
+interface HealthCheckResponse {
+  statusCode: number;
+}
+
+interface HealthCheckError extends Error {
+  code?: string;
+  errno?: number;
+  syscall?: string;
+  address?: string;
+  port?: number;
+}
 
 const options = {
   hostname: 'localhost',
@@ -17,7 +29,7 @@ const options = {
   timeout: 5000,
 };
 
-const req = http.request(options, (res: any) => {
+const req = http.request(options, (res: HealthCheckResponse) => {
   if (res.statusCode === 200) {
     logger.info('Health check passed', {
       statusCode: res.statusCode,
@@ -35,7 +47,7 @@ const req = http.request(options, (res: any) => {
   }
 });
 
-req.on('error', (err: any) => {
+req.on('error', (err: HealthCheckError) => {
   logger.error('Health check failed with error', {
     error: err.message,
     endpoint: '/health',

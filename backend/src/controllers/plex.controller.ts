@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import { plexService } from '@/services/plex.service';
 import { AppError } from '../utils/errors';
 import { logger } from '@/utils/logger';
+import { CatchError } from '../types/common';
 
 export class PlexController {
   async getServerInfo(req: Request, res: Response) {
@@ -14,7 +15,7 @@ export class PlexController {
         success: true,
         data: serverInfo,
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (error instanceof AppError) {
         throw error;
       }
@@ -35,7 +36,7 @@ export class PlexController {
           count: libraries.length,
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (error instanceof AppError) {
         throw error;
       }
@@ -64,7 +65,7 @@ export class PlexController {
           total: result.totalSize,
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (error instanceof AppError) {
         throw error;
       }
@@ -92,7 +93,7 @@ export class PlexController {
           count: results.length,
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (error instanceof AppError) {
         throw error;
       }
@@ -113,7 +114,7 @@ export class PlexController {
           count: items.length,
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (error instanceof AppError) {
         throw error;
       }
@@ -140,7 +141,7 @@ export class PlexController {
           count: collections.length,
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (error instanceof AppError) {
         throw error;
       }
@@ -160,7 +161,7 @@ export class PlexController {
         success: true,
         data: collection,
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (error instanceof AppError) {
         throw error;
       }
