@@ -3,7 +3,7 @@ import { Server, Socket } from 'socket.io';
 import { logger } from '@/utils/logger';
 import { statusService } from '@/services/status.service';
 import { userRepository } from '@/repositories';
-import { CatchError } from '../types/common';
+import { CatchError } from '../../types/common';
 
 interface AdminBroadcastData {
   type: 'announcement' | 'maintenance' | 'warning' | 'info';

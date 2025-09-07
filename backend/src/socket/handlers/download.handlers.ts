@@ -3,7 +3,7 @@ import { Server, Socket } from 'socket.io';
 import { logger } from '@/utils/logger';
 import { youtubeQueue } from '@/config/queues';
 import { YoutubeDownloadRepository } from '@/repositories/youtube-download.repository';
-import { CatchError } from '../types/common';
+import { CatchError } from '../../types/common';
 
 interface DownloadProgress {
   downloadId: string;

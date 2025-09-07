@@ -2,7 +2,7 @@
 import { Server, Socket } from 'socket.io';
 
 import { logger } from '@/utils/logger';
-import { CatchError } from '../types/common';
+import { CatchError } from '../../types/common';
 
 interface RequestStatusUpdate {
   requestId: string;

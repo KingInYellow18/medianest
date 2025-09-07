@@ -73,18 +73,18 @@ export const createTestMediaRequest = (overrides = {}) => ({
 });
 
 export const createTestJWT = (payload = {}) => {
-  const jwt = require('jsonwebtoken');
-  return jwt.sign(
-    {
-      userId: 'test-user-id',
-      role: 'USER',
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour
-      ...payload,
-    },
-    process.env.JWT_SECRET || 'test-secret',
-    { algorithm: 'HS256' }
-  );
+  const basePayload = {
+    userId: 'test-user-id',
+    email: 'test@example.com',
+    role: 'USER',
+    iat: Math.floor(Date.now() / 1000),
+    exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour
+    sessionId: 'test-session-id',
+    ...payload,
+  };
+
+  // Return a test token string or mock the actual JWT creation
+  return `mock.jwt.${Buffer.from(JSON.stringify(basePayload)).toString('base64')}`;
 };
 
 export const createTestRequest = (overrides = {}) => ({
@@ -202,12 +202,40 @@ export const setupGlobalMocks = () => {
   vi.mock('jsonwebtoken', () => ({
     default: {
       sign: vi.fn().mockReturnValue('test-jwt-token'),
-      verify: vi.fn().mockReturnValue({ userId: 'test-user-id', role: 'USER' }),
-      decode: vi.fn().mockReturnValue({ userId: 'test-user-id', role: 'USER' }),
+      verify: vi.fn().mockReturnValue({
+        userId: 'test-user-id',
+        email: 'test@example.com',
+        role: 'USER',
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + 3600,
+        sessionId: 'test-session-id',
+      }),
+      decode: vi.fn().mockReturnValue({
+        userId: 'test-user-id',
+        email: 'test@example.com',
+        role: 'USER',
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + 3600,
+        sessionId: 'test-session-id',
+      }),
     },
     sign: vi.fn().mockReturnValue('test-jwt-token'),
-    verify: vi.fn().mockReturnValue({ userId: 'test-user-id', role: 'USER' }),
-    decode: vi.fn().mockReturnValue({ userId: 'test-user-id', role: 'USER' }),
+    verify: vi.fn().mockReturnValue({
+      userId: 'test-user-id',
+      email: 'test@example.com',
+      role: 'USER',
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 3600,
+      sessionId: 'test-session-id',
+    }),
+    decode: vi.fn().mockReturnValue({
+      userId: 'test-user-id',
+      email: 'test@example.com',
+      role: 'USER',
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 3600,
+      sessionId: 'test-session-id',
+    }),
   }));
 
   // Mock crypto for encryption
@@ -291,12 +319,88 @@ export const setupGlobalMocks = () => {
     authMiddleware: vi.fn(() => (_req: any, _res: any, next: any) => next()),
   }));
 
+  // Mock JWT utilities
+  vi.mock('@/utils/jwt', () => ({
+    generateToken: vi.fn().mockReturnValue('test-jwt-token'),
+    verifyToken: vi.fn().mockReturnValue({
+      userId: 'test-user-id',
+      email: 'test@example.com',
+      role: 'USER',
+      sessionId: 'test-session-id',
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 3600,
+    }),
+    generateRefreshToken: vi.fn().mockReturnValue('test-refresh-token'),
+    verifyRefreshToken: vi.fn().mockReturnValue({
+      userId: 'test-user-id',
+      sessionId: 'test-session-id',
+    }),
+    getTokenMetadata: vi.fn().mockReturnValue({
+      userId: 'test-user-id',
+      sessionId: 'test-session-id',
+      tokenId: 'test-token-id',
+    }),
+    isTokenBlacklisted: vi.fn().mockReturnValue(false),
+    blacklistToken: vi.fn(),
+    shouldRotateToken: vi.fn().mockReturnValue(false),
+    rotateTokenIfNeeded: vi.fn().mockReturnValue(null),
+  }));
+
   vi.mock('../../middleware/validation.middleware', () => ({
     validateRequest: vi.fn(() => (_req: any, _res: any, next: any) => next()),
   }));
 
   vi.mock('../../lib/logger', () => ({
     logger: mockLogger,
+  }));
+
+  // Mock token validation utilities
+  vi.mock('../../src/middleware/auth/token-validator', () => ({
+    extractToken: vi.fn().mockReturnValue('test-jwt-token'),
+    extractTokenOptional: vi.fn().mockReturnValue('test-jwt-token'),
+    validateToken: vi.fn().mockReturnValue({
+      token: 'test-jwt-token',
+      payload: {
+        userId: 'test-user-id',
+        email: 'test@example.com',
+        role: 'USER',
+        sessionId: 'test-session-id',
+      },
+      metadata: {
+        tokenId: 'test-token-id',
+      },
+    }),
+  }));
+
+  // Mock user validation utilities
+  vi.mock('../../src/middleware/auth/user-validator', () => ({
+    validateUser: vi.fn().mockResolvedValue({
+      id: 'test-user-id',
+      email: 'test@example.com',
+      name: 'Test User',
+      role: 'USER',
+      plexId: 'test-plex-id',
+      plexUsername: 'testuser',
+    }),
+    validateUserOptional: vi.fn().mockResolvedValue({
+      id: 'test-user-id',
+      email: 'test@example.com',
+      name: 'Test User',
+      role: 'USER',
+      plexId: 'test-plex-id',
+      plexUsername: 'testuser',
+    }),
+  }));
+
+  // Mock device session utilities
+  vi.mock('../../src/middleware/auth/device-session-manager', () => ({
+    validateSessionToken: vi.fn().mockResolvedValue(undefined),
+    registerAndAssessDevice: vi.fn().mockResolvedValue({
+      deviceId: 'test-device-id',
+      isNewDevice: false,
+      riskScore: 0.1,
+    }),
+    updateSessionActivity: vi.fn().mockResolvedValue(undefined),
   }));
 };
 

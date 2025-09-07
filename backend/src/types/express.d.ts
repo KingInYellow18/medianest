@@ -6,8 +6,11 @@ declare global {
         email: string;
         name?: string | null;
         role: string;
-        plexId?: string;
+        plexId?: string | null;
         plexUsername?: string | null;
+        lastLoginAt?: Date | null;
+        createdAt?: Date;
+        updatedAt?: Date;
         [key: string]: any;
       };
       correlationId: string;

@@ -134,5 +134,5 @@ export interface ServiceHealthCheck {
 
 export interface MetricsExporter {
   export(metrics: MetricsSummary): Promise<void>;
-  configure(config: UnknownRecord): void;
+  configure(config: Record<string, unknown>): void;
 }

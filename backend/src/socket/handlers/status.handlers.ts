@@ -2,7 +2,7 @@ import { Server, Socket } from 'socket.io';
 
 import { statusService } from '@/services/status.service';
 import { logger } from '@/utils/logger';
-import { CatchError } from '../types/common';
+import { CatchError } from '../../types/common';
 
 // Enhanced status handlers with rate limiting and better error handling
 export function statusHandlers(io: Server, socket: Socket): void {

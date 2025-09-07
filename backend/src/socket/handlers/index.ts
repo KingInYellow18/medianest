@@ -7,7 +7,7 @@ import { statusHandlers } from './status.handlers';
 import { registerYouTubeHandlers } from './youtube.handler';
 import { registerDownloadHandlers } from './download.handlers';
 import { registerAdminHandlers } from './admin.handlers';
-import { CatchError } from '../types/common';
+import { CatchError } from '../../types/common';
 
 export function registerHandlers(io: Server, socket: Socket): void {
   // Service status subscriptions

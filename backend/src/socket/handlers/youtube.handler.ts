@@ -2,7 +2,7 @@ import { Server, Socket } from 'socket.io';
 
 import { logger } from '@/utils/logger';
 import { youtubeQueue } from '@/config/queues';
-import { CatchError } from '../types/common';
+import { CatchError } from '../../types/common';
 
 export function registerYouTubeHandlers(io: Server, socket: Socket): void {
   const userId = socket.data.user?.id;

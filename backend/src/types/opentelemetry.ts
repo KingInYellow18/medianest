@@ -1,25 +1,34 @@
 /**
  * OpenTelemetry type definitions to replace 'any' types in tracing
+ * Fixed to align with actual OpenTelemetry API types
  */
-import type { Span, SpanKind, SpanStatusCode } from '@opentelemetry/api';
+import type {
+  Span,
+  SpanKind,
+  SpanStatusCode,
+  Attributes,
+  AttributeValue,
+  Context,
+  Link,
+  TraceState,
+} from '@opentelemetry/api';
 import type { NodeSDKConfiguration } from '@opentelemetry/sdk-node';
 import type { Resource } from '@opentelemetry/resources';
-import type { Sampler, SamplingResult } from '@opentelemetry/sdk-trace-base';
+import type { Sampler, SamplingResult, SamplingDecision } from '@opentelemetry/sdk-trace-base';
 
-// Core OpenTelemetry types
+// Core OpenTelemetry types - properly aligned with @opentelemetry/api
 export interface TracingSpan extends Span {
-  setAttributes(attributes: SpanAttributes): Span;
-  setAttribute(key: string, value: AttributeValue): Span;
-  setStatus(status: SpanStatus): Span;
-  updateName(name: string): Span;
+  // These methods return 'this' in the actual API, not Span
+  setAttributes(attributes: Attributes): this;
+  setAttribute(key: string, value: AttributeValue): this;
+  setStatus(status: SpanStatus): this;
+  updateName(name: string): this;
   end(endTime?: number): void;
 }
 
-export interface SpanAttributes {
-  [key: string]: AttributeValue;
-}
-
-export type AttributeValue = string | number | boolean | Array<string | number | boolean>;
+// Use OpenTelemetry's actual types instead of redefining
+export type SpanAttributes = Attributes;
+// AttributeValue is already imported and will be re-exported below
 
 export interface SpanStatus {
   code: SpanStatusCode;
@@ -33,8 +42,8 @@ export interface HttpInstrumentationConfig {
   ignoreOutgoingRequestHook?: (request: OutgoingHttpRequest) => boolean;
   requestHook?: (span: TracingSpan, request: IncomingHttpRequest | OutgoingHttpRequest) => void;
   responseHook?: (span: TracingSpan, response: HttpInstrumentationResponse) => void;
-  startIncomingSpanHook?: (request: IncomingHttpRequest) => SpanAttributes;
-  startOutgoingSpanHook?: (request: OutgoingHttpRequest) => SpanAttributes;
+  startIncomingSpanHook?: (request: IncomingHttpRequest) => Attributes;
+  startOutgoingSpanHook?: (request: OutgoingHttpRequest) => Attributes;
 }
 
 export interface IncomingHttpRequest {
@@ -88,19 +97,25 @@ export interface ExpressRequestInfo {
 
 export type ExpressLayerType = 'router' | 'middleware' | 'request_handler';
 
-// Resource configuration types
-export interface ResourceAttributes {
-  [key: string]: AttributeValue;
+// Resource configuration types - align with OpenTelemetry Resource interface
+export interface ResourceAttributes extends Attributes {
   'service.name'?: string;
   'service.version'?: string;
   'service.instance.id'?: string;
   'deployment.environment'?: string;
 }
 
-export interface TracingResource extends Resource {
+// Don't extend Resource - create a separate interface to avoid conflicts
+export interface TracingResourceConfig {
   attributes: ResourceAttributes;
-  merge(other: Resource): Resource;
+  schemaUrl?: string;
 }
+
+// Helper type for resource creation
+export type ResourceOptions = {
+  attributes: ResourceAttributes;
+  schemaUrl?: string;
+};
 
 // Exporter configuration types
 export interface JaegerExporterConfig {
@@ -120,23 +135,23 @@ export interface OTLPTraceExporterConfig {
   concurrencyLimit?: number;
 }
 
-// Sampling types
+// Sampling types - align with actual OpenTelemetry Sampler interface
 export interface TracingSampler extends Sampler {
   shouldSample(
-    context: unknown,
+    context: Context,
     traceId: string,
     spanName: string,
     spanKind: SpanKind,
-    attributes: SpanAttributes,
-    links: unknown[]
+    attributes: Attributes,
+    links: Link[]
   ): SamplingResult;
   toString(): string;
 }
 
 export interface CustomSamplingResult extends SamplingResult {
-  decision: number; // SamplingDecision enum value
-  attributes?: SpanAttributes;
-  traceState?: unknown;
+  decision: SamplingDecision;
+  attributes?: Readonly<Attributes>;
+  traceState?: TraceState;
 }
 
 // Instrumentation configuration types
@@ -169,12 +184,24 @@ export interface SpanProcessorConfig {
   scheduledDelayMillis?: number;
 }
 
-// Node SDK configuration
-export interface TracingNodeSDKConfig extends Partial<NodeSDKConfiguration> {
-  resource?: TracingResource;
+// Node SDK configuration - avoid extending to prevent conflicts
+export interface TracingNodeSDKConfig {
+  resource?: Resource;
   spanProcessor?: unknown; // BatchSpanProcessor or SimpleSpanProcessor
   instrumentations?: unknown[];
-  sampler?: TracingSampler;
+  sampler?: Sampler;
+  // Add other common NodeSDKConfiguration properties as needed
+  serviceName?: string;
+  serviceVersion?: string;
+  traceExporter?: unknown;
+  metricReader?: unknown;
+  views?: unknown[];
+  textMapPropagator?: unknown;
+}
+
+// Separate interface for SDK configuration without inheritance conflicts
+export interface SDKConfigurationOptions extends Partial<NodeSDKConfiguration> {
+  // This can safely extend NodeSDKConfiguration since it's for options only
 }
 
 // SDK instance type
@@ -204,6 +231,7 @@ export interface TracingMetadata {
 }
 
 // Hook function types
+// Hook function types
 export type IgnoreIncomingRequestHook = (request: IncomingHttpRequest) => boolean;
 export type RequestHook = (
   span: TracingSpan,
@@ -211,6 +239,17 @@ export type RequestHook = (
 ) => void;
 export type ResponseHook = (span: TracingSpan, response: HttpInstrumentationResponse) => void;
 export type LayerIgnoreFunction = (name: string, type: ExpressLayerType) => boolean;
+
+// Export commonly used OpenTelemetry types for convenience
+export type {
+  Attributes,
+  AttributeValue,
+  Context,
+  Link,
+  TraceState,
+  SamplingDecision,
+} from '@opentelemetry/api';
+export type { SamplingResult } from '@opentelemetry/sdk-trace-base';
 
 // Error handling in tracing context
 export interface TracingError extends Error {
