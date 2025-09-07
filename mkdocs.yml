@@ -1,0 +1,263 @@
+# MkDocs Configuration for MediaNest
+site_name: MediaNest Documentation
+site_url: https://medianest.example.com/docs
+site_author: MediaNest Team
+site_description: Complete documentation for MediaNest - Advanced Media Management Platform
+
+# Repository
+repo_name: medianest/medianest
+repo_url: https://github.com/medianest/medianest
+edit_uri: edit/main/docs/
+
+# Copyright
+copyright: Copyright &copy; 2024 MediaNest Team
+
+# Theme Configuration
+theme:
+  name: material
+  custom_dir: docs/overrides
+
+  # Color Scheme
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - scheme: slate
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+  # Features
+  features:
+    - announce.dismiss
+    - content.action.edit
+    - content.action.view
+    - content.code.annotate
+    - content.code.copy
+    - content.tabs.link
+    - content.tooltips
+    - header.autohide
+    - navigation.expand
+    - navigation.footer
+    - navigation.indexes
+    - navigation.instant
+    - navigation.prune
+    - navigation.sections
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+    - toc.integrate
+
+  # Logo and Favicon
+  logo: assets/images/logo.png
+  favicon: assets/images/favicon.png
+
+  # Language
+  language: en
+
+  # Font
+  font:
+    text: Roboto
+    code: Roboto Mono
+
+# Navigation
+nav:
+  - Home: index.md
+
+  - Getting Started:
+      - getting-started/index.md
+      - Quick Start: getting-started/quickstart.md
+      - System Requirements: getting-started/requirements.md
+      - First Time Setup: getting-started/first-setup.md
+
+  - Installation:
+      - installation/index.md
+      - Docker Installation: installation/docker.md
+      - Manual Installation: installation/manual.md
+      - Configuration: installation/configuration.md
+      - Environment Variables: installation/environment.md
+      - Database Setup: installation/database.md
+
+  - User Guides:
+      - user-guides/index.md
+      - Media Management: user-guides/media-management.md
+      - File Organization: user-guides/file-organization.md
+      - Search and Filtering: user-guides/search-filtering.md
+      - Metadata Management: user-guides/metadata.md
+      - Collections: user-guides/collections.md
+      - Sharing and Permissions: user-guides/sharing.md
+      - Backup and Sync: user-guides/backup-sync.md
+
+  - API Reference:
+      - api/index.md
+      - Authentication: api/authentication.md
+      - Media API: api/media.md
+      - Collections API: api/collections.md
+      - User Management: api/users.md
+      - Search API: api/search.md
+      - Webhooks: api/webhooks.md
+      - Rate Limiting: api/rate-limiting.md
+      - Error Handling: api/errors.md
+
+  - Developer Docs:
+      - developers/index.md
+      - Architecture Overview: developers/architecture.md
+      - Contributing: developers/contributing.md
+      - Development Setup: developers/development-setup.md
+      - Coding Standards: developers/coding-standards.md
+      - Testing: developers/testing.md
+      - Deployment: developers/deployment.md
+      - Database Schema: developers/database-schema.md
+      - Plugin Development: developers/plugins.md
+
+  - Troubleshooting:
+      - troubleshooting/index.md
+      - Common Issues: troubleshooting/common-issues.md
+      - Performance Issues: troubleshooting/performance.md
+      - Database Issues: troubleshooting/database.md
+      - Media Processing: troubleshooting/media-processing.md
+      - Authentication Problems: troubleshooting/authentication.md
+      - Logs and Debugging: troubleshooting/debugging.md
+
+  - Reference:
+      - reference/index.md
+      - CLI Commands: reference/cli.md
+      - Configuration Reference: reference/config-reference.md
+      - Supported Formats: reference/formats.md
+      - FAQ: reference/faq.md
+      - Glossary: reference/glossary.md
+      - Changelog: reference/changelog.md
+
+# Plugins
+plugins:
+  - search:
+      separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+  - minify:
+      minify_html: true
+  - git-revision-date-localized:
+      type: date
+      enable_creation_date: true
+  - git-committers:
+      repository: medianest/medianest
+      branch: main
+  - tags:
+      tags_file: tags.md
+  - social:
+      cards: true
+      cards_color:
+        fill: '#673ab7'
+        text: '#ffffff'
+  - offline:
+      enabled: !ENV [OFFLINE, false]
+
+# Markdown Extensions
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+      title: On this page
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      user: medianest
+      repo: medianest
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+# Extra CSS and JavaScript
+extra_css:
+  - assets/stylesheets/extra.css
+  - assets/stylesheets/custom.css
+
+extra_javascript:
+  - assets/javascripts/extra.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+# Extra
+extra:
+  version:
+    provider: mike
+    default: stable
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/medianest/medianest
+    - icon: fontawesome/brands/docker
+      link: https://hub.docker.com/r/medianest/medianest
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/medianest
+  analytics:
+    provider: google
+    property: G-XXXXXXXXXX
+    feedback:
+      title: Was this page helpful?
+      ratings:
+        - icon: material/emoticon-happy-outline
+          name: This page was helpful
+          data: 1
+          note: >-
+            Thanks for your feedback!
+        - icon: material/emoticon-sad-outline
+          name: This page could be improved
+          data: 0
+          note: >-
+            Thanks for your feedback! Help us improve this page by
+            <a href="https://github.com/medianest/medianest/issues/new/?title=[Docs]+{title}+-+{url}" target="_blank" rel="noopener">telling us what you found helpful or confusing</a>.
+
+# Validation
+validation:
+  nav:
+    omitted_files: info
+    not_found: warn
+    absolute_links: info
+  links:
+    not_found: ignore
+    absolute_links: ignore
+    unrecognized_links: ignore
+
+# Watch
+watch:
+  - docs/
+  - mkdocs.yml
