@@ -22,7 +22,9 @@
     "test:coverage": "vitest run --coverage",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "security:validate": "node scripts/validate-production-security.js",
+    "security:pre-deploy": "npm run security:validate"
   },
   "dependencies": {
     "@medianest/shared": "file:../shared",

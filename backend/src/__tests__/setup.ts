@@ -81,7 +81,7 @@ export const createTestJWT = (payload = {}) => {
       ...payload,
     },
     process.env.JWT_SECRET || 'test-secret',
-    { algorithm: 'HS256' },
+    { algorithm: 'HS256' }
   );
 };
 
@@ -130,6 +130,15 @@ export const setupTestEnvironment = () => {
   process.env.API_KEY_HASH = createHash('sha256').update('test-api-key').digest('hex');
 };
 
+// Create factory function to avoid initialization issues
+const createMockLogger = () => ({
+  info: vi.fn(),
+  error: vi.fn(),
+  warn: vi.fn(),
+  debug: vi.fn(),
+  child: vi.fn(() => createMockLogger()),
+});
+
 // Global mocks setup
 export const setupGlobalMocks = () => {
   // Mock Prisma
@@ -146,7 +155,7 @@ export const setupGlobalMocks = () => {
   // Mock Logger
   vi.mock('winston', () => ({
     default: {
-      createLogger: vi.fn(() => mockLogger),
+      createLogger: vi.fn(() => createMockLogger()),
       format: {
         combine: vi.fn(),
         timestamp: vi.fn(),
@@ -284,7 +293,7 @@ export const setupGlobalMocks = () => {
   }));
 
   vi.mock('../../lib/logger', () => ({
-    logger: mockLogger,
+    logger: createMockLogger(),
   }));
 };
 

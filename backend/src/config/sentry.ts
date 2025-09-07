@@ -65,11 +65,12 @@ export class SentryService {
       ],
       beforeSend(event: UnknownRecord) {
         // Filter out sensitive data
-        if (event.request) {
-          delete event.request.cookies;
-          if (event.request.headers) {
-            delete event.request.headers.authorization;
-            delete event.request.headers.cookie;
+        if (event.request && typeof event.request === 'object') {
+          const request = event.request as any;
+          delete request.cookies;
+          if (request.headers && typeof request.headers === 'object') {
+            delete request.headers.authorization;
+            delete request.headers.cookie;
           }
         }
         return event;
@@ -108,7 +109,7 @@ export class SentryService {
     return (Sentry as any).Handlers.errorHandler({
       shouldHandleError(error: Error) {
         // Only handle errors that should be reported
-        return error.status !== 404;
+        return (error as any).status !== 404;
       },
     });
   }

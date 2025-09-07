@@ -1,5 +1,5 @@
-import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
+import * as jwt from 'jsonwebtoken';
+import * as crypto from 'crypto';
 
 import { AppError } from '../utils/errors';
 import { logger } from '../utils/logger';
@@ -20,7 +20,7 @@ export interface JWTPayload {
 }
 
 export interface JWTOptions {
-  expiresIn?: string | number;
+  expiresIn?: string;
   issuer?: string;
   audience?: string;
   sessionId?: string;
@@ -98,13 +98,13 @@ export class JWTFacade {
       jti: this.generateSecureId(),
     };
 
-    const tokenOptions: jwt.SignOptions = {
+    const tokenOptions = {
       expiresIn: options?.expiresIn || expiresIn,
       issuer: options?.issuer || this.jwtIssuer,
       audience: options?.audience || this.jwtAudience,
-      algorithm: 'HS256',
+      algorithm: 'HS256' as const,
       notBefore: '0s',
-    };
+    } as jwt.SignOptions;
 
     const token = jwt.sign(enhancedPayload, this.jwtSecret, tokenOptions);
 

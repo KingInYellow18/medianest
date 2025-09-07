@@ -5,7 +5,7 @@ import { AppError } from './errors';
 import { logger } from './logger';
 import { configService } from '../config/config.service';
 
-interface JWTPayload {
+export interface JWTPayload {
   userId: string;
   email: string;
   role: string;
@@ -19,7 +19,7 @@ interface JWTPayload {
   jti?: string;
 }
 
-interface JWTOptions {
+export interface JWTOptions {
   expiresIn?: string | number;
   issuer?: string;
   audience?: string;
@@ -29,7 +29,7 @@ interface JWTOptions {
   userAgent?: string;
 }
 
-interface TokenRotationInfo {
+export interface TokenRotationInfo {
   newToken: string;
   refreshToken: string;
   expiresAt: Date;
@@ -75,7 +75,10 @@ export function generateToken(
   };
 
   const tokenOptions: jwt.SignOptions = {
-    expiresIn: options?.expiresIn || expiresIn,
+    expiresIn:
+      typeof options?.expiresIn === 'number'
+        ? options.expiresIn
+        : (options?.expiresIn as string) || expiresIn,
     issuer: options?.issuer || JWT_ISSUER,
     audience: options?.audience || JWT_AUDIENCE,
     algorithm: 'HS256',

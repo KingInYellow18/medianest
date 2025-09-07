@@ -122,7 +122,8 @@ export class AuthenticationFacade {
         sessionId: payload.sessionId,
       };
     } catch (error: CatchError) {
-      logger.error('Authentication failed', { error: error.message, ip: req.ip });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('Authentication failed', { error: errorMessage, ip: req.ip });
       throw error;
     }
   }
@@ -154,7 +155,8 @@ export class AuthenticationFacade {
 
       return { user, token };
     } catch (error: CatchError) {
-      logger.debug('Optional auth failed', { error: error.message });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.debug('Optional auth failed', { error: errorMessage });
       return null;
     }
   }
@@ -217,7 +219,8 @@ export class AuthenticationFacade {
         user,
       };
     } catch (error: CatchError) {
-      logger.error('Token refresh failed', { error: error.message });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('Token refresh failed', { error: errorMessage });
       throw error;
     }
   }
@@ -236,7 +239,7 @@ export class AuthenticationFacade {
       ipAddress: req.ip,
       userAgent: req.get('user-agent'),
       sessionId: payload.sessionId,
-      deviceId: payload.deviceId,
+      deviceId: payload.deviceId || '',
     };
 
     await handleTokenRotation(
@@ -273,7 +276,8 @@ export class AuthenticationFacade {
         sessionId: metadata.sessionId,
       });
     } catch (error: CatchError) {
-      logger.error('Logout failed', { error: error.message });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('Logout failed', { error: errorMessage });
       throw error;
     }
   }

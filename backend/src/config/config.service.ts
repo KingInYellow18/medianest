@@ -235,9 +235,10 @@ export class ConfigService {
     return {
       NODE_ENV: (process.env.NODE_ENV as 'development' | 'test' | 'production') || 'development',
       PORT: this.getIntEnv('PORT', 4000),
-      HOST: this.getStringEnv('HOST', 'localhost'),
+      HOST: this.getStringEnv('HOST', 'localhost') || 'localhost',
       HOSTNAME: this.getStringEnv('HOSTNAME'),
-      FRONTEND_URL: this.getStringEnv('FRONTEND_URL', 'http://localhost:3000'),
+      FRONTEND_URL:
+        this.getStringEnv('FRONTEND_URL', 'http://localhost:3000') || 'http://localhost:3000',
       BACKEND_URL: this.getStringEnv('BACKEND_URL'),
       APP_VERSION: this.getStringEnv('APP_VERSION'),
       SERVICE_NAME: this.getStringEnv('SERVICE_NAME'),
@@ -257,16 +258,16 @@ export class ConfigService {
   private loadAuthConfig(): AuthConfig {
     return {
       JWT_SECRET: readSecret('jwt_secret', 'JWT_SECRET', 'dev-secret'),
-      JWT_ISSUER: this.getStringEnv('JWT_ISSUER', 'medianest'),
-      JWT_AUDIENCE: this.getStringEnv('JWT_AUDIENCE', 'medianest-users'),
-      JWT_EXPIRES_IN: this.getStringEnv('JWT_EXPIRES_IN', '7d'),
+      JWT_ISSUER: this.getStringEnv('JWT_ISSUER', 'medianest') || 'medianest',
+      JWT_AUDIENCE: this.getStringEnv('JWT_AUDIENCE', 'medianest-users') || 'medianest-users',
+      JWT_EXPIRES_IN: this.getStringEnv('JWT_EXPIRES_IN', '7d') || '7d',
       JWT_SECRET_ROTATION: this.getStringEnv('JWT_SECRET_ROTATION'),
       ENCRYPTION_KEY: readSecret('encryption_key', 'ENCRYPTION_KEY', ''),
 
       SESSION_COOKIE_MAX_AGE: this.getIntEnv('SESSION_COOKIE_MAX_AGE', 86400000),
       SESSION_ROLLING: this.getBooleanEnv('SESSION_ROLLING', false),
 
-      AUTH_COOKIE_NAME: this.getStringEnv('AUTH_COOKIE_NAME', 'auth-token'),
+      AUTH_COOKIE_NAME: this.getStringEnv('AUTH_COOKIE_NAME', 'auth-token') || 'auth-token',
       AUTH_COOKIE_DOMAIN: this.getStringEnv('AUTH_COOKIE_DOMAIN'),
 
       BCRYPT_ROUNDS: this.getIntEnv('BCRYPT_ROUNDS', 12),
@@ -290,7 +291,7 @@ export class ConfigService {
         'REDIS_URL_FILE',
         process.env.REDIS_URL || 'redis://localhost:6379'
       ),
-      REDIS_HOST: this.getStringEnv('REDIS_HOST', 'localhost'),
+      REDIS_HOST: this.getStringEnv('REDIS_HOST', 'localhost') || 'localhost',
       REDIS_PORT: this.getIntEnv('REDIS_PORT', 6379),
       REDIS_PASSWORD: this.getStringEnv('REDIS_PASSWORD'),
       SKIP_REDIS: this.getBooleanEnv('SKIP_REDIS', false),
@@ -320,8 +321,9 @@ export class ConfigService {
       SMTP_PORT: this.getIntEnv('SMTP_PORT', 587),
       SMTP_SECURE: this.getBooleanEnv('SMTP_SECURE', false),
       SMTP_USER: this.getStringEnv('SMTP_USER'),
-      EMAIL_FROM: this.getStringEnv('EMAIL_FROM', 'noreply@medianest.com'),
-      EMAIL_FROM_NAME: this.getStringEnv('EMAIL_FROM_NAME', 'MediaNest'),
+      EMAIL_FROM:
+        this.getStringEnv('EMAIL_FROM', 'noreply@medianest.com') || 'noreply@medianest.com',
+      EMAIL_FROM_NAME: this.getStringEnv('EMAIL_FROM_NAME', 'MediaNest') || 'MediaNest',
     };
   }
 
@@ -355,7 +357,9 @@ export class ConfigService {
   private loadLoggingConfig(): LoggingConfig {
     const nodeEnv = process.env.NODE_ENV || 'development';
     return {
-      LOG_LEVEL: this.getStringEnv('LOG_LEVEL', nodeEnv === 'production' ? 'info' : 'debug'),
+      LOG_LEVEL:
+        this.getStringEnv('LOG_LEVEL', nodeEnv === 'production' ? 'info' : 'debug') ||
+        (nodeEnv === 'production' ? 'info' : 'debug'),
       LOG_REQUESTS: this.getBooleanEnv('LOG_REQUESTS', false),
       LOG_ERRORS: this.getBooleanEnv('LOG_ERRORS', true),
       LOG_REQUEST_BODY: this.getBooleanEnv('LOG_REQUEST_BODY'),
@@ -392,7 +396,8 @@ export class ConfigService {
   private loadDockerConfig(): DockerConfig {
     return {
       USE_DOCKER_SECRETS: this.getBooleanEnv('USE_DOCKER_SECRETS', false),
-      DOCKER_SECRETS_PATH: this.getStringEnv('DOCKER_SECRETS_PATH', '/run/secrets'),
+      DOCKER_SECRETS_PATH:
+        this.getStringEnv('DOCKER_SECRETS_PATH', '/run/secrets') || '/run/secrets',
     };
   }
 
@@ -434,7 +439,7 @@ export class ConfigService {
   ): void {
     this.configSources.push({
       key,
-      value: isSecret ? this.maskSensitiveValue(value) : value,
+      value: isSecret ? this.maskSensitiveValue(String(value)) : value,
       source,
       isSecret,
     });
@@ -514,5 +519,4 @@ export class ConfigService {
 // Export singleton instance
 export const configService = new ConfigService();
 
-// Export type for dependency injection
-export type { ConfigService };
+// Type export removed to prevent redeclaration
