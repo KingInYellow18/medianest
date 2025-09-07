@@ -10,6 +10,7 @@ import {
   ValidationError,
 } from '../utils/errors';
 import { logger } from '../utils/logger';
+import { configService } from '../config/config.service';
 
 /**
  * Secure error handler that prevents information leakage
@@ -18,7 +19,7 @@ export function secureErrorHandler(
   error: Error,
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ): void {
   // Log the full error for internal monitoring
   const errorId = require('crypto').randomUUID();
@@ -36,7 +37,7 @@ export function secureErrorHandler(
   });
 
   // Determine response based on error type and environment
-  const isDevelopment = process.env.NODE_ENV === 'development';
+  const isDevelopment = configService.isDevelopment();
   let statusCode = 500;
   let message = 'Internal Server Error';
   let details: any = undefined;
@@ -155,7 +156,7 @@ function sanitizeError(error: Error): any {
   };
 
   // Only include stack in development
-  if (process.env.NODE_ENV === 'development') {
+  if (configService.isDevelopment()) {
     sanitized.stack = error.stack as any;
   }
 
@@ -179,14 +180,14 @@ function sanitizeErrorMessage(message: string): string {
   // Remove JWT tokens
   message = message.replace(
     /eyJ[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*/g,
-    '[JWT_TOKEN]',
+    '[JWT_TOKEN]'
   );
 
   // Remove API keys and secrets
   message = message.replace(/[a-zA-Z0-9]{32,}/g, '[SECRET]');
 
   // Remove IP addresses (but keep localhost for development)
-  if (process.env.NODE_ENV === 'production') {
+  if (configService.isProduction()) {
     message = message.replace(/\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b/g, '[IP_ADDRESS]');
   }
 
@@ -239,7 +240,7 @@ export function handleUnhandledRejection(): void {
     });
 
     // In production, we might want to restart the process
-    if (process.env.NODE_ENV === 'production') {
+    if (configService.isProduction()) {
       logger.error('Process will exit due to unhandled rejection');
       process.exit(1);
     }
@@ -284,7 +285,7 @@ export function notFoundHandler(req: Request, res: Response): void {
     message: 'Route not found',
     details: {
       errorId,
-      ...(process.env.NODE_ENV === 'development' && {
+      ...(configService.isDevelopment() && {
         requestedPath: req.path,
         method: req.method,
       }),
@@ -300,7 +301,7 @@ export function healthCheckErrorHandler(error: Error): any {
     status: 'error',
     message: 'Health check failed',
     timestamp: new Date().toISOString(),
-    ...(process.env.NODE_ENV === 'development' && {
+    ...(configService.isDevelopment() && {
       error: sanitizeError(error),
     }),
   };
@@ -319,7 +320,7 @@ export function handleDatabaseError(error: Error): void {
   });
 
   // In production, implement retry logic or circuit breaker
-  if (process.env.NODE_ENV === 'production') {
+  if (configService.isProduction()) {
     // Could implement exponential backoff retry here
     logger.warn('Database connection failed - implement retry logic');
   }

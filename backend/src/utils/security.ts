@@ -1,7 +1,7 @@
-// @ts-nocheck
 import crypto from 'crypto';
 import * as bcrypt from 'bcryptjs';
 import { logger } from './logger';
+import { configService } from '../config/config.service';
 
 // Password Policy Configuration
 export interface PasswordPolicy {
@@ -184,16 +184,16 @@ export function encryptSensitiveData(
   key?: string
 ): { encrypted: string; iv: string } {
   const algorithm = 'aes-256-gcm';
-  if (!key && !process.env.ENCRYPTION_KEY) {
+  if (!key && !configService.get('auth', 'ENCRYPTION_KEY')) {
     throw new Error(
-      'ENCRYPTION_KEY environment variable is required. Generate one with: openssl rand -base64 32'
+      'ENCRYPTION_KEY configuration is required. Generate one with: openssl rand -base64 32'
     );
   }
-  const secretKey = key || process.env.ENCRYPTION_KEY!;
+  const secretKey = key || configService.get('auth', 'ENCRYPTION_KEY')!;
   const keyHash = crypto.createHash('sha256').update(secretKey).digest();
 
   const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipher(algorithm, keyHash);
+  const cipher = crypto.createCipherGCM(algorithm, keyHash, iv);
 
   let encrypted = cipher.update(data, 'utf8', 'hex');
   encrypted += cipher.final('hex');
@@ -205,17 +205,18 @@ export function encryptSensitiveData(
 }
 
 // Decrypt sensitive data
-export function decryptSensitiveData(encryptedData: string, _iv: string, key?: string): string {
+export function decryptSensitiveData(encryptedData: string, iv: string, key?: string): string {
   const algorithm = 'aes-256-gcm';
-  if (!key && !process.env.ENCRYPTION_KEY) {
+  if (!key && !configService.get('auth', 'ENCRYPTION_KEY')) {
     throw new Error(
-      'ENCRYPTION_KEY environment variable is required. Generate one with: openssl rand -base64 32'
+      'ENCRYPTION_KEY configuration is required. Generate one with: openssl rand -base64 32'
     );
   }
-  const secretKey = key || process.env.ENCRYPTION_KEY!;
+  const secretKey = key || configService.get('auth', 'ENCRYPTION_KEY')!;
   const keyHash = crypto.createHash('sha256').update(secretKey).digest();
 
-  const decipher = crypto.createDecipher(algorithm, keyHash);
+  const ivBuffer = Buffer.from(iv, 'hex');
+  const decipher = crypto.createDecipherGCM(algorithm, keyHash, ivBuffer);
 
   let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
   decrypted += decipher.final('utf8');
@@ -231,7 +232,7 @@ export function generateRateLimitKey(identifier: string, action: string): string
 // Security event logging
 export function logSecurityEvent(
   event: string,
-  details: any,
+  details: Record<string, unknown>,
   level: 'info' | 'warn' | 'error' = 'warn'
 ): void {
   const securityLog = {

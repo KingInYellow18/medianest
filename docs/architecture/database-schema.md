@@ -13,41 +13,208 @@ MediaNest uses PostgreSQL as its primary database with Prisma ORM for type-safe 
 
 ## Entity Relationship Diagram
 
+The following ERD shows the complete MediaNest database schema with all relationships:
+
+```mermaid
+erDiagram
+    User {
+        string id PK "UUID Primary Key"
+        string plexId UK "Unique Plex User ID"
+        string plexUsername "Plex Display Name"
+        string email UK "Unique Email Address"
+        string name "Full Name"
+        string role "USER | ADMIN | MODERATOR"
+        string plexToken "Encrypted Plex Token"
+        string image "Profile Image URL"
+        boolean requiresPasswordChange "Force Password Reset"
+        datetime createdAt "Account Creation"
+        datetime lastLoginAt "Last Authentication"
+        string status "active | suspended | deleted"
+    }
+
+    MediaRequest {
+        string id PK "UUID Primary Key"
+        string userId FK "Reference to User"
+        string title "Media Title"
+        string mediaType "movie | tv"
+        string tmdbId "TMDB Database ID"
+        string status "pending | approved | available | failed"
+        string overseerrId "Overseerr Request ID"
+        datetime createdAt "Request Creation"
+        datetime completedAt "Request Completion"
+    }
+
+    YoutubeDownload {
+        string id PK "UUID Primary Key"
+        string userId FK "Reference to User"
+        string playlistUrl "YouTube Playlist URL"
+        string playlistTitle "Playlist Display Name"
+        string status "queued | downloading | completed | failed"
+        json filePaths "Downloaded File Paths Array"
+        string plexCollectionId "Plex Collection ID"
+        datetime createdAt "Download Initiation"
+        datetime completedAt "Download Completion"
+    }
+
+    ServiceStatus {
+        int id PK "Auto-increment ID"
+        string serviceName UK "Service Identifier"
+        string status "online | offline | degraded"
+        int responseTimeMs "Response Time in MS"
+        datetime lastCheckAt "Last Health Check"
+        decimal uptimePercentage "99.99 format (5,2)"
+    }
+
+    RateLimit {
+        int id PK "Auto-increment ID"
+        string userId FK "Reference to User"
+        string endpoint "API Endpoint Path"
+        int requestCount "Current Request Count"
+        datetime windowStart "Rate Limit Window Start"
+    }
+
+    ServiceConfig {
+        int id PK "Auto-increment ID"
+        string serviceName UK "Service Identifier"
+        string serviceUrl "Service Base URL"
+        string apiKey "Encrypted API Key"
+        boolean enabled "Service Status"
+        json configData "Service-specific Configuration"
+        datetime updatedAt "Last Configuration Update"
+        string updatedBy FK "User who updated config"
+    }
+
+    SessionToken {
+        string id PK "UUID Primary Key"
+        string userId FK "Reference to User"
+        string tokenHash UK "Hashed Token Value"
+        datetime expiresAt "Token Expiration"
+        datetime createdAt "Token Creation"
+        datetime lastUsedAt "Last Token Usage"
+    }
+
+    Account {
+        string id PK "UUID Primary Key"
+        string userId FK "Reference to User"
+        string type "oauth | credentials"
+        string provider "plex | local"
+        string providerAccountId "Provider User ID"
+        string refresh_token "OAuth Refresh Token"
+        string access_token "OAuth Access Token"
+        int expires_at "Token Expiration Timestamp"
+        string token_type "Bearer | etc"
+        string scope "OAuth Scope"
+        string id_token "OpenID Connect ID Token"
+        string session_state "OAuth Session State"
+    }
+
+    Session {
+        string id PK "UUID Primary Key"
+        string sessionToken UK "Unique Session Token"
+        string userId FK "Reference to User"
+        datetime expires "Session Expiration"
+    }
+
+    VerificationToken {
+        string identifier "Email | Phone Number"
+        string token UK "Verification Token"
+        datetime expires "Token Expiration"
+    }
+
+    ErrorLog {
+        string id PK "UUID Primary Key"
+        string correlationId "Request Correlation ID"
+        string userId FK "Reference to User"
+        string errorCode "Application Error Code"
+        string errorMessage "Human Readable Error"
+        string stackTrace "Full Stack Trace"
+        string requestPath "HTTP Request Path"
+        string requestMethod "GET | POST | etc"
+        int statusCode "HTTP Status Code"
+        json metadata "Additional Error Context"
+        datetime createdAt "Error Occurrence Time"
+    }
+
+    %% Primary Relationships
+    User ||--o{ MediaRequest : "creates"
+    User ||--o{ YoutubeDownload : "initiates"
+    User ||--o{ RateLimit : "has_limits"
+    User ||--o{ SessionToken : "owns_tokens"
+    User ||--o{ Account : "has_accounts"
+    User ||--o{ Session : "authenticated_via"
+    User ||--o{ ErrorLog : "generates_errors"
+    User ||--o{ ServiceConfig : "last_updated_by"
+
+    %% Composite Unique Constraints
+    Account ||--|| User : "unique_provider_account"
+    VerificationToken ||--|| User : "unique_identifier_token"
 ```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│      User       │────│  MediaRequest    │    │ YoutubeDownload │
-│                 │    │                  │    │                 │
-│ id (PK)         │    │ id (PK)          │    │ id (PK)         │
-│ plexId          │    │ userId (FK)      │    │ userId (FK)     │
-│ plexUsername    │    │ title            │    │ playlistUrl     │
-│ email (unique)  │    │ mediaType        │    │ status          │
-│ name            │    │ tmdbId           │    │ filePaths       │
-│ role            │    │ status           │    │ createdAt       │
-│ plexToken       │    │ overseerrId      │    │ completedAt     │
-│ createdAt       │    │ createdAt        │    └─────────────────┘
-│ lastLoginAt     │    │ completedAt      │              │
-│ status          │    └──────────────────┘              │
-└─────────────────┘                                      │
-         │                                               │
-         ├───────────────────────────────────────────────┘
-         │
-         ├────┐    ┌─────────────────┐
-         │    └────│   RateLimit     │
-         │         │                 │
-         │         │ id (PK)         │
-         │         │ userId (FK)     │
-         │         │ endpoint        │
-         │         │ requestCount    │
-         │         │ windowStart     │
-         │         └─────────────────┘
-         │
-         ├────┐    ┌─────────────────┐
-         │    └────│ SessionToken    │
-         │         │                 │
-         │         │ id (PK)         │
-         │         │ userId (FK)     │
-         │         │ tokenHash       │
-         │         │ expiresAt       │
+
+## Database Indexes and Performance
+
+```mermaid
+graph LR
+    subgraph "Primary Indexes (Automatic)"
+        PK1["User.id (PK)"]
+        PK2["MediaRequest.id (PK)"]
+        PK3["YoutubeDownload.id (PK)"]
+        PK4["ServiceStatus.id (PK)"]
+    end
+
+    subgraph "Unique Indexes"
+        UK1["User.email (UK)"]
+        UK2["User.plexId (UK)"]
+        UK3["ServiceStatus.serviceName (UK)"]
+        UK4["SessionToken.tokenHash (UK)"]
+        UK5["Session.sessionToken (UK)"]
+    end
+
+    subgraph "Performance Indexes"
+        IDX1["MediaRequest: userId + status<br/>(User's active requests)"]
+        IDX2["MediaRequest: createdAt<br/>(Time-based queries)"]
+        IDX3["MediaRequest: tmdbId + mediaType<br/>(Duplicate detection)"]
+        IDX4["ErrorLog: correlationId<br/>(Request tracing)"]
+        IDX5["ErrorLog: createdAt<br/>(Log cleanup)"]
+        IDX6["SessionToken: expiresAt<br/>(Session cleanup)"]
+        IDX7["RateLimit: userId + endpoint<br/>(Rate limiting)"]
+    end
+
+    subgraph "Query Optimization"
+        OPT1["Partial Index on User.status = 'active'"]
+        OPT2["Partial Index on MediaRequest.status != 'completed'"]
+        OPT3["Index on ServiceStatus.lastCheckAt WHERE enabled = true"]
+    end
+```
+
+## Schema Design Principles
+
+```mermaid
+graph TB
+    subgraph "Data Integrity"
+        FOREIGN_KEYS["Foreign Key Constraints<br/>Referential Integrity"]
+        CHECK_CONSTRAINTS["Check Constraints<br/>Data Validation"]
+        NOT_NULL["Not Null Constraints<br/>Required Fields"]
+    end
+
+    subgraph "Security"
+        UUID_PKS["UUID Primary Keys<br/>No Sequential IDs"]
+        ENCRYPTED_FIELDS["Encrypted Sensitive Data<br/>API Keys, Tokens"]
+        AUDIT_TRAILS["Full Audit Logging<br/>All Data Changes"]
+    end
+
+    subgraph "Performance"
+        STRATEGIC_INDEXES["Strategic Indexing<br/>Query Optimization"]
+        PARTITIONING["Table Partitioning<br/>Large Tables (Future)"]
+        ARCHIVAL["Data Archival<br/>Old Records"]
+    end
+
+    subgraph "Scalability"
+        JSON_COLUMNS["JSON Columns<br/>Flexible Metadata"]
+        SOFT_DELETES["Soft Deletes<br/>Data Recovery"]
+        CONNECTION_POOLING["Connection Pooling<br/>Resource Management"]
+    end
+```
+
          │         │ createdAt       │
          │         │ lastUsedAt      │
          │         └─────────────────┘
@@ -73,7 +240,8 @@ MediaNest uses PostgreSQL as its primary database with Prisma ORM for type-safe 
                     ├─── Account
                     ├─── Session
                     └─── VerificationToken
-```
+
+````
 
 ## Core Tables
 
@@ -96,7 +264,7 @@ CREATE TABLE users (
     last_login_at TIMESTAMP,
     status VARCHAR DEFAULT 'active'
 );
-```
+````
 
 **Key Features:**
 
@@ -336,10 +504,12 @@ CREATE TABLE verification_tokens (
 #### High-Priority Indexes
 
 1. **Users**
+
    - `email` (unique) - Authentication lookups
    - `plex_id` (unique) - Plex integration
 
 2. **MediaRequest**
+
    - `(user_id, status)` - Dashboard filtering
    - `created_at` - Chronological sorting
    - `(tmdb_id, media_type)` - Duplicate prevention

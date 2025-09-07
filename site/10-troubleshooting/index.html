@@ -1,0 +1,1145 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Complete documentation for MediaNest - Advanced Media Management Platform">
+      
+      
+        <meta name="author" content="MediaNest Team">
+      
+      
+        <link rel="canonical" href="https://medianest.example.com/docs/10-troubleshooting/">
+      
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.18">
+    
+    
+      
+        <title>Troubleshooting Guide\n\nComprehensive troubleshooting guide for common MediaNest issues and problems.\n\n## Overview\n\nThis section provides step-by-step solutions for common issues you might encounter while setting up, configuring, or running MediaNest.\n\n## Troubleshooting Documentation\n\n### Common Issues\n- FAQ - Frequently asked questions and quick answers\n- Installation Issues - Setup and installation problems\n- Authentication Problems - Login and auth issues\n- Database Issues - Database connection and query problems\n\n### Service-Specific Issues\n- Plex Integration Issues - Plex connection problems\n- Docker Issues - Container and Docker Compose problems\n- Network Issues - Connectivity and networking problems\n- Performance Issues - Slow response and optimization\n\n### Error Resolution\n- Error Code Reference - Complete error code documentation\n- Log Analysis - How to read and analyze logs\n- Debug Mode - Enabling debug mode and diagnostics\n- Health Checks - System health diagnostic procedures\n\n### Recovery Procedures\n- Data Recovery - Database and data recovery procedures\n- Service Recovery - Recovering failed services\n- Rollback Procedures - Rolling back deployments\n- Disaster Recovery - Complete system recovery\n\n## Quick Diagnostic Commands\n\n### System Health Check\n\nbash\n# Check all services status\ndocker-compose ps\n\n# Check service logs\ndocker-compose logs -f --tail=100\n\n# Check API health\ncurl -f http://localhost:3001/api/health\n\n# Check database connectivity\ndocker-compose exec postgres pg_isready\n\n# Check Redis connectivity\ndocker-compose exec redis redis-cli ping\n\n\n### Common Fix Commands\n\nbash\n# Restart all services\ndocker-compose restart\n\n# Rebuild and restart specific service\ndocker-compose up -d --build backend\n\n# Clear Docker cache and rebuild\ndocker system prune -f\ndocker-compose build --no-cache\n\n# Reset database (WARNING: destroys data)\ndocker-compose down -v\ndocker-compose up -d\n\n\n## Most Common Issues\n\n### 1. Cannot Connect to Database\n\n**Symptoms**: ECONNREFUSED errors, database timeout\n\n**Solutions**:\nbash\n# Check database container status\ndocker-compose ps postgres\n\n# Check database logs\ndocker-compose logs postgres\n\n# Restart database\ndocker-compose restart postgres\n\n# Check connection string\necho $DATABASE_URL\n\n\n### 2. Plex Authentication Fails\n\n**Symptoms**: PIN generation fails, auth timeout\n\n**Solutions**:\nbash\n# Check Plex connectivity\ncurl -I https://plex.tv\n\n# Verify Plex client ID\necho $PLEX_CLIENT_ID\n\n# Check backend logs for Plex errors\ndocker-compose logs backend | grep -i plex\n\n\n### 3. Frontend Not Loading\n\n**Symptoms**: White screen, 404 errors, build failures\n\n**Solutions**:\nbash\n# Check frontend build\ndocker-compose logs frontend\n\n# Rebuild frontend\ndocker-compose build frontend\ndocker-compose up -d frontend\n\n# Check NGINX configuration\ndocker-compose exec nginx nginx -t\n\n\n### 4. High Memory Usage\n\n**Symptoms**: Services crashing, slow performance\n\n**Solutions**:\nbash\n# Check memory usage\ndocker stats\n\n# Restart services to free memory\ndocker-compose restart\n\n# Check for memory leaks\ndocker-compose logs backend | grep -i \"memory\\|heap\"\n\n\n## Error Code Quick Reference\n\n| Code | Description | Common Cause |\n|------|-------------|-------------|\n| PLEX_UNREACHABLE | Cannot connect to Plex | Network/firewall issue |\n| DATABASE_CONNECTION_ERROR | DB connection failed | Database not running |\n| JWT_INVALID | Invalid JWT token | Expired/malformed token |\n| RATE_LIMITED | Too many requests | Client sending too many requests |\n| VALIDATION_ERROR | Input validation failed | Invalid request data |\n| CSRF_TOKEN_MISMATCH | CSRF validation failed | Missing/invalid CSRF token |\n\n## Getting Help\n\n### Before Asking for Help\n\n1. Check the FAQ - Many issues are already documented\n2. Search the logs - Look for specific error messages\n3. Check system resources - Ensure adequate CPU/memory/disk\n4. Try basic fixes - Restart services, check connections\n5. Gather information - Collect relevant logs and configuration\n\n### Information to Provide\n\nWhen reporting issues, include:\n\nbash\n# System information\ndocker --version\ndocker-compose --version\nuname -a\n\n# Service status\ndocker-compose ps\n\n# Recent logs\ndocker-compose logs --tail=50\n\n# Configuration (remove sensitive data)\ncat .env | sed 's/=.*/=***/' \n\n\n### Community Resources\n\n1. GitHub Issues - Bug reports and feature requests\n2. Discussions - Community questions and answers\n3. Documentation - Check related documentation sections\n4. Stack Overflow - Technical questions with medianest tag\n\n## Related Documentation\n\n- Configuration Guide - Configuration troubleshooting\n- Monitoring Guide - Using monitoring for diagnostics\n- Security Guide - Security-related issues\n- Deployment Guide - Deployment troubleshooting - MediaNest Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.7e37652d.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="../assets/stylesheets/custom.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-XXXXXXXXXX"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-XXXXXXXXXX",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#troubleshooting-guidenncomprehensive-troubleshooting-guide-for-common-medianest-issues-and-problemsnn-overviewnnthis-section-provides-step-by-step-solutions-for-common-issues-you-might-encounter-while-setting-up-configuring-or-running-medianestnn-troubleshooting-documentationnn-common-issuesn-faq-frequently-asked-questions-and-quick-answersn-installation-issues-setup-and-installation-problemsn-authentication-problems-login-and-auth-issuesn-database-issues-database-connection-and-query-problemsnn-service-specific-issuesn-plex-integration-issues-plex-connection-problemsn-docker-issues-container-and-docker-compose-problemsn-network-issues-connectivity-and-networking-problemsn-performance-issues-slow-response-and-optimizationnn-error-resolutionn-error-code-reference-complete-error-code-documentationn-log-analysis-how-to-read-and-analyze-logsn-debug-mode-enabling-debug-mode-and-diagnosticsn-health-checks-system-health-diagnostic-proceduresnn-recovery-proceduresn-data-recovery-database-and-data-recovery-proceduresn-service-recovery-recovering-failed-servicesn-rollback-procedures-rolling-back-deploymentsn-disaster-recovery-complete-system-recoverynn-quick-diagnostic-commandsnn-system-health-checknnbashn-check-all-services-statusndocker-compose-psnn-check-service-logsndocker-compose-logs-f-tail100nn-check-api-healthncurl-f-httplocalhost3001apihealthnn-check-database-connectivityndocker-compose-exec-postgres-pg_isreadynn-check-redis-connectivityndocker-compose-exec-redis-redis-cli-pingnnn-common-fix-commandsnnbashn-restart-all-servicesndocker-compose-restartnn-rebuild-and-restart-specific-servicendocker-compose-up-d-build-backendnn-clear-docker-cache-and-rebuildndocker-system-prune-fndocker-compose-build-no-cachenn-reset-database-warning-destroys-datandocker-compose-down-vndocker-compose-up-dnnn-most-common-issuesnn-1-cannot-connect-to-databasennsymptoms-econnrefused-errors-database-timeoutnnsolutionsnbashn-check-database-container-statusndocker-compose-ps-postgresnn-check-database-logsndocker-compose-logs-postgresnn-restart-databasendocker-compose-restart-postgresnn-check-connection-stringnecho-database_urlnnn-2-plex-authentication-failsnnsymptoms-pin-generation-fails-auth-timeoutnnsolutionsnbashn-check-plex-connectivityncurl-i-httpsplextvnn-verify-plex-client-idnecho-plex_client_idnn-check-backend-logs-for-plex-errorsndocker-compose-logs-backend-grep-i-plexnnn-3-frontend-not-loadingnnsymptoms-white-screen-404-errors-build-failuresnnsolutionsnbashn-check-frontend-buildndocker-compose-logs-frontendnn-rebuild-frontendndocker-compose-build-frontendndocker-compose-up-d-frontendnn-check-nginx-configurationndocker-compose-exec-nginx-nginx-tnnn-4-high-memory-usagennsymptoms-services-crashing-slow-performancennsolutionsnbashn-check-memory-usagendocker-statsnn-restart-services-to-free-memoryndocker-compose-restartnn-check-for-memory-leaksndocker-compose-logs-backend-grep-i-memoryheapnnn-error-code-quick-referencenn-code-description-common-cause-n-n-plex_unreachable-cannot-connect-to-plex-networkfirewall-issue-n-database_connection_error-db-connection-failed-database-not-running-n-jwt_invalid-invalid-jwt-token-expiredmalformed-token-n-rate_limited-too-many-requests-client-sending-too-many-requests-n-validation_error-input-validation-failed-invalid-request-data-n-csrf_token_mismatch-csrf-validation-failed-missinginvalid-csrf-token-nn-getting-helpnn-before-asking-for-helpnn1-check-the-faq-many-issues-are-already-documentedn2-search-the-logs-look-for-specific-error-messagesn3-check-system-resources-ensure-adequate-cpumemorydiskn4-try-basic-fixes-restart-services-check-connectionsn5-gather-information-collect-relevant-logs-and-configurationnn-information-to-providennwhen-reporting-issues-includennbashn-system-informationndocker-versionndocker-compose-versionnuname-ann-service-statusndocker-compose-psnn-recent-logsndocker-compose-logs-tail50nn-configuration-remove-sensitive-datancat-env-sed-s-nnn-community-resourcesnn1-github-issues-bug-reports-and-feature-requestsn2-discussions-community-questions-and-answersn3-documentation-check-related-documentation-sectionsn4-stack-overflow-technical-questions-with-medianest-tagnn-related-documentationnn-configuration-guide-configuration-troubleshootingn-monitoring-guide-using-monitoring-for-diagnosticsn-security-guide-security-related-issuesn-deployment-guide-deployment-troubleshooting" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="MediaNest Documentation" class="md-header__button md-logo" aria-label="MediaNest Documentation" data-md-component="logo">
+      
+  <img src="../assets/images/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MediaNest Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Troubleshooting Guide\n\nComprehensive troubleshooting guide for common MediaNest issues and problems.\n\n## Overview\n\nThis section provides step-by-step solutions for common issues you might encounter while setting up, configuring, or running MediaNest.\n\n## Troubleshooting Documentation\n\n### Common Issues\n- FAQ - Frequently asked questions and quick answers\n- Installation Issues - Setup and installation problems\n- Authentication Problems - Login and auth issues\n- Database Issues - Database connection and query problems\n\n### Service-Specific Issues\n- Plex Integration Issues - Plex connection problems\n- Docker Issues - Container and Docker Compose problems\n- Network Issues - Connectivity and networking problems\n- Performance Issues - Slow response and optimization\n\n### Error Resolution\n- Error Code Reference - Complete error code documentation\n- Log Analysis - How to read and analyze logs\n- Debug Mode - Enabling debug mode and diagnostics\n- Health Checks - System health diagnostic procedures\n\n### Recovery Procedures\n- Data Recovery - Database and data recovery procedures\n- Service Recovery - Recovering failed services\n- Rollback Procedures - Rolling back deployments\n- Disaster Recovery - Complete system recovery\n\n## Quick Diagnostic Commands\n\n### System Health Check\n\nbash\n# Check all services status\ndocker-compose ps\n\n# Check service logs\ndocker-compose logs -f --tail=100\n\n# Check API health\ncurl -f http://localhost:3001/api/health\n\n# Check database connectivity\ndocker-compose exec postgres pg_isready\n\n# Check Redis connectivity\ndocker-compose exec redis redis-cli ping\n\n\n### Common Fix Commands\n\nbash\n# Restart all services\ndocker-compose restart\n\n# Rebuild and restart specific service\ndocker-compose up -d --build backend\n\n# Clear Docker cache and rebuild\ndocker system prune -f\ndocker-compose build --no-cache\n\n# Reset database (WARNING: destroys data)\ndocker-compose down -v\ndocker-compose up -d\n\n\n## Most Common Issues\n\n### 1. Cannot Connect to Database\n\n**Symptoms**: ECONNREFUSED errors, database timeout\n\n**Solutions**:\nbash\n# Check database container status\ndocker-compose ps postgres\n\n# Check database logs\ndocker-compose logs postgres\n\n# Restart database\ndocker-compose restart postgres\n\n# Check connection string\necho $DATABASE_URL\n\n\n### 2. Plex Authentication Fails\n\n**Symptoms**: PIN generation fails, auth timeout\n\n**Solutions**:\nbash\n# Check Plex connectivity\ncurl -I https://plex.tv\n\n# Verify Plex client ID\necho $PLEX_CLIENT_ID\n\n# Check backend logs for Plex errors\ndocker-compose logs backend | grep -i plex\n\n\n### 3. Frontend Not Loading\n\n**Symptoms**: White screen, 404 errors, build failures\n\n**Solutions**:\nbash\n# Check frontend build\ndocker-compose logs frontend\n\n# Rebuild frontend\ndocker-compose build frontend\ndocker-compose up -d frontend\n\n# Check NGINX configuration\ndocker-compose exec nginx nginx -t\n\n\n### 4. High Memory Usage\n\n**Symptoms**: Services crashing, slow performance\n\n**Solutions**:\nbash\n# Check memory usage\ndocker stats\n\n# Restart services to free memory\ndocker-compose restart\n\n# Check for memory leaks\ndocker-compose logs backend | grep -i \"memory\\|heap\"\n\n\n## Error Code Quick Reference\n\n| Code | Description | Common Cause |\n|------|-------------|-------------|\n| PLEX_UNREACHABLE | Cannot connect to Plex | Network/firewall issue |\n| DATABASE_CONNECTION_ERROR | DB connection failed | Database not running |\n| JWT_INVALID | Invalid JWT token | Expired/malformed token |\n| RATE_LIMITED | Too many requests | Client sending too many requests |\n| VALIDATION_ERROR | Input validation failed | Invalid request data |\n| CSRF_TOKEN_MISMATCH | CSRF validation failed | Missing/invalid CSRF token |\n\n## Getting Help\n\n### Before Asking for Help\n\n1. Check the FAQ - Many issues are already documented\n2. Search the logs - Look for specific error messages\n3. Check system resources - Ensure adequate CPU/memory/disk\n4. Try basic fixes - Restart services, check connections\n5. Gather information - Collect relevant logs and configuration\n\n### Information to Provide\n\nWhen reporting issues, include:\n\nbash\n# System information\ndocker --version\ndocker-compose --version\nuname -a\n\n# Service status\ndocker-compose ps\n\n# Recent logs\ndocker-compose logs --tail=50\n\n# Configuration (remove sensitive data)\ncat .env | sed 's/=.*/=***/' \n\n\n### Community Resources\n\n1. GitHub Issues - Bug reports and feature requests\n2. Discussions - Community questions and answers\n3. Documentation - Check related documentation sections\n4. Stack Overflow - Technical questions with medianest tag\n\n## Related Documentation\n\n- Configuration Guide - Configuration troubleshooting\n- Monitoring Guide - Using monitoring for diagnostics\n- Security Guide - Security-related issues\n- Deployment Guide - Deployment troubleshooting
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/medianest/medianest" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    medianest/medianest
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../getting-started/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../installation/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Installation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../user-guides/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  User Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../api/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../developers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Developer Docs
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../troubleshooting/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Troubleshooting
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../reference/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="MediaNest Documentation" class="md-nav__button md-logo" aria-label="MediaNest Documentation" data-md-component="logo">
+      
+  <img src="../assets/images/logo.png" alt="logo">
+
+    </a>
+    MediaNest Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/medianest/medianest" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    medianest/medianest
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../getting-started/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../installation/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../user-guides/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    User Guides
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../api/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../developers/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    Developer Docs
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../troubleshooting/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../reference/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/medianest/medianest/edit/main/docs/10-troubleshooting/README.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+    
+      
+    
+    <a href="https://github.com/medianest/medianest/raw/main/docs/10-troubleshooting/README.md" title="View source of this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.2 8.2 0 0 1-1.23-2"/></svg>
+    </a>
+  
+
+
+<h1 id="troubleshooting-guidenncomprehensive-troubleshooting-guide-for-common-medianest-issues-and-problemsnn-overviewnnthis-section-provides-step-by-step-solutions-for-common-issues-you-might-encounter-while-setting-up-configuring-or-running-medianestnn-troubleshooting-documentationnn-common-issuesn-faq-frequently-asked-questions-and-quick-answersn-installation-issues-setup-and-installation-problemsn-authentication-problems-login-and-auth-issuesn-database-issues-database-connection-and-query-problemsnn-service-specific-issuesn-plex-integration-issues-plex-connection-problemsn-docker-issues-container-and-docker-compose-problemsn-network-issues-connectivity-and-networking-problemsn-performance-issues-slow-response-and-optimizationnn-error-resolutionn-error-code-reference-complete-error-code-documentationn-log-analysis-how-to-read-and-analyze-logsn-debug-mode-enabling-debug-mode-and-diagnosticsn-health-checks-system-health-diagnostic-proceduresnn-recovery-proceduresn-data-recovery-database-and-data-recovery-proceduresn-service-recovery-recovering-failed-servicesn-rollback-procedures-rolling-back-deploymentsn-disaster-recovery-complete-system-recoverynn-quick-diagnostic-commandsnn-system-health-checknnbashn-check-all-services-statusndocker-compose-psnn-check-service-logsndocker-compose-logs-f-tail100nn-check-api-healthncurl-f-httplocalhost3001apihealthnn-check-database-connectivityndocker-compose-exec-postgres-pg_isreadynn-check-redis-connectivityndocker-compose-exec-redis-redis-cli-pingnnn-common-fix-commandsnnbashn-restart-all-servicesndocker-compose-restartnn-rebuild-and-restart-specific-servicendocker-compose-up-d-build-backendnn-clear-docker-cache-and-rebuildndocker-system-prune-fndocker-compose-build-no-cachenn-reset-database-warning-destroys-datandocker-compose-down-vndocker-compose-up-dnnn-most-common-issuesnn-1-cannot-connect-to-databasennsymptoms-econnrefused-errors-database-timeoutnnsolutionsnbashn-check-database-container-statusndocker-compose-ps-postgresnn-check-database-logsndocker-compose-logs-postgresnn-restart-databasendocker-compose-restart-postgresnn-check-connection-stringnecho-database_urlnnn-2-plex-authentication-failsnnsymptoms-pin-generation-fails-auth-timeoutnnsolutionsnbashn-check-plex-connectivityncurl-i-httpsplextvnn-verify-plex-client-idnecho-plex_client_idnn-check-backend-logs-for-plex-errorsndocker-compose-logs-backend-grep-i-plexnnn-3-frontend-not-loadingnnsymptoms-white-screen-404-errors-build-failuresnnsolutionsnbashn-check-frontend-buildndocker-compose-logs-frontendnn-rebuild-frontendndocker-compose-build-frontendndocker-compose-up-d-frontendnn-check-nginx-configurationndocker-compose-exec-nginx-nginx-tnnn-4-high-memory-usagennsymptoms-services-crashing-slow-performancennsolutionsnbashn-check-memory-usagendocker-statsnn-restart-services-to-free-memoryndocker-compose-restartnn-check-for-memory-leaksndocker-compose-logs-backend-grep-i-memoryheapnnn-error-code-quick-referencenn-code-description-common-cause-n-n-plex_unreachable-cannot-connect-to-plex-networkfirewall-issue-n-database_connection_error-db-connection-failed-database-not-running-n-jwt_invalid-invalid-jwt-token-expiredmalformed-token-n-rate_limited-too-many-requests-client-sending-too-many-requests-n-validation_error-input-validation-failed-invalid-request-data-n-csrf_token_mismatch-csrf-validation-failed-missinginvalid-csrf-token-nn-getting-helpnn-before-asking-for-helpnn1-check-the-faq-many-issues-are-already-documentedn2-search-the-logs-look-for-specific-error-messagesn3-check-system-resources-ensure-adequate-cpumemorydiskn4-try-basic-fixes-restart-services-check-connectionsn5-gather-information-collect-relevant-logs-and-configurationnn-information-to-providennwhen-reporting-issues-includennbashn-system-informationndocker-versionndocker-compose-versionnuname-ann-service-statusndocker-compose-psnn-recent-logsndocker-compose-logs-tail50nn-configuration-remove-sensitive-datancat-env-sed-s-nnn-community-resourcesnn1-github-issues-bug-reports-and-feature-requestsn2-discussions-community-questions-and-answersn3-documentation-check-related-documentation-sectionsn4-stack-overflow-technical-questions-with-medianest-tagnn-related-documentationnn-configuration-guide-configuration-troubleshootingn-monitoring-guide-using-monitoring-for-diagnosticsn-security-guide-security-related-issuesn-deployment-guide-deployment-troubleshooting">Troubleshooting Guide\n\nComprehensive troubleshooting guide for common MediaNest issues and problems.\n\n## Overview\n\nThis section provides step-by-step solutions for common issues you might encounter while setting up, configuring, or running MediaNest.\n\n## Troubleshooting Documentation\n\n### Common Issues\n- <a href="./faq.md">FAQ</a> - Frequently asked questions and quick answers\n- <a href="./installation-issues.md">Installation Issues</a> - Setup and installation problems\n- <a href="./authentication-problems.md">Authentication Problems</a> - Login and auth issues\n- <a href="./database-issues.md">Database Issues</a> - Database connection and query problems\n\n### Service-Specific Issues\n- <a href="./plex-integration-issues.md">Plex Integration Issues</a> - Plex connection problems\n- <a href="./docker-issues.md">Docker Issues</a> - Container and Docker Compose problems\n- <a href="./network-issues.md">Network Issues</a> - Connectivity and networking problems\n- <a href="./performance-issues.md">Performance Issues</a> - Slow response and optimization\n\n### Error Resolution\n- <a href="./error-codes.md">Error Code Reference</a> - Complete error code documentation\n- <a href="./log-analysis.md">Log Analysis</a> - How to read and analyze logs\n- <a href="./debug-mode.md">Debug Mode</a> - Enabling debug mode and diagnostics\n- <a href="./health-checks.md">Health Checks</a> - System health diagnostic procedures\n\n### Recovery Procedures\n- <a href="./data-recovery.md">Data Recovery</a> - Database and data recovery procedures\n- <a href="./service-recovery.md">Service Recovery</a> - Recovering failed services\n- <a href="./rollback-procedures.md">Rollback Procedures</a> - Rolling back deployments\n- <a href="./disaster-recovery.md">Disaster Recovery</a> - Complete system recovery\n\n## Quick Diagnostic Commands\n\n### System Health Check\n\n<code>bash\n# Check all services status\ndocker-compose ps\n\n# Check service logs\ndocker-compose logs -f --tail=100\n\n# Check API health\ncurl -f http://localhost:3001/api/health\n\n# Check database connectivity\ndocker-compose exec postgres pg_isready\n\n# Check Redis connectivity\ndocker-compose exec redis redis-cli ping\n</code>\n\n### Common Fix Commands\n\n<code>bash\n# Restart all services\ndocker-compose restart\n\n# Rebuild and restart specific service\ndocker-compose up -d --build backend\n\n# Clear Docker cache and rebuild\ndocker system prune -f\ndocker-compose build --no-cache\n\n# Reset database (WARNING: destroys data)\ndocker-compose down -v\ndocker-compose up -d\n</code>\n\n## Most Common Issues\n\n### 1. Cannot Connect to Database\n\n**Symptoms**: <code>ECONNREFUSED</code> errors, database timeout\n\n**Solutions**:\n<code>bash\n# Check database container status\ndocker-compose ps postgres\n\n# Check database logs\ndocker-compose logs postgres\n\n# Restart database\ndocker-compose restart postgres\n\n# Check connection string\necho $DATABASE_URL\n</code>\n\n### 2. Plex Authentication Fails\n\n**Symptoms**: PIN generation fails, auth timeout\n\n**Solutions**:\n<code>bash\n# Check Plex connectivity\ncurl -I https://plex.tv\n\n# Verify Plex client ID\necho $PLEX_CLIENT_ID\n\n# Check backend logs for Plex errors\ndocker-compose logs backend | grep -i plex\n</code>\n\n### 3. Frontend Not Loading\n\n**Symptoms**: White screen, 404 errors, build failures\n\n**Solutions**:\n<code>bash\n# Check frontend build\ndocker-compose logs frontend\n\n# Rebuild frontend\ndocker-compose build frontend\ndocker-compose up -d frontend\n\n# Check NGINX configuration\ndocker-compose exec nginx nginx -t\n</code>\n\n### 4. High Memory Usage\n\n**Symptoms**: Services crashing, slow performance\n\n**Solutions**:\n<code>bash\n# Check memory usage\ndocker stats\n\n# Restart services to free memory\ndocker-compose restart\n\n# Check for memory leaks\ndocker-compose logs backend | grep -i \"memory\\|heap\"\n</code>\n\n## Error Code Quick Reference\n\n| Code | Description | Common Cause |\n|------|-------------|-------------|\n| <code>PLEX_UNREACHABLE</code> | Cannot connect to Plex | Network/firewall issue |\n| <code>DATABASE_CONNECTION_ERROR</code> | DB connection failed | Database not running |\n| <code>JWT_INVALID</code> | Invalid JWT token | Expired/malformed token |\n| <code>RATE_LIMITED</code> | Too many requests | Client sending too many requests |\n| <code>VALIDATION_ERROR</code> | Input validation failed | Invalid request data |\n| <code>CSRF_TOKEN_MISMATCH</code> | CSRF validation failed | Missing/invalid CSRF token |\n\n## Getting Help\n\n### Before Asking for Help\n\n1. <strong>Check the FAQ</strong> - Many issues are already documented\n2. <strong>Search the logs</strong> - Look for specific error messages\n3. <strong>Check system resources</strong> - Ensure adequate CPU/memory/disk\n4. <strong>Try basic fixes</strong> - Restart services, check connections\n5. <strong>Gather information</strong> - Collect relevant logs and configuration\n\n### Information to Provide\n\nWhen reporting issues, include:\n\n<code>bash\n# System information\ndocker --version\ndocker-compose --version\nuname -a\n\n# Service status\ndocker-compose ps\n\n# Recent logs\ndocker-compose logs --tail=50\n\n# Configuration (remove sensitive data)\ncat .env | sed 's/=.*/=***/' \n</code>\n\n### Community Resources\n\n1. <strong>GitHub Issues</strong> - Bug reports and feature requests\n2. <strong>Discussions</strong> - Community questions and answers\n3. <strong>Documentation</strong> - Check related documentation sections\n4. <strong>Stack Overflow</strong> - Technical questions with <code>medianest</code> tag\n\n## Related Documentation\n\n- <a href="../09-configuration/">Configuration Guide</a> - Configuration troubleshooting\n- <a href="../08-monitoring/">Monitoring Guide</a> - Using monitoring for diagnostics\n- <a href="../07-security/">Security Guide</a> - Security-related issues\n- <a href="../06-deployment/">Deployment Guide</a> - Deployment troubleshooting<a class="headerlink" href="#troubleshooting-guidenncomprehensive-troubleshooting-guide-for-common-medianest-issues-and-problemsnn-overviewnnthis-section-provides-step-by-step-solutions-for-common-issues-you-might-encounter-while-setting-up-configuring-or-running-medianestnn-troubleshooting-documentationnn-common-issuesn-faq-frequently-asked-questions-and-quick-answersn-installation-issues-setup-and-installation-problemsn-authentication-problems-login-and-auth-issuesn-database-issues-database-connection-and-query-problemsnn-service-specific-issuesn-plex-integration-issues-plex-connection-problemsn-docker-issues-container-and-docker-compose-problemsn-network-issues-connectivity-and-networking-problemsn-performance-issues-slow-response-and-optimizationnn-error-resolutionn-error-code-reference-complete-error-code-documentationn-log-analysis-how-to-read-and-analyze-logsn-debug-mode-enabling-debug-mode-and-diagnosticsn-health-checks-system-health-diagnostic-proceduresnn-recovery-proceduresn-data-recovery-database-and-data-recovery-proceduresn-service-recovery-recovering-failed-servicesn-rollback-procedures-rolling-back-deploymentsn-disaster-recovery-complete-system-recoverynn-quick-diagnostic-commandsnn-system-health-checknnbashn-check-all-services-statusndocker-compose-psnn-check-service-logsndocker-compose-logs-f-tail100nn-check-api-healthncurl-f-httplocalhost3001apihealthnn-check-database-connectivityndocker-compose-exec-postgres-pg_isreadynn-check-redis-connectivityndocker-compose-exec-redis-redis-cli-pingnnn-common-fix-commandsnnbashn-restart-all-servicesndocker-compose-restartnn-rebuild-and-restart-specific-servicendocker-compose-up-d-build-backendnn-clear-docker-cache-and-rebuildndocker-system-prune-fndocker-compose-build-no-cachenn-reset-database-warning-destroys-datandocker-compose-down-vndocker-compose-up-dnnn-most-common-issuesnn-1-cannot-connect-to-databasennsymptoms-econnrefused-errors-database-timeoutnnsolutionsnbashn-check-database-container-statusndocker-compose-ps-postgresnn-check-database-logsndocker-compose-logs-postgresnn-restart-databasendocker-compose-restart-postgresnn-check-connection-stringnecho-database_urlnnn-2-plex-authentication-failsnnsymptoms-pin-generation-fails-auth-timeoutnnsolutionsnbashn-check-plex-connectivityncurl-i-httpsplextvnn-verify-plex-client-idnecho-plex_client_idnn-check-backend-logs-for-plex-errorsndocker-compose-logs-backend-grep-i-plexnnn-3-frontend-not-loadingnnsymptoms-white-screen-404-errors-build-failuresnnsolutionsnbashn-check-frontend-buildndocker-compose-logs-frontendnn-rebuild-frontendndocker-compose-build-frontendndocker-compose-up-d-frontendnn-check-nginx-configurationndocker-compose-exec-nginx-nginx-tnnn-4-high-memory-usagennsymptoms-services-crashing-slow-performancennsolutionsnbashn-check-memory-usagendocker-statsnn-restart-services-to-free-memoryndocker-compose-restartnn-check-for-memory-leaksndocker-compose-logs-backend-grep-i-memoryheapnnn-error-code-quick-referencenn-code-description-common-cause-n-n-plex_unreachable-cannot-connect-to-plex-networkfirewall-issue-n-database_connection_error-db-connection-failed-database-not-running-n-jwt_invalid-invalid-jwt-token-expiredmalformed-token-n-rate_limited-too-many-requests-client-sending-too-many-requests-n-validation_error-input-validation-failed-invalid-request-data-n-csrf_token_mismatch-csrf-validation-failed-missinginvalid-csrf-token-nn-getting-helpnn-before-asking-for-helpnn1-check-the-faq-many-issues-are-already-documentedn2-search-the-logs-look-for-specific-error-messagesn3-check-system-resources-ensure-adequate-cpumemorydiskn4-try-basic-fixes-restart-services-check-connectionsn5-gather-information-collect-relevant-logs-and-configurationnn-information-to-providennwhen-reporting-issues-includennbashn-system-informationndocker-versionndocker-compose-versionnuname-ann-service-statusndocker-compose-psnn-recent-logsndocker-compose-logs-tail50nn-configuration-remove-sensitive-datancat-env-sed-s-nnn-community-resourcesnn1-github-issues-bug-reports-and-feature-requestsn2-discussions-community-questions-and-answersn3-documentation-check-related-documentation-sectionsn4-stack-overflow-technical-questions-with-medianest-tagnn-related-documentationnn-configuration-guide-configuration-troubleshootingn-monitoring-guide-using-monitoring-for-diagnosticsn-security-guide-security-related-issuesn-deployment-guide-deployment-troubleshooting" title="Permanent link">&para;</a></h1>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  <form class="md-feedback" name="feedback" hidden>
+    <fieldset>
+      <legend class="md-feedback__title">
+        Was this page helpful?
+      </legend>
+      <div class="md-feedback__inner">
+        <div class="md-feedback__list">
+          
+            <button class="md-feedback__icon md-icon" type="submit" title="This page was helpful" data-md-value="1">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m7 0c0 .8-.7 1.5-1.5 1.5S14 10.3 14 9.5 14.7 8 15.5 8s1.5.7 1.5 1.5m-5 7.73c-1.75 0-3.29-.73-4.19-1.81L9.23 14c.45.72 1.52 1.23 2.77 1.23s2.32-.51 2.77-1.23l1.42 1.42c-.9 1.08-2.44 1.81-4.19 1.81"/></svg>
+            </button>
+          
+            <button class="md-feedback__icon md-icon" type="submit" title="This page could be improved" data-md-value="0">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10m-6.5-4c.8 0 1.5.7 1.5 1.5s-.7 1.5-1.5 1.5-1.5-.7-1.5-1.5.7-1.5 1.5-1.5M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m2 4.5c1.75 0 3.29.72 4.19 1.81l-1.42 1.42C14.32 16.5 13.25 16 12 16s-2.32.5-2.77 1.23l-1.42-1.42C8.71 14.72 10.25 14 12 14"/></svg>
+            </button>
+          
+        </div>
+        <div class="md-feedback__note">
+          
+            <div data-md-value="1" hidden>
+              
+              
+                
+              
+              
+              
+                
+                
+              
+              Thanks for your feedback!
+            </div>
+          
+            <div data-md-value="0" hidden>
+              
+              
+                
+              
+              
+              
+                
+                
+              
+              Thanks for your feedback! Help us improve this page by <a href="https://github.com/medianest/medianest/issues/new/?title=[Docs]+Troubleshooting%20Guide%5Cn%5CnComprehensive%20troubleshooting%20guide%20for%20common%20MediaNest%20issues%20and%20problems.%5Cn%5Cn%23%23%20Overview%5Cn%5CnThis%20section%20provides%20step-by-step%20solutions%20for%20common%20issues%20you%20might%20encounter%20while%20setting%20up%2C%20configuring%2C%20or%20running%20MediaNest.%5Cn%5Cn%23%23%20Troubleshooting%20Documentation%5Cn%5Cn%23%23%23%20Common%20Issues%5Cn-%20FAQ%20-%20Frequently%20asked%20questions%20and%20quick%20answers%5Cn-%20Installation%20Issues%20-%20Setup%20and%20installation%20problems%5Cn-%20Authentication%20Problems%20-%20Login%20and%20auth%20issues%5Cn-%20Database%20Issues%20-%20Database%20connection%20and%20query%20problems%5Cn%5Cn%23%23%23%20Service-Specific%20Issues%5Cn-%20Plex%20Integration%20Issues%20-%20Plex%20connection%20problems%5Cn-%20Docker%20Issues%20-%20Container%20and%20Docker%20Compose%20problems%5Cn-%20Network%20Issues%20-%20Connectivity%20and%20networking%20problems%5Cn-%20Performance%20Issues%20-%20Slow%20response%20and%20optimization%5Cn%5Cn%23%23%23%20Error%20Resolution%5Cn-%20Error%20Code%20Reference%20-%20Complete%20error%20code%20documentation%5Cn-%20Log%20Analysis%20-%20How%20to%20read%20and%20analyze%20logs%5Cn-%20Debug%20Mode%20-%20Enabling%20debug%20mode%20and%20diagnostics%5Cn-%20Health%20Checks%20-%20System%20health%20diagnostic%20procedures%5Cn%5Cn%23%23%23%20Recovery%20Procedures%5Cn-%20Data%20Recovery%20-%20Database%20and%20data%20recovery%20procedures%5Cn-%20Service%20Recovery%20-%20Recovering%20failed%20services%5Cn-%20Rollback%20Procedures%20-%20Rolling%20back%20deployments%5Cn-%20Disaster%20Recovery%20-%20Complete%20system%20recovery%5Cn%5Cn%23%23%20Quick%20Diagnostic%20Commands%5Cn%5Cn%23%23%23%20System%20Health%20Check%5Cn%5Cnbash%5Cn%23%20Check%20all%20services%20status%5Cndocker-compose%20ps%5Cn%5Cn%23%20Check%20service%20logs%5Cndocker-compose%20logs%20-f%20--tail%3D100%5Cn%5Cn%23%20Check%20API%20health%5Cncurl%20-f%20http%3A//localhost%3A3001/api/health%5Cn%5Cn%23%20Check%20database%20connectivity%5Cndocker-compose%20exec%20postgres%20pg_isready%5Cn%5Cn%23%20Check%20Redis%20connectivity%5Cndocker-compose%20exec%20redis%20redis-cli%20ping%5Cn%5Cn%5Cn%23%23%23%20Common%20Fix%20Commands%5Cn%5Cnbash%5Cn%23%20Restart%20all%20services%5Cndocker-compose%20restart%5Cn%5Cn%23%20Rebuild%20and%20restart%20specific%20service%5Cndocker-compose%20up%20-d%20--build%20backend%5Cn%5Cn%23%20Clear%20Docker%20cache%20and%20rebuild%5Cndocker%20system%20prune%20-f%5Cndocker-compose%20build%20--no-cache%5Cn%5Cn%23%20Reset%20database%20%28WARNING%3A%20destroys%20data%29%5Cndocker-compose%20down%20-v%5Cndocker-compose%20up%20-d%5Cn%5Cn%5Cn%23%23%20Most%20Common%20Issues%5Cn%5Cn%23%23%23%201.%20Cannot%20Connect%20to%20Database%5Cn%5Cn%2A%2ASymptoms%2A%2A%3A%20ECONNREFUSED%20errors%2C%20database%20timeout%5Cn%5Cn%2A%2ASolutions%2A%2A%3A%5Cnbash%5Cn%23%20Check%20database%20container%20status%5Cndocker-compose%20ps%20postgres%5Cn%5Cn%23%20Check%20database%20logs%5Cndocker-compose%20logs%20postgres%5Cn%5Cn%23%20Restart%20database%5Cndocker-compose%20restart%20postgres%5Cn%5Cn%23%20Check%20connection%20string%5Cnecho%20%24DATABASE_URL%5Cn%5Cn%5Cn%23%23%23%202.%20Plex%20Authentication%20Fails%5Cn%5Cn%2A%2ASymptoms%2A%2A%3A%20PIN%20generation%20fails%2C%20auth%20timeout%5Cn%5Cn%2A%2ASolutions%2A%2A%3A%5Cnbash%5Cn%23%20Check%20Plex%20connectivity%5Cncurl%20-I%20https%3A//plex.tv%5Cn%5Cn%23%20Verify%20Plex%20client%20ID%5Cnecho%20%24PLEX_CLIENT_ID%5Cn%5Cn%23%20Check%20backend%20logs%20for%20Plex%20errors%5Cndocker-compose%20logs%20backend%20%7C%20grep%20-i%20plex%5Cn%5Cn%5Cn%23%23%23%203.%20Frontend%20Not%20Loading%5Cn%5Cn%2A%2ASymptoms%2A%2A%3A%20White%20screen%2C%20404%20errors%2C%20build%20failures%5Cn%5Cn%2A%2ASolutions%2A%2A%3A%5Cnbash%5Cn%23%20Check%20frontend%20build%5Cndocker-compose%20logs%20frontend%5Cn%5Cn%23%20Rebuild%20frontend%5Cndocker-compose%20build%20frontend%5Cndocker-compose%20up%20-d%20frontend%5Cn%5Cn%23%20Check%20NGINX%20configuration%5Cndocker-compose%20exec%20nginx%20nginx%20-t%5Cn%5Cn%5Cn%23%23%23%204.%20High%20Memory%20Usage%5Cn%5Cn%2A%2ASymptoms%2A%2A%3A%20Services%20crashing%2C%20slow%20performance%5Cn%5Cn%2A%2ASolutions%2A%2A%3A%5Cnbash%5Cn%23%20Check%20memory%20usage%5Cndocker%20stats%5Cn%5Cn%23%20Restart%20services%20to%20free%20memory%5Cndocker-compose%20restart%5Cn%5Cn%23%20Check%20for%20memory%20leaks%5Cndocker-compose%20logs%20backend%20%7C%20grep%20-i%20%5C%22memory%5C%5C%7Cheap%5C%22%5Cn%5Cn%5Cn%23%23%20Error%20Code%20Quick%20Reference%5Cn%5Cn%7C%20Code%20%7C%20Description%20%7C%20Common%20Cause%20%7C%5Cn%7C------%7C-------------%7C-------------%7C%5Cn%7C%20PLEX_UNREACHABLE%20%7C%20Cannot%20connect%20to%20Plex%20%7C%20Network/firewall%20issue%20%7C%5Cn%7C%20DATABASE_CONNECTION_ERROR%20%7C%20DB%20connection%20failed%20%7C%20Database%20not%20running%20%7C%5Cn%7C%20JWT_INVALID%20%7C%20Invalid%20JWT%20token%20%7C%20Expired/malformed%20token%20%7C%5Cn%7C%20RATE_LIMITED%20%7C%20Too%20many%20requests%20%7C%20Client%20sending%20too%20many%20requests%20%7C%5Cn%7C%20VALIDATION_ERROR%20%7C%20Input%20validation%20failed%20%7C%20Invalid%20request%20data%20%7C%5Cn%7C%20CSRF_TOKEN_MISMATCH%20%7C%20CSRF%20validation%20failed%20%7C%20Missing/invalid%20CSRF%20token%20%7C%5Cn%5Cn%23%23%20Getting%20Help%5Cn%5Cn%23%23%23%20Before%20Asking%20for%20Help%5Cn%5Cn1.%20Check%20the%20FAQ%20-%20Many%20issues%20are%20already%20documented%5Cn2.%20Search%20the%20logs%20-%20Look%20for%20specific%20error%20messages%5Cn3.%20Check%20system%20resources%20-%20Ensure%20adequate%20CPU/memory/disk%5Cn4.%20Try%20basic%20fixes%20-%20Restart%20services%2C%20check%20connections%5Cn5.%20Gather%20information%20-%20Collect%20relevant%20logs%20and%20configuration%5Cn%5Cn%23%23%23%20Information%20to%20Provide%5Cn%5CnWhen%20reporting%20issues%2C%20include%3A%5Cn%5Cnbash%5Cn%23%20System%20information%5Cndocker%20--version%5Cndocker-compose%20--version%5Cnuname%20-a%5Cn%5Cn%23%20Service%20status%5Cndocker-compose%20ps%5Cn%5Cn%23%20Recent%20logs%5Cndocker-compose%20logs%20--tail%3D50%5Cn%5Cn%23%20Configuration%20%28remove%20sensitive%20data%29%5Cncat%20.env%20%7C%20sed%20%27s/%3D.%2A/%3D%2A%2A%2A/%27%20%5Cn%5Cn%5Cn%23%23%23%20Community%20Resources%5Cn%5Cn1.%20GitHub%20Issues%20-%20Bug%20reports%20and%20feature%20requests%5Cn2.%20Discussions%20-%20Community%20questions%20and%20answers%5Cn3.%20Documentation%20-%20Check%20related%20documentation%20sections%5Cn4.%20Stack%20Overflow%20-%20Technical%20questions%20with%20medianest%20tag%5Cn%5Cn%23%23%20Related%20Documentation%5Cn%5Cn-%20Configuration%20Guide%20-%20Configuration%20troubleshooting%5Cn-%20Monitoring%20Guide%20-%20Using%20monitoring%20for%20diagnostics%5Cn-%20Security%20Guide%20-%20Security-related%20issues%5Cn-%20Deployment%20Guide%20-%20Deployment%20troubleshooting+-+/10-troubleshooting/" target="_blank" rel="noopener">telling us what you found helpful or confusing</a>.
+            </div>
+          
+        </div>
+      </div>
+    </fieldset>
+  </form>
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2024 MediaNest Team
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/medianest/medianest" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://hub.docker.com/r/medianest/medianest" target="_blank" rel="noopener" title="hub.docker.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M349.9 236.3h-66.1v-59.4h66.1zm0-204.3h-66.1v60.7h66.1zm78.2 144.8H362v59.4h66.1zm-156.3-72.1h-66.1v60.1h66.1zm78.1 0h-66.1v60.1h66.1zm276.8 100c-14.4-9.7-47.6-13.2-73.1-8.4-3.3-24-16.7-44.9-41.1-63.7l-14-9.3-9.3 14c-18.4 27.8-23.4 73.6-3.7 103.8-8.7 4.7-25.8 11.1-48.4 10.7H2.4c-8.7 50.8 5.8 116.8 44 162.1 37.1 43.9 92.7 66.2 165.4 66.2 157.4 0 273.9-72.5 328.4-204.2 21.4.4 67.6.1 91.3-45.2 1.5-2.5 6.6-13.2 8.5-17.1zm-511.1-27.9h-66v59.4h66.1v-59.4zm78.1 0h-66.1v59.4h66.1zm78.1 0h-66.1v59.4h66.1zm-78.1-72.1h-66.1v60.1h66.1z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://twitter.com/medianest" target="_blank" rel="noopener" title="twitter.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M459.4 151.7c.3 4.5.3 9.1.3 13.6 0 138.7-105.6 298.6-298.6 298.6-59.5 0-114.7-17.2-161.1-47.1 8.4 1 16.6 1.3 25.3 1.3 49.1 0 94.2-16.6 130.3-44.8-46.1-1-84.8-31.2-98.1-72.8 6.5 1 13 1.6 19.8 1.6 9.4 0 18.8-1.3 27.6-3.6-48.1-9.7-84.1-52-84.1-103v-1.3c14 7.8 30.2 12.7 47.4 13.3-28.3-18.8-46.8-51-46.8-87.4 0-19.5 5.2-37.4 14.3-53C87.4 130.8 165 172.4 252.1 176.9c-1.6-7.8-2.6-15.9-2.6-24C249.5 95.1 296.3 48 354.4 48c30.2 0 57.5 12.7 76.7 33.1 23.7-4.5 46.5-13.3 66.6-25.3-7.8 24.4-24.4 44.8-46.1 57.8 21.1-2.3 41.6-8.1 60.4-16.2-14.3 20.8-32.2 39.3-52.6 54.3"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["announce.dismiss", "content.action.edit", "content.action.view", "content.code.annotate", "content.code.copy", "content.tabs.link", "content.tooltips", "header.autohide", "navigation.expand", "navigation.footer", "navigation.indexes", "navigation.instant", "navigation.prune", "navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow", "toc.integrate"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "stable", "provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.92b07e13.min.js"></script>
+      
+        <script src="../assets/javascripts/extra.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

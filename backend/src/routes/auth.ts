@@ -1,4 +1,3 @@
-// @ts-nocheck
 import bcrypt from 'bcrypt';
 import { Router } from 'express';
 import crypto from 'crypto';

@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
+import { logger } from './utils/logger';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -13,7 +14,7 @@ app.use(
   cors({
     origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
     credentials: true,
-  }),
+  })
 );
 
 // Rate limiting
@@ -36,14 +37,21 @@ try {
   const { correlationIdMiddleware } = require('./middleware/correlation-id');
   const { requestLoggingMiddleware } = require('./middleware/logging');
 
-  console.log('✅ Monitoring middleware found - integrating...');
+  logger.info('Monitoring middleware found - integrating', {
+    middleware: ['metricsMiddleware', 'correlationIdMiddleware', 'requestLoggingMiddleware'],
+    timestamp: new Date().toISOString(),
+  });
 
   // Apply monitoring middleware
   app.use(correlationIdMiddleware);
   app.use(requestLoggingMiddleware);
   app.use(metricsMiddleware);
 
-  console.log('✅ Monitoring middleware integrated successfully!');
+  logger.info('Monitoring middleware integrated successfully', {
+    middleware: ['correlationIdMiddleware', 'requestLoggingMiddleware', 'metricsMiddleware'],
+    endpoint: '/metrics',
+    timestamp: new Date().toISOString(),
+  });
 
   // Add metrics endpoint
   const { register } = require('./middleware/metrics');
@@ -52,7 +60,11 @@ try {
       res.set('Content-Type', register.contentType);
       res.end(await register.metrics());
     } catch (error: any) {
-      console.error('Error generating metrics:', error);
+      logger.error('Error generating metrics', {
+        error: error.message,
+        endpoint: '/metrics',
+        timestamp: new Date().toISOString(),
+      });
       res.status(500).end('Error generating metrics');
     }
   });

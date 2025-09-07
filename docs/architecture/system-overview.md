@@ -6,28 +6,153 @@ MediaNest is a unified web portal for managing Plex media server and related ser
 
 ## High-Level Architecture
 
+The following diagram illustrates the complete MediaNest system architecture:
+
+```mermaid
+graph TB
+    subgraph "Client Layer"
+        WEB["🌐 Web Browser<br/>React SPA"]
+        MOBILE["📱 Mobile App<br/>Future Implementation"]
+        API_CLIENT["🔧 API Clients<br/>Third-party Integrations"]
+    end
+
+    subgraph "Load Balancer & Proxy"
+        NGINX["⚖️ Nginx Proxy<br/>SSL/TLS Termination<br/>Load Balancing"]
+    end
+
+    subgraph "MediaNest Application Container"
+        subgraph "Frontend Tier"
+            NEXTJS["⚛️ Next.js 14<br/>App Router<br/>Server-Side Rendering<br/>Static Generation"]
+        end
+
+        subgraph "Backend Tier"
+            EXPRESS["🚀 Express.js API<br/>REST Endpoints<br/>GraphQL (Future)"]
+            AUTH["🔐 NextAuth.js<br/>Plex OAuth<br/>Session Management"]
+            SOCKET["🔌 Socket.io<br/>Real-time Updates<br/>Live Status"]
+        end
+
+        subgraph "Processing Layer"
+            BULLMQ["📋 BullMQ<br/>Job Queue<br/>Task Scheduling"]
+            WORKER["⚙️ Background Workers<br/>Media Processing<br/>External API Calls"]
+        end
+    end
+
+    subgraph "Data & Cache Layer"
+        POSTGRES["🐘 PostgreSQL 15<br/>Primary Database<br/>ACID Compliance<br/>JSON Support"]
+        REDIS["🔴 Redis 7<br/>Session Store<br/>Cache Layer<br/>Queue Backend"]
+    end
+
+    subgraph "External Service Integration"
+        subgraph "Media Services"
+            PLEX["🎬 Plex Media Server<br/>Content Library<br/>Streaming"]
+            OVERSEERR["📥 Overseerr<br/>Request Management<br/>TMDB Integration"]
+        end
+
+        subgraph "Monitoring Services"
+            UPTIME["📊 Uptime Kuma<br/>Service Monitoring<br/>Health Checks"]
+        end
+
+        subgraph "Content Services"
+            YOUTUBE["📺 YouTube/yt-dlp<br/>Video Downloads<br/>Playlist Management"]
+        end
+    end
+
+    %% Client Layer Connections
+    WEB --> NGINX
+    MOBILE --> NGINX
+    API_CLIENT --> NGINX
+
+    %% Proxy to Application
+    NGINX --> NEXTJS
+    NGINX --> EXPRESS
+
+    %% Frontend to Backend
+    NEXTJS <--> EXPRESS
+    NEXTJS <--> SOCKET
+
+    %% Backend Internal Connections
+    EXPRESS --> AUTH
+    EXPRESS --> BULLMQ
+    SOCKET --> REDIS
+    BULLMQ --> WORKER
+
+    %% Data Layer Connections
+    EXPRESS --> POSTGRES
+    EXPRESS --> REDIS
+    AUTH --> POSTGRES
+    WORKER --> POSTGRES
+    WORKER --> REDIS
+
+    %% External Service Connections
+    EXPRESS --> PLEX
+    EXPRESS --> OVERSEERR
+    EXPRESS --> UPTIME
+    WORKER --> PLEX
+    WORKER --> OVERSEERR
+    WORKER --> UPTIME
+    WORKER --> YOUTUBE
+
+    %% Styling
+    classDef clientLayer fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
+    classDef proxyLayer fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef appLayer fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    classDef dataLayer fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef externalLayer fill:#ffebee,stroke:#d32f2f,stroke-width:2px
+
+    class WEB,MOBILE,API_CLIENT clientLayer
+    class NGINX proxyLayer
+    class NEXTJS,EXPRESS,AUTH,SOCKET,BULLMQ,WORKER appLayer
+    class POSTGRES,REDIS dataLayer
+    class PLEX,OVERSEERR,UPTIME,YOUTUBE externalLayer
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    MediaNest System                         │
-├─────────────────────────────────────────────────────────────┤
-│  Frontend (Next.js)     │  Backend (Express.js)           │
-│  ├── React UI           │  ├── REST API                   │
-│  ├── NextAuth           │  ├── Socket.IO                  │
-│  ├── TailwindCSS        │  ├── Authentication             │
-│  └── Socket.IO Client   │  └── Integration Services       │
-├─────────────────────────────────────────────────────────────┤
-│              Infrastructure & Data Layer                    │
-│  ├── PostgreSQL (Primary Database)                        │
-│  ├── Redis (Caching & Sessions)                           │
-│  ├── Bull/BullMQ (Job Queue)                              │
-│  └── Docker Compose (Container Orchestration)             │
-├─────────────────────────────────────────────────────────────┤
-│                External Integrations                       │
-│  ├── Plex Media Server                                    │
-│  ├── Overseerr (Media Requests)                          │
-│  ├── Uptime Kuma (Monitoring)                            │
-│  └── YouTube-dl (Download Management)                     │
-└─────────────────────────────────────────────────────────────┘
+
+## Request Flow Architecture
+
+The following sequence diagram shows how requests flow through the MediaNest system:
+
+```mermaid
+sequenceDiagram
+    participant U as 👤 User
+    participant N as ⚖️ Nginx
+    participant F as ⚛️ Next.js
+    participant A as 🚀 Express API
+    participant Auth as 🔐 NextAuth
+    participant Q as 📋 BullMQ
+    participant W as ⚙️ Worker
+    participant DB as 🐘 PostgreSQL
+    participant R as 🔴 Redis
+    participant EXT as 🎬 External Services
+    participant WS as 🔌 WebSocket
+
+    Note over U,WS: Authentication Flow
+    U->>N: 1. HTTPS Request (login)
+    N->>F: 2. Forward to Frontend
+    F->>A: 3. API Call (/api/auth)
+    A->>Auth: 4. NextAuth Processing
+    Auth->>EXT: 5. Plex OAuth Verification
+    EXT->>Auth: 6. OAuth Response
+    Auth->>DB: 7. Store User Session
+    Auth->>R: 8. Cache Session Data
+    Auth->>F: 9. Auth Token Response
+    F->>U: 10. Redirect to Dashboard
+
+    Note over U,WS: Media Request Flow
+    U->>F: 11. Request Media (UI)
+    F->>A: 12. POST /api/media/request
+    A->>DB: 13. Create Media Request
+    A->>Q: 14. Queue Background Job
+    A->>F: 15. Immediate Response
+    F->>U: 16. Show Pending Status
+
+    Note over U,WS: Background Processing
+    Q->>W: 17. Process Queued Job
+    W->>EXT: 18. Call Overseerr API
+    EXT->>W: 19. API Response
+    W->>DB: 20. Update Request Status
+    W->>R: 21. Update Cache
+    W->>WS: 22. Emit Status Update
+    WS->>F: 23. Real-time Update
+    F->>U: 24. Live Status Change
 ```
 
 ## Core Components

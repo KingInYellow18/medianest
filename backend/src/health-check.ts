@@ -7,6 +7,7 @@
  */
 
 const http = require('http');
+const { logger } = require('./utils/logger');
 
 const options = {
   hostname: 'localhost',
@@ -18,21 +19,37 @@ const options = {
 
 const req = http.request(options, (res: any) => {
   if (res.statusCode === 200) {
-    console.log('Health check passed');
+    logger.info('Health check passed', {
+      statusCode: res.statusCode,
+      endpoint: '/health',
+      timestamp: new Date().toISOString(),
+    });
     process.exit(0);
   } else {
-    console.log(`Health check failed with status: ${res.statusCode}`);
+    logger.error('Health check failed', {
+      statusCode: res.statusCode,
+      endpoint: '/health',
+      timestamp: new Date().toISOString(),
+    });
     process.exit(1);
   }
 });
 
 req.on('error', (err: any) => {
-  console.error('Health check failed with error:', err.message);
+  logger.error('Health check failed with error', {
+    error: err.message,
+    endpoint: '/health',
+    timestamp: new Date().toISOString(),
+  });
   process.exit(1);
 });
 
 req.on('timeout', () => {
-  console.error('Health check timed out');
+  logger.error('Health check timed out', {
+    endpoint: '/health',
+    timeout: 5000,
+    timestamp: new Date().toISOString(),
+  });
   req.destroy();
   process.exit(1);
 });

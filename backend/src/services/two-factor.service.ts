@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import speakeasy from 'speakeasy';
 import qrcode from 'qrcode';
 import { UserRepository } from '../repositories/user.repository';
+import { RedisService } from './redis.service';
 import { AppError } from '../utils/errors';
 import { logger } from '../utils/logger';
 import {
@@ -53,17 +54,18 @@ interface TwoFactorVerification {
 
 export class TwoFactorService {
   private userRepository: UserRepository;
+  private redisService: RedisService;
   // private emailService: EmailService; // REMOVED - email 2FA disabled
 
-  // In-memory storage for challenges - use Redis in production
-  private challenges: Map<string, TwoFactorChallenge> = new Map();
-
-  constructor(userRepository: UserRepository /* emailService: EmailService - REMOVED */) {
+  constructor(
+    userRepository: UserRepository,
+    redisService: RedisService /* emailService: EmailService - REMOVED */
+  ) {
     this.userRepository = userRepository;
+    this.redisService = redisService;
     // this.emailService = emailService; // REMOVED - email 2FA disabled
 
-    // Cleanup expired challenges every 5 minutes
-    setInterval(() => this.cleanupExpiredChallenges(), 5 * 60 * 1000);
+    // Redis handles TTL automatically, no need for manual cleanup
   }
 
   /**
@@ -208,12 +210,12 @@ export class TwoFactorService {
     }
 
     // Check for existing active challenge
-    const existingChallenge = this.findActiveChallenge(userId);
+    const existingChallenge = await this.redisService.findActive2FAChallenge(userId);
     if (existingChallenge) {
       return {
-        challengeId: existingChallenge.id,
-        method: existingChallenge.method,
-        expiresIn: Math.floor((existingChallenge.expiresAt.getTime() - Date.now()) / 1000),
+        challengeId: existingChallenge.challengeId,
+        method: existingChallenge.data.method,
+        expiresIn: Math.floor((existingChallenge.data.expiresAt.getTime() - Date.now()) / 1000),
       };
     }
 
@@ -249,7 +251,7 @@ export class TwoFactorService {
       userAgent: options.userAgent,
     };
 
-    this.challenges.set(challengeId, challenge);
+    await this.redisService.set2FAChallenge(challengeId, challenge, 300); // 5 minutes TTL
 
     logSecurityEvent(
       '2FA_CHALLENGE_CREATED',
@@ -280,20 +282,20 @@ export class TwoFactorService {
       userAgent?: string;
     }
   ): Promise<TwoFactorVerification> {
-    const challenge = this.challenges.get(challengeId);
+    const challenge = await this.redisService.get2FAChallenge(challengeId);
     if (!challenge) {
       throw new AppError('Challenge not found', 404, 'CHALLENGE_NOT_FOUND');
     }
 
-    // Check if challenge is expired
+    // Check if challenge is expired (Redis TTL should handle this)
     if (new Date() > challenge.expiresAt) {
-      this.challenges.delete(challengeId);
+      await this.redisService.delete2FAChallenge(challengeId);
       throw new AppError('Challenge expired', 400, 'CHALLENGE_EXPIRED');
     }
 
     // Check max attempts
     if (challenge.attempts >= challenge.maxAttempts) {
-      this.challenges.delete(challengeId);
+      await this.redisService.delete2FAChallenge(challengeId);
       logSecurityEvent(
         '2FA_MAX_ATTEMPTS_EXCEEDED',
         {
@@ -324,7 +326,7 @@ export class TwoFactorService {
 
     if (verified) {
       challenge.verified = true;
-      this.challenges.delete(challengeId);
+      await this.redisService.delete2FAChallenge(challengeId);
 
       logSecurityEvent(
         '2FA_VERIFICATION_SUCCESS',
@@ -340,7 +342,7 @@ export class TwoFactorService {
 
       return { success: true };
     } else {
-      this.challenges.set(challengeId, challenge);
+      await this.redisService.update2FAChallenge(challengeId, challenge);
 
       logSecurityEvent(
         '2FA_VERIFICATION_FAILED',
@@ -485,26 +487,18 @@ export class TwoFactorService {
   }
 
   /**
-   * Find active challenge for user
+   * Find active challenge for user (handled by Redis service)
    */
-  private findActiveChallenge(userId: string): TwoFactorChallenge | undefined {
-    for (const challenge of this.challenges.values()) {
-      if (challenge.userId === userId && new Date() < challenge.expiresAt) {
-        return challenge;
-      }
-    }
-    return undefined;
+  private async findActiveChallenge(userId: string): Promise<TwoFactorChallenge | undefined> {
+    const result = await this.redisService.findActive2FAChallenge(userId);
+    return result?.data;
   }
 
   /**
-   * Cleanup expired challenges
+   * Cleanup expired challenges (handled by Redis TTL)
    */
   private cleanupExpiredChallenges(): void {
-    const now = new Date();
-    for (const [id, challenge] of this.challenges.entries()) {
-      if (now > challenge.expiresAt) {
-        this.challenges.delete(id);
-      }
-    }
+    // Redis handles TTL automatically, method kept for compatibility
+    logger.debug('2FA challenge cleanup handled by Redis TTL');
   }
 }

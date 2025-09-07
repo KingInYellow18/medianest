@@ -1,12 +1,13 @@
-// @ts-nocheck
 import axios from 'axios';
 import crypto from 'crypto';
 import { UserRepository } from '../repositories/user.repository';
 import { SessionTokenRepository } from '../repositories/session-token.repository';
+import { RedisService } from './redis.service';
 import { AppError } from '../utils/errors';
 import { logger } from '../utils/logger';
 import { generateToken } from '../utils/jwt';
 import { generateSecureToken, logSecurityEvent } from '../utils/security';
+import { configService } from '../config/config.service';
 
 interface OAuthConfig {
   clientId: string;
@@ -49,37 +50,42 @@ interface OAuthResult {
 export class OAuthProvidersService {
   private userRepository: UserRepository;
   private sessionTokenRepository: SessionTokenRepository;
-
-  // In-memory storage for OAuth states - use Redis in production
-  private oauthStates: Map<string, OAuthState> = new Map();
+  private redisService: RedisService;
 
   private configs: Record<string, OAuthConfig>;
 
-  constructor(userRepository: UserRepository, sessionTokenRepository: SessionTokenRepository) {
+  constructor(
+    userRepository: UserRepository,
+    sessionTokenRepository: SessionTokenRepository,
+    redisService: RedisService
+  ) {
     this.userRepository = userRepository;
     this.sessionTokenRepository = sessionTokenRepository;
+    this.redisService = redisService;
+
+    const oauthConfig = configService.getOAuthConfig();
+    const serverConfig = configService.getServerConfig();
 
     this.configs = {
       github: {
-        clientId: process.env.GITHUB_CLIENT_ID || '',
-        clientSecret: process.env.GITHUB_CLIENT_SECRET || '',
+        clientId: oauthConfig.GITHUB_CLIENT_ID || '',
+        clientSecret: oauthConfig.GITHUB_CLIENT_SECRET || '',
         redirectUri:
-          process.env.GITHUB_REDIRECT_URI ||
-          `${process.env.BACKEND_URL}/api/auth/oauth/github/callback`,
+          oauthConfig.GITHUB_REDIRECT_URI ||
+          `${serverConfig.BACKEND_URL}/api/auth/oauth/github/callback`,
         scope: 'user:email',
       },
       google: {
-        clientId: process.env.GOOGLE_CLIENT_ID || '',
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+        clientId: oauthConfig.GOOGLE_CLIENT_ID || '',
+        clientSecret: oauthConfig.GOOGLE_CLIENT_SECRET || '',
         redirectUri:
-          process.env.GOOGLE_REDIRECT_URI ||
-          `${process.env.BACKEND_URL}/api/auth/oauth/google/callback`,
+          oauthConfig.GOOGLE_REDIRECT_URI ||
+          `${serverConfig.BACKEND_URL}/api/auth/oauth/google/callback`,
         scope: 'openid profile email',
       },
     };
 
-    // Cleanup expired states every hour
-    setInterval(() => this.cleanupExpiredStates(), 60 * 60 * 1000);
+    // Redis handles TTL automatically, no need for manual cleanup
   }
 
   /**
@@ -91,7 +97,7 @@ export class OAuthProvidersService {
       redirectUri?: string;
       ipAddress: string;
       userAgent: string;
-    },
+    }
   ): Promise<{ authUrl: string; state: string }> {
     const config = this.configs[provider];
     if (!config.clientId || !config.clientSecret) {
@@ -102,15 +108,19 @@ export class OAuthProvidersService {
     const state = generateSecureToken(32);
     const redirectUri = options.redirectUri || config.redirectUri;
 
-    // Store state for verification
-    this.oauthStates.set(state, {
+    // Store state in Redis with 10 minute TTL
+    await this.redisService.setOAuthState(
       state,
-      provider,
-      redirectUri,
-      createdAt: new Date(),
-      ipAddress: options.ipAddress,
-      userAgent: options.userAgent,
-    });
+      {
+        state,
+        provider,
+        redirectUri,
+        createdAt: new Date(),
+        ipAddress: options.ipAddress,
+        userAgent: options.userAgent,
+      },
+      600
+    ); // 10 minutes
 
     let authUrl: string;
 
@@ -133,7 +143,7 @@ export class OAuthProvidersService {
         ipAddress: options.ipAddress,
         userAgent: options.userAgent,
       },
-      'info',
+      'info'
     );
 
     return { authUrl, state };
@@ -149,10 +159,10 @@ export class OAuthProvidersService {
     options: {
       ipAddress: string;
       userAgent: string;
-    },
+    }
   ): Promise<OAuthResult> {
     // Verify state parameter
-    const stateData = this.oauthStates.get(state);
+    const stateData = await this.redisService.getOAuthState(state);
     if (!stateData) {
       logSecurityEvent(
         'OAUTH_INVALID_STATE',
@@ -161,15 +171,14 @@ export class OAuthProvidersService {
           state,
           ipAddress: options.ipAddress,
         },
-        'error',
+        'error'
       );
       throw new AppError('INVALID_OAUTH_STATE', 'Invalid OAuth state', 400);
     }
 
-    // Check state expiration (10 minutes)
-    if (Date.now() - stateData.createdAt.getTime() > 10 * 60 * 1000) {
-      this.oauthStates.delete(state);
-      throw new AppError('EXPIRED_OAUTH_STATE', 'OAuth state expired', 400);
+    // Redis TTL handles expiration automatically, but check if state exists
+    if (!stateData) {
+      throw new AppError('EXPIRED_OAUTH_STATE', 'OAuth state expired or invalid', 400);
     }
 
     // Verify provider matches
@@ -188,7 +197,7 @@ export class OAuthProvidersService {
       const result = await this.findOrCreateUser(provider, userInfo, options);
 
       // Clean up state
-      this.oauthStates.delete(state);
+      await this.redisService.deleteOAuthState(state);
 
       logSecurityEvent(
         'OAUTH_LOGIN_SUCCESS',
@@ -199,23 +208,23 @@ export class OAuthProvidersService {
           isNewUser: result.isNewUser,
           ipAddress: options.ipAddress,
         },
-        'info',
+        'info'
       );
 
       return result;
     } catch (error: any) {
       // Clean up state on error
-      this.oauthStates.delete(state);
+      await this.redisService.deleteOAuthState(state);
 
       logSecurityEvent(
         'OAUTH_LOGIN_FAILED',
         {
           provider,
           state,
-          error: (error as Error) ? (error.message as any) : 'Unknown error',
+          error: error instanceof Error ? error.message : 'Unknown error',
           ipAddress: options.ipAddress,
         },
-        'error',
+        'error'
       );
 
       if (error instanceof AppError) {
@@ -270,7 +279,7 @@ export class OAuthProvidersService {
   private async exchangeCodeForToken(
     provider: 'github' | 'google',
     code: string,
-    redirectUri: string,
+    redirectUri: string
   ): Promise<string> {
     const config = this.configs[provider];
 
@@ -290,7 +299,7 @@ export class OAuthProvidersService {
   private async exchangeGitHubCode(
     code: string,
     redirectUri: string,
-    config: OAuthConfig,
+    config: OAuthConfig
   ): Promise<string> {
     const response = await axios.post(
       'https://github.com/login/oauth/access_token',
@@ -305,14 +314,14 @@ export class OAuthProvidersService {
           Accept: 'application/json',
           'User-Agent': 'MediaNest-OAuth',
         },
-      },
+      }
     );
 
     if (response.data.error) {
       throw new AppError(
         'GITHUB_OAUTH_ERROR',
         `GitHub OAuth error: ${response.data.error_description}`,
-        400,
+        400
       );
     }
 
@@ -325,7 +334,7 @@ export class OAuthProvidersService {
   private async exchangeGoogleCode(
     code: string,
     redirectUri: string,
-    config: OAuthConfig,
+    config: OAuthConfig
   ): Promise<string> {
     const response = await axios.post(
       'https://oauth2.googleapis.com/token',
@@ -340,14 +349,14 @@ export class OAuthProvidersService {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-      },
+      }
     );
 
     if (response.data.error) {
       throw new AppError(
         'GOOGLE_OAUTH_ERROR',
         `Google OAuth error: ${response.data.error_description}`,
-        400,
+        400
       );
     }
 
@@ -359,7 +368,7 @@ export class OAuthProvidersService {
    */
   private async getUserInfo(
     provider: 'github' | 'google',
-    accessToken: string,
+    accessToken: string
   ): Promise<OAuthUserInfo> {
     switch (provider) {
       case 'github':
@@ -441,7 +450,7 @@ export class OAuthProvidersService {
     options: {
       ipAddress: string;
       userAgent: string;
-    },
+    }
   ): Promise<OAuthResult> {
     // Check if user exists by email
     let user = await this.userRepository.findByEmail(userInfo.email);
@@ -470,7 +479,7 @@ export class OAuthProvidersService {
           provider,
           ipAddress: options.ipAddress,
         },
-        'info',
+        'info'
       );
     } else {
       // Update existing user with OAuth information
@@ -500,7 +509,7 @@ export class OAuthProvidersService {
       {
         ipAddress: options.ipAddress,
         userAgent: options.userAgent,
-      },
+      }
     );
 
     // Create session token
@@ -547,7 +556,7 @@ export class OAuthProvidersService {
         throw new AppError(
           'LAST_AUTH_METHOD',
           'Cannot unlink last authentication method. Please set a password first.',
-          400,
+          400
         );
       }
     }
@@ -564,7 +573,7 @@ export class OAuthProvidersService {
         userId,
         provider,
       },
-      'info',
+      'info'
     );
   }
 
@@ -591,23 +600,11 @@ export class OAuthProvidersService {
   }
 
   /**
-   * Clean up expired OAuth states
+   * Clean up expired OAuth states (handled by Redis TTL)
    */
   private cleanupExpiredStates(): void {
-    const now = Date.now();
-    let cleaned = 0;
-
-    for (const [state, stateData] of this.oauthStates.entries()) {
-      if (now - stateData.createdAt.getTime() > 10 * 60 * 1000) {
-        // 10 minutes
-        this.oauthStates.delete(state);
-        cleaned++;
-      }
-    }
-
-    if (cleaned > 0) {
-      logger.info('Cleaned up expired OAuth states', { count: cleaned });
-    }
+    // Redis handles TTL automatically, method kept for compatibility
+    logger.debug('OAuth state cleanup handled by Redis TTL');
   }
 
   /**
@@ -621,13 +618,11 @@ export class OAuthProvidersService {
       plex: number;
     };
   }> {
-    // Clean up first
-    this.cleanupExpiredStates();
-
     const users = await this.userRepository.findAll();
+    const oauthStates = await this.redisService.getAllOAuthStates();
 
     return {
-      activeStates: this.oauthStates.size,
+      activeStates: oauthStates.length,
       totalUsers: {
         github: users.filter((u) => u.githubId).length,
         google: users.filter((u) => u.googleId).length,

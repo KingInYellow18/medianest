@@ -1,9 +1,9 @@
-// @ts-nocheck
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 
 import { AppError } from './errors';
 import { logger } from './logger';
+import { configService } from '../config/config.service';
 
 interface JWTPayload {
   userId: string;
@@ -35,16 +35,19 @@ interface TokenRotationInfo {
   expiresAt: Date;
 }
 
-// Get JWT secret from environment - MUST be provided, no fallbacks
-if (!process.env.JWT_SECRET) {
+// Get JWT configuration from centralized config service
+const jwtConfig = configService.getAuthConfig();
+const JWT_SECRET = jwtConfig.JWT_SECRET;
+const JWT_SECRET_ROTATION = jwtConfig.JWT_SECRET_ROTATION;
+const JWT_ISSUER = jwtConfig.JWT_ISSUER;
+const JWT_AUDIENCE = jwtConfig.JWT_AUDIENCE;
+
+// Validate JWT secret at startup
+if (!JWT_SECRET || JWT_SECRET === 'dev-secret') {
   throw new Error(
-    'JWT_SECRET environment variable is required. Generate one with: openssl rand -base64 32'
+    'JWT_SECRET is required and cannot be the default dev value. Generate one with: openssl rand -base64 32'
   );
 }
-const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_SECRET_ROTATION = process.env.JWT_SECRET_ROTATION;
-const JWT_ISSUER = process.env.JWT_ISSUER || 'medianest';
-const JWT_AUDIENCE = process.env.JWT_AUDIENCE || 'medianest-users';
 
 // Default expiry times
 const DEFAULT_TOKEN_EXPIRY = '15m'; // Shorter for security
@@ -74,7 +77,7 @@ export function generateToken(
   const tokenOptions: jwt.SignOptions = {
     expiresIn: options?.expiresIn || expiresIn,
     issuer: options?.issuer || JWT_ISSUER,
-    audience: options?.audience || (JWT_AUDIENCE as any),
+    audience: options?.audience || JWT_AUDIENCE,
     algorithm: 'HS256',
     notBefore: '0s', // Token valid immediately
   };
@@ -111,9 +114,10 @@ export function verifyToken(
         audience: JWT_AUDIENCE,
         algorithms: ['HS256'],
       }) as JWTPayload;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as Error;
       // If rotation secret exists, try with old secret
-      if (JWT_SECRET_ROTATION && error instanceof jwt.JsonWebTokenError) {
+      if (JWT_SECRET_ROTATION && err instanceof jwt.JsonWebTokenError) {
         try {
           decoded = jwt.verify(token, JWT_SECRET_ROTATION, {
             issuer: JWT_ISSUER,
@@ -126,10 +130,10 @@ export function verifyToken(
             sessionId: decoded.sessionId,
           });
         } catch {
-          throw error; // Throw original error if both secrets fail
+          throw err; // Throw original error if both secrets fail
         }
       } else {
-        throw error;
+        throw err;
       }
     }
 
@@ -160,15 +164,16 @@ export function verifyToken(
     }
 
     return decoded;
-  } catch (error: any) {
-    if (error instanceof jwt.TokenExpiredError) {
+  } catch (error: unknown) {
+    const err = error as Error;
+    if (err instanceof jwt.TokenExpiredError) {
       throw new AppError('TOKEN_EXPIRED', 'Token has expired', 401);
     }
-    if (error instanceof jwt.JsonWebTokenError) {
+    if (err instanceof jwt.JsonWebTokenError) {
       throw new AppError('INVALID_TOKEN', 'Invalid token', 401);
     }
-    if (error instanceof AppError) {
-      throw error;
+    if (err instanceof AppError) {
+      throw err;
     }
     throw new AppError('TOKEN_VERIFICATION_FAILED', 'Token verification failed', 401);
   }
@@ -207,7 +212,7 @@ export function generateRefreshToken(payload?: { userId: string; sessionId: stri
 
 export function getTokenExpiry(token: string): Date | null {
   try {
-    const decoded = jwt.decode(token) as any;
+    const decoded = jwt.decode(token) as jwt.JwtPayload | null;
     if (decoded && decoded.exp) {
       return new Date(decoded.exp * 1000);
     }
@@ -220,7 +225,7 @@ export function getTokenExpiry(token: string): Date | null {
 // Get token issued at time
 export function getTokenIssuedAt(token: string): Date | null {
   try {
-    const decoded = jwt.decode(token) as any;
+    const decoded = jwt.decode(token) as jwt.JwtPayload | null;
     if (decoded && decoded.iat) {
       return new Date(decoded.iat * 1000);
     }
@@ -283,7 +288,7 @@ export function verifyRefreshToken(refreshToken: string): { userId: string; sess
       issuer: JWT_ISSUER,
       audience: JWT_AUDIENCE,
       algorithms: ['HS256'],
-    }) as any;
+    }) as jwt.JwtPayload & { type: string; userId: string; sessionId: string };
 
     if (decoded.type !== 'refresh') {
       throw new AppError('INVALID_REFRESH_TOKEN', 'Invalid refresh token type', 401);
@@ -293,15 +298,16 @@ export function verifyRefreshToken(refreshToken: string): { userId: string; sess
       userId: decoded.userId,
       sessionId: decoded.sessionId,
     };
-  } catch (error: any) {
-    if (error instanceof jwt.TokenExpiredError) {
+  } catch (error: unknown) {
+    const err = error as Error;
+    if (err instanceof jwt.TokenExpiredError) {
       throw new AppError('REFRESH_TOKEN_EXPIRED', 'Refresh token has expired', 401);
     }
-    if (error instanceof jwt.JsonWebTokenError) {
+    if (err instanceof jwt.JsonWebTokenError) {
       throw new AppError('INVALID_REFRESH_TOKEN', 'Invalid refresh token', 401);
     }
-    if (error instanceof AppError) {
-      throw error;
+    if (err instanceof AppError) {
+      throw err;
     }
     throw new AppError(
       'REFRESH_TOKEN_VERIFICATION_FAILED',
@@ -343,16 +349,16 @@ export function getTokenMetadata(token: string): {
   tokenId?: string;
 } {
   try {
-    const decoded = jwt.decode(token) as any;
+    const decoded = jwt.decode(token) as jwt.JwtPayload | null;
     if (!decoded) return {};
 
     return {
-      userId: decoded.userId,
-      sessionId: decoded.sessionId,
-      deviceId: decoded.deviceId,
+      userId: (decoded as any).userId,
+      sessionId: (decoded as any).sessionId,
+      deviceId: (decoded as any).deviceId,
       issuedAt: decoded.iat ? new Date(decoded.iat * 1000) : undefined,
       expiresAt: decoded.exp ? new Date(decoded.exp * 1000) : undefined,
-      tokenId: decoded.jti,
+      tokenId: (decoded as any).jti,
     };
   } catch {
     return {};

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Request, Response, NextFunction } from 'express';
 import fs from 'fs/promises';
 import path from 'path';
@@ -114,7 +113,9 @@ class SecurityAuditLogger {
   }
 
   private logToConsole(event: SecurityEvent): void {
-    const logMessage = `[SECURITY AUDIT] ${event.level.toUpperCase()} - ${event.category}:${event.event}`;
+    const logMessage = `[SECURITY AUDIT] ${event.level.toUpperCase()} - ${event.category}:${
+      event.event
+    }`;
     const logData = {
       id: event.id,
       timestamp: event.timestamp,
@@ -348,7 +349,7 @@ export function logAuthEvent(
   event: string,
   req: Request,
   outcome: 'success' | 'failure' | 'blocked',
-  details: Record<string, any> = {},
+  details: Record<string, any> = {}
 ): void {
   auditLogger.logEvent({
     level: outcome === 'success' ? 'info' : 'warn',

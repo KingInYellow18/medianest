@@ -1,16 +1,22 @@
-# MkDocs Configuration for MediaNest
+# MkDocs Configuration for MediaNest - Professional Documentation Platform
 site_name: MediaNest Documentation
-site_url: https://medianest.example.com/docs
-site_author: MediaNest Team
-site_description: Complete documentation for MediaNest - Advanced Media Management Platform
+site_url: https://docs.medianest.com
+site_author: MediaNest Development Team
+site_description: Complete documentation for MediaNest - Advanced Media Management Platform with Plex Integration, API, and Developer Resources
 
-# Repository
-repo_name: medianest/medianest
+# Repository Configuration
+repo_name: MediaNest/MediaNest
 repo_url: https://github.com/medianest/medianest
-edit_uri: edit/main/docs/
+edit_uri: edit/develop/docs/
+remote_branch: develop
+remote_name: origin
 
-# Copyright
-copyright: Copyright &copy; 2024 MediaNest Team
+# Copyright and Legal
+copyright: >
+  Copyright &copy; 2024 MediaNest Development Team -
+  <a href="#__consent">Manage Cookies</a> |
+  <a href="/privacy">Privacy Policy</a> |
+  <a href="/terms">Terms of Service</a>
 
 # Theme Configuration
 theme:
@@ -35,13 +41,14 @@ theme:
         icon: material/brightness-4
         name: Switch to light mode
 
-  # Features
+  # Enhanced Features for Professional Documentation
   features:
     - announce.dismiss
     - content.action.edit
     - content.action.view
     - content.code.annotate
     - content.code.copy
+    - content.code.select
     - content.tabs.link
     - content.tooltips
     - header.autohide
@@ -49,6 +56,9 @@ theme:
     - navigation.footer
     - navigation.indexes
     - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.instant.progress
+    - navigation.path
     - navigation.prune
     - navigation.sections
     - navigation.tabs
@@ -61,9 +71,9 @@ theme:
     - toc.follow
     - toc.integrate
 
-  # Logo and Favicon
-  logo: assets/images/logo.png
-  favicon: assets/images/favicon.png
+  # Branding Assets
+  logo: assets/images/logo.svg
+  favicon: assets/images/favicon.ico
 
   # Language
   language: en
@@ -141,27 +151,53 @@ nav:
       - Glossary: reference/glossary.md
       - Changelog: reference/changelog.md
 
-# Plugins
+# Enhanced Plugins for Professional Documentation
 plugins:
+  # Core search with advanced features
   - search:
       separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+      lang:
+        - en
+      prebuild_index: true
+
+  # Performance optimization
   - minify:
       minify_html: true
+      minify_js: true
+      minify_css: true
+      htmlmin_opts:
+        remove_comments: true
+        remove_empty_space: true
+
+  # Git integration for content management
   - git-revision-date-localized:
-      type: date
+      type: timeago
+      timezone: UTC
+      locale: en
+      fallback_to_build_date: true
       enable_creation_date: true
-  - git-committers:
-      repository: medianest/medianest
-      branch: main
+
+  # Content organization
   - tags:
-      tags_file: tags.md
+      tags_file: reference/tags.md
+
+  # Social media integration
   - social:
+      enabled: !ENV [CI, false]
       cards: true
+      cards_layout_options:
+        background_color: '#673ab7'
+        color: '#ffffff'
       cards_color:
         fill: '#673ab7'
         text: '#ffffff'
-  - offline:
-      enabled: !ENV [OFFLINE, false]
+
+  # Meta tags for SEO
+  - meta
+
+  # Privacy plugin for GDPR compliance
+  - privacy:
+      enabled: !ENV [CI, false]
 
 # Markdown Extensions
 markdown_extensions:
@@ -206,31 +242,51 @@ markdown_extensions:
       custom_checkbox: true
   - pymdownx.tilde
 
-# Extra CSS and JavaScript
+# Enhanced Assets and Scripts
 extra_css:
   - assets/stylesheets/extra.css
-  - assets/stylesheets/custom.css
+  - assets/stylesheets/medianest-theme.css
+  - assets/stylesheets/animations.css
+  - assets/stylesheets/responsive.css
 
 extra_javascript:
-  - assets/javascripts/extra.js
+  - assets/javascripts/medianest.js
+  - assets/javascripts/search-enhancements.js
+  - assets/javascripts/analytics.js
   - https://polyfill.io/v3/polyfill.min.js?features=es6
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+  - https://unpkg.com/mermaid@10/dist/mermaid.min.js
 
-# Extra
+# Extended Configuration & Integrations
 extra:
+  # Version management with Mike
   version:
     provider: mike
-    default: stable
+    default: latest
+    alias: true
+
+  # Enhanced social links
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/medianest/medianest
+      name: GitHub Repository
     - icon: fontawesome/brands/docker
       link: https://hub.docker.com/r/medianest/medianest
+      name: Docker Hub
+    - icon: fontawesome/brands/discord
+      link: https://discord.gg/medianest
+      name: Discord Community
     - icon: fontawesome/brands/twitter
       link: https://twitter.com/medianest
+      name: Twitter Updates
+    - icon: fontawesome/solid/globe
+      link: https://medianest.com
+      name: Official Website
+
+  # Analytics and feedback
   analytics:
     provider: google
-    property: G-XXXXXXXXXX
+    property: !ENV [GOOGLE_ANALYTICS_KEY, '']
     feedback:
       title: Was this page helpful?
       ratings:
@@ -238,13 +294,36 @@ extra:
           name: This page was helpful
           data: 1
           note: >-
-            Thanks for your feedback!
+            Thanks for your feedback! Consider starring us on 
+            <a href="https://github.com/medianest/medianest" target="_blank" rel="noopener">GitHub</a>
         - icon: material/emoticon-sad-outline
           name: This page could be improved
           data: 0
           note: >-
-            Thanks for your feedback! Help us improve this page by
-            <a href="https://github.com/medianest/medianest/issues/new/?title=[Docs]+{title}+-+{url}" target="_blank" rel="noopener">telling us what you found helpful or confusing</a>.
+            Thanks for your feedback! Help us improve by
+            <a href="https://github.com/medianest/medianest/issues/new/?title=[Docs]+{title}+-+{url}" target="_blank" rel="noopener">creating an issue</a>
+            or <a href="https://github.com/medianest/medianest/edit/develop/docs/{path}" target="_blank" rel="noopener">editing this page</a>.
+
+  # Status and announcements
+  status:
+    new: Recently added
+    deprecated: Deprecated
+
+  # Consent management for privacy
+  consent:
+    title: Cookie consent
+    description: >-
+      We use cookies to recognize your repeated visits and preferences, as well
+      as to measure the effectiveness of our documentation and whether users
+      find what they're searching for. With your consent, you're helping us to
+      make our documentation better.
+    actions:
+      - accept
+      - reject
+      - manage
+
+  # Generator notice
+  generator: false
 
 # Validation
 validation:
