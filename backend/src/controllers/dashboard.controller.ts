@@ -6,7 +6,6 @@ import { statusService } from '@/services/status.service';
 import { cacheService } from '@/services/cache.service';
 import { AppError } from '../utils/errors';
 import { logger } from '@/utils/logger';
-import { CatchError } from '../types/common';
 
 export class DashboardController {
   async getServiceStatuses(_req: Request, res: Response) {
@@ -33,7 +32,7 @@ export class DashboardController {
           count: statuses.length,
         },
       });
-    } catch (error: CatchError) {
+    } catch (error: unknown) {
       logger.error('Failed to get service statuses', { error });
       throw new AppError('DASHBOARD_ERROR', 'Failed to retrieve service statuses', 500);
     }
@@ -62,14 +61,14 @@ export class DashboardController {
       // Set cache headers
       res.set({
         'Cache-Control': 'public, max-age=60',
-        ETag: `"${service}-${status.lastCheckAt}"`,
+        ETag: `"${service}-${status.lastCheck}"`,
       });
 
       res.json({
         success: true,
         data: status,
       });
-    } catch (error: CatchError) {
+    } catch (error: unknown) {
       if (error instanceof AppError) {
         throw error;
       }
@@ -95,7 +94,7 @@ export class DashboardController {
       let recentlyAdded = [];
       try {
         recentlyAdded = await plexService.getRecentlyAdded(userId);
-      } catch (error: CatchError) {
+      } catch (error: unknown) {
         logger.warn('Failed to get recently added from Plex', { error });
       }
 
@@ -123,7 +122,7 @@ export class DashboardController {
           },
         },
       });
-    } catch (error: CatchError) {
+    } catch (error: unknown) {
       logger.error('Failed to get dashboard stats', { error });
       throw new AppError('DASHBOARD_STATS_ERROR', 'Failed to retrieve dashboard statistics', 500);
     }
@@ -140,7 +139,7 @@ export class DashboardController {
           unreadCount: 0,
         },
       });
-    } catch (error: CatchError) {
+    } catch (error: unknown) {
       logger.error('Failed to get notifications', { error });
       throw new AppError('NOTIFICATIONS_ERROR', 'Failed to retrieve notifications', 500);
     }

@@ -5,7 +5,7 @@ import { SessionProvider } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import { ErrorBoundary } from './ErrorBoundary';
 import { initializeErrorLogger } from '@/lib/error-logger';
-import { AppError } from '@medianest/shared';
+import { AppError } from '@medianest/shared/client';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -36,7 +36,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             },
           },
         },
-      }),
+      })
   );
 
   useEffect(() => {

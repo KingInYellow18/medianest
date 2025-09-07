@@ -5,7 +5,7 @@ import { plexService } from '@/services/plex.service';
 import { ApiError } from '@/middleware/error-handler';
 import { logger } from '@/utils/logger';
 import { AuthRequest } from '@/types/auth';
-import { CatchError } from '../types/common';
+// Removed unused import
 
 // Validation schemas
 const refreshLibrarySchema = z.object({
@@ -21,7 +21,7 @@ export const getServerInfo = async (req: AuthRequest, res: Response) => {
   try {
     const serverInfo = await plexService.getServerInfo(req.user!.id);
     res.json(serverInfo);
-  } catch (error: CatchError) {
+  } catch (error: unknown) {
     logger.error('Failed to get Plex server info', {
       userId: req.user!.id,
       error: error instanceof Error ? error.message : ('Unknown error' as any),
@@ -34,7 +34,7 @@ export const getLibraries = async (req: AuthRequest, res: Response) => {
   try {
     const libraries = await plexService.getLibraries(req.user!.id);
     res.json(libraries);
-  } catch (error: CatchError) {
+  } catch (error: unknown) {
     logger.error('Failed to get Plex libraries', {
       userId: req.user!.id,
       error: error instanceof Error ? error.message : ('Unknown error' as any),
@@ -53,7 +53,7 @@ export const getLibraryItems = async (req: AuthRequest, res: Response) => {
       limit: Number(limit),
     });
     res.json(items);
-  } catch (error: CatchError) {
+  } catch (error: unknown) {
     logger.error('Failed to get library items', {
       userId: req.user!.id,
       libraryKey,
@@ -73,7 +73,7 @@ export const searchPlex = async (req: AuthRequest, res: Response) => {
   try {
     const results = await plexService.search(req.user!.id, q);
     res.json(results);
-  } catch (error: CatchError) {
+  } catch (error: unknown) {
     logger.error('Failed to search Plex', {
       userId: req.user!.id,
       query: q,
@@ -87,7 +87,7 @@ export const getRecentlyAdded = async (req: AuthRequest, res: Response) => {
   try {
     const items = await plexService.getRecentlyAdded(req.user!.id);
     res.json(items);
-  } catch (error: CatchError) {
+  } catch (error: unknown) {
     logger.error('Failed to get recently added', {
       userId: req.user!.id,
       error: error instanceof Error ? error.message : ('Unknown error' as any),
@@ -107,7 +107,7 @@ export const refreshLibrary = async (req: AuthRequest, res: Response) => {
   try {
     await plexService.refreshLibrary(req.user!.id, libraryKey);
     res.json({ message: 'Library refresh initiated', libraryKey });
-  } catch (error: CatchError) {
+  } catch (error: unknown) {
     logger.error('Failed to refresh library', {
       userId: req.user!.id,
       libraryKey,
@@ -128,7 +128,7 @@ export const scanDirectory = async (req: AuthRequest, res: Response) => {
   try {
     await plexService.scanDirectory(req.user!.id, libraryKey, directory);
     res.json({ message: 'Directory scan initiated', libraryKey, directory });
-  } catch (error: CatchError) {
+  } catch (error: unknown) {
     logger.error('Failed to scan directory', {
       userId: req.user!.id,
       libraryKey,
@@ -155,7 +155,7 @@ export const scanYouTubeLibrary = async (req: AuthRequest, res: Response) => {
       message: 'YouTube library scan initiated',
       libraryKey: youtubeLibraryKey,
     });
-  } catch (error: CatchError) {
+  } catch (error: unknown) {
     if (error instanceof ApiError) throw error;
 
     logger.error('Failed to scan YouTube library', {
@@ -176,7 +176,7 @@ export const getCollections = async (req: AuthRequest, res: Response) => {
       sort: sort as string,
     });
     res.json(collections);
-  } catch (error: CatchError) {
+  } catch (error: unknown) {
     logger.error('Failed to get collections', {
       userId: req.user!.id,
       libraryKey,
@@ -192,7 +192,7 @@ export const getCollectionDetails = async (req: AuthRequest, res: Response) => {
   try {
     const collection = await plexService.getCollectionDetails(req.user!.id, collectionKey!);
     res.json(collection);
-  } catch (error: CatchError) {
+  } catch (error: unknown) {
     logger.error('Failed to get collection details', {
       userId: req.user!.id,
       collectionKey,

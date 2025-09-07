@@ -5,7 +5,6 @@ import { BaseServiceClient } from '@/integrations/base.client';
 import { logger } from '@/utils/logger';
 
 const execFile = promisify(require('child_process').execFile);
-import { CatchError } from '../types/common';
 
 export interface YouTubeVideoInfo {
   id: string;
@@ -107,7 +106,7 @@ export class YouTubeClient extends BaseServiceClient {
           viewCount: data.view_count || 0,
           formats: this.transformFormats(data.formats || []),
         };
-      } catch (error: CatchError) {
+      } catch (error: unknown) {
         if (((error as any).code as any) === 'ENOENT') {
           logger.error('yt-dlp not found. Please install yt-dlp.');
           throw new Error('YouTube downloader not configured');
@@ -279,7 +278,7 @@ export class YouTubeClient extends BaseServiceClient {
     try {
       await execFile(this.ytDlpPath, ['-U'], { timeout: 60000 });
       logger.info('yt-dlp updated successfully');
-    } catch (error: CatchError) {
+    } catch (error: unknown) {
       logger.error('Failed to update yt-dlp', { error });
       throw new Error('Failed to update YouTube downloader');
     }

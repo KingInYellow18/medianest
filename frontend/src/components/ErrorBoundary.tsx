@@ -1,7 +1,7 @@
 'use client';
 
 import { Component, ReactNode } from 'react';
-import { logError, getUserFriendlyMessage, extractErrorDetails } from '@medianest/shared';
+import { logError, getUserFriendlyMessage, extractErrorDetails } from '@medianest/shared/client';
 
 interface Props {
   children: ReactNode;

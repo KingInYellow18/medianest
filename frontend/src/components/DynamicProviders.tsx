@@ -6,7 +6,7 @@ import { SessionProvider } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import { ErrorBoundary } from './ErrorBoundary';
 import { initializeErrorLogger } from '@/lib/error-logger';
-import { AppError } from '@medianest/shared';
+import { AppError } from '@medianest/shared/client';
 
 // PERFORMANCE OPTIMIZATION: Dynamically import heavy components
 const WebSocketProvider = dynamic(
@@ -14,7 +14,7 @@ const WebSocketProvider = dynamic(
   {
     ssr: false,
     loading: () => null, // No loading state for context providers
-  },
+  }
 );
 
 export function DynamicProviders({ children }: { children: React.ReactNode }) {
@@ -46,7 +46,7 @@ export function DynamicProviders({ children }: { children: React.ReactNode }) {
             },
           },
         },
-      }),
+      })
   );
 
   useEffect(() => {

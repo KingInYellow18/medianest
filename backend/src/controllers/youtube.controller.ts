@@ -235,8 +235,8 @@ export class YouTubeController {
             attemptsMade: job.attemptsMade,
             processedOn: job.processedOn,
             finishedOn: job.finishedOn,
-            failedReason: job.failedReason,
-          };
+            failedReason: job.failedReason || '',
+          } as any;
         }
       }
 
@@ -245,7 +245,7 @@ export class YouTubeController {
         url: download.playlistUrl,
         title: download.playlistTitle || 'Unknown',
         status: download.status,
-        progress: jobDetails?.progress || 0,
+        progress: (jobDetails as any)?.progress || 0,
         filePaths: filePaths?.files || [],
         fileSize: filePaths?.totalSize || 0,
         quality: filePaths?.quality || 'unknown',

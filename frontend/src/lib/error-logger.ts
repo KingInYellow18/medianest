@@ -1,4 +1,4 @@
-import { logError, ErrorLogEntry, extractErrorDetails } from '@medianest/shared';
+import { logError, ErrorLogEntry, extractErrorDetails } from '@medianest/shared/client';
 import { getErrorReportingConfig, isProduction } from '@/config';
 
 interface ErrorReportingConfig {
@@ -75,7 +75,7 @@ class ErrorLogger {
     if (this.config.excludeErrors) {
       const errorMessage = error.message.toLowerCase();
       const shouldExclude = this.config.excludeErrors.some((pattern) =>
-        errorMessage.includes(pattern.toLowerCase()),
+        errorMessage.includes(pattern.toLowerCase())
       );
       if (shouldExclude) {
         return false;

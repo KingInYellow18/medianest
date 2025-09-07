@@ -9,7 +9,7 @@ import {
   getUserFriendlyMessage,
   logError,
   isRetryableError,
-} from '@medianest/shared';
+} from '@medianest/shared/client';
 
 interface ErrorHandlerOptions {
   onAuthError?: () => void;
@@ -55,7 +55,7 @@ export function useErrorHandler(options: ErrorHandlerOptions = {}) {
         console.error('[Toast]', message);
       }
     },
-    [router, options],
+    [router, options]
   );
 
   const clearError = useCallback(() => {
@@ -79,7 +79,7 @@ export function useErrorHandler(options: ErrorHandlerOptions = {}) {
         setIsRetrying(false);
       }
     },
-    [error, isRetrying, clearError, handleError],
+    [error, isRetrying, clearError, handleError]
   );
 
   return {
@@ -100,6 +100,6 @@ export function useAsyncError() {
     (error: Error) => {
       handleError(error);
     },
-    [handleError],
+    [handleError]
   );
 }

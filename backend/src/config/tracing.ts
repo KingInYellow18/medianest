@@ -6,7 +6,7 @@ import { OTLPTraceExporter } from '@opentelemetry/exporter-otlp-http';
 import { Resource } from '@opentelemetry/resources';
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
 import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-node';
-import {
+import type {
   TracingSDK,
   ResourceAttributes,
   AutoInstrumentationConfig,
@@ -16,7 +16,8 @@ import {
   TracingSpan,
   HttpInstrumentationResponse,
 } from '../types/opentelemetry';
-import { CatchError } from '../types/common';
+import type { Attributes, Context, Sampler, SamplingResult } from '@opentelemetry/api';
+import type { SpanExporter } from '@opentelemetry/sdk-trace-base';
 
 // Environment configuration
 const SERVICE_NAME = process.env.SERVICE_NAME || 'observe-backend';
@@ -70,7 +71,7 @@ const instrumentationConfig: AutoInstrumentationConfig = {
       const url = req.url || '';
       return url.includes('/health') || url.includes('/favicon.ico') || url.includes('/static/');
     },
-    requestHook: (span: TracingSpan, request: IncomingHttpRequest) => {
+    requestHook: (span: TracingSpan, request: any) => {
       span.setAttributes({
         'http.request.header.user-agent': (request.getHeader('user-agent') as string) || '',
         'http.request.header.x-correlation-id':
@@ -102,7 +103,7 @@ const instrumentationConfig: AutoInstrumentationConfig = {
   },
 };
 
-const instrumentations = [getNodeAutoInstrumentations(instrumentationConfig)];
+const instrumentations = [getNodeAutoInstrumentations(instrumentationConfig as any)];
 
 // Sampling configuration
 const samplingConfig = {
@@ -114,11 +115,11 @@ const samplingConfig = {
 let sdk: TracingSDK | null = null;
 
 if (TRACING_ENABLED) {
-  const sampler: TracingSampler = {
-    shouldSample: (): CustomSamplingResult => ({
-      decision: Math.random() < samplingConfig.ratio ? 1 : 0, // SamplingDecision.RECORD_AND_SAMPLE : SamplingDecision.NOT_RECORD
-      attributes: {},
-      traceState: undefined,
+  const sampler: Sampler = {
+    shouldSample: (): SamplingResult => ({
+      decision: Math.random() < samplingConfig.ratio ? 1 : 0,
+      attributes: Object.freeze({}),
+      traceState: undefined as any,
     }),
     toString: () => `CustomSampler{ratio: ${samplingConfig.ratio}}`,
   };
@@ -126,7 +127,7 @@ if (TRACING_ENABLED) {
   sdk = new NodeSDK({
     resource,
     spanProcessor: new BatchSpanProcessor(
-      ENVIRONMENT === 'development' ? jaegerExporter : otlpExporter,
+      (ENVIRONMENT === 'development' ? jaegerExporter : otlpExporter) as SpanExporter,
       {
         maxExportBatchSize: 100,
         maxQueueSize: 1000,
@@ -135,8 +136,8 @@ if (TRACING_ENABLED) {
       }
     ),
     instrumentations,
-    sampler,
-  }) as TracingSDK;
+    sampler: sampler as Sampler,
+  }) as unknown as TracingSDK;
 
   // Start tracing
   sdk.start();
@@ -146,7 +147,7 @@ if (TRACING_ENABLED) {
     sdk
       ?.shutdown()
       .then(() => logger.info('Distributed tracing terminated', { service: SERVICE_NAME }))
-      .catch((error: CatchError) => {
+      .catch((error: unknown) => {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         logger.error('Error terminating tracing', { error: errorMessage, service: SERVICE_NAME });
       })

@@ -79,11 +79,18 @@ vi.mock('ioredis', () => {
     incr: vi.fn().mockResolvedValue(1),
     expire: vi.fn().mockResolvedValue(1),
     ttl: vi.fn().mockResolvedValue(-1),
+    hget: vi.fn().mockResolvedValue(null),
+    hset: vi.fn().mockResolvedValue(1),
+    hgetall: vi.fn().mockResolvedValue({}),
+    sadd: vi.fn().mockResolvedValue(1),
+    srem: vi.fn().mockResolvedValue(1),
+    smembers: vi.fn().mockResolvedValue([]),
   };
 
   return {
     __esModule: true,
     default: vi.fn(() => mockRedisClient),
+    Redis: vi.fn(() => mockRedisClient),
   };
 });
 
@@ -128,6 +135,74 @@ process.env.PLEX_CLIENT_ID = 'test-plex-client-id';
 process.env.PLEX_CLIENT_SECRET = 'test-plex-client-secret';
 process.env.FRONTEND_URL = 'http://localhost:3000';
 process.env.LOG_LEVEL = 'error'; // Reduce noise during tests
+
+// Mock jsonwebtoken to fix auth test failures
+vi.mock('jsonwebtoken', async () => {
+  const actual = await vi.importActual('jsonwebtoken');
+
+  class TokenExpiredError extends Error {
+    name = 'TokenExpiredError';
+    expiredAt: Date;
+    constructor(message: string, expiredAt: Date) {
+      super(message);
+      this.expiredAt = expiredAt;
+    }
+  }
+
+  class JsonWebTokenError extends Error {
+    name = 'JsonWebTokenError';
+    constructor(message: string) {
+      super(message);
+    }
+  }
+
+  return {
+    ...actual,
+    default: {
+      sign: vi.fn().mockReturnValue('test-jwt-token'),
+      verify: vi.fn().mockReturnValue({ userId: 'test-user-id', role: 'USER' }),
+      decode: vi.fn().mockReturnValue({ userId: 'test-user-id', role: 'USER' }),
+      TokenExpiredError,
+      JsonWebTokenError,
+    },
+    sign: vi.fn().mockReturnValue('test-jwt-token'),
+    verify: vi.fn().mockReturnValue({ userId: 'test-user-id', role: 'USER' }),
+    decode: vi.fn().mockReturnValue({ userId: 'test-user-id', role: 'USER' }),
+    TokenExpiredError,
+    JsonWebTokenError,
+  };
+});
+
+// Mock bcrypt to prevent actual hashing in tests
+vi.mock('bcrypt', () => ({
+  hash: vi.fn().mockResolvedValue('hashed-password'),
+  compare: vi.fn().mockResolvedValue(true),
+  genSalt: vi.fn().mockResolvedValue('salt'),
+}));
+
+vi.mock('bcryptjs', () => ({
+  hash: vi.fn().mockResolvedValue('hashed-password'),
+  compare: vi.fn().mockResolvedValue(true),
+  genSalt: vi.fn().mockResolvedValue('salt'),
+}));
+
+// Mock config service to provide test configuration
+vi.mock('../src/config/config.service', () => ({
+  configService: {
+    getAuthConfig: () => ({
+      JWT_SECRET: 'test-secret-key-for-testing-only-do-not-use-in-production',
+      JWT_ISSUER: 'medianest-test',
+      JWT_AUDIENCE: 'medianest-test-users',
+      JWT_EXPIRES_IN: '1h',
+    }),
+    getDatabaseConfig: () => ({
+      DATABASE_URL: 'postgresql://test:test@localhost:5433/medianest_test',
+    }),
+    getRedisConfig: () => ({
+      REDIS_URL: 'redis://localhost:6380/0',
+    }),
+  },
+}));
 
 // Mock the config module to return test configuration
 vi.mock('@/config', () => ({
@@ -182,6 +257,6 @@ global.createTestJWT = (payload = {}) => {
       ...payload,
     },
     process.env.JWT_SECRET,
-    { expiresIn: '1h' },
+    { expiresIn: '1h' }
   );
 };

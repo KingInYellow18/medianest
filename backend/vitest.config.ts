@@ -4,7 +4,10 @@ import path from 'path';
 export default defineConfig({
   test: {
     environment: 'node',
-    setupFiles: ['./tests/setup.ts', './src/__tests__/setup.ts'],
+    setupFiles: [
+      './tests/setup.ts', 
+      './src/__tests__/setup.ts'
+    ],
     globals: true,
     isolate: false,
     coverage: {

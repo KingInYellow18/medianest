@@ -1,5 +1,5 @@
 import { getRedisClient } from './redis-client';
-import { RATE_LIMITS } from '@medianest/shared';
+import { RATE_LIMITS } from '@medianest/shared/client';
 
 export interface RateLimitConfig {
   windowMs: number; // Time window in milliseconds
@@ -19,7 +19,7 @@ export interface RateLimitResult {
  */
 export async function checkRateLimit(
   identifier: string,
-  config: RateLimitConfig,
+  config: RateLimitConfig
 ): Promise<RateLimitResult> {
   const redis = getRedisClient();
   const key = `${config.keyPrefix || 'rate:'}${identifier}`;
@@ -63,7 +63,7 @@ export async function checkRateLimit(
       now.toString(),
       windowStart.toString(),
       config.max.toString(),
-      config.windowMs.toString(),
+      config.windowMs.toString()
     )) as [number, number, number];
 
     const [allowed, remaining, resetTime] = result;
@@ -110,7 +110,7 @@ export async function resetRateLimit(identifier: string, keyPrefix?: string): Pr
  */
 export async function getRateLimitStatus(
   identifier: string,
-  config: RateLimitConfig,
+  config: RateLimitConfig
 ): Promise<RateLimitResult> {
   const redis = getRedisClient();
   const key = `${config.keyPrefix || 'rate:'}${identifier}`;

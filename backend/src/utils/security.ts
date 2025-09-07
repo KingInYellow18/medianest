@@ -193,7 +193,7 @@ export function encryptSensitiveData(
   const keyHash = crypto.createHash('sha256').update(secretKey).digest();
 
   const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipherGCM(algorithm, keyHash, iv);
+  const cipher = crypto.createCipher('aes-256-cbc', keyHash.slice(0, 32));
 
   let encrypted = cipher.update(data, 'utf8', 'hex');
   encrypted += cipher.final('hex');
@@ -216,7 +216,7 @@ export function decryptSensitiveData(encryptedData: string, iv: string, key?: st
   const keyHash = crypto.createHash('sha256').update(secretKey).digest();
 
   const ivBuffer = Buffer.from(iv, 'hex');
-  const decipher = crypto.createDecipherGCM(algorithm, keyHash, ivBuffer);
+  const decipher = crypto.createDecipher('aes-256-gcm', keyHash);
 
   let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
   decrypted += decipher.final('utf8');

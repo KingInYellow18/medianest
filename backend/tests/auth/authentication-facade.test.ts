@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, jest, beforeAll, afterAll } from '@jest/globals';
+import { describe, it, expect, beforeEach, vi, beforeAll, afterAll } from 'vitest';
 import { Request } from 'express';
 import { AuthenticationFacade, AuthenticatedUser } from '../../src/auth';
 import { UserRepository } from '../../src/repositories/user.repository';
@@ -7,16 +7,25 @@ import { DeviceSessionService } from '../../src/services/device-session.service'
 import { AuthenticationError } from '../../src/utils/errors';
 
 // Mock dependencies
-jest.mock('../../src/repositories/user.repository');
-jest.mock('../../src/repositories/session-token.repository');
-jest.mock('../../src/services/device-session.service');
-jest.mock('../../src/utils/logger');
+vi.mock('../../src/repositories/user.repository');
+vi.mock('../../src/repositories/session-token.repository');
+vi.mock('../../src/services/device-session.service');
+vi.mock('../../src/utils/logger');
+vi.mock('../../src/config/config.service', () => ({
+  configService: {
+    getAuthConfig: () => ({
+      JWT_SECRET: 'test-secret-key-for-testing-only-do-not-use-in-production',
+      JWT_ISSUER: 'medianest-test',
+      JWT_AUDIENCE: 'medianest-app-test',
+    }),
+  },
+}));
 
 describe('AuthenticationFacade', () => {
   let authFacade: AuthenticationFacade;
-  let mockUserRepository: jest.Mocked<UserRepository>;
-  let mockSessionTokenRepository: jest.Mocked<SessionTokenRepository>;
-  let mockDeviceSessionService: jest.Mocked<DeviceSessionService>;
+  let mockUserRepository: any;
+  let mockSessionTokenRepository: any;
+  let mockDeviceSessionService: any;
   let mockRequest: Partial<Request>;
 
   const mockUser: AuthenticatedUser = {
@@ -43,11 +52,25 @@ describe('AuthenticationFacade', () => {
   });
 
   beforeEach(() => {
-    mockUserRepository = new UserRepository({} as any) as jest.Mocked<UserRepository>;
-    mockSessionTokenRepository = new SessionTokenRepository(
-      {} as any
-    ) as jest.Mocked<SessionTokenRepository>;
-    mockDeviceSessionService = new DeviceSessionService() as jest.Mocked<DeviceSessionService>;
+    // Create mock objects with vi.fn()
+    mockUserRepository = {
+      findById: vi.fn(),
+      findByEmail: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    };
+    mockSessionTokenRepository = {
+      create: vi.fn(),
+      findById: vi.fn(),
+      delete: vi.fn(),
+      deleteExpired: vi.fn(),
+    };
+    mockDeviceSessionService = {
+      registerDevice: vi.fn(),
+      validateDevice: vi.fn(),
+      updateLastSeen: vi.fn(),
+    };
 
     authFacade = new AuthenticationFacade(
       mockUserRepository,
@@ -57,7 +80,7 @@ describe('AuthenticationFacade', () => {
 
     mockRequest = {
       ip: '127.0.0.1',
-      get: jest.fn().mockReturnValue('test-user-agent'),
+      get: vi.fn().mockReturnValue('test-user-agent'),
       headers: {
         authorization: 'Bearer valid-token',
       },
@@ -68,7 +91,7 @@ describe('AuthenticationFacade', () => {
     };
 
     // Reset all mocks
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('authenticate', () => {

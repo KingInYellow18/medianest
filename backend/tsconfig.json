@@ -30,11 +30,12 @@
     "allowJs": false,
     "noEmit": false,
 
-    // Temporary production build overrides
+    // Temporary production build overrides for stability
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noImplicitReturns": false,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noUncheckedIndexedAccess": false
   },
   "include": ["src/**/*", "config/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"],

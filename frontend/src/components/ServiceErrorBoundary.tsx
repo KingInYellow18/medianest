@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { ErrorBoundary } from './ErrorBoundary';
-import { ServiceUnavailableError, isAppError } from '@medianest/shared';
+import { ServiceUnavailableError, isAppError } from '@medianest/shared/client';
 
 interface ServiceErrorBoundaryProps {
   children: React.ReactNode;

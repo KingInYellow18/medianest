@@ -108,12 +108,9 @@ Object.defineProperty(window, 'localStorage', {
 global.fetch = global.fetch || vi.fn();
 
 // Mock @medianest/shared package
-vi.mock('@medianest/shared', () => ({
+vi.mock('@medianest/shared/client', () => ({
   AppError: class AppError extends Error {
-    constructor(
-      message: string,
-      public statusCode: number = 500,
-    ) {
+    constructor(message: string, public statusCode: number = 500) {
       super(message);
       this.name = 'AppError';
     }
@@ -122,10 +119,7 @@ vi.mock('@medianest/shared', () => ({
   getUserFriendlyMessage: vi.fn(),
   extractErrorDetails: vi.fn(),
   ServiceUnavailableError: class ServiceUnavailableError extends Error {
-    constructor(
-      message: string,
-      public statusCode: number = 503,
-    ) {
+    constructor(message: string, public statusCode: number = 503) {
       super(message);
       this.name = 'ServiceUnavailableError';
     }

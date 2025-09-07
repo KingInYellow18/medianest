@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosError } from 'axios';
 
 import { config } from '@/config';
 import { logger } from '@/utils/logger';
-import { CatchError } from '../types/common';
+// Removed unused import
 
 export interface PlexServerInfo {
   name: string;
@@ -108,11 +108,9 @@ export class PlexClient {
       };
 
       return serverInfo;
-    } catch (error: CatchError) {
+    } catch (error: unknown) {
       throw new Error(
-        `Failed to connect to Plex server: ${
-          (error as Error) ? (error.message as any) : String(error)
-        }`
+        `Failed to connect to Plex server: ${(error as any)?.message || String(error)}`
       );
     }
   }
@@ -130,7 +128,7 @@ export class PlexClient {
       }));
 
       return libraries;
-    } catch (error: CatchError) {
+    } catch (error: unknown) {
       throw new Error(
         `Failed to fetch libraries: ${(error as Error) ? (error.message as any) : String(error)}`
       );
@@ -160,7 +158,7 @@ export class PlexClient {
         items,
         totalSize: container.totalSize || 0,
       };
-    } catch (error: CatchError) {
+    } catch (error: unknown) {
       throw new Error(
         `Failed to fetch library items: ${
           (error as Error) ? (error.message as any) : String(error)
@@ -181,7 +179,7 @@ export class PlexClient {
       const results = response.data.MediaContainer.Metadata || [];
 
       return results.map(this.mapMediaItem);
-    } catch (error: CatchError) {
+    } catch (error: unknown) {
       throw new Error(
         `Search failed: ${(error as Error) ? (error.message as any) : String(error)}`
       );
@@ -200,7 +198,7 @@ export class PlexClient {
       const items = response.data.MediaContainer.Metadata || [];
 
       return items.map(this.mapMediaItem);
-    } catch (error: CatchError) {
+    } catch (error: unknown) {
       throw new Error(
         `Failed to fetch recently added: ${
           (error as Error) ? (error.message as any) : String(error)
@@ -214,7 +212,7 @@ export class PlexClient {
     try {
       await this.client.get(`/library/sections/${sectionId}/refresh`);
       logger.info('Plex library refresh initiated', { sectionId });
-    } catch (error: CatchError) {
+    } catch (error: unknown) {
       throw new Error(
         `Failed to refresh library: ${(error as Error) ? (error.message as any) : String(error)}`
       );
@@ -230,7 +228,7 @@ export class PlexClient {
     try {
       await this.client.get(`/library/sections/${sectionId}/refresh?${params}`);
       logger.info('Plex directory scan initiated', { sectionId, directory });
-    } catch (error: CatchError) {
+    } catch (error: unknown) {
       throw new Error(
         `Failed to scan directory: ${(error as Error) ? (error.message as any) : String(error)}`
       );
@@ -243,7 +241,7 @@ export class PlexClient {
       const response = await this.client.get(`/library/sections/${libraryKey}/collections`);
       const collections = response.data.MediaContainer.Metadata || [];
       return collections;
-    } catch (error: CatchError) {
+    } catch (error: unknown) {
       throw new Error(
         `Failed to fetch collections: ${(error as Error) ? (error.message as any) : String(error)}`
       );
@@ -264,7 +262,7 @@ export class PlexClient {
         ...collection,
         items,
       };
-    } catch (error: CatchError) {
+    } catch (error: unknown) {
       throw new Error(
         `Failed to fetch collection details: ${
           (error as Error) ? (error.message as any) : String(error)
@@ -289,7 +287,7 @@ export class PlexClient {
     try {
       await this.client.post(`/library/sections/${libraryKey}/collections?${params}`);
       logger.info('Plex collection created', { libraryKey, title, itemCount: items.length });
-    } catch (error: CatchError) {
+    } catch (error: unknown) {
       throw new Error(
         `Failed to create collection: ${(error as Error) ? (error.message as any) : String(error)}`
       );

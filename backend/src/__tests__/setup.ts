@@ -9,14 +9,16 @@ export const mockPrismaClient = createMockPrismaClient();
 // Mock Redis Client
 export const mockRedisClient = createMockRedisClient();
 
-// Mock Logger
-export const mockLogger = {
+// Mock Logger - Create a factory to avoid circular dependencies
+export const createMockLoggerInstance = () => ({
   info: vi.fn(),
   error: vi.fn(),
   warn: vi.fn(),
   debug: vi.fn(),
-  child: vi.fn(() => mockLogger),
-};
+  child: vi.fn(() => createMockLoggerInstance()),
+});
+
+export const mockLogger = createMockLoggerInstance();
 
 // Mock external services
 export const mockAxios = {
@@ -130,15 +132,6 @@ export const setupTestEnvironment = () => {
   process.env.API_KEY_HASH = createHash('sha256').update('test-api-key').digest('hex');
 };
 
-// Create factory function to avoid initialization issues
-const createMockLogger = () => ({
-  info: vi.fn(),
-  error: vi.fn(),
-  warn: vi.fn(),
-  debug: vi.fn(),
-  child: vi.fn(() => createMockLogger()),
-});
-
 // Global mocks setup
 export const setupGlobalMocks = () => {
   // Mock Prisma
@@ -152,25 +145,35 @@ export const setupGlobalMocks = () => {
     Redis: vi.fn().mockImplementation(() => mockRedisClient),
   }));
 
-  // Mock Logger
-  vi.mock('winston', () => ({
-    default: {
-      createLogger: vi.fn(() => createMockLogger()),
-      format: {
-        combine: vi.fn(),
-        timestamp: vi.fn(),
-        errors: vi.fn(),
-        splat: vi.fn(),
-        json: vi.fn(),
-        printf: vi.fn(),
-        colorize: vi.fn(),
+  // Mock Logger with stable reference
+  vi.mock('winston', () => {
+    const mockLoggerFactory = () => ({
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      debug: vi.fn(),
+      child: vi.fn(() => mockLoggerFactory()),
+    });
+
+    return {
+      default: {
+        createLogger: vi.fn(() => mockLoggerFactory()),
+        format: {
+          combine: vi.fn(),
+          timestamp: vi.fn(),
+          errors: vi.fn(),
+          splat: vi.fn(),
+          json: vi.fn(),
+          printf: vi.fn(),
+          colorize: vi.fn(),
+        },
+        transports: {
+          Console: vi.fn(),
+          File: vi.fn(),
+        },
       },
-      transports: {
-        Console: vi.fn(),
-        File: vi.fn(),
-      },
-    },
-  }));
+    };
+  });
 
   // Mock axios
   vi.mock('axios', () => ({
@@ -293,7 +296,7 @@ export const setupGlobalMocks = () => {
   }));
 
   vi.mock('../../lib/logger', () => ({
-    logger: createMockLogger(),
+    logger: mockLogger,
   }));
 };
 

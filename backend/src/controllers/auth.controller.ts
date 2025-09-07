@@ -9,7 +9,6 @@ import { encryptionService } from '@/services/encryption.service';
 import { jwtService } from '@/services/jwt.service';
 import { AuthenticatedRequest } from '@/types';
 import { logger } from '@/utils/logger';
-import { CatchError } from '../types/common';
 
 // Validation schemas
 const generatePinSchema = z.object({
@@ -72,8 +71,8 @@ export class AuthController {
           expiresIn: 900, // 15 minutes
         },
       });
-    } catch (error: CatchError) {
-      const errorMessage = (error as Error) ? (error.message as any) : 'Unknown error';
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       logger.error('Failed to generate Plex PIN', { error: errorMessage });
 
       // Handle specific error cases
@@ -271,8 +270,8 @@ export class AuthController {
           csrfToken: res.locals.csrfToken, // Include CSRF token in response
         },
       });
-    } catch (error: CatchError) {
-      const errorMessage = (error as Error) ? (error.message as any) : 'Unknown error';
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       logger.error('Failed to verify Plex PIN', { error: errorMessage });
 
       // Handle Axios errors

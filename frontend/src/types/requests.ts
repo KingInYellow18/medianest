@@ -10,7 +10,7 @@ export type {
   RequestFilters,
   RequestHistoryOptions,
   RequestHistoryResponse,
-} from '@medianest/shared';
+} from '@medianest/shared/client';
 
 export interface TVShowDetails extends MediaSearchResult {
   mediaType: 'tv';

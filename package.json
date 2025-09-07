@@ -98,6 +98,7 @@
     "ffmpeg-static": "^5.1.0",
     "fluent-ffmpeg": "^2.1.2",
     "helmet": "^7.0.0",
+    "ioredis-mock": "^5.9.1",
     "joi": "^17.9.0",
     "jsonwebtoken": "^9.0.0",
     "knex": "^2.4.2",

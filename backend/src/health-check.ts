@@ -29,7 +29,7 @@ const options = {
   timeout: 5000,
 };
 
-const req = http.request(options, (res: HealthCheckResponse) => {
+const req = http.request(options, (res) => {
   if (res.statusCode === 200) {
     logger.info('Health check passed', {
       statusCode: res.statusCode,

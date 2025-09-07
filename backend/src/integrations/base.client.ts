@@ -2,14 +2,9 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
 import http from 'http';
 import https from 'https';
 
-// @ts-ignore
-import {
-  ServiceUnavailableError,
-  BadRequestError, // @ts-ignore
-} from '@medianest/shared';
+import { ServiceUnavailableError, BadRequestError } from '@medianest/shared';
 
 import { logger } from '@/utils/logger';
-import { CatchError } from '../types/common';
 
 export interface ServiceConfig {
   name: string;
@@ -116,7 +111,7 @@ export abstract class BaseServiceClient {
         logger.error(`${this.name} API response error`, {
           status: error.response?.status,
           url: error.config?.url,
-          error: error instanceof Error ? error.message : ('Unknown error' as any),
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
         return Promise.reject(error);
       }
@@ -149,7 +144,7 @@ export abstract class BaseServiceClient {
       }
 
       return result;
-    } catch (error: CatchError) {
+    } catch (error: unknown) {
       this.handleCircuitBreakerFailure();
       throw error;
     }
@@ -170,7 +165,7 @@ export abstract class BaseServiceClient {
   protected async executeWithRetry<T>(operation: () => Promise<T>, attempt = 1): Promise<T> {
     try {
       return await operation();
-    } catch (error: CatchError) {
+    } catch (error: unknown) {
       if (attempt >= this.retryAttempts) {
         throw this.mapError(error);
       }
@@ -183,7 +178,7 @@ export abstract class BaseServiceClient {
       const delay = this.retryDelay * Math.pow(2, attempt - 1); // Exponential backoff
       logger.warn(`${this.name} API retry attempt ${attempt}`, {
         delay,
-        error: error instanceof Error ? error.message : ('Unknown error' as any),
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
 
       await new Promise((resolve) => setTimeout(resolve, delay));

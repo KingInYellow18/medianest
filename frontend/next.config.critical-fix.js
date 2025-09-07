@@ -18,7 +18,8 @@ const nextConfig = {
     ],
     // Enable experimental optimizations for bundle size reduction
     optimizeServerReact: true,
-    // Remove esmExternals to eliminate warning - using webpack externals instead
+    // CRITICAL: Disable ESM externals to prevent Node.js dependency issues
+    esmExternals: false,
   },
 
   webpack: (config, { isServer }) => {
@@ -34,32 +35,32 @@ const nextConfig = {
         // Node.js-only packages causing build failures
         'mock-aws-s3': false,
         'aws-sdk': false,
-        'nock': false,
-        'bcrypt': false,
+        nock: false,
+        bcrypt: false,
         // Additional Node.js modules
-        'child_process': false,
-        'net': false,
-        'tls': false,
-        'constants': false,
-        'assert': false,
-        'util': false,
-        'stream': false,
-        'buffer': false,
-        'events': false,
-        'url': false,
-        'querystring': false,
-        'http': false,
-        'https': false,
-        'zlib': false,
+        child_process: false,
+        net: false,
+        tls: false,
+        constants: false,
+        assert: false,
+        util: false,
+        stream: false,
+        buffer: false,
+        events: false,
+        url: false,
+        querystring: false,
+        http: false,
+        https: false,
+        zlib: false,
       };
-      
+
       // CRITICAL: Add externals to prevent bundling of Node.js-only packages
       config.externals = {
         ...config.externals,
         'mock-aws-s3': 'mock-aws-s3',
         'aws-sdk': 'aws-sdk',
-        'nock': 'nock',
-        'bcrypt': 'bcrypt',
+        nock: 'nock',
+        bcrypt: 'bcrypt',
       };
     }
 
@@ -233,7 +234,7 @@ const nextConfig = {
 
   // Enable standalone output for Docker deployment
   output: 'standalone',
-  
+
   // CRITICAL: Set output file tracing root to suppress workspace warnings
   outputFileTracingRoot: '/home/kinginyellow/projects/medianest',
 };

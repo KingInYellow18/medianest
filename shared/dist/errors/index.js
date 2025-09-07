@@ -1,4 +1,5 @@
 "use strict";
+// Shared error classes
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -17,6 +18,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.InternalServerError = exports.BadRequestError = exports.ServiceUnavailableError = exports.RateLimitError = exports.ConflictError = exports.NotFoundError = exports.AuthorizationError = exports.AuthenticationError = exports.ValidationError = exports.isAppError = exports.AppError = void 0;
 exports.toAppError = toAppError;
 exports.toErrorResponse = toErrorResponse;
+// Import core types from separate module to avoid circular dependencies
 const types_1 = require("./types");
 Object.defineProperty(exports, "AppError", { enumerable: true, get: function () { return types_1.AppError; } });
 Object.defineProperty(exports, "isAppError", { enumerable: true, get: function () { return types_1.isAppError; } });
@@ -78,6 +80,7 @@ class InternalServerError extends types_1.AppError {
     }
 }
 exports.InternalServerError = InternalServerError;
+// Convert any error to AppError
 function toAppError(error) {
     if ((0, types_1.isAppError)(error)) {
         return error;
@@ -87,6 +90,7 @@ function toAppError(error) {
     }
     return new InternalServerError('An unknown error occurred');
 }
+// Convert error to error response format
 function toErrorResponse(error) {
     if ((0, types_1.isAppError)(error)) {
         return {
@@ -117,5 +121,5 @@ function toErrorResponse(error) {
         },
     };
 }
+// Export utilities
 __exportStar(require("./utils"), exports);
-//# sourceMappingURL=index.js.map

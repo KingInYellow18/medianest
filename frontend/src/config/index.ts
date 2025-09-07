@@ -4,7 +4,7 @@ import {
   environmentLoader,
   configUtils,
   type FrontendConfig,
-} from '@medianest/shared/config';
+} from '@medianest/shared/client';
 
 /**
  * Load and validate frontend configuration
