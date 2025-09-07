@@ -1,6 +1,10 @@
 # MediaNest Documentation
 
-This directory contains the complete documentation for MediaNest, built with MkDocs Material theme.
+⚠️ **PROJECT STATUS: UNDER DEVELOPMENT - NOT PRODUCTION READY**
+
+This directory contains the documentation for MediaNest (currently in development phase). Some documentation may contain outdated or aspirational content that does not reflect current implementation status.
+
+**CRITICAL**: Review individual documents as some may contain false claims about production readiness, test coverage, and security status.
 
 ## Quick Start
 
@@ -38,38 +42,40 @@ docs/
 
 ## Building and Deployment
 
-### Build Scripts
+⚠️ **BUILD STATUS: CURRENTLY BROKEN**
 
-Use the provided build scripts for production builds:
+The main MediaNest application has build failures that may affect documentation builds:
+
+- Vite build errors (maximum call stack exceeded)
+- 42 security vulnerabilities in dependencies
+- TypeScript compilation failures
+
+### Build Scripts (May Fail)
 
 ```bash
-# Full build with all optimizations
+# Full build (may fail due to main project issues)
 ./scripts/build-docs.sh
 
-# Development build (faster)
+# Development build (may have limited functionality)
 ./scripts/build-docs.sh --dev
 
-# Skip dependencies and tests
+# Skip dependencies and tests (safest option currently)
 ./scripts/build-docs.sh --skip-deps --skip-tests
 ```
 
-### Deployment Scripts
+### Deployment Scripts (Not Recommended Currently)
 
-Deploy to various platforms:
+⚠️ **DEPLOYMENT BLOCKED**: Do not deploy documentation while main project has build failures and security vulnerabilities.
 
 ```bash
-# Deploy to GitHub Pages
-./scripts/deploy-docs.sh --github
-
-# Deploy to Netlify
-./scripts/deploy-docs.sh --netlify
-
-# Deploy to AWS S3
-./scripts/deploy-docs.sh --s3
-
-# Deploy to custom server
-./scripts/deploy-docs.sh --custom
+# These commands exist but should not be used until issues are resolved:
+# ./scripts/deploy-docs.sh --github
+# ./scripts/deploy-docs.sh --netlify
+# ./scripts/deploy-docs.sh --s3
+# ./scripts/deploy-docs.sh --custom
 ```
+
+**Fix Required**: Resolve main project build failures and security vulnerabilities before deploying documentation.
 
 ## License
 
