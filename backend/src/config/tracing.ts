@@ -1,5 +1,6 @@
 // @ts-ignore
 import { NodeSDK } from '@opentelemetry/sdk-node';
+import { logger } from '../utils/logger';
 // @ts-ignore
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 // @ts-ignore
@@ -125,7 +126,7 @@ if (TRACING_ENABLED) {
         maxQueueSize: 1000,
         exportTimeoutMillis: 30000,
         scheduledDelayMillis: 5000,
-      },
+      }
     ),
     instrumentations,
     sampler: {
@@ -145,16 +146,25 @@ if (TRACING_ENABLED) {
   process.on('SIGTERM', () => {
     sdk
       ?.shutdown()
-      .then(() => console.log('Tracing terminated'))
-      .catch((error: any) => console.log('Error terminating tracing', error))
+      .then(() => logger.info('Distributed tracing terminated', { service: SERVICE_NAME }))
+      .catch((error: any) =>
+        logger.error('Error terminating tracing', { error: error.message, service: SERVICE_NAME })
+      )
       .finally(() => process.exit(0));
   });
 
-  console.log(`🔍 Distributed tracing initialized for ${SERVICE_NAME} v${SERVICE_VERSION}`);
-  console.log(`📊 Jaeger endpoint: ${JAEGER_ENDPOINT}`);
-  console.log(`🎯 Sampling ratio: ${samplingConfig.ratio * 100}%`);
+  logger.info('Distributed tracing initialized', {
+    service: SERVICE_NAME,
+    version: SERVICE_VERSION,
+    jaegerEndpoint: JAEGER_ENDPOINT,
+    samplingRatio: samplingConfig.ratio,
+    timestamp: new Date().toISOString(),
+  });
 } else {
-  console.log('⚠️  Distributed tracing is disabled');
+  logger.info('Distributed tracing is disabled', {
+    reason: 'TRACING_ENABLED environment variable is not set to true',
+    timestamp: new Date().toISOString(),
+  });
 }
 
 // Export utilities for manual instrumentation

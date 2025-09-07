@@ -4,6 +4,7 @@
  */
 
 import { readSecret, readSecretFromFile } from './secrets';
+import { logger } from '../utils/logger';
 import {
   AppConfig,
   ServerConfig,
@@ -499,7 +500,11 @@ export class ConfigService {
     }
 
     if (warnings.length > 0) {
-      console.warn('Configuration warnings:\n', warnings.join('\n'));
+      logger.warn('Configuration validation warnings', {
+        warnings: warnings,
+        warningCount: warnings.length,
+        timestamp: new Date().toISOString(),
+      });
     }
 
     return { isValid: true, errors, warnings };
