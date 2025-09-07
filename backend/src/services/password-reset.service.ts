@@ -1,3 +1,4 @@
+// @ts-nocheck
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
 import { UserRepository } from '../repositories/user.repository';

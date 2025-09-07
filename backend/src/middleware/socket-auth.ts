@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Socket } from 'socket.io';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 

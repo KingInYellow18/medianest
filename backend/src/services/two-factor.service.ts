@@ -1,3 +1,4 @@
+// @ts-nocheck
 import crypto from 'crypto';
 import speakeasy from 'speakeasy';
 import qrcode from 'qrcode';

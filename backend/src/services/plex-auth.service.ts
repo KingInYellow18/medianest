@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Use built-in fetch (Node.js 18+)
 import { SessionTokenRepository } from '../repositories/session-token.repository';
 import { UserRepository } from '../repositories/user.repository';

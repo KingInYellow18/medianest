@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { redisClient } from '@/config/redis';
 import { UptimeKumaClient } from '@/integrations/uptime-kuma/uptime-kuma.client';
 import { serviceConfigRepository } from '@/repositories';

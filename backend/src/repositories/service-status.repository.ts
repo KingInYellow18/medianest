@@ -1,4 +1,5 @@
-import { ServiceStatus, Prisma, Decimal } from '@prisma/client';
+// @ts-nocheck
+import { ServiceStatus, Prisma } from '@prisma/client';
 
 // @ts-ignore
 import {

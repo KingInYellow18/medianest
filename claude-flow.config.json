@@ -16,8 +16,5 @@
     "tokenOptimization": true,
     "cacheEnabled": true,
     "telemetryLevel": "detailed"
-  },
-  "advanced": {
-    "features": true
   }
 }

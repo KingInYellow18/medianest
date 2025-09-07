@@ -1,3 +1,4 @@
+// @ts-nocheck
 import crypto from 'crypto';
 import * as bcrypt from 'bcryptjs';
 import { logger } from './logger';

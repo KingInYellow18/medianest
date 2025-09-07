@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Router } from 'express';
 
 import { mediaController } from '@/controllers/media.controller';

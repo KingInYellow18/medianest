@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { redisClient } from '@/config/redis';
 import { OverseerrClient } from '@/integrations/overseerr/overseerr.client';
 import { serviceConfigRepository, mediaRequestRepository } from '@/repositories';

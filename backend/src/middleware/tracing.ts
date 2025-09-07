@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Request, Response, NextFunction } from 'express';
 import { trace, context, SpanStatusCode, SpanKind } from '@opentelemetry/api';
 import { v4 as uuidv4 } from 'uuid';

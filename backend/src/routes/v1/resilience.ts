@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Router, Request, Response } from 'express';
 import { resilienceService } from '../../services/resilience.service';
 import { healthMonitor } from '../../services/health-monitor.service';

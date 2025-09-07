@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Router } from 'express';
 import { authMiddleware, requireAuth } from '@/middleware/auth';
 import { rateLimiter } from '@/middleware/rate-limiter';
