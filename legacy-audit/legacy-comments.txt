@@ -1,0 +1,237 @@
+./shared/node_modules/string-width/index.d.ts:	// TODO: remove this in the next major version, refactor the whole definition to:
+./shared/node_modules/string-width/index.js:// TODO: remove this in the next major version
+./shared/node_modules/es-abstract/GetIntrinsic.js:// TODO: remove, semver-major
+./shared/node_modules/es-abstract/helpers/getInferredName.js:// TODO: remove, semver-major
+./shared/node_modules/es-abstract/helpers/regexTester.js:// TODO: remove, semver-major
+./shared/node_modules/es-abstract/helpers/isObject.js:// TODO: remove, semver-major
+./shared/node_modules/es-abstract/helpers/getSymbolDescription.js:// TODO: remove, semver-major
+./shared/node_modules/es-abstract/helpers/getOwnPropertyDescriptor.js:// TODO: remove, semver-major
+./shared/node_modules/next-auth/src/core/types.ts:    // TODO: remove in `@auth/core` in favor of `trigger: "signUp"`
+./shared/node_modules/@prisma/client/generator-build/index.js:      // TODO: remove on DA ga
+./shared/node_modules/moment/dist/moment.js:// TODO: remove 'name' arg after deprecation is removed
+./shared/node_modules/moment/moment.js:    // TODO: remove 'name' arg after deprecation is removed
+./shared/node_modules/moment/min/moment-with-locales.js:    // TODO: remove 'name' arg after deprecation is removed
+./shared/node_modules/moment/src/lib/moment/add-subtract.js:// TODO: remove 'name' arg after deprecation is removed
+./shared/node_modules/argparse/argparse.js:    // LEGACY (v1 compatibility): camelcase
+./shared/node_modules/argparse/argparse.js:                // LEGACY (v1 compatibility): camelcase
+./shared/node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility): camelcase
+./shared/node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility): additional check for defaultValue needed
+./shared/node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility): camelcase variants
+./shared/node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility), old-style add_argument([ args ], { options })
+./shared/node_modules/argparse/argparse.js:            debug, // LEGACY (v1 compatibility), debug mode
+./shared/node_modules/argparse/argparse.js:            version // LEGACY (v1 compatibility), version
+./shared/node_modules/argparse/argparse.js:            debug: undefined, // LEGACY (v1 compatibility), debug mode
+./shared/node_modules/argparse/argparse.js:            version: undefined // LEGACY (v1 compatibility), version
+./shared/node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility)
+./shared/node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility), debug mode
+./shared/node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility): custom types
+./shared/node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility), version
+./shared/node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility), debug mode
+./shared/node_modules/argparse/argparse.js:// LEGACY (v1 compatibility), Const alias
+./shared/node_modules/@types/node/compatibility/iterators.d.ts:// TODO: remove once this package no longer supports TS 5.5, and replace NodeJS.BuiltinIteratorReturn with BuiltinIteratorReturn.
+./shared/node_modules/@types/node/compatibility/disposable.d.ts:// TODO: remove once this package no longer supports TS 5.1, and replace with a
+./shared/node_modules/ansi-escapes/index.d.ts:	// TODO: remove this in the next major version
+./shared/node_modules/ansi-escapes/index.js:// TODO: remove this in the next major version
+./shared/node_modules/string-width-cjs/index.d.ts:	// TODO: remove this in the next major version, refactor the whole definition to:
+./shared/node_modules/string-width-cjs/index.js:// TODO: remove this in the next major version
+./shared/node_modules/graphql/execution/execute.js:  // TODO: remove in 17.0.0 release
+./shared/node_modules/openid-client/types/index.d.ts:  scope?: string; // TODO: remove in v6.x
+./shared/node_modules/next/dist/server/app-render/app-render.js:        // TODO: remove this condition and keep it undefined when global-not-found is stabilized.
+./shared/node_modules/next/dist/server/route-modules/app-route/shared-modules.js:// TODO: remove this. We need it because using notFound from next/navigation imports this file :(
+./shared/node_modules/next/dist/server/render.js:            // TODO: remove this workaround when https://bugs.webkit.org/show_bug.cgi?id=187726 is fixed.
+./shared/node_modules/next/dist/server/request/root-params.js:    // TODO: remove this comment when dynamicIO is the default since there will be no `dynamic = "error"`
+./shared/node_modules/next/dist/server/async-storage/work-store.js:    // TODO: remove this when we resolve accessing the store outside the execution context
+./shared/node_modules/next/dist/server/lib/incremental-cache/file-system-cache.js:                            // TODO: remove this when we can send the tags
+./shared/node_modules/next/dist/server/lib/dev-bundler-service.js:            // TODO: remove after ensure is pulled out of server
+./shared/node_modules/next/dist/esm/server/app-render/app-render.js:        // TODO: remove this condition and keep it undefined when global-not-found is stabilized.
+./shared/node_modules/next/dist/esm/server/route-modules/app-route/shared-modules.js:// TODO: remove this. We need it because using notFound from next/navigation imports this file :(
+./shared/node_modules/next/dist/esm/server/render.js:            // TODO: remove this workaround when https://bugs.webkit.org/show_bug.cgi?id=187726 is fixed.
+./shared/node_modules/next/dist/esm/server/request/root-params.js:    // TODO: remove this comment when dynamicIO is the default since there will be no `dynamic = "error"`
+./shared/node_modules/next/dist/esm/server/async-storage/work-store.js:    // TODO: remove this when we resolve accessing the store outside the execution context
+./shared/node_modules/next/dist/esm/server/lib/incremental-cache/file-system-cache.js:                            // TODO: remove this when we can send the tags
+./shared/node_modules/next/dist/esm/server/lib/dev-bundler-service.js:            // TODO: remove after ensure is pulled out of server
+./shared/node_modules/next/dist/esm/shared/lib/router/router.js:            // TODO: remove in the future when we update history before route change
+./shared/node_modules/next/dist/esm/build/templates/app-page.js:                    // TODO: remove this when upstream doesn't
+./shared/node_modules/next/dist/esm/build/webpack/loaders/next-app-loader/index.js:            // TODO: remove this once global-not-found is stable.
+./shared/node_modules/next/dist/shared/lib/router/router.js:            // TODO: remove in the future when we update history before route change
+./shared/node_modules/next/dist/build/templates/app-page.js:                    // TODO: remove this when upstream doesn't
+./shared/node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js:            // TODO: remove this once global-not-found is stable.
+./shared/node_modules/next/dist/compiled/@next/react-refresh-utils/dist/internal/helpers.js:        // TODO: remove this key from page config instead of allow listing it
+./frontend/node_modules/string-width/index.d.ts:	// TODO: remove this in the next major version, refactor the whole definition to:
+./frontend/node_modules/string-width/index.js:// TODO: remove this in the next major version
+./frontend/node_modules/es-abstract/GetIntrinsic.js:// TODO: remove, semver-major
+./frontend/node_modules/es-abstract/helpers/getInferredName.js:// TODO: remove, semver-major
+./frontend/node_modules/es-abstract/helpers/regexTester.js:// TODO: remove, semver-major
+./frontend/node_modules/es-abstract/helpers/isObject.js:// TODO: remove, semver-major
+./frontend/node_modules/es-abstract/helpers/getSymbolDescription.js:// TODO: remove, semver-major
+./frontend/node_modules/es-abstract/helpers/getOwnPropertyDescriptor.js:// TODO: remove, semver-major
+./frontend/node_modules/prisma/prisma-client/generator-build/index.js:      // TODO: remove on DA ga
+./frontend/node_modules/next-auth/src/core/types.ts:    // TODO: remove in `@auth/core` in favor of `trigger: "signUp"`
+./frontend/node_modules/@prisma/fetch-engine/dist/chunk-YJOPKU47.js:  const baseUrl = process.env.PRISMA_BINARIES_MIRROR || // TODO: remove this
+./frontend/node_modules/@prisma/client/generator-build/index.js:      // TODO: remove on DA ga
+./frontend/node_modules/argparse/argparse.js:    // LEGACY (v1 compatibility): camelcase
+./frontend/node_modules/argparse/argparse.js:                // LEGACY (v1 compatibility): camelcase
+./frontend/node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility): camelcase
+./frontend/node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility): additional check for defaultValue needed
+./frontend/node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility): camelcase variants
+./frontend/node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility), old-style add_argument([ args ], { options })
+./frontend/node_modules/argparse/argparse.js:            debug, // LEGACY (v1 compatibility), debug mode
+./frontend/node_modules/argparse/argparse.js:            version // LEGACY (v1 compatibility), version
+./frontend/node_modules/argparse/argparse.js:            debug: undefined, // LEGACY (v1 compatibility), debug mode
+./frontend/node_modules/argparse/argparse.js:            version: undefined // LEGACY (v1 compatibility), version
+./frontend/node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility)
+./frontend/node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility), debug mode
+./frontend/node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility): custom types
+./frontend/node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility), version
+./frontend/node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility), debug mode
+./frontend/node_modules/argparse/argparse.js:// LEGACY (v1 compatibility), Const alias
+./frontend/node_modules/p-try/index.d.ts:	// TODO: remove this in the next major version, refactor the whole definition to:
+./frontend/node_modules/p-try/index.js:// TODO: remove this in the next major version
+./frontend/node_modules/@types/node/compatibility/iterators.d.ts:// TODO: remove once this package no longer supports TS 5.5, and replace NodeJS.BuiltinIteratorReturn with BuiltinIteratorReturn.
+./frontend/node_modules/@types/node/compatibility/disposable.d.ts:// TODO: remove once this package no longer supports TS 5.1, and replace with a
+./frontend/node_modules/jsdom/lib/jsdom/living/xhr/XMLHttpRequestEventTarget-impl.js:  // TODO: remove this when we fix EventTargetImpl to use this._globalObject directly instead of using _ownerDocument.
+./frontend/node_modules/ansi-escapes/index.d.ts:	// TODO: remove this in the next major version
+./frontend/node_modules/ansi-escapes/index.js:// TODO: remove this in the next major version
+./frontend/node_modules/string-width-cjs/index.d.ts:	// TODO: remove this in the next major version, refactor the whole definition to:
+./frontend/node_modules/string-width-cjs/index.js:// TODO: remove this in the next major version
+./frontend/node_modules/graphql/execution/execute.js:  // TODO: remove in 17.0.0 release
+./frontend/node_modules/openid-client/types/index.d.ts:  scope?: string; // TODO: remove in v6.x
+./frontend/node_modules/rxjs/src/internal/operators/exhaustMap.ts:    // DEPRECATED PATH
+./frontend/node_modules/rxjs/src/internal/operators/mergeMap.ts:    // DEPRECATED PATH
+./frontend/node_modules/rxjs/src/internal/operators/finalize.ts:    // REMOVE THIS WHEN THAT HOT GARBAGE IS REMOVED IN V8.
+./frontend/node_modules/rxjs/src/internal/operators/delayWhen.ts:    // DEPRECATED PATH
+./frontend/node_modules/next/dist/server/app-render/app-render.js:        // TODO: remove this condition and keep it undefined when global-not-found is stabilized.
+./frontend/node_modules/next/dist/server/route-modules/app-route/shared-modules.js:// TODO: remove this. We need it because using notFound from next/navigation imports this file :(
+./frontend/node_modules/next/dist/server/render.js:            // TODO: remove this workaround when https://bugs.webkit.org/show_bug.cgi?id=187726 is fixed.
+./frontend/node_modules/next/dist/server/request/root-params.js:    // TODO: remove this comment when dynamicIO is the default since there will be no `dynamic = "error"`
+./frontend/node_modules/next/dist/server/async-storage/work-store.js:    // TODO: remove this when we resolve accessing the store outside the execution context
+./frontend/node_modules/next/dist/server/lib/incremental-cache/file-system-cache.js:                            // TODO: remove this when we can send the tags
+./frontend/node_modules/next/dist/server/lib/dev-bundler-service.js:            // TODO: remove after ensure is pulled out of server
+./frontend/node_modules/next/dist/esm/server/app-render/app-render.js:        // TODO: remove this condition and keep it undefined when global-not-found is stabilized.
+./frontend/node_modules/next/dist/esm/server/route-modules/app-route/shared-modules.js:// TODO: remove this. We need it because using notFound from next/navigation imports this file :(
+./frontend/node_modules/next/dist/esm/server/render.js:            // TODO: remove this workaround when https://bugs.webkit.org/show_bug.cgi?id=187726 is fixed.
+./frontend/node_modules/next/dist/esm/server/request/root-params.js:    // TODO: remove this comment when dynamicIO is the default since there will be no `dynamic = "error"`
+./frontend/node_modules/next/dist/esm/server/async-storage/work-store.js:    // TODO: remove this when we resolve accessing the store outside the execution context
+./frontend/node_modules/next/dist/esm/server/lib/incremental-cache/file-system-cache.js:                            // TODO: remove this when we can send the tags
+./frontend/node_modules/next/dist/esm/server/lib/dev-bundler-service.js:            // TODO: remove after ensure is pulled out of server
+./frontend/node_modules/next/dist/esm/shared/lib/router/router.js:            // TODO: remove in the future when we update history before route change
+./frontend/node_modules/next/dist/esm/build/templates/app-page.js:                    // TODO: remove this when upstream doesn't
+./frontend/node_modules/next/dist/esm/build/webpack/loaders/next-app-loader/index.js:            // TODO: remove this once global-not-found is stable.
+./frontend/node_modules/next/dist/shared/lib/router/router.js:            // TODO: remove in the future when we update history before route change
+./frontend/node_modules/next/dist/build/templates/app-page.js:                    // TODO: remove this when upstream doesn't
+./frontend/node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js:            // TODO: remove this once global-not-found is stable.
+./frontend/node_modules/next/dist/compiled/@next/react-refresh-utils/dist/internal/helpers.js:        // TODO: remove this key from page config instead of allow listing it
+./frontend/node_modules/effect/dist/esm/internal/stream.js:  // TODO: remove
+./frontend/node_modules/effect/dist/esm/internal/channel/channelExecutor.js:    // TODO: remove
+./frontend/node_modules/effect/dist/cjs/internal/stream.js:  // TODO: remove
+./frontend/node_modules/effect/dist/cjs/internal/channel/channelExecutor.js:    // TODO: remove
+./frontend/node_modules/effect/src/internal/stream.ts:          // TODO: remove
+./frontend/node_modules/effect/src/internal/channel/channelExecutor.ts:      // TODO: remove
+./backend/node_modules/string-width/index.d.ts:	// TODO: remove this in the next major version, refactor the whole definition to:
+./backend/node_modules/string-width/index.js:// TODO: remove this in the next major version
+./backend/node_modules/es-abstract/GetIntrinsic.js:// TODO: remove, semver-major
+./backend/node_modules/es-abstract/helpers/getInferredName.js:// TODO: remove, semver-major
+./backend/node_modules/es-abstract/helpers/regexTester.js:// TODO: remove, semver-major
+./backend/node_modules/es-abstract/helpers/isObject.js:// TODO: remove, semver-major
+./backend/node_modules/es-abstract/helpers/getSymbolDescription.js:// TODO: remove, semver-major
+./backend/node_modules/es-abstract/helpers/getOwnPropertyDescriptor.js:// TODO: remove, semver-major
+./backend/node_modules/bullmq/dist/esm/classes/job-scheduler.js:        // TODO: remove this check and keyToData as it is here only to support legacy code
+./backend/node_modules/bullmq/dist/esm/classes/repeat.js:    // TODO: remove legacy code in next breaking change
+./backend/node_modules/bullmq/dist/esm/classes/scripts.js:    // TODO: remove this check in next breaking change
+./backend/node_modules/bullmq/dist/cjs/classes/job-scheduler.js:        // TODO: remove this check and keyToData as it is here only to support legacy code
+./backend/node_modules/bullmq/dist/cjs/classes/repeat.js:    // TODO: remove legacy code in next breaking change
+./backend/node_modules/bullmq/dist/cjs/classes/scripts.js:    // TODO: remove this check in next breaking change
+./backend/node_modules/prisma/prisma-client/generator-build/index.js:      // TODO: remove on DA ga
+./backend/node_modules/@prisma/fetch-engine/dist/chunk-YJOPKU47.js:  const baseUrl = process.env.PRISMA_BINARIES_MIRROR || // TODO: remove this
+./backend/node_modules/@prisma/client/generator-build/index.js:      // TODO: remove on DA ga
+./backend/node_modules/moment/dist/moment.js:// TODO: remove 'name' arg after deprecation is removed
+./backend/node_modules/moment/moment.js:    // TODO: remove 'name' arg after deprecation is removed
+./backend/node_modules/moment/min/moment-with-locales.js:    // TODO: remove 'name' arg after deprecation is removed
+./backend/node_modules/moment/src/lib/moment/add-subtract.js:// TODO: remove 'name' arg after deprecation is removed
+./backend/node_modules/argparse/argparse.js:    // LEGACY (v1 compatibility): camelcase
+./backend/node_modules/argparse/argparse.js:                // LEGACY (v1 compatibility): camelcase
+./backend/node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility): camelcase
+./backend/node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility): additional check for defaultValue needed
+./backend/node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility): camelcase variants
+./backend/node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility), old-style add_argument([ args ], { options })
+./backend/node_modules/argparse/argparse.js:            debug, // LEGACY (v1 compatibility), debug mode
+./backend/node_modules/argparse/argparse.js:            version // LEGACY (v1 compatibility), version
+./backend/node_modules/argparse/argparse.js:            debug: undefined, // LEGACY (v1 compatibility), debug mode
+./backend/node_modules/argparse/argparse.js:            version: undefined // LEGACY (v1 compatibility), version
+./backend/node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility)
+./backend/node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility), debug mode
+./backend/node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility): custom types
+./backend/node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility), version
+./backend/node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility), debug mode
+./backend/node_modules/argparse/argparse.js:// LEGACY (v1 compatibility), Const alias
+./backend/node_modules/p-try/index.d.ts:	// TODO: remove this in the next major version, refactor the whole definition to:
+./backend/node_modules/p-try/index.js:// TODO: remove this in the next major version
+./backend/node_modules/qrcode/node_modules/yargs/build/lib/yargs.js:            // TODO: remove this compatibility hack when we release yargs@15.x:
+./backend/node_modules/@types/node/compatibility/iterators.d.ts:// TODO: remove once this package no longer supports TS 5.5, and replace NodeJS.BuiltinIteratorReturn with BuiltinIteratorReturn.
+./backend/node_modules/@types/node/compatibility/disposable.d.ts:// TODO: remove once this package no longer supports TS 5.1, and replace with a
+./backend/node_modules/jsdom/lib/jsdom/living/xhr/XMLHttpRequestEventTarget-impl.js:  // TODO: remove this when we fix EventTargetImpl to use this._globalObject directly instead of using _ownerDocument.
+./backend/node_modules/ansi-escapes/index.d.ts:	// TODO: remove this in the next major version
+./backend/node_modules/ansi-escapes/index.js:// TODO: remove this in the next major version
+./backend/node_modules/string-width-cjs/index.d.ts:	// TODO: remove this in the next major version, refactor the whole definition to:
+./backend/node_modules/string-width-cjs/index.js:// TODO: remove this in the next major version
+./backend/node_modules/graphql/execution/execute.js:  // TODO: remove in 17.0.0 release
+./backend/node_modules/fengari/test/lua.test.js:// TODO: remove
+./backend/node_modules/effect/dist/esm/internal/stream.js:  // TODO: remove
+./backend/node_modules/effect/dist/esm/internal/channel/channelExecutor.js:    // TODO: remove
+./backend/node_modules/effect/dist/cjs/internal/stream.js:  // TODO: remove
+./backend/node_modules/effect/dist/cjs/internal/channel/channelExecutor.js:    // TODO: remove
+./backend/node_modules/effect/src/internal/stream.ts:          // TODO: remove
+./backend/node_modules/effect/src/internal/channel/channelExecutor.ts:      // TODO: remove
+./node_modules/inquirer/node_modules/ansi-escapes/index.d.ts:	// TODO: remove this in the next major version
+./node_modules/inquirer/node_modules/ansi-escapes/index.js:// TODO: remove this in the next major version
+./node_modules/@inquirer/core/node_modules/string-width/index.d.ts:	// TODO: remove this in the next major version, refactor the whole definition to:
+./node_modules/@inquirer/core/node_modules/string-width/index.js:// TODO: remove this in the next major version
+./node_modules/@inquirer/core/node_modules/ansi-escapes/index.d.ts:	// TODO: remove this in the next major version
+./node_modules/@inquirer/core/node_modules/ansi-escapes/index.js:// TODO: remove this in the next major version
+./node_modules/@inquirer/checkbox/node_modules/ansi-escapes/index.d.ts:	// TODO: remove this in the next major version
+./node_modules/@inquirer/checkbox/node_modules/ansi-escapes/index.js:// TODO: remove this in the next major version
+./node_modules/@inquirer/password/node_modules/ansi-escapes/index.d.ts:	// TODO: remove this in the next major version
+./node_modules/@inquirer/password/node_modules/ansi-escapes/index.js:// TODO: remove this in the next major version
+./node_modules/@inquirer/select/node_modules/ansi-escapes/index.d.ts:	// TODO: remove this in the next major version
+./node_modules/@inquirer/select/node_modules/ansi-escapes/index.js:// TODO: remove this in the next major version
+./node_modules/es-abstract/GetIntrinsic.js:// TODO: remove, semver-major
+./node_modules/es-abstract/helpers/getInferredName.js:// TODO: remove, semver-major
+./node_modules/es-abstract/helpers/regexTester.js:// TODO: remove, semver-major
+./node_modules/es-abstract/helpers/isObject.js:// TODO: remove, semver-major
+./node_modules/es-abstract/helpers/getSymbolDescription.js:// TODO: remove, semver-major
+./node_modules/es-abstract/helpers/getOwnPropertyDescriptor.js:// TODO: remove, semver-major
+./node_modules/cliui/node_modules/string-width/index.d.ts:	// TODO: remove this in the next major version, refactor the whole definition to:
+./node_modules/cliui/node_modules/string-width/index.js:// TODO: remove this in the next major version
+./node_modules/wrap-ansi-cjs/node_modules/string-width/index.d.ts:	// TODO: remove this in the next major version, refactor the whole definition to:
+./node_modules/wrap-ansi-cjs/node_modules/string-width/index.js:// TODO: remove this in the next major version
+./node_modules/argparse/argparse.js:    // LEGACY (v1 compatibility): camelcase
+./node_modules/argparse/argparse.js:                // LEGACY (v1 compatibility): camelcase
+./node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility): camelcase
+./node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility): additional check for defaultValue needed
+./node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility): camelcase variants
+./node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility), old-style add_argument([ args ], { options })
+./node_modules/argparse/argparse.js:            debug, // LEGACY (v1 compatibility), debug mode
+./node_modules/argparse/argparse.js:            version // LEGACY (v1 compatibility), version
+./node_modules/argparse/argparse.js:            debug: undefined, // LEGACY (v1 compatibility), debug mode
+./node_modules/argparse/argparse.js:            version: undefined // LEGACY (v1 compatibility), version
+./node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility)
+./node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility), debug mode
+./node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility): custom types
+./node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility), version
+./node_modules/argparse/argparse.js:        // LEGACY (v1 compatibility), debug mode
+./node_modules/argparse/argparse.js:// LEGACY (v1 compatibility), Const alias
+./node_modules/p-try/index.d.ts:	// TODO: remove this in the next major version, refactor the whole definition to:
+./node_modules/p-try/index.js:// TODO: remove this in the next major version
+./node_modules/@types/node/compatibility/iterators.d.ts:// TODO: remove once this package no longer supports TS 5.5, and replace NodeJS.BuiltinIteratorReturn with BuiltinIteratorReturn.
+./node_modules/@types/node/compatibility/disposable.d.ts:// TODO: remove once this package no longer supports TS 5.1, and replace with a
+./node_modules/jsdom/lib/jsdom/living/xhr/XMLHttpRequestEventTarget-impl.js:  // TODO: remove this when we fix EventTargetImpl to use this._globalObject directly instead of using _ownerDocument.
+./node_modules/string-width-cjs/index.d.ts:	// TODO: remove this in the next major version, refactor the whole definition to:
+./node_modules/string-width-cjs/index.js:// TODO: remove this in the next major version
+./node_modules/playwright-core/lib/server/bidi/bidiBrowser.js:      // TODO: remove function call from the source.
+./node_modules/playwright-core/lib/server/bidi/bidiPage.js:      // TODO: remove function call from the source.
+./node_modules/rxjs/src/internal/operators/exhaustMap.ts:    // DEPRECATED PATH
+./node_modules/rxjs/src/internal/operators/mergeMap.ts:    // DEPRECATED PATH
+./node_modules/rxjs/src/internal/operators/finalize.ts:    // REMOVE THIS WHEN THAT HOT GARBAGE IS REMOVED IN V8.
+./node_modules/rxjs/src/internal/operators/delayWhen.ts:    // DEPRECATED PATH
+./node_modules/yargs/node_modules/string-width/index.d.ts:	// TODO: remove this in the next major version, refactor the whole definition to:
+./node_modules/yargs/node_modules/string-width/index.js:// TODO: remove this in the next major version

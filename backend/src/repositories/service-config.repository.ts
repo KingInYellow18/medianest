@@ -1,6 +1,11 @@
 import { ServiceConfig, Prisma } from '@prisma/client';
 
-import { NotFoundError } from '../utils/errors';
+import { encryptionService } from '../services/encryption.service';
+// @ts-ignore
+import {
+  NotFoundError, // @ts-ignore
+} from '@medianest/shared';
+import { logger } from '../utils/logger';
 
 import { BaseRepository } from './base.repository';
 
@@ -25,9 +30,33 @@ export class ServiceConfigRepository extends BaseRepository<
   CreateServiceConfigInput,
   UpdateServiceConfigInput
 > {
+  private decryptServiceData(config: ServiceConfig): ServiceConfig {
+    try {
+      const decryptedConfig = { ...config };
+
+      // Decrypt API key if it exists
+      if (config.apiKey) {
+        try {
+          decryptedConfig.apiKey = encryptionService.decryptFromStorage(config.apiKey);
+        } catch (error: any) {
+          logger.error('Failed to decrypt API key', { serviceName: config.serviceName, error });
+          // Return null API key if decryption fails
+          decryptedConfig.apiKey = null;
+        }
+      }
+
+      return decryptedConfig;
+    } catch (error: any) {
+      logger.error('Failed to decrypt service config data', {
+        serviceName: config.serviceName,
+        error,
+      });
+      return config;
+    }
+  }
   async findByName(serviceName: string): Promise<ServiceConfig | null> {
     try {
-      return await this.prisma.serviceConfig.findUnique({
+      const config = await this.prisma.serviceConfig.findUnique({
         where: { serviceName },
         include: {
           updatedByUser: {
@@ -39,14 +68,15 @@ export class ServiceConfigRepository extends BaseRepository<
           },
         },
       });
-    } catch (error) {
+      return config ? this.decryptServiceData(config) : null;
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
 
   async findAll(): Promise<ServiceConfig[]> {
     try {
-      return await this.prisma.serviceConfig.findMany({
+      const configs = await this.prisma.serviceConfig.findMany({
         orderBy: { serviceName: 'asc' },
         include: {
           updatedByUser: {
@@ -58,26 +88,35 @@ export class ServiceConfigRepository extends BaseRepository<
           },
         },
       });
-    } catch (error) {
+      return configs.map((config) => this.decryptServiceData(config));
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
 
   async findEnabled(): Promise<ServiceConfig[]> {
     try {
-      return await this.prisma.serviceConfig.findMany({
+      const configs = await this.prisma.serviceConfig.findMany({
         where: { enabled: true },
         orderBy: { serviceName: 'asc' },
       });
-    } catch (error) {
+      return configs.map((config) => this.decryptServiceData(config));
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
 
   async create(data: CreateServiceConfigInput): Promise<ServiceConfig> {
     try {
-      return await this.prisma.serviceConfig.create({
-        data,
+      const encryptedData = { ...data };
+
+      // Encrypt API key if provided
+      if (data.apiKey) {
+        encryptedData.apiKey = encryptionService.encryptForStorage(data.apiKey);
+      }
+
+      const config = await this.prisma.serviceConfig.create({
+        data: encryptedData,
         include: {
           updatedByUser: {
             select: {
@@ -88,15 +127,13 @@ export class ServiceConfigRepository extends BaseRepository<
           },
         },
       });
-    } catch (error) {
+      return this.decryptServiceData(config);
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
 
-  async update(
-    serviceName: string,
-    data: UpdateServiceConfigInput
-  ): Promise<ServiceConfig> {
+  async update(serviceName: string, data: UpdateServiceConfigInput): Promise<ServiceConfig> {
     try {
       const exists = await this.prisma.serviceConfig.findUnique({
         where: { serviceName },
@@ -107,10 +144,17 @@ export class ServiceConfigRepository extends BaseRepository<
         throw new NotFoundError('Service configuration');
       }
 
-      return await this.prisma.serviceConfig.update({
+      const encryptedData = { ...data };
+
+      // Encrypt API key if provided
+      if (data.apiKey) {
+        encryptedData.apiKey = encryptionService.encryptForStorage(data.apiKey);
+      }
+
+      const config = await this.prisma.serviceConfig.update({
         where: { serviceName },
         data: {
-          ...data,
+          ...encryptedData,
           updatedAt: new Date(),
         },
         include: {
@@ -123,26 +167,31 @@ export class ServiceConfigRepository extends BaseRepository<
           },
         },
       });
-    } catch (error) {
+      return this.decryptServiceData(config);
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
 
-  async upsert(
-    serviceName: string,
-    data: UpdateServiceConfigInput
-  ): Promise<ServiceConfig> {
+  async upsert(serviceName: string, data: UpdateServiceConfigInput): Promise<ServiceConfig> {
     try {
-      return await this.prisma.serviceConfig.upsert({
+      const encryptedData = { ...data };
+
+      // Encrypt API key if provided
+      if (data.apiKey) {
+        encryptedData.apiKey = encryptionService.encryptForStorage(data.apiKey);
+      }
+
+      const config = await this.prisma.serviceConfig.upsert({
         where: { serviceName },
         update: {
-          ...data,
+          ...encryptedData,
           updatedAt: new Date(),
         },
         create: {
           serviceName,
           serviceUrl: data.serviceUrl || '',
-          ...data,
+          ...encryptedData,
         },
         include: {
           updatedByUser: {
@@ -154,16 +203,13 @@ export class ServiceConfigRepository extends BaseRepository<
           },
         },
       });
-    } catch (error) {
+      return this.decryptServiceData(config);
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
 
-  async toggle(
-    serviceName: string,
-    enabled: boolean,
-    updatedBy?: string
-  ): Promise<ServiceConfig> {
+  async toggle(serviceName: string, enabled: boolean, updatedBy?: string): Promise<ServiceConfig> {
     return this.update(serviceName, { enabled, updatedBy });
   }
 
@@ -172,7 +218,7 @@ export class ServiceConfigRepository extends BaseRepository<
       return await this.prisma.serviceConfig.delete({
         where: { serviceName },
       });
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }

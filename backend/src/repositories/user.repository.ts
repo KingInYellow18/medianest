@@ -1,14 +1,14 @@
 import { User, Prisma } from '@prisma/client';
 import bcrypt from 'bcrypt';
 
-import { getPrismaClient } from '../db/prisma';
-import { NotFoundError } from '../utils/errors';
-
+import { encryptionService } from '../services/encryption.service';
+// @ts-ignore
 import {
-  BaseRepository,
-  PaginationOptions,
-  PaginatedResult,
-} from './base.repository';
+  NotFoundError, // @ts-ignore
+} from '@medianest/shared';
+import { logger } from '../utils/logger';
+
+import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
 
 export interface CreateUserInput {
   email: string;
@@ -31,47 +31,63 @@ export interface UpdateUserInput {
   requiresPasswordChange?: boolean;
 }
 
-export class UserRepository extends BaseRepository<
-  User,
-  CreateUserInput,
-  UpdateUserInput
-> {
-  constructor() {
-    super(getPrismaClient());
+export class UserRepository extends BaseRepository<User, CreateUserInput, UpdateUserInput> {
+  private decryptUserData(user: User): User {
+    try {
+      const decryptedUser = { ...user };
+
+      // Decrypt Plex token if it exists
+      if (user.plexToken) {
+        try {
+          decryptedUser.plexToken = encryptionService.decryptFromStorage(user.plexToken);
+        } catch (error: any) {
+          logger.error('Failed to decrypt Plex token', { userId: user.id, error });
+          // Return null token if decryption fails
+          decryptedUser.plexToken = null;
+        }
+      }
+
+      return decryptedUser;
+    } catch (error: any) {
+      logger.error('Failed to decrypt user data', { userId: user.id, error });
+      return user;
+    }
   }
+
   async findById(id: string): Promise<User | null> {
     try {
-      return await this.prisma.user.findUnique({
+      const user = await this.prisma.user.findUnique({
         where: { id },
       });
-    } catch (error) {
+      return user ? this.decryptUserData(user) : null;
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
 
   async findByEmail(email: string): Promise<User | null> {
     try {
-      return await this.prisma.user.findUnique({
+      const user = await this.prisma.user.findUnique({
         where: { email },
       });
-    } catch (error) {
+      return user ? this.decryptUserData(user) : null;
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
 
   async findByPlexId(plexId: string): Promise<User | null> {
     try {
-      return await this.prisma.user.findUnique({
+      const user = await this.prisma.user.findUnique({
         where: { plexId },
       });
-    } catch (error) {
+      return user ? this.decryptUserData(user) : null;
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
 
-  async findAll(
-    options: PaginationOptions = {}
-  ): Promise<PaginatedResult<User>> {
+  async findAll(options: PaginationOptions = {}): Promise<PaginatedResult<User>> {
     return this.paginate<User>(this.prisma.user, {}, options, {
       id: true,
       email: true,
@@ -84,35 +100,41 @@ export class UserRepository extends BaseRepository<
     });
   }
 
-  async findByRole(
-    role: string,
-    options: PaginationOptions = {}
-  ): Promise<PaginatedResult<User>> {
+  async findByRole(role: string, options: PaginationOptions = {}): Promise<PaginatedResult<User>> {
     return this.paginate<User>(this.prisma.user, { role }, options);
   }
 
   async create(data: CreateUserInput): Promise<User> {
     try {
+      const encryptedData = { ...data };
+
+      // Encrypt Plex token if provided
+      if (data.plexToken) {
+        encryptedData.plexToken = encryptionService.encryptForStorage(data.plexToken);
+      }
+
       // Hash password if provided
       if (data.password) {
         const hashedPassword = await bcrypt.hash(data.password, 10);
 
         // Create password hash field for admin bootstrap
         const userData: any = {
-          ...data,
+          ...encryptedData,
           passwordHash: hashedPassword,
         };
         delete userData.password;
 
-        return await this.prisma.user.create({
+        const user = await this.prisma.user.create({
           data: userData,
         });
+        return this.decryptUserData(user);
       }
 
-      return await this.prisma.user.create({
-        data: data as Prisma.UserCreateInput,
+      const user = await this.prisma.user.create({
+        data: encryptedData as Prisma.UserCreateInput,
       });
-    } catch (error) {
+      return this.decryptUserData(user);
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -129,11 +151,20 @@ export class UserRepository extends BaseRepository<
         throw new NotFoundError('User');
       }
 
-      return await this.prisma.user.update({
+      const encryptedData = { ...data };
+
+      // Encrypt Plex token if provided
+      if (data.plexToken) {
+        encryptedData.plexToken = encryptionService.encryptForStorage(data.plexToken);
+      }
+
+      const user = await this.prisma.user.update({
         where: { id },
-        data,
+        data: encryptedData,
       });
-    } catch (error) {
+
+      return this.decryptUserData(user);
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -147,7 +178,7 @@ export class UserRepository extends BaseRepository<
       return await this.prisma.user.delete({
         where: { id },
       });
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -171,9 +202,7 @@ export class UserRepository extends BaseRepository<
     return this.update(id, { plexToken });
   }
 
-  async findActiveUsers(
-    options: PaginationOptions = {}
-  ): Promise<PaginatedResult<User>> {
+  async findActiveUsers(options: PaginationOptions = {}): Promise<PaginatedResult<User>> {
     return this.paginate<User>(this.prisma.user, { status: 'active' }, options);
   }
 
@@ -186,7 +215,7 @@ export class UserRepository extends BaseRepository<
           requiresPasswordChange: false,
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }

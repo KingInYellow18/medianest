@@ -5,13 +5,39 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  # Simplified PR validation for active development
-  pr-validation:
-    name: Basic PR Validation
+  # Check PR title follows conventional commits
+  pr-title:
+    name: Validate PR Title
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
-      - name: Validate PR (always pass)
+      - uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            build
+            ci
+            chore
+            revert
+
+  # Check file sizes
+  file-size:
+    name: Check File Sizes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for large files
         run: |
-          echo "PR validation passed for development workflow"
-          echo "All checks are currently bypassed for active development"
+          find . -type f -size +1M | grep -v node_modules | grep -v .git > large_files.txt || true
+          if [ -s large_files.txt ]; then
+            echo "Large files detected:"
+            cat large_files.txt
+            exit 1
+          fi

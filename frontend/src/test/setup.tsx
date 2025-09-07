@@ -1,7 +1,38 @@
 import '@testing-library/jest-dom';
+import React from 'react';
 import { beforeAll, afterEach, afterAll, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import { server } from './mocks/server';
+
+// Make React and hooks globally available for tests
+global.React = React;
+const {
+  useState,
+  useEffect,
+  useContext,
+  useReducer,
+  useCallback,
+  useMemo,
+  useRef,
+  useImperativeHandle,
+  useLayoutEffect,
+  useDebugValue,
+} = React;
+
+// Export hooks globally for tests
+Object.assign(globalThis, {
+  React,
+  useState,
+  useEffect,
+  useContext,
+  useReducer,
+  useCallback,
+  useMemo,
+  useRef,
+  useImperativeHandle,
+  useLayoutEffect,
+  useDebugValue,
+});
 
 // Setup MSW server
 beforeAll(() => {
@@ -75,6 +106,58 @@ Object.defineProperty(window, 'localStorage', {
 
 // Mock fetch if not available in test environment
 global.fetch = global.fetch || vi.fn();
+
+// Mock @medianest/shared package
+vi.mock('@medianest/shared', () => ({
+  AppError: class AppError extends Error {
+    constructor(
+      message: string,
+      public statusCode: number = 500,
+    ) {
+      super(message);
+      this.name = 'AppError';
+    }
+  },
+  logError: vi.fn(),
+  getUserFriendlyMessage: vi.fn(),
+  extractErrorDetails: vi.fn(),
+  ServiceUnavailableError: class ServiceUnavailableError extends Error {
+    constructor(
+      message: string,
+      public statusCode: number = 503,
+    ) {
+      super(message);
+      this.name = 'ServiceUnavailableError';
+    }
+  },
+  isAppError: vi.fn((error: any) => error instanceof Error && error.name === 'AppError'),
+}));
+
+// Mock @medianest/shared/config
+vi.mock('@medianest/shared/config', () => ({
+  FrontendConfigSchema: {
+    parse: vi.fn(() => ({
+      NODE_ENV: 'test',
+      NEXT_PUBLIC_API_URL: 'http://localhost:3000',
+      NEXTAUTH_URL: 'http://localhost:3000',
+      NEXTAUTH_SECRET: 'test-secret',
+      PLEX_CLIENT_ID: 'test-client-id',
+      PLEX_CLIENT_SECRET: 'test-client-secret',
+    })),
+  },
+  createConfiguration: vi.fn(() => ({
+    NODE_ENV: 'test',
+    NEXT_PUBLIC_API_URL: 'http://localhost:3000',
+    NEXTAUTH_URL: 'http://localhost:3000',
+    NEXTAUTH_SECRET: 'test-secret',
+    PLEX_CLIENT_ID: 'test-client-id',
+    PLEX_CLIENT_SECRET: 'test-client-secret',
+  })),
+  environmentLoader: {
+    getEnvironment: vi.fn(() => 'test'),
+  },
+  configUtils: {},
+}));
 
 // Suppress console errors in tests unless needed
 const originalError = console.error;

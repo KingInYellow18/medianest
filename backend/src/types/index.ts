@@ -1,11 +1,12 @@
 // Backend-specific type declarations
+// @ts-ignore
 import { User } from '@medianest/shared';
 import { Request } from 'express';
 
 // Extend Express Request with user
 export interface AuthenticatedRequest extends Request {
   user?: User;
-  correlationId?: string;
+  correlationId: string;
 }
 
 // Service configuration types

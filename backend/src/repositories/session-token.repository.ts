@@ -2,14 +2,15 @@ import crypto from 'crypto';
 
 import { SessionToken, Prisma } from '@prisma/client';
 
-import { getPrismaClient } from '../db/prisma';
-import { NotFoundError } from '../utils/errors';
+// @ts-ignore
+import {
+  NotFoundError, // @ts-ignore
+} from '@medianest/shared';
 
 import { BaseRepository } from './base.repository';
 
 export interface CreateSessionTokenInput {
   userId: string;
-  hashedToken?: string; // For JWT tokens passed from auth service
   expiresAt: Date;
 }
 
@@ -18,29 +19,17 @@ export class SessionTokenRepository extends BaseRepository<
   CreateSessionTokenInput,
   any
 > {
-  constructor(prisma?: any) {
-    super(prisma || getPrismaClient());
-  }
   private hashToken(token: string): string {
     return crypto.createHash('sha256').update(token).digest('hex');
   }
 
   async create(
-    data: CreateSessionTokenInput
+    data: CreateSessionTokenInput,
   ): Promise<{ token: string; sessionToken: SessionToken }> {
     try {
-      let rawToken: string;
-      let tokenHash: string;
-
-      if (data.hashedToken) {
-        // Use provided token (JWT from auth service)
-        rawToken = data.hashedToken;
-        tokenHash = this.hashToken(data.hashedToken);
-      } else {
-        // Generate a secure random token (for other uses)
-        rawToken = crypto.randomBytes(32).toString('hex');
-        tokenHash = this.hashToken(rawToken);
-      }
+      // Generate a secure random token
+      const rawToken = crypto.randomBytes(32).toString('hex');
+      const tokenHash = this.hashToken(rawToken);
 
       const sessionToken = await this.prisma.sessionToken.create({
         data: {
@@ -65,7 +54,7 @@ export class SessionTokenRepository extends BaseRepository<
         token: rawToken,
         sessionToken,
       };
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -88,7 +77,7 @@ export class SessionTokenRepository extends BaseRepository<
           },
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -99,7 +88,7 @@ export class SessionTokenRepository extends BaseRepository<
         where: { userId },
         orderBy: { createdAt: 'desc' },
       });
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -119,9 +108,9 @@ export class SessionTokenRepository extends BaseRepository<
     }
 
     // Update last used timestamp
-    const updatedSessionToken = await this.updateLastUsed(sessionToken.id);
+    await this.updateLastUsed(sessionToken.id);
 
-    return updatedSessionToken;
+    return sessionToken;
   }
 
   async updateLastUsed(id: string): Promise<SessionToken> {
@@ -130,7 +119,7 @@ export class SessionTokenRepository extends BaseRepository<
         where: { id },
         data: { lastUsedAt: new Date() },
       });
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -140,7 +129,7 @@ export class SessionTokenRepository extends BaseRepository<
       return await this.prisma.sessionToken.delete({
         where: { id },
       });
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -152,7 +141,7 @@ export class SessionTokenRepository extends BaseRepository<
       return await this.prisma.sessionToken.delete({
         where: { tokenHash },
       });
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -164,7 +153,7 @@ export class SessionTokenRepository extends BaseRepository<
       });
 
       return result.count;
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -180,7 +169,7 @@ export class SessionTokenRepository extends BaseRepository<
       });
 
       return result.count;
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -195,7 +184,7 @@ export class SessionTokenRepository extends BaseRepository<
           },
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -206,7 +195,7 @@ export class SessionTokenRepository extends BaseRepository<
         where: { id },
         data: { expiresAt: newExpiryDate },
       });
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }

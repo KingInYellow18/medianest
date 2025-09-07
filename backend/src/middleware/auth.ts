@@ -2,76 +2,95 @@ import { Request, Response, NextFunction } from 'express';
 
 import { SessionTokenRepository } from '../repositories/session-token.repository';
 import { UserRepository } from '../repositories/user.repository';
-import { AuthenticationError, AuthorizationError } from '../utils/errors';
+import { AuthenticationError } from '../utils/errors';
 import { verifyToken } from '../utils/jwt';
 import { logger } from '../utils/logger';
+import { DeviceSessionService } from '../services/device-session.service';
 
-// Extend Express Request interface
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        id: string;
-        email: string;
-        name: string | null;
-        role: string;
-        plexId?: string;
-        plexUsername?: string | null;
-      };
-      token?: string;
-    }
-  }
-}
+// Import modular auth utilities
+import {
+  validateToken,
+  extractTokenOptional,
+  TokenValidationContext,
+} from './auth/token-validator';
+import { validateUser, validateUserOptional } from './auth/user-validator';
+import {
+  validateSessionToken,
+  registerAndAssessDevice,
+  updateSessionActivity,
+  SessionUpdateContext,
+} from './auth/device-session-manager';
+import { handleTokenRotation, TokenRotationContext } from './auth/token-rotator';
+
+// Types are extended in types/express.d.ts
 
 // Repository instances - these should ideally be injected in production
-const userRepository = new UserRepository();
-const sessionTokenRepository = new SessionTokenRepository();
+// @ts-ignore
+const userRepository = new UserRepository(undefined as any) as any;
+// @ts-ignore
+const sessionTokenRepository = new SessionTokenRepository(undefined as any) as any;
+// @ts-ignore
+const deviceSessionService = new DeviceSessionService() as any;
 
 export function authMiddleware() {
-  return async (req: Request, _res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // Extract token from Authorization header or cookie
-      let token: string | null = null;
+      // Create validation context
+      const context: TokenValidationContext = {
+        ipAddress: req.ip,
+        userAgent: req.get('user-agent'),
+      };
 
-      const authHeader = req.headers.authorization;
-      if (authHeader?.startsWith('Bearer ')) {
-        token = authHeader.substring(7);
-      } else if (req.cookies['auth-token']) {
-        token = req.cookies['auth-token'];
-      }
+      // Validate token (extract, verify JWT, check blacklist)
+      const { token, payload, metadata } = validateToken(req, context) as any;
 
-      if (!token) {
-        throw new AuthenticationError('Authentication required');
-      }
+      // Validate user exists and is active
+      const user = await validateUser(payload.userId, userRepository, context);
 
-      // Verify JWT token
-      const payload = verifyToken(token);
+      // Validate session token
+      await validateSessionToken(token, metadata, sessionTokenRepository, {
+        userId: payload.userId,
+        ...context,
+      });
 
-      // Verify user still exists and is active
-      const user = await userRepository.findById(payload.userId);
-      if (!user || user.status !== 'active') {
-        throw new AuthenticationError('User not found or inactive');
-      }
+      // Register device and assess risk
+      const deviceRegistration = await registerAndAssessDevice(user.id, req, deviceSessionService);
 
-      // Verify session token exists and is valid
-      const sessionToken = await sessionTokenRepository.validate(token);
-      if (!sessionToken) {
-        throw new AuthenticationError('Invalid session');
-      }
+      // Update session activity
+      const sessionContext: SessionUpdateContext = {
+        method: req.method,
+        path: req.path,
+        query: req.query,
+        params: req.params,
+        ipAddress: req.ip || '',
+        userAgent: req.get('user-agent') || '',
+      };
+      await updateSessionActivity(payload.sessionId, sessionContext, deviceSessionService);
+
+      // Handle token rotation if needed
+      const rotationContext: TokenRotationContext = {
+        ipAddress: req.ip,
+        userAgent: req.get('user-agent'),
+        sessionId: payload.sessionId,
+        deviceId: deviceRegistration.deviceId,
+      };
+      await handleTokenRotation(
+        token,
+        payload,
+        user.id,
+        rotationContext,
+        sessionTokenRepository,
+        res,
+      );
 
       // Attach user info to request
-      req.user = {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        plexId: user.plexId || undefined,
-        plexUsername: user.plexUsername,
-      };
+      req.user = user;
       req.token = token;
+      req.deviceId = deviceRegistration.deviceId;
+      req.sessionId = payload.sessionId;
 
       next();
-    } catch (error) {
+    } catch (error: any) {
       next(error);
     }
   };
@@ -86,10 +105,8 @@ export function requireRole(...roles: string[]) {
       return next(new AuthenticationError('Authentication required'));
     }
 
-    if (!roles.includes(req.user.role)) {
-      return next(
-        new AuthorizationError(`Required role: ${roles.join(' or ')}`)
-      );
+    if (!roles.includes((req.user as any).role)) {
+      return next(new AuthenticationError(`Required role: ${roles.join(' or ')}`));
     }
 
     next();
@@ -107,11 +124,8 @@ export function requireUser() {
 export function optionalAuth() {
   return async (req: Request, _res: Response, next: NextFunction) => {
     try {
-      // Extract token from Authorization header
-      const authHeader = req.headers.authorization;
-      const token = authHeader?.startsWith('Bearer ')
-        ? authHeader.substring(7)
-        : null;
+      // Extract token (returns null if not found)
+      const token = extractTokenOptional(req);
 
       if (!token) {
         // No token, but that's OK for optional auth
@@ -121,24 +135,17 @@ export function optionalAuth() {
       // Verify JWT token
       const payload = verifyToken(token);
 
-      // Verify user still exists and is active
-      const user = await userRepository.findById(payload.userId);
+      // Validate user (returns null if not found/inactive)
+      const user = await validateUserOptional(payload.userId, userRepository);
 
-      if (user && user.status === 'active') {
+      if (user) {
         // Attach user info to request
-        req.user = {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          plexId: user.plexId || undefined,
-          plexUsername: user.plexUsername,
-        };
+        req.user = user;
         req.token = token;
       }
 
       next();
-    } catch (error) {
+    } catch (error: any) {
       // Log error but continue - auth is optional
       logger.debug('Optional auth failed', { error });
       next();

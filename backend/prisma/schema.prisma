@@ -15,7 +15,6 @@ model User {
   name                   String?
   role                   String    @default("USER")
   plexToken              String?   @map("plex_token")
-  passwordHash           String?   @map("password_hash")
   image                  String?
   requiresPasswordChange Boolean   @default(false) @map("requires_password_change")
   createdAt              DateTime  @default(now()) @map("created_at")
@@ -29,36 +28,40 @@ model User {
   serviceConfigs   ServiceConfig[]   @relation("UpdatedBy")
   accounts         Account[]
   sessions         Session[]
+  errorLogs        ErrorLog[]
 
   @@map("users")
 }
 
 model MediaRequest {
-  id           String    @id @default(uuid())
-  userId       String    @map("user_id")
-  title        String
-  mediaType    String    @map("media_type")
-  tmdbId       String?   @map("tmdb_id")
-  status       String    @default("pending")
-  overseerrId  String?   @map("overseerr_id")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  completedAt  DateTime? @map("completed_at")
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  title       String
+  mediaType   String    @map("media_type")
+  tmdbId      String?   @map("tmdb_id")
+  status      String    @default("pending")
+  overseerrId String?   @map("overseerr_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  completedAt DateTime? @map("completed_at")
 
   user User @relation(fields: [userId], references: [id])
 
+  @@index([userId, status])
+  @@index([createdAt])
+  @@index([tmdbId, mediaType])
   @@map("media_requests")
 }
 
 model YoutubeDownload {
-  id                String    @id @default(uuid())
-  userId            String    @map("user_id")
-  playlistUrl       String    @map("playlist_url")
-  playlistTitle     String?   @map("playlist_title")
-  status            String    @default("queued")
-  filePaths         Json?     @map("file_paths")
-  plexCollectionId  String?   @map("plex_collection_id")
-  createdAt         DateTime  @default(now()) @map("created_at")
-  completedAt       DateTime? @map("completed_at")
+  id               String    @id @default(uuid())
+  userId           String    @map("user_id")
+  playlistUrl      String    @map("playlist_url")
+  playlistTitle    String?   @map("playlist_title")
+  status           String    @default("queued")
+  filePaths        Json?     @map("file_paths")
+  plexCollectionId String?   @map("plex_collection_id")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  completedAt      DateTime? @map("completed_at")
 
   user User @relation(fields: [userId], references: [id])
 
@@ -67,13 +70,14 @@ model YoutubeDownload {
 }
 
 model ServiceStatus {
-  id                Int      @id @default(autoincrement())
-  serviceName       String   @unique @map("service_name")
-  status            String?
-  responseTimeMs    Int?     @map("response_time_ms")
-  lastCheckAt       DateTime? @map("last_check_at")
-  uptimePercentage  Decimal? @map("uptime_percentage") @db.Decimal(5, 2)
+  id               Int       @id @default(autoincrement())
+  serviceName      String    @unique @map("service_name")
+  status           String?
+  responseTimeMs   Int?      @map("response_time_ms")
+  lastCheckAt      DateTime? @map("last_check_at")
+  uptimePercentage Decimal?  @map("uptime_percentage") @db.Decimal(5, 2)
 
+  @@index([lastCheckAt])
   @@map("service_status")
 }
 
@@ -86,18 +90,20 @@ model RateLimit {
 
   user User @relation(fields: [userId], references: [id])
 
+  @@index([userId, endpoint])
+  @@index([windowStart])
   @@map("rate_limits")
 }
 
 model ServiceConfig {
-  id           Int      @id @default(autoincrement())
-  serviceName  String   @unique @map("service_name")
-  serviceUrl   String   @map("service_url")
-  apiKey       String?  @map("api_key")
-  enabled      Boolean  @default(true)
-  configData   Json?    @map("config_data")
-  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
-  updatedBy    String?  @map("updated_by")
+  id          Int      @id @default(autoincrement())
+  serviceName String   @unique @map("service_name")
+  serviceUrl  String   @map("service_url")
+  apiKey      String?  @map("api_key")
+  enabled     Boolean  @default(true)
+  configData  Json?    @map("config_data")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  updatedBy   String?  @map("updated_by")
 
   updatedByUser User? @relation("UpdatedBy", fields: [updatedBy], references: [id])
 
@@ -105,32 +111,34 @@ model ServiceConfig {
 }
 
 model SessionToken {
-  id          String   @id @default(uuid())
-  userId      String   @map("user_id")
-  tokenHash   String   @unique @map("token_hash")
-  expiresAt   DateTime @map("expires_at")
-  createdAt   DateTime @default(now()) @map("created_at")
-  lastUsedAt  DateTime? @map("last_used_at")
+  id         String    @id @default(uuid())
+  userId     String    @map("user_id")
+  tokenHash  String    @unique @map("token_hash")
+  expiresAt  DateTime  @map("expires_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  lastUsedAt DateTime? @map("last_used_at")
 
   user User @relation(fields: [userId], references: [id])
 
+  @@index([userId])
+  @@index([expiresAt])
   @@map("session_tokens")
 }
 
 // NextAuth required models
 model Account {
-  id                 String  @id @default(uuid())
-  userId             String  @map("user_id")
-  type               String
-  provider           String
-  providerAccountId  String  @map("provider_account_id")
-  refresh_token      String? @db.Text
-  access_token       String? @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String? @db.Text
-  session_state      String?
+  id                String  @id @default(uuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -145,6 +153,8 @@ model Session {
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
+  @@index([expires])
   @@map("sessions")
 }
 
@@ -155,4 +165,25 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verification_tokens")
+}
+
+model ErrorLog {
+  id            String   @id @default(uuid())
+  correlationId String   @map("correlation_id")
+  userId        String   @map("user_id")
+  errorCode     String   @map("error_code")
+  errorMessage  String   @map("error_message")
+  stackTrace    String?  @map("stack_trace") @db.Text
+  requestPath   String   @map("request_path")
+  requestMethod String   @map("request_method")
+  statusCode    Int?     @map("status_code")
+  metadata      Json?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([correlationId])
+  @@index([createdAt])
+  @@index([userId])
+  @@map("error_logs")
 }

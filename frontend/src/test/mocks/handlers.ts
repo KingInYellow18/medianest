@@ -85,14 +85,156 @@ export const handlers = [
     });
   }),
 
-  // Default fallback for unhandled requests
+  // Media search API - PROVEN PATTERN for useMediaSearch
+  http.get('/api/media/search', ({ request }) => {
+    const url = new URL(request.url);
+    const query = url.searchParams.get('query') || '';
+
+    // Return proper data structure to prevent "Query data cannot be undefined" error
+    return HttpResponse.json({
+      results: query
+        ? [
+            {
+              id: 1,
+              tmdbId: 27205,
+              title: query === 'Inception' ? 'Inception' : 'Test Movie',
+              mediaType: 'movie',
+              overview: 'A thief who steals corporate secrets...',
+              voteAverage: 8.3,
+              availability: { status: 'available' },
+            },
+          ]
+        : [],
+      totalResults: query ? 1 : 0,
+      page: 1,
+      totalPages: query ? 1 : 0,
+    });
+  }),
+
+  // Service status APIs - PROVEN PATTERN for useServiceStatus
+  http.get('/api/services/status', () => {
+    return HttpResponse.json([
+      {
+        id: 'plex',
+        name: 'Plex',
+        displayName: 'Plex Updated',
+        status: 'up',
+        responseTime: 120,
+        lastCheckAt: new Date().toISOString(),
+        uptime: {
+          '24h': 99.8,
+          '7d': 99.5,
+          '30d': 99.2,
+        },
+      },
+    ]);
+  }),
+
+  http.get('/dashboard/status', () => {
+    return HttpResponse.json({
+      data: {
+        services: [
+          {
+            id: 'plex',
+            name: 'Plex',
+            displayName: 'Plex Updated',
+            status: 'up',
+            responseTime: 120,
+            lastCheckAt: new Date().toISOString(),
+            uptimePercentage: 99.8,
+            uptime: {
+              '24h': 99.8,
+              '7d': 99.5,
+              '30d': 99.2,
+            },
+          },
+        ],
+      },
+    });
+  }),
+
+  // Media request API - PROVEN PATTERN for useMediaRequest
+  http.post('/api/media/requests', async ({ request }) => {
+    try {
+      const body = (await request.json()) as any;
+
+      return HttpResponse.json({
+        id: '123',
+        tmdbId: body.tmdbId || 550,
+        mediaType: body.mediaType || 'movie',
+        title: 'Fight Club',
+        status: 'pending',
+        requestedAt: new Date().toISOString(),
+        seasons: body.seasons
+          ? body.seasons.map((s: number) => ({
+              seasonNumber: s,
+              status: 'pending',
+            }))
+          : undefined,
+      });
+    } catch (error) {
+      return new HttpResponse(JSON.stringify({ error: 'Failed to submit request' }), {
+        status: 500,
+      });
+    }
+  }),
+
+  // Enhanced Plex callback with proper error handling
+  http.post('/api/auth/plex/callback', async ({ request }) => {
+    try {
+      const body = (await request.json()) as any;
+
+      if (!body.authToken) {
+        return new HttpResponse(JSON.stringify({ error: 'Auth token is required' }), {
+          status: 401,
+        });
+      }
+
+      if (body.authToken === 'invalid-token') {
+        return new HttpResponse(JSON.stringify({ error: 'Invalid auth token' }), { status: 401 });
+      }
+
+      if (body.authToken === 'db-error-token') {
+        return new HttpResponse(JSON.stringify({ error: 'Database error' }), { status: 500 });
+      }
+
+      if (body.authToken === 'rate-limit-token') {
+        return new HttpResponse(JSON.stringify({ error: 'Rate limit exceeded' }), { status: 429 });
+      }
+
+      // Simulate successful user creation/retrieval
+      const isExistingUser = body.authToken === 'existing-token';
+      const isNoEmailUser = body.authToken === 'no-email-token';
+
+      return HttpResponse.json({
+        user: {
+          id: isExistingUser ? 'existing-user-id' : 'new-user-id',
+          username: 'testuser',
+          email: isNoEmailUser ? 'testuser@plex.local' : 'test@example.com',
+          plexId: isExistingUser ? 'existing-user-id' : 123456,
+        },
+      });
+    } catch (error) {
+      return new HttpResponse(JSON.stringify({ error: 'Malformed request body' }), { status: 400 });
+    }
+  }),
+
+  // Default fallback - suppress warnings for handled cases
   http.get('*', ({ request }) => {
-    console.warn(`Unhandled GET request: ${request.url}`);
+    const url = request.url;
+    // Don't warn for localhost URLs that are expected to be unhandled
+    if (!url.includes('localhost:3000')) {
+      console.warn(`Unhandled GET request: ${url}`);
+    }
     return new HttpResponse(null, { status: 404 });
   }),
 
   http.post('*', ({ request }) => {
-    console.warn(`Unhandled POST request: ${request.url}`);
+    const url = request.url;
+    // Don't warn for localhost URLs that are expected to be unhandled
+    if (!url.includes('localhost:3000')) {
+      console.warn(`Unhandled POST request: ${url}`);
+    }
     return new HttpResponse(null, { status: 404 });
   }),
 ];

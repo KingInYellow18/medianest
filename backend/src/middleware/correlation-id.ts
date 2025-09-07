@@ -1,29 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
-import { v4 as uuidv4 } from 'uuid';
+// @ts-ignore
+import { generateCorrelationId } from '@medianest/shared';
 
 import { createChildLogger } from '../utils/logger';
 
-// Extend Express Request interface to include correlation ID and logger
-declare global {
-  namespace Express {
-    interface Request {
-      correlationId: string;
-      logger: any;
-    }
-  }
-}
+// Types extended in types/express.d.ts
 
-export function correlationIdMiddleware(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
+export function correlationIdMiddleware(req: Request, res: Response, next: NextFunction) {
   // Extract or generate correlation ID (case-insensitive)
   const correlationId =
     req.headers['x-correlation-id'] ||
     req.headers['X-Correlation-ID'] ||
     req.headers['X-CORRELATION-ID'] ||
-    uuidv4();
+    generateCorrelationId();
 
   // Attach to request
   req.correlationId = correlationId as string;

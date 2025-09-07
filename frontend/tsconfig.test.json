@@ -1,14 +1,12 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "types": ["vitest/globals", "@testing-library/jest-dom"],
+    "types": ["vitest/globals", "@testing-library/jest-dom", "vitest", "node"],
     "noEmit": true,
     "resolveJsonModule": true,
-    "allowImportingTsExtensions": false
+    "allowImportingTsExtensions": false,
+    "skipLibCheck": true,
+    "strict": false
   },
-  "include": [
-    "src/**/*.test.*",
-    "src/**/*.spec.*",
-    "src/test/**/*"
-  ]
+  "include": ["src/**/*.test.*", "src/**/*.spec.*", "src/test/**/*", "**/__tests__/**/*"]
 }

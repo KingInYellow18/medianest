@@ -1,0 +1,157 @@
+# ===================================
+# MAIN BRANCH SPECIFIC IGNORES
+# ===================================
+# This file contains additional ignore patterns for the main (production) branch
+# These rules are ADDED to the base .gitignore rules
+# Strictest filtering for production-ready codebase
+
+# ===================================
+# PRODUCTION SECURITY
+# ===================================
+# Absolutely no development artifacts
+dev-*
+staging-*
+test-*
+temp-*
+tmp-*
+*.dev
+*.test
+*.staging
+*.temp
+*.tmp
+
+# No debug or development logs
+debug*
+development*
+dev.*
+staging.*
+*.debug
+trace-*
+
+# No experimental or draft files
+experiment-*
+prototype-*
+poc-*
+draft-*
+sandbox-*
+playground-*
+
+# ===================================
+# AI SYSTEM PRODUCTION RESTRICTIONS
+# ===================================
+# No AI development artifacts
+ai-experiments/
+training-data/
+model-checkpoints/
+neural-training-*
+ai-debug-*
+swarm-debug-*
+ai-dev-*
+
+# No development AI sessions
+memory/dev-*
+memory/staging-*
+memory/experiments/
+.ai-dev-*
+.ai-staging-*
+.swarm-dev-*
+.neural-dev-*
+
+# No training or experimentation outputs
+ai-output-*
+swarm-output-*
+training-logs/
+inference-logs/
+neural-cache-dev/
+
+# ===================================
+# TESTING & DEVELOPMENT ARTIFACTS
+# ===================================
+# No test artifacts beyond base coverage
+test-output/
+test-reports/
+test-data/
+mock-data/
+dev-data/
+staging-data/
+
+# No development test databases
+dev.db*
+staging.db*
+test.db*
+*.test.db
+*.dev.db
+
+# No performance testing artifacts
+perf-test-*
+load-test-*
+stress-test-*
+benchmark-dev-*
+benchmarks/
+
+# ===================================
+# DEVELOPMENT TOOLS & CONFIGS
+# ===================================
+# No development-specific configurations
+dev.config.*
+development.config.*
+staging.config.*
+*.dev.json
+*.staging.json
+
+# No development scripts
+dev-scripts/
+dev-tools/
+utilities/dev-*
+
+# No IDE development settings
+.vscode/dev-*
+.vscode/staging-*
+.idea/dev-*
+.idea/staging-*
+
+# ===================================
+# DOCUMENTATION & NOTES
+# ===================================
+# No development documentation
+DRAFT-*
+TODO-*
+NOTES-*
+dev-notes.*
+staging-notes.*
+development-notes.*
+
+# No work-in-progress documentation
+WIP-*
+*.wip
+*.draft
+
+# ===================================
+# ASSETS & MEDIA RESTRICTIONS
+# ===================================
+# No development assets
+dev-assets/
+staging-assets/
+temp-assets/
+test-assets/
+
+# No development uploads
+dev-uploads/
+staging-uploads/
+temp-media/
+test-media/
+
+# ===================================
+# CACHE & TEMPORARY RESTRICTIONS
+# ===================================
+# No development caches
+dev-cache/
+staging-cache/
+.cache-dev/
+.cache-staging/
+
+# No temporary working files
+working-*
+scratch.*
+*.scratch
+*.working

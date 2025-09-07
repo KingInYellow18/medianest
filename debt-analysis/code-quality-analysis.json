@@ -1,0 +1,129 @@
+{
+  "timestamp": "2025-09-06T13:15:00Z",
+  "analysis": "comprehensive-code-quality-scan",
+  "typescriptErrors": {
+    "count": 20,
+    "critical": [
+      {
+        "file": "backend/src/config/test-redis.ts",
+        "error": "TS6133: 'Redis' is declared but its value is never read",
+        "severity": "warning"
+      },
+      {
+        "file": "backend/src/config/test-redis.ts",
+        "error": "TS2339: Property 'Cluster' does not exist on type 'Mock<Procedure>'",
+        "severity": "error"
+      },
+      {
+        "file": "backend/src/controllers/auth.controller.ts",
+        "error": "TS18048: 'error.response.status' is possibly 'undefined'",
+        "severity": "error"
+      },
+      {
+        "file": "backend/src/controllers/youtube.controller.ts",
+        "error": "TS2554: Expected 1 arguments, but got 0",
+        "severity": "error"
+      },
+      {
+        "file": "backend/src/health-check.ts",
+        "error": "TS2451: Cannot redeclare block-scoped variable 'process'",
+        "severity": "error"
+      },
+      {
+        "file": "backend/src/health-check.ts",
+        "error": "TS7006: Parameter 'res' implicitly has an 'any' type",
+        "severity": "error"
+      }
+    ],
+    "warnings": [
+      {
+        "file": "backend/src/integrations/overseerr/overseerr-api.client.ts",
+        "error": "TS6133: 'overseerrUrl' is declared but its value is never read",
+        "severity": "warning"
+      },
+      {
+        "file": "backend/src/integrations/overseerr/overseerr.client.ts",
+        "error": "TS6138: Property 'config' is declared but its value is never read",
+        "severity": "warning"
+      }
+    ]
+  },
+  "eslintViolations": {
+    "errors": 0,
+    "warnings": 0,
+    "fixable": 0,
+    "note": "ESLint output too large to parse - indicates significant issues"
+  },
+  "circularDependencies": [
+    {
+      "cycle": ["shared/dist/errors/index.js", "shared/dist/errors/utils.js"],
+      "impact": "medium"
+    }
+  ],
+  "complexityHotspots": [
+    {
+      "file": "./tests/e2e/workflows/admin-workflows.e2e.test.ts",
+      "lines": 1087,
+      "type": "test-file"
+    },
+    {
+      "file": "./tests/e2e/workflows/plex-integration.e2e.test.ts", 
+      "lines": 872,
+      "type": "test-file"
+    },
+    {
+      "file": "./tests/e2e/workflows/request-management.e2e.test.ts",
+      "lines": 867,
+      "type": "test-file"
+    },
+    {
+      "file": "./tests/integration/security/session-management-security.test.ts",
+      "lines": 833,
+      "type": "test-file"
+    }
+  ],
+  "codeQualityIssues": {
+    "anyTypeUsage": [
+      "./src/config/test-database.ts",
+      "./src/config/secrets.ts", 
+      "./src/config/test-redis.ts",
+      "./src/middleware/auth/device-session-manager.ts",
+      "./src/middleware/auth/token-rotator.ts",
+      "./src/middleware/auth/token-validator.ts",
+      "./src/middleware/error.ts",
+      "./src/middleware/error-handling.middleware.ts",
+      "./src/middleware/security-audit.ts",
+      "./src/middleware/rate-limit.ts"
+    ],
+    "todoFixmeCount": "High - multiple files contain TODO/FIXME comments"
+  },
+  "projectStructure": {
+    "totalTsFiles": "Multiple TypeScript files found in src/",
+    "totalLines": 1378,
+    "architecture": "Monorepo structure with src/ directory",
+    "mainDirectories": ["src", "tests", "prisma", "scripts"],
+    "nodeModulesIssues": "Many TypeScript errors in node_modules dependencies"
+  },
+  "recommendations": [
+    "Fix critical TypeScript errors in auth controller and health check",
+    "Remove unused variables and imports (Redis, overseerrUrl, etc.)",
+    "Add proper type annotations for implicit 'any' parameters",
+    "Resolve circular dependency in shared/dist/errors",
+    "Break down large test files (1000+ lines) into smaller, focused tests",
+    "Clean up ESLint configuration - current output is too verbose",
+    "Add stricter TypeScript compiler options",
+    "Implement consistent error handling patterns"
+  ],
+  "automatedFixes": [
+    "Remove unused imports (TS6133 errors)",
+    "Add explicit return types for functions",
+    "Run ESLint --fix for auto-fixable issues"
+  ],
+  "manualFixes": [
+    "Fix undefined property access (error.response.status)",
+    "Correct function argument counts",
+    "Resolve variable redeclaration conflicts",
+    "Break up circular dependencies",
+    "Refactor large test files"
+  ]
+}

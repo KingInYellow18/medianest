@@ -1,5 +1,6 @@
 import { logger } from '../../utils/logger';
 import { BaseApiClient, ApiClientConfig } from '../base-api-client';
+import { getErrorMessage } from '../../utils/error-handling';
 
 export interface PlexServer {
   name: string;
@@ -97,7 +98,7 @@ export interface PlexApiConfig extends ApiClientConfig {
 }
 
 export class PlexApiClient extends BaseApiClient {
-  private plexToken: string;
+  private _plexToken: string;
   private serverUrl?: string;
 
   constructor(config: PlexApiConfig) {
@@ -106,8 +107,7 @@ export class PlexApiClient extends BaseApiClient {
       baseURL: config.baseURL || 'https://plex.tv',
       headers: {
         'X-Plex-Token': config.plexToken,
-        'X-Plex-Client-Identifier':
-          process.env.PLEX_CLIENT_IDENTIFIER || 'medianest-server',
+        'X-Plex-Client-Identifier': process.env.PLEX_CLIENT_IDENTIFIER || 'medianest-server',
         'X-Plex-Product': 'MediaNest',
         'X-Plex-Version': '1.0.0',
         'X-Plex-Platform': 'Web',
@@ -118,36 +118,34 @@ export class PlexApiClient extends BaseApiClient {
       },
     });
 
-    this.plexToken = config.plexToken;
+    this._plexToken = config.plexToken;
     this.serverUrl = config.serverUrl;
   }
 
   async getUser(): Promise<PlexUserData> {
     try {
-      const response = await this.request<{ user: PlexUserData }>(
-        '/api/v2/user',
-        {
-          method: 'GET',
-        }
-      );
+      const response = await this.request<{ user: PlexUserData }>('/api/v2/user', {
+        method: 'GET',
+      });
 
       return response.data.user;
-    } catch (error) {
-      logger.error('Failed to get Plex user data', { error: error.message });
-      throw new Error(`Failed to get Plex user: ${error.message}`);
+    } catch (error: any) {
+      logger.error('Failed to get Plex user data', { error: getErrorMessage(error) });
+      throw new Error(`Failed to get Plex user: ${getErrorMessage(error)}`);
     }
   }
 
   async getServers(): Promise<PlexServer[]> {
     try {
-      const response = await this.request<{
-        MediaContainer: { Server: PlexServer[] };
-      }>('/api/v2/resources', { method: 'GET' });
+      const response = await this.request<{ MediaContainer: { Server: PlexServer[] } }>(
+        '/api/v2/resources',
+        { method: 'GET' },
+      );
 
       return response.data.MediaContainer?.Server || [];
-    } catch (error) {
-      logger.error('Failed to get Plex servers', { error: error.message });
-      throw new Error(`Failed to get Plex servers: ${error.message}`);
+    } catch (error: any) {
+      logger.error('Failed to get Plex servers', { error: getErrorMessage(error) });
+      throw new Error(`Failed to get Plex servers: ${getErrorMessage(error)}`);
     }
   }
 
@@ -158,21 +156,19 @@ export class PlexApiClient extends BaseApiClient {
     }
 
     try {
-      const response = await this.requestToServer<{
-        MediaContainer: { Directory: PlexLibrary[] };
-      }>(baseUrl, '/library/sections');
+      const response = await this.requestToServer<{ MediaContainer: { Directory: PlexLibrary[] } }>(
+        baseUrl,
+        '/library/sections',
+      );
 
       return response.data.MediaContainer?.Directory || [];
-    } catch (error) {
-      logger.error('Failed to get Plex libraries', { error: error.message });
-      throw new Error(`Failed to get Plex libraries: ${error.message}`);
+    } catch (error: any) {
+      logger.error('Failed to get Plex libraries', { error: getErrorMessage(error) });
+      throw new Error(`Failed to get Plex libraries: ${getErrorMessage(error)}`);
     }
   }
 
-  async getLibraryContent(
-    libraryKey: string,
-    serverUrl?: string
-  ): Promise<PlexMediaItem[]> {
+  async getLibraryContent(libraryKey: string, serverUrl?: string): Promise<PlexMediaItem[]> {
     const baseUrl = serverUrl || this.serverUrl;
     if (!baseUrl) {
       throw new Error('No Plex server URL configured');
@@ -184,19 +180,16 @@ export class PlexApiClient extends BaseApiClient {
       }>(baseUrl, `/library/sections/${libraryKey}/all`);
 
       return response.data.MediaContainer?.Metadata || [];
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get library content', {
         libraryKey,
-        error: error.message,
+        error: getErrorMessage(error),
       });
-      throw new Error(`Failed to get library content: ${error.message}`);
+      throw new Error(`Failed to get library content: ${getErrorMessage(error)}`);
     }
   }
 
-  async searchMedia(
-    query: string,
-    serverUrl?: string
-  ): Promise<PlexMediaItem[]> {
+  async searchMedia(query: string, serverUrl?: string): Promise<PlexMediaItem[]> {
     const baseUrl = serverUrl || this.serverUrl;
     if (!baseUrl) {
       throw new Error('No Plex server URL configured');
@@ -209,19 +202,16 @@ export class PlexApiClient extends BaseApiClient {
       }>(baseUrl, `/search?query=${encodedQuery}`);
 
       return response.data.MediaContainer?.Metadata || [];
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to search Plex media', {
         query,
-        error: error.message,
+        error: getErrorMessage(error),
       });
-      throw new Error(`Failed to search media: ${error.message}`);
+      throw new Error(`Failed to search media: ${getErrorMessage(error)}`);
     }
   }
 
-  async getMediaItem(
-    ratingKey: string,
-    serverUrl?: string
-  ): Promise<PlexMediaItem> {
+  async getMediaItem(ratingKey: string, serverUrl?: string): Promise<PlexMediaItem> {
     const baseUrl = serverUrl || this.serverUrl;
     if (!baseUrl) {
       throw new Error('No Plex server URL configured');
@@ -237,20 +227,21 @@ export class PlexApiClient extends BaseApiClient {
         throw new Error(`Media item not found: ${ratingKey}`);
       }
 
-      return items[0];
-    } catch (error) {
+      const item = items[0];
+      if (!item) {
+        throw new Error(`Media item not found: ${ratingKey}`);
+      }
+      return item;
+    } catch (error: any) {
       logger.error('Failed to get Plex media item', {
         ratingKey,
-        error: error.message,
+        error: getErrorMessage(error),
       });
-      throw new Error(`Failed to get media item: ${error.message}`);
+      throw new Error(`Failed to get media item: ${getErrorMessage(error)}`);
     }
   }
 
-  async getRecentlyAdded(
-    serverUrl?: string,
-    limit: number = 10
-  ): Promise<PlexMediaItem[]> {
+  async getRecentlyAdded(serverUrl?: string, limit: number = 10): Promise<PlexMediaItem[]> {
     const baseUrl = serverUrl || this.serverUrl;
     if (!baseUrl) {
       throw new Error('No Plex server URL configured');
@@ -262,11 +253,9 @@ export class PlexApiClient extends BaseApiClient {
       }>(baseUrl, `/library/recentlyAdded?X-Plex-Container-Size=${limit}`);
 
       return response.data.MediaContainer?.Metadata || [];
-    } catch (error) {
-      logger.error('Failed to get recently added media', {
-        error: error.message,
-      });
-      throw new Error(`Failed to get recently added media: ${error.message}`);
+    } catch (error: any) {
+      logger.error('Failed to get recently added media', { error: getErrorMessage(error) });
+      throw new Error(`Failed to get recently added media: ${getErrorMessage(error)}`);
     }
   }
 
@@ -285,8 +274,8 @@ export class PlexApiClient extends BaseApiClient {
   protected async performHealthCheck(): Promise<void> {
     try {
       await this.getUser();
-    } catch (error) {
-      throw new Error(`Plex health check failed: ${error.message}`);
+    } catch (error: any) {
+      throw new Error(`Plex health check failed: ${getErrorMessage(error)}`);
     }
   }
 
@@ -299,10 +288,7 @@ export class PlexApiClient extends BaseApiClient {
     }
   }
 
-  static async createFromUserToken(
-    plexToken: string,
-    serverUrl?: string
-  ): Promise<PlexApiClient> {
+  static async createFromUserToken(plexToken: string, serverUrl?: string): Promise<PlexApiClient> {
     const client = new PlexApiClient({
       plexToken,
       serverUrl,

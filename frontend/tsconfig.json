@@ -18,10 +18,10 @@
       "@/hooks/*": ["./src/hooks/*", "./hooks/*"],
       "@/services/*": ["./src/services/*", "./services/*"],
       "@/contexts/*": ["./contexts/*"],
-      "@/types/*": ["./types/*"],
+      "@/types/*": ["./src/types/*", "./types/*"],
       "@/utils/*": ["./utils/*"],
-      "@medianest/shared": ["../shared/src"],
-      "@medianest/shared/*": ["../shared/src/*"]
+      "@medianest/shared": ["../shared/dist"],
+      "@medianest/shared/*": ["../shared/dist/*"]
     },
     "baseUrl": ".",
     "allowJs": true,
@@ -30,13 +30,6 @@
     "moduleDetection": "force",
     "moduleResolution": "bundler"
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "vitest-env.d.ts"],
+  "exclude": ["node_modules"]
 }

@@ -1,0 +1,353 @@
+# MediaNest Production Nginx Configuration
+# SSL-enabled reverse proxy with security hardening
+
+# Rate limiting zones
+limit_req_zone $binary_remote_addr zone=auth:10m rate=5r/m;
+limit_req_zone $binary_remote_addr zone=api:10m rate=100r/m;
+limit_req_zone $binary_remote_addr zone=general:10m rate=200r/m;
+
+# Connection limiting
+limit_conn_zone $binary_remote_addr zone=perip:10m;
+limit_conn_zone $server_name zone=perserver:10m;
+
+# Upstream backend servers
+upstream medianest_backend {
+    server 127.0.0.1:3000 max_fails=3 fail_timeout=30s;
+    # Add more backend servers for load balancing
+    # server 127.0.0.1:3001 max_fails=3 fail_timeout=30s;
+    keepalive 32;
+}
+
+# Redirect HTTP to HTTPS
+server {
+    listen 80;
+    listen [::]:80;
+    server_name medianest.yourdomain.com www.medianest.yourdomain.com;
+    
+    # Security headers for HTTP redirect
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-Frame-Options DENY always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    
+    # Let's Encrypt challenge location
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+        try_files $uri =404;
+    }
+    
+    # Redirect all HTTP requests to HTTPS
+    location / {
+        return 301 https://$server_name$request_uri;
+    }
+}
+
+# Main HTTPS server configuration
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name medianest.yourdomain.com www.medianest.yourdomain.com;
+    
+    # SSL Configuration
+    ssl_certificate /etc/ssl/certs/medianest.crt;
+    ssl_certificate_key /etc/ssl/private/medianest.key;
+    ssl_trusted_certificate /etc/ssl/certs/ca-certificates.crt;
+    
+    # SSL Security Settings
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
+    ssl_session_tickets off;
+    
+    # OCSP Stapling
+    ssl_stapling on;
+    ssl_stapling_verify on;
+    resolver 1.1.1.1 1.0.0.1 valid=300s;
+    resolver_timeout 5s;
+    
+    # Security Headers
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-Frame-Options DENY always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), accelerometer=(), gyroscope=()" always;
+    
+    # Content Security Policy
+    add_header Content-Security-Policy "
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net;
+        font-src 'self' https://fonts.gstatic.com;
+        img-src 'self' data: https: blob:;
+        media-src 'self' https:;
+        connect-src 'self' wss: https:;
+        worker-src 'self' blob:;
+        frame-ancestors 'none';
+        base-uri 'self';
+        form-action 'self';
+    " always;
+    
+    # Connection and request limits
+    limit_conn perip 20;
+    limit_conn perserver 1000;
+    limit_req zone=general burst=50 nodelay;
+    
+    # Basic settings
+    client_max_body_size 10M;
+    client_body_timeout 60s;
+    client_header_timeout 60s;
+    keepalive_timeout 65s;
+    send_timeout 60s;
+    
+    # Gzip compression
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_proxied any;
+    gzip_comp_level 6;
+    gzip_types
+        application/atom+xml
+        application/geo+json
+        application/javascript
+        application/x-javascript
+        application/json
+        application/ld+json
+        application/manifest+json
+        application/rss+xml
+        application/vnd.ms-fontobject
+        application/wasm
+        application/x-font-ttf
+        application/x-web-app-manifest+json
+        font/opentype
+        image/bmp
+        image/svg+xml
+        image/x-icon
+        text/cache-manifest
+        text/css
+        text/javascript
+        text/plain
+        text/vcard
+        text/vnd.rim.location.xloc
+        text/vtt
+        text/x-component
+        text/x-cross-domain-policy;
+    
+    # Brotli compression (if module available)
+    # brotli on;
+    # brotli_comp_level 6;
+    # brotli_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+    
+    # Static file caching
+    location ~* \.(jpg|jpeg|png|gif|ico|css|js|pdf|txt)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        access_log off;
+        try_files $uri @backend;
+    }
+    
+    # API endpoints with specific rate limiting
+    location /api/auth/ {
+        limit_req zone=auth burst=10 nodelay;
+        proxy_pass http://medianest_backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port $server_port;
+        
+        # Security headers for API
+        proxy_hide_header X-Powered-By;
+        proxy_hide_header Server;
+    }
+    
+    location /api/ {
+        limit_req zone=api burst=200 nodelay;
+        proxy_pass http://medianest_backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port $server_port;
+        
+        # API timeout settings
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+        
+        # Buffer settings
+        proxy_buffering on;
+        proxy_buffer_size 4k;
+        proxy_buffers 8 4k;
+        proxy_busy_buffers_size 8k;
+    }
+    
+    # WebSocket support for real-time features
+    location /ws {
+        proxy_pass http://medianest_backend;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # WebSocket timeout settings
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+    }
+    
+    # Health check endpoint
+    location /health {
+        proxy_pass http://medianest_backend;
+        access_log off;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    
+    # Main application
+    location / {
+        proxy_pass http://medianest_backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port $server_port;
+        
+        # Connection settings
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+        
+        # Hide backend server information
+        proxy_hide_header X-Powered-By;
+        proxy_hide_header Server;
+        
+        # Enable keepalive to backend
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+    }
+    
+    # Fallback for static files
+    location @backend {
+        proxy_pass http://medianest_backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    
+    # Block access to sensitive files
+    location ~ /\.(?!well-known) {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+    
+    location ~ ~$ {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+    
+    # Security.txt
+    location /.well-known/security.txt {
+        return 200 "Contact: security@yourdomain.com\nExpires: 2025-12-31T23:59:59.000Z\n";
+        add_header Content-Type text/plain;
+    }
+    
+    # Robots.txt
+    location /robots.txt {
+        return 200 "User-agent: *\nDisallow: /api/\nDisallow: /admin/\n";
+        add_header Content-Type text/plain;
+    }
+    
+    # Custom error pages
+    error_page 404 /404.html;
+    error_page 500 502 503 504 /50x.html;
+    
+    location = /404.html {
+        root /var/www/html;
+        internal;
+    }
+    
+    location = /50x.html {
+        root /var/www/html;
+        internal;
+    }
+    
+    # Access and error logs
+    access_log /var/log/nginx/medianest_access.log combined buffer=16k flush=5m;
+    error_log /var/log/nginx/medianest_error.log warn;
+}
+
+# Additional server block for admin interface (if separate)
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name admin.medianest.yourdomain.com;
+    
+    # SSL Configuration (same as main server)
+    ssl_certificate /etc/ssl/certs/medianest.crt;
+    ssl_certificate_key /etc/ssl/private/medianest.key;
+    ssl_trusted_certificate /etc/ssl/certs/ca-certificates.crt;
+    
+    # SSL Security Settings (same as main server)
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
+    ssl_session_tickets off;
+    
+    # Enhanced security for admin interface
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-Frame-Options DENY always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    
+    # More restrictive CSP for admin
+    add_header Content-Security-Policy "
+        default-src 'self';
+        script-src 'self';
+        style-src 'self' 'unsafe-inline';
+        img-src 'self' data:;
+        connect-src 'self';
+        font-src 'self';
+        frame-ancestors 'none';
+        base-uri 'self';
+        form-action 'self';
+    " always;
+    
+    # IP whitelisting for admin (uncomment and configure)
+    # allow 192.168.1.0/24;
+    # allow 10.0.0.0/8;
+    # deny all;
+    
+    # Stricter rate limiting for admin
+    limit_req zone=api burst=20 nodelay;
+    limit_conn perip 5;
+    
+    location / {
+        proxy_pass http://medianest_backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # Additional security headers
+        proxy_hide_header X-Powered-By;
+        proxy_hide_header Server;
+    }
+    
+    access_log /var/log/nginx/medianest_admin_access.log combined;
+    error_log /var/log/nginx/medianest_admin_error.log warn;
+}

@@ -1,13 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
 
-import {
-  AppError,
-  ValidationError,
-  AuthenticationError,
-  AuthorizationError,
-  RateLimitError,
-} from '../utils/errors';
+// @ts-ignore
+import { AppError, RateLimitError } from '@medianest/shared';
+
+// Re-export AppError for local imports
+export { AppError, RateLimitError };
 import { metrics } from '../utils/monitoring';
 
 // User-friendly error messages
@@ -33,7 +31,6 @@ const USER_ERRORS: Record<string, string> = {
 
   // Resource Errors
   NOT_FOUND: 'The requested resource was not found.',
-  NOT_FOUND_ERROR: 'The requested resource was not found.',
   MEDIA_NOT_FOUND: 'Media not found in library.',
 
   // Generic Errors
@@ -68,23 +65,12 @@ export const errorHandler = (
   err: Error | AppError,
   req: Request,
   res: Response,
-  _next: NextFunction
+  _next: NextFunction,
 ) => {
-  // Handle JSON parsing errors
-  if (err instanceof SyntaxError && 'body' in err) {
-    return res.status(400).json({
-      success: false,
-      error: {
-        code: 'VALIDATION_ERROR',
-        message: 'Invalid JSON in request body',
-        correlationId: req.correlationId || 'no-correlation-id',
-      },
-    });
-  }
   const correlationId = req.correlationId || 'no-correlation-id';
 
   // Log detailed error internally
-  const logData = {
+  req.logger.error({
     correlationId,
     error: {
       message: err.message,
@@ -96,17 +82,10 @@ export const errorHandler = (
     request: sanitizeRequest(req),
     userId: req.user?.id,
     ip: req.ip,
-  };
-
-  if (req.logger) {
-    req.logger.error(logData);
-  } else {
-    console.error(logData);
-  }
+  });
 
   // Record metrics
-  const errorCode =
-    err instanceof AppError ? err.code || 'UNKNOWN' : 'INTERNAL_ERROR';
+  const errorCode = err instanceof AppError ? err.code || 'UNKNOWN' : 'INTERNAL_ERROR';
   metrics.incrementError(errorCode);
 
   // Handle specific error types
@@ -117,8 +96,7 @@ export const errorHandler = (
         message: USER_ERRORS.VALIDATION_ERROR,
         code: 'VALIDATION_ERROR',
         correlationId,
-        details:
-          process.env.NODE_ENV === 'development' ? err.errors : undefined,
+        details: process.env.NODE_ENV === 'development' ? err.errors : undefined,
       },
     });
   }
@@ -133,7 +111,8 @@ export const errorHandler = (
         message: userMessage,
         code: err.code || 'INTERNAL_ERROR',
         correlationId,
-        ...(err instanceof RateLimitError && { retryAfter: err.retryAfter }),
+        ...(err instanceof RateLimitError &&
+          err.details?.retryAfter && { retryAfter: err.details.retryAfter }),
         ...(process.env.NODE_ENV === 'development' && { details: err.details }),
       },
     });

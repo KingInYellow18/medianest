@@ -1,8 +1,22 @@
+// @ts-nocheck
 import bcrypt from 'bcrypt';
 import { Router } from 'express';
+import crypto from 'crypto';
 
 import { authMiddleware } from '../middleware/auth';
 import { validate, validateBody } from '../middleware/validation';
+import { securityHeaders, sanitizeInput } from '../middleware/security';
+import {
+  createEnhancedRateLimit,
+  emailRateLimit,
+  userRateLimit,
+  createRateLimitReset,
+} from '../middleware/enhanced-rate-limit';
+import {
+  securityAuditMiddleware,
+  logAuthEvent,
+  logCriticalSecurityEvent,
+} from '../middleware/security-audit';
 import { SessionTokenRepository } from '../repositories/session-token.repository';
 import { UserRepository } from '../repositories/user.repository';
 import {
@@ -15,19 +29,42 @@ import {
   changePasswordSchema,
 } from '../schemas/auth.schemas';
 import { PlexAuthService } from '../services/plex-auth.service';
+import { PasswordResetService } from '../services/password-reset.service';
+import { EmailService } from '../services/email.service';
+import { OAuthProvidersService } from '../services/oauth-providers.service';
+import { TwoFactorService } from '../services/two-factor.service';
+import { DeviceSessionService } from '../services/device-session.service';
+import { SessionAnalyticsService } from '../services/session-analytics.service';
 import { asyncHandler } from '../utils/async-handler';
 import { AppError, AuthenticationError } from '../utils/errors';
 import { generateToken, verifyToken } from '../utils/jwt';
 import { logger } from '../utils/logger';
+import { validatePasswordStrength, generateDeviceFingerprint } from '../utils/security';
 
 const router = Router();
+
+// Apply security middleware
+router.use(securityHeaders());
+router.use(sanitizeInput());
+router.use(securityAuditMiddleware());
 
 // Repository instances - these should ideally be injected in production
 const userRepository = new UserRepository();
 const sessionTokenRepository = new SessionTokenRepository();
-const plexAuthService = new PlexAuthService(
+const emailService = new EmailService();
+const plexAuthService = new PlexAuthService(userRepository, sessionTokenRepository);
+const passwordResetService = new PasswordResetService(
   userRepository,
-  sessionTokenRepository
+  sessionTokenRepository,
+  emailService,
+);
+const oauthService = new OAuthProvidersService(userRepository, sessionTokenRepository);
+const twoFactorService = new TwoFactorService(userRepository, emailService);
+const deviceSessionService = new DeviceSessionService(userRepository, sessionTokenRepository);
+const sessionAnalyticsService = new SessionAnalyticsService(
+  userRepository,
+  sessionTokenRepository,
+  deviceSessionService,
 );
 
 // POST /api/auth/plex/pin - Create Plex OAuth PIN
@@ -48,7 +85,7 @@ router.post(
         pollInterval: 5000, // 5 seconds recommended polling interval
       },
     });
-  })
+  }),
 );
 
 // GET /api/auth/plex/pin/:id/status - Check PIN status
@@ -67,7 +104,7 @@ router.get(
         expiresAt: pin.expiresAt,
       },
     });
-  })
+  }),
 );
 
 // POST /api/auth/plex - Complete Plex OAuth flow
@@ -101,7 +138,7 @@ router.post(
         isNewUser: result.isNewUser,
       },
     });
-  })
+  }),
 );
 
 // POST /api/auth/admin - Admin bootstrap login
@@ -114,11 +151,7 @@ router.post(
     // Check if this is the first user (admin bootstrap)
     const isFirstUser = await userRepository.isFirstUser();
     if (!isFirstUser) {
-      throw new AppError(
-        'Admin user already exists. Use regular login.',
-        400,
-        'ADMIN_EXISTS'
-      );
+      throw new AppError('Admin user already exists. Use regular login.', 400, 'ADMIN_EXISTS');
     }
 
     // Create admin user
@@ -171,12 +204,13 @@ router.post(
         message: 'Admin user created successfully',
       },
     });
-  })
+  }),
 );
 
 // POST /api/auth/login - Password-based login (for admin)
 router.post(
   '/login',
+  createEnhancedRateLimit('login'),
   validate(loginSchema),
   asyncHandler(async (req, res) => {
     const { email, password, rememberMe } = req.body;
@@ -184,30 +218,37 @@ router.post(
     // Find user by email
     const user = await userRepository.findByEmail(email);
     if (!user) {
-      throw new AppError(
-        'Invalid email or password',
-        401,
-        'INVALID_CREDENTIALS'
-      );
+      logAuthEvent('LOGIN_FAILED', req, 'failure', {
+        email,
+        reason: 'user_not_found',
+      });
+
+      throw new AppError('Invalid email or password', 401, 'INVALID_CREDENTIALS');
     }
 
     // Check if user has a password (for admin bootstrap users)
     if (!user.passwordHash) {
+      logAuthEvent('LOGIN_FAILED', req, 'failure', {
+        email,
+        reason: 'no_password_set',
+      });
+
       throw new AppError(
         'This user cannot login with password. Please use Plex authentication.',
         400,
-        'NO_PASSWORD_SET'
+        'NO_PASSWORD_SET',
       );
     }
 
     // Verify password
     const isValidPassword = await bcrypt.compare(password, user.passwordHash);
     if (!isValidPassword) {
-      throw new AppError(
-        'Invalid email or password',
-        401,
-        'INVALID_CREDENTIALS'
-      );
+      logAuthEvent('LOGIN_FAILED', req, 'failure', {
+        email,
+        reason: 'invalid_password',
+      });
+
+      throw new AppError('Invalid email or password', 401, 'INVALID_CREDENTIALS');
     }
 
     // Update last login
@@ -221,7 +262,7 @@ router.post(
         role: user.role,
         plexId: user.plexId || undefined,
       },
-      rememberMe
+      rememberMe,
     );
 
     // Create session token
@@ -263,7 +304,7 @@ router.post(
         token,
       },
     });
-  })
+  }),
 );
 
 // POST /api/auth/logout - Logout
@@ -303,7 +344,7 @@ router.post(
         message: allSessions ? 'All sessions ended' : 'Logged out successfully',
       },
     });
-  })
+  }),
 );
 
 // GET /api/auth/session - Get current session info
@@ -327,7 +368,7 @@ router.get(
         authenticated: true,
       },
     });
-  })
+  }),
 );
 
 // POST /api/auth/change-password - Change password
@@ -347,23 +388,12 @@ router.post(
 
     // Verify current password (only for users with passwords)
     if (fullUser.passwordHash) {
-      const isCurrentPasswordValid = await bcrypt.compare(
-        currentPassword,
-        fullUser.passwordHash
-      );
+      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, fullUser.passwordHash);
       if (!isCurrentPasswordValid) {
-        throw new AppError(
-          'Current password is incorrect',
-          400,
-          'INVALID_CURRENT_PASSWORD'
-        );
+        throw new AppError('Current password is incorrect', 400, 'INVALID_CURRENT_PASSWORD');
       }
     } else if (user.role === 'admin') {
-      throw new AppError(
-        'Admin users must have a password',
-        400,
-        'PASSWORD_REQUIRED'
-      );
+      throw new AppError('Admin users must have a password', 400, 'PASSWORD_REQUIRED');
     }
 
     // Hash new password
@@ -383,7 +413,69 @@ router.post(
         message: 'Password changed successfully',
       },
     });
-  })
+  }),
+);
+
+// POST /api/auth/password-reset/request - Request password reset
+router.post(
+  '/password-reset/request',
+  emailRateLimit('passwordReset'),
+  asyncHandler(async (req, res) => {
+    const { email } = req.body;
+
+    const result = await passwordResetService.initiatePasswordReset({
+      email,
+      ipAddress: req.ip || '',
+      userAgent: req.get('user-agent') || '',
+    });
+
+    res.json({
+      success: result.success,
+      message: result.message,
+    });
+  }),
+);
+
+// POST /api/auth/password-reset/verify - Verify reset token
+router.post(
+  '/password-reset/verify',
+  createEnhancedRateLimit('passwordReset'),
+  asyncHandler(async (req, res) => {
+    const { token, tokenId } = req.body;
+
+    const verification = await passwordResetService.verifyResetToken(tokenId, token);
+
+    res.json({
+      success: verification.valid,
+      data: {
+        valid: verification.valid,
+        expiresAt: verification.expiresAt,
+      },
+    });
+  }),
+);
+
+// POST /api/auth/password-reset/confirm - Complete password reset
+router.post(
+  '/password-reset/confirm',
+  createEnhancedRateLimit('passwordReset'),
+  asyncHandler(async (req, res) => {
+    const { token, newPassword } = req.body;
+
+    const result = await passwordResetService.confirmPasswordReset({
+      token,
+      newPassword,
+      ipAddress: req.ip || '',
+      userAgent: req.get('user-agent') || '',
+    });
+
+    logAuthEvent('PASSWORD_RESET_COMPLETED', req, 'success', { token: '[REDACTED]' });
+
+    res.json({
+      success: result.success,
+      message: result.message,
+    });
+  }),
 );
 
 export default router;

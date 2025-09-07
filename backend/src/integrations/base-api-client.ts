@@ -1,7 +1,4 @@
-import {
-  CircuitBreaker,
-  CircuitBreakerOptions,
-} from '../utils/circuit-breaker';
+import { CircuitBreaker, CircuitBreakerOptions } from '../utils/circuit-breaker';
 import { logger } from '../utils/logger';
 
 export interface ApiClientConfig {
@@ -35,7 +32,7 @@ export abstract class BaseApiClient {
 
   constructor(
     protected serviceName: string,
-    protected config: ApiClientConfig
+    protected config: ApiClientConfig,
   ) {
     const defaultCircuitBreakerOptions: CircuitBreakerOptions = {
       failureThreshold: 5,
@@ -52,7 +49,7 @@ export abstract class BaseApiClient {
 
   protected async request<T = any>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
   ): Promise<ApiResponse<T>> {
     const url = `${this.config.baseURL}${endpoint}`;
     const timeout = this.config.timeout || 5000;
@@ -76,9 +73,7 @@ export abstract class BaseApiClient {
         logger.debug(`${this.serviceName} API request`, {
           method: options.method || 'GET',
           url,
-          headers: this.sanitizeHeaders(
-            requestOptions.headers as Record<string, string>
-          ),
+          headers: this.sanitizeHeaders(requestOptions.headers as Record<string, string>),
         });
 
         const response = await fetch(url, {
@@ -97,9 +92,9 @@ export abstract class BaseApiClient {
         const contentType = response.headers.get('content-type') || '';
 
         if (contentType.includes('application/json')) {
-          data = await response.json();
+          data = (await response.json()) as T;
         } else {
-          data = (await response.text()) as any;
+          data = (await response.text()) as T;
         }
 
         const apiResponse: ApiResponse<T> = {
@@ -117,7 +112,7 @@ export abstract class BaseApiClient {
           });
 
           throw new Error(
-            `${this.serviceName} API error: ${response.status} ${response.statusText}`
+            `${this.serviceName} API error: ${response.status} ${response.statusText}`,
           );
         }
 
@@ -127,17 +122,16 @@ export abstract class BaseApiClient {
         });
 
         return apiResponse;
-      } catch (error) {
+      } catch (error: any) {
         clearTimeout(timeoutId);
 
-        if (error.name === 'AbortError') {
-          throw new Error(
-            `${this.serviceName} request timeout after ${timeout}ms`
-          );
+        const errorObj = error as Error;
+        if (errorObj.name === 'AbortError') {
+          throw new Error(`${this.serviceName} request timeout after ${timeout}ms`);
         }
 
         logger.error(`${this.serviceName} API request failed`, {
-          error: error.message,
+          error: errorObj.message,
           url,
           method: options.method || 'GET',
         });
@@ -149,7 +143,7 @@ export abstract class BaseApiClient {
 
   protected async requestWithRetry<T = any>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
   ): Promise<ApiResponse<T>> {
     const maxRetries = this.config.retryAttempts || 3;
     const retryDelay = this.config.retryDelay || 1000;
@@ -157,7 +151,7 @@ export abstract class BaseApiClient {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         return await this.request<T>(endpoint, options);
-      } catch (error) {
+      } catch (error: any) {
         if (attempt === maxRetries) {
           throw error;
         }
@@ -165,17 +159,15 @@ export abstract class BaseApiClient {
         logger.warn(`${this.serviceName} request failed, retrying`, {
           attempt,
           maxRetries,
-          error: error.message,
+          error: (error as Error).message,
           retryIn: retryDelay,
         });
 
-        await new Promise(resolve => setTimeout(resolve, retryDelay * attempt));
+        await new Promise((resolve) => setTimeout(resolve, retryDelay * attempt));
       }
     }
 
-    throw new Error(
-      `${this.serviceName} request failed after ${maxRetries} attempts`
-    );
+    throw new Error(`${this.serviceName} request failed after ${maxRetries} attempts`);
   }
 
   async healthCheck(): Promise<HealthStatus> {
@@ -193,11 +185,11 @@ export abstract class BaseApiClient {
       };
 
       return this.lastHealthCheck;
-    } catch (error) {
+    } catch (error: any) {
       this.lastHealthCheck = {
         healthy: false,
         lastChecked: new Date(),
-        error: error.message,
+        error: (error as Error).message,
         circuitBreakerState: this.circuitBreaker.getStats().state,
       };
 
@@ -220,9 +212,7 @@ export abstract class BaseApiClient {
     logger.info(`${this.serviceName} circuit breaker reset`);
   }
 
-  private sanitizeHeaders(
-    headers: Record<string, string>
-  ): Record<string, string> {
+  private sanitizeHeaders(headers: Record<string, string>): Record<string, string> {
     const sanitized = { ...headers };
     const sensitiveKeys = ['authorization', 'x-api-key', 'x-plex-token'];
 

@@ -1,0 +1,3 @@
+Files removed successfully:
+All target log files removed
+All target log files successfully removed from root directory

@@ -61,7 +61,7 @@ cd medianest
 cp .env.example .env
 
 # Start development stack
-docker compose -f docker-compose.dev.yml up -d
+docker-compose -f docker-compose.dev.yml up -d
 
 # Install dependencies (if not using devcontainer)
 cd frontend && npm install
@@ -84,7 +84,7 @@ cd frontend && npm install
 cd ../backend && npm install
 
 # Start PostgreSQL and Redis (via Docker)
-docker compose -f docker-compose.dev.yml up -d postgres redis
+docker-compose -f docker-compose.dev.yml up -d postgres redis
 
 # Set up environment variables
 cp .env.example .env
@@ -417,7 +417,7 @@ The test suite uses:
 
 ```bash
 # Start test environment
-docker compose -f docker-compose.test.yml up -d
+docker-compose -f docker-compose.test.yml up -d
 
 # Run database migrations for tests
 DATABASE_URL="postgresql://test:test@localhost:5433/medianest_test" npx prisma migrate deploy

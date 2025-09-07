@@ -21,20 +21,16 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput> {
 
   protected handleDatabaseError(error: any): never {
     // Handle Prisma-specific errors
-    if (error.code === 'P2002') {
+    if (((error as any).code as any) === 'P2002') {
       throw new AppError('Duplicate entry', 409, 'DUPLICATE_ENTRY');
     }
-    if (error.code === 'P2025') {
+    if (((error as any).code as any) === 'P2025') {
       throw new AppError('Record not found', 404, 'NOT_FOUND');
     }
-    if (error.code === 'P2003') {
-      throw new AppError(
-        'Foreign key constraint failed',
-        400,
-        'FOREIGN_KEY_ERROR'
-      );
+    if (((error as any).code as any) === 'P2003') {
+      throw new AppError('Foreign key constraint failed', 400, 'FOREIGN_KEY_ERROR');
     }
-    if (error.code === 'P2016') {
+    if (((error as any).code as any) === 'P2016') {
       throw new AppError('Query interpretation error', 400, 'QUERY_ERROR');
     }
 
@@ -55,7 +51,7 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput> {
     where: any = {},
     options: PaginationOptions = {},
     select?: any,
-    include?: any
+    include?: any,
   ): Promise<PaginatedResult<M>> {
     const { page, limit, skip, take } = this.getPaginationParams(options);
 
@@ -79,7 +75,7 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput> {
         limit,
         totalPages: Math.ceil(total / limit),
       };
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }

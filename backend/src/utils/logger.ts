@@ -1,9 +1,10 @@
 import fs from 'fs';
 import path from 'path';
 
-import { v4 as uuidv4 } from 'uuid';
 import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
+
+const generateCorrelationId = () => Math.random().toString(36).substr(2, 9);
 
 // Ensure logs directory exists
 const logsDir = path.join(process.cwd(), 'logs');
@@ -12,19 +13,17 @@ if (!fs.existsSync(logsDir)) {
 }
 
 // Define log format for development
-const devFormat = winston.format.printf(
-  ({ level, message, timestamp, correlationId, ...meta }) => {
-    const metaStr = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : '';
-    return `${timestamp} [${correlationId || 'no-correlation-id'}] ${level}: ${message}${metaStr}`;
-  }
-);
+const devFormat = winston.format.printf(({ level, message, timestamp, correlationId, ...meta }) => {
+  const metaStr = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : '';
+  return `${timestamp} [${correlationId || 'no-correlation-id'}] ${level}: ${message}${metaStr}`;
+});
 
 // Define log format for production
 const prodFormat = winston.format.combine(
   winston.format.timestamp(),
   winston.format.errors({ stack: true }),
   winston.format.splat(),
-  winston.format.json()
+  winston.format.json(),
 );
 
 // Create the logger instance
@@ -33,7 +32,7 @@ const logger = winston.createLogger({
   format: winston.format.combine(
     winston.format.errors({ stack: true }),
     winston.format.timestamp(),
-    process.env.NODE_ENV === 'development' ? devFormat : prodFormat
+    process.env.NODE_ENV === 'development' ? devFormat : prodFormat,
   ),
   defaultMeta: { service: 'medianest-backend' },
   transports: [
@@ -81,7 +80,7 @@ const logger = winston.createLogger({
 
 // Create child logger with correlation ID
 export function createChildLogger(correlationId?: string): winston.Logger {
-  return logger.child({ correlationId: correlationId || uuidv4() });
+  return logger.child({ correlationId: correlationId || generateCorrelationId() });
 }
 
 // Create a stream object with a 'write' function for Morgan/Express logging
@@ -93,3 +92,4 @@ export const stream = {
 
 // Export the main logger
 export { logger };
+// Test comment

@@ -1,46 +1,40 @@
 // Common types used across frontend and backend
 
+// Re-export all types from specific modules
+export * from './service';
+export * from './request';
+
 export interface User {
   id: string;
-  plexId: string;
-  plexUsername: string;
-  email?: string;
-  role: 'admin' | 'user';
-  status: 'active' | 'inactive';
+  plexId?: string;
+  plexUsername?: string | null;
+  email: string;
+  name?: string | null;
+  role: string;
+  status: string;
   createdAt: Date;
   lastLoginAt?: Date;
-}
-
-export interface MediaRequest {
-  id: string;
-  userId: string;
-  title: string;
-  mediaType: 'movie' | 'tv';
-  tmdbId?: string;
-  status: 'pending' | 'approved' | 'completed' | 'failed';
-  overseerrId?: string;
-  createdAt: Date;
-  completedAt?: Date;
-}
-
-export interface ServiceStatus {
-  name: string;
-  status: 'up' | 'down' | 'degraded';
-  responseTime?: number;
-  lastCheck?: Date;
-  uptime?: number;
 }
 
 export interface ApiResponse<T = any> {
   success: boolean;
   data?: T;
-  error?: {
-    code: string;
-    message: string;
-    details?: any;
-  };
+  message?: string;
+  error?: ApiError;
   meta?: {
-    timestamp: string;
-    version: string;
+    timestamp?: Date | string;
+    count?: number;
+    page?: number;
+    totalPages?: number;
+    totalCount?: number;
+    currentPage?: number;
+    version?: string;
   };
+}
+
+export interface ApiError {
+  code: string;
+  message: string;
+  details?: Record<string, unknown>;
+  stack?: string;
 }

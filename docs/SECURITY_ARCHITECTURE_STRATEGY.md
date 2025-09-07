@@ -1,8 +1,8 @@
 # MediaNest Security Architecture & Strategy
 
-**Version:** 1.0  
+**Version:** 2.0  
 **Date:** January 2025  
-**Status:** Complete  
+**Status:** Enhanced - System Architecture Review Complete  
 **Document Type:** Security Strategy
 
 ## Table of Contents
@@ -326,7 +326,7 @@ openssl rand -hex 32 > .env.JWT_SECRET
 
 #### Production Environment
 ```yaml
-# docker compose.yml
+# docker-compose.yml
 secrets:
   encryption_key:
     file: ./secrets/encryption_key
@@ -430,7 +430,7 @@ iptables -A OUTPUT -p udp --dport 123 -j ACCEPT
 ### 6.3 Docker Network Security
 
 ```yaml
-# docker compose.yml
+# docker-compose.yml
 networks:
   frontend:
     driver: bridge
@@ -1546,7 +1546,7 @@ echo "Backing up configuration..."
 tar -czf "$BACKUP_DIR/$DATE/config.tar.gz" \
   --exclude='.env*' \
   --exclude='secrets/*' \
-  ./docker compose.yml \
+  ./docker-compose.yml \
   ./nginx.conf
 
 # Encrypt backup
@@ -1586,11 +1586,11 @@ openssl enc -d -aes-256-cbc -in "$BACKUP_FILE" \
 
 # Stop services
 echo "Stopping services..."
-docker compose down
+docker-compose down
 
 # Restore database
 echo "Restoring PostgreSQL..."
-docker compose up -d postgres
+docker-compose up -d postgres
 sleep 10
 gunzip -c "$RESTORE_DIR/*/postgres.sql.gz" | \
   docker exec -i postgres psql -U medianest
@@ -1598,7 +1598,7 @@ gunzip -c "$RESTORE_DIR/*/postgres.sql.gz" | \
 # Restore Redis
 echo "Restoring Redis..."
 docker cp "$RESTORE_DIR/*/redis.rdb" redis:/data/dump.rdb
-docker compose restart redis
+docker-compose restart redis
 
 # Restore uploads
 echo "Restoring uploads..."
@@ -1606,7 +1606,7 @@ tar -xzf "$RESTORE_DIR/*/uploads.tar.gz" -C /
 
 # Start services
 echo "Starting services..."
-docker compose up -d
+docker-compose up -d
 
 echo "Recovery completed"
 ```
@@ -1890,62 +1890,226 @@ trivy image medianest:latest --severity HIGH,CRITICAL
 echo "=== Verification Complete ==="
 ```
 
-## 14. Future Security Enhancements
+## 14. Implementation Roadmap & Decision Rationale
 
-### 14.1 Short-term Improvements (3-6 months)
+### 14.1 Current Implementation Status
 
-1. **Multi-Factor Authentication**
-   - TOTP support for admin accounts
-   - WebAuthn for passwordless login
-   - Backup codes generation
+Based on the system architecture review, the current MediaNest authentication system has:
 
-2. **Advanced Monitoring**
-   - SIEM integration (Wazuh/OSSEC)
-   - Behavioral analytics
+**✅ Implemented Components:**
+- NextAuth.js 4.x with Plex OAuth provider
+- Redis-backed session management
+- JWT token handling
+- Admin bootstrap functionality
+- Basic role-based access control
+- Rate limiting with express-rate-limit
+
+**🔧 Enhancement Opportunities:**
+- Password reset security flows
+- Email verification system
+- TOTP-based 2FA implementation
+- Comprehensive audit logging
+- Multi-provider OAuth support
+- Advanced rate limiting with Redis Lua scripts
+- Distributed session management for scaling
+
+### 14.2 Security Decision Rationale
+
+#### Authentication Framework Selection
+**Decision:** NextAuth.js 4.x with custom Plex provider
+**Rationale:** 
+- Mature, security-focused framework
+- Built-in CSRF protection
+- Extensible provider system
+- Strong TypeScript support
+- Active maintenance and community
+
+#### Session Management Strategy
+**Decision:** Redis-backed JWT hybrid approach
+**Rationale:**
+- Stateless for horizontal scaling
+- Server-side session invalidation capability
+- Fast session validation
+- Shared session state across instances
+
+#### Encryption Standards
+**Decision:** AES-256-GCM for sensitive data encryption
+**Rationale:**
+- Industry standard authenticated encryption
+- Protects against tampering
+- FIPS 140-2 approved
+- Hardware acceleration available
+
+### 14.3 Short-term Security Enhancements (Phase 1: Weeks 1-2)
+
+1. **Enhanced Password Reset System**
+   ```typescript
+   // Secure token-based password reset
+   - Time-limited tokens (15 minutes)
+   - SHA-256 hashed token storage
+   - Rate limiting (3 attempts per hour)
+   - Email enumeration prevention
+   - Automatic session invalidation
+   ```
+
+2. **Email Verification Architecture**
+   ```typescript
+   // Email verification with security controls
+   - 24-hour token expiration
+   - Cryptographically secure tokens
+   - Integration with SMTP service
+   - Verification status tracking
+   ```
+
+3. **Advanced Rate Limiting**
+   ```lua
+   -- Redis Lua scripts for atomic rate limiting
+   local key = KEYS[1]
+   local limit = tonumber(ARGV[1])
+   local window = tonumber(ARGV[2])
+   -- Atomic increment and expire logic
+   ```
+
+4. **Comprehensive Audit System**
+   ```typescript
+   // Dual-storage audit trail
+   - Real-time Redis storage (7 days)
+   - Long-term PostgreSQL storage (365 days)
+   - Risk scoring algorithm
+   - Anomaly detection capabilities
+   ```
+
+### 14.4 Medium-term Security Enhancements (Phase 2: Weeks 3-4)
+
+1. **TOTP Multi-Factor Authentication**
+   - RFC 6238 compliant implementation
+   - QR code generation for enrollment
+   - Backup codes with one-time usage
+   - Encrypted secret storage (AES-256-GCM)
+
+2. **Advanced Session Security**
+   - Session fingerprinting
+   - Concurrent session limits
+   - Geographic anomaly detection
+   - Automatic session cleanup
+
+3. **Enhanced Monitoring & Alerting**
+   - Real-time security event processing
+   - Behavioral pattern analysis
    - Automated threat response
+   - Admin notification system
 
-3. **Zero-Trust Enhancements**
-   - mTLS for service-to-service communication
-   - Dynamic secrets with HashiCorp Vault
-   - Policy-as-code with Open Policy Agent
+### 14.5 Long-term Security Enhancements (Phase 3: Weeks 5-6)
 
-### 14.2 Long-term Improvements (6-12 months)
+1. **Horizontal Scaling Architecture**
+   - Distributed session management
+   - API gateway pattern implementation
+   - Load balancer integration
+   - Health check monitoring
 
-1. **Security Automation**
-   - Automated dependency updates
-   - Security regression testing
-   - Chaos engineering for resilience
+2. **Multi-Provider OAuth Support**
+   - GitHub OAuth integration
+   - Google OAuth support
+   - Provider registry pattern
+   - Account linking functionality
+
+3. **Advanced Security Features**
+   - WebAuthn for passwordless authentication
+   - Device fingerprinting
+   - Machine learning-based anomaly detection
+   - Zero-trust network principles
+
+### 14.6 Enterprise-Ready Features (Future Phases)
+
+1. **Advanced Compliance**
+   - GDPR compliance automation
+   - SOC 2 Type 1 controls
+   - ISO 27001 mapping
+   - Automated audit reports
 
 2. **Advanced Threat Protection**
    - Web Application Firewall (ModSecurity)
-   - DDoS protection (Cloudflare integration)
-   - Honeypot deployment
+   - DDoS protection integration
+   - Behavioral analysis engine
+   - Threat intelligence feeds
 
-3. **Compliance Expansion**
-   - SOC 2 Type 1 alignment
-   - ISO 27001 controls mapping
-   - Automated compliance reporting
+3. **Security Automation**
+   - Automated security testing
+   - Vulnerability scanning integration
+   - Security policy as code
+   - Incident response automation
 
-### 14.3 Continuous Improvement Process
+### 14.7 Continuous Security Improvement
 
 ```yaml
-security_review_cycle:
-  frequency: quarterly
+security_improvement_cycle:
+  review_frequency: quarterly
   
-  activities:
-    - Dependency vulnerability scan
+  assessment_activities:
+    - Architecture security review
+    - Dependency vulnerability scanning
     - Penetration testing (annual)
-    - Security architecture review
-    - Incident response drill
-    - Policy and procedure updates
+    - Code security analysis
+    - Configuration audit
+    - Incident response testing
   
-  metrics_tracked:
-    - Mean time to detect (MTTD)
-    - Mean time to respond (MTTR)
-    - Security incidents per quarter
-    - Patch compliance percentage
-    - Security training completion
+  security_metrics:
+    - Authentication success rate: >99.5%
+    - Mean time to detect (MTTD): <5 minutes
+    - Mean time to respond (MTTR): <15 minutes
+    - Session security score: >95/100
+    - Zero critical vulnerabilities
+    - 100% encryption coverage
+  
+  compliance_tracking:
+    - OWASP Top 10 compliance: 100%
+    - Password policy compliance: 100%
+    - Session security compliance: 100%
+    - Audit trail completeness: 100%
+    - Data protection compliance: 100%
 ```
+
+### 14.8 Security Architecture Validation
+
+#### Implementation Checklist
+```typescript
+interface SecurityValidation {
+  authentication: {
+    plex_oauth: '✅ Implemented';
+    admin_bootstrap: '✅ Implemented';
+    session_management: '✅ Enhanced';
+    jwt_handling: '✅ Secure';
+  };
+  
+  planned_enhancements: {
+    password_reset: '🔧 Phase 1';
+    email_verification: '🔧 Phase 1';
+    totp_2fa: '🔧 Phase 2';
+    audit_logging: '🔧 Phase 2';
+    multi_provider: '🔧 Phase 3';
+    horizontal_scaling: '🔧 Phase 3';
+  };
+  
+  security_controls: {
+    encryption_at_rest: 'AES-256-GCM';
+    encryption_in_transit: 'TLS 1.2+';
+    session_security: 'Redis + JWT';
+    rate_limiting: 'Redis Lua Scripts';
+    csrf_protection: 'NextAuth Built-in';
+    xss_protection: 'Content Security Policy';
+  };
+}
+```
+
+#### Risk Assessment Matrix
+| Security Domain | Current Risk | Target Risk | Mitigation Strategy |
+|-----------------|--------------|-------------|-------------------|
+| Authentication | Low | Very Low | Enhanced 2FA, audit logging |
+| Session Management | Low | Very Low | Distributed sessions, monitoring |
+| Data Protection | Low | Very Low | Enhanced encryption, key rotation |
+| Access Control | Low | Very Low | Fine-grained RBAC, zero trust |
+| Audit & Compliance | Medium | Low | Comprehensive logging, automation |
+| Incident Response | Medium | Low | Automated detection, response plans |
 
 ## Conclusion
 

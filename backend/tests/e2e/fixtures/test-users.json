@@ -1,0 +1,112 @@
+{
+  "users": [
+    {
+      "id": "test-user-1",
+      "username": "testuser1",
+      "email": "test1@example.com",
+      "plexId": "12345",
+      "plexUsername": "testuser1",
+      "role": "USER",
+      "isActive": true,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "test-admin-1",
+      "username": "testadmin",
+      "email": "admin@example.com",
+      "plexId": "67890",
+      "plexUsername": "testadmin",
+      "role": "ADMIN",
+      "isActive": true,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "test-user-inactive",
+      "username": "inactiveuser",
+      "email": "inactive@example.com",
+      "plexId": "99999",
+      "plexUsername": "inactiveuser",
+      "role": "USER",
+      "isActive": false,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    }
+  ],
+  "sessions": [
+    {
+      "id": "test-session-1",
+      "userId": "test-user-1",
+      "token": "test-token-hash-1",
+      "expiresAt": "2024-12-31T23:59:59.999Z",
+      "isActive": true,
+      "createdAt": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "test-session-admin",
+      "userId": "test-admin-1",
+      "token": "test-admin-token-hash",
+      "expiresAt": "2024-12-31T23:59:59.999Z",
+      "isActive": true,
+      "createdAt": "2024-01-01T00:00:00.000Z"
+    }
+  ],
+  "serviceConfigs": [
+    {
+      "id": "plex-config-1",
+      "userId": "test-user-1",
+      "serviceType": "PLEX",
+      "config": {
+        "serverUrl": "http://plex-mock-e2e:32400",
+        "token": "test-plex-token",
+        "machineIdentifier": "test-machine-id"
+      },
+      "isActive": true,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "overseerr-config-1",
+      "userId": "test-admin-1",
+      "serviceType": "OVERSEERR",
+      "config": {
+        "baseUrl": "http://overseerr-mock-e2e:5055",
+        "apiKey": "test-overseerr-api-key"
+      },
+      "isActive": true,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    }
+  ],
+  "mediaRequests": [
+    {
+      "id": "test-request-1",
+      "userId": "test-user-1",
+      "title": "Test Movie",
+      "type": "MOVIE",
+      "tmdbId": 123456,
+      "status": "PENDING",
+      "requestedAt": "2024-01-01T00:00:00.000Z",
+      "metadata": {
+        "year": 2023,
+        "genre": "Action",
+        "overview": "A test movie for E2E testing"
+      }
+    },
+    {
+      "id": "test-request-2",
+      "userId": "test-user-1",
+      "title": "Test TV Show",
+      "type": "TV",
+      "tmdbId": 789012,
+      "status": "APPROVED",
+      "requestedAt": "2024-01-01T00:00:00.000Z",
+      "metadata": {
+        "year": 2023,
+        "genre": "Drama",
+        "overview": "A test TV show for E2E testing"
+      }
+    }
+  ]
+}

@@ -11,19 +11,17 @@ interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
 }
 
 export function renderWithProviders(
-  ui: ReactElement,
+  ui: ReactElement<any>,
   {
     session = null,
     queryClient = createTestQueryClient(),
     ...renderOptions
-  }: CustomRenderOptions = {}
+  }: CustomRenderOptions = {},
 ): RenderResult & { user: ReturnType<typeof userEvent.setup> } {
   const Wrapper = ({ children }: { children: React.ReactNode }) => {
     return (
       <SessionProvider session={session}>
-        <QueryClientProvider client={queryClient}>
-          {children}
-        </QueryClientProvider>
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
       </SessionProvider>
     );
   };
@@ -76,7 +74,7 @@ export const mockAdminSession = {
 
 // Test helper functions
 export function waitForLoadingToFinish() {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     setTimeout(resolve, 0);
   });
 }

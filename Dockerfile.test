@@ -1,0 +1,39 @@
+# Simple test Dockerfile for MediaNest backend
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install curl for health checks
+RUN apk add --no-cache curl
+
+# Create test server with health endpoint
+RUN echo '#!/usr/bin/env node\n\
+const http = require("http");\n\
+const server = http.createServer((req, res) => {\n\
+  if (req.url === "/health") {\n\
+    res.writeHead(200, { "Content-Type": "application/json" });\n\
+    res.end(JSON.stringify({ status: "healthy", timestamp: new Date().toISOString() }));\n\
+  } else {\n\
+    res.writeHead(200, { "Content-Type": "application/json" });\n\
+    res.end(JSON.stringify({ message: "MediaNest Backend Test", status: "running" }));\n\
+  }\n\
+});\n\
+\n\
+const PORT = process.env.PORT || 4000;\n\
+server.listen(PORT, () => {\n\
+  console.log(`MediaNest Backend Test Server running on port ${PORT}`);\n\
+  console.log(`Health endpoint: http://localhost:${PORT}/health`);\n\
+});\n\
+\n\
+process.on("SIGTERM", () => { server.close(() => process.exit(0)); });\n\
+process.on("SIGINT", () => { server.close(() => process.exit(0)); });\n' > server.js
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:4000/health || exit 1
+
+# Expose port
+EXPOSE 4000
+
+# Start server
+CMD ["node", "server.js"]

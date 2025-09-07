@@ -1,0 +1,44 @@
+{
+  "@types/node": {
+    "current": "20.19.13",
+    "wanted": "20.19.13",
+    "latest": "24.3.1",
+    "dependent": "medianest",
+    "location": "/home/kinginyellow/projects/medianest/node_modules/@types/node"
+  },
+  "@typescript-eslint/eslint-plugin": {
+    "current": "7.18.0",
+    "wanted": "7.18.0",
+    "latest": "8.42.0",
+    "dependent": "medianest",
+    "location": "/home/kinginyellow/projects/medianest/node_modules/@typescript-eslint/eslint-plugin"
+  },
+  "@typescript-eslint/parser": {
+    "current": "7.18.0",
+    "wanted": "7.18.0",
+    "latest": "8.42.0",
+    "dependent": "medianest",
+    "location": "/home/kinginyellow/projects/medianest/node_modules/@typescript-eslint/parser"
+  },
+  "eslint": {
+    "current": "8.57.1",
+    "wanted": "8.57.1",
+    "latest": "9.35.0",
+    "dependent": "medianest",
+    "location": "/home/kinginyellow/projects/medianest/node_modules/eslint"
+  },
+  "eslint-config-prettier": {
+    "current": "9.1.2",
+    "wanted": "9.1.2",
+    "latest": "10.1.8",
+    "dependent": "medianest",
+    "location": "/home/kinginyellow/projects/medianest/node_modules/eslint-config-prettier"
+  },
+  "rimraf": {
+    "current": "5.0.10",
+    "wanted": "5.0.10",
+    "latest": "6.0.1",
+    "dependent": "medianest",
+    "location": "/home/kinginyellow/projects/medianest/node_modules/rimraf"
+  }
+}

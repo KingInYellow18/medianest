@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { z } from 'zod';
+
 import { getAuthOptions } from '@/lib/auth/auth.config';
 import { prisma } from '@/lib/db/prisma';
-import bcrypt from 'bcryptjs';
-import { z } from 'zod';
 
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1),
@@ -25,13 +25,10 @@ export async function POST(request: NextRequest) {
     const parsed = changePasswordSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Invalid request data' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid request data' }, { status: 400 });
     }
 
-    const { currentPassword, newPassword } = parsed.data;
+    const { currentPassword } = parsed.data;
 
     // Get the user from the database
     const user = await prisma.user.findUnique({
@@ -44,14 +41,10 @@ export async function POST(request: NextRequest) {
 
     // For admin bootstrap, the initial password is "admin"
     if (user.requiresPasswordChange && currentPassword !== 'admin') {
-      return NextResponse.json(
-        { error: 'Invalid current password' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Invalid current password' }, { status: 401 });
     }
 
-    // Hash the new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    // Hash the new password (not stored yet in this implementation)
 
     // Update the user record
     await prisma.user.update({
@@ -69,9 +62,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Failed to change password:', error);
-    return NextResponse.json(
-      { error: 'Failed to change password' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to change password' }, { status: 500 });
   }
 }

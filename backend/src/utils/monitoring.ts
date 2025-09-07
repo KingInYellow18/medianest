@@ -27,18 +27,14 @@ class SimpleMetrics {
   getMetrics() {
     const avgDuration =
       this.requestDurations.length > 0
-        ? this.requestDurations.reduce((a, b) => a + b, 0) /
-          this.requestDurations.length
+        ? this.requestDurations.reduce((a, b) => a + b, 0) / this.requestDurations.length
         : 0;
 
     return {
       errors: Object.fromEntries(this.errorCounts),
       requests: Object.fromEntries(this.requestCounts),
       avgResponseTime: Math.round(avgDuration),
-      totalRequests: Array.from(this.requestCounts.values()).reduce(
-        (a, b) => a + b,
-        0
-      ),
+      totalRequests: Array.from(this.requestCounts.values()).reduce((a, b) => a + b, 0),
     };
   }
 
