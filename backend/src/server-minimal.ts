@@ -69,8 +69,11 @@ try {
     }
   });
 } catch (error: any) {
-  console.log('⚠️  Some monitoring middleware missing, continuing without...');
-  console.log('Error:', error.message as any);
+  logger.warn('Some monitoring middleware missing, continuing without middleware', {
+    error: error.message,
+    missingMiddleware: ['metrics', 'correlation-id', 'logging'],
+    timestamp: new Date().toISOString(),
+  });
 }
 
 // Health check endpoint
@@ -122,7 +125,12 @@ app.post('/api/users', async (req, res) => {
 
 // Error handling middleware
 app.use((error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error('Unhandled error:', error);
+  logger.error('Unhandled server error', {
+    error: error.message,
+    stack: error.stack,
+    correlationId: req.correlationId || 'no-correlation',
+    timestamp: new Date().toISOString(),
+  });
   if (!res.headersSent) {
     res.status(500).json({
       error: 'Internal server error',
@@ -134,8 +142,15 @@ app.use((error: Error, req: express.Request, res: express.Response, next: expres
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Minimal Server running on port ${PORT}`);
-  console.log(`📊 Monitoring integrated successfully`);
-  console.log(`🔍 Visit http://localhost:${PORT}/health to check status`);
-  console.log(`📈 Visit http://localhost:${PORT}/metrics for Prometheus metrics`);
+  logger.info('Minimal server started successfully', {
+    port: PORT,
+    environment: process.env.NODE_ENV || 'development',
+    endpoints: {
+      health: `/health`,
+      metrics: `/metrics`,
+      users: `/api/users`,
+    },
+    monitoring: 'integrated',
+    timestamp: new Date().toISOString(),
+  });
 });
