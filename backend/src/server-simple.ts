@@ -3,7 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import promClient from 'prom-client';
-import { CatchError } from '../types/common';
+import { CatchError } from './types/common';
 
 const app = express();
 const PORT = process.env.PORT || 3000;

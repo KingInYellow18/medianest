@@ -5,7 +5,6 @@ import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import { logger } from './utils/logger';
 import { CatchError } from './types/common';
-import { CatchError } from '../types/common';
 
 const app = express();
 const PORT = process.env.PORT || 3000;

@@ -3,7 +3,7 @@ import { Router } from 'express';
 import { overseerrService } from '@/services/overseerr.service';
 import { asyncHandler } from '@/utils/async-handler';
 import { logger } from '@/utils/logger';
-import { CatchError } from '../types/common';
+import { CatchError } from '../../types/common';
 
 const router = Router();
 

@@ -16,8 +16,9 @@ import type {
   TracingSpan,
   HttpInstrumentationResponse,
 } from '../types/opentelemetry';
-import type { Attributes, Context, Sampler, SamplingResult } from '@opentelemetry/api';
-import type { SpanExporter } from '@opentelemetry/sdk-trace-base';
+import type { Attributes, Context, Sampler } from '@opentelemetry/api';
+import type { SpanExporter, SamplingResult } from '@opentelemetry/sdk-trace-base';
+import { SamplingDecision } from '@opentelemetry/sdk-trace-base';
 
 // Environment configuration
 const SERVICE_NAME = process.env.SERVICE_NAME || 'observe-backend';
@@ -117,9 +118,12 @@ let sdk: TracingSDK | null = null;
 if (TRACING_ENABLED) {
   const sampler: Sampler = {
     shouldSample: (): SamplingResult => ({
-      decision: Math.random() < samplingConfig.ratio ? 1 : 0,
+      decision:
+        Math.random() < samplingConfig.ratio
+          ? SamplingDecision.RECORD_AND_SAMPLED
+          : SamplingDecision.NOT_RECORD,
       attributes: Object.freeze({}),
-      traceState: undefined as any,
+      traceState: undefined,
     }),
     toString: () => `CustomSampler{ratio: ${samplingConfig.ratio}}`,
   };

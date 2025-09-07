@@ -34,7 +34,7 @@ import { setIntegrationService } from './routes/integrations';
 import { IntegrationService } from './services/integration.service';
 import { MediaNestSocketServer } from './socket/socket-server';
 import { logger } from './utils/logger';
-import { CatchError } from '../types/common';
+import { CatchError } from './types/common';
 
 const app = express();
 const httpServer = createServer(app);

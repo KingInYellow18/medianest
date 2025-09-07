@@ -107,26 +107,28 @@ export class YouTubeClient extends BaseServiceClient {
           formats: this.transformFormats(data.formats || []),
         };
       } catch (error: unknown) {
-        if (((error as any).code as any) === 'ENOENT') {
+        const err = error as { code?: string; message?: string };
+
+        if (err.code === 'ENOENT') {
           logger.error('yt-dlp not found. Please install yt-dlp.');
           throw new Error('YouTube downloader not configured');
         }
 
-        if ((error.message as any)?.includes('Video unavailable')) {
+        if (err.message?.includes('Video unavailable')) {
           throw new Error('Video not found or unavailable');
         }
 
-        if ((error.message as any)?.includes('Private video')) {
+        if (err.message?.includes('Private video')) {
           throw new Error('This video is private');
         }
 
-        if ((error.message as any)?.includes('age-restricted')) {
+        if (err.message?.includes('age-restricted')) {
           throw new Error('This video is age-restricted');
         }
 
         logger.error('Failed to get video info', {
           url,
-          error: error instanceof Error ? error.message : ('Unknown error' as any),
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
         throw new Error('Failed to fetch video information');
       }
@@ -219,35 +221,61 @@ export class YouTubeClient extends BaseServiceClient {
   /**
    * Select best thumbnail from available options
    */
-  private selectBestThumbnail(thumbnails?: unknown[]): string | null {
+  private selectBestThumbnail(thumbnails?: Array<Record<string, unknown>>): string | null {
     if (!thumbnails || thumbnails.length === 0) {
       return null;
     }
 
+    // Define thumbnail interface for type safety
+    interface Thumbnail {
+      id?: string;
+      url?: string;
+      width?: number;
+      height?: number;
+    }
+
+    const validThumbnails = thumbnails as Thumbnail[];
+
     // Prefer maxresdefault
-    const maxres = thumbnails.find(
+    const maxres = validThumbnails.find(
       (t) => t.id === 'maxresdefault' || t.url?.includes('maxresdefault')
     );
-    if (maxres) return maxres.url;
+    if (maxres) return maxres.url || null;
 
     // Sort by resolution and return highest
-    const sorted = thumbnails
+    const sorted = validThumbnails
       .filter((t) => t.width && t.height)
-      .sort((a, b) => b.width * b.height - a.width * a.height);
+      .sort((a, b) => b.width! * b.height! - a.width! * a.height!);
 
-    return sorted[0]?.url || thumbnails[0]?.url || null;
+    return sorted[0]?.url || validThumbnails[0]?.url || null;
   }
 
   /**
    * Transform yt-dlp formats to our format
    */
-  private transformFormats(formats: unknown[]): YouTubeVideoInfo['formats'] {
-    return formats
+  private transformFormats(formats: Array<Record<string, unknown>>): YouTubeVideoInfo['formats'] {
+    interface YtDlpFormat {
+      format_id: string;
+      ext: string;
+      quality_label?: string;
+      height?: number;
+      width?: number;
+      filesize?: number;
+      filesize_approx?: number;
+      vcodec?: string;
+      acodec?: string;
+      fps?: number;
+      tbr?: number;
+    }
+
+    const validFormats = formats as unknown as YtDlpFormat[];
+
+    return validFormats
       .filter((f) => f.vcodec !== 'none' || f.acodec !== 'none')
       .map((f) => ({
         formatId: f.format_id,
         ext: f.ext,
-        quality: f.quality_label || `${f.height}p` || 'unknown',
+        quality: f.quality_label || (f.height ? `${f.height}p` : 'unknown'),
         height: f.height,
         width: f.width,
         filesize: f.filesize || f.filesize_approx,
