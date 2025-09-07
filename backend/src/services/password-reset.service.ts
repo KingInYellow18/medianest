@@ -11,7 +11,7 @@ import {
   checkPasswordReuse,
   logSecurityEvent,
 } from '../utils/security';
-import { EmailService } from './email.service';
+// Email service removed - password reset via email disabled
 
 interface PasswordResetToken {
   id: string;
@@ -47,19 +47,19 @@ interface PasswordResetResult {
 export class PasswordResetService {
   private userRepository: UserRepository;
   private sessionTokenRepository: SessionTokenRepository;
-  private emailService: EmailService;
+  // private emailService: EmailService; // REMOVED - email functionality disabled
 
   // In-memory storage for demo - use Redis or database in production
   private resetTokens: Map<string, PasswordResetToken> = new Map();
 
   constructor(
     userRepository: UserRepository,
-    sessionTokenRepository: SessionTokenRepository,
-    emailService: EmailService,
+    sessionTokenRepository: SessionTokenRepository
+    // emailService: EmailService, // REMOVED - email functionality disabled
   ) {
     this.userRepository = userRepository;
     this.sessionTokenRepository = sessionTokenRepository;
-    this.emailService = emailService;
+    // this.emailService = emailService; // REMOVED - email functionality disabled
 
     // Cleanup expired tokens every hour
     setInterval(() => this.cleanupExpiredTokens(), 60 * 60 * 1000);
@@ -84,13 +84,14 @@ export class PasswordResetService {
             ipAddress,
             userAgent,
           },
-          'warn',
+          'warn'
         );
 
         // Still return success to prevent email enumeration
         return {
           success: true,
-          message: 'If an account with this email exists, you will receive a password reset link.',
+          message:
+            'Password reset via email is currently disabled. Please contact an administrator.',
         };
       }
 
@@ -105,12 +106,13 @@ export class PasswordResetService {
             ipAddress,
             userAgent,
           },
-          'warn',
+          'warn'
         );
 
         return {
           success: true,
-          message: 'If an account with this email exists, you will receive a password reset link.',
+          message:
+            'Password reset via email is currently disabled. Please contact an administrator.',
         };
       }
 
@@ -129,7 +131,7 @@ export class PasswordResetService {
               userAgent,
               existingTokenId: existingToken.id,
             },
-            'info',
+            'info'
           );
 
           return {
@@ -167,14 +169,12 @@ export class PasswordResetService {
       // Generate reset link
       const resetUrl = `${process.env.FRONTEND_URL}/auth/reset-password?token=${resetToken}&id=${resetId}`;
 
-      // Send password reset email
-      await this.emailService.sendPasswordResetEmail({
-        to: user.email,
-        name: user.name || 'User',
-        resetUrl,
-        expiresIn: 15, // minutes
-        ipAddress,
-        userAgent,
+      // EMAIL REMOVED: Password reset emails are no longer sent
+      // This functionality has been disabled as part of email system removal
+      logger.warn('Password reset email not sent - email system removed', {
+        userId: user.id,
+        email: user.email,
+        resetId,
       });
 
       logSecurityEvent(
@@ -187,12 +187,12 @@ export class PasswordResetService {
           userAgent,
           expiresAt,
         },
-        'info',
+        'info'
       );
 
       return {
         success: true,
-        message: 'If an account with this email exists, you will receive a password reset link.',
+        message: 'Password reset via email is currently disabled. Please contact an administrator.',
         resetId,
       };
     } catch (error: any) {
@@ -212,7 +212,7 @@ export class PasswordResetService {
    */
   async verifyResetToken(
     tokenId: string,
-    token: string,
+    token: string
   ): Promise<{ valid: boolean; userId?: string; expiresAt?: Date }> {
     try {
       const tokenRecord = this.resetTokens.get(tokenId);
@@ -236,7 +236,7 @@ export class PasswordResetService {
       const providedHash = crypto.createHash('sha256').update(token).digest('hex');
       const isValid = crypto.timingSafeEqual(
         Buffer.from(tokenRecord.hashedToken, 'hex'),
-        Buffer.from(providedHash, 'hex'),
+        Buffer.from(providedHash, 'hex')
       );
 
       if (!isValid) {
@@ -247,7 +247,7 @@ export class PasswordResetService {
             userId: tokenRecord.userId,
             ipAddress: tokenRecord.ipAddress,
           },
-          'warn',
+          'warn'
         );
 
         return { valid: false };
@@ -294,7 +294,7 @@ export class PasswordResetService {
         throw new AppError(
           `Password does not meet requirements: ${passwordValidation.errors.join(', ')}`,
           400,
-          'WEAK_PASSWORD',
+          'WEAK_PASSWORD'
         );
       }
 
@@ -305,7 +305,7 @@ export class PasswordResetService {
           throw new AppError(
             'Please choose a password you have not used recently',
             400,
-            'PASSWORD_REUSED',
+            'PASSWORD_REUSED'
           );
         }
       }
@@ -334,13 +334,11 @@ export class PasswordResetService {
       // Invalidate all existing sessions for security
       await this.sessionTokenRepository.deleteByUserId(userId);
 
-      // Send confirmation email
-      await this.emailService.sendPasswordResetConfirmationEmail({
-        to: user.email,
-        name: user.name || 'User',
-        ipAddress,
-        userAgent,
-        timestamp: new Date(),
+      // EMAIL REMOVED: Password reset confirmation emails are no longer sent
+      // This functionality has been disabled as part of email system removal
+      logger.info('Password reset confirmation email not sent - email system removed', {
+        userId,
+        email: user.email,
       });
 
       logSecurityEvent(
@@ -353,7 +351,7 @@ export class PasswordResetService {
           userAgent,
           passwordScore: passwordValidation.score,
         },
-        'info',
+        'info'
       );
 
       return {
@@ -389,7 +387,7 @@ export class PasswordResetService {
           tokenId,
           userId: tokenRecord.userId,
         },
-        'info',
+        'info'
       );
     }
   }
@@ -426,7 +424,7 @@ export class PasswordResetService {
    */
   private findActiveResetToken(userId: string): PasswordResetToken | undefined {
     return Array.from(this.resetTokens.values()).find(
-      (token) => token.userId === userId && !token.used && new Date() < token.expiresAt,
+      (token) => token.userId === userId && !token.used && new Date() < token.expiresAt
     );
   }
 

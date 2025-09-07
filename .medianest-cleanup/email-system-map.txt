@@ -1,0 +1,223 @@
+# MEDIANEST EMAIL SYSTEM REMOVAL MAP
+# Complete mapping of all email-related code for removal
+# Generated: 2025-09-07
+
+## FILES TO BE DELETED
+
+### Email Service Files:
+- backend/src/services/email.service.ts                         [CORE EMAIL SERVICE - 685 lines]
+- backend/dist/services/email.service.d.ts.map                  [Generated TypeScript declarations]  
+- backend/dist/services/email.service.js.map                    [Generated JavaScript source map]
+- backend/dist/services/email.service.js                        [Compiled JavaScript]
+
+## CODE BLOCKS TO BE REMOVED
+
+### Database Schema (backend/prisma/schema.prisma):
+- Line 14: `email                  String    @unique` [in User model]
+- Note: Email field is currently used as unique identifier - needs replacement strategy
+
+### Configuration Files (backend/src/config/env.ts):
+- Lines 28-35: Email configuration section:
+  ```typescript
+  // Email settings
+  SMTP_HOST: process.env.SMTP_HOST,
+  SMTP_PORT: parseInt(process.env.SMTP_PORT || '587', 10),
+  SMTP_SECURE: process.env.SMTP_SECURE === 'true',
+  SMTP_USER: process.env.SMTP_USER,
+  SMTP_PASS: readSecret('smtp_password', 'SMTP_PASS', ''),
+  EMAIL_FROM: process.env.EMAIL_FROM || 'noreply@medianest.com',
+  EMAIL_FROM_NAME: process.env.EMAIL_FROM_NAME || 'MediaNest',
+  ```
+
+- Lines 45-47: Email feature flags:
+  ```typescript
+  ENABLE_EMAIL_VERIFICATION: process.env.ENABLE_EMAIL_VERIFICATION === 'true',
+  ENABLE_PASSWORD_RESET: process.env.ENABLE_PASSWORD_RESET !== 'false',
+  ```
+
+### Authentication Schema (backend/src/schemas/auth.schemas.ts):
+- Lines 32, 52: Email validation in adminBootstrapSchema and loginSchema:
+  ```typescript
+  email: z.string().email('Invalid email format'),
+  ```
+
+### Service Dependencies (IMPORTS TO REMOVE):
+1. **backend/src/services/two-factor.service.ts:**
+   - Line 16: `import { EmailService } from './email.service';`
+   - Line 56: `private emailService: EmailService;`
+   - Line 61: Constructor parameter `emailService: EmailService`
+   - Lines 80, 206, 255-262: Email references in TOTP setup and email 2FA methods
+
+2. **backend/src/services/password-reset.service.ts:**
+   - Line 14: `import { EmailService } from './email.service';`
+   - Line 50: `private emailService: EmailService;`
+   - Line 58: Constructor parameter `emailService: EmailService`
+   - Lines 171-178, 338-344: Email sending calls
+
+3. **backend/src/routes/auth.ts:**
+   - Line 33: `import { EmailService } from '../services/email.service';`
+   - Line 54: `const emailService = new EmailService();`
+   - Line 62: EmailService injection into TwoFactorService
+   - Lines 149-427: Multiple email references in authentication flows
+
+### Controller References (backend/src/controllers/):
+1. **auth.controller.ts:**
+   - Lines 180, 189, 200, 210, 268-269, 346-347: Email field references in Plex user data
+
+2. **admin.controller.ts:**
+   - Lines 34, 62, 148: Email field selections in user queries
+
+3. **dashboard.controller.ts:**
+   - Line 109: Email field in user data response
+
+### Route Handlers (EMAIL LOGIC TO REMOVE):
+- **backend/src/routes/auth.ts:**
+  - Lines 149-190: Admin bootstrap with email validation
+  - Lines 216-299: Login with email lookup 
+  - Lines 422-427: Password reset email handling
+  - Email rate limiting import (Line 11)
+
+### Test Files:
+- **backend/tests/e2e/auth.spec.ts:**
+  - Lines 25, 31: Test user email addresses
+  - Line 70: Mock Plex user email in XML response
+  - Line 115: Email field in user data assertions
+
+## ENVIRONMENT VARIABLES TO REMOVE
+
+### From .env files:
+```bash
+# EMAIL/SMTP CONFIGURATION (deployment/environment/.env.production.template)
+SMTP_HOST=smtp.yourdomain.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=noreply@yourdomain.com
+SMTP_PASSWORD=REPLACE_WITH_SMTP_PASSWORD
+SMTP_FROM=MediaNest <noreply@yourdomain.com>
+
+# EMAIL CONFIGURATION (.env.example)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
+SMTP_FROM=MediaNest <noreply@yourdomain.com>
+EMAIL_TEMPLATE_DIR=./templates/email
+EMAIL_SUBJECT_PREFIX=[MediaNest]
+
+# Other email references:
+CERTBOT_EMAIL=admin@yourdomain.com (.env.production.template, .env.production)
+TEST_ADMIN_EMAIL=admin@e2etest.local (backend/tests/e2e/.env.e2e.example)
+TEST_USER_EMAIL=user@e2etest.local (backend/tests/e2e/.env.e2e.example)
+```
+
+## DEPENDENCIES TO UNINSTALL
+
+### NPM Package Analysis:
+- **NO EMAIL-SPECIFIC DEPENDENCIES FOUND** in backend/package.json
+- Note: No nodemailer, sendgrid, ses, or other email libraries detected
+- Current implementation uses console output for development
+
+## FUNCTIONALITY AFFECTED
+
+### Core Email Features (ALL TO BE REMOVED):
+1. **Password Reset via Email** - Complete removal required
+2. **Email-based 2FA** - Remove email method, keep TOTP only  
+3. **Welcome Emails** - Remove entirely
+4. **Security Alert Emails** - Remove entirely
+5. **Email Verification** - Remove entirely
+6. **Password Reset Confirmation Emails** - Remove entirely
+
+### Email Templates (ALL EMBEDDED IN SERVICE):
+- Password reset email template (Lines 314-379)
+- Password reset confirmation template (Lines 384-438)
+- Email verification template (Lines 443-490)
+- Two-factor authentication template (Lines 495-551)  
+- Security alert template (Lines 556-618)
+- Welcome email template (Lines 623-683)
+
+## REPLACEMENT STRATEGIES NEEDED
+
+### 1. User Identification:
+- **CRITICAL**: Email is currently the unique identifier for users
+- **OPTIONS**: 
+  - Use Plex username as primary identifier
+  - Generate UUID-based usernames
+  - Use plexId as primary key
+
+### 2. Password Reset:
+- **REPLACEMENT**: Admin-managed password resets only
+- **ALTERNATIVE**: Security questions or admin intervention
+
+### 3. Two-Factor Authentication:
+- **KEEP**: TOTP (Time-based One-Time Password) method
+- **REMOVE**: Email-based 2FA entirely
+
+### 4. User Registration:
+- **MODIFY**: Remove email requirement from admin bootstrap
+- **USE**: Plex-only authentication flow
+
+## MIGRATION STEPS REQUIRED
+
+### Phase 1: Database Migration
+1. Create migration to make email field optional
+2. Add alternative unique identifier (plexUsername or generated ID)
+3. Update existing users to use new identifier system
+
+### Phase 2: Service Layer Updates  
+1. Remove EmailService entirely
+2. Update TwoFactorService to remove email dependencies
+3. Update PasswordResetService to remove email functionality
+4. Modify authentication flows to use new identifier
+
+### Phase 3: API Layer Updates
+1. Update all controllers to remove email field dependencies  
+2. Modify authentication schemas to remove email validation
+3. Update route handlers to remove email-based flows
+
+### Phase 4: Configuration Cleanup
+1. Remove all email-related environment variables
+2. Clean up configuration files
+3. Update deployment templates
+
+### Phase 5: Testing Updates
+1. Update E2E tests to remove email dependencies
+2. Modify test fixtures and mock data
+3. Update test environment configurations
+
+## SECURITY CONSIDERATIONS
+
+### Authentication Impact:
+- **LOST CAPABILITY**: Email-based account recovery
+- **MITIGATION**: Implement admin-managed account recovery
+- **RISK**: Users locked out without Plex access need admin intervention
+
+### Monitoring Impact:  
+- **LOST CAPABILITY**: Email alerts for security events
+- **MITIGATION**: Implement in-app notifications or webhook-based alerting
+- **ALTERNATIVE**: Integrate with external monitoring systems
+
+## ESTIMATED REMOVAL SCOPE
+
+### Files to Modify: 15+ files
+### Lines of Code to Remove: 800+ lines
+### Database Schema Changes: 1 field modification
+### Environment Variables: 10+ variables to remove
+### Test Updates Required: 5+ test files
+
+### Risk Level: HIGH
+- Email is deeply integrated into authentication system
+- Database schema changes required
+- User identification system needs complete rework
+
+## RECOMMENDED APPROACH
+
+1. **Phase 1**: Implement alternative user identification system
+2. **Phase 2**: Create admin-managed password reset functionality  
+3. **Phase 3**: Remove email dependencies from services layer
+4. **Phase 4**: Update API and route handlers
+5. **Phase 5**: Clean up configuration and environment variables
+6. **Phase 6**: Remove EmailService and related files
+7. **Phase 7**: Update tests and documentation
+
+This removal will significantly simplify the authentication system but requires careful planning to maintain user access and security.

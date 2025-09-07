@@ -1,5 +1,10 @@
 import 'tsconfig-paths/register';
 import 'dotenv/config';
+
+// Validate all required secrets before starting the application
+import { validateSecretsOrThrow } from './config/secrets-validator';
+validateSecretsOrThrow();
+
 import { createServer } from 'http';
 
 import compression from 'compression';
@@ -56,7 +61,7 @@ app.use(
       includeSubDomains: true,
       preload: true,
     },
-  }),
+  })
 );
 
 // Rate limiting
@@ -106,7 +111,7 @@ app.use(
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-correlation-id'],
-  }),
+  })
 );
 
 // Body parsing with size limits

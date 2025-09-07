@@ -1,0 +1,183 @@
+{
+  "batch": 1,
+  "files_scanned": 4,
+  "scan_date": "2025-01-07",
+  "files_processed": [
+    "tests/security/comprehensive-security-test-suite.ts (825 lines)",
+    "backend/src/services/email.service.ts (684 lines)",
+    "tests/integration/api-gateway-service-coordination-test.ts (666 lines)",
+    "backend/tests/e2e/auth.spec.ts (646 lines)"
+  ],
+  "files_not_found": [
+    "tests/performance/security-load-testing.test.ts",
+    "tests/integration/authentication-authorization-flow.test.ts",
+    "backend/src/services/media.service.ts",
+    "backend/tests/e2e/media.spec.ts",
+    "tests/performance/backend-performance-benchmark.test.ts",
+    "tests/integration/media-processing-workflow.test.ts"
+  ],
+  "critical_issues": [
+    {
+      "type": "hardcoded_secrets",
+      "severity": "critical",
+      "description": "Development fallback secrets in production code",
+      "instances": [
+        {
+          "file": "backend/src/utils/jwt.ts",
+          "line": 39,
+          "code": "JWT_SECRET = process.env.JWT_SECRET || 'development-secret-change-in-production'",
+          "risk": "Weak default JWT secret could be exploited in production"
+        },
+        {
+          "file": "backend/src/utils/security.ts",
+          "line": 187,
+          "code": "process.env.ENCRYPTION_KEY || 'default-key-change-in-production'",
+          "risk": "Weak default encryption key compromises data security"
+        }
+      ],
+      "remediation": "Remove all hardcoded fallback secrets, fail fast if environment variables not set"
+    },
+    {
+      "type": "security_test_vulnerabilities",
+      "severity": "critical",
+      "description": "Security tests contain potential information disclosure",
+      "instances": [
+        {
+          "file": "tests/security/comprehensive-security-test-suite.ts",
+          "line": 270,
+          "code": "JWT secret fallback in test code",
+          "risk": "Tests reveal production secret patterns"
+        }
+      ],
+      "remediation": "Use dedicated test secrets, never reference production patterns"
+    }
+  ],
+  "high_priority": [
+    {
+      "type": "unimplemented_email_providers",
+      "severity": "high",
+      "description": "Email service has stub implementations that throw errors",
+      "instances": [
+        {
+          "file": "backend/src/services/email.service.ts",
+          "line": 278,
+          "code": "// TODO: Implement SMTP sending using nodemailer",
+          "impact": "Email functionality will fail in production"
+        },
+        {
+          "file": "backend/src/services/email.service.ts",
+          "line": 292,
+          "code": "// TODO: Implement SendGrid API",
+          "impact": "No email delivery mechanism"
+        },
+        {
+          "file": "backend/src/services/email.service.ts",
+          "line": 306,
+          "code": "// TODO: Implement AWS SES",
+          "impact": "Enterprise email features missing"
+        }
+      ],
+      "remediation": "Implement at least one production email provider (SMTP/SendGrid/SES)"
+    },
+    {
+      "type": "environment_variable_overuse",
+      "severity": "high",
+      "description": "Excessive environment variable fallbacks create security risks",
+      "count": 89,
+      "categories": {
+        "database": 8,
+        "authentication": 12,
+        "email": 6,
+        "redis": 4,
+        "api_endpoints": 15,
+        "secrets": 8,
+        "other": 36
+      },
+      "remediation": "Audit all environment variables, remove unsafe fallbacks"
+    }
+  ],
+  "medium_priority": [
+    {
+      "type": "todo_comments_backend",
+      "severity": "medium",
+      "description": "Multiple TODO comments indicate incomplete features",
+      "count": 31,
+      "categories": {
+        "socket_handlers": 15,
+        "route_implementations": 8,
+        "service_integrations": 6,
+        "security_logging": 2
+      },
+      "examples": [
+        "backend/src/routes/admin.ts:7 - TODO: Implement list users",
+        "backend/src/routes/plex.ts:7 - TODO: Implement get libraries",
+        "backend/src/socket/handlers/notification.handlers.ts:40 - TODO: Implement notification persistence"
+      ],
+      "remediation": "Prioritize TODOs based on feature requirements, implement or remove"
+    },
+    {
+      "type": "console_only_email",
+      "severity": "medium",
+      "description": "Email service defaults to console-only provider",
+      "instances": [
+        {
+          "file": "backend/src/services/email.service.ts",
+          "line": 67,
+          "code": "provider: (process.env.EMAIL_PROVIDER as any) || 'console'",
+          "impact": "No actual email delivery in production without explicit config"
+        }
+      ],
+      "remediation": "Require explicit email provider configuration for production"
+    }
+  ],
+  "low_priority": [
+    {
+      "type": "test_data_exposure",
+      "severity": "low",
+      "description": "Test files expose internal implementation details",
+      "instances": [
+        {
+          "file": "backend/tests/e2e/auth.spec.ts",
+          "line": 17,
+          "code": "BASE_URL fallback pattern",
+          "impact": "Minor information disclosure"
+        }
+      ],
+      "remediation": "Use dedicated test configuration"
+    },
+    {
+      "type": "large_test_files",
+      "severity": "low",
+      "description": "Some test files are very large and may be hard to maintain",
+      "instances": [
+        {
+          "file": "tests/security/comprehensive-security-test-suite.ts",
+          "lines": 825,
+          "impact": "Maintenance complexity"
+        },
+        {
+          "file": "tests/integration/api-gateway-service-coordination-test.ts",
+          "lines": 666,
+          "impact": "Test complexity"
+        }
+      ],
+      "remediation": "Consider splitting large test files into focused suites"
+    }
+  ],
+  "summary": {
+    "total_issues": 8,
+    "critical": 2,
+    "high": 2,
+    "medium": 2,
+    "low": 2,
+    "technical_debt_score": "High",
+    "security_risk": "Critical",
+    "maintainability": "Medium"
+  },
+  "recommendations": [
+    "URGENT: Remove all hardcoded secret fallbacks",
+    "HIGH: Implement production email providers",
+    "MEDIUM: Complete TODO implementations or remove",
+    "LOW: Split large test files for better maintainability"
+  ]
+}

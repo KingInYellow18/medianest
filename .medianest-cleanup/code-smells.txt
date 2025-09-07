@@ -1,0 +1,51 @@
+=== CODE SMELLS - MediaNest Codebase ===
+Generated: 2025-09-07T02:50:17
+
+TYPESCRIPT 'ANY' TYPE USAGE (15 found):
+========================================
+./shared/dist/config/base.config.d.ts:    CORS_ORIGIN: z.ZodDefault<z.ZodUnion<[z.ZodString, z.ZodArray<z.ZodString, "many">]>>;
+./shared/dist/config/base.config.d.ts:    WS_CORS_ORIGIN: z.ZodOptional<z.ZodUnion<[z.ZodString, z.ZodArray<z.ZodString, "many">]>>;
+./shared/dist/config/logging.config.d.ts:        log?(info: any, next: () => void): any;
+./shared/dist/config/logging.config.d.ts:        logv?(info: any, next: () => void): any;
+./shared/dist/config/logging.config.d.ts:        _write(chunk: any, encoding: BufferEncoding, callback: (error?: Error | null) => void): void;
+./shared/dist/config/logging.config.d.ts:            chunk: any;
+./shared/dist/config/logging.config.d.ts:        write(chunk: any, callback?: (error: Error | null | undefined) => void): boolean;
+./shared/dist/config/logging.config.d.ts:        write(chunk: any, encoding: BufferEncoding, callback?: (error: Error | null | undefined) => void): boolean;
+./shared/dist/config/logging.config.d.ts:        setDefaultEncoding(encoding: BufferEncoding): any;
+./shared/dist/config/logging.config.d.ts:        end(cb?: () => void): any;
+./shared/dist/config/logging.config.d.ts:        end(chunk: any, cb?: () => void): any;
+./shared/dist/config/logging.config.d.ts:        end(chunk: any, encoding: BufferEncoding, cb?: () => void): any;
+./shared/dist/config/logging.config.d.ts:        destroy(error?: Error): any;
+
+ESLINT DISABLE STATEMENTS (15 found):
+====================================
+./shared/coverage/block-navigation.js:/* eslint-disable */
+./shared/coverage/sorter.js:/* eslint-disable */
+./shared/coverage/prettify.js:/* eslint-disable */
+./shared/node_modules/check-error/index.js:  // eslint-disable-next-line prefer-reflect
+./shared/node_modules/check-error/index.js:  // eslint-disable-next-line prefer-reflect
+./shared/node_modules/check-error/index.js:    return comparisonString.indexOf(errMatcher) !== -1; // eslint-disable-line no-magic-numbers
+./shared/node_modules/check-error/index.js:      const newConstructorName = (new errorLike().name); // eslint-disable-line new-cap
+./shared/node_modules/typed-array-length/index.js:				// eslint-disable-next-line no-extra-parens
+./shared/node_modules/functions-have-names/test/index.js:	function f() {} // eslint-disable-line func-style
+./shared/node_modules/is-symbol/test/index.js:			// eslint-disable-next-line no-extra-parens
+./shared/node_modules/content-type/index.js:var PARAM_REGEXP = /; *([!#$%&'*+.^_`|~0-9A-Za-z-]+) *= *("(?:[\u000b\u0020\u0021\u0023-\u005b\u005d-\u007e\u0080-\u00ff]|\\[\u000b\u0020-\u00ff])*"|[!#$%&'*+.^_`|~0-9A-Za-z-]+) */g // eslint-disable-line no-control-regex
+
+@TS-IGNORE STATEMENTS:
+=====================
+Found in node_modules:
+- ./shared/node_modules/side-channel/index.js: @ts-expect-error TODO: figure out why this is erroring
+- ./shared/node_modules/side-channel-list/index.js: @ts-expect-error TODO: figure out why this is erroring
+
+SUMMARY:
+========
+- 'any' type usage: 15 instances (mostly in generated .d.ts files)
+- ESLint disables: 15 instances (3 in coverage, 12 in node_modules)
+- @ts-ignore: 2 instances (both in node_modules)
+
+RECOMMENDATIONS:
+===============
+1. Replace 'any' types with proper type definitions
+2. Review ESLint disables in coverage files
+3. Audit generated .d.ts files for type safety
+4. Most issues are in generated/external files (node_modules)

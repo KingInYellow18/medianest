@@ -1,113 +1,76 @@
 # MediaNest Documentation
 
-_A modern, comprehensive media management platform with Plex integration_
+This directory contains the complete documentation for MediaNest, built with MkDocs Material theme.
 
-## 📚 Documentation Structure
+## Quick Start
 
-MediaNest documentation is organized into numbered sections for easy navigation:
+1. **Install MkDocs and dependencies:**
 
-### Core Documentation
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-| Section                                                                | Description                            | Quick Access                                                        |
-| ---------------------------------------------------------------------- | -------------------------------------- | ------------------------------------------------------------------- |
-| **[01 - Getting Started](./01-getting-started/README.md)**             | Quick setup, installation, first steps | [Quick Start](./01-getting-started/quick-start.md)                  |
-| **[02 - Architecture](./02-architecture/README.md)**                   | System design, decisions, patterns     | [System Architecture](./02-architecture/system-architecture.md)     |
-| **[03 - API Reference](./03-api-reference/README.md)**                 | Complete API documentation             | [Authentication API](./03-api-reference/authentication-api.md)      |
-| **[04 - Implementation Guides](./04-implementation-guides/README.md)** | Step-by-step implementation            | [Auth Implementation](./04-implementation-guides/authentication.md) |
-| **[05 - Testing](./05-testing/README.md)**                             | Testing strategies and guides          | [Unit Testing](./05-testing/unit-testing.md)                        |
+2. **Start the development server:**
 
-### Operations & Deployment
+   ```bash
+   mkdocs serve
+   ```
 
-| Section                                                    | Description                  | Quick Access                                              |
-| ---------------------------------------------------------- | ---------------------------- | --------------------------------------------------------- |
-| **[06 - Deployment](./06-deployment/README.md)**           | Production deployment guides | [Docker Compose](./06-deployment/docker-compose.md)       |
-| **[07 - Security](./07-security/README.md)**               | Security best practices      | [Auth Security](./07-security/authentication.md)          |
-| **[08 - Monitoring](./08-monitoring/README.md)**           | Observability and monitoring | [Health Monitoring](./08-monitoring/health-monitoring.md) |
-| **[09 - Configuration](./09-configuration/README.md)**     | System configuration         | [Environment Setup](./09-configuration/environment.md)    |
-| **[10 - Troubleshooting](./10-troubleshooting/README.md)** | Common issues and solutions  | [FAQ](./10-troubleshooting/faq.md)                        |
+3. **Build the documentation:**
+   ```bash
+   mkdocs build
+   ```
 
-### Advanced Topics
+## Documentation Structure
 
-| Section                                            | Description             | Quick Access                                          |
-| -------------------------------------------------- | ----------------------- | ----------------------------------------------------- |
-| **[11 - Performance](./11-performance/README.md)** | Optimization strategies | [Database Optimization](./11-performance/database.md) |
-| **[12 - Maintenance](./12-maintenance/README.md)** | System maintenance      | [Backup Procedures](./12-maintenance/backups.md)      |
-| **[13 - Reference](./13-reference/README.md)**     | Technical reference     | [Error Codes](./13-reference/error-codes.md)          |
-| **[14 - Tutorials](./14-tutorials/README.md)**     | Step-by-step tutorials  | [First Setup](./14-tutorials/first-setup.md)          |
+```
+docs/
+├── index.md                    # Homepage
+├── getting-started/            # Getting started guides
+├── installation/               # Installation guides
+├── user-guides/               # User guides and tutorials
+├── api/                       # API reference
+├── developers/                # Developer documentation
+├── troubleshooting/           # Troubleshooting guides
+├── reference/                 # Reference materials
+└── assets/                    # Static assets
+```
 
-## 🚀 Quick Start Paths
+## Building and Deployment
 
-### For Developers
+### Build Scripts
 
-1. **[Development Setup](./01-getting-started/development-setup.md)** - Get coding environment ready
-2. **[Architecture Overview](./02-architecture/system-architecture.md)** - Understand the system
-3. **[API Reference](./03-api-reference/README.md)** - Learn the API
-4. **[Implementation Guides](./04-implementation-guides/README.md)** - Start building
+Use the provided build scripts for production builds:
 
-### For System Administrators
+```bash
+# Full build with all optimizations
+./scripts/build-docs.sh
 
-1. **[Deployment Guide](./06-deployment/README.md)** - Deploy to production
-2. **[Security Guide](./07-security/README.md)** - Secure your installation
-3. **[Monitoring Setup](./08-monitoring/README.md)** - Monitor system health
-4. **[Troubleshooting](./10-troubleshooting/README.md)** - Resolve issues
+# Development build (faster)
+./scripts/build-docs.sh --dev
 
-### For End Users
+# Skip dependencies and tests
+./scripts/build-docs.sh --skip-deps --skip-tests
+```
 
-1. **[Quick Start](./01-getting-started/quick-start.md)** - Get started immediately
-2. **[User Tutorials](./14-tutorials/README.md)** - Learn common tasks
-3. **[FAQ](./10-troubleshooting/faq.md)** - Get answers to common questions
+### Deployment Scripts
 
-## 📋 Documentation Features
+Deploy to various platforms:
 
-### What's New in This Documentation
+```bash
+# Deploy to GitHub Pages
+./scripts/deploy-docs.sh --github
 
-✅ **Consolidated Structure** - Reduced from 4,447+ scattered files to organized sections  
-✅ **Cross-Referenced** - All internal links updated and verified  
-✅ **Comprehensive Coverage** - Complete API, implementation, and deployment guides  
-✅ **Searchable Content** - Well-organized with clear navigation  
-✅ **Code Examples** - Practical examples throughout  
-✅ **Best Practices** - Industry-standard approaches documented
+# Deploy to Netlify
+./scripts/deploy-docs.sh --netlify
 
-### Documentation Standards
+# Deploy to AWS S3
+./scripts/deploy-docs.sh --s3
 
-- **Consistency** - Standardized formatting and structure
-- **Completeness** - No gaps in critical information
-- **Accuracy** - Regularly updated and verified
-- **Accessibility** - Clear navigation and search
-- **Practicality** - Real-world examples and use cases
+# Deploy to custom server
+./scripts/deploy-docs.sh --custom
+```
 
-## 🔍 Finding Information
+## License
 
-### Search Strategies
-
-1. **By Topic** - Use the numbered section structure
-2. **By Role** - Follow the quick start paths above
-3. **By Task** - Check implementation guides and tutorials
-4. **By Issue** - Reference troubleshooting and FAQ sections
-
-### Cross-References
-
-Each section includes "Related Documentation" links to help you navigate between related topics efficiently.
-
-## 📝 Contributing to Documentation
-
-See [Contributing Guidelines](./CONTRIBUTING.md) for information on:
-
-- Documentation standards
-- How to propose changes
-- Review process
-- Style guide
-
-## 📞 Getting Help
-
-1. **Check the FAQ** - [Troubleshooting FAQ](./10-troubleshooting/faq.md)
-2. **Search Documentation** - Use the organized structure above
-3. **GitHub Issues** - Report bugs or request features
-4. **Community Support** - Join our community discussions
-
----
-
-**Documentation Status**: ✅ Consolidated and Optimized  
-**Last Updated**: January 2025  
-**Total Sections**: 14 organized sections  
-**File Reduction**: >40% from original 4,447+ files
+This documentation is part of the MediaNest project and follows the same MIT license.

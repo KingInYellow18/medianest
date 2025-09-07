@@ -1,0 +1,46 @@
+=== COMMENTED-OUT CODE - MediaNest Codebase ===
+Generated: 2025-09-07T02:50:17
+
+COMMENTED-OUT FUNCTIONS/CONSTANTS/CLASSES (15 found):
+====================================================
+./shared/coverage/sorter.js:    // adds sorting functionality to the UI
+./shared/src/config/logging.config.ts:// Convenience functions
+./shared/src/config/database.config.ts:// Convenience functions  
+./shared/src/config/redis.config.ts:// Convenience functions
+./shared/src/config/env.config.ts:// Convenience functions for common usage patterns
+./shared/src/errors/utils.ts:// Error utility functions for frontend and backend
+./shared/src/errors/types.ts:// Core error types and classes - isolated to avoid circular dependencies
+./shared/src/errors/index.ts:// Shared error classes
+./shared/src/constants/api.ts:// API endpoint constants
+./shared/src/constants/index.ts:// Shared constants for MediaNest
+./shared/src/index.ts:// Export all shared constants
+./shared/src/utils/format.ts:// Formatting utility functions
+./shared/src/utils/generators.ts:// Generator utility functions
+./shared/src/utils/index.ts:// Shared utility functions for MediaNest
+./shared/src/utils/index.ts:// Re-export all utility functions
+
+ANALYSIS:
+=========
+Most "commented code" found are actually:
+- Documentation comments explaining file purposes
+- Section headers describing functionality
+- No actual commented-out implementation code detected
+
+GOOD PRACTICES OBSERVED:
+=======================
+- Files have proper header documentation
+- Clear section commenting
+- No dead code commented out in the codebase
+
+SUMMARY:
+========
+- No actual commented-out implementation code found
+- All comments are legitimate documentation
+- Clean codebase with proper commenting practices
+- No action required for commented code cleanup
+
+RECOMMENDATIONS:
+===============
+✅ GOOD: No commented-out code blocks detected
+✅ GOOD: Proper file documentation in place
+✅ GOOD: Clean commenting practices

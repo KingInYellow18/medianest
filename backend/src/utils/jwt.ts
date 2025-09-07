@@ -35,8 +35,13 @@ interface TokenRotationInfo {
   expiresAt: Date;
 }
 
-// Get JWT secret from environment with rotation support
-const JWT_SECRET = process.env.JWT_SECRET || 'development-secret-change-in-production';
+// Get JWT secret from environment - MUST be provided, no fallbacks
+if (!process.env.JWT_SECRET) {
+  throw new Error(
+    'JWT_SECRET environment variable is required. Generate one with: openssl rand -base64 32'
+  );
+}
+const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_SECRET_ROTATION = process.env.JWT_SECRET_ROTATION;
 const JWT_ISSUER = process.env.JWT_ISSUER || 'medianest';
 const JWT_AUDIENCE = process.env.JWT_AUDIENCE || 'medianest-users';
@@ -50,7 +55,7 @@ const TOKEN_ROTATION_THRESHOLD = 5 * 60 * 1000; // 5 minutes before expiry
 export function generateToken(
   payload: JWTPayload,
   rememberMe: boolean = false,
-  options?: JWTOptions,
+  options?: JWTOptions
 ): string {
   const expiresIn = rememberMe ? REMEMBER_ME_TOKEN_EXPIRY : DEFAULT_TOKEN_EXPIRY;
 
@@ -94,7 +99,7 @@ export function verifyToken(
     allowRotation?: boolean;
     ipAddress?: string;
     userAgent?: string;
-  },
+  }
 ): JWTPayload {
   try {
     let decoded: JWTPayload;
@@ -244,7 +249,7 @@ export function shouldRotateToken(token: string): boolean {
 export function rotateTokenIfNeeded(
   token: string,
   payload: JWTPayload,
-  options?: JWTOptions,
+  options?: JWTOptions
 ): TokenRotationInfo | null {
   if (!shouldRotateToken(token)) {
     return null;
@@ -301,7 +306,7 @@ export function verifyRefreshToken(refreshToken: string): { userId: string; sess
     throw new AppError(
       'REFRESH_TOKEN_VERIFICATION_FAILED',
       'Refresh token verification failed',
-      401,
+      401
     );
   }
 }
