@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, beforeAll, afterAll } from 'vitest';
-import { Request } from 'express';
+import type { Request } from 'express';
 import { AuthenticationFacade, AuthenticatedUser } from '../../src/auth';
 import { UserRepository } from '../../src/repositories/user.repository';
 import { SessionTokenRepository } from '../../src/repositories/session-token.repository';
@@ -26,7 +26,9 @@ describe('AuthenticationFacade', () => {
   let mockUserRepository: any;
   let mockSessionTokenRepository: any;
   let mockDeviceSessionService: any;
-  let mockRequest: Partial<Request>;
+  let mockRequest: Partial<
+    Request & { user?: AuthenticatedUser; token?: string; deviceId?: string; sessionId?: string }
+  >;
 
   const mockUser: AuthenticatedUser = {
     id: 'user-123',

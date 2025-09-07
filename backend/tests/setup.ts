@@ -63,29 +63,10 @@ vi.mock('winston-daily-rotate-file', () => ({
   default: vi.fn(),
 }));
 
-// Mock Redis and ioredis completely to prevent connection attempts
+// Mock Redis and ioredis with enhanced test isolation
 vi.mock('ioredis', () => {
-  const mockRedisClient = {
-    connect: vi.fn().mockResolvedValue(undefined),
-    disconnect: vi.fn().mockResolvedValue(undefined),
-    quit: vi.fn().mockResolvedValue(undefined),
-    get: vi.fn().mockResolvedValue(null),
-    set: vi.fn().mockResolvedValue('OK'),
-    del: vi.fn().mockResolvedValue(1),
-    exists: vi.fn().mockResolvedValue(0),
-    ping: vi.fn().mockResolvedValue('PONG'),
-    on: vi.fn(),
-    eval: vi.fn().mockResolvedValue(0),
-    incr: vi.fn().mockResolvedValue(1),
-    expire: vi.fn().mockResolvedValue(1),
-    ttl: vi.fn().mockResolvedValue(-1),
-    hget: vi.fn().mockResolvedValue(null),
-    hset: vi.fn().mockResolvedValue(1),
-    hgetall: vi.fn().mockResolvedValue({}),
-    sadd: vi.fn().mockResolvedValue(1),
-    srem: vi.fn().mockResolvedValue(1),
-    smembers: vi.fn().mockResolvedValue([]),
-  };
+  const { createMockRedisForTests } = require('../src/config/test-redis-connection');
+  const mockRedisClient = createMockRedisForTests();
 
   return {
     __esModule: true,

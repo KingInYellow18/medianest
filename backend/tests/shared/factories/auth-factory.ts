@@ -1,9 +1,16 @@
 /**
  * Authentication Test Factory - Mock and test data generation
+ * Updated with Phase 2 mock fixes
  */
 
 import { Page } from '@playwright/test';
 import { BaseTestHelper, TestUser } from '../helpers/test-base';
+import {
+  createMockAuthenticatedUser,
+  createMockJWTPayload,
+  setupAllAuthMocks,
+  resetAllAuthMocks,
+} from '../mocks';
 
 export class AuthTestFactory {
   static readonly TEST_USERS = {
@@ -70,7 +77,7 @@ export class AuthTestFactory {
   }
 
   static createMockAuthToken(): string {
-    return 'mock-jwt-token-for-testing';
+    return 'mock-jwt-token-for-testing-' + Date.now().toString(16);
   }
 
   static createSessionMock(user: TestUser) {
@@ -85,6 +92,23 @@ export class AuthTestFactory {
         },
       },
     };
+  }
+
+  // New helper methods using Phase 2 mocks
+  static createMockUserForTest(overrides?: any) {
+    return createMockAuthenticatedUser(overrides);
+  }
+
+  static createMockJWTForTest(overrides?: any) {
+    return createMockJWTPayload(overrides);
+  }
+
+  static setupComprehensiveMocks() {
+    return setupAllAuthMocks();
+  }
+
+  static resetComprehensiveMocks(mocks: any) {
+    resetAllAuthMocks(mocks);
   }
 
   static createErrorScenarios() {

@@ -9,7 +9,7 @@ export default defineConfig({
       './src/__tests__/setup.ts'
     ],
     globals: true,
-    isolate: false,
+    isolate: true,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'text-summary'],
@@ -43,7 +43,12 @@ export default defineConfig({
     pool: 'forks',
     poolOptions: {
       forks: {
-        singleFork: true,
+        singleFork: false,
+        isolate: true,
+      },
+      threads: {
+        singleThread: false,
+        isolate: true,
       },
     },
     deps: {
@@ -61,6 +66,11 @@ export default defineConfig({
       PLEX_CLIENT_SECRET: 'test-plex-client-secret',
       FRONTEND_URL: 'http://localhost:3000',
       LOG_LEVEL: 'silent',
+      // Test database isolation
+      DATABASE_POOL_SIZE: '1',
+      DATABASE_TIMEOUT: '5000',
+      // Redis test configuration
+      REDIS_TEST_DB: '15',
     },
   },
   resolve: {
