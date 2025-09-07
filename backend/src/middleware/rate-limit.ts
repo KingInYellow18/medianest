@@ -8,6 +8,7 @@ import {
   RateLimitError, // @ts-ignore
 } from '@medianest/shared';
 import { logger } from '../utils/logger';
+import { CatchError } from '../types/common';
 
 interface RateLimitOptions {
   windowMs: number;
@@ -62,7 +63,7 @@ export function createRateLimit(options: RateLimitOptions) {
       res.setHeader('X-RateLimit-Limit', max);
       res.setHeader(
         'X-RateLimit-Remaining',
-        Math.max(0, max - parseInt((await redis.get(key)) || '0')),
+        Math.max(0, max - parseInt((await redis.get(key)) || '0'))
       );
       res.setHeader('X-RateLimit-Reset', new Date(Date.now() + ttl * 1000).toISOString());
 
@@ -74,7 +75,7 @@ export function createRateLimit(options: RateLimitOptions) {
       // Store original end function to handle skip options
       if (skipSuccessfulRequests || skipFailedRequests) {
         const originalEnd = res.end;
-        res.end = function (...args: any[]) {
+        res.end = function (...args: unknown[]) {
           const shouldSkip =
             (skipSuccessfulRequests && res.statusCode < 400) ||
             (skipFailedRequests && res.statusCode >= 400);
@@ -91,7 +92,7 @@ export function createRateLimit(options: RateLimitOptions) {
       }
 
       next();
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (error instanceof RateLimitError) {
         next(error);
       } else {

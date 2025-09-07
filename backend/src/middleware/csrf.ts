@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import { randomBytes, createHash, timingSafeEqual } from 'crypto';
 import { logger } from '@/utils/logger';
 import { AppError } from '../utils/errors';
+import { CatchError } from '../types/common';
 
 // CSRF token store for session-based tokens
 const csrfTokenStore = new Map<string, { token: string; createdAt: number }>();
@@ -118,7 +119,7 @@ export class CSRFProtection {
         res.locals.csrfToken = token;
 
         next();
-      } catch (error: any) {
+      } catch (error: CatchError) {
         logger.error('CSRF token generation failed', { error });
         next(new AppError('Token generation failed', 500, 'CSRF_GENERATION_ERROR'));
       }
@@ -195,13 +196,13 @@ export class CSRFProtection {
 
         // Token is valid, proceed
         next();
-      } catch (error: any) {
+      } catch (error: CatchError) {
         if (error instanceof AppError) {
           logger.warn('CSRF validation failed', {
             path: req.path,
             method: req.method,
             sessionId: this.options.sessionIdExtractor(req),
-            error: error.message as any,
+            error: error instanceof Error ? error.message : ('Unknown error' as any),
           });
           next(error);
         } else {
@@ -246,7 +247,7 @@ export class CSRFProtection {
         }
 
         next();
-      } catch (error: any) {
+      } catch (error: CatchError) {
         logger.error('CSRF token refresh failed', { error });
         next();
       }

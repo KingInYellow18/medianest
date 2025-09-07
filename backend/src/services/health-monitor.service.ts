@@ -6,6 +6,7 @@ import { CircuitBreakerFactory } from '../utils/circuit-breaker';
 import { PrismaClient } from '@prisma/client';
 import IORedis from 'ioredis';
 import { performance } from 'perf_hooks';
+import { CatchError } from '../types/common';
 
 export interface ComponentHealth {
   name: string;
@@ -56,7 +57,7 @@ export class HealthMonitorService extends EventEmitter {
 
   constructor(
     private prisma?: PrismaClient,
-    private redis?: IORedis,
+    private redis?: IORedis
   ) {
     super();
     this.startTime = new Date();
@@ -201,7 +202,7 @@ export class HealthMonitorService extends EventEmitter {
           connectionState: 'connected',
         },
       };
-    } catch (error: any) {
+    } catch (error: CatchError) {
       return {
         name: 'database',
         status: 'unhealthy',
@@ -243,7 +244,7 @@ export class HealthMonitorService extends EventEmitter {
           memoryUsage: await this.getRedisMemoryUsage(),
         },
       };
-    } catch (error: any) {
+    } catch (error: CatchError) {
       return {
         name: 'redis',
         status: 'unhealthy',
@@ -312,7 +313,7 @@ export class HealthMonitorService extends EventEmitter {
           breakerDetails,
         },
       };
-    } catch (error: any) {
+    } catch (error: CatchError) {
       return {
         name: 'circuit-breakers',
         status: 'unhealthy',
@@ -354,7 +355,7 @@ export class HealthMonitorService extends EventEmitter {
           usagePercent: Math.round(memoryUsagePercent * 100) / 100,
         },
       };
-    } catch (error: any) {
+    } catch (error: CatchError) {
       return {
         name: 'memory',
         status: 'unhealthy',
@@ -396,7 +397,7 @@ export class HealthMonitorService extends EventEmitter {
           services: overallHealth.services,
         },
       };
-    } catch (error: any) {
+    } catch (error: CatchError) {
       return {
         name: 'external-services',
         status: 'unhealthy',

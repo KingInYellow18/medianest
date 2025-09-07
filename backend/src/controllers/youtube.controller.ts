@@ -8,6 +8,7 @@ import { youtubeQueue } from '@/config/queues';
 import { getSocketServer } from '@/socket/server';
 import { YouTubeService } from '@/services/youtube.service';
 import { YoutubeDownloadRepository } from '@/repositories/youtube-download.repository';
+import { CatchError } from '../types/common';
 import {
   createDownloadSchema,
   getDownloadSchema,
@@ -88,7 +89,7 @@ export class YouTubeController {
             type: 'exponential',
             delay: 5000,
           },
-        },
+        }
       );
 
       // Update download with job ID
@@ -128,7 +129,7 @@ export class YouTubeController {
         userId,
         createdAt: download.createdAt,
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       next(error);
     }
   };
@@ -185,7 +186,7 @@ export class YouTubeController {
             createdAt: download.createdAt,
             completedAt: download.completedAt,
           };
-        }),
+        })
       );
 
       res.json({
@@ -195,7 +196,7 @@ export class YouTubeController {
         limit: result.limit,
         totalPages: result.totalPages,
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       next(error);
     }
   };
@@ -255,7 +256,7 @@ export class YouTubeController {
         createdAt: download.createdAt,
         completedAt: download.completedAt,
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       next(error);
     }
   };
@@ -312,7 +313,7 @@ export class YouTubeController {
       res.json({
         message: 'Download cancelled successfully',
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       next(error);
     }
   };
@@ -344,7 +345,7 @@ export class YouTubeController {
         viewCount: metadata.viewCount,
         availableQualities: metadata.formats?.map((f: any) => f.quality) || [],
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       next(error);
     }
   };

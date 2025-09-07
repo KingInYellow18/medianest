@@ -1,0 +1,418 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found - MediaNest Documentation{% endblock %}
+
+{% block content %}
+<div class="md-content" data-md-component="content">
+  <article class="md-content__inner">
+    <div class="error-page">
+      <div class="error-hero">
+        <div class="error-animation">
+          <!-- SVG animation for 404 -->
+          <svg width="200" height="120" viewBox="0 0 200 120" class="error-404-svg">
+            <defs>
+              <linearGradient id="errorGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#673ab7;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#9c27b0;stop-opacity:1" />
+              </linearGradient>
+            </defs>
+            <text x="100" y="70" text-anchor="middle" fill="url(#errorGradient)" 
+                  font-size="60" font-weight="bold" class="error-number">404</text>
+            <circle cx="50" cy="30" r="3" fill="#e91e63" class="floating-dot">
+              <animate attributeName="cy" values="30;20;30" dur="2s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="150" cy="30" r="3" fill="#e91e63" class="floating-dot">
+              <animate attributeName="cy" values="20;30;20" dur="2s" repeatCount="indefinite"/>
+            </circle>
+            <rect x="80" y="90" width="40" height="4" rx="2" fill="#673ab7" class="progress-bar">
+              <animate attributeName="width" values="0;40;0" dur="3s" repeatCount="indefinite"/>
+            </rect>
+          </svg>
+        </div>
+        
+        <h1 class="error-title">Page Not Found</h1>
+        <p class="error-subtitle">
+          The page you're looking for seems to have wandered off into the digital void. 
+          Don't worry, even the best media management systems lose track of things sometimes!
+        </p>
+      </div>
+
+      <div class="error-actions">
+        <div class="quick-actions">
+          <h2>Quick Actions</h2>
+          <div class="action-grid">
+            <a href="/" class="action-card hover-lift">
+              <div class="action-icon">🏠</div>
+              <h3>Go Home</h3>
+              <p>Return to the documentation homepage</p>
+            </a>
+            
+            <button onclick="history.back()" class="action-card hover-lift">
+              <div class="action-icon">⬅️</div>
+              <h3>Go Back</h3>
+              <p>Return to the previous page</p>
+            </button>
+            
+            <a href="/getting-started/" class="action-card hover-lift">
+              <div class="action-icon">🚀</div>
+              <h3>Getting Started</h3>
+              <p>New to MediaNest? Start here</p>
+            </a>
+            
+            <button onclick="document.querySelector('.md-search__input').focus()" class="action-card hover-lift">
+              <div class="action-icon">🔍</div>
+              <h3>Search</h3>
+              <p>Search the documentation</p>
+            </button>
+          </div>
+        </div>
+
+        <div class="popular-sections">
+          <h2>Popular Sections</h2>
+          <div class="section-links">
+            <a href="/installation/" class="section-link">
+              <span class="link-icon">⚙️</span>
+              <span class="link-text">Installation Guide</span>
+              <span class="link-description">Get MediaNest up and running</span>
+            </a>
+            <a href="/api/" class="section-link">
+              <span class="link-icon">🔗</span>
+              <span class="link-text">API Reference</span>
+              <span class="link-description">Complete API documentation</span>
+            </a>
+            <a href="/user-guides/" class="section-link">
+              <span class="link-icon">📖</span>
+              <span class="link-text">User Guides</span>
+              <span class="link-description">Learn how to use MediaNest</span>
+            </a>
+            <a href="/troubleshooting/" class="section-link">
+              <span class="link-icon">🔧</span>
+              <span class="link-text">Troubleshooting</span>
+              <span class="link-description">Fix common issues</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="search-suggestion">
+          <h2>Can't Find What You're Looking For?</h2>
+          <div class="search-help">
+            <p>Try searching for what you need:</p>
+            <div class="search-examples">
+              <button class="search-example" onclick="performSearch('plex setup')">Plex Setup</button>
+              <button class="search-example" onclick="performSearch('api authentication')">API Authentication</button>
+              <button class="search-example" onclick="performSearch('docker install')">Docker Install</button>
+              <button class="search-example" onclick="performSearch('media organization')">Media Organization</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-section">
+          <h2>Still Need Help?</h2>
+          <div class="help-options">
+            <a href="https://github.com/medianest/medianest/issues" target="_blank" class="help-link">
+              <span class="help-icon">🐛</span>
+              <span class="help-text">Report an Issue</span>
+            </a>
+            <a href="https://github.com/medianest/medianest/discussions" target="_blank" class="help-link">
+              <span class="help-icon">💬</span>
+              <span class="help-text">Join Discussions</span>
+            </a>
+            <a href="https://discord.gg/medianest" target="_blank" class="help-link">
+              <span class="help-icon">💭</span>
+              <span class="help-text">Discord Community</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
+</div>
+
+<style>
+.error-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+.error-hero {
+  margin-bottom: 3rem;
+}
+
+.error-animation {
+  margin-bottom: 2rem;
+}
+
+.error-404-svg {
+  width: 200px;
+  height: auto;
+}
+
+.error-title {
+  font-size: 2.5rem;
+  font-weight: 300;
+  color: var(--md-primary-fg-color);
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+.error-subtitle {
+  font-size: 1.125rem;
+  color: var(--md-default-fg-color--light);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.error-actions {
+  text-align: left;
+}
+
+.error-actions h2 {
+  color: var(--md-primary-fg-color);
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.quick-actions {
+  margin-bottom: 3rem;
+}
+
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.action-card {
+  background: var(--md-default-bg-color);
+  border: 2px solid var(--md-default-fg-color--lightest);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-decoration: none;
+  color: var(--md-default-fg-color);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.action-card:hover {
+  border-color: var(--md-primary-fg-color);
+  box-shadow: 0 8px 25px rgba(103, 58, 183, 0.15);
+  color: var(--md-default-fg-color);
+}
+
+.action-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.action-card h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.action-card p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--md-default-fg-color--light);
+}
+
+.popular-sections {
+  margin-bottom: 3rem;
+}
+
+.section-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.section-link {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  background: var(--md-default-bg-color);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--md-default-fg-color);
+  transition: all 0.3s ease;
+  gap: 1rem;
+}
+
+.section-link:hover {
+  background: rgba(103, 58, 183, 0.05);
+  border-color: var(--md-primary-fg-color);
+  color: var(--md-default-fg-color);
+}
+
+.link-icon {
+  font-size: 1.5rem;
+  width: 2rem;
+  text-align: center;
+}
+
+.link-text {
+  font-weight: 600;
+  font-size: 1rem;
+  min-width: 150px;
+}
+
+.link-description {
+  color: var(--md-default-fg-color--light);
+  font-size: 0.9rem;
+}
+
+.search-suggestion {
+  margin-bottom: 3rem;
+}
+
+.search-help p {
+  margin-bottom: 1rem;
+  color: var(--md-default-fg-color--light);
+}
+
+.search-examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.search-example {
+  background: var(--md-primary-fg-color);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+}
+
+.search-example:hover {
+  background: var(--md-primary-fg-color--dark);
+  transform: translateY(-1px);
+}
+
+.help-section h2 {
+  margin-bottom: 1.5rem;
+}
+
+.help-options {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.help-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: var(--md-default-fg-color);
+  transition: all 0.3s ease;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.help-link:hover {
+  background: rgba(103, 58, 183, 0.05);
+  color: var(--md-primary-fg-color);
+}
+
+.help-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.help-text {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .error-title {
+    font-size: 2rem;
+  }
+  
+  .action-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+  
+  .section-link {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+  
+  .link-text {
+    min-width: auto;
+  }
+  
+  .help-options {
+    gap: 1rem;
+  }
+}
+
+/* Dark theme adjustments */
+[data-md-color-scheme='slate'] .action-card {
+  background: #2d2d2d;
+  border-color: #404040;
+}
+
+[data-md-color-scheme='slate'] .action-card:hover {
+  background: #353535;
+}
+
+[data-md-color-scheme='slate'] .section-link {
+  background: #2d2d2d;
+  border-color: #404040;
+}
+
+[data-md-color-scheme='slate'] .section-link:hover {
+  background: rgba(156, 39, 176, 0.15);
+}
+</style>
+
+<script>
+function performSearch(query) {
+  const searchInput = document.querySelector('.md-search__input');
+  if (searchInput) {
+    searchInput.value = query;
+    searchInput.focus();
+    
+    // Trigger search
+    const event = new Event('input', { bubbles: true });
+    searchInput.dispatchEvent(event);
+    
+    // Track the action
+    if (window.MediaNest && window.MediaNest.Analytics) {
+      window.MediaNest.Analytics.trackEvent('404_search_suggestion', {
+        suggested_query: query
+      });
+    }
+  }
+}
+
+// Track 404 page visit
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.MediaNest && window.MediaNest.Analytics) {
+    window.MediaNest.Analytics.trackEvent('404_page_view', {
+      attempted_url: window.location.pathname,
+      referrer: document.referrer
+    });
+  }
+});
+</script>
+{% endblock %}

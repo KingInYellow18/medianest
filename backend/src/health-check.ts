@@ -6,7 +6,20 @@
  * and exits with appropriate status codes for Docker health checking.
  */
 
-const http = require('http');
+import * as http from 'http';
+import { logger } from './utils/logger';
+
+interface HealthCheckResponse {
+  statusCode: number;
+}
+
+interface HealthCheckError extends Error {
+  code?: string;
+  errno?: number;
+  syscall?: string;
+  address?: string;
+  port?: number;
+}
 
 const options = {
   hostname: 'localhost',
@@ -16,23 +29,39 @@ const options = {
   timeout: 5000,
 };
 
-const req = http.request(options, (res: any) => {
+const req = http.request(options, (res: HealthCheckResponse) => {
   if (res.statusCode === 200) {
-    console.log('Health check passed');
+    logger.info('Health check passed', {
+      statusCode: res.statusCode,
+      endpoint: '/health',
+      timestamp: new Date().toISOString(),
+    });
     process.exit(0);
   } else {
-    console.log(`Health check failed with status: ${res.statusCode}`);
+    logger.error('Health check failed', {
+      statusCode: res.statusCode,
+      endpoint: '/health',
+      timestamp: new Date().toISOString(),
+    });
     process.exit(1);
   }
 });
 
-req.on('error', (err: any) => {
-  console.error('Health check failed with error:', err.message);
+req.on('error', (err: HealthCheckError) => {
+  logger.error('Health check failed with error', {
+    error: err.message,
+    endpoint: '/health',
+    timestamp: new Date().toISOString(),
+  });
   process.exit(1);
 });
 
 req.on('timeout', () => {
-  console.error('Health check timed out');
+  logger.error('Health check timed out', {
+    endpoint: '/health',
+    timeout: 5000,
+    timestamp: new Date().toISOString(),
+  });
   req.destroy();
   process.exit(1);
 });

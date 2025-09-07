@@ -2,6 +2,7 @@
 import { Request, Response, NextFunction } from 'express';
 import client from 'prom-client';
 import { performance } from 'perf_hooks';
+import { CatchError } from '../types/common';
 
 // Create a Registry
 const register = new client.Registry();
@@ -9,7 +10,7 @@ const register = new client.Registry();
 // Add default metrics
 try {
   client.collectDefaultMetrics({ register });
-} catch (error: any) {
+} catch (error: CatchError) {
   console.warn('Default metrics already collected:', error);
 }
 
@@ -120,7 +121,7 @@ try {
   register.registerMetric(queueSize);
   register.registerMetric(appInfo);
   register.registerMetric(eventLoopLag);
-} catch (error: any) {
+} catch (error: CatchError) {
   console.warn('Some metrics already registered:', error);
 }
 
@@ -130,7 +131,7 @@ appInfo.set(
     version: process.env.APP_VERSION || '1.0.0',
     environment: process.env.NODE_ENV || 'development',
   },
-  1,
+  1
 );
 
 // Event loop lag monitoring
@@ -160,12 +161,12 @@ export const metricsMiddleware = (req: Request, res: Response, next: NextFunctio
     // Record metrics
     httpRequestDuration.observe(
       { method: req.method, route, status_code: res.statusCode },
-      duration,
+      duration
     );
     httpRequestsTotal.inc({ method: req.method, route, status_code: res.statusCode });
     httpResponseSize.observe(
       { method: req.method, route, status_code: res.statusCode },
-      responseSize,
+      responseSize
     );
 
     // Call original end
@@ -179,7 +180,7 @@ export const metricsMiddleware = (req: Request, res: Response, next: NextFunctio
 export const trackDbQuery = async <T>(
   operation: string,
   table: string,
-  queryFn: () => Promise<T>,
+  queryFn: () => Promise<T>
 ): Promise<T> => {
   const start = Date.now();
   let status = 'success';
@@ -187,7 +188,7 @@ export const trackDbQuery = async <T>(
   try {
     const result = await queryFn();
     return result;
-  } catch (error: any) {
+  } catch (error: CatchError) {
     status = 'error';
     throw error;
   } finally {
@@ -199,7 +200,7 @@ export const trackDbQuery = async <T>(
 // Redis operation tracking
 export const trackRedisOperation = async <T>(
   command: string,
-  operationFn: () => Promise<T>,
+  operationFn: () => Promise<T>
 ): Promise<T> => {
   const start = Date.now();
   let status = 'success';
@@ -207,7 +208,7 @@ export const trackRedisOperation = async <T>(
   try {
     const result = await operationFn();
     return result;
-  } catch (error: any) {
+  } catch (error: CatchError) {
     status = 'error';
     throw error;
   } finally {
@@ -220,7 +221,7 @@ export const trackRedisOperation = async <T>(
 export const trackExternalApiCall = async <T>(
   service: string,
   operation: string,
-  apiFn: () => Promise<T>,
+  apiFn: () => Promise<T>
 ): Promise<T> => {
   const start = Date.now();
   let status = 'success';
@@ -228,7 +229,7 @@ export const trackExternalApiCall = async <T>(
   try {
     const result = await apiFn();
     return result;
-  } catch (error: any) {
+  } catch (error: CatchError) {
     status = 'error';
     throw error;
   } finally {

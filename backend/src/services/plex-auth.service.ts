@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Use built-in fetch (Node.js 18+)
 import { SessionTokenRepository } from '../repositories/session-token.repository';
 import { UserRepository } from '../repositories/user.repository';
@@ -6,6 +5,7 @@ import { AppError } from '../utils/errors';
 import { generateToken } from '../utils/jwt';
 import { logger } from '../utils/logger';
 import { PlexUser as PlexUserType, PlexAuthPin } from '../types/integration/external-apis.types';
+import { CatchError } from '../types/common';
 
 export interface PlexPin {
   id: number;
@@ -156,7 +156,7 @@ export class PlexAuthService {
       });
 
       return data;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (error instanceof AppError) throw error;
 
       logger.error('Error creating Plex PIN', { error });
@@ -199,7 +199,7 @@ export class PlexAuthService {
       });
 
       return data;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (error instanceof AppError) throw error;
 
       logger.error('Error checking Plex PIN', { error, pinId });
@@ -241,7 +241,7 @@ export class PlexAuthService {
       });
 
       return data;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (error instanceof AppError) throw error;
 
       logger.error('Error getting Plex user', { error });
@@ -329,7 +329,7 @@ export class PlexAuthService {
         token: jwtToken,
         isNewUser,
       };
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (error instanceof AppError) throw error;
 
       logger.error('Error completing Plex OAuth', { error, pinId });

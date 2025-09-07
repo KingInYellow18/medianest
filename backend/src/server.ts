@@ -1,5 +1,13 @@
 import 'tsconfig-paths/register';
 import 'dotenv/config';
+
+// Validate all required secrets before starting the application
+import { validateSecretsOrThrow } from './config/secrets-validator';
+validateSecretsOrThrow();
+
+// Import centralized configuration service
+import { configService } from './config/config.service';
+
 import { createServer } from 'http';
 
 import compression from 'compression';
@@ -26,10 +34,11 @@ import { setIntegrationService } from './routes/integrations';
 import { IntegrationService } from './services/integration.service';
 import { MediaNestSocketServer } from './socket/socket-server';
 import { logger } from './utils/logger';
+import { CatchError } from '../types/common';
 
 const app = express();
 const httpServer = createServer(app);
-const PORT = process.env.PORT || 4000;
+const PORT = configService.get('server', 'PORT');
 
 // Trust proxy - important for reverse proxy setup
 app.set('trust proxy', true);
@@ -56,13 +65,13 @@ app.use(
       includeSubDomains: true,
       preload: true,
     },
-  }),
+  })
 );
 
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === 'production' ? 100 : 1000, // Limit each IP
+  max: configService.isProduction() ? 100 : 1000, // Limit each IP
   message: {
     error: 'Too many requests from this IP, please try again later.',
   },
@@ -73,8 +82,8 @@ app.use(limiter);
 
 // Strict API rate limiting
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === 'production' ? 50 : 500,
+  windowMs: configService.get('security', 'RATE_LIMIT_API_WINDOW') * 1000,
+  max: configService.get('security', 'RATE_LIMIT_API_REQUESTS'),
   message: {
     error: 'Too many API requests, please try again later.',
   },
@@ -83,8 +92,8 @@ app.use('/api', apiLimiter);
 
 // CORS configuration
 const allowedOrigins = (
-  process.env.ALLOWED_ORIGINS ||
-  process.env.FRONTEND_URL ||
+  configService.get('security', 'ALLOWED_ORIGINS') ||
+  configService.get('server', 'FRONTEND_URL') ||
   'http://localhost:3000'
 )
   .split(',')
@@ -106,7 +115,7 @@ app.use(
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-correlation-id'],
-  }),
+  })
 );
 
 // Body parsing with size limits
@@ -125,9 +134,10 @@ app.get('/health', (_req, res) => {
 // Metrics endpoint (protected in production)
 app.get('/metrics', (req, res) => {
   // In production, protect this endpoint
-  if (process.env.NODE_ENV === 'production') {
+  if (configService.isProduction()) {
     const authHeader = req.headers.authorization;
-    if (!authHeader || authHeader !== `Bearer ${process.env.METRICS_TOKEN}`) {
+    const metricsToken = configService.get('auth', 'METRICS_TOKEN');
+    if (!authHeader || authHeader !== `Bearer ${metricsToken}`) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
   }
@@ -162,22 +172,25 @@ async function startServer() {
     logger.info('Queues initialized');
 
     // Initialize integration service
+    const plexConfig = configService.getPlexConfig();
+    const integrationsConfig = configService.getIntegrationsConfig();
+
     const integrationService = new IntegrationService({
       plex: {
-        enabled: process.env.PLEX_ENABLED === 'true',
-        defaultToken: process.env.PLEX_DEFAULT_TOKEN,
-        serverUrl: process.env.PLEX_SERVER_URL,
+        enabled: plexConfig.PLEX_ENABLED === true,
+        defaultToken: plexConfig.PLEX_DEFAULT_TOKEN,
+        serverUrl: plexConfig.PLEX_SERVER_URL,
       },
       overseerr: {
-        enabled: process.env.OVERSEERR_ENABLED === 'true',
-        url: process.env.OVERSEERR_URL,
-        apiKey: process.env.OVERSEERR_API_KEY,
+        enabled: integrationsConfig.OVERSEERR_ENABLED === true,
+        url: integrationsConfig.OVERSEERR_URL,
+        apiKey: integrationsConfig.OVERSEERR_API_KEY,
       },
       uptimeKuma: {
-        enabled: process.env.UPTIME_KUMA_ENABLED === 'true',
-        url: process.env.UPTIME_KUMA_URL,
-        username: process.env.UPTIME_KUMA_USERNAME,
-        password: process.env.UPTIME_KUMA_PASSWORD,
+        enabled: integrationsConfig.UPTIME_KUMA_ENABLED === true,
+        url: integrationsConfig.UPTIME_KUMA_URL,
+        username: integrationsConfig.UPTIME_KUMA_USERNAME,
+        password: integrationsConfig.UPTIME_KUMA_PASSWORD,
       },
     });
 
@@ -195,7 +208,7 @@ async function startServer() {
       logger.info(`Server running on port ${PORT}`);
       logger.info('Available namespaces: /, /authenticated, /admin, /media, /system');
     });
-  } catch (error: any) {
+  } catch (error: CatchError) {
     logger.error('Failed to start server:', error);
     process.exit(1);
   }

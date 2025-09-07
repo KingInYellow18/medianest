@@ -7,6 +7,7 @@ import { AppError } from '../utils/errors';
 import { logger } from '@/utils/logger';
 
 import { encryptionService } from './encryption.service';
+import { CatchError } from '../types/common';
 
 export class OverseerrService {
   private client?: OverseerrClient;
@@ -36,7 +37,7 @@ export class OverseerrService {
 
       this.isAvailable = await this.client.testConnection();
       logger.info('Overseerr service initialized', { available: this.isAvailable });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to initialize Overseerr', { error });
       this.isAvailable = false;
     }
@@ -59,7 +60,7 @@ export class OverseerrService {
       await redisClient.setex(cacheKey, this.cacheTTL.search, JSON.stringify(results));
 
       return results;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Media search failed', { query, error });
       throw new AppError('Failed to search media', 503);
     }
@@ -82,7 +83,7 @@ export class OverseerrService {
       await redisClient.setex(cacheKey, this.cacheTTL.details, JSON.stringify(details));
 
       return details;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get media details', { mediaType, tmdbId, error });
       throw new AppError('Failed to get media details', 503);
     }
@@ -94,7 +95,7 @@ export class OverseerrService {
       mediaType: 'movie' | 'tv';
       tmdbId: number;
       seasons?: number[];
-    },
+    }
   ) {
     this.ensureAvailable();
 
@@ -135,7 +136,7 @@ export class OverseerrService {
       });
 
       return savedRequest;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (error instanceof AppError) {
         throw error;
       }
@@ -144,7 +145,7 @@ export class OverseerrService {
     }
   }
 
-  async getUserRequests(userId: string, options: any = {}) {
+  async getUserRequests(userId: string, options: UnknownRecord = {}) {
     // Always use local database for user-specific filtering
     // Overseerr doesn't have built-in user filtering for API
     return mediaRequestRepository.findByUser(userId, {
@@ -182,7 +183,7 @@ export class OverseerrService {
     } else if (payload.media?.tmdbId) {
       request = await mediaRequestRepository.findByTmdbId(
         payload.media.tmdbId,
-        payload.media.mediaType,
+        payload.media.mediaType
       );
     }
 

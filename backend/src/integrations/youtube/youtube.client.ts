@@ -5,6 +5,7 @@ import { BaseServiceClient } from '@/integrations/base.client';
 import { logger } from '@/utils/logger';
 
 const execFile = promisify(require('child_process').execFile);
+import { CatchError } from '../types/common';
 
 export interface YouTubeVideoInfo {
   id: string;
@@ -54,7 +55,7 @@ export class YouTubeClient extends BaseServiceClient {
     try {
       const urlObj = new URL(url);
       const validHosts = ['www.youtube.com', 'youtube.com', 'youtu.be', 'm.youtube.com'];
-      
+
       if (!validHosts.includes(urlObj.hostname)) {
         return false;
       }
@@ -82,7 +83,8 @@ export class YouTubeClient extends BaseServiceClient {
           '--no-warnings',
           '--quiet',
           '--no-progress',
-          '--format', 'best',
+          '--format',
+          'best',
           url,
         ];
 
@@ -105,8 +107,8 @@ export class YouTubeClient extends BaseServiceClient {
           viewCount: data.view_count || 0,
           formats: this.transformFormats(data.formats || []),
         };
-      } catch (error: any) {
-        if ((error as any).code as any === 'ENOENT') {
+      } catch (error: CatchError) {
+        if (((error as any).code as any) === 'ENOENT') {
           logger.error('yt-dlp not found. Please install yt-dlp.');
           throw new Error('YouTube downloader not configured');
         }
@@ -123,7 +125,10 @@ export class YouTubeClient extends BaseServiceClient {
           throw new Error('This video is age-restricted');
         }
 
-        logger.error('Failed to get video info', { url, error: error.message as any });
+        logger.error('Failed to get video info', {
+          url,
+          error: error instanceof Error ? error.message : ('Unknown error' as any),
+        });
         throw new Error('Failed to fetch video information');
       }
     });
@@ -137,7 +142,7 @@ export class YouTubeClient extends BaseServiceClient {
     outputPath: string,
     quality: string = 'best',
     format: string = 'mp4',
-    onProgress?: (progress: number) => void,
+    onProgress?: (progress: number) => void
   ): Promise<{ filePath: string; fileSize: number }> {
     return new Promise((resolve, reject) => {
       const args = [
@@ -145,9 +150,12 @@ export class YouTubeClient extends BaseServiceClient {
         '--no-warnings',
         '--newline',
         '--progress',
-        '--format', this.buildFormatString(quality, format),
-        '--merge-output-format', format,
-        '--output', outputPath,
+        '--format',
+        this.buildFormatString(quality, format),
+        '--merge-output-format',
+        format,
+        '--output',
+        outputPath,
         url,
       ];
 
@@ -156,7 +164,7 @@ export class YouTubeClient extends BaseServiceClient {
 
       process.stdout.on('data', (data) => {
         const output = data.toString();
-        
+
         // Parse progress from yt-dlp output
         const progressMatch = output.match(/\[download\]\s+(\d+\.?\d*)%/);
         if (progressMatch && onProgress) {
@@ -212,19 +220,21 @@ export class YouTubeClient extends BaseServiceClient {
   /**
    * Select best thumbnail from available options
    */
-  private selectBestThumbnail(thumbnails?: any[]): string | null {
+  private selectBestThumbnail(thumbnails?: unknown[]): string | null {
     if (!thumbnails || thumbnails.length === 0) {
       return null;
     }
 
     // Prefer maxresdefault
-    const maxres = thumbnails.find((t) => t.id === 'maxresdefault' || t.url?.includes('maxresdefault'));
+    const maxres = thumbnails.find(
+      (t) => t.id === 'maxresdefault' || t.url?.includes('maxresdefault')
+    );
     if (maxres) return maxres.url;
 
     // Sort by resolution and return highest
     const sorted = thumbnails
       .filter((t) => t.width && t.height)
-      .sort((a, b) => (b.width * b.height) - (a.width * a.height));
+      .sort((a, b) => b.width * b.height - a.width * a.height);
 
     return sorted[0]?.url || thumbnails[0]?.url || null;
   }
@@ -232,7 +242,7 @@ export class YouTubeClient extends BaseServiceClient {
   /**
    * Transform yt-dlp formats to our format
    */
-  private transformFormats(formats: any[]): YouTubeVideoInfo['formats'] {
+  private transformFormats(formats: unknown[]): YouTubeVideoInfo['formats'] {
     return formats
       .filter((f) => f.vcodec !== 'none' || f.acodec !== 'none')
       .map((f) => ({
@@ -269,7 +279,7 @@ export class YouTubeClient extends BaseServiceClient {
     try {
       await execFile(this.ytDlpPath, ['-U'], { timeout: 60000 });
       logger.info('yt-dlp updated successfully');
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to update yt-dlp', { error });
       throw new Error('Failed to update YouTube downloader');
     }

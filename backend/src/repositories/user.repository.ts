@@ -9,6 +9,7 @@ import {
 import { logger } from '../utils/logger';
 
 import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
+import { CatchError } from '../types/common';
 
 export interface CreateUserInput {
   email: string;
@@ -40,7 +41,7 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
       if (user.plexToken) {
         try {
           decryptedUser.plexToken = encryptionService.decryptFromStorage(user.plexToken);
-        } catch (error: any) {
+        } catch (error: CatchError) {
           logger.error('Failed to decrypt Plex token', { userId: user.id, error });
           // Return null token if decryption fails
           decryptedUser.plexToken = null;
@@ -48,7 +49,7 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
       }
 
       return decryptedUser;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to decrypt user data', { userId: user.id, error });
       return user;
     }
@@ -60,7 +61,7 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
         where: { id },
       });
       return user ? this.decryptUserData(user) : null;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -71,7 +72,7 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
         where: { email },
       });
       return user ? this.decryptUserData(user) : null;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -82,7 +83,7 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
         where: { plexId },
       });
       return user ? this.decryptUserData(user) : null;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -134,7 +135,7 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
         data: encryptedData as Prisma.UserCreateInput,
       });
       return this.decryptUserData(user);
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -164,7 +165,7 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
       });
 
       return this.decryptUserData(user);
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -178,7 +179,7 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
       return await this.prisma.user.delete({
         where: { id },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -215,7 +216,7 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
           requiresPasswordChange: false,
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }

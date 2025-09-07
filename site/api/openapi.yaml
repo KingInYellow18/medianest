@@ -1,0 +1,1695 @@
+openapi: 3.0.3
+info:
+  title: MediaNest API
+  description: |
+    MediaNest API provides comprehensive media management, Plex integration, YouTube downloading, and system administration capabilities.
+
+    ## Authentication
+    - **Primary**: Plex OAuth authentication
+    - **Secondary**: Password-based authentication for admin users
+    - **Token**: JWT tokens stored in HTTP-only cookies
+    - **CSRF**: Required for state-changing operations
+
+    ## Features
+    - Media search and request management
+    - Plex server integration and library browsing
+    - YouTube video downloading with progress tracking
+    - Real-time WebSocket events
+    - Comprehensive admin panel
+    - Performance monitoring and optimization
+
+  version: 1.0.0
+  contact:
+    name: MediaNest API Support
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:4000/api/v1
+    description: Development server
+  - url: https://api.medianest.app/api/v1
+    description: Production server
+
+security:
+  - BearerAuth: []
+  - CookieAuth: []
+
+paths:
+  # Authentication Endpoints
+  /auth/plex/pin:
+    post:
+      tags:
+        - Authentication
+      summary: Generate Plex PIN for OAuth
+      description: Creates a PIN that users can authorize on plex.tv/link
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                clientName:
+                  type: string
+                  default: 'MediaNest'
+                  example: 'MediaNest'
+      responses:
+        '200':
+          description: PIN generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlexPinResponse'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /auth/plex/verify:
+    post:
+      tags:
+        - Authentication
+      summary: Verify Plex PIN and authenticate
+      description: Verifies the authorized PIN and creates user session
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - pinId
+              properties:
+                pinId:
+                  type: string
+                  example: '12345'
+                rememberMe:
+                  type: boolean
+                  default: false
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /auth/session:
+    get:
+      tags:
+        - Authentication
+      summary: Get current session
+      description: Returns information about the current authenticated user
+      responses:
+        '200':
+          description: Session information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Logout user
+      description: Ends the current user session
+      parameters:
+        - $ref: '#/components/parameters/CSRFToken'
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # Media Management
+  /media/search:
+    get:
+      tags:
+        - Media
+      summary: Search for media
+      description: Search for movies and TV shows using TMDB
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+            example: 'avengers'
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [movie, tv, all]
+            default: all
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaSearchResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /media/{mediaType}/{tmdbId}:
+    get:
+      tags:
+        - Media
+      summary: Get media details
+      description: Get detailed information about a specific media item
+      parameters:
+        - name: mediaType
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [movie, tv]
+        - name: tmdbId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Media details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaDetailsResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /media/request:
+    post:
+      tags:
+        - Media
+      summary: Request media
+      description: Submit a request for new media to be added
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MediaRequestInput'
+      responses:
+        '201':
+          description: Request created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaRequestResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /media/requests:
+    get:
+      tags:
+        - Media
+      summary: Get user requests
+      description: Get current user's media requests
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, approved, denied, cancelled]
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: User's media requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaRequestsResponse'
+
+  /media/requests/{requestId}:
+    get:
+      tags:
+        - Media
+      summary: Get request details
+      description: Get details of a specific media request
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Request details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaRequestDetailsResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Media
+      summary: Delete request
+      description: Cancel/delete a pending media request
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Request deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Plex Integration
+  /plex/server:
+    get:
+      tags:
+        - Plex
+      summary: Get Plex server info
+      description: Get information about the connected Plex server
+      responses:
+        '200':
+          description: Plex server information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlexServerResponse'
+
+  /plex/libraries:
+    get:
+      tags:
+        - Plex
+      summary: Get Plex libraries
+      description: Get all available Plex libraries
+      responses:
+        '200':
+          description: Plex libraries
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlexLibrariesResponse'
+
+  /plex/libraries/{libraryKey}/items:
+    get:
+      tags:
+        - Plex
+      summary: Get library items
+      description: Get items from a specific Plex library
+      parameters:
+        - name: libraryKey
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: sort
+          in: query
+          schema:
+            type: string
+            example: 'addedAt:desc'
+      responses:
+        '200':
+          description: Library items
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlexItemsResponse'
+
+  /plex/search:
+    get:
+      tags:
+        - Plex
+      summary: Search Plex content
+      description: Search across all Plex libraries
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlexSearchResponse'
+
+  /plex/recently-added:
+    get:
+      tags:
+        - Plex
+      summary: Get recently added items
+      description: Get recently added items across all libraries
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Recently added items
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlexRecentlyAddedResponse'
+
+  # YouTube Downloads
+  /youtube/download:
+    post:
+      tags:
+        - YouTube
+      summary: Create YouTube download
+      description: Start downloading a YouTube video
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/YouTubeDownloadInput'
+      responses:
+        '201':
+          description: Download started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/YouTubeDownloadResponse'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /youtube/downloads:
+    get:
+      tags:
+        - YouTube
+      summary: Get download history
+      description: Get user's YouTube download history
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [queued, downloading, completed, failed, cancelled]
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Download history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/YouTubeDownloadsResponse'
+
+  /youtube/downloads/{downloadId}:
+    get:
+      tags:
+        - YouTube
+      summary: Get download details
+      description: Get details and progress of a specific download
+      parameters:
+        - name: downloadId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Download details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/YouTubeDownloadDetailsResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - YouTube
+      summary: Cancel/delete download
+      description: Cancel an active download or delete completed download
+      parameters:
+        - name: downloadId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Download cancelled/deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /youtube/metadata:
+    get:
+      tags:
+        - YouTube
+      summary: Get video metadata
+      description: Get video information without downloading
+      parameters:
+        - name: url
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uri
+            example: 'https://www.youtube.com/watch?v=example'
+      responses:
+        '200':
+          description: Video metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/YouTubeMetadataResponse'
+
+  # Administration
+  /admin/users:
+    get:
+      tags:
+        - Admin
+      summary: Get users
+      description: Get all system users (admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [all, admin, user]
+            default: all
+      responses:
+        '200':
+          description: Users list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUsersResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/users/{userId}/role:
+    patch:
+      tags:
+        - Admin
+      summary: Update user role
+      description: Change a user's role (admin only)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - role
+              properties:
+                role:
+                  type: string
+                  enum: [admin, user]
+      responses:
+        '200':
+          description: Role updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/users/{userId}:
+    delete:
+      tags:
+        - Admin
+      summary: Delete user
+      description: Delete a user account (admin only)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/stats:
+    get:
+      tags:
+        - Admin
+      summary: Get system statistics
+      description: Get comprehensive system statistics (admin only)
+      responses:
+        '200':
+          description: System statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminStatsResponse'
+
+  /admin/services:
+    get:
+      tags:
+        - Admin
+      summary: Get services status
+      description: Get status of all integrated services (admin only)
+      responses:
+        '200':
+          description: Services status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminServicesResponse'
+
+  /admin/requests:
+    get:
+      tags:
+        - Admin
+      summary: Get all requests
+      description: Get all media requests across all users (admin only)
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, approved, denied, cancelled]
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: All media requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaRequestsResponse'
+
+  # Health & Monitoring
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Basic health check
+      description: Basic health endpoint for service monitoring
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BasicHealthResponse'
+
+  /health/metrics:
+    get:
+      tags:
+        - Health
+      summary: Get performance metrics
+      description: Get detailed performance metrics (admin only)
+      responses:
+        '200':
+          description: Performance metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # Dashboard
+  /dashboard/stats:
+    get:
+      tags:
+        - Dashboard
+      summary: Get dashboard statistics
+      description: Get user-specific dashboard statistics
+      responses:
+        '200':
+          description: Dashboard statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardStatsResponse'
+
+  /dashboard/status:
+    get:
+      tags:
+        - Dashboard
+      summary: Get service statuses
+      description: Get status of all services for dashboard
+      responses:
+        '200':
+          description: Service statuses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceStatusResponse'
+
+  /dashboard/notifications:
+    get:
+      tags:
+        - Dashboard
+      summary: Get notifications
+      description: Get user notifications for dashboard
+      responses:
+        '200':
+          description: User notifications
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationsResponse'
+
+  # CSRF Protection
+  /csrf/token:
+    get:
+      tags:
+        - Security
+      summary: Get CSRF token
+      description: Get a CSRF token for form submissions
+      security: []
+      responses:
+        '200':
+          description: CSRF token generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CSRFTokenResponse'
+
+  /csrf/refresh:
+    post:
+      tags:
+        - Security
+      summary: Refresh CSRF token
+      description: Generate a new CSRF token
+      security: []
+      responses:
+        '200':
+          description: CSRF token refreshed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CSRFTokenResponse'
+
+  # Webhooks
+  /webhooks/overseerr:
+    post:
+      tags:
+        - Webhooks
+      summary: Overseerr webhook
+      description: Handle Overseerr webhook notifications
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OverseerrWebhookPayload'
+      responses:
+        '200':
+          description: Webhook processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    CookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+    CSRFToken:
+      name: X-CSRF-Token
+      in: header
+      required: true
+      schema:
+        type: string
+
+  schemas:
+    # Base Schemas
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: 'Operation completed successfully'
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: 'VALIDATION_ERROR'
+            message:
+              type: string
+              example: 'Request validation failed'
+            details:
+              type: string
+              example: 'Additional error details'
+        correlationId:
+          type: string
+          example: 'abc123-def456'
+
+    PaginationInfo:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        totalPages:
+          type: integer
+          example: 10
+        totalItems:
+          type: integer
+          example: 250
+        itemsPerPage:
+          type: integer
+          example: 25
+        hasNext:
+          type: boolean
+          example: true
+        hasPrev:
+          type: boolean
+          example: false
+
+    # Authentication Schemas
+    PlexPinResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              example: '12345'
+            code:
+              type: string
+              example: 'ABCD1234'
+            qrUrl:
+              type: string
+              format: uri
+              example: 'https://plex.tv/link/?pin=ABCD1234'
+            expiresIn:
+              type: integer
+              example: 900
+
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+            token:
+              type: string
+              example: 'eyJhbGciOiJIUzI1NiIs...'
+            rememberToken:
+              type: string
+              nullable: true
+            csrfToken:
+              type: string
+              example: 'csrf-token-here'
+
+    SessionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 'user-123'
+        username:
+          type: string
+          example: 'plex_user'
+        email:
+          type: string
+          format: email
+          example: 'user@example.com'
+        role:
+          type: string
+          enum: [admin, user]
+          example: 'user'
+        createdAt:
+          type: string
+          format: date-time
+        lastLoginAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    # Media Schemas
+    MediaSearchResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/MediaItem'
+            pagination:
+              $ref: '#/components/schemas/PaginationInfo'
+
+    MediaItem:
+      type: object
+      properties:
+        id:
+          type: string
+          example: '123'
+        title:
+          type: string
+          example: 'Avengers: Endgame'
+        type:
+          type: string
+          enum: [movie, tv]
+        year:
+          type: integer
+          example: 2019
+        poster:
+          type: string
+          format: uri
+          nullable: true
+        overview:
+          type: string
+        genres:
+          type: array
+          items:
+            type: string
+        rating:
+          type: number
+          format: float
+          nullable: true
+
+    MediaDetailsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          allOf:
+            - $ref: '#/components/schemas/MediaItem'
+            - type: object
+              properties:
+                runtime:
+                  type: integer
+                  nullable: true
+                cast:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      character:
+                        type: string
+                      profile_path:
+                        type: string
+                        nullable: true
+                crew:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      job:
+                        type: string
+                availability:
+                  type: object
+                  properties:
+                    plex:
+                      type: boolean
+                    requested:
+                      type: boolean
+
+    MediaRequestInput:
+      type: object
+      required:
+        - tmdbId
+        - mediaType
+      properties:
+        tmdbId:
+          type: string
+          example: '123'
+        mediaType:
+          type: string
+          enum: [movie, tv]
+        quality:
+          type: string
+          example: '1080p'
+        comment:
+          type: string
+          example: 'Please add this movie'
+
+    MediaRequestResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/MediaRequest'
+
+    MediaRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 'req-123'
+        tmdbId:
+          type: string
+        mediaType:
+          type: string
+          enum: [movie, tv]
+        title:
+          type: string
+        status:
+          type: string
+          enum: [pending, approved, denied, cancelled]
+        quality:
+          type: string
+        comment:
+          type: string
+          nullable: true
+        requestedBy:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    MediaRequestsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            requests:
+              type: array
+              items:
+                $ref: '#/components/schemas/MediaRequest'
+            pagination:
+              $ref: '#/components/schemas/PaginationInfo'
+
+    MediaRequestDetailsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/MediaRequest'
+
+    # Plex Schemas
+    PlexServerResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            name:
+              type: string
+              example: 'My Plex Server'
+            version:
+              type: string
+              example: '1.25.3.5409'
+            platform:
+              type: string
+              example: 'Linux'
+            machineIdentifier:
+              type: string
+            libraries:
+              type: integer
+              example: 5
+            users:
+              type: integer
+              example: 3
+
+    PlexLibrariesResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            libraries:
+              type: array
+              items:
+                type: object
+                properties:
+                  key:
+                    type: string
+                  title:
+                    type: string
+                  type:
+                    type: string
+                    enum: [movie, show, music, photo]
+                  count:
+                    type: integer
+
+    PlexItemsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  key:
+                    type: string
+                  title:
+                    type: string
+                  type:
+                    type: string
+                  year:
+                    type: integer
+                    nullable: true
+                  thumb:
+                    type: string
+                    nullable: true
+                  addedAt:
+                    type: string
+                    format: date-time
+            pagination:
+              $ref: '#/components/schemas/PaginationInfo'
+
+    PlexSearchResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            results:
+              type: array
+              items:
+                type: object
+
+    PlexRecentlyAddedResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                type: object
+
+    # YouTube Schemas
+    YouTubeDownloadInput:
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          format: uri
+          example: 'https://www.youtube.com/watch?v=example'
+        quality:
+          type: string
+          enum: ['720p', '1080p', 'best', 'worst']
+          default: '720p'
+        format:
+          type: string
+          enum: ['mp4', 'webm', 'mp3']
+          default: 'mp4'
+        downloadPath:
+          type: string
+          example: '/downloads/youtube'
+
+    YouTubeDownloadResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/YouTubeDownload'
+
+    YouTubeDownload:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 'dl-123'
+        url:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: string
+          enum: [queued, downloading, completed, failed, cancelled]
+        quality:
+          type: string
+        format:
+          type: string
+        progress:
+          type: integer
+          minimum: 0
+          maximum: 100
+          nullable: true
+        speed:
+          type: string
+          nullable: true
+        eta:
+          type: string
+          nullable: true
+        error:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    YouTubeDownloadsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            downloads:
+              type: array
+              items:
+                $ref: '#/components/schemas/YouTubeDownload'
+            pagination:
+              $ref: '#/components/schemas/PaginationInfo'
+
+    YouTubeDownloadDetailsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/YouTubeDownload'
+
+    YouTubeMetadataResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            title:
+              type: string
+            duration:
+              type: integer
+            thumbnail:
+              type: string
+              format: uri
+            uploader:
+              type: string
+            upload_date:
+              type: string
+            view_count:
+              type: integer
+            formats:
+              type: array
+              items:
+                type: object
+                properties:
+                  format_id:
+                    type: string
+                  ext:
+                    type: string
+                  quality:
+                    type: string
+                  filesize:
+                    type: integer
+                    nullable: true
+
+    # Admin Schemas
+    AdminUsersResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            users:
+              type: array
+              items:
+                $ref: '#/components/schemas/User'
+            pagination:
+              $ref: '#/components/schemas/PaginationInfo'
+
+    AdminStatsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            users:
+              type: object
+              properties:
+                total:
+                  type: integer
+                active:
+                  type: integer
+                admins:
+                  type: integer
+            requests:
+              type: object
+              properties:
+                pending:
+                  type: integer
+                approved:
+                  type: integer
+                denied:
+                  type: integer
+            downloads:
+              type: object
+              properties:
+                total:
+                  type: integer
+                active:
+                  type: integer
+                completed:
+                  type: integer
+                failed:
+                  type: integer
+            system:
+              type: object
+              properties:
+                uptime:
+                  type: integer
+                memory:
+                  type: string
+                cpu:
+                  type: string
+
+    AdminServicesResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            services:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  status:
+                    type: string
+                    enum: [online, offline, degraded]
+                  responseTime:
+                    type: integer
+                  lastCheck:
+                    type: string
+                    format: date-time
+
+    # Health Schemas
+    BasicHealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: 'ok'
+        timestamp:
+          type: string
+          format: date-time
+
+    MetricsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            timestamp:
+              type: string
+              format: date-time
+            performance:
+              type: object
+              properties:
+                averageResponseTime:
+                  type: number
+                totalRequests:
+                  type: integer
+                errorRate:
+                  type: number
+                slowRequests:
+                  type: integer
+            system:
+              type: object
+              properties:
+                memory:
+                  type: object
+                  properties:
+                    heapUsed:
+                      type: string
+                    heapTotal:
+                      type: string
+                uptime:
+                  type: string
+                loadAverage:
+                  type: array
+                  items:
+                    type: number
+
+    # Dashboard Schemas
+    DashboardStatsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            recentRequests:
+              type: integer
+            activeDownloads:
+              type: integer
+            librarySize:
+              type: integer
+            recentActivity:
+              type: array
+              items:
+                type: object
+
+    ServiceStatusResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            services:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  status:
+                    type: string
+                    enum: [online, offline, degraded]
+                  responseTime:
+                    type: integer
+
+    NotificationsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            notifications:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  type:
+                    type: string
+                    enum: [info, success, warning, error]
+                  title:
+                    type: string
+                  message:
+                    type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+                  read:
+                    type: boolean
+
+    # Security Schemas
+    CSRFTokenResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            token:
+              type: string
+            expiresIn:
+              type: integer
+              example: 3600
+
+    # Webhook Schemas
+    OverseerrWebhookPayload:
+      type: object
+      properties:
+        notification_type:
+          type: string
+          enum: [MEDIA_APPROVED, MEDIA_DECLINED, MEDIA_REQUESTED, MEDIA_AVAILABLE]
+        media:
+          type: object
+          properties:
+            tmdbId:
+              type: string
+            title:
+              type: string
+            mediaType:
+              type: string
+            status:
+              type: string
+
+  responses:
+    BadRequest:
+      description: Bad request - validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: 'VALIDATION_ERROR'
+              message: 'Request validation failed'
+              details: 'Missing required field: tmdbId'
+
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: 'UNAUTHORIZED'
+              message: 'Authentication required'
+
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: 'FORBIDDEN'
+              message: 'Admin access required'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: 'NOT_FOUND'
+              message: 'Resource not found'
+
+    RateLimited:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: 'RATE_LIMIT_EXCEEDED'
+              message: 'Too many requests. Please try again later.'
+
+    ServiceUnavailable:
+      description: Service temporarily unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: 'SERVICE_UNAVAILABLE'
+              message: 'Service temporarily unavailable'
+
+tags:
+  - name: Authentication
+    description: User authentication and session management
+  - name: Media
+    description: Media search, details, and request management
+  - name: Plex
+    description: Plex server integration and library browsing
+  - name: YouTube
+    description: YouTube video downloading and management
+  - name: Admin
+    description: System administration and user management
+  - name: Health
+    description: System health monitoring and metrics
+  - name: Dashboard
+    description: User dashboard data and statistics
+  - name: Security
+    description: Security features like CSRF protection
+  - name: Webhooks
+    description: External webhook integrations

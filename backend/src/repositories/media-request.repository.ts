@@ -6,6 +6,7 @@ import {
 } from '@medianest/shared';
 
 import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
+import { CatchError } from '../types/common';
 
 export interface CreateMediaRequestInput {
   userId: string;
@@ -49,14 +50,14 @@ export class MediaRequestRepository extends BaseRepository<
           },
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
 
   async findByUser(
     userId: string,
-    options: PaginationOptions = {},
+    options: PaginationOptions = {}
   ): Promise<PaginatedResult<MediaRequest>> {
     return this.paginate<MediaRequest>(this.prisma.mediaRequest, { userId }, options, undefined, {
       user: {
@@ -72,7 +73,7 @@ export class MediaRequestRepository extends BaseRepository<
 
   async findByFilters(
     filters: MediaRequestFilters,
-    options: PaginationOptions = {},
+    options: PaginationOptions = {}
   ): Promise<PaginatedResult<MediaRequest>> {
     const where: Prisma.MediaRequestWhereInput = {};
 
@@ -113,7 +114,7 @@ export class MediaRequestRepository extends BaseRepository<
           },
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -143,7 +144,7 @@ export class MediaRequestRepository extends BaseRepository<
           },
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -174,7 +175,7 @@ export class MediaRequestRepository extends BaseRepository<
       });
 
       return result.count;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -184,7 +185,7 @@ export class MediaRequestRepository extends BaseRepository<
       return await this.prisma.mediaRequest.delete({
         where: { id },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -213,7 +214,7 @@ export class MediaRequestRepository extends BaseRepository<
         acc[item.status] = item._count;
         return acc;
       },
-      {} as Record<string, number>,
+      {} as Record<string, number>
     );
   }
 
@@ -279,14 +280,14 @@ export class MediaRequestRepository extends BaseRepository<
 
     try {
       return await this.prisma.mediaRequest.count({ where });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
 
   async findMany(
     filters: MediaRequestFilters = {},
-    options: { skip?: number; take?: number; orderBy?: any } = {},
+    options: { skip?: number; take?: number; orderBy?: any } = {}
   ): Promise<MediaRequest[]> {
     const where: any = {};
 
@@ -317,7 +318,7 @@ export class MediaRequestRepository extends BaseRepository<
           },
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }

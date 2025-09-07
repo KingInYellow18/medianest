@@ -7,6 +7,7 @@ import { PlexApiClient } from '../integrations/plex/plex-api.client';
 import { UptimeKumaClient } from '../integrations/uptime-kuma/uptime-kuma-client';
 import { logger } from '../utils/logger';
 import { asError, getErrorMessage } from '../utils/error-handling';
+import { CatchError } from '../types/common';
 
 export interface ServiceHealthStatus {
   service: string;
@@ -72,7 +73,7 @@ export class IntegrationService extends EventEmitter {
       logger.info('Service integrations initialized successfully', {
         enabledServices: Array.from(this.clients.keys()),
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to initialize service integrations', { error: getErrorMessage(error) });
       throw error;
     }
@@ -89,13 +90,13 @@ export class IntegrationService extends EventEmitter {
       if (this.config.plex.defaultToken) {
         const plexClient = await PlexApiClient.createFromUserToken(
           this.config.plex.defaultToken,
-          this.config.plex.serverUrl,
+          this.config.plex.serverUrl
         );
 
         this.clients.set('plex', plexClient);
         logger.info('Plex integration initialized');
       }
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to initialize Plex integration', { error: getErrorMessage(error) });
     }
   }
@@ -113,12 +114,12 @@ export class IntegrationService extends EventEmitter {
     try {
       const overseerrClient = await OverseerrApiClient.createFromConfig(
         this.config.overseerr.url,
-        this.config.overseerr.apiKey,
+        this.config.overseerr.apiKey
       );
 
       this.clients.set('overseerr', overseerrClient);
       logger.info('Overseerr integration initialized');
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to initialize Overseerr integration', { error: getErrorMessage(error) });
     }
   }
@@ -155,7 +156,7 @@ export class IntegrationService extends EventEmitter {
       await uptimeKumaClient.connect();
       this.clients.set('uptimeKuma', uptimeKumaClient);
       logger.info('Uptime Kuma integration initialized');
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to initialize Uptime Kuma integration', {
         error: getErrorMessage(error),
       });
@@ -171,7 +172,7 @@ export class IntegrationService extends EventEmitter {
       () => {
         this.performHealthChecks();
       },
-      2 * 60 * 1000,
+      2 * 60 * 1000
     );
   }
 
@@ -222,7 +223,7 @@ export class IntegrationService extends EventEmitter {
           if (hasChanged) {
             this.emit('serviceHealthChanged', healthStatus);
           }
-        } catch (error: any) {
+        } catch (error: CatchError) {
           const healthStatus: ServiceHealthStatus = {
             service: serviceName,
             healthy: false,
@@ -236,7 +237,7 @@ export class IntegrationService extends EventEmitter {
 
           logger.error(`Health check failed for ${serviceName}`, { error: getErrorMessage(error) });
         }
-      },
+      }
     );
 
     await Promise.allSettled(healthCheckPromises);
@@ -244,14 +245,14 @@ export class IntegrationService extends EventEmitter {
 
   private async cacheServiceStatus(
     serviceName: string,
-    status: ServiceHealthStatus,
+    status: ServiceHealthStatus
   ): Promise<void> {
     try {
       const cacheKey = `service:health:${serviceName}`;
       const cacheValue = JSON.stringify(status);
 
       await this.redis.setex(cacheKey, 300, cacheValue); // Cache for 5 minutes
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to cache service status', {
         service: serviceName,
         error: getErrorMessage(error),
@@ -266,7 +267,7 @@ export class IntegrationService extends EventEmitter {
       // Create user-specific client
       try {
         return await PlexApiClient.createFromUserToken(userToken);
-      } catch (error: any) {
+      } catch (error: CatchError) {
         logger.error('Failed to create user Plex client', { error: getErrorMessage(error) });
         return null;
       }
@@ -301,7 +302,7 @@ export class IntegrationService extends EventEmitter {
       if (cached) {
         return JSON.parse(cached);
       }
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get cached service status', {
         service: serviceName,
         error: getErrorMessage(error),

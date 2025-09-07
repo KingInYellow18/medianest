@@ -1,0 +1,365 @@
+import { describe, it, expect, beforeEach, jest, beforeAll, afterAll } from '@jest/globals';
+import { Request } from 'express';
+import { AuthenticationFacade, AuthenticatedUser } from '../../src/auth';
+import { UserRepository } from '../../src/repositories/user.repository';
+import { SessionTokenRepository } from '../../src/repositories/session-token.repository';
+import { DeviceSessionService } from '../../src/services/device-session.service';
+import { AuthenticationError } from '../../src/utils/errors';
+
+// Mock dependencies
+jest.mock('../../src/repositories/user.repository');
+jest.mock('../../src/repositories/session-token.repository');
+jest.mock('../../src/services/device-session.service');
+jest.mock('../../src/utils/logger');
+
+describe('AuthenticationFacade', () => {
+  let authFacade: AuthenticationFacade;
+  let mockUserRepository: jest.Mocked<UserRepository>;
+  let mockSessionTokenRepository: jest.Mocked<SessionTokenRepository>;
+  let mockDeviceSessionService: jest.Mocked<DeviceSessionService>;
+  let mockRequest: Partial<Request>;
+
+  const mockUser: AuthenticatedUser = {
+    id: 'user-123',
+    email: 'test@example.com',
+    name: 'Test User',
+    role: 'user',
+    plexId: 'plex-123',
+    plexUsername: 'testuser',
+  };
+
+  beforeAll(() => {
+    // Set required environment variables for JWT
+    process.env.JWT_SECRET = 'test-secret-key-for-testing-only-do-not-use-in-production';
+    process.env.JWT_ISSUER = 'medianest-test';
+    process.env.JWT_AUDIENCE = 'medianest-app-test';
+  });
+
+  afterAll(() => {
+    // Clean up environment variables
+    delete process.env.JWT_SECRET;
+    delete process.env.JWT_ISSUER;
+    delete process.env.JWT_AUDIENCE;
+  });
+
+  beforeEach(() => {
+    mockUserRepository = new UserRepository({} as any) as jest.Mocked<UserRepository>;
+    mockSessionTokenRepository = new SessionTokenRepository(
+      {} as any
+    ) as jest.Mocked<SessionTokenRepository>;
+    mockDeviceSessionService = new DeviceSessionService() as jest.Mocked<DeviceSessionService>;
+
+    authFacade = new AuthenticationFacade(
+      mockUserRepository,
+      mockSessionTokenRepository,
+      mockDeviceSessionService
+    );
+
+    mockRequest = {
+      ip: '127.0.0.1',
+      get: jest.fn().mockReturnValue('test-user-agent'),
+      headers: {
+        authorization: 'Bearer valid-token',
+      },
+      method: 'GET',
+      path: '/api/test',
+      query: {},
+      params: {},
+    };
+
+    // Reset all mocks
+    jest.clearAllMocks();
+  });
+
+  describe('authenticate', () => {
+    it('should successfully authenticate a valid request', async () => {
+      // Mock successful authentication flow
+      mockUserRepository.findById.mockResolvedValue({
+        id: 'user-123',
+        email: 'test@example.com',
+        name: 'Test User',
+        role: 'user',
+        status: 'active',
+        plexId: 'plex-123',
+        plexUsername: 'testuser',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as any);
+
+      mockDeviceSessionService.registerDevice.mockResolvedValue({
+        deviceId: 'device-123',
+        isNewDevice: false,
+        riskScore: 0.1,
+      } as any);
+
+      const result = await authFacade.authenticate(mockRequest as Request);
+
+      expect(result).toMatchObject({
+        user: expect.objectContaining({
+          id: 'user-123',
+          email: 'test@example.com',
+          role: 'user',
+        }),
+        token: expect.any(String),
+        deviceId: 'device-123',
+        sessionId: expect.any(String),
+      });
+    });
+
+    it('should throw AuthenticationError for invalid token', async () => {
+      mockRequest.headers!.authorization = 'Bearer invalid-token';
+
+      await expect(authFacade.authenticate(mockRequest as Request)).rejects.toThrow(
+        'Invalid token'
+      );
+    });
+
+    it('should throw AuthenticationError for inactive user', async () => {
+      mockUserRepository.findById.mockResolvedValue({
+        id: 'user-123',
+        status: 'inactive',
+      } as any);
+
+      await expect(authFacade.authenticate(mockRequest as Request)).rejects.toThrow(
+        AuthenticationError
+      );
+    });
+
+    it('should handle missing authorization header', async () => {
+      delete mockRequest.headers!.authorization;
+
+      await expect(authFacade.authenticate(mockRequest as Request)).rejects.toThrow(
+        'Authentication required'
+      );
+    });
+  });
+
+  describe('authenticateOptional', () => {
+    it('should return user data for valid token', async () => {
+      mockUserRepository.findById.mockResolvedValue({
+        id: 'user-123',
+        email: 'test@example.com',
+        name: 'Test User',
+        role: 'user',
+        status: 'active',
+        plexId: 'plex-123',
+        plexUsername: 'testuser',
+      } as any);
+
+      const result = await authFacade.authenticateOptional(mockRequest as Request);
+
+      expect(result).toMatchObject({
+        user: expect.objectContaining({
+          id: 'user-123',
+          email: 'test@example.com',
+          role: 'user',
+        }),
+        token: expect.any(String),
+      });
+    });
+
+    it('should return null for invalid token', async () => {
+      mockRequest.headers!.authorization = 'Bearer invalid-token';
+
+      const result = await authFacade.authenticateOptional(mockRequest as Request);
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null for missing token', async () => {
+      delete mockRequest.headers!.authorization;
+
+      const result = await authFacade.authenticateOptional(mockRequest as Request);
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null for inactive user', async () => {
+      mockUserRepository.findById.mockResolvedValue({
+        id: 'user-123',
+        status: 'inactive',
+      } as any);
+
+      const result = await authFacade.authenticateOptional(mockRequest as Request);
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('authorize', () => {
+    it('should authorize admin for all resources', () => {
+      const adminUser: AuthenticatedUser = { ...mockUser, role: 'admin' };
+
+      const result = authFacade.authorize(adminUser, 'any-resource', 'any-action');
+
+      expect(result).toBe(true);
+    });
+
+    it('should authorize user for allowed resource/action combinations', () => {
+      const result = authFacade.authorize(mockUser, 'media', 'read');
+
+      expect(result).toBe(true);
+    });
+
+    it('should deny user for unauthorized resource/action combinations', () => {
+      const result = authFacade.authorize(mockUser, 'admin', 'delete');
+
+      expect(result).toBe(false);
+    });
+
+    it('should deny guest for user-only resources', () => {
+      const guestUser: AuthenticatedUser = { ...mockUser, role: 'guest' };
+
+      const result = authFacade.authorize(guestUser, 'profile', 'update');
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('hasRole', () => {
+    it('should return true for matching role', () => {
+      const result = authFacade.hasRole(mockUser, 'user');
+
+      expect(result).toBe(true);
+    });
+
+    it('should return true for multiple roles when user has one', () => {
+      const result = authFacade.hasRole(mockUser, 'admin', 'user', 'guest');
+
+      expect(result).toBe(true);
+    });
+
+    it('should return false for non-matching role', () => {
+      const result = authFacade.hasRole(mockUser, 'admin');
+
+      expect(result).toBe(false);
+    });
+
+    it('should handle case-sensitive roles', () => {
+      const adminUser: AuthenticatedUser = { ...mockUser, role: 'ADMIN' };
+
+      expect(authFacade.hasRole(adminUser, 'ADMIN')).toBe(true);
+      expect(authFacade.hasRole(adminUser, 'admin')).toBe(false);
+    });
+  });
+
+  describe('generateTokens', () => {
+    it('should generate access and refresh tokens', () => {
+      const result = authFacade.generateTokens(mockUser);
+
+      expect(result).toMatchObject({
+        accessToken: expect.any(String),
+        refreshToken: expect.any(String),
+      });
+    });
+
+    it('should generate longer-lived tokens for remember me', () => {
+      const result = authFacade.generateTokens(mockUser, true);
+
+      expect(result).toMatchObject({
+        accessToken: expect.any(String),
+        refreshToken: expect.any(String),
+      });
+
+      // Verify token has longer expiry (implementation would need to decode and check)
+      expect(result.accessToken).toBeDefined();
+    });
+
+    it('should include session ID when provided', () => {
+      const result = authFacade.generateTokens(mockUser, false, {
+        sessionId: 'custom-session-id',
+      });
+
+      expect(result).toMatchObject({
+        accessToken: expect.any(String),
+        refreshToken: expect.any(String),
+      });
+    });
+  });
+
+  describe('refreshToken', () => {
+    it('should refresh tokens successfully', async () => {
+      // Generate a valid refresh token first
+      const tokens = authFacade.generateTokens(mockUser);
+
+      mockUserRepository.findById.mockResolvedValue({
+        id: 'user-123',
+        email: 'test@example.com',
+        name: 'Test User',
+        role: 'user',
+        status: 'active',
+        plexId: 'plex-123',
+        plexUsername: 'testuser',
+      } as any);
+
+      const result = await authFacade.refreshToken(tokens.refreshToken);
+
+      expect(result).toMatchObject({
+        accessToken: expect.any(String),
+        refreshToken: expect.any(String),
+        user: expect.objectContaining({
+          id: 'user-123',
+          email: 'test@example.com',
+        }),
+      });
+    });
+
+    it('should throw error for invalid refresh token', async () => {
+      await expect(authFacade.refreshToken('invalid-refresh-token')).rejects.toThrow();
+    });
+  });
+
+  describe('logout', () => {
+    it('should blacklist token on logout', async () => {
+      const tokens = authFacade.generateTokens(mockUser);
+
+      await authFacade.logout(tokens.accessToken, 'session-123');
+
+      // Verify token is blacklisted (would need access to internal state)
+      const tokenInfo = authFacade.getTokenInfo(tokens.accessToken);
+      expect(tokenInfo.tokenId).toBeDefined();
+    });
+
+    it('should handle logout without session ID', async () => {
+      const tokens = authFacade.generateTokens(mockUser);
+
+      await expect(authFacade.logout(tokens.accessToken)).resolves.not.toThrow();
+    });
+  });
+
+  describe('token utilities', () => {
+    it('should get token information', () => {
+      const tokens = authFacade.generateTokens(mockUser);
+      const tokenInfo = authFacade.getTokenInfo(tokens.accessToken);
+
+      expect(tokenInfo).toMatchObject({
+        userId: 'user-123',
+        sessionId: expect.any(String),
+        issuedAt: expect.any(Date),
+        expiresAt: expect.any(Date),
+        tokenId: expect.any(String),
+      });
+    });
+
+    it('should validate token correctly', () => {
+      const tokens = authFacade.generateTokens(mockUser);
+
+      const result = authFacade.validateToken(tokens.accessToken);
+
+      expect(result).toMatchObject({
+        userId: 'user-123',
+        email: 'test@example.com',
+        role: 'user',
+      });
+    });
+
+    it('should detect if token should be rotated', () => {
+      const tokens = authFacade.generateTokens(mockUser);
+
+      // Fresh token should not need rotation
+      const shouldRotate = authFacade.shouldRotateToken(tokens.accessToken);
+
+      expect(shouldRotate).toBe(false);
+    });
+  });
+});

@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 
 import { AppError } from '../utils/errors';
+import { CatchError } from '../types/common';
 
 export interface PaginationOptions {
   page?: number;
@@ -51,7 +52,7 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput> {
     where: any = {},
     options: PaginationOptions = {},
     select?: any,
-    include?: any,
+    include?: any
   ): Promise<PaginatedResult<M>> {
     const { page, limit, skip, take } = this.getPaginationParams(options);
 
@@ -75,7 +76,7 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput> {
         limit,
         totalPages: Math.ceil(total / limit),
       };
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }

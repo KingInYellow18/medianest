@@ -11,6 +11,7 @@ import {
 } from '@medianest/shared';
 
 import { encryptionService } from './encryption.service';
+import { CatchError } from '../types/common';
 
 // Extend the shared ServiceStatus type for backend-specific fields
 export interface ServiceStatus
@@ -53,7 +54,7 @@ export class StatusService {
       this.uptimeKumaClient = new UptimeKumaClient(config.serviceUrl, username, password);
 
       await this.connectToUptimeKuma();
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to initialize status service', { error });
       this.startFallbackPolling();
     }
@@ -91,7 +92,7 @@ export class StatusService {
         logger.info('Reconnected to Uptime Kuma, stopping fallback polling');
         this.stopFallbackPolling();
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to connect to Uptime Kuma', { error });
       this.startFallbackPolling();
     }
@@ -123,7 +124,7 @@ export class StatusService {
     socketService.emit('service:status', status);
   }
 
-  private updateAllStatuses(monitors: any[]): void {
+  private updateAllStatuses(monitors: unknown[]): void {
     const allStatuses: ServiceStatus[] = [];
 
     for (const monitor of monitors) {
@@ -241,7 +242,7 @@ export class StatusService {
         uptime30d: 99.5,
         lastCheck: new Date(),
       };
-    } catch (error: any) {
+    } catch (error: CatchError) {
       return {
         name: service,
         displayName: service.charAt(0).toUpperCase() + service.slice(1),

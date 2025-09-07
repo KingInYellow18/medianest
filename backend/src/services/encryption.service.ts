@@ -2,6 +2,7 @@
 import crypto from 'crypto';
 
 import { logger } from '@/utils/logger';
+import { CatchError } from '../types/common';
 
 interface EncryptedData {
   encrypted: string;
@@ -60,7 +61,7 @@ export class EncryptionService {
         authTag: authTag.toString('hex'),
         salt: salt.toString('hex'),
       };
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Encryption failed', { error });
       throw new Error('Failed to encrypt data');
     }
@@ -86,7 +87,7 @@ export class EncryptionService {
       decrypted += decipher.final('utf8');
 
       return decrypted;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Decryption failed', { error });
       throw new Error('Failed to decrypt data');
     }

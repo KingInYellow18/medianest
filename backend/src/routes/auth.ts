@@ -1,4 +1,3 @@
-// @ts-nocheck
 import bcrypt from 'bcrypt';
 import { Router } from 'express';
 import crypto from 'crypto';
@@ -8,7 +7,7 @@ import { validate, validateBody } from '../middleware/validation';
 import { securityHeaders, sanitizeInput } from '../middleware/security';
 import {
   createEnhancedRateLimit,
-  emailRateLimit,
+  // emailRateLimit, // REMOVED - no longer needed
   userRateLimit,
   createRateLimitReset,
 } from '../middleware/enhanced-rate-limit';
@@ -30,7 +29,7 @@ import {
 } from '../schemas/auth.schemas';
 import { PlexAuthService } from '../services/plex-auth.service';
 import { PasswordResetService } from '../services/password-reset.service';
-import { EmailService } from '../services/email.service';
+// import { EmailService } from '../services/email.service'; // REMOVED - email system disabled
 import { OAuthProvidersService } from '../services/oauth-providers.service';
 import { TwoFactorService } from '../services/two-factor.service';
 import { DeviceSessionService } from '../services/device-session.service';
@@ -51,20 +50,20 @@ router.use(securityAuditMiddleware());
 // Repository instances - these should ideally be injected in production
 const userRepository = new UserRepository();
 const sessionTokenRepository = new SessionTokenRepository();
-const emailService = new EmailService();
+// const emailService = new EmailService(); // REMOVED - email system disabled
 const plexAuthService = new PlexAuthService(userRepository, sessionTokenRepository);
 const passwordResetService = new PasswordResetService(
   userRepository,
-  sessionTokenRepository,
-  emailService,
+  sessionTokenRepository
+  // emailService, // REMOVED - email system disabled
 );
 const oauthService = new OAuthProvidersService(userRepository, sessionTokenRepository);
-const twoFactorService = new TwoFactorService(userRepository, emailService);
+const twoFactorService = new TwoFactorService(userRepository /* emailService - REMOVED */);
 const deviceSessionService = new DeviceSessionService(userRepository, sessionTokenRepository);
 const sessionAnalyticsService = new SessionAnalyticsService(
   userRepository,
   sessionTokenRepository,
-  deviceSessionService,
+  deviceSessionService
 );
 
 // POST /api/auth/plex/pin - Create Plex OAuth PIN
@@ -85,7 +84,7 @@ router.post(
         pollInterval: 5000, // 5 seconds recommended polling interval
       },
     });
-  }),
+  })
 );
 
 // GET /api/auth/plex/pin/:id/status - Check PIN status
@@ -104,7 +103,7 @@ router.get(
         expiresAt: pin.expiresAt,
       },
     });
-  }),
+  })
 );
 
 // POST /api/auth/plex - Complete Plex OAuth flow
@@ -138,7 +137,7 @@ router.post(
         isNewUser: result.isNewUser,
       },
     });
-  }),
+  })
 );
 
 // POST /api/auth/admin - Admin bootstrap login
@@ -204,7 +203,7 @@ router.post(
         message: 'Admin user created successfully',
       },
     });
-  }),
+  })
 );
 
 // POST /api/auth/login - Password-based login (for admin)
@@ -236,7 +235,7 @@ router.post(
       throw new AppError(
         'This user cannot login with password. Please use Plex authentication.',
         400,
-        'NO_PASSWORD_SET',
+        'NO_PASSWORD_SET'
       );
     }
 
@@ -262,7 +261,7 @@ router.post(
         role: user.role,
         plexId: user.plexId || undefined,
       },
-      rememberMe,
+      rememberMe
     );
 
     // Create session token
@@ -304,7 +303,7 @@ router.post(
         token,
       },
     });
-  }),
+  })
 );
 
 // POST /api/auth/logout - Logout
@@ -344,7 +343,7 @@ router.post(
         message: allSessions ? 'All sessions ended' : 'Logged out successfully',
       },
     });
-  }),
+  })
 );
 
 // GET /api/auth/session - Get current session info
@@ -368,7 +367,7 @@ router.get(
         authenticated: true,
       },
     });
-  }),
+  })
 );
 
 // POST /api/auth/change-password - Change password
@@ -413,69 +412,49 @@ router.post(
         message: 'Password changed successfully',
       },
     });
-  }),
+  })
 );
 
-// POST /api/auth/password-reset/request - Request password reset
+// POST /api/auth/password-reset/request - DISABLED (email system removed)
 router.post(
   '/password-reset/request',
-  emailRateLimit('passwordReset'),
+  createEnhancedRateLimit('passwordReset'), // Changed from emailRateLimit
   asyncHandler(async (req, res) => {
-    const { email } = req.body;
-
-    const result = await passwordResetService.initiatePasswordReset({
-      email,
-      ipAddress: req.ip || '',
-      userAgent: req.get('user-agent') || '',
+    // PASSWORD RESET DISABLED: Email system has been removed
+    res.status(503).json({
+      success: false,
+      message: 'Password reset via email is currently disabled. Please contact an administrator.',
+      error: 'EMAIL_SYSTEM_DISABLED',
     });
-
-    res.json({
-      success: result.success,
-      message: result.message,
-    });
-  }),
+  })
 );
 
-// POST /api/auth/password-reset/verify - Verify reset token
+// POST /api/auth/password-reset/verify - DISABLED (email system removed)
 router.post(
   '/password-reset/verify',
   createEnhancedRateLimit('passwordReset'),
   asyncHandler(async (req, res) => {
-    const { token, tokenId } = req.body;
-
-    const verification = await passwordResetService.verifyResetToken(tokenId, token);
-
-    res.json({
-      success: verification.valid,
-      data: {
-        valid: verification.valid,
-        expiresAt: verification.expiresAt,
-      },
+    // PASSWORD RESET DISABLED: Email system has been removed
+    res.status(503).json({
+      success: false,
+      message: 'Password reset via email is currently disabled. Please contact an administrator.',
+      error: 'EMAIL_SYSTEM_DISABLED',
     });
-  }),
+  })
 );
 
-// POST /api/auth/password-reset/confirm - Complete password reset
+// POST /api/auth/password-reset/confirm - DISABLED (email system removed)
 router.post(
   '/password-reset/confirm',
   createEnhancedRateLimit('passwordReset'),
   asyncHandler(async (req, res) => {
-    const { token, newPassword } = req.body;
-
-    const result = await passwordResetService.confirmPasswordReset({
-      token,
-      newPassword,
-      ipAddress: req.ip || '',
-      userAgent: req.get('user-agent') || '',
+    // PASSWORD RESET DISABLED: Email system has been removed
+    res.status(503).json({
+      success: false,
+      message: 'Password reset via email is currently disabled. Please contact an administrator.',
+      error: 'EMAIL_SYSTEM_DISABLED',
     });
-
-    logAuthEvent('PASSWORD_RESET_COMPLETED', req, 'success', { token: '[REDACTED]' });
-
-    res.json({
-      success: result.success,
-      message: result.message,
-    });
-  }),
+  })
 );
 
 export default router;

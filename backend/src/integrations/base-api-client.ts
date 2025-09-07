@@ -1,5 +1,6 @@
 import { CircuitBreaker, CircuitBreakerOptions } from '../utils/circuit-breaker';
 import { logger } from '../utils/logger';
+import { CatchError } from '../types/common';
 
 export interface ApiClientConfig {
   baseURL: string;
@@ -32,7 +33,7 @@ export abstract class BaseApiClient {
 
   constructor(
     protected serviceName: string,
-    protected config: ApiClientConfig,
+    protected config: ApiClientConfig
   ) {
     const defaultCircuitBreakerOptions: CircuitBreakerOptions = {
       failureThreshold: 5,
@@ -49,7 +50,7 @@ export abstract class BaseApiClient {
 
   protected async request<T = any>(
     endpoint: string,
-    options: RequestInit = {},
+    options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     const url = `${this.config.baseURL}${endpoint}`;
     const timeout = this.config.timeout || 5000;
@@ -112,7 +113,7 @@ export abstract class BaseApiClient {
           });
 
           throw new Error(
-            `${this.serviceName} API error: ${response.status} ${response.statusText}`,
+            `${this.serviceName} API error: ${response.status} ${response.statusText}`
           );
         }
 
@@ -122,7 +123,7 @@ export abstract class BaseApiClient {
         });
 
         return apiResponse;
-      } catch (error: any) {
+      } catch (error: CatchError) {
         clearTimeout(timeoutId);
 
         const errorObj = error as Error;
@@ -143,7 +144,7 @@ export abstract class BaseApiClient {
 
   protected async requestWithRetry<T = any>(
     endpoint: string,
-    options: RequestInit = {},
+    options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     const maxRetries = this.config.retryAttempts || 3;
     const retryDelay = this.config.retryDelay || 1000;
@@ -151,7 +152,7 @@ export abstract class BaseApiClient {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         return await this.request<T>(endpoint, options);
-      } catch (error: any) {
+      } catch (error: CatchError) {
         if (attempt === maxRetries) {
           throw error;
         }
@@ -185,7 +186,7 @@ export abstract class BaseApiClient {
       };
 
       return this.lastHealthCheck;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.lastHealthCheck = {
         healthy: false,
         lastChecked: new Date(),

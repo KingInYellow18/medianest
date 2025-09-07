@@ -26,7 +26,7 @@ if (
 ) {
   try {
     Redis = require('ioredis').Redis;
-  } catch (error: any) {
+  } catch (error: CatchError) {
     console.warn('Redis not available, continuing without caching:', error.message as any);
   }
 }
@@ -35,6 +35,7 @@ import { PerformanceMonitor } from '../../../shared/src/utils/performance-monito
 import { DatabaseOptimizer } from '../../../shared/src/utils/database-optimizations';
 import { authMiddleware } from '../middleware/auth';
 import { validateRequest } from '../middleware/validation';
+import { CatchError } from '../types/common';
 
 const router = Router();
 
@@ -93,7 +94,7 @@ router.get(
             operations: hits + misses,
           };
         }
-      } catch (error: any) {
+      } catch (error: CatchError) {
         logger.warn('Could not fetch cache metrics:', error.message as any);
       }
 
@@ -119,11 +120,11 @@ router.get(
             connectionUsage: conn.total_connections / conn.max_connections,
           };
         }
-      } catch (error: any) {
+      } catch (error: CatchError) {
         logger.warn('Could not fetch database metrics:', error.message as any);
       }
 
-      const response: any = {
+      const response: unknown = {
         timestamp: new Date().toISOString(),
         timeWindow: `${timeWindowMinutes} minutes`,
         performance: performanceStats,
@@ -163,14 +164,14 @@ router.get(
       }
 
       res.json(response);
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get performance metrics:', error);
       res.status(500).json({
         error: 'Failed to retrieve performance metrics',
         details: process.env.NODE_ENV === 'development' ? (error.message as any) : undefined,
       });
     }
-  },
+  }
 );
 
 /**
@@ -193,15 +194,15 @@ router.get('/health', async (req: Request, res: Response) => {
     // Calculate health scores (0-100)
     const responseTimeScore = Math.max(
       0,
-      100 - (performanceStats.averageResponseTime / thresholds.responseTime) * 100,
+      100 - (performanceStats.averageResponseTime / thresholds.responseTime) * 100
     );
     const errorRateScore = Math.max(
       0,
-      100 - (performanceStats.errorRate / thresholds.errorRate) * 100,
+      100 - (performanceStats.errorRate / thresholds.errorRate) * 100
     );
     const memoryScore = Math.max(
       0,
-      100 - (systemStats.memory.heapUsed / systemStats.memory.heapTotal) * 100,
+      100 - (systemStats.memory.heapUsed / systemStats.memory.heapTotal) * 100
     );
 
     // Overall health score
@@ -227,7 +228,9 @@ router.get('/health', async (req: Request, res: Response) => {
     }
     if (systemStats.memory.heapUsed / systemStats.memory.heapTotal > thresholds.memoryUsage) {
       issues.push(
-        `High memory usage: ${Math.round((systemStats.memory.heapUsed / systemStats.memory.heapTotal) * 100)}%`,
+        `High memory usage: ${Math.round(
+          (systemStats.memory.heapUsed / systemStats.memory.heapTotal) * 100
+        )}%`
       );
     }
 
@@ -271,7 +274,7 @@ router.get('/health', async (req: Request, res: Response) => {
     // Set appropriate HTTP status based on health
     const httpStatus = status === 'healthy' ? 200 : status === 'warning' ? 200 : 503;
     res.status(httpStatus).json(response);
-  } catch (error: any) {
+  } catch (error: CatchError) {
     logger.error('Health check failed:', error);
     res.status(503).json({
       status: 'critical',
@@ -341,7 +344,7 @@ router.get('/database', async (req: Request, res: Response) => {
           FROM pg_stat_statements
         `) as any[];
       }
-    } catch (error: any) {
+    } catch (error: CatchError) {
       // pg_stat_statements not available
       logger.debug('pg_stat_statements not available:', error.message as any);
     }
@@ -384,12 +387,12 @@ router.get('/database', async (req: Request, res: Response) => {
     const connectionUsage = conn.total_connections / conn.max_connections;
     if (connectionUsage > 0.8) {
       response.recommendations.push(
-        'High connection usage detected. Consider connection pooling optimization.',
+        'High connection usage detected. Consider connection pooling optimization.'
       );
     }
     if (queryStats && queryStats[0].slow_queries > 5) {
       response.recommendations.push(
-        'Multiple slow queries detected. Review query performance and indexing.',
+        'Multiple slow queries detected. Review query performance and indexing.'
       );
     }
     if (response.recommendations.length === 0) {
@@ -397,7 +400,7 @@ router.get('/database', async (req: Request, res: Response) => {
     }
 
     res.json(response);
-  } catch (error: any) {
+  } catch (error: CatchError) {
     logger.error('Database performance analysis failed:', error);
     res.status(500).json({
       error: 'Failed to analyze database performance',
@@ -448,7 +451,9 @@ router.get('/recommendations', async (req: Request, res: Response) => {
         category: 'Memory Management',
         priority: 'high',
         title: 'High Memory Usage',
-        description: `Current memory usage is ${memoryUsageMB.toFixed(2)}MB, approaching the 512MB target.`,
+        description: `Current memory usage is ${memoryUsageMB.toFixed(
+          2
+        )}MB, approaching the 512MB target.`,
         impact: 'Risk of memory leaks, potential application crashes',
         implementation:
           'Implement memory profiling, optimize object creation, enable garbage collection monitoring',
@@ -461,7 +466,9 @@ router.get('/recommendations', async (req: Request, res: Response) => {
         category: 'Error Handling',
         priority: 'medium',
         title: 'Elevated Error Rate',
-        description: `Current error rate is ${performanceStats.errorRate.toFixed(2)}%, above the 1% target.`,
+        description: `Current error rate is ${performanceStats.errorRate.toFixed(
+          2
+        )}%, above the 1% target.`,
         impact: 'Reduced application reliability, poor user experience',
         implementation:
           'Review error logs, improve input validation, enhance error handling patterns',
@@ -475,7 +482,9 @@ router.get('/recommendations', async (req: Request, res: Response) => {
         category: 'Request Optimization',
         priority: 'medium',
         title: 'High Slow Request Rate',
-        description: `${(slowRequestRate * 100).toFixed(2)}% of requests are slow (>1s), above the 10% threshold.`,
+        description: `${(slowRequestRate * 100).toFixed(
+          2
+        )}% of requests are slow (>1s), above the 10% threshold.`,
         impact: 'Poor perceived performance, user dissatisfaction',
         implementation:
           'Implement request timeouts, optimize slow endpoints, add performance monitoring',
@@ -524,7 +533,7 @@ router.get('/recommendations', async (req: Request, res: Response) => {
     };
 
     res.json(response);
-  } catch (error: any) {
+  } catch (error: CatchError) {
     logger.error('Failed to generate recommendations:', error);
     res.status(500).json({
       error: 'Failed to generate performance recommendations',
@@ -576,7 +585,7 @@ router.post('/optimize', async (req: Request, res: Response) => {
           result: 'Database query planner statistics updated',
         });
       }
-    } catch (error: any) {
+    } catch (error: CatchError) {
       optimizations.push({
         action: 'Update database statistics',
         result: `Failed: ${error.message as any}`,
@@ -595,7 +604,7 @@ router.post('/optimize', async (req: Request, res: Response) => {
             result: 'All cached data cleared',
           });
         }
-      } catch (error: any) {
+      } catch (error: CatchError) {
         optimizations.push({
           action: 'Clear Redis cache',
           result: `Failed: ${error.message as any}`,
@@ -614,7 +623,7 @@ router.post('/optimize', async (req: Request, res: Response) => {
       optimizations,
       message: `${optimizations.length} optimization actions completed`,
     });
-  } catch (error: any) {
+  } catch (error: CatchError) {
     logger.error('Manual optimization failed:', error);
     res.status(500).json({
       error: 'Optimization process failed',

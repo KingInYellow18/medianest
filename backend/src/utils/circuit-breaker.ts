@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events';
 import { logger } from './logger';
+import { CatchError } from '../types/common';
 
 export interface CircuitBreakerOptions {
   failureThreshold: number;
@@ -41,7 +42,7 @@ export class CircuitBreaker extends EventEmitter {
 
   constructor(
     private name: string,
-    private options: CircuitBreakerOptions,
+    private options: CircuitBreakerOptions
   ) {
     super();
     this.startMonitoring();
@@ -67,7 +68,7 @@ export class CircuitBreaker extends EventEmitter {
       this.halfOpenCalls >= (this.options.halfOpenMaxCalls || 3)
     ) {
       const error = new Error(
-        `Circuit breaker is HALF_OPEN and max calls exceeded for ${this.name}`,
+        `Circuit breaker is HALF_OPEN and max calls exceeded for ${this.name}`
       );
       error.name = 'CircuitBreakerError';
       this.emit('callRejected', error);
@@ -89,7 +90,7 @@ export class CircuitBreaker extends EventEmitter {
       this.onSuccess(duration);
 
       return result;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       const duration = Date.now() - startTime;
       // Convert non-Error objects to Error for internal processing
       const errorObj = (error as Error) ? error : new Error(String(error));
@@ -120,7 +121,7 @@ export class CircuitBreaker extends EventEmitter {
 
     if (this.isExpectedError(error)) {
       logger.debug(`Expected error in circuit breaker ${this.name}`, {
-        error: error.message as any,
+        error: error instanceof Error ? error.message : ('Unknown error' as any),
         state: this.state,
       });
       return; // Don't count expected errors as failures
@@ -139,7 +140,7 @@ export class CircuitBreaker extends EventEmitter {
 
     return this.options.expectedErrors.some(
       (expectedError) =>
-        (error.message as any)?.includes(expectedError) || error.name === expectedError,
+        (error.message as any)?.includes(expectedError) || error.name === expectedError
     );
   }
 

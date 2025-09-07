@@ -273,21 +273,21 @@ export class MediaNestSocketServer {
   /**
    * Emit event to all authenticated users
    */
-  public emitToAuthenticated(event: string, data: any) {
+  public emitToAuthenticated(event: string, data: unknown) {
     this.io.of('/authenticated').emit(event, data);
   }
 
   /**
    * Emit event to all admin users
    */
-  public emitToAdmins(event: string, data: any) {
+  public emitToAdmins(event: string, data: unknown) {
     this.io.of('/admin').emit(event, data);
   }
 
   /**
    * Emit event to specific user across all their connections
    */
-  public emitToUser(userId: string, event: string, data: any) {
+  public emitToUser(userId: string, event: string, data: unknown) {
     const userSockets = this.connectedUsers.get(userId);
     if (userSockets) {
       userSockets.forEach((socketId) => {
@@ -299,7 +299,7 @@ export class MediaNestSocketServer {
   /**
    * Emit event to media namespace
    */
-  public emitToMedia(event: string, data: any, roomId?: string) {
+  public emitToMedia(event: string, data: unknown, roomId?: string) {
     const target = roomId ? this.io.of('/media').to(`media:${roomId}`) : this.io.of('/media');
     target.emit(event, data);
   }
@@ -307,7 +307,7 @@ export class MediaNestSocketServer {
   /**
    * Emit system event to admins
    */
-  public emitSystemEvent(event: string, data: any) {
+  public emitSystemEvent(event: string, data: unknown) {
     this.io.of('/system').emit(event, data);
   }
 

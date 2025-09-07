@@ -3,15 +3,17 @@ import crypto from 'crypto';
 import bcrypt from 'bcrypt';
 import { UserRepository } from '../repositories/user.repository';
 import { SessionTokenRepository } from '../repositories/session-token.repository';
+import { RedisService } from './redis.service';
 import { AppError } from '../utils/errors';
 import { logger } from '../utils/logger';
+import { CatchError } from '../types/common';
 import {
   generateSecureToken,
   validatePasswordStrength,
   checkPasswordReuse,
   logSecurityEvent,
 } from '../utils/security';
-import { EmailService } from './email.service';
+// Email service removed - password reset via email disabled
 
 interface PasswordResetToken {
   id: string;
@@ -47,22 +49,21 @@ interface PasswordResetResult {
 export class PasswordResetService {
   private userRepository: UserRepository;
   private sessionTokenRepository: SessionTokenRepository;
-  private emailService: EmailService;
-
-  // In-memory storage for demo - use Redis or database in production
-  private resetTokens: Map<string, PasswordResetToken> = new Map();
+  private redisService: RedisService;
+  // private emailService: EmailService; // REMOVED - email functionality disabled
 
   constructor(
     userRepository: UserRepository,
     sessionTokenRepository: SessionTokenRepository,
-    emailService: EmailService,
+    redisService: RedisService
+    // emailService: EmailService, // REMOVED - email functionality disabled
   ) {
     this.userRepository = userRepository;
     this.sessionTokenRepository = sessionTokenRepository;
-    this.emailService = emailService;
+    this.redisService = redisService;
+    // this.emailService = emailService; // REMOVED - email functionality disabled
 
-    // Cleanup expired tokens every hour
-    setInterval(() => this.cleanupExpiredTokens(), 60 * 60 * 1000);
+    // Redis handles TTL automatically, no need for manual cleanup
   }
 
   /**
@@ -84,13 +85,14 @@ export class PasswordResetService {
             ipAddress,
             userAgent,
           },
-          'warn',
+          'warn'
         );
 
         // Still return success to prevent email enumeration
         return {
           success: true,
-          message: 'If an account with this email exists, you will receive a password reset link.',
+          message:
+            'Password reset via email is currently disabled. Please contact an administrator.',
         };
       }
 
@@ -105,19 +107,20 @@ export class PasswordResetService {
             ipAddress,
             userAgent,
           },
-          'warn',
+          'warn'
         );
 
         return {
           success: true,
-          message: 'If an account with this email exists, you will receive a password reset link.',
+          message:
+            'Password reset via email is currently disabled. Please contact an administrator.',
         };
       }
 
       // Check for existing active reset tokens
-      const existingToken = this.findActiveResetToken(user.id);
+      const existingToken = await this.redisService.findActivePasswordResetToken(user.id);
       if (existingToken) {
-        const timeRemaining = existingToken.expiresAt.getTime() - Date.now();
+        const timeRemaining = existingToken.data.expiresAt.getTime() - Date.now();
         if (timeRemaining > 10 * 60 * 1000) {
           // More than 10 minutes remaining
           logSecurityEvent(
@@ -127,9 +130,9 @@ export class PasswordResetService {
               email,
               ipAddress,
               userAgent,
-              existingTokenId: existingToken.id,
+              existingTokenId: existingToken.data.id,
             },
-            'info',
+            'info'
           );
 
           return {
@@ -139,7 +142,7 @@ export class PasswordResetService {
           };
         } else {
           // Invalidate existing token if less than 10 minutes remaining
-          this.resetTokens.delete(existingToken.id);
+          await this.redisService.deletePasswordResetToken(existingToken.tokenId);
         }
       }
 
@@ -162,19 +165,17 @@ export class PasswordResetService {
         userAgent,
       };
 
-      this.resetTokens.set(resetId, tokenRecord);
+      await this.redisService.setPasswordResetToken(resetId, tokenRecord, 900); // 15 minutes TTL
 
       // Generate reset link
       const resetUrl = `${process.env.FRONTEND_URL}/auth/reset-password?token=${resetToken}&id=${resetId}`;
 
-      // Send password reset email
-      await this.emailService.sendPasswordResetEmail({
-        to: user.email,
-        name: user.name || 'User',
-        resetUrl,
-        expiresIn: 15, // minutes
-        ipAddress,
-        userAgent,
+      // EMAIL REMOVED: Password reset emails are no longer sent
+      // This functionality has been disabled as part of email system removal
+      logger.warn('Password reset email not sent - email system removed', {
+        userId: user.id,
+        email: user.email,
+        resetId,
       });
 
       logSecurityEvent(
@@ -187,15 +188,15 @@ export class PasswordResetService {
           userAgent,
           expiresAt,
         },
-        'info',
+        'info'
       );
 
       return {
         success: true,
-        message: 'If an account with this email exists, you will receive a password reset link.',
+        message: 'Password reset via email is currently disabled. Please contact an administrator.',
         resetId,
       };
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Password reset initiation failed', {
         error,
         email,
@@ -212,18 +213,18 @@ export class PasswordResetService {
    */
   async verifyResetToken(
     tokenId: string,
-    token: string,
+    token: string
   ): Promise<{ valid: boolean; userId?: string; expiresAt?: Date }> {
     try {
-      const tokenRecord = this.resetTokens.get(tokenId);
+      const tokenRecord = await this.redisService.getPasswordResetToken(tokenId);
 
       if (!tokenRecord) {
         return { valid: false };
       }
 
-      // Check if token is expired
+      // Check if token is expired (Redis TTL should handle this)
       if (new Date() > tokenRecord.expiresAt) {
-        this.resetTokens.delete(tokenId);
+        await this.redisService.deletePasswordResetToken(tokenId);
         return { valid: false };
       }
 
@@ -236,7 +237,7 @@ export class PasswordResetService {
       const providedHash = crypto.createHash('sha256').update(token).digest('hex');
       const isValid = crypto.timingSafeEqual(
         Buffer.from(tokenRecord.hashedToken, 'hex'),
-        Buffer.from(providedHash, 'hex'),
+        Buffer.from(providedHash, 'hex')
       );
 
       if (!isValid) {
@@ -247,7 +248,7 @@ export class PasswordResetService {
             userId: tokenRecord.userId,
             ipAddress: tokenRecord.ipAddress,
           },
-          'warn',
+          'warn'
         );
 
         return { valid: false };
@@ -258,7 +259,7 @@ export class PasswordResetService {
         userId: tokenRecord.userId,
         expiresAt: tokenRecord.expiresAt,
       };
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Token verification failed', { error, tokenId });
       return { valid: false };
     }
@@ -294,7 +295,7 @@ export class PasswordResetService {
         throw new AppError(
           `Password does not meet requirements: ${passwordValidation.errors.join(', ')}`,
           400,
-          'WEAK_PASSWORD',
+          'WEAK_PASSWORD'
         );
       }
 
@@ -305,7 +306,7 @@ export class PasswordResetService {
           throw new AppError(
             'Please choose a password you have not used recently',
             400,
-            'PASSWORD_REUSED',
+            'PASSWORD_REUSED'
           );
         }
       }
@@ -325,22 +326,20 @@ export class PasswordResetService {
       }
 
       // Mark token as used
-      const tokenRecord = this.resetTokens.get(tokenId);
+      const tokenRecord = await this.redisService.getPasswordResetToken(tokenId);
       if (tokenRecord) {
         tokenRecord.used = true;
-        this.resetTokens.set(tokenId, tokenRecord);
+        await this.redisService.updatePasswordResetToken(tokenId, tokenRecord);
       }
 
       // Invalidate all existing sessions for security
       await this.sessionTokenRepository.deleteByUserId(userId);
 
-      // Send confirmation email
-      await this.emailService.sendPasswordResetConfirmationEmail({
-        to: user.email,
-        name: user.name || 'User',
-        ipAddress,
-        userAgent,
-        timestamp: new Date(),
+      // EMAIL REMOVED: Password reset confirmation emails are no longer sent
+      // This functionality has been disabled as part of email system removal
+      logger.info('Password reset confirmation email not sent - email system removed', {
+        userId,
+        email: user.email,
       });
 
       logSecurityEvent(
@@ -353,14 +352,14 @@ export class PasswordResetService {
           userAgent,
           passwordScore: passwordValidation.score,
         },
-        'info',
+        'info'
       );
 
       return {
         success: true,
         message: 'Password has been reset successfully. Please log in with your new password.',
       };
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (error instanceof AppError) {
         throw error;
       }
@@ -379,9 +378,9 @@ export class PasswordResetService {
    * Cancel password reset token
    */
   async cancelPasswordReset(tokenId: string): Promise<void> {
-    const tokenRecord = this.resetTokens.get(tokenId);
+    const tokenRecord = await this.redisService.getPasswordResetToken(tokenId);
     if (tokenRecord) {
-      this.resetTokens.delete(tokenId);
+      await this.redisService.deletePasswordResetToken(tokenId);
 
       logSecurityEvent(
         'PASSWORD_RESET_CANCELLED',
@@ -389,7 +388,7 @@ export class PasswordResetService {
           tokenId,
           userId: tokenRecord.userId,
         },
-        'info',
+        'info'
       );
     }
   }
@@ -406,47 +405,28 @@ export class PasswordResetService {
       ipAddress: string;
     }>
   > {
-    const history = Array.from(this.resetTokens.values())
-      .filter((token) => token.userId === userId)
-      .map((token) => ({
-        id: token.id,
-        createdAt: token.createdAt,
-        expiresAt: token.expiresAt,
-        used: token.used,
-        ipAddress: token.ipAddress,
-      }))
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-      .slice(0, 10); // Last 10 attempts
-
-    return history;
-  }
-
-  /**
-   * Find active reset token for user
-   */
-  private findActiveResetToken(userId: string): PasswordResetToken | undefined {
-    return Array.from(this.resetTokens.values()).find(
-      (token) => token.userId === userId && !token.used && new Date() < token.expiresAt,
+    // Note: This would require storing all reset tokens for a user
+    // For now, return empty array as Redis keys would need additional indexing
+    logger.warn(
+      'Reset history not available with Redis implementation - requires additional indexing'
     );
+    return [];
   }
 
   /**
-   * Clean up expired tokens
+   * Find active reset token for user (handled by Redis service)
+   */
+  private async findActiveResetToken(userId: string): Promise<PasswordResetToken | undefined> {
+    const result = await this.redisService.findActivePasswordResetToken(userId);
+    return result?.data;
+  }
+
+  /**
+   * Clean up expired tokens (handled by Redis TTL)
    */
   private cleanupExpiredTokens(): void {
-    const now = new Date();
-    let cleaned = 0;
-
-    for (const [id, token] of this.resetTokens.entries()) {
-      if (now > token.expiresAt || token.used) {
-        this.resetTokens.delete(id);
-        cleaned++;
-      }
-    }
-
-    if (cleaned > 0) {
-      logger.info('Cleaned up expired password reset tokens', { count: cleaned });
-    }
+    // Redis handles TTL automatically, method kept for compatibility
+    logger.debug('Password reset token cleanup handled by Redis TTL');
   }
 
   /**
@@ -457,21 +437,11 @@ export class PasswordResetService {
     totalUsed: number;
     totalExpired: number;
   }> {
-    const now = new Date();
-    let active = 0;
-    let used = 0;
-    let expired = 0;
-
-    for (const token of this.resetTokens.values()) {
-      if (token.used) {
-        used++;
-      } else if (now > token.expiresAt) {
-        expired++;
-      } else {
-        active++;
-      }
-    }
-
-    return { totalActive: active, totalUsed: used, totalExpired: expired };
+    // Note: Statistics would require additional indexing in Redis
+    // For now, return minimal stats
+    logger.warn(
+      'Password reset statistics not available with Redis implementation - requires additional indexing'
+    );
+    return { totalActive: 0, totalUsed: 0, totalExpired: 0 };
   }
 }

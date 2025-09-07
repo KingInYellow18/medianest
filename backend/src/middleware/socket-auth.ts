@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Socket } from 'socket.io';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 
@@ -7,6 +6,7 @@ import { UserRepository } from '../repositories/user.repository';
 import { AuthenticationError } from '../utils/errors';
 import { verifyToken } from '../utils/jwt';
 import { logger } from '../utils/logger';
+import { CatchError } from '../types/common';
 
 // Extend Socket interface
 declare module 'socket.io' {
@@ -35,14 +35,14 @@ const sessionTokenRepository = new SessionTokenRepository(undefined as any);
  */
 export const socketAuthMiddleware = (
   socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>,
-  next: (err?: Error) => void,
+  next: (err?: Error) => void
 ) => {
   authenticateSocket(socket)
     .then(() => next())
     .catch((error: any) => {
       logger.warn('Socket authentication failed', {
         socketId: socket.id,
-        error: error.message as any,
+        error: error instanceof Error ? error.message : ('Unknown error' as any),
         ip: socket.handshake.address,
       });
       next(new Error('Authentication failed'));
@@ -55,7 +55,7 @@ export const socketAuthMiddleware = (
  */
 export const socketOptionalAuthMiddleware = (
   socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>,
-  next: (err?: Error) => void,
+  next: (err?: Error) => void
 ) => {
   authenticateSocket(socket, true)
     .then(() => next())
@@ -70,7 +70,7 @@ export const socketOptionalAuthMiddleware = (
  */
 async function authenticateSocket(
   socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>,
-  optional: boolean = false,
+  optional: boolean = false
 ): Promise<void> {
   try {
     // Extract token from multiple sources
@@ -146,7 +146,7 @@ async function authenticateSocket(
       ip: socket.handshake.address,
       userAgent: socket.handshake.headers['user-agent'],
     });
-  } catch (error: any) {
+  } catch (error: CatchError) {
     if (optional) {
       // For optional auth, log but don't throw
       logger.debug('Optional socket auth failed', {
@@ -166,7 +166,7 @@ async function authenticateSocket(
 export const socketRequireRole = (...roles: string[]) => {
   return (
     socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>,
-    next: (err?: Error) => void,
+    next: (err?: Error) => void
   ) => {
     if (!socket.user) {
       return next(new Error('Authentication required'));
@@ -238,7 +238,7 @@ export const socketRateLimit = (maxEvents: number = 100, windowMs: number = 6000
 
   return (
     socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>,
-    next: (err?: Error) => void,
+    next: (err?: Error) => void
   ) => {
     const clientId = socket.user?.id || socket.handshake.address;
     const now = Date.now();

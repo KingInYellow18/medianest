@@ -1,6 +1,7 @@
 import { getPrismaClient, disconnectPrisma } from '../db/prisma';
 import { createRepositories, Repositories } from '../repositories';
 import { logger } from '../utils/logger';
+import { CatchError } from '../types/common';
 
 let repositories: Repositories;
 
@@ -17,7 +18,7 @@ export const initializeDatabase = async () => {
     logger.info('Repositories initialized');
 
     return prisma;
-  } catch (error: any) {
+  } catch (error: CatchError) {
     logger.error('Failed to connect to database', error);
     throw error;
   }

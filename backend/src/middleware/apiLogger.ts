@@ -3,6 +3,7 @@ import { performance } from 'perf_hooks';
 // @ts-ignore
 import { logger, logPerformanceMetric, logError } from './logging';
 import { getCorrelationId } from '../utils/correlationId';
+import { CatchError } from '../types/common';
 
 // API-specific logging middleware
 export const apiLoggingMiddleware = (req: Request, res: Response, next: NextFunction): void => {
@@ -117,7 +118,7 @@ export const createDatabaseLoggerMiddleware = (pool: any) => {
 
     // Intercept queries for logging
     const originalQuery = pool.query.bind(pool);
-    pool.query = async (text: string, params?: any[]) => {
+    pool.query = async (text: string, params?: unknown[]) => {
       const startTime = performance.now();
       const correlationId = getCorrelationId() || 'system';
 
@@ -149,7 +150,7 @@ export const createDatabaseLoggerMiddleware = (pool: any) => {
         }
 
         return result;
-      } catch (error: any) {
+      } catch (error: CatchError) {
         const duration = performance.now() - startTime;
 
         logError(error as Error, {
@@ -172,7 +173,7 @@ export const logExternalServiceCall = async <T>(
   serviceName: string,
   operation: string,
   serviceCall: () => Promise<T>,
-  metadata?: Record<string, any>,
+  metadata?: Record<string, any>
 ): Promise<T> => {
   const startTime = performance.now();
   const correlationId = getCorrelationId() || 'system';
@@ -207,7 +208,7 @@ export const logExternalServiceCall = async <T>(
     }
 
     return result;
-  } catch (error: any) {
+  } catch (error: CatchError) {
     const duration = performance.now() - startTime;
 
     logError(error as Error, {
