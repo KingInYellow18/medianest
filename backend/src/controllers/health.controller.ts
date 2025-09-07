@@ -19,7 +19,7 @@ export class HealthController {
 
       // Always return 200 for basic health check to support container health checks
       res.status(200).json(health);
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Health check failed', { error });
 
       // Even on error, return basic status for container health checks
@@ -109,11 +109,11 @@ export class HealthController {
       });
 
       res.json(metrics);
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get metrics', { error });
       res.status(500).json({
         error: 'Failed to retrieve metrics',
-        message: error instanceof Error ? error.message : 'Unknown error',
+        message: (error as Error) ? (error.message as any) : 'Unknown error',
       });
     }
   }

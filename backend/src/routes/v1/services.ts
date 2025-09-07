@@ -51,7 +51,7 @@ router.get('/status', async (req: Request, res: Response) => {
         },
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching service status:', error);
     res.status(500).json({
       success: false,

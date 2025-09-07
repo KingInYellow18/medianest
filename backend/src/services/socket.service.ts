@@ -13,7 +13,7 @@ export const socketService = {
   },
 
   // Emit to all clients in a room
-  emitToRoom(room: string, event: string, data: unknown): void {
+  emitToRoom(room: string, event: string, data: any): void {
     if (!io) {
       console.warn('Socket.io not initialized');
       return;
@@ -22,12 +22,12 @@ export const socketService = {
   },
 
   // Emit to specific user
-  emitToUser(userId: string, event: string, data: unknown): void {
+  emitToUser(userId: string, event: string, data: any): void {
     this.emitToRoom(`user:${userId}`, event, data);
   },
 
   // Broadcast service status update
-  broadcastStatusUpdate(service: string, status: unknown): void {
+  broadcastStatusUpdate(service: string, status: any): void {
     this.emitToRoom('status-updates', 'service:status', {
       service,
       status,
@@ -36,12 +36,12 @@ export const socketService = {
   },
 
   // Send notification to user
-  sendNotification(userId: string, notification: unknown): void {
+  sendNotification(userId: string, notification: any): void {
     this.emitToUser(userId, 'notification:new', notification);
   },
 
   // Emit to all connected clients
-  emit(event: string, data: unknown): void {
+  emit(event: string, data: any): void {
     if (!io) {
       console.warn('Socket.io not initialized');
       return;

@@ -202,7 +202,7 @@ export class OAuthProvidersService {
       );
 
       return result;
-    } catch (error) {
+    } catch (error: any) {
       // Clean up state on error
       this.oauthStates.delete(state);
 
@@ -211,7 +211,7 @@ export class OAuthProvidersService {
         {
           provider,
           state,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: (error as Error) ? (error.message as any) : 'Unknown error',
           ipAddress: options.ipAddress,
         },
         'error',

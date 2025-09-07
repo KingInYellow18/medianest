@@ -60,7 +60,7 @@ export function requestHandlers(io: Server, socket: Socket): void {
       // TODO: Implement mediaRequestRepository.findByUserId when repository is available
       const requests = []; // await mediaRequestRepository.findByUserId(userId);
       socket.emit('user-requests:current', requests);
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get user requests', { userId, error });
     }
   });
@@ -100,14 +100,14 @@ export function requestHandlers(io: Server, socket: Socket): void {
         if (callback) {
           callback({ success: true, data: history });
         }
-      } catch (error) {
+      } catch (error: any) {
         logger.error('Failed to get request history', {
           userId,
-          error: error.message,
+          error: error.message as any,
         });
 
         if (callback) {
-          callback({ success: false, error: error.message });
+          callback({ success: false, error: error.message as any });
         }
       }
     },
@@ -143,15 +143,15 @@ export function requestHandlers(io: Server, socket: Socket): void {
       if (callback) {
         callback({ success: true });
       }
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to cancel request', {
         userId,
         requestId,
-        error: error.message,
+        error: error.message as any,
       });
 
       if (callback) {
-        callback({ success: false, error: error.message });
+        callback({ success: false, error: error.message as any });
       }
     }
   });
@@ -186,15 +186,15 @@ export function requestHandlers(io: Server, socket: Socket): void {
       if (callback) {
         callback({ success: true });
       }
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to retry request', {
         userId,
         requestId,
-        error: error.message,
+        error: error.message as any,
       });
 
       if (callback) {
-        callback({ success: false, error: error.message });
+        callback({ success: false, error: error.message as any });
       }
     }
   });
@@ -217,8 +217,7 @@ export function emitRequestStatusUpdate(
   });
 
   // Emit to requests namespace if available
-  io
-    .of('/requests')
+  io.of('/requests')
     ?.to(`user-requests:${userId}`)
     .emit('request:status', {
       requestId,

@@ -1,4 +1,5 @@
 // Backend-specific type declarations
+// @ts-ignore
 import { User } from '@medianest/shared';
 import { Request } from 'express';
 

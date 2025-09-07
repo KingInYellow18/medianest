@@ -2,7 +2,7 @@ import { redisClient } from '@/config/redis';
 import { OverseerrClient } from '@/integrations/overseerr/overseerr.client';
 import { serviceConfigRepository, mediaRequestRepository } from '@/repositories';
 import { socketService } from '@/services/socket.service';
-import { AppError } from '@medianest/shared';
+import { AppError } from '../utils/errors';
 import { logger } from '@/utils/logger';
 
 import { encryptionService } from './encryption.service';
@@ -35,7 +35,7 @@ export class OverseerrService {
 
       this.isAvailable = await this.client.testConnection();
       logger.info('Overseerr service initialized', { available: this.isAvailable });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to initialize Overseerr', { error });
       this.isAvailable = false;
     }
@@ -58,7 +58,7 @@ export class OverseerrService {
       await redisClient.setex(cacheKey, this.cacheTTL.search, JSON.stringify(results));
 
       return results;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Media search failed', { query, error });
       throw new AppError('Failed to search media', 503);
     }
@@ -81,7 +81,7 @@ export class OverseerrService {
       await redisClient.setex(cacheKey, this.cacheTTL.details, JSON.stringify(details));
 
       return details;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get media details', { mediaType, tmdbId, error });
       throw new AppError('Failed to get media details', 503);
     }
@@ -134,7 +134,7 @@ export class OverseerrService {
       });
 
       return savedRequest;
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         throw error;
       }

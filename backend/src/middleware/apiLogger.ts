@@ -1,17 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
 import { performance } from 'perf_hooks';
+// @ts-ignore
 import { logger, logPerformanceMetric, logError } from './logging';
 import { getCorrelationId } from '../utils/correlationId';
 
 // API-specific logging middleware
-export const apiLoggingMiddleware = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void => {
+export const apiLoggingMiddleware = (req: Request, res: Response, next: NextFunction): void => {
   const startTime = performance.now();
   const correlationId = getCorrelationId() || req.correlationId || 'unknown';
-  
+
   // Enhanced request logging for API endpoints
   logger.info('API request started', {
     correlationId,
@@ -31,8 +28,8 @@ export const apiLoggingMiddleware = (
   // Track response metrics
   let responseSize = 0;
   const originalSend = res.send;
-  
-  res.send = function(body: any) {
+
+  res.send = function (body: any) {
     if (body) {
       responseSize = Buffer.isBuffer(body) ? body.length : Buffer.byteLength(String(body));
     }
@@ -43,7 +40,7 @@ export const apiLoggingMiddleware = (
   res.on('finish', () => {
     const duration = performance.now() - startTime;
     const level = res.statusCode >= 400 ? 'warn' : 'info';
-    
+
     logger[level]('API request completed', {
       correlationId,
       method: req.method,
@@ -59,42 +56,32 @@ export const apiLoggingMiddleware = (
     });
 
     // Log performance metrics for slow requests
-    if (duration > 1000) { // > 1 second
-      logPerformanceMetric(
-        'slow_api_request',
-        duration,
-        'ms',
-        correlationId,
-        {
-          endpoint: `${req.method} ${req.path}`,
-          statusCode: res.statusCode,
-        }
-      );
+    if (duration > 1000) {
+      // > 1 second
+      logPerformanceMetric('slow_api_request', duration, 'ms', correlationId, {
+        endpoint: `${req.method} ${req.path}`,
+        statusCode: res.statusCode,
+      });
     }
 
     // Log performance metrics for different response size categories
     if (responseSize > 0) {
       let sizeCategory = 'small';
-      if (responseSize > 1024 * 1024) sizeCategory = 'large'; // > 1MB
+      if (responseSize > 1024 * 1024)
+        sizeCategory = 'large'; // > 1MB
       else if (responseSize > 1024 * 100) sizeCategory = 'medium'; // > 100KB
 
-      logPerformanceMetric(
-        'api_response_size',
-        responseSize,
-        'bytes',
-        correlationId,
-        {
-          endpoint: `${req.method} ${req.path}`,
-          category: sizeCategory,
-        }
-      );
+      logPerformanceMetric('api_response_size', responseSize, 'bytes', correlationId, {
+        endpoint: `${req.method} ${req.path}`,
+        category: sizeCategory,
+      });
     }
   });
 
   // Handle response errors
   res.on('error', (error) => {
     const duration = performance.now() - startTime;
-    
+
     logError(error, {
       correlationId,
       operation: 'api_response',
@@ -133,7 +120,7 @@ export const createDatabaseLoggerMiddleware = (pool: any) => {
     pool.query = async (text: string, params?: any[]) => {
       const startTime = performance.now();
       const correlationId = getCorrelationId() || 'system';
-      
+
       logger.debug('Database query started', {
         correlationId,
         query: sanitizeQuery(text),
@@ -153,23 +140,18 @@ export const createDatabaseLoggerMiddleware = (pool: any) => {
         });
 
         // Log slow queries
-        if (duration > 1000) { // > 1 second
-          logPerformanceMetric(
-            'slow_database_query',
-            duration,
-            'ms',
-            correlationId,
-            {
-              query: sanitizeQuery(text),
-              rowCount: result.rowCount,
-            }
-          );
+        if (duration > 1000) {
+          // > 1 second
+          logPerformanceMetric('slow_database_query', duration, 'ms', correlationId, {
+            query: sanitizeQuery(text),
+            rowCount: result.rowCount,
+          });
         }
 
         return result;
-      } catch (error) {
+      } catch (error: any) {
         const duration = performance.now() - startTime;
-        
+
         logError(error as Error, {
           correlationId,
           operation: 'database_query',
@@ -190,7 +172,7 @@ export const logExternalServiceCall = async <T>(
   serviceName: string,
   operation: string,
   serviceCall: () => Promise<T>,
-  metadata?: Record<string, any>
+  metadata?: Record<string, any>,
 ): Promise<T> => {
   const startTime = performance.now();
   const correlationId = getCorrelationId() || 'system';
@@ -216,21 +198,16 @@ export const logExternalServiceCall = async <T>(
     });
 
     // Log slow external calls
-    if (duration > 5000) { // > 5 seconds
-      logPerformanceMetric(
-        'slow_external_service_call',
-        duration,
-        'ms',
-        correlationId,
-        {
-          service: serviceName,
-          operation,
-        }
-      );
+    if (duration > 5000) {
+      // > 5 seconds
+      logPerformanceMetric('slow_external_service_call', duration, 'ms', correlationId, {
+        service: serviceName,
+        operation,
+      });
     }
 
     return result;
-  } catch (error) {
+  } catch (error: any) {
     const duration = performance.now() - startTime;
 
     logError(error as Error, {
@@ -257,14 +234,14 @@ const filterApiHeaders = (headers: any): Record<string, any> => {
     'x-access-token',
     'authentication',
   ];
-  
+
   const filtered = { ...headers };
-  sensitiveHeaders.forEach(header => {
+  sensitiveHeaders.forEach((header) => {
     if (filtered[header]) {
       filtered[header] = '[REDACTED]';
     }
   });
-  
+
   return filtered;
 };
 
@@ -273,32 +250,35 @@ const shouldLogRequestBody = (req: Request): boolean => {
   if (process.env.NODE_ENV !== 'development' && process.env.LOG_REQUEST_BODY !== 'true') {
     return false;
   }
-  
+
   // Don't log for certain endpoints
   const skipPaths = ['/api/auth/login', '/api/auth/register', '/api/upload'];
-  if (skipPaths.some(path => req.path.startsWith(path))) {
+  if (skipPaths.some((path) => req.path.startsWith(path))) {
     return false;
   }
-  
+
   // Only log for specific content types
   const contentType = req.get('Content-Type') || '';
-  return contentType.includes('application/json') || contentType.includes('application/x-www-form-urlencoded');
+  return (
+    contentType.includes('application/json') ||
+    contentType.includes('application/x-www-form-urlencoded')
+  );
 };
 
 const sanitizeBody = (body: any): any => {
   if (!body || typeof body !== 'object') return body;
-  
+
   const sensitiveFields = ['password', 'token', 'secret', 'key', 'authorization'];
   const sanitized = { ...body };
-  
+
   const sanitizeObject = (obj: any): any => {
     if (!obj || typeof obj !== 'object') return obj;
-    
+
     const result = Array.isArray(obj) ? [] : {};
-    
-    Object.keys(obj).forEach(key => {
+
+    Object.keys(obj).forEach((key) => {
       const lowerKey = key.toLowerCase();
-      if (sensitiveFields.some(field => lowerKey.includes(field))) {
+      if (sensitiveFields.some((field) => lowerKey.includes(field))) {
         (result as any)[key] = '[REDACTED]';
       } else if (typeof obj[key] === 'object') {
         (result as any)[key] = sanitizeObject(obj[key]);
@@ -306,10 +286,10 @@ const sanitizeBody = (body: any): any => {
         (result as any)[key] = obj[key];
       }
     });
-    
+
     return result;
   };
-  
+
   return sanitizeObject(sanitized);
 };
 
@@ -320,15 +300,15 @@ const sanitizeQuery = (query: string): string => {
     /token\s*=\s*'[^']*'/gi,
     /secret\s*=\s*'[^']*'/gi,
   ];
-  
+
   let sanitized = query;
-  sensitivePatterns.forEach(pattern => {
+  sensitivePatterns.forEach((pattern) => {
     sanitized = sanitized.replace(pattern, (match) => {
       const field = match.split('=')[0];
       return `${field} = '[REDACTED]'`;
     });
   });
-  
+
   return sanitized;
 };
 

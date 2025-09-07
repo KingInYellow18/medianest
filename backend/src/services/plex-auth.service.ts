@@ -155,7 +155,7 @@ export class PlexAuthService {
       });
 
       return data;
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) throw error;
 
       logger.error('Error creating Plex PIN', { error });
@@ -198,7 +198,7 @@ export class PlexAuthService {
       });
 
       return data;
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) throw error;
 
       logger.error('Error checking Plex PIN', { error, pinId });
@@ -240,7 +240,7 @@ export class PlexAuthService {
       });
 
       return data;
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) throw error;
 
       logger.error('Error getting Plex user', { error });
@@ -328,7 +328,7 @@ export class PlexAuthService {
         token: jwtToken,
         isNewUser,
       };
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) throw error;
 
       logger.error('Error completing Plex OAuth', { error, pinId });

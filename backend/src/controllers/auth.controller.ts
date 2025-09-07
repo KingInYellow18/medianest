@@ -3,7 +3,7 @@ import type { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 
 import { config } from '@/config';
-import { AppError } from '@medianest/shared';
+import { AppError } from '../utils/errors';
 import { userRepository } from '@/repositories/instances';
 import { encryptionService } from '@/services/encryption.service';
 import { jwtService } from '@/services/jwt.service';
@@ -71,16 +71,16 @@ export class AuthController {
           expiresIn: 900, // 15 minutes
         },
       });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    } catch (error: any) {
+      const errorMessage = (error as Error) ? (error.message as any) : 'Unknown error';
       logger.error('Failed to generate Plex PIN', { error: errorMessage });
 
       // Handle specific error cases
       if (axios.isAxiosError(error)) {
         if (
           error.response?.status === 503 ||
-          error.code === 'ECONNREFUSED' ||
-          error.code === 'ENOTFOUND'
+          ((error as any).code as any) === 'ECONNREFUSED' ||
+          ((error as any).code as any) === 'ENOTFOUND'
         ) {
           return next(
             new AppError(
@@ -90,7 +90,10 @@ export class AuthController {
             ),
           );
         }
-        if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
+        if (
+          ((error as any).code as any) === 'ECONNABORTED' ||
+          ((error as any).code as any) === 'ETIMEDOUT'
+        ) {
           return next(
             new AppError(
               'PLEX_TIMEOUT',
@@ -271,8 +274,8 @@ export class AuthController {
           csrfToken: res.locals.csrfToken, // Include CSRF token in response
         },
       });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    } catch (error: any) {
+      const errorMessage = (error as Error) ? (error.message as any) : 'Unknown error';
       logger.error('Failed to verify Plex PIN', { error: errorMessage });
 
       // Handle Axios errors
@@ -280,15 +283,21 @@ export class AuthController {
         if (error.response?.status === 404) {
           return next(new AppError('INVALID_PIN', 'Invalid or expired PIN', 400));
         }
-        if (error.response?.status >= 500) {
+        if (error.response?.status! >= 500) {
           return next(
             new AppError('PLEX_UNAVAILABLE', 'Plex service temporarily unavailable', 503),
           );
         }
-        if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+        if (
+          ((error as any).code as any) === 'ECONNREFUSED' ||
+          ((error as any).code as any) === 'ENOTFOUND'
+        ) {
           return next(new AppError('PLEX_UNREACHABLE', 'Cannot connect to Plex server', 503));
         }
-        if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
+        if (
+          ((error as any).code as any) === 'ECONNABORTED' ||
+          ((error as any).code as any) === 'ETIMEDOUT'
+        ) {
           return next(new AppError('PLEX_TIMEOUT', 'Plex server connection timed out', 504));
         }
       }

@@ -1,0 +1,34 @@
+=== COMPREHENSIVE MARKDOWN FILE ANALYSIS ===
+
+TOTAL FILES: 18
+
+=== BY CATEGORY ===
+🏗️  ARCHITECTURE FILES (4 files):
+  ARCHITECTURE.md (41K, Sep 5)
+  test_architecture.md (49K, Sep 5)
+
+🐳 DOCKER FILES (3 files):
+  DOCKER_DEPLOYMENT.md (2.0K, Sep 6)
+
+📊 TEST/AUDIT REPORTS (13+ files):
+
+📚 CORE PROJECT DOCS (5+ files):
+  CLAUDE.md (12K, Sep 6)
+  CONTRIBUTING.md (12K, Sep 5)
+  DEVELOPMENT.md (1.2K, Sep 5)
+  INSTALLATION_GUIDE.md (0, Sep 5)
+  README-LOGGING.md (10K, Sep 6)
+  README.md (12K, Sep 6)
+
+⚙️  WORKFLOW/TASK FILES:
+
+=== CLEANUP RECOMMENDATIONS ===
+
+🗑️  FILES TO REMOVE (Empty/Outdated):
+  ❌ INSTALLATION_GUIDE.md (EMPTY FILE)
+
+📁 MOVE TO docs/ DIRECTORY:
+  📊 All test/audit reports
+  🏗️  Architecture documentation (keep main ARCHITECTURE.md in root)
+  ⚙️  Workflow and task documentation
+  🐳 Docker documentation

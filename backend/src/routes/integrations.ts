@@ -69,7 +69,7 @@ router.get(
         success: true,
         data: plexUser,
       });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get Plex user', { userId: user.id, error: getErrorMessage(error) });
       res.status(500).json({
         success: false,
@@ -99,7 +99,7 @@ router.get(
         success: true,
         data: servers,
       });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get Plex servers', {
         userId: user.id,
         error: getErrorMessage(error),
@@ -133,7 +133,7 @@ router.get(
         success: true,
         data: libraries,
       });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get Plex libraries', {
         userId: user.id,
         error: getErrorMessage(error),
@@ -170,7 +170,7 @@ router.get(
         success: true,
         data: recentlyAdded,
       });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get recently added media', {
         userId: user.id,
         error: getErrorMessage(error),
@@ -212,7 +212,7 @@ router.get(
         success: true,
         data: results,
       });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to search Plex media', {
         userId: user.id,
         query,
@@ -246,7 +246,7 @@ router.get(
         success: true,
         data: status,
       });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get Overseerr status', { error: getErrorMessage(error) });
       res.status(500).json({
         success: false,
@@ -280,7 +280,7 @@ router.get(
         success: true,
         data: requests,
       });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get Overseerr requests', { error: getErrorMessage(error) });
       res.status(500).json({
         success: false,
@@ -317,7 +317,7 @@ router.post(
         success: true,
         data: request,
       });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to create Overseerr request', {
         userId: req.user!.id,
         body: req.body,
@@ -363,7 +363,7 @@ router.get(
         success: true,
         data: results,
       });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to search media in Overseerr', { query, error: getErrorMessage(error) });
       res.status(500).json({
         success: false,

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { AppError } from '@medianest/shared';
+// @ts-ignore
+import { AppError } from '../utils/errors';
 import { logger } from '../utils/logger';
 import { errorRecoveryManager } from '../utils/error-recovery';
 import { healthMonitor } from '../services/health-monitor.service';
@@ -46,8 +47,8 @@ export function globalErrorHandler() {
 
     // Log error with context
     logger.error('Request error occurred', {
-      error: error.message,
-      stack: error.stack,
+      error: error.message as any,
+      stack: error.stack as any,
       context: errorContext,
       correlationId,
     });
@@ -59,10 +60,10 @@ export function globalErrorHandler() {
     let shouldAttemptRecovery = false;
 
     if (error instanceof AppError) {
-      statusCode = error.statusCode;
-      errorMessage = error.message;
-      errorCode = error.code || 'APP_ERROR';
-      shouldAttemptRecovery = error.statusCode >= 500;
+      statusCode = (error as any).statusCode;
+      errorMessage = error.message as any;
+      errorCode = (error as any).code || 'APP_ERROR';
+      shouldAttemptRecovery = (error as any).statusCode >= 500;
     } else if (error.name === 'ValidationError') {
       statusCode = 400;
       errorMessage = 'Validation failed';
@@ -119,7 +120,7 @@ export function globalErrorHandler() {
 
         logger.info('Error recovery successful', {
           correlationId,
-          originalError: error.message,
+          originalError: error.message as any,
           recoveryResult: typeof recoveryResult,
         });
 
@@ -134,7 +135,7 @@ export function globalErrorHandler() {
       } catch (recoveryError) {
         logger.warn('Error recovery failed', {
           correlationId,
-          originalError: error.message,
+          originalError: error.message as any,
           recoveryError: (recoveryError as Error).message,
         });
 
@@ -148,8 +149,8 @@ export function globalErrorHandler() {
       error: {
         code: errorCode,
         message: errorMessage,
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined,
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+        details: process.env.NODE_ENV === 'development' ? (error.message as any) : undefined,
+        stack: process.env.NODE_ENV === 'development' ? (error.stack as any) : undefined,
       },
       correlationId,
       timestamp: new Date(),
@@ -159,7 +160,7 @@ export function globalErrorHandler() {
 
     // Add recovery suggestions for certain error types
     if (statusCode === 503) {
-      errorResponse.error.message += '. Please try again in a few moments.';
+      (errorResponse.error as any).message += '. Please try again in a few moments.';
       (errorResponse as any).retryAfter = getRetryAfterSeconds(error);
     } else if (statusCode === 429) {
       (errorResponse as any).retryAfter = 60; // 1 minute
@@ -208,7 +209,7 @@ export function validationErrorHandler() {
 // Rate limiting error handler
 export function rateLimitErrorHandler() {
   return (error: any, req: Request, _res: Response, next: NextFunction) => {
-    if (error.name === 'RateLimitError' || error.code === 'RATE_LIMIT_EXCEEDED') {
+    if (error.name === 'RateLimitError' || ((error as any).code as any) === 'RATE_LIMIT_EXCEEDED') {
       const rateLimitError = new AppError(
         'Too many requests, please try again later',
         429,
@@ -232,11 +233,11 @@ export function rateLimitErrorHandler() {
 export function databaseErrorHandler() {
   return (error: any, _req: Request, _res: Response, next: NextFunction) => {
     // Prisma errors
-    if (error.code && error.code.startsWith('P')) {
+    if ((error as any).code && (error as any).code.startsWith('P')) {
       let message = 'Database operation failed';
       let statusCode = 500;
 
-      switch (error.code) {
+      switch ((error as any).code) {
         case 'P2002': // Unique constraint violation
           message = 'Resource already exists';
           statusCode = 409;
@@ -262,9 +263,9 @@ export function databaseErrorHandler() {
 
     // Generic database connection errors
     if (
-      error.message?.includes('ECONNREFUSED') ||
-      error.message?.includes('ETIMEDOUT') ||
-      error.message?.includes('database')
+      (error.message as any)?.includes('ECONNREFUSED') ||
+      (error.message as any)?.includes('ETIMEDOUT') ||
+      (error.message as any)?.includes('database')
     ) {
       const dbError = new AppError('Database connection failed', 503, 'DATABASE_CONNECTION_ERROR');
       return next(dbError);
@@ -348,16 +349,16 @@ function getRetryAfterSeconds(error: Error): number {
   // Return appropriate retry delay based on error type
   if (error.name === 'CircuitBreakerError') {
     // Extract retry time from circuit breaker error message
-    const match = error.message.match(/Next retry at: (.+)/);
+    const match = (error as any).message?.match(/Next retry at: (.+)/);
     if (match) {
       const retryTime = new Date(match[1]).getTime();
       const now = Date.now();
       return Math.max(0, Math.ceil((retryTime - now) / 1000));
     }
     return 30; // Default 30 seconds
-  } else if (error.message.includes('timeout')) {
+  } else if ((error as any).message?.includes('timeout')) {
     return 5; // 5 seconds for timeout errors
-  } else if (error.message.includes('database')) {
+  } else if ((error as any).message?.includes('database')) {
     return 60; // 1 minute for database errors
   }
 

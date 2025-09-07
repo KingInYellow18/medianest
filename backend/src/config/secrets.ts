@@ -8,18 +8,14 @@ import path from 'path';
  * @param defaultValue - Default value if neither secret nor env var exists
  * @returns The secret value
  */
-export function readSecret(
-  secretName: string,
-  envVar: string,
-  defaultValue = ''
-): string {
+export function readSecret(secretName: string, envVar: string, defaultValue = ''): string {
   // Check if we should use Docker secrets
   const useDockerSecrets = process.env.USE_DOCKER_SECRETS === 'true';
   const secretsPath = process.env.DOCKER_SECRETS_PATH || '/run/secrets';
 
   if (useDockerSecrets) {
     const secretPath = path.join(secretsPath, secretName);
-    
+
     // Check if secret file exists
     if (existsSync(secretPath)) {
       try {
@@ -27,7 +23,7 @@ export function readSecret(
         if (secret) {
           return secret;
         }
-      } catch (error) {
+      } catch (error: any) {
         console.warn(`Failed to read secret ${secretName}:`, error);
       }
     }
@@ -43,12 +39,9 @@ export function readSecret(
  * @param defaultValue - Default value if file doesn't exist
  * @returns The secret value
  */
-export function readSecretFromFile(
-  envVar: string,
-  defaultValue = ''
-): string {
+export function readSecretFromFile(envVar: string, defaultValue = ''): string {
   const filePath = process.env[envVar];
-  
+
   if (!filePath) {
     // If no file path, check for direct env var without _FILE suffix
     const directEnvVar = envVar.replace(/_FILE$/, '');
@@ -58,7 +51,7 @@ export function readSecretFromFile(
   if (existsSync(filePath)) {
     try {
       return readFileSync(filePath, 'utf8').trim();
-    } catch (error) {
+    } catch (error: any) {
       console.warn(`Failed to read secret from ${filePath}:`, error);
     }
   }
@@ -76,20 +69,16 @@ export function validateSecrets(
     name: string;
     value: string | undefined;
     description: string;
-  }>
+  }>,
 ): void {
-  const missingSecrets = requiredSecrets.filter(
-    (secret) => !secret.value || secret.value === ''
-  );
+  const missingSecrets = requiredSecrets.filter((secret) => !secret.value || secret.value === '');
 
   if (missingSecrets.length > 0) {
     const errorMessage = [
       'Missing required secrets:',
-      ...missingSecrets.map(
-        (secret) => `  - ${secret.name}: ${secret.description}`
-      ),
+      ...missingSecrets.map((secret) => `  - ${secret.name}: ${secret.description}`),
     ].join('\n');
-    
+
     throw new Error(errorMessage);
   }
 }
@@ -103,7 +92,7 @@ export function maskSecret(secret: string): string {
   if (!secret || secret.length < 12) {
     return '***';
   }
-  
+
   return `${secret.slice(0, 4)}...${secret.slice(-4)}`;
 }
 
@@ -112,8 +101,5 @@ export function maskSecret(secret: string): string {
  * @returns True if using Docker secrets in production
  */
 export function isUsingDockerSecrets(): boolean {
-  return (
-    process.env.NODE_ENV === 'production' &&
-    process.env.USE_DOCKER_SECRETS === 'true'
-  );
+  return process.env.NODE_ENV === 'production' && process.env.USE_DOCKER_SECRETS === 'true';
 }

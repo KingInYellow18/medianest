@@ -1,6 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 
-import { RateLimitError } from '@medianest/shared';
+// @ts-ignore
+import {
+  RateLimitError, // @ts-ignore
+} from '@medianest/shared';
 
 import { logger } from '@/utils/logger';
 import { getRedis } from '@/config/redis';
@@ -60,7 +63,7 @@ export function rateLimiter(options: RateLimiterOptions) {
       }
 
       next();
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof RateLimitError) {
         next(error);
       } else {

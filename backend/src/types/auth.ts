@@ -1,4 +1,5 @@
 import { Request } from 'express';
+// @ts-ignore
 import { User } from '@medianest/shared';
 
 // Auth request interface

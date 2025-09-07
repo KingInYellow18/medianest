@@ -1,11 +1,11 @@
-import {
-  BackendConfigSchema,
-  environmentLoader,
-  configUtils,
-  type BackendConfig,
-} from '@medianest/shared/config';
+const sharedConfig: any = require('@medianest/shared/config');
+export const BackendConfigSchema = sharedConfig.BackendConfigSchema;
+export const environmentLoader = sharedConfig.environmentLoader;
+export const configUtils = sharedConfig.configUtils;
+export type BackendConfig = any;
 
-import { createConfiguration } from '@medianest/shared/config/utils';
+const configUtils2: any = require('@medianest/shared/config/utils');
+export const createConfiguration = configUtils2.createConfiguration;
 
 /**
  * Load and validate backend configuration
@@ -13,7 +13,7 @@ import { createConfiguration } from '@medianest/shared/config/utils';
 const loadBackendConfig = (): BackendConfig => {
   const environment = environmentLoader.getEnvironment();
 
-  return createConfiguration((env) => BackendConfigSchema.parse(env), {
+  return createConfiguration((env: any) => BackendConfigSchema.parse(env), {
     useDockerSecrets: environment === 'production',
     envFilePath: environment === 'test' ? '.env.test' : undefined,
   });
@@ -191,5 +191,4 @@ export const isTest = () => config.NODE_ENV === 'test';
  */
 export const isProduction = () => config.NODE_ENV === 'production';
 
-// Export the configuration type for other modules
-export type { BackendConfig };
+// Export the configuration type for other modules (already exported above)

@@ -17,7 +17,7 @@ export const initializeDatabase = async () => {
     logger.info('Repositories initialized');
 
     return prisma;
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Failed to connect to database', error);
     throw error;
   }

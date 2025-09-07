@@ -109,11 +109,11 @@ export function registerDownloadHandlers(io: Server, socket: Socket): void {
           },
         });
       }
-    } catch (error) {
-      logger.error('Failed to get download queue status', { userId, error: error.message });
+    } catch (error: any) {
+      logger.error('Failed to get download queue status', { userId, error: error.message as any });
 
       if (callback) {
-        callback({ success: false, error: error.message });
+        callback({ success: false, error: error.message as any });
       }
     }
   });
@@ -197,15 +197,15 @@ export function registerDownloadHandlers(io: Server, socket: Socket): void {
       if (callback) {
         callback({ success: true, data: downloadStatus });
       }
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get download status', {
         userId,
         downloadId,
-        error: error.message,
+        error: error.message as any,
       });
 
       if (callback) {
-        callback({ success: false, error: error.message });
+        callback({ success: false, error: error.message as any });
       }
     }
   });
@@ -258,15 +258,15 @@ export function registerDownloadHandlers(io: Server, socket: Socket): void {
       }
 
       logger.info('Download cancelled by user', { userId, downloadId });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to cancel download', {
         userId,
         downloadId,
-        error: error.message,
+        error: error.message as any,
       });
 
       if (callback) {
-        callback({ success: false, error: error.message });
+        callback({ success: false, error: error.message as any });
       }
     }
   });
@@ -319,15 +319,15 @@ export function registerDownloadHandlers(io: Server, socket: Socket): void {
       }
 
       logger.info('Download retry requested by user', { userId, downloadId });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to retry download', {
         userId,
         downloadId,
-        error: error.message,
+        error: error.message as any,
       });
 
       if (callback) {
-        callback({ success: false, error: error.message });
+        callback({ success: false, error: error.message as any });
       }
     }
   });

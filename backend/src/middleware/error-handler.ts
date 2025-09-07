@@ -1,12 +1,13 @@
 // Re-export error handlers for compatibility
-export { errorHandler, AppError } from './error';
+export { errorHandler } from './error';
+export { AppError } from '../utils/errors';
 
 // Export error types for imports that expect them from this location
 export {
   ValidationError,
   AuthenticationError,
   AuthorizationError,
-  RateLimitError,
+  RateLimitError, // @ts-ignore
 } from '@medianest/shared';
 
 // Create a compatibility ApiError class that matches old interface

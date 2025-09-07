@@ -50,11 +50,11 @@ router.get('/ready', (req: Request, res: Response) => {
       name: 'database',
       status: prisma ? 'ready' : 'not_configured',
     });
-  } catch (error) {
+  } catch (error: any) {
     checks.push({
       name: 'database',
       status: 'error',
-      error: error.message,
+      error: error.message as any,
     });
     allReady = false;
   }
@@ -66,11 +66,11 @@ router.get('/ready', (req: Request, res: Response) => {
       name: 'cache',
       status: redis ? 'ready' : 'not_configured',
     });
-  } catch (error) {
+  } catch (error: any) {
     checks.push({
       name: 'cache',
       status: 'error',
-      error: error.message,
+      error: error.message as any,
     });
     allReady = false;
   }

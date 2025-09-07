@@ -9,10 +9,12 @@ const PORT = process.env.PORT || 3000;
 
 // Security middleware
 app.use(helmet());
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    credentials: true,
+  }),
+);
 
 // Rate limiting
 const limiter = rateLimit({
@@ -33,40 +35,39 @@ try {
   const { metricsMiddleware } = require('./middleware/metrics');
   const { correlationIdMiddleware } = require('./middleware/correlation-id');
   const { requestLoggingMiddleware } = require('./middleware/logging');
-  
+
   console.log('✅ Monitoring middleware found - integrating...');
-  
+
   // Apply monitoring middleware
   app.use(correlationIdMiddleware);
   app.use(requestLoggingMiddleware);
   app.use(metricsMiddleware);
-  
+
   console.log('✅ Monitoring middleware integrated successfully!');
-  
+
   // Add metrics endpoint
   const { register } = require('./middleware/metrics');
   app.get('/metrics', async (req, res) => {
     try {
       res.set('Content-Type', register.contentType);
       res.end(await register.metrics());
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating metrics:', error);
       res.status(500).end('Error generating metrics');
     }
   });
-  
-} catch (error) {
+} catch (error: any) {
   console.log('⚠️  Some monitoring middleware missing, continuing without...');
-  console.log('Error:', error.message);
+  console.log('Error:', error.message as any);
 }
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'healthy', 
+  res.json({
+    status: 'healthy',
     timestamp: new Date().toISOString(),
     correlationId: req.correlationId || 'no-correlation-middleware',
-    monitoring: 'integrated'
+    monitoring: 'integrated',
   });
 });
 
@@ -74,15 +75,15 @@ app.get('/health', (req, res) => {
 app.get('/api/users', async (req, res) => {
   try {
     // Simulate some work
-    await new Promise(resolve => setTimeout(resolve, Math.random() * 100));
-    
+    await new Promise((resolve) => setTimeout(resolve, Math.random() * 100));
+
     const users = [
       { id: 1, name: 'John Doe', email: 'john@example.com' },
       { id: 2, name: 'Jane Smith', email: 'jane@example.com' },
     ];
 
     res.json({ users });
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ error: 'Failed to fetch users' });
   }
 });
@@ -90,7 +91,7 @@ app.get('/api/users', async (req, res) => {
 app.post('/api/users', async (req, res) => {
   try {
     const { name, email } = req.body;
-    
+
     // Validate input
     if (!name || !email) {
       res.status(400).json({ error: 'Name and email are required' });
@@ -98,11 +99,11 @@ app.post('/api/users', async (req, res) => {
     }
 
     // Simulate database insert
-    await new Promise(resolve => setTimeout(resolve, Math.random() * 50));
+    await new Promise((resolve) => setTimeout(resolve, Math.random() * 50));
     const user = { id: Date.now(), name, email };
 
     res.status(201).json({ user });
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ error: 'Failed to create user' });
   }
 });
@@ -114,7 +115,7 @@ app.use((error: Error, req: express.Request, res: express.Response, next: expres
     res.status(500).json({
       error: 'Internal server error',
       correlationId: req.correlationId || 'no-correlation',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 });

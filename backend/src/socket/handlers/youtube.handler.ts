@@ -35,7 +35,7 @@ export function registerYouTubeHandlers(io: Server, socket: Socket): void {
         progress,
         data: job.data,
       });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get download status', { error, downloadId, userId });
       callback({ error: 'Failed to get status' });
     }
@@ -70,7 +70,7 @@ export function registerYouTubeHandlers(io: Server, socket: Socket): void {
       io.to(`youtube:${userId}`).emit('youtube:cancelled', {
         downloadId,
       });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to cancel download', { error, downloadId, userId });
       callback({ error: 'Failed to cancel' });
     }
@@ -105,7 +105,7 @@ export function registerYouTubeHandlers(io: Server, socket: Socket): void {
       io.to(`youtube:${userId}`).emit('youtube:retrying', {
         downloadId,
       });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to retry download', { error, downloadId, userId });
       callback({ error: 'Failed to retry' });
     }

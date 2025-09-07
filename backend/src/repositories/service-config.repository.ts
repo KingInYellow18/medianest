@@ -1,7 +1,10 @@
 import { ServiceConfig, Prisma } from '@prisma/client';
 
 import { encryptionService } from '../services/encryption.service';
-import { NotFoundError } from '@medianest/shared';
+// @ts-ignore
+import {
+  NotFoundError, // @ts-ignore
+} from '@medianest/shared';
 import { logger } from '../utils/logger';
 
 import { BaseRepository } from './base.repository';
@@ -35,7 +38,7 @@ export class ServiceConfigRepository extends BaseRepository<
       if (config.apiKey) {
         try {
           decryptedConfig.apiKey = encryptionService.decryptFromStorage(config.apiKey);
-        } catch (error) {
+        } catch (error: any) {
           logger.error('Failed to decrypt API key', { serviceName: config.serviceName, error });
           // Return null API key if decryption fails
           decryptedConfig.apiKey = null;
@@ -43,7 +46,7 @@ export class ServiceConfigRepository extends BaseRepository<
       }
 
       return decryptedConfig;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to decrypt service config data', {
         serviceName: config.serviceName,
         error,
@@ -66,7 +69,7 @@ export class ServiceConfigRepository extends BaseRepository<
         },
       });
       return config ? this.decryptServiceData(config) : null;
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -86,7 +89,7 @@ export class ServiceConfigRepository extends BaseRepository<
         },
       });
       return configs.map((config) => this.decryptServiceData(config));
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -98,7 +101,7 @@ export class ServiceConfigRepository extends BaseRepository<
         orderBy: { serviceName: 'asc' },
       });
       return configs.map((config) => this.decryptServiceData(config));
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -125,7 +128,7 @@ export class ServiceConfigRepository extends BaseRepository<
         },
       });
       return this.decryptServiceData(config);
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -165,7 +168,7 @@ export class ServiceConfigRepository extends BaseRepository<
         },
       });
       return this.decryptServiceData(config);
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -201,7 +204,7 @@ export class ServiceConfigRepository extends BaseRepository<
         },
       });
       return this.decryptServiceData(config);
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -215,7 +218,7 @@ export class ServiceConfigRepository extends BaseRepository<
       return await this.prisma.serviceConfig.delete({
         where: { serviceName },
       });
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }

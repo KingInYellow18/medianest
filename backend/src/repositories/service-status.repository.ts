@@ -1,6 +1,9 @@
 import { ServiceStatus, Prisma, Decimal } from '@prisma/client';
 
-import { NotFoundError } from '@medianest/shared';
+// @ts-ignore
+import {
+  NotFoundError, // @ts-ignore
+} from '@medianest/shared';
 
 import { BaseRepository } from './base.repository';
 
@@ -21,7 +24,7 @@ export class ServiceStatusRepository extends BaseRepository<
       return await this.prisma.serviceStatus.findUnique({
         where: { serviceName },
       });
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -31,7 +34,7 @@ export class ServiceStatusRepository extends BaseRepository<
       return await this.prisma.serviceStatus.findMany({
         orderBy: { serviceName: 'asc' },
       });
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -55,7 +58,7 @@ export class ServiceStatusRepository extends BaseRepository<
           ...updateData,
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -86,7 +89,7 @@ export class ServiceStatusRepository extends BaseRepository<
         },
         orderBy: { serviceName: 'asc' },
       });
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -99,7 +102,7 @@ export class ServiceStatusRepository extends BaseRepository<
         },
         orderBy: { serviceName: 'asc' },
       });
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -115,7 +118,7 @@ export class ServiceStatusRepository extends BaseRepository<
         },
         orderBy: { serviceName: 'asc' },
       });
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -138,7 +141,7 @@ export class ServiceStatusRepository extends BaseRepository<
       });
 
       return result._avg.responseTimeMs;
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }

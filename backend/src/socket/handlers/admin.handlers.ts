@@ -108,14 +108,14 @@ export function registerAdminHandlers(io: Server, socket: Socket): void {
           recipientCount: sentCount,
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to broadcast admin message', {
         adminId: userId,
-        error: error.message,
+        error: error.message as any,
       });
 
       if (callback) {
-        callback({ success: false, error: error.message });
+        callback({ success: false, error: error.message as any });
       }
     }
   });
@@ -137,14 +137,14 @@ export function registerAdminHandlers(io: Server, socket: Socket): void {
       if (callback) {
         callback({ success: true, serviceCount: statuses.length });
       }
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to refresh all services', {
         adminId: userId,
-        error: error.message,
+        error: error.message as any,
       });
 
       if (callback) {
-        callback({ success: false, error: error.message });
+        callback({ success: false, error: error.message as any });
       }
     }
   });
@@ -175,14 +175,14 @@ export function registerAdminHandlers(io: Server, socket: Socket): void {
       if (callback) {
         callback({ success: true, data: systemStatus });
       }
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get system overview', {
         adminId: userId,
-        error: error.message,
+        error: error.message as any,
       });
 
       if (callback) {
-        callback({ success: false, error: error.message });
+        callback({ success: false, error: error.message as any });
       }
     }
   });
@@ -212,14 +212,14 @@ export function registerAdminHandlers(io: Server, socket: Socket): void {
           },
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get connected users', {
         adminId: userId,
-        error: error.message,
+        error: error.message as any,
       });
 
       if (callback) {
-        callback({ success: false, error: error.message });
+        callback({ success: false, error: error.message as any });
       }
     }
   });
@@ -252,15 +252,15 @@ export function registerAdminHandlers(io: Server, socket: Socket): void {
           disconnectedSockets: disconnectedCount,
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to disconnect user', {
         adminId: userId,
         targetUserId,
-        error: error.message,
+        error: error.message as any,
       });
 
       if (callback) {
-        callback({ success: false, error: error.message });
+        callback({ success: false, error: error.message as any });
       }
     }
   });

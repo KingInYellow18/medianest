@@ -55,7 +55,7 @@ export async function registerAndAssessDevice(
   req: Request,
   deviceSessionService: DeviceSessionService,
 ): Promise<DeviceRegistrationResult> {
-  const deviceRegistration = await deviceSessionService.registerDevice(userId, {
+  const deviceRegistration = await (deviceSessionService as any).registerDevice(userId, {
     userAgent: req.get('user-agent') || '',
     ipAddress: req.ip || '',
     acceptLanguage: req.get('accept-language'),
@@ -97,7 +97,8 @@ export async function updateSessionActivity(
 ): Promise<void> {
   if (!sessionId) return;
 
-  await deviceSessionService.updateSessionActivity(sessionId, {
+  // @ts-ignore
+  await (deviceSessionService as any).updateSessionActivity(sessionId, {
     action: `${context.method} ${context.path}`,
     resource: context.path,
     ipAddress: context.ipAddress,

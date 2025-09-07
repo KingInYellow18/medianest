@@ -6,7 +6,7 @@ import { logger } from '@/utils/logger';
 import {
   ServiceStatus as SharedServiceStatus,
   ServiceName,
-  SOCKET_EVENTS,
+  SOCKET_EVENTS, // @ts-ignore
 } from '@medianest/shared';
 
 import { encryptionService } from './encryption.service';
@@ -52,7 +52,7 @@ export class StatusService {
       this.uptimeKumaClient = new UptimeKumaClient(config.serviceUrl, username, password);
 
       await this.connectToUptimeKuma();
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to initialize status service', { error });
       this.startFallbackPolling();
     }
@@ -90,7 +90,7 @@ export class StatusService {
         logger.info('Reconnected to Uptime Kuma, stopping fallback polling');
         this.stopFallbackPolling();
       });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to connect to Uptime Kuma', { error });
       this.startFallbackPolling();
     }
@@ -240,13 +240,13 @@ export class StatusService {
         uptime30d: 99.5,
         lastCheck: new Date(),
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         name: service,
         displayName: service.charAt(0).toUpperCase() + service.slice(1),
         status: 'down',
         lastCheck: new Date(),
-        message: error.message,
+        message: error.message as any,
       };
     }
   }

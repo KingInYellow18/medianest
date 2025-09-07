@@ -217,7 +217,7 @@ router.post(
         message: result,
         data: circuitBreaker.getStats(),
       });
-    } catch (error) {
+    } catch (error: any) {
       logger.error(`Failed to perform circuit breaker action`, {
         circuitBreaker: name,
         action,
@@ -285,7 +285,7 @@ router.post(
         message: 'Service dependency registered successfully',
         data: dependency,
       });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to register service dependency', {
         error: (error as Error).message,
         dependency: req.body,
@@ -327,7 +327,7 @@ router.get(
           totalRecoveries: recoveryHistory.length,
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to retrieve recovery history', {
         error: (error as Error).message,
         operation,
@@ -380,7 +380,7 @@ router.post(
           context: errorContext,
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       logger.warn('Error recovery test failed', {
         originalError: errorMessage,
         recoveryError: (error as Error).message,
@@ -434,7 +434,7 @@ router.get(
           timestamp: new Date(),
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to assess cascade risk', {
         error: (error as Error).message,
         operation,
@@ -468,7 +468,7 @@ router.delete(
         success: true,
         message: 'Error recovery history cleared successfully',
       });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to clear recovery history', {
         error: (error as Error).message,
       });

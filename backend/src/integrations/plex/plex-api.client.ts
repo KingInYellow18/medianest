@@ -129,7 +129,7 @@ export class PlexApiClient extends BaseApiClient {
       });
 
       return response.data.user;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get Plex user data', { error: getErrorMessage(error) });
       throw new Error(`Failed to get Plex user: ${getErrorMessage(error)}`);
     }
@@ -143,7 +143,7 @@ export class PlexApiClient extends BaseApiClient {
       );
 
       return response.data.MediaContainer?.Server || [];
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get Plex servers', { error: getErrorMessage(error) });
       throw new Error(`Failed to get Plex servers: ${getErrorMessage(error)}`);
     }
@@ -162,7 +162,7 @@ export class PlexApiClient extends BaseApiClient {
       );
 
       return response.data.MediaContainer?.Directory || [];
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get Plex libraries', { error: getErrorMessage(error) });
       throw new Error(`Failed to get Plex libraries: ${getErrorMessage(error)}`);
     }
@@ -180,7 +180,7 @@ export class PlexApiClient extends BaseApiClient {
       }>(baseUrl, `/library/sections/${libraryKey}/all`);
 
       return response.data.MediaContainer?.Metadata || [];
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get library content', {
         libraryKey,
         error: getErrorMessage(error),
@@ -202,7 +202,7 @@ export class PlexApiClient extends BaseApiClient {
       }>(baseUrl, `/search?query=${encodedQuery}`);
 
       return response.data.MediaContainer?.Metadata || [];
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to search Plex media', {
         query,
         error: getErrorMessage(error),
@@ -232,7 +232,7 @@ export class PlexApiClient extends BaseApiClient {
         throw new Error(`Media item not found: ${ratingKey}`);
       }
       return item;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get Plex media item', {
         ratingKey,
         error: getErrorMessage(error),
@@ -253,7 +253,7 @@ export class PlexApiClient extends BaseApiClient {
       }>(baseUrl, `/library/recentlyAdded?X-Plex-Container-Size=${limit}`);
 
       return response.data.MediaContainer?.Metadata || [];
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get recently added media', { error: getErrorMessage(error) });
       throw new Error(`Failed to get recently added media: ${getErrorMessage(error)}`);
     }
@@ -274,7 +274,7 @@ export class PlexApiClient extends BaseApiClient {
   protected async performHealthCheck(): Promise<void> {
     try {
       await this.getUser();
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Plex health check failed: ${getErrorMessage(error)}`);
     }
   }

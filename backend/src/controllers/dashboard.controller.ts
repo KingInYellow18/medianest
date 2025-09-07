@@ -4,7 +4,7 @@ import { mediaRequestRepository, userRepository } from '@/repositories';
 import { plexService } from '@/services/plex.service';
 import { statusService } from '@/services/status.service';
 import { cacheService } from '@/services/cache.service';
-import { AppError } from '@medianest/shared';
+import { AppError } from '../utils/errors';
 import { logger } from '@/utils/logger';
 
 export class DashboardController {
@@ -32,7 +32,7 @@ export class DashboardController {
           count: statuses.length,
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get service statuses', { error });
       throw new AppError('DASHBOARD_ERROR', 'Failed to retrieve service statuses', 500);
     }
@@ -68,7 +68,7 @@ export class DashboardController {
         success: true,
         data: status,
       });
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         throw error;
       }
@@ -94,7 +94,7 @@ export class DashboardController {
       let recentlyAdded = [];
       try {
         recentlyAdded = await plexService.getRecentlyAdded(userId);
-      } catch (error) {
+      } catch (error: any) {
         logger.warn('Failed to get recently added from Plex', { error });
       }
 
@@ -122,7 +122,7 @@ export class DashboardController {
           },
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get dashboard stats', { error });
       throw new AppError('DASHBOARD_STATS_ERROR', 'Failed to retrieve dashboard statistics', 500);
     }
@@ -139,7 +139,7 @@ export class DashboardController {
           unreadCount: 0,
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get notifications', { error });
       throw new AppError('NOTIFICATIONS_ERROR', 'Failed to retrieve notifications', 500);
     }

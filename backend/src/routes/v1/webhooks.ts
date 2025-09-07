@@ -24,7 +24,7 @@ router.post(
       await overseerrService.handleWebhook(req.body);
 
       res.status(200).json({ success: true });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Webhook processing failed', { error });
       res.status(500).json({ error: 'Webhook processing failed' });
     }

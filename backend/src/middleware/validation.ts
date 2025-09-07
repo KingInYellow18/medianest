@@ -5,11 +5,11 @@ import { AppError } from '../utils/errors';
 import { logger } from '../utils/logger';
 
 interface ValidationData {
-  body?: unknown;
-  params?: unknown;
-  query?: unknown;
-  headers?: unknown;
-  cookies?: unknown;
+  body?: any;
+  params?: any;
+  query?: any;
+  headers?: any;
+  cookies?: any;
 }
 
 /**
@@ -55,7 +55,7 @@ export function validate(schema: ZodSchema) {
       if (parsed.query) req.query = parsed.query;
 
       next();
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof ZodError) {
         const validationError = formatZodError(error);
         logger.warn('Validation failed', {
@@ -69,7 +69,7 @@ export function validate(schema: ZodSchema) {
           validationError.message,
           400,
           'VALIDATION_ERROR',
-          validationError.details
+          validationError.details,
         );
 
         next(appError);
@@ -88,7 +88,7 @@ export function validate(schema: ZodSchema) {
  * Format Zod validation errors into user-friendly format
  */
 function formatZodError(error: ZodError) {
-  const details = error.errors.map(err => {
+  const details = error.errors.map((err) => {
     const path = err.path.join('.');
     return {
       field: path,
@@ -116,12 +116,9 @@ function formatZodError(error: ZodError) {
 /**
  * Validation middleware for specific request parts
  */
-export const validateBody = (schema: ZodSchema) =>
-  validate(z.object({ body: schema }));
-export const validateParams = (schema: ZodSchema) =>
-  validate(z.object({ params: schema }));
-export const validateQuery = (schema: ZodSchema) =>
-  validate(z.object({ query: schema }));
+export const validateBody = (schema: ZodSchema) => validate(z.object({ body: schema }));
+export const validateParams = (schema: ZodSchema) => validate(z.object({ params: schema }));
+export const validateQuery = (schema: ZodSchema) => validate(z.object({ query: schema }));
 
 /**
  * Combined validation for multiple request parts

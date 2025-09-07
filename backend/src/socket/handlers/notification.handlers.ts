@@ -77,16 +77,16 @@ export function registerNotificationHandlers(io: Server, socket: Socket): void {
       logger.error('Failed to mark notification as read', {
         notificationId,
         userId,
-        error: error.message,
+        error: error.message as any,
       });
 
       if (callback) {
-        callback({ success: false, error: error.message });
+        callback({ success: false, error: error.message as any });
       }
 
       socket.emit('notification:read:error', {
         id: notificationId,
-        error: error.message,
+        error: error.message as any,
       });
     }
   });
@@ -107,11 +107,11 @@ export function registerNotificationHandlers(io: Server, socket: Socket): void {
     } catch (error: any) {
       logger.error('Failed to mark all notifications as read', {
         userId,
-        error: error.message,
+        error: error.message as any,
       });
 
       if (callback) {
-        callback({ success: false, error: error.message });
+        callback({ success: false, error: error.message as any });
       }
     }
   });
@@ -133,11 +133,11 @@ export function registerNotificationHandlers(io: Server, socket: Socket): void {
       logger.error('Failed to dismiss notification', {
         notificationId,
         userId,
-        error: error.message,
+        error: error.message as any,
       });
 
       if (callback) {
-        callback({ success: false, error: error.message });
+        callback({ success: false, error: error.message as any });
       }
     }
   });
@@ -163,11 +163,11 @@ export function registerNotificationHandlers(io: Server, socket: Socket): void {
       } catch (error: any) {
         logger.error('Failed to get notification history', {
           userId,
-          error: error.message,
+          error: error.message as any,
         });
 
         if (callback) {
-          callback({ success: false, error: error.message });
+          callback({ success: false, error: error.message as any });
         }
       }
     },
@@ -202,11 +202,11 @@ export function registerNotificationHandlers(io: Server, socket: Socket): void {
           notificationId: data?.notificationId,
           action: data?.action,
           userId,
-          error: error.message,
+          error: error.message as any,
         });
 
         if (callback) {
-          callback({ success: false, error: error.message });
+          callback({ success: false, error: error.message as any });
         }
       }
     },

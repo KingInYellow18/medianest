@@ -42,17 +42,17 @@ export class SessionAnalyticsService {
         topUserAgents: [
           { userAgent: 'Chrome 91.0', count: 45 },
           { userAgent: 'Firefox 89.0', count: 32 },
-          { userAgent: 'Safari 14.1', count: 28 }
+          { userAgent: 'Safari 14.1', count: 28 },
         ],
         topCountries: [
           { country: 'US', count: 78 },
           { country: 'CA', count: 34 },
-          { country: 'GB', count: 23 }
+          { country: 'GB', count: 23 },
         ],
         securityEvents: 3,
-        suspiciousActivity: 1
+        suspiciousActivity: 1,
       };
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get session metrics', { error });
       throw error;
     }
@@ -72,9 +72,9 @@ export class SessionAnalyticsService {
         commonLocations: ['192.168.1.0/24'],
         commonDevices: ['Chrome/Windows', 'Safari/macOS'],
         riskScore: 15,
-        anomalies: []
+        anomalies: [],
       };
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to analyze user behavior', { error, userId });
       throw error;
     }
@@ -83,12 +83,17 @@ export class SessionAnalyticsService {
   /**
    * Detect anomalous session activity
    */
-  async detectAnomalies(userId: string, currentSession: any): Promise<Array<{
-    type: string;
-    severity: 'low' | 'medium' | 'high';
-    description: string;
-    riskScore: number;
-  }>> {
+  async detectAnomalies(
+    userId: string,
+    currentSession: any,
+  ): Promise<
+    Array<{
+      type: string;
+      severity: 'low' | 'medium' | 'high';
+      description: string;
+      riskScore: number;
+    }>
+  > {
     const anomalies = [];
     const userPattern = await this.analyzeUserBehavior(userId);
 
@@ -99,7 +104,7 @@ export class SessionAnalyticsService {
           type: 'unusual_session_duration',
           severity: 'medium' as const,
           description: 'Session duration significantly longer than typical',
-          riskScore: 25
+          riskScore: 25,
         });
       }
 
@@ -110,22 +115,25 @@ export class SessionAnalyticsService {
           type: 'unusual_time',
           severity: 'low' as const,
           description: 'Activity at unusual time of day',
-          riskScore: 15
+          riskScore: 15,
         });
       }
 
       // Check for new location
-      if (currentSession.ipAddress && !this.isKnownLocation(currentSession.ipAddress, userPattern.commonLocations)) {
+      if (
+        currentSession.ipAddress &&
+        !this.isKnownLocation(currentSession.ipAddress, userPattern.commonLocations)
+      ) {
         anomalies.push({
           type: 'new_location',
           severity: 'high' as const,
           description: 'Login from new geographic location',
-          riskScore: 40
+          riskScore: 40,
         });
       }
 
       return anomalies;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to detect anomalies', { error, userId });
       return [];
     }
@@ -141,18 +149,18 @@ export class SessionAnalyticsService {
       severity: this.calculateAlertSeverity(alertType),
       timestamp: new Date(),
       details,
-      resolved: false
+      resolved: false,
     };
 
     try {
       // This would typically save to database and send notifications
       logger.warn('Security alert generated', alert);
-      
+
       // For high severity alerts, could trigger additional actions
       if (alert.severity === 'high') {
         await this.handleHighSeverityAlert(alert);
       }
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to generate security alert', { error, alert });
     }
   }
@@ -176,14 +184,14 @@ export class SessionAnalyticsService {
       'account_takeover',
       'suspicious_login',
       'data_breach_attempt',
-      'privilege_escalation'
+      'privilege_escalation',
     ];
 
     const mediumSeverityTypes = [
       'unusual_activity',
       'multiple_failed_logins',
       'new_device',
-      'location_anomaly'
+      'location_anomaly',
     ];
 
     if (highSeverityTypes.includes(alertType)) return 'high';
@@ -196,19 +204,21 @@ export class SessionAnalyticsService {
    */
   private isKnownLocation(ipAddress: string, knownLocations: string[]): boolean {
     // Simple IP subnet check - in production would use more sophisticated geolocation
-    return knownLocations.some(location => {
+    return knownLocations.some((location) => {
       if (location.includes('/')) {
         // CIDR notation check
         const [network, cidr] = location.split('/');
         const networkParts = network.split('.').map(Number);
         const ipParts = ipAddress.split('.').map(Number);
         const prefixLength = parseInt(cidr, 10);
-        
+
         // Simple subnet check for first 3 octets (24-bit subnet)
         if (prefixLength >= 24) {
-          return networkParts[0] === ipParts[0] && 
-                 networkParts[1] === ipParts[1] && 
-                 networkParts[2] === ipParts[2];
+          return (
+            networkParts[0] === ipParts[0] &&
+            networkParts[1] === ipParts[1] &&
+            networkParts[2] === ipParts[2]
+          );
         }
       }
       return location === ipAddress;
@@ -222,7 +232,7 @@ export class SessionAnalyticsService {
     try {
       // This would query session history from database
       return [];
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get user session history', { error, userId });
       return [];
     }
@@ -238,7 +248,7 @@ export class SessionAnalyticsService {
     try {
       // This would delete old analytics data
       logger.info('Analytics data cleanup completed', { cutoffDate, retentionDays });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to cleanup analytics data', { error });
     }
   }

@@ -200,7 +200,7 @@ export class HealthMonitorService extends EventEmitter {
           connectionState: 'connected',
         },
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         name: 'database',
         status: 'unhealthy',
@@ -242,7 +242,7 @@ export class HealthMonitorService extends EventEmitter {
           memoryUsage: await this.getRedisMemoryUsage(),
         },
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         name: 'redis',
         status: 'unhealthy',
@@ -311,7 +311,7 @@ export class HealthMonitorService extends EventEmitter {
           breakerDetails,
         },
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         name: 'circuit-breakers',
         status: 'unhealthy',
@@ -353,7 +353,7 @@ export class HealthMonitorService extends EventEmitter {
           usagePercent: Math.round(memoryUsagePercent * 100) / 100,
         },
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         name: 'memory',
         status: 'unhealthy',
@@ -395,7 +395,7 @@ export class HealthMonitorService extends EventEmitter {
           services: overallHealth.services,
         },
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         name: 'external-services',
         status: 'unhealthy',
@@ -494,7 +494,7 @@ export class HealthMonitorService extends EventEmitter {
 
     // Schedule regular health checks every 30 seconds
     this.healthCheckInterval = setInterval(() => {
-      this.performSystemHealthCheck().catch((error) => {
+      this.performSystemHealthCheck().catch((error: any) => {
         logger.error('Scheduled health check failed', { error });
       });
     }, 30000);

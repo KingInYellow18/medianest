@@ -25,8 +25,8 @@ if (
 ) {
   try {
     Redis = require('ioredis').Redis;
-  } catch (error) {
-    console.warn('Redis not available, continuing without caching:', error.message);
+  } catch (error: any) {
+    console.warn('Redis not available, continuing without caching:', error.message as any);
   }
 }
 import { logger } from '../utils/logger';
@@ -92,8 +92,8 @@ router.get(
             operations: hits + misses,
           };
         }
-      } catch (error) {
-        logger.warn('Could not fetch cache metrics:', error.message);
+      } catch (error: any) {
+        logger.warn('Could not fetch cache metrics:', error.message as any);
       }
 
       // Get database connection info
@@ -118,8 +118,8 @@ router.get(
             connectionUsage: conn.total_connections / conn.max_connections,
           };
         }
-      } catch (error) {
-        logger.warn('Could not fetch database metrics:', error.message);
+      } catch (error: any) {
+        logger.warn('Could not fetch database metrics:', error.message as any);
       }
 
       const response: any = {
@@ -162,11 +162,11 @@ router.get(
       }
 
       res.json(response);
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get performance metrics:', error);
       res.status(500).json({
         error: 'Failed to retrieve performance metrics',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+        details: process.env.NODE_ENV === 'development' ? (error.message as any) : undefined,
       });
     }
   },
@@ -270,7 +270,7 @@ router.get('/health', async (req: Request, res: Response) => {
     // Set appropriate HTTP status based on health
     const httpStatus = status === 'healthy' ? 200 : status === 'warning' ? 200 : 503;
     res.status(httpStatus).json(response);
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Health check failed:', error);
     res.status(503).json({
       status: 'critical',
@@ -340,9 +340,9 @@ router.get('/database', async (req: Request, res: Response) => {
           FROM pg_stat_statements
         `) as any[];
       }
-    } catch (error) {
+    } catch (error: any) {
       // pg_stat_statements not available
-      logger.debug('pg_stat_statements not available:', error.message);
+      logger.debug('pg_stat_statements not available:', error.message as any);
     }
 
     const conn = connectionStats[0];
@@ -396,11 +396,11 @@ router.get('/database', async (req: Request, res: Response) => {
     }
 
     res.json(response);
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Database performance analysis failed:', error);
     res.status(500).json({
       error: 'Failed to analyze database performance',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      details: process.env.NODE_ENV === 'development' ? (error.message as any) : undefined,
     });
   }
 });
@@ -523,11 +523,11 @@ router.get('/recommendations', async (req: Request, res: Response) => {
     };
 
     res.json(response);
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Failed to generate recommendations:', error);
     res.status(500).json({
       error: 'Failed to generate performance recommendations',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      details: process.env.NODE_ENV === 'development' ? (error.message as any) : undefined,
     });
   }
 });
@@ -575,10 +575,10 @@ router.post('/optimize', async (req: Request, res: Response) => {
           result: 'Database query planner statistics updated',
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       optimizations.push({
         action: 'Update database statistics',
-        result: `Failed: ${error.message}`,
+        result: `Failed: ${error.message as any}`,
       });
     }
 
@@ -594,10 +594,10 @@ router.post('/optimize', async (req: Request, res: Response) => {
             result: 'All cached data cleared',
           });
         }
-      } catch (error) {
+      } catch (error: any) {
         optimizations.push({
           action: 'Clear Redis cache',
-          result: `Failed: ${error.message}`,
+          result: `Failed: ${error.message as any}`,
         });
       }
     }
@@ -613,11 +613,11 @@ router.post('/optimize', async (req: Request, res: Response) => {
       optimizations,
       message: `${optimizations.length} optimization actions completed`,
     });
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Manual optimization failed:', error);
     res.status(500).json({
       error: 'Optimization process failed',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      details: process.env.NODE_ENV === 'development' ? (error.message as any) : undefined,
     });
   }
 });

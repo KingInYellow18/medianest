@@ -65,22 +65,25 @@ export class PlexClient {
       async (error: AxiosError) => {
         if (error.response) {
           logger.error('Plex API error', {
-            status: error.response.status,
+            status: error.response?.status!,
             url: error.config?.url,
           });
 
-          if (error.response.status === 401) {
+          if (error.response?.status! === 401) {
             throw new Error('Invalid or expired Plex token');
-          } else if (error.response.status === 404) {
+          } else if (error.response?.status! === 404) {
             throw new Error('Plex resource not found');
           }
-        } else if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
+        } else if (
+          ((error as any).code as any) === 'ECONNABORTED' ||
+          ((error as any).code as any) === 'ETIMEDOUT'
+        ) {
           logger.error('Plex API timeout', { url: error.config?.url });
           throw new Error('Plex server timeout');
         } else {
           logger.error('Plex API connection error', {
-            message: error instanceof Error ? error.message : String(error),
-            code: error.code,
+            message: (error as Error) ? (error.message as any) : String(error),
+            code: (error as any).code as any,
           });
           throw new Error('Unable to connect to Plex server');
         }
@@ -104,9 +107,9 @@ export class PlexClient {
       };
 
       return serverInfo;
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(
-        `Failed to connect to Plex server: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to connect to Plex server: ${(error as Error) ? (error.message as any) : String(error)}`,
       );
     }
   }
@@ -124,9 +127,9 @@ export class PlexClient {
       }));
 
       return libraries;
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(
-        `Failed to fetch libraries: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to fetch libraries: ${(error as Error) ? (error.message as any) : String(error)}`,
       );
     }
   }
@@ -154,9 +157,9 @@ export class PlexClient {
         items,
         totalSize: container.totalSize || 0,
       };
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(
-        `Failed to fetch library items: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to fetch library items: ${(error as Error) ? (error.message as any) : String(error)}`,
       );
     }
   }
@@ -173,8 +176,10 @@ export class PlexClient {
       const results = response.data.MediaContainer.Metadata || [];
 
       return results.map(this.mapMediaItem);
-    } catch (error) {
-      throw new Error(`Search failed: ${error instanceof Error ? error.message : String(error)}`);
+    } catch (error: any) {
+      throw new Error(
+        `Search failed: ${(error as Error) ? (error.message as any) : String(error)}`,
+      );
     }
   }
 
@@ -190,9 +195,9 @@ export class PlexClient {
       const items = response.data.MediaContainer.Metadata || [];
 
       return items.map(this.mapMediaItem);
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(
-        `Failed to fetch recently added: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to fetch recently added: ${(error as Error) ? (error.message as any) : String(error)}`,
       );
     }
   }
@@ -202,9 +207,9 @@ export class PlexClient {
     try {
       await this.client.get(`/library/sections/${sectionId}/refresh`);
       logger.info('Plex library refresh initiated', { sectionId });
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(
-        `Failed to refresh library: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to refresh library: ${(error as Error) ? (error.message as any) : String(error)}`,
       );
     }
   }
@@ -218,9 +223,9 @@ export class PlexClient {
     try {
       await this.client.get(`/library/sections/${sectionId}/refresh?${params}`);
       logger.info('Plex directory scan initiated', { sectionId, directory });
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(
-        `Failed to scan directory: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to scan directory: ${(error as Error) ? (error.message as any) : String(error)}`,
       );
     }
   }
@@ -231,9 +236,9 @@ export class PlexClient {
       const response = await this.client.get(`/library/sections/${libraryKey}/collections`);
       const collections = response.data.MediaContainer.Metadata || [];
       return collections;
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(
-        `Failed to fetch collections: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to fetch collections: ${(error as Error) ? (error.message as any) : String(error)}`,
       );
     }
   }
@@ -252,9 +257,9 @@ export class PlexClient {
         ...collection,
         items,
       };
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(
-        `Failed to fetch collection details: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to fetch collection details: ${(error as Error) ? (error.message as any) : String(error)}`,
       );
     }
   }
@@ -275,9 +280,9 @@ export class PlexClient {
     try {
       await this.client.post(`/library/sections/${libraryKey}/collections?${params}`);
       logger.info('Plex collection created', { libraryKey, title, itemCount: items.length });
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(
-        `Failed to create collection: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to create collection: ${(error as Error) ? (error.message as any) : String(error)}`,
       );
     }
   }

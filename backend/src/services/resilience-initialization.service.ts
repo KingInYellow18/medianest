@@ -53,7 +53,7 @@ export class ResilienceInitializationService {
 
       // Log system status
       await this.logSystemStatus();
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to initialize resilience system', {
         error: (error as Error).message,
         stack: (error as Error).stack,
@@ -89,7 +89,7 @@ export class ResilienceInitializationService {
         circuitBreaker.on('callFailed', ({ error, duration, state }) => {
           logger.warn(`Circuit breaker ${name} call failed`, {
             circuitBreaker: name,
-            error: error.message,
+            error: error.message as any,
             duration,
             state,
           });
@@ -98,12 +98,12 @@ export class ResilienceInitializationService {
         circuitBreaker.on('callRejected', (error) => {
           logger.warn(`Circuit breaker ${name} rejected call`, {
             circuitBreaker: name,
-            error: error.message,
+            error: error.message as any,
           });
         });
 
         logger.debug(`Initialized circuit breaker: ${name}`, options);
-      } catch (error) {
+      } catch (error: any) {
         logger.error(`Failed to initialize circuit breaker: ${name}`, {
           error: (error as Error).message,
           options,
@@ -129,7 +129,7 @@ export class ResilienceInitializationService {
 
         resilienceService.registerDependency(enhancedDependency);
         logger.debug(`Registered service dependency: ${dependency.name}`);
-      } catch (error) {
+      } catch (error: any) {
         logger.error(`Failed to register service dependency: ${dependency.name}`, {
           error: (error as Error).message,
         });
@@ -230,7 +230,8 @@ export class ResilienceInitializationService {
       maxAttempts: 3,
       shouldExecute: (error, context) =>
         context.service === 'database' &&
-        (error.message.includes('circuit breaker') || error.name === 'CircuitBreakerError'),
+        ((error.message as any)?.includes('circuit breaker') ||
+          error.name === 'CircuitBreakerError'),
       execute: async (error, context) => {
         logger.info('Attempting database circuit breaker recovery');
 
@@ -313,7 +314,7 @@ export class ResilienceInitializationService {
         const queueData = {
           operation: context.operation,
           context,
-          error: error.message,
+          error: error.message as any,
           queuedAt: new Date(),
           priority,
           retryAfter: Date.now() + (context.metadata?.retryDelay || 30000),
@@ -477,7 +478,7 @@ export class ResilienceInitializationService {
           responseTime: c.responseTime,
         })),
       });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to log system status', {
         error: (error as Error).message,
       });
@@ -529,7 +530,7 @@ export class ResilienceInitializationService {
       this.initialized = false;
 
       logger.info('Resilience system shutdown completed');
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error during resilience system shutdown', {
         error: (error as Error).message,
       });

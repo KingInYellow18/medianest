@@ -1,7 +1,7 @@
 import { redisClient } from '@/config/redis';
 import { PlexClient } from '@/integrations/plex/plex.client';
 import { userRepository, serviceConfigRepository } from '@/repositories';
-import { AppError } from '@medianest/shared';
+import { AppError } from '../utils/errors';
 import { logger } from '@/utils/logger';
 
 import { encryptionService } from './encryption.service';
@@ -47,7 +47,7 @@ export class PlexService {
       await client.testConnection();
       this.clients.set(userId, client);
       return client;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to connect to Plex', { userId, error });
       throw new AppError('Failed to connect to Plex server', 503);
     }

@@ -39,12 +39,13 @@ export function circuitBreakerMiddleware(serviceName: string) {
         return res.status(503).json({
           error: 'Service temporarily unavailable',
           service: serviceName,
+          // @ts-ignore
           retryAfter: dependency.circuitBreaker.getStats().nextRetryAt,
         });
       }
 
       next();
-    } catch (error) {
+    } catch (error: any) {
       next(error);
     }
   };
@@ -63,7 +64,7 @@ export function bulkheadMiddleware(compartmentName: string, maxConcurrent = 10) 
         },
         maxConcurrent,
       );
-    } catch (error) {
+    } catch (error: any) {
       if ((error as Error).name === 'BulkheadError') {
         logger.warn(`Bulkhead limit exceeded for compartment: ${compartmentName}`);
         return res.status(429).json({
@@ -126,7 +127,7 @@ export function gracefulDegradationMiddleware(fallbackStrategies: {
           if (cachedResponse) {
             logger.info('Serving cached response due to error', {
               path: req.path,
-              error: error.message,
+              error: error.message as any,
             });
 
             return res.status(200).json({
@@ -140,7 +141,7 @@ export function gracefulDegradationMiddleware(fallbackStrategies: {
         if (fallbackStrategies.defaultResponse) {
           logger.info('Serving default response due to error', {
             path: req.path,
-            error: error.message,
+            error: error.message as any,
           });
 
           return res.status(200).json({
@@ -163,7 +164,7 @@ export function gracefulDegradationMiddleware(fallbackStrategies: {
         originalNextFunction(error);
       } catch (fallbackError) {
         logger.error('Fallback strategy failed', {
-          originalError: error.message,
+          originalError: error.message as any,
           fallbackError: (fallbackError as Error).message,
         });
         originalNextFunction(error);
@@ -219,6 +220,7 @@ export function comprehensiveResilienceMiddleware(options: ResilienceMiddlewareO
           return res.status(503).json({
             error: 'Service temporarily unavailable',
             service: serviceName,
+            // @ts-ignore
             retryAfter: dependency.circuitBreaker.getStats().nextRetryAt,
           });
         }
@@ -252,7 +254,7 @@ export function comprehensiveResilienceMiddleware(options: ResilienceMiddlewareO
       });
 
       next();
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Resilience middleware error', {
         error: (error as Error).message,
         path: req.path,
@@ -286,7 +288,7 @@ export function errorRecoveryMiddleware() {
       if (recoveryResult) {
         logger.info('Error recovery successful', {
           path: req.path,
-          originalError: error.message,
+          originalError: error.message as any,
         });
 
         return res.status(200).json({
@@ -297,7 +299,7 @@ export function errorRecoveryMiddleware() {
       }
     } catch (recoveryError) {
       logger.error('Error recovery failed', {
-        originalError: error.message,
+        originalError: error.message as any,
         recoveryError: (recoveryError as Error).message,
       });
     }
@@ -320,7 +322,7 @@ async function getFallbackResponse(serviceName: string, req: Request): Promise<a
 
     // Return default response based on service
     return getDefaultResponse(serviceName, req.path);
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Failed to get fallback response', { error, serviceName });
     return null;
   }
@@ -330,7 +332,7 @@ async function getCachedResponseForRequest(req: Request): Promise<any> {
   try {
     const cacheKey = `response:${req.method}:${req.path}`;
     return await getCachedData(cacheKey);
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Failed to get cached response', { error, path: req.path });
     return null;
   }
@@ -390,7 +392,7 @@ async function handleRetryableError(
   } catch (retryError) {
     logger.error('Request retry failed', {
       path: req.path,
-      error: error.message,
+      error: error.message as any,
       retryError: (retryError as Error).message,
     });
   }

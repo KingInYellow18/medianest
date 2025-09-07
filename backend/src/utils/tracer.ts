@@ -1,35 +1,39 @@
+// @ts-ignore
 import { trace, context, SpanStatusCode, SpanKind, Span } from '@opentelemetry/api';
 
 /**
  * Enhanced tracer utility class for custom instrumentation
  */
 export class TracerUtil {
-  private tracer = trace.getTracer('observe-backend', '1.0.0');
+  private tracer = (trace as any).getTracer('observe-backend', '1.0.0');
 
   /**
    * Execute a function within a custom span
    */
   async withSpan<T>(
     spanName: string,
-    fn: (span: Span) => Promise<T>,
+    fn: (span: any) => Promise<T>,
     options?: {
-      kind?: SpanKind;
+      kind?: any;
       attributes?: Record<string, string | number | boolean>;
-    }
+    },
   ): Promise<T> {
     const span = this.tracer.startSpan(spanName, {
-      kind: options?.kind || SpanKind.INTERNAL,
+      kind: options?.kind || (SpanKind as any).INTERNAL,
       attributes: options?.attributes || {},
     });
 
     try {
-      const result = await context.with(trace.setSpan(context.active(), span), () => fn(span));
-      span.setStatus({ code: SpanStatusCode.OK });
+      const result = await (context as any).with(
+        (trace as any).setSpan((context as any).active(), span),
+        () => fn(span),
+      );
+      span.setStatus({ code: (SpanStatusCode as any).OK });
       return result;
-    } catch (error) {
+    } catch (error: any) {
       span.recordException(error as Error);
       span.setStatus({
-        code: SpanStatusCode.ERROR,
+        code: (SpanStatusCode as any).ERROR,
         message: (error as Error).message,
       });
       throw error;
@@ -43,25 +47,28 @@ export class TracerUtil {
    */
   withSpanSync<T>(
     spanName: string,
-    fn: (span: Span) => T,
+    fn: (span: any) => T,
     options?: {
-      kind?: SpanKind;
+      kind?: any;
       attributes?: Record<string, string | number | boolean>;
-    }
+    },
   ): T {
     const span = this.tracer.startSpan(spanName, {
-      kind: options?.kind || SpanKind.INTERNAL,
+      kind: options?.kind || (SpanKind as any).INTERNAL,
       attributes: options?.attributes || {},
     });
 
     try {
-      const result = context.with(trace.setSpan(context.active(), span), () => fn(span));
-      span.setStatus({ code: SpanStatusCode.OK });
+      const result = (context as any).with(
+        (trace as any).setSpan((context as any).active(), span),
+        () => fn(span),
+      );
+      span.setStatus({ code: (SpanStatusCode as any).OK });
       return result;
-    } catch (error) {
+    } catch (error: any) {
       span.recordException(error as Error);
       span.setStatus({
-        code: SpanStatusCode.ERROR,
+        code: (SpanStatusCode as any).ERROR,
         message: (error as Error).message,
       });
       throw error;
@@ -76,22 +83,18 @@ export class TracerUtil {
   async withDatabaseSpan<T>(
     operation: string,
     table: string,
-    fn: (span: Span) => Promise<T>,
-    query?: string
+    fn: (span: any) => Promise<T>,
+    query?: string,
   ): Promise<T> {
-    return this.withSpan(
-      `db.${operation}`,
-      fn,
-      {
-        kind: SpanKind.CLIENT,
-        attributes: {
-          'db.system': 'postgresql',
-          'db.operation': operation,
-          'db.sql.table': table,
-          ...(query && { 'db.statement': query }),
-        },
-      }
-    );
+    return this.withSpan(`db.${operation}`, fn, {
+      kind: (SpanKind as any).CLIENT,
+      attributes: {
+        'db.system': 'postgresql',
+        'db.operation': operation,
+        'db.sql.table': table,
+        ...(query && { 'db.statement': query }),
+      },
+    });
   }
 
   /**
@@ -100,22 +103,18 @@ export class TracerUtil {
   async withCacheSpan<T>(
     operation: string,
     key: string,
-    fn: (span: Span) => Promise<T>,
-    ttl?: number
+    fn: (span: any) => Promise<T>,
+    ttl?: number,
   ): Promise<T> {
-    return this.withSpan(
-      `cache.${operation}`,
-      fn,
-      {
-        kind: SpanKind.CLIENT,
-        attributes: {
-          'cache.system': 'redis',
-          'cache.operation': operation,
-          'cache.key': key,
-          ...(ttl && { 'cache.ttl': ttl }),
-        },
-      }
-    );
+    return this.withSpan(`cache.${operation}`, fn, {
+      kind: (SpanKind as any).CLIENT,
+      attributes: {
+        'cache.system': 'redis',
+        'cache.operation': operation,
+        'cache.key': key,
+        ...(ttl && { 'cache.ttl': ttl }),
+      },
+    });
   }
 
   /**
@@ -124,25 +123,21 @@ export class TracerUtil {
   async withHttpSpan<T>(
     method: string,
     url: string,
-    fn: (span: Span) => Promise<T>,
-    service?: string
+    fn: (span: any) => Promise<T>,
+    service?: string,
   ): Promise<T> {
     const urlObj = new URL(url);
-    
-    return this.withSpan(
-      `http.client.${method.toLowerCase()}`,
-      fn,
-      {
-        kind: SpanKind.CLIENT,
-        attributes: {
-          'http.method': method,
-          'http.url': url,
-          'http.scheme': urlObj.protocol.slice(0, -1),
-          'http.host': urlObj.host,
-          'external.service': service || urlObj.hostname,
-        },
-      }
-    );
+
+    return this.withSpan(`http.client.${method.toLowerCase()}`, fn, {
+      kind: (SpanKind as any).CLIENT,
+      attributes: {
+        'http.method': method,
+        'http.url': url,
+        'http.scheme': urlObj.protocol.slice(0, -1),
+        'http.host': urlObj.host,
+        'external.service': service || urlObj.hostname,
+      },
+    });
   }
 
   /**
@@ -150,28 +145,24 @@ export class TracerUtil {
    */
   async withBusinessSpan<T>(
     operationName: string,
-    fn: (span: Span) => Promise<T>,
-    attributes?: Record<string, string | number | boolean>
+    fn: (span: any) => Promise<T>,
+    attributes?: Record<string, string | number | boolean>,
   ): Promise<T> {
-    return this.withSpan(
-      `business.${operationName}`,
-      fn,
-      {
-        kind: SpanKind.INTERNAL,
-        attributes: {
-          'operation.type': 'business_logic',
-          'operation.name': operationName,
-          ...attributes,
-        },
-      }
-    );
+    return this.withSpan(`business.${operationName}`, fn, {
+      kind: (SpanKind as any).INTERNAL,
+      attributes: {
+        'operation.type': 'business_logic',
+        'operation.name': operationName,
+        ...attributes,
+      },
+    });
   }
 
   /**
    * Add custom attributes to the current active span
    */
   addAttributes(attributes: Record<string, string | number | boolean>): void {
-    const currentSpan = trace.getActiveSpan();
+    const currentSpan = (trace as any).getActiveSpan();
     if (currentSpan) {
       currentSpan.setAttributes(attributes);
     }
@@ -181,7 +172,7 @@ export class TracerUtil {
    * Add a custom event to the current active span
    */
   addEvent(name: string, attributes?: Record<string, string | number | boolean>): void {
-    const currentSpan = trace.getActiveSpan();
+    const currentSpan = (trace as any).getActiveSpan();
     if (currentSpan) {
       currentSpan.addEvent(name, attributes);
     }
@@ -191,12 +182,12 @@ export class TracerUtil {
    * Record an exception in the current active span
    */
   recordException(error: Error, attributes?: Record<string, string | number | boolean>): void {
-    const currentSpan = trace.getActiveSpan();
+    const currentSpan = (trace as any).getActiveSpan();
     if (currentSpan) {
       currentSpan.recordException(error, attributes);
       currentSpan.setStatus({
-        code: SpanStatusCode.ERROR,
-        message: error.message,
+        code: (SpanStatusCode as any).ERROR,
+        message: error.message as any,
       });
     }
   }
@@ -205,7 +196,7 @@ export class TracerUtil {
    * Get trace ID from current span context
    */
   getTraceId(): string | undefined {
-    const currentSpan = trace.getActiveSpan();
+    const currentSpan = (trace as any).getActiveSpan();
     return currentSpan?.spanContext().traceId;
   }
 
@@ -213,7 +204,7 @@ export class TracerUtil {
    * Get span ID from current span context
    */
   getSpanId(): string | undefined {
-    const currentSpan = trace.getActiveSpan();
+    const currentSpan = (trace as any).getActiveSpan();
     return currentSpan?.spanContext().spanId;
   }
 
@@ -222,7 +213,7 @@ export class TracerUtil {
    */
   getCorrelationId(): string | undefined {
     // This would need to be set in the context by middleware
-    return context.active().getValue('correlationId') as string;
+    return (context as any).active().getValue('correlationId') as string;
   }
 }
 

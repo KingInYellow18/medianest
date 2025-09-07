@@ -1,5 +1,6 @@
 // Express middleware and request/response extensions
 import { Request, Response, NextFunction } from 'express';
+// @ts-ignore
 import { User } from '@medianest/shared';
 
 // Extended Express Request interface
@@ -19,7 +20,7 @@ export interface ValidationResult {
 export interface ValidationError {
   field: string;
   message: string;
-  value?: unknown;
+  value?: any;
 }
 
 // Rate limiting types
@@ -68,5 +69,14 @@ export interface ErrorResponse {
 }
 
 // Middleware function types
-export type MiddlewareFunction = (req: Request, res: Response, next: NextFunction) => void | Promise<void>;
-export type ErrorMiddlewareFunction = (error: Error, req: Request, res: Response, next: NextFunction) => void | Promise<void>;
+export type MiddlewareFunction = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => void | Promise<void>;
+export type ErrorMiddlewareFunction = (
+  error: Error,
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => void | Promise<void>;

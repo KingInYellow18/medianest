@@ -32,7 +32,7 @@ export abstract class BaseApiClient {
 
   constructor(
     protected serviceName: string,
-    protected config: ApiClientConfig
+    protected config: ApiClientConfig,
   ) {
     const defaultCircuitBreakerOptions: CircuitBreakerOptions = {
       failureThreshold: 5,
@@ -49,7 +49,7 @@ export abstract class BaseApiClient {
 
   protected async request<T = any>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
   ): Promise<ApiResponse<T>> {
     const url = `${this.config.baseURL}${endpoint}`;
     const timeout = this.config.timeout || 5000;
@@ -92,9 +92,9 @@ export abstract class BaseApiClient {
         const contentType = response.headers.get('content-type') || '';
 
         if (contentType.includes('application/json')) {
-          data = await response.json() as T;
+          data = (await response.json()) as T;
         } else {
-          data = await response.text() as T;
+          data = (await response.text()) as T;
         }
 
         const apiResponse: ApiResponse<T> = {
@@ -112,7 +112,7 @@ export abstract class BaseApiClient {
           });
 
           throw new Error(
-            `${this.serviceName} API error: ${response.status} ${response.statusText}`
+            `${this.serviceName} API error: ${response.status} ${response.statusText}`,
           );
         }
 
@@ -122,7 +122,7 @@ export abstract class BaseApiClient {
         });
 
         return apiResponse;
-      } catch (error) {
+      } catch (error: any) {
         clearTimeout(timeoutId);
 
         const errorObj = error as Error;
@@ -143,7 +143,7 @@ export abstract class BaseApiClient {
 
   protected async requestWithRetry<T = any>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
   ): Promise<ApiResponse<T>> {
     const maxRetries = this.config.retryAttempts || 3;
     const retryDelay = this.config.retryDelay || 1000;
@@ -151,7 +151,7 @@ export abstract class BaseApiClient {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         return await this.request<T>(endpoint, options);
-      } catch (error) {
+      } catch (error: any) {
         if (attempt === maxRetries) {
           throw error;
         }
@@ -185,7 +185,7 @@ export abstract class BaseApiClient {
       };
 
       return this.lastHealthCheck;
-    } catch (error) {
+    } catch (error: any) {
       this.lastHealthCheck = {
         healthy: false,
         lastChecked: new Date(),

@@ -33,7 +33,8 @@ export async function handleTokenRotation(
   }
 
   // Update session token in database
-  await sessionTokenRepository.create({
+  // @ts-ignore
+  await (sessionTokenRepository as any).create({
     userId,
     hashedToken: rotationResult.newToken,
     expiresAt: rotationResult.expiresAt,

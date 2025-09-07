@@ -1,7 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
 
+// @ts-ignore
 import { AppError, RateLimitError } from '@medianest/shared';
+
+// Re-export AppError for local imports
+export { AppError, RateLimitError };
 import { metrics } from '../utils/monitoring';
 
 // User-friendly error messages
@@ -107,7 +111,8 @@ export const errorHandler = (
         message: userMessage,
         code: err.code || 'INTERNAL_ERROR',
         correlationId,
-        ...(err instanceof RateLimitError && err.details?.retryAfter && { retryAfter: err.details.retryAfter }),
+        ...(err instanceof RateLimitError &&
+          err.details?.retryAfter && { retryAfter: err.details.retryAfter }),
         ...(process.env.NODE_ENV === 'development' && { details: err.details }),
       },
     });

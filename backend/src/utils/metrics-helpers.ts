@@ -1,4 +1,5 @@
 import { performance } from 'perf_hooks';
+// @ts-ignore
 import {
   recordDatabaseMetrics,
   recordRedisMetrics,
@@ -12,21 +13,21 @@ import {
 export function withDatabaseMetrics<T extends (...args: any[]) => Promise<any>>(
   operation: string,
   table: string,
-  fn: T
+  fn: T,
 ): T {
   return (async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
     const startTime = performance.now();
     let success = true;
-    
+
     try {
       const result = await fn(...args);
       return result;
-    } catch (error) {
+    } catch (error: any) {
       success = false;
       throw error;
     } finally {
       const duration = (performance.now() - startTime) / 1000;
-      recordDatabaseMetrics.recordQuery(operation, table, duration, success);
+      (recordDatabaseMetrics as any).recordQuery(operation, table, duration, success);
     }
   }) as T;
 }
@@ -36,21 +37,21 @@ export function withDatabaseMetrics<T extends (...args: any[]) => Promise<any>>(
  */
 export function withRedisMetrics<T extends (...args: any[]) => Promise<any>>(
   operation: string,
-  fn: T
+  fn: T,
 ): T {
   return (async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
     const startTime = performance.now();
     let success = true;
-    
+
     try {
       const result = await fn(...args);
       return result;
-    } catch (error) {
+    } catch (error: any) {
       success = false;
       throw error;
     } finally {
       const duration = (performance.now() - startTime) / 1000;
-      recordRedisMetrics.recordOperation(operation, duration, success);
+      (recordRedisMetrics as any).recordOperation(operation, duration, success);
     }
   }) as T;
 }
@@ -61,12 +62,12 @@ export function withRedisMetrics<T extends (...args: any[]) => Promise<any>>(
 export function withExternalServiceMetrics<T extends (...args: any[]) => Promise<any>>(
   service: string,
   endpoint: string,
-  fn: T
+  fn: T,
 ): T {
   return (async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
     const startTime = performance.now();
     let statusCode = 200;
-    
+
     try {
       const result = await fn(...args);
       // Try to extract status code from result if it's a response object
@@ -80,7 +81,7 @@ export function withExternalServiceMetrics<T extends (...args: any[]) => Promise
       throw error;
     } finally {
       const duration = (performance.now() - startTime) / 1000;
-      recordExternalServiceMetrics.recordRequest(service, endpoint, duration, statusCode);
+      (recordExternalServiceMetrics as any).recordRequest(service, endpoint, duration, statusCode);
     }
   }) as T;
 }
@@ -108,10 +109,10 @@ export class MetricsCollector {
         // TODO: Replace with actual database pool status
         // const pool = await getConnectionPool();
         // recordDatabaseMetrics.updateConnectionPool(pool.active, pool.idle);
-        
+
         // Placeholder values for now
-        recordDatabaseMetrics.updateConnectionPool(5, 10);
-      } catch (error) {
+        (recordDatabaseMetrics as any).updateConnectionPool(5, 10);
+      } catch (error: any) {
         console.error('Error collecting database metrics:', error);
       }
     }, 30000);
@@ -122,10 +123,10 @@ export class MetricsCollector {
         // TODO: Replace with actual Redis connection count
         // const connections = await getRedisConnections();
         // recordRedisMetrics.updateConnections(connections);
-        
+
         // Placeholder value for now
-        recordRedisMetrics.updateConnections(2);
-      } catch (error) {
+        (recordRedisMetrics as any).updateConnections(2);
+      } catch (error: any) {
         console.error('Error collecting Redis metrics:', error);
       }
     }, 30000);
@@ -137,20 +138,20 @@ export class MetricsCollector {
         // const activeUsers = await getActiveUserCount();
         // const queueSizes = await getQueueSizes();
         // const libraryStats = await getMediaLibraryStats();
-        
+
         // recordBusinessMetrics.updateActiveUsers(activeUsers);
         // recordBusinessMetrics.updateQueueSize('download', queueSizes.download);
         // recordBusinessMetrics.updateQueueSize('process', queueSizes.process);
         // recordBusinessMetrics.updateMediaLibrarySize('movies', libraryStats.movies);
         // recordBusinessMetrics.updateMediaLibrarySize('tv', libraryStats.tv);
-        
+
         // Placeholder values for now
-        recordBusinessMetrics.updateActiveUsers(Math.floor(Math.random() * 50));
-        recordBusinessMetrics.updateQueueSize('download', Math.floor(Math.random() * 10));
-        recordBusinessMetrics.updateQueueSize('process', Math.floor(Math.random() * 5));
-        recordBusinessMetrics.updateMediaLibrarySize('movies', 1000);
-        recordBusinessMetrics.updateMediaLibrarySize('tv', 500);
-      } catch (error) {
+        (recordBusinessMetrics as any).updateActiveUsers(Math.floor(Math.random() * 50));
+        (recordBusinessMetrics as any).updateQueueSize('download', Math.floor(Math.random() * 10));
+        (recordBusinessMetrics as any).updateQueueSize('process', Math.floor(Math.random() * 5));
+        (recordBusinessMetrics as any).updateMediaLibrarySize('movies', 1000);
+        (recordBusinessMetrics as any).updateMediaLibrarySize('tv', 500);
+      } catch (error: any) {
         console.error('Error collecting business metrics:', error);
       }
     }, 60000);
@@ -166,7 +167,7 @@ export class MetricsCollector {
       return;
     }
 
-    this.intervals.forEach(interval => clearInterval(interval));
+    this.intervals.forEach((interval) => clearInterval(interval));
     this.intervals = [];
     this.isCollecting = false;
   }
@@ -191,15 +192,22 @@ export const MetricsUtils = {
   /**
    * Record a media request with proper labels
    */
-  recordMediaRequest(type: 'movie' | 'tv' | 'music', status: 'requested' | 'approved' | 'downloaded' | 'failed', userId: string): void {
-    recordBusinessMetrics.recordMediaRequest(type, status, userId);
+  recordMediaRequest(
+    type: 'movie' | 'tv' | 'music',
+    status: 'requested' | 'approved' | 'downloaded' | 'failed',
+    userId: string,
+  ): void {
+    (recordBusinessMetrics as any).recordMediaRequest(type, status, userId);
   },
 
   /**
    * Record user activity with proper labels
    */
-  recordUserActivity(activity: 'login' | 'logout' | 'search' | 'request' | 'download', userId: string): void {
-    recordBusinessMetrics.recordUserActivity(activity, userId);
+  recordUserActivity(
+    activity: 'login' | 'logout' | 'search' | 'request' | 'download',
+    userId: string,
+  ): void {
+    (recordBusinessMetrics as any).recordUserActivity(activity, userId);
   },
 
   /**

@@ -70,9 +70,9 @@ function registerConnectionHandlers(io: Server, socket: Socket): void {
           roomCount: socket.rooms.size,
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       if (callback) {
-        callback({ success: false, error: error.message });
+        callback({ success: false, error: error.message as any });
       }
     }
   });

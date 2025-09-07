@@ -48,9 +48,9 @@ export class ErrorRecoveryManager {
       priority: 10,
       maxAttempts: 3,
       shouldExecute: (error, context) =>
-        error.message.includes('ECONNREFUSED') ||
-        error.message.includes('ETIMEDOUT') ||
-        error.message.includes('database') ||
+        (error.message as any)?.includes('ECONNREFUSED') ||
+        (error.message as any)?.includes('ETIMEDOUT') ||
+        (error.message as any)?.includes('database') ||
         context.service === 'database',
       execute: async (_error, context) => {
         logger.info('Attempting database recovery', {
@@ -152,7 +152,7 @@ export class ErrorRecoveryManager {
         const queueData = {
           operation: context.operation,
           context,
-          error: error.message,
+          error: error.message as any,
           queuedAt: new Date(),
           retryAfter: Date.now() + (context.metadata?.retryDelay || 30000),
         };
@@ -224,7 +224,7 @@ export class ErrorRecoveryManager {
 
     if (applicableActions.length === 0) {
       logger.warn('No applicable recovery actions found', {
-        error: error.message,
+        error: error.message as any,
         operation: context.operation,
         service: context.service,
       });
@@ -262,7 +262,7 @@ export class ErrorRecoveryManager {
         return result;
       } catch (recoveryError) {
         logger.warn(`Recovery action ${action.name} failed`, {
-          originalError: error.message,
+          originalError: error.message as any,
           recoveryError:
             recoveryError instanceof Error ? recoveryError.message : String(recoveryError),
           operation: context.operation,
@@ -275,13 +275,13 @@ export class ErrorRecoveryManager {
 
     // All recovery actions failed
     logger.error('All recovery actions failed', {
-      error: error.message,
+      error: error.message as any,
       operation: context.operation,
       triedActions: applicableActions.map((a) => a.name),
     });
 
     throw new Error(
-      `Recovery failed after trying ${applicableActions.length} actions: ${error.message}`,
+      `Recovery failed after trying ${applicableActions.length} actions: ${error.message as any}`,
     );
   }
 
@@ -310,7 +310,7 @@ export class ErrorRecoveryManager {
     if (!this.redis) return;
 
     const recoveryRecord = {
-      originalError: error.message,
+      originalError: error.message as any,
       context,
       recoveryAction,
       timestamp: new Date(),
@@ -338,9 +338,9 @@ export class ErrorRecoveryManager {
       const key = `recovery:history:${operation}`;
       const history = await this.redis.lrange(key, 0, -1);
       return history.map((record: string) => JSON.parse(record));
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to retrieve recovery history', {
-        error: error instanceof Error ? error.message : String(error),
+        error: (error as Error) ? (error.message as any) : String(error),
       });
       return [];
     }
@@ -370,7 +370,7 @@ export class ErrorRecoveryManager {
         // Enhanced context with attempt number - available for future logging
         // const enhancedContext = { ...context, attempt };
         return await operation();
-      } catch (error) {
+      } catch (error: any) {
         lastError = error as Error;
 
         logger.warn(`Operation failed, attempt ${attempt}/${options.maxAttempts}`, {

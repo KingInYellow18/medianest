@@ -37,7 +37,7 @@ export class CSRFController {
           expiresIn: 3600, // 1 hour
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get CSRF token', { error });
       next(error);
     }
@@ -66,7 +66,7 @@ export class CSRFController {
           expiresIn: 3600,
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to refresh CSRF token', { error });
       next(error);
     }

@@ -1,6 +1,9 @@
 import { YoutubeDownload, Prisma } from '@prisma/client';
 
-import { NotFoundError } from '@medianest/shared';
+// @ts-ignore
+import {
+  NotFoundError, // @ts-ignore
+} from '@medianest/shared';
 
 import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
 
@@ -45,7 +48,7 @@ export class YoutubeDownloadRepository extends BaseRepository<
           },
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -114,7 +117,7 @@ export class YoutubeDownloadRepository extends BaseRepository<
           },
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -144,7 +147,7 @@ export class YoutubeDownloadRepository extends BaseRepository<
           },
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -164,7 +167,7 @@ export class YoutubeDownloadRepository extends BaseRepository<
       return await this.prisma.youtubeDownload.delete({
         where: { id },
       });
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }

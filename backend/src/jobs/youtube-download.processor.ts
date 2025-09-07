@@ -33,7 +33,7 @@ export class YouTubeDownloadProcessor {
 
   constructor() {
     this.youtubeClient = new YouTubeClient();
-    this.youtubeDownloadRepo = new YoutubeDownloadRepository();
+    this.youtubeDownloadRepo = new YoutubeDownloadRepository({} as any);
     this.downloadPath = process.env.DOWNLOAD_PATH || '/var/lib/medianest/downloads';
 
     const redis = getRedis();
@@ -162,7 +162,7 @@ export class YouTubeDownloadProcessor {
         jobId: job.id,
         downloadId,
         userId,
-        error: error.message,
+        error: error.message as any,
       });
 
       // Update status to failed
@@ -170,7 +170,7 @@ export class YouTubeDownloadProcessor {
         status: 'failed',
         filePaths: {
           jobId: job.id,
-          error: error.message,
+          error: error.message as any,
           quality,
           format,
         },
@@ -179,7 +179,7 @@ export class YouTubeDownloadProcessor {
       // Emit failure event
       io.to(userId).emit('youtube:failed', {
         downloadId,
-        error: error.message,
+        error: error.message as any,
       });
 
       // Re-throw to mark job as failed
@@ -262,17 +262,17 @@ export class YouTubeDownloadProcessor {
             await fs.writeFile(thumbPath, Buffer.from(buffer));
             logger.debug('Downloaded thumbnail for Plex', { thumbPath });
           }
-        } catch (error) {
+        } catch (error: any) {
           logger.warn('Failed to download thumbnail', {
             videoId: metadata.id,
-            error: error.message,
+            error: error.message as any,
           });
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to create Plex metadata', {
         videoPath,
-        error: error.message,
+        error: error.message as any,
       });
     }
   }
@@ -317,11 +317,11 @@ export class YouTubeDownloadProcessor {
         libraryKey: youtubeLibraryKey,
         path: plexPath,
       });
-    } catch (error) {
+    } catch (error: any) {
       // Don't fail the job if Plex scan fails
       logger.error('Failed to trigger Plex scan', {
         userId,
-        error: error.message,
+        error: error.message as any,
       });
     }
   }
@@ -371,7 +371,7 @@ export class YouTubeDownloadProcessor {
           });
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to cleanup old downloads', { userId, error });
     }
   }

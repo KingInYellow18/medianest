@@ -10,18 +10,22 @@ const router = Router();
 
 // Schema for error reporting from frontend
 const errorReportSchema = z.object({
-  errors: z.array(z.object({
-    timestamp: z.string(),
-    level: z.enum(['debug', 'info', 'warn', 'error']),
-    message: z.string(),
-    error: z.object({
+  errors: z.array(
+    z.object({
+      timestamp: z.string(),
+      level: z.enum(['debug', 'info', 'warn', 'error']),
       message: z.string(),
-      stack: z.string().optional(),
-      code: z.string().optional(),
-      statusCode: z.number().optional(),
-    }).optional(),
-    context: z.any().optional(),
-  })),
+      error: z
+        .object({
+          message: z.string(),
+          stack: z.string().optional(),
+          code: z.string().optional(),
+          statusCode: z.number().optional(),
+        })
+        .optional(),
+      context: z.any().optional(),
+    }),
+  ),
   timestamp: z.string(),
   userAgent: z.string(),
   url: z.string(),
@@ -65,18 +69,18 @@ router.post(
         case 'error':
         default:
           logger.error('Frontend error reported', logData);
-          
+
           // Store error in database for analysis
           if (errorEntry.error) {
             await errorRepository.create({
               correlationId,
               userId,
-              errorCode: errorEntry.error.code || 'FRONTEND_ERROR',
-              errorMessage: errorEntry.error.message,
-              stackTrace: errorEntry.error.stack,
+              errorCode: (errorEntry.error as any).code || 'FRONTEND_ERROR',
+              errorMessage: errorEntry.error.message as any,
+              stackTrace: errorEntry.error.stack as any,
               requestPath: url,
               requestMethod: 'N/A',
-              statusCode: errorEntry.error.statusCode,
+              statusCode: (errorEntry.error as any).statusCode || 500,
               metadata: {
                 userAgent,
                 context: errorEntry.context,
@@ -93,7 +97,7 @@ router.post(
       message: 'Errors reported successfully',
       correlationId,
     });
-  })
+  }),
 );
 
 /**
@@ -113,7 +117,7 @@ router.get(
       success: true,
       data: errors,
     });
-  })
+  }),
 );
 
 export const errorsRoutes = router;

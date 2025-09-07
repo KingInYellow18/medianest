@@ -195,7 +195,7 @@ async function startServer() {
       logger.info(`Server running on port ${PORT}`);
       logger.info('Available namespaces: /, /authenticated, /admin, /media, /system');
     });
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Failed to start server:', error);
     process.exit(1);
   }

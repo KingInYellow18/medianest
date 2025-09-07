@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { AppError } from '@medianest/shared';
+import { AppError } from '../utils/errors';
 
 interface TimeoutOptions {
   timeout?: number; // in milliseconds

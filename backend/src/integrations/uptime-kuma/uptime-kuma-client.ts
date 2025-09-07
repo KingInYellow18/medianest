@@ -190,7 +190,7 @@ export class UptimeKumaClient extends EventEmitter {
         this.ws?.send('3'); // Pong
         this.lastHeartbeat = new Date();
       }
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to parse Uptime Kuma message', {
         message: message.substring(0, 100),
         error: getErrorMessage(error),
@@ -198,7 +198,7 @@ export class UptimeKumaClient extends EventEmitter {
     }
   }
 
-  private handleEvent(eventName: string, data: unknown): void {
+  private handleEvent(eventName: string, data: any): void {
     switch (eventName) {
       case 'monitorList':
         this.handleMonitorList(data as Record<string, UptimeKumaMonitor>);
@@ -294,7 +294,7 @@ export class UptimeKumaClient extends EventEmitter {
     }
   }
 
-  private sendMessage(event: string, data?: unknown): void {
+  private sendMessage(event: string, data?: any): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
       logger.warn('Cannot send message, WebSocket not connected', { event });
       return;
@@ -335,7 +335,7 @@ export class UptimeKumaClient extends EventEmitter {
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null;
       logger.info('Attempting to reconnect to Uptime Kuma');
-      this.connect().catch((error) => {
+      this.connect().catch((error: any) => {
         logger.error('Reconnection failed', { error: getErrorMessage(error) });
         this.scheduleReconnect();
       });

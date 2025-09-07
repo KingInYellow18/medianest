@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 
 import { plexService } from '@/services/plex.service';
-import { AppError } from '@medianest/shared';
+import { AppError } from '../utils/errors';
 import { logger } from '@/utils/logger';
 
 export class PlexController {
@@ -14,7 +14,7 @@ export class PlexController {
         success: true,
         data: serverInfo,
       });
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         throw error;
       }
@@ -35,7 +35,7 @@ export class PlexController {
           count: libraries.length,
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         throw error;
       }
@@ -64,7 +64,7 @@ export class PlexController {
           total: result.totalSize,
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         throw error;
       }
@@ -92,7 +92,7 @@ export class PlexController {
           count: results.length,
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         throw error;
       }
@@ -113,7 +113,7 @@ export class PlexController {
           count: items.length,
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         throw error;
       }
@@ -140,7 +140,7 @@ export class PlexController {
           count: collections.length,
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         throw error;
       }
@@ -160,7 +160,7 @@ export class PlexController {
         success: true,
         data: collection,
       });
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         throw error;
       }

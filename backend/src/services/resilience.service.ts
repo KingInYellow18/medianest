@@ -126,7 +126,7 @@ export class ResilienceService extends EventEmitter {
           this.emit('criticalServiceUnhealthy', dependency, healthResult);
           await this.handleCriticalServiceFailure(dependency, healthResult);
         }
-      } catch (error) {
+      } catch (error: any) {
         logger.error(`Health check failed for ${dependency.name}`, { error });
       }
     }, 30000); // Every 30 seconds
@@ -159,7 +159,7 @@ export class ResilienceService extends EventEmitter {
       }
 
       throw new Error('No health check method defined');
-    } catch (error) {
+    } catch (error: any) {
       return {
         service: dependency.name,
         healthy: false,
@@ -184,7 +184,7 @@ export class ResilienceService extends EventEmitter {
 
     try {
       return await dependency.circuitBreaker.execute(operation);
-    } catch (error) {
+    } catch (error: any) {
       this.emit('circuitBreakerTripped', serviceName, error);
 
       if (fallbackFn) {
@@ -212,7 +212,7 @@ export class ResilienceService extends EventEmitter {
 
     try {
       return await retryWithBackoff(operation, retryOptions);
-    } catch (error) {
+    } catch (error: any) {
       await this.handleRetryExhaustion(error as Error, context);
       throw error;
     }
@@ -220,7 +220,7 @@ export class ResilienceService extends EventEmitter {
 
   private async handleRetryExhaustion(error: Error, context?: any): Promise<void> {
     logger.error('Retry attempts exhausted', {
-      error: error.message,
+      error: error.message as any,
       context,
     });
 
@@ -228,8 +228,8 @@ export class ResilienceService extends EventEmitter {
     await this.deadLetterQueue.add(
       'retry-exhausted',
       {
-        error: error.message,
-        stack: error.stack,
+        error: error.message as any,
+        stack: error.stack as any,
         context,
         timestamp: new Date(),
       },
@@ -285,7 +285,8 @@ export class ResilienceService extends EventEmitter {
     this.registerRecoveryStrategy({
       name: 'database-reconnect',
       condition: (error) =>
-        error.message.includes('ECONNREFUSED') || error.message.includes('connection'),
+        (error.message as any)?.includes('ECONNREFUSED') ||
+        (error.message as any)?.includes('connection'),
       action: async (error, context) => {
         logger.info('Attempting database reconnection...');
         // Implement database reconnection logic
@@ -330,7 +331,7 @@ export class ResilienceService extends EventEmitter {
           return result;
         } catch (recoveryError) {
           logger.error(`Recovery strategy ${strategy.name} failed`, {
-            originalError: error.message,
+            originalError: error.message as any,
             recoveryError: (recoveryError as Error).message,
           });
         }
@@ -418,7 +419,7 @@ export class ResilienceService extends EventEmitter {
     try {
       const cached = await this.redis.get(cacheKey);
       return cached ? JSON.parse(cached) : null;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to retrieve cached response', { cacheKey, error });
       return null;
     }
@@ -435,7 +436,7 @@ export class ResilienceService extends EventEmitter {
           // Execute the retried operation
           await this.executeRetryJob(job.data);
           return { success: true };
-        } catch (error) {
+        } catch (error: any) {
           logger.error(`Retry job failed: ${job.id}`, { error });
           throw error;
         }
@@ -476,7 +477,7 @@ export class ResilienceService extends EventEmitter {
         if (!healthResult.healthy && dependency.criticalityLevel === 'critical') {
           overallHealthy = false;
         }
-      } catch (error) {
+      } catch (error: any) {
         services[name] = {
           service: name,
           healthy: false,
@@ -528,7 +529,7 @@ export class ResilienceService extends EventEmitter {
       this.redis.disconnect();
 
       logger.info('Graceful shutdown completed');
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error during graceful shutdown', { error });
     }
 

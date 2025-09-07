@@ -78,8 +78,8 @@ export function initializeSocketServer(httpServer: HttpServer): Server {
     // Enhanced error handling
     socket.on('error', (error) => {
       logger.error('Socket error', {
-        error: error.message,
-        stack: error.stack,
+        error: error.message as any,
+        stack: error.stack as any,
         userId: socket.data.user?.id,
         socketId: socket.id,
       });

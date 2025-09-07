@@ -11,9 +11,9 @@ export class CacheService {
     try {
       const cached = await redisClient.get(key);
       if (!cached) return null;
-      
+
       return JSON.parse(cached) as T;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Cache get error', { key, error });
       return null;
     }
@@ -26,7 +26,7 @@ export class CacheService {
     try {
       const ttlSeconds = ttl || this.defaultTTL;
       await redisClient.setex(key, ttlSeconds, JSON.stringify(value));
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Cache set error', { key, error });
     }
   }
@@ -41,7 +41,7 @@ export class CacheService {
       } else if (typeof keys === 'string') {
         await redisClient.del(keys);
       }
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Cache delete error', { keys, error });
     }
   }
@@ -49,11 +49,7 @@ export class CacheService {
   /**
    * Get or set cache with callback
    */
-  async getOrSet<T>(
-    key: string,
-    callback: () => Promise<T>,
-    ttl?: number,
-  ): Promise<T> {
+  async getOrSet<T>(key: string, callback: () => Promise<T>, ttl?: number): Promise<T> {
     // Try to get from cache first
     const cached = await this.get<T>(key);
     if (cached !== null) {
@@ -62,10 +58,10 @@ export class CacheService {
 
     // If not in cache, call the callback
     const result = await callback();
-    
+
     // Store in cache
     await this.set(key, result, ttl);
-    
+
     return result;
   }
 
@@ -79,7 +75,7 @@ export class CacheService {
         await redisClient.del(keys);
         logger.debug('Cache invalidated', { pattern, count: keys.length });
       }
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Cache pattern invalidation error', { pattern, error });
     }
   }
@@ -94,16 +90,16 @@ export class CacheService {
     try {
       const info = await redisClient.info('memory');
       const dbSize = await redisClient.dbsize();
-      
+
       // Parse memory usage from info
       const memoryMatch = info.match(/used_memory_human:(.+)/);
       const memoryUsage = memoryMatch ? memoryMatch[1].trim() : 'unknown';
-      
+
       return {
         keyCount: dbSize,
         memoryUsage,
       };
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Cache info error', { error });
       return {
         keyCount: 0,

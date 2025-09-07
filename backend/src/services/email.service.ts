@@ -64,7 +64,7 @@ export class EmailService {
     this.config = {
       from: process.env.EMAIL_FROM || 'noreply@medianest.com',
       replyTo: process.env.EMAIL_REPLY_TO,
-      provider: (process.env.EMAIL_PROVIDER as any) || 'console'
+      provider: (process.env.EMAIL_PROVIDER as any) || 'console',
     };
   }
 
@@ -73,19 +73,23 @@ export class EmailService {
    */
   async sendPasswordResetEmail(data: PasswordResetEmailData): Promise<void> {
     const template = this.generatePasswordResetTemplate(data);
-    
+
     await this.sendEmail({
       to: data.to,
       subject: template.subject,
       html: template.html,
-      text: template.text
+      text: template.text,
     });
 
-    logSecurityEvent('PASSWORD_RESET_EMAIL_SENT', {
-      to: data.to,
-      ipAddress: data.ipAddress,
-      expiresIn: data.expiresIn
-    }, 'info');
+    logSecurityEvent(
+      'PASSWORD_RESET_EMAIL_SENT',
+      {
+        to: data.to,
+        ipAddress: data.ipAddress,
+        expiresIn: data.expiresIn,
+      },
+      'info',
+    );
   }
 
   /**
@@ -93,18 +97,22 @@ export class EmailService {
    */
   async sendPasswordResetConfirmationEmail(data: PasswordResetConfirmationData): Promise<void> {
     const template = this.generatePasswordResetConfirmationTemplate(data);
-    
+
     await this.sendEmail({
       to: data.to,
       subject: template.subject,
       html: template.html,
-      text: template.text
+      text: template.text,
     });
 
-    logSecurityEvent('PASSWORD_RESET_CONFIRMATION_EMAIL_SENT', {
-      to: data.to,
-      ipAddress: data.ipAddress
-    }, 'info');
+    logSecurityEvent(
+      'PASSWORD_RESET_CONFIRMATION_EMAIL_SENT',
+      {
+        to: data.to,
+        ipAddress: data.ipAddress,
+      },
+      'info',
+    );
   }
 
   /**
@@ -112,18 +120,22 @@ export class EmailService {
    */
   async sendEmailVerificationEmail(data: EmailVerificationData): Promise<void> {
     const template = this.generateEmailVerificationTemplate(data);
-    
+
     await this.sendEmail({
       to: data.to,
       subject: template.subject,
       html: template.html,
-      text: template.text
+      text: template.text,
     });
 
-    logSecurityEvent('EMAIL_VERIFICATION_SENT', {
-      to: data.to,
-      expiresIn: data.expiresIn
-    }, 'info');
+    logSecurityEvent(
+      'EMAIL_VERIFICATION_SENT',
+      {
+        to: data.to,
+        expiresIn: data.expiresIn,
+      },
+      'info',
+    );
   }
 
   /**
@@ -131,19 +143,23 @@ export class EmailService {
    */
   async sendTwoFactorEmail(data: TwoFactorEmailData): Promise<void> {
     const template = this.generateTwoFactorTemplate(data);
-    
+
     await this.sendEmail({
       to: data.to,
       subject: template.subject,
       html: template.html,
-      text: template.text
+      text: template.text,
     });
 
-    logSecurityEvent('TWO_FACTOR_EMAIL_SENT', {
-      to: data.to,
-      ipAddress: data.ipAddress,
-      expiresIn: data.expiresIn
-    }, 'info');
+    logSecurityEvent(
+      'TWO_FACTOR_EMAIL_SENT',
+      {
+        to: data.to,
+        ipAddress: data.ipAddress,
+        expiresIn: data.expiresIn,
+      },
+      'info',
+    );
   }
 
   /**
@@ -151,19 +167,23 @@ export class EmailService {
    */
   async sendSecurityAlertEmail(data: SecurityAlertData): Promise<void> {
     const template = this.generateSecurityAlertTemplate(data);
-    
+
     await this.sendEmail({
       to: data.to,
       subject: template.subject,
       html: template.html,
-      text: template.text
+      text: template.text,
     });
 
-    logSecurityEvent('SECURITY_ALERT_EMAIL_SENT', {
-      to: data.to,
-      alertType: data.alertType,
-      ipAddress: data.ipAddress
-    }, 'info');
+    logSecurityEvent(
+      'SECURITY_ALERT_EMAIL_SENT',
+      {
+        to: data.to,
+        alertType: data.alertType,
+        ipAddress: data.ipAddress,
+      },
+      'info',
+    );
   }
 
   /**
@@ -171,12 +191,12 @@ export class EmailService {
    */
   async sendWelcomeEmail(data: { to: string; name: string }): Promise<void> {
     const template = this.generateWelcomeTemplate(data);
-    
+
     await this.sendEmail({
       to: data.to,
       subject: template.subject,
       html: template.html,
-      text: template.text
+      text: template.text,
     });
   }
 
@@ -204,15 +224,17 @@ export class EmailService {
           await this.sendViaSES(email);
           break;
         default:
-          logger.warn('Unknown email provider, falling back to console', { provider: this.config.provider });
+          logger.warn('Unknown email provider, falling back to console', {
+            provider: this.config.provider,
+          });
           await this.sendViaConsole(email);
       }
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to send email', {
         error,
         to: email.to,
         subject: email.subject,
-        provider: this.config.provider
+        provider: this.config.provider,
       });
       throw error;
     }
@@ -236,11 +258,11 @@ export class EmailService {
     console.log('--- HTML CONTENT ---');
     console.log(email.html);
     console.log('===================\n');
-    
+
     logger.info('Email sent via console', {
       to: email.to,
       subject: email.subject,
-      provider: 'console'
+      provider: 'console',
     });
   }
 
@@ -291,7 +313,7 @@ export class EmailService {
    */
   private generatePasswordResetTemplate(data: PasswordResetEmailData): EmailTemplate {
     const subject = 'Reset Your MediaNest Password';
-    
+
     const html = `
       <!DOCTYPE html>
       <html>
@@ -359,9 +381,11 @@ If you need help, please contact our support team.
   /**
    * Generate password reset confirmation template
    */
-  private generatePasswordResetConfirmationTemplate(data: PasswordResetConfirmationData): EmailTemplate {
+  private generatePasswordResetConfirmationTemplate(
+    data: PasswordResetConfirmationData,
+  ): EmailTemplate {
     const subject = 'Your MediaNest Password Has Been Changed';
-    
+
     const html = `
       <!DOCTYPE html>
       <html>
@@ -418,7 +442,7 @@ Security Information:
    */
   private generateEmailVerificationTemplate(data: EmailVerificationData): EmailTemplate {
     const subject = 'Verify Your MediaNest Email Address';
-    
+
     const html = `
       <!DOCTYPE html>
       <html>
@@ -470,7 +494,7 @@ This verification link will expire in ${data.expiresIn} minutes.
    */
   private generateTwoFactorTemplate(data: TwoFactorEmailData): EmailTemplate {
     const subject = 'Your MediaNest Login Code';
-    
+
     const html = `
       <!DOCTYPE html>
       <html>
@@ -531,7 +555,7 @@ Login attempt from:
    */
   private generateSecurityAlertTemplate(data: SecurityAlertData): EmailTemplate {
     const subject = `Security Alert: ${data.alertType}`;
-    
+
     const html = `
       <!DOCTYPE html>
       <html>
@@ -552,11 +576,15 @@ Login attempt from:
           
           <p>${data.description}</p>
           
-          ${data.actionRequired ? `
+          ${
+            data.actionRequired
+              ? `
           <div style="background: #fdcb6e; color: #2d3436; padding: 15px; border-radius: 5px; margin: 20px 0;">
             <p style="margin: 0; font-weight: bold;">⚠️ Action Required: Please review your account security settings immediately.</p>
           </div>
-          ` : ''}
+          `
+              : ''
+          }
           
           <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666;">
             <p><strong>Event Details:</strong></p>
@@ -594,7 +622,7 @@ If you have any concerns, please contact our support team.
    */
   private generateWelcomeTemplate(data: { to: string; name: string }): EmailTemplate {
     const subject = 'Welcome to MediaNest!';
-    
+
     const html = `
       <!DOCTYPE html>
       <html>

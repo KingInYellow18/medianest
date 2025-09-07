@@ -106,24 +106,24 @@ export class YouTubeClient extends BaseServiceClient {
           formats: this.transformFormats(data.formats || []),
         };
       } catch (error: any) {
-        if (error.code === 'ENOENT') {
+        if ((error as any).code as any === 'ENOENT') {
           logger.error('yt-dlp not found. Please install yt-dlp.');
           throw new Error('YouTube downloader not configured');
         }
 
-        if (error.message?.includes('Video unavailable')) {
+        if ((error.message as any)?.includes('Video unavailable')) {
           throw new Error('Video not found or unavailable');
         }
 
-        if (error.message?.includes('Private video')) {
+        if ((error.message as any)?.includes('Private video')) {
           throw new Error('This video is private');
         }
 
-        if (error.message?.includes('age-restricted')) {
+        if ((error.message as any)?.includes('age-restricted')) {
           throw new Error('This video is age-restricted');
         }
 
-        logger.error('Failed to get video info', { url, error: error.message });
+        logger.error('Failed to get video info', { url, error: error.message as any });
         throw new Error('Failed to fetch video information');
       }
     });
@@ -269,7 +269,7 @@ export class YouTubeClient extends BaseServiceClient {
     try {
       await execFile(this.ytDlpPath, ['-U'], { timeout: 60000 });
       logger.info('yt-dlp updated successfully');
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to update yt-dlp', { error });
       throw new Error('Failed to update YouTube downloader');
     }

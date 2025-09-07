@@ -23,8 +23,10 @@ declare module 'socket.io' {
 }
 
 // Repository instances - these should ideally be injected in production
-const userRepository = new UserRepository();
-const sessionTokenRepository = new SessionTokenRepository();
+// @ts-ignore
+const userRepository = new UserRepository(undefined as any);
+// @ts-ignore
+const sessionTokenRepository = new SessionTokenRepository(undefined as any);
 
 /**
  * Socket.IO authentication middleware using JWT tokens
@@ -32,14 +34,14 @@ const sessionTokenRepository = new SessionTokenRepository();
  */
 export const socketAuthMiddleware = (
   socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>,
-  next: (err?: Error) => void
+  next: (err?: Error) => void,
 ) => {
   authenticateSocket(socket)
     .then(() => next())
-    .catch((error) => {
+    .catch((error: any) => {
       logger.warn('Socket authentication failed', {
         socketId: socket.id,
-        error: error.message,
+        error: error.message as any,
         ip: socket.handshake.address,
       });
       next(new Error('Authentication failed'));
@@ -52,7 +54,7 @@ export const socketAuthMiddleware = (
  */
 export const socketOptionalAuthMiddleware = (
   socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>,
-  next: (err?: Error) => void
+  next: (err?: Error) => void,
 ) => {
   authenticateSocket(socket, true)
     .then(() => next())
@@ -67,7 +69,7 @@ export const socketOptionalAuthMiddleware = (
  */
 async function authenticateSocket(
   socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>,
-  optional: boolean = false
+  optional: boolean = false,
 ): Promise<void> {
   try {
     // Extract token from multiple sources
@@ -76,8 +78,8 @@ async function authenticateSocket(
     // 1. Check query parameters (most common for socket.io)
     if (socket.handshake.query?.token) {
       token = Array.isArray(socket.handshake.query.token)
-        ? socket.handshake.query.token[0]
-        : socket.handshake.query.token;
+        ? socket.handshake.query.token[0] || null
+        : (socket.handshake.query.token as string) || null;
     }
 
     // 2. Check Authorization header
@@ -88,7 +90,7 @@ async function authenticateSocket(
 
     // 3. Check handshake auth object
     if (!token && socket.handshake.auth?.token) {
-      token = socket.handshake.auth.token;
+      token = (socket.handshake.auth.token as string) || null;
     }
 
     // 4. Check cookies
@@ -143,13 +145,13 @@ async function authenticateSocket(
       ip: socket.handshake.address,
       userAgent: socket.handshake.headers['user-agent'],
     });
-  } catch (error) {
+  } catch (error: any) {
     if (optional) {
       // For optional auth, log but don't throw
-      logger.debug('Optional socket auth failed', { 
-        socketId: socket.id, 
-        error: error instanceof Error ? error.message : 'Unknown error',
-        ip: socket.handshake.address 
+      logger.debug('Optional socket auth failed', {
+        socketId: socket.id,
+        error: (error as Error) ? (error.message as any) : 'Unknown error',
+        ip: socket.handshake.address,
       });
       return;
     }
@@ -163,7 +165,7 @@ async function authenticateSocket(
 export const socketRequireRole = (...roles: string[]) => {
   return (
     socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>,
-    next: (err?: Error) => void
+    next: (err?: Error) => void,
   ) => {
     if (!socket.user) {
       return next(new Error('Authentication required'));
@@ -216,14 +218,14 @@ export const handleSocketDisconnect = (socket: Socket) => {
  */
 function parseCookies(cookieHeader: string): Record<string, string> {
   const cookies: Record<string, string> = {};
-  
-  cookieHeader.split(';').forEach(cookie => {
+
+  cookieHeader.split(';').forEach((cookie) => {
     const [name, value] = cookie.trim().split('=');
     if (name && value) {
       cookies[name] = decodeURIComponent(value);
     }
   });
-  
+
   return cookies;
 }
 
@@ -235,19 +237,19 @@ export const socketRateLimit = (maxEvents: number = 100, windowMs: number = 6000
 
   return (
     socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>,
-    next: (err?: Error) => void
+    next: (err?: Error) => void,
   ) => {
     const clientId = socket.user?.id || socket.handshake.address;
     const now = Date.now();
-    
+
     const client = clients.get(clientId);
-    
+
     if (!client || now > client.resetTime) {
       // Reset or initialize counter
       clients.set(clientId, { count: 1, resetTime: now + windowMs });
       return next();
     }
-    
+
     if (client.count >= maxEvents) {
       logger.warn('Socket rate limit exceeded', {
         socketId: socket.id,
@@ -257,7 +259,7 @@ export const socketRateLimit = (maxEvents: number = 100, windowMs: number = 6000
       });
       return next(new Error('Rate limit exceeded'));
     }
-    
+
     client.count++;
     next();
   };

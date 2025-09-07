@@ -21,7 +21,7 @@ export function setupNamespaces(io: Server): void {
     });
 
     socket.join('admin-room');
-    registerAdminHandlers(adminNs, socket);
+    registerAdminHandlers(adminNs as any, socket);
 
     socket.on('disconnect', (reason) => {
       logger.info('Admin disconnected from admin namespace', {
@@ -42,7 +42,7 @@ export function setupNamespaces(io: Server): void {
       socketId: socket.id,
     });
 
-    registerStatusHandlers(statusNs, socket);
+    registerStatusHandlers(statusNs as any, socket);
 
     socket.on('disconnect', () => {
       logger.debug('Client disconnected from status namespace', {
@@ -68,7 +68,7 @@ export function setupNamespaces(io: Server): void {
       socket.join(`downloads:user:${userId}`);
     }
 
-    registerDownloadHandlers(downloadsNs, socket);
+    registerDownloadHandlers(downloadsNs as any, socket);
 
     socket.on('disconnect', () => {
       logger.debug('Client disconnected from downloads namespace', {
@@ -94,7 +94,7 @@ export function setupNamespaces(io: Server): void {
       socket.join(`notifications:user:${userId}`);
     }
 
-    registerNotificationHandlers(notificationsNs, socket);
+    registerNotificationHandlers(notificationsNs as any, socket);
 
     socket.on('disconnect', () => {
       logger.debug('Client disconnected from notifications namespace', {

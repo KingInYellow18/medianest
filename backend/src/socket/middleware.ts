@@ -38,7 +38,7 @@ export async function authenticateSocket(
     };
 
     next();
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Socket authentication failed', { error });
     next(new Error('Authentication failed'));
   }
@@ -85,7 +85,7 @@ export async function authenticateAdminSocket(
     };
 
     next();
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Admin socket authentication failed', { error });
     next(new Error('Admin authentication failed'));
   }

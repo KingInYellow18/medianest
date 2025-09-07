@@ -2,23 +2,14 @@ import { Request, Response, NextFunction } from 'express';
 import { trace, context, SpanStatusCode, SpanKind } from '@opentelemetry/api';
 import { v4 as uuidv4 } from 'uuid';
 
-// Extended Request interface for tracing
-declare global {
-  namespace Express {
-    interface Request {
-      correlationId?: string;
-      traceId?: string;
-      spanId?: string;
-    }
-  }
-}
+// Types extended in types/express.d.ts
 
 /**
  * Middleware to add correlation ID and trace context to requests
  */
 export const tracingMiddleware = (req: Request, res: Response, next: NextFunction) => {
   // Get or create correlation ID
-  const correlationId = req.headers['x-correlation-id'] as string || uuidv4();
+  const correlationId = (req.headers['x-correlation-id'] as string) || uuidv4();
   req.correlationId = correlationId;
 
   // Set correlation ID in response header
@@ -48,7 +39,7 @@ export const tracingMiddleware = (req: Request, res: Response, next: NextFunctio
 export const businessOperationSpan = (operationName: string) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const tracer = trace.getTracer('observe-backend', '1.0.0');
-    
+
     const span = tracer.startSpan(operationName, {
       kind: SpanKind.SERVER,
       attributes: {
@@ -87,7 +78,7 @@ export const businessOperationSpan = (operationName: string) => {
         span.recordException(error);
         span.setStatus({
           code: SpanStatusCode.ERROR,
-          message: error.message,
+          message: error.message as any,
         });
         span.end();
       });
@@ -104,30 +95,30 @@ export const tracingErrorHandler = (
   error: Error,
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const currentSpan = trace.getActiveSpan();
-  
+
   if (currentSpan) {
     currentSpan.recordException(error);
     currentSpan.setStatus({
       code: SpanStatusCode.ERROR,
-      message: error.message,
+      message: error.message as any,
     });
     currentSpan.setAttributes({
       'error.name': error.name,
-      'error.message': error.message,
-      'error.stack': error.stack || '',
+      'error.message as any': error.message as any,
+      'error.stack as any': (error.stack as any) || '',
     });
   }
 
   // Log error with trace context
   console.error('Error occurred:', {
-    error: error.message,
+    error: error.message as any,
     correlationId: req.correlationId,
     traceId: req.traceId,
     spanId: req.spanId,
-    stack: error.stack,
+    stack: error.stack as any,
   });
 
   next(error);
@@ -138,7 +129,7 @@ export const tracingErrorHandler = (
  */
 export const createDatabaseSpan = (operation: string, table: string, query?: string) => {
   const tracer = trace.getTracer('observe-backend', '1.0.0');
-  
+
   return tracer.startSpan(`db.${operation}`, {
     kind: SpanKind.CLIENT,
     attributes: {
@@ -155,7 +146,7 @@ export const createDatabaseSpan = (operation: string, table: string, query?: str
  */
 export const createExternalAPISpan = (method: string, url: string, service?: string) => {
   const tracer = trace.getTracer('observe-backend', '1.0.0');
-  
+
   return tracer.startSpan(`http.client.${method.toLowerCase()}`, {
     kind: SpanKind.CLIENT,
     attributes: {
@@ -173,7 +164,7 @@ export const createExternalAPISpan = (method: string, url: string, service?: str
  */
 export const createCacheSpan = (operation: string, key: string, ttl?: number) => {
   const tracer = trace.getTracer('observe-backend', '1.0.0');
-  
+
   return tracer.startSpan(`cache.${operation}`, {
     kind: SpanKind.CLIENT,
     attributes: {

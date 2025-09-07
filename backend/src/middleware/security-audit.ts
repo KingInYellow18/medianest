@@ -106,7 +106,7 @@ class SecurityAuditLogger {
       if (this.config.logToDatabase) {
         await this.logToDatabase(events);
       }
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to flush security audit buffer', { error, eventsCount: events.length });
       this.logBuffer.unshift(...events);
     }
@@ -144,7 +144,7 @@ class SecurityAuditLogger {
     try {
       await this.rotateLogFileIfNeeded();
       await fs.appendFile(this.config.logFile, logEntries, 'utf8');
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to write security audit log to file', {
         error,
         logFile: this.config.logFile,
@@ -167,7 +167,7 @@ class SecurityAuditLogger {
         await this.rotateLogFile();
       }
     } catch (error: any) {
-      if (error.code !== 'ENOENT') {
+      if (((error as any).code as any) !== 'ENOENT') {
         logger.warn('Error checking log file size', { error, logFile: this.config.logFile });
       }
     }
@@ -203,7 +203,7 @@ class SecurityAuditLogger {
         originalFile: this.config.logFile,
         rotatedFile,
       });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to rotate security audit log file', {
         error,
         logFile: this.config.logFile,
@@ -223,7 +223,7 @@ class SecurityAuditLogger {
       try {
         await fs.mkdir(logDir, { recursive: true });
         logger.info('Created security audit log directory', { logDir });
-      } catch (error) {
+      } catch (error: any) {
         logger.error('Failed to create log directory', { error, logDir });
       }
     }
@@ -312,7 +312,7 @@ export function securityAuditMiddleware() {
         category,
         event: `${req.method} ${req.path}`,
         userId: req.user?.id,
-        sessionId: req.sessionID,
+        sessionId: (req as any).sessionID,
         ipAddress: req.ip || req.socket.remoteAddress || '',
         userAgent: req.get('user-agent') || '',
         resource: req.path,
@@ -334,7 +334,7 @@ export function securityAuditMiddleware() {
 
       try {
         await auditLogger.logEvent(event);
-      } catch (error) {
+      } catch (error: any) {
         logger.error('Failed to log security audit event', { error, event });
       }
     });
@@ -354,7 +354,7 @@ export function logAuthEvent(
     category: 'authentication',
     event,
     userId: req.user?.id,
-    sessionId: req.sessionID,
+    sessionId: (req as any).sessionID,
     ipAddress: req.ip || req.socket.remoteAddress || '',
     userAgent: req.get('user-agent') || '',
     outcome,

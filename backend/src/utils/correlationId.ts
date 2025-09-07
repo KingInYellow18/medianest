@@ -1,4 +1,5 @@
 import { Request } from 'express';
+// @ts-ignore
 import { v4 as uuidv4 } from 'uuid';
 import { AsyncLocalStorage } from 'async_hooks';
 
@@ -23,10 +24,9 @@ export const withCorrelationId = <T>(correlationId: string, fn: () => T): T => {
  * Extract or generate correlation ID from request
  */
 export const extractCorrelationId = (req: Request): string => {
-  return req.get('X-Correlation-ID') || 
-         req.get('X-Request-ID') || 
-         req.correlationId || 
-         uuidv4();
+  return (
+    req.get('X-Correlation-ID') || req.get('X-Request-ID') || (req as any).correlationId || uuidv4()
+  );
 };
 
 /**
@@ -36,7 +36,7 @@ export const correlationIdMiddleware = (req: any, res: any, next: any) => {
   const correlationId = extractCorrelationId(req);
   req.correlationId = correlationId;
   res.set('X-Correlation-ID', correlationId);
-  
+
   correlationIdStorage.run(correlationId, () => {
     next();
   });

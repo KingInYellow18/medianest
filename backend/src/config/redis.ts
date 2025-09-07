@@ -75,7 +75,7 @@ export const initializeRedis = async (): Promise<Redis> => {
     try {
       await redisClient.ping();
       logger.info('Redis ping successful');
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Redis ping failed:', error);
       throw error;
     }
@@ -114,7 +114,7 @@ export const checkRedisHealth = async (): Promise<boolean> => {
     const redis = getRedis();
     await redis.ping();
     return true;
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Redis health check failed:', error);
     return false;
   }
@@ -155,7 +155,7 @@ export const checkRateLimit = async (
     } else {
       return { allowed: false, retryAfter: result };
     }
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Rate limit check failed:', error);
     // Allow request on error to avoid blocking users
     return { allowed: true };

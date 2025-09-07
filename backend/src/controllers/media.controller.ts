@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 
 import { mediaRequestRepository } from '@/repositories';
 import { overseerrService } from '@/services/overseerr.service';
-import { AppError } from '@medianest/shared';
+import { AppError } from '../utils/errors';
 import { logger } from '@/utils/logger';
 
 export class MediaController {
@@ -25,7 +25,7 @@ export class MediaController {
           totalPages: results.totalPages,
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         throw error;
       }
@@ -55,7 +55,7 @@ export class MediaController {
         success: true,
         data: details,
       });
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         throw error;
       }
@@ -93,7 +93,7 @@ export class MediaController {
           timestamp: new Date().toISOString(),
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         throw error;
       }
@@ -175,7 +175,7 @@ export class MediaController {
           timestamp: new Date().toISOString(),
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get user requests', { error });
       throw new AppError('INTERNAL_ERROR', 'Failed to get requests', 500);
     }
@@ -197,7 +197,7 @@ export class MediaController {
       }
 
       // Ensure user can only see their own requests
-      if (request.userId !== userId && req.user!.role !== 'admin') {
+      if (request.userId !== userId && (req.user as any).role !== 'admin') {
         throw new AppError('ACCESS_DENIED', 'Access denied', 403);
       }
 
@@ -205,7 +205,7 @@ export class MediaController {
         success: true,
         data: request,
       });
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         throw error;
       }
@@ -230,7 +230,7 @@ export class MediaController {
       }
 
       // Ensure user can only delete their own requests
-      if (request.userId !== userId && req.user!.role !== 'admin') {
+      if (request.userId !== userId && (req.user as any).role !== 'admin') {
         throw new AppError('ACCESS_DENIED', 'Access denied', 403);
       }
 
@@ -245,7 +245,7 @@ export class MediaController {
         success: true,
         message: 'Request deleted successfully',
       });
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         throw error;
       }
@@ -257,7 +257,7 @@ export class MediaController {
   async getAllRequests(req: Request, res: Response) {
     try {
       // Only admins can access this endpoint
-      if (req.user!.role !== 'admin') {
+      if ((req.user as any).role !== 'admin') {
         throw new AppError('ACCESS_DENIED', 'Access denied', 403);
       }
 
@@ -336,7 +336,7 @@ export class MediaController {
           timestamp: new Date().toISOString(),
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         throw error;
       }

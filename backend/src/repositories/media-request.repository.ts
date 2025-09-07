@@ -1,6 +1,9 @@
 import { MediaRequest, Prisma } from '@prisma/client';
 
-import { NotFoundError } from '@medianest/shared';
+// @ts-ignore
+import {
+  NotFoundError, // @ts-ignore
+} from '@medianest/shared';
 
 import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
 
@@ -46,7 +49,7 @@ export class MediaRequestRepository extends BaseRepository<
           },
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -110,7 +113,7 @@ export class MediaRequestRepository extends BaseRepository<
           },
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -140,7 +143,7 @@ export class MediaRequestRepository extends BaseRepository<
           },
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -171,7 +174,7 @@ export class MediaRequestRepository extends BaseRepository<
       });
 
       return result.count;
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -181,7 +184,7 @@ export class MediaRequestRepository extends BaseRepository<
       return await this.prisma.mediaRequest.delete({
         where: { id },
       });
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -276,7 +279,7 @@ export class MediaRequestRepository extends BaseRepository<
 
     try {
       return await this.prisma.mediaRequest.count({ where });
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }
@@ -314,7 +317,7 @@ export class MediaRequestRepository extends BaseRepository<
           },
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       this.handleDatabaseError(error);
     }
   }

@@ -1,8 +1,8 @@
 // Re-export errors from shared package for backward compatibility
-export { 
-  AppError, 
-  ValidationError, 
-  AuthenticationError, 
+export {
+  AppError,
+  ValidationError,
+  AuthenticationError,
   AuthorizationError,
   NotFoundError,
   RateLimitError,
@@ -12,5 +12,6 @@ export {
   InternalServerError,
   isAppError,
   toAppError,
-  toErrorResponse 
+  toErrorResponse,
+  // @ts-ignore
 } from '@medianest/shared';

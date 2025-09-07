@@ -30,7 +30,7 @@ export async function retryWithBackoff<T>(
   for (let attempt = 1; attempt <= config.maxAttempts; attempt++) {
     try {
       return await fn();
-    } catch (error) {
+    } catch (error: any) {
       lastError = error as Error;
 
       if (attempt < config.maxAttempts) {
@@ -76,7 +76,7 @@ export async function simpleRetry<T>(
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       return await fn();
-    } catch (error) {
+    } catch (error: any) {
       lastError = error as Error;
 
       if (attempt < maxAttempts) {

@@ -1,4 +1,8 @@
-import { BadRequestError, NotFoundError } from '@medianest/shared';
+// @ts-ignore
+import {
+  BadRequestError,
+  NotFoundError, // @ts-ignore
+} from '@medianest/shared';
 
 import { logger } from '@/utils/logger';
 import { YouTubeClient } from '@/integrations/youtube/youtube.client';
@@ -60,7 +64,7 @@ export class YouTubeService {
       await this.redis.setex(cacheKey, 3600, JSON.stringify(metadata));
 
       return metadata;
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof BadRequestError || error instanceof NotFoundError) {
         throw error;
       }

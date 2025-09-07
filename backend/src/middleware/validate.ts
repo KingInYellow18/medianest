@@ -10,7 +10,7 @@ export const validate = (schema: ZodSchema) => {
         params: req.params,
       });
       next();
-    } catch (error) {
+    } catch (error: any) {
       // Error will be caught by error middleware
       next(error);
     }

@@ -3,8 +3,8 @@
 /**
  * Type-safe error casting utility
  */
-export function asError(error: unknown): Error {
-  if (error instanceof Error) {
+export function asError(error: any): Error {
+  if (error as Error) {
     return error;
   }
 
@@ -13,7 +13,7 @@ export function asError(error: unknown): Error {
   }
 
   if (error && typeof error === 'object' && 'message' in error) {
-    return new Error(String(error.message));
+    return new Error(String(error.message as any));
   }
 
   return new Error('Unknown error occurred');
@@ -22,7 +22,7 @@ export function asError(error: unknown): Error {
 /**
  * Get error message safely
  */
-export function getErrorMessage(error: unknown): string {
+export function getErrorMessage(error: any): string {
   return asError(error).message;
 }
 
@@ -30,16 +30,16 @@ export function getErrorMessage(error: unknown): string {
  * Check if error has specific property
  */
 export function hasErrorProperty<T>(
-  error: unknown,
+  error: any,
   property: string,
 ): error is Error & Record<string, T> {
-  return error instanceof Error && property in error;
+  return (error as Error) && property in error;
 }
 
 /**
  * Type guard for errors with status codes
  */
-export function isHttpError(error: unknown): error is Error & { status: number } {
+export function isHttpError(error: any): error is Error & { status: number } {
   return (
     hasErrorProperty<number>(error, 'status') &&
     typeof (error as Error & Record<string, unknown>).status === 'number'
@@ -50,10 +50,10 @@ export function isHttpError(error: unknown): error is Error & { status: number }
  * Type guard for errors with response data
  */
 export function isApiError(
-  error: unknown,
-): error is Error & { response: { status: number; data: unknown } } {
+  error: any,
+): error is Error & { response: { status: number; data: any } } {
   return (
-    error instanceof Error &&
+    (error as Error) &&
     'response' in error &&
     typeof error.response === 'object' &&
     error.response !== null &&

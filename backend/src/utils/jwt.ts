@@ -68,7 +68,7 @@ export function generateToken(
   const tokenOptions: jwt.SignOptions = {
     expiresIn: options?.expiresIn || expiresIn,
     issuer: options?.issuer || JWT_ISSUER,
-    audience: options?.audience || JWT_AUDIENCE,
+    audience: options?.audience || (JWT_AUDIENCE as any),
     algorithm: 'HS256',
     notBefore: '0s', // Token valid immediately
   };
@@ -105,7 +105,7 @@ export function verifyToken(
         audience: JWT_AUDIENCE,
         algorithms: ['HS256'],
       }) as JWTPayload;
-    } catch (error) {
+    } catch (error: any) {
       // If rotation secret exists, try with old secret
       if (JWT_SECRET_ROTATION && error instanceof jwt.JsonWebTokenError) {
         try {
@@ -154,7 +154,7 @@ export function verifyToken(
     }
 
     return decoded;
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof jwt.TokenExpiredError) {
       throw new AppError('TOKEN_EXPIRED', 'Token has expired', 401);
     }
@@ -287,7 +287,7 @@ export function verifyRefreshToken(refreshToken: string): { userId: string; sess
       userId: decoded.userId,
       sessionId: decoded.sessionId,
     };
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof jwt.TokenExpiredError) {
       throw new AppError('REFRESH_TOKEN_EXPIRED', 'Refresh token has expired', 401);
     }

@@ -13,6 +13,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { MediaRequestService } from '@/services/media-request.service';
 import { MediaRequestRepository } from '@/repositories/media-request.repository';
 import { OverseerrClient } from '@/integrations/overseerr/client';
+// @ts-ignore
 import { BadRequestError, NotFoundError } from '@medianest/shared';
 
 // Mock the dependencies

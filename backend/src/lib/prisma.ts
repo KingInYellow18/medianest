@@ -22,7 +22,7 @@ if (env.NODE_ENV !== 'production') {
 }
 
 // Add connection event logging
-prisma.$on('query', (e) => {
+(prisma as any).$on('query', (e: any) => {
   if (env.NODE_ENV === 'development') {
     logger.debug('Query executed', { query: e.query, duration: e.duration });
   }

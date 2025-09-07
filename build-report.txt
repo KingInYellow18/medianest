@@ -1,9 +1,0 @@
-MediaNest Production Build Report
-=================================
-Build Date: 2025-07-19T07:30:54Z
-Git SHA: e503f09
-Version: latest
-
-Image Sizes:
-------------
-nginx:latest - 50MB

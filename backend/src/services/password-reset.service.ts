@@ -4,11 +4,11 @@ import { UserRepository } from '../repositories/user.repository';
 import { SessionTokenRepository } from '../repositories/session-token.repository';
 import { AppError } from '../utils/errors';
 import { logger } from '../utils/logger';
-import { 
-  generateSecureToken, 
-  validatePasswordStrength, 
+import {
+  generateSecureToken,
+  validatePasswordStrength,
   checkPasswordReuse,
-  logSecurityEvent 
+  logSecurityEvent,
 } from '../utils/security';
 import { EmailService } from './email.service';
 
@@ -47,19 +47,19 @@ export class PasswordResetService {
   private userRepository: UserRepository;
   private sessionTokenRepository: SessionTokenRepository;
   private emailService: EmailService;
-  
+
   // In-memory storage for demo - use Redis or database in production
   private resetTokens: Map<string, PasswordResetToken> = new Map();
-  
+
   constructor(
     userRepository: UserRepository,
     sessionTokenRepository: SessionTokenRepository,
-    emailService: EmailService
+    emailService: EmailService,
   ) {
     this.userRepository = userRepository;
     this.sessionTokenRepository = sessionTokenRepository;
     this.emailService = emailService;
-    
+
     // Cleanup expired tokens every hour
     setInterval(() => this.cleanupExpiredTokens(), 60 * 60 * 1000);
   }
@@ -73,35 +73,43 @@ export class PasswordResetService {
     try {
       // Find user by email
       const user = await this.userRepository.findByEmail(email);
-      
+
       // Always return success to prevent email enumeration
       if (!user) {
-        logSecurityEvent('PASSWORD_RESET_UNKNOWN_EMAIL', {
-          email,
-          ipAddress,
-          userAgent
-        }, 'warn');
-        
+        logSecurityEvent(
+          'PASSWORD_RESET_UNKNOWN_EMAIL',
+          {
+            email,
+            ipAddress,
+            userAgent,
+          },
+          'warn',
+        );
+
         // Still return success to prevent email enumeration
         return {
           success: true,
-          message: 'If an account with this email exists, you will receive a password reset link.'
+          message: 'If an account with this email exists, you will receive a password reset link.',
         };
       }
 
       // Check if user account is active
       if (user.status !== 'active') {
-        logSecurityEvent('PASSWORD_RESET_INACTIVE_ACCOUNT', {
-          userId: user.id,
-          email,
-          status: user.status,
-          ipAddress,
-          userAgent
-        }, 'warn');
-        
+        logSecurityEvent(
+          'PASSWORD_RESET_INACTIVE_ACCOUNT',
+          {
+            userId: user.id,
+            email,
+            status: user.status,
+            ipAddress,
+            userAgent,
+          },
+          'warn',
+        );
+
         return {
           success: true,
-          message: 'If an account with this email exists, you will receive a password reset link.'
+          message: 'If an account with this email exists, you will receive a password reset link.',
         };
       }
 
@@ -109,18 +117,24 @@ export class PasswordResetService {
       const existingToken = this.findActiveResetToken(user.id);
       if (existingToken) {
         const timeRemaining = existingToken.expiresAt.getTime() - Date.now();
-        if (timeRemaining > 10 * 60 * 1000) { // More than 10 minutes remaining
-          logSecurityEvent('PASSWORD_RESET_TOKEN_ALREADY_EXISTS', {
-            userId: user.id,
-            email,
-            ipAddress,
-            userAgent,
-            existingTokenId: existingToken.id
-          }, 'info');
-          
+        if (timeRemaining > 10 * 60 * 1000) {
+          // More than 10 minutes remaining
+          logSecurityEvent(
+            'PASSWORD_RESET_TOKEN_ALREADY_EXISTS',
+            {
+              userId: user.id,
+              email,
+              ipAddress,
+              userAgent,
+              existingTokenId: existingToken.id,
+            },
+            'info',
+          );
+
           return {
             success: true,
-            message: 'If an account with this email exists, you will receive a password reset link.'
+            message:
+              'If an account with this email exists, you will receive a password reset link.',
           };
         } else {
           // Invalidate existing token if less than 10 minutes remaining
@@ -131,7 +145,7 @@ export class PasswordResetService {
       // Generate secure reset token
       const resetToken = generateSecureToken(32);
       const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-      
+
       const resetId = generateSecureToken(16);
       const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
@@ -144,7 +158,7 @@ export class PasswordResetService {
         used: false,
         createdAt: new Date(),
         ipAddress,
-        userAgent
+        userAgent,
       };
 
       this.resetTokens.set(resetId, tokenRecord);
@@ -159,47 +173,49 @@ export class PasswordResetService {
         resetUrl,
         expiresIn: 15, // minutes
         ipAddress,
-        userAgent
+        userAgent,
       });
 
-      logSecurityEvent('PASSWORD_RESET_INITIATED', {
-        userId: user.id,
-        email,
-        resetId,
-        ipAddress,
-        userAgent,
-        expiresAt
-      }, 'info');
+      logSecurityEvent(
+        'PASSWORD_RESET_INITIATED',
+        {
+          userId: user.id,
+          email,
+          resetId,
+          ipAddress,
+          userAgent,
+          expiresAt,
+        },
+        'info',
+      );
 
       return {
         success: true,
         message: 'If an account with this email exists, you will receive a password reset link.',
-        resetId
+        resetId,
       };
-
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Password reset initiation failed', {
         error,
         email,
         ipAddress,
-        userAgent
+        userAgent,
       });
 
-      throw new AppError(
-        'Failed to process password reset request',
-        500,
-        'PASSWORD_RESET_FAILED'
-      );
+      throw new AppError('Failed to process password reset request', 500, 'PASSWORD_RESET_FAILED');
     }
   }
 
   /**
    * Verify password reset token
    */
-  async verifyResetToken(tokenId: string, token: string): Promise<{ valid: boolean; userId?: string; expiresAt?: Date }> {
+  async verifyResetToken(
+    tokenId: string,
+    token: string,
+  ): Promise<{ valid: boolean; userId?: string; expiresAt?: Date }> {
     try {
       const tokenRecord = this.resetTokens.get(tokenId);
-      
+
       if (!tokenRecord) {
         return { valid: false };
       }
@@ -219,26 +235,29 @@ export class PasswordResetService {
       const providedHash = crypto.createHash('sha256').update(token).digest('hex');
       const isValid = crypto.timingSafeEqual(
         Buffer.from(tokenRecord.hashedToken, 'hex'),
-        Buffer.from(providedHash, 'hex')
+        Buffer.from(providedHash, 'hex'),
       );
 
       if (!isValid) {
-        logSecurityEvent('PASSWORD_RESET_INVALID_TOKEN', {
-          tokenId,
-          userId: tokenRecord.userId,
-          ipAddress: tokenRecord.ipAddress
-        }, 'warn');
-        
+        logSecurityEvent(
+          'PASSWORD_RESET_INVALID_TOKEN',
+          {
+            tokenId,
+            userId: tokenRecord.userId,
+            ipAddress: tokenRecord.ipAddress,
+          },
+          'warn',
+        );
+
         return { valid: false };
       }
 
       return {
         valid: true,
         userId: tokenRecord.userId,
-        expiresAt: tokenRecord.expiresAt
+        expiresAt: tokenRecord.expiresAt,
       };
-
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Token verification failed', { error, tokenId });
       return { valid: false };
     }
@@ -257,11 +276,7 @@ export class PasswordResetService {
       // Verify the reset token
       const tokenVerification = await this.verifyResetToken(tokenId, actualToken);
       if (!tokenVerification.valid || !tokenVerification.userId) {
-        throw new AppError(
-          'Invalid or expired reset token',
-          400,
-          'INVALID_RESET_TOKEN'
-        );
+        throw new AppError('Invalid or expired reset token', 400, 'INVALID_RESET_TOKEN');
       }
 
       const userId = tokenVerification.userId;
@@ -269,11 +284,7 @@ export class PasswordResetService {
       // Get user details
       const user = await this.userRepository.findById(userId);
       if (!user || user.status !== 'active') {
-        throw new AppError(
-          'User account not found or inactive',
-          400,
-          'USER_NOT_FOUND'
-        );
+        throw new AppError('User account not found or inactive', 400, 'USER_NOT_FOUND');
       }
 
       // Validate new password strength
@@ -282,7 +293,7 @@ export class PasswordResetService {
         throw new AppError(
           `Password does not meet requirements: ${passwordValidation.errors.join(', ')}`,
           400,
-          'WEAK_PASSWORD'
+          'WEAK_PASSWORD',
         );
       }
 
@@ -293,7 +304,7 @@ export class PasswordResetService {
           throw new AppError(
             'Please choose a password you have not used recently',
             400,
-            'PASSWORD_REUSED'
+            'PASSWORD_REUSED',
           );
         }
       }
@@ -328,24 +339,27 @@ export class PasswordResetService {
         name: user.name || 'User',
         ipAddress,
         userAgent,
-        timestamp: new Date()
+        timestamp: new Date(),
       });
 
-      logSecurityEvent('PASSWORD_RESET_COMPLETED', {
-        userId,
-        email: user.email,
-        tokenId,
-        ipAddress,
-        userAgent,
-        passwordScore: passwordValidation.score
-      }, 'info');
+      logSecurityEvent(
+        'PASSWORD_RESET_COMPLETED',
+        {
+          userId,
+          email: user.email,
+          tokenId,
+          ipAddress,
+          userAgent,
+          passwordScore: passwordValidation.score,
+        },
+        'info',
+      );
 
       return {
         success: true,
-        message: 'Password has been reset successfully. Please log in with your new password.'
+        message: 'Password has been reset successfully. Please log in with your new password.',
       };
-
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         throw error;
       }
@@ -353,14 +367,10 @@ export class PasswordResetService {
       logger.error('Password reset confirmation failed', {
         error,
         ipAddress,
-        userAgent
+        userAgent,
       });
 
-      throw new AppError(
-        'Failed to reset password',
-        500,
-        'PASSWORD_RESET_FAILED'
-      );
+      throw new AppError('Failed to reset password', 500, 'PASSWORD_RESET_FAILED');
     }
   }
 
@@ -371,32 +381,38 @@ export class PasswordResetService {
     const tokenRecord = this.resetTokens.get(tokenId);
     if (tokenRecord) {
       this.resetTokens.delete(tokenId);
-      
-      logSecurityEvent('PASSWORD_RESET_CANCELLED', {
-        tokenId,
-        userId: tokenRecord.userId
-      }, 'info');
+
+      logSecurityEvent(
+        'PASSWORD_RESET_CANCELLED',
+        {
+          tokenId,
+          userId: tokenRecord.userId,
+        },
+        'info',
+      );
     }
   }
 
   /**
    * Get reset attempt history for user
    */
-  async getResetHistory(userId: string): Promise<Array<{
-    id: string;
-    createdAt: Date;
-    expiresAt: Date;
-    used: boolean;
-    ipAddress: string;
-  }>> {
+  async getResetHistory(userId: string): Promise<
+    Array<{
+      id: string;
+      createdAt: Date;
+      expiresAt: Date;
+      used: boolean;
+      ipAddress: string;
+    }>
+  > {
     const history = Array.from(this.resetTokens.values())
-      .filter(token => token.userId === userId)
-      .map(token => ({
+      .filter((token) => token.userId === userId)
+      .map((token) => ({
         id: token.id,
         createdAt: token.createdAt,
         expiresAt: token.expiresAt,
         used: token.used,
-        ipAddress: token.ipAddress
+        ipAddress: token.ipAddress,
       }))
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
       .slice(0, 10); // Last 10 attempts
@@ -408,12 +424,9 @@ export class PasswordResetService {
    * Find active reset token for user
    */
   private findActiveResetToken(userId: string): PasswordResetToken | undefined {
-    return Array.from(this.resetTokens.values())
-      .find(token => 
-        token.userId === userId && 
-        !token.used && 
-        new Date() < token.expiresAt
-      );
+    return Array.from(this.resetTokens.values()).find(
+      (token) => token.userId === userId && !token.used && new Date() < token.expiresAt,
+    );
   }
 
   /**

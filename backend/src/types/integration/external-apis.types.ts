@@ -125,7 +125,7 @@ export interface ApiClientError {
   message: string;
   status?: number;
   statusText?: string;
-  data?: unknown;
+  data?: any;
 }
 
 export interface ApiClientOptions {

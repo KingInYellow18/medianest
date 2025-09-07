@@ -18,7 +18,7 @@ export function csrfProtection() {
     }
 
     // Check for CSRF token in headers or body
-    const csrfToken = req.headers['x-csrf-token'] as string || req.body._csrf;
+    const csrfToken = (req.headers['x-csrf-token'] as string) || req.body._csrf;
     const sessionCsrfToken = req.session?.csrfToken;
 
     if (!csrfToken || !sessionCsrfToken || csrfToken !== sessionCsrfToken) {
@@ -27,7 +27,7 @@ export function csrfProtection() {
         userAgent: req.get('user-agent'),
         path: req.path,
         method: req.method,
-        correlationId: req.correlationId
+        correlationId: req.correlationId,
       });
       throw new AppError('Invalid CSRF token', 403, 'CSRF_INVALID');
     }
@@ -40,7 +40,7 @@ export function csrfProtection() {
 export function generateCSRFToken(req: Request): string {
   const token = crypto.randomBytes(32).toString('hex');
   if (req.session) {
-    req.session.csrfToken = token;
+    (req as any).session.csrfToken = token;
   }
   return token;
 }
@@ -51,7 +51,7 @@ export function securityHeaders() {
     // Content Security Policy
     res.setHeader(
       'Content-Security-Policy',
-      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' https:; frame-ancestors 'none';"
+      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' https:; frame-ancestors 'none';",
     );
 
     // X-Frame-Options
@@ -67,10 +67,7 @@ export function securityHeaders() {
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 
     // Permissions Policy
-    res.setHeader(
-      'Permissions-Policy',
-      'camera=(), microphone=(), geolocation=(), payment=()'
-    );
+    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
 
     // Cross-Origin-Embedder-Policy
     res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
@@ -146,21 +143,21 @@ function sanitizeString(input: string): string {
 // Request Size Limit Middleware
 export function requestSizeLimit(maxSize: string = '10mb') {
   const maxSizeBytes = parseSize(maxSize);
-  
+
   return (req: Request, res: Response, next: NextFunction) => {
     const contentLength = parseInt(req.get('content-length') || '0', 10);
-    
+
     if (contentLength > maxSizeBytes) {
       logger.warn('Request size exceeded limit', {
         contentLength,
         maxSizeBytes,
         ip: req.ip,
         path: req.path,
-        correlationId: req.correlationId
+        correlationId: req.correlationId,
       });
       throw new AppError('Request entity too large', 413, 'REQUEST_TOO_LARGE');
     }
-    
+
     next();
   };
 }
@@ -171,17 +168,17 @@ function parseSize(size: string): number {
   if (!match) {
     throw new Error('Invalid size format');
   }
-  
+
   const value = parseFloat(match[1]);
   const unit = (match[2] || 'b').toLowerCase();
-  
+
   const units: Record<string, number> = {
     b: 1,
     kb: 1024,
     mb: 1024 * 1024,
-    gb: 1024 * 1024 * 1024
+    gb: 1024 * 1024 * 1024,
   };
-  
+
   return value * (units[unit] || 1);
 }
 
@@ -189,17 +186,17 @@ function parseSize(size: string): number {
 export function ipWhitelist(allowedIPs: string[]) {
   return (req: Request, res: Response, next: NextFunction) => {
     const clientIP = req.ip || req.connection.remoteAddress;
-    
+
     if (!clientIP || !allowedIPs.includes(clientIP)) {
       logger.warn('IP access denied', {
         clientIP,
         allowedIPs,
         path: req.path,
-        correlationId: req.correlationId
+        correlationId: req.correlationId,
       });
       throw new AppError('Access denied', 403, 'IP_NOT_ALLOWED');
     }
-    
+
     next();
   };
 }
@@ -209,9 +206,12 @@ export function sessionSecurity() {
   return (req: Request, res: Response, next: NextFunction) => {
     // Regenerate session ID on authentication
     if (req.user && req.session) {
-      req.session.regenerate((err) => {
+      (req as any).session.regenerate((err) => {
         if (err) {
-          logger.error('Session regeneration failed', { error: err, correlationId: req.correlationId });
+          logger.error('Session regeneration failed', {
+            error: err,
+            correlationId: req.correlationId,
+          });
         }
         next();
       });
@@ -227,20 +227,20 @@ export function validateRequest() {
     // Check for suspicious patterns
     const suspiciousPatterns = [
       /\.\.\//g, // Directory traversal
-      /\x00/g,   // Null bytes
+      /\x00/g, // Null bytes
       /<script/gi, // Script injections
       /javascript:/gi, // JavaScript protocol
       /data:/gi, // Data protocol
     ];
-    
+
     const requestString = JSON.stringify({
       body: req.body,
       query: req.query,
-      params: req.params
+      params: req.params,
     });
-    
-    const isSuspicious = suspiciousPatterns.some(pattern => pattern.test(requestString));
-    
+
+    const isSuspicious = suspiciousPatterns.some((pattern) => pattern.test(requestString));
+
     if (isSuspicious) {
       logger.warn('Suspicious request detected', {
         ip: req.ip,
@@ -250,11 +250,11 @@ export function validateRequest() {
         body: req.body,
         query: req.query,
         params: req.params,
-        correlationId: req.correlationId
+        correlationId: req.correlationId,
       });
       throw new AppError('Invalid request', 400, 'SUSPICIOUS_REQUEST');
     }
-    
+
     next();
   };
 }
