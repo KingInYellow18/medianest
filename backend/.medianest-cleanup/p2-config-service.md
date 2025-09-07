@@ -13,7 +13,6 @@
 ### ✅ Core Components Created
 
 1. **`src/config/config.types.ts`** - Type-safe configuration interfaces
-
    - ServerConfig, DatabaseConfig, AuthConfig, RedisConfig
    - PlexConfig, EmailConfig, OAuthConfig, IntegrationConfig
    - LoggingConfig, SecurityConfig, MonitoringConfig, DockerConfig

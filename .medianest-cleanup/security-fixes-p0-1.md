@@ -109,13 +109,11 @@ Created clean, security-focused environment template:
 The new `secrets-validator.ts` provides:
 
 1. **Required Secret Validation**:
-
    - `JWT_SECRET` - JWT token signing
    - `ENCRYPTION_KEY` - Data encryption
    - `DATABASE_URL` - Database connection
 
 2. **Optional Secret Validation**:
-
    - `JWT_SECRET_ROTATION` - JWT key rotation
    - `PLEX_TOKEN` - Plex integration
    - `METRICS_TOKEN` - Production metrics protection

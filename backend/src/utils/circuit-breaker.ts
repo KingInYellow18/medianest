@@ -40,7 +40,10 @@ export class CircuitBreaker extends EventEmitter {
   private halfOpenCalls = 0;
   private monitoringTimer: NodeJS.Timeout | null = null;
 
-  constructor(private name: string, private options: CircuitBreakerOptions) {
+  constructor(
+    private name: string,
+    private options: CircuitBreakerOptions
+  ) {
     super();
     this.startMonitoring();
 

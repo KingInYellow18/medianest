@@ -377,7 +377,6 @@ describe('Mobile Performance', () => {
 2. **Media Request Workflow**
    - Search media → Request via Overseerr → Status tracking
 3. **Content Management**
-
    - Library sync → Content organization → Playback
 
 4. **Performance Under Load**
@@ -493,7 +492,6 @@ Pre-deployment:
 ### Phase 1: Foundation (Weeks 1-2)
 
 1. **Frontend Testing Infrastructure**
-
    - Expand Vitest configuration
    - Setup React Testing Library patterns
    - Create component test templates
@@ -508,21 +506,18 @@ Pre-deployment:
 ### Phase 2: Branch-Specific Tests (Weeks 3-6)
 
 1. **Authentication Testing** (Week 3)
-
    - Unit tests for auth services
    - Integration tests for Plex OAuth
    - Security testing protocols
    - E2E authentication flows
 
 2. **Media Management Testing** (Week 4)
-
    - Media sync service tests
    - External API integration tests
    - Queue processing validation
    - Performance benchmarks
 
 3. **Performance Testing** (Week 5)
-
    - Load testing infrastructure
    - Performance regression detection
    - Caching strategy validation
@@ -537,7 +532,6 @@ Pre-deployment:
 ### Phase 3: Integration & E2E (Weeks 7-8)
 
 1. **Cross-branch Integration**
-
    - Feature interaction testing
    - Data flow validation
    - System-wide performance testing
@@ -552,7 +546,6 @@ Pre-deployment:
 ### Phase 4: CI/CD Integration (Weeks 9-10)
 
 1. **Pipeline Integration**
-
    - Automated test execution
    - Quality gate enforcement
    - Performance monitoring

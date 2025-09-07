@@ -251,7 +251,6 @@ main()
 ## Testing Requirements
 
 1. **Schema Tests:**
-
    - All models can be created
    - Relationships work correctly
    - Constraints are enforced
@@ -264,7 +263,6 @@ main()
 ## Migration Strategy
 
 1. **Development:**
-
    - Use `prisma migrate dev` for iterations
    - Reset database when needed
 

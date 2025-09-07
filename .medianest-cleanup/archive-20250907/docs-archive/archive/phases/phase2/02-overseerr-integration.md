@@ -585,7 +585,6 @@ setInterval(monitorTVRequests, 60 * 60 * 1000);
 ## Testing Requirements
 
 1. **Unit Tests:**
-
    - Client methods
    - Service layer logic
    - Queue processing
@@ -622,7 +621,6 @@ setInterval(monitorTVRequests, 60 * 60 * 1000);
 ### What Was Built
 
 1. **Simplified Overseerr Client** (`backend/src/integrations/overseerr/overseerr.client.ts`)
-
    - Basic API client with essential endpoints
    - Search media functionality
    - Submit media requests
@@ -630,7 +628,6 @@ setInterval(monitorTVRequests, 60 * 60 * 1000);
    - Simple error handling with retry
 
 2. **Overseerr Service Layer** (`backend/src/services/overseerr.service.ts`)
-
    - Service initialization with availability checking
    - Media search with caching (1 minute)
    - Request submission with duplicate checking
@@ -638,7 +635,6 @@ setInterval(monitorTVRequests, 60 * 60 * 1000);
    - Graceful degradation when service unavailable
 
 3. **API Routes** (`backend/src/routes/v1/media.ts`)
-
    - GET /api/v1/media/search - Search for media
    - GET /api/v1/media/:mediaType/:tmdbId - Get media details
    - POST /api/v1/media/request - Submit media request

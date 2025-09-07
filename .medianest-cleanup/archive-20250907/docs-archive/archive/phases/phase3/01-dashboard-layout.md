@@ -83,7 +83,6 @@ export function useServiceStatus() {
 ### Visual Design Requirements
 
 1. **Service Cards**:
-
    - Green indicator for "up" status
    - Red indicator for "down" status
    - Yellow indicator for "degraded" status
@@ -92,7 +91,6 @@ export function useServiceStatus() {
    - Quick action buttons based on service type
 
 2. **Layout Grid**:
-
    - Desktop: 3 columns
    - Tablet: 2 columns
    - Mobile: 1 column
@@ -151,13 +149,11 @@ export function useServiceStatus() {
 ## Testing Requirements
 
 1. **Unit Tests**:
-
    - Service card renders with all status types
    - Status indicator shows correct colors
    - Quick actions trigger correct handlers
 
 2. **Integration Tests**:
-
    - WebSocket updates reflect in UI
    - Service cards handle null/undefined data
    - Error states display correctly
@@ -254,34 +250,29 @@ export function ServiceCard({ service }: ServiceCardProps) {
 **Completed Components:**
 
 1. **Dashboard Page (`frontend/src/app/(auth)/dashboard/page.tsx`)**
-
    - Server component using Next.js 14 App Router
    - Fetches initial service status via `getServiceStatus()`
    - Renders `DashboardLayout` with initial data
 
 2. **useServiceStatus Hook (`frontend/src/hooks/useServiceStatus.ts`)**
-
    - WebSocket connection to backend with JWT authentication
    - Real-time service status updates via Socket.io
    - Fallback polling every 30 seconds
    - Graceful connection handling with reconnection
 
 3. **DashboardLayout Component (`frontend/src/components/dashboard/DashboardLayout.tsx`)**
-
    - Client component with 'use client' directive
    - Responsive grid layout (3 cols desktop, 2 tablet, 1 mobile)
    - Connection status indicator
    - Service cards with real-time updates
 
 4. **ServiceCard Component (`frontend/src/components/dashboard/ServiceCard.tsx`)**
-
    - Displays service status, response time, uptime percentage
    - Shows last check timestamp using date-fns
    - Disabled state for unavailable services
    - Quick actions integration
 
 5. **StatusIndicator Component (`frontend/src/components/dashboard/StatusIndicator.tsx`)**
-
    - Color-coded status indicators (green/red/yellow)
    - Animated pulse effect
    - ARIA accessibility labels

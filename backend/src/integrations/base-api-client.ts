@@ -31,7 +31,10 @@ export abstract class BaseApiClient {
   protected circuitBreaker: CircuitBreaker;
   protected lastHealthCheck: HealthStatus | null = null;
 
-  constructor(protected serviceName: string, protected config: ApiClientConfig) {
+  constructor(
+    protected serviceName: string,
+    protected config: ApiClientConfig
+  ) {
     const defaultCircuitBreakerOptions: CircuitBreakerOptions = {
       failureThreshold: 5,
       resetTimeout: 30000, // 30 seconds

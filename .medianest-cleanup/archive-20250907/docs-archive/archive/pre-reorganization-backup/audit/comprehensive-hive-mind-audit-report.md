@@ -136,7 +136,6 @@ The MediaNest codebase has undergone comprehensive analysis by a hive mind colle
    - `git commit -m "Remove exposed secrets"`
    - Add `.env` to `.gitignore`
 2. **Regenerate all authentication secrets**
-
    - JWT secrets, encryption keys, admin passwords
    - Update all environment configurations
 

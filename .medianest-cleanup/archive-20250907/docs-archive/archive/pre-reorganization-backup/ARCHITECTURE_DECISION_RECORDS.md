@@ -40,13 +40,11 @@ Use **NextAuth.js 4.x** with custom Plex OAuth provider implementation.
 **Rejected Alternatives:**
 
 1. **Custom JWT Implementation**
-
    - ❌ Requires significant security expertise
    - ❌ Higher maintenance burden
    - ❌ No built-in provider support
 
 2. **Auth0/Firebase Auth**
-
    - ❌ External dependency for homelab
    - ❌ Recurring costs
    - ❌ Data sovereignty concerns
@@ -113,13 +111,11 @@ Use **Redis-backed JWT sessions** with NextAuth.js JWT strategy.
 **Rejected Alternatives:**
 
 1. **Database Sessions Only**
-
    - ❌ Database load for every request
    - ❌ Slower session validation
    - ✅ Better for audit trails
 
 2. **Pure JWT (Stateless)**
-
    - ❌ Cannot invalidate sessions server-side
    - ❌ Token size limitations
    - ✅ True stateless scaling
@@ -181,13 +177,11 @@ Implement **TOTP-based 2FA** using `otplib` with encrypted backup codes.
 **Rejected Alternatives:**
 
 1. **SMS-based 2FA**
-
    - ❌ Requires SMS service integration
    - ❌ SIM swapping vulnerability
    - ❌ Not suitable for homelab
 
 2. **Email-based 2FA**
-
    - ❌ Email compromise risk
    - ❌ Dependency on email service
    - ❌ Less secure than TOTP
@@ -335,13 +329,11 @@ interface ScalingArchitecture {
 ### Implementation Strategy
 
 1. **Session Distribution**
-
    - Redis Cluster for session storage
    - Consistent hashing for session routing
    - Session replication across nodes
 
 2. **Load Balancing**
-
    - Health check endpoints
    - Weighted round-robin routing
    - Failover mechanisms
@@ -474,13 +466,11 @@ interface MultiProviderArchitecture {
 ### Implementation Strategy
 
 1. **Provider Registry**
-
    - Dynamic provider configuration
    - Enable/disable per environment
    - Priority-based ordering
 
 2. **Account Linking**
-
    - Email-based account matching
    - Secure linking flow
    - Multiple provider support per user

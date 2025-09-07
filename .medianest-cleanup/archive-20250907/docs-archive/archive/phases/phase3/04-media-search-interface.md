@@ -444,13 +444,11 @@ export async function searchMedia({ query, mediaType, year, genre }: SearchParam
 ## Testing Requirements
 
 1. **Search Functionality**:
-
    - Debouncing works correctly (300ms)
    - Empty query shows no results
    - Special characters handled properly
 
 2. **UI Components**:
-
    - Grid layout responsive on all screen sizes
    - Image placeholders work when posters missing
    - Loading skeletons display during search
@@ -463,13 +461,11 @@ export async function searchMedia({ query, mediaType, year, genre }: SearchParam
 ## Performance Optimizations
 
 1. **Image Loading**:
-
    - Use Next.js Image component with lazy loading
    - Implement progressive image loading
    - Cache poster images
 
 2. **Search Optimization**:
-
    - Debounce search input
    - Cache search results for 5 minutes
    - Implement pagination for large result sets

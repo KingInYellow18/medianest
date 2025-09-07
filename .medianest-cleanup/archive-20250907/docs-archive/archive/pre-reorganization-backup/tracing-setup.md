@@ -73,14 +73,12 @@ Open [Jaeger UI](http://localhost:16686) to view traces.
 ### Backend Tracing
 
 - **Automatic Instrumentation**:
-
   - Express.js routes and middleware
   - HTTP client requests
   - Prisma database operations
   - Redis cache operations
 
 - **Custom Business Spans**:
-
   - User operations
   - API endpoint logic
   - External service calls
@@ -94,7 +92,6 @@ Open [Jaeger UI](http://localhost:16686) to view traces.
 ### Frontend Tracing
 
 - **Client-side Spans**:
-
   - Page navigation tracking
   - User interaction events
   - API call correlation
@@ -109,7 +106,6 @@ Open [Jaeger UI](http://localhost:16686) to view traces.
 ### Infrastructure
 
 - **Jaeger Components**:
-
   - All-in-one (development)
   - Collector + Query (production)
   - Elasticsearch storage
@@ -321,13 +317,11 @@ spanProcessor: new BatchSpanProcessor(exporter, {
 ### Common Issues
 
 1. **No traces appearing**:
-
    - Check collector endpoint connectivity
    - Verify OTLP/Jaeger exporter configuration
    - Ensure sampling rate > 0
 
 2. **High memory usage**:
-
    - Reduce sampling rate
    - Optimize batch size
    - Check for span leaks

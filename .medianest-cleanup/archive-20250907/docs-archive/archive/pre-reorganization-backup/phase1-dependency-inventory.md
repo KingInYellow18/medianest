@@ -55,12 +55,10 @@ medianest/
 ### 🛡️ IMMEDIATE SECURITY FIXES REQUIRED
 
 1. **esbuild ≤0.24.2** (Moderate)
-
    - Enables unauthorized website requests to dev server
    - Affects: vite, vitest chain
 
 2. **Next.js ≤14.2.31** (Moderate)
-
    - Content injection vulnerability in Image Optimization
    - SSRF in middleware redirect handling
    - Cache key confusion in Image API routes

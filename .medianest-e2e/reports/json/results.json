@@ -1,0 +1,322 @@
+{
+  "config": {
+    "configFile": "/home/kinginyellow/projects/medianest-playwright/playwright.config.ts",
+    "rootDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/specs",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/config/global-setup.ts",
+    "globalTeardown": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/config/global-teardown.ts",
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "test-suite": "MediaNest E2E Tests",
+      "version": "1.0.0",
+      "environment": "development"
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "./.medianest-e2e/reports/html",
+          "open": "never"
+        }
+      ],
+      [
+        "junit",
+        {
+          "outputFile": "./.medianest-e2e/reports/junit/results.xml"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "./.medianest-e2e/reports/json/results.json"
+        }
+      ],
+      [
+        "/home/kinginyellow/projects/medianest-playwright/node_modules/allure-playwright/dist/cjs/index.js",
+        {
+          "outputFolder": "./.medianest-e2e/reports/allure-results"
+        }
+      ],
+      ["list", null]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "test-suite": "MediaNest E2E Tests",
+          "version": "1.0.0",
+          "environment": "development"
+        },
+        "id": "setup",
+        "name": "setup",
+        "testDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/specs",
+        "testIgnore": [],
+        "testMatch": ["/global\\.setup\\.ts/"],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "test-suite": "MediaNest E2E Tests",
+          "version": "1.0.0",
+          "environment": "development"
+        },
+        "id": "cleanup",
+        "name": "cleanup",
+        "testDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/specs",
+        "testIgnore": [],
+        "testMatch": ["/global\\.teardown\\.ts/"],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "test-suite": "MediaNest E2E Tests",
+          "version": "1.0.0",
+          "environment": "development"
+        },
+        "id": "chromium-desktop",
+        "name": "chromium-desktop",
+        "testDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/specs",
+        "testIgnore": [],
+        "testMatch": ["**/*.@(spec|test).?(c|m)[jt]s?(x)"],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "test-suite": "MediaNest E2E Tests",
+          "version": "1.0.0",
+          "environment": "development"
+        },
+        "id": "firefox-desktop",
+        "name": "firefox-desktop",
+        "testDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/specs",
+        "testIgnore": [],
+        "testMatch": ["**/*.@(spec|test).?(c|m)[jt]s?(x)"],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "test-suite": "MediaNest E2E Tests",
+          "version": "1.0.0",
+          "environment": "development"
+        },
+        "id": "webkit-desktop",
+        "name": "webkit-desktop",
+        "testDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/specs",
+        "testIgnore": [],
+        "testMatch": ["**/*.@(spec|test).?(c|m)[jt]s?(x)"],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "test-suite": "MediaNest E2E Tests",
+          "version": "1.0.0",
+          "environment": "development"
+        },
+        "id": "edge-desktop",
+        "name": "edge-desktop",
+        "testDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/specs",
+        "testIgnore": [],
+        "testMatch": ["**/*.@(spec|test).?(c|m)[jt]s?(x)"],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "test-suite": "MediaNest E2E Tests",
+          "version": "1.0.0",
+          "environment": "development"
+        },
+        "id": "mobile-chrome",
+        "name": "mobile-chrome",
+        "testDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/specs",
+        "testIgnore": ["**/visual/**"],
+        "testMatch": ["**/*.@(spec|test).?(c|m)[jt]s?(x)"],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "test-suite": "MediaNest E2E Tests",
+          "version": "1.0.0",
+          "environment": "development"
+        },
+        "id": "mobile-safari",
+        "name": "mobile-safari",
+        "testDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/specs",
+        "testIgnore": ["**/visual/**"],
+        "testMatch": ["**/*.@(spec|test).?(c|m)[jt]s?(x)"],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "test-suite": "MediaNest E2E Tests",
+          "version": "1.0.0",
+          "environment": "development"
+        },
+        "id": "tablet-chrome",
+        "name": "tablet-chrome",
+        "testDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/specs",
+        "testIgnore": [],
+        "testMatch": ["**/*.@(spec|test).?(c|m)[jt]s?(x)"],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "test-suite": "MediaNest E2E Tests",
+          "version": "1.0.0",
+          "environment": "development"
+        },
+        "id": "accessibility",
+        "name": "accessibility",
+        "testDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/specs",
+        "testIgnore": [],
+        "testMatch": ["**/accessibility/**"],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "test-suite": "MediaNest E2E Tests",
+          "version": "1.0.0",
+          "environment": "development"
+        },
+        "id": "performance",
+        "name": "performance",
+        "testDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/specs",
+        "testIgnore": [],
+        "testMatch": ["**/performance/**"],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "test-suite": "MediaNest E2E Tests",
+          "version": "1.0.0",
+          "environment": "development"
+        },
+        "id": "visual-chrome",
+        "name": "visual-chrome",
+        "testDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/specs",
+        "testIgnore": [],
+        "testMatch": ["**/visual/**"],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "test-suite": "MediaNest E2E Tests",
+          "version": "1.0.0",
+          "environment": "development"
+        },
+        "id": "api-testing",
+        "name": "api-testing",
+        "testDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/specs",
+        "testIgnore": [],
+        "testMatch": ["**/api/**"],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "test-suite": "MediaNest E2E Tests",
+          "version": "1.0.0",
+          "environment": "development"
+        },
+        "id": "authenticated",
+        "name": "authenticated",
+        "testDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/specs",
+        "testIgnore": [],
+        "testMatch": ["**/*.@(spec|test).?(c|m)[jt]s?(x)"],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "test-suite": "MediaNest E2E Tests",
+          "version": "1.0.0",
+          "environment": "development"
+        },
+        "id": "admin",
+        "name": "admin",
+        "testDir": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/specs",
+        "testIgnore": [],
+        "testMatch": ["**/*.@(spec|test).?(c|m)[jt]s?(x)"],
+        "timeout": 60000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.55.0",
+    "workers": 4,
+    "webServer": null
+  },
+  "suites": [],
+  "errors": [
+    {
+      "message": "Error: browserType.launch: Executable doesn't exist at /home/kinginyellow/.cache/ms-playwright/chromium_headless_shell-1187/chrome-linux/headless_shell\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝",
+      "stack": "Error: browserType.launch: Executable doesn't exist at /home/kinginyellow/.cache/ms-playwright/chromium_headless_shell-1187/chrome-linux/headless_shell\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝\n    at globalSetup (/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/config/global-setup.ts:13:34)",
+      "location": {
+        "file": "/home/kinginyellow/projects/medianest-playwright/.medianest-e2e/config/global-setup.ts",
+        "column": 34,
+        "line": 13
+      },
+      "snippet": "\u001b[90m   at \u001b[39m../config/global-setup.ts:13\n\n  11 |   \n  12 |   const { baseURL } = config.projects[0].use\n> 13 |   const browser = await chromium.launch()\n     |                                  ^\n  14 |   \n  15 |   try {\n  16 |     // Ensure directories exist"
+    }
+  ],
+  "stats": {
+    "startTime": "2025-09-07T04:49:33.142Z",
+    "duration": 280.17100000000005,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

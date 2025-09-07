@@ -660,6 +660,7 @@ console.log('Verified:', jwt.verify(token, process.env.JWT_SECRET));
    ```
 
 3. **Debug Token Validation**
+
    ```javascript
    // Add logging to auth middleware
    const authMiddleware = (req, res, next) => {

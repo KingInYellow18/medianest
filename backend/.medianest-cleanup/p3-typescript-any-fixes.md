@@ -145,7 +145,6 @@ Created `/scripts/fix-any-types.sh` for systematic replacement:
    ```
 
 2. **Resolve Config Service Conflicts**
-
    - Remove duplicate declarations
    - Add proper type guards for undefined values
 

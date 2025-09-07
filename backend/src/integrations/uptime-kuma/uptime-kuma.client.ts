@@ -34,7 +34,11 @@ export class UptimeKumaClient extends EventEmitter {
   private connected = false;
   private reconnectTimer?: NodeJS.Timeout;
 
-  constructor(private url: string, private username?: string, private password?: string) {
+  constructor(
+    private url: string,
+    private username?: string,
+    private password?: string
+  ) {
     super();
   }
 

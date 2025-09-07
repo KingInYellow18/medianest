@@ -258,10 +258,13 @@ describe('Error Handling and Edge Cases', () => {
     // Verify all requests were handled (no crashes)
     expect(results.length).toBe(13);
 
-    const statusCounts = results.reduce((acc, result) => {
-      acc[result.status] = (acc[result.status] || 0) + 1;
-      return acc;
-    }, {} as Record<number, number>);
+    const statusCounts = results.reduce(
+      (acc, result) => {
+        acc[result.status] = (acc[result.status] || 0) + 1;
+        return acc;
+      },
+      {} as Record<number, number>
+    );
 
     console.log(`  📊 Status code distribution:`, statusCounts);
 

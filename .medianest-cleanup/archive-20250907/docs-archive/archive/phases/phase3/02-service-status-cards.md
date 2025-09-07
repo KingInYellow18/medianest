@@ -64,13 +64,11 @@ interface QuickAction {
 ### Service-Specific Features
 
 1. **Plex Card**:
-
    - Show active streams count
    - Display server version
    - Quick actions: Browse Library, Server Settings
 
 2. **Overseerr Card**:
-
    - Show pending requests count
    - Display available/unavailable status
    - Quick actions: View Requests, Submit Request
@@ -360,14 +358,12 @@ export function useServiceStatus() {
 ## Testing Requirements
 
 1. **Component Tests**:
-
    - Card renders with all required information
    - Status indicator shows correct color
    - Quick actions trigger correct callbacks
    - Error states display properly
 
 2. **Visual Regression Tests**:
-
    - Cards maintain consistent appearance
    - Hover states work correctly
    - Status transitions are smooth

@@ -173,7 +173,6 @@ app:
 **Internal Services**:
 
 1. **Frontend Server (Port 3000)**
-
    - Next.js 14 with App Router
    - Server-side rendering and static generation
    - Client-side React application
@@ -334,25 +333,21 @@ volumes:
 ### Data Persistence Strategy
 
 1. **Database Data** (`postgres_data`)
-
    - Critical user and system data
    - Daily automated backups
    - Point-in-time recovery enabled
 
 2. **Cache Data** (`redis_data`)
-
    - Session persistence across restarts
    - Job queue durability
    - AOF (Append Only File) enabled
 
 3. **Media Files** (`youtube_downloads`)
-
    - User-downloaded content
    - Organized by user ID for isolation
    - Optional: automated cleanup of old files
 
 4. **User Uploads** (`uploads`)
-
    - User-uploaded content (future feature)
    - Virus scanning before storage
    - Size limits per user role
@@ -494,13 +489,11 @@ healthcheck:
 While designed for 10-20 users, the architecture supports scaling:
 
 1. **Stateless Application**
-
    - Session data stored in Redis
    - No local file system dependencies
    - Load balancer ready
 
 2. **Database Scaling**
-
    - Read replicas for query distribution
    - Connection pooling for efficiency
    - Partitioning strategies prepared

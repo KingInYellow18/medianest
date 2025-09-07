@@ -139,13 +139,11 @@
 ### Phase 1: Test Infrastructure Recovery (URGENT)
 
 1. **Configure test environment for React components**
-
    - Set up JSDOM or happy-dom for DOM simulation
    - Configure React Testing Library properly
    - Fix component test imports and setup
 
 2. **Repair API test infrastructure**
-
    - Fix Plex authentication mocking
    - Configure proper test databases
    - Implement proper request/response mocking
@@ -158,7 +156,6 @@
 ### Phase 2: Quality Gate Implementation
 
 1. **Implement pre-commit hooks**
-
    - Block commits with failing tests
    - Require minimum coverage thresholds
    - Automated TypeScript checking

@@ -86,7 +86,6 @@ Successfully completed **ALL P0 critical issues** in MediaNest technical debt re
    ```
 
 2. **Update Environment**:
-
    - Add secrets to production `.env`
    - Remove any email-related variables
    - Configure webhook endpoints (optional)

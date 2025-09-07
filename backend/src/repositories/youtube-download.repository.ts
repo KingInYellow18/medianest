@@ -192,10 +192,13 @@ export class YoutubeDownloadRepository extends BaseRepository<
       _count: true,
     });
 
-    return downloads.reduce((acc, item) => {
-      acc[item.status] = item._count;
-      return acc;
-    }, {} as Record<string, number>);
+    return downloads.reduce(
+      (acc, item) => {
+        acc[item.status] = item._count;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
   }
 
   async getActiveDownloads(): Promise<YoutubeDownload[]> {

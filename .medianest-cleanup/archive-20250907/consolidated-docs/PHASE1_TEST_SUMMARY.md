@@ -50,14 +50,12 @@ backend/tests/
 ### 1. Authentication (High Priority) ✅
 
 - **JWT Utilities** (`jwt.test.ts`)
-
   - Token generation with standard and remember-me expiry
   - Token verification and validation
   - Security checks (no sensitive data in tokens)
   - Error handling for expired/invalid tokens
 
 - **Plex OAuth PIN Flow** (`plex-oauth.test.ts`)
-
   - PIN generation endpoint
   - PIN verification and user creation
   - Existing user update on login
@@ -75,7 +73,6 @@ backend/tests/
 ### 2. Rate Limiting (High Priority) ✅
 
 - **General API Rate Limiting** (`rate-limit.test.ts`)
-
   - 100 requests/minute enforcement
   - Rate limit headers
   - Window expiry and reset

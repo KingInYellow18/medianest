@@ -68,7 +68,8 @@ export const apiLoggingMiddleware = (req: Request, res: Response, next: NextFunc
     // Log performance metrics for different response size categories
     if (responseSize > 0) {
       let sizeCategory = 'small';
-      if (responseSize > 1024 * 1024) sizeCategory = 'large'; // > 1MB
+      if (responseSize > 1024 * 1024)
+        sizeCategory = 'large'; // > 1MB
       else if (responseSize > 1024 * 100) sizeCategory = 'medium'; // > 100KB
 
       logPerformanceMetric('api_response_size', responseSize, 'bytes', correlationId, {

@@ -240,7 +240,6 @@ npm run type-check            # TypeScript type checking
    ```
 
 2. **Make Changes**
-
    - Follow existing code conventions
    - Write/update tests
    - Update documentation if needed
@@ -253,7 +252,6 @@ npm run type-check            # TypeScript type checking
    ```
 
 4. **Pre-commit Checks**
-
    - Lint and format checks run automatically
    - Tests must pass
    - Type checking must pass
@@ -628,7 +626,6 @@ curl -v http://localhost:32400/status/sessions
 ### Before Contributing
 
 1. **Read the documentation**:
-
    - [ARCHITECTURE.md](./ARCHITECTURE.md)
    - [MediaNest.PRD](../MediaNest.PRD)
    - This development guide

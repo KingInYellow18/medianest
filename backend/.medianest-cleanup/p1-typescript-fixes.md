@@ -19,7 +19,6 @@ Successfully fixed TypeScript issues in **9 security-critical files** by:
 ### Core Security Utilities
 
 1. **`src/utils/security.ts`** ✅
-
    - Fixed type issues in `logSecurityEvent()` function
    - Updated encryption/decryption functions to use proper GCM methods
    - Replaced deprecated `createCipher`/`createDecipher` with secure alternatives
@@ -33,12 +32,10 @@ Successfully fixed TypeScript issues in **9 security-critical files** by:
 ### Authentication Services
 
 3. **`src/services/two-factor.service.ts`** ✅
-
    - Removed @ts-nocheck directive
    - All existing code was already properly typed
 
 4. **`src/services/oauth-providers.service.ts`** ✅
-
    - Fixed error message type casting
    - Improved error handling consistency
 
@@ -49,12 +46,10 @@ Successfully fixed TypeScript issues in **9 security-critical files** by:
 ### Security Middleware
 
 6. **`src/middleware/security.ts`** ✅
-
    - Removed @ts-nocheck directive
    - All existing code was already properly typed
 
 7. **`src/middleware/socket-auth.ts`** ✅
-
    - Removed @ts-nocheck directive
    - All existing code was already properly typed
 

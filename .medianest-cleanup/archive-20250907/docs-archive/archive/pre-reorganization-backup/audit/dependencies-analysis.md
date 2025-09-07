@@ -283,7 +283,6 @@ ioredis: 5.6.1 (frontend) vs 5.4.1 (backend)
 ### Short-term Actions (Month 1)
 
 1. **Testing Framework Upgrade**: Plan Vitest 3.x migration
-
    - Review breaking changes documentation
    - Update test configurations
    - Validate all test suites

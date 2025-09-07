@@ -39,19 +39,16 @@ This guide provides comprehensive implementation details for the MediaNest front
 ### Core Principles
 
 1. **Server-First Approach**
-
    - Leverage Server Components for initial data fetching
    - Minimize client-side JavaScript bundle
    - Progressive enhancement for interactivity
 
 2. **Component Composition**
-
    - Small, focused components
    - Clear separation between smart and presentational components
    - Shared component library for consistency
 
 3. **Type Safety**
-
    - TypeScript throughout the codebase
    - Zod schemas for runtime validation
    - Strict type checking enabled

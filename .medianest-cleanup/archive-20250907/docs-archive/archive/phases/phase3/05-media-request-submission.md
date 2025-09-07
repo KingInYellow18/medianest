@@ -484,14 +484,12 @@ export async function getUserRequests(): Promise<MediaRequest[]> {
 ## Testing Requirements
 
 1. **Request Flow**:
-
    - Modal opens with correct media details
    - Season selection works for TV shows
    - Submit button disabled when no seasons selected
    - Request submits successfully
 
 2. **Error Handling**:
-
    - Rate limit errors display correctly
    - Network errors handled gracefully
    - Invalid requests show error messages

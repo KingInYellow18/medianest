@@ -72,14 +72,12 @@ All `/api/v1/` endpoints are currently returning:
 ### Public Endpoints (No Authentication Required)
 
 1. **Authentication Routes** (`/api/v1/auth/`)
-
    - `POST /api/v1/auth/plex/pin` - Generate Plex OAuth PIN
    - `POST /api/v1/auth/plex/verify` - Verify PIN & create session
    - `GET /api/v1/auth/session` - Get current session (requires auth)
    - `POST /api/v1/auth/logout` - Logout (requires auth)
 
 2. **CSRF Protection** (`/api/v1/csrf/`)
-
    - `GET /api/v1/csrf/token` - Get CSRF token
    - `POST /api/v1/csrf/refresh` - Refresh CSRF token
    - `GET /api/v1/csrf/stats` - CSRF statistics (admin only)
@@ -94,7 +92,6 @@ All `/api/v1/` endpoints are currently returning:
 ### Protected Endpoints (Authentication Required)
 
 4. **Plex Integration** (`/api/v1/plex/`)
-
    - `GET /api/v1/plex/server` - Get Plex server info
    - `GET /api/v1/plex/libraries` - Get all libraries
    - `GET /api/v1/plex/libraries/:id/items` - Get library items
@@ -102,14 +99,12 @@ All `/api/v1/` endpoints are currently returning:
    - `GET /api/v1/plex/recently-added` - Recently added content
 
 5. **Media Management** (`/api/v1/media/`)
-
    - `GET /api/v1/media/search` - Search for media
    - `GET /api/v1/media/:type/:id` - Get media details
    - `POST /api/v1/media/request` - Submit media request
    - `GET /api/v1/media/requests` - Get user requests
 
 6. **Dashboard** (`/api/v1/dashboard/`)
-
    - `GET /api/v1/dashboard/stats` - Dashboard statistics
    - `GET /api/v1/dashboard/status` - Service statuses
    - `GET /api/v1/dashboard/notifications` - User notifications

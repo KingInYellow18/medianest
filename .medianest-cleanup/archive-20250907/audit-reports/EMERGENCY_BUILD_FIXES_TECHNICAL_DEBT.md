@@ -256,14 +256,12 @@ This document tracks all emergency shortcuts and technical debt accumulated duri
 **Priority:** IMMEDIATE
 
 1. **API Layer Types** (20 hours)
-
    - Create Plex API response interfaces
    - Define YouTube API types
    - Add media service response schemas
    - Replace all API `any` types
 
 2. **Socket Communication Types** (12 hours)
-
    - Define Socket.IO event interfaces
    - Create callback type definitions
    - Replace event casting with proper unions
@@ -279,7 +277,6 @@ This document tracks all emergency shortcuts and technical debt accumulated duri
 **Priority:** HIGH
 
 1. **Logger and Error Handling** (12 hours)
-
    - Define structured logging metadata
    - Create error standardization types
    - Replace generic error handling
@@ -295,7 +292,6 @@ This document tracks all emergency shortcuts and technical debt accumulated duri
 **Priority:** MEDIUM
 
 1. **TypeScript Configuration** (8 hours)
-
    - Resolve module resolution issues
    - Fix node_modules type checking
    - Strengthen compiler strictness

@@ -42,14 +42,12 @@ MediaNest has implemented a **comprehensive and modern test suite** with 43 test
 Instead of rigid percentages, we test based on risk and value:
 
 1. **Critical Paths (High Priority)**
-
    - Plex OAuth authentication flow
    - Media request submission
    - Service status monitoring
    - Rate limiting enforcement
 
 2. **Core Features (Medium Priority)**
-
    - YouTube download functionality
    - User data isolation
    - Error handling and fallbacks
@@ -119,7 +117,6 @@ services:
 #### Why These Tools Were Selected (2025 Best Practices):
 
 1. **Vitest v1.6.1** ✅ **IMPLEMENTED**
-
    - ✅ Native ESM support for Next.js 14 App Router
    - ✅ Sub-second test startup with Vite's HMR-like performance
    - ✅ Built-in TypeScript support with zero configuration
@@ -127,26 +124,22 @@ services:
    - ✅ V8 coverage provider for accurate reporting
 
 2. **MSW v2.10.2** ✅ **IMPLEMENTED**
-
    - ✅ Works seamlessly in both Node.js tests and browser development
    - ✅ Network-level request interception (more realistic than mocks)
    - ✅ Excellent TypeScript support with request/response typing
    - ✅ Modern Service Worker approach for browser environments
 
 3. **React Testing Library** ✅ **IMPLEMENTED**
-
    - ✅ Component testing focused on user behavior
    - ✅ Excellent integration with Vitest
    - ✅ Encourages accessible and maintainable tests
 
 4. **Supertest v6.3.4** ✅ **IMPLEMENTED**
-
    - ✅ Industry standard for Express API testing
    - ✅ Perfect integration with Vitest
    - ✅ Mature, stable, and well-documented
 
 5. **Real Databases (not Testcontainers)** ✅ **IMPLEMENTED**
-
    - ✅ Dedicated PostgreSQL test instance (port 5433)
    - ✅ Dedicated Redis test instance (port 6380)
    - ✅ Simpler than Testcontainers for our 10-20 user scale

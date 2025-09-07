@@ -22,19 +22,16 @@
 **Critical Issues Identified**:
 
 1. **Authentication Integration Tests**: Multiple failures related to Plex OAuth
-
    - `TypeError: Cannot read properties of undefined (reading 'ok')`
    - Missing MSW API mocking for Plex endpoints
    - NextAuth session handling issues
 
 2. **API Route Tests**: Extensive failures in auth callback tests
-
    - 500 status codes instead of expected 400/200
    - Database connection issues
    - Request validation failures
 
 3. **UI Component Tests**: React rendering and state management issues
-
    - Invalid `loading` boolean attribute on buttons
    - `React is not defined` errors in some components
    - jsdom compatibility issues with window.alert
@@ -61,12 +58,10 @@
 - **Critical Issues**:
 
 1. **Package.json Syntax Error**:
-
    - Fixed missing comma in backend/package.json line 30
    - Issue: `"dotenv": "^16.4.7"` missing comma
 
 2. **Shared Package Build Failures**: Multiple TypeScript errors
-
    - Database config type conflicts
    - Environment config type mismatches
    - Export declaration conflicts
@@ -90,13 +85,11 @@
 #### Remaining Critical Issues:
 
 1. **Missing Dependencies**:
-
    - `@next/bundle-analyzer` in frontend workspace
    - TypeScript type definition conflicts
    - Test utility imports missing
 
 2. **Configuration Issues**:
-
    - Database config type conflicts in shared package
    - Environment variable type mismatches
    - Redis config duplicate properties
@@ -155,7 +148,6 @@
    ```
 
 2. **Fix TypeScript compilation errors** in shared package:
-
    - Resolve database config type conflicts
    - Fix environment config type mismatches
    - Remove duplicate export declarations

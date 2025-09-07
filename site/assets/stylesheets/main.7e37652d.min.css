@@ -146,8 +146,8 @@ input {
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  --md-text-font-family: var(--md-text-font, _), -apple-system, BlinkMacSystemFont, Helvetica, Arial,
-    sans-serif;
+  --md-text-font-family:
+    var(--md-text-font, _), -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
   --md-code-font-family: var(--md-code-font, _), SFMono-Regular, Consolas, Menlo, monospace;
 }
 aside,
@@ -325,7 +325,8 @@ pre {
 .md-typeset kbd {
   background-color: var(--md-typeset-kbd-color);
   border-radius: 0.1rem;
-  box-shadow: 0 0.1rem 0 0.05rem var(--md-typeset-kbd-border-color),
+  box-shadow:
+    0 0.1rem 0 0.05rem var(--md-typeset-kbd-border-color),
     0 0.1rem 0 var(--md-typeset-kbd-border-color),
     0 -0.1rem 0.2rem var(--md-typeset-kbd-accent-color) inset;
   color: var(--md-default-fg-color);
@@ -630,7 +631,9 @@ html .md-typeset__table table {
   height: 1.6rem;
   overflow: hidden;
   position: relative;
-  transition: color 125ms, transform 125ms;
+  transition:
+    color 125ms,
+    transform 125ms;
   width: 1.6rem;
 }
 .md-typeset .md-author img {
@@ -794,7 +797,9 @@ body {
 .md-skip:focus {
   opacity: 1;
   transform: translateY(0);
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 175ms 75ms;
+  transition:
+    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 175ms 75ms;
   z-index: 10;
 }
 @page {
@@ -853,7 +858,9 @@ body {
   cursor: pointer;
 }
 .md-clipboard--inline code {
-  transition: color 0.25s, background-color 0.25s;
+  transition:
+    color 0.25s,
+    background-color 0.25s;
 }
 .md-clipboard--inline:focus code,
 .md-clipboard--inline:hover code {
@@ -899,7 +906,9 @@ body {
   border: 0;
   border-radius: 0.1rem;
   bottom: 0;
-  box-shadow: 0 0 0.2rem #0000001a, 0 0.2rem 0.4rem #0003;
+  box-shadow:
+    0 0 0.2rem #0000001a,
+    0 0.2rem 0.4rem #0003;
   max-height: 100%;
   overflow: auto;
   padding: 0;
@@ -1010,7 +1019,9 @@ input:checked + .md-consent__settings {
   pointer-events: none;
   position: fixed;
   transform: translateY(100%);
-  transition: transform 0ms 0.4s, opacity 0.4s;
+  transition:
+    transform 0ms 0.4s,
+    opacity 0.4s;
   z-index: 4;
 }
 @media print {
@@ -1022,7 +1033,9 @@ input:checked + .md-consent__settings {
   opacity: 1;
   pointer-events: auto;
   transform: translateY(0);
-  transition: transform 0.4s cubic-bezier(0.075, 0.85, 0.175, 1), opacity 0.4s;
+  transition:
+    transform 0.4s cubic-bezier(0.075, 0.85, 0.175, 1),
+    opacity 0.4s;
 }
 .md-dialog__inner {
   color: var(--md-default-bg-color);
@@ -1074,7 +1087,9 @@ input:checked + .md-consent__settings {
   opacity: 0;
   position: relative;
   transform: translateY(0.4rem);
-  transition: transform 0.4s cubic-bezier(0.1, 0.7, 0.1, 1), opacity 0.15s;
+  transition:
+    transform 0.4s cubic-bezier(0.1, 0.7, 0.1, 1),
+    opacity 0.15s;
 }
 .md-feedback__note > * {
   margin: 0 auto;
@@ -1224,7 +1239,10 @@ html .md-footer-meta.md-typeset a:hover {
   display: inline-block;
   font-weight: 700;
   padding: 0.625em 2em;
-  transition: color 125ms, background-color 125ms, border-color 125ms;
+  transition:
+    color 125ms,
+    background-color 125ms,
+    border-color 125ms;
 }
 .md-typeset .md-button--primary {
   background-color: var(--md-primary-fg-color);
@@ -1253,7 +1271,9 @@ html .md-footer-meta.md-typeset a:hover {
   font-size: 0.8rem;
   height: 1.8rem;
   padding: 0 0.6rem;
-  transition: border 0.25s, box-shadow 0.25s;
+  transition:
+    border 0.25s,
+    box-shadow 0.25s;
 }
 .md-typeset .md-input:focus,
 .md-typeset .md-input:hover {
@@ -1265,7 +1285,9 @@ html .md-footer-meta.md-typeset a:hover {
 }
 .md-header {
   background-color: var(--md-primary-fg-color);
-  box-shadow: 0 0 0.2rem #0000, 0 0.2rem 0.4rem #0000;
+  box-shadow:
+    0 0 0.2rem #0000,
+    0 0.2rem 0.4rem #0000;
   color: var(--md-primary-bg-color);
   display: block;
   left: 0;
@@ -1281,11 +1303,17 @@ html .md-footer-meta.md-typeset a:hover {
 }
 .md-header[hidden] {
   transform: translateY(-100%);
-  transition: transform 0.25s cubic-bezier(0.8, 0, 0.6, 1), box-shadow 0.25s;
+  transition:
+    transform 0.25s cubic-bezier(0.8, 0, 0.6, 1),
+    box-shadow 0.25s;
 }
 .md-header--shadow {
-  box-shadow: 0 0 0.2rem #0000001a, 0 0.2rem 0.4rem #0003;
-  transition: transform 0.25s cubic-bezier(0.1, 0.7, 0.1, 1), box-shadow 0.25s;
+  box-shadow:
+    0 0 0.2rem #0000001a,
+    0 0.2rem 0.4rem #0003;
+  transition:
+    transform 0.25s cubic-bezier(0.1, 0.7, 0.1, 1),
+    box-shadow 0.25s;
 }
 .md-header__inner {
   align-items: center;
@@ -1349,14 +1377,18 @@ html .md-footer-meta.md-typeset a:hover {
   display: flex;
   max-width: 100%;
   position: absolute;
-  transition: transform 0.4s cubic-bezier(0.1, 0.7, 0.1, 1), opacity 0.15s;
+  transition:
+    transform 0.4s cubic-bezier(0.1, 0.7, 0.1, 1),
+    opacity 0.15s;
   white-space: nowrap;
 }
 .md-header__topic + .md-header__topic {
   opacity: 0;
   pointer-events: none;
   transform: translateX(1.25rem);
-  transition: transform 0.4s cubic-bezier(1, 0.7, 0.1, 0.1), opacity 0.15s;
+  transition:
+    transform 0.4s cubic-bezier(1, 0.7, 0.1, 0.1),
+    opacity 0.15s;
   z-index: -1;
 }
 [dir='rtl'] .md-header__topic + .md-header__topic {
@@ -1383,7 +1415,9 @@ html .md-footer-meta.md-typeset a:hover {
   opacity: 0;
   pointer-events: none;
   transform: translateX(-1.25rem);
-  transition: transform 0.4s cubic-bezier(1, 0.7, 0.1, 0.1), opacity 0.15s;
+  transition:
+    transform 0.4s cubic-bezier(1, 0.7, 0.1, 0.1),
+    opacity 0.15s;
   z-index: -1;
 }
 [dir='rtl'] .md-header__title--active .md-header__topic {
@@ -1393,7 +1427,9 @@ html .md-footer-meta.md-typeset a:hover {
   opacity: 1;
   pointer-events: auto;
   transform: translateX(0);
-  transition: transform 0.4s cubic-bezier(0.1, 0.7, 0.1, 1), opacity 0.15s;
+  transition:
+    transform 0.4s cubic-bezier(0.1, 0.7, 0.1, 1),
+    opacity 0.15s;
   z-index: 0;
 }
 .md-header__title > .md-header__ellipsis {
@@ -1405,13 +1441,17 @@ html .md-footer-meta.md-typeset a:hover {
   display: flex;
   flex-shrink: 0;
   max-width: 100%;
-  transition: max-width 0ms 0.25s, opacity 0.25s 0.25s;
+  transition:
+    max-width 0ms 0.25s,
+    opacity 0.25s 0.25s;
   white-space: nowrap;
 }
 [data-md-toggle='search']:checked ~ .md-header .md-header__option {
   max-width: 0;
   opacity: 0;
-  transition: max-width 0ms, opacity 0ms;
+  transition:
+    max-width 0ms,
+    opacity 0ms;
 }
 .md-header__option > input {
   bottom: 0;
@@ -1747,7 +1787,9 @@ html .md-footer-meta.md-typeset a:hover {
     display: flex;
     opacity: 0;
     transform: translateX(100%);
-    transition: transform 0.25s cubic-bezier(0.8, 0, 0.6, 1), opacity 125ms 50ms;
+    transition:
+      transform 0.25s cubic-bezier(0.8, 0, 0.6, 1),
+      opacity 125ms 50ms;
   }
   [dir='rtl'] .md-nav__toggle ~ .md-nav {
     transform: translateX(-100%);
@@ -1755,7 +1797,9 @@ html .md-footer-meta.md-typeset a:hover {
   .md-nav__toggle:checked ~ .md-nav {
     opacity: 1;
     transform: translateX(0);
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 125ms 125ms;
+    transition:
+      transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+      opacity 125ms 125ms;
   }
   .md-nav__toggle:checked ~ .md-nav > .md-nav__list {
     -webkit-backface-visibility: hidden;
@@ -1866,7 +1910,9 @@ html .md-footer-meta.md-typeset a:hover {
     display: grid;
     grid-template-rows: minmax(0.4rem, 0fr);
     opacity: 0;
-    transition: grid-template-rows 0.25s cubic-bezier(0.86, 0, 0.07, 1), opacity 0.25s,
+    transition:
+      grid-template-rows 0.25s cubic-bezier(0.86, 0, 0.07, 1),
+      opacity 0.25s,
       visibility 0ms 0.25s;
     visibility: collapse;
   }
@@ -1877,7 +1923,9 @@ html .md-footer-meta.md-typeset a:hover {
   .md-nav__toggle:checked ~ .md-nav {
     grid-template-rows: minmax(0.4rem, 1fr);
     opacity: 1;
-    transition: grid-template-rows 0.25s cubic-bezier(0.86, 0, 0.07, 1), opacity 0.15s 0.1s,
+    transition:
+      grid-template-rows 0.25s cubic-bezier(0.86, 0, 0.07, 1),
+      opacity 0.15s 0.1s,
       visibility 0ms;
     visibility: visible;
   }
@@ -2032,7 +2080,9 @@ html .md-footer-meta.md-typeset a:hover {
   color: var(--md-default-fg-color--light);
 }
 .md-pagination__link {
-  transition: color 125ms, background-color 125ms;
+  transition:
+    color 125ms,
+    background-color 125ms;
 }
 .md-pagination__link:focus,
 .md-pagination__link:hover {
@@ -2193,7 +2243,9 @@ html .md-footer-meta.md-typeset a:hover {
   top: 0;
   transform: scaleX(calc(var(--md-progress-value) * 1%));
   transform-origin: left;
-  transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.25s var(--md-progress-delay);
+  transition:
+    transform 0.5s cubic-bezier(0.19, 1, 0.22, 1),
+    opacity 0.25s var(--md-progress-delay);
   width: 100%;
   z-index: 4;
 }
@@ -2231,12 +2283,16 @@ html .md-footer-meta.md-typeset a:hover {
     position: absolute;
     top: -1rem;
     transform-origin: center;
-    transition: transform 0.3s 0.1s, opacity 0.2s 0.2s;
+    transition:
+      transform 0.3s 0.1s,
+      opacity 0.2s 0.2s;
     width: 2rem;
   }
   [data-md-toggle='search']:checked ~ .md-header .md-search__overlay {
     opacity: 1;
-    transition: transform 0.4s, opacity 0.1s;
+    transition:
+      transform 0.4s,
+      opacity 0.1s;
   }
 }
 @media screen and (min-width: 60em) {
@@ -2252,13 +2308,19 @@ html .md-footer-meta.md-typeset a:hover {
     height: 0;
     position: fixed;
     top: 0;
-    transition: width 0ms 0.25s, height 0ms 0.25s, opacity 0.25s;
+    transition:
+      width 0ms 0.25s,
+      height 0ms 0.25s,
+      opacity 0.25s;
     width: 0;
   }
   [data-md-toggle='search']:checked ~ .md-header .md-search__overlay {
     height: 200vh;
     opacity: 1;
-    transition: width 0ms, height 0ms, opacity 0.25s;
+    transition:
+      width 0ms,
+      height 0ms,
+      opacity 0.25s;
     width: 100%;
   }
 }
@@ -2295,7 +2357,10 @@ html .md-footer-meta.md-typeset a:hover {
     position: fixed;
     top: 0;
     transform: translateX(5%);
-    transition: width 0ms 0.3s, height 0ms 0.3s, transform 0.15s cubic-bezier(0.4, 0, 0.2, 1) 0.15s,
+    transition:
+      width 0ms 0.3s,
+      height 0ms 0.3s,
+      transform 0.15s cubic-bezier(0.4, 0, 0.2, 1) 0.15s,
       opacity 0.15s 0.15s;
     width: 0;
     z-index: 2;
@@ -2307,7 +2372,10 @@ html .md-footer-meta.md-typeset a:hover {
     height: 100%;
     opacity: 1;
     transform: translateX(0);
-    transition: width 0ms 0ms, height 0ms 0ms, transform 0.15s cubic-bezier(0.1, 0.7, 0.1, 1) 0.15s,
+    transition:
+      width 0ms 0ms,
+      height 0ms 0ms,
+      transform 0.15s cubic-bezier(0.1, 0.7, 0.1, 1) 0.15s,
       opacity 0.15s 0.15s;
     width: 100%;
   }
@@ -2341,7 +2409,9 @@ html .md-footer-meta.md-typeset a:hover {
   box-shadow: 0 0 0.6rem #0000;
   height: 2.4rem;
   position: relative;
-  transition: color 0.25s, background-color 0.25s;
+  transition:
+    color 0.25s,
+    background-color 0.25s;
   z-index: 2;
 }
 @media screen and (min-width: 60em) {
@@ -2425,7 +2495,9 @@ html .md-footer-meta.md-typeset a:hover {
   cursor: pointer;
   display: inline-block;
   height: 1.2rem;
-  transition: color 0.25s, opacity 0.25s;
+  transition:
+    color 0.25s,
+    opacity 0.25s;
   width: 1.2rem;
 }
 .md-search__icon:hover {
@@ -2500,7 +2572,9 @@ html .md-footer-meta.md-typeset a:hover {
   color: var(--md-default-fg-color--light);
   opacity: 0;
   transform: scale(0.75);
-  transition: transform 0.15s cubic-bezier(0.1, 0.7, 0.1, 1), opacity 0.15s;
+  transition:
+    transform 0.15s cubic-bezier(0.1, 0.7, 0.1, 1),
+    opacity 0.15s;
 }
 .md-search__options > .md-icon:not(.focus-visible) {
   -webkit-tap-highlight-color: transparent;
@@ -2702,7 +2776,9 @@ html .md-footer-meta.md-typeset a:hover {
   color: var(--md-typeset-a-color);
   font-size: 0.64rem;
   padding: 0.75em 0.8rem;
-  transition: color 0.25s, background-color 0.25s;
+  transition:
+    color 0.25s,
+    background-color 0.25s;
 }
 @media screen and (min-width: 60em) {
   [dir='ltr'] .md-search-result__more > summary > div {
@@ -2822,14 +2898,20 @@ html .md-footer-meta.md-typeset a:hover {
   position: absolute;
   top: calc(100% - 0.2rem);
   transform: translate3d(-50%, 0.3rem, 0);
-  transition: transform 0.25s 375ms, opacity 0.25s 0.25s, max-height 0ms 0.5s;
+  transition:
+    transform 0.25s 375ms,
+    opacity 0.25s 0.25s,
+    max-height 0ms 0.5s;
 }
 .md-select:focus-within .md-select__inner,
 .md-select:hover .md-select__inner {
   max-height: 10rem;
   opacity: 1;
   transform: translate3d(-50%, 0, 0);
-  transition: transform 0.25s cubic-bezier(0.1, 0.7, 0.1, 1), opacity 0.25s, max-height 0ms;
+  transition:
+    transform 0.25s cubic-bezier(0.1, 0.7, 0.1, 1),
+    opacity 0.25s,
+    max-height 0ms;
 }
 .md-select__inner:after {
   border-bottom: 0.2rem solid #0000;
@@ -2871,7 +2953,9 @@ html .md-footer-meta.md-typeset a:hover {
   display: block;
   outline: none;
   scroll-snap-align: start;
-  transition: background-color 0.25s, color 0.25s;
+  transition:
+    background-color 0.25s,
+    color 0.25s;
   width: 100%;
 }
 .md-select__link:focus,
@@ -2908,7 +2992,9 @@ html .md-footer-meta.md-typeset a:hover {
     position: fixed;
     top: 0;
     transform: translateX(0);
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s;
+    transition:
+      transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 0.25s;
     width: 12.1rem;
     z-index: 5;
   }
@@ -3006,14 +3092,20 @@ html .md-footer-meta.md-typeset a:hover {
     opacity: 0;
     position: fixed;
     top: 0;
-    transition: width 0ms 0.25s, height 0ms 0.25s, opacity 0.25s;
+    transition:
+      width 0ms 0.25s,
+      height 0ms 0.25s,
+      opacity 0.25s;
     width: 0;
     z-index: 5;
   }
   [data-md-toggle='drawer']:checked ~ .md-overlay {
     height: 100%;
     opacity: 1;
-    transition: width 0ms, height 0ms, opacity 0.25s;
+    transition:
+      width 0ms,
+      height 0ms,
+      opacity 0.25s;
     width: 100%;
   }
 }
@@ -3285,7 +3377,9 @@ html .md-footer-meta.md-typeset a:hover {
   opacity: 0.7;
   outline-color: var(--md-accent-fg-color);
   outline-offset: 0.2rem;
-  transition: transform 0.4s cubic-bezier(0.1, 0.7, 0.1, 1), opacity 0.25s;
+  transition:
+    transform 0.4s cubic-bezier(0.1, 0.7, 0.1, 1),
+    opacity 0.25s;
 }
 .md-tabs__link:focus,
 .md-tabs__link:hover {
@@ -3350,7 +3444,9 @@ html .md-footer-meta.md-typeset a:hover {
 .md-tabs[hidden] .md-tabs__link {
   opacity: 0;
   transform: translateY(50%);
-  transition: transform 0ms 0.1s, opacity 0.1s;
+  transition:
+    transform 0ms 0.1s,
+    opacity 0.1s;
 }
 :root {
   --md-tag-icon: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m5.41 21 .71-4h-4l.35-2h4l1.06-6h-4l.35-2h4l.71-4h2l-.71 4h6l.71-4h2l-.71 4h4l-.35 2h-4l-1.06 6h4l-.35 2h-4l-.71 4h-2l.71-4h-6l-.71 4zM9.53 9l-1.06 6h6l1.06-6z"/></svg>');
@@ -3379,7 +3475,9 @@ html .md-footer-meta.md-typeset a:hover {
   -webkit-tap-highlight-color: transparent;
   color: inherit;
   outline: none;
-  transition: color 125ms, background-color 125ms;
+  transition:
+    color 125ms,
+    background-color 125ms;
 }
 .md-typeset .md-tag[href]:focus,
 .md-typeset .md-tag[href]:hover {
@@ -3443,14 +3541,20 @@ html .md-footer-meta.md-typeset a:hover {
   position: absolute;
   top: var(--md-tooltip-y);
   transform: translateY(-0.4rem);
-  transition: transform 0ms 0.25s, opacity 0.25s, z-index 0.25s;
+  transition:
+    transform 0ms 0.25s,
+    opacity 0.25s,
+    z-index 0.25s;
   width: var(--md-tooltip-width);
   z-index: 0;
 }
 .md-tooltip--active {
   opacity: 1;
   transform: translateY(0);
-  transition: transform 0.25s cubic-bezier(0.1, 0.7, 0.1, 1), opacity 0.25s, z-index 0ms;
+  transition:
+    transform 0.25s cubic-bezier(0.1, 0.7, 0.1, 1),
+    opacity 0.25s,
+    z-index 0ms;
   z-index: 2;
 }
 .md-tooltip--inline {
@@ -3551,7 +3655,9 @@ code .md-annotation {
     -webkit-mask-image: var(--md-annotation-icon);
     mask-image: var(--md-annotation-icon);
     transform: scale(1.0001);
-    transition: background-color 0.25s, transform 0.25s;
+    transition:
+      background-color 0.25s,
+      transform 0.25s;
   }
   .md-tooltip--active + .md-annotation__index:after {
     transform: rotate(45deg);
@@ -3626,7 +3732,10 @@ code .md-annotation {
   top: calc(var(--md-tooltip-host-y) + var(--md-tooltip-y));
   transform: translateY(-0.4rem);
   transform-origin: calc(var(--md-tooltip-host-x) + var(--md-tooltip-x)) 0;
-  transition: transform 0ms 0.25s, opacity 0.25s, z-index 0.25s;
+  transition:
+    transform 0ms 0.25s,
+    opacity 0.25s,
+    z-index 0.25s;
   width: 100%;
   z-index: 0;
 }
@@ -3656,7 +3765,10 @@ code .md-annotation {
 .md-tooltip2--active {
   opacity: 1;
   transform: translateY(0);
-  transition: transform 0.4s cubic-bezier(0, 1, 0.5, 1), opacity 0.25s, z-index 0ms;
+  transition:
+    transform 0.4s cubic-bezier(0, 1, 0.5, 1),
+    opacity 0.25s,
+    z-index 0ms;
   z-index: 2;
 }
 .md-tooltip2__inner {
@@ -3720,7 +3832,10 @@ code .md-annotation {
   position: fixed;
   top: 3.2rem;
   transform: translate(-50%);
-  transition: color 125ms, background-color 125ms, transform 125ms cubic-bezier(0.4, 0, 0.2, 1),
+  transition:
+    color 125ms,
+    background-color 125ms,
+    transform 125ms cubic-bezier(0.4, 0, 0.2, 1),
     opacity 125ms;
   z-index: 2;
 }
@@ -3817,14 +3932,18 @@ code .md-annotation {
   position: absolute;
   scroll-snap-type: y mandatory;
   top: 0.15rem;
-  transition: max-height 0ms 0.5s, opacity 0.25s 0.25s;
+  transition:
+    max-height 0ms 0.5s,
+    opacity 0.25s 0.25s;
   z-index: 3;
 }
 .md-version:focus-within .md-version__list,
 .md-version:hover .md-version__list {
   max-height: 10rem;
   opacity: 1;
-  transition: max-height 0ms, opacity 0.25s;
+  transition:
+    max-height 0ms,
+    opacity 0.25s;
 }
 @media (hover: none), (pointer: coarse) {
   .md-version:hover .md-version__list {
@@ -3850,7 +3969,9 @@ code .md-annotation {
   display: block;
   outline: none;
   scroll-snap-align: start;
-  transition: color 0.25s, background-color 0.25s;
+  transition:
+    color 0.25s,
+    background-color 0.25s;
   white-space: nowrap;
   width: 100%;
 }
@@ -4313,7 +4434,10 @@ html .md-typeset .footnote-ref {
   font-size: 0;
   opacity: 0;
   transform: translateX(0.25rem);
-  transition: color 0.25s, transform 0.25s 0.25s, opacity 125ms 0.25s;
+  transition:
+    color 0.25s,
+    transform 0.25s 0.25s,
+    opacity 125ms 0.25s;
   vertical-align: text-bottom;
 }
 @media print {
@@ -4357,7 +4481,9 @@ html .md-typeset .footnote-ref {
   color: var(--md-default-fg-color--lighter);
   display: inline-block;
   opacity: 0;
-  transition: color 0.25s, opacity 125ms;
+  transition:
+    color 0.25s,
+    opacity 125ms;
 }
 @media print {
   .md-typeset .headerlink {
@@ -4368,7 +4494,9 @@ html .md-typeset .footnote-ref {
 .md-typeset :hover > .headerlink,
 .md-typeset :target > .headerlink {
   opacity: 1;
-  transition: color 0.25s, opacity 125ms;
+  transition:
+    color 0.25s,
+    opacity 125ms;
 }
 .md-typeset .headerlink:focus,
 .md-typeset .headerlink:hover,
@@ -5003,7 +5131,10 @@ html .md-typeset .footnote-ref {
     left: 0;
     position: absolute;
     transform: translateX(var(--md-indicator-x));
-    transition: width 225ms, background-color 0.25s, transform 0.25s;
+    transition:
+      width 225ms,
+      background-color 0.25s,
+      transform 0.25s;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     width: var(--md-indicator-width);
   }
@@ -5021,7 +5152,9 @@ html .md-typeset .footnote-ref {
   font-weight: 700;
   padding: 0.78125em 1.25em 0.625em;
   scroll-margin-inline-start: 1rem;
-  transition: background-color 0.25s, color 0.25s;
+  transition:
+    background-color 0.25s,
+    color 0.25s;
   white-space: nowrap;
   width: auto;
 }
@@ -5254,7 +5387,9 @@ html .md-typeset .footnote-ref {
   mask-repeat: no-repeat;
   -webkit-mask-size: contain;
   mask-size: contain;
-  transition: background-color 0.25s, transform 0.25s;
+  transition:
+    background-color 0.25s,
+    transform 0.25s;
   width: 100%;
 }
 .md-typeset .tabbed-control {
@@ -5549,7 +5684,9 @@ html .md-typeset .footnote-ref {
   display: block;
   margin: 0;
   padding: 0.8rem;
-  transition: border 0.25s, box-shadow 0.25s;
+  transition:
+    border 0.25s,
+    box-shadow 0.25s;
 }
 .md-typeset .grid.cards > ol > li:focus-within,
 .md-typeset .grid.cards > ol > li:hover,

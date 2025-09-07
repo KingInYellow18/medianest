@@ -262,7 +262,6 @@ If issues are discovered, the original documentation is preserved:
    ```
 
 2. **Partial Rollback:**
-
    - Keep new structure but restore specific problematic files
    - Fix issues and re-migrate individual sections
 

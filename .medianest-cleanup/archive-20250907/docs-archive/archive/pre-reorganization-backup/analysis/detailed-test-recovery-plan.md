@@ -24,7 +24,6 @@
 ### Critical Path Tests (Must Pass for 20% Target):
 
 1. **Authentication Flow** (8 files):
-
    - `/backend/tests/integration/critical-paths/auth-flow.test.ts`
    - `/backend/tests/integration/critical-paths/auth-flow-simple.test.ts`
    - `/backend/tests/integration/auth/enhanced-plex-oauth.test.ts`
@@ -35,7 +34,6 @@
    - `/backend/tests/integration/middleware/auth-comprehensive.test.ts`
 
 2. **Media Request Flow** (6 files):
-
    - `/backend/tests/integration/critical-paths/media-request-flow.test.ts`
    - `/backend/tests/integration/critical-paths/media-request-flow-simple.test.ts`
    - `/backend/tests/api/media.endpoints.test.ts`

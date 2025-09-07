@@ -568,7 +568,6 @@ export const rateLimitMiddleware = (resource: string = 'api') => {
 ## Testing Requirements
 
 1. **Unit Tests:**
-
    - Session creation and retrieval
    - Rate limit logic with mocked Redis
    - Cache operations

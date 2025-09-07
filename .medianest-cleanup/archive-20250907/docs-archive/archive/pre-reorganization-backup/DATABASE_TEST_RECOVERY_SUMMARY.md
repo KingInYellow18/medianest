@@ -17,7 +17,7 @@ Successfully fixed database connectivity and mocking for the test suite, resolvi
 - **Solution**: Implemented full Prisma client mock with all required methods:
   ```typescript
   // Created complete mock structure for all database models
-  user,
+  (user,
     mediaRequest,
     sessionToken,
     youtubeDownload,
@@ -27,7 +27,7 @@ Successfully fixed database connectivity and mocking for the test suite, resolvi
     account,
     session,
     verificationToken,
-    errorLog;
+    errorLog);
   ```
 
 ### 3. **Redis Client Mocking**

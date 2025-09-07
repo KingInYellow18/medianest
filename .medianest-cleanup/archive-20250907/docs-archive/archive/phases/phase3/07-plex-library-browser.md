@@ -579,19 +579,16 @@ export async function fetchLibraryItems(
 ## Testing Requirements
 
 1. **Library Loading**:
-
    - All libraries display correctly
    - Library counts accurate
    - Library switching works
 
 2. **Content Browsing**:
-
    - Grid displays media correctly
    - Infinite scroll loads more content
    - No duplicate items
 
 3. **Filtering**:
-
    - All filter combinations work
    - Results update immediately
    - Filter state persists during navigation
@@ -604,13 +601,11 @@ export async function fetchLibraryItems(
 ## Performance Optimizations
 
 1. **Image Loading**:
-
    - Use Plex transcoder for thumbnails
    - Implement progressive loading
    - Cache images aggressively
 
 2. **Data Fetching**:
-
    - Pagination with 50 items per page
    - Prefetch next page on scroll
    - Cache library data for 5 minutes

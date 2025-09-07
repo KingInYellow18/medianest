@@ -235,19 +235,22 @@ export function throttleAsync<T extends (...args: unknown[]) => Promise<any>>(
           });
       } else {
         const waitTime = limit - (now - lastExecuted);
-        setTimeout(() => {
-          if (!pending) {
-            lastExecuted = Date.now();
-            pending = true;
+        setTimeout(
+          () => {
+            if (!pending) {
+              lastExecuted = Date.now();
+              pending = true;
 
-            fn(...args)
-              .then(resolve)
-              .catch(reject)
-              .finally(() => {
-                pending = false;
-              });
-          }
-        }, Math.max(0, waitTime));
+              fn(...args)
+                .then(resolve)
+                .catch(reject)
+                .finally(() => {
+                  pending = false;
+                });
+            }
+          },
+          Math.max(0, waitTime)
+        );
       }
     });
   }) as T;

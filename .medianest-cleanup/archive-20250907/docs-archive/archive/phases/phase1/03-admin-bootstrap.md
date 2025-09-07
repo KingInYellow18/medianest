@@ -102,12 +102,10 @@ export class FirstRunService {
 ### UI Components Required
 
 1. **First Run Detection Component**
-
    - Check on app load
    - Redirect to setup if needed
 
 2. **Admin Setup Form**
-
    - Welcome message
    - Bootstrap login (admin/admin)
    - New password form
@@ -132,7 +130,6 @@ export class FirstRunService {
 ## Testing Requirements
 
 1. **Unit Tests:**
-
    - First run detection logic
    - Password hashing and validation
    - Role checking middleware

@@ -695,7 +695,6 @@ npm run test:integration -- --maxWorkers=4
 ## Testing Requirements
 
 1. **Mock Servers:**
-
    - Plex API endpoints
    - Overseerr API endpoints
    - Uptime Kuma WebSocket
@@ -731,14 +730,12 @@ npm run test:integration -- --maxWorkers=4
 ### What Was Built
 
 1. **MSW (Mock Service Worker) Setup**
-
    - Mock servers for Plex, Overseerr, and Uptime Kuma APIs
    - Realistic response data for testing
    - Error scenario simulation
    - Simple request/response mocking (no complex behavior)
 
 2. **Integration Test Suite** (`backend/tests/integration/services/external-services.integration.test.ts`)
-
    - Comprehensive test coverage for all external services
    - Plex: connection, libraries, search functionality
    - Overseerr: connection, search, request submission, webhooks
@@ -755,14 +752,12 @@ npm run test:integration -- --maxWorkers=4
 ### Testing Strategy (Simplified for MVP)
 
 1. **Focus on Critical Paths**
-
    - Authentication flow (Plex OAuth)
    - Media search and request submission
    - Service status monitoring
    - Graceful degradation when services unavailable
 
 2. **Mock External Services**
-
    - Use MSW for HTTP mocking (cleaner than Nock)
    - Mock Socket.io for WebSocket testing
    - No real API calls in tests

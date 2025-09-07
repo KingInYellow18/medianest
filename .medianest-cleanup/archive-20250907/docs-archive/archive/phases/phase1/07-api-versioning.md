@@ -199,7 +199,6 @@ const response = await request(app).get('/api/v1/users');
 ## Testing Requirements
 
 1. **Integration Tests:**
-
    - Verify all endpoints work with `/api/v1/` prefix
    - Ensure unversioned health check still works
    - Test that old `/api/` routes return 404

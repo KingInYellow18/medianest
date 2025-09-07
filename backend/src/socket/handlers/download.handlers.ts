@@ -161,10 +161,10 @@ export function registerDownloadHandlers(io: Server, socket: Socket): void {
             state === 'waiting'
               ? 'pending'
               : state === 'active'
-              ? 'downloading'
-              : state === 'completed'
-              ? 'completed'
-              : 'failed',
+                ? 'downloading'
+                : state === 'completed'
+                  ? 'completed'
+                  : 'failed',
           metadata: {
             title: job.data.metadata?.title,
             duration: job.data.metadata?.duration,

@@ -182,13 +182,11 @@ router.get('/status', asyncHandler(async (req, res) => {
 ### Successfully Refactored Files
 
 1. **src/services/cache.service.ts**
-
    - Replaced 6 try-catch blocks with `handleAsync`
    - Added safe JSON parsing/stringifying
    - Reduced from 114 to 87 lines (-24%)
 
 2. **src/routes/v1/services.ts**
-
    - Replaced manual error handling with `asyncHandler`
    - Standardized response format with `sendSuccess`
    - Reduced from 65 to 45 lines (-31%)

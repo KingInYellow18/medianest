@@ -698,19 +698,16 @@ export function usePlexSearch(query: PlexSearchQuery) {
 ## Testing Requirements
 
 1. **Search Functionality**:
-
    - Debouncing works correctly
    - Results categorized properly
    - Empty state displays correctly
 
 2. **Keyboard Navigation**:
-
    - Arrow keys navigate suggestions
    - Enter selects suggestion
    - Escape closes dropdown
 
 3. **Filter Application**:
-
    - Filters apply correctly to results
    - Active filters display properly
    - Clear filters works

@@ -71,7 +71,11 @@ export class UptimeKumaClient extends EventEmitter {
   private maxReconnectAttempts = 10;
   private reconnectDelay = 5000;
 
-  constructor(private url: string, private username?: string, private password?: string) {
+  constructor(
+    private url: string,
+    private username?: string,
+    private password?: string
+  ) {
     super();
   }
 
@@ -715,7 +719,6 @@ export default router;
 ## Testing Requirements
 
 1. **Unit Tests:**
-
    - Client connection logic
    - Event handler processing
    - Status mapping functions
@@ -752,7 +755,6 @@ export default router;
 ### What Was Built
 
 1. **Simplified Uptime Kuma Client** (`backend/src/integrations/uptime-kuma/uptime-kuma.client.ts`)
-
    - Socket.io client for real-time updates
    - Basic authentication support
    - Monitor list and heartbeat event handling
@@ -760,7 +762,6 @@ export default router;
    - Event emitter for status changes
 
 2. **Status Service Layer** (`backend/src/services/status.service.ts`)
-
    - Service initialization with fallback polling
    - Monitor to service name mapping
    - Real-time status updates via WebSocket
@@ -769,7 +770,6 @@ export default router;
    - Status change notifications
 
 3. **Dashboard Controller** (`backend/src/controllers/dashboard.controller.ts`)
-
    - GET /api/v1/dashboard/status - All service statuses
    - GET /api/v1/dashboard/status/:service - Specific service status
    - GET /api/v1/dashboard/stats - Dashboard statistics

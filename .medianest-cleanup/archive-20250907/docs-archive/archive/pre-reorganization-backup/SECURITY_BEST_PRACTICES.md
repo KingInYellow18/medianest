@@ -447,25 +447,21 @@ model AuditLog {
 ### Incident Response Plan
 
 1. **Detection**
-
    - Monitor logs for anomalies
    - Set up alerts for security events
    - Regular security scans
 
 2. **Containment**
-
    - Isolate affected systems
    - Revoke compromised credentials
    - Block malicious IPs
 
 3. **Eradication**
-
    - Patch vulnerabilities
    - Remove malicious code
    - Update security rules
 
 4. **Recovery**
-
    - Restore from clean backups
    - Verify system integrity
    - Monitor for recurrence

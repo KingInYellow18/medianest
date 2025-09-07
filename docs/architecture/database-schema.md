@@ -504,12 +504,10 @@ CREATE TABLE verification_tokens (
 #### High-Priority Indexes
 
 1. **Users**
-
    - `email` (unique) - Authentication lookups
    - `plex_id` (unique) - Plex integration
 
 2. **MediaRequest**
-
    - `(user_id, status)` - Dashboard filtering
    - `created_at` - Chronological sorting
    - `(tmdb_id, media_type)` - Duplicate prevention

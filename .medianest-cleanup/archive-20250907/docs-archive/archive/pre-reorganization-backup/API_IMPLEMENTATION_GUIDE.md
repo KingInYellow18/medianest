@@ -685,7 +685,10 @@ export class PlexClient {
   private axiosInstance: AxiosInstance;
   private circuitBreaker: ServiceCircuitBreaker;
 
-  constructor(private baseURL: string, private authToken: string) {
+  constructor(
+    private baseURL: string,
+    private authToken: string
+  ) {
     this.axiosInstance = axios.create({
       baseURL,
       headers: {
@@ -789,7 +792,10 @@ export class OverseerrClient {
   private axiosInstance: AxiosInstance;
   private circuitBreaker: ServiceCircuitBreaker;
 
-  constructor(private baseURL: string, private apiKey: string) {
+  constructor(
+    private baseURL: string,
+    private apiKey: string
+  ) {
     this.axiosInstance = axios.create({
       baseURL: `${baseURL}/api/v1`,
       headers: {

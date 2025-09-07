@@ -386,7 +386,6 @@ export function rateLimitSocket(event: string, limit: number, window: number) {
 ## Testing Requirements
 
 1. **Unit Tests:**
-
    - Socket authentication middleware
    - Event handler logic
    - Socket service methods

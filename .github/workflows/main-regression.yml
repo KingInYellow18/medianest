@@ -1,0 +1,421 @@
+name: 'Main Branch Regression - MediaNest E2E'
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      test_scope:
+        description: 'Test scope to run'
+        required: false
+        default: 'full'
+        type: choice
+        options:
+          - 'full'
+          - 'regression'
+          - 'performance'
+          - 'visual'
+
+env:
+  NODE_VERSION: '20'
+  PLAYWRIGHT_VERSION: '1.55.0'
+
+jobs:
+  setup:
+    name: 'Setup & Initialize'
+    runs-on: ubuntu-latest
+    outputs:
+      session-id: ${{ steps.session.outputs.id }}
+      test-matrix: ${{ steps.matrix.outputs.tests }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npx playwright install --with-deps
+
+      - name: Initialize HIVE-MIND Session
+        id: session
+        run: |
+          cd .medianest-e2e
+          SESSION_ID="main-regression-$(date +%s)"
+          echo "id=$SESSION_ID" >> $GITHUB_OUTPUT
+          npx claude-flow@alpha hooks pre-task --description "Main Regression: Full Test Suite"
+          npx claude-flow@alpha hooks session-restore --session-id "$SESSION_ID"
+
+      - name: Determine test matrix
+        id: matrix
+        run: |
+          cd .medianest-e2e
+          SCOPE="${{ github.event.inputs.test_scope || 'full' }}"
+          case $SCOPE in
+            "full")
+              echo 'tests=["@regression","@integration","@visual","@accessibility","@performance"]' >> $GITHUB_OUTPUT
+              ;;
+            "regression")
+              echo 'tests=["@regression","@integration"]' >> $GITHUB_OUTPUT
+              ;;
+            "performance")
+              echo 'tests=["@performance","@load"]' >> $GITHUB_OUTPUT
+              ;;
+            "visual")
+              echo 'tests=["@visual"]' >> $GITHUB_OUTPUT
+              ;;
+          esac
+
+  regression-tests:
+    name: 'Regression Tests'
+    runs-on: ubuntu-latest
+    needs: setup
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium-desktop, firefox-desktop, webkit-desktop, edge-desktop]
+        test-suite: ${{ fromJson(needs.setup.outputs.test-matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npx playwright install ${{ matrix.browser }}
+
+      - name: Start servers
+        run: |
+          npm run build
+          npm run start &
+          sleep 45
+
+      - name: Run regression tests
+        run: |
+          cd .medianest-e2e
+          npx playwright test \
+            --project=${{ matrix.browser }} \
+            --grep="${{ matrix.test-suite }}" \
+            --reporter=json,html,junit,allure-playwright \
+            --workers=2
+        env:
+          CI: true
+          BASE_URL: http://localhost:3000
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: regression-${{ matrix.browser }}-${{ strategy.job-index }}
+          path: |
+            .medianest-e2e/reports/
+            .medianest-e2e/test-results/
+          retention-days: 14
+
+  mobile-tests:
+    name: 'Mobile Testing'
+    runs-on: ubuntu-latest
+    needs: setup
+    strategy:
+      matrix:
+        device: [mobile-chrome, mobile-safari, tablet-chrome]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npx playwright install --with-deps
+
+      - name: Start servers
+        run: |
+          npm run build
+          npm run start &
+          sleep 30
+
+      - name: Run mobile tests
+        run: |
+          cd .medianest-e2e
+          npx playwright test \
+            --project=${{ matrix.device }} \
+            --grep="@mobile OR @responsive" \
+            --reporter=json,html
+        env:
+          CI: true
+          BASE_URL: http://localhost:3000
+
+      - name: Upload mobile results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mobile-${{ matrix.device }}
+          path: |
+            .medianest-e2e/reports/
+            .medianest-e2e/test-results/
+
+  performance-tests:
+    name: 'Performance Benchmarking'
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npx playwright install chromium
+
+      - name: Start servers
+        run: |
+          npm run build
+          npm run start &
+          sleep 30
+
+      - name: Run performance benchmarks
+        run: |
+          cd .medianest-e2e
+          npx playwright test \
+            --project=performance \
+            --grep="@performance" \
+            --reporter=json,html \
+            --workers=1
+        env:
+          CI: true
+          BASE_URL: http://localhost:3000
+
+      - name: Analyze performance metrics
+        run: |
+          cd .medianest-e2e
+          node scripts/analyze-performance-metrics.js
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: performance-results
+          path: |
+            .medianest-e2e/reports/performance/
+            .medianest-e2e/test-results/
+
+  visual-regression:
+    name: 'Visual Regression'
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npx playwright install chromium
+
+      - name: Start servers
+        run: |
+          npm run build
+          npm run start &
+          sleep 30
+
+      - name: Run visual regression tests
+        run: |
+          cd .medianest-e2e
+          npx playwright test \
+            --project=visual-chrome \
+            --grep="@visual" \
+            --reporter=json,html \
+            --update-snapshots=false
+        env:
+          CI: true
+          BASE_URL: http://localhost:3000
+
+      - name: Upload visual results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: visual-regression-results
+          path: |
+            .medianest-e2e/reports/visual/
+            .medianest-e2e/test-results/
+            .medianest-e2e/test-results-visual/
+
+  api-tests:
+    name: 'API Integration Tests'
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npx playwright install
+
+      - name: Start backend services
+        run: |
+          docker-compose -f docker-compose.test.yml up -d
+          sleep 30
+
+      - name: Run API tests
+        run: |
+          cd .medianest-e2e
+          npx playwright test \
+            --project=api-testing \
+            --grep="@api" \
+            --reporter=json,html
+        env:
+          CI: true
+          API_BASE_URL: http://localhost:3001
+
+      - name: Upload API results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: api-test-results
+          path: |
+            .medianest-e2e/reports/api/
+            .medianest-e2e/test-results/
+
+  report-generation:
+    name: 'Generate Comprehensive Report'
+    runs-on: ubuntu-latest
+    needs: [setup, regression-tests, mobile-tests, performance-tests, visual-regression, api-tests]
+    if: always()
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: .medianest-e2e/artifacts/
+
+      - name: Generate comprehensive dashboard
+        run: |
+          cd .medianest-e2e
+          node scripts/generate-dashboard.js \
+            --session-id="${{ needs.setup.outputs.session-id }}" \
+            --build-number="${{ github.run_number }}" \
+            --commit-sha="${{ github.sha }}"
+
+      - name: Generate executive report
+        run: |
+          cd .medianest-e2e
+          node -e "
+          const { HiveCICoordinator } = require('./utils/hive-ci-coordinator.ts');
+          const coordinator = new HiveCICoordinator('${{ needs.setup.outputs.session-id }}');
+
+          coordinator.generateExecutiveSummary({
+            sessionId: '${{ needs.setup.outputs.session-id }}',
+            buildNumber: '${{ github.run_number }}',
+            branch: 'main',
+            commitSha: '${{ github.sha }}',
+            timestamp: new Date().toISOString(),
+            environment: 'main-regression',
+            testMatrix: ${{ needs.setup.outputs.test-matrix }},
+            results: [],
+            metrics: {},
+            baseline: {}
+          }).then(summary => {
+            require('fs').writeFileSync('reports/main-regression-summary.md', summary);
+          });
+          "
+
+      - name: Upload comprehensive report
+        uses: actions/upload-artifact@v4
+        with:
+          name: comprehensive-test-report
+          path: |
+            .medianest-e2e/reports/
+            .medianest-e2e/dashboard/
+          retention-days: 30
+
+      - name: Deploy test dashboard
+        uses: peaceiris/actions-gh-pages@v3
+        if: success()
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .medianest-e2e/reports/dashboard
+          destination_dir: test-reports
+
+      - name: Slack notification
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          channel: '#medianest-ci'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          custom_payload: |
+            {
+              "text": "MediaNest Main Regression Complete",
+              "attachments": [{
+                "color": "${{ job.status == 'success' && 'good' || 'danger' }}",
+                "fields": [{
+                  "title": "Build",
+                  "value": "${{ github.run_number }}",
+                  "short": true
+                }, {
+                  "title": "Commit",
+                  "value": "${{ github.sha }}",
+                  "short": true
+                }, {
+                  "title": "Dashboard",
+                  "value": "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/test-reports/",
+                  "short": false
+                }]
+              }]
+            }
+
+      - name: Finalize HIVE session
+        run: |
+          cd .medianest-e2e
+          npx claude-flow@alpha hooks post-task --task-id "${{ needs.setup.outputs.session-id }}"
+          npx claude-flow@alpha hooks session-end --export-metrics true

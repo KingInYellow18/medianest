@@ -48,7 +48,6 @@ docker compose exec postgres psql -U medianest -d medianest
 #### 1.1 First-Time Setup
 
 - [ ] **Fresh Installation**
-
   - [ ] Clone repository
   - [ ] Copy `.env.example` to `.env`
   - [ ] Update environment variables with your services
@@ -67,7 +66,6 @@ docker compose exec postgres psql -U medianest -d medianest
 #### 1.2 Service Configuration
 
 - [ ] **Configure Plex**
-
   - [ ] Navigate to Settings → Services
   - [ ] Enter Plex server URL (e.g., http://192.168.1.100:32400)
   - [ ] Enter Plex token
@@ -76,7 +74,6 @@ docker compose exec postgres psql -U medianest -d medianest
   - [ ] Save configuration
 
 - [ ] **Configure Overseerr**
-
   - [ ] Enter Overseerr URL
   - [ ] Enter API key from Overseerr settings
   - [ ] Test connection
@@ -94,7 +91,6 @@ docker compose exec postgres psql -U medianest -d medianest
 #### 2.1 Plex OAuth Login
 
 - [ ] **PIN Generation**
-
   - [ ] Logout if logged in
   - [ ] Click "Login with Plex"
   - [ ] See PIN displayed (4 characters)
@@ -102,7 +98,6 @@ docker compose exec postgres psql -U medianest -d medianest
   - [ ] Timer counting down from 15 minutes
 
 - [ ] **PIN Authorization**
-
   - [ ] Navigate to https://plex.tv/link
   - [ ] Enter PIN code
   - [ ] Authorize MediaNest
@@ -120,7 +115,6 @@ docker compose exec postgres psql -U medianest -d medianest
 #### 2.2 User Access Levels
 
 - [ ] **Regular User Access**
-
   - [ ] Can view dashboard
   - [ ] Can browse media
   - [ ] Can make requests
@@ -139,7 +133,6 @@ docker compose exec postgres psql -U medianest -d medianest
 #### 3.1 Service Status Cards
 
 - [ ] **Plex Status Card**
-
   - [ ] Shows online/offline status
   - [ ] Displays version number
   - [ ] Shows active streams count
@@ -147,7 +140,6 @@ docker compose exec postgres psql -U medianest -d medianest
   - [ ] Quick actions work (Open Plex)
 
 - [ ] **Overseerr Status Card**
-
   - [ ] Shows connection status
   - [ ] Displays pending requests
   - [ ] Shows version info
@@ -163,7 +155,6 @@ docker compose exec postgres psql -U medianest -d medianest
 #### 3.2 Real-Time Updates
 
 - [ ] **Status Changes**
-
   - [ ] Stop a monitored service
   - [ ] Status updates within 30 seconds
   - [ ] Card shows offline state
@@ -182,7 +173,6 @@ docker compose exec postgres psql -U medianest -d medianest
 #### 4.1 Media Browsing
 
 - [ ] **Library Navigation**
-
   - [ ] All Plex libraries visible
   - [ ] Can switch between Movies/TV Shows
   - [ ] Poster images load
@@ -200,7 +190,6 @@ docker compose exec postgres psql -U medianest -d medianest
 #### 4.2 Media Requests
 
 - [ ] **Search for New Content**
-
   - [ ] Use search bar
   - [ ] Results from Overseerr appear
   - [ ] Can filter by Movies/TV
@@ -208,7 +197,6 @@ docker compose exec postgres psql -U medianest -d medianest
   - [ ] Already available items marked
 
 - [ ] **Submit Request**
-
   - [ ] Click request on unavailable item
   - [ ] For TV: season selection works
   - [ ] Confirm request dialog
@@ -228,7 +216,6 @@ docker compose exec postgres psql -U medianest -d medianest
 #### 5.1 URL Submission
 
 - [ ] **Video Download**
-
   - [ ] Navigate to YouTube Downloader
   - [ ] Paste YouTube video URL
   - [ ] URL validates successfully
@@ -246,7 +233,6 @@ docker compose exec postgres psql -U medianest -d medianest
 #### 5.2 Download Management
 
 - [ ] **Queue Monitoring**
-
   - [ ] Active downloads show progress
   - [ ] Progress bar updates
   - [ ] Speed and ETA visible
@@ -262,7 +248,6 @@ docker compose exec postgres psql -U medianest -d medianest
 #### 5.3 Completion Handling
 
 - [ ] **Successful Download**
-
   - [ ] Download completes
   - [ ] File size shown
   - [ ] Status changes to completed
@@ -278,7 +263,6 @@ docker compose exec postgres psql -U medianest -d medianest
 #### 6.1 Service Degradation
 
 - [ ] **Plex Offline**
-
   - [ ] Stop Plex server
   - [ ] Dashboard shows Plex offline
   - [ ] Can still browse cached data
@@ -286,7 +270,6 @@ docker compose exec postgres psql -U medianest -d medianest
   - [ ] Login fails gracefully
 
 - [ ] **Overseerr Offline**
-
   - [ ] Stop Overseerr
   - [ ] Search shows friendly error
   - [ ] Existing requests still visible
@@ -302,7 +285,6 @@ docker compose exec postgres psql -U medianest -d medianest
 #### 6.2 Network Issues
 
 - [ ] **Slow Connection**
-
   - [ ] Throttle network (browser DevTools)
   - [ ] Loading states appear
   - [ ] No duplicate requests
@@ -319,7 +301,6 @@ docker compose exec postgres psql -U medianest -d medianest
 #### 7.1 Concurrent Usage
 
 - [ ] **Multiple Sessions**
-
   - [ ] Login with 3-5 test accounts
   - [ ] Each in different browser/incognito
   - [ ] All can use simultaneously
@@ -336,7 +317,6 @@ docker compose exec postgres psql -U medianest -d medianest
 #### 7.2 Performance
 
 - [ ] **Response Times**
-
   - [ ] Dashboard loads < 2 seconds
   - [ ] Search results < 1 second
   - [ ] Media browsing smooth
@@ -353,7 +333,6 @@ docker compose exec postgres psql -U medianest -d medianest
 #### 8.1 Responsive Design
 
 - [ ] **Phone (375px width)**
-
   - [ ] Navigation menu collapses
   - [ ] Cards stack vertically
   - [ ] All text readable
@@ -380,7 +359,6 @@ docker compose exec postgres psql -U medianest -d medianest
 #### 9.1 Authentication
 
 - [ ] **Invalid Tokens**
-
   - [ ] Modify JWT in browser
   - [ ] Requests rejected
   - [ ] Forced to re-login
@@ -525,21 +503,18 @@ docker compose exec redis redis-cli INFO memory
 ### Common Issues
 
 1. **Plex OAuth not working**
-
    - Verify Plex server is accessible
    - Check firewall rules
    - Ensure correct client ID/secret
    - Try incognito mode
 
 2. **Services showing offline**
-
    - Verify service URLs are correct
    - Check from MediaNest container: `docker compose exec backend curl [service-url]`
    - Verify API keys are valid
    - Check service logs
 
 3. **YouTube downloads failing**
-
    - Check yt-dlp is installed
    - Verify output directory permissions
    - Check disk space
@@ -554,7 +529,6 @@ docker compose exec redis redis-cli INFO memory
 ### Performance Optimization
 
 1. **Slow page loads**
-
    - Enable Redis caching
    - Check database indexes
    - Review API response times

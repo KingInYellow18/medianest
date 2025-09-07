@@ -9,7 +9,6 @@ This observability stack provides complete visibility into the Observe applicati
 ### Three Pillars of Observability
 
 1. **Metrics** (Prometheus + Grafana)
-
    - HTTP request/response metrics
    - Database performance tracking
    - External API monitoring
@@ -17,7 +16,6 @@ This observability stack provides complete visibility into the Observe applicati
    - Infrastructure monitoring
 
 2. **Logs** (Loki + Promtail)
-
    - Structured JSON logging
    - Correlation ID tracking
    - Centralized log aggregation

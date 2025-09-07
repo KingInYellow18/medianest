@@ -677,20 +677,17 @@ export async function queueYouTubeDownload(
 ## Testing Requirements
 
 1. **URL Validation**:
-
    - Valid video URLs accepted
    - Valid playlist URLs accepted
    - Invalid URLs rejected with error
    - Real-time validation feedback
 
 2. **Quota Management**:
-
    - Quota display updates correctly
    - Submit disabled when quota exceeded
    - Reset timer shows accurate time
 
 3. **Form Submission**:
-
    - Successful submissions queue downloads
    - Error handling for failed submissions
    - Form resets after successful submission

@@ -55,7 +55,10 @@ export class HealthMonitorService extends EventEmitter {
   private errorCount = 0;
   private totalResponseTime = 0;
 
-  constructor(private prisma?: PrismaClient, private redis?: IORedis) {
+  constructor(
+    private prisma?: PrismaClient,
+    private redis?: IORedis
+  ) {
     super();
     this.startTime = new Date();
     this.performanceMetrics = this.initializeMetrics();

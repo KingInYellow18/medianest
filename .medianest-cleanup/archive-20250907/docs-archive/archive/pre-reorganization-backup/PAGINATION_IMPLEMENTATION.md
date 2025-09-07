@@ -417,13 +417,11 @@ describe('Pagination', () => {
 ## Migration Strategy
 
 1. **Phase 1:** Implement pagination for high-priority endpoints
-
    - Admin users list
    - Plex search results
    - YouTube downloads
 
 2. **Phase 2:** Add pagination to medium-priority endpoints
-
    - Dashboard notifications
    - Plex recently added
 

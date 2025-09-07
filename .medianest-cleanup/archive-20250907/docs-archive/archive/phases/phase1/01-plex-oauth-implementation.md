@@ -101,12 +101,10 @@ ENCRYPTION_KEY=<32-byte-key-for-token-encryption>
 ### API Integration Points
 
 1. **Plex PIN Generation:**
-
    - `POST https://plex.tv/api/v2/pins`
    - Headers: X-Plex-Product, X-Plex-Client-Identifier
 
 2. **Plex PIN Check:**
-
    - `GET https://plex.tv/api/v2/pins/{id}`
    - Returns auth token when authorized
 
@@ -129,14 +127,12 @@ ENCRYPTION_KEY=<32-byte-key-for-token-encryption>
 ## Testing Requirements
 
 1. **Unit Tests:**
-
    - PIN generation logic
    - User creation from Plex data
    - JWT token generation/validation
    - Encryption/decryption functions
 
 2. **Integration Tests:**
-
    - Full OAuth flow with mocked Plex API
    - Token refresh flow
    - Rate limiting behavior

@@ -191,13 +191,11 @@ OpenAPI Generator supports 50+ languages including:
 ### Best Practices
 
 1. **Update spec when adding endpoints:**
-
    - Add path definition
    - Define request/response schemas
    - Include examples
 
 2. **Version your API:**
-
    - Use `/api/v1`, `/api/v2` for breaking changes
    - Document deprecations
 
@@ -221,7 +219,6 @@ OpenAPI Generator supports 50+ languages including:
 ## Development Workflow
 
 1. **Design-First Approach:**
-
    - Update OpenAPI spec first
    - Generate types/mocks
    - Implement endpoint

@@ -399,7 +399,6 @@ if (!config.encryption.key || config.encryption.key.length < 32) {
 ## Testing Requirements
 
 1. **Unit Tests:**
-
    - Encryption/decryption round trip
    - Invalid data handling
    - Key validation

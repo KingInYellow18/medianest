@@ -168,7 +168,9 @@
     box-shadow: 0 0 5px rgba(103, 58, 183, 0.5);
   }
   50% {
-    box-shadow: 0 0 20px rgba(103, 58, 183, 0.8), 0 0 30px rgba(103, 58, 183, 0.6);
+    box-shadow:
+      0 0 20px rgba(103, 58, 183, 0.8),
+      0 0 30px rgba(103, 58, 183, 0.6);
   }
 }
 
@@ -237,7 +239,9 @@
   overflow: hidden;
   border-right: 2px solid var(--medianest-primary);
   white-space: nowrap;
-  animation: typewriter 3s steps(40, end), blink 0.75s step-end infinite;
+  animation:
+    typewriter 3s steps(40, end),
+    blink 0.75s step-end infinite;
 }
 
 .animate-glow {
@@ -393,7 +397,9 @@
 .page-enter-active {
   opacity: 1;
   transform: translateY(0);
-  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+  transition:
+    opacity 0.4s ease-out,
+    transform 0.4s ease-out;
 }
 
 .page-exit {
@@ -404,7 +410,9 @@
 .page-exit-active {
   opacity: 0;
   transform: translateY(-20px);
-  transition: opacity 0.3s ease-in, transform 0.3s ease-in;
+  transition:
+    opacity 0.3s ease-in,
+    transform 0.3s ease-in;
 }
 
 /* ========================================
@@ -414,7 +422,9 @@
 .scroll-reveal {
   opacity: 0;
   transform: translateY(50px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  transition:
+    opacity 0.6s ease-out,
+    transform 0.6s ease-out;
 }
 
 .scroll-reveal.revealed {
@@ -425,7 +435,9 @@
 .scroll-reveal-left {
   opacity: 0;
   transform: translateX(-50px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  transition:
+    opacity 0.6s ease-out,
+    transform 0.6s ease-out;
 }
 
 .scroll-reveal-left.revealed {
@@ -436,7 +448,9 @@
 .scroll-reveal-right {
   opacity: 0;
   transform: translateX(50px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  transition:
+    opacity 0.6s ease-out,
+    transform 0.6s ease-out;
 }
 
 .scroll-reveal-right.revealed {
@@ -463,7 +477,9 @@
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.3);
   transform: translate(-50%, -50%);
-  transition: width 0.4s, height 0.4s;
+  transition:
+    width 0.4s,
+    height 0.4s;
 }
 
 .ripple-effect:active::before {
@@ -535,7 +551,9 @@
 .notification-enter-active {
   opacity: 1;
   transform: translateX(0);
-  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+  transition:
+    opacity 0.3s ease-out,
+    transform 0.3s ease-out;
 }
 
 .notification-exit {
@@ -546,7 +564,9 @@
 .notification-exit-active {
   opacity: 0;
   transform: translateX(100%);
-  transition: opacity 0.3s ease-in, transform 0.3s ease-in;
+  transition:
+    opacity 0.3s ease-in,
+    transform 0.3s ease-in;
 }
 
 /* ========================================

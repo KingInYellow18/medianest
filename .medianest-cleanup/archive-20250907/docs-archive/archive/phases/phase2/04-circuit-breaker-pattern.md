@@ -548,7 +548,6 @@ export default router;
 ## Testing Requirements
 
 1. **Unit Tests:**
-
    - State transitions
    - Failure counting
    - Timeout handling
@@ -586,7 +585,6 @@ export default router;
 Instead of a complex circuit breaker pattern, we implemented a simpler retry mechanism suitable for a homelab environment with 10-20 users:
 
 1. **Simple Retry Utility** (`backend/src/utils/retry.ts`)
-
    - `retryWithBackoff`: Exponential backoff with jitter
    - `simpleRetry`: Fixed delay retry for quick operations
    - Configurable max attempts and delays

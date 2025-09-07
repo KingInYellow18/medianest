@@ -29,19 +29,15 @@
 ### Largest Files (>500 lines) - Technical Debt Hotspots:
 
 1. **`./tests/security/comprehensive-security-test-suite.ts`** - **825 lines**
-
    - CRITICAL: Massive test file needs modularization
 
 2. **`./backend/src/services/email.service.ts`** - **684 lines**
-
    - HIGH: Core service violates SRP, needs splitting
 
 3. **`./tests/integration/api-gateway-service-coordination-test.ts`** - **666 lines**
-
    - HIGH: Integration test complexity indicating architecture issues
 
 4. **`./tests/integration/helpers/msw-handlers-comprehensive.ts`** - **647 lines**
-
    - MEDIUM: Mock handlers need organization
 
 5. **`./backend/tests/e2e/auth.spec.ts`** - **646 lines**

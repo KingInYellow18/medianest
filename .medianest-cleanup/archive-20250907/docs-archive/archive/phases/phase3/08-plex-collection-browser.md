@@ -527,19 +527,16 @@ export function useCollectionDetail(collectionKey: string) {
 ## Testing Requirements
 
 1. **Collection Loading**:
-
    - All collections display with correct metadata
    - Collection counts are accurate
    - Poster images load correctly
 
 2. **Filtering & Sorting**:
-
    - Search filters collections in real-time
    - Sort options work correctly
    - Minimum item filter applies properly
 
 3. **Collection Details**:
-
    - Collection items load correctly
    - View mode toggle works
    - Navigation between views smooth
@@ -552,13 +549,11 @@ export function useCollectionDetail(collectionKey: string) {
 ## Performance Considerations
 
 1. **Image Optimization**:
-
    - Use Plex transcoder for collection posters
    - Preload collection art for detail view
    - Cache collection thumbnails
 
 2. **Data Management**:
-
    - Cache collection lists for 5 minutes
    - Prefetch collection details on hover
    - Limit initial item load to 50

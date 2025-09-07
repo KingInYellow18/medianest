@@ -732,21 +732,18 @@ export function isToday(date: Date): boolean {
 ## Testing Requirements
 
 1. **Queue Display**:
-
    - All downloads show with correct status
    - Real-time updates reflect immediately
    - Queue positions update correctly
    - Filters work as expected
 
 2. **Progress Tracking**:
-
    - Progress bars update smoothly
    - Speed calculations are accurate
    - ETA estimates are reasonable
    - Playlist progress shows correctly
 
 3. **Actions**:
-
    - Cancel stops active downloads
    - Retry requeues failed downloads
    - View in Plex opens correct page

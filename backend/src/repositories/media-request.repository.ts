@@ -209,10 +209,13 @@ export class MediaRequestRepository extends BaseRepository<
       _count: true,
     });
 
-    return requests.reduce((acc, item) => {
-      acc[item.status] = item._count;
-      return acc;
-    }, {} as Record<string, number>);
+    return requests.reduce(
+      (acc, item) => {
+        acc[item.status] = item._count;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
   }
 
   async getRecentRequests(limit: number = 10, offset: number = 0): Promise<MediaRequest[]> {

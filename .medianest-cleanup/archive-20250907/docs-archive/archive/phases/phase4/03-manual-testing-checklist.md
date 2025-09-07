@@ -172,56 +172,47 @@ While automated tests are valuable, manual testing with real services is crucial
 Created a comprehensive manual testing checklist document at `docs/MANUAL_TESTING_CHECKLIST.md` that covers:
 
 1. **Environment Setup Verification**
-
    - Docker services startup
    - Health check endpoints
    - Database and Redis connectivity
 
 2. **Complete User Journey Testing**
-
    - First-time admin setup
    - Plex OAuth authentication flow
    - Service dashboard functionality
 
 3. **Media Management Testing**
-
    - Plex library browsing
    - Media search and requests
    - TV show season selection
 
 4. **YouTube Download Testing**
-
    - URL submission and validation
    - Download queue management
    - Rate limiting verification
    - Plex integration
 
 5. **Service Degradation Testing**
-
    - Graceful handling of service failures
    - Fallback mechanisms
    - Data persistence
 
 6. **Multi-User Testing**
-
    - User isolation
    - Concurrent usage
    - Rate limiting per user
 
 7. **Performance Validation**
-
    - Page load time targets
    - API response benchmarks
    - WebSocket stability
 
 8. **Mobile Responsiveness**
-
    - Device compatibility
    - Touch interactions
    - Orientation handling
 
 9. **Security & Error Handling**
-
    - Authentication/authorization
    - Input validation
    - Error message quality

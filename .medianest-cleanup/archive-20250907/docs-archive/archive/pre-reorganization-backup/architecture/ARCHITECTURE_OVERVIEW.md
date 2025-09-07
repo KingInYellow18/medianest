@@ -251,13 +251,11 @@ sequenceDiagram
 ### Security Layers
 
 1. **Network Security**
-
    - SSL/TLS encryption (Let's Encrypt ready)
    - Nginx rate limiting and CORS configuration
    - Container network isolation
 
 2. **Application Security**
-
    - JWT token validation with secure httpOnly cookies
    - CSRF protection via SameSite cookies
    - Input sanitization and Zod validation
@@ -307,21 +305,18 @@ class ServiceClient {
 ### Integrated Services
 
 1. **Plex API**
-
    - OAuth authentication provider
    - Media library browsing
    - Collection management
    - Direct streaming integration
 
 2. **Overseerr**
-
    - Media request submission
    - User approval workflows
    - TMDB integration for metadata
    - Webhook status updates
 
 3. **Uptime Kuma**
-
    - Service health monitoring
    - Real-time status updates
    - Historical uptime tracking
@@ -375,14 +370,12 @@ io.to(`downloads:${userId}`).emit('download:progress', progress);
 ### Current Optimizations
 
 1. **Frontend Performance**
-
    - Next.js static generation where applicable
    - Image optimization and lazy loading
    - Code splitting and dynamic imports
    - Service worker for offline capability
 
 2. **Backend Performance**
-
    - Database connection pooling (limit: 20 for 10-20 users)
    - Redis caching for frequent queries
    - HTTP connection reuse for external APIs

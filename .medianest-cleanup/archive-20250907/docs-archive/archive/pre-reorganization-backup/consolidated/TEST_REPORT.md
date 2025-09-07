@@ -33,35 +33,30 @@ The following critical user journeys are covered by our test suite:
 ### ✅ Implemented Tests
 
 1. **Authentication Flow** (`auth-flow.test.ts`)
-
    - Plex OAuth PIN generation
    - PIN authorization polling
    - JWT token issuance
    - Session management
 
 2. **Media Request Flow** (`media-request-flow.test.ts`)
-
    - Browse Plex media
    - Submit Overseerr requests
    - Track request status
    - Real-time updates
 
 3. **Service Monitoring** (`service-monitoring.test.ts`)
-
    - Health check endpoints
    - Service status caching
    - WebSocket notifications
    - Graceful degradation
 
 4. **YouTube Downloads** (`youtube-download-flow.test.ts`)
-
    - Queue management
    - Download progress tracking
    - User isolation
    - Error handling
 
 5. **User Isolation** (`user-isolation.test.ts`)
-
    - Data privacy between users
    - Request filtering
    - Access control
@@ -89,13 +84,11 @@ The following critical user journeys are covered by our test suite:
 ### Available Test Runners
 
 1. **Main Test Orchestrator**: `./run-all-tests.sh`
-
    - Runs all tests across workspaces
    - Supports coverage, watch mode, UI mode
    - Manages test database lifecycle
 
 2. **Critical Path Runner**: `backend/run-critical-paths.sh`
-
    - Focuses on essential user journeys
    - Quick validation of core functionality
 
@@ -136,12 +129,10 @@ The following critical user journeys are covered by our test suite:
 ### Future Enhancements
 
 1. **Performance Testing**
-
    - Add load tests for concurrent users
    - Monitor response times under load
 
 2. **E2E Browser Testing**
-
    - Consider Playwright for critical UI flows
    - Focus on mobile responsiveness
 

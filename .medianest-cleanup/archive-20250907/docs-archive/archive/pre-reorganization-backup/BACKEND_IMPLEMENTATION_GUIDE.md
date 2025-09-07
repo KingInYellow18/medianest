@@ -244,7 +244,10 @@ import { AppError } from '../utils/errors';
 import { redis } from '../config/redis';
 
 export class AuthService {
-  constructor(private plexClient: PlexClient, private userRepository: UserRepository) {}
+  constructor(
+    private plexClient: PlexClient,
+    private userRepository: UserRepository
+  ) {}
 
   async generatePlexPin(): Promise<{ id: string; code: string }> {
     const pinData = await this.plexClient.generatePin();
@@ -1581,10 +1584,13 @@ export function validateRequest<T>(schema: Joi.Schema, data: any): T {
   });
 
   if (error) {
-    const details = error.details.reduce((acc, detail) => {
-      acc[detail.path.join('.')] = detail.message;
-      return acc;
-    }, {} as Record<string, string>);
+    const details = error.details.reduce(
+      (acc, detail) => {
+        acc[detail.path.join('.')] = detail.message;
+        return acc;
+      },
+      {} as Record<string, string>
+    );
 
     throw new AppError('Validation failed', 400, { details });
   }

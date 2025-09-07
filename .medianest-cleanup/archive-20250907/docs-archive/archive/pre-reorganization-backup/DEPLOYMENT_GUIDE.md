@@ -46,7 +46,6 @@
 MediaNest supports two deployment methods:
 
 1. **Docker Deployment** (Recommended)
-
    - All-in-one deployment using Docker Compose
    - Automatic service orchestration
    - Easy updates and rollbacks

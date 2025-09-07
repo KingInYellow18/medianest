@@ -213,9 +213,12 @@ maxsize: '20m'
 
 ```typescript
 // Current - every 2 minutes
-this.healthCheckInterval = setInterval(() => {
-  this.performHealthChecks();
-}, 2 * 60 * 1000);
+this.healthCheckInterval = setInterval(
+  () => {
+    this.performHealthChecks();
+  },
+  2 * 60 * 1000
+);
 
 // Recommended - configurable intervals based on service criticality
 const interval = this.getHealthCheckInterval(serviceName);

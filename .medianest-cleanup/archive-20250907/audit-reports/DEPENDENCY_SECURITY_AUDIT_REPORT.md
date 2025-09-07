@@ -29,7 +29,6 @@ All vulnerabilities are LOW severity in development dependencies only.
 #### Backend - Low Severity Issues:
 
 1. **tmp** (CVE: GHSA-52f5-9888-hmc6)
-
    - **Current:** <=0.2.3
    - **Severity:** Low (CVSS: 2.5)
    - **Impact:** Arbitrary temporary file/directory write via symbolic link
@@ -130,7 +129,6 @@ All vulnerabilities are LOW severity in development dependencies only.
 ### 🟡 HIGH PRIORITY (Fix within 1 week)
 
 2. **Fix Low Vulnerabilities** - Risk Score: 3/10
-
    - Impact: Development environment only
    - Effort: 30 minutes
    - Command: `cd backend && npm audit fix`
@@ -143,7 +141,6 @@ All vulnerabilities are LOW severity in development dependencies only.
 ### 🟢 MEDIUM PRIORITY (Fix within 1 month)
 
 4. **ESLint v9 Migration** - Risk Score: 6/10
-
    - Impact: Linting rules, CI/CD pipeline
    - Effort: 4-8 hours
    - Breaking: Yes - Config format changes
@@ -156,7 +153,6 @@ All vulnerabilities are LOW severity in development dependencies only.
 ### 🔵 LOW PRIORITY (Fix within 3 months)
 
 6. **Tailwind CSS v4** - Risk Score: 8/10
-
    - Impact: Major UI framework changes
    - Effort: 16-24 hours
    - Breaking: Yes - Complete redesign

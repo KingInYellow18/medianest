@@ -303,7 +303,10 @@ export abstract class ApplicationError extends Error {
   abstract code: string;
   abstract isOperational: boolean;
 
-  constructor(message: string, public context?: Record<string, any>) {
+  constructor(
+    message: string,
+    public context?: Record<string, any>
+  ) {
     super(message);
   }
 }

@@ -122,26 +122,22 @@ const structure = {
 ### What Was Built
 
 1. **Plex Client Extensions**
-
    - Added `refreshLibrary()` and `scanDirectory()` methods
    - Added collection management methods
    - Implemented library detection for YouTube content
 
 2. **YouTube Download Processor Integration**
-
    - Automatic Plex scan triggering after downloads
    - NFO metadata file creation for better Plex matching
    - Thumbnail download and storage
    - Path mapping between MediaNest and Plex containers
 
 3. **Plex Service Enhancements**
-
    - `findYouTubeLibrary()` method to auto-detect YouTube libraries
    - Cache management for library data
    - Collection filtering and sorting capabilities
 
 4. **API Endpoints**
-
    - POST `/api/v1/plex/libraries/refresh` - Refresh any library
    - POST `/api/v1/plex/libraries/scan` - Scan specific directory
    - POST `/api/v1/plex/youtube/scan` - Scan YouTube library
@@ -149,7 +145,6 @@ const structure = {
    - GET `/api/v1/plex/collections/:key` - Get collection details
 
 5. **Configuration**
-
    - Added `PLEX_YOUTUBE_LIBRARY_PATH` environment variable
    - Updated schemas and .env.example
 

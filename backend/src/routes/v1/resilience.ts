@@ -525,10 +525,10 @@ router.get(
           resilienceScore >= 80
             ? 'excellent'
             : resilienceScore >= 60
-            ? 'good'
-            : resilienceScore >= 40
-            ? 'fair'
-            : 'poor',
+              ? 'good'
+              : resilienceScore >= 40
+                ? 'fair'
+                : 'poor',
         systemHealth: healthStatus,
         serviceHealth: resilienceStatus,
         circuitBreakers: {

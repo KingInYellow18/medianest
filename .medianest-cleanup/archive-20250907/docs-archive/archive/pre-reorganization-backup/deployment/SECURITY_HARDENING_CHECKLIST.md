@@ -7,7 +7,6 @@ This comprehensive security checklist ensures MediaNest deployments follow secur
 ### Server Hardening
 
 - [ ] **Operating System Updates**
-
   - [ ] Latest OS patches installed
   - [ ] Automatic security updates enabled
   - [ ] Kernel security modules enabled (AppArmor/SELinux)
@@ -15,7 +14,6 @@ This comprehensive security checklist ensures MediaNest deployments follow secur
   - [ ] SSH hardened (key-only auth, non-standard port)
 
 - [ ] **Firewall Configuration**
-
   - [ ] UFW/iptables configured with deny-all default
   - [ ] Only necessary ports open (80, 443, SSH)
   - [ ] Rate limiting rules implemented
@@ -32,7 +30,6 @@ This comprehensive security checklist ensures MediaNest deployments follow secur
 ### Network Security
 
 - [ ] **SSL/TLS Configuration**
-
   - [ ] TLS 1.2+ only (TLS 1.3 preferred)
   - [ ] Strong cipher suites configured
   - [ ] Perfect Forward Secrecy enabled
@@ -52,7 +49,6 @@ This comprehensive security checklist ensures MediaNest deployments follow secur
 ### Docker Configuration
 
 - [ ] **Container Hardening**
-
   - [ ] Containers run as non-root user
   - [ ] Read-only root filesystem where possible
   - [ ] No new privileges flag set
@@ -61,7 +57,6 @@ This comprehensive security checklist ensures MediaNest deployments follow secur
   - [ ] Security profiles applied
 
 - [ ] **Image Security**
-
   - [ ] Base images from trusted sources
   - [ ] Regular vulnerability scanning
   - [ ] Multi-stage builds to minimize attack surface
@@ -92,7 +87,6 @@ This comprehensive security checklist ensures MediaNest deployments follow secur
 ### Authentication & Authorization
 
 - [ ] **JWT Security**
-
   - [ ] Strong JWT secrets (256+ bits)
   - [ ] Appropriate token expiration times
   - [ ] Refresh token rotation implemented
@@ -101,7 +95,6 @@ This comprehensive security checklist ensures MediaNest deployments follow secur
   - [ ] Audience and issuer validation
 
 - [ ] **Password Security**
-
   - [ ] Strong password requirements
   - [ ] Password hashing with salt (bcrypt/Argon2)
   - [ ] Password strength validation
@@ -120,7 +113,6 @@ This comprehensive security checklist ensures MediaNest deployments follow secur
 ### API Security
 
 - [ ] **Input Validation**
-
   - [ ] Server-side validation for all inputs
   - [ ] SQL injection prevention (parameterized queries)
   - [ ] XSS protection (output encoding)
@@ -129,7 +121,6 @@ This comprehensive security checklist ensures MediaNest deployments follow secur
   - [ ] Content-type validation
 
 - [ ] **Rate Limiting**
-
   - [ ] API rate limiting implemented
   - [ ] Different limits for authenticated/unauthenticated users
   - [ ] Burst protection configured
@@ -148,7 +139,6 @@ This comprehensive security checklist ensures MediaNest deployments follow secur
 ### Data Security
 
 - [ ] **Encryption**
-
   - [ ] Data at rest encryption
   - [ ] Data in transit encryption
   - [ ] Database encryption enabled
@@ -169,7 +159,6 @@ This comprehensive security checklist ensures MediaNest deployments follow secur
 ### PostgreSQL Hardening
 
 - [ ] **Access Control**
-
   - [ ] Database user principle of least privilege
   - [ ] No shared database accounts
   - [ ] Strong database passwords
@@ -178,7 +167,6 @@ This comprehensive security checklist ensures MediaNest deployments follow secur
   - [ ] Database firewall rules
 
 - [ ] **Configuration Security**
-
   - [ ] Default database configurations changed
   - [ ] Unnecessary extensions disabled
   - [ ] Query logging enabled
@@ -209,7 +197,6 @@ This comprehensive security checklist ensures MediaNest deployments follow secur
 ### Nginx Hardening
 
 - [ ] **Server Configuration**
-
   - [ ] Server tokens disabled
   - [ ] Unnecessary modules removed
   - [ ] Security headers configured
@@ -218,7 +205,6 @@ This comprehensive security checklist ensures MediaNest deployments follow secur
   - [ ] Server signature hidden
 
 - [ ] **Security Headers**
-
   - [ ] **Strict-Transport-Security**: Max-age, includeSubDomains, preload
   - [ ] **X-Frame-Options**: DENY or SAMEORIGIN
   - [ ] **X-Content-Type-Options**: nosniff
@@ -240,7 +226,6 @@ This comprehensive security checklist ensures MediaNest deployments follow secur
 ### Security Monitoring
 
 - [ ] **Log Management**
-
   - [ ] Comprehensive logging enabled
   - [ ] Log integrity protection
   - [ ] Centralized log collection
@@ -249,7 +234,6 @@ This comprehensive security checklist ensures MediaNest deployments follow secur
   - [ ] Log analysis and alerting
 
 - [ ] **Intrusion Detection**
-
   - [ ] Fail2ban configured
   - [ ] Unusual activity monitoring
   - [ ] Brute force attack detection
@@ -280,7 +264,6 @@ This comprehensive security checklist ensures MediaNest deployments follow secur
 ### Maintenance & Updates
 
 - [ ] **Patch Management**
-
   - [ ] Automated security updates
   - [ ] Regular application updates
   - [ ] Container image updates
@@ -299,7 +282,6 @@ This comprehensive security checklist ensures MediaNest deployments follow secur
 ### Access Management
 
 - [ ] **Administrative Access**
-
   - [ ] Multi-factor authentication
   - [ ] Privileged access management
   - [ ] Access review process
@@ -342,7 +324,6 @@ This comprehensive security checklist ensures MediaNest deployments follow secur
 ### Regular Testing
 
 - [ ] **Vulnerability Assessments**
-
   - [ ] Quarterly vulnerability scans
   - [ ] Annual penetration testing
   - [ ] Code security reviews
@@ -432,7 +413,6 @@ echo "Security fixes applied"
 ### Emergency Procedures
 
 1. **Security Incident Detected**
-
    - [ ] Isolate affected systems
    - [ ] Preserve evidence
    - [ ] Notify stakeholders
@@ -440,7 +420,6 @@ echo "Security fixes applied"
    - [ ] Begin investigation
 
 2. **Data Breach Response**
-
    - [ ] Assess scope and impact
    - [ ] Contain the breach
    - [ ] Notify authorities (if required)

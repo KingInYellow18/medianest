@@ -165,21 +165,18 @@ describe('Media Search API', () => {
 ### What Was Done
 
 1. **MSW Installation and Configuration**:
-
    - Installed MSW as dev dependency
    - Created MSW setup file at `backend/tests/msw/setup.ts`
    - Configured vitest to use MSW setup
    - Created handler structure for all external services
 
 2. **Comprehensive Handler Implementation**:
-
    - **Plex Handlers**: PIN flow, user auth, library access
    - **Overseerr Handlers**: Search, requests, media details
    - **Uptime Kuma Handlers**: Service status, monitoring data
    - **YouTube Handlers**: Video info, download simulation
 
 3. **API Endpoint Test Suites**:
-
    - `auth.endpoints.test.ts`: Complete Plex OAuth flow testing
    - `media.endpoints.test.ts`: Search and request functionality
    - `services.endpoints.test.ts`: Service monitoring and config

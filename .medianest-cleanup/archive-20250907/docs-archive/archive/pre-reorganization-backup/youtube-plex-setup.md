@@ -152,12 +152,10 @@ Content-Type: application/json
 ## Best Practices
 
 1. **Library Organization**
-
    - Keep YouTube content in a separate library
    - Don't mix with other media types
 
 2. **Naming Convention**
-
    - MediaNest uses: `Title_VideoID_Timestamp.extension`
    - This prevents duplicates and ensures uniqueness
 

@@ -137,35 +137,30 @@ export function reportWebVitals(metric: NextWebVitalsMetric) {
 ### What Was Done
 
 1. **Bundle Size Analysis & Optimization**
-
    - Installed @next/bundle-analyzer
    - Added `npm run build:analyze` script
    - Configured tree-shaking for lucide-react, @headlessui/react, date-fns
    - Disabled production source maps
 
 2. **Code Splitting Implementation**
-
    - Dynamic imports for YouTube components
    - Lazy loaded RequestModal
    - Added loading skeletons
    - SSR disabled for client-heavy components
 
 3. **Image Optimization**
-
    - Migrated all images to Next.js Image component
    - Configured external domains (Plex, TMDB)
    - Added AVIF/WebP support
    - Implemented responsive image sizes
 
 4. **Caching Strategy**
-
    - 1-year cache for static assets
    - Stale-while-revalidate for API responses
    - Optimized React Query cache times
    - Added prefetching hooks
 
 5. **Performance Monitoring**
-
    - Web Vitals reporting with thresholds
    - Connection quality detection
    - Performance monitor component

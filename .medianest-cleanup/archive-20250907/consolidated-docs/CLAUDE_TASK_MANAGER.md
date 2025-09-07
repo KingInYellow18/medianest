@@ -139,19 +139,16 @@ tasks/
 ### When Creating Tasks:
 
 1. **Understand Context First**:
-
    - Query memory systems for project state
    - Review completed tasks for patterns
    - Check CLAUDE.md for technical requirements
 
 2. **Define Clear Scope**:
-
    - One clear objective per task
    - Measurable acceptance criteria
    - Specific file modifications
 
 3. **Set Realistic Requirements**:
-
    - List actual dependencies
    - Include testing needs
    - Consider security implications
@@ -202,13 +199,11 @@ mv tasks/active/task-file.md tasks/blocked/
 ## Session Workflow
 
 1. **Initialize**:
-
    - Check active/ directory for ongoing work
    - Query memory systems for project context
    - Review pending/ tasks by priority
 
 2. **During Session**:
-
    - Update task progress regularly
    - Create new tasks as needs arise
    - Move tasks between directories

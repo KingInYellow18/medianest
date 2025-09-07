@@ -153,7 +153,6 @@ curl https://localhost:3000/api/v1/download/../../../etc/passwd
    - Weak encryption
    - Missing authorization
 3. **Medium** - Fix soon after deployment
-
    - Missing security headers
    - Verbose error messages
    - Weak rate limiting

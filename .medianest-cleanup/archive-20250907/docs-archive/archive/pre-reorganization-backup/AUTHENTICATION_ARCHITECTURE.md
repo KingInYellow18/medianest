@@ -2255,7 +2255,7 @@ describe('Plex Authentication', () => {
         ({
           ok: true,
           json: async () => mockResponses[callCount++],
-        } as Response)
+        }) as Response
     );
 
     const token = await pollForPlexToken('123', 'test-client');

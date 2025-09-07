@@ -46,19 +46,16 @@ MediaNest's security architecture is designed to protect a homelab media managem
 ### 2.1 Core Principles
 
 1. **Simplicity Over Complexity**
-
    - Choose well-tested, standard security solutions
    - Avoid custom cryptography or authentication schemes
    - Leverage existing security features in frameworks
 
 2. **Zero Trust Mindset**
-
    - Authenticate every request
    - Validate all inputs
    - Trust but verify external services
 
 3. **Fail Secure**
-
    - Default to denying access when uncertain
    - Gracefully degrade functionality when services fail
    - Log security events for analysis
@@ -104,13 +101,11 @@ As a homelab project for trusted users:
 ### 3.2 Threat Actors
 
 1. **External Attackers** (Primary Concern)
-
    - Automated scanners and bots
    - Opportunistic hackers
    - Script kiddies
 
 2. **Compromised User Accounts** (Secondary Concern)
-
    - Phished credentials
    - Malware on user devices
    - Weak passwords
@@ -2017,14 +2012,12 @@ Based on the system architecture review, the current MediaNest authentication sy
 ### 14.4 Medium-term Security Enhancements (Phase 2: Weeks 3-4)
 
 1. **TOTP Multi-Factor Authentication**
-
    - RFC 6238 compliant implementation
    - QR code generation for enrollment
    - Backup codes with one-time usage
    - Encrypted secret storage (AES-256-GCM)
 
 2. **Advanced Session Security**
-
    - Session fingerprinting
    - Concurrent session limits
    - Geographic anomaly detection
@@ -2039,14 +2032,12 @@ Based on the system architecture review, the current MediaNest authentication sy
 ### 14.5 Long-term Security Enhancements (Phase 3: Weeks 5-6)
 
 1. **Horizontal Scaling Architecture**
-
    - Distributed session management
    - API gateway pattern implementation
    - Load balancer integration
    - Health check monitoring
 
 2. **Multi-Provider OAuth Support**
-
    - GitHub OAuth integration
    - Google OAuth support
    - Provider registry pattern
@@ -2061,14 +2052,12 @@ Based on the system architecture review, the current MediaNest authentication sy
 ### 14.6 Enterprise-Ready Features (Future Phases)
 
 1. **Advanced Compliance**
-
    - GDPR compliance automation
    - SOC 2 Type 1 controls
    - ISO 27001 mapping
    - Automated audit reports
 
 2. **Advanced Threat Protection**
-
    - Web Application Firewall (ModSecurity)
    - DDoS protection integration
    - Behavioral analysis engine

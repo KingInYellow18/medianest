@@ -258,17 +258,20 @@ export class PlexService {
 
   // Clean up idle clients periodically (every 30 minutes)
   startCleanupTimer(): void {
-    setInterval(() => {
-      const now = Date.now();
-      const maxIdleTime = 30 * 60 * 1000; // 30 minutes
+    setInterval(
+      () => {
+        const now = Date.now();
+        const maxIdleTime = 30 * 60 * 1000; // 30 minutes
 
-      // In a production app, we'd track last access time
-      // For MVP, just clear all clients periodically
-      if (this.clients.size > 10) {
-        logger.info('Clearing Plex client cache', { count: this.clients.size });
-        this.clients.clear();
-      }
-    }, 30 * 60 * 1000);
+        // In a production app, we'd track last access time
+        // For MVP, just clear all clients periodically
+        if (this.clients.size > 10) {
+          logger.info('Clearing Plex client cache', { count: this.clients.size });
+          this.clients.clear();
+        }
+      },
+      30 * 60 * 1000
+    );
   }
 }
 

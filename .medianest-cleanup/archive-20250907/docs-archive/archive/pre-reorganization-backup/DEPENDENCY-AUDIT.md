@@ -153,7 +153,6 @@
 **Priority:** Critical
 
 1. **Pre-Migration Setup**
-
    - Create feature branch: `feat/dependency-upgrades-phase-1`
    - Backup current working state
    - Document current functionality
@@ -248,7 +247,6 @@
    ```
 
 2. **Caching Behavior**
-
    - GET Route Handlers: No longer cached by default
    - Client Router Cache: No longer cached by default
    - fetch requests: No longer cached by default

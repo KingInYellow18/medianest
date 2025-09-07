@@ -137,13 +137,11 @@ describe('Plex OAuth Flow', () => {
 1. **Created Simplified Test Suite**: Instead of testing the full application stack, created lightweight test helpers that focus on business logic validation.
 
 2. **Implemented 14 Critical Path Tests**:
-
    - 5 authentication flow tests
    - 4 media request flow tests
    - 5 YouTube download flow tests
 
 3. **Test Infrastructure**:
-
    - Created `test-app.ts` helper for lightweight Express app setup
    - Created in-memory Redis mock for rate limiting tests
    - Used Prisma directly for database operations

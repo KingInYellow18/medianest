@@ -131,7 +131,6 @@ NEXTAUTH_SECRET=<generate-32-char-secret>
 ## Testing Requirements
 
 1. **Unit Tests:**
-
    - JWT callback logic
    - Session callback transformations
    - Cookie configuration

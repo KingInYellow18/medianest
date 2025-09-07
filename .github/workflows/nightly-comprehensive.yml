@@ -1,0 +1,539 @@
+name: 'Nightly Comprehensive - MediaNest E2E'
+
+on:
+  schedule:
+    # Run at 2 AM UTC every night
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      test_environments:
+        description: 'Test environments'
+        required: false
+        default: 'staging,production'
+        type: string
+      include_performance:
+        description: 'Include performance benchmarking'
+        required: false
+        default: true
+        type: boolean
+
+env:
+  NODE_VERSION: '20'
+  PLAYWRIGHT_VERSION: '1.55.0'
+
+jobs:
+  setup:
+    name: 'Initialize Nightly Suite'
+    runs-on: ubuntu-latest
+    outputs:
+      session-id: ${{ steps.session.outputs.id }}
+      environments: ${{ steps.envs.outputs.matrix }}
+      test-matrix: ${{ steps.matrix.outputs.tests }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npx playwright install --with-deps
+
+      - name: Initialize HIVE-MIND Session
+        id: session
+        run: |
+          cd .medianest-e2e
+          SESSION_ID="nightly-$(date +%Y%m%d-%H%M%S)"
+          echo "id=$SESSION_ID" >> $GITHUB_OUTPUT
+          npx claude-flow@alpha swarm init --topology="mesh" --max-agents=12 --session-id="$SESSION_ID"
+          npx claude-flow@alpha hooks pre-task --description "Nightly Comprehensive Test Suite"
+
+      - name: Setup environments matrix
+        id: envs
+        run: |
+          ENVS="${{ github.event.inputs.test_environments || 'staging,production' }}"
+          echo "matrix=$(echo $ENVS | jq -R 'split(",") | map(select(length > 0))')" >> $GITHUB_OUTPUT
+
+      - name: Setup test matrix
+        id: matrix
+        run: |
+          echo 'tests=["@comprehensive","@regression","@visual","@accessibility","@performance","@load","@security","@integration","@cross-browser","@mobile"]' >> $GITHUB_OUTPUT
+
+  comprehensive-desktop:
+    name: 'Comprehensive Desktop (${{ matrix.environment }}, ${{ matrix.browser }})'
+    runs-on: ubuntu-latest
+    needs: setup
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: ${{ fromJson(needs.setup.outputs.environments) }}
+        browser: [chromium-desktop, firefox-desktop, webkit-desktop, edge-desktop]
+        test-group: [auth, dashboard, media, api, admin]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npx playwright install ${{ matrix.browser }}
+
+      - name: Configure environment
+        run: |
+          cd .medianest-e2e
+          cp .env.${{ matrix.environment }}.example .env.test
+          echo "BASE_URL=${{ secrets[format('BASE_URL_{0}', matrix.environment)] }}" >> .env.test
+          echo "API_BASE_URL=${{ secrets[format('API_BASE_URL_{0}', matrix.environment)] }}" >> .env.test
+
+      - name: Run comprehensive tests
+        run: |
+          cd .medianest-e2e
+          npx playwright test \
+            --project=${{ matrix.browser }} \
+            --grep="@${{ matrix.test-group }}" \
+            --reporter=json,html,junit,allure-playwright \
+            --workers=3 \
+            --retries=2
+        env:
+          CI: true
+          ENVIRONMENT: ${{ matrix.environment }}
+
+      - name: Update HIVE memory
+        if: always()
+        run: |
+          cd .medianest-e2e
+          npx claude-flow@alpha hooks post-edit \
+            --file "nightly-results" \
+            --memory-key "nightly/${{ needs.setup.outputs.session-id }}/desktop/${{ matrix.environment }}/${{ matrix.browser }}/${{ matrix.test-group }}"
+
+      - name: Upload comprehensive results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comprehensive-${{ matrix.environment }}-${{ matrix.browser }}-${{ matrix.test-group }}
+          path: |
+            .medianest-e2e/reports/
+            .medianest-e2e/test-results/
+          retention-days: 30
+
+  visual-regression-comprehensive:
+    name: 'Visual Regression All Resolutions'
+    runs-on: ubuntu-latest
+    needs: setup
+    strategy:
+      matrix:
+        environment: ${{ fromJson(needs.setup.outputs.environments) }}
+        resolution: ['1920x1080', '1366x768', '1280x720', '1024x768']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npx playwright install chromium
+
+      - name: Configure environment
+        run: |
+          cd .medianest-e2e
+          cp .env.${{ matrix.environment }}.example .env.test
+          echo "BASE_URL=${{ secrets[format('BASE_URL_{0}', matrix.environment)] }}" >> .env.test
+
+      - name: Run visual regression tests
+        run: |
+          cd .medianest-e2e
+          RESOLUTION=${{ matrix.resolution }}
+          WIDTH=$(echo $RESOLUTION | cut -d'x' -f1)
+          HEIGHT=$(echo $RESOLUTION | cut -d'x' -f2)
+
+          npx playwright test \
+            --project=visual-chrome \
+            --grep="@visual" \
+            --reporter=json,html \
+            --config="playwright.config.ts" \
+            --workers=1
+        env:
+          CI: true
+          ENVIRONMENT: ${{ matrix.environment }}
+          VIEWPORT_WIDTH: $(echo ${{ matrix.resolution }} | cut -d'x' -f1)
+          VIEWPORT_HEIGHT: $(echo ${{ matrix.resolution }} | cut -d'x' -f2)
+
+      - name: Generate visual diff report
+        if: failure()
+        run: |
+          cd .medianest-e2e
+          node scripts/generate-visual-diff-report.js \
+            --environment=${{ matrix.environment }} \
+            --resolution=${{ matrix.resolution }}
+
+      - name: Upload visual results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: visual-${{ matrix.environment }}-${{ matrix.resolution }}
+          path: |
+            .medianest-e2e/reports/visual/
+            .medianest-e2e/test-results-visual/
+
+  accessibility-comprehensive:
+    name: 'Comprehensive Accessibility Testing'
+    runs-on: ubuntu-latest
+    needs: setup
+    strategy:
+      matrix:
+        environment: ${{ fromJson(needs.setup.outputs.environments) }}
+        accessibility-profile: [default, high-contrast, reduced-motion, screen-reader]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npx playwright install chromium
+
+      - name: Configure environment
+        run: |
+          cd .medianest-e2e
+          cp .env.${{ matrix.environment }}.example .env.test
+          echo "BASE_URL=${{ secrets[format('BASE_URL_{0}', matrix.environment)] }}" >> .env.test
+
+      - name: Run accessibility tests
+        run: |
+          cd .medianest-e2e
+          npx playwright test \
+            --project=accessibility \
+            --grep="@accessibility" \
+            --reporter=json,html \
+            --workers=2
+        env:
+          CI: true
+          ENVIRONMENT: ${{ matrix.environment }}
+          ACCESSIBILITY_PROFILE: ${{ matrix.accessibility-profile }}
+
+      - name: Generate accessibility report
+        run: |
+          cd .medianest-e2e
+          node scripts/generate-accessibility-report.js \
+            --environment=${{ matrix.environment }} \
+            --profile=${{ matrix.accessibility-profile }}
+
+      - name: Upload accessibility results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: accessibility-${{ matrix.environment }}-${{ matrix.accessibility-profile }}
+          path: |
+            .medianest-e2e/reports/accessibility/
+            .medianest-e2e/test-results/
+
+  performance-benchmarking:
+    name: 'Performance Benchmarking (${{ matrix.environment }})'
+    runs-on: ubuntu-latest
+    needs: setup
+    if: github.event.inputs.include_performance != 'false'
+    strategy:
+      matrix:
+        environment: ${{ fromJson(needs.setup.outputs.environments) }}
+        test-type: [lighthouse, core-vitals, load-test, memory-profiling]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npx playwright install chromium
+
+      - name: Configure environment
+        run: |
+          cd .medianest-e2e
+          cp .env.${{ matrix.environment }}.example .env.test
+          echo "BASE_URL=${{ secrets[format('BASE_URL_{0}', matrix.environment)] }}" >> .env.test
+
+      - name: Run performance tests
+        run: |
+          cd .medianest-e2e
+          case "${{ matrix.test-type }}" in
+            "lighthouse")
+              npx playwright test --grep="@lighthouse" --reporter=json,html --project=performance
+              ;;
+            "core-vitals")
+              npx playwright test --grep="@core-vitals" --reporter=json,html --project=performance
+              ;;
+            "load-test")
+              npx playwright test --grep="@load" --reporter=json,html --project=performance --workers=1
+              ;;
+            "memory-profiling")
+              npx playwright test --grep="@memory" --reporter=json,html --project=performance
+              ;;
+          esac
+        env:
+          CI: true
+          ENVIRONMENT: ${{ matrix.environment }}
+
+      - name: Analyze performance metrics
+        run: |
+          cd .medianest-e2e
+          node scripts/analyze-performance.js \
+            --environment=${{ matrix.environment }} \
+            --test-type=${{ matrix.test-type }}
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: performance-${{ matrix.environment }}-${{ matrix.test-type }}
+          path: |
+            .medianest-e2e/reports/performance/
+            .medianest-e2e/test-results/
+
+  mobile-comprehensive:
+    name: 'Mobile Comprehensive (${{ matrix.environment }})'
+    runs-on: ubuntu-latest
+    needs: setup
+    strategy:
+      matrix:
+        environment: ${{ fromJson(needs.setup.outputs.environments) }}
+        device: [mobile-chrome, mobile-safari, tablet-chrome, tablet-safari]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npx playwright install --with-deps
+
+      - name: Configure environment
+        run: |
+          cd .medianest-e2e
+          cp .env.${{ matrix.environment }}.example .env.test
+          echo "BASE_URL=${{ secrets[format('BASE_URL_{0}', matrix.environment)] }}" >> .env.test
+
+      - name: Run mobile tests
+        run: |
+          cd .medianest-e2e
+          npx playwright test \
+            --project=${{ matrix.device }} \
+            --grep="@mobile OR @responsive" \
+            --reporter=json,html \
+            --workers=2
+        env:
+          CI: true
+          ENVIRONMENT: ${{ matrix.environment }}
+
+      - name: Upload mobile results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mobile-${{ matrix.environment }}-${{ matrix.device }}
+          path: |
+            .medianest-e2e/reports/
+            .medianest-e2e/test-results/
+
+  security-testing:
+    name: 'Security Testing (${{ matrix.environment }})'
+    runs-on: ubuntu-latest
+    needs: setup
+    strategy:
+      matrix:
+        environment: ${{ fromJson(needs.setup.outputs.environments) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npx playwright install chromium
+
+      - name: Configure environment
+        run: |
+          cd .medianest-e2e
+          cp .env.${{ matrix.environment }}.example .env.test
+          echo "BASE_URL=${{ secrets[format('BASE_URL_{0}', matrix.environment)] }}" >> .env.test
+
+      - name: Run security tests
+        run: |
+          cd .medianest-e2e
+          npx playwright test \
+            --grep="@security" \
+            --reporter=json,html \
+            --project=chromium-desktop
+        env:
+          CI: true
+          ENVIRONMENT: ${{ matrix.environment }}
+
+      - name: Upload security results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-${{ matrix.environment }}
+          path: |
+            .medianest-e2e/reports/security/
+            .medianest-e2e/test-results/
+
+  report-generation:
+    name: 'Generate Comprehensive Nightly Report'
+    runs-on: ubuntu-latest
+    needs:
+      [
+        setup,
+        comprehensive-desktop,
+        visual-regression-comprehensive,
+        accessibility-comprehensive,
+        performance-benchmarking,
+        mobile-comprehensive,
+        security-testing,
+      ]
+    if: always()
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: .medianest-e2e/artifacts/
+
+      - name: Generate comprehensive dashboard
+        run: |
+          cd .medianest-e2e
+          node scripts/generate-comprehensive-dashboard.js \
+            --session-id="${{ needs.setup.outputs.session-id }}" \
+            --build-number="${{ github.run_number }}" \
+            --environments="${{ needs.setup.outputs.environments }}"
+
+      - name: Generate executive summary
+        run: |
+          cd .medianest-e2e
+          node scripts/generate-executive-summary.js \
+            --session-id="${{ needs.setup.outputs.session-id }}" \
+            --type="nightly-comprehensive"
+
+      - name: Generate trend analysis
+        run: |
+          cd .medianest-e2e
+          node scripts/analyze-trends.js \
+            --session-id="${{ needs.setup.outputs.session-id }}" \
+            --lookback-days=7
+
+      - name: Upload comprehensive report
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-comprehensive-report
+          path: |
+            .medianest-e2e/reports/
+            .medianest-e2e/dashboard/
+          retention-days: 90
+
+      - name: Deploy nightly dashboard
+        uses: peaceiris/actions-gh-pages@v3
+        if: success()
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .medianest-e2e/reports/dashboard
+          destination_dir: nightly-reports/$(date +%Y%m%d)
+
+      - name: Slack comprehensive notification
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          channel: '#medianest-nightly'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          custom_payload: |
+            {
+              "text": "🌙 MediaNest Nightly Comprehensive Testing Complete",
+              "attachments": [{
+                "color": "${{ job.status == 'success' && 'good' || 'danger' }}",
+                "fields": [{
+                  "title": "Date",
+                  "value": "$(date +%Y-%m-%d)",
+                  "short": true
+                }, {
+                  "title": "Build",
+                  "value": "${{ github.run_number }}",
+                  "short": true
+                }, {
+                  "title": "Environments",
+                  "value": "${{ needs.setup.outputs.environments }}",
+                  "short": false
+                }, {
+                  "title": "Dashboard",
+                  "value": "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/nightly-reports/$(date +%Y%m%d)/",
+                  "short": false
+                }]
+              }]
+            }
+
+      - name: Email report to stakeholders
+        uses: dawidd6/action-send-mail@v3
+        if: always()
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: 'MediaNest Nightly Test Report - $(date +%Y-%m-%d)'
+          body: file://.medianest-e2e/reports/executive-summary.md
+          to: ${{ secrets.STAKEHOLDER_EMAILS }}
+          from: MediaNest CI <noreply@medianest.com>
+          attachments: .medianest-e2e/reports/comprehensive-report.pdf
+
+      - name: Finalize HIVE session
+        run: |
+          cd .medianest-e2e
+          npx claude-flow@alpha hooks post-task --task-id "${{ needs.setup.outputs.session-id }}"
+          npx claude-flow@alpha hooks session-end --export-metrics true

@@ -225,13 +225,11 @@ TEAMS_WEBHOOK_URL=https://outlook.office.com/webhook/...
 ### Common Issues
 
 1. **Dashboard Not Loading**
-
    - Check data source connections
    - Verify Prometheus is scraping targets
    - Review Grafana logs
 
 2. **Missing Metrics**
-
    - Ensure application exports metrics
    - Check Prometheus configuration
    - Verify label selectors in queries
@@ -263,13 +261,11 @@ curl http://localhost:9090/api/v1/query?query=up
 ### Regular Tasks
 
 1. **Weekly**:
-
    - Review alert noise and adjust thresholds
    - Check dashboard performance
    - Validate data retention settings
 
 2. **Monthly**:
-
    - Update dashboard templates
    - Review and clean up unused alerts
    - Performance optimization
@@ -299,13 +295,11 @@ curl http://localhost:9090/api/v1/query?query=up
 ## Security Considerations
 
 1. **Access Control**:
-
    - Use strong admin passwords
    - Implement proper user roles
    - Enable HTTPS in production
 
 2. **Data Protection**:
-
    - Secure webhook URLs
    - Encrypt sensitive environment variables
    - Regular security audits
@@ -318,13 +312,11 @@ curl http://localhost:9090/api/v1/query?query=up
 ## Performance Optimization
 
 1. **Query Optimization**:
-
    - Use appropriate time ranges
    - Optimize PromQL queries
    - Implement query result caching
 
 2. **Resource Management**:
-
    - Monitor Grafana resource usage
    - Optimize dashboard refresh intervals
    - Clean up old data regularly
