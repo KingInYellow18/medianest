@@ -1,82 +1,94 @@
 # MediaNest Documentation
 
-⚠️ **PROJECT STATUS: UNDER DEVELOPMENT - NOT PRODUCTION READY**
+**Project Status:** Development Phase - Not Production Ready  
+**Documentation Version:** 4.0 - Optimized Structure  
+**Last Updated:** September 7, 2025
 
-This directory contains the documentation for MediaNest (currently in development phase). Some documentation may contain outdated or aspirational content that does not reflect current implementation status.
+## 🚨 Important Notice
 
-**CRITICAL**: Review individual documents as some may contain false claims about production readiness, test coverage, and security status.
+This project is currently in development phase. Some documentation may contain aspirational content that doesn't reflect current implementation status. Always verify claims against actual code implementation.
 
-## Quick Start
+## Quick Navigation
 
-1. **Install MkDocs and dependencies:**
+### 🚀 Getting Started
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+- [Installation Guide](INSTALLATION.md) - Setup and prerequisites
+- [User Guide](USER_GUIDE.md) - End-user documentation
+- [Configuration](CONFIGURATION.md) - Environment and settings
 
-2. **Start the development server:**
+### 🏗️ Development
 
-   ```bash
-   mkdocs serve
-   ```
+- [Architecture Overview](ARCHITECTURE.md) - System design and patterns
+- [API Reference](API.md) - Complete API documentation
+- [Testing Guide](TESTING.md) - Testing strategies and setup
 
-3. **Build the documentation:**
-   ```bash
-   mkdocs build
-   ```
+### 🔧 Operations
+
+- [Deployment Guide](DEPLOYMENT.md) - Production deployment
+- [Security Guide](SECURITY.md) - Security architecture and best practices
+- [Monitoring Guide](MONITORING.md) - Observability and metrics
+
+### 📊 References
+
+- [Performance Strategy](PERFORMANCE.md) - Optimization and benchmarks
+- [Troubleshooting](TROUBLESHOOTING.md) - Common issues and solutions
+- [Contributing](CONTRIBUTING.md) - Development guidelines
+
+## Project Overview
+
+MediaNest is a media management platform that integrates with Plex and YouTube to provide unified media discovery and management capabilities.
+
+### Core Features
+
+- **Authentication:** JWT-based with secure session management
+- **Media Integration:** Plex server and YouTube API integration
+- **Dashboard:** Real-time media statistics and recommendations
+- **Search:** Unified search across integrated platforms
+- **Monitoring:** Comprehensive observability stack
+
+### Technology Stack
+
+- **Backend:** Node.js, Express, TypeScript, Prisma ORM
+- **Frontend:** Next.js, React, TypeScript, Tailwind CSS
+- **Database:** PostgreSQL with Redis caching
+- **Infrastructure:** Docker, Nginx, monitoring stack
+
+## Build Status
+
+⚠️ **Current Issues:**
+
+- Vite build errors requiring resolution
+- 42 security vulnerabilities in dependencies
+- TypeScript compilation warnings
+
+**Recommendation:** Resolve build issues before production deployment.
 
 ## Documentation Structure
 
+This documentation is organized into focused, consolidated guides to reduce complexity and improve maintainability.
+
 ```
-docs/
-├── index.md                    # Homepage
-├── getting-started/            # Getting started guides
-├── installation/               # Installation guides
-├── user-guides/               # User guides and tutorials
-├── api/                       # API reference
-├── developers/                # Developer documentation
-├── troubleshooting/           # Troubleshooting guides
-├── reference/                 # Reference materials
-└── assets/                    # Static assets
-```
-
-## Building and Deployment
-
-⚠️ **BUILD STATUS: CURRENTLY BROKEN**
-
-The main MediaNest application has build failures that may affect documentation builds:
-
-- Vite build errors (maximum call stack exceeded)
-- 42 security vulnerabilities in dependencies
-- TypeScript compilation failures
-
-### Build Scripts (May Fail)
-
-```bash
-# Full build (may fail due to main project issues)
-./scripts/build-docs.sh
-
-# Development build (may have limited functionality)
-./scripts/build-docs.sh --dev
-
-# Skip dependencies and tests (safest option currently)
-./scripts/build-docs.sh --skip-deps --skip-tests
+docs-optimized/
+├── README.md              # This file - navigation hub
+├── INSTALLATION.md        # Setup and prerequisites
+├── USER_GUIDE.md         # End-user documentation
+├── ARCHITECTURE.md       # System architecture
+├── API.md                # API reference
+├── DEPLOYMENT.md         # Production deployment
+├── SECURITY.md           # Security guide
+├── TESTING.md            # Testing strategies
+├── MONITORING.md         # Observability
+├── PERFORMANCE.md        # Performance guide
+├── TROUBLESHOOTING.md    # Common issues
+├── CONFIGURATION.md      # Environment setup
+├── CONTRIBUTING.md       # Development guidelines
+└── diagrams/            # Visual assets (if any)
 ```
 
-### Deployment Scripts (Not Recommended Currently)
+## Support
 
-⚠️ **DEPLOYMENT BLOCKED**: Do not deploy documentation while main project has build failures and security vulnerabilities.
-
-```bash
-# These commands exist but should not be used until issues are resolved:
-# ./scripts/deploy-docs.sh --github
-# ./scripts/deploy-docs.sh --netlify
-# ./scripts/deploy-docs.sh --s3
-# ./scripts/deploy-docs.sh --custom
-```
-
-**Fix Required**: Resolve main project build failures and security vulnerabilities before deploying documentation.
+For issues, questions, or contributions, please refer to the individual guide documents or the troubleshooting guide.
 
 ## License
 
-This documentation is part of the MediaNest project and follows the same MIT license.
+MIT License - See project root for complete license details.
