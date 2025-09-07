@@ -147,28 +147,28 @@ async function startServer() {
     await initializeDatabase();
     await initializeRedis();
     await initializeQueues();
-    
+
     // Create Express app
     const app = createApp();
-    
+
     // Create HTTP server
     const server = createServer(app);
-    
+
     // Initialize WebSocket
     const io = initializeWebSocket(server);
-    
+
     // Start server
     server.listen(config.port, () => {
       logger.info(`Server running on port ${config.port}`);
     });
-    
+
     // Graceful shutdown
     process.on('SIGTERM', async () => {
       logger.info('SIGTERM received, shutting down gracefully');
       server.close(() => {
         logger.info('HTTP server closed');
       });
-      
+
       // Cleanup connections
       await cleanup();
     });
@@ -195,35 +195,37 @@ import { setupRoutes } from './routes';
 
 export function createApp(): Application {
   const app = express();
-  
+
   // Security middleware
   app.use(helmet());
-  app.use(cors({
-    origin: process.env.FRONTEND_URL,
-    credentials: true
-  }));
-  
+  app.use(
+    cors({
+      origin: process.env.FRONTEND_URL,
+      credentials: true,
+    })
+  );
+
   // Body parsing
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true }));
-  
+
   // Compression
   app.use(compression());
-  
+
   // Logging
   app.use(requestLogger);
-  
+
   // Health check
   app.get('/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
-  
+
   // API routes
   app.use('/api', setupRoutes());
-  
+
   // Error handling (must be last)
   app.use(errorHandler);
-  
+
   return app;
 }
 ```
@@ -242,24 +244,21 @@ import { AppError } from '../utils/errors';
 import { redis } from '../config/redis';
 
 export class AuthService {
-  constructor(
-    private plexClient: PlexClient,
-    private userRepository: UserRepository
-  ) {}
+  constructor(private plexClient: PlexClient, private userRepository: UserRepository) {}
 
   async generatePlexPin(): Promise<{ id: string; code: string }> {
     const pinData = await this.plexClient.generatePin();
-    
+
     // Store pin data in Redis for polling
     await redis.setex(
       `plex:pin:${pinData.id}`,
       300, // 5 minutes TTL
       JSON.stringify(pinData)
     );
-    
+
     return {
       id: pinData.id,
-      code: pinData.code
+      code: pinData.code,
     };
   }
 
@@ -270,68 +269,68 @@ export class AuthService {
     }
 
     const status = await this.plexClient.checkPin(pinId);
-    
+
     if (status.authToken) {
       // User authorized
       const plexUser = await this.plexClient.getUser(status.authToken);
       const user = await this.authenticateUser(plexUser, status.authToken);
-      
+
       // Generate JWT
       const token = generateJWT({
         userId: user.id,
         role: user.role,
-        plexId: user.plexId
+        plexId: user.plexId,
       });
-      
+
       // Cleanup Redis
       await redis.del(`plex:pin:${pinId}`);
-      
+
       return { token, status: 'authorized' };
     }
-    
+
     return { status: 'waiting' };
   }
 
   private async authenticateUser(plexUser: any, plexToken: string) {
     // Encrypt Plex token for storage
     const encryptedToken = encrypt(plexToken);
-    
+
     // Find or create user
     let user = await this.userRepository.findByPlexId(plexUser.id);
-    
+
     if (!user) {
       // First user becomes admin
       const userCount = await this.userRepository.count();
       const role = userCount === 0 ? 'admin' : 'user';
-      
+
       user = await this.userRepository.create({
         plexId: plexUser.id,
         plexUsername: plexUser.username,
         email: plexUser.email,
         role,
-        plexToken: encryptedToken
+        plexToken: encryptedToken,
       });
     } else {
       // Update token and last login
       user = await this.userRepository.update(user.id, {
         plexToken: encryptedToken,
-        lastLoginAt: new Date()
+        lastLoginAt: new Date(),
       });
     }
-    
+
     return user;
   }
 
   async validateSession(token: string) {
     try {
       const payload = verifyJWT(token);
-      
+
       // Check if user still exists and is active
       const user = await this.userRepository.findById(payload.userId);
       if (!user || user.status !== 'active') {
         throw new AppError('User not found or inactive', 401);
       }
-      
+
       return { user, payload };
     } catch (error) {
       throw new AppError('Invalid token', 401);
@@ -356,13 +355,13 @@ interface JWTPayload {
 export function generateJWT(payload: JWTPayload): string {
   return jwt.sign(payload, config.auth.jwtSecret, {
     expiresIn: config.auth.jwtExpiry,
-    algorithm: 'HS256'
+    algorithm: 'HS256',
   });
 }
 
 export function verifyJWT(token: string): JWTPayload {
   return jwt.verify(token, config.auth.jwtSecret, {
-    algorithms: ['HS256']
+    algorithms: ['HS256'],
   }) as JWTPayload;
 }
 
@@ -398,14 +397,14 @@ export function authenticate(authService: AuthService) {
       if (!token) {
         throw new AppError('No token provided', 401);
       }
-      
+
       const { user, payload } = await authService.validateSession(token);
       req.user = {
         id: user.id,
         role: user.role,
-        plexId: user.plexId
+        plexId: user.plexId,
       };
-      
+
       next();
     } catch (error) {
       next(error);
@@ -450,20 +449,20 @@ import { container } from '../container'; // DI container
 export function setupRoutes(): Router {
   const router = Router();
   const authService = container.get('authService');
-  
+
   // Public routes
   router.use('/auth', authRoutes);
-  
+
   // Protected routes
   router.use(authenticate(authService));
   router.use('/dashboard', dashboardRoutes);
   router.use('/media', mediaRoutes);
   router.use('/youtube', youtubeRoutes);
   router.use('/plex', plexRoutes);
-  
+
   // Admin routes
   router.use('/admin', adminRoutes);
-  
+
   return router;
 }
 ```
@@ -483,18 +482,15 @@ export class MediaController {
   search = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { query, type } = req.query;
-      const results = await this.mediaService.search(
-        query as string,
-        type as 'movie' | 'tv'
-      );
-      
+      const results = await this.mediaService.search(query as string, type as 'movie' | 'tv');
+
       res.json({
         success: true,
         data: results,
         meta: {
           timestamp: new Date().toISOString(),
-          version: '1.0'
-        }
+          version: '1.0',
+        },
       });
     } catch (error) {
       next(error);
@@ -504,14 +500,11 @@ export class MediaController {
   createRequest = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const validatedData = validateRequest(mediaRequestSchema, req.body);
-      const request = await this.mediaService.createRequest(
-        req.user!.id,
-        validatedData
-      );
-      
+      const request = await this.mediaService.createRequest(req.user!.id, validatedData);
+
       res.status(201).json({
         success: true,
-        data: request
+        data: request,
       });
     } catch (error) {
       next(error);
@@ -521,14 +514,11 @@ export class MediaController {
   getUserRequests = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { page = 1, limit = 20 } = req.query;
-      const requests = await this.mediaService.getUserRequests(
-        req.user!.id,
-        {
-          page: Number(page),
-          limit: Number(limit)
-        }
-      );
-      
+      const requests = await this.mediaService.getUserRequests(req.user!.id, {
+        page: Number(page),
+        limit: Number(limit),
+      });
+
       res.json({
         success: true,
         data: requests.items,
@@ -537,9 +527,9 @@ export class MediaController {
             page: requests.page,
             limit: requests.limit,
             total: requests.total,
-            totalPages: requests.totalPages
-          }
-        }
+            totalPages: requests.totalPages,
+          },
+        },
       });
     } catch (error) {
       next(error);
@@ -572,13 +562,13 @@ export class MediaService {
     if (cached) {
       return JSON.parse(cached);
     }
-    
+
     try {
       const results = await this.overseerrClient.search(query, type);
-      
+
       // Cache for 5 minutes
       await redis.setex(cacheKey, 300, JSON.stringify(results));
-      
+
       return results;
     } catch (error) {
       // Graceful degradation
@@ -593,23 +583,23 @@ export class MediaService {
     // Check rate limit
     const rateLimitKey = `rate:request:${userId}`;
     const requests = await redis.incr(rateLimitKey);
-    
+
     if (requests === 1) {
       await redis.expire(rateLimitKey, 3600); // 1 hour
     }
-    
+
     if (requests > 20) {
       throw new AppError('Request limit exceeded. Try again later.', 429);
     }
-    
+
     // Submit to Overseerr
     const overseerrRequest = await this.overseerrClient.createRequest({
       mediaType: data.mediaType,
       mediaId: data.tmdbId,
       seasons: data.seasons,
-      userId
+      userId,
     });
-    
+
     // Store in database
     const request = await this.mediaRepository.create({
       userId,
@@ -617,15 +607,15 @@ export class MediaService {
       mediaType: data.mediaType,
       tmdbId: data.tmdbId,
       overseerrId: overseerrRequest.id,
-      status: 'pending'
+      status: 'pending',
     });
-    
+
     // Emit event for real-time updates
     this.eventEmitter.emit('media:request:created', {
       userId,
-      request
+      request,
     });
-    
+
     return request;
   }
 
@@ -660,11 +650,11 @@ model User {
   createdAt     DateTime  @default(now())
   lastLoginAt   DateTime?
   status        UserStatus @default(ACTIVE)
-  
+
   mediaRequests MediaRequest[]
   youtubeDownloads YoutubeDownload[]
   sessions      SessionToken[]
-  
+
   @@index([plexId])
   @@index([status])
 }
@@ -679,9 +669,9 @@ model MediaRequest {
   overseerrId   String?
   createdAt     DateTime  @default(now())
   completedAt   DateTime?
-  
+
   user          User      @relation(fields: [userId], references: [id])
-  
+
   @@index([userId, status])
   @@index([createdAt])
 }
@@ -696,9 +686,9 @@ model YoutubeDownload {
   plexCollectionId String?
   createdAt       DateTime  @default(now())
   completedAt     DateTime?
-  
+
   user            User      @relation(fields: [userId], references: [id])
-  
+
   @@index([userId, status])
   @@index([createdAt])
 }
@@ -710,7 +700,7 @@ model ServiceStatus {
   responseTimeMs  Int?
   lastCheckAt     DateTime?
   uptimePercentage Decimal?  @db.Decimal(5, 2)
-  
+
   @@index([serviceName])
 }
 
@@ -723,7 +713,7 @@ model ServiceConfig {
   configData      Json?
   updatedAt       DateTime  @default(now()) @updatedAt
   updatedBy       String?
-  
+
   @@index([serviceName])
 }
 
@@ -734,9 +724,9 @@ model SessionToken {
   expiresAt       DateTime
   createdAt       DateTime  @default(now())
   lastUsedAt      DateTime?
-  
+
   user            User      @relation(fields: [userId], references: [id])
-  
+
   @@index([tokenHash])
   @@index([userId])
 }
@@ -799,7 +789,7 @@ export class UserRepository extends BaseRepository<User> {
   async findById(id: string): Promise<User | null> {
     try {
       return await this.prisma.user.findUnique({
-        where: { id }
+        where: { id },
       });
     } catch (error) {
       this.handleDatabaseError(error);
@@ -809,7 +799,7 @@ export class UserRepository extends BaseRepository<User> {
   async findByPlexId(plexId: string): Promise<User | null> {
     try {
       return await this.prisma.user.findUnique({
-        where: { plexId }
+        where: { plexId },
       });
     } catch (error) {
       this.handleDatabaseError(error);
@@ -828,7 +818,7 @@ export class UserRepository extends BaseRepository<User> {
     try {
       return await this.prisma.user.update({
         where: { id },
-        data
+        data,
       });
     } catch (error) {
       this.handleDatabaseError(error);
@@ -867,7 +857,7 @@ export function createCircuitBreaker<T>(
     errorThresholdPercentage: options.errorThresholdPercentage || 50,
     resetTimeout: options.resetTimeout || 30000,
     rollingCountTimeout: options.rollingCountTimeout || 10000,
-    rollingCountBuckets: options.rollingCountBuckets || 10
+    rollingCountBuckets: options.rollingCountBuckets || 10,
   });
 
   breaker.on('open', () => {
@@ -907,20 +897,14 @@ export class PlexClient {
       headers: {
         'X-Plex-Client-Identifier': config.plex.clientId,
         'X-Plex-Product': 'MediaNest',
-        'X-Plex-Version': '1.0.0'
-      }
+        'X-Plex-Version': '1.0.0',
+      },
     });
 
     // Circuit breakers for different operations
-    this.libraryBreaker = createCircuitBreaker(
-      this.fetchLibraries.bind(this),
-      { timeout: 5000 }
-    );
+    this.libraryBreaker = createCircuitBreaker(this.fetchLibraries.bind(this), { timeout: 5000 });
 
-    this.pinBreaker = createCircuitBreaker(
-      this.generatePinInternal.bind(this),
-      { timeout: 3000 }
-    );
+    this.pinBreaker = createCircuitBreaker(this.generatePinInternal.bind(this), { timeout: 3000 });
   }
 
   async generatePin(): Promise<{ id: string; code: string }> {
@@ -929,23 +913,23 @@ export class PlexClient {
 
   private async generatePinInternal() {
     const response = await this.axios.post('/pins', {
-      strong: true
+      strong: true,
     });
 
     return {
       id: response.data.id,
-      code: response.data.code
+      code: response.data.code,
     };
   }
 
   async checkPin(pinId: string): Promise<{ authToken?: string }> {
     try {
       const response = await this.axios.get(`/pins/${pinId}`);
-      
+
       if (response.data.authToken) {
         return { authToken: response.data.authToken };
       }
-      
+
       return {};
     } catch (error) {
       if (error.response?.status === 404) {
@@ -958,10 +942,10 @@ export class PlexClient {
   async getUser(token: string) {
     const response = await this.axios.get('/user', {
       headers: {
-        'X-Plex-Token': token
-      }
+        'X-Plex-Token': token,
+      },
     });
-    
+
     return response.data;
   }
 
@@ -972,10 +956,10 @@ export class PlexClient {
   private async fetchLibraries(serverUrl: string, token: string) {
     const response = await axios.get(`${serverUrl}/library/sections`, {
       headers: {
-        'X-Plex-Token': token
-      }
+        'X-Plex-Token': token,
+      },
     });
-    
+
     return response.data.MediaContainer.Directory;
   }
 }
@@ -1000,21 +984,16 @@ export class OverseerrClient {
       baseURL: `${config.url}/api/v1`,
       timeout: 10000,
       headers: {
-        'X-Api-Key': config.apiKey
-      }
+        'X-Api-Key': config.apiKey,
+      },
     });
 
-    this.searchBreaker = createCircuitBreaker(
-      this.searchInternal.bind(this),
-      {
-        timeout: 5000,
-        fallback: this.searchFallback.bind(this)
-      }
-    );
+    this.searchBreaker = createCircuitBreaker(this.searchInternal.bind(this), {
+      timeout: 5000,
+      fallback: this.searchFallback.bind(this),
+    });
 
-    this.requestBreaker = createCircuitBreaker(
-      this.createRequestInternal.bind(this)
-    );
+    this.requestBreaker = createCircuitBreaker(this.createRequestInternal.bind(this));
   }
 
   async search(query: string, type?: 'movie' | 'tv') {
@@ -1024,9 +1003,9 @@ export class OverseerrClient {
   private async searchInternal(query: string, type?: 'movie' | 'tv') {
     const endpoint = type === 'movie' ? '/search/movie' : '/search/multi';
     const response = await this.axios.get(endpoint, {
-      params: { query }
+      params: { query },
     });
-    
+
     return response.data.results;
   }
 
@@ -1034,11 +1013,11 @@ export class OverseerrClient {
     // Return cached data if available
     const cacheKey = `overseerr:search:fallback:${type}:${query}`;
     const cached = await redis.get(cacheKey);
-    
+
     if (cached) {
       return JSON.parse(cached);
     }
-    
+
     throw new AppError('Search service unavailable', 503);
   }
 
@@ -1050,9 +1029,9 @@ export class OverseerrClient {
     const response = await this.axios.post('/request', {
       mediaType: data.mediaType,
       mediaId: data.mediaId,
-      seasons: data.seasons
+      seasons: data.seasons,
     });
-    
+
     return response.data;
   }
 
@@ -1079,9 +1058,9 @@ export function initializeWebSocket(httpServer: HttpServer): SocketServer {
   const io = new SocketServer(httpServer, {
     cors: {
       origin: process.env.FRONTEND_URL,
-      credentials: true
+      credentials: true,
     },
-    transports: ['websocket', 'polling']
+    transports: ['websocket', 'polling'],
   });
 
   // Authentication middleware
@@ -1094,7 +1073,7 @@ export function initializeWebSocket(httpServer: HttpServer): SocketServer {
 
       const payload = verifyJWT(token);
       socket.data.user = payload;
-      
+
       next();
     } catch (error) {
       next(new Error('Invalid token'));
@@ -1104,13 +1083,13 @@ export function initializeWebSocket(httpServer: HttpServer): SocketServer {
   // Connection handler
   io.on('connection', (socket: Socket) => {
     logger.info(`User ${socket.data.user.userId} connected`);
-    
+
     // Join user-specific room
     socket.join(`user:${socket.data.user.userId}`);
-    
+
     // Setup event handlers
     setupHandlers(io, socket);
-    
+
     // Cleanup on disconnect
     socket.on('disconnect', () => {
       logger.info(`User ${socket.data.user.userId} disconnected`);
@@ -1128,15 +1107,11 @@ export function initializeWebSocket(httpServer: HttpServer): SocketServer {
 import { Server, Socket } from 'socket.io';
 import { UptimeKumaClient } from '../../integrations/uptime-kuma/client';
 
-export function setupStatusHandlers(
-  io: Server,
-  socket: Socket,
-  uptimeKuma: UptimeKumaClient
-) {
+export function setupStatusHandlers(io: Server, socket: Socket, uptimeKuma: UptimeKumaClient) {
   // Subscribe to status updates
   socket.on('subscribe:status', async () => {
     socket.join('status-updates');
-    
+
     // Send current status
     const status = await uptimeKuma.getAllMonitors();
     socket.emit('status:current', status);
@@ -1162,7 +1137,7 @@ export function setupYoutubeHandlers(io: Server, socket: Socket) {
       // Check ownership in database
       // For now, join the room
     }
-    
+
     socket.join(`download:${downloadId}`);
   });
 
@@ -1187,17 +1162,17 @@ export const youtubeQueue = new Queue('youtube-downloads', {
   redis: {
     host: redis.options.host,
     port: redis.options.port,
-    password: redis.options.password
+    password: redis.options.password,
   },
   defaultJobOptions: {
     attempts: 3,
     backoff: {
       type: 'exponential',
-      delay: 3000
+      delay: 3000,
     },
     removeOnComplete: 100,
-    removeOnFail: 500
-  }
+    removeOnFail: 500,
+  },
 });
 
 export const statusQueue = new Queue('status-checks', {
@@ -1206,9 +1181,9 @@ export const statusQueue = new Queue('status-checks', {
     attempts: 2,
     backoff: {
       type: 'fixed',
-      delay: 5000
-    }
-  }
+      delay: 5000,
+    },
+  },
 });
 
 export async function initializeQueues() {
@@ -1224,21 +1199,21 @@ export async function initializeQueues() {
   // Import and register job processors
   const { processYoutubeDownload } = await import('../jobs/youtube-download.job');
   const { processStatusCheck } = await import('../jobs/status-check.job');
-  
+
   youtubeQueue.process(5, processYoutubeDownload);
   statusQueue.process(1, processStatusCheck);
-  
+
   // Schedule recurring jobs
   statusQueue.add(
     'check-all-services',
     {},
     {
       repeat: {
-        cron: '*/5 * * * *' // Every 5 minutes
-      }
+        cron: '*/5 * * * *', // Every 5 minutes
+      },
     }
   );
-  
+
   logger.info('Queues initialized');
 }
 ```
@@ -1265,56 +1240,56 @@ interface DownloadJobData {
 export async function processYoutubeDownload(job: Job<DownloadJobData>) {
   const { downloadId, userId, playlistUrl } = job.data;
   const repository = new YoutubeRepository();
-  
+
   try {
     // Update status to downloading
     await repository.updateStatus(downloadId, 'DOWNLOADING');
-    
+
     // Create user directory
     const userDir = path.join(process.env.YOUTUBE_DOWNLOAD_PATH!, userId);
     await fs.mkdir(userDir, { recursive: true });
-    
+
     // Download with yt-dlp
     const files = await downloadPlaylist(playlistUrl, userDir, (progress) => {
       // Update job progress
       job.progress(progress);
-      
+
       // Emit progress to WebSocket
       io.to(`download:${downloadId}`).emit('download:progress', {
         downloadId,
-        progress
+        progress,
       });
     });
-    
+
     // Update database with file paths
     await repository.update(downloadId, {
       status: 'COMPLETED',
       filePaths: files,
-      completedAt: new Date()
+      completedAt: new Date(),
     });
-    
+
     // Create Plex collection (optional)
     if (process.env.PLEX_AUTO_COLLECTION === 'true') {
       await createPlexCollection(userId, downloadId, files);
     }
-    
+
     // Notify user
     io.to(`user:${userId}`).emit('download:completed', {
       downloadId,
-      files: files.length
+      files: files.length,
     });
-    
+
     return { success: true, files: files.length };
   } catch (error) {
     // Update status to failed
     await repository.updateStatus(downloadId, 'FAILED');
-    
+
     // Notify user
     io.to(`user:${userId}`).emit('download:failed', {
       downloadId,
-      error: error.message
+      error: error.message,
     });
-    
+
     throw error;
   }
 }
@@ -1327,18 +1302,20 @@ async function downloadPlaylist(
   return new Promise((resolve, reject) => {
     const files: string[] = [];
     let lastProgress = 0;
-    
+
     const ytdlp = spawn('yt-dlp', [
       url,
-      '-o', path.join(outputDir, '%(playlist_title)s/%(title)s.%(ext)s'),
+      '-o',
+      path.join(outputDir, '%(playlist_title)s/%(title)s.%(ext)s'),
       '--newline',
       '--no-warnings',
-      '--print', 'after_move:filepath'
+      '--print',
+      'after_move:filepath',
     ]);
 
     ytdlp.stdout.on('data', (data) => {
       const output = data.toString();
-      
+
       // Parse progress
       const progressMatch = output.match(/\[download\]\s+(\d+\.\d+)%/);
       if (progressMatch) {
@@ -1348,7 +1325,7 @@ async function downloadPlaylist(
           onProgress(progress);
         }
       }
-      
+
       // Collect file paths
       if (output.includes('/')) {
         files.push(output.trim());
@@ -1382,12 +1359,7 @@ import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../utils/errors';
 import { logger } from '../utils/logger';
 
-export function errorHandler(
-  err: Error,
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
+export function errorHandler(err: Error, req: Request, res: Response, next: NextFunction) {
   // Log error with context
   logger.error('Request error', {
     error: err.message,
@@ -1395,7 +1367,7 @@ export function errorHandler(
     url: req.url,
     method: req.method,
     ip: req.ip,
-    user: req.user?.id
+    user: req.user?.id,
   });
 
   // Handle known errors
@@ -1405,8 +1377,8 @@ export function errorHandler(
       error: {
         code: err.code,
         message: err.message,
-        details: err.details
-      }
+        details: err.details,
+      },
     });
   }
 
@@ -1417,8 +1389,8 @@ export function errorHandler(
       error: {
         code: 'VALIDATION_ERROR',
         message: 'Invalid request data',
-        details: err.details
-      }
+        details: err.details,
+      },
     });
   }
 
@@ -1428,8 +1400,8 @@ export function errorHandler(
       success: false,
       error: {
         code: 'AUTH_ERROR',
-        message: 'Invalid authentication token'
-      }
+        message: 'Invalid authentication token',
+      },
     });
   }
 
@@ -1438,8 +1410,8 @@ export function errorHandler(
     success: false,
     error: {
       code: 'INTERNAL_ERROR',
-      message: 'An unexpected error occurred'
-    }
+      message: 'An unexpected error occurred',
+    },
   });
 }
 ```
@@ -1462,29 +1434,23 @@ const consoleFormat = printf(({ level, message, timestamp, ...meta }) => {
 // Create logger instance
 export const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
-  format: combine(
-    errors({ stack: true }),
-    timestamp(),
-    json()
-  ),
+  format: combine(errors({ stack: true }), timestamp(), json()),
   defaultMeta: { service: 'medianest-backend' },
   transports: [
     // Console transport
     new winston.transports.Console({
-      format: process.env.NODE_ENV === 'production' 
-        ? json() 
-        : combine(timestamp(), consoleFormat)
+      format: process.env.NODE_ENV === 'production' ? json() : combine(timestamp(), consoleFormat),
     }),
-    
+
     // File transport with rotation
     new DailyRotateFile({
       filename: 'logs/application-%DATE%.log',
       datePattern: 'YYYY-MM-DD',
       zippedArchive: true,
       maxSize: '20m',
-      maxFiles: '30d'
+      maxFiles: '30d',
     }),
-    
+
     // Error file transport
     new DailyRotateFile({
       filename: 'logs/error-%DATE%.log',
@@ -1492,9 +1458,9 @@ export const logger = winston.createLogger({
       zippedArchive: true,
       maxSize: '20m',
       maxFiles: '30d',
-      level: 'error'
-    })
-  ]
+      level: 'error',
+    }),
+  ],
 });
 
 // Create child logger for specific contexts
@@ -1525,12 +1491,12 @@ export function rateLimit(options: RateLimitOptions) {
     windowMs,
     max,
     keyGenerator = (req) => req.user?.id || req.ip,
-    skipSuccessfulRequests = false
+    skipSuccessfulRequests = false,
   } = options;
 
   return async (req: Request, res: Response, next: NextFunction) => {
     const key = `rate:${keyGenerator(req)}`;
-    
+
     try {
       // Lua script for atomic increment and expiry
       const luaScript = `
@@ -1549,32 +1515,26 @@ export function rateLimit(options: RateLimitOptions) {
           return 0
         end
       `;
-      
-      const ttl = await redis.eval(
-        luaScript,
-        1,
-        key,
-        max,
-        Math.ceil(windowMs / 1000)
-      );
-      
+
+      const ttl = await redis.eval(luaScript, 1, key, max, Math.ceil(windowMs / 1000));
+
       if (ttl > 0) {
         res.setHeader('Retry-After', ttl);
         throw new AppError('Too many requests', 429, {
-          retryAfter: ttl
+          retryAfter: ttl,
         });
       }
-      
+
       // Store original end function
       const originalEnd = res.end;
-      res.end = function(...args: any[]) {
+      res.end = function (...args: any[]) {
         if (skipSuccessfulRequests && res.statusCode < 400) {
           // Decrement counter for successful requests
           redis.decr(key);
         }
         originalEnd.apply(res, args);
       };
-      
+
       next();
     } catch (error) {
       if (error instanceof AppError) {
@@ -1591,19 +1551,19 @@ export function rateLimit(options: RateLimitOptions) {
 // Specific rate limiters
 export const apiRateLimit = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: 100
+  max: 100,
 });
 
 export const authRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5,
-  keyGenerator: (req) => req.ip
+  keyGenerator: (req) => req.ip,
 });
 
 export const youtubeRateLimit = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 5,
-  keyGenerator: (req) => req.user!.id
+  keyGenerator: (req) => req.user!.id,
 });
 ```
 
@@ -1617,7 +1577,7 @@ import { AppError } from './errors';
 export function validateRequest<T>(schema: Joi.Schema, data: any): T {
   const { error, value } = schema.validate(data, {
     abortEarly: false,
-    stripUnknown: true
+    stripUnknown: true,
   });
 
   if (error) {
@@ -1642,10 +1602,10 @@ export const mediaRequestSchema = Joi.object({
     then: Joi.array().items(
       Joi.object({
         seasonNumber: Joi.number().integer().min(0).required(),
-        episodes: Joi.array().items(Joi.number().integer().min(1))
+        episodes: Joi.array().items(Joi.number().integer().min(1)),
       })
-    )
-  })
+    ),
+  }),
 });
 
 // src/schemas/youtube.schema.ts
@@ -1655,8 +1615,8 @@ export const youtubeDownloadSchema = Joi.object({
     .pattern(/^https?:\/\/(www\.)?youtube\.com\//)
     .required()
     .messages({
-      'string.pattern.base': 'Must be a valid YouTube URL'
-    })
+      'string.pattern.base': 'Must be a valid YouTube URL',
+    }),
 });
 ```
 
@@ -1668,18 +1628,17 @@ import crypto from 'crypto';
 import { config } from '../config';
 
 const algorithm = 'aes-256-gcm';
-const keyDerivation = (password: string) => 
-  crypto.scryptSync(password, 'salt', 32);
+const keyDerivation = (password: string) => crypto.scryptSync(password, 'salt', 32);
 
 export function encrypt(text: string): string {
   const key = keyDerivation(config.encryption.key);
   const iv = crypto.randomBytes(16);
   const cipher = crypto.createCipheriv(algorithm, key, iv);
-  
+
   let encrypted = cipher.update(text, 'utf8', 'hex');
   encrypted += cipher.final('hex');
   const authTag = cipher.getAuthTag();
-  
+
   // Combine iv, authTag, and encrypted data
   return `${iv.toString('hex')}:${authTag.toString('hex')}:${encrypted}`;
 }
@@ -1687,26 +1646,19 @@ export function encrypt(text: string): string {
 export function decrypt(encryptedData: string): string {
   const [ivHex, authTagHex, encrypted] = encryptedData.split(':');
   const key = keyDerivation(config.encryption.key);
-  
-  const decipher = crypto.createDecipheriv(
-    algorithm,
-    key,
-    Buffer.from(ivHex, 'hex')
-  );
-  
+
+  const decipher = crypto.createDecipheriv(algorithm, key, Buffer.from(ivHex, 'hex'));
+
   decipher.setAuthTag(Buffer.from(authTagHex, 'hex'));
-  
+
   let decrypted = decipher.update(encrypted, 'hex', 'utf8');
   decrypted += decipher.final('utf8');
-  
+
   return decrypted;
 }
 
 export function hashToken(token: string): string {
-  return crypto
-    .createHash('sha256')
-    .update(token)
-    .digest('hex');
+  return crypto.createHash('sha256').update(token).digest('hex');
 }
 
 export function generateSecureToken(): string {
@@ -1744,15 +1696,11 @@ describe('AuthService', () => {
     it('should generate and store PIN in Redis', async () => {
       const pinData = { id: '123', code: 'ABCD' };
       plexClient.generatePin.mockResolvedValue(pinData);
-      
+
       const result = await authService.generatePlexPin();
-      
+
       expect(result).toEqual(pinData);
-      expect(redis.setex).toHaveBeenCalledWith(
-        'plex:pin:123',
-        300,
-        JSON.stringify(pinData)
-      );
+      expect(redis.setex).toHaveBeenCalledWith('plex:pin:123', 300, JSON.stringify(pinData));
     });
   });
 
@@ -1760,16 +1708,16 @@ describe('AuthService', () => {
     it('should return waiting status when not authorized', async () => {
       redis.get.mockResolvedValue(JSON.stringify({ id: '123' }));
       plexClient.checkPin.mockResolvedValue({});
-      
+
       const result = await authService.pollPlexAuth('123');
-      
+
       expect(result).toEqual({ status: 'waiting' });
     });
 
     it('should authenticate user when authorized', async () => {
       const pinData = { id: '123' };
       const plexUser = { id: 'plex123', username: 'testuser' };
-      
+
       redis.get.mockResolvedValue(JSON.stringify(pinData));
       plexClient.checkPin.mockResolvedValue({ authToken: 'token123' });
       plexClient.getUser.mockResolvedValue(plexUser);
@@ -1778,16 +1726,16 @@ describe('AuthService', () => {
       userRepository.create.mockResolvedValue({
         id: 'user123',
         role: 'admin',
-        plexId: 'plex123'
+        plexId: 'plex123',
       });
-      
+
       const result = await authService.pollPlexAuth('123');
-      
+
       expect(result.status).toBe('authorized');
       expect(result.token).toBeDefined();
       expect(userRepository.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          role: 'admin' // First user is admin
+          role: 'admin', // First user is admin
         })
       );
     });
@@ -1819,16 +1767,14 @@ describe('Auth API Integration', () => {
 
   describe('POST /api/auth/plex/pin', () => {
     it('should generate a Plex PIN', async () => {
-      const response = await request(app)
-        .post('/api/auth/plex/pin')
-        .expect(200);
+      const response = await request(app).post('/api/auth/plex/pin').expect(200);
 
       expect(response.body).toMatchObject({
         success: true,
         data: {
           id: expect.any(String),
-          code: expect.stringMatching(/^[A-Z0-9]{4}$/)
-        }
+          code: expect.stringMatching(/^[A-Z0-9]{4}$/),
+        },
       });
     });
   });
@@ -1836,22 +1782,18 @@ describe('Auth API Integration', () => {
   describe('GET /api/auth/plex/poll/:pinId', () => {
     it('should poll for authorization status', async () => {
       // First generate a PIN
-      const pinResponse = await request(app)
-        .post('/api/auth/plex/pin')
-        .expect(200);
+      const pinResponse = await request(app).post('/api/auth/plex/pin').expect(200);
 
       const pinId = pinResponse.body.data.id;
 
       // Poll for status
-      const response = await request(app)
-        .get(`/api/auth/plex/poll/${pinId}`)
-        .expect(200);
+      const response = await request(app).get(`/api/auth/plex/poll/${pinId}`).expect(200);
 
       expect(response.body).toMatchObject({
         success: true,
         data: {
-          status: 'waiting'
-        }
+          status: 'waiting',
+        },
       });
     });
   });
@@ -1959,18 +1901,18 @@ import { logger } from '../src/utils/logger';
 
 async function migrate() {
   const prisma = new PrismaClient();
-  
+
   try {
     logger.info('Running database migrations...');
-    
+
     // Run Prisma migrations
     await prisma.$executeRawUnsafe(`
       CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
     `);
-    
+
     // Apply migrations
     await prisma.$migrate.deploy();
-    
+
     logger.info('Migrations completed successfully');
   } catch (error) {
     logger.error('Migration failed', error);
@@ -2007,15 +1949,15 @@ export class MediaRepository extends BaseRepository<MediaRequest> {
           mediaType: true,
           status: true,
           createdAt: true,
-          completedAt: true
+          completedAt: true,
         },
         orderBy: { createdAt: 'desc' },
         skip,
-        take: limit
+        take: limit,
       }),
       this.prisma.mediaRequest.count({
-        where: { userId }
-      })
+        where: { userId },
+      }),
     ]);
 
     return {
@@ -2023,21 +1965,18 @@ export class MediaRepository extends BaseRepository<MediaRequest> {
       total,
       page,
       limit,
-      totalPages: Math.ceil(total / limit)
+      totalPages: Math.ceil(total / limit),
     };
   }
 
-  async bulkUpdateStatus(
-    requestIds: string[],
-    status: RequestStatus
-  ): Promise<number> {
+  async bulkUpdateStatus(requestIds: string[], status: RequestStatus): Promise<number> {
     // Use raw query for bulk updates
     const result = await this.prisma.$executeRaw`
       UPDATE "MediaRequest"
       SET status = ${status}, "completedAt" = ${new Date()}
       WHERE id = ANY(${requestIds}::uuid[])
     `;
-    
+
     return result.count;
   }
 }
@@ -2077,11 +2016,7 @@ export class CacheService {
 
   async set(key: string, value: any, ttl?: number): Promise<void> {
     try {
-      await redis.setex(
-        this.getKey(key),
-        ttl || this.options.ttl!,
-        JSON.stringify(value)
-      );
+      await redis.setex(this.getKey(key), ttl || this.options.ttl!, JSON.stringify(value));
     } catch (error) {
       logger.error('Cache set error', { key, error });
     }
@@ -2102,23 +2037,23 @@ export class CacheService {
   cache(keyGenerator: (...args: any[]) => string, ttl?: number) {
     return (target: any, propertyName: string, descriptor: PropertyDescriptor) => {
       const originalMethod = descriptor.value;
-      
-      descriptor.value = async function(...args: any[]) {
+
+      descriptor.value = async function (...args: any[]) {
         const cacheKey = keyGenerator(...args);
-        
+
         // Try cache first
         const cached = await this.get(cacheKey);
         if (cached !== null) {
           return cached;
         }
-        
+
         // Execute method and cache result
         const result = await originalMethod.apply(this, args);
         await this.set(cacheKey, result, ttl);
-        
+
         return result;
       };
-      
+
       return descriptor;
     };
   }
@@ -2151,13 +2086,13 @@ export async function initializeDatabase(): Promise<PrismaClient> {
       log: [
         { emit: 'event', level: 'query' },
         { emit: 'event', level: 'error' },
-        { emit: 'event', level: 'warn' }
+        { emit: 'event', level: 'warn' },
       ],
       datasources: {
         db: {
-          url: process.env.DATABASE_URL
-        }
-      }
+          url: process.env.DATABASE_URL,
+        },
+      },
     });
 
     // Log queries in development
@@ -2165,7 +2100,7 @@ export async function initializeDatabase(): Promise<PrismaClient> {
       prisma.$on('query', (e) => {
         logger.debug('Query', {
           query: e.query,
-          duration: e.duration
+          duration: e.duration,
         });
       });
     }
@@ -2175,7 +2110,7 @@ export async function initializeDatabase(): Promise<PrismaClient> {
       if (e.duration > 1000) {
         logger.warn('Slow query detected', {
           query: e.query,
-          duration: e.duration
+          duration: e.duration,
         });
       }
     });
@@ -2203,46 +2138,46 @@ import { register, Counter, Histogram, Gauge } from 'prom-client';
 export const httpRequestsTotal = new Counter({
   name: 'http_requests_total',
   help: 'Total number of HTTP requests',
-  labelNames: ['method', 'route', 'status']
+  labelNames: ['method', 'route', 'status'],
 });
 
 export const httpRequestDuration = new Histogram({
   name: 'http_request_duration_seconds',
   help: 'Duration of HTTP requests in seconds',
   labelNames: ['method', 'route', 'status'],
-  buckets: [0.1, 0.5, 1, 2, 5]
+  buckets: [0.1, 0.5, 1, 2, 5],
 });
 
 // Business metrics
 export const mediaRequestsTotal = new Counter({
   name: 'media_requests_total',
   help: 'Total number of media requests',
-  labelNames: ['type', 'status']
+  labelNames: ['type', 'status'],
 });
 
 export const youtubeDownloadsTotal = new Counter({
   name: 'youtube_downloads_total',
   help: 'Total number of YouTube downloads',
-  labelNames: ['status']
+  labelNames: ['status'],
 });
 
 export const activeUsersGauge = new Gauge({
   name: 'active_users',
-  help: 'Number of active users'
+  help: 'Number of active users',
 });
 
 // Queue metrics
 export const queueJobsTotal = new Counter({
   name: 'queue_jobs_total',
   help: 'Total number of queue jobs',
-  labelNames: ['queue', 'status']
+  labelNames: ['queue', 'status'],
 });
 
 export const queueJobDuration = new Histogram({
   name: 'queue_job_duration_seconds',
   help: 'Duration of queue job processing',
   labelNames: ['queue'],
-  buckets: [1, 5, 10, 30, 60, 300]
+  buckets: [1, 5, 10, 30, 60, 300],
 });
 
 // Metrics endpoint
@@ -2257,20 +2192,20 @@ export function setupMetrics(app: Application) {
 export function metricsMiddleware() {
   return (req: Request, res: Response, next: NextFunction) => {
     const start = Date.now();
-    
+
     res.on('finish', () => {
       const duration = (Date.now() - start) / 1000;
       const route = req.route?.path || 'unknown';
       const labels = {
         method: req.method,
         route,
-        status: res.statusCode.toString()
+        status: res.statusCode.toString(),
       };
-      
+
       httpRequestsTotal.inc(labels);
       httpRequestDuration.observe(labels, duration);
     });
-    
+
     next();
   };
 }
@@ -2339,7 +2274,7 @@ export class HealthChecker {
 
   async checkAll(): Promise<Record<string, boolean>> {
     const results: Record<string, boolean> = {};
-    
+
     await Promise.all(
       this.checks.map(async ({ name, check }) => {
         try {
@@ -2349,7 +2284,7 @@ export class HealthChecker {
         }
       })
     );
-    
+
     return results;
   }
 
@@ -2365,11 +2300,11 @@ export function setupHealthCheck(app: Application, checker: HealthChecker) {
   app.get('/health', async (req, res) => {
     const results = await checker.checkAll();
     const healthy = await checker.isHealthy();
-    
+
     res.status(healthy ? 200 : 503).json({
       status: healthy ? 'healthy' : 'unhealthy',
       timestamp: new Date().toISOString(),
-      checks: results
+      checks: results,
     });
   });
 }
@@ -2389,28 +2324,31 @@ The architecture is designed to scale from 10-20 users to 50+ without major chan
 
 ## Current Implementation Status
 
-*Last updated: January 2025*
+_Last updated: January 2025_
 
-### ✅ Phase 1: Core Infrastructure (COMPLETED)
-- ✅ Express server setup with TypeScript
-- ✅ Prisma database schema and migrations
-- ✅ JWT authentication middleware with role-based access control
-- ✅ Comprehensive error handling with user-friendly messages  
-- ✅ Winston logging system with correlation IDs
-- ✅ Repository pattern with full CRUD operations
-- ✅ Rate limiting with Redis Lua scripts (100 req/min API, 5/hr YouTube)
-- ✅ Basic monitoring and metrics collection
-- ✅ Complete test suite (30 tests, 60-70% coverage achieved)
+### 🚨 Phase 1: Core Infrastructure **CRITICAL BUILD FAILURES**
 
-### ✅ Phase 1+: Authentication & User Management (COMPLETED)  
-- ✅ Plex OAuth PIN flow implementation
-- ✅ JWT token generation/validation (30-day remember me)
-- ✅ User repository with encryption for Plex tokens
-- ✅ RBAC middleware with admin/user roles
-- ✅ Session management and validation
-- ✅ First user becomes admin automatically
+- 🚨 Express server setup with TypeScript **- 80+ COMPILATION ERRORS**
+- 🚨 Prisma database schema and migrations **- TYPE MISMATCHES BLOCK GENERATION**
+- 🚨 JWT authentication middleware with role-based access control **- CANNOT COMPILE**
+- 🚨 Comprehensive error handling with user-friendly messages **- BUILD FAILURES**
+- 🚨 Winston logging system with correlation IDs **- TYPE ERRORS**
+- 🚨 Repository pattern with full CRUD operations **- COMPILATION BLOCKED**
+- 🚨 Rate limiting with Redis Lua scripts **- SERVER WON'T START**
+- 🚨 Basic monitoring and metrics collection **- TYPE ERRORS**
+- 🚨 Complete test suite **- 28/30 TESTS FAILING DUE TO COMPILATION ERRORS**
+
+### 🚨 Phase 1+: Authentication & User Management **NON-FUNCTIONAL**
+
+- 🚨 Plex OAuth PIN flow implementation **- TYPE ERRORS IN AUTH CONTROLLER**
+- 🚨 JWT token generation/validation **- COMPILATION FAILURES**
+- 🚨 User repository with encryption for Plex tokens **- DATABASE TYPE MISMATCHES**
+- 🚨 RBAC middleware with admin/user roles **- BUILD ERRORS**
+- 🚨 Session management and validation **- TYPE ERRORS**
+- 🚨 First user becomes admin automatically **- CANNOT TEST DUE TO BUILD FAILURES**
 
 ### 🚧 Phase 2: External Service Integration (NEXT)
+
 - [ ] Plex API client with circuit breakers
 - [ ] Overseerr integration with graceful fallbacks
 - [ ] Uptime Kuma WebSocket connection
@@ -2418,38 +2356,41 @@ The architecture is designed to scale from 10-20 users to 50+ without major chan
 - [ ] Service configuration management
 
 ### 📋 Phase 3: Features & WebSocket (PLANNED)
+
 - [ ] Media request management through Overseerr
 - [ ] YouTube download system with yt-dlp
 - [ ] Real-time notifications via Socket.io
 - [ ] Background job processing with BullMQ
 - [ ] Admin dashboard APIs
 
-### Infrastructure Achievements
-- **Database**: PostgreSQL with Prisma ORM, proper migrations
-- **Cache/Queue**: Redis integration with connection pooling
-- **Security**: Input validation, SQL injection prevention, rate limiting
-- **Testing**: Vitest with MSW for external API mocking
-- **Error Handling**: Structured errors with correlation tracking
-- **Logging**: Rotating logs with different levels and contexts
+### Infrastructure Status **- CRITICAL ISSUES**
 
-### Test Coverage Summary
-- **Total Tests**: 30 passing
-- **Coverage**: 60-70% overall, 80%+ for auth/security
-- **Test Types**: Unit tests (JWT, middleware), Integration tests (repositories, auth flow)
-- **Test Infrastructure**: Vitest, MSW, Supertest, ioredis-mock
-- **Execution Time**: <5 minutes (target achieved)
+- **Database**: PostgreSQL with Prisma ORM **- ID TYPE MISMATCHES (string vs number) THROUGHOUT CODEBASE**
+- **Cache/Queue**: Redis integration **- CONNECTION ISSUES DUE TO TYPE ERRORS**
+- **Security**: Input validation, SQL injection prevention **- CANNOT IMPLEMENT DUE TO BUILD FAILURES**
+- **Testing**: Vitest **- 28/30 INTEGRATION TESTS FAILING**
+- **Error Handling**: Structured errors **- ERROR MIDDLEWARE TYPE CONFLICTS**
+- **Logging**: Rotating logs **- COMPILATION PREVENTS LOG INITIALIZATION**
+
+### Test Coverage Summary **- CRITICAL FAILURES**
+
+- **Total Tests**: 28 out of 30 **FAILING** (only 2 passing)
+- **Coverage**: Cannot measure due to compilation errors
+- **Test Types**: Unit tests (JWT, middleware) **FAILING**, Integration tests (repositories, auth flow) **FAILING**
+- **Test Infrastructure**: Vitest, MSW, Supertest, ioredis-mock **- SETUP WORKS BUT TESTS FAIL**
+- **Execution Time**: Tests fail before completion due to type errors
 
 ### Implemented Components
 
-| Component | Status | Coverage | Notes |
-|-----------|---------|----------|-------|
-| JWT Authentication | ✅ Complete | 72% | 30-day remember me, security focused |
-| Plex OAuth PIN Flow | ✅ Complete | Tests written | PIN generation/verification |
-| User Repository | ✅ Complete | 76% | CRUD, pagination, encryption |
-| Rate Limiting | ✅ Complete | Tests written | Redis Lua scripts, atomic operations |
-| Error Handling | ✅ Complete | 81% | User-friendly messages, correlation IDs |
-| Correlation Middleware | ✅ Complete | 100% | Request tracking across services |
-| Database Layer | ✅ Complete | Schema + migrations | Prisma ORM with proper relations |
+| Component              | Status         | Issues                               | Notes                                        |
+| ---------------------- | -------------- | ------------------------------------ | -------------------------------------------- |
+| JWT Authentication     | 🚨 **FAILING** | Type errors in auth controller       | Cannot compile middleware                    |
+| Plex OAuth PIN Flow    | 🚨 **FAILING** | Type mismatches in Plex integration  | PIN generation blocked by compilation errors |
+| User Repository        | 🚨 **FAILING** | ID type conflicts (string vs number) | CRUD operations fail compilation             |
+| Rate Limiting          | 🚨 **FAILING** | Redis type errors                    | Lua scripts cannot be tested                 |
+| Error Handling         | 🚨 **FAILING** | Error middleware type conflicts      | Cannot catch/process errors properly         |
+| Correlation Middleware | 🚨 **FAILING** | Request type definition errors       | Tracking not functional                      |
+| Database Layer         | 🚨 **FAILING** | Schema ID type mismatches            | Prisma generation fails with type errors     |
 
 ## Next Steps
 

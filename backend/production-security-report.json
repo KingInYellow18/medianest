@@ -1,0 +1,58 @@
+{
+  "timestamp": "2025-09-07T18:39:13.226Z",
+  "productionReady": false,
+  "overall": {
+    "score": 21,
+    "max": 42,
+    "percentage": 50,
+    "grade": "F"
+  },
+  "categories": {
+    "environment": {
+      "score": 4,
+      "max": 10,
+      "issues": [
+        ".env contains dev/test secrets",
+        ".env may contain weak secrets",
+        "JWT_SECRET not properly configured",
+        "ENCRYPTION_KEY not properly configured",
+        "DATABASE_URL not properly configured",
+        "REDIS_URL not properly configured",
+        "NODE_ENV not set to production"
+      ]
+    },
+    "container": {
+      "score": 6,
+      "max": 8,
+      "issues": ["Missing temporary filesystem protection"]
+    },
+    "network": {
+      "score": 4,
+      "max": 6,
+      "issues": ["CORS configuration missing"]
+    },
+    "authentication": {
+      "score": 5,
+      "max": 12,
+      "issues": ["JWT secret is weak", "Encryption key inadequate", "Session secret inadequate"]
+    },
+    "database": {
+      "score": 2,
+      "max": 6,
+      "issues": ["Database URL missing"]
+    },
+    "overall": {
+      "score": 21,
+      "max": 42,
+      "grade": "F"
+    }
+  },
+  "recommendations": [
+    "Rotate all development/test secrets with strong production values",
+    "Implement proper secret management (HashiCorp Vault, AWS Secrets Manager)",
+    "Strengthen JWT and encryption keys (minimum 32 characters)",
+    "Implement comprehensive rate limiting",
+    "Enable SSL/TLS for database connections",
+    "Use dedicated database credentials"
+  ]
+}

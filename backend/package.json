@@ -23,8 +23,9 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
-    "security:validate": "node scripts/validate-production-security.js",
-    "security:pre-deploy": "npm run security:validate"
+    "security:validate": "node scripts/production-security-validator.js",
+    "security:test": "./scripts/run-security-tests.sh",
+    "deployment:verify": "node scripts/verify-deployment.js"
   },
   "dependencies": {
     "@medianest/shared": "file:../shared",
