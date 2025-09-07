@@ -60,7 +60,7 @@ export function rateLimiter(options: RateLimiterOptions) {
           userId: req.user?.id,
         });
 
-        throw new RateLimitError(retryAfter);
+        throw new RateLimitError(retryAfter.toString());
       }
 
       next();

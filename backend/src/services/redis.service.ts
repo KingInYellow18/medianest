@@ -83,7 +83,6 @@ export class RedisService {
     try {
       this.client = new Redis(redisUrl, {
         maxRetriesPerRequest: config?.maxRetriesPerRequest || 3,
-        retryDelayOnFailover: config?.retryDelayOnFailover || 100,
         lazyConnect: config?.lazyConnect || true,
         // Automatically reconnect
         reconnectOnError: (err) => {
@@ -95,7 +94,7 @@ export class RedisService {
       this.setupEventHandlers();
     } catch (error) {
       logger.error('Failed to create Redis client', { error, redisUrl });
-      throw new AppError('Redis connection failed', 500, 'REDIS_CONNECTION_FAILED');
+      throw new AppError('REDIS_CONNECTION_FAILED', 'Redis connection failed', 500);
     }
   }
 
@@ -122,7 +121,7 @@ export class RedisService {
       this.isConnected = false;
     });
 
-    this.client.on('reconnecting', (delay) => {
+    this.client.on('reconnecting', (delay: number) => {
       logger.info('Redis client reconnecting', { delay });
     });
   }
@@ -137,7 +136,7 @@ export class RedisService {
       logger.info('Redis service connected successfully');
     } catch (error) {
       logger.error('Failed to connect to Redis', { error });
-      throw new AppError('Redis connection failed', 500, 'REDIS_CONNECTION_FAILED');
+      throw new AppError('REDIS_CONNECTION_FAILED', 'Redis connection failed', 500);
     }
   }
 
@@ -182,7 +181,7 @@ export class RedisService {
       return await this.client.info();
     } catch (error) {
       logger.error('Failed to get Redis info', { error });
-      throw new AppError('Redis info failed', 500, 'REDIS_INFO_FAILED');
+      throw new AppError('REDIS_INFO_FAILED', 'Redis info failed', 500);
     }
   }
 
@@ -205,11 +204,11 @@ export class RedisService {
         createdAt: data.createdAt.toISOString(),
       });
 
-      await this.client.setex(key, ttlSeconds, serializedData);
+      await this.client.setex(key, ttlSeconds.toString(), serializedData);
       logger.debug('OAuth state stored in Redis', { state, ttlSeconds });
     } catch (error) {
       logger.error('Failed to store OAuth state', { error, state });
-      throw new AppError('Failed to store OAuth state', 500, 'REDIS_OAUTH_STORE_FAILED');
+      throw new AppError('REDIS_OAUTH_STORE_FAILED', 'Failed to store OAuth state', 500);
     }
   }
 
@@ -301,11 +300,11 @@ export class RedisService {
         createdAt: data.createdAt.toISOString(),
       });
 
-      await this.client.setex(key, ttlSeconds, serializedData);
+      await this.client.setex(key, ttlSeconds.toString(), serializedData);
       logger.debug('2FA challenge stored in Redis', { challengeId, ttlSeconds });
     } catch (error) {
       logger.error('Failed to store 2FA challenge', { error, challengeId });
-      throw new AppError('Failed to store 2FA challenge', 500, 'REDIS_2FA_STORE_FAILED');
+      throw new AppError('REDIS_2FA_STORE_FAILED', 'Failed to store 2FA challenge', 500);
     }
   }
 
@@ -343,7 +342,7 @@ export class RedisService {
       // Get remaining TTL
       const ttl = await this.client.ttl(key);
       if (ttl <= 0) {
-        throw new AppError('Challenge expired', 400, 'CHALLENGE_EXPIRED');
+        throw new AppError('CHALLENGE_EXPIRED', 'Challenge expired', 400);
       }
 
       const serializedData = JSON.stringify({
@@ -352,11 +351,11 @@ export class RedisService {
         createdAt: data.createdAt.toISOString(),
       });
 
-      await this.client.setex(key, ttl, serializedData);
+      await this.client.setex(key, ttl.toString(), serializedData);
       logger.debug('2FA challenge updated in Redis', { challengeId });
     } catch (error) {
       logger.error('Failed to update 2FA challenge', { error, challengeId });
-      throw new AppError('Failed to update 2FA challenge', 500, 'REDIS_2FA_UPDATE_FAILED');
+      throw new AppError('REDIS_2FA_UPDATE_FAILED', 'Failed to update 2FA challenge', 500);
     }
   }
 
@@ -428,14 +427,14 @@ export class RedisService {
         createdAt: data.createdAt.toISOString(),
       });
 
-      await this.client.setex(key, ttlSeconds, serializedData);
+      await this.client.setex(key, ttlSeconds.toString(), serializedData);
       logger.debug('Password reset token stored in Redis', { tokenId, ttlSeconds });
     } catch (error) {
       logger.error('Failed to store password reset token', { error, tokenId });
       throw new AppError(
+        'REDIS_PWD_RESET_STORE_FAILED',
         'Failed to store password reset token',
-        500,
-        'REDIS_PWD_RESET_STORE_FAILED'
+        500
       );
     }
   }
@@ -474,7 +473,7 @@ export class RedisService {
       // Get remaining TTL
       const ttl = await this.client.ttl(key);
       if (ttl <= 0) {
-        throw new AppError('Reset token expired', 400, 'RESET_TOKEN_EXPIRED');
+        throw new AppError('RESET_TOKEN_EXPIRED', 'Reset token expired', 400);
       }
 
       const serializedData = JSON.stringify({
@@ -483,14 +482,14 @@ export class RedisService {
         createdAt: data.createdAt.toISOString(),
       });
 
-      await this.client.setex(key, ttl, serializedData);
+      await this.client.setex(key, ttl.toString(), serializedData);
       logger.debug('Password reset token updated in Redis', { tokenId });
     } catch (error) {
       logger.error('Failed to update password reset token', { error, tokenId });
       throw new AppError(
+        'REDIS_PWD_RESET_UPDATE_FAILED',
         'Failed to update password reset token',
-        500,
-        'REDIS_PWD_RESET_UPDATE_FAILED'
+        500
       );
     }
   }
@@ -565,16 +564,16 @@ export class RedisService {
       });
 
       // Store session data
-      await this.client.setex(sessionKey, ttlSeconds, serializedData);
+      await this.client.setex(sessionKey, ttlSeconds.toString(), serializedData);
 
       // Add to user sessions set
       await this.client.sadd(userSessionsKey, sessionId);
-      await this.client.expire(userSessionsKey, ttlSeconds);
+      await this.client.expire(userSessionsKey, ttlSeconds.toString());
 
       logger.debug('Session stored in Redis', { sessionId, userId: data.userId, ttlSeconds });
     } catch (error) {
       logger.error('Failed to store session', { error, sessionId });
-      throw new AppError('Failed to store session', 500, 'REDIS_SESSION_STORE_FAILED');
+      throw new AppError('REDIS_SESSION_STORE_FAILED', 'Failed to store session', 500);
     }
   }
 
@@ -673,7 +672,7 @@ export class RedisService {
       const multi = this.client.multi();
       multi.incr(rateLimitKey);
       multi.ttl(rateLimitKey);
-      multi.expire(rateLimitKey, windowSeconds);
+      multi.expire(rateLimitKey, windowSeconds.toString());
 
       const results = await multi.exec();
 
@@ -686,7 +685,7 @@ export class RedisService {
 
       // If this is the first request, set the TTL
       if (count === 1 && ttl === -1) {
-        await this.client.expire(rateLimitKey, windowSeconds);
+        await this.client.expire(rateLimitKey, windowSeconds.toString());
       }
 
       const remaining = Math.max(0, maxAttempts - count);
@@ -695,7 +694,7 @@ export class RedisService {
       return { count, remaining, resetTime };
     } catch (error) {
       logger.error('Failed to increment rate limit', { error, key });
-      throw new AppError('Rate limit operation failed', 500, 'REDIS_RATE_LIMIT_FAILED');
+      throw new AppError('REDIS_RATE_LIMIT_FAILED', 'Rate limit operation failed', 500);
     }
   }
 
@@ -744,11 +743,11 @@ export class RedisService {
       const cacheKey = `${RedisService.KEY_PREFIXES.CACHE}${key}`;
       const serializedValue = JSON.stringify(value);
 
-      await this.client.setex(cacheKey, ttlSeconds, serializedValue);
+      await this.client.setex(cacheKey, ttlSeconds.toString(), serializedValue);
       logger.debug('Cache value stored in Redis', { key, ttlSeconds });
     } catch (error) {
       logger.error('Failed to store cache value', { error, key });
-      throw new AppError('Failed to store cache value', 500, 'REDIS_CACHE_STORE_FAILED');
+      throw new AppError('REDIS_CACHE_STORE_FAILED', 'Failed to store cache value', 500);
     }
   }
 
@@ -825,7 +824,7 @@ export class RedisService {
       };
     } catch (error) {
       logger.error('Failed to get Redis memory stats', { error });
-      throw new AppError('Failed to get Redis memory stats', 500, 'REDIS_MEMORY_STATS_FAILED');
+      throw new AppError('REDIS_MEMORY_STATS_FAILED', 'Failed to get Redis memory stats', 500);
     }
   }
 
@@ -855,7 +854,7 @@ export class RedisService {
       return { deletedKeys: totalDeleted };
     } catch (error) {
       logger.error('Redis cleanup failed', { error });
-      throw new AppError('Redis cleanup failed', 500, 'REDIS_CLEANUP_FAILED');
+      throw new AppError('REDIS_CLEANUP_FAILED', 'Redis cleanup failed', 500);
     }
   }
 }

@@ -1,6 +1,13 @@
 import { Response } from 'express';
 import { logger } from './logger';
 import { CatchError } from '../types/common';
+import {
+  getErrorMessage,
+  toError,
+  isError,
+  isValidationError,
+  isHttpError,
+} from '../types/error-types';
 
 /**
  * Standard API response structure
@@ -249,20 +256,21 @@ export function asyncHandler(handler: (req: any, res: Response, next: any) => Pr
     try {
       await handler(req, res, next);
     } catch (error: CatchError) {
+      const processedError = toError(error);
       logger.error('Async handler error', {
         path: req.path,
         method: req.method,
         error: {
-          message: error.message,
-          stack: error.stack,
+          message: processedError.message,
+          stack: processedError.stack,
         },
       });
 
-      // Send appropriate error response
-      if (error.name === 'ValidationError') {
-        sendValidationError(res, error.message);
-      } else if (error.statusCode) {
-        sendError(res, error.message, error.statusCode, error.code);
+      // Send appropriate error response with proper type guards
+      if (isValidationError(processedError)) {
+        sendValidationError(res, processedError.message);
+      } else if (isHttpError(processedError)) {
+        sendError(res, processedError.message, processedError.statusCode, processedError.code);
       } else {
         sendInternalError(res, 'An unexpected error occurred');
       }

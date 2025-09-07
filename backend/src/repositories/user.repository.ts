@@ -19,6 +19,9 @@ export interface CreateUserInput {
   plexToken?: string;
   role?: string;
   password?: string;
+  status?: string;
+  emailVerified?: boolean;
+  image?: string;
 }
 
 export interface UpdateUserInput {
@@ -30,6 +33,12 @@ export interface UpdateUserInput {
   status?: string;
   lastLoginAt?: Date;
   requiresPasswordChange?: boolean;
+  image?: string | null;
+  githubId?: string | null;
+  githubUsername?: string | null;
+  googleId?: string | null;
+  googleUsername?: string | null;
+  emailVerified?: boolean;
 }
 
 export class UserRepository extends BaseRepository<User, CreateUserInput, UpdateUserInput> {

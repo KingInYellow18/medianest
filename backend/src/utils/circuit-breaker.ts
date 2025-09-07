@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 import { logger } from './logger';
 import { CatchError } from '../types/common';
+import { toError } from '../types/error-types';
 
 export interface CircuitBreakerOptions {
   failureThreshold: number;
@@ -35,7 +36,6 @@ export class CircuitBreaker extends EventEmitter {
   private totalRequests = 0;
   private lastFailureTime: Date | null = null;
   private lastSuccessTime: Date | null = null;
-  // @ts-ignore
   private nextRetryAt: Date | null = null;
   private halfOpenCalls = 0;
   private monitoringTimer: NodeJS.Timeout | null = null;
@@ -89,8 +89,8 @@ export class CircuitBreaker extends EventEmitter {
       return result;
     } catch (error: CatchError) {
       const duration = Date.now() - startTime;
-      // Convert non-Error objects to Error for internal processing
-      const errorObj = (error as Error) ? error : new Error(String(error));
+      // Convert non-Error objects to Error using type guard
+      const errorObj = this.toError(error);
       this.onFailure(errorObj, duration);
       // Re-throw the original error/value
       throw error;
@@ -146,9 +146,7 @@ export class CircuitBreaker extends EventEmitter {
   }
 
   private shouldAttemptReset(): boolean {
-    // @ts-ignore
     if (!this.nextRetryAt) return false;
-    // @ts-ignore
     return Date.now() >= this.nextRetryAt.getTime();
   }
 
@@ -158,7 +156,6 @@ export class CircuitBreaker extends EventEmitter {
     this.state = CircuitBreakerState.CLOSED;
     this.failureCount = 0;
     this.halfOpenCalls = 0;
-    // @ts-ignore
     this.nextRetryAt = null;
 
     this.emit('stateChange', this.state, this.getStats());
@@ -171,7 +168,6 @@ export class CircuitBreaker extends EventEmitter {
     });
 
     this.state = CircuitBreakerState.OPEN;
-    // @ts-ignore
     this.nextRetryAt = new Date(Date.now() + this.options.resetTimeout);
     this.halfOpenCalls = 0;
 
@@ -212,7 +208,6 @@ export class CircuitBreaker extends EventEmitter {
       requests: this.totalRequests,
       lastFailureTime: this.lastFailureTime,
       lastSuccessTime: this.lastSuccessTime,
-      // @ts-ignore
       ...(this.nextRetryAt ? { nextAttempt: this.nextRetryAt } : {}),
       errorRate: Math.round(errorRate * 100) / 100,
     };
@@ -228,7 +223,6 @@ export class CircuitBreaker extends EventEmitter {
     this.halfOpenCalls = 0;
     this.lastFailureTime = null;
     this.lastSuccessTime = null;
-    // @ts-ignore
     this.nextRetryAt = null;
 
     this.emit('stateChange', this.state, this.getStats());
@@ -260,7 +254,6 @@ export class CircuitBreaker extends EventEmitter {
     logger.warn(`Circuit breaker ${this.name} manually forced to OPEN state`);
 
     this.state = CircuitBreakerState.OPEN;
-    // @ts-ignore
     this.nextRetryAt = new Date(Date.now() + this.options.resetTimeout);
     this.halfOpenCalls = 0;
 
@@ -273,10 +266,16 @@ export class CircuitBreaker extends EventEmitter {
     this.state = CircuitBreakerState.CLOSED;
     this.failureCount = 0;
     this.halfOpenCalls = 0;
-    // @ts-ignore
     this.nextRetryAt = null;
 
     this.emit('stateChange', this.state, this.getStats());
+  }
+
+  /**
+   * Type guard to convert unknown error types to Error instances
+   */
+  private toError(error: unknown): Error {
+    return toError(error);
   }
 }
 

@@ -13,6 +13,8 @@ import { CatchError } from '../types/common';
 export interface CreateSessionTokenInput {
   userId: string;
   expiresAt: Date;
+  token?: string;
+  deviceId?: string;
 }
 
 export class SessionTokenRepository extends BaseRepository<
