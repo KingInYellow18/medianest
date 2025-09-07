@@ -1,1610 +1,198 @@
-
-<!doctype html>
-<html lang="en" class="no-js">
-  <head>
-    
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width,initial-scale=1">
-      
-        <meta name="description" content="Complete documentation for MediaNest - Advanced Media Management Platform">
-      
-      
-        <meta name="author" content="MediaNest Team">
-      
-      
-        <link rel="canonical" href="https://medianest.example.com/docs/observability-architecture/">
-      
-      
-      
-      
-      <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.18">
-    
-    
-      
-        <title>MediaNest Observability Architecture - MediaNest Documentation</title>
-      
-    
-    
-      <link rel="stylesheet" href="../assets/stylesheets/main.7e37652d.min.css">
-      
-        
-        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
-      
-      
-
-
-    
-    
-      
-    
-    
-      
-        
-        
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
-        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
-      
-    
-    
-      <link rel="stylesheet" href="../assets/stylesheets/extra.css">
-    
-      <link rel="stylesheet" href="../assets/stylesheets/custom.css">
-    
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
-    
-      
-  
-
-
-  
-  
-
-<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-XXXXXXXXXX"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-XXXXXXXXXX",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
-  
-    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
-  
-
-    
-    
-    
-  </head>
-  
-  
-    
-    
-      
-    
-    
-    
-    
-    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple">
-  
-    
-    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
-    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
-    <label class="md-overlay" for="__drawer"></label>
-    <div data-md-component="skip">
-      
-        
-        <a href="#medianest-observability-architecture" class="md-skip">
-          Skip to content
-        </a>
-      
-    </div>
-    <div data-md-component="announce">
-      
-    </div>
-    
-      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
-        
-      </div>
-    
-    
-      
-
-  
-
-<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="MediaNest Documentation" class="md-header__button md-logo" aria-label="MediaNest Documentation" data-md-component="logo">
-      
-  <img src="../assets/images/logo.png" alt="logo">
-
-    </a>
-    <label class="md-header__button md-icon" for="__drawer">
-      
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
-    </label>
-    <div class="md-header__title" data-md-component="header-title">
-      <div class="md-header__ellipsis">
-        <div class="md-header__topic">
-          <span class="md-ellipsis">
-            MediaNest Documentation
-          </span>
-        </div>
-        <div class="md-header__topic" data-md-component="header-topic">
-          <span class="md-ellipsis">
-            
-              MediaNest Observability Architecture
-            
-          </span>
-        </div>
-      </div>
-    </div>
-    
-      
-        <form class="md-header__option" data-md-component="palette">
-  
-    
-    
-    
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
-    
-      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
-      </label>
-    
-  
-    
-    
-    
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
-    
-      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
-      </label>
-    
-  
-</form>
-      
-    
-    
-      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
-    
-    
-    
-      
-      
-        <label class="md-header__button md-icon" for="__search">
-          
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
-        </label>
-        <div class="md-search" data-md-component="search" role="dialog">
-  <label class="md-search__overlay" for="__search"></label>
-  <div class="md-search__inner" role="search">
-    <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
-      <label class="md-search__icon md-icon" for="__search">
-        
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
-        
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
-      </label>
-      <nav class="md-search__options" aria-label="Search">
-        
-          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
-            
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
-          </a>
-        
-        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
-          
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-        </button>
-      </nav>
-      
-        <div class="md-search__suggest" data-md-component="search-suggest"></div>
-      
-    </form>
-    <div class="md-search__output">
-      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
-        <div class="md-search-result" data-md-component="search-result">
-          <div class="md-search-result__meta">
-            Initializing search
-          </div>
-          <ol class="md-search-result__list" role="presentation"></ol>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-      
-    
-    
-      <div class="md-header__source">
-        <a href="https://github.com/medianest/medianest" title="Go to repository" class="md-source" data-md-component="source">
-  <div class="md-source__icon md-icon">
-    
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
-  </div>
-  <div class="md-source__repository">
-    medianest/medianest
-  </div>
-</a>
-      </div>
-    
-  </nav>
-  
-    
-      
-<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
-  <div class="md-grid">
-    <ul class="md-tabs__list">
-      
-        
-  
-  
-  
-  
-    <li class="md-tabs__item">
-      <a href=".." class="md-tabs__link">
-        
-  
-  
-    
-  
-  Home
-
-      </a>
-    </li>
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="../getting-started/" class="md-tabs__link">
-          
-  
-  
-    
-  
-  Getting Started
-
-        </a>
-      </li>
-    
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="../installation/" class="md-tabs__link">
-          
-  
-  
-    
-  
-  Installation
-
-        </a>
-      </li>
-    
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="../user-guides/" class="md-tabs__link">
-          
-  
-  
-    
-  
-  User Guides
-
-        </a>
-      </li>
-    
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="../api/" class="md-tabs__link">
-          
-  
-  
-    
-  
-  API Reference
-
-        </a>
-      </li>
-    
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="../developers/" class="md-tabs__link">
-          
-  
-  
-    
-  
-  Developer Docs
-
-        </a>
-      </li>
-    
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="../troubleshooting/" class="md-tabs__link">
-          
-  
-  
-    
-  
-  Troubleshooting
-
-        </a>
-      </li>
-    
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="../reference/" class="md-tabs__link">
-          
-  
-  
-    
-  
-  Reference
-
-        </a>
-      </li>
-    
-  
-
-      
-    </ul>
-  </div>
-</nav>
-    
-  
-</header>
-    
-    <div class="md-container" data-md-component="container">
-      
-      
-        
-      
-      <main class="md-main" data-md-component="main">
-        <div class="md-main__inner md-grid">
-          
-            
-              
-              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
-                <div class="md-sidebar__scrollwrap">
-                  <div class="md-sidebar__inner">
-                    
-
-
-  
-
-
-  
-
-<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
-  <label class="md-nav__title" for="__drawer">
-    <a href=".." title="MediaNest Documentation" class="md-nav__button md-logo" aria-label="MediaNest Documentation" data-md-component="logo">
-      
-  <img src="../assets/images/logo.png" alt="logo">
-
-    </a>
-    MediaNest Documentation
-  </label>
-  
-    <div class="md-nav__source">
-      <a href="https://github.com/medianest/medianest" title="Go to repository" class="md-source" data-md-component="source">
-  <div class="md-source__icon md-icon">
-    
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
-  </div>
-  <div class="md-source__repository">
-    medianest/medianest
-  </div>
-</a>
-    </div>
-  
-  <ul class="md-nav__list" data-md-scrollfix>
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Home
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-      
-        
-          
-        
-      
-        
-      
-        
-      
-        
-      
-    
-    
-    
-      
-      
-        
-      
-    
-    
-      
-        
-        
-      
-    
-    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
-      
-        
-  
-  
-  
-    <a href="../getting-started/" class="md-nav__link">
-      
-  
-  
-  <span class="md-ellipsis">
-    Getting Started
-    
-  </span>
-  
-
-      
-        <span class="md-nav__icon md-icon"></span>
-      
-    </a>
-  
-
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-      
-        
-          
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-    
-    
-    
-      
-      
-        
-      
-    
-    
-      
-        
-        
-      
-    
-    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
-      
-        
-  
-  
-  
-    <a href="../installation/" class="md-nav__link">
-      
-  
-  
-  <span class="md-ellipsis">
-    Installation
-    
-  </span>
-  
-
-      
-        <span class="md-nav__icon md-icon"></span>
-      
-    </a>
-  
-
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-      
-        
-          
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-    
-    
-    
-      
-      
-        
-      
-    
-    
-      
-        
-        
-      
-    
-    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
-      
-        
-  
-  
-  
-    <a href="../user-guides/" class="md-nav__link">
-      
-  
-  
-  <span class="md-ellipsis">
-    User Guides
-    
-  </span>
-  
-
-      
-        <span class="md-nav__icon md-icon"></span>
-      
-    </a>
-  
-
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-      
-        
-          
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-    
-    
-    
-      
-      
-        
-      
-    
-    
-      
-        
-        
-      
-    
-    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
-      
-        
-  
-  
-  
-    <a href="../api/" class="md-nav__link">
-      
-  
-  
-  <span class="md-ellipsis">
-    API Reference
-    
-  </span>
-  
-
-      
-        <span class="md-nav__icon md-icon"></span>
-      
-    </a>
-  
-
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-      
-        
-          
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-    
-    
-    
-      
-      
-        
-      
-    
-    
-      
-        
-        
-      
-    
-    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
-      
-        
-  
-  
-  
-    <a href="../developers/" class="md-nav__link">
-      
-  
-  
-  <span class="md-ellipsis">
-    Developer Docs
-    
-  </span>
-  
-
-      
-        <span class="md-nav__icon md-icon"></span>
-      
-    </a>
-  
-
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-      
-        
-          
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-    
-    
-    
-      
-      
-        
-      
-    
-    
-      
-        
-        
-      
-    
-    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
-      
-        
-  
-  
-  
-    <a href="../troubleshooting/" class="md-nav__link">
-      
-  
-  
-  <span class="md-ellipsis">
-    Troubleshooting
-    
-  </span>
-  
-
-      
-        <span class="md-nav__icon md-icon"></span>
-      
-    </a>
-  
-
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-      
-        
-          
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-    
-    
-    
-      
-      
-        
-      
-    
-    
-      
-        
-        
-      
-    
-    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
-      
-        
-  
-  
-  
-    <a href="../reference/" class="md-nav__link">
-      
-  
-  
-  <span class="md-ellipsis">
-    Reference
-    
-  </span>
-  
-
-      
-        <span class="md-nav__icon md-icon"></span>
-      
-    </a>
-  
-
-      
-    </li>
-  
-
-    
-  </ul>
-</nav>
-                  </div>
-                </div>
-              </div>
-            
-            
-          
-          
-            <div class="md-content" data-md-component="content">
-              <article class="md-content__inner md-typeset">
-                
-                  
-
-
-  
-    <a href="https://github.com/medianest/medianest/edit/main/docs/observability-architecture.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
-      
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
-    </a>
-  
-  
-    
-      
-    
-    <a href="https://github.com/medianest/medianest/raw/main/docs/observability-architecture.md" title="View source of this page" class="md-content__button md-icon">
-      
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.2 8.2 0 0 1-1.23-2"/></svg>
-    </a>
-  
-
-
-<h1 id="medianest-observability-architecture">MediaNest Observability Architecture<a class="headerlink" href="#medianest-observability-architecture" title="Permanent link">&para;</a></h1>
-<h2 id="executive-summary">Executive Summary<a class="headerlink" href="#executive-summary" title="Permanent link">&para;</a></h2>
-<p>This document outlines the comprehensive observability architecture for MediaNest, a full-stack TypeScript application managing Plex media server and related services. The architecture provides three pillars of observability: metrics, logging, and distributed tracing, designed to ensure optimal performance, rapid incident response, and business intelligence.</p>
-<h2 id="current-technology-stack-analysis">Current Technology Stack Analysis<a class="headerlink" href="#current-technology-stack-analysis" title="Permanent link">&para;</a></h2>
-<h3 id="backend-stack">Backend Stack<a class="headerlink" href="#backend-stack" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Runtime</strong>: Node.js with TypeScript</li>
-<li><strong>Framework</strong>: Express.js with Socket.IO for real-time communication</li>
-<li><strong>Database</strong>: PostgreSQL with Prisma ORM</li>
-<li><strong>Cache</strong>: Redis with IORedis client</li>
-<li><strong>Queue System</strong>: BullMQ for background jobs</li>
-<li><strong>Authentication</strong>: NextAuth.js with JWT tokens</li>
-</ul>
-<h3 id="frontend-stack">Frontend Stack<a class="headerlink" href="#frontend-stack" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Framework</strong>: Next.js 15 with React 19</li>
-<li><strong>Styling</strong>: Tailwind CSS</li>
-<li><strong>State Management</strong>: TanStack React Query</li>
-<li><strong>Real-time</strong>: Socket.IO client</li>
-</ul>
-<h3 id="infrastructure">Infrastructure<a class="headerlink" href="#infrastructure" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Containerization</strong>: Docker with docker-compose</li>
-<li><strong>Reverse Proxy</strong>: Nginx (implied)</li>
-<li><strong>External Integrations</strong>: Plex, Overseerr, YouTube, Uptime Kuma</li>
-</ul>
-<h3 id="existing-observability-components">Existing Observability Components<a class="headerlink" href="#existing-observability-components" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Logging</strong>: Winston with daily rotation, structured JSON logging</li>
-<li><strong>Basic Metrics</strong>: In-memory metrics collection with request/error tracking</li>
-<li><strong>Health Checks</strong>: Service health monitoring with circuit breakers</li>
-<li><strong>Error Handling</strong>: Comprehensive error recovery with resilience patterns</li>
-<li><strong>Correlation IDs</strong>: Request tracing through correlation ID middleware</li>
-</ul>
-<h2 id="observability-architecture-design">Observability Architecture Design<a class="headerlink" href="#observability-architecture-design" title="Permanent link">&para;</a></h2>
-<h3 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌─────────────────────────────────────────────────────────────┐
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│                    Observability Stack                      │
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├─────────────────────────────────────────────────────────────┤
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│  │   Metrics   │  │   Logging   │  │  Distributed Trace  │  │
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│  │ (Prometheus)│  │(Loki/Grafana│  │      (Jaeger)       │  │
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│  │             │  │     Logs)   │  │                     │  │
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│  └─────────────┘  └─────────────┘  └─────────────────────┘  │
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>└─────────────────────────────────────────────────────────────┘
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>                             │
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>┌─────────────────────────────────────────────────────────────┐
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│                 Application Layer                           │
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>├─────────────────────────────────────────────────────────────┤
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│  │  Frontend   │  │   Backend   │  │   Infrastructure    │  │
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│  │ (Next.js)   │  │ (Express)   │  │  (Docker/Redis/PG)  │  │
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>│  └─────────────┘  └─────────────┘  └─────────────────────┘  │
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>└─────────────────────────────────────────────────────────────┘
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>                             │
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>┌─────────────────────────────────────────────────────────────┐
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>│              External Services Layer                        │
-</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>├─────────────────────────────────────────────────────────────┤
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>│  │    Plex     │  │  Overseerr  │  │   YouTube/Others    │  │
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>│  │   Server    │  │             │  │                     │  │
-</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>│  └─────────────┘  └─────────────┘  └─────────────────────┘  │
-</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>└─────────────────────────────────────────────────────────────┘
-</span></code></pre></div>
-<h3 id="technology-stack-selection">Technology Stack Selection<a class="headerlink" href="#technology-stack-selection" title="Permanent link">&para;</a></h3>
-<h4 id="metrics-collection-storage">Metrics Collection &amp; Storage<a class="headerlink" href="#metrics-collection-storage" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Prometheus</strong>: Industry standard for metrics collection and storage</li>
-<li><strong>Grafana</strong>: Visualization and dashboards</li>
-<li><strong>Node.js Prometheus Client</strong>: Application-level metrics collection</li>
-</ul>
-<h4 id="logging">Logging<a class="headerlink" href="#logging" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Existing Winston</strong>: Continue using with enhanced structured logging</li>
-<li><strong>Loki</strong>: Centralized log aggregation (Grafana ecosystem)</li>
-<li><strong>Grafana</strong>: Log visualization and querying</li>
-</ul>
-<h4 id="distributed-tracing">Distributed Tracing<a class="headerlink" href="#distributed-tracing" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Jaeger</strong>: OpenTelemetry compatible distributed tracing</li>
-<li><strong>OpenTelemetry</strong>: Instrumentation framework for Node.js and browser</li>
-</ul>
-<h4 id="alerting">Alerting<a class="headerlink" href="#alerting" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Grafana Alerting</strong>: Unified alerting across metrics and logs</li>
-<li><strong>Webhook Integration</strong>: Slack/Discord/Email notifications</li>
-</ul>
-<h2 id="metrics-strategy">Metrics Strategy<a class="headerlink" href="#metrics-strategy" title="Permanent link">&para;</a></h2>
-<h3 id="application-performance-metrics">Application Performance Metrics<a class="headerlink" href="#application-performance-metrics" title="Permanent link">&para;</a></h3>
-<h4 id="backend-api-metrics">Backend API Metrics<a class="headerlink" href="#backend-api-metrics" title="Permanent link">&para;</a></h4>
-<div class="language-typescript highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1">// Request metrics</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nx">http_requests_total</span><span class="p">{</span><span class="nx">method</span><span class="p">,</span><span class="w"> </span><span class="nx">endpoint</span><span class="p">,</span><span class="w"> </span><span class="nx">status_code</span><span class="p">}</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nx">http_request_duration_seconds</span><span class="p">{</span><span class="nx">method</span><span class="p">,</span><span class="w"> </span><span class="nx">endpoint</span><span class="p">}</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="nx">http_requests_in_flight</span><span class="p">{</span><span class="nx">method</span><span class="p">,</span><span class="w"> </span><span class="nx">endpoint</span><span class="p">}</span>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="c1">// Business logic metrics</span>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="nx">plex_api_requests_total</span><span class="p">{</span><span class="nx">operation</span><span class="p">,</span><span class="w"> </span><span class="nx">status</span><span class="p">}</span>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="nx">plex_api_response_time_seconds</span><span class="p">{</span><span class="nx">operation</span><span class="p">}</span>
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="nx">media_requests_total</span><span class="p">{</span><span class="kr">type</span><span class="p">,</span><span class="w"> </span><span class="nx">status</span><span class="p">}</span>
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="nx">user_sessions_active</span>
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="nx">background_jobs_total</span><span class="p">{</span><span class="nx">queue</span><span class="p">,</span><span class="w"> </span><span class="nx">status</span><span class="p">}</span>
-</span></code></pre></div>
-<h4 id="database-cache-metrics">Database &amp; Cache Metrics<a class="headerlink" href="#database-cache-metrics" title="Permanent link">&para;</a></h4>
-<div class="language-typescript highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1">// Database metrics</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nx">database_connections_active</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nx">database_query_duration_seconds</span><span class="p">{</span><span class="nx">operation</span><span class="p">,</span><span class="w"> </span><span class="nx">table</span><span class="p">}</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="nx">database_queries_total</span><span class="p">{</span><span class="nx">operation</span><span class="p">,</span><span class="w"> </span><span class="nx">status</span><span class="p">}</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="nx">prisma_query_duration_seconds</span><span class="p">{</span><span class="nx">model</span><span class="p">,</span><span class="w"> </span><span class="nx">operation</span><span class="p">}</span>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1">// Redis metrics</span>
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="nx">redis_commands_total</span><span class="p">{</span><span class="nx">command</span><span class="p">,</span><span class="w"> </span><span class="nx">status</span><span class="p">}</span>
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="nx">redis_connection_pool_size</span>
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="nx">redis_memory_usage_bytes</span>
-</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="nx">cache_hit_ratio</span><span class="p">{</span><span class="nx">cache_type</span><span class="p">}</span>
-</span></code></pre></div>
-<h4 id="resource-utilization">Resource Utilization<a class="headerlink" href="#resource-utilization" title="Permanent link">&para;</a></h4>
-<div class="language-typescript highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1">// System metrics</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nx">nodejs_heap_size_total_bytes</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nx">nodejs_heap_size_used_bytes</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="nx">nodejs_eventloop_lag_seconds</span>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="nx">process_cpu_user_seconds_total</span>
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="nx">process_resident_memory_bytes</span>
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="c1">// Custom resource metrics</span>
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="nx">file_upload_size_bytes</span>
-</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="nx">concurrent_websocket_connections</span>
-</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="nx">circuit_breaker_state</span><span class="p">{</span><span class="nx">service</span><span class="p">}</span>
-</span></code></pre></div>
-<h3 id="business-metrics">Business Metrics<a class="headerlink" href="#business-metrics" title="Permanent link">&para;</a></h3>
-<h4 id="user-engagement">User Engagement<a class="headerlink" href="#user-engagement" title="Permanent link">&para;</a></h4>
-<div class="language-typescript highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1">// User activity</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nx">user_logins_total</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="nx">user_sessions_duration_seconds</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="nx">media_views_total</span><span class="p">{</span><span class="nx">media_type</span><span class="p">}</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="nx">search_queries_total</span>
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="nx">dashboard_page_views_total</span>
-</span></code></pre></div>
-<h4 id="service-health">Service Health<a class="headerlink" href="#service-health" title="Permanent link">&para;</a></h4>
-<div class="language-typescript highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1">// Service availability</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nx">service_health_status</span><span class="p">{</span><span class="nx">service</span><span class="p">}</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="nx">external_api_availability</span><span class="p">{</span><span class="nx">service</span><span class="p">}</span>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="nx">integration_sync_duration_seconds</span><span class="p">{</span><span class="nx">service</span><span class="p">}</span>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="nx">service_recovery_events_total</span><span class="p">{</span><span class="nx">service</span><span class="p">}</span>
-</span></code></pre></div>
-<h3 id="frontend-metrics">Frontend Metrics<a class="headerlink" href="#frontend-metrics" title="Permanent link">&para;</a></h3>
-<h4 id="performance-metrics">Performance Metrics<a class="headerlink" href="#performance-metrics" title="Permanent link">&para;</a></h4>
-<div class="language-typescript highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1">// Web vitals</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nx">web_vital_fcp_seconds</span><span class="w"> </span><span class="c1">// First Contentful Paint</span>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="nx">web_vital_lcp_seconds</span><span class="w"> </span><span class="c1">// Largest Contentful Paint</span>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="nx">web_vital_fid_seconds</span><span class="w"> </span><span class="c1">// First Input Delay</span>
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="nx">web_vital_cls_ratio</span><span class="w">   </span><span class="c1">// Cumulative Layout Shift</span>
-</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
-</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="c1">// Navigation metrics</span>
-</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="nx">page_load_duration_seconds</span><span class="p">{</span><span class="nx">route</span><span class="p">}</span>
-</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="nx">api_request_duration_seconds</span><span class="p">{</span><span class="nx">endpoint</span><span class="p">}</span>
-</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="nx">websocket_connection_duration_seconds</span>
-</span></code></pre></div>
-<h4 id="user-experience">User Experience<a class="headerlink" href="#user-experience" title="Permanent link">&para;</a></h4>
-<div class="language-typescript highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1">// Interaction metrics</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nx">user_interactions_total</span><span class="p">{</span><span class="nx">component</span><span class="p">,</span><span class="w"> </span><span class="nx">action</span><span class="p">}</span>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="nx">form_submission_errors_total</span><span class="p">{</span><span class="nx">form</span><span class="p">}</span>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="nx">navigation_events_total</span><span class="p">{</span><span class="nx">from_route</span><span class="p">,</span><span class="w"> </span><span class="nx">to_route</span><span class="p">}</span>
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="nx">feature_usage_total</span><span class="p">{</span><span class="nx">feature</span><span class="p">}</span>
-</span></code></pre></div>
-<h2 id="logging-strategy">Logging Strategy<a class="headerlink" href="#logging-strategy" title="Permanent link">&para;</a></h2>
-<h3 id="log-structure-enhancement">Log Structure Enhancement<a class="headerlink" href="#log-structure-enhancement" title="Permanent link">&para;</a></h3>
-<h4 id="structured-log-format">Structured Log Format<a class="headerlink" href="#structured-log-format" title="Permanent link">&para;</a></h4>
-<div class="language-json highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="p">{</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2025-09-06T18:16:05.564Z&quot;</span><span class="p">,</span>
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="nt">&quot;level&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;info&quot;</span><span class="p">,</span>
-</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span><span class="nt">&quot;service&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;medianest-backend&quot;</span><span class="p">,</span>
-</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span><span class="nt">&quot;correlationId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;req-abc123&quot;</span><span class="p">,</span>
-</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">  </span><span class="nt">&quot;traceId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;4bf92f3577b34da6a3ce929d0e0e4736&quot;</span><span class="p">,</span>
-</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">  </span><span class="nt">&quot;spanId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;00f067aa0ba902b7&quot;</span><span class="p">,</span>
-</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">  </span><span class="nt">&quot;userId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user-123&quot;</span><span class="p">,</span>
-</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">  </span><span class="nt">&quot;component&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;auth.controller&quot;</span><span class="p">,</span>
-</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">  </span><span class="nt">&quot;operation&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;login&quot;</span><span class="p">,</span>
-</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;User login successful&quot;</span><span class="p">,</span>
-</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="w">  </span><span class="nt">&quot;metadata&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="w">    </span><span class="nt">&quot;duration&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">150</span><span class="p">,</span>
-</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="w">    </span><span class="nt">&quot;userAgent&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mozilla/5.0...&quot;</span><span class="p">,</span>
-</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="w">    </span><span class="nt">&quot;ip&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;192.168.1.100&quot;</span><span class="p">,</span>
-</span><span id="__span-8-16"><a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="w">    </span><span class="nt">&quot;endpoint&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/api/v1/auth/login&quot;</span><span class="p">,</span>
-</span><span id="__span-8-17"><a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="w">    </span><span class="nt">&quot;method&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;POST&quot;</span><span class="p">,</span>
-</span><span id="__span-8-18"><a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="w">    </span><span class="nt">&quot;statusCode&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">200</span>
-</span><span id="__span-8-19"><a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a><span class="w">  </span><span class="p">}</span>
-</span><span id="__span-8-20"><a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a><span class="p">}</span>
-</span></code></pre></div>
-<h4 id="log-levels-categories">Log Levels &amp; Categories<a class="headerlink" href="#log-levels-categories" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>ERROR</strong>: Service failures, unhandled exceptions, security incidents</li>
-<li><strong>WARN</strong>: Performance degradation, circuit breaker trips, retry attempts</li>
-<li><strong>INFO</strong>: Business events, user actions, service lifecycle events</li>
-<li><strong>DEBUG</strong>: Development debugging, detailed request flows</li>
-<li><strong>TRACE</strong>: Fine-grained execution details</li>
-</ul>
-<h4 id="business-event-logging">Business Event Logging<a class="headerlink" href="#business-event-logging" title="Permanent link">&para;</a></h4>
-<div class="language-typescript highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1">// Authentication events</span>
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="p">{</span>
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="s2">&quot;event&quot;</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;user.login.success&quot;</span><span class="p">,</span>
-</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">  </span><span class="s2">&quot;userId&quot;</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;user-123&quot;</span><span class="p">,</span>
-</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">  </span><span class="s2">&quot;metadata&quot;</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;loginMethod&quot;</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;plex&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;2faEnabled&quot;</span><span class="o">:</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">}</span>
-</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="p">}</span>
-</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>
-</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="c1">// Media operation events</span>
-</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="p">{</span>
-</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">  </span><span class="s2">&quot;event&quot;</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;media.request.created&quot;</span><span class="p">,</span>
-</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">  </span><span class="s2">&quot;userId&quot;</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;user-123&quot;</span><span class="p">,</span><span class="w"> </span>
-</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="w">  </span><span class="s2">&quot;mediaId&quot;</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;movie-456&quot;</span><span class="p">,</span>
-</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="w">  </span><span class="s2">&quot;metadata&quot;</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;mediaType&quot;</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;movie&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;source&quot;</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;overseerr&quot;</span><span class="w"> </span><span class="p">}</span>
-</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="p">}</span>
-</span><span id="__span-9-15"><a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a>
-</span><span id="__span-9-16"><a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a><span class="c1">// System events</span>
-</span><span id="__span-9-17"><a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a><span class="p">{</span>
-</span><span id="__span-9-18"><a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a><span class="w">  </span><span class="s2">&quot;event&quot;</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;service.health.degraded&quot;</span><span class="p">,</span>
-</span><span id="__span-9-19"><a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a><span class="w">  </span><span class="s2">&quot;service&quot;</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;plex-api&quot;</span><span class="p">,</span>
-</span><span id="__span-9-20"><a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a><span class="w">  </span><span class="s2">&quot;metadata&quot;</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;responseTime&quot;</span><span class="o">:</span><span class="w"> </span><span class="mf">5000</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;errorRate&quot;</span><span class="o">:</span><span class="w"> </span><span class="mf">15</span><span class="w"> </span><span class="p">}</span>
-</span><span id="__span-9-21"><a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a><span class="p">}</span>
-</span></code></pre></div>
-<h3 id="log-aggregation-strategy">Log Aggregation Strategy<a class="headerlink" href="#log-aggregation-strategy" title="Permanent link">&para;</a></h3>
-<h4 id="log-categories">Log Categories<a class="headerlink" href="#log-categories" title="Permanent link">&para;</a></h4>
-<ol>
-<li><strong>Application Logs</strong>: Business logic, user interactions, API requests</li>
-<li><strong>Security Logs</strong>: Authentication, authorization, security events</li>
-<li><strong>Performance Logs</strong>: Slow queries, high memory usage, timeout events</li>
-<li><strong>Integration Logs</strong>: External API calls, webhook events, sync operations</li>
-<li><strong>Infrastructure Logs</strong>: Container lifecycle, network events, resource usage</li>
-</ol>
-<h4 id="retention-policy">Retention Policy<a class="headerlink" href="#retention-policy" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Error Logs</strong>: 90 days</li>
-<li><strong>Security Logs</strong>: 1 year</li>
-<li><strong>Application Logs</strong>: 30 days</li>
-<li><strong>Debug Logs</strong>: 7 days</li>
-<li><strong>Trace Logs</strong>: 24 hours</li>
-</ul>
-<h2 id="distributed-tracing-strategy">Distributed Tracing Strategy<a class="headerlink" href="#distributed-tracing-strategy" title="Permanent link">&para;</a></h2>
-<h3 id="trace-architecture">Trace Architecture<a class="headerlink" href="#trace-architecture" title="Permanent link">&para;</a></h3>
-<h4 id="service-boundaries">Service Boundaries<a class="headerlink" href="#service-boundaries" title="Permanent link">&para;</a></h4>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>User Request → Frontend → Backend API → Database/Redis → External APIs
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>     ↓           ↓            ↓              ↓              ↓
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>  Browser    Next.js     Express.js     Prisma/IORedis   Plex/Overseerr
-</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>   Span       Span         Span           Spans           Spans
-</span></code></pre></div>
-<h4 id="key-trace-operations">Key Trace Operations<a class="headerlink" href="#key-trace-operations" title="Permanent link">&para;</a></h4>
-<ol>
-<li><strong>User Journey Traces</strong>: Complete user workflows across frontend/backend</li>
-<li><strong>API Request Traces</strong>: Full request lifecycle with all dependencies</li>
-<li><strong>Background Job Traces</strong>: Queue processing and external integrations</li>
-<li><strong>Cross-Service Traces</strong>: Service-to-service communication patterns</li>
-</ol>
-<h4 id="custom-spans">Custom Spans<a class="headerlink" href="#custom-spans" title="Permanent link">&para;</a></h4>
-<div class="language-typescript highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1">// Database operations</span>
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="nx">span</span><span class="p">.</span><span class="nx">setAttributes</span><span class="p">({</span>
-</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">  </span><span class="s1">&#39;db.system&#39;</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;postgresql&#39;</span><span class="p">,</span>
-</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">  </span><span class="s1">&#39;db.operation&#39;</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;SELECT&#39;</span><span class="p">,</span>
-</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">  </span><span class="s1">&#39;db.statement&#39;</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;SELECT * FROM users WHERE id = ?&#39;</span><span class="p">,</span>
-</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">  </span><span class="s1">&#39;db.table&#39;</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;users&#39;</span>
-</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="p">});</span>
-</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>
-</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="c1">// External API calls</span>
-</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="nx">span</span><span class="p">.</span><span class="nx">setAttributes</span><span class="p">({</span>
-</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="w">  </span><span class="s1">&#39;http.method&#39;</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;GET&#39;</span><span class="p">,</span>
-</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="w">  </span><span class="s1">&#39;http.url&#39;</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;https://plex.example.com/library/sections&#39;</span><span class="p">,</span>
-</span><span id="__span-11-13"><a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="w">  </span><span class="s1">&#39;http.status_code&#39;</span><span class="o">:</span><span class="w"> </span><span class="mf">200</span><span class="p">,</span>
-</span><span id="__span-11-14"><a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="w">  </span><span class="s1">&#39;external.service&#39;</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;plex-api&#39;</span>
-</span><span id="__span-11-15"><a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a><span class="p">});</span>
-</span><span id="__span-11-16"><a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a>
-</span><span id="__span-11-17"><a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a><span class="c1">// Business operations</span>
-</span><span id="__span-11-18"><a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a><span class="nx">span</span><span class="p">.</span><span class="nx">setAttributes</span><span class="p">({</span>
-</span><span id="__span-11-19"><a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a><span class="w">  </span><span class="s1">&#39;medianest.operation&#39;</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;media.request&#39;</span><span class="p">,</span>
-</span><span id="__span-11-20"><a id="__codelineno-11-20" name="__codelineno-11-20" href="#__codelineno-11-20"></a><span class="w">  </span><span class="s1">&#39;medianest.user_id&#39;</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;user-123&#39;</span><span class="p">,</span>
-</span><span id="__span-11-21"><a id="__codelineno-11-21" name="__codelineno-11-21" href="#__codelineno-11-21"></a><span class="w">  </span><span class="s1">&#39;medianest.media_type&#39;</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;movie&#39;</span>
-</span><span id="__span-11-22"><a id="__codelineno-11-22" name="__codelineno-11-22" href="#__codelineno-11-22"></a><span class="p">});</span>
-</span></code></pre></div>
-<h2 id="alerting-strategy">Alerting Strategy<a class="headerlink" href="#alerting-strategy" title="Permanent link">&para;</a></h2>
-<h3 id="alert-categories">Alert Categories<a class="headerlink" href="#alert-categories" title="Permanent link">&para;</a></h3>
-<h4 id="critical-alerts-immediate-response">Critical Alerts (Immediate Response)<a class="headerlink" href="#critical-alerts-immediate-response" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Service Down</strong>: Any core service unavailable &gt; 1 minute</li>
-<li><strong>High Error Rate</strong>: Error rate &gt; 10% for 5 minutes</li>
-<li><strong>Database Issues</strong>: Connection failures or query timeouts</li>
-<li><strong>Security Events</strong>: Failed authentication attempts &gt; threshold</li>
-<li><strong>Memory Issues</strong>: Heap usage &gt; 90% for 2 minutes</li>
-</ul>
-<h4 id="warning-alerts-monitor-closely">Warning Alerts (Monitor Closely)<a class="headerlink" href="#warning-alerts-monitor-closely" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Performance Degradation</strong>: Response time &gt; 2s for 10 minutes</li>
-<li><strong>External API Issues</strong>: Circuit breaker open for external services</li>
-<li><strong>Resource Usage</strong>: CPU &gt; 80% or Memory &gt; 75% for 15 minutes</li>
-<li><strong>Queue Backlog</strong>: Background jobs delayed &gt; 30 minutes</li>
-</ul>
-<h4 id="business-alerts-operational-awareness">Business Alerts (Operational Awareness)<a class="headerlink" href="#business-alerts-operational-awareness" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>User Activity</strong>: Significant drop in user engagement</li>
-<li><strong>Media Service Issues</strong>: Plex/Overseerr connectivity problems</li>
-<li><strong>Sync Failures</strong>: Integration synchronization failures</li>
-</ul>
-<h3 id="alert-routing">Alert Routing<a class="headerlink" href="#alert-routing" title="Permanent link">&para;</a></h3>
-<div class="language-yaml highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nt">Critical</span><span class="p">:</span><span class="w"> </span>
-</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Slack</span><span class="w"> </span><span class="c1">#incidents channel</span>
-</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Email to on-call engineer</span>
-</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PagerDuty (if configured)</span>
-</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>
-</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="nt">Warning</span><span class="p">:</span>
-</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Slack</span><span class="w"> </span><span class="c1">#monitoring channel</span>
-</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Email digest (hourly)</span>
-</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>
-</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="nt">Business</span><span class="p">:</span>
-</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Slack</span><span class="w"> </span><span class="c1">#operations channel</span>
-</span><span id="__span-12-12"><a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Daily summary report</span>
-</span></code></pre></div>
-<h2 id="custom-business-metrics">Custom Business Metrics<a class="headerlink" href="#custom-business-metrics" title="Permanent link">&para;</a></h2>
-<h3 id="user-activity-metrics">User Activity Metrics<a class="headerlink" href="#user-activity-metrics" title="Permanent link">&para;</a></h3>
-<div class="language-typescript highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1">// User engagement patterns</span>
-</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="nx">user_session_duration_histogram</span>
-</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="nx">daily_active_users_gauge</span>
-</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="nx">feature_adoption_rate</span><span class="p">{</span><span class="nx">feature</span><span class="p">}</span>
-</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="nx">user_retention_rate</span><span class="p">{</span><span class="nx">period</span><span class="p">}</span>
-</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
-</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="c1">// Content interaction</span>
-</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="nx">media_discovery_funnel</span><span class="p">{</span><span class="nx">step</span><span class="p">}</span>
-</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="nx">search_to_request_conversion_rate</span>
-</span><span id="__span-13-10"><a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="nx">playlist_creation_rate</span>
-</span><span id="__span-13-11"><a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="nx">favorite_items_growth</span>
-</span></code></pre></div>
-<h3 id="service-performance-metrics">Service Performance Metrics<a class="headerlink" href="#service-performance-metrics" title="Permanent link">&para;</a></h3>
-<div class="language-typescript highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1">// Service health scoring</span>
-</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="nx">service_availability_sla</span><span class="p">{</span><span class="nx">service</span><span class="p">}</span>
-</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="nx">integration_sync_success_rate</span><span class="p">{</span><span class="nx">service</span><span class="p">}</span>
-</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="nx">api_response_time_p95</span><span class="p">{</span><span class="nx">service</span><span class="p">,</span><span class="w"> </span><span class="nx">endpoint</span><span class="p">}</span>
-</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="nx">error_recovery_time_seconds</span><span class="p">{</span><span class="nx">service</span><span class="p">}</span>
-</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>
-</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="c1">// Business process metrics</span>
-</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="nx">media_request_fulfillment_time</span>
-</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="nx">user_onboarding_completion_rate</span>
-</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="nx">background_job_processing_rate</span><span class="p">{</span><span class="nx">queue</span><span class="p">}</span>
-</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="nx">storage_utilization_efficiency</span>
-</span></code></pre></div>
-<h3 id="infrastructure-efficiency">Infrastructure Efficiency<a class="headerlink" href="#infrastructure-efficiency" title="Permanent link">&para;</a></h3>
-<div class="language-typescript highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1">// Resource optimization</span>
-</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="nx">container_resource_utilization</span><span class="p">{</span><span class="nx">service</span><span class="p">}</span>
-</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="nx">database_connection_efficiency</span>
-</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="nx">cache_memory_optimization_ratio</span>
-</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="nx">network_bandwidth_utilization</span>
-</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>
-</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="c1">// Cost optimization</span>
-</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="nx">compute_cost_per_user</span>
-</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="nx">storage_cost_efficiency</span>
-</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="nx">external_api_cost_tracking</span><span class="p">{</span><span class="nx">service</span><span class="p">}</span>
-</span></code></pre></div>
-<h2 id="performance-baseline-strategy">Performance Baseline Strategy<a class="headerlink" href="#performance-baseline-strategy" title="Permanent link">&para;</a></h2>
-<h3 id="baseline-metrics-collection">Baseline Metrics Collection<a class="headerlink" href="#baseline-metrics-collection" title="Permanent link">&para;</a></h3>
-<h4 id="response-time-baselines">Response Time Baselines<a class="headerlink" href="#response-time-baselines" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>API Endpoints</strong>: P50, P95, P99 response times</li>
-<li><strong>Database Queries</strong>: Query execution time distribution</li>
-<li><strong>External API Calls</strong>: Service response time patterns</li>
-<li><strong>Page Load Times</strong>: Frontend performance metrics</li>
-</ul>
-<h4 id="throughput-baselines">Throughput Baselines<a class="headerlink" href="#throughput-baselines" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Requests per Second</strong>: Peak and average traffic patterns</li>
-<li><strong>Concurrent Users</strong>: Active session capacity</li>
-<li><strong>Background Job Processing</strong>: Queue throughput rates</li>
-<li><strong>Database Operations</strong>: Transaction per second capacity</li>
-</ul>
-<h4 id="resource-usage-baselines">Resource Usage Baselines<a class="headerlink" href="#resource-usage-baselines" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Memory Consumption</strong>: Heap usage patterns and GC behavior</li>
-<li><strong>CPU Utilization</strong>: Processing load distribution</li>
-<li><strong>Network I/O</strong>: Bandwidth usage patterns</li>
-<li><strong>Disk I/O</strong>: Storage access patterns</li>
-</ul>
-<h3 id="baseline-establishment-process">Baseline Establishment Process<a class="headerlink" href="#baseline-establishment-process" title="Permanent link">&para;</a></h3>
-<ol>
-<li><strong>Historical Analysis</strong>: Analyze existing logs and metrics (30-day period)</li>
-<li><strong>Load Testing</strong>: Establish performance benchmarks under various loads</li>
-<li><strong>Seasonal Adjustment</strong>: Account for usage pattern variations</li>
-<li><strong>Growth Planning</strong>: Establish scalability thresholds</li>
-<li><strong>Continuous Calibration</strong>: Regular baseline updates</li>
-</ol>
-<h2 id="implementation-timeline">Implementation Timeline<a class="headerlink" href="#implementation-timeline" title="Permanent link">&para;</a></h2>
-<h3 id="phase-1-foundation-weeks-1-2">Phase 1: Foundation (Weeks 1-2)<a class="headerlink" href="#phase-1-foundation-weeks-1-2" title="Permanent link">&para;</a></h3>
-<ul>
-<li>✅ Enhanced structured logging (build on existing Winston)</li>
-<li>✅ Prometheus metrics collection setup</li>
-<li>✅ Basic Grafana dashboards</li>
-<li>✅ Alert rule configuration</li>
-</ul>
-<h3 id="phase-2-advanced-observability-weeks-3-4">Phase 2: Advanced Observability (Weeks 3-4)<a class="headerlink" href="#phase-2-advanced-observability-weeks-3-4" title="Permanent link">&para;</a></h3>
-<ul>
-<li>✅ Distributed tracing implementation</li>
-<li>✅ Frontend performance monitoring</li>
-<li>✅ Business metrics collection</li>
-<li>✅ Log aggregation with Loki</li>
-</ul>
-<h3 id="phase-3-intelligence-automation-weeks-5-6">Phase 3: Intelligence &amp; Automation (Weeks 5-6)<a class="headerlink" href="#phase-3-intelligence-automation-weeks-5-6" title="Permanent link">&para;</a></h3>
-<ul>
-<li>✅ Advanced alerting rules</li>
-<li>✅ Performance baseline establishment</li>
-<li>✅ Automated incident response</li>
-<li>✅ Custom dashboard creation</li>
-</ul>
-<h3 id="phase-4-optimization-weeks-7-8">Phase 4: Optimization (Weeks 7-8)<a class="headerlink" href="#phase-4-optimization-weeks-7-8" title="Permanent link">&para;</a></h3>
-<ul>
-<li>✅ Performance tuning based on insights</li>
-<li>✅ Cost optimization</li>
-<li>✅ Advanced analytics</li>
-<li>✅ Documentation and training</li>
-</ul>
-<h2 id="success-metrics">Success Metrics<a class="headerlink" href="#success-metrics" title="Permanent link">&para;</a></h2>
-<h3 id="technical-metrics">Technical Metrics<a class="headerlink" href="#technical-metrics" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>MTTR (Mean Time to Recovery)</strong>: &lt; 15 minutes for critical issues</li>
-<li><strong>MTTD (Mean Time to Detection)</strong>: &lt; 5 minutes for service degradation</li>
-<li><strong>Service Availability</strong>: 99.9% uptime SLA</li>
-<li><strong>Performance</strong>: P95 API response time &lt; 500ms</li>
-</ul>
-<h3 id="business-metrics_1">Business Metrics<a class="headerlink" href="#business-metrics_1" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>User Satisfaction</strong>: Reduced support tickets by 40%</li>
-<li><strong>Operational Efficiency</strong>: 50% faster incident resolution</li>
-<li><strong>Cost Optimization</strong>: 20% reduction in infrastructure costs</li>
-<li><strong>Development Velocity</strong>: 30% faster feature deployment</li>
-</ul>
-<h2 id="risk-mitigation">Risk Mitigation<a class="headerlink" href="#risk-mitigation" title="Permanent link">&para;</a></h2>
-<h3 id="data-privacy-security">Data Privacy &amp; Security<a class="headerlink" href="#data-privacy-security" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Log Sanitization</strong>: Remove PII from logs automatically</li>
-<li><strong>Access Control</strong>: Role-based access to observability tools</li>
-<li><strong>Data Retention</strong>: Compliance with data protection regulations</li>
-<li><strong>Audit Trail</strong>: Track access to sensitive monitoring data</li>
-</ul>
-<h3 id="performance-impact">Performance Impact<a class="headerlink" href="#performance-impact" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Sampling</strong>: Configurable trace sampling rates</li>
-<li><strong>Async Processing</strong>: Non-blocking metrics collection</li>
-<li><strong>Resource Limits</strong>: Memory and CPU bounds for monitoring</li>
-<li><strong>Graceful Degradation</strong>: Monitoring failure resilience</li>
-</ul>
-<h3 id="operational-risks">Operational Risks<a class="headerlink" href="#operational-risks" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Alert Fatigue</strong>: Intelligent alert grouping and escalation</li>
-<li><strong>Tool Sprawl</strong>: Unified observability platform approach</li>
-<li><strong>Knowledge Silos</strong>: Cross-team documentation and training</li>
-<li><strong>Vendor Lock-in</strong>: Open standards (OpenTelemetry, Prometheus)</li>
-</ul>
-<h2 id="architecture-decision-records">Architecture Decision Records<a class="headerlink" href="#architecture-decision-records" title="Permanent link">&para;</a></h2>
-<h3 id="adr-001-prometheus-for-metrics">ADR-001: Prometheus for Metrics<a class="headerlink" href="#adr-001-prometheus-for-metrics" title="Permanent link">&para;</a></h3>
-<p><strong>Decision</strong>: Use Prometheus for metrics collection and storage
-<strong>Rationale</strong>: Industry standard, excellent ecosystem, built-in alerting
-<strong>Alternatives Considered</strong>: InfluxDB, CloudWatch, DataDog
-<strong>Trade-offs</strong>: Additional infrastructure vs. vendor dependency</p>
-<h3 id="adr-002-continue-with-winston-add-loki">ADR-002: Continue with Winston + Add Loki<a class="headerlink" href="#adr-002-continue-with-winston-add-loki" title="Permanent link">&para;</a></h3>
-<p><strong>Decision</strong>: Enhance existing Winston logging with Loki aggregation
-<strong>Rationale</strong>: Minimize disruption while adding centralized aggregation
-<strong>Alternatives Considered</strong>: ELK Stack, Fluentd, CloudWatch Logs
-<strong>Trade-offs</strong>: Grafana ecosystem consistency vs. ELK popularity</p>
-<h3 id="adr-003-jaeger-for-distributed-tracing">ADR-003: Jaeger for Distributed Tracing<a class="headerlink" href="#adr-003-jaeger-for-distributed-tracing" title="Permanent link">&para;</a></h3>
-<p><strong>Decision</strong>: Implement Jaeger with OpenTelemetry instrumentation
-<strong>Rationale</strong>: Cloud-native, OpenTelemetry compatible, proven at scale
-<strong>Alternatives Considered</strong>: Zipkin, AWS X-Ray, DataDog APM
-<strong>Trade-offs</strong>: Self-hosted complexity vs. vendor costs</p>
-<hr />
-<p><em>This architecture provides MediaNest with enterprise-grade observability while building upon existing infrastructure investments and maintaining operational simplicity.</em></p>
-
-
-
-
-
-
-
-
-
-  
-
-
-
-  <form class="md-feedback" name="feedback" hidden>
-    <fieldset>
-      <legend class="md-feedback__title">
-        Was this page helpful?
-      </legend>
-      <div class="md-feedback__inner">
-        <div class="md-feedback__list">
-          
-            <button class="md-feedback__icon md-icon" type="submit" title="This page was helpful" data-md-value="1">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m7 0c0 .8-.7 1.5-1.5 1.5S14 10.3 14 9.5 14.7 8 15.5 8s1.5.7 1.5 1.5m-5 7.73c-1.75 0-3.29-.73-4.19-1.81L9.23 14c.45.72 1.52 1.23 2.77 1.23s2.32-.51 2.77-1.23l1.42 1.42c-.9 1.08-2.44 1.81-4.19 1.81"/></svg>
-            </button>
-          
-            <button class="md-feedback__icon md-icon" type="submit" title="This page could be improved" data-md-value="0">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10m-6.5-4c.8 0 1.5.7 1.5 1.5s-.7 1.5-1.5 1.5-1.5-.7-1.5-1.5.7-1.5 1.5-1.5M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m2 4.5c1.75 0 3.29.72 4.19 1.81l-1.42 1.42C14.32 16.5 13.25 16 12 16s-2.32.5-2.77 1.23l-1.42-1.42C8.71 14.72 10.25 14 12 14"/></svg>
-            </button>
-          
-        </div>
-        <div class="md-feedback__note">
-          
-            <div data-md-value="1" hidden>
-              
-              
-                
-              
-              
-              
-                
-                
-              
-              Thanks for your feedback!
-            </div>
-          
-            <div data-md-value="0" hidden>
-              
-              
-                
-              
-              
-              
-                
-                
-              
-              Thanks for your feedback! Help us improve this page by <a href="https://github.com/medianest/medianest/issues/new/?title=[Docs]+MediaNest%20Observability%20Architecture+-+/observability-architecture/" target="_blank" rel="noopener">telling us what you found helpful or confusing</a>.
-            </div>
-          
-        </div>
-      </div>
-    </fieldset>
-  </form>
-
-
-                
-              </article>
-            </div>
-          
-          
-  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
-
-<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
-        </div>
-        
-          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
-  
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
-  Back to top
-</button>
-        
-      </main>
-      
-        <footer class="md-footer">
-  
-    
-  
-  <div class="md-footer-meta md-typeset">
-    <div class="md-footer-meta__inner md-grid">
-      <div class="md-copyright">
-  
-    <div class="md-copyright__highlight">
-      Copyright &copy; 2024 MediaNest Team
-    </div>
-  
-  
-    Made with
-    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
-      Material for MkDocs
-    </a>
-  
-</div>
-      
-        
-<div class="md-social">
-  
-    
-    
-    
-    
-      
-      
-    
-    <a href="https://github.com/medianest/medianest" target="_blank" rel="noopener" title="github.com" class="md-social__link">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
-    </a>
-  
-    
-    
-    
-    
-      
-      
-    
-    <a href="https://hub.docker.com/r/medianest/medianest" target="_blank" rel="noopener" title="hub.docker.com" class="md-social__link">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M349.9 236.3h-66.1v-59.4h66.1zm0-204.3h-66.1v60.7h66.1zm78.2 144.8H362v59.4h66.1zm-156.3-72.1h-66.1v60.1h66.1zm78.1 0h-66.1v60.1h66.1zm276.8 100c-14.4-9.7-47.6-13.2-73.1-8.4-3.3-24-16.7-44.9-41.1-63.7l-14-9.3-9.3 14c-18.4 27.8-23.4 73.6-3.7 103.8-8.7 4.7-25.8 11.1-48.4 10.7H2.4c-8.7 50.8 5.8 116.8 44 162.1 37.1 43.9 92.7 66.2 165.4 66.2 157.4 0 273.9-72.5 328.4-204.2 21.4.4 67.6.1 91.3-45.2 1.5-2.5 6.6-13.2 8.5-17.1zm-511.1-27.9h-66v59.4h66.1v-59.4zm78.1 0h-66.1v59.4h66.1zm78.1 0h-66.1v59.4h66.1zm-78.1-72.1h-66.1v60.1h66.1z"/></svg>
-    </a>
-  
-    
-    
-    
-    
-      
-      
-    
-    <a href="https://twitter.com/medianest" target="_blank" rel="noopener" title="twitter.com" class="md-social__link">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M459.4 151.7c.3 4.5.3 9.1.3 13.6 0 138.7-105.6 298.6-298.6 298.6-59.5 0-114.7-17.2-161.1-47.1 8.4 1 16.6 1.3 25.3 1.3 49.1 0 94.2-16.6 130.3-44.8-46.1-1-84.8-31.2-98.1-72.8 6.5 1 13 1.6 19.8 1.6 9.4 0 18.8-1.3 27.6-3.6-48.1-9.7-84.1-52-84.1-103v-1.3c14 7.8 30.2 12.7 47.4 13.3-28.3-18.8-46.8-51-46.8-87.4 0-19.5 5.2-37.4 14.3-53C87.4 130.8 165 172.4 252.1 176.9c-1.6-7.8-2.6-15.9-2.6-24C249.5 95.1 296.3 48 354.4 48c30.2 0 57.5 12.7 76.7 33.1 23.7-4.5 46.5-13.3 66.6-25.3-7.8 24.4-24.4 44.8-46.1 57.8 21.1-2.3 41.6-8.1 60.4-16.2-14.3 20.8-32.2 39.3-52.6 54.3"/></svg>
-    </a>
-  
-</div>
-      
-    </div>
-  </div>
-</footer>
-      
-    </div>
-    <div class="md-dialog" data-md-component="dialog">
-      <div class="md-dialog__inner md-typeset"></div>
-    </div>
-    
-    
-    
-      
-      <script id="__config" type="application/json">{"base": "..", "features": ["announce.dismiss", "content.action.edit", "content.action.view", "content.code.annotate", "content.code.copy", "content.tabs.link", "content.tooltips", "header.autohide", "navigation.expand", "navigation.footer", "navigation.indexes", "navigation.instant", "navigation.prune", "navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow", "toc.integrate"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "stable", "provider": "mike"}}</script>
-    
-    
-      <script src="../assets/javascripts/bundle.92b07e13.min.js"></script>
-      
-        <script src="../assets/javascripts/extra.js"></script>
-      
-        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-      
-    
-  </body>
-</html>
+<!doctype html><html lang=en class=no-js><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Complete documentation for MediaNest - Advanced Media Management Platform with Plex Integration, API, and Developer Resources"><meta name=author content="MediaNest Development Team"><link href=https://docs.medianest.com/observability-architecture/ rel=canonical><link rel=icon href=../assets/images/favicon.ico><meta name=generator content="mkdocs-1.6.1, mkdocs-material-9.6.18"><title>MediaNest Observability Architecture - MediaNest Documentation</title><link rel=stylesheet href=../assets/stylesheets/main.7e37652d.min.css><link rel=stylesheet href=../assets/stylesheets/palette.06af60db.min.css><link rel=preconnect href=https://fonts.gstatic.com crossorigin><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback"><style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style><link rel=stylesheet href=../css/timeago.css><link rel=stylesheet href=../assets/stylesheets/extra.css><link rel=stylesheet href=../assets/stylesheets/medianest-theme.css><link rel=stylesheet href=../assets/stylesheets/animations.css><link rel=stylesheet href=../assets/stylesheets/responsive.css><script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script><script id=__analytics>function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config",""),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script><script>if("undefined"!=typeof __md_analytics){var consent=__md_get("__consent");consent&&consent.analytics&&__md_analytics()}</script></head><body dir=ltr data-md-color-scheme=default data-md-color-primary=deep-purple data-md-color-accent=purple><input class=md-toggle data-md-toggle=drawer type=checkbox id=__drawer autocomplete=off><input class=md-toggle data-md-toggle=search type=checkbox id=__search autocomplete=off><label class=md-overlay for=__drawer></label><div data-md-component=skip><a href=#medianest-observability-architecture class=md-skip> Skip to content </a></div><div data-md-component=announce></div><div data-md-color-scheme=default data-md-component=outdated hidden></div><header class="md-header md-header--shadow md-header--lifted" data-md-component=header><nav class="md-header__inner md-grid" aria-label=Header><a href=.. title="MediaNest Documentation" class="md-header__button md-logo" aria-label="MediaNest Documentation" data-md-component=logo><img src=../assets/images/logo.svg alt=logo></a><label class="md-header__button md-icon" for=__drawer><svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg></label><div class=md-header__title data-md-component=header-title><div class=md-header__ellipsis><div class=md-header__topic><span class=md-ellipsis> MediaNest Documentation </span></div><div class=md-header__topic data-md-component=header-topic><span class=md-ellipsis> MediaNest Observability Architecture </span></div></div></div><form class=md-header__option data-md-component=palette><input class=md-option data-md-color-media data-md-color-scheme=default data-md-color-primary=deep-purple data-md-color-accent=purple aria-label="Switch to dark mode" type=radio name=__palette id=__palette_0><label class="md-header__button md-icon" title="Switch to dark mode" for=__palette_1 hidden><svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg></label><input class=md-option data-md-color-media data-md-color-scheme=slate data-md-color-primary=deep-purple data-md-color-accent=purple aria-label="Switch to light mode" type=radio name=__palette id=__palette_1><label class="md-header__button md-icon" title="Switch to light mode" for=__palette_0 hidden><svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg></label></form><script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script><label class="md-header__button md-icon" for=__search><svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg></label><div class=md-search data-md-component=search role=dialog><label class=md-search__overlay for=__search></label><div class=md-search__inner role=search><form class=md-search__form name=search><input type=text class=md-search__input name=query aria-label=Search placeholder=Search autocapitalize=off autocorrect=off autocomplete=off spellcheck=false data-md-component=search-query required><label class="md-search__icon md-icon" for=__search><svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg><svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg></label><nav class=md-search__options aria-label=Search><a href=javascript:void(0) class="md-search__icon md-icon" title=Share aria-label=Share data-clipboard data-clipboard-text data-md-component=search-share tabindex=-1><svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg></a><button type=reset class="md-search__icon md-icon" title=Clear aria-label=Clear tabindex=-1><svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></nav><div class=md-search__suggest data-md-component=search-suggest></div></form><div class=md-search__output><div class=md-search__scrollwrap tabindex=0 data-md-scrollfix><div class=md-search-result data-md-component=search-result><div class=md-search-result__meta> Initializing search </div><ol class=md-search-result__list role=presentation></ol></div></div></div></div></div><div class=md-header__source><a href=https://github.com/medianest/medianest title="Go to repository" class=md-source data-md-component=source><div class="md-source__icon md-icon"><svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 448 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill=currentColor d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg></div><div class=md-source__repository> MediaNest/MediaNest </div></a></div></nav><nav class=md-tabs aria-label=Tabs data-md-component=tabs><div class=md-grid><ul class=md-tabs__list><li class=md-tabs__item><a href=.. class=md-tabs__link> Home </a></li><li class=md-tabs__item><a href=../getting-started/ class=md-tabs__link> Getting Started </a></li><li class=md-tabs__item><a href=../installation/ class=md-tabs__link> Installation </a></li><li class=md-tabs__item><a href=../user-guides/ class=md-tabs__link> User Guides </a></li><li class=md-tabs__item><a href=../api/ class=md-tabs__link> API Reference </a></li><li class=md-tabs__item><a href=../developers/ class=md-tabs__link> Developer Docs </a></li><li class=md-tabs__item><a href=../troubleshooting/ class=md-tabs__link> Troubleshooting </a></li><li class=md-tabs__item><a href=../reference/ class=md-tabs__link> Reference </a></li></ul></div></nav></header><div class=md-container data-md-component=container><main class=md-main data-md-component=main><div class="md-main__inner md-grid"><div class="md-sidebar md-sidebar--primary" data-md-component=sidebar data-md-type=navigation><div class=md-sidebar__scrollwrap><div class=md-sidebar__inner><nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label=Navigation data-md-level=0><label class=md-nav__title for=__drawer><a href=.. title="MediaNest Documentation" class="md-nav__button md-logo" aria-label="MediaNest Documentation" data-md-component=logo><img src=../assets/images/logo.svg alt=logo></a> MediaNest Documentation </label><div class=md-nav__source><a href=https://github.com/medianest/medianest title="Go to repository" class=md-source data-md-component=source><div class="md-source__icon md-icon"><svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 448 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill=currentColor d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg></div><div class=md-source__repository> MediaNest/MediaNest </div></a></div><ul class=md-nav__list data-md-scrollfix><li class=md-nav__item><a href=.. class=md-nav__link><span class=md-ellipsis> Home </span></a></li><li class="md-nav__item md-nav__item--pruned md-nav__item--nested"><a href=../getting-started/ class=md-nav__link><span class=md-ellipsis> Getting Started </span><span class="md-nav__icon md-icon"></span></a></li><li class="md-nav__item md-nav__item--pruned md-nav__item--nested"><a href=../installation/ class=md-nav__link><span class=md-ellipsis> Installation </span><span class="md-nav__icon md-icon"></span></a></li><li class="md-nav__item md-nav__item--pruned md-nav__item--nested"><a href=../user-guides/ class=md-nav__link><span class=md-ellipsis> User Guides </span><span class="md-nav__icon md-icon"></span></a></li><li class="md-nav__item md-nav__item--pruned md-nav__item--nested"><a href=../api/ class=md-nav__link><span class=md-ellipsis> API Reference </span><span class="md-nav__icon md-icon"></span></a></li><li class="md-nav__item md-nav__item--pruned md-nav__item--nested"><a href=../developers/ class=md-nav__link><span class=md-ellipsis> Developer Docs </span><span class="md-nav__icon md-icon"></span></a></li><li class="md-nav__item md-nav__item--pruned md-nav__item--nested"><a href=../troubleshooting/ class=md-nav__link><span class=md-ellipsis> Troubleshooting </span><span class="md-nav__icon md-icon"></span></a></li><li class="md-nav__item md-nav__item--pruned md-nav__item--nested"><a href=../reference/ class=md-nav__link><span class=md-ellipsis> Reference </span><span class="md-nav__icon md-icon"></span></a></li></ul></nav></div></div></div><div class=md-content data-md-component=content><article class="md-content__inner md-typeset"><a href=https://github.com/medianest/medianest/edit/develop/docs/observability-architecture.md title="Edit this page" class="md-content__button md-icon" rel=edit><svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg></a><a href=https://github.com/medianest/medianest/raw/develop/docs/observability-architecture.md title="View source of this page" class="md-content__button md-icon"><svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.2 8.2 0 0 1-1.23-2"/></svg></a><h1 id=medianest-observability-architecture>MediaNest Observability Architecture<a class=headerlink href=#medianest-observability-architecture title="Permanent link">&para;</a></h1><h2 id=executive-summary>Executive Summary<a class=headerlink href=#executive-summary title="Permanent link">&para;</a></h2><p>This document outlines the comprehensive observability architecture for MediaNest, a full-stack TypeScript application managing Plex media server and related services. The architecture provides three pillars of observability: metrics, logging, and distributed tracing, designed to ensure optimal performance, rapid incident response, and business intelligence.</p><h2 id=current-technology-stack-analysis>Current Technology Stack Analysis<a class=headerlink href=#current-technology-stack-analysis title="Permanent link">&para;</a></h2><h3 id=backend-stack>Backend Stack<a class=headerlink href=#backend-stack title="Permanent link">&para;</a></h3><ul><li><strong>Runtime</strong>: Node.js with TypeScript</li><li><strong>Framework</strong>: Express.js with Socket.IO for real-time communication</li><li><strong>Database</strong>: PostgreSQL with Prisma ORM</li><li><strong>Cache</strong>: Redis with IORedis client</li><li><strong>Queue System</strong>: BullMQ for background jobs</li><li><strong>Authentication</strong>: NextAuth.js with JWT tokens</li></ul><h3 id=frontend-stack>Frontend Stack<a class=headerlink href=#frontend-stack title="Permanent link">&para;</a></h3><ul><li><strong>Framework</strong>: Next.js 15 with React 19</li><li><strong>Styling</strong>: Tailwind CSS</li><li><strong>State Management</strong>: TanStack React Query</li><li><strong>Real-time</strong>: Socket.IO client</li></ul><h3 id=infrastructure>Infrastructure<a class=headerlink href=#infrastructure title="Permanent link">&para;</a></h3><ul><li><strong>Containerization</strong>: Docker with docker-compose</li><li><strong>Reverse Proxy</strong>: Nginx (implied)</li><li><strong>External Integrations</strong>: Plex, Overseerr, YouTube, Uptime Kuma</li></ul><h3 id=existing-observability-components>Existing Observability Components<a class=headerlink href=#existing-observability-components title="Permanent link">&para;</a></h3><ul><li><strong>Logging</strong>: Winston with daily rotation, structured JSON logging</li><li><strong>Basic Metrics</strong>: In-memory metrics collection with request/error tracking</li><li><strong>Health Checks</strong>: Service health monitoring with circuit breakers</li><li><strong>Error Handling</strong>: Comprehensive error recovery with resilience patterns</li><li><strong>Correlation IDs</strong>: Request tracing through correlation ID middleware</li></ul><h2 id=observability-architecture-design>Observability Architecture Design<a class=headerlink href=#observability-architecture-design title="Permanent link">&para;</a></h2><h3 id=architecture-overview>Architecture Overview<a class=headerlink href=#architecture-overview title="Permanent link">&para;</a></h3><div class="language-text highlight"><pre><span></span><code><span id=__span-0-1><a id=__codelineno-0-1 name=__codelineno-0-1 href=#__codelineno-0-1></a>┌─────────────────────────────────────────────────────────────┐
+</span><span id=__span-0-2><a id=__codelineno-0-2 name=__codelineno-0-2 href=#__codelineno-0-2></a>│                    Observability Stack                      │
+</span><span id=__span-0-3><a id=__codelineno-0-3 name=__codelineno-0-3 href=#__codelineno-0-3></a>├─────────────────────────────────────────────────────────────┤
+</span><span id=__span-0-4><a id=__codelineno-0-4 name=__codelineno-0-4 href=#__codelineno-0-4></a>│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
+</span><span id=__span-0-5><a id=__codelineno-0-5 name=__codelineno-0-5 href=#__codelineno-0-5></a>│  │   Metrics   │  │   Logging   │  │  Distributed Trace  │  │
+</span><span id=__span-0-6><a id=__codelineno-0-6 name=__codelineno-0-6 href=#__codelineno-0-6></a>│  │ (Prometheus)│  │(Loki/Grafana│  │      (Jaeger)       │  │
+</span><span id=__span-0-7><a id=__codelineno-0-7 name=__codelineno-0-7 href=#__codelineno-0-7></a>│  │             │  │     Logs)   │  │                     │  │
+</span><span id=__span-0-8><a id=__codelineno-0-8 name=__codelineno-0-8 href=#__codelineno-0-8></a>│  └─────────────┘  └─────────────┘  └─────────────────────┘  │
+</span><span id=__span-0-9><a id=__codelineno-0-9 name=__codelineno-0-9 href=#__codelineno-0-9></a>└─────────────────────────────────────────────────────────────┘
+</span><span id=__span-0-10><a id=__codelineno-0-10 name=__codelineno-0-10 href=#__codelineno-0-10></a>                             │
+</span><span id=__span-0-11><a id=__codelineno-0-11 name=__codelineno-0-11 href=#__codelineno-0-11></a>┌─────────────────────────────────────────────────────────────┐
+</span><span id=__span-0-12><a id=__codelineno-0-12 name=__codelineno-0-12 href=#__codelineno-0-12></a>│                 Application Layer                           │
+</span><span id=__span-0-13><a id=__codelineno-0-13 name=__codelineno-0-13 href=#__codelineno-0-13></a>├─────────────────────────────────────────────────────────────┤
+</span><span id=__span-0-14><a id=__codelineno-0-14 name=__codelineno-0-14 href=#__codelineno-0-14></a>│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
+</span><span id=__span-0-15><a id=__codelineno-0-15 name=__codelineno-0-15 href=#__codelineno-0-15></a>│  │  Frontend   │  │   Backend   │  │   Infrastructure    │  │
+</span><span id=__span-0-16><a id=__codelineno-0-16 name=__codelineno-0-16 href=#__codelineno-0-16></a>│  │ (Next.js)   │  │ (Express)   │  │  (Docker/Redis/PG)  │  │
+</span><span id=__span-0-17><a id=__codelineno-0-17 name=__codelineno-0-17 href=#__codelineno-0-17></a>│  └─────────────┘  └─────────────┘  └─────────────────────┘  │
+</span><span id=__span-0-18><a id=__codelineno-0-18 name=__codelineno-0-18 href=#__codelineno-0-18></a>└─────────────────────────────────────────────────────────────┘
+</span><span id=__span-0-19><a id=__codelineno-0-19 name=__codelineno-0-19 href=#__codelineno-0-19></a>                             │
+</span><span id=__span-0-20><a id=__codelineno-0-20 name=__codelineno-0-20 href=#__codelineno-0-20></a>┌─────────────────────────────────────────────────────────────┐
+</span><span id=__span-0-21><a id=__codelineno-0-21 name=__codelineno-0-21 href=#__codelineno-0-21></a>│              External Services Layer                        │
+</span><span id=__span-0-22><a id=__codelineno-0-22 name=__codelineno-0-22 href=#__codelineno-0-22></a>├─────────────────────────────────────────────────────────────┤
+</span><span id=__span-0-23><a id=__codelineno-0-23 name=__codelineno-0-23 href=#__codelineno-0-23></a>│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
+</span><span id=__span-0-24><a id=__codelineno-0-24 name=__codelineno-0-24 href=#__codelineno-0-24></a>│  │    Plex     │  │  Overseerr  │  │   YouTube/Others    │  │
+</span><span id=__span-0-25><a id=__codelineno-0-25 name=__codelineno-0-25 href=#__codelineno-0-25></a>│  │   Server    │  │             │  │                     │  │
+</span><span id=__span-0-26><a id=__codelineno-0-26 name=__codelineno-0-26 href=#__codelineno-0-26></a>│  └─────────────┘  └─────────────┘  └─────────────────────┘  │
+</span><span id=__span-0-27><a id=__codelineno-0-27 name=__codelineno-0-27 href=#__codelineno-0-27></a>└─────────────────────────────────────────────────────────────┘
+</span></code></pre></div><h3 id=technology-stack-selection>Technology Stack Selection<a class=headerlink href=#technology-stack-selection title="Permanent link">&para;</a></h3><h4 id=metrics-collection-storage>Metrics Collection &amp; Storage<a class=headerlink href=#metrics-collection-storage title="Permanent link">&para;</a></h4><ul><li><strong>Prometheus</strong>: Industry standard for metrics collection and storage</li><li><strong>Grafana</strong>: Visualization and dashboards</li><li><strong>Node.js Prometheus Client</strong>: Application-level metrics collection</li></ul><h4 id=logging>Logging<a class=headerlink href=#logging title="Permanent link">&para;</a></h4><ul><li><strong>Existing Winston</strong>: Continue using with enhanced structured logging</li><li><strong>Loki</strong>: Centralized log aggregation (Grafana ecosystem)</li><li><strong>Grafana</strong>: Log visualization and querying</li></ul><h4 id=distributed-tracing>Distributed Tracing<a class=headerlink href=#distributed-tracing title="Permanent link">&para;</a></h4><ul><li><strong>Jaeger</strong>: OpenTelemetry compatible distributed tracing</li><li><strong>OpenTelemetry</strong>: Instrumentation framework for Node.js and browser</li></ul><h4 id=alerting>Alerting<a class=headerlink href=#alerting title="Permanent link">&para;</a></h4><ul><li><strong>Grafana Alerting</strong>: Unified alerting across metrics and logs</li><li><strong>Webhook Integration</strong>: Slack/Discord/Email notifications</li></ul><h2 id=metrics-strategy>Metrics Strategy<a class=headerlink href=#metrics-strategy title="Permanent link">&para;</a></h2><h3 id=application-performance-metrics>Application Performance Metrics<a class=headerlink href=#application-performance-metrics title="Permanent link">&para;</a></h3><h4 id=backend-api-metrics>Backend API Metrics<a class=headerlink href=#backend-api-metrics title="Permanent link">&para;</a></h4><div class="language-typescript highlight"><pre><span></span><code><span id=__span-1-1><a id=__codelineno-1-1 name=__codelineno-1-1 href=#__codelineno-1-1></a><span class=c1>// Request metrics</span>
+</span><span id=__span-1-2><a id=__codelineno-1-2 name=__codelineno-1-2 href=#__codelineno-1-2></a><span class=nx>http_requests_total</span><span class=p>{</span><span class=nx>method</span><span class=p>,</span><span class=w> </span><span class=nx>endpoint</span><span class=p>,</span><span class=w> </span><span class=nx>status_code</span><span class=p>}</span>
+</span><span id=__span-1-3><a id=__codelineno-1-3 name=__codelineno-1-3 href=#__codelineno-1-3></a><span class=nx>http_request_duration_seconds</span><span class=p>{</span><span class=nx>method</span><span class=p>,</span><span class=w> </span><span class=nx>endpoint</span><span class=p>}</span>
+</span><span id=__span-1-4><a id=__codelineno-1-4 name=__codelineno-1-4 href=#__codelineno-1-4></a><span class=nx>http_requests_in_flight</span><span class=p>{</span><span class=nx>method</span><span class=p>,</span><span class=w> </span><span class=nx>endpoint</span><span class=p>}</span>
+</span><span id=__span-1-5><a id=__codelineno-1-5 name=__codelineno-1-5 href=#__codelineno-1-5></a>
+</span><span id=__span-1-6><a id=__codelineno-1-6 name=__codelineno-1-6 href=#__codelineno-1-6></a><span class=c1>// Business logic metrics</span>
+</span><span id=__span-1-7><a id=__codelineno-1-7 name=__codelineno-1-7 href=#__codelineno-1-7></a><span class=nx>plex_api_requests_total</span><span class=p>{</span><span class=nx>operation</span><span class=p>,</span><span class=w> </span><span class=nx>status</span><span class=p>}</span>
+</span><span id=__span-1-8><a id=__codelineno-1-8 name=__codelineno-1-8 href=#__codelineno-1-8></a><span class=nx>plex_api_response_time_seconds</span><span class=p>{</span><span class=nx>operation</span><span class=p>}</span>
+</span><span id=__span-1-9><a id=__codelineno-1-9 name=__codelineno-1-9 href=#__codelineno-1-9></a><span class=nx>media_requests_total</span><span class=p>{</span><span class=kr>type</span><span class=p>,</span><span class=w> </span><span class=nx>status</span><span class=p>}</span>
+</span><span id=__span-1-10><a id=__codelineno-1-10 name=__codelineno-1-10 href=#__codelineno-1-10></a><span class=nx>user_sessions_active</span>
+</span><span id=__span-1-11><a id=__codelineno-1-11 name=__codelineno-1-11 href=#__codelineno-1-11></a><span class=nx>background_jobs_total</span><span class=p>{</span><span class=nx>queue</span><span class=p>,</span><span class=w> </span><span class=nx>status</span><span class=p>}</span>
+</span></code></pre></div><h4 id=database-cache-metrics>Database &amp; Cache Metrics<a class=headerlink href=#database-cache-metrics title="Permanent link">&para;</a></h4><div class="language-typescript highlight"><pre><span></span><code><span id=__span-2-1><a id=__codelineno-2-1 name=__codelineno-2-1 href=#__codelineno-2-1></a><span class=c1>// Database metrics</span>
+</span><span id=__span-2-2><a id=__codelineno-2-2 name=__codelineno-2-2 href=#__codelineno-2-2></a><span class=nx>database_connections_active</span>
+</span><span id=__span-2-3><a id=__codelineno-2-3 name=__codelineno-2-3 href=#__codelineno-2-3></a><span class=nx>database_query_duration_seconds</span><span class=p>{</span><span class=nx>operation</span><span class=p>,</span><span class=w> </span><span class=nx>table</span><span class=p>}</span>
+</span><span id=__span-2-4><a id=__codelineno-2-4 name=__codelineno-2-4 href=#__codelineno-2-4></a><span class=nx>database_queries_total</span><span class=p>{</span><span class=nx>operation</span><span class=p>,</span><span class=w> </span><span class=nx>status</span><span class=p>}</span>
+</span><span id=__span-2-5><a id=__codelineno-2-5 name=__codelineno-2-5 href=#__codelineno-2-5></a><span class=nx>prisma_query_duration_seconds</span><span class=p>{</span><span class=nx>model</span><span class=p>,</span><span class=w> </span><span class=nx>operation</span><span class=p>}</span>
+</span><span id=__span-2-6><a id=__codelineno-2-6 name=__codelineno-2-6 href=#__codelineno-2-6></a>
+</span><span id=__span-2-7><a id=__codelineno-2-7 name=__codelineno-2-7 href=#__codelineno-2-7></a><span class=c1>// Redis metrics</span>
+</span><span id=__span-2-8><a id=__codelineno-2-8 name=__codelineno-2-8 href=#__codelineno-2-8></a><span class=nx>redis_commands_total</span><span class=p>{</span><span class=nx>command</span><span class=p>,</span><span class=w> </span><span class=nx>status</span><span class=p>}</span>
+</span><span id=__span-2-9><a id=__codelineno-2-9 name=__codelineno-2-9 href=#__codelineno-2-9></a><span class=nx>redis_connection_pool_size</span>
+</span><span id=__span-2-10><a id=__codelineno-2-10 name=__codelineno-2-10 href=#__codelineno-2-10></a><span class=nx>redis_memory_usage_bytes</span>
+</span><span id=__span-2-11><a id=__codelineno-2-11 name=__codelineno-2-11 href=#__codelineno-2-11></a><span class=nx>cache_hit_ratio</span><span class=p>{</span><span class=nx>cache_type</span><span class=p>}</span>
+</span></code></pre></div><h4 id=resource-utilization>Resource Utilization<a class=headerlink href=#resource-utilization title="Permanent link">&para;</a></h4><div class="language-typescript highlight"><pre><span></span><code><span id=__span-3-1><a id=__codelineno-3-1 name=__codelineno-3-1 href=#__codelineno-3-1></a><span class=c1>// System metrics</span>
+</span><span id=__span-3-2><a id=__codelineno-3-2 name=__codelineno-3-2 href=#__codelineno-3-2></a><span class=nx>nodejs_heap_size_total_bytes</span>
+</span><span id=__span-3-3><a id=__codelineno-3-3 name=__codelineno-3-3 href=#__codelineno-3-3></a><span class=nx>nodejs_heap_size_used_bytes</span>
+</span><span id=__span-3-4><a id=__codelineno-3-4 name=__codelineno-3-4 href=#__codelineno-3-4></a><span class=nx>nodejs_eventloop_lag_seconds</span>
+</span><span id=__span-3-5><a id=__codelineno-3-5 name=__codelineno-3-5 href=#__codelineno-3-5></a><span class=nx>process_cpu_user_seconds_total</span>
+</span><span id=__span-3-6><a id=__codelineno-3-6 name=__codelineno-3-6 href=#__codelineno-3-6></a><span class=nx>process_resident_memory_bytes</span>
+</span><span id=__span-3-7><a id=__codelineno-3-7 name=__codelineno-3-7 href=#__codelineno-3-7></a>
+</span><span id=__span-3-8><a id=__codelineno-3-8 name=__codelineno-3-8 href=#__codelineno-3-8></a><span class=c1>// Custom resource metrics</span>
+</span><span id=__span-3-9><a id=__codelineno-3-9 name=__codelineno-3-9 href=#__codelineno-3-9></a><span class=nx>file_upload_size_bytes</span>
+</span><span id=__span-3-10><a id=__codelineno-3-10 name=__codelineno-3-10 href=#__codelineno-3-10></a><span class=nx>concurrent_websocket_connections</span>
+</span><span id=__span-3-11><a id=__codelineno-3-11 name=__codelineno-3-11 href=#__codelineno-3-11></a><span class=nx>circuit_breaker_state</span><span class=p>{</span><span class=nx>service</span><span class=p>}</span>
+</span></code></pre></div><h3 id=business-metrics>Business Metrics<a class=headerlink href=#business-metrics title="Permanent link">&para;</a></h3><h4 id=user-engagement>User Engagement<a class=headerlink href=#user-engagement title="Permanent link">&para;</a></h4><div class="language-typescript highlight"><pre><span></span><code><span id=__span-4-1><a id=__codelineno-4-1 name=__codelineno-4-1 href=#__codelineno-4-1></a><span class=c1>// User activity</span>
+</span><span id=__span-4-2><a id=__codelineno-4-2 name=__codelineno-4-2 href=#__codelineno-4-2></a><span class=nx>user_logins_total</span>
+</span><span id=__span-4-3><a id=__codelineno-4-3 name=__codelineno-4-3 href=#__codelineno-4-3></a><span class=nx>user_sessions_duration_seconds</span>
+</span><span id=__span-4-4><a id=__codelineno-4-4 name=__codelineno-4-4 href=#__codelineno-4-4></a><span class=nx>media_views_total</span><span class=p>{</span><span class=nx>media_type</span><span class=p>}</span>
+</span><span id=__span-4-5><a id=__codelineno-4-5 name=__codelineno-4-5 href=#__codelineno-4-5></a><span class=nx>search_queries_total</span>
+</span><span id=__span-4-6><a id=__codelineno-4-6 name=__codelineno-4-6 href=#__codelineno-4-6></a><span class=nx>dashboard_page_views_total</span>
+</span></code></pre></div><h4 id=service-health>Service Health<a class=headerlink href=#service-health title="Permanent link">&para;</a></h4><div class="language-typescript highlight"><pre><span></span><code><span id=__span-5-1><a id=__codelineno-5-1 name=__codelineno-5-1 href=#__codelineno-5-1></a><span class=c1>// Service availability</span>
+</span><span id=__span-5-2><a id=__codelineno-5-2 name=__codelineno-5-2 href=#__codelineno-5-2></a><span class=nx>service_health_status</span><span class=p>{</span><span class=nx>service</span><span class=p>}</span>
+</span><span id=__span-5-3><a id=__codelineno-5-3 name=__codelineno-5-3 href=#__codelineno-5-3></a><span class=nx>external_api_availability</span><span class=p>{</span><span class=nx>service</span><span class=p>}</span>
+</span><span id=__span-5-4><a id=__codelineno-5-4 name=__codelineno-5-4 href=#__codelineno-5-4></a><span class=nx>integration_sync_duration_seconds</span><span class=p>{</span><span class=nx>service</span><span class=p>}</span>
+</span><span id=__span-5-5><a id=__codelineno-5-5 name=__codelineno-5-5 href=#__codelineno-5-5></a><span class=nx>service_recovery_events_total</span><span class=p>{</span><span class=nx>service</span><span class=p>}</span>
+</span></code></pre></div><h3 id=frontend-metrics>Frontend Metrics<a class=headerlink href=#frontend-metrics title="Permanent link">&para;</a></h3><h4 id=performance-metrics>Performance Metrics<a class=headerlink href=#performance-metrics title="Permanent link">&para;</a></h4><div class="language-typescript highlight"><pre><span></span><code><span id=__span-6-1><a id=__codelineno-6-1 name=__codelineno-6-1 href=#__codelineno-6-1></a><span class=c1>// Web vitals</span>
+</span><span id=__span-6-2><a id=__codelineno-6-2 name=__codelineno-6-2 href=#__codelineno-6-2></a><span class=nx>web_vital_fcp_seconds</span><span class=w> </span><span class=c1>// First Contentful Paint</span>
+</span><span id=__span-6-3><a id=__codelineno-6-3 name=__codelineno-6-3 href=#__codelineno-6-3></a><span class=nx>web_vital_lcp_seconds</span><span class=w> </span><span class=c1>// Largest Contentful Paint</span>
+</span><span id=__span-6-4><a id=__codelineno-6-4 name=__codelineno-6-4 href=#__codelineno-6-4></a><span class=nx>web_vital_fid_seconds</span><span class=w> </span><span class=c1>// First Input Delay</span>
+</span><span id=__span-6-5><a id=__codelineno-6-5 name=__codelineno-6-5 href=#__codelineno-6-5></a><span class=nx>web_vital_cls_ratio</span><span class=w>   </span><span class=c1>// Cumulative Layout Shift</span>
+</span><span id=__span-6-6><a id=__codelineno-6-6 name=__codelineno-6-6 href=#__codelineno-6-6></a>
+</span><span id=__span-6-7><a id=__codelineno-6-7 name=__codelineno-6-7 href=#__codelineno-6-7></a><span class=c1>// Navigation metrics</span>
+</span><span id=__span-6-8><a id=__codelineno-6-8 name=__codelineno-6-8 href=#__codelineno-6-8></a><span class=nx>page_load_duration_seconds</span><span class=p>{</span><span class=nx>route</span><span class=p>}</span>
+</span><span id=__span-6-9><a id=__codelineno-6-9 name=__codelineno-6-9 href=#__codelineno-6-9></a><span class=nx>api_request_duration_seconds</span><span class=p>{</span><span class=nx>endpoint</span><span class=p>}</span>
+</span><span id=__span-6-10><a id=__codelineno-6-10 name=__codelineno-6-10 href=#__codelineno-6-10></a><span class=nx>websocket_connection_duration_seconds</span>
+</span></code></pre></div><h4 id=user-experience>User Experience<a class=headerlink href=#user-experience title="Permanent link">&para;</a></h4><div class="language-typescript highlight"><pre><span></span><code><span id=__span-7-1><a id=__codelineno-7-1 name=__codelineno-7-1 href=#__codelineno-7-1></a><span class=c1>// Interaction metrics</span>
+</span><span id=__span-7-2><a id=__codelineno-7-2 name=__codelineno-7-2 href=#__codelineno-7-2></a><span class=nx>user_interactions_total</span><span class=p>{</span><span class=nx>component</span><span class=p>,</span><span class=w> </span><span class=nx>action</span><span class=p>}</span>
+</span><span id=__span-7-3><a id=__codelineno-7-3 name=__codelineno-7-3 href=#__codelineno-7-3></a><span class=nx>form_submission_errors_total</span><span class=p>{</span><span class=nx>form</span><span class=p>}</span>
+</span><span id=__span-7-4><a id=__codelineno-7-4 name=__codelineno-7-4 href=#__codelineno-7-4></a><span class=nx>navigation_events_total</span><span class=p>{</span><span class=nx>from_route</span><span class=p>,</span><span class=w> </span><span class=nx>to_route</span><span class=p>}</span>
+</span><span id=__span-7-5><a id=__codelineno-7-5 name=__codelineno-7-5 href=#__codelineno-7-5></a><span class=nx>feature_usage_total</span><span class=p>{</span><span class=nx>feature</span><span class=p>}</span>
+</span></code></pre></div><h2 id=logging-strategy>Logging Strategy<a class=headerlink href=#logging-strategy title="Permanent link">&para;</a></h2><h3 id=log-structure-enhancement>Log Structure Enhancement<a class=headerlink href=#log-structure-enhancement title="Permanent link">&para;</a></h3><h4 id=structured-log-format>Structured Log Format<a class=headerlink href=#structured-log-format title="Permanent link">&para;</a></h4><div class="language-json highlight"><pre><span></span><code><span id=__span-8-1><a id=__codelineno-8-1 name=__codelineno-8-1 href=#__codelineno-8-1></a><span class=p>{</span>
+</span><span id=__span-8-2><a id=__codelineno-8-2 name=__codelineno-8-2 href=#__codelineno-8-2></a><span class=w>  </span><span class=nt>&quot;timestamp&quot;</span><span class=p>:</span><span class=w> </span><span class=s2>&quot;2025-09-06T18:16:05.564Z&quot;</span><span class=p>,</span>
+</span><span id=__span-8-3><a id=__codelineno-8-3 name=__codelineno-8-3 href=#__codelineno-8-3></a><span class=w>  </span><span class=nt>&quot;level&quot;</span><span class=p>:</span><span class=w> </span><span class=s2>&quot;info&quot;</span><span class=p>,</span>
+</span><span id=__span-8-4><a id=__codelineno-8-4 name=__codelineno-8-4 href=#__codelineno-8-4></a><span class=w>  </span><span class=nt>&quot;service&quot;</span><span class=p>:</span><span class=w> </span><span class=s2>&quot;medianest-backend&quot;</span><span class=p>,</span>
+</span><span id=__span-8-5><a id=__codelineno-8-5 name=__codelineno-8-5 href=#__codelineno-8-5></a><span class=w>  </span><span class=nt>&quot;correlationId&quot;</span><span class=p>:</span><span class=w> </span><span class=s2>&quot;req-abc123&quot;</span><span class=p>,</span>
+</span><span id=__span-8-6><a id=__codelineno-8-6 name=__codelineno-8-6 href=#__codelineno-8-6></a><span class=w>  </span><span class=nt>&quot;traceId&quot;</span><span class=p>:</span><span class=w> </span><span class=s2>&quot;4bf92f3577b34da6a3ce929d0e0e4736&quot;</span><span class=p>,</span>
+</span><span id=__span-8-7><a id=__codelineno-8-7 name=__codelineno-8-7 href=#__codelineno-8-7></a><span class=w>  </span><span class=nt>&quot;spanId&quot;</span><span class=p>:</span><span class=w> </span><span class=s2>&quot;00f067aa0ba902b7&quot;</span><span class=p>,</span>
+</span><span id=__span-8-8><a id=__codelineno-8-8 name=__codelineno-8-8 href=#__codelineno-8-8></a><span class=w>  </span><span class=nt>&quot;userId&quot;</span><span class=p>:</span><span class=w> </span><span class=s2>&quot;user-123&quot;</span><span class=p>,</span>
+</span><span id=__span-8-9><a id=__codelineno-8-9 name=__codelineno-8-9 href=#__codelineno-8-9></a><span class=w>  </span><span class=nt>&quot;component&quot;</span><span class=p>:</span><span class=w> </span><span class=s2>&quot;auth.controller&quot;</span><span class=p>,</span>
+</span><span id=__span-8-10><a id=__codelineno-8-10 name=__codelineno-8-10 href=#__codelineno-8-10></a><span class=w>  </span><span class=nt>&quot;operation&quot;</span><span class=p>:</span><span class=w> </span><span class=s2>&quot;login&quot;</span><span class=p>,</span>
+</span><span id=__span-8-11><a id=__codelineno-8-11 name=__codelineno-8-11 href=#__codelineno-8-11></a><span class=w>  </span><span class=nt>&quot;message&quot;</span><span class=p>:</span><span class=w> </span><span class=s2>&quot;User login successful&quot;</span><span class=p>,</span>
+</span><span id=__span-8-12><a id=__codelineno-8-12 name=__codelineno-8-12 href=#__codelineno-8-12></a><span class=w>  </span><span class=nt>&quot;metadata&quot;</span><span class=p>:</span><span class=w> </span><span class=p>{</span>
+</span><span id=__span-8-13><a id=__codelineno-8-13 name=__codelineno-8-13 href=#__codelineno-8-13></a><span class=w>    </span><span class=nt>&quot;duration&quot;</span><span class=p>:</span><span class=w> </span><span class=mi>150</span><span class=p>,</span>
+</span><span id=__span-8-14><a id=__codelineno-8-14 name=__codelineno-8-14 href=#__codelineno-8-14></a><span class=w>    </span><span class=nt>&quot;userAgent&quot;</span><span class=p>:</span><span class=w> </span><span class=s2>&quot;Mozilla/5.0...&quot;</span><span class=p>,</span>
+</span><span id=__span-8-15><a id=__codelineno-8-15 name=__codelineno-8-15 href=#__codelineno-8-15></a><span class=w>    </span><span class=nt>&quot;ip&quot;</span><span class=p>:</span><span class=w> </span><span class=s2>&quot;192.168.1.100&quot;</span><span class=p>,</span>
+</span><span id=__span-8-16><a id=__codelineno-8-16 name=__codelineno-8-16 href=#__codelineno-8-16></a><span class=w>    </span><span class=nt>&quot;endpoint&quot;</span><span class=p>:</span><span class=w> </span><span class=s2>&quot;/api/v1/auth/login&quot;</span><span class=p>,</span>
+</span><span id=__span-8-17><a id=__codelineno-8-17 name=__codelineno-8-17 href=#__codelineno-8-17></a><span class=w>    </span><span class=nt>&quot;method&quot;</span><span class=p>:</span><span class=w> </span><span class=s2>&quot;POST&quot;</span><span class=p>,</span>
+</span><span id=__span-8-18><a id=__codelineno-8-18 name=__codelineno-8-18 href=#__codelineno-8-18></a><span class=w>    </span><span class=nt>&quot;statusCode&quot;</span><span class=p>:</span><span class=w> </span><span class=mi>200</span>
+</span><span id=__span-8-19><a id=__codelineno-8-19 name=__codelineno-8-19 href=#__codelineno-8-19></a><span class=w>  </span><span class=p>}</span>
+</span><span id=__span-8-20><a id=__codelineno-8-20 name=__codelineno-8-20 href=#__codelineno-8-20></a><span class=p>}</span>
+</span></code></pre></div><h4 id=log-levels-categories>Log Levels &amp; Categories<a class=headerlink href=#log-levels-categories title="Permanent link">&para;</a></h4><ul><li><strong>ERROR</strong>: Service failures, unhandled exceptions, security incidents</li><li><strong>WARN</strong>: Performance degradation, circuit breaker trips, retry attempts</li><li><strong>INFO</strong>: Business events, user actions, service lifecycle events</li><li><strong>DEBUG</strong>: Development debugging, detailed request flows</li><li><strong>TRACE</strong>: Fine-grained execution details</li></ul><h4 id=business-event-logging>Business Event Logging<a class=headerlink href=#business-event-logging title="Permanent link">&para;</a></h4><div class="language-typescript highlight"><pre><span></span><code><span id=__span-9-1><a id=__codelineno-9-1 name=__codelineno-9-1 href=#__codelineno-9-1></a><span class=c1>// Authentication events</span>
+</span><span id=__span-9-2><a id=__codelineno-9-2 name=__codelineno-9-2 href=#__codelineno-9-2></a><span class=p>{</span>
+</span><span id=__span-9-3><a id=__codelineno-9-3 name=__codelineno-9-3 href=#__codelineno-9-3></a><span class=w>  </span><span class=s2>&quot;event&quot;</span><span class=o>:</span><span class=w> </span><span class=s2>&quot;user.login.success&quot;</span><span class=p>,</span>
+</span><span id=__span-9-4><a id=__codelineno-9-4 name=__codelineno-9-4 href=#__codelineno-9-4></a><span class=w>  </span><span class=s2>&quot;userId&quot;</span><span class=o>:</span><span class=w> </span><span class=s2>&quot;user-123&quot;</span><span class=p>,</span>
+</span><span id=__span-9-5><a id=__codelineno-9-5 name=__codelineno-9-5 href=#__codelineno-9-5></a><span class=w>  </span><span class=s2>&quot;metadata&quot;</span><span class=o>:</span><span class=w> </span><span class=p>{</span><span class=w> </span><span class=s2>&quot;loginMethod&quot;</span><span class=o>:</span><span class=w> </span><span class=s2>&quot;plex&quot;</span><span class=p>,</span><span class=w> </span><span class=s2>&quot;2faEnabled&quot;</span><span class=o>:</span><span class=w> </span><span class=kc>true</span><span class=w> </span><span class=p>}</span>
+</span><span id=__span-9-6><a id=__codelineno-9-6 name=__codelineno-9-6 href=#__codelineno-9-6></a><span class=p>}</span>
+</span><span id=__span-9-7><a id=__codelineno-9-7 name=__codelineno-9-7 href=#__codelineno-9-7></a>
+</span><span id=__span-9-8><a id=__codelineno-9-8 name=__codelineno-9-8 href=#__codelineno-9-8></a><span class=c1>// Media operation events</span>
+</span><span id=__span-9-9><a id=__codelineno-9-9 name=__codelineno-9-9 href=#__codelineno-9-9></a><span class=p>{</span>
+</span><span id=__span-9-10><a id=__codelineno-9-10 name=__codelineno-9-10 href=#__codelineno-9-10></a><span class=w>  </span><span class=s2>&quot;event&quot;</span><span class=o>:</span><span class=w> </span><span class=s2>&quot;media.request.created&quot;</span><span class=p>,</span>
+</span><span id=__span-9-11><a id=__codelineno-9-11 name=__codelineno-9-11 href=#__codelineno-9-11></a><span class=w>  </span><span class=s2>&quot;userId&quot;</span><span class=o>:</span><span class=w> </span><span class=s2>&quot;user-123&quot;</span><span class=p>,</span><span class=w> </span>
+</span><span id=__span-9-12><a id=__codelineno-9-12 name=__codelineno-9-12 href=#__codelineno-9-12></a><span class=w>  </span><span class=s2>&quot;mediaId&quot;</span><span class=o>:</span><span class=w> </span><span class=s2>&quot;movie-456&quot;</span><span class=p>,</span>
+</span><span id=__span-9-13><a id=__codelineno-9-13 name=__codelineno-9-13 href=#__codelineno-9-13></a><span class=w>  </span><span class=s2>&quot;metadata&quot;</span><span class=o>:</span><span class=w> </span><span class=p>{</span><span class=w> </span><span class=s2>&quot;mediaType&quot;</span><span class=o>:</span><span class=w> </span><span class=s2>&quot;movie&quot;</span><span class=p>,</span><span class=w> </span><span class=s2>&quot;source&quot;</span><span class=o>:</span><span class=w> </span><span class=s2>&quot;overseerr&quot;</span><span class=w> </span><span class=p>}</span>
+</span><span id=__span-9-14><a id=__codelineno-9-14 name=__codelineno-9-14 href=#__codelineno-9-14></a><span class=p>}</span>
+</span><span id=__span-9-15><a id=__codelineno-9-15 name=__codelineno-9-15 href=#__codelineno-9-15></a>
+</span><span id=__span-9-16><a id=__codelineno-9-16 name=__codelineno-9-16 href=#__codelineno-9-16></a><span class=c1>// System events</span>
+</span><span id=__span-9-17><a id=__codelineno-9-17 name=__codelineno-9-17 href=#__codelineno-9-17></a><span class=p>{</span>
+</span><span id=__span-9-18><a id=__codelineno-9-18 name=__codelineno-9-18 href=#__codelineno-9-18></a><span class=w>  </span><span class=s2>&quot;event&quot;</span><span class=o>:</span><span class=w> </span><span class=s2>&quot;service.health.degraded&quot;</span><span class=p>,</span>
+</span><span id=__span-9-19><a id=__codelineno-9-19 name=__codelineno-9-19 href=#__codelineno-9-19></a><span class=w>  </span><span class=s2>&quot;service&quot;</span><span class=o>:</span><span class=w> </span><span class=s2>&quot;plex-api&quot;</span><span class=p>,</span>
+</span><span id=__span-9-20><a id=__codelineno-9-20 name=__codelineno-9-20 href=#__codelineno-9-20></a><span class=w>  </span><span class=s2>&quot;metadata&quot;</span><span class=o>:</span><span class=w> </span><span class=p>{</span><span class=w> </span><span class=s2>&quot;responseTime&quot;</span><span class=o>:</span><span class=w> </span><span class=mf>5000</span><span class=p>,</span><span class=w> </span><span class=s2>&quot;errorRate&quot;</span><span class=o>:</span><span class=w> </span><span class=mf>15</span><span class=w> </span><span class=p>}</span>
+</span><span id=__span-9-21><a id=__codelineno-9-21 name=__codelineno-9-21 href=#__codelineno-9-21></a><span class=p>}</span>
+</span></code></pre></div><h3 id=log-aggregation-strategy>Log Aggregation Strategy<a class=headerlink href=#log-aggregation-strategy title="Permanent link">&para;</a></h3><h4 id=log-categories>Log Categories<a class=headerlink href=#log-categories title="Permanent link">&para;</a></h4><ol><li><strong>Application Logs</strong>: Business logic, user interactions, API requests</li><li><strong>Security Logs</strong>: Authentication, authorization, security events</li><li><strong>Performance Logs</strong>: Slow queries, high memory usage, timeout events</li><li><strong>Integration Logs</strong>: External API calls, webhook events, sync operations</li><li><strong>Infrastructure Logs</strong>: Container lifecycle, network events, resource usage</li></ol><h4 id=retention-policy>Retention Policy<a class=headerlink href=#retention-policy title="Permanent link">&para;</a></h4><ul><li><strong>Error Logs</strong>: 90 days</li><li><strong>Security Logs</strong>: 1 year</li><li><strong>Application Logs</strong>: 30 days</li><li><strong>Debug Logs</strong>: 7 days</li><li><strong>Trace Logs</strong>: 24 hours</li></ul><h2 id=distributed-tracing-strategy>Distributed Tracing Strategy<a class=headerlink href=#distributed-tracing-strategy title="Permanent link">&para;</a></h2><h3 id=trace-architecture>Trace Architecture<a class=headerlink href=#trace-architecture title="Permanent link">&para;</a></h3><h4 id=service-boundaries>Service Boundaries<a class=headerlink href=#service-boundaries title="Permanent link">&para;</a></h4><div class="language-text highlight"><pre><span></span><code><span id=__span-10-1><a id=__codelineno-10-1 name=__codelineno-10-1 href=#__codelineno-10-1></a>User Request → Frontend → Backend API → Database/Redis → External APIs
+</span><span id=__span-10-2><a id=__codelineno-10-2 name=__codelineno-10-2 href=#__codelineno-10-2></a>     ↓           ↓            ↓              ↓              ↓
+</span><span id=__span-10-3><a id=__codelineno-10-3 name=__codelineno-10-3 href=#__codelineno-10-3></a>  Browser    Next.js     Express.js     Prisma/IORedis   Plex/Overseerr
+</span><span id=__span-10-4><a id=__codelineno-10-4 name=__codelineno-10-4 href=#__codelineno-10-4></a>   Span       Span         Span           Spans           Spans
+</span></code></pre></div><h4 id=key-trace-operations>Key Trace Operations<a class=headerlink href=#key-trace-operations title="Permanent link">&para;</a></h4><ol><li><strong>User Journey Traces</strong>: Complete user workflows across frontend/backend</li><li><strong>API Request Traces</strong>: Full request lifecycle with all dependencies</li><li><strong>Background Job Traces</strong>: Queue processing and external integrations</li><li><strong>Cross-Service Traces</strong>: Service-to-service communication patterns</li></ol><h4 id=custom-spans>Custom Spans<a class=headerlink href=#custom-spans title="Permanent link">&para;</a></h4><div class="language-typescript highlight"><pre><span></span><code><span id=__span-11-1><a id=__codelineno-11-1 name=__codelineno-11-1 href=#__codelineno-11-1></a><span class=c1>// Database operations</span>
+</span><span id=__span-11-2><a id=__codelineno-11-2 name=__codelineno-11-2 href=#__codelineno-11-2></a><span class=nx>span</span><span class=p>.</span><span class=nx>setAttributes</span><span class=p>({</span>
+</span><span id=__span-11-3><a id=__codelineno-11-3 name=__codelineno-11-3 href=#__codelineno-11-3></a><span class=w>  </span><span class=s1>&#39;db.system&#39;</span><span class=o>:</span><span class=w> </span><span class=s1>&#39;postgresql&#39;</span><span class=p>,</span>
+</span><span id=__span-11-4><a id=__codelineno-11-4 name=__codelineno-11-4 href=#__codelineno-11-4></a><span class=w>  </span><span class=s1>&#39;db.operation&#39;</span><span class=o>:</span><span class=w> </span><span class=s1>&#39;SELECT&#39;</span><span class=p>,</span>
+</span><span id=__span-11-5><a id=__codelineno-11-5 name=__codelineno-11-5 href=#__codelineno-11-5></a><span class=w>  </span><span class=s1>&#39;db.statement&#39;</span><span class=o>:</span><span class=w> </span><span class=s1>&#39;SELECT * FROM users WHERE id = ?&#39;</span><span class=p>,</span>
+</span><span id=__span-11-6><a id=__codelineno-11-6 name=__codelineno-11-6 href=#__codelineno-11-6></a><span class=w>  </span><span class=s1>&#39;db.table&#39;</span><span class=o>:</span><span class=w> </span><span class=s1>&#39;users&#39;</span>
+</span><span id=__span-11-7><a id=__codelineno-11-7 name=__codelineno-11-7 href=#__codelineno-11-7></a><span class=p>});</span>
+</span><span id=__span-11-8><a id=__codelineno-11-8 name=__codelineno-11-8 href=#__codelineno-11-8></a>
+</span><span id=__span-11-9><a id=__codelineno-11-9 name=__codelineno-11-9 href=#__codelineno-11-9></a><span class=c1>// External API calls</span>
+</span><span id=__span-11-10><a id=__codelineno-11-10 name=__codelineno-11-10 href=#__codelineno-11-10></a><span class=nx>span</span><span class=p>.</span><span class=nx>setAttributes</span><span class=p>({</span>
+</span><span id=__span-11-11><a id=__codelineno-11-11 name=__codelineno-11-11 href=#__codelineno-11-11></a><span class=w>  </span><span class=s1>&#39;http.method&#39;</span><span class=o>:</span><span class=w> </span><span class=s1>&#39;GET&#39;</span><span class=p>,</span>
+</span><span id=__span-11-12><a id=__codelineno-11-12 name=__codelineno-11-12 href=#__codelineno-11-12></a><span class=w>  </span><span class=s1>&#39;http.url&#39;</span><span class=o>:</span><span class=w> </span><span class=s1>&#39;https://plex.example.com/library/sections&#39;</span><span class=p>,</span>
+</span><span id=__span-11-13><a id=__codelineno-11-13 name=__codelineno-11-13 href=#__codelineno-11-13></a><span class=w>  </span><span class=s1>&#39;http.status_code&#39;</span><span class=o>:</span><span class=w> </span><span class=mf>200</span><span class=p>,</span>
+</span><span id=__span-11-14><a id=__codelineno-11-14 name=__codelineno-11-14 href=#__codelineno-11-14></a><span class=w>  </span><span class=s1>&#39;external.service&#39;</span><span class=o>:</span><span class=w> </span><span class=s1>&#39;plex-api&#39;</span>
+</span><span id=__span-11-15><a id=__codelineno-11-15 name=__codelineno-11-15 href=#__codelineno-11-15></a><span class=p>});</span>
+</span><span id=__span-11-16><a id=__codelineno-11-16 name=__codelineno-11-16 href=#__codelineno-11-16></a>
+</span><span id=__span-11-17><a id=__codelineno-11-17 name=__codelineno-11-17 href=#__codelineno-11-17></a><span class=c1>// Business operations</span>
+</span><span id=__span-11-18><a id=__codelineno-11-18 name=__codelineno-11-18 href=#__codelineno-11-18></a><span class=nx>span</span><span class=p>.</span><span class=nx>setAttributes</span><span class=p>({</span>
+</span><span id=__span-11-19><a id=__codelineno-11-19 name=__codelineno-11-19 href=#__codelineno-11-19></a><span class=w>  </span><span class=s1>&#39;medianest.operation&#39;</span><span class=o>:</span><span class=w> </span><span class=s1>&#39;media.request&#39;</span><span class=p>,</span>
+</span><span id=__span-11-20><a id=__codelineno-11-20 name=__codelineno-11-20 href=#__codelineno-11-20></a><span class=w>  </span><span class=s1>&#39;medianest.user_id&#39;</span><span class=o>:</span><span class=w> </span><span class=s1>&#39;user-123&#39;</span><span class=p>,</span>
+</span><span id=__span-11-21><a id=__codelineno-11-21 name=__codelineno-11-21 href=#__codelineno-11-21></a><span class=w>  </span><span class=s1>&#39;medianest.media_type&#39;</span><span class=o>:</span><span class=w> </span><span class=s1>&#39;movie&#39;</span>
+</span><span id=__span-11-22><a id=__codelineno-11-22 name=__codelineno-11-22 href=#__codelineno-11-22></a><span class=p>});</span>
+</span></code></pre></div><h2 id=alerting-strategy>Alerting Strategy<a class=headerlink href=#alerting-strategy title="Permanent link">&para;</a></h2><h3 id=alert-categories>Alert Categories<a class=headerlink href=#alert-categories title="Permanent link">&para;</a></h3><h4 id=critical-alerts-immediate-response>Critical Alerts (Immediate Response)<a class=headerlink href=#critical-alerts-immediate-response title="Permanent link">&para;</a></h4><ul><li><strong>Service Down</strong>: Any core service unavailable &gt; 1 minute</li><li><strong>High Error Rate</strong>: Error rate &gt; 10% for 5 minutes</li><li><strong>Database Issues</strong>: Connection failures or query timeouts</li><li><strong>Security Events</strong>: Failed authentication attempts &gt; threshold</li><li><strong>Memory Issues</strong>: Heap usage &gt; 90% for 2 minutes</li></ul><h4 id=warning-alerts-monitor-closely>Warning Alerts (Monitor Closely)<a class=headerlink href=#warning-alerts-monitor-closely title="Permanent link">&para;</a></h4><ul><li><strong>Performance Degradation</strong>: Response time &gt; 2s for 10 minutes</li><li><strong>External API Issues</strong>: Circuit breaker open for external services</li><li><strong>Resource Usage</strong>: CPU &gt; 80% or Memory &gt; 75% for 15 minutes</li><li><strong>Queue Backlog</strong>: Background jobs delayed &gt; 30 minutes</li></ul><h4 id=business-alerts-operational-awareness>Business Alerts (Operational Awareness)<a class=headerlink href=#business-alerts-operational-awareness title="Permanent link">&para;</a></h4><ul><li><strong>User Activity</strong>: Significant drop in user engagement</li><li><strong>Media Service Issues</strong>: Plex/Overseerr connectivity problems</li><li><strong>Sync Failures</strong>: Integration synchronization failures</li></ul><h3 id=alert-routing>Alert Routing<a class=headerlink href=#alert-routing title="Permanent link">&para;</a></h3><div class="language-yaml highlight"><pre><span></span><code><span id=__span-12-1><a id=__codelineno-12-1 name=__codelineno-12-1 href=#__codelineno-12-1></a><span class=nt>Critical</span><span class=p>:</span><span class=w> </span>
+</span><span id=__span-12-2><a id=__codelineno-12-2 name=__codelineno-12-2 href=#__codelineno-12-2></a><span class=w>  </span><span class="p p-Indicator">-</span><span class=w> </span><span class="l l-Scalar l-Scalar-Plain">Slack</span><span class=w> </span><span class=c1>#incidents channel</span>
+</span><span id=__span-12-3><a id=__codelineno-12-3 name=__codelineno-12-3 href=#__codelineno-12-3></a><span class=w>  </span><span class="p p-Indicator">-</span><span class=w> </span><span class="l l-Scalar l-Scalar-Plain">Email to on-call engineer</span>
+</span><span id=__span-12-4><a id=__codelineno-12-4 name=__codelineno-12-4 href=#__codelineno-12-4></a><span class=w>  </span><span class="p p-Indicator">-</span><span class=w> </span><span class="l l-Scalar l-Scalar-Plain">PagerDuty (if configured)</span>
+</span><span id=__span-12-5><a id=__codelineno-12-5 name=__codelineno-12-5 href=#__codelineno-12-5></a>
+</span><span id=__span-12-6><a id=__codelineno-12-6 name=__codelineno-12-6 href=#__codelineno-12-6></a><span class=nt>Warning</span><span class=p>:</span>
+</span><span id=__span-12-7><a id=__codelineno-12-7 name=__codelineno-12-7 href=#__codelineno-12-7></a><span class=w>  </span><span class="p p-Indicator">-</span><span class=w> </span><span class="l l-Scalar l-Scalar-Plain">Slack</span><span class=w> </span><span class=c1>#monitoring channel</span>
+</span><span id=__span-12-8><a id=__codelineno-12-8 name=__codelineno-12-8 href=#__codelineno-12-8></a><span class=w>  </span><span class="p p-Indicator">-</span><span class=w> </span><span class="l l-Scalar l-Scalar-Plain">Email digest (hourly)</span>
+</span><span id=__span-12-9><a id=__codelineno-12-9 name=__codelineno-12-9 href=#__codelineno-12-9></a>
+</span><span id=__span-12-10><a id=__codelineno-12-10 name=__codelineno-12-10 href=#__codelineno-12-10></a><span class=nt>Business</span><span class=p>:</span>
+</span><span id=__span-12-11><a id=__codelineno-12-11 name=__codelineno-12-11 href=#__codelineno-12-11></a><span class=w>  </span><span class="p p-Indicator">-</span><span class=w> </span><span class="l l-Scalar l-Scalar-Plain">Slack</span><span class=w> </span><span class=c1>#operations channel</span>
+</span><span id=__span-12-12><a id=__codelineno-12-12 name=__codelineno-12-12 href=#__codelineno-12-12></a><span class=w>  </span><span class="p p-Indicator">-</span><span class=w> </span><span class="l l-Scalar l-Scalar-Plain">Daily summary report</span>
+</span></code></pre></div><h2 id=custom-business-metrics>Custom Business Metrics<a class=headerlink href=#custom-business-metrics title="Permanent link">&para;</a></h2><h3 id=user-activity-metrics>User Activity Metrics<a class=headerlink href=#user-activity-metrics title="Permanent link">&para;</a></h3><div class="language-typescript highlight"><pre><span></span><code><span id=__span-13-1><a id=__codelineno-13-1 name=__codelineno-13-1 href=#__codelineno-13-1></a><span class=c1>// User engagement patterns</span>
+</span><span id=__span-13-2><a id=__codelineno-13-2 name=__codelineno-13-2 href=#__codelineno-13-2></a><span class=nx>user_session_duration_histogram</span>
+</span><span id=__span-13-3><a id=__codelineno-13-3 name=__codelineno-13-3 href=#__codelineno-13-3></a><span class=nx>daily_active_users_gauge</span>
+</span><span id=__span-13-4><a id=__codelineno-13-4 name=__codelineno-13-4 href=#__codelineno-13-4></a><span class=nx>feature_adoption_rate</span><span class=p>{</span><span class=nx>feature</span><span class=p>}</span>
+</span><span id=__span-13-5><a id=__codelineno-13-5 name=__codelineno-13-5 href=#__codelineno-13-5></a><span class=nx>user_retention_rate</span><span class=p>{</span><span class=nx>period</span><span class=p>}</span>
+</span><span id=__span-13-6><a id=__codelineno-13-6 name=__codelineno-13-6 href=#__codelineno-13-6></a>
+</span><span id=__span-13-7><a id=__codelineno-13-7 name=__codelineno-13-7 href=#__codelineno-13-7></a><span class=c1>// Content interaction</span>
+</span><span id=__span-13-8><a id=__codelineno-13-8 name=__codelineno-13-8 href=#__codelineno-13-8></a><span class=nx>media_discovery_funnel</span><span class=p>{</span><span class=nx>step</span><span class=p>}</span>
+</span><span id=__span-13-9><a id=__codelineno-13-9 name=__codelineno-13-9 href=#__codelineno-13-9></a><span class=nx>search_to_request_conversion_rate</span>
+</span><span id=__span-13-10><a id=__codelineno-13-10 name=__codelineno-13-10 href=#__codelineno-13-10></a><span class=nx>playlist_creation_rate</span>
+</span><span id=__span-13-11><a id=__codelineno-13-11 name=__codelineno-13-11 href=#__codelineno-13-11></a><span class=nx>favorite_items_growth</span>
+</span></code></pre></div><h3 id=service-performance-metrics>Service Performance Metrics<a class=headerlink href=#service-performance-metrics title="Permanent link">&para;</a></h3><div class="language-typescript highlight"><pre><span></span><code><span id=__span-14-1><a id=__codelineno-14-1 name=__codelineno-14-1 href=#__codelineno-14-1></a><span class=c1>// Service health scoring</span>
+</span><span id=__span-14-2><a id=__codelineno-14-2 name=__codelineno-14-2 href=#__codelineno-14-2></a><span class=nx>service_availability_sla</span><span class=p>{</span><span class=nx>service</span><span class=p>}</span>
+</span><span id=__span-14-3><a id=__codelineno-14-3 name=__codelineno-14-3 href=#__codelineno-14-3></a><span class=nx>integration_sync_success_rate</span><span class=p>{</span><span class=nx>service</span><span class=p>}</span>
+</span><span id=__span-14-4><a id=__codelineno-14-4 name=__codelineno-14-4 href=#__codelineno-14-4></a><span class=nx>api_response_time_p95</span><span class=p>{</span><span class=nx>service</span><span class=p>,</span><span class=w> </span><span class=nx>endpoint</span><span class=p>}</span>
+</span><span id=__span-14-5><a id=__codelineno-14-5 name=__codelineno-14-5 href=#__codelineno-14-5></a><span class=nx>error_recovery_time_seconds</span><span class=p>{</span><span class=nx>service</span><span class=p>}</span>
+</span><span id=__span-14-6><a id=__codelineno-14-6 name=__codelineno-14-6 href=#__codelineno-14-6></a>
+</span><span id=__span-14-7><a id=__codelineno-14-7 name=__codelineno-14-7 href=#__codelineno-14-7></a><span class=c1>// Business process metrics</span>
+</span><span id=__span-14-8><a id=__codelineno-14-8 name=__codelineno-14-8 href=#__codelineno-14-8></a><span class=nx>media_request_fulfillment_time</span>
+</span><span id=__span-14-9><a id=__codelineno-14-9 name=__codelineno-14-9 href=#__codelineno-14-9></a><span class=nx>user_onboarding_completion_rate</span>
+</span><span id=__span-14-10><a id=__codelineno-14-10 name=__codelineno-14-10 href=#__codelineno-14-10></a><span class=nx>background_job_processing_rate</span><span class=p>{</span><span class=nx>queue</span><span class=p>}</span>
+</span><span id=__span-14-11><a id=__codelineno-14-11 name=__codelineno-14-11 href=#__codelineno-14-11></a><span class=nx>storage_utilization_efficiency</span>
+</span></code></pre></div><h3 id=infrastructure-efficiency>Infrastructure Efficiency<a class=headerlink href=#infrastructure-efficiency title="Permanent link">&para;</a></h3><div class="language-typescript highlight"><pre><span></span><code><span id=__span-15-1><a id=__codelineno-15-1 name=__codelineno-15-1 href=#__codelineno-15-1></a><span class=c1>// Resource optimization</span>
+</span><span id=__span-15-2><a id=__codelineno-15-2 name=__codelineno-15-2 href=#__codelineno-15-2></a><span class=nx>container_resource_utilization</span><span class=p>{</span><span class=nx>service</span><span class=p>}</span>
+</span><span id=__span-15-3><a id=__codelineno-15-3 name=__codelineno-15-3 href=#__codelineno-15-3></a><span class=nx>database_connection_efficiency</span>
+</span><span id=__span-15-4><a id=__codelineno-15-4 name=__codelineno-15-4 href=#__codelineno-15-4></a><span class=nx>cache_memory_optimization_ratio</span>
+</span><span id=__span-15-5><a id=__codelineno-15-5 name=__codelineno-15-5 href=#__codelineno-15-5></a><span class=nx>network_bandwidth_utilization</span>
+</span><span id=__span-15-6><a id=__codelineno-15-6 name=__codelineno-15-6 href=#__codelineno-15-6></a>
+</span><span id=__span-15-7><a id=__codelineno-15-7 name=__codelineno-15-7 href=#__codelineno-15-7></a><span class=c1>// Cost optimization</span>
+</span><span id=__span-15-8><a id=__codelineno-15-8 name=__codelineno-15-8 href=#__codelineno-15-8></a><span class=nx>compute_cost_per_user</span>
+</span><span id=__span-15-9><a id=__codelineno-15-9 name=__codelineno-15-9 href=#__codelineno-15-9></a><span class=nx>storage_cost_efficiency</span>
+</span><span id=__span-15-10><a id=__codelineno-15-10 name=__codelineno-15-10 href=#__codelineno-15-10></a><span class=nx>external_api_cost_tracking</span><span class=p>{</span><span class=nx>service</span><span class=p>}</span>
+</span></code></pre></div><h2 id=performance-baseline-strategy>Performance Baseline Strategy<a class=headerlink href=#performance-baseline-strategy title="Permanent link">&para;</a></h2><h3 id=baseline-metrics-collection>Baseline Metrics Collection<a class=headerlink href=#baseline-metrics-collection title="Permanent link">&para;</a></h3><h4 id=response-time-baselines>Response Time Baselines<a class=headerlink href=#response-time-baselines title="Permanent link">&para;</a></h4><ul><li><strong>API Endpoints</strong>: P50, P95, P99 response times</li><li><strong>Database Queries</strong>: Query execution time distribution</li><li><strong>External API Calls</strong>: Service response time patterns</li><li><strong>Page Load Times</strong>: Frontend performance metrics</li></ul><h4 id=throughput-baselines>Throughput Baselines<a class=headerlink href=#throughput-baselines title="Permanent link">&para;</a></h4><ul><li><strong>Requests per Second</strong>: Peak and average traffic patterns</li><li><strong>Concurrent Users</strong>: Active session capacity</li><li><strong>Background Job Processing</strong>: Queue throughput rates</li><li><strong>Database Operations</strong>: Transaction per second capacity</li></ul><h4 id=resource-usage-baselines>Resource Usage Baselines<a class=headerlink href=#resource-usage-baselines title="Permanent link">&para;</a></h4><ul><li><strong>Memory Consumption</strong>: Heap usage patterns and GC behavior</li><li><strong>CPU Utilization</strong>: Processing load distribution</li><li><strong>Network I/O</strong>: Bandwidth usage patterns</li><li><strong>Disk I/O</strong>: Storage access patterns</li></ul><h3 id=baseline-establishment-process>Baseline Establishment Process<a class=headerlink href=#baseline-establishment-process title="Permanent link">&para;</a></h3><ol><li><strong>Historical Analysis</strong>: Analyze existing logs and metrics (30-day period)</li><li><strong>Load Testing</strong>: Establish performance benchmarks under various loads</li><li><strong>Seasonal Adjustment</strong>: Account for usage pattern variations</li><li><strong>Growth Planning</strong>: Establish scalability thresholds</li><li><strong>Continuous Calibration</strong>: Regular baseline updates</li></ol><h2 id=implementation-timeline>Implementation Timeline<a class=headerlink href=#implementation-timeline title="Permanent link">&para;</a></h2><h3 id=phase-1-foundation-weeks-1-2>Phase 1: Foundation (Weeks 1-2)<a class=headerlink href=#phase-1-foundation-weeks-1-2 title="Permanent link">&para;</a></h3><ul><li>✅ Enhanced structured logging (build on existing Winston)</li><li>✅ Prometheus metrics collection setup</li><li>✅ Basic Grafana dashboards</li><li>✅ Alert rule configuration</li></ul><h3 id=phase-2-advanced-observability-weeks-3-4>Phase 2: Advanced Observability (Weeks 3-4)<a class=headerlink href=#phase-2-advanced-observability-weeks-3-4 title="Permanent link">&para;</a></h3><ul><li>✅ Distributed tracing implementation</li><li>✅ Frontend performance monitoring</li><li>✅ Business metrics collection</li><li>✅ Log aggregation with Loki</li></ul><h3 id=phase-3-intelligence-automation-weeks-5-6>Phase 3: Intelligence &amp; Automation (Weeks 5-6)<a class=headerlink href=#phase-3-intelligence-automation-weeks-5-6 title="Permanent link">&para;</a></h3><ul><li>✅ Advanced alerting rules</li><li>✅ Performance baseline establishment</li><li>✅ Automated incident response</li><li>✅ Custom dashboard creation</li></ul><h3 id=phase-4-optimization-weeks-7-8>Phase 4: Optimization (Weeks 7-8)<a class=headerlink href=#phase-4-optimization-weeks-7-8 title="Permanent link">&para;</a></h3><ul><li>✅ Performance tuning based on insights</li><li>✅ Cost optimization</li><li>✅ Advanced analytics</li><li>✅ Documentation and training</li></ul><h2 id=success-metrics>Success Metrics<a class=headerlink href=#success-metrics title="Permanent link">&para;</a></h2><h3 id=technical-metrics>Technical Metrics<a class=headerlink href=#technical-metrics title="Permanent link">&para;</a></h3><ul><li><strong>MTTR (Mean Time to Recovery)</strong>: &lt; 15 minutes for critical issues</li><li><strong>MTTD (Mean Time to Detection)</strong>: &lt; 5 minutes for service degradation</li><li><strong>Service Availability</strong>: 99.9% uptime SLA</li><li><strong>Performance</strong>: P95 API response time &lt; 500ms</li></ul><h3 id=business-metrics_1>Business Metrics<a class=headerlink href=#business-metrics_1 title="Permanent link">&para;</a></h3><ul><li><strong>User Satisfaction</strong>: Reduced support tickets by 40%</li><li><strong>Operational Efficiency</strong>: 50% faster incident resolution</li><li><strong>Cost Optimization</strong>: 20% reduction in infrastructure costs</li><li><strong>Development Velocity</strong>: 30% faster feature deployment</li></ul><h2 id=risk-mitigation>Risk Mitigation<a class=headerlink href=#risk-mitigation title="Permanent link">&para;</a></h2><h3 id=data-privacy-security>Data Privacy &amp; Security<a class=headerlink href=#data-privacy-security title="Permanent link">&para;</a></h3><ul><li><strong>Log Sanitization</strong>: Remove PII from logs automatically</li><li><strong>Access Control</strong>: Role-based access to observability tools</li><li><strong>Data Retention</strong>: Compliance with data protection regulations</li><li><strong>Audit Trail</strong>: Track access to sensitive monitoring data</li></ul><h3 id=performance-impact>Performance Impact<a class=headerlink href=#performance-impact title="Permanent link">&para;</a></h3><ul><li><strong>Sampling</strong>: Configurable trace sampling rates</li><li><strong>Async Processing</strong>: Non-blocking metrics collection</li><li><strong>Resource Limits</strong>: Memory and CPU bounds for monitoring</li><li><strong>Graceful Degradation</strong>: Monitoring failure resilience</li></ul><h3 id=operational-risks>Operational Risks<a class=headerlink href=#operational-risks title="Permanent link">&para;</a></h3><ul><li><strong>Alert Fatigue</strong>: Intelligent alert grouping and escalation</li><li><strong>Tool Sprawl</strong>: Unified observability platform approach</li><li><strong>Knowledge Silos</strong>: Cross-team documentation and training</li><li><strong>Vendor Lock-in</strong>: Open standards (OpenTelemetry, Prometheus)</li></ul><h2 id=architecture-decision-records>Architecture Decision Records<a class=headerlink href=#architecture-decision-records title="Permanent link">&para;</a></h2><h3 id=adr-001-prometheus-for-metrics>ADR-001: Prometheus for Metrics<a class=headerlink href=#adr-001-prometheus-for-metrics title="Permanent link">&para;</a></h3><p><strong>Decision</strong>: Use Prometheus for metrics collection and storage <strong>Rationale</strong>: Industry standard, excellent ecosystem, built-in alerting <strong>Alternatives Considered</strong>: InfluxDB, CloudWatch, DataDog <strong>Trade-offs</strong>: Additional infrastructure vs. vendor dependency</p><h3 id=adr-002-continue-with-winston-add-loki>ADR-002: Continue with Winston + Add Loki<a class=headerlink href=#adr-002-continue-with-winston-add-loki title="Permanent link">&para;</a></h3><p><strong>Decision</strong>: Enhance existing Winston logging with Loki aggregation <strong>Rationale</strong>: Minimize disruption while adding centralized aggregation <strong>Alternatives Considered</strong>: ELK Stack, Fluentd, CloudWatch Logs <strong>Trade-offs</strong>: Grafana ecosystem consistency vs. ELK popularity</p><h3 id=adr-003-jaeger-for-distributed-tracing>ADR-003: Jaeger for Distributed Tracing<a class=headerlink href=#adr-003-jaeger-for-distributed-tracing title="Permanent link">&para;</a></h3><p><strong>Decision</strong>: Implement Jaeger with OpenTelemetry instrumentation <strong>Rationale</strong>: Cloud-native, OpenTelemetry compatible, proven at scale <strong>Alternatives Considered</strong>: Zipkin, AWS X-Ray, DataDog APM <strong>Trade-offs</strong>: Self-hosted complexity vs. vendor costs</p><hr><p><em>This architecture provides MediaNest with enterprise-grade observability while building upon existing infrastructure investments and maintaining operational simplicity.</em></p><aside class=md-source-file><span class=md-source-file__fact><span class=md-icon title="Last update"><svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="September 6, 2025 21:41:39 UTC"><span class=timeago datetime=2025-09-06T21:41:39+00:00 locale=en></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="September 6, 2025 21:41:39 UTC">2025-09-06</span></span><span class=md-source-file__fact><span class=md-icon title=Created><svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="September 6, 2025 21:41:39 UTC"><span class=timeago datetime=2025-09-06T21:41:39+00:00 locale=en></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="September 6, 2025 21:41:39 UTC">2025-09-06</span></span></aside><form class=md-feedback name=feedback hidden><fieldset><legend class=md-feedback__title> Was this page helpful? </legend><div class=md-feedback__inner><div class=md-feedback__list><button class="md-feedback__icon md-icon" type=submit title="This page was helpful" data-md-value=1><svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m7 0c0 .8-.7 1.5-1.5 1.5S14 10.3 14 9.5 14.7 8 15.5 8s1.5.7 1.5 1.5m-5 7.73c-1.75 0-3.29-.73-4.19-1.81L9.23 14c.45.72 1.52 1.23 2.77 1.23s2.32-.51 2.77-1.23l1.42 1.42c-.9 1.08-2.44 1.81-4.19 1.81"/></svg></button><button class="md-feedback__icon md-icon" type=submit title="This page could be improved" data-md-value=0><svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10m-6.5-4c.8 0 1.5.7 1.5 1.5s-.7 1.5-1.5 1.5-1.5-.7-1.5-1.5.7-1.5 1.5-1.5M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m2 4.5c1.75 0 3.29.72 4.19 1.81l-1.42 1.42C14.32 16.5 13.25 16 12 16s-2.32.5-2.77 1.23l-1.42-1.42C8.71 14.72 10.25 14 12 14"/></svg></button></div><div class=md-feedback__note><div data-md-value=1 hidden> Thanks for your feedback! Consider starring us on <a href=https://github.com/medianest/medianest target=_blank rel=noopener>GitHub</a></div><div data-md-value=0 hidden> Thanks for your feedback! Help us improve by <a href="https://github.com/medianest/medianest/issues/new/?title=[Docs]+MediaNest%20Observability%20Architecture+-+/observability-architecture/" target=_blank rel=noopener>creating an issue</a> or <a href=https://github.com/medianest/medianest/edit/develop/docs/{path} target=_blank rel=noopener>editing this page</a>. </div></div></div></fieldset></form></article></div><script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script><script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script></div><button type=button class="md-top md-icon" data-md-component=top hidden><svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg> Back to top </button></main><footer class=md-footer><div class="md-footer-meta md-typeset"><div class="md-footer-meta__inner md-grid"><div class=md-copyright><div class=md-copyright__highlight> Copyright &copy; 2024 MediaNest Development Team - <a href=#__consent>Manage Cookies</a> | <a href=/privacy>Privacy Policy</a> | <a href=/terms>Terms of Service</a></div></div><div class=md-social><a href=https://github.com/medianest/medianest target=_blank rel=noopener title="GitHub Repository" class=md-social__link><svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 512 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill=currentColor d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg></a><a href=https://hub.docker.com/r/medianest/medianest target=_blank rel=noopener title="Docker Hub" class=md-social__link><svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 640 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill=currentColor d="M349.9 236.3h-66.1v-59.4h66.1zm0-204.3h-66.1v60.7h66.1zm78.2 144.8H362v59.4h66.1zm-156.3-72.1h-66.1v60.1h66.1zm78.1 0h-66.1v60.1h66.1zm276.8 100c-14.4-9.7-47.6-13.2-73.1-8.4-3.3-24-16.7-44.9-41.1-63.7l-14-9.3-9.3 14c-18.4 27.8-23.4 73.6-3.7 103.8-8.7 4.7-25.8 11.1-48.4 10.7H2.4c-8.7 50.8 5.8 116.8 44 162.1 37.1 43.9 92.7 66.2 165.4 66.2 157.4 0 273.9-72.5 328.4-204.2 21.4.4 67.6.1 91.3-45.2 1.5-2.5 6.6-13.2 8.5-17.1zm-511.1-27.9h-66v59.4h66.1v-59.4zm78.1 0h-66.1v59.4h66.1zm78.1 0h-66.1v59.4h66.1zm-78.1-72.1h-66.1v60.1h66.1z"/></svg></a><a href=https://discord.gg/medianest target=_blank rel=noopener title="Discord Community" class=md-social__link><svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 576 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill=currentColor d="M492.5 69.8c-.2-.3-.4-.6-.8-.7-38.1-17.5-78.4-30-119.7-37.1-.4-.1-.8 0-1.1.1s-.6.4-.8.8c-5.5 9.9-10.5 20.2-14.9 30.6-44.6-6.8-89.9-6.8-134.4 0-4.5-10.5-9.5-20.7-15.1-30.6-.2-.3-.5-.6-.8-.8s-.7-.2-1.1-.2C162.5 39 122.2 51.5 84.1 69c-.3.1-.6.4-.8.7C7.1 183.5-13.8 294.6-3.6 404.2c0 .3.1.5.2.8s.3.4.5.6c44.4 32.9 94 58 146.8 74.2.4.1.8.1 1.1 0s.7-.4.9-.7c11.3-15.4 21.4-31.8 30-48.8.1-.2.2-.5.2-.8s0-.5-.1-.8-.2-.5-.4-.6-.4-.3-.7-.4c-15.8-6.1-31.2-13.4-45.9-21.9-.3-.2-.5-.4-.7-.6s-.3-.6-.3-.9 0-.6.2-.9.3-.5.6-.7c3.1-2.3 6.2-4.7 9.1-7.1.3-.2.6-.4.9-.4s.7 0 1 .1c96.2 43.9 200.4 43.9 295.5 0 .3-.1.7-.2 1-.2s.7.2.9.4c2.9 2.4 6 4.9 9.1 7.2.2.2.4.4.6.7s.2.6.2.9-.1.6-.3.9-.4.5-.6.6c-14.7 8.6-30 15.9-45.9 21.8-.2.1-.5.2-.7.4s-.3.4-.4.7-.1.5-.1.8.1.5.2.8c8.8 17 18.8 33.3 30 48.8.2.3.6.6.9.7s.8.1 1.1 0c52.9-16.2 102.6-41.3 147.1-74.2.2-.2.4-.4.5-.6s.2-.5.2-.8c12.3-126.8-20.5-236.9-86.9-334.5zm-302 267.7c-29 0-52.8-26.6-52.8-59.2s23.4-59.2 52.8-59.2c29.7 0 53.3 26.8 52.8 59.2 0 32.7-23.4 59.2-52.8 59.2m195.4 0c-29 0-52.8-26.6-52.8-59.2s23.4-59.2 52.8-59.2c29.7 0 53.3 26.8 52.8 59.2 0 32.7-23.2 59.2-52.8 59.2"/></svg></a><a href=https://twitter.com/medianest target=_blank rel=noopener title="Twitter Updates" class=md-social__link><svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 512 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill=currentColor d="M459.4 151.7c.3 4.5.3 9.1.3 13.6 0 138.7-105.6 298.6-298.6 298.6-59.5 0-114.7-17.2-161.1-47.1 8.4 1 16.6 1.3 25.3 1.3 49.1 0 94.2-16.6 130.3-44.8-46.1-1-84.8-31.2-98.1-72.8 6.5 1 13 1.6 19.8 1.6 9.4 0 18.8-1.3 27.6-3.6-48.1-9.7-84.1-52-84.1-103v-1.3c14 7.8 30.2 12.7 47.4 13.3-28.3-18.8-46.8-51-46.8-87.4 0-19.5 5.2-37.4 14.3-53C87.4 130.8 165 172.4 252.1 176.9c-1.6-7.8-2.6-15.9-2.6-24C249.5 95.1 296.3 48 354.4 48c30.2 0 57.5 12.7 76.7 33.1 23.7-4.5 46.5-13.3 66.6-25.3-7.8 24.4-24.4 44.8-46.1 57.8 21.1-2.3 41.6-8.1 60.4-16.2-14.3 20.8-32.2 39.3-52.6 54.3"/></svg></a><a href=https://medianest.com target=_blank rel=noopener title="Official Website" class=md-social__link><svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 512 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill=currentColor d="M351.9 280H161c2.9 64.5 17.2 123.9 37.5 167.4 11.4 24.5 23.7 41.8 35.1 52.4 11.2 10.5 18.9 12.2 22.9 12.2s11.7-1.7 22.9-12.2c11.4-10.6 23.7-28 35.1-52.4 20.3-43.5 34.6-102.9 37.5-167.4zm-191-48h190.9c-2.8-64.5-17.1-123.9-37.4-167.4-11.4-24.4-23.7-41.8-35.1-52.4C268.1 1.7 260.4 0 256.4 0s-11.7 1.7-22.9 12.2c-11.4 10.6-23.7 28-35.1 52.4-20.3 43.5-34.6 102.9-37.5 167.4m-48 0c3.5-85.6 25.6-165.1 57.9-217.3C78.7 47.3 10.9 131.2 1.5 232zM1.5 280c9.4 100.8 77.2 184.7 169.3 217.3-32.3-52.2-54.4-131.7-57.9-217.3zm398.4 0c-3.5 85.6-25.6 165.1-57.9 217.3 92.1-32.7 159.9-116.5 169.3-217.3zm111.4-48C501.9 131.2 434.1 47.3 342 14.7c32.3 52.2 54.4 131.7 57.9 217.3z"/></svg></a></div></div></div></footer></div><div class=md-dialog data-md-component=dialog><div class="md-dialog__inner md-typeset"></div></div><div class=md-progress data-md-component=progress role=progressbar></div><div class=md-consent data-md-component=consent id=__consent hidden><div class=md-consent__overlay></div><aside class=md-consent__inner><form class="md-consent__form md-grid md-typeset" name=consent><h4>Cookie consent</h4><p>We use cookies to recognize your repeated visits and preferences, as well as to measure the effectiveness of our documentation and whether users find what they're searching for. With your consent, you're helping us to make our documentation better.</p><input class=md-toggle type=checkbox id=__settings><div class=md-consent__settings><ul class=task-list><li class=task-list-item><label class=task-list-control><input type=checkbox name=analytics checked><span class=task-list-indicator></span> Google Analytics </label></li><li class=task-list-item><label class=task-list-control><input type=checkbox name=github checked><span class=task-list-indicator></span> GitHub </label></li></ul></div><div class=md-consent__controls><button class="md-button md-button--primary">Accept</button><button type=reset class="md-button md-button--primary">Reject</button><label class=md-button for=__settings>Manage settings</label></div></form></aside></div><script>var consent=__md_get("__consent");if(consent)for(var input of document.forms.consent.elements)input.name&&(input.checked=consent[input.name]||!1);else"file:"!==location.protocol&&setTimeout((function(){document.querySelector("[data-md-component=consent]").hidden=!1}),250);var form=document.forms.consent;for(var action of["submit","reset"])form.addEventListener(action,(function(e){if(e.preventDefault(),"reset"===e.type)for(var n of document.forms.consent.elements)n.name&&(n.checked=!1);__md_set("__consent",Object.fromEntries(Array.from(new FormData(form).keys()).map((function(e){return[e,!0]})))),location.hash="",location.reload()}))</script><script id=__config type=application/json>{"base": "..", "features": ["announce.dismiss", "content.action.edit", "content.action.view", "content.code.annotate", "content.code.copy", "content.code.select", "content.tabs.link", "content.tooltips", "header.autohide", "navigation.expand", "navigation.footer", "navigation.indexes", "navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.path", "navigation.prune", "navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow", "toc.integrate"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script><script src=../assets/javascripts/bundle.92b07e13.min.js></script><script src=../js/timeago.min.js></script><script src=../js/timeago_mkdocs_material.js></script><script src=../assets/javascripts/medianest.js></script><script src=../assets/javascripts/search-enhancements.js></script><script src=../assets/javascripts/analytics.js></script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script src=https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js></script><script src=https://unpkg.com/mermaid@10/dist/mermaid.min.js></script></body></html>

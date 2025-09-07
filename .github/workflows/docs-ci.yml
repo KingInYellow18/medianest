@@ -1,0 +1,391 @@
+name: Documentation CI/CD
+
+on:
+  push:
+    branches: [main, develop, docs]
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - 'requirements.txt'
+      - 'scripts/build-docs.sh'
+      - '.github/workflows/docs-ci.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - 'requirements.txt'
+      - 'scripts/build-docs.sh'
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '20'
+
+jobs:
+  # Content quality checks
+  quality-checks:
+    name: Content Quality Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Cache Python dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install mkdocs-material mkdocs-git-revision-date-localized-plugin mkdocs-minify-plugin
+          pip install spellchecker pyspelling
+          pip install yamllint
+
+      - name: Install Node.js dependencies for quality checks
+        run: |
+          npm install -g markdownlint-cli2 markdown-link-check alex write-good
+
+      - name: Validate MkDocs configuration
+        run: mkdocs config-validation
+
+      - name: Check YAML syntax
+        run: yamllint mkdocs.yml
+
+      - name: Run markdown linting
+        run: markdownlint-cli2 "docs/**/*.md"
+
+      - name: Check for inclusive language
+        run: |
+          find docs -name "*.md" -exec alex {} \; || true
+
+      - name: Check writing quality
+        run: |
+          find docs -name "*.md" -exec write-good --no-passive {} \; || true
+
+      - name: Spell check
+        run: |
+          python scripts/spellcheck.py
+
+      - name: Check for TODO/FIXME comments
+        run: |
+          if grep -r "TODO\|FIXME" docs/; then
+            echo "Found TODO/FIXME comments in documentation"
+            exit 1
+          fi
+
+      - name: Validate file structure
+        run: python scripts/validate-docs-structure.py
+
+  # Link validation
+  link-validation:
+    name: Link Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Cache Python dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install mkdocs-material mkdocs-git-revision-date-localized-plugin mkdocs-minify-plugin
+          npm install -g markdown-link-check
+
+      - name: Build documentation
+        run: mkdocs build --strict
+
+      - name: Check internal links
+        run: |
+          find site -name "*.html" -exec grep -l "href=" {} \; | head -10 | while read file; do
+            echo "Checking links in $file"
+            python scripts/check-internal-links.py "$file"
+          done
+
+      - name: Check external links
+        run: |
+          find docs -name "*.md" -exec markdown-link-check {} \;
+
+      - name: Validate image references
+        run: python scripts/validate-images.py
+
+  # Documentation build
+  build-docs:
+    name: Build Documentation
+    runs-on: ubuntu-latest
+    needs: [quality-checks, link-validation]
+    outputs:
+      build-size: ${{ steps.build-info.outputs.size }}
+      build-files: ${{ steps.build-info.outputs.files }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache Python dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install mkdocs-material mkdocs-git-revision-date-localized-plugin mkdocs-minify-plugin
+
+      - name: Build documentation
+        run: |
+          chmod +x scripts/build-docs.sh
+          ./scripts/build-docs.sh --skip-tests
+
+      - name: Generate build information
+        id: build-info
+        run: |
+          echo "size=$(du -sh site | cut -f1)" >> $GITHUB_OUTPUT
+          echo "files=$(find site -type f | wc -l)" >> $GITHUB_OUTPUT
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation-build
+          path: site/
+          retention-days: 30
+
+      - name: Generate build report
+        run: |
+          python scripts/generate-build-report.py site/ > build-report.md
+
+      - name: Upload build report
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-report
+          path: build-report.md
+
+  # Performance testing
+  performance-test:
+    name: Performance Testing
+    runs-on: ubuntu-latest
+    needs: build-docs
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: documentation-build
+          path: site/
+
+      - name: Install performance testing tools
+        run: |
+          npm install -g lighthouse-ci @lhci/cli html-minifier clean-css uglify-js
+
+      - name: Start local server
+        run: |
+          npx http-server site -p 8080 &
+          sleep 5
+
+      - name: Run Lighthouse CI
+        run: |
+          lhci autorun --config=.lighthouserc.json
+
+      - name: Performance audit
+        run: |
+          python scripts/performance-audit.py site/
+
+      - name: Bundle size analysis
+        run: |
+          find site -name "*.css" -o -name "*.js" | xargs wc -c > bundle-sizes.txt
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-results
+          path: |
+            .lighthouseci/
+            bundle-sizes.txt
+
+  # Security scanning
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    needs: build-docs
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: documentation-build
+          path: site/
+
+      - name: Scan for sensitive data
+        run: |
+          python scripts/scan-sensitive-data.py
+
+      - name: Check dependencies for vulnerabilities
+        run: |
+          pip-audit
+
+      - name: Security headers check
+        run: |
+          python scripts/check-security-headers.py
+
+  # Deploy to staging (develop branch)
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build-docs, performance-test, security-scan]
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    environment:
+      name: staging
+      url: https://docs-staging.medianest.com
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: documentation-build
+          path: site/
+
+      - name: Deploy to staging
+        run: |
+          chmod +x scripts/deploy-docs.sh
+          ./scripts/deploy-docs.sh --staging
+        env:
+          DEPLOY_TOKEN: ${{ secrets.STAGING_DEPLOY_TOKEN }}
+          STAGING_URL: ${{ secrets.STAGING_URL }}
+
+      - name: Run post-deployment tests
+        run: |
+          python scripts/post-deployment-tests.py --url https://docs-staging.medianest.com
+
+  # Deploy to production (main branch)
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build-docs, performance-test, security-scan]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment:
+      name: production
+      url: https://docs.medianest.com
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: documentation-build
+          path: site/
+
+      - name: Deploy to production
+        run: |
+          chmod +x scripts/deploy-docs.sh
+          ./scripts/deploy-docs.sh --production
+        env:
+          DEPLOY_TOKEN: ${{ secrets.PRODUCTION_DEPLOY_TOKEN }}
+          PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+
+      - name: Purge CDN cache
+        run: |
+          python scripts/purge-cdn-cache.py
+
+      - name: Run post-deployment tests
+        run: |
+          python scripts/post-deployment-tests.py --url https://docs.medianest.com
+
+      - name: Update search index
+        run: |
+          python scripts/update-search-index.py
+
+  # Monitoring setup
+  setup-monitoring:
+    name: Setup Monitoring
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup uptime monitoring
+        run: |
+          python scripts/setup-uptime-monitoring.py
+        env:
+          UPTIMEROBOT_API_KEY: ${{ secrets.UPTIMEROBOT_API_KEY }}
+
+      - name: Create performance baseline
+        run: |
+          python scripts/create-performance-baseline.py --url https://docs.medianest.com
+
+  # Notification
+  notify:
+    name: Send Notifications
+    runs-on: ubuntu-latest
+    needs: [deploy-production, setup-monitoring]
+    if: always()
+    steps:
+      - name: Slack notification
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#documentation'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+
+      - name: Discord notification
+        if: always()
+        uses: Ilshidur/action-discord@master
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        with:
+          args: 'Documentation pipeline ${{ job.status }} for commit ${{ github.sha }}'
