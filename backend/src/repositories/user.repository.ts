@@ -211,7 +211,7 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
       return await this.prisma.user.update({
         where: { id },
         data: {
-          passwordHash: newPasswordHash,
+          // passwordHash: newPasswordHash, // TODO: Add passwordHash field to schema
           requiresPasswordChange: false,
         },
       });

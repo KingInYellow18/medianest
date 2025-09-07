@@ -19,9 +19,7 @@ export const updateUserRoleSchema = z.object({
     userId: z.string().uuid('Invalid user ID'),
   }),
   body: z.object({
-    role: z.enum(['user', 'admin'], {
-      errorMap: () => ({ message: 'Role must be either "user" or "admin"' }),
-    }),
+    role: z.enum(['user', 'admin']),
   }),
 });
 

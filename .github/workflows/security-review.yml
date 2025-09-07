@@ -1,0 +1,241 @@
+name: 🔒 Security Review - PR Analysis
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  pull_request_review:
+    types: [submitted]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  security-events: write
+  actions: read
+
+jobs:
+  security-scan:
+    name: 🔍 Automated Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: 🔒 Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🛡️ Security Scanner Setup
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq curl
+
+      - name: 🔐 Secret Scanning
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --debug --only-verified
+
+      - name: 🔍 CodeQL Analysis
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript,typescript
+          queries: security-extended,security-and-quality
+
+      - name: 🏗️ Build for CodeQL
+        run: |
+          npm ci --only=production
+          npm run build --if-present
+
+      - name: 🔍 Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+      - name: 🔒 Run Custom Security Scanner
+        run: |
+          ./.claude/agents/security/pr-security-scanner.sh ${{ github.event.pull_request.number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📦 Dependency Security Audit
+        run: |
+          npm audit --audit-level high --production
+
+      - name: 🐳 Docker Security Scan
+        if: contains(github.event.pull_request.changed_files, 'Dockerfile') || contains(github.event.pull_request.changed_files, 'docker-compose')
+        uses: aquasec/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: 📋 Upload Security Results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+
+      - name: 🚨 Security Issues Comment
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            let securityReport = '';
+
+            try {
+              securityReport = fs.readFileSync('/tmp/medianest-security-issues.log', 'utf8');
+            } catch (error) {
+              securityReport = 'Security scan completed with issues. Check workflow logs for details.';
+            }
+
+            const comment = `## 🔒 Security Review Results
+
+            ❌ **Security issues detected in this PR**
+
+            ### Issues Found:
+            \`\`\`
+            ${securityReport}
+            \`\`\`
+
+            ### Required Actions:
+            - [ ] Review and fix all CRITICAL security issues
+            - [ ] Address HIGH priority security concerns  
+            - [ ] Verify no secrets are hardcoded
+            - [ ] Confirm input validation is properly implemented
+            - [ ] Check authentication/authorization changes
+
+            ### Security Checklist:
+            - [ ] No hardcoded secrets or API keys
+            - [ ] Proper input validation and sanitization
+            - [ ] SQL injection prevention measures
+            - [ ] XSS protection implemented
+            - [ ] Authentication/authorization working correctly
+            - [ ] Dependencies free of known vulnerabilities
+            - [ ] File upload security (if applicable)
+            - [ ] HTTPS/TLS configuration secure
+            - [ ] Access control properly implemented
+
+            **This PR is blocked until security issues are resolved.**`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  vulnerability-scan:
+    name: 🛡️ Vulnerability Assessment
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🔍 OSV Scanner
+        uses: google/osv-scanner-action@v1
+        with:
+          scan-args: |-
+            --output=results.json
+            --format=json
+            ./
+
+      - name: 📊 SBOM Generation
+        uses: anchore/sbom-action@v0
+        with:
+          path: ./
+          format: spdx-json
+
+      - name: 🔒 Grype Vulnerability Scan
+        uses: anchore/scan-action@v3
+        id: scan
+        with:
+          path: '.'
+          fail-build: true
+          severity-cutoff: high
+
+      - name: 📋 Upload Vulnerability Results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ steps.scan.outputs.sarif }}
+
+  manual-security-review:
+    name: 👥 Manual Security Review Required
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'security-review-required')
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🚨 Request Security Review
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const comment = `## 🔒 Manual Security Review Required
+
+            This PR has been flagged for manual security review.
+
+            ### Review Areas:
+            - Architecture changes affecting security
+            - Authentication/authorization modifications  
+            - Database schema security implications
+            - API endpoint security
+            - Third-party integration security
+            - Infrastructure/deployment security
+
+            ### Security Team Review:
+            - [ ] Architecture security assessment
+            - [ ] Code security review  
+            - [ ] Penetration testing (if applicable)
+            - [ ] Security documentation update
+
+            **Awaiting security team approval before merge.**`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+            // Request review from security team
+            github.rest.pulls.requestReviewers({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              team_reviewers: ['security-team']
+            });
+
+  security-monitoring:
+    name: 📊 Security Monitoring
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 📊 Security Metrics Collection
+        run: |
+          echo "Collecting security metrics for merged PR..."
+          # Add security metrics collection logic
+
+      - name: 🔔 Security Alert Integration
+        if: contains(github.event.pull_request.labels.*.name, 'security-critical')
+        run: |
+          echo "Notifying security team of critical security changes..."
+          # Add security team notification logic
