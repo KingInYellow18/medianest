@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { PlexLibrary, PlexCollectionSummary } from '@/types/plex';
+import type { PlexLibrary, PlexCollectionSummary } from '@/types/plex';
 import { LibrarySelector } from '@/components/plex/LibrarySelector';
 import { CollectionBrowser } from '@/components/plex/CollectionBrowser';
 import { CollectionDetail } from '@/components/plex/CollectionDetail';

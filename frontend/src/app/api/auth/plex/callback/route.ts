@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { getPlexUser, getPlexHeaders } from '@/lib/auth/plex-provider';
+import { checkPlexPin, getPlexHeaders } from '@/lib/auth/plex-provider';
 import { prisma } from '@/lib/db/prisma';
 
 export async function POST(request: NextRequest) {
@@ -25,12 +25,12 @@ export async function POST(request: NextRequest) {
 
     let plexUser;
     try {
-      plexUser = await getPlexUser(authToken);
+      plexUser = await checkPlexPin(parseInt(authToken), 'client-id', getPlexHeaders('client-id'));
     } catch (error: any) {
       if (error.message?.includes('rate limit')) {
         return NextResponse.json(
           { error: 'Plex API rate limit exceeded. Please try again later.' },
-          { status: 429 },
+          { status: 429 }
         );
       }
       return NextResponse.json({ error: 'Invalid Plex authentication token' }, { status: 401 });
