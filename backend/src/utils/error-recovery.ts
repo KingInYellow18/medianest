@@ -1,5 +1,7 @@
 import { logger } from './logger';
 import { CircuitBreakerFactory } from './circuit-breaker';
+import { CatchError } from '../types/common';
+import { toError, getErrorMessage } from '../types/error-types';
 // WAVE 2 AGENT #11: INTEGRATION ORCHESTRATOR - CONDITIONAL REDIS IMPORT
 // Only import Redis if not in test environment or if Redis is explicitly enabled
 let IORedisClass: any;
@@ -152,7 +154,7 @@ export class ErrorRecoveryManager {
         const queueData = {
           operation: context.operation,
           context,
-          error: error.message as any,
+          error: error instanceof Error ? error.message : ('Unknown error' as any),
           queuedAt: new Date(),
           retryAfter: Date.now() + (context.metadata?.retryDelay || 30000),
         };
@@ -224,7 +226,7 @@ export class ErrorRecoveryManager {
 
     if (applicableActions.length === 0) {
       logger.warn('No applicable recovery actions found', {
-        error: error.message as any,
+        error: error instanceof Error ? error.message : ('Unknown error' as any),
         operation: context.operation,
         service: context.service,
       });
@@ -262,9 +264,8 @@ export class ErrorRecoveryManager {
         return result;
       } catch (recoveryError) {
         logger.warn(`Recovery action ${action.name} failed`, {
-          originalError: error.message as any,
-          recoveryError:
-            recoveryError instanceof Error ? recoveryError.message : String(recoveryError),
+          originalError: error.message,
+          recoveryError: this.errorToString(recoveryError),
           operation: context.operation,
         });
 
@@ -275,13 +276,13 @@ export class ErrorRecoveryManager {
 
     // All recovery actions failed
     logger.error('All recovery actions failed', {
-      error: error.message as any,
+      error: error.message,
       operation: context.operation,
       triedActions: applicableActions.map((a) => a.name),
     });
 
     throw new Error(
-      `Recovery failed after trying ${applicableActions.length} actions: ${error.message as any}`,
+      `Recovery failed after trying ${applicableActions.length} actions: ${error.message}`
     );
   }
 
@@ -305,12 +306,12 @@ export class ErrorRecoveryManager {
     error: Error,
     context: ErrorContext,
     recoveryAction: string,
-    result: any,
+    result: unknown
   ): Promise<void> {
     if (!this.redis) return;
 
     const recoveryRecord = {
-      originalError: error.message as any,
+      originalError: error.message,
       context,
       recoveryAction,
       timestamp: new Date(),
@@ -325,7 +326,7 @@ export class ErrorRecoveryManager {
 
   getErrorHistory(
     operation: string,
-    service?: string,
+    service?: string
   ): Array<{ error: Error; context: ErrorContext; timestamp: Date }> {
     const key = `${operation}:${service || 'unknown'}`;
     return this.errorHistory.get(key) || [];
@@ -338,9 +339,9 @@ export class ErrorRecoveryManager {
       const key = `recovery:history:${operation}`;
       const history = await this.redis.lrange(key, 0, -1);
       return history.map((record: string) => JSON.parse(record));
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to retrieve recovery history', {
-        error: (error as Error) ? (error.message as any) : String(error),
+        error: getErrorMessage(error),
       });
       return [];
     }
@@ -354,7 +355,7 @@ export class ErrorRecoveryManager {
       maxAttempts?: number;
       initialDelay?: number;
       enableRecovery?: boolean;
-    },
+    }
   ): Promise<T> {
     const options = {
       maxAttempts: 3,
@@ -370,8 +371,8 @@ export class ErrorRecoveryManager {
         // Enhanced context with attempt number - available for future logging
         // const enhancedContext = { ...context, attempt };
         return await operation();
-      } catch (error: any) {
-        lastError = error as Error;
+      } catch (error: CatchError) {
+        lastError = toError(error);
 
         logger.warn(`Operation failed, attempt ${attempt}/${options.maxAttempts}`, {
           operation: context.operation,
@@ -393,8 +394,7 @@ export class ErrorRecoveryManager {
             logger.info('Recovery succeeded, retrying original operation');
           } catch (recoveryError) {
             logger.warn('Recovery failed, will retry operation', {
-              recoveryError:
-                recoveryError instanceof Error ? recoveryError.message : String(recoveryError),
+              recoveryError: this.errorToString(recoveryError),
             });
           }
         }
@@ -413,7 +413,7 @@ export class ErrorRecoveryManager {
   // Cascade failure prevention
   async checkCascadeRisk(
     operation: string,
-    service?: string,
+    service?: string
   ): Promise<{
     risk: 'low' | 'medium' | 'high';
     recommendation: string;
@@ -422,7 +422,7 @@ export class ErrorRecoveryManager {
   }> {
     const history = this.getErrorHistory(operation, service);
     const recentErrors = history.filter(
-      (h) => Date.now() - h.timestamp.getTime() < 300000, // Last 5 minutes
+      (h) => Date.now() - h.timestamp.getTime() < 300000 // Last 5 minutes
     ).length;
 
     let risk: 'low' | 'medium' | 'high' = 'low';
@@ -480,6 +480,20 @@ export class ErrorRecoveryManager {
       recentErrors,
     };
   }
+
+  /**
+   * Type guard to ensure we have an Error instance
+   */
+  private toError(error: unknown): Error {
+    return toError(error);
+  }
+
+  /**
+   * Convert any error-like value to string
+   */
+  private errorToString(error: unknown): string {
+    return getErrorMessage(error);
+  }
 }
 
 // Singleton instance
@@ -493,7 +507,7 @@ export async function withRecovery<T>(
     maxAttempts?: number;
     initialDelay?: number;
     enableRecovery?: boolean;
-  },
+  }
 ): Promise<T> {
   const fullContext: ErrorContext = {
     ...context,

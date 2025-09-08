@@ -1,0 +1,29 @@
+{
+  "name": "medianest-github-issues",
+  "version": "1.0.0",
+  "description": "GitHub Issues creation script for MediaNest TODO conversion",
+  "main": "create-github-issues.js",
+  "scripts": {
+    "create-issues": "node create-github-issues.js",
+    "dry-run": "node create-github-issues.js --dry-run",
+    "security-issues": "node create-github-issues.js --category=authentication-security",
+    "performance-issues": "node create-github-issues.js --category=performance-monitoring",
+    "notification-issues": "node create-github-issues.js --category=notification-system",
+    "media-issues": "node create-github-issues.js --category=media-management",
+    "admin-issues": "node create-github-issues.js --category=administrative",
+    "integration-issues": "node create-github-issues.js --category=integration"
+  },
+  "dependencies": {
+    "@octokit/rest": "^20.0.0"
+  },
+  "keywords": [
+    "github",
+    "issues",
+    "todo",
+    "medianest",
+    "cleanup",
+    "automation"
+  ],
+  "author": "MediaNest Team",
+  "license": "MIT"
+}

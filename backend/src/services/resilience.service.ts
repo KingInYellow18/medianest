@@ -10,6 +10,7 @@ import { retryWithBackoff, RetryOptions } from '../utils/retry';
 import { BullMQAdapter } from 'bull-board/bullMQAdapter';
 import { Queue as BullMQQueue, Worker, Job } from 'bullmq';
 import IORedis from 'ioredis';
+import { CatchError } from '../types/common';
 
 export interface ResilienceConfig {
   circuitBreaker?: {
@@ -56,8 +57,8 @@ export interface ServiceDependency {
 
 export interface RecoveryStrategy {
   name: string;
-  condition: (error: Error, context: any) => boolean;
-  action: (error: Error, context: any) => Promise<any>;
+  condition: (error: Error, context: UnknownRecord) => boolean;
+  action: (error: Error, context: UnknownRecord) => Promise<any>;
   priority: number;
 }
 
@@ -127,7 +128,7 @@ export class ResilienceService extends EventEmitter {
           this.emit('criticalServiceUnhealthy', dependency, healthResult);
           await this.handleCriticalServiceFailure(dependency, healthResult);
         }
-      } catch (error: any) {
+      } catch (error: CatchError) {
         logger.error(`Health check failed for ${dependency.name}`, { error });
       }
     }, 30000); // Every 30 seconds
@@ -160,7 +161,7 @@ export class ResilienceService extends EventEmitter {
       }
 
       throw new Error('No health check method defined');
-    } catch (error: any) {
+    } catch (error: CatchError) {
       return {
         service: dependency.name,
         healthy: false,
@@ -175,7 +176,7 @@ export class ResilienceService extends EventEmitter {
   async executeWithCircuitBreaker<T>(
     serviceName: string,
     operation: () => Promise<T>,
-    fallbackFn?: () => Promise<T>,
+    fallbackFn?: () => Promise<T>
   ): Promise<T> {
     const dependency = this.dependencies.get(serviceName);
     if (!dependency?.circuitBreaker) {
@@ -185,7 +186,7 @@ export class ResilienceService extends EventEmitter {
 
     try {
       return await dependency.circuitBreaker.execute(operation);
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.emit('circuitBreakerTripped', serviceName, error);
 
       if (fallbackFn) {
@@ -201,7 +202,7 @@ export class ResilienceService extends EventEmitter {
   async executeWithRetry<T>(
     operation: () => Promise<T>,
     options: Partial<RetryOptions> = {},
-    context?: any,
+    context?: any
   ): Promise<T> {
     const retryOptions: RetryOptions = {
       maxAttempts: 3,
@@ -213,7 +214,7 @@ export class ResilienceService extends EventEmitter {
 
     try {
       return await retryWithBackoff(operation, retryOptions);
-    } catch (error: any) {
+    } catch (error: CatchError) {
       await this.handleRetryExhaustion(error as Error, context);
       throw error;
     }
@@ -221,7 +222,7 @@ export class ResilienceService extends EventEmitter {
 
   private async handleRetryExhaustion(error: Error, context?: any): Promise<void> {
     logger.error('Retry attempts exhausted', {
-      error: error.message as any,
+      error: error instanceof Error ? error.message : ('Unknown error' as any),
       context,
     });
 
@@ -229,7 +230,7 @@ export class ResilienceService extends EventEmitter {
     await this.deadLetterQueue.add(
       'retry-exhausted',
       {
-        error: error.message as any,
+        error: error instanceof Error ? error.message : ('Unknown error' as any),
         stack: error.stack as any,
         context,
         timestamp: new Date(),
@@ -237,7 +238,7 @@ export class ResilienceService extends EventEmitter {
       {
         removeOnComplete: 100,
         removeOnFail: 50,
-      },
+      }
     );
 
     this.emit('retryExhausted', error, context);
@@ -250,7 +251,7 @@ export class ResilienceService extends EventEmitter {
   async executeWithBulkhead<T>(
     compartment: string,
     operation: () => Promise<T>,
-    maxConcurrent = this.DEFAULT_MAX_CONCURRENT,
+    maxConcurrent = this.DEFAULT_MAX_CONCURRENT
   ): Promise<T> {
     const currentCalls = this.concurrentCalls.get(compartment) || 0;
 
@@ -346,7 +347,7 @@ export class ResilienceService extends EventEmitter {
   // Critical Service Failure Handling
   private async handleCriticalServiceFailure(
     dependency: ServiceDependency,
-    healthResult: HealthCheckResult,
+    healthResult: HealthCheckResult
   ): Promise<void> {
     logger.error(`Critical service failure detected: ${dependency.name}`, healthResult);
 
@@ -367,7 +368,7 @@ export class ResilienceService extends EventEmitter {
 
   private async escalateServiceFailure(
     dependency: ServiceDependency,
-    healthResult: HealthCheckResult,
+    healthResult: HealthCheckResult
   ): Promise<void> {
     // Add to high-priority queue for immediate attention
     await this.deadLetterQueue.add(
@@ -381,7 +382,7 @@ export class ResilienceService extends EventEmitter {
       {
         priority: 1,
         removeOnComplete: 10,
-      },
+      }
     );
   }
 
@@ -420,7 +421,7 @@ export class ResilienceService extends EventEmitter {
     try {
       const cached = await this.redis.get(cacheKey);
       return cached ? JSON.parse(cached) : null;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to retrieve cached response', { cacheKey, error });
       return null;
     }
@@ -437,7 +438,7 @@ export class ResilienceService extends EventEmitter {
           // Execute the retried operation
           await this.executeRetryJob(job.data);
           return { success: true };
-        } catch (error: any) {
+        } catch (error: CatchError) {
           logger.error(`Retry job failed: ${job.id}`, { error });
           throw error;
         }
@@ -445,7 +446,7 @@ export class ResilienceService extends EventEmitter {
       {
         connection: this.redis,
         concurrency: 5,
-      },
+      }
     );
 
     worker.on('failed', (job, err) => {
@@ -453,7 +454,7 @@ export class ResilienceService extends EventEmitter {
     });
   }
 
-  private async executeRetryJob(data: any): Promise<void> {
+  private async executeRetryJob(data: unknown): Promise<void> {
     // Implementation depends on the specific job data structure
     // This is a placeholder for retry job execution
     logger.info('Executing retry job', data);
@@ -478,7 +479,7 @@ export class ResilienceService extends EventEmitter {
         if (!healthResult.healthy && dependency.criticalityLevel === 'critical') {
           overallHealthy = false;
         }
-      } catch (error: any) {
+      } catch (error: CatchError) {
         services[name] = {
           service: name,
           healthy: false,
@@ -530,7 +531,7 @@ export class ResilienceService extends EventEmitter {
       this.redis.disconnect();
 
       logger.info('Graceful shutdown completed');
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Error during graceful shutdown', { error });
     }
 

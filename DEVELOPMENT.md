@@ -1,8 +1,12 @@
-# Development Guide
+# MediaNest Development Guide
+
+**Version:** 1.0  
+**Date:** January 2025  
+**Status:** Active
 
 ## Pre-commit Hooks
 
-The project uses minimal pre-commit hooks that only check for syntax errors. 
+The project uses minimal pre-commit hooks that only check for syntax errors using Node.js syntax validation.
 
 ### Bypass Hooks (when needed)
 
@@ -34,6 +38,9 @@ npm run lint --fix
 
 # Check TypeScript compilation
 npm run type-check
+
+# Build and verify compilation
+npm run build
 
 # Run tests
 npm test

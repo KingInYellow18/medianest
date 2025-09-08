@@ -1,25 +1,24 @@
-// @ts-ignore
 import { NodeSDK } from '@opentelemetry/sdk-node';
-// @ts-ignore
+import { logger } from '../utils/logger';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
-// @ts-ignore
 import { JaegerExporter } from '@opentelemetry/exporter-jaeger';
-// @ts-ignore
 import { OTLPTraceExporter } from '@opentelemetry/exporter-otlp-http';
-// @ts-ignore
 import { Resource } from '@opentelemetry/resources';
-// @ts-ignore
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
-// @ts-ignore
-import { BatchSpanProcessor, ConsoleSpanExporter } from '@opentelemetry/sdk-trace-node';
-// @ts-ignore
-import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node';
-// @ts-ignore
-import { registerInstrumentations } from '@opentelemetry/instrumentation';
-// @ts-ignore
-import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express';
-// @ts-ignore
-import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
+import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-node';
+import type {
+  TracingSDK,
+  ResourceAttributes,
+  AutoInstrumentationConfig,
+  TracingSampler,
+  CustomSamplingResult,
+  IncomingHttpRequest,
+  TracingSpan,
+  HttpInstrumentationResponse,
+} from '../types/opentelemetry';
+import type { Attributes, Context, Sampler } from '@opentelemetry/api';
+import type { SpanExporter, SamplingResult } from '@opentelemetry/sdk-trace-base';
+import { SamplingDecision } from '@opentelemetry/sdk-trace-base';
 
 // Environment configuration
 const SERVICE_NAME = process.env.SERVICE_NAME || 'observe-backend';
@@ -30,11 +29,11 @@ const ENVIRONMENT = process.env.NODE_ENV || 'development';
 const TRACING_ENABLED = process.env.TRACING_ENABLED !== 'false';
 
 // Resource configuration
-const resourceAttributes: any = {};
-resourceAttributes[(SemanticResourceAttributes as any).SERVICE_NAME] = SERVICE_NAME;
-resourceAttributes[(SemanticResourceAttributes as any).SERVICE_VERSION] = SERVICE_VERSION;
-resourceAttributes[(SemanticResourceAttributes as any).DEPLOYMENT_ENVIRONMENT] = ENVIRONMENT;
-resourceAttributes[(SemanticResourceAttributes as any).SERVICE_INSTANCE_ID] =
+const resourceAttributes: ResourceAttributes = {};
+resourceAttributes[SemanticResourceAttributes.SERVICE_NAME] = SERVICE_NAME;
+resourceAttributes[SemanticResourceAttributes.SERVICE_VERSION] = SERVICE_VERSION;
+resourceAttributes[SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT] = ENVIRONMENT;
+resourceAttributes[SemanticResourceAttributes.SERVICE_INSTANCE_ID] =
   process.env.HOSTNAME || 'unknown';
 
 // Use require to avoid TypeScript import issues temporarily
@@ -42,7 +41,7 @@ const ResourceClass = require('@opentelemetry/resources').Resource;
 const resource = ResourceClass.default().merge(new ResourceClass(resourceAttributes));
 
 // Jaeger exporter configuration
-const jaegerExporter = new (JaegerExporter as any)({
+const jaegerExporter = new JaegerExporter({
   endpoint: JAEGER_ENDPOINT,
   tags: [
     { key: 'service.name', value: SERVICE_NAME },
@@ -52,7 +51,7 @@ const jaegerExporter = new (JaegerExporter as any)({
 });
 
 // OTLP exporter configuration (alternative to Jaeger)
-const otlpExporter = new (OTLPTraceExporter as any)({
+const otlpExporter = new OTLPTraceExporter({
   url: OTLP_ENDPOINT,
   headers: {
     'Content-Type': 'application/json',
@@ -60,51 +59,52 @@ const otlpExporter = new (OTLPTraceExporter as any)({
 });
 
 // Custom instrumentation configuration
-const instrumentations = [
-  (getNodeAutoInstrumentations as any)({
-    // Disable automatic filesystem instrumentation to reduce noise
-    '@opentelemetry/instrumentation-fs': {
-      enabled: false,
+const instrumentationConfig: AutoInstrumentationConfig = {
+  // Disable automatic filesystem instrumentation to reduce noise
+  '@opentelemetry/instrumentation-fs': {
+    enabled: false,
+  },
+  // Configure HTTP instrumentation
+  '@opentelemetry/instrumentation-http': {
+    enabled: true,
+    ignoreIncomingRequestHook: (req: IncomingHttpRequest) => {
+      // Ignore health checks and static assets
+      const url = req.url || '';
+      return url.includes('/health') || url.includes('/favicon.ico') || url.includes('/static/');
     },
-    // Configure HTTP instrumentation
-    '@opentelemetry/instrumentation-http': {
-      enabled: true,
-      ignoreIncomingRequestHook: (req: any) => {
-        // Ignore health checks and static assets
-        const url = req.url || '';
-        return url.includes('/health') || url.includes('/favicon.ico') || url.includes('/static/');
-      },
-      requestHook: (span: any, request: any) => {
-        span.setAttributes({
-          'http.request.header.user-agent': request.getHeader('user-agent') || '',
-          'http.request.header.x-correlation-id': request.getHeader('x-correlation-id') || '',
-        });
-      },
-      responseHook: (span: any, response: any) => {
-        span.setAttributes({
-          'http.response.size': response.getHeader('content-length') || 0,
-        });
-      },
+    requestHook: (span: TracingSpan, request: any) => {
+      span.setAttributes({
+        'http.request.header.user-agent': (request.getHeader('user-agent') as string) || '',
+        'http.request.header.x-correlation-id':
+          (request.getHeader('x-correlation-id') as string) || '',
+      });
     },
-    // Configure Express instrumentation
-    '@opentelemetry/instrumentation-express': {
-      enabled: true,
-      ignoreLayers: [
-        // Ignore certain middleware layers
-        (name: any) => name === 'cors',
-        (name: any) => name === 'helmet',
-      ],
+    responseHook: (span: TracingSpan, response: HttpInstrumentationResponse) => {
+      span.setAttributes({
+        'http.response.size': Number(response.getHeader('content-length')) || 0,
+      });
     },
-    // Configure Prisma instrumentation
-    '@opentelemetry/instrumentation-prisma': {
-      enabled: true,
-    },
-    // Configure Redis instrumentation
-    '@opentelemetry/instrumentation-redis': {
-      enabled: true,
-    },
-  }),
-];
+  },
+  // Configure Express instrumentation
+  '@opentelemetry/instrumentation-express': {
+    enabled: true,
+    ignoreLayers: [
+      // Ignore certain middleware layers
+      (name: string) => name === 'cors',
+      (name: string) => name === 'helmet',
+    ],
+  },
+  // Configure Prisma instrumentation
+  '@opentelemetry/instrumentation-prisma': {
+    enabled: true,
+  },
+  // Configure Redis instrumentation
+  '@opentelemetry/instrumentation-redis': {
+    enabled: true,
+  },
+};
+
+const instrumentations = [getNodeAutoInstrumentations(instrumentationConfig as any)];
 
 // Sampling configuration
 const samplingConfig = {
@@ -113,30 +113,35 @@ const samplingConfig = {
 };
 
 // Initialize SDK
-let sdk: any | null = null;
+let sdk: TracingSDK | null = null;
 
 if (TRACING_ENABLED) {
-  sdk = new (NodeSDK as any)({
+  const sampler: Sampler = {
+    shouldSample: (): SamplingResult => ({
+      decision:
+        Math.random() < samplingConfig.ratio
+          ? SamplingDecision.RECORD_AND_SAMPLED
+          : SamplingDecision.NOT_RECORD,
+      attributes: Object.freeze({}),
+      traceState: undefined,
+    }),
+    toString: () => `CustomSampler{ratio: ${samplingConfig.ratio}}`,
+  };
+
+  sdk = new NodeSDK({
     resource,
-    spanProcessor: new (BatchSpanProcessor as any)(
-      ENVIRONMENT === 'development' ? jaegerExporter : otlpExporter,
+    spanProcessor: new BatchSpanProcessor(
+      (ENVIRONMENT === 'development' ? jaegerExporter : otlpExporter) as SpanExporter,
       {
         maxExportBatchSize: 100,
         maxQueueSize: 1000,
         exportTimeoutMillis: 30000,
         scheduledDelayMillis: 5000,
-      },
+      }
     ),
     instrumentations,
-    sampler: {
-      shouldSample: () => ({
-        decision: Math.random() < samplingConfig.ratio ? 1 : 0, // SamplingDecision.RECORD_AND_SAMPLE : SamplingDecision.NOT_RECORD
-        attributes: {},
-        traceState: undefined,
-      }),
-      toString: () => `CustomSampler{ratio: ${samplingConfig.ratio}}`,
-    } as any,
-  });
+    sampler: sampler as Sampler,
+  }) as unknown as TracingSDK;
 
   // Start tracing
   sdk.start();
@@ -145,16 +150,26 @@ if (TRACING_ENABLED) {
   process.on('SIGTERM', () => {
     sdk
       ?.shutdown()
-      .then(() => console.log('Tracing terminated'))
-      .catch((error: any) => console.log('Error terminating tracing', error))
+      .then(() => logger.info('Distributed tracing terminated', { service: SERVICE_NAME }))
+      .catch((error: unknown) => {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        logger.error('Error terminating tracing', { error: errorMessage, service: SERVICE_NAME });
+      })
       .finally(() => process.exit(0));
   });
 
-  console.log(`🔍 Distributed tracing initialized for ${SERVICE_NAME} v${SERVICE_VERSION}`);
-  console.log(`📊 Jaeger endpoint: ${JAEGER_ENDPOINT}`);
-  console.log(`🎯 Sampling ratio: ${samplingConfig.ratio * 100}%`);
+  logger.info('Distributed tracing initialized', {
+    service: SERVICE_NAME,
+    version: SERVICE_VERSION,
+    jaegerEndpoint: JAEGER_ENDPOINT,
+    samplingRatio: samplingConfig.ratio,
+    timestamp: new Date().toISOString(),
+  });
 } else {
-  console.log('⚠️  Distributed tracing is disabled');
+  logger.info('Distributed tracing is disabled', {
+    reason: 'TRACING_ENABLED environment variable is not set to true',
+    timestamp: new Date().toISOString(),
+  });
 }
 
 // Export utilities for manual instrumentation

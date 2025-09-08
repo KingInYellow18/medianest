@@ -32,12 +32,12 @@ export const createMockRedis = () => {
       return entry && entry.expires > Date.now() ? entry.value.toString() : null;
     }),
 
-    set: vi.fn().mockImplementation(async (key: string, value: any) => {
+    set: vi.fn().mockImplementation(async (key: string, value: string | number) => {
       rateLimitStore.set(key, { value, expires: Date.now() + 3600000 }); // 1 hour default
       return 'OK';
     }),
 
-    setex: vi.fn().mockImplementation(async (key: string, ttl: number, value: any) => {
+    setex: vi.fn().mockImplementation(async (key: string, ttl: number, value: string | number) => {
       rateLimitStore.set(key, { value, expires: Date.now() + ttl * 1000 });
       return 'OK';
     }),
@@ -93,32 +93,34 @@ export const createMockRedis = () => {
     }),
 
     // Rate limiting Lua script mock
-    eval: vi.fn().mockImplementation(async (script: string, numKeys: number, ...args: any[]) => {
-      // Mock the rate limiting lua script behavior
-      const key = args[0];
-      const limit = parseInt(args[1]);
-      const window = parseInt(args[2]);
+    eval: vi
+      .fn()
+      .mockImplementation(async (script: string, numKeys: number, ...args: (string | number)[]) => {
+        // Mock the rate limiting lua script behavior
+        const key = args[0];
+        const limit = parseInt(args[1]);
+        const window = parseInt(args[2]);
 
-      cleanupExpired();
+        cleanupExpired();
 
-      const entry = rateLimitStore.get(key);
-      const now = Date.now();
+        const entry = rateLimitStore.get(key);
+        const now = Date.now();
 
-      if (!entry || entry.expires < now) {
-        // First request or expired window
-        rateLimitStore.set(key, { value: 1, expires: now + window * 1000 });
-        return [1, limit, limit - 1, Math.floor((now + window * 1000) / 1000)];
-      }
+        if (!entry || entry.expires < now) {
+          // First request or expired window
+          rateLimitStore.set(key, { value: 1, expires: now + window * 1000 });
+          return [1, limit, limit - 1, Math.floor((now + window * 1000) / 1000)];
+        }
 
-      if (entry.value >= limit) {
-        // Limit exceeded
-        return [0, limit, 0, Math.floor(entry.expires / 1000)];
-      }
+        if (entry.value >= limit) {
+          // Limit exceeded
+          return [0, limit, 0, Math.floor(entry.expires / 1000)];
+        }
 
-      // Increment counter
-      entry.value++;
-      return [1, limit, limit - entry.value, Math.floor(entry.expires / 1000)];
-    }),
+        // Increment counter
+        entry.value++;
+        return [1, limit, limit - entry.value, Math.floor(entry.expires / 1000)];
+      }),
 
     // Event emitter methods
     on: vi.fn(),

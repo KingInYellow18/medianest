@@ -17,9 +17,9 @@ function logWebVital(metric: NextWebVitalsMetric) {
 
   if (process.env.NODE_ENV === 'development') {
     console.log(
-      `[Web Vital] ${metric.name}: ${metric.value.toFixed(2)}${
-        metric.name === 'CLS' ? '' : 'ms'
-      } ${isGood ? '✅' : '⚠️'}`,
+      `[Web Vital] ${metric.name}: ${metric.value.toFixed(2)}${metric.name === 'CLS' ? '' : 'ms'} ${
+        isGood ? '✅' : '⚠️'
+      }`
     );
   }
 }
@@ -86,7 +86,7 @@ declare global {
         event_category: string;
         event_label: string;
         non_interaction: boolean;
-      },
+      }
     ) => void;
   }
 }

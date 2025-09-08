@@ -6,6 +6,7 @@
     "jsx": "preserve",
     "module": "esnext",
     "incremental": true,
+    "tsBuildInfoFile": "./.next/.tsbuildinfo",
     "plugins": [
       {
         "name": "next"
@@ -28,7 +29,10 @@
     "noEmit": true,
     "isolatedModules": true,
     "moduleDetection": "force",
-    "moduleResolution": "bundler"
+    "moduleResolution": "bundler",
+    "verbatimModuleSyntax": false,
+    "preserveSymlinks": false,
+    "assumeChangesOnlyAffectDirectDependencies": true
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "vitest-env.d.ts"],
   "exclude": ["node_modules"]

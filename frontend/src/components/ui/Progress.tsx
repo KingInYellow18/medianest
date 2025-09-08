@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
 import clsx from 'clsx';
+import React from 'react';
 
 interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
   value: number;
@@ -11,17 +11,14 @@ interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function Progress({ value, max = 100, className, ...props }: ProgressProps) {
   const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
-  
+
   return (
     <div
       role="progressbar"
       aria-valuemin={0}
       aria-valuemax={max}
       aria-valuenow={value}
-      className={clsx(
-        'relative h-2 w-full overflow-hidden rounded-full bg-gray-700',
-        className
-      )}
+      className={clsx('relative h-2 w-full overflow-hidden rounded-full bg-gray-700', className)}
       {...props}
     >
       <div

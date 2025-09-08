@@ -33,11 +33,7 @@ export class UptimeKumaClient extends EventEmitter {
   private connected = false;
   private reconnectTimer?: NodeJS.Timeout;
 
-  constructor(
-    private url: string,
-    private username?: string,
-    private password?: string,
-  ) {
+  constructor(private url: string, private username?: string, private password?: string) {
     super();
   }
 
@@ -66,7 +62,7 @@ export class UptimeKumaClient extends EventEmitter {
           if (this.username && this.password) {
             try {
               await this.authenticate();
-            } catch (error: any) {
+            } catch (error: unknown) {
               logger.error('Authentication failed', { error });
               // Continue without auth - may have limited access
             }
@@ -79,7 +75,9 @@ export class UptimeKumaClient extends EventEmitter {
         });
 
         this.socket.on('connect_error', (error) => {
-          logger.error('Uptime Kuma connection error', { error: error.message as any });
+          logger.error('Uptime Kuma connection error', {
+            error: error instanceof Error ? error.message : ('Unknown error' as any),
+          });
           if (!this.connected) {
             reject(new Error('Failed to connect to Uptime Kuma'));
           }
@@ -92,7 +90,7 @@ export class UptimeKumaClient extends EventEmitter {
             reject(new Error('Connection timeout'));
           }
         }, 15000);
-      } catch (error: any) {
+      } catch (error: unknown) {
         reject(error);
       }
     });
@@ -120,7 +118,7 @@ export class UptimeKumaClient extends EventEmitter {
             logger.error('Uptime Kuma authentication failed', { msg: res?.msg });
             reject(new Error(res?.msg || 'Authentication failed'));
           }
-        },
+        }
       );
     });
   }

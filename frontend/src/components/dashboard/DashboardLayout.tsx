@@ -23,7 +23,7 @@ export function DashboardLayout({ initialServices, children }: DashboardLayoutPr
   // Enable real-time updates
   useRealtimeStatus();
 
-  const handleViewDetails = (serviceId: string) => {
+  const handleViewDetails = (_serviceId: string) => {
     // Handle service details view (TODO: implement modal/page)
     // TODO: Implement service details modal or navigation
   };

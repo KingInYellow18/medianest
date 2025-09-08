@@ -37,30 +37,99 @@ const USER_ERRORS: Record<string, string> = {
   INTERNAL_ERROR: 'Something went wrong. Please try again.',
 };
 
-// Sanitize request data before logging
+// Context7 Pattern: Optimized Request Sanitization with Memoization
+const sanitizationCache = new Map();
+const CACHE_MAX_SIZE = 1000;
+const SENSITIVE_HEADERS = new Set(['authorization', 'x-plex-token', 'cookie']);
+const SENSITIVE_BODY_FIELDS = new Set(['password', 'token', 'secret']);
+
 function sanitizeRequest(req: Request) {
+  // Context7 Pattern: Create cache key from request signature
+  const cacheKey = `${req.method}:${req.path}:${Object.keys(req.headers).join(',')}`;
+
+  // Context7 Pattern: Return cached sanitized structure if available
+  if (sanitizationCache.has(cacheKey)) {
+    const template = sanitizationCache.get(cacheKey);
+    return {
+      ...template,
+      query: req.query,
+      params: req.params,
+      body: sanitizeBody(req.body),
+    };
+  }
+
   const sanitized: any = {
     method: req.method,
     path: req.path,
     query: req.query,
     params: req.params,
-    headers: { ...req.headers },
-    body: { ...req.body },
+    headers: {},
+    body: sanitizeBody(req.body),
   };
 
-  // Remove sensitive headers
-  delete sanitized.headers.authorization;
-  delete sanitized.headers['x-plex-token'];
-  delete sanitized.headers.cookie;
+  // Context7 Pattern: Efficient header sanitization using Set lookup
+  for (const [key, value] of Object.entries(req.headers)) {
+    if (!SENSITIVE_HEADERS.has(key.toLowerCase())) {
+      sanitized.headers[key] = value;
+    }
+  }
 
-  // Remove sensitive body fields
-  if (sanitized.body?.password) {
-    sanitized.body.password = '[REDACTED]';
+  // Context7 Pattern: Cache sanitized template (without dynamic data)
+  if (sanitizationCache.size < CACHE_MAX_SIZE) {
+    sanitizationCache.set(cacheKey, {
+      method: req.method,
+      path: req.path,
+      headers: sanitized.headers,
+    });
   }
 
   return sanitized;
 }
 
+// Context7 Pattern: Separate body sanitization for reusability
+function sanitizeBody(body: any): any {
+  if (!body || typeof body !== 'object') return body;
+
+  const sanitized = { ...body };
+  for (const field of SENSITIVE_BODY_FIELDS) {
+    if (sanitized[field]) {
+      sanitized[field] = '[REDACTED]';
+    }
+  }
+  return sanitized;
+}
+
+// Context7 Pattern: Fast-path error handlers for common scenarios
+function handleValidationError(err: ZodError, req: Request, res: Response, correlationId: string) {
+  return res.status(400).json({
+    success: false,
+    error: {
+      message: USER_ERRORS.VALIDATION_ERROR,
+      code: 'VALIDATION_ERROR',
+      correlationId,
+      details: process.env.NODE_ENV === 'development' ? err.errors : undefined,
+    },
+  });
+}
+
+function handleClientError(err: AppError, req: Request, res: Response, correlationId: string) {
+  const userMessage = USER_ERRORS[err.code || ''] || err.message;
+  const statusCode = err.statusCode || 400;
+
+  return res.status(statusCode).json({
+    success: false,
+    error: {
+      message: userMessage,
+      code: err.code || 'CLIENT_ERROR',
+      correlationId,
+      ...(err instanceof RateLimitError &&
+        err.details?.retryAfter && { retryAfter: err.details.retryAfter }),
+      ...(process.env.NODE_ENV === 'development' && { details: err.details }),
+    },
+  });
+}
+
+// Context7 Pattern: Optimized Error Handler with Performance Monitoring
 export const errorHandler = (
   err: Error | AppError,
   req: Request,
@@ -68,21 +137,37 @@ export const errorHandler = (
   _next: NextFunction,
 ) => {
   const correlationId = req.correlationId || 'no-correlation-id';
+  const startTime = Date.now();
 
-  // Log detailed error internally
-  req.logger.error({
-    correlationId,
-    error: {
-      message: err.message,
-      stack: err.stack,
-      code: err instanceof AppError ? err.code : undefined,
-      statusCode: err instanceof AppError ? err.statusCode : 500,
-      details: err instanceof AppError ? err.details : undefined,
-    },
-    request: sanitizeRequest(req),
-    userId: req.user?.id,
-    ip: req.ip,
-  });
+  // Context7 Pattern: Fast-path for common errors to reduce processing overhead
+  if (err instanceof ZodError) {
+    return handleValidationError(err, req, res, correlationId);
+  }
+
+  if (err instanceof AppError && err.statusCode < 500) {
+    return handleClientError(err, req, res, correlationId);
+  }
+
+  // Context7 Pattern: Async logging for server errors to avoid blocking response
+  const logError = () => {
+    req.logger.error({
+      correlationId,
+      error: {
+        message: err.message,
+        stack: err.stack,
+        code: err instanceof AppError ? err.code : undefined,
+        statusCode: err instanceof AppError ? err.statusCode : 500,
+        details: err instanceof AppError ? err.details : undefined,
+      },
+      request: sanitizeRequest(req),
+      userId: req.user?.id,
+      ip: req.ip,
+      processingTime: Date.now() - startTime,
+    });
+  };
+
+  // Context7 Pattern: Non-blocking error logging
+  setImmediate(logError);
 
   // Record metrics
   const errorCode = err instanceof AppError ? err.code || 'UNKNOWN' : 'INTERNAL_ERROR';

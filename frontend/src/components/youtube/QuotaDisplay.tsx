@@ -20,7 +20,7 @@ export function QuotaDisplay({ quota, onRefresh }: QuotaDisplayProps) {
     <div
       className={clsx(
         'rounded-lg p-4',
-        quota.canDownload ? 'bg-gray-700' : 'bg-red-900/20 border border-red-800',
+        quota.canDownload ? 'bg-gray-700' : 'bg-red-900/20 border border-red-800'
       )}
     >
       <div className="flex items-center justify-between mb-2">

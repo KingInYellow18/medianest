@@ -1,10 +1,11 @@
-import { apiClient } from './client';
 import {
   MediaSearchResponse,
   MediaRequestPayload,
   MediaRequest,
   MediaAvailability,
 } from '@/types/media';
+
+import { apiClient } from './client';
 
 export interface SearchParams {
   query: string;
@@ -39,7 +40,7 @@ export async function searchMedia(params: SearchParams): Promise<MediaSearchResp
     response.data.map(async (item: any) => {
       const availability = await checkAvailability(item.id, item.mediaType);
       return { ...item, availability };
-    }),
+    })
   );
 
   return {
@@ -52,7 +53,7 @@ export async function searchMedia(params: SearchParams): Promise<MediaSearchResp
 
 export async function checkAvailability(
   tmdbId: number,
-  mediaType: 'movie' | 'tv',
+  mediaType: 'movie' | 'tv'
 ): Promise<MediaAvailability> {
   try {
     const response = await apiClient.get<any>(`/media/${mediaType}/${tmdbId}`);
@@ -80,7 +81,7 @@ export async function requestMedia(payload: MediaRequestPayload): Promise<MediaR
 
 export async function getUserRequests(
   skip = 0,
-  take = 20,
+  take = 20
 ): Promise<{ requests: MediaRequest[]; total: number }> {
   const response = await apiClient.get<any>('/media/requests', {
     params: {

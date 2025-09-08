@@ -17,7 +17,7 @@ export function requestTimeout(options: TimeoutOptions = {}) {
     // Set timeout on the request
     const timer = setTimeout(() => {
       if (!res.headersSent) {
-        const error = new AppError(message, 408); // 408 Request Timeout
+        const error = new AppError('REQUEST_TIMEOUT', message, 408); // 408 Request Timeout
         next(error);
       }
     }, timeout);

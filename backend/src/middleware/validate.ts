@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodSchema } from 'zod';
+import { CatchError } from '../types/common';
 
 export const validate = (schema: ZodSchema) => {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -10,7 +11,7 @@ export const validate = (schema: ZodSchema) => {
         params: req.params,
       });
       next();
-    } catch (error: any) {
+    } catch (error: CatchError) {
       // Error will be caught by error middleware
       next(error);
     }

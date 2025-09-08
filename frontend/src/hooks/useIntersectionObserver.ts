@@ -6,6 +6,11 @@ interface UseIntersectionObserverOptions extends IntersectionObserverInit {
   freezeOnceVisible?: boolean;
 }
 
+interface UseIntersectionObserverCallback {
+  onIntersect?: () => void;
+  onLeave?: () => void;
+}
+
 export function useIntersectionObserver(
   elementRef: React.RefObject<Element | null>,
   {
@@ -13,13 +18,21 @@ export function useIntersectionObserver(
     root = null,
     rootMargin = '0%',
     freezeOnceVisible = false,
-  }: UseIntersectionObserverOptions = {},
+    onIntersect,
+    onLeave,
+  }: UseIntersectionObserverOptions & UseIntersectionObserverCallback = {}
 ): IntersectionObserverEntry | undefined {
   const [entry, setEntry] = useState<IntersectionObserverEntry>();
   const frozen = useRef(false);
 
   const updateEntry = ([entry]: IntersectionObserverEntry[]): void => {
     setEntry(entry);
+
+    if (entry.isIntersecting) {
+      onIntersect?.();
+    } else {
+      onLeave?.();
+    }
   };
 
   useEffect(() => {
@@ -34,7 +47,7 @@ export function useIntersectionObserver(
     observer.observe(node);
 
     return () => observer.disconnect();
-  }, [elementRef, threshold, root, rootMargin]);
+  }, [elementRef, threshold, root, rootMargin, onIntersect, onLeave]);
 
   useEffect(() => {
     if (entry?.isIntersecting && freezeOnceVisible) {
@@ -48,7 +61,7 @@ export function useIntersectionObserver(
 // Simplified hook for common use case
 export function useIsIntersecting(
   elementRef: React.RefObject<Element | null>,
-  options?: UseIntersectionObserverOptions,
+  options?: UseIntersectionObserverOptions
 ): boolean {
   const entry = useIntersectionObserver(elementRef, options);
   return !!entry?.isIntersecting;

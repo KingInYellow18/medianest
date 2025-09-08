@@ -11,7 +11,7 @@ export interface TokenValidationContext {
 export interface TokenValidationResult {
   token: string;
   payload: any;
-  metadata: any;
+  metadata: unknown;
 }
 
 /**
@@ -35,19 +35,19 @@ export function extractToken(req: Request): string {
  */
 export function validateTokenBlacklist(
   token: string,
-  tokenMetadata: any,
-  context: TokenValidationContext,
+  tokenMetadata: Record<string, unknown>,
+  context: TokenValidationContext
 ): void {
-  if (tokenMetadata.tokenId && isTokenBlacklisted(tokenMetadata.tokenId)) {
+  if (tokenMetadata.tokenId && isTokenBlacklisted(tokenMetadata.tokenId as string)) {
     logSecurityEvent(
       'BLACKLISTED_TOKEN_USED',
       {
-        tokenId: tokenMetadata.tokenId,
-        userId: tokenMetadata.userId,
+        tokenId: tokenMetadata.tokenId as string,
+        userId: tokenMetadata.userId as string,
         ipAddress: context.ipAddress,
         userAgent: context.userAgent,
       },
-      'error',
+      'error'
     );
 
     throw new AuthenticationError('Token has been revoked');
@@ -59,7 +59,7 @@ export function validateTokenBlacklist(
  */
 export function validateToken(
   req: Request,
-  context: TokenValidationContext,
+  context: TokenValidationContext
 ): TokenValidationResult {
   const token = extractToken(req);
   const tokenMetadata = getTokenMetadata(token);

@@ -1,5 +1,5 @@
-import { vi } from 'vitest';
 import type { Session, User } from 'next-auth';
+import { vi } from 'vitest';
 
 // Mock NextAuth.js types and functions
 export const mockUser: User = {

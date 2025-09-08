@@ -4,6 +4,7 @@ import { mediaRequestRepository } from '@/repositories';
 import { overseerrService } from '@/services/overseerr.service';
 import { AppError } from '../utils/errors';
 import { logger } from '@/utils/logger';
+import { CatchError } from '../types/common';
 
 export class MediaController {
   async searchMedia(req: Request, res: Response) {
@@ -25,7 +26,7 @@ export class MediaController {
           totalPages: results.totalPages,
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (error instanceof AppError) {
         throw error;
       }
@@ -48,14 +49,14 @@ export class MediaController {
 
       const details = await overseerrService.getMediaDetails(
         mediaType as 'movie' | 'tv',
-        Number(tmdbId),
+        Number(tmdbId)
       );
 
       res.json({
         success: true,
         data: details,
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (error instanceof AppError) {
         throw error;
       }
@@ -93,7 +94,7 @@ export class MediaController {
           timestamp: new Date().toISOString(),
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (error instanceof AppError) {
         throw error;
       }
@@ -175,7 +176,7 @@ export class MediaController {
           timestamp: new Date().toISOString(),
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get user requests', { error });
       throw new AppError('INTERNAL_ERROR', 'Failed to get requests', 500);
     }
@@ -205,7 +206,7 @@ export class MediaController {
         success: true,
         data: request,
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (error instanceof AppError) {
         throw error;
       }
@@ -245,7 +246,7 @@ export class MediaController {
         success: true,
         message: 'Request deleted successfully',
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (error instanceof AppError) {
         throw error;
       }
@@ -336,7 +337,7 @@ export class MediaController {
           timestamp: new Date().toISOString(),
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (error instanceof AppError) {
         throw error;
       }

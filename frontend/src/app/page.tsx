@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { ApiConnectionStatus } from '@/components/ApiConnectionStatus';
 
+import { ApiConnectionStatus } from '@/components/ApiConnectionStatus';
+
 export default function HomePage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-8">

@@ -6,8 +6,8 @@ import { ChevronDown, ChevronUp, ExternalLink, ArrowUpDown } from 'lucide-react'
 import Image from 'next/image';
 import React, { useState } from 'react';
 
-import { MediaRequest } from '@/types/requests';
 import { getExternalServiceUrls } from '@/config';
+import { MediaRequest } from '@/types/requests';
 
 import { RequestDetails } from './RequestDetails';
 import { RequestList } from './RequestList';
@@ -177,7 +177,9 @@ export function RequestTable({
                     </button>
                     {request.overseerrId && (
                       <a
-                        href={`${getExternalServiceUrls().overseerr}/request/${request.overseerrId}`}
+                        href={`${getExternalServiceUrls().overseerr}/request/${
+                          request.overseerrId
+                        }`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-gray-400 hover:text-white"

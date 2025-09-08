@@ -1,5 +1,6 @@
 import { CircuitBreaker, CircuitBreakerOptions } from '../utils/circuit-breaker';
 import { logger } from '../utils/logger';
+import { CatchError } from '../types/common';
 
 export interface ApiClientConfig {
   baseURL: string;
@@ -30,10 +31,7 @@ export abstract class BaseApiClient {
   protected circuitBreaker: CircuitBreaker;
   protected lastHealthCheck: HealthStatus | null = null;
 
-  constructor(
-    protected serviceName: string,
-    protected config: ApiClientConfig,
-  ) {
+  constructor(protected serviceName: string, protected config: ApiClientConfig) {
     const defaultCircuitBreakerOptions: CircuitBreakerOptions = {
       failureThreshold: 5,
       resetTimeout: 30000, // 30 seconds
@@ -122,7 +120,7 @@ export abstract class BaseApiClient {
         });
 
         return apiResponse;
-      } catch (error: any) {
+      } catch (error: CatchError) {
         clearTimeout(timeoutId);
 
         const errorObj = error as Error;
@@ -151,7 +149,7 @@ export abstract class BaseApiClient {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         return await this.request<T>(endpoint, options);
-      } catch (error: any) {
+      } catch (error: CatchError) {
         if (attempt === maxRetries) {
           throw error;
         }
@@ -185,7 +183,7 @@ export abstract class BaseApiClient {
       };
 
       return this.lastHealthCheck;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.lastHealthCheck = {
         healthy: false,
         lastChecked: new Date(),

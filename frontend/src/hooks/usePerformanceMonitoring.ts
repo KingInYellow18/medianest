@@ -1,4 +1,5 @@
 import { useEffect, useCallback, useRef } from 'react';
+
 import { frontendErrorTracking } from '../lib/error-tracking';
 
 export interface PerformanceMetrics {
@@ -40,7 +41,7 @@ export const usePerformanceMonitoring = (pageName?: string) => {
     const lcpObserver = new PerformanceObserver((list) => {
       const entries = list.getEntries();
       const lastEntry = entries[entries.length - 1] as PerformanceEventTiming;
-      
+
       if (lastEntry) {
         metricsRef.current.lcp = lastEntry.startTime;
         frontendErrorTracking.trackPerformance('lcp', lastEntry.startTime, 'millisecond');
@@ -112,7 +113,7 @@ export const usePerformanceMonitoring = (pageName?: string) => {
     }
 
     const timing = window.performance.timing;
-    
+
     return {
       pageLoadTime: timing.loadEventEnd - timing.navigationStart,
       domContentLoaded: timing.domContentLoadedEventEnd - timing.navigationStart,
@@ -124,60 +125,61 @@ export const usePerformanceMonitoring = (pageName?: string) => {
   /**
    * Track custom performance metric
    */
-  const trackCustomMetric = useCallback((name: string, value: number, unit: string = 'millisecond') => {
-    frontendErrorTracking.trackPerformance(name, value, unit);
-  }, []);
+  const trackCustomMetric = useCallback(
+    (name: string, value: number, unit: string = 'millisecond') => {
+      frontendErrorTracking.trackPerformance(name, value, unit);
+    },
+    []
+  );
 
   /**
    * Track user interaction performance
    */
-  const trackInteractionPerformance = useCallback((
-    interaction: string, 
-    startTime: number,
-    element?: string
-  ) => {
-    const duration = performance.now() - startTime;
-    
-    frontendErrorTracking.trackInteraction(interaction, element || 'unknown', {
-      duration,
-      performance: true,
-    });
+  const trackInteractionPerformance = useCallback(
+    (interaction: string, startTime: number, element?: string) => {
+      const duration = performance.now() - startTime;
 
-    // Track slow interactions
-    if (duration > 100) { // 100ms threshold for responsiveness
-      frontendErrorTracking.captureMessage(
-        `Slow interaction: ${interaction} took ${duration}ms`,
-        'warning'
-      );
-    }
-  }, []);
+      frontendErrorTracking.trackInteraction(interaction, element || 'unknown', {
+        duration,
+        performance: true,
+      });
+
+      // Track slow interactions
+      if (duration > 100) {
+        // 100ms threshold for responsiveness
+        frontendErrorTracking.captureMessage(
+          `Slow interaction: ${interaction} took ${duration}ms`,
+          'warning'
+        );
+      }
+    },
+    []
+  );
 
   /**
    * Track API call performance
    */
-  const trackApiPerformance = useCallback((
-    url: string,
-    method: string,
-    startTime: number,
-    status: number,
-    responseSize?: number
-  ) => {
-    const duration = performance.now() - startTime;
-    
-    frontendErrorTracking.trackApiCall(url, method, duration, status);
-    
-    // Track additional metrics
-    if (responseSize) {
-      trackCustomMetric(`api_response_size_${method.toLowerCase()}`, responseSize, 'bytes');
-    }
-    
-    if (duration > 2000) { // 2s threshold for API calls
-      frontendErrorTracking.captureMessage(
-        `Slow API call: ${method} ${url} took ${duration}ms`,
-        'warning'
-      );
-    }
-  }, [trackCustomMetric]);
+  const trackApiPerformance = useCallback(
+    (url: string, method: string, startTime: number, status: number, responseSize?: number) => {
+      const duration = performance.now() - startTime;
+
+      frontendErrorTracking.trackApiCall(url, method, duration, status);
+
+      // Track additional metrics
+      if (responseSize) {
+        trackCustomMetric(`api_response_size_${method.toLowerCase()}`, responseSize, 'bytes');
+      }
+
+      if (duration > 2000) {
+        // 2s threshold for API calls
+        frontendErrorTracking.captureMessage(
+          `Slow API call: ${method} ${url} took ${duration}ms`,
+          'warning'
+        );
+      }
+    },
+    [trackCustomMetric]
+  );
 
   /**
    * Track resource loading performance
@@ -187,23 +189,23 @@ export const usePerformanceMonitoring = (pageName?: string) => {
       return;
     }
 
-    const resources = window.performance.getEntriesByType('resource') as PerformanceResourceTiming[];
-    
+    const resources = window.performance.getEntriesByType(
+      'resource'
+    ) as PerformanceResourceTiming[];
+
     resources.forEach((resource) => {
       const duration = resource.responseEnd - resource.startTime;
       const resourceType = resource.initiatorType || 'unknown';
-      
+
       // Track large resources
-      if (resource.transferSize && resource.transferSize > 100000) { // 100KB
-        trackCustomMetric(
-          `large_resource_${resourceType}`,
-          resource.transferSize,
-          'bytes'
-        );
+      if (resource.transferSize && resource.transferSize > 100000) {
+        // 100KB
+        trackCustomMetric(`large_resource_${resourceType}`, resource.transferSize, 'bytes');
       }
-      
+
       // Track slow resources
-      if (duration > 1000) { // 1s
+      if (duration > 1000) {
+        // 1s
         frontendErrorTracking.captureMessage(
           `Slow resource load: ${resource.name} took ${duration}ms`,
           'info'
@@ -232,7 +234,7 @@ export const usePerformanceMonitoring = (pageName?: string) => {
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    
+
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
@@ -254,22 +256,24 @@ export const usePerformanceMonitoring = (pageName?: string) => {
  */
 export const useRenderPerformance = (componentName: string) => {
   const renderStartRef = useRef<number>(0);
-  
+
   useEffect(() => {
     renderStartRef.current = performance.now();
   });
 
   useEffect(() => {
     const renderTime = performance.now() - renderStartRef.current;
-    
-    if (renderTime > 16) { // 16ms threshold (60fps)
+
+    if (renderTime > 16) {
+      // 16ms threshold (60fps)
       frontendErrorTracking.trackPerformance(
         `component_render_${componentName}`,
         renderTime,
         'millisecond'
       );
-      
-      if (renderTime > 100) { // Slow render threshold
+
+      if (renderTime > 100) {
+        // Slow render threshold
         frontendErrorTracking.captureMessage(
           `Slow component render: ${componentName} took ${renderTime}ms`,
           'warning'
@@ -285,18 +289,20 @@ export const useRenderPerformance = (componentName: string) => {
 export const useBundlePerformance = () => {
   useEffect(() => {
     // Track initial bundle load
-    const navigationEntry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-    
+    const navigationEntry = performance.getEntriesByType(
+      'navigation'
+    )[0] as PerformanceNavigationTiming;
+
     if (navigationEntry) {
       const ttfb = navigationEntry.responseStart - navigationEntry.fetchStart;
       const domLoad = navigationEntry.domContentLoadedEventEnd - navigationEntry.fetchStart;
       const fullLoad = navigationEntry.loadEventEnd - navigationEntry.fetchStart;
-      
+
       frontendErrorTracking.trackPerformance('ttfb', ttfb, 'millisecond');
       frontendErrorTracking.trackPerformance('dom_load', domLoad, 'millisecond');
       frontendErrorTracking.trackPerformance('full_load', fullLoad, 'millisecond');
     }
-    
+
     // Track script loading
     const scripts = document.querySelectorAll('script[src]');
     scripts.forEach((script) => {
@@ -318,7 +324,7 @@ export const withPerformanceTracking = <T extends (...args: any[]) => any>(
   return ((...args: any[]) => {
     const start = performance.now();
     const result = fn(...args);
-    
+
     if (result instanceof Promise) {
       return result.finally(() => {
         const duration = performance.now() - start;

@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { overseerrService } from '@/services/overseerr.service';
 import { asyncHandler } from '@/utils/async-handler';
 import { logger } from '@/utils/logger';
+import { CatchError } from '../../types/common';
 
 const router = Router();
 
@@ -24,11 +25,11 @@ router.post(
       await overseerrService.handleWebhook(req.body);
 
       res.status(200).json({ success: true });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Webhook processing failed', { error });
       res.status(500).json({ error: 'Webhook processing failed' });
     }
-  }),
+  })
 );
 
 export default router;

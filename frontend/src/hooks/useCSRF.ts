@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+
 import { csrfClient, type CSRFToken } from '@/lib/api/csrf';
 import { logger } from '@/lib/utils';
 
@@ -103,12 +104,9 @@ export function useCSRF(): UseCSRFReturn {
   useEffect(() => {
     if (!token) return;
 
-    const refreshInterval = setInterval(
-      () => {
-        refreshToken();
-      },
-      45 * 60 * 1000,
-    ); // 45 minutes
+    const refreshInterval = setInterval(() => {
+      refreshToken();
+    }, 45 * 60 * 1000); // 45 minutes
 
     return () => clearInterval(refreshInterval);
   }, [token, refreshToken]);

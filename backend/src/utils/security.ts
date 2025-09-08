@@ -1,7 +1,7 @@
-// @ts-nocheck
 import crypto from 'crypto';
 import * as bcrypt from 'bcryptjs';
 import { logger } from './logger';
+import { configService } from '../config/config.service';
 
 // Password Policy Configuration
 export interface PasswordPolicy {
@@ -51,7 +51,7 @@ const COMMON_PASSWORDS = new Set([
 // Password strength validation
 export function validatePasswordStrength(
   password: string,
-  policy: PasswordPolicy = DEFAULT_PASSWORD_POLICY,
+  policy: PasswordPolicy = DEFAULT_PASSWORD_POLICY
 ): { isValid: boolean; errors: string[]; score: number } {
   const errors: string[] = [];
   let score = 0;
@@ -181,14 +181,19 @@ export function generateBackupCodes(count: number = 10): string[] {
 // Encrypt sensitive data
 export function encryptSensitiveData(
   data: string,
-  key?: string,
+  key?: string
 ): { encrypted: string; iv: string } {
   const algorithm = 'aes-256-gcm';
-  const secretKey = key || process.env.ENCRYPTION_KEY || 'default-key-change-in-production';
+  if (!key && !configService.get('auth', 'ENCRYPTION_KEY')) {
+    throw new Error(
+      'ENCRYPTION_KEY configuration is required. Generate one with: openssl rand -base64 32'
+    );
+  }
+  const secretKey = key || configService.get('auth', 'ENCRYPTION_KEY')!;
   const keyHash = crypto.createHash('sha256').update(secretKey).digest();
 
   const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipher(algorithm, keyHash);
+  const cipher = crypto.createCipher('aes-256-cbc', keyHash.slice(0, 32));
 
   let encrypted = cipher.update(data, 'utf8', 'hex');
   encrypted += cipher.final('hex');
@@ -200,12 +205,18 @@ export function encryptSensitiveData(
 }
 
 // Decrypt sensitive data
-export function decryptSensitiveData(encryptedData: string, _iv: string, key?: string): string {
+export function decryptSensitiveData(encryptedData: string, iv: string, key?: string): string {
   const algorithm = 'aes-256-gcm';
-  const secretKey = key || process.env.ENCRYPTION_KEY || 'default-key-change-in-production';
+  if (!key && !configService.get('auth', 'ENCRYPTION_KEY')) {
+    throw new Error(
+      'ENCRYPTION_KEY configuration is required. Generate one with: openssl rand -base64 32'
+    );
+  }
+  const secretKey = key || configService.get('auth', 'ENCRYPTION_KEY')!;
   const keyHash = crypto.createHash('sha256').update(secretKey).digest();
 
-  const decipher = crypto.createDecipher(algorithm, keyHash);
+  const ivBuffer = Buffer.from(iv, 'hex');
+  const decipher = crypto.createDecipher('aes-256-gcm', keyHash);
 
   let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
   decrypted += decipher.final('utf8');
@@ -221,8 +232,8 @@ export function generateRateLimitKey(identifier: string, action: string): string
 // Security event logging
 export function logSecurityEvent(
   event: string,
-  details: any,
-  level: 'info' | 'warn' | 'error' = 'warn',
+  details: Record<string, unknown>,
+  level: 'info' | 'warn' | 'error' = 'warn'
 ): void {
   const securityLog = {
     event,
@@ -236,10 +247,10 @@ export function logSecurityEvent(
 // Check if password has been previously used
 export function checkPasswordReuse(
   newPassword: string,
-  previousPasswords: string[],
+  previousPasswords: string[]
 ): Promise<boolean> {
   return Promise.all(previousPasswords.map((oldHash) => bcrypt.compare(newPassword, oldHash))).then(
-    (results) => results.some(Boolean),
+    (results) => results.some(Boolean)
   );
 }
 
@@ -252,7 +263,7 @@ export function generateSessionId(): string {
 export function generateDeviceFingerprint(
   userAgent: string,
   ip: string,
-  acceptLanguage?: string,
+  acceptLanguage?: string
 ): string {
   const data = `${userAgent}:${ip}:${acceptLanguage || ''}`;
   return crypto.createHash('sha256').update(data).digest('hex');

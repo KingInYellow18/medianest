@@ -4,7 +4,16 @@ import { config } from '@/config';
 
 export interface JwtPayload {
   userId: string;
+  email: string;
   role: string;
+  plexId?: string;
+  sessionId?: string;
+  deviceId?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  tokenVersion?: number;
+  iat?: number;
+  jti?: string;
 }
 
 export class JwtService {
@@ -23,6 +32,11 @@ export class JwtService {
   }
 
   generateAccessToken(payload: JwtPayload): string {
+    // Ensure required fields are present
+    if (!payload.userId || !payload.email || !payload.role) {
+      throw new Error('JWT payload must include userId, email, and role');
+    }
+
     return jwt.sign(payload, this.secret, {
       expiresIn: '24h',
       issuer: this.issuer,
@@ -31,6 +45,11 @@ export class JwtService {
   }
 
   generateRememberToken(payload: JwtPayload): string {
+    // Ensure required fields are present
+    if (!payload.userId || !payload.email || !payload.role) {
+      throw new Error('JWT payload must include userId, email, and role');
+    }
+
     return jwt.sign(payload, this.secret, {
       expiresIn: '90d',
       issuer: this.issuer,
@@ -44,7 +63,27 @@ export class JwtService {
       audience: this.audience,
     }) as JwtPayload;
 
-    return decoded;
+    // Validate that decoded token has required fields
+    if (!decoded.userId) {
+      throw new Error('Invalid token: missing userId');
+    }
+
+    // For backward compatibility, provide defaults for missing fields
+    const validatedPayload: JwtPayload = {
+      userId: decoded.userId,
+      email: decoded.email || '',
+      role: decoded.role || 'user',
+      plexId: decoded.plexId,
+      sessionId: decoded.sessionId,
+      deviceId: decoded.deviceId,
+      ipAddress: decoded.ipAddress,
+      userAgent: decoded.userAgent,
+      tokenVersion: decoded.tokenVersion,
+      iat: decoded.iat,
+      jti: decoded.jti,
+    };
+
+    return validatedPayload;
   }
 }
 

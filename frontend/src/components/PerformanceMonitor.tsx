@@ -31,7 +31,7 @@ export function PerformanceMonitor() {
         setIsSlowConnection(
           connection.effectiveType === 'slow-2g' ||
             connection.effectiveType === '2g' ||
-            connection.saveData === true,
+            connection.saveData === true
         );
       };
 
@@ -72,7 +72,7 @@ export function useConnectionQuality() {
 
       const updateConnectionInfo = () => {
         setIsSlowConnection(
-          connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g',
+          connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g'
         );
         setSaveData(connection.saveData === true);
       };

@@ -178,8 +178,8 @@ RUN mkdir -p logs && chown app:nodejs logs
 # Switch to app user
 USER app
 
-# Generate Prisma client
-RUN npm run db:generate
+# Skip Prisma generation for development image
+# RUN npm run generate
 
 EXPOSE 3000 3001
 

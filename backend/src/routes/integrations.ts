@@ -6,6 +6,7 @@ import { IntegrationService } from '../services/integration.service';
 import { asyncHandler } from '../utils/async-handler';
 import { logger } from '../utils/logger';
 import { getErrorMessage } from '../utils/error-handling';
+import { CatchError } from '../types/common';
 
 const router = express.Router();
 
@@ -70,7 +71,7 @@ router.get(
         success: true,
         data: plexUser,
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get Plex user', { userId: user.id, error: getErrorMessage(error) });
       res.status(500).json({
         success: false,
@@ -100,7 +101,7 @@ router.get(
         success: true,
         data: servers,
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get Plex servers', {
         userId: user.id,
         error: getErrorMessage(error),
@@ -134,7 +135,7 @@ router.get(
         success: true,
         data: libraries,
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get Plex libraries', {
         userId: user.id,
         error: getErrorMessage(error),
@@ -171,7 +172,7 @@ router.get(
         success: true,
         data: recentlyAdded,
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get recently added media', {
         userId: user.id,
         error: getErrorMessage(error),
@@ -213,7 +214,7 @@ router.get(
         success: true,
         data: results,
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to search Plex media', {
         userId: user.id,
         query,
@@ -247,7 +248,7 @@ router.get(
         success: true,
         data: status,
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get Overseerr status', { error: getErrorMessage(error) });
       res.status(500).json({
         success: false,
@@ -275,13 +276,13 @@ router.get(
       const requests = await overseerrClient.getRequests(
         take ? parseInt(take as string) : 20,
         skip ? parseInt(skip as string) : 0,
-        filter as string,
+        filter as string
       );
       res.json({
         success: true,
         data: requests,
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get Overseerr requests', { error: getErrorMessage(error) });
       res.status(500).json({
         success: false,
@@ -318,7 +319,7 @@ router.post(
         success: true,
         data: request,
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to create Overseerr request', {
         userId: req.user!.id,
         body: req.body,
@@ -358,13 +359,13 @@ router.get(
       const results = await overseerrClient.searchMedia(
         query as string,
         type as 'movie' | 'tv' | undefined,
-        page ? parseInt(page as string) : 1,
+        page ? parseInt(page as string) : 1
       );
       res.json({
         success: true,
         data: results,
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to search media in Overseerr', { query, error: getErrorMessage(error) });
       res.status(500).json({
         success: false,

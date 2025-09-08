@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import speakeasy from 'speakeasy';
 import qrcode from 'qrcode';
 import { UserRepository } from '../repositories/user.repository';
+import { RedisService } from './redis.service';
 import { AppError } from '../utils/errors';
 import { logger } from '../utils/logger';
 import {
@@ -13,7 +14,7 @@ import {
   verifySensitiveData,
   logSecurityEvent,
 } from '../utils/security';
-import { EmailService } from './email.service';
+// Email service removed - email-based 2FA disabled
 
 interface TwoFactorSetup {
   secret: string;
@@ -23,7 +24,7 @@ interface TwoFactorSetup {
 }
 
 interface TwoFactorMethod {
-  type: 'totp' | 'email' | 'sms';
+  type: 'totp' | 'sms'; // 'email' removed - no longer supported
   enabled: boolean;
   verified: boolean;
   createdAt: Date;
@@ -33,7 +34,7 @@ interface TwoFactorMethod {
 interface TwoFactorChallenge {
   id: string;
   userId: string;
-  method: 'totp' | 'email' | 'sms';
+  method: 'totp' | 'sms'; // 'email' removed - no longer supported
   code: string;
   hashedCode: string;
   expiresAt: Date;
@@ -53,17 +54,18 @@ interface TwoFactorVerification {
 
 export class TwoFactorService {
   private userRepository: UserRepository;
-  private emailService: EmailService;
+  private redisService: RedisService;
+  // private emailService: EmailService; // REMOVED - email 2FA disabled
 
-  // In-memory storage for challenges - use Redis in production
-  private challenges: Map<string, TwoFactorChallenge> = new Map();
-
-  constructor(userRepository: UserRepository, emailService: EmailService) {
+  constructor(
+    userRepository: UserRepository,
+    redisService: RedisService /* emailService: EmailService - REMOVED */
+  ) {
     this.userRepository = userRepository;
-    this.emailService = emailService;
+    this.redisService = redisService;
+    // this.emailService = emailService; // REMOVED - email 2FA disabled
 
-    // Cleanup expired challenges every 5 minutes
-    setInterval(() => this.cleanupExpiredChallenges(), 5 * 60 * 1000);
+    // Redis handles TTL automatically, no need for manual cleanup
   }
 
   /**
@@ -102,7 +104,7 @@ export class TwoFactorService {
         userId,
         method: 'totp',
       },
-      'info',
+      'info'
     );
 
     return {
@@ -122,7 +124,7 @@ export class TwoFactorService {
     options: {
       ipAddress: string;
       userAgent: string;
-    },
+    }
   ): Promise<{ success: boolean; backupCodes?: string[] }> {
     const user = await this.userRepository.findById(userId);
     if (!user || !user.twoFactorSecret) {
@@ -146,7 +148,7 @@ export class TwoFactorService {
           ipAddress: options.ipAddress,
           reason: 'invalid_token',
         },
-        'warn',
+        'warn'
       );
 
       throw new AppError('Invalid authentication code', 400, 'INVALID_2FA_TOKEN');
@@ -170,7 +172,7 @@ export class TwoFactorService {
         ipAddress: options.ipAddress,
         userAgent: options.userAgent,
       },
-      'info',
+      'info'
     );
 
     return {
@@ -180,35 +182,11 @@ export class TwoFactorService {
   }
 
   /**
-   * Setup email-based 2FA
+   * Setup email-based 2FA - DISABLED
    */
   async setupEmailTwoFactor(userId: string): Promise<{ success: boolean }> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new AppError('User not found', 404, 'USER_NOT_FOUND');
-    }
-
-    if (!user.emailVerified) {
-      throw new AppError('Email must be verified before enabling 2FA', 400, 'EMAIL_NOT_VERIFIED');
-    }
-
-    // Enable email 2FA
-    await this.userRepository.update(userId, {
-      twoFactorEnabled: true,
-      twoFactorVerified: true,
-      twoFactorMethod: 'email',
-    });
-
-    logSecurityEvent(
-      '2FA_EMAIL_ENABLED',
-      {
-        userId,
-        email: user.email,
-      },
-      'info',
-    );
-
-    return { success: true };
+    // EMAIL 2FA DISABLED: This functionality has been removed
+    throw new AppError('Email-based 2FA is no longer supported', 400, 'EMAIL_2FA_DISABLED');
   }
 
   /**
@@ -216,11 +194,11 @@ export class TwoFactorService {
    */
   async createChallenge(
     userId: string,
-    method: 'totp' | 'email' | 'sms',
+    method: 'totp' | 'sms', // 'email' removed - no longer supported
     options: {
       ipAddress: string;
       userAgent: string;
-    },
+    }
   ): Promise<{ challengeId: string; method: string; expiresIn: number }> {
     const user = await this.userRepository.findById(userId);
     if (!user) {
@@ -232,12 +210,12 @@ export class TwoFactorService {
     }
 
     // Check for existing active challenge
-    const existingChallenge = this.findActiveChallenge(userId);
+    const existingChallenge = await this.redisService.findActive2FAChallenge(userId);
     if (existingChallenge) {
       return {
-        challengeId: existingChallenge.id,
-        method: existingChallenge.method,
-        expiresIn: Math.floor((existingChallenge.expiresAt.getTime() - Date.now()) / 1000),
+        challengeId: existingChallenge.challengeId,
+        method: existingChallenge.data.method,
+        expiresIn: Math.floor((existingChallenge.data.expiresAt.getTime() - Date.now()) / 1000),
       };
     }
 
@@ -247,19 +225,8 @@ export class TwoFactorService {
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
     if (method === 'email') {
-      // Generate 6-digit code for email
-      code = generateOTP(6);
-      hashedCode = crypto.createHash('sha256').update(code).digest('hex');
-
-      // Send email
-      await this.emailService.sendTwoFactorEmail({
-        to: user.email,
-        name: user.name || 'User',
-        code,
-        expiresIn: 5,
-        ipAddress: options.ipAddress,
-        userAgent: options.userAgent,
-      });
+      // EMAIL 2FA DISABLED: This functionality has been removed
+      throw new AppError('Email-based 2FA is no longer supported', 400, 'EMAIL_2FA_DISABLED');
     } else if (method === 'sms') {
       // SMS not implemented yet
       throw new AppError('SMS 2FA not implemented', 400, 'SMS_2FA_NOT_IMPLEMENTED');
@@ -284,7 +251,7 @@ export class TwoFactorService {
       userAgent: options.userAgent,
     };
 
-    this.challenges.set(challengeId, challenge);
+    await this.redisService.set2FAChallenge(challengeId, challenge, 300); // 5 minutes TTL
 
     logSecurityEvent(
       '2FA_CHALLENGE_CREATED',
@@ -294,7 +261,7 @@ export class TwoFactorService {
         method,
         ipAddress: options.ipAddress,
       },
-      'info',
+      'info'
     );
 
     return {
@@ -313,22 +280,22 @@ export class TwoFactorService {
     options?: {
       ipAddress?: string;
       userAgent?: string;
-    },
+    }
   ): Promise<TwoFactorVerification> {
-    const challenge = this.challenges.get(challengeId);
+    const challenge = await this.redisService.get2FAChallenge(challengeId);
     if (!challenge) {
       throw new AppError('Challenge not found', 404, 'CHALLENGE_NOT_FOUND');
     }
 
-    // Check if challenge is expired
+    // Check if challenge is expired (Redis TTL should handle this)
     if (new Date() > challenge.expiresAt) {
-      this.challenges.delete(challengeId);
+      await this.redisService.delete2FAChallenge(challengeId);
       throw new AppError('Challenge expired', 400, 'CHALLENGE_EXPIRED');
     }
 
     // Check max attempts
     if (challenge.attempts >= challenge.maxAttempts) {
-      this.challenges.delete(challengeId);
+      await this.redisService.delete2FAChallenge(challengeId);
       logSecurityEvent(
         '2FA_MAX_ATTEMPTS_EXCEEDED',
         {
@@ -337,7 +304,7 @@ export class TwoFactorService {
           method: challenge.method,
           attempts: challenge.attempts,
         },
-        'error',
+        'error'
       );
       throw new AppError('Maximum attempts exceeded', 400, 'MAX_ATTEMPTS_EXCEEDED');
     }
@@ -350,11 +317,8 @@ export class TwoFactorService {
     if (challenge.method === 'totp') {
       verified = await this.verifyTOTP(challenge.userId, code);
     } else if (challenge.method === 'email') {
-      const providedHash = crypto.createHash('sha256').update(code).digest('hex');
-      verified = crypto.timingSafeEqual(
-        Buffer.from(challenge.hashedCode, 'hex'),
-        Buffer.from(providedHash, 'hex'),
-      );
+      // EMAIL 2FA DISABLED: This functionality has been removed
+      throw new AppError('Email-based 2FA is no longer supported', 400, 'EMAIL_2FA_DISABLED');
     } else if (challenge.method === 'sms') {
       // SMS verification not implemented
       throw new AppError('SMS verification not implemented', 400, 'SMS_NOT_IMPLEMENTED');
@@ -362,7 +326,7 @@ export class TwoFactorService {
 
     if (verified) {
       challenge.verified = true;
-      this.challenges.delete(challengeId);
+      await this.redisService.delete2FAChallenge(challengeId);
 
       logSecurityEvent(
         '2FA_VERIFICATION_SUCCESS',
@@ -373,12 +337,12 @@ export class TwoFactorService {
           attempts: challenge.attempts,
           ipAddress: options?.ipAddress,
         },
-        'info',
+        'info'
       );
 
       return { success: true };
     } else {
-      this.challenges.set(challengeId, challenge);
+      await this.redisService.update2FAChallenge(challengeId, challenge);
 
       logSecurityEvent(
         '2FA_VERIFICATION_FAILED',
@@ -390,7 +354,7 @@ export class TwoFactorService {
           remainingAttempts: challenge.maxAttempts - challenge.attempts,
           ipAddress: options?.ipAddress,
         },
-        'warn',
+        'warn'
       );
 
       return {
@@ -426,7 +390,7 @@ export class TwoFactorService {
     options: {
       ipAddress: string;
       userAgent: string;
-    },
+    }
   ): Promise<{ success: boolean; remainingCodes: number }> {
     const user = await this.userRepository.findById(userId);
     if (!user || !user.twoFactorBackupCodes) {
@@ -450,7 +414,7 @@ export class TwoFactorService {
           userId,
           ipAddress: options.ipAddress,
         },
-        'warn',
+        'warn'
       );
 
       return { success: false, remainingCodes: user.twoFactorBackupCodes.length };
@@ -470,7 +434,7 @@ export class TwoFactorService {
         ipAddress: options.ipAddress,
         userAgent: options.userAgent,
       },
-      'info',
+      'info'
     );
 
     return {
@@ -487,7 +451,7 @@ export class TwoFactorService {
     options: {
       ipAddress: string;
       userAgent: string;
-    },
+    }
   ): Promise<{ success: boolean }> {
     await this.userRepository.update(userId, {
       twoFactorEnabled: false,
@@ -503,7 +467,7 @@ export class TwoFactorService {
         ipAddress: options.ipAddress,
         userAgent: options.userAgent,
       },
-      'info',
+      'info'
     );
 
     return { success: true };
@@ -523,26 +487,18 @@ export class TwoFactorService {
   }
 
   /**
-   * Find active challenge for user
+   * Find active challenge for user (handled by Redis service)
    */
-  private findActiveChallenge(userId: string): TwoFactorChallenge | undefined {
-    for (const challenge of this.challenges.values()) {
-      if (challenge.userId === userId && new Date() < challenge.expiresAt) {
-        return challenge;
-      }
-    }
-    return undefined;
+  private async findActiveChallenge(userId: string): Promise<TwoFactorChallenge | undefined> {
+    const result = await this.redisService.findActive2FAChallenge(userId);
+    return result?.data;
   }
 
   /**
-   * Cleanup expired challenges
+   * Cleanup expired challenges (handled by Redis TTL)
    */
   private cleanupExpiredChallenges(): void {
-    const now = new Date();
-    for (const [id, challenge] of this.challenges.entries()) {
-      if (now > challenge.expiresAt) {
-        this.challenges.delete(id);
-      }
-    }
+    // Redis handles TTL automatically, method kept for compatibility
+    logger.debug('2FA challenge cleanup handled by Redis TTL');
   }
 }

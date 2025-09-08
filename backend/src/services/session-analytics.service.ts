@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { logger } from '../utils/logger';
+import { CatchError } from '../types/common';
 
 interface SessionMetrics {
   totalSessions: number;
@@ -53,7 +54,7 @@ export class SessionAnalyticsService {
         securityEvents: 3,
         suspiciousActivity: 1,
       };
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get session metrics', { error });
       throw error;
     }
@@ -75,7 +76,7 @@ export class SessionAnalyticsService {
         riskScore: 15,
         anomalies: [],
       };
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to analyze user behavior', { error, userId });
       throw error;
     }
@@ -86,7 +87,7 @@ export class SessionAnalyticsService {
    */
   async detectAnomalies(
     userId: string,
-    currentSession: any,
+    currentSession: any
   ): Promise<
     Array<{
       type: string;
@@ -134,7 +135,7 @@ export class SessionAnalyticsService {
       }
 
       return anomalies;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to detect anomalies', { error, userId });
       return [];
     }
@@ -161,7 +162,7 @@ export class SessionAnalyticsService {
       if (alert.severity === 'high') {
         await this.handleHighSeverityAlert(alert);
       }
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to generate security alert', { error, alert });
     }
   }
@@ -233,7 +234,7 @@ export class SessionAnalyticsService {
     try {
       // This would query session history from database
       return [];
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get user session history', { error, userId });
       return [];
     }
@@ -249,7 +250,7 @@ export class SessionAnalyticsService {
     try {
       // This would delete old analytics data
       logger.info('Analytics data cleanup completed', { cutoffDate, retentionDays });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to cleanup analytics data', { error });
     }
   }

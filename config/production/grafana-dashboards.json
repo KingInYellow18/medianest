@@ -1,0 +1,243 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "MediaNest Production Dashboard",
+    "tags": ["medianest", "production", "monitoring"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "System Overview",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "up{job=\"medianest-app\"}",
+            "legendFormat": "Application Status"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "red",
+                  "value": null
+                },
+                {
+                  "color": "green",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "HTTP Requests per Second",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{job=\"medianest-app\"}[5m])",
+            "legendFormat": "{{method}} {{status_code}}"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 4
+        }
+      },
+      {
+        "id": 3,
+        "title": "Response Time",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=\"medianest-app\"}[5m]))",
+            "legendFormat": "95th percentile"
+          },
+          {
+            "expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket{job=\"medianest-app\"}[5m]))",
+            "legendFormat": "50th percentile"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 4
+        }
+      },
+      {
+        "id": 4,
+        "title": "Memory Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "process_resident_memory_bytes{job=\"medianest-app\"}",
+            "legendFormat": "Application Memory"
+          },
+          {
+            "expr": "container_memory_usage_bytes{name=\"medianest-app\"}",
+            "legendFormat": "Container Memory"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 12
+        }
+      },
+      {
+        "id": 5,
+        "title": "Database Connections",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "pg_stat_database_numbackends{datname=\"medianest\"}",
+            "legendFormat": "Active Connections"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 12
+        }
+      },
+      {
+        "id": 6,
+        "title": "Redis Memory Usage",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "redis_memory_used_bytes{job=\"redis\"}",
+            "legendFormat": "Memory Used"
+          }
+        ],
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 6,
+          "y": 0
+        }
+      },
+      {
+        "id": 7,
+        "title": "Container Status",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "container_last_seen{name=~\"medianest.*\"}",
+            "legendFormat": "{{name}}"
+          }
+        ],
+        "gridPos": {
+          "h": 6,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        }
+      },
+      {
+        "id": 8,
+        "title": "Disk Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "100 - (node_filesystem_avail_bytes{mountpoint=\"/\"} * 100 / node_filesystem_size_bytes{mountpoint=\"/\"})",
+            "legendFormat": "Disk Usage %"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 20
+        }
+      },
+      {
+        "id": 9,
+        "title": "Network I/O",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(container_network_receive_bytes_total{name=~\"medianest.*\"}[5m])",
+            "legendFormat": "{{name}} - Receive"
+          },
+          {
+            "expr": "rate(container_network_transmit_bytes_total{name=~\"medianest.*\"}[5m])",
+            "legendFormat": "{{name}} - Transmit"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 20
+        }
+      },
+      {
+        "id": 10,
+        "title": "Error Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{job=\"medianest-app\",status_code=~\"5..\"}[5m]) / rate(http_requests_total{job=\"medianest-app\"}[5m]) * 100",
+            "legendFormat": "Error Rate %"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 1
+                },
+                {
+                  "color": "red",
+                  "value": 5
+                }
+              ]
+            },
+            "unit": "percent"
+          }
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 18,
+          "y": 0
+        }
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "timepicker": {
+      "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]
+    },
+    "refresh": "30s"
+  }
+}

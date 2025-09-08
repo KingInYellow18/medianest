@@ -1,6 +1,7 @@
 import Redis from 'ioredis';
 import { logger } from '../utils/logger';
 import { getRedisConfig } from './index';
+import { CatchError } from '../types/common';
 
 let redisClient: Redis;
 
@@ -75,7 +76,7 @@ export const initializeRedis = async (): Promise<Redis> => {
     try {
       await redisClient.ping();
       logger.info('Redis ping successful');
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Redis ping failed:', error);
       throw error;
     }
@@ -114,7 +115,7 @@ export const checkRedisHealth = async (): Promise<boolean> => {
     const redis = getRedis();
     await redis.ping();
     return true;
-  } catch (error: any) {
+  } catch (error: CatchError) {
     logger.error('Redis health check failed:', error);
     return false;
   }
@@ -144,7 +145,7 @@ end
 export const checkRateLimit = async (
   key: string,
   limit: number,
-  windowSeconds: number,
+  windowSeconds: number
 ): Promise<{ allowed: boolean; retryAfter?: number }> => {
   try {
     const redis = getRedis();
@@ -155,7 +156,7 @@ export const checkRateLimit = async (
     } else {
       return { allowed: false, retryAfter: result };
     }
-  } catch (error: any) {
+  } catch (error: CatchError) {
     logger.error('Rate limit check failed:', error);
     // Allow request on error to avoid blocking users
     return { allowed: true };

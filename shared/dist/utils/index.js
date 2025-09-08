@@ -17,8 +17,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateCorrelationId = void 0;
 __exportStar(require("./format"), exports);
 __exportStar(require("./generators"), exports);
-__exportStar(require("./crypto"), exports);
 __exportStar(require("./validation"), exports);
+__exportStar(require("./crypto-client"), exports);
 var generators_1 = require("./generators");
 Object.defineProperty(exports, "generateCorrelationId", { enumerable: true, get: function () { return generators_1.generateCorrelationId; } });
 //# sourceMappingURL=index.js.map

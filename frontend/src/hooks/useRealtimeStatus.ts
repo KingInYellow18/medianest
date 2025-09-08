@@ -34,7 +34,7 @@ export function useRealtimeStatus() {
                   ? { ...service.details, ...update.details }
                   : service.details,
               }
-            : service,
+            : service
         );
       });
 

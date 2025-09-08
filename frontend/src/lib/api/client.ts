@@ -6,7 +6,7 @@ import {
   ServiceUnavailableError,
   parseApiError,
   logError,
-} from '@medianest/shared';
+} from '@medianest/shared/client';
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string>;
@@ -132,8 +132,9 @@ class ApiClient {
 
     // Set cache control based on revalidate option
     if (options.revalidate !== undefined) {
-      headers['Cache-Control'] =
-        `max-age=${options.revalidate}, stale-while-revalidate=${options.revalidate * 2}`;
+      headers['Cache-Control'] = `max-age=${options.revalidate}, stale-while-revalidate=${
+        options.revalidate * 2
+      }`;
     }
 
     const response = await this.fetchWithTimeout(url, {

@@ -3,6 +3,7 @@ import { Server, Socket } from 'socket.io';
 import { logger } from '@/utils/logger';
 import { youtubeQueue } from '@/config/queues';
 import { YoutubeDownloadRepository } from '@/repositories/youtube-download.repository';
+import { CatchError } from '../../types/common';
 
 interface DownloadProgress {
   downloadId: string;
@@ -110,11 +111,17 @@ export function registerDownloadHandlers(io: Server, socket: Socket): void {
           },
         });
       }
-    } catch (error: any) {
-      logger.error('Failed to get download queue status', { userId, error: error.message as any });
+    } catch (error: CatchError) {
+      logger.error('Failed to get download queue status', {
+        userId,
+        error: error instanceof Error ? error.message : ('Unknown error' as any),
+      });
 
       if (callback) {
-        callback({ success: false, error: error.message as any });
+        callback({
+          success: false,
+          error: error instanceof Error ? error.message : ('Unknown error' as any),
+        });
       }
     }
   });
@@ -154,10 +161,10 @@ export function registerDownloadHandlers(io: Server, socket: Socket): void {
             state === 'waiting'
               ? 'pending'
               : state === 'active'
-                ? 'downloading'
-                : state === 'completed'
-                  ? 'completed'
-                  : 'failed',
+              ? 'downloading'
+              : state === 'completed'
+              ? 'completed'
+              : 'failed',
           metadata: {
             title: job.data.metadata?.title,
             duration: job.data.metadata?.duration,
@@ -198,15 +205,18 @@ export function registerDownloadHandlers(io: Server, socket: Socket): void {
       if (callback) {
         callback({ success: true, data: downloadStatus });
       }
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get download status', {
         userId,
         downloadId,
-        error: error.message as any,
+        error: error instanceof Error ? error.message : ('Unknown error' as any),
       });
 
       if (callback) {
-        callback({ success: false, error: error.message as any });
+        callback({
+          success: false,
+          error: error instanceof Error ? error.message : ('Unknown error' as any),
+        });
       }
     }
   });
@@ -259,15 +269,18 @@ export function registerDownloadHandlers(io: Server, socket: Socket): void {
       }
 
       logger.info('Download cancelled by user', { userId, downloadId });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to cancel download', {
         userId,
         downloadId,
-        error: error.message as any,
+        error: error instanceof Error ? error.message : ('Unknown error' as any),
       });
 
       if (callback) {
-        callback({ success: false, error: error.message as any });
+        callback({
+          success: false,
+          error: error instanceof Error ? error.message : ('Unknown error' as any),
+        });
       }
     }
   });
@@ -320,15 +333,18 @@ export function registerDownloadHandlers(io: Server, socket: Socket): void {
       }
 
       logger.info('Download retry requested by user', { userId, downloadId });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to retry download', {
         userId,
         downloadId,
-        error: error.message as any,
+        error: error instanceof Error ? error.message : ('Unknown error' as any),
       });
 
       if (callback) {
-        callback({ success: false, error: error.message as any });
+        callback({
+          success: false,
+          error: error instanceof Error ? error.message : ('Unknown error' as any),
+        });
       }
     }
   });
@@ -344,7 +360,7 @@ export function emitDownloadProgress(
   io: Server,
   userId: string,
   downloadId: string,
-  progress: DownloadProgress,
+  progress: DownloadProgress
 ): void {
   // Emit to user's download room
   io.of('/downloads').to(`downloads:user:${userId}`).emit('download:progress', progress);
@@ -373,7 +389,7 @@ export function emitDownloadComplete(
     filePath: string;
     fileSize: number;
     metadata?: any;
-  },
+  }
 ): void {
   const completeData = {
     downloadId,
@@ -401,7 +417,7 @@ export function emitDownloadFailure(
   io: Server,
   userId: string,
   downloadId: string,
-  error: string,
+  error: string
 ): void {
   const failureData = {
     downloadId,

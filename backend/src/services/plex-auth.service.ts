@@ -6,6 +6,7 @@ import { AppError } from '../utils/errors';
 import { generateToken } from '../utils/jwt';
 import { logger } from '../utils/logger';
 import { PlexUser as PlexUserType, PlexAuthPin } from '../types/integration/external-apis.types';
+import { CatchError } from '../types/common';
 
 export interface PlexPin {
   id: number;
@@ -144,23 +145,23 @@ export class PlexAuthService {
           status: response.status,
           error: errorText,
         });
-        throw new AppError('Unable to connect to Plex services', 503, 'PLEX_UNAVAILABLE');
+        throw new AppError('PLEX_UNAVAILABLE', 'Unable to connect to Plex services', 503);
       }
 
       const data = (await response.json()) as PlexPin;
 
       logger.info('Plex PIN created successfully', {
-        pinId: data.id,
+        pinId: String(data.id),
         code: data.code,
         expiresAt: data.expiresAt,
       });
 
       return data;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (error instanceof AppError) throw error;
 
       logger.error('Error creating Plex PIN', { error });
-      throw new AppError('Failed to initialize Plex authentication', 500, 'PLEX_PIN_ERROR');
+      throw new AppError('PLEX_PIN_ERROR', 'Failed to initialize Plex authentication', 500);
     }
   }
 
@@ -183,27 +184,27 @@ export class PlexAuthService {
 
         const errorText = await response.text();
         logger.error('Failed to check Plex PIN', {
-          pinId,
+          pinId: String(pinId),
           status: response.status,
           error: errorText,
         });
-        throw new AppError('Unable to verify PIN status', 503, 'PLEX_UNAVAILABLE');
+        throw new AppError('PLEX_UNAVAILABLE', 'Unable to verify PIN status', 503);
       }
 
       const data = (await response.json()) as PlexPin;
 
       logger.info('Plex PIN checked', {
-        pinId: data.id,
+        pinId: String(data.id),
         hasAuthToken: !!data.authToken,
         expiresAt: data.expiresAt,
       });
 
       return data;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (error instanceof AppError) throw error;
 
-      logger.error('Error checking Plex PIN', { error, pinId });
-      throw new AppError('Failed to check PIN status', 500, 'PLEX_PIN_CHECK_ERROR');
+      logger.error('Error checking Plex PIN', { error, pinId: String(pinId) });
+      throw new AppError('PLEX_PIN_CHECK_ERROR', 'Failed to check PIN status', 500);
     }
   }
 
@@ -229,23 +230,23 @@ export class PlexAuthService {
           status: response.status,
           error: errorText,
         });
-        throw new AppError('Unable to fetch user information', 503, 'PLEX_USER_ERROR');
+        throw new AppError('PLEX_USER_ERROR', 'Unable to fetch user information', 503);
       }
 
       const data = (await response.json()) as PlexUser;
 
       logger.info('Plex user fetched successfully', {
-        userId: data.id,
+        userId: String(data.id),
         username: data.username,
         email: data.email,
       });
 
       return data;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (error instanceof AppError) throw error;
 
       logger.error('Error getting Plex user', { error });
-      throw new AppError('Failed to fetch user information', 500, 'PLEX_USER_FETCH_ERROR');
+      throw new AppError('PLEX_USER_FETCH_ERROR', 'Failed to fetch user information', 500);
     }
   }
 
@@ -262,7 +263,7 @@ export class PlexAuthService {
       const pin = await this.checkPin(pinId);
 
       if (!pin.authToken) {
-        throw new AppError('PIN not yet authorized by user', 400, 'PIN_NOT_AUTHORIZED');
+        throw new AppError('PIN_NOT_AUTHORIZED', 'PIN not yet authorized by user', 400);
       }
 
       // Get user info from Plex
@@ -279,31 +280,31 @@ export class PlexAuthService {
           name: plexUser.username,
           plexId: plexUser.id.toString(),
           plexUsername: plexUser.username,
-          plexToken: plexUser.authenticationToken,
+          plexToken: (plexUser as any).authToken || (plexUser as any).authenticationToken,
           role: 'user',
         });
         isNewUser = true;
 
         logger.info('New user created from Plex OAuth', {
           userId: user.id,
-          plexId: plexUser.id,
+          plexId: String(plexUser.id),
           email: plexUser.email,
         });
       } else {
         // Update existing user with new token and login time
         user = await this.userRepository.update(user.id, {
-          plexToken: plexUser.authenticationToken,
+          plexToken: (plexUser as any).authToken || (plexUser as any).authenticationToken,
           lastLoginAt: new Date(),
           name: plexUser.username, // Update name in case it changed
         });
 
         logger.info('Existing user updated from Plex OAuth', {
           userId: user.id,
-          plexId: plexUser.id,
+          plexId: String(plexUser.id),
         });
       }
 
-      // Generate JWT token
+      // Generate JWT token with complete payload
       const jwtToken = generateToken({
         userId: user.id,
         email: user.email,
@@ -314,7 +315,7 @@ export class PlexAuthService {
       // Create session token record
       await this.sessionTokenRepository.create({
         userId: user.id,
-        hashedToken: jwtToken,
+        token: jwtToken,
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
       });
 
@@ -325,15 +326,15 @@ export class PlexAuthService {
           name: user.name,
           role: user.role,
           plexUsername: user.plexUsername,
-        },
+        } as any,
         token: jwtToken,
         isNewUser,
       };
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (error instanceof AppError) throw error;
 
-      logger.error('Error completing Plex OAuth', { error, pinId });
-      throw new AppError('Failed to complete authentication', 500, 'OAUTH_COMPLETION_ERROR');
+      logger.error('Error completing Plex OAuth', { error, pinId: String(pinId) });
+      throw new AppError('OAUTH_COMPLETION_ERROR', 'Failed to complete authentication', 500);
     }
   }
 }

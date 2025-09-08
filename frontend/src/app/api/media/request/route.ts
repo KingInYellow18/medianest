@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
             message: 'Authentication required',
           },
         },
-        { status: 401 },
+        { status: 401 }
       );
     }
 
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
             message: 'mediaType and mediaId (or tmdbId) are required',
           },
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
             message: 'Invalid media type. Must be "movie" or "tv"',
           },
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
           message: 'Internal server error',
         },
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

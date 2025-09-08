@@ -4,6 +4,13 @@
  */
 
 import { vi } from 'vitest';
+import type { Request, Response, NextFunction } from 'express';
+
+// Context7 Pattern: Define proper types for middleware functions
+interface MockRateLimitOptions {
+  failAfter?: number;
+  path?: string;
+}
 
 // Mock Redis client for rate limiting and session management
 export const createMockRedis = () => ({
@@ -30,10 +37,10 @@ export const createMockRedis = () => ({
 });
 
 // Mock rate limiter that can simulate different scenarios
-export const createMockRateLimit = (options?: { failAfter?: number; path?: string }) => {
+export const createMockRateLimit = (options?: MockRateLimitOptions) => {
   let requestCount = 0;
 
-  return (req: any, res: any, next: any) => {
+  return (req: Request, res: Response, next: NextFunction) => {
     requestCount++;
 
     const { failAfter = 100, path } = options || {};

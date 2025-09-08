@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 
+import { getApiConfig } from '@/config';
 import { socketManager } from '@/lib/socket';
 import { ServiceStatus } from '@/types/dashboard';
-import { getApiConfig } from '@/config';
 
 export function useServiceStatus(initialServices: ServiceStatus[]) {
   const [services, setServices] = useState<ServiceStatus[]>(initialServices);
@@ -30,7 +30,7 @@ export function useServiceStatus(initialServices: ServiceStatus[]) {
                   ...data,
                   lastCheckAt: new Date(data.lastCheckAt),
                 }
-              : service,
+              : service
           );
         } else {
           // Add new service
@@ -45,7 +45,7 @@ export function useServiceStatus(initialServices: ServiceStatus[]) {
         data.map((service) => ({
           ...service,
           lastCheckAt: new Date(service.lastCheckAt),
-        })),
+        }))
       );
     };
 

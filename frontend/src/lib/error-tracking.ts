@@ -23,8 +23,12 @@ export class FrontendErrorTracking {
       environment: process.env.NODE_ENV || 'development',
       debug: process.env.NODE_ENV === 'development',
       tracesSampleRate: parseFloat(process.env.NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE || '0.1'),
-      replaysSessionSampleRate: parseFloat(process.env.NEXT_PUBLIC_SENTRY_REPLAYS_SESSION_SAMPLE_RATE || '0.01'),
-      replaysOnErrorSampleRate: parseFloat(process.env.NEXT_PUBLIC_SENTRY_REPLAYS_ERROR_SAMPLE_RATE || '1.0'),
+      replaysSessionSampleRate: parseFloat(
+        process.env.NEXT_PUBLIC_SENTRY_REPLAYS_SESSION_SAMPLE_RATE || '0.01'
+      ),
+      replaysOnErrorSampleRate: parseFloat(
+        process.env.NEXT_PUBLIC_SENTRY_REPLAYS_ERROR_SAMPLE_RATE || '1.0'
+      ),
       maxBreadcrumbs: 100,
       attachStacktrace: true,
     };
@@ -48,11 +52,7 @@ export class FrontendErrorTracking {
       integrations: [
         // Browser tracing for performance
         new BrowserTracing({
-          tracePropagationTargets: [
-            'localhost',
-            /^https:\/\/api\.yourapp\.com/,
-            /^\/api/,
-          ],
+          tracePropagationTargets: ['localhost', /^https:\/\/api\.yourapp\.com/, /^\/api/],
         }),
         // Session replay for debugging
         new Sentry.Replay({
@@ -68,17 +68,19 @@ export class FrontendErrorTracking {
         if (event.request) {
           delete event.request.cookies;
         }
-        
+
         // Don't send events for certain errors
         if (event.exception) {
           const error = event.exception.values?.[0];
-          if (error?.type === 'ChunkLoadError' || 
-              error?.value?.includes('Loading chunk') ||
-              error?.value?.includes('Network Error')) {
+          if (
+            error?.type === 'ChunkLoadError' ||
+            error?.value?.includes('Loading chunk') ||
+            error?.value?.includes('Network Error')
+          ) {
             return null;
           }
         }
-        
+
         return event;
       },
     });
@@ -178,7 +180,7 @@ export class FrontendErrorTracking {
    */
   trackApiCall(url: string, method: string, duration: number, status: number): void {
     const isError = status >= 400;
-    
+
     this.addBreadcrumb({
       message: `API ${method} ${url}`,
       category: 'http',
@@ -230,17 +232,14 @@ export class FrontendErrorTracking {
   /**
    * Profile performance of async operations
    */
-  async profileOperation<T>(
-    operationName: string,
-    operation: () => Promise<T>
-  ): Promise<T> {
+  async profileOperation<T>(operationName: string, operation: () => Promise<T>): Promise<T> {
     const transaction = Sentry.startTransaction({
       op: 'custom',
       name: operationName,
     });
 
     const startTime = performance.now();
-    
+
     try {
       const result = await operation();
       transaction.setStatus('ok');

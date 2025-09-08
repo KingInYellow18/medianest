@@ -5,7 +5,11 @@
     "outDir": "./dist",
     "composite": false,
     "noEmit": false,
-    "incremental": true
+    // Context7 Pattern: Root-level incremental compilation with project references
+    "incremental": true,
+    "tsBuildInfoFile": "./.tsbuildinfo",
+    "skipLibCheck": true,
+    "assumeChangesOnlyAffectDirectDependencies": true
   },
   "files": [],
   "include": [],

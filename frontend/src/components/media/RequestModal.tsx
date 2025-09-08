@@ -134,7 +134,7 @@ export function RequestModal({ media, isOpen, onClose, onSubmit }: RequestModalP
                   selectedSeasons={selectedSeasons}
                   onSeasonToggle={(season) => {
                     setSelectedSeasons((prev) =>
-                      prev.includes(season) ? prev.filter((s) => s !== season) : [...prev, season],
+                      prev.includes(season) ? prev.filter((s) => s !== season) : [...prev, season]
                     );
                   }}
                 />
@@ -158,12 +158,14 @@ export function RequestModal({ media, isOpen, onClose, onSubmit }: RequestModalP
                 {isSubmitting
                   ? 'Submitting...'
                   : !canRequest
-                    ? 'Rate limit exceeded'
-                    : media.mediaType === 'tv' && selectedSeasons.length === 0
-                      ? 'Select at least one season'
-                      : media.mediaType === 'tv'
-                        ? `Request Selected Seasons (${remainingRequests} remaining)`
-                        : `Request ${media.mediaType === 'movie' ? 'Movie' : 'TV Show'} (${remainingRequests} remaining)`}
+                  ? 'Rate limit exceeded'
+                  : media.mediaType === 'tv' && selectedSeasons.length === 0
+                  ? 'Select at least one season'
+                  : media.mediaType === 'tv'
+                  ? `Request Selected Seasons (${remainingRequests} remaining)`
+                  : `Request ${
+                      media.mediaType === 'movie' ? 'Movie' : 'TV Show'
+                    } (${remainingRequests} remaining)`}
               </Button>
             </div>
           </div>

@@ -19,7 +19,7 @@ export class HealthController {
 
       // Always return 200 for basic health check to support container health checks
       res.status(200).json(health);
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Health check failed', { error });
 
       // Even on error, return basic status for container health checks
@@ -109,11 +109,11 @@ export class HealthController {
       });
 
       res.json(metrics);
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Failed to get metrics', { error });
       res.status(500).json({
         error: 'Failed to retrieve metrics',
-        message: (error as Error) ? (error.message as any) : 'Unknown error',
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -124,7 +124,7 @@ export class HealthController {
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
 
-    const parts = [];
+    const parts: string[] = [];
     if (days > 0) parts.push(`${days}d`);
     if (hours > 0) parts.push(`${hours}h`);
     if (minutes > 0) parts.push(`${minutes}m`);

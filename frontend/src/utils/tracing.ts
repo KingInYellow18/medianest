@@ -19,7 +19,7 @@ export class FrontendTracer {
   private getOrCreateCorrelationId(): string {
     const stored = sessionStorage.getItem('correlationId');
     if (stored) return stored;
-    
+
     const newId = uuidv4();
     sessionStorage.setItem('correlationId', newId);
     return newId;
@@ -31,7 +31,7 @@ export class FrontendTracer {
   private getOrCreateSessionId(): string {
     const stored = localStorage.getItem('sessionId');
     if (stored) return stored;
-    
+
     const newId = uuidv4();
     localStorage.setItem('sessionId', newId);
     return newId;
@@ -78,7 +78,7 @@ export class FrontendTracer {
   startClientSpan(operationName: string, attributes?: Record<string, any>) {
     const spanId = uuidv4();
     const startTime = performance.now();
-    
+
     const span = {
       spanId,
       operationName,
@@ -93,44 +93,44 @@ export class FrontendTracer {
         ...attributes,
       },
       events: [] as Array<{ name: string; timestamp: number; attributes?: any }>,
-      
+
       // Add event to span
-      addEvent: function(name: string, attributes?: any) {
+      addEvent: function (name: string, attributes?: any) {
         this.events.push({
           name,
           timestamp: performance.now(),
           attributes,
         });
       },
-      
+
       // Set attributes
-      setAttributes: function(attrs: Record<string, any>) {
+      setAttributes: function (attrs: Record<string, any>) {
         Object.assign(this.attributes, attrs);
       },
-      
+
       // End span and send to backend
       end: () => {
         const endTime = performance.now();
         const duration = endTime - startTime;
-        
+
         const spanData = {
           ...span,
           endTime,
           duration,
           status: 'OK',
         };
-        
+
         // Send span data to backend for correlation
         this.sendSpanToBackend(spanData);
-        
+
         return spanData;
       },
-      
+
       // End span with error
-      endWithError: function(error: Error) {
+      endWithError: function (error: Error) {
         const endTime = performance.now();
         const duration = endTime - startTime;
-        
+
         const spanData = {
           ...span,
           endTime,
@@ -142,14 +142,14 @@ export class FrontendTracer {
             stack: error.stack,
           },
         };
-        
+
         // Send span data to backend for correlation
         tracer.sendSpanToBackend(spanData);
-        
+
         return spanData;
       },
     };
-    
+
     return span;
   }
 
@@ -189,7 +189,7 @@ export class FrontendTracer {
       'navigation.to': to,
       'navigation.type': 'client_side',
     });
-    
+
     // End immediately for navigation events
     setTimeout(() => span.end(), 0);
   }
@@ -204,7 +204,7 @@ export class FrontendTracer {
       'interaction.timestamp': Date.now(),
       ...attributes,
     });
-    
+
     // End immediately for interaction events
     setTimeout(() => span.end(), 0);
   }
@@ -212,11 +212,7 @@ export class FrontendTracer {
   /**
    * Track API calls with automatic correlation
    */
-  async trackAPICall<T>(
-    url: string,
-    options: RequestInit,
-    operationName?: string
-  ): Promise<T> {
+  async trackAPICall<T>(url: string, options: RequestInit, operationName?: string): Promise<T> {
     const span = this.startClientSpan(
       operationName || `api.${options.method?.toLowerCase() || 'get'}`,
       {
@@ -251,7 +247,6 @@ export class FrontendTracer {
       const data = await response.json();
       span.end();
       return data;
-
     } catch (error) {
       span.endWithError(error as Error);
       throw error;
@@ -264,18 +259,22 @@ export class FrontendTracer {
   trackPerformance(): void {
     // Track page load performance
     window.addEventListener('load', () => {
-      const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-      
+      const navigation = performance.getEntriesByType(
+        'navigation'
+      )[0] as PerformanceNavigationTiming;
+
       if (navigation) {
         const span = this.startClientSpan('page.load', {
-          'performance.dom_content_loaded': navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart,
+          'performance.dom_content_loaded':
+            navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart,
           'performance.load_complete': navigation.loadEventEnd - navigation.loadEventStart,
           'performance.dns_lookup': navigation.domainLookupEnd - navigation.domainLookupStart,
           'performance.tcp_connect': navigation.connectEnd - navigation.connectStart,
           'performance.response_time': navigation.responseEnd - navigation.responseStart,
-          'performance.dom_processing': navigation.domComplete - navigation.domLoading,
+          'performance.dom_processing':
+            navigation.domComplete - navigation.domContentLoadedEventStart,
         });
-        
+
         span.end();
       }
     });
@@ -294,35 +293,35 @@ export const tracer = new FrontendTracer();
 // Auto-track navigation for SPAs
 if (typeof window !== 'undefined') {
   let currentPath = window.location.pathname;
-  
+
   // Track initial page load
   tracer.trackNavigation('', currentPath);
-  
+
   // Track route changes (for React Router, etc.)
   const originalPushState = history.pushState;
   const originalReplaceState = history.replaceState;
-  
-  history.pushState = function(state, title, url) {
+
+  history.pushState = function (state, title, url) {
     const previousPath = currentPath;
     originalPushState.call(history, state, title, url);
     currentPath = window.location.pathname;
     tracer.trackNavigation(previousPath, currentPath);
   };
-  
-  history.replaceState = function(state, title, url) {
+
+  history.replaceState = function (state, title, url) {
     const previousPath = currentPath;
     originalReplaceState.call(history, state, title, url);
     currentPath = window.location.pathname;
     tracer.trackNavigation(previousPath, currentPath);
   };
-  
+
   // Track back/forward navigation
   window.addEventListener('popstate', () => {
     const previousPath = currentPath;
     currentPath = window.location.pathname;
     tracer.trackNavigation(previousPath, currentPath);
   });
-  
+
   // Initialize performance tracking
   tracer.trackPerformance();
 }

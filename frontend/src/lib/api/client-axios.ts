@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+
 import { csrfInterceptor } from '../csrf-interceptor';
 
 // API base URL from environment
@@ -31,7 +32,7 @@ axiosClient.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  },
+  }
 );
 
 // Response interceptor for error handling
@@ -51,7 +52,7 @@ axiosClient.interceptors.response.use(
       }
     }
     return Promise.reject(error);
-  },
+  }
 );
 
 export default axiosClient;
