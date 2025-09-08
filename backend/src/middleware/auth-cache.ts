@@ -20,9 +20,11 @@ export interface CachedUserData {
 }
 
 export class AuthCacheService {
-  private readonly USER_CACHE_TTL = 300; // 5 minutes
+  private readonly USER_CACHE_TTL = 120; // 2 minutes (reduced for security)
   private readonly USER_CACHE_PREFIX = 'user:auth:';
-  private readonly CACHE_VERSION = 'v2';
+  private readonly CACHE_VERSION = 'v3'; // Incremented for security fixes
+  private readonly TOKEN_CACHE_PREFIX = 'token:auth:';
+  private readonly SESSION_CACHE_PREFIX = 'session:auth:';
 
   /**
    * Get cached user data with fallback to database

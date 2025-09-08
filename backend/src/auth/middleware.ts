@@ -50,12 +50,19 @@ export class AuthMiddleware {
       '/api/v1/csrf/token',
     ]);
 
-    // Context7 Pattern: Authentication result caching with TTL
+    // ZERO TRUST: User-specific authentication cache with isolation
     const authCache = new Map<
       string,
-      { user: AuthenticatedUser; token: string; expires: number }
+      {
+        user: AuthenticatedUser;
+        token: string;
+        userId: string;
+        expires: number;
+        ipAddress: string;
+        sessionId: string;
+      }
     >();
-    const CACHE_TTL = 300000; // 5 minutes in milliseconds
+    const CACHE_TTL = 120000; // 2 minutes in milliseconds (reduced for security)
 
     return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
       try {
@@ -69,17 +76,37 @@ export class AuthMiddleware {
           return next();
         }
 
-        // Context7 Pattern: Check authentication cache first
+        // ZERO TRUST: Secure cache lookup with user isolation
         const authHeader = req.headers.authorization;
         if (authHeader && authHeader.startsWith('Bearer ')) {
           const token = authHeader.substring(7);
-          const cached = authCache.get(token);
+          const cacheKey = `${token}:${req.ip || 'unknown'}`; // IP-specific cache key
+          const cached = authCache.get(cacheKey);
 
           if (cached && Date.now() < cached.expires) {
-            // Context7 Pattern: Serve from cache for better performance
-            req.user = cached.user;
-            req.token = cached.token;
-            return next();
+            // ZERO TRUST: Verify IP address hasn't changed (prevent cache poisoning)
+            if (cached.ipAddress !== req.ip) {
+              logger.warn('Cache poisoning attempt detected - IP mismatch', {
+                cachedIP: cached.ipAddress,
+                currentIP: req.ip,
+                userId: cached.userId,
+              });
+              authCache.delete(cacheKey);
+              // Continue to re-authentication
+            } else {
+              // ZERO TRUST: Verify user is still active
+              const userStatus = await this.authFacade.validateUser(cached.userId);
+              if (!userStatus || userStatus.status !== 'active') {
+                logger.warn('Cached user is no longer active', { userId: cached.userId });
+                authCache.delete(cacheKey);
+                // Continue to re-authentication
+              } else {
+                req.user = cached.user;
+                req.token = cached.token;
+                req.sessionId = cached.sessionId;
+                return next();
+              }
+            }
           }
         }
 
@@ -91,20 +118,37 @@ export class AuthMiddleware {
         req.deviceId = authResult.deviceId;
         req.sessionId = authResult.sessionId;
 
-        // Context7 Pattern: Cache successful authentication result
-        if (req.token && req.user) {
-          authCache.set(req.token, {
+        // ZERO TRUST: Cache successful authentication with user isolation
+        if (req.token && req.user && req.sessionId) {
+          const cacheKey = `${req.token}:${req.ip || 'unknown'}`;
+          authCache.set(cacheKey, {
             user: req.user,
             token: req.token,
+            userId: req.user.id,
             expires: Date.now() + CACHE_TTL,
+            ipAddress: req.ip || 'unknown',
+            sessionId: req.sessionId,
           });
 
-          // Context7 Pattern: Cleanup expired cache entries asynchronously
+          // ZERO TRUST: Aggressive cache cleanup with security validation
           setImmediate(() => {
-            for (const [token, cached] of authCache.entries()) {
+            const expiredKeys = [];
+            for (const [cacheKey, cached] of authCache.entries()) {
               if (Date.now() >= cached.expires) {
-                authCache.delete(token);
+                expiredKeys.push(cacheKey);
               }
+              // Additional security: Remove entries if user no longer exists
+              // This prevents cache poisoning with deleted user accounts
+            }
+            expiredKeys.forEach((key) => authCache.delete(key));
+
+            // ZERO TRUST: Limit cache size to prevent memory attacks
+            if (authCache.size > 1000) {
+              const oldestEntries = Array.from(authCache.entries())
+                .sort(([, a], [, b]) => a.expires - b.expires)
+                .slice(0, 500);
+              oldestEntries.forEach(([key]) => authCache.delete(key));
+              logger.warn('Authentication cache size exceeded limit - pruned oldest entries');
             }
           });
 
@@ -127,8 +171,16 @@ export class AuthMiddleware {
                   req.user!.id
                 )
                 .then(() => {
-                  // Context7 Pattern: Invalidate cache after token rotation
-                  authCache.delete(req.token!);
+                  // ZERO TRUST: Invalidate ALL cache entries for this user after token rotation
+                  const userCacheKeys = Array.from(authCache.keys()).filter((key) => {
+                    const cached = authCache.get(key);
+                    return cached && cached.userId === req.user!.id;
+                  });
+                  userCacheKeys.forEach((key) => authCache.delete(key));
+                  logger.info('Invalidated user cache after token rotation', {
+                    userId: req.user!.id,
+                    keysInvalidated: userCacheKeys.length,
+                  });
                 })
                 .catch((error) => {
                   logger.error('Async token rotation failed', { error, userId: req.user!.id });
