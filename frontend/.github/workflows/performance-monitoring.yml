@@ -1,0 +1,410 @@
+# ⚡ Performance Monitoring & Optimization Pipeline
+# Continuous performance monitoring and automated optimization
+name: Performance Monitoring
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run performance tests daily at 6 AM UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Type of performance test'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - build
+          - runtime
+          - lighthouse
+
+env:
+  NODE_VERSION: '20'
+
+  # Performance thresholds
+  MAX_BUNDLE_SIZE_MB: 2
+  MAX_BUILD_TIME_SECONDS: 120
+  MIN_LIGHTHOUSE_SCORE: 90
+  MAX_FIRST_CONTENTFUL_PAINT: 2000
+  MAX_LARGEST_CONTENTFUL_PAINT: 4000
+
+defaults:
+  run:
+    working-directory: ./frontend
+
+jobs:
+  # 📦 Bundle Size Analysis
+  bundle-analysis:
+    name: Bundle Size Analysis
+    runs-on: ubuntu-latest
+    if: ${{ inputs.test_type == 'full' || inputs.test_type == 'build' || github.event_name == 'push' || github.event_name == 'pull_request' }}
+    timeout-minutes: 10
+
+    outputs:
+      bundle-size: ${{ steps.bundle-check.outputs.size }}
+      size-change: ${{ steps.bundle-check.outputs.change }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Build application
+        run: |
+          echo "🏗️ Building application for bundle analysis..."
+          npm run build
+
+      - name: Bundle size analysis
+        id: bundle-check
+        run: |
+          echo "📦 Analyzing bundle size..."
+
+          # Calculate bundle size
+          if [ -d ".next" ]; then
+            BUNDLE_SIZE=$(du -sm .next | cut -f1)
+            BUNDLE_SIZE_BYTES=$(du -sb .next | cut -f1)
+          else
+            echo "❌ Build directory not found"
+            exit 1
+          fi
+
+          echo "Bundle size: ${BUNDLE_SIZE}MB (${BUNDLE_SIZE_BYTES} bytes)"
+          echo "size=$BUNDLE_SIZE" >> $GITHUB_OUTPUT
+
+          # Check against threshold
+          if [ "$BUNDLE_SIZE" -gt "${{ env.MAX_BUNDLE_SIZE_MB }}" ]; then
+            echo "❌ Bundle size exceeds threshold: ${BUNDLE_SIZE}MB > ${{ env.MAX_BUNDLE_SIZE_MB }}MB"
+            echo "::warning::Bundle size threshold exceeded"
+          else
+            echo "✅ Bundle size within acceptable limits"
+          fi
+
+          # Compare with base branch if PR
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "Comparing bundle size with base branch..."
+            git checkout origin/${{ github.base_ref }}
+            npm ci --prefer-offline --no-audit > /dev/null 2>&1
+            npm run build > /dev/null 2>&1
+            
+            if [ -d ".next" ]; then
+              BASE_SIZE=$(du -sm .next | cut -f1)
+              SIZE_DIFF=$((BUNDLE_SIZE - BASE_SIZE))
+              echo "change=$SIZE_DIFF" >> $GITHUB_OUTPUT
+              echo "Bundle size change: ${SIZE_DIFF}MB (base: ${BASE_SIZE}MB, current: ${BUNDLE_SIZE}MB)"
+              
+              if [ "$SIZE_DIFF" -gt "0" ]; then
+                echo "::warning::Bundle size increased by ${SIZE_DIFF}MB"
+              fi
+            fi
+          fi
+
+      - name: Generate bundle report
+        run: |
+          echo "📊 Generating bundle analysis report..."
+          npm run analyze:bundle > bundle-report.txt 2>&1 || true
+
+      - name: Upload bundle artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-analysis
+          path: |
+            bundle-report.txt
+            .next/analyze/
+          retention-days: 30
+
+  # ⏱️ Build Performance Testing
+  build-performance:
+    name: Build Performance Test
+    runs-on: ubuntu-latest
+    if: ${{ inputs.test_type == 'full' || inputs.test_type == 'build' || github.event_name == 'schedule' }}
+    timeout-minutes: 5
+
+    outputs:
+      build-time: ${{ steps.build-timer.outputs.duration }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Clean build
+        run: npm run clean
+
+      - name: Timed build test
+        id: build-timer
+        run: |
+          echo "⏱️ Starting timed build test..."
+
+          START_TIME=$(date +%s)
+          npm run build
+          END_TIME=$(date +%s)
+
+          DURATION=$((END_TIME - START_TIME))
+          echo "duration=$DURATION" >> $GITHUB_OUTPUT
+          echo "Build completed in ${DURATION} seconds"
+
+          # Check against threshold
+          if [ "$DURATION" -gt "${{ env.MAX_BUILD_TIME_SECONDS }}" ]; then
+            echo "❌ Build time exceeds threshold: ${DURATION}s > ${{ env.MAX_BUILD_TIME_SECONDS }}s"
+            echo "::error::Build performance degraded"
+            exit 1
+          else
+            echo "✅ Build time within acceptable limits: ${DURATION}s"
+          fi
+
+      - name: Build performance analysis
+        run: |
+          echo "📊 Build Performance Report" > build-performance.md
+          echo "=========================" >> build-performance.md
+          echo "" >> build-performance.md
+          echo "**Build Duration:** ${{ steps.build-timer.outputs.duration }} seconds" >> build-performance.md
+          echo "**Threshold:** ${{ env.MAX_BUILD_TIME_SECONDS }} seconds" >> build-performance.md
+          echo "**Status:** $( [ "${{ steps.build-timer.outputs.duration }}" -le "${{ env.MAX_BUILD_TIME_SECONDS }}" ] && echo "✅ PASSED" || echo "❌ FAILED" )" >> build-performance.md
+
+      - name: Upload build performance report
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-performance-report
+          path: build-performance.md
+          retention-days: 30
+
+  # 🚀 Lighthouse Performance Audit
+  lighthouse-audit:
+    name: Lighthouse Performance Audit
+    runs-on: ubuntu-latest
+    if: ${{ inputs.test_type == 'full' || inputs.test_type == 'lighthouse' || inputs.test_type == 'runtime' || github.event_name == 'schedule' }}
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci --prefer-offline --no-audit
+          npm install -g @lhci/cli@0.12.x
+
+      - name: Build application
+        run: npm run build
+
+      - name: Start application
+        run: |
+          npm run start &
+          sleep 10
+          curl --retry 5 --retry-delay 5 http://localhost:3000 || exit 1
+
+      - name: Run Lighthouse CI
+        run: |
+          echo "🚀 Running Lighthouse performance audit..."
+          lhci autorun --upload.target=temporary-public-storage
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+
+      - name: Lighthouse performance validation
+        run: |
+          echo "📊 Validating Lighthouse performance scores..."
+
+          # Extract scores from Lighthouse report
+          PERFORMANCE_SCORE=$(jq -r '.categories.performance.score * 100' .lighthouseci/lighthouse-*.json | head -1)
+          ACCESSIBILITY_SCORE=$(jq -r '.categories.accessibility.score * 100' .lighthouseci/lighthouse-*.json | head -1)
+          BEST_PRACTICES_SCORE=$(jq -r '.categories["best-practices"].score * 100' .lighthouseci/lighthouse-*.json | head -1)
+          SEO_SCORE=$(jq -r '.categories.seo.score * 100' .lighthouseci/lighthouse-*.json | head -1)
+
+          echo "Performance: ${PERFORMANCE_SCORE}%"
+          echo "Accessibility: ${ACCESSIBILITY_SCORE}%"
+          echo "Best Practices: ${BEST_PRACTICES_SCORE}%"
+          echo "SEO: ${SEO_SCORE}%"
+
+          # Check performance threshold
+          if (( $(echo "$PERFORMANCE_SCORE < ${{ env.MIN_LIGHTHOUSE_SCORE }}" | bc -l) )); then
+            echo "❌ Performance score below threshold: ${PERFORMANCE_SCORE}% < ${{ env.MIN_LIGHTHOUSE_SCORE }}%"
+            echo "::error::Lighthouse performance audit failed"
+            exit 1
+          else
+            echo "✅ Lighthouse performance audit passed: ${PERFORMANCE_SCORE}%"
+          fi
+
+      - name: Upload Lighthouse reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-reports
+          path: .lighthouseci/
+          retention-days: 30
+
+  # 📈 Runtime Performance Testing
+  runtime-performance:
+    name: Runtime Performance Test
+    runs-on: ubuntu-latest
+    if: ${{ inputs.test_type == 'full' || inputs.test_type == 'runtime' || github.event_name == 'schedule' }}
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci --prefer-offline --no-audit
+          npm install -g clinic puppeteer
+
+      - name: Build application
+        run: npm run build
+
+      - name: Start application with profiling
+        run: |
+          echo "⚡ Starting runtime performance analysis..."
+          npm run start &
+          APP_PID=$!
+          sleep 10
+
+          # Basic runtime performance test
+          curl -w "@curl-format.txt" -o /dev/null -s http://localhost:3000 > performance-metrics.txt
+
+          echo "Runtime Performance Metrics:" 
+          cat performance-metrics.txt
+
+          kill $APP_PID
+
+      - name: Create curl format file
+        run: |
+          cat > curl-format.txt << 'EOF'
+          time_namelookup:  %{time_namelookup}\n
+          time_connect:     %{time_connect}\n
+          time_appconnect:  %{time_appconnect}\n
+          time_pretransfer: %{time_pretransfer}\n
+          time_redirect:    %{time_redirect}\n
+          time_starttransfer: %{time_starttransfer}\n
+          ----------\n
+          time_total:       %{time_total}\n
+          EOF
+
+      - name: Upload runtime performance results
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-performance-results
+          path: performance-metrics.txt
+          retention-days: 30
+
+  # 📋 Performance Summary Report
+  performance-report:
+    name: Performance Summary Report
+    runs-on: ubuntu-latest
+    needs: [bundle-analysis, build-performance, lighthouse-audit, runtime-performance]
+    if: always()
+    timeout-minutes: 5
+
+    steps:
+      - name: Generate performance summary
+        run: |
+          echo "📊 Generating comprehensive performance report..."
+
+          cat > performance-summary.md << 'EOF'
+          # ⚡ Performance Monitoring Report
+
+          **Test Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          **Repository:** ${{ github.repository }}
+          **Branch:** ${{ github.ref_name }}
+          **Commit:** ${{ github.sha }}
+
+          ## 📈 Performance Metrics Summary
+
+          | Test Category | Status | Metrics | Threshold |
+          |---------------|--------|---------|-----------|
+          | Bundle Size | ${{ needs.bundle-analysis.result }} | ${{ needs.bundle-analysis.outputs.bundle-size || 'N/A' }}MB | ≤${{ env.MAX_BUNDLE_SIZE_MB }}MB |
+          | Build Time | ${{ needs.build-performance.result }} | ${{ needs.build-performance.outputs.build-time || 'N/A' }}s | ≤${{ env.MAX_BUILD_TIME_SECONDS }}s |
+          | Lighthouse Audit | ${{ needs.lighthouse-audit.result }} | Performance Score | ≥${{ env.MIN_LIGHTHOUSE_SCORE }}% |
+          | Runtime Performance | ${{ needs.runtime-performance.result }} | Response Time Analysis | Completed |
+
+          ## 🎯 Performance Status
+
+          $( [ "${{ needs.bundle-analysis.result }}" == "success" ] && echo "- ✅ **Bundle Size**: Within limits" || echo "- ❌ **Bundle Size**: Threshold exceeded" )
+          $( [ "${{ needs.build-performance.result }}" == "success" ] && echo "- ✅ **Build Performance**: Acceptable" || echo "- ❌ **Build Performance**: Too slow" )
+          $( [ "${{ needs.lighthouse-audit.result }}" == "success" ] && echo "- ✅ **Lighthouse Score**: Meets standards" || echo "- ❌ **Lighthouse Score**: Below threshold" )
+          $( [ "${{ needs.runtime-performance.result }}" == "success" ] && echo "- ✅ **Runtime Performance**: Analyzed" || echo "- ❌ **Runtime Performance**: Issues detected" )
+
+          $( [ "${{ needs.bundle-analysis.outputs.size-change }}" != "" ] && echo "## 📊 Bundle Size Changes" && echo "Size change from base branch: ${{ needs.bundle-analysis.outputs.size-change }}MB" || echo "" )
+
+          ## 🚀 Optimization Recommendations
+
+          1. **Bundle Optimization**: 
+             - Implement code splitting for large components
+             - Use dynamic imports for non-critical features
+             - Optimize asset loading and compression
+
+          2. **Build Optimization**:
+             - Enable incremental builds
+             - Optimize TypeScript compilation
+             - Use build caching strategies
+
+          3. **Runtime Optimization**:
+             - Implement lazy loading for images
+             - Optimize API calls and data fetching
+             - Use performance monitoring in production
+
+          ## 📋 Action Items
+
+          $( [ "${{ needs.bundle-analysis.result }}" != "success" ] && echo "- 🔴 **CRITICAL**: Reduce bundle size below ${{ env.MAX_BUNDLE_SIZE_MB }}MB" || echo "" )
+          $( [ "${{ needs.build-performance.result }}" != "success" ] && echo "- 🔴 **CRITICAL**: Optimize build time below ${{ env.MAX_BUILD_TIME_SECONDS }}s" || echo "" )
+          $( [ "${{ needs.lighthouse-audit.result }}" != "success" ] && echo "- 🟡 **HIGH**: Improve Lighthouse performance score above ${{ env.MIN_LIGHTHOUSE_SCORE }}%" || echo "" )
+          - 📊 Review detailed performance artifacts
+          - 🔄 Monitor performance trends over time
+
+          ---
+          *Report generated automatically by MediaNest Performance Pipeline*
+          EOF
+
+          echo "✅ Performance summary report generated"
+
+      - name: Upload performance summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-summary-report
+          path: performance-summary.md
+          retention-days: 90
+
+      - name: Performance status check
+        run: |
+          if [ "${{ needs.bundle-analysis.result }}" == "failure" ] || 
+             [ "${{ needs.build-performance.result }}" == "failure" ] || 
+             [ "${{ needs.lighthouse-audit.result }}" == "failure" ]; then
+            echo "🚨 PERFORMANCE ALERT: Performance thresholds exceeded"
+            echo "::warning::Performance benchmarks not met. Review optimization recommendations."
+          else
+            echo "✅ All performance tests passed successfully"
+          fi

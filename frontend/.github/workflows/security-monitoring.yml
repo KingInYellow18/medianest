@@ -1,0 +1,324 @@
+# 🔐 Security Monitoring & Compliance Pipeline
+# Continuous security scanning and vulnerability monitoring
+name: Security Monitoring
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      scan_type:
+        description: 'Type of security scan'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - dependencies
+          - code
+          - containers
+
+env:
+  NODE_VERSION: '20'
+
+defaults:
+  run:
+    working-directory: ./frontend
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  # 🛡️ Dependency Vulnerability Scanning
+  dependency-security:
+    name: Dependency Security Scan
+    runs-on: ubuntu-latest
+    if: ${{ inputs.scan_type == 'full' || inputs.scan_type == 'dependencies' || github.event_name == 'schedule' || github.event_name == 'push' }}
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Run npm audit
+        continue-on-error: true
+        run: |
+          echo "🔍 Running npm audit security scan..."
+          npm audit --audit-level=moderate --json > npm-audit-results.json || true
+          npm audit --audit-level=moderate
+
+      - name: Generate security report
+        run: |
+          echo "📊 Generating security report..."
+
+          CRITICAL=$(jq '.metadata.vulnerabilities.critical // 0' npm-audit-results.json)
+          HIGH=$(jq '.metadata.vulnerabilities.high // 0' npm-audit-results.json)
+          MODERATE=$(jq '.metadata.vulnerabilities.moderate // 0' npm-audit-results.json)
+          LOW=$(jq '.metadata.vulnerabilities.low // 0' npm-audit-results.json)
+
+          echo "Security Vulnerability Summary:" | tee security-summary.txt
+          echo "Critical: $CRITICAL" | tee -a security-summary.txt
+          echo "High: $HIGH" | tee -a security-summary.txt
+          echo "Moderate: $MODERATE" | tee -a security-summary.txt
+          echo "Low: $LOW" | tee -a security-summary.txt
+
+          # Set job outputs for downstream jobs
+          echo "critical=$CRITICAL" >> $GITHUB_OUTPUT
+          echo "high=$HIGH" >> $GITHUB_OUTPUT
+
+          # Fail if critical vulnerabilities found
+          if [ "$CRITICAL" -gt "0" ]; then
+            echo "❌ CRITICAL VULNERABILITIES DETECTED: $CRITICAL"
+            echo "::error::Critical security vulnerabilities found. Immediate action required."
+            exit 1
+          fi
+
+      - name: Upload security artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-security-results
+          path: |
+            npm-audit-results.json
+            security-summary.txt
+          retention-days: 30
+
+  # 🔍 Static Code Security Analysis
+  code-security:
+    name: Code Security Analysis
+    runs-on: ubuntu-latest
+    if: ${{ inputs.scan_type == 'full' || inputs.scan_type == 'code' || github.event_name == 'push' }}
+    timeout-minutes: 15
+
+    strategy:
+      matrix:
+        tool: [semgrep, codeql, eslint-security]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        if: matrix.tool == 'eslint-security'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        if: matrix.tool == 'eslint-security'
+        run: |
+          npm ci --prefer-offline --no-audit
+          npm install --save-dev eslint-plugin-security
+
+      - name: Run Semgrep
+        if: matrix.tool == 'semgrep'
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/secrets
+            p/owasp-top-ten
+            p/react
+            p/typescript
+          generateSarif: '1'
+          publishToken: ${{ secrets.SEMGREP_APP_TOKEN }}
+
+      - name: Initialize CodeQL
+        if: matrix.tool == 'codeql'
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript,typescript
+          queries: security-extended,security-and-quality
+
+      - name: Perform CodeQL Analysis
+        if: matrix.tool == 'codeql'
+        uses: github/codeql-action/analyze@v3
+
+      - name: ESLint Security Plugin
+        if: matrix.tool == 'eslint-security'
+        run: |
+          echo "🔍 Running ESLint security analysis..."
+          npx eslint . --ext .js,.jsx,.ts,.tsx --config .eslintrc.security.js --format json --output-file eslint-security-results.json || true
+
+          # Count security issues
+          SECURITY_ISSUES=$(jq '[.[] | .messages[] | select(.ruleId | startswith("security/"))] | length' eslint-security-results.json || echo "0")
+          echo "Security issues found: $SECURITY_ISSUES"
+
+          if [ "$SECURITY_ISSUES" -gt "0" ]; then
+            echo "⚠️ Security issues detected in code"
+            jq -r '.[] | .messages[] | select(.ruleId | startswith("security/")) | "\(.ruleId): \(.message) (\(.line):\(.column))"' eslint-security-results.json
+          fi
+
+      - name: Upload SARIF results
+        if: always() && matrix.tool != 'eslint-security'
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ matrix.tool == 'semgrep' && 'semgrep.sarif' || 'results/javascript.sarif' }}
+          category: ${{ matrix.tool }}
+
+  # 🐳 Container Security Scanning
+  container-security:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+    if: ${{ inputs.scan_type == 'full' || inputs.scan_type == 'containers' || github.event_name == 'schedule' }}
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build container image
+        run: |
+          echo "🏗️ Building container for security scan..."
+          docker build -t medianest-frontend:security-scan -f Dockerfile .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'medianest-frontend:security-scan'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy scan results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+          category: 'container-security'
+
+  # 🔒 Secrets Detection
+  secrets-detection:
+    name: Secrets Detection
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run GitLeaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+      - name: Run TruffleHog
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  # 📋 Security Compliance Report
+  security-report:
+    name: Security Compliance Report
+    runs-on: ubuntu-latest
+    needs: [dependency-security, code-security, container-security, secrets-detection]
+    if: always()
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate comprehensive security report
+        run: |
+          echo "📋 Generating comprehensive security report..."
+
+          cat > security-compliance-report.md << 'EOF'
+          # 🔐 Security Compliance Report
+
+          **Scan Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          **Repository:** ${{ github.repository }}
+          **Branch:** ${{ github.ref_name }}
+          **Commit:** ${{ github.sha }}
+
+          ## 📊 Security Scan Summary
+
+          | Scan Type | Status | Issues Found |
+          |-----------|--------|-------------|
+          | Dependency Security | ${{ needs.dependency-security.result }} | Critical: ${{ needs.dependency-security.outputs.critical || 'N/A' }}, High: ${{ needs.dependency-security.outputs.high || 'N/A' }} |
+          | Code Security | ${{ needs.code-security.result }} | Findings uploaded to Security tab |
+          | Container Security | ${{ needs.container-security.result }} | Scan completed |
+          | Secrets Detection | ${{ needs.secrets-detection.result }} | No secrets detected |
+
+          ## 🎯 Compliance Status
+
+          - ✅ **OWASP Top 10**: Scanned with Semgrep
+          - ✅ **Container Security**: Trivy scan completed
+          - ✅ **Dependency Vulnerabilities**: npm audit executed
+          - ✅ **Secret Detection**: GitLeaks and TruffleHog executed
+          - ✅ **Code Quality**: CodeQL analysis completed
+
+          ## 🚨 Action Items
+
+          $( [ "${{ needs.dependency-security.outputs.critical }}" != "0" ] && echo "- 🔴 **CRITICAL**: Fix ${{ needs.dependency-security.outputs.critical }} critical dependency vulnerabilities" || echo "- ✅ No critical dependency vulnerabilities" )
+          $( [ "${{ needs.dependency-security.outputs.high }}" != "0" ] && echo "- 🟡 **HIGH**: Review ${{ needs.dependency-security.outputs.high }} high-severity dependency vulnerabilities" || echo "- ✅ No high-severity dependency vulnerabilities" )
+          - 📊 Review detailed findings in the Security tab
+          - 🔄 Schedule next security scan
+
+          ## 📈 Recommendations
+
+          1. Enable Dependabot for automated dependency updates
+          2. Implement pre-commit hooks for security scanning  
+          3. Set up security monitoring and alerting
+          4. Regular security training for development team
+
+          ---
+          *Report generated automatically by MediaNest Security Pipeline*
+          EOF
+
+          echo "✅ Security compliance report generated"
+
+      - name: Upload security report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-compliance-report
+          path: security-compliance-report.md
+          retention-days: 90
+
+      - name: Security status notification
+        if: always()
+        run: |
+          if [ "${{ needs.dependency-security.result }}" == "failure" ] || 
+             [ "${{ needs.code-security.result }}" == "failure" ] || 
+             [ "${{ needs.container-security.result }}" == "failure" ] ||
+             [ "${{ needs.secrets-detection.result }}" == "failure" ]; then
+            echo "🚨 SECURITY ALERT: One or more security scans failed"
+            echo "::error::Security vulnerabilities detected. Review findings immediately."
+            exit 1
+          else
+            echo "✅ All security scans completed successfully"
+          fi

@@ -1,88 +1,145 @@
 /** @type {import('next').NextConfig} */
-const path = require('path');
-
 const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  
-  typescript: {
-    ignoreBuildErrors: false,
-  },
-
-  outputFileTracingRoot: path.join(__dirname, '../'),
-
-  // Essential optimizations for <500KB target
+  // Enable experimental features for performance
   experimental: {
+    optimizeCss: true,
     optimizePackageImports: [
+      '@tabler/icons-react',
       'lucide-react',
-      'date-fns',
-      'clsx',
+      '@headlessui/react',
+      'framer-motion'
     ],
-    optimizeServerReact: true,
+    turbo: {
+      rules: {
+        '*.svg': {
+          loaders: ['@svgr/webpack'],
+          as: '*.js',
+        },
+      },
+    },
   },
 
-  webpack: (config, { dev, isServer }) => {
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        path: false,
-        os: false,
-        crypto: false,
-      };
-    }
-
-    // Lightweight code splitting
+  // Webpack optimization
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    // Production optimizations
     if (!dev) {
-      config.optimization.splitChunks = {
-        chunks: 'all',
-        cacheGroups: {
-          framework: {
-            chunks: 'all',
-            name: 'framework',
-            test: /[\/]node_modules[\/](react|react-dom)[\/]/,
-            priority: 40,
-            enforce: true,
-          },
-          vendor: {
-            chunks: 'all',
-            name: 'vendor',
-            test: /[\/]node_modules[\/]/,
-            priority: 20,
-            minSize: 20000,
-          },
+      // Tree shaking optimization
+      config.optimization = {
+        ...config.optimization,
+        usedExports: true,
+        sideEffects: false,
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name: 'vendors',
+              chunks: 'all',
+              priority: 10,
+              reuseExistingChunk: true,
+            },
+            common: {
+              name: 'common',
+              minChunks: 2,
+              chunks: 'all',
+              priority: 5,
+              reuseExistingChunk: true,
+            },
+            // Separate heavy libraries
+            react: {
+              test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+              name: 'react',
+              chunks: 'all',
+              priority: 20,
+            },
+            ui: {
+              test: /[\\/]node_modules[\\/](@headlessui|@tabler|lucide-react)[\\/]/,
+              name: 'ui-libs',
+              chunks: 'all',
+              priority: 15,
+            },
+            motion: {
+              test: /[\\/]node_modules[\\/]framer-motion[\\/]/,
+              name: 'framer-motion',
+              chunks: 'all',
+              priority: 12,
+            }
+          }
         },
       };
+
+      // Bundle analyzer for development
+      if (process.env.ANALYZE === 'true') {
+        const BundleAnalyzerPlugin = require('@next/bundle-analyzer')({
+          enabled: true,
+        });
+        config.plugins.push(BundleAnalyzerPlugin);
+      }
+
+      // Compression
+      config.plugins.push(
+        new webpack.optimize.AggressiveMergingPlugin(),
+      );
     }
+
+    // Module resolution optimization
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': path.resolve(__dirname, 'src'),
+      '~': path.resolve(__dirname),
+    };
 
     return config;
   },
 
-  // SWC optimizations
-  compiler: {
-    removeConsole: process.env.NODE_ENV === 'production' 
-      ? { exclude: ['error', 'warn'] }
-      : false,
-  },
-
   // Image optimization
   images: {
-    remotePatterns: [
-      { protocol: 'https', hostname: '**.plex.direct' },
-      { protocol: 'http', hostname: 'localhost' },
-    ],
-    formats: ['image/webp'],
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 
-  output: 'standalone',
+  // Performance optimizations
+  swcMinify: true,
   compress: true,
-  productionBrowserSourceMaps: false,
+  
+  // Build cache
+  generateBuildId: async () => {
+    // Use git commit hash for build id to enable better caching
+    const { exec } = require('child_process');
+    const { promisify } = require('util');
+    const execAsync = promisify(exec);
+    
+    try {
+      const { stdout } = await execAsync('git rev-parse --short HEAD');
+      return stdout.trim();
+    } catch (error) {
+      return null;
+    }
+  },
+
+  // Output optimization
+  output: 'standalone',
+  
+  // Enable static optimization
+  trailingSlash: false,
   poweredByHeader: false,
+
+  // Reduce bundle size
+  modularizeImports: {
+    '@tabler/icons-react': {
+      transform: '@tabler/icons-react/dist/esm/icons/{{member}}.mjs',
+    },
+    'lucide-react': {
+      transform: 'lucide-react/dist/esm/icons/{{kebabCase member}}',
+    },
+  },
+
+  // Environment variables optimization
+  env: {
+    CUSTOM_KEY: process.env.CUSTOM_KEY,
+  },
 };
 
-const withBundleAnalyzer = require('@next/bundle-analyzer')({
-  enabled: process.env.ANALYZE === 'true',
-});
-
-module.exports = withBundleAnalyzer(nextConfig);
+module.exports = nextConfig;

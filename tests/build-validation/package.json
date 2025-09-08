@@ -1,0 +1,37 @@
+{
+  "name": "@medianest/build-validation",
+  "version": "1.0.0",
+  "description": "HIVE-MIND Build Validation & Testing Framework",
+  "main": "index.js",
+  "scripts": {
+    "validate-all": "ts-node typescript-validator.ts validate-all",
+    "validate-package": "ts-node typescript-validator.ts validate-package",
+    "validate-cross-deps": "ts-node typescript-validator.ts validate-cross-deps",
+    "integration-test": "ts-node integration-test-suite.ts",
+    "regression-monitor": "ts-node regression-prevention-monitor.ts monitor",
+    "regression-baseline": "ts-node regression-prevention-monitor.ts baseline",
+    "hive-mind-validation": "ts-node hive-mind-validation-suite.ts",
+    "test:all": "npm run validate-all && npm run integration-test && npm run regression-monitor",
+    "build:validate": "../scripts/build-stabilizer.sh",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "axios": "^1.7.7",
+    "typescript": "^5.5.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "ts-node": "^10.9.2",
+    "vitest": "^3.2.4"
+  },
+  "keywords": [
+    "build-validation",
+    "typescript",
+    "testing",
+    "hive-mind",
+    "regression-prevention"
+  ],
+  "author": "HIVE-MIND Tester Agent",
+  "license": "MIT"
+}
