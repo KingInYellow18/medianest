@@ -3,13 +3,20 @@
 import dynamic from 'next/dynamic';
 import { ComponentType } from 'react';
 
-// PERFORMANCE OPTIMIZATION: Lazy load heavy components to reduce main bundle size
+// Context7 Pattern: Performance optimization with intelligent lazy loading
 
-// Loading component for better UX
+// Context7 Pattern: Optimized loading component with better accessibility
 const LoadingSpinner = () => (
-  <div className="flex items-center justify-center p-8">
-    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+  <div className="flex items-center justify-center p-8" role="status" aria-label="Loading">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary">
+      <span className="sr-only">Loading...</span>
+    </div>
   </div>
+);
+
+// Context7 Pattern: Skeleton loading for better perceived performance
+const SkeletonLoader = ({ className }: { className?: string }) => (
+  <div className={`animate-pulse bg-gray-200 rounded ${className}`} aria-hidden="true" />
 );
 
 // Auth components (large, not immediately needed)
@@ -24,7 +31,7 @@ export const LazyAdvancedSearchFilters = dynamic(
   {
     ssr: false,
     loading: () => <LoadingSpinner />,
-  },
+  }
 );
 
 export const LazyDownloadQueue = dynamic(() => import('@/components/youtube/DownloadQueue'), {
@@ -54,7 +61,7 @@ export const LazyURLSubmissionForm = dynamic(
   {
     ssr: false,
     loading: () => <LoadingSpinner />,
-  },
+  }
 );
 
 // Performance Monitor (dev tools)

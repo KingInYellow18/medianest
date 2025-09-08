@@ -6,6 +6,7 @@ import React, {
   useEffect,
   useState,
   useCallback,
+  useMemo,
   ReactNode,
 } from 'react';
 import { enhancedSocketManager, ConnectionState } from '@/lib/enhanced-socket';
@@ -29,7 +30,7 @@ interface WebSocketContextType {
   subscribeToNamespace: <T = any>(
     namespace: string,
     event: string,
-    callback: (data: T) => void,
+    callback: (data: T) => void
   ) => () => void;
 
   // Emit helpers with optimistic updates
@@ -81,15 +82,28 @@ export function WebSocketProvider({
   autoConnect = true,
   userRole,
 }: WebSocketProviderProps) {
-  const [connectionState, setConnectionState] = useState<ConnectionState>({
-    connected: false,
-    connecting: false,
-    quality: 'unknown',
-    reconnectAttempt: 0,
-  });
+  // CONTEXT7 PATTERN: useMemo for initial state objects
+  // Reference: React.dev performance guide - useMemo for stable object references
+  const initialConnectionState = useMemo(
+    () => ({
+      connected: false,
+      connecting: false,
+      quality: 'unknown' as const,
+      reconnectAttempt: 0,
+    }),
+    []
+  );
 
-  const [connectedNamespaces, setConnectedNamespaces] = useState<Set<string>>(new Set());
-  const [isAdmin, setIsAdmin] = useState(userRole === 'admin');
+  const [connectionState, setConnectionState] = useState<ConnectionState>(initialConnectionState);
+
+  // CONTEXT7 PATTERN: useMemo for Set initialization to prevent recreation
+  // Reference: React.dev performance guide - useMemo for complex initial values
+  const initialNamespaces = useMemo(() => new Set<string>(), []);
+  const [connectedNamespaces, setConnectedNamespaces] = useState<Set<string>>(initialNamespaces);
+
+  // CONTEXT7 PATTERN: useMemo for computed admin state
+  // Reference: React.dev performance guide - useMemo for derived state
+  const isAdmin = useMemo(() => userRole === 'admin', [userRole]);
 
   // Subscribe to connection state changes
   useEffect(() => {
@@ -106,8 +120,7 @@ export function WebSocketProvider({
       enhancedSocketManager.connect();
     }
 
-    // Update admin status
-    setIsAdmin(userRole === 'admin');
+    // Admin status is now computed via useMemo
 
     return () => {
       if (autoConnect) {
@@ -168,7 +181,7 @@ export function WebSocketProvider({
       }
       return () => {};
     },
-    [],
+    []
   );
 
   const emit = useCallback((event: string, data?: any) => {
@@ -198,7 +211,7 @@ export function WebSocketProvider({
         });
       });
     },
-    [],
+    []
   );
 
   const checkConnectionQuality = useCallback(() => {
@@ -225,7 +238,7 @@ export function WebSocketProvider({
         return false;
       }
     },
-    [emitWithCallback],
+    [emitWithCallback]
   );
 
   const markAllNotificationsAsRead = useCallback(async (): Promise<number> => {
@@ -257,7 +270,7 @@ export function WebSocketProvider({
         return { success: false, error: error.message };
       }
     },
-    [emitWithCallback],
+    [emitWithCallback]
   );
 
   const cancelDownload = useCallback(
@@ -270,7 +283,7 @@ export function WebSocketProvider({
         return false;
       }
     },
-    [emitWithCallback],
+    [emitWithCallback]
   );
 
   const retryDownload = useCallback(
@@ -283,7 +296,7 @@ export function WebSocketProvider({
         return false;
       }
     },
-    [emitWithCallback],
+    [emitWithCallback]
   );
 
   // Status helpers
@@ -323,7 +336,7 @@ export function WebSocketProvider({
         throw error;
       }
     },
-    [isAdmin, connectNamespace, emitWithCallback],
+    [isAdmin, connectNamespace, emitWithCallback]
   );
 
   const getSystemOverview = useCallback(async () => {
@@ -368,59 +381,97 @@ export function WebSocketProvider({
     }
   }, [isAdmin, connectNamespace, emitWithCallback]);
 
-  const contextValue: WebSocketContextType = {
-    // Connection state
-    connectionState,
-    isConnected: connectionState.connected,
+  // CONTEXT7 PATTERN: useMemo for context value to prevent unnecessary re-renders
+  // Reference: React.dev performance guide - useMemo for context value objects
+  const contextValue: WebSocketContextType = useMemo(
+    () => ({
+      // Connection state
+      connectionState,
+      isConnected: connectionState.connected,
 
-    // Connection methods
-    connect,
-    disconnect,
-    reconnect,
+      // Connection methods
+      connect,
+      disconnect,
+      reconnect,
 
-    // Namespace connections
-    connectNamespace,
-    disconnectNamespace,
+      // Namespace connections
+      connectNamespace,
+      disconnectNamespace,
 
-    // Event subscription helpers
-    subscribe,
-    subscribeToNamespace,
+      // Event subscription helpers
+      subscribe,
+      subscribeToNamespace,
 
-    // Emit helpers
-    emit,
-    emitToNamespace,
-    emitWithCallback,
+      // Emit helpers
+      emit,
+      emitToNamespace,
+      emitWithCallback,
 
-    // Connection quality
-    checkConnectionQuality,
+      // Connection quality
+      checkConnectionQuality,
 
-    // Notification helpers
-    subscribeToNotifications,
-    unsubscribeFromNotifications,
-    markNotificationAsRead,
-    markAllNotificationsAsRead,
+      // Notification helpers
+      subscribeToNotifications,
+      unsubscribeFromNotifications,
+      markNotificationAsRead,
+      markAllNotificationsAsRead,
 
-    // Download helpers
-    subscribeToDownloads,
-    unsubscribeFromDownloads,
-    getDownloadStatus,
-    cancelDownload,
-    retryDownload,
+      // Download helpers
+      subscribeToDownloads,
+      unsubscribeFromDownloads,
+      getDownloadStatus,
+      cancelDownload,
+      retryDownload,
 
-    // Status helpers
-    subscribeToStatus,
-    unsubscribeFromStatus,
-    refreshService,
-    subscribeToService,
-    unsubscribeFromService,
+      // Status helpers
+      subscribeToStatus,
+      unsubscribeFromStatus,
+      refreshService,
+      subscribeToService,
+      unsubscribeFromService,
 
-    // Admin helpers
-    isAdmin,
-    broadcastAdminMessage,
-    getSystemOverview,
-    getConnectedUsers,
-    refreshAllServices,
-  };
+      // Admin helpers
+      isAdmin,
+      broadcastAdminMessage,
+      getSystemOverview,
+      getConnectedUsers,
+      refreshAllServices,
+    }),
+    [
+      // Dependencies for context value memoization
+      connectionState,
+      connect,
+      disconnect,
+      reconnect,
+      connectNamespace,
+      disconnectNamespace,
+      subscribe,
+      subscribeToNamespace,
+      emit,
+      emitToNamespace,
+      emitWithCallback,
+      checkConnectionQuality,
+      subscribeToNotifications,
+      unsubscribeFromNotifications,
+      markNotificationAsRead,
+      markAllNotificationsAsRead,
+      subscribeToDownloads,
+      unsubscribeFromDownloads,
+      getDownloadStatus,
+      cancelDownload,
+      retryDownload,
+      subscribeToStatus,
+      unsubscribeFromStatus,
+      refreshService,
+      subscribeToService,
+      unsubscribeFromService,
+      isAdmin,
+      broadcastAdminMessage,
+      getSystemOverview,
+      getConnectedUsers,
+      refreshAllServices,
+    ]
+  );
 
   return <WebSocketContext.Provider value={contextValue}>{children}</WebSocketContext.Provider>;
 }
@@ -433,9 +484,11 @@ export function useWebSocket() {
   return context;
 }
 
-// Specialized hooks for specific features
+// CONTEXT7 PATTERN: Specialized hooks with memoization
+// Reference: React.dev performance guide - Custom hooks with useMemo
 export function useConnectionState() {
   const { connectionState } = useWebSocket();
+  // Return the connectionState directly as it's already memoized in the context
   return connectionState;
 }
 
@@ -448,16 +501,27 @@ export function useNotifications() {
     subscribe,
   } = useWebSocket();
 
-  return {
-    subscribeToNotifications,
-    unsubscribeFromNotifications,
-    markNotificationAsRead,
-    markAllNotificationsAsRead,
-    onNotification: (callback: (notification: any) => void) =>
-      subscribe('notification:new', callback),
-    onSystemNotification: (callback: (notification: any) => void) =>
-      subscribe('notification:system', callback),
-  };
+  // CONTEXT7 PATTERN: useMemo for hook return object
+  // Reference: React.dev performance guide - useMemo for stable references
+  return useMemo(
+    () => ({
+      subscribeToNotifications,
+      unsubscribeFromNotifications,
+      markNotificationAsRead,
+      markAllNotificationsAsRead,
+      onNotification: (callback: (notification: any) => void) =>
+        subscribe('notification:new', callback),
+      onSystemNotification: (callback: (notification: any) => void) =>
+        subscribe('notification:system', callback),
+    }),
+    [
+      subscribeToNotifications,
+      unsubscribeFromNotifications,
+      markNotificationAsRead,
+      markAllNotificationsAsRead,
+      subscribe,
+    ]
+  );
 }
 
 export function useDownloads() {
@@ -470,18 +534,30 @@ export function useDownloads() {
     subscribe,
   } = useWebSocket();
 
-  return {
-    subscribeToDownloads,
-    unsubscribeFromDownloads,
-    getDownloadStatus,
-    cancelDownload,
-    retryDownload,
-    onDownloadProgress: (callback: (progress: any) => void) =>
-      subscribe('download:progress', callback),
-    onDownloadComplete: (callback: (data: any) => void) =>
-      subscribe('download:completed', callback),
-    onDownloadFailed: (callback: (error: any) => void) => subscribe('download:failed', callback),
-  };
+  // CONTEXT7 PATTERN: useMemo for download hook return object
+  // Reference: React.dev performance guide - useMemo for hook stability
+  return useMemo(
+    () => ({
+      subscribeToDownloads,
+      unsubscribeFromDownloads,
+      getDownloadStatus,
+      cancelDownload,
+      retryDownload,
+      onDownloadProgress: (callback: (progress: any) => void) =>
+        subscribe('download:progress', callback),
+      onDownloadComplete: (callback: (data: any) => void) =>
+        subscribe('download:completed', callback),
+      onDownloadFailed: (callback: (error: any) => void) => subscribe('download:failed', callback),
+    }),
+    [
+      subscribeToDownloads,
+      unsubscribeFromDownloads,
+      getDownloadStatus,
+      cancelDownload,
+      retryDownload,
+      subscribe,
+    ]
+  );
 }
 
 export function useServiceStatus() {
@@ -494,17 +570,29 @@ export function useServiceStatus() {
     subscribe,
   } = useWebSocket();
 
-  return {
-    subscribeToStatus,
-    unsubscribeFromStatus,
-    refreshService,
-    subscribeToService,
-    unsubscribeFromService,
-    onStatusUpdate: (callback: (status: any) => void) => subscribe('service:status', callback),
-    onBulkStatusUpdate: (callback: (statuses: any[]) => void) =>
-      subscribe('service:bulk-update', callback),
-    onStatusRefresh: (callback: () => void) => subscribe('status:refreshed', callback),
-  };
+  // CONTEXT7 PATTERN: useMemo for service status hook
+  // Reference: React.dev performance guide - useMemo for consistent object references
+  return useMemo(
+    () => ({
+      subscribeToStatus,
+      unsubscribeFromStatus,
+      refreshService,
+      subscribeToService,
+      unsubscribeFromService,
+      onStatusUpdate: (callback: (status: any) => void) => subscribe('service:status', callback),
+      onBulkStatusUpdate: (callback: (statuses: any[]) => void) =>
+        subscribe('service:bulk-update', callback),
+      onStatusRefresh: (callback: () => void) => subscribe('status:refreshed', callback),
+    }),
+    [
+      subscribeToStatus,
+      unsubscribeFromStatus,
+      refreshService,
+      subscribeToService,
+      unsubscribeFromService,
+      subscribe,
+    ]
+  );
 }
 
 export function useAdminSocket() {
