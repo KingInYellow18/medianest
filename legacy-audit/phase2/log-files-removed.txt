@@ -1,8 +1,0 @@
-=== LEGACY LOG FILES TO REMOVE ===
--rw-rw-r-- 1 kinginyellow kinginyellow  83K Sep  6 09:50 backend-typescript-errors.log
--rw-rw-r-- 1 kinginyellow kinginyellow 5.0K Sep  6 09:49 build-perf-log.txt
--rw-rw-r-- 1 kinginyellow kinginyellow  181 Sep  5 18:03 build-report.txt
--rw-rw-r-- 1 kinginyellow kinginyellow  211 Sep  6 09:50 eslint-results.log
--rw-rw-r-- 1 kinginyellow kinginyellow  264 Sep  6 13:50 requirements.txt
--rw-rw-r-- 1 kinginyellow kinginyellow 295K Sep  5 18:03 test-output.log
--rw-rw-r-- 1 kinginyellow kinginyellow 4.9K Sep  6 09:49 typescript-errors.log

@@ -1,6 +1,0 @@
-/home/kinginyellow/projects/medianest/docs/SECURITY_VULNERABILITY_ASSESSMENT_REPORT.md
-/home/kinginyellow/projects/medianest/docs-old-20250907/docker-security-audit.md
-/home/kinginyellow/projects/medianest/.medianest-cleanup/archive-20250907/docs-archive/archive/pre-reorganization-backup/audit/security-quality-analysis.md
-/home/kinginyellow/projects/medianest/security/emergency-secret-rotation.sh
-/home/kinginyellow/projects/medianest/security/rotation/rotation_log_20250907_232318.txt
-/home/kinginyellow/projects/medianest/security/rotation/emergency-rotation-backup.txt

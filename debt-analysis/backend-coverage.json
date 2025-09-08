@@ -1,5 +1,0 @@
-
-> @medianest/backend@1.0.0 test
-> vitest run --coverage --reporter=json
-
- Vitest  "deps.external" is deprecated. If you rely on vite-node directly, use "server.deps.external" instead. Otherwise, consider using "deps.optimizer.ssr.exclude"

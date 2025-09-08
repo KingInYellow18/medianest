@@ -1,7 +1,0 @@
-84K	backend-typescript-errors.log
-4.0K	eslint-results.log
-296K	test-output.log
-8.0K	typescript-errors.log
-8.0K	build-perf-log.txt
-4.0K	build-report.txt
-4.0K	requirements.txt

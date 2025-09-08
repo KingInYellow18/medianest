@@ -1,2 +1,0 @@
-./frontend/src/lib/web-vitals.ts:40-50:11 consecutive commented lines
-./backups/frontend-src-20250905-220134/lib/web-vitals.ts:40-50:11 consecutive commented lines

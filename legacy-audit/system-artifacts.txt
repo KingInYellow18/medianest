@@ -1,8 +1,0 @@
-./shared/node_modules/iconv-lite/.idea
-./shared/node_modules/iconv-lite/.idea/iconv-lite.iml
-./frontend/node_modules/iconv-lite/.idea
-./frontend/node_modules/iconv-lite/.idea/iconv-lite.iml
-./backend/node_modules/iconv-lite/.idea
-./backend/node_modules/iconv-lite/.idea/iconv-lite.iml
-./node_modules/iconv-lite/.idea
-./node_modules/iconv-lite/.idea/iconv-lite.iml
