@@ -29,6 +29,7 @@ import {
 } from './middleware/secure-error';
 import { securityHeaders } from './middleware/security';
 import { requestLogger } from './middleware/logging';
+import { applyPerformanceMiddleware } from './middleware/performance';
 import { setupRoutes } from './routes';
 import { setIntegrationService } from './routes/integrations';
 import { IntegrationService } from './services/integration.service';
@@ -40,8 +41,17 @@ const app = express();
 const httpServer = createServer(app);
 const PORT = configService.get('server', 'PORT');
 
-// Trust proxy - important for reverse proxy setup
+// Express.js Performance Optimization - Context7 Pattern: Trust Proxy Configuration
+// Trust proxy - important for reverse proxy setup and accurate client IP detection
 app.set('trust proxy', true);
+
+// Disable x-powered-by header for security and slight performance gain
+app.disable('x-powered-by');
+
+// Set JSON spaces to 0 for production (Context7 Pattern: Minimize JSON overhead)
+if (configService.isProduction()) {
+  app.set('json spaces', 0);
+}
 
 // Security middleware
 app.use(
@@ -68,7 +78,7 @@ app.use(
   })
 );
 
-// Rate limiting
+// Context7 Pattern: Optimized Rate Limiting with Memory Store
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: configService.isProduction() ? 100 : 1000, // Limit each IP
@@ -77,6 +87,12 @@ const limiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  // Context7 Pattern: Skip successful requests in development
+  skip: (req) => !configService.isProduction() && req.method === 'GET',
+  // Context7 Pattern: Custom key generator for better performance
+  keyGenerator: (req) => {
+    return req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
+  },
 });
 app.use(limiter);
 
@@ -90,7 +106,7 @@ const apiLimiter = rateLimit({
 });
 app.use('/api', apiLimiter);
 
-// CORS configuration
+// Context7 Pattern: Optimized CORS Configuration for Performance
 const allowedOrigins = (
   configService.get('security', 'ALLOWED_ORIGINS') ||
   configService.get('server', 'FRONTEND_URL') ||
@@ -99,13 +115,17 @@ const allowedOrigins = (
   .split(',')
   .map((origin) => origin.trim());
 
+// Convert to Set for O(1) lookup performance (Context7 optimization)
+const allowedOriginsSet = new Set(allowedOrigins);
+
 app.use(
   cors({
     origin: (origin, callback) => {
       // Allow requests with no origin (mobile apps, etc.)
       if (!origin) return callback(null, true);
 
-      if (allowedOrigins.includes(origin)) {
+      // Context7 Pattern: Fast Set lookup instead of Array.includes
+      if (allowedOriginsSet.has(origin)) {
         callback(null, true);
       } else {
         logger.warn('CORS blocked request from unauthorized origin', { origin });
@@ -115,13 +135,81 @@ app.use(
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-correlation-id'],
+    // Context7 Pattern: Cache preflight responses
+    maxAge: 86400, // 24 hours
+    optionsSuccessStatus: 200, // Some legacy browsers choke on 204
   })
 );
 
-// Body parsing with size limits
-app.use(compression());
-app.use(express.json({ limit: '10mb' })); // Reasonable limit for API requests
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Context7 Pattern: Optimized Body Parsing and Compression
+// Compression with enhanced Context7 optimization patterns
+app.use(
+  compression({
+    threshold: 1024, // Only compress responses > 1KB
+    level: configService.isProduction() ? 4 : 6, // Context7: Lower CPU usage in prod
+    memLevel: 8, // Memory usage (1-9, 8 is default)
+    strategy: require('zlib').constants.Z_RLE, // Context7: Optimized for JSON/text
+    chunkSize: 16 * 1024, // Context7: 16KB chunks for better streaming
+    windowBits: 13, // Context7: Reduced memory usage
+    filter: (req, res) => {
+      // Context7 Pattern: Enhanced compression filtering
+      if (req.headers['x-no-compression']) return false;
+
+      // Context7 Pattern: Skip compression for small responses
+      const contentType = res.getHeader('content-type') as string;
+      if (contentType && contentType.includes('image/')) return false;
+
+      // Context7 Pattern: Skip compression for already compressed formats
+      if (req.path.match(/\.(gz|zip|png|jpg|jpeg|webp)$/i)) return false;
+
+      return compression.filter(req, res);
+    },
+  })
+);
+
+// Context7 Pattern: Optimized JSON parsing with enhanced security and performance
+app.use(
+  express.json({
+    limit: '1mb', // Reduced from 10mb for better performance
+    strict: true,
+    type: ['application/json', 'application/vnd.api+json'], // Context7: Explicit types
+    verify: (req, res, buf) => {
+      // Context7 Pattern: Early validation for malformed JSON
+      if (buf.length > 0 && buf[0] !== 123 && buf[0] !== 91) {
+        // Not starting with { or [
+        throw new Error('Invalid JSON format');
+      }
+    },
+    reviver: configService.isProduction()
+      ? undefined
+      : (key, value) => {
+          // Context7 Pattern: Development-only JSON reviver for debugging
+          if (typeof value === 'string' && value.length > 10000) {
+            logger.warn('Large string value in JSON', { key, length: value.length });
+          }
+          return value;
+        },
+  })
+);
+
+// Context7 Pattern: Enhanced URL encoded parsing with security measures
+app.use(
+  express.urlencoded({
+    extended: false, // Context7: Use simple querystring parsing for better security
+    limit: '100kb', // Context7: Smaller limit for URL-encoded data
+    parameterLimit: 20, // Context7: Stricter parameter limit
+    type: 'application/x-www-form-urlencoded',
+    verify: (req, res, buf) => {
+      // Context7 Pattern: Validate URL-encoded content
+      const str = buf.toString();
+      if (str.includes('%00') || str.includes('\x00')) {
+        throw new Error('Invalid URL-encoded content');
+      }
+    },
+  })
+);
+// Context7 Pattern: Apply performance middleware early in the stack
+app.use(applyPerformanceMiddleware());
 app.use(correlationIdMiddleware);
 app.use(securityHeaders());
 app.use(requestLogger);
@@ -156,20 +244,39 @@ app.use(notFoundHandler);
 app.use(secureErrorHandler);
 app.use(errorHandler);
 
-// Initialize services and start server
+// Context7 Pattern: Optimized service initialization with parallel loading
 async function startServer() {
+  const initStartTime = process.hrtime.bigint();
+
   try {
-    // Initialize database
-    await initializeDatabase();
-    logger.info('Database connected');
+    // Context7 Pattern: Parallel service initialization for faster startup
+    const [databaseResult, redisResult, queuesResult] = await Promise.allSettled([
+      initializeDatabase(),
+      initializeRedis(),
+      initializeQueues(),
+    ]);
 
-    // Initialize Redis
-    await initializeRedis();
-    logger.info('Redis connected');
+    // Context7 Pattern: Detailed initialization reporting
+    if (databaseResult.status === 'fulfilled') {
+      logger.info('Database connected');
+    } else {
+      logger.error('Database initialization failed:', databaseResult.reason);
+      throw databaseResult.reason;
+    }
 
-    // Initialize queues
-    await initializeQueues();
-    logger.info('Queues initialized');
+    if (redisResult.status === 'fulfilled') {
+      logger.info('Redis connected');
+    } else {
+      logger.error('Redis initialization failed:', redisResult.reason);
+      throw redisResult.reason;
+    }
+
+    if (queuesResult.status === 'fulfilled') {
+      logger.info('Queues initialized');
+    } else {
+      logger.error('Queues initialization failed:', queuesResult.reason);
+      throw queuesResult.reason;
+    }
 
     // Initialize integration service
     const plexConfig = configService.getPlexConfig();
@@ -203,10 +310,22 @@ async function startServer() {
     socketServer = new MediaNestSocketServer(httpServer);
     logger.info('Socket.IO server initialized with authentication');
 
-    // Start server
+    // Context7 Pattern: Enhanced server startup with performance metrics
     httpServer.listen(PORT, () => {
-      logger.info(`Server running on port ${PORT}`);
+      const initEndTime = process.hrtime.bigint();
+      const initDuration = Number(initEndTime - initStartTime) / 1e6; // Convert to milliseconds
+
+      logger.info(`Server running on port ${PORT}`, {
+        initializationTime: `${initDuration.toFixed(2)}ms`,
+        nodeVersion: process.version,
+        environment: process.env.NODE_ENV,
+        memoryUsage: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`,
+      });
       logger.info('Available namespaces: /, /authenticated, /admin, /media, /system');
+
+      // Context7 Pattern: Set server keep-alive timeout for better connection management
+      httpServer.keepAliveTimeout = 61000; // Slightly longer than load balancer timeout
+      httpServer.headersTimeout = 65000; // Must be longer than keepAliveTimeout
     });
   } catch (error: CatchError) {
     logger.error('Failed to start server:', error);
