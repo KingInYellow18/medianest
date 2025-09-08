@@ -85,10 +85,11 @@ export async function safeAsyncTry<T>(
  * @param error - Error that occurred
  * @param defaultValue - Default value to return
  */
+// Context7 Pattern: Use proper Error type instead of any
 export function handleCacheError<T>(
   operation: string,
   key: string | string[],
-  error: any,
+  error: unknown,
   defaultValue: T
 ): T {
   logger.error(`Cache ${operation} error`, { key, error });
@@ -102,10 +103,11 @@ export function handleCacheError<T>(
  * @param error - Error that occurred
  * @throws Processed error
  */
+// Context7 Pattern: Use proper types for error handling
 export function handleDatabaseError(
   operation: string,
-  context: Record<string, any>,
-  error: any
+  context: Record<string, unknown>,
+  error: unknown
 ): never {
   logger.error(`Database ${operation} error`, { ...context, error });
 
@@ -133,9 +135,10 @@ export function handleDatabaseError(
  * @param context - Additional context data
  * @param customMessage - Custom error message
  */
+// Context7 Pattern: Proper error and context typing
 export function logErrorWithContext(
-  error: any,
-  context: Record<string, any>,
+  error: unknown,
+  context: Record<string, unknown>,
   customMessage?: string
 ): void {
   const message = customMessage || 'Error occurred';
@@ -156,11 +159,12 @@ export function logErrorWithContext(
  * @param statusCode - HTTP status code
  * @param details - Additional error details
  */
+// Context7 Pattern: Use proper types for error details
 export function createErrorResponse(
   message: string,
   code?: string,
   statusCode?: number,
-  details?: Record<string, any>
+  details?: Record<string, unknown>
 ) {
   return {
     error: {

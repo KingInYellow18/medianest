@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import type { Response, Request, NextFunction } from 'express';
 import { logger } from './logger';
 import { CatchError } from '../types/common';
 import {
@@ -12,13 +12,14 @@ import {
 /**
  * Standard API response structure
  */
-export interface ApiResponse<T = any> {
+// Context7 Pattern: Use proper generic types instead of any
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: {
     message: string;
     code?: string;
-    details?: any;
+    details?: Record<string, unknown>;
   };
   meta?: {
     timestamp: string;
@@ -72,12 +73,13 @@ export function sendSuccess<T>(
  * @param code - Error code
  * @param details - Additional error details
  */
+// Context7 Pattern: Replace any with proper Record type
 export function sendError(
   res: Response,
   message: string,
   statusCode = 500,
   code?: string,
-  details?: any
+  details?: Record<string, unknown>
 ): void {
   const response: ApiResponse = {
     success: false,
@@ -139,8 +141,9 @@ export function sendPaginated<T>(
  * @param data - Created resource data
  * @param resourceId - ID of created resource
  */
+// Context7 Pattern: Use proper Record type for meta object
 export function sendCreated<T>(res: Response, data: T, resourceId?: string): void {
-  const meta: any = {};
+  const meta: Record<string, unknown> = {};
   if (resourceId) {
     meta.resourceId = resourceId;
   }
@@ -170,10 +173,11 @@ export function sendNotFound(res: Response, resource = 'Resource'): void {
  * @param message - Validation error message
  * @param details - Validation error details
  */
+// Context7 Pattern: Type validation error details properly
 export function sendValidationError(
   res: Response,
   message = 'Validation failed',
-  details?: any
+  details?: Record<string, unknown> | string[]
 ): void {
   sendError(res, message, 400, 'VALIDATION_ERROR', details);
 }
@@ -228,10 +232,11 @@ export function sendRateLimit(
  * @param message - Error message
  * @param details - Error details (only included in development)
  */
+// Context7 Pattern: Type internal error details properly
 export function sendInternalError(
   res: Response,
   message = 'Internal server error',
-  details?: any
+  details?: Record<string, unknown>
 ): void {
   const isDevelopment = process.env.NODE_ENV === 'development';
   sendError(res, message, 500, 'INTERNAL_ERROR', isDevelopment ? details : undefined);
@@ -251,8 +256,13 @@ export function sendServiceUnavailable(res: Response, message = 'Service unavail
  * @param handler - Async route handler function
  * @returns Wrapped handler with error catching
  */
-export function asyncHandler(handler: (req: any, res: Response, next: any) => Promise<void>) {
-  return async (req: any, res: Response, next: any): Promise<void> => {
+// Context7 Pattern: Use proper Request and NextFunction types
+import type { Request, NextFunction } from 'express';
+
+export function asyncHandler(
+  handler: (req: Request, res: Response, next: NextFunction) => Promise<void>
+) {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       await handler(req, res, next);
     } catch (error: CatchError) {

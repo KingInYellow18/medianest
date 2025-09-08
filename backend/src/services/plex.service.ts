@@ -1,4 +1,4 @@
-// @ts-nocheck
+// Context7 Optimized Plex Service - Removed @ts-nocheck for better type safety
 import { redisClient } from '@/config/redis';
 import { PlexClient } from '@/integrations/plex/plex.client';
 import { userRepository, serviceConfigRepository } from '@/repositories';
@@ -6,52 +6,77 @@ import { AppError } from '../utils/errors';
 import { logger } from '@/utils/logger';
 
 import { encryptionService } from './encryption.service';
-import { CatchError } from '../types/common';
+import { CatchError, UserId, isNotNull, Result, success, failure } from '../types/common';
+import type { Brand } from '../types/context7-optimizations';
+
+// Context7 Pattern: Branded types for type safety
+type PlexUserId = Brand<string, 'PlexUserId'>;
+type CacheKey = Brand<string, 'CacheKey'>;
+
+// Context7 Pattern: Readonly configuration
+interface PlexServiceConfig {
+  readonly serverInfo: number;
+  readonly libraries: number;
+  readonly search: number;
+  readonly recentlyAdded: number;
+  readonly libraryItems: number;
+  readonly collections: number;
+}
+
+const CACHE_TTL: PlexServiceConfig = {
+  serverInfo: 3600, // 1 hour
+  libraries: 3600, // 1 hour (Plex libraries don't change often)
+  search: 300, // 5 minutes (search results can be cached longer for homelab)
+  recentlyAdded: 1800, // 30 minutes (recently added doesn't update that frequently)
+  libraryItems: 1800, // 30 minutes for library items
+  collections: 3600, // 1 hour for collections
+} as const;
 
 export class PlexService {
-  private clients: Map<string, PlexClient> = new Map();
-  private cachePrefix = 'plex:';
-  private cacheTTL = {
-    serverInfo: 3600, // 1 hour
-    libraries: 3600, // 1 hour (Plex libraries don't change often)
-    search: 300, // 5 minutes (search results can be cached longer for homelab)
-    recentlyAdded: 1800, // 30 minutes (recently added doesn't update that frequently)
-    libraryItems: 1800, // 30 minutes for library items
-    collections: 3600, // 1 hour for collections
-  };
+  private readonly clients = new Map<PlexUserId, PlexClient>();
+  private readonly cachePrefix = 'plex:' as const;
+  private readonly cacheTTL = CACHE_TTL;
 
-  async getClientForUser(userId: string): Promise<PlexClient> {
+  // Context7 Pattern: Better parameter typing
+  async getClientForUser(userId: string): Promise<Result<PlexClient, AppError>> {
+    const plexUserId = userId as PlexUserId;
+
     // Check if we already have a client for this user
-    if (this.clients.has(userId)) {
-      return this.clients.get(userId)!;
+    const existingClient = this.clients.get(plexUserId);
+    if (existingClient) {
+      return success(existingClient);
     }
 
-    // Get user's Plex token
-    const user = await userRepository.findById(userId);
-    if (!user || !user.plexToken) {
-      throw new AppError('User not found or missing Plex token', 401);
-    }
-
-    // Get Plex server configuration
-    const config = await serviceConfigRepository.findByName('plex');
-    if (!config || !config.serviceUrl) {
-      throw new AppError('Plex server not configured', 500);
-    }
-
-    // Decrypt the user's Plex token
-    const decryptedToken = await encryptionService.decrypt(user.plexToken);
-
-    // Create new client
-    const client = new PlexClient(config.serviceUrl, decryptedToken);
-
-    // Test connection
     try {
+      // Get user's Plex token
+      const user = await userRepository.findById(userId);
+      if (!user?.plexToken) {
+        return failure(
+          new AppError('PLEX_USER_NOT_FOUND', 'User not found or missing Plex token', 401)
+        );
+      }
+
+      // Get Plex server configuration
+      const config = await serviceConfigRepository.findByName('plex');
+      if (!config?.serviceUrl) {
+        return failure(new AppError('PLEX_CONFIG_MISSING', 'Plex server not configured', 500));
+      }
+
+      // Decrypt the user's Plex token
+      const decryptedToken = await encryptionService.decrypt(user.plexToken);
+
+      // Create new client
+      const client = new PlexClient(config.serviceUrl, decryptedToken);
+
+      // Test connection
       await client.testConnection();
-      this.clients.set(userId, client);
-      return client;
+      this.clients.set(plexUserId, client);
+      return success(client);
     } catch (error: CatchError) {
       logger.error('Failed to connect to Plex', { userId, error });
-      throw new AppError('Failed to connect to Plex server', 503);
+      return failure(
+        new AppError('PLEX_CONNECTION_FAILED', 'Failed to connect to Plex server', 503)
+      );
     }
   }
 

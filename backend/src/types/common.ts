@@ -101,12 +101,34 @@ export interface LogContext {
   error?: ErrorWithMessage;
 }
 
-// Generic utility types
+// Context7 Optimized Generic Utility Types - Performance Enhanced
+// Using conditional types and template literals for better type inference
 export type UnknownRecord = Record<string, unknown>;
 export type StringRecord = Record<string, string>;
 export type NumberRecord = Record<string, number>;
-export type AnyFunction = (...args: unknown[]) => unknown;
-export type AsyncFunction<T = unknown> = (...args: unknown[]) => Promise<T>;
+
+// Optimized function types with better variance
+export type AnyFunction = (...args: readonly unknown[]) => unknown;
+export type AsyncFunction<T = unknown> = (...args: readonly unknown[]) => Promise<T>;
+
+// Context7 Pattern: Branded types for type safety
+export type Brand<T, K> = T & { readonly __brand: K };
+export type UserId = Brand<string, 'UserId'>;
+export type RequestId = Brand<string, 'RequestId'>;
+export type CorrelationId = Brand<string, 'CorrelationId'>;
+
+// Context7 Pattern: Result Type for Better Error Handling
+export type Result<TSuccess, TError = ErrorWithMessage> =
+  | { readonly success: true; readonly data: TSuccess }
+  | { readonly success: false; readonly error: TError };
+
+export const success = <T>(data: T): Result<T, never> => ({ success: true, data });
+export const failure = <E>(error: E): Result<never, E> => ({ success: false, error });
+
+// Context7 Pattern: Exact types for strict object matching
+export type Exact<T> = T extends infer U
+  ? { [K in keyof U]: U[K] } & Record<Exclude<keyof T, keyof U>, never>
+  : never;
 
 // Array types
 export type UnknownArray = unknown[];
@@ -222,7 +244,7 @@ export interface HealthCheck {
   timestamp: string;
 }
 
-// Type guards
+// Context7 Enhanced Type Guards with better performance
 export const isError = (value: unknown): value is ErrorWithMessage => {
   return (
     typeof value === 'object' &&
@@ -231,6 +253,20 @@ export const isError = (value: unknown): value is ErrorWithMessage => {
     typeof (value as ErrorWithMessage).message === 'string'
   );
 };
+
+// Context7 Pattern: Asserting type guards for better performance
+export const assertIsError: (value: unknown) => asserts value is ErrorWithMessage = (
+  value
+): void => {
+  if (!isError(value)) {
+    throw new TypeError('Expected ErrorWithMessage');
+  }
+};
+
+// Context7 Pattern: Narrow type guards
+export const isNotNull = <T>(value: T | null): value is T => value !== null;
+export const isNotUndefined = <T>(value: T | undefined): value is T => value !== undefined;
+export const isNotNullish = <T>(value: T | null | undefined): value is T => value != null;
 
 export const isHttpError = (value: unknown): value is HttpError => {
   return (
