@@ -58,10 +58,7 @@ export async function addYoutubeDownloadJob(
  */
 export async function getUserDownloadJobs(
   userId: string,
-  statuses: Array<'completed' | 'failed' | 'delayed' | 'active' | 'waiting'> = [
-    'active',
-    'waiting',
-  ],
+  statuses: Array<'completed' | 'failed' | 'delayed' | 'active' | 'waiting'> = ['active', 'waiting']
 ): Promise<Job<YoutubeDownloadJobData>[]> {
   const queue = getQueue(QUEUE_NAMES.YOUTUBE_DOWNLOAD);
   const jobs: Job<YoutubeDownloadJobData>[] = [];

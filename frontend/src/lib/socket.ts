@@ -1,5 +1,6 @@
 import Cookies from 'js-cookie';
 import { io, Socket } from 'socket.io-client';
+
 import { getApiConfig } from '@/config';
 
 interface ConnectionOptions {

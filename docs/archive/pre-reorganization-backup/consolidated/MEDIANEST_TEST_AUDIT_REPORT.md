@@ -84,8 +84,13 @@ beforeEach(async () => {
 // MSW integration follows industry standards
 const server = setupServer(
   http.post('https://plex.tv/pins.xml', () =>
+<<<<<<<< HEAD:docs/archive/pre-reorganization-backup/consolidated/MEDIANEST_TEST_AUDIT_REPORT.md
     HttpResponse.text('<pin><id>12345</id><code>ABCD</code></pin>'),
   ),
+========
+    HttpResponse.text('<pin><id>12345</id><code>ABCD</code></pin>')
+  )
+>>>>>>>> origin/develop:.medianest-cleanup/archive-20250907/consolidated-docs/MEDIANEST_TEST_AUDIT_REPORT.md
 );
 ```
 

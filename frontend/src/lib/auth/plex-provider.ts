@@ -34,6 +34,10 @@ export interface PlexPinResponse {
   expiresAt: string;
   authToken?: string;
   clientIdentifier: string;
+  username?: string;
+  title?: string;
+  email?: string;
+  thumb?: string;
 }
 
 export default function PlexProvider<P extends PlexProfile>(
@@ -170,7 +174,7 @@ export async function createPlexPin(
 export async function checkPlexPin(
   pinId: number,
   _clientIdentifier: string,
-  headers: Record<string, string>,
+  headers: Record<string, string>
 ): Promise<PlexPinResponse> {
   const response = await fetch(`https://plex.tv/api/v2/pins/${pinId}`, {
     headers: {

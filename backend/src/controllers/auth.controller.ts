@@ -71,8 +71,8 @@ export class AuthController {
           expiresIn: 900, // 15 minutes
         },
       });
-    } catch (error: any) {
-      const errorMessage = (error as Error) ? (error.message as any) : 'Unknown error';
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       logger.error('Failed to generate Plex PIN', { error: errorMessage });
 
       // Handle specific error cases
@@ -86,8 +86,8 @@ export class AuthController {
             new AppError(
               'PLEX_UNREACHABLE',
               'Cannot connect to Plex server. Please try again.',
-              503,
-            ),
+              503
+            )
           );
         }
         if (
@@ -95,11 +95,7 @@ export class AuthController {
           ((error as any).code as any) === 'ETIMEDOUT'
         ) {
           return next(
-            new AppError(
-              'PLEX_TIMEOUT',
-              'Plex server connection timed out. Please try again.',
-              504,
-            ),
+            new AppError('PLEX_TIMEOUT', 'Plex server connection timed out. Please try again.', 504)
           );
         }
       }
@@ -149,8 +145,8 @@ export class AuthController {
           new AppError(
             'PIN_NOT_AUTHORIZED',
             'PIN has not been authorized yet. Please complete authorization on plex.tv/link',
-            400,
-          ),
+            400
+          )
         );
       }
 
@@ -169,7 +165,7 @@ export class AuthController {
       } catch (userError) {
         logger.error('Failed to get user info from Plex', { error: userError });
         return next(
-          new AppError('PLEX_ERROR', 'Failed to retrieve user information from Plex', 502),
+          new AppError('PLEX_ERROR', 'Failed to retrieve user information from Plex', 502)
         );
       }
 
@@ -224,12 +220,14 @@ export class AuthController {
       try {
         token = jwtService.generateAccessToken({
           userId: user.id,
+          email: user.email,
           role: user.role,
         });
 
         if (rememberMe) {
           rememberToken = jwtService.generateRememberToken({
             userId: user.id,
+            email: user.email,
             role: user.role,
           });
         }
@@ -274,8 +272,8 @@ export class AuthController {
           csrfToken: res.locals.csrfToken, // Include CSRF token in response
         },
       });
-    } catch (error: any) {
-      const errorMessage = (error as Error) ? (error.message as any) : 'Unknown error';
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       logger.error('Failed to verify Plex PIN', { error: errorMessage });
 
       // Handle Axios errors
@@ -285,7 +283,7 @@ export class AuthController {
         }
         if (error.response?.status! >= 500) {
           return next(
-            new AppError('PLEX_UNAVAILABLE', 'Plex service temporarily unavailable', 503),
+            new AppError('PLEX_UNAVAILABLE', 'Plex service temporarily unavailable', 503)
           );
         }
         if (

@@ -62,7 +62,7 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
                 'px-3 py-2 rounded-lg transition-colors',
                 currentPage === page
                   ? 'bg-blue-500 text-white'
-                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700',
+                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
               )}
             >
               {page}

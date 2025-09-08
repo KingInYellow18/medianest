@@ -1,7 +1,13 @@
 import '@testing-library/jest-dom';
+<<<<<<< HEAD
 import React from 'react';
 import { beforeAll, afterEach, afterAll, vi } from 'vitest';
+=======
+>>>>>>> origin/develop
 import { cleanup } from '@testing-library/react';
+import React from 'react';
+import { beforeAll, afterEach, afterAll, vi } from 'vitest';
+
 import { server } from './mocks/server';
 
 // Make React and hooks globally available for tests
@@ -110,10 +116,14 @@ global.fetch = global.fetch || vi.fn();
 // Mock @medianest/shared package
 vi.mock('@medianest/shared', () => ({
   AppError: class AppError extends Error {
+<<<<<<< HEAD
     constructor(
       message: string,
       public statusCode: number = 500,
     ) {
+=======
+    constructor(message: string, public statusCode: number = 500) {
+>>>>>>> origin/develop
       super(message);
       this.name = 'AppError';
     }
@@ -122,10 +132,14 @@ vi.mock('@medianest/shared', () => ({
   getUserFriendlyMessage: vi.fn(),
   extractErrorDetails: vi.fn(),
   ServiceUnavailableError: class ServiceUnavailableError extends Error {
+<<<<<<< HEAD
     constructor(
       message: string,
       public statusCode: number = 503,
     ) {
+=======
+    constructor(message: string, public statusCode: number = 503) {
+>>>>>>> origin/develop
       super(message);
       this.name = 'ServiceUnavailableError';
     }

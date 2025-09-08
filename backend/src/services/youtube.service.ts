@@ -9,6 +9,7 @@ import { logger } from '@/utils/logger';
 import { YouTubeClient } from '@/integrations/youtube/youtube.client';
 import { YoutubeDownloadRepository } from '@/repositories/youtube-download.repository';
 import { getRedis } from '@/config/redis';
+import { CatchError } from '../types/common';
 
 export interface VideoMetadata {
   id: string;
@@ -65,7 +66,7 @@ export class YouTubeService {
       await this.redis.setex(cacheKey, 3600, JSON.stringify(metadata));
 
       return metadata;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (error instanceof BadRequestError || error instanceof NotFoundError) {
         throw error;
       }
@@ -126,8 +127,8 @@ export class YouTubeService {
    * Calculate optimal quality based on user preferences and available formats
    */
   async selectOptimalQuality(
-    formats: any[],
-    requestedQuality: string,
+    formats: unknown[],
+    requestedQuality: string
   ): Promise<{ format: any; quality: string }> {
     if (!formats || formats.length === 0) {
       throw new BadRequestError('No formats available for this video');

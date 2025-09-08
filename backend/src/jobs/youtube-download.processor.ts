@@ -9,6 +9,7 @@ import { YouTubeClient } from '@/integrations/youtube/youtube.client';
 import { YoutubeDownloadRepository } from '@/repositories/youtube-download.repository';
 import { plexService } from '@/services/plex.service';
 import { config } from '@/config';
+import { CatchError } from '../types/common';
 
 interface DownloadJobData {
   downloadId: string;
@@ -52,7 +53,7 @@ export class YouTubeDownloadProcessor {
           max: 5,
           duration: 60000, // Max 5 jobs per minute
         },
-      },
+      }
     );
 
     this.setupEventHandlers();
@@ -111,7 +112,7 @@ export class YouTubeDownloadProcessor {
               status: 'downloading',
             });
           }
-        },
+        }
       );
 
       // Create metadata files for Plex
@@ -157,12 +158,12 @@ export class YouTubeDownloadProcessor {
 
       // Clean up old downloads if needed
       await this.cleanupOldDownloads(userId);
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('YouTube download failed', {
         jobId: job.id,
         downloadId,
         userId,
-        error: error.message as any,
+        error: error instanceof Error ? error.message : ('Unknown error' as any),
       });
 
       // Update status to failed
@@ -170,7 +171,7 @@ export class YouTubeDownloadProcessor {
         status: 'failed',
         filePaths: {
           jobId: job.id,
-          error: error.message as any,
+          error: error instanceof Error ? error.message : ('Unknown error' as any),
           quality,
           format,
         },
@@ -179,7 +180,7 @@ export class YouTubeDownloadProcessor {
       // Emit failure event
       io.to(userId).emit('youtube:failed', {
         downloadId,
-        error: error.message as any,
+        error: error instanceof Error ? error.message : ('Unknown error' as any),
       });
 
       // Re-throw to mark job as failed
@@ -230,7 +231,7 @@ export class YouTubeDownloadProcessor {
    */
   private async createPlexMetadata(
     videoPath: string,
-    metadata: DownloadJobData['metadata'],
+    metadata: DownloadJobData['metadata']
   ): Promise<void> {
     try {
       // Create NFO file for Plex
@@ -262,17 +263,17 @@ export class YouTubeDownloadProcessor {
             await fs.writeFile(thumbPath, Buffer.from(buffer));
             logger.debug('Downloaded thumbnail for Plex', { thumbPath });
           }
-        } catch (error: any) {
+        } catch (error: CatchError) {
           logger.warn('Failed to download thumbnail', {
             videoId: metadata.id,
-            error: error.message as any,
+            error: error instanceof Error ? error.message : ('Unknown error' as any),
           });
         }
       }
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to create Plex metadata', {
         videoPath,
-        error: error.message as any,
+        error: error instanceof Error ? error.message : ('Unknown error' as any),
       });
     }
   }
@@ -306,7 +307,7 @@ export class YouTubeDownloadProcessor {
       // This assumes the download path is mounted in the same location in Plex
       const plexPath = userDir.replace(
         this.downloadPath,
-        config.PLEX_YOUTUBE_LIBRARY_PATH || '/data/youtube',
+        config.PLEX_YOUTUBE_LIBRARY_PATH || '/data/youtube'
       );
 
       // Trigger targeted scan for the user's directory
@@ -317,11 +318,11 @@ export class YouTubeDownloadProcessor {
         libraryKey: youtubeLibraryKey,
         path: plexPath,
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       // Don't fail the job if Plex scan fails
       logger.error('Failed to trigger Plex scan', {
         userId,
-        error: error.message as any,
+        error: error instanceof Error ? error.message : ('Unknown error' as any),
       });
     }
   }
@@ -340,7 +341,7 @@ export class YouTubeDownloadProcessor {
           const filePath = path.join(userDir, file);
           const stats = await fs.stat(filePath);
           return { file, filePath, mtime: stats.mtime, size: stats.size };
-        }),
+        })
       );
 
       // Sort by modification time (oldest first)
@@ -371,7 +372,7 @@ export class YouTubeDownloadProcessor {
           });
         }
       }
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to cleanup old downloads', { userId, error });
     }
   }

@@ -49,7 +49,7 @@ export function StatusIndicator({
             className={clsx(
               'absolute inset-0 rounded-full animate-ping',
               statusClasses[status],
-              'opacity-75',
+              'opacity-75'
             )}
           />
         )}

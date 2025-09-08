@@ -20,14 +20,14 @@ export function useCollections(libraryKey: string, filters: CollectionFilters) {
         filteredData = filteredData.filter(
           (collection) =>
             collection.title.toLowerCase().includes(searchLower) ||
-            collection.summary?.toLowerCase().includes(searchLower),
+            collection.summary?.toLowerCase().includes(searchLower)
         );
       }
 
       // Client-side minimum items filtering
       if (filters.minItems && filters.minItems > 0) {
         filteredData = filteredData.filter(
-          (collection) => collection.childCount >= filters.minItems!,
+          (collection) => collection.childCount >= filters.minItems!
         );
       }
 

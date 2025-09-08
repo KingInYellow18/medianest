@@ -7,6 +7,7 @@ import { statusHandlers } from './status.handlers';
 import { registerYouTubeHandlers } from './youtube.handler';
 import { registerDownloadHandlers } from './download.handlers';
 import { registerAdminHandlers } from './admin.handlers';
+import { CatchError } from '../../types/common';
 
 export function registerHandlers(io: Server, socket: Socket): void {
   // Service status subscriptions
@@ -70,9 +71,12 @@ function registerConnectionHandlers(io: Server, socket: Socket): void {
           roomCount: socket.rooms.size,
         });
       }
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (callback) {
-        callback({ success: false, error: error.message as any });
+        callback({
+          success: false,
+          error: error instanceof Error ? error.message : ('Unknown error' as any),
+        });
       }
     }
   });

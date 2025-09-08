@@ -13,9 +13,9 @@ export function getStepFromStatus(status: CollectionStatus): {
     'adding-media': { step: 2, label: 'Adding videos' },
     'updating-metadata': { step: 3, label: 'Updating metadata' },
     completed: { step: 4, label: 'Complete' },
-    failed: { step: -1, label: 'Failed' }
+    failed: { step: -1, label: 'Failed' },
   } as const;
-  
+
   return steps[status];
 }
 
@@ -23,18 +23,18 @@ export function getStepFromStatus(status: CollectionStatus): {
  * Get the status of a specific step based on current collection status
  */
 export function getStepStatus(
-  currentStatus: CollectionStatus, 
+  currentStatus: CollectionStatus,
   targetStep: 'creating' | 'adding-media' | 'updating-metadata'
 ): 'pending' | 'active' | 'completed' | 'failed' {
   const statusOrder = ['creating', 'adding-media', 'updating-metadata'] as const;
   const currentIndex = statusOrder.indexOf(currentStatus as any);
   const targetIndex = statusOrder.indexOf(targetStep);
-  
+
   // Handle special cases
   if (currentStatus === 'failed') return 'failed';
   if (currentStatus === 'completed') return 'completed';
   if (currentStatus === 'pending') return 'pending';
-  
+
   // Normal status progression
   if (currentIndex === targetIndex) return 'active';
   if (currentIndex > targetIndex) return 'completed';
@@ -45,17 +45,17 @@ export function getStepStatus(
  * Format collection creation duration
  */
 export function formatCollectionDuration(
-  createdAt: Date | string, 
+  createdAt: Date | string,
   completedAt?: Date | string
 ): string {
   const start = new Date(createdAt);
   const end = completedAt ? new Date(completedAt) : new Date();
   const durationMs = end.getTime() - start.getTime();
-  
+
   if (durationMs < 1000) return 'Less than 1 second';
   if (durationMs < 60000) return `${Math.round(durationMs / 1000)} seconds`;
   if (durationMs < 3600000) return `${Math.round(durationMs / 60000)} minutes`;
-  
+
   const hours = Math.floor(durationMs / 3600000);
   const minutes = Math.round((durationMs % 3600000) / 60000);
   return `${hours}h ${minutes}m`;
@@ -65,7 +65,7 @@ export function formatCollectionDuration(
  * Calculate collection success rate
  */
 export function calculateSuccessRate(
-  processedCount: number, 
+  processedCount: number,
   videoCount: number
 ): {
   percentage: number;
@@ -74,11 +74,11 @@ export function calculateSuccessRate(
   if (videoCount === 0) {
     return { percentage: 0, label: 'No videos' };
   }
-  
+
   const percentage = Math.round((processedCount / videoCount) * 100);
   return {
     percentage,
-    label: `${processedCount}/${videoCount} (${percentage}%)`
+    label: `${processedCount}/${videoCount} (${percentage}%)`,
   };
 }
 
@@ -102,22 +102,19 @@ export function getCollectionHealth(
 /**
  * Generate collection poster URL from YouTube thumbnail
  */
-export function generateCollectionPosterUrl(
-  thumbnailUrl?: string,
-  fallbackTitle?: string
-): string {
+export function generateCollectionPosterUrl(thumbnailUrl?: string, fallbackTitle?: string): string {
   // If we have a YouTube thumbnail, use it
   if (thumbnailUrl) {
     // Try to get the highest quality version
     return thumbnailUrl.replace(/\/[^\/]*default\.jpg$/, '/maxresdefault.jpg');
   }
-  
+
   // Fallback to a generated poster based on title
   if (fallbackTitle) {
     const encoded = encodeURIComponent(fallbackTitle);
     return `/api/generate-poster?title=${encoded}&type=collection`;
   }
-  
+
   // Ultimate fallback
   return '/images/default-collection-poster.png';
 }
@@ -125,20 +122,22 @@ export function generateCollectionPosterUrl(
 /**
  * Sort collections by various criteria
  */
-export function sortCollections<T extends { 
-  createdAt: Date | string; 
-  completedAt?: Date | string; 
-  collectionTitle: string;
-  videoCount: number;
-  status: CollectionStatus;
-}>(
-  collections: T[], 
+export function sortCollections<
+  T extends {
+    createdAt: Date | string;
+    completedAt?: Date | string;
+    collectionTitle: string;
+    videoCount: number;
+    status: CollectionStatus;
+  }
+>(
+  collections: T[],
   sortBy: 'createdAt' | 'completedAt' | 'title' | 'videoCount' | 'status',
   direction: 'asc' | 'desc' = 'desc'
 ): T[] {
   return [...collections].sort((a, b) => {
     let comparison = 0;
-    
+
     switch (sortBy) {
       case 'createdAt':
         comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
@@ -155,11 +154,18 @@ export function sortCollections<T extends {
         comparison = a.videoCount - b.videoCount;
         break;
       case 'status':
-        const statusOrder = { pending: 0, creating: 1, 'adding-media': 2, 'updating-metadata': 3, completed: 4, failed: 5 };
+        const statusOrder = {
+          pending: 0,
+          creating: 1,
+          'adding-media': 2,
+          'updating-metadata': 3,
+          completed: 4,
+          failed: 5,
+        };
         comparison = statusOrder[a.status] - statusOrder[b.status];
         break;
     }
-    
+
     return direction === 'desc' ? -comparison : comparison;
   });
 }
@@ -167,12 +173,14 @@ export function sortCollections<T extends {
 /**
  * Filter collections based on criteria
  */
-export function filterCollections<T extends {
-  status: CollectionStatus;
-  collectionTitle: string;
-  librarySection: string;
-  createdAt: Date | string;
-}>(
+export function filterCollections<
+  T extends {
+    status: CollectionStatus;
+    collectionTitle: string;
+    librarySection: string;
+    createdAt: Date | string;
+  }
+>(
   collections: T[],
   filters: {
     status?: CollectionStatus | 'all';
@@ -181,12 +189,12 @@ export function filterCollections<T extends {
     dateRange?: { start: Date; end: Date };
   }
 ): T[] {
-  return collections.filter(collection => {
+  return collections.filter((collection) => {
     // Status filter
     if (filters.status && filters.status !== 'all' && collection.status !== filters.status) {
       return false;
     }
-    
+
     // Search filter
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
@@ -194,12 +202,12 @@ export function filterCollections<T extends {
         return false;
       }
     }
-    
+
     // Library section filter
     if (filters.librarySection && collection.librarySection !== filters.librarySection) {
       return false;
     }
-    
+
     // Date range filter
     if (filters.dateRange) {
       const collectionDate = new Date(collection.createdAt);
@@ -207,7 +215,7 @@ export function filterCollections<T extends {
         return false;
       }
     }
-    
+
     return true;
   });
 }
@@ -224,16 +232,16 @@ export function getEstimatedTimeRemaining(
   if (status === 'completed' || status === 'failed' || videoCount === 0) {
     return null;
   }
-  
+
   if (processedCount === 0) {
     return 'Calculating...';
   }
-  
+
   const elapsed = Date.now() - new Date(startTime).getTime();
   const avgTimePerVideo = elapsed / processedCount;
   const remainingVideos = videoCount - processedCount;
   const estimatedRemainingMs = avgTimePerVideo * remainingVideos;
-  
+
   if (estimatedRemainingMs < 60000) {
     return `< 1 minute`;
   } else if (estimatedRemainingMs < 3600000) {

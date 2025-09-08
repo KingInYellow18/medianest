@@ -8,7 +8,7 @@ export const updateServiceConfigSchema = z.object({
     serviceUrl: z.string().url('Invalid URL format'),
     apiKey: z.string().optional(),
     enabled: z.boolean().optional(),
-    configData: z.record(z.string(), z.any()).optional(),
+    configData: z.record(z.any()).optional(),
   }),
 });
 

@@ -34,7 +34,11 @@ const AlertTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<H
       className={cn('mb-1 font-medium leading-none tracking-tight', className)}
       {...props}
     />
+<<<<<<< HEAD
   ),
+=======
+  )
+>>>>>>> origin/develop
 );
 AlertTitle.displayName = 'AlertTitle';
 

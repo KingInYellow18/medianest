@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { performance } from 'perf_hooks';
 // @ts-ignore
+import { CatchError } from '../types/common';
 import {
   recordDatabaseMetrics,
   recordRedisMetrics,
@@ -11,10 +12,10 @@ import {
 /**
  * Higher-order function to wrap database operations with metrics
  */
-export function withDatabaseMetrics<T extends (...args: any[]) => Promise<any>>(
+export function withDatabaseMetrics<T extends (...args: unknown[]) => Promise<any>>(
   operation: string,
   table: string,
-  fn: T,
+  fn: T
 ): T {
   return (async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
     const startTime = performance.now();
@@ -23,7 +24,7 @@ export function withDatabaseMetrics<T extends (...args: any[]) => Promise<any>>(
     try {
       const result = await fn(...args);
       return result;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       success = false;
       throw error;
     } finally {
@@ -36,9 +37,9 @@ export function withDatabaseMetrics<T extends (...args: any[]) => Promise<any>>(
 /**
  * Higher-order function to wrap Redis operations with metrics
  */
-export function withRedisMetrics<T extends (...args: any[]) => Promise<any>>(
+export function withRedisMetrics<T extends (...args: unknown[]) => Promise<any>>(
   operation: string,
-  fn: T,
+  fn: T
 ): T {
   return (async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
     const startTime = performance.now();
@@ -47,7 +48,7 @@ export function withRedisMetrics<T extends (...args: any[]) => Promise<any>>(
     try {
       const result = await fn(...args);
       return result;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       success = false;
       throw error;
     } finally {
@@ -60,10 +61,10 @@ export function withRedisMetrics<T extends (...args: any[]) => Promise<any>>(
 /**
  * Higher-order function to wrap external service calls with metrics
  */
-export function withExternalServiceMetrics<T extends (...args: any[]) => Promise<any>>(
+export function withExternalServiceMetrics<T extends (...args: unknown[]) => Promise<any>>(
   service: string,
   endpoint: string,
-  fn: T,
+  fn: T
 ): T {
   return (async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
     const startTime = performance.now();
@@ -76,7 +77,7 @@ export function withExternalServiceMetrics<T extends (...args: any[]) => Promise
         statusCode = result.status;
       }
       return result;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       // Extract status code from error if available
       statusCode = error?.response?.status || error?.status || 500;
       throw error;
@@ -113,7 +114,7 @@ export class MetricsCollector {
 
         // Placeholder values for now
         (recordDatabaseMetrics as any).updateConnectionPool(5, 10);
-      } catch (error: any) {
+      } catch (error: CatchError) {
         console.error('Error collecting database metrics:', error);
       }
     }, 30000);
@@ -127,7 +128,7 @@ export class MetricsCollector {
 
         // Placeholder value for now
         (recordRedisMetrics as any).updateConnections(2);
-      } catch (error: any) {
+      } catch (error: CatchError) {
         console.error('Error collecting Redis metrics:', error);
       }
     }, 30000);
@@ -152,7 +153,7 @@ export class MetricsCollector {
         (recordBusinessMetrics as any).updateQueueSize('process', Math.floor(Math.random() * 5));
         (recordBusinessMetrics as any).updateMediaLibrarySize('movies', 1000);
         (recordBusinessMetrics as any).updateMediaLibrarySize('tv', 500);
-      } catch (error: any) {
+      } catch (error: CatchError) {
         console.error('Error collecting business metrics:', error);
       }
     }, 60000);
@@ -196,7 +197,7 @@ export const MetricsUtils = {
   recordMediaRequest(
     type: 'movie' | 'tv' | 'music',
     status: 'requested' | 'approved' | 'downloaded' | 'failed',
-    userId: string,
+    userId: string
   ): void {
     (recordBusinessMetrics as any).recordMediaRequest(type, status, userId);
   },
@@ -206,7 +207,7 @@ export const MetricsUtils = {
    */
   recordUserActivity(
     activity: 'login' | 'logout' | 'search' | 'request' | 'download',
-    userId: string,
+    userId: string
   ): void {
     (recordBusinessMetrics as any).recordUserActivity(activity, userId);
   },

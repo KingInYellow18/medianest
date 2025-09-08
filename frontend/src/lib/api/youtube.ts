@@ -1,3 +1,4 @@
+import { getApiConfig } from '@/config';
 import type {
   YouTubeMetadata,
   YouTubeDownloadRequest,
@@ -7,7 +8,6 @@ import type {
 import type { DownloadQueueResponse, DownloadQueueItem, QueueFilters } from '@/types/youtube-queue';
 
 import { getAuthHeaders } from './auth';
-import { getApiConfig } from '@/config';
 
 const { baseUrl: API_BASE } = getApiConfig();
 
@@ -33,7 +33,7 @@ export async function validateAndFetchMetadata(url: string): Promise<YouTubeMeta
 
 export async function queueYouTubeDownload(
   url: string,
-  format: DownloadFormat,
+  format: DownloadFormat
 ): Promise<YouTubeDownloadRequest> {
   const headers = await getAuthHeaders();
 
@@ -95,7 +95,7 @@ export interface FetchDownloadQueueOptions {
 }
 
 export async function fetchDownloadQueue(
-  options: FetchDownloadQueueOptions,
+  options: FetchDownloadQueueOptions
 ): Promise<DownloadQueueResponse> {
   const headers = await getAuthHeaders();
   const params = new URLSearchParams();
@@ -169,7 +169,7 @@ export async function retryDownload(downloadId: string): Promise<YouTubeDownload
 }
 
 export async function checkDuplicateURL(
-  url: string,
+  url: string
 ): Promise<{ isDuplicate: boolean; existingDownload?: any }> {
   const headers = await getAuthHeaders();
   const response = await fetch(`${API_BASE}/youtube/check-duplicate`, {

@@ -1,6 +1,9 @@
 // @ts-nocheck
 import { redisClient } from '@/config/redis';
 import { logger } from '@/utils/logger';
+import { handleAsync, handleCacheError, safeAsyncTry } from '@/utils/error-handler';
+import { isNotNullOrUndefined } from '@/utils/validation.utils';
+import { safeJsonParse, safeJsonStringify } from '@/utils/transform.utils';
 
 export class CacheService {
   private readonly defaultTTL = 300; // 5 minutes default
@@ -9,41 +12,43 @@ export class CacheService {
    * Get cached value with automatic JSON parsing
    */
   async get<T>(key: string): Promise<T | null> {
-    try {
-      const cached = await redisClient.get(key);
-      if (!cached) return null;
+    const [cached, error] = await handleAsync(() => redisClient.get(key), 'Cache get error');
 
-      return JSON.parse(cached) as T;
-    } catch (error: any) {
-      logger.error('Cache get error', { key, error });
-      return null;
-    }
+    if (error || !cached) return null;
+
+    return safeJsonParse<T>(cached, null as T);
   }
 
   /**
    * Set cached value with automatic JSON stringification
    */
-  async set(key: string, value: any, ttl?: number): Promise<void> {
-    try {
-      const ttlSeconds = ttl || this.defaultTTL;
-      await redisClient.setex(key, ttlSeconds, JSON.stringify(value));
-    } catch (error: any) {
-      logger.error('Cache set error', { key, error });
-    }
+  async set(key: string, value: unknown, ttl?: number): Promise<void> {
+    const ttlSeconds = ttl || this.defaultTTL;
+    const jsonValue = safeJsonStringify(value);
+
+    await safeAsyncTry(
+      () => redisClient.setex(key, ttlSeconds, jsonValue),
+      undefined,
+      `Cache set error for key: ${key}`
+    );
   }
 
   /**
    * Delete cached value(s)
    */
   async del(keys: string | string[]): Promise<void> {
-    try {
-      if (Array.isArray(keys) && keys.length > 0) {
-        await redisClient.del(keys);
-      } else if (typeof keys === 'string') {
-        await redisClient.del(keys);
-      }
-    } catch (error: any) {
-      logger.error('Cache delete error', { keys, error });
+    if (Array.isArray(keys) && keys.length > 0) {
+      await safeAsyncTry(
+        () => redisClient.del(keys),
+        undefined,
+        'Cache delete error for array keys'
+      );
+    } else if (typeof keys === 'string') {
+      await safeAsyncTry(
+        () => redisClient.del(keys),
+        undefined,
+        `Cache delete error for key: ${keys}`
+      );
     }
   }
 
@@ -70,14 +75,20 @@ export class CacheService {
    * Invalidate cache by pattern
    */
   async invalidatePattern(pattern: string): Promise<void> {
-    try {
-      const keys = await redisClient.keys(pattern);
-      if (keys.length > 0) {
-        await redisClient.del(keys);
-        logger.debug('Cache invalidated', { pattern, count: keys.length });
-      }
-    } catch (error: any) {
-      logger.error('Cache pattern invalidation error', { pattern, error });
+    const [keys, keysError] = await handleAsync(
+      () => redisClient.keys(pattern),
+      `Cache pattern keys lookup error: ${pattern}`
+    );
+
+    if (keysError || !keys || keys.length === 0) return;
+
+    const [, delError] = await handleAsync(
+      () => redisClient.del(keys),
+      `Cache pattern delete error: ${pattern}`
+    );
+
+    if (!delError) {
+      logger.debug('Cache invalidated', { pattern, count: keys.length });
     }
   }
 
@@ -88,25 +99,28 @@ export class CacheService {
     keyCount: number;
     memoryUsage: string;
   }> {
-    try {
-      const info = await redisClient.info('memory');
-      const dbSize = await redisClient.dbsize();
+    const [info, infoError] = await handleAsync(
+      () => redisClient.info('memory'),
+      'Cache info memory error'
+    );
 
-      // Parse memory usage from info
-      const memoryMatch = info.match(/used_memory_human:(.+)/);
-      const memoryUsage = memoryMatch ? memoryMatch[1].trim() : 'unknown';
+    const [dbSize, dbSizeError] = await handleAsync(
+      () => redisClient.dbsize(),
+      'Cache dbsize error'
+    );
 
-      return {
-        keyCount: dbSize,
-        memoryUsage,
-      };
-    } catch (error: any) {
-      logger.error('Cache info error', { error });
-      return {
-        keyCount: 0,
-        memoryUsage: 'unknown',
-      };
+    if (infoError || dbSizeError) {
+      return { keyCount: 0, memoryUsage: 'unknown' };
     }
+
+    // Parse memory usage from info
+    const memoryMatch = info?.match(/used_memory_human:(.+)/);
+    const memoryUsage = memoryMatch ? memoryMatch[1].trim() : 'unknown';
+
+    return {
+      keyCount: dbSize || 0,
+      memoryUsage,
+    };
   }
 }
 

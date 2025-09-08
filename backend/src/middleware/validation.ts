@@ -4,6 +4,15 @@ import { z, ZodError, ZodSchema } from 'zod';
 
 import { AppError } from '../utils/errors';
 import { logger } from '../utils/logger';
+import { CatchError } from '../types/common';
+
+interface ValidationData {
+  body?: any;
+  params?: any;
+  query?: any;
+  headers?: any;
+  cookies?: any;
+}
 
 interface ValidationData {
   body?: any;
@@ -56,7 +65,7 @@ export function validate(schema: ZodSchema) {
       if (parsed.query) req.query = parsed.query;
 
       next();
-    } catch (error: any) {
+    } catch (error: CatchError) {
       if (error instanceof ZodError) {
         const validationError = formatZodError(error);
         logger.warn('Validation failed', {

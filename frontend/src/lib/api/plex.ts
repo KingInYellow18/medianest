@@ -1,3 +1,4 @@
+import { getApiConfig } from '@/config';
 import {
   PlexLibrary,
   PlexLibraryResponse,
@@ -7,7 +8,6 @@ import {
   CollectionFilters,
 } from '@/types/plex';
 import { PlexSearchQuery, PlexSearchResults } from '@/types/plex-search';
-import { getApiConfig } from '@/config';
 
 const { baseUrl: API_BASE } = getApiConfig();
 
@@ -51,7 +51,7 @@ export async function fetchLibraries(): Promise<PlexLibrary[]> {
   return data.data
     .filter(
       (library: any) =>
-        allowedTypes.includes(library.type) || library.title.toLowerCase() === 'youtube',
+        allowedTypes.includes(library.type) || library.title.toLowerCase() === 'youtube'
     )
     .map((lib: any) => ({
       ...lib,
@@ -67,7 +67,7 @@ export async function fetchLibraryItems(
     filters?: Record<string, any>;
     offset?: number;
     limit?: number;
-  },
+  }
 ): Promise<PlexLibraryResponse> {
   const headers = await getAuthHeaders();
 
@@ -185,7 +185,7 @@ export async function searchPlex(searchQuery: PlexSearchQuery): Promise<PlexSear
 
 export async function fetchRecentlyAdded(
   libraryKey?: string,
-  params: { limit?: number } = {},
+  params: { limit?: number } = {}
 ): Promise<PlexMediaItem[]> {
   const headers = await getAuthHeaders();
 
@@ -209,7 +209,7 @@ export async function fetchRecentlyAdded(
 
 export async function fetchCollections(
   libraryKey: string,
-  filters: CollectionFilters = {},
+  filters: CollectionFilters = {}
 ): Promise<PlexCollectionSummary[]> {
   const headers = await getAuthHeaders();
 
@@ -227,7 +227,7 @@ export async function fetchCollections(
     `${API_BASE}/plex/libraries/${libraryKey}/collections?${searchParams}`,
     {
       headers,
-    },
+    }
   );
 
   if (!response.ok) {

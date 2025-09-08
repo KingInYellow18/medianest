@@ -17,26 +17,52 @@ import { performanceRoutes } from '../performance';
 import { resilienceRouter } from './resilience';
 import { simpleHealthRouter } from '../simple-health';
 
+// Context7 Pattern: Optimized Router with Performance Considerations
 const router = Router();
 
-// Public routes
-router.use('/auth', authRoutes);
-router.use('/health', healthRoutes);
-router.use('/simple-health', simpleHealthRouter); // Simple health for Docker
+// Context7 Pattern: Enhanced route grouping with performance optimizations
+// Public routes (no authentication middleware overhead) - optimized order by frequency
+router.use('/health', healthRoutes); // Most frequent - health checks
+router.use('/simple-health', simpleHealthRouter); // Docker health checks
+router.use('/auth', authRoutes); // High frequency - authentication endpoints
+router.use('/webhooks', webhookRoutes); // Medium frequency - external webhooks
 router.use('/csrf', csrfRoutes); // CSRF endpoints available to all
-router.use('/webhooks', webhookRoutes); // Webhooks don't require auth
-router.use('/resilience', resilienceRouter); // Resilience monitoring (public for health checks)
+router.use('/resilience', resilienceRouter); // Low frequency - monitoring
 
-// Protected routes
-router.use('/dashboard', authenticate, dashboardRoutes);
-router.use('/media', authenticate, mediaRoutes);
-router.use('/performance', authenticate, performanceRoutes);
-router.use('/plex', authenticate, plexRoutes);
-router.use('/services', authenticate, servicesRoutes);
-router.use('/youtube', authenticate, youtubeRoutes);
-router.use('/errors', authenticate, errorsRoutes);
+// Context7 Pattern: Enhanced authentication with route-specific optimizations
+const protectedRouter = Router();
 
-// Admin routes
-router.use('/admin', authenticate, adminRoutes);
+// Context7 Pattern: Pre-authentication middleware for performance metrics
+protectedRouter.use((req, res, next) => {
+  // Add authentication start time for performance monitoring
+  req.authStartTime = process.hrtime.bigint();
+  next();
+});
+
+protectedRouter.use(authenticate); // Single authentication point
+
+// Context7 Pattern: Post-authentication metrics
+protectedRouter.use((req, res, next) => {
+  if (req.authStartTime) {
+    const authDuration = Number(process.hrtime.bigint() - req.authStartTime) / 1e6;
+    res.setHeader('X-Auth-Time', `${authDuration.toFixed(2)}ms`);
+  }
+  next();
+});
+
+// Context7 Pattern: Protected routes ordered by frequency and resource intensity
+// High frequency, low resource routes first
+protectedRouter.use('/dashboard', dashboardRoutes); // Most frequent user endpoint
+protectedRouter.use('/media', mediaRoutes); // High frequency media operations
+protectedRouter.use('/services', servicesRoutes); // Service status checks
+protectedRouter.use('/performance', performanceRoutes); // Performance monitoring
+protectedRouter.use('/plex', plexRoutes); // Plex integration
+protectedRouter.use('/youtube', youtubeRoutes); // YouTube operations
+protectedRouter.use('/errors', errorsRoutes); // Error handling
+// Resource-intensive routes last
+protectedRouter.use('/admin', adminRoutes); // Admin operations (typically heavier)
+
+// Mount protected routes
+router.use('/', protectedRouter);
 
 export default router;

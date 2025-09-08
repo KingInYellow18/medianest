@@ -1,96 +1,62 @@
+/// <reference path="../types/express.d.ts" />
 import { Request, Response, NextFunction } from 'express';
 
 import { SessionTokenRepository } from '../repositories/session-token.repository';
 import { UserRepository } from '../repositories/user.repository';
 import { AuthenticationError } from '../utils/errors';
-import { verifyToken } from '../utils/jwt';
 import { logger } from '../utils/logger';
 import { DeviceSessionService } from '../services/device-session.service';
+import { prisma } from '../lib/prisma';
 
-// Import modular auth utilities
-import {
-  validateToken,
-  extractTokenOptional,
-  TokenValidationContext,
-} from './auth/token-validator';
-import { validateUser, validateUserOptional } from './auth/user-validator';
-import {
-  validateSessionToken,
-  registerAndAssessDevice,
-  updateSessionActivity,
-  SessionUpdateContext,
-} from './auth/device-session-manager';
-import { handleTokenRotation, TokenRotationContext } from './auth/token-rotator';
+// Import unified authentication facade
+import { AuthenticationFacade, AuthenticatedUser } from '../auth';
+import { CatchError } from '../types/common';
 
 // Types are extended in types/express.d.ts
 
-// Repository instances - these should ideally be injected in production
-// @ts-ignore
-const userRepository = new UserRepository(undefined as any) as any;
-// @ts-ignore
-const sessionTokenRepository = new SessionTokenRepository(undefined as any) as any;
-// @ts-ignore
-const deviceSessionService = new DeviceSessionService() as any;
+// Repository instances with proper Prisma client injection
+const userRepository = new UserRepository(prisma);
+const sessionTokenRepository = new SessionTokenRepository(prisma);
+const deviceSessionService = new DeviceSessionService(userRepository, sessionTokenRepository);
+
+// Initialize authentication facade
+const authFacade = new AuthenticationFacade(
+  userRepository,
+  sessionTokenRepository,
+  deviceSessionService
+);
 
 export function authMiddleware() {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // Create validation context
-      const context: TokenValidationContext = {
-        ipAddress: req.ip,
-        userAgent: req.get('user-agent'),
-      };
+      // Use facade for simplified authentication
+      const authResult = await authFacade.authenticate(req);
 
-      // Validate token (extract, verify JWT, check blacklist)
-      const { token, payload, metadata } = validateToken(req, context) as any;
+      // Attach authentication data to request
+      req.user = authResult.user as AuthenticatedUser;
+      req.token = authResult.token;
+      req.deviceId = authResult.deviceId;
+      req.sessionId = authResult.sessionId;
 
-      // Validate user exists and is active
-      const user = await validateUser(payload.userId, userRepository, context);
+      // Handle token rotation through facade
+      if (req.token && req.user) {
+        if (authFacade.shouldRotateToken(req.token)) {
+          // Ensure user has required properties for token rotation
+          const tokenPayload = {
+            userId: req.user.id,
+            email: req.user.email || '',
+            role: req.user.role || 'user',
+            plexId: req.user.plexId || undefined,
+            sessionId: req.sessionId || '',
+            deviceId: req.deviceId,
+          };
 
-      // Validate session token
-      await validateSessionToken(token, metadata, sessionTokenRepository, {
-        userId: payload.userId,
-        ...context,
-      });
-
-      // Register device and assess risk
-      const deviceRegistration = await registerAndAssessDevice(user.id, req, deviceSessionService);
-
-      // Update session activity
-      const sessionContext: SessionUpdateContext = {
-        method: req.method,
-        path: req.path,
-        query: req.query,
-        params: req.params,
-        ipAddress: req.ip || '',
-        userAgent: req.get('user-agent') || '',
-      };
-      await updateSessionActivity(payload.sessionId, sessionContext, deviceSessionService);
-
-      // Handle token rotation if needed
-      const rotationContext: TokenRotationContext = {
-        ipAddress: req.ip,
-        userAgent: req.get('user-agent'),
-        sessionId: payload.sessionId,
-        deviceId: deviceRegistration.deviceId,
-      };
-      await handleTokenRotation(
-        token,
-        payload,
-        user.id,
-        rotationContext,
-        sessionTokenRepository,
-        res,
-      );
-
-      // Attach user info to request
-      req.user = user;
-      req.token = token;
-      req.deviceId = deviceRegistration.deviceId;
-      req.sessionId = payload.sessionId;
+          await authFacade.handleTokenRotation(req, res, req.token, tokenPayload, req.user.id);
+        }
+      }
 
       next();
-    } catch (error: any) {
+    } catch (error: CatchError) {
       next(error);
     }
   };
@@ -105,7 +71,7 @@ export function requireRole(...roles: string[]) {
       return next(new AuthenticationError('Authentication required'));
     }
 
-    if (!roles.includes((req.user as any).role)) {
+    if (!authFacade.hasRole(req.user as AuthenticatedUser, ...roles)) {
       return next(new AuthenticationError(`Required role: ${roles.join(' or ')}`));
     }
 
@@ -124,30 +90,19 @@ export function requireUser() {
 export function optionalAuth() {
   return async (req: Request, _res: Response, next: NextFunction) => {
     try {
-      // Extract token (returns null if not found)
-      const token = extractTokenOptional(req);
+      const authResult = await authFacade.authenticateOptional(req);
 
-      if (!token) {
-        // No token, but that's OK for optional auth
-        return next();
-      }
-
-      // Verify JWT token
-      const payload = verifyToken(token);
-
-      // Validate user (returns null if not found/inactive)
-      const user = await validateUserOptional(payload.userId, userRepository);
-
-      if (user) {
-        // Attach user info to request
-        req.user = user;
-        req.token = token;
+      if (authResult) {
+        req.user = authResult.user as AuthenticatedUser;
+        req.token = authResult.token;
       }
 
       next();
-    } catch (error: any) {
+    } catch (error: CatchError) {
       // Log error but continue - auth is optional
-      logger.debug('Optional auth failed', { error });
+      logger.debug('Optional auth failed', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
       next();
     }
   };

@@ -1,4 +1,5 @@
 import { logger } from './logger';
+import { CatchError } from '../types/common';
 
 export interface RetryOptions {
   maxAttempts: number;
@@ -15,7 +16,7 @@ export interface RetryOptions {
  */
 export async function retryWithBackoff<T>(
   fn: () => Promise<T>,
-  options: Partial<RetryOptions> = {},
+  options: Partial<RetryOptions> = {}
 ): Promise<T> {
   const config: RetryOptions = {
     maxAttempts: 3,
@@ -30,14 +31,14 @@ export async function retryWithBackoff<T>(
   for (let attempt = 1; attempt <= config.maxAttempts; attempt++) {
     try {
       return await fn();
-    } catch (error: any) {
+    } catch (error: CatchError) {
       lastError = error as Error;
 
       if (attempt < config.maxAttempts) {
         // Calculate delay with exponential backoff and jitter
         const baseDelay = Math.min(
           config.initialDelay * Math.pow(config.factor, attempt - 1),
-          config.maxDelay,
+          config.maxDelay
         );
 
         // Add jitter (±25% of base delay)
@@ -69,14 +70,14 @@ export async function retryWithBackoff<T>(
 export async function simpleRetry<T>(
   fn: () => Promise<T>,
   maxAttempts = 3,
-  delay = 1000,
+  delay = 1000
 ): Promise<T> {
   let lastError: Error;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       return await fn();
-    } catch (error: any) {
+    } catch (error: CatchError) {
       lastError = error as Error;
 
       if (attempt < maxAttempts) {

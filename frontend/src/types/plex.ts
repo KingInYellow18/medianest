@@ -1,31 +1,38 @@
+// Context7 Enhanced Plex Types with Better Type Inference
+type PlexLibraryType = 'movie' | 'show' | 'youtube';
+
 export interface PlexLibrary {
   id: string;
   key: string;
   title: string;
-  type: 'movie' | 'show' | 'youtube';
+  type: PlexLibraryType;
   agent: string;
   scanner: string;
   language: string;
-  updatedAt: Date;
+  updatedAt: string; // ISO string for better serialization
   itemCount: number;
   thumb?: string;
   art?: string;
 }
+
+type PlexMediaType = 'movie' | 'episode' | 'season' | 'show';
+type SortOrder = 'asc' | 'desc';
+type PlexSortField = 'title' | 'year' | 'rating' | 'addedAt' | 'lastViewedAt';
 
 export interface PlexMediaItem {
   id: string;
   key: string;
   title: string;
   originalTitle?: string;
-  type: 'movie' | 'episode' | 'season' | 'show';
+  type: PlexMediaType;
   summary?: string;
   year?: number;
   rating?: number;
   duration?: number;
   thumb?: string;
   art?: string;
-  addedAt: Date;
-  updatedAt: Date;
+  addedAt: string; // ISO string
+  updatedAt: string; // ISO string
   viewCount?: number;
   lastViewedAt?: Date;
   viewOffset?: number;
@@ -50,8 +57,8 @@ export interface PlexCollectionSummary {
   thumb?: string;
   art?: string;
   childCount: number;
-  addedAt: Date;
-  updatedAt: Date;
+  addedAt: string; // ISO string
+  updatedAt: string; // ISO string
   collectionSort?: string;
   collectionMode?: string;
 }
@@ -67,7 +74,8 @@ export interface CollectionFilters {
 }
 
 export interface PlexFilters {
-  sort?: 'title' | 'year' | 'rating' | 'addedAt' | 'lastViewedAt';
+  sort?: PlexSortField;
+  sortOrder?: SortOrder;
   genre?: string;
   year?: number;
   contentRating?: string;

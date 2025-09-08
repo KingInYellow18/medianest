@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { Request, Response } from 'express';
+import { sendSuccess, asyncHandler } from '../../utils/response.utils';
 
 const router = Router();
 
@@ -7,8 +8,9 @@ const router = Router();
  * Service monitoring status endpoint
  * Returns status of various services for monitoring
  */
-router.get('/status', async (req: Request, res: Response) => {
-  try {
+router.get(
+  '/status',
+  asyncHandler(async (req: Request, res: Response) => {
     // Mock service status data for testing
     // In production this would check actual service health
     const services = [
@@ -38,27 +40,19 @@ router.get('/status', async (req: Request, res: Response) => {
       },
     ];
 
-    res.json({
-      success: true,
-      data: {
-        services,
-        timestamp: new Date().toISOString(),
-        summary: {
-          total: services.length,
-          online: services.filter((s) => s.status === 'online').length,
-          offline: services.filter((s) => s.status === 'offline').length,
-          degraded: services.filter((s) => s.status === 'degraded').length,
-        },
+    const data = {
+      services,
+      timestamp: new Date().toISOString(),
+      summary: {
+        total: services.length,
+        online: services.filter((s) => s.status === 'online').length,
+        offline: services.filter((s) => s.status === 'offline').length,
+        degraded: services.filter((s) => s.status === 'degraded').length,
       },
-    });
-  } catch (error: any) {
-    console.error('Error fetching service status:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error',
-      message: 'Failed to fetch service status',
-    });
-  }
-});
+    };
+
+    sendSuccess(res, data);
+  })
+);
 
 export default router;

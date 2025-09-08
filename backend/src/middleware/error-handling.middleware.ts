@@ -173,7 +173,7 @@ export function globalErrorHandler() {
 // Not found handler
 export function notFoundHandler() {
   return (req: Request, _res: Response, next: NextFunction) => {
-    const error = new AppError(`Route ${req.method} ${req.path} not found`, 404, 'ROUTE_NOT_FOUND');
+    const error = new AppError('ROUTE_NOT_FOUND', `Route ${req.method} ${req.path} not found`, 404);
     next(error);
   };
 }
@@ -189,7 +189,7 @@ export function asyncErrorHandler(fn: Function) {
 export function validationErrorHandler() {
   return (error: any, _req: Request, _res: Response, next: NextFunction) => {
     if (error.name === 'ZodError') {
-      const validationError = new AppError('Validation failed', 400, 'VALIDATION_ERROR');
+      const validationError = new AppError('VALIDATION_ERROR', 'Validation failed', 400);
 
       // Add validation details
       (validationError as any).details = {
@@ -211,9 +211,9 @@ export function rateLimitErrorHandler() {
   return (error: any, req: Request, _res: Response, next: NextFunction) => {
     if (error.name === 'RateLimitError' || ((error as any).code as any) === 'RATE_LIMIT_EXCEEDED') {
       const rateLimitError = new AppError(
-        'Too many requests, please try again later',
-        429,
         'RATE_LIMIT_EXCEEDED',
+        'Too many requests, please try again later',
+        429
       );
 
       logger.warn('Rate limit exceeded', {
@@ -257,7 +257,7 @@ export function databaseErrorHandler() {
           break;
       }
 
-      const dbError = new AppError(message, statusCode, 'DATABASE_ERROR');
+      const dbError = new AppError('DATABASE_ERROR', message, statusCode);
       return next(dbError);
     }
 
@@ -267,7 +267,7 @@ export function databaseErrorHandler() {
       (error.message as any)?.includes('ETIMEDOUT') ||
       (error.message as any)?.includes('database')
     ) {
-      const dbError = new AppError('Database connection failed', 503, 'DATABASE_CONNECTION_ERROR');
+      const dbError = new AppError('DATABASE_CONNECTION_ERROR', 'Database connection failed', 503);
       return next(dbError);
     }
 
@@ -279,20 +279,20 @@ export function databaseErrorHandler() {
 export function authErrorHandler() {
   return (error: any, _req: Request, _res: Response, next: NextFunction) => {
     if (error.name === 'JsonWebTokenError') {
-      const authError = new AppError('Invalid authentication token', 401, 'INVALID_TOKEN');
+      const authError = new AppError('INVALID_TOKEN', 'Invalid authentication token', 401);
       return next(authError);
     }
 
     if (error.name === 'TokenExpiredError') {
-      const authError = new AppError('Authentication token expired', 401, 'TOKEN_EXPIRED');
+      const authError = new AppError('TOKEN_EXPIRED', 'Authentication token expired', 401);
       return next(authError);
     }
 
     if (error.name === 'NotBeforeError') {
       const authError = new AppError(
-        'Authentication token not active yet',
-        401,
         'TOKEN_NOT_ACTIVE',
+        'Authentication token not active yet',
+        401
       );
       return next(authError);
     }

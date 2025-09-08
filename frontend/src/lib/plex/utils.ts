@@ -11,7 +11,7 @@ export function getPlexImageUrl(
     minSize?: number;
     upscale?: boolean;
     quality?: number;
-  } = {},
+  } = {}
 ): string {
   if (!path) {
     return '/images/poster-placeholder.svg';

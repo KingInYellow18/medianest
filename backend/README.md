@@ -1,0 +1,451 @@
+# MediaNest Backend
+
+**⚠️ Current Status: Development/Repair Phase - Build Issues Present**
+
+The MediaNest Backend is an Express.js TypeScript API server that provides unified access to Plex media server and related services. It features authentication, device management, system monitoring, and external service integrations.
+
+## 🚨 Known Issues
+
+- **TypeScript Errors**: 80+ compilation errors preventing builds
+- **Database Schema**: ID type mismatches (string vs number) throughout codebase
+- **Test Failures**: 28/30 integration tests failing
+- **Configuration**: Missing Plex integration config implementation
+
+## 📋 Purpose
+
+The backend serves as:
+
+- **API Gateway**: Unified REST API for media management
+- **Authentication Service**: JWT-based auth with device tracking and 2FA
+- **Integration Hub**: Connects Plex, Overseerr, Uptime Kuma, and other services
+- **Real-time Communication**: WebSocket support via Socket.io
+- **Job Processing**: Background tasks and queue management
+- **Monitoring & Logging**: Performance metrics and security auditing
+
+## 🏗️ Architecture
+
+```
+backend/src/
+├── config/          # Configuration management
+├── controllers/     # Request handlers and business logic
+├── integrations/    # External service integrations
+│   ├── plex/       # Plex Media Server integration
+│   ├── overseerr/  # Media request management
+│   └── uptime/     # Service monitoring
+├── jobs/           # Background job processors
+├── middleware/     # Express middleware (auth, validation, etc.)
+├── repositories/   # Data access layer
+├── routes/         # API route definitions
+├── services/       # Business logic services
+├── socket/         # WebSocket handlers
+├── types/          # TypeScript type definitions
+└── utils/          # Utility functions
+```
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 20.x or higher
+- PostgreSQL 15.x
+- Redis 7.x
+- TypeScript knowledge
+
+### Installation
+
+**⚠️ Note: Current installation will fail due to TypeScript errors**
+
+```bash
+# From project root
+cd backend
+
+# Install dependencies
+npm install
+
+# Set up environment
+cp .env.example .env
+# Edit .env with your configuration
+
+# Generate Prisma client (may fail)
+npm run prisma:generate
+
+# Run database migrations (may fail)
+npm run prisma:migrate
+
+# Build project (WILL FAIL - 80+ TypeScript errors)
+npm run build
+```
+
+### Development Server
+
+```bash
+# Start development server (will fail due to build issues)
+npm run dev
+
+# Alternative: Run tests (28/30 failing)
+npm test
+
+# Type checking (will show 80+ errors)
+npm run type-check
+```
+
+## 📡 API Endpoints
+
+### Authentication
+
+```
+POST   /api/auth/login          # User login
+POST   /api/auth/logout         # User logout
+POST   /api/auth/refresh        # Refresh JWT token
+POST   /api/auth/register       # User registration
+GET    /api/auth/me            # Current user info
+```
+
+### Users & Devices
+
+```
+GET    /api/users              # List users (admin)
+GET    /api/users/:id          # Get user details
+PUT    /api/users/:id          # Update user
+DELETE /api/users/:id          # Delete user
+GET    /api/devices            # List user devices
+DELETE /api/devices/:id        # Remove device
+```
+
+### Media Services
+
+```
+GET    /api/plex/servers       # List Plex servers
+GET    /api/plex/libraries     # Get media libraries
+GET    /api/overseerr/status   # Overseerr connection status
+POST   /api/overseerr/request  # Submit media request
+GET    /api/uptime/services    # Service status monitoring
+```
+
+### System
+
+```
+GET    /api/health             # Health check
+GET    /api/metrics            # Performance metrics
+GET    /api/system/info        # System information
+POST   /api/system/backup      # Create backup
+```
+
+## 🔐 Authentication & Security
+
+### JWT Authentication
+
+- **Access Tokens**: Short-lived (15 minutes)
+- **Refresh Tokens**: Long-lived (7 days)
+- **Device Tracking**: Fingerprinting and risk assessment
+- **Token Rotation**: Automatic refresh mechanism
+
+### Security Features
+
+- **Helmet.js**: HTTP security headers
+- **Rate Limiting**: Request throttling
+- **CORS**: Cross-origin request handling
+- **Input Validation**: Zod schema validation
+- **Password Hashing**: bcrypt with salt rounds
+- **2FA Support**: TOTP-based two-factor authentication
+
+## 🗄️ Database
+
+### Prisma ORM
+
+- **Database**: PostgreSQL 15.x
+- **Schema**: Located in `prisma/schema.prisma`
+- **Migrations**: Version-controlled schema changes
+- **Client Generation**: Type-safe database access
+
+### Key Models
+
+- **User**: User accounts and profiles
+- **Device**: Registered user devices
+- **Session**: Authentication sessions
+- **Service**: External service configurations
+- **AuditLog**: Security and access logging
+
+### Common Commands
+
+```bash
+# Generate Prisma client
+npm run prisma:generate
+
+# Create migration
+npm run prisma:migrate
+
+# Open database studio
+npm run prisma:studio
+
+# Reset database (development only)
+npx prisma migrate reset
+```
+
+## 🔌 External Integrations
+
+### Plex Media Server
+
+- **Authentication**: Plex OAuth integration
+- **Library Access**: Media scanning and metadata
+- **User Management**: Plex user synchronization
+- **Transcoding**: Stream optimization
+
+### Overseerr
+
+- **Media Requests**: User request management
+- **Approval Workflow**: Admin approval system
+- **Radarr/Sonarr**: Automatic media acquisition
+
+### Uptime Kuma
+
+- **Service Monitoring**: Health check monitoring
+- **Alert Management**: Notification handling
+- **Status Dashboard**: Service availability tracking
+
+## 🔄 Background Jobs
+
+### Queue System (BullMQ + Redis)
+
+- **Media Scanning**: Periodic library updates
+- **User Synchronization**: Plex user sync
+- **Health Checks**: Service monitoring
+- **Cleanup Tasks**: Database maintenance
+- **Email Notifications**: User communications
+
+### Job Types
+
+```typescript
+// Media scanning job
+interface MediaScanJob {
+  libraryId: string;
+  fullScan: boolean;
+  userId?: string;
+}
+
+// User sync job
+interface UserSyncJob {
+  plexServerId: string;
+  syncType: 'full' | 'incremental';
+}
+```
+
+## 📊 Real-time Features
+
+### Socket.io Integration
+
+- **Connection Management**: User session handling
+- **Room Management**: Channel-based messaging
+- **Event Broadcasting**: Real-time notifications
+- **Authentication**: JWT-based socket auth
+
+### Events
+
+```typescript
+// Client → Server
+socket.emit('join-room', { roomId: 'library-updates' });
+socket.emit('media-scan', { libraryId: '1' });
+
+// Server → Client
+socket.emit('scan-progress', { progress: 45, status: 'scanning' });
+socket.emit('notification', { type: 'info', message: 'Scan complete' });
+```
+
+## 🧪 Testing
+
+### Current Status: **FAILING**
+
+- **Integration Tests**: 28/30 tests failing
+- **Unit Tests**: Limited coverage due to build issues
+- **E2E Tests**: Cannot run due to compilation errors
+
+### Test Structure
+
+```
+backend/tests/
+├── integration/     # API endpoint tests
+├── unit/           # Service and utility tests
+├── fixtures/       # Test data and mocks
+└── setup.ts        # Test configuration
+```
+
+### Running Tests
+
+```bash
+# Run all tests (will show failures)
+npm test
+
+# Run with coverage
+npm run test:coverage
+
+# Run in watch mode
+npm run test:watch
+
+# Run specific test file
+npm test -- auth.test.ts
+```
+
+## 📝 Configuration
+
+### Environment Variables
+
+```bash
+# Database
+DATABASE_URL=postgresql://user:pass@localhost:5432/medianest
+REDIS_URL=redis://localhost:6379
+
+# Authentication
+JWT_SECRET=your-jwt-secret-key
+JWT_REFRESH_SECRET=your-refresh-secret-key
+ENCRYPTION_KEY=your-encryption-key
+
+# External Services
+PLEX_CLIENT_ID=your-plex-client-id
+PLEX_CLIENT_SECRET=your-plex-client-secret
+OVERSEERR_URL=http://localhost:5055
+OVERSEERR_API_KEY=your-overseerr-api-key
+
+# Application
+PORT=3001
+NODE_ENV=development
+FRONTEND_URL=http://localhost:3000
+```
+
+### Configuration Files
+
+- `src/config/database.ts` - Database configuration
+- `src/config/auth.ts` - Authentication settings
+- `src/config/integrations.ts` - External service config
+- `src/config/jobs.ts` - Background job configuration
+
+## 🛠️ Development
+
+### Code Style
+
+- **ESLint**: Code linting and formatting
+- **Prettier**: Code formatting
+- **TypeScript**: Static type checking
+- **Conventional Commits**: Commit message format
+
+### Scripts
+
+```bash
+npm run dev          # Development server with hot reload
+npm run build        # Production build (currently failing)
+npm run start        # Production server
+npm run lint         # Run ESLint
+npm run lint:fix     # Fix ESLint issues
+npm run type-check   # TypeScript type checking
+npm run clean        # Clean build artifacts
+```
+
+## 🚀 Deployment
+
+### Docker
+
+```dockerfile
+# Production Dockerfile available
+FROM node:20-alpine
+# See backend/Dockerfile.prod for full configuration
+```
+
+### Environment Setup
+
+1. **Database Migration**: Run Prisma migrations
+2. **Environment Variables**: Configure production settings
+3. **Redis Setup**: Configure job queue
+4. **Reverse Proxy**: Configure nginx/Apache
+5. **SSL Certificates**: HTTPS configuration
+
+### Health Checks
+
+- `GET /api/health` - Application health
+- Database connectivity check
+- Redis connectivity check
+- External service availability
+
+## 🔗 Related Modules
+
+- **[Frontend](../frontend/README.md)** - Next.js React application
+- **[Shared](../shared/README.md)** - Common utilities and types
+- **[Infrastructure](../infrastructure/README.md)** - Deployment configuration
+- **[Tests](../tests/README.md)** - Testing framework and E2E tests
+
+## 📚 Key Dependencies
+
+### Production
+
+- **express**: Web framework
+- **@prisma/client**: Database ORM
+- **jsonwebtoken**: JWT authentication
+- **socket.io**: Real-time communication
+- **bullmq**: Job queue management
+- **winston**: Logging
+- **helmet**: Security middleware
+- **zod**: Schema validation
+
+### Development
+
+- **typescript**: Static typing
+- **vitest**: Testing framework
+- **eslint**: Code linting
+- **nodemon**: Development server
+- **supertest**: HTTP testing
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+1. **Build Failures**
+
+   ```bash
+   # Check TypeScript errors
+   npm run type-check
+
+   # Clean and rebuild
+   npm run clean && npm run build
+   ```
+
+2. **Database Connection**
+
+   ```bash
+   # Test database connectivity
+   npx prisma db pull
+
+   # Reset database (development)
+   npx prisma migrate reset
+   ```
+
+3. **Redis Connection**
+
+   ```bash
+   # Test Redis connectivity
+   redis-cli ping
+
+   # Check Redis configuration
+   echo $REDIS_URL
+   ```
+
+4. **Test Failures**
+   - Review integration test logs
+   - Check database test setup
+   - Verify environment variables
+
+### Debugging
+
+- Enable debug logging: `DEBUG=medianest:* npm run dev`
+- Use built-in debugger: `node --inspect dist/server.js`
+- Monitor with PM2: `pm2 start ecosystem.config.js`
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/my-feature`
+3. Fix TypeScript errors before implementing features
+4. Write tests for new functionality
+5. Ensure linting passes: `npm run lint:fix`
+6. Submit pull request with description
+
+## 📄 License
+
+MIT License - see [LICENSE](../LICENSE) file for details.

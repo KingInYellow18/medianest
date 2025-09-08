@@ -6,6 +6,7 @@ import {
 } from '@medianest/shared';
 
 import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
+import { CatchError } from '../types/common';
 
 export interface CreateMediaRequestInput {
   userId: string;
@@ -49,7 +50,7 @@ export class MediaRequestRepository extends BaseRepository<
           },
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -113,7 +114,7 @@ export class MediaRequestRepository extends BaseRepository<
           },
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -143,7 +144,7 @@ export class MediaRequestRepository extends BaseRepository<
           },
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -174,7 +175,7 @@ export class MediaRequestRepository extends BaseRepository<
       });
 
       return result.count;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -184,7 +185,7 @@ export class MediaRequestRepository extends BaseRepository<
       return await this.prisma.mediaRequest.delete({
         where: { id },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -208,13 +209,10 @@ export class MediaRequestRepository extends BaseRepository<
       _count: true,
     });
 
-    return requests.reduce(
-      (acc, item) => {
-        acc[item.status] = item._count;
-        return acc;
-      },
-      {} as Record<string, number>,
-    );
+    return requests.reduce((acc, item) => {
+      acc[item.status] = item._count;
+      return acc;
+    }, {} as Record<string, number>);
   }
 
   async getRecentRequests(limit: number = 10, offset: number = 0): Promise<MediaRequest[]> {
@@ -279,14 +277,14 @@ export class MediaRequestRepository extends BaseRepository<
 
     try {
       return await this.prisma.mediaRequest.count({ where });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
 
   async findMany(
     filters: MediaRequestFilters = {},
-    options: { skip?: number; take?: number; orderBy?: any } = {},
+    options: { skip?: number; take?: number; orderBy?: any } = {}
   ): Promise<MediaRequest[]> {
     const where: any = {};
 
@@ -317,7 +315,7 @@ export class MediaRequestRepository extends BaseRepository<
           },
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }

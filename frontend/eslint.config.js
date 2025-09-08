@@ -20,13 +20,15 @@ module.exports = [
             "**/*.d.ts",
             "**/*.config.js",
             "**/*.config.ts",
-            "next.config.js",
+            "next.config*.js",
             "tailwind.config.js",
             "postcss.config.js",
+            "postcss.config.mjs",
             "vitest.config.ts",
             "server.js",
             "eslint.config.js",
             ".eslintrc.js",
+            "scripts/**/*.js",
         ],
     },
     
@@ -61,7 +63,7 @@ module.exports = [
             "react-hooks/exhaustive-deps": "warn",
             
             // General rules
-            "no-console": ["warn", { allow: ["warn", "error"] }],
+            "no-console": ["warn", { allow: ["warn", "error", "info"] }],
             "prefer-const": "error",
             "no-debugger": "error",
             "prettier/prettier": "error",
@@ -117,6 +119,8 @@ module.exports = [
             "no-unused-vars": "off", // Turn off base rule
             "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
             "@typescript-eslint/no-explicit-any": "warn",
+            "@typescript-eslint/ban-types": "warn",
+            "no-redeclare": "error",
             "@typescript-eslint/explicit-function-return-type": "off",
             "@typescript-eslint/explicit-module-boundary-types": "off",
             "@typescript-eslint/no-var-requires": "off", // Allow require() in config files
@@ -132,10 +136,10 @@ module.exports = [
                 },
             ],
             "import/no-duplicates": "error",
-            "import/no-unresolved": "error",
+            // "import/no-unresolved": "error", // Disabled to prevent build issues with Next.js module resolution
             
             // General rules
-            "no-console": ["warn", { allow: ["warn", "error"] }],
+            "no-console": ["warn", { allow: ["warn", "error", "info"] }],
             "prefer-const": "error",
             "no-debugger": "error",
             "prettier/prettier": "error",

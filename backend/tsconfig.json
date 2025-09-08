@@ -8,6 +8,11 @@
     "rootDir": "./src",
     "baseUrl": "./src",
     "composite": true,
+    "incremental": true,
+    "tsBuildInfoFile": "./.tsbuildinfo",
+    "isolatedModules": true,
+    "preserveWatchOutput": true,
+    "assumeChangesOnlyAffectDirectDependencies": true,
     "paths": {
       "@/*": ["./*"],
       "@/controllers/*": ["controllers/*"],
@@ -30,17 +35,32 @@
     "allowJs": false,
     "noEmit": false,
 
-    // Temporary production build overrides
+    // Context7 TypeScript Performance Optimizations
+    "disableSizeLimit": false,
+    "preserveSymlinks": false,
+    "maxNodeModuleJsDepth": 0,
+    "importsNotUsedAsValues": "remove",
+    "useDefineForClassFields": true,
+    "exactOptionalPropertyTypes": false,
+
+    // Context7 Pattern: Balanced strict settings for performance and safety
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "noImplicitReturns": false,
-    "skipLibCheck": true
+    "noImplicitReturns": true,
+    "skipLibCheck": true,
+    "noUncheckedIndexedAccess": false,
+    "checkJs": false,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false
   },
   "include": ["src/**/*", "config/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"],
   "ts-node": {
     "require": ["tsconfig-paths/register"],
     "transpileOnly": true,
-    "files": true
+    "files": true,
+    "compilerOptions": {
+      "isolatedModules": true
+    }
   }
 }

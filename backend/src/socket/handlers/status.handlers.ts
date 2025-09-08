@@ -2,6 +2,7 @@ import { Server, Socket } from 'socket.io';
 
 import { statusService } from '@/services/status.service';
 import { logger } from '@/utils/logger';
+import { CatchError } from '../../types/common';
 
 // Enhanced status handlers with rate limiting and better error handling
 export function statusHandlers(io: Server, socket: Socket): void {
@@ -20,7 +21,7 @@ export function registerStatusHandlers(io: Server, socket: Socket): void {
       // Send current status immediately
       const statuses = await statusService.getAllStatuses();
       socket.emit('status:current', statuses);
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to subscribe to status', { error });
       socket.emit('error', {
         message: 'Failed to subscribe to status updates',
@@ -41,7 +42,7 @@ export function registerStatusHandlers(io: Server, socket: Socket): void {
     try {
       const status = await statusService.getServiceStatus(service);
       socket.emit(`status:${service}`, status);
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get service status', { service, error });
       socket.emit('error', {
         message: `Failed to get status for ${service}`,
@@ -67,7 +68,7 @@ export function registerStatusHandlers(io: Server, socket: Socket): void {
         responseTime: status.responseTime,
         timestamp: new Date().toISOString(),
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to refresh service status', { serviceId, error });
       socket.emit('error', {
         message: `Failed to refresh status for service ${serviceId}`,
@@ -104,7 +105,7 @@ export function registerStatusHandlers(io: Server, socket: Socket): void {
         timestamp: new Date().toISOString(),
         refreshedBy: socket.data.user?.email,
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to refresh statuses', { error });
       socket.emit('error', {
         message: 'Failed to refresh service statuses',
@@ -129,7 +130,7 @@ export function registerStatusHandlers(io: Server, socket: Socket): void {
       // Send current status for this service
       const status = await statusService.getServiceStatus(serviceId);
       socket.emit(`service:${serviceId}:current`, status);
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to subscribe to service', { serviceId, error });
       socket.emit('error', {
         message: `Failed to subscribe to service ${serviceId}`,
@@ -172,10 +173,13 @@ export function registerStatusHandlers(io: Server, socket: Socket): void {
       if (callback) {
         callback({ success: true, data: history });
       }
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get service history', { serviceId, error });
       if (callback) {
-        callback({ success: false, error: error.message as any });
+        callback({
+          success: false,
+          error: error instanceof Error ? error.message : ('Unknown error' as any),
+        });
       }
     }
   });
@@ -190,7 +194,7 @@ export function broadcastServiceUpdate(
     responseTime?: number;
     error?: string;
     details?: Record<string, any>;
-  },
+  }
 ): void {
   const updateData = {
     serviceId,
@@ -221,7 +225,7 @@ export function broadcastSystemAlert(
     title: string;
     message: string;
     serviceId?: string;
-  },
+  }
 ): void {
   const alertData = {
     ...alert,

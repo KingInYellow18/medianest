@@ -89,7 +89,7 @@ export function PlexSearch({ initialQuery = '', onResultSelect }: PlexSearchProp
                 'p-3 rounded-lg transition-colors',
                 showFilters
                   ? 'bg-blue-500 text-white'
-                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700',
+                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
               )}
               aria-label="Toggle filters"
             >

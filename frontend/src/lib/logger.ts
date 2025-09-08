@@ -55,7 +55,7 @@ class FrontendLogger {
         lineno: event.lineno,
         colno: event.colno,
         stack: event.error?.stack,
-        type: 'javascript_error'
+        type: 'javascript_error',
       });
     });
 
@@ -63,7 +63,7 @@ class FrontendLogger {
     window.addEventListener('unhandledrejection', (event) => {
       this.error('Unhandled promise rejection', {
         reason: event.reason,
-        type: 'promise_rejection'
+        type: 'promise_rejection',
       });
     });
   }
@@ -79,7 +79,7 @@ class FrontendLogger {
 
       // Monitor navigation performance
       this.observeNavigationTiming();
-      
+
       // Monitor Core Web Vitals
       this.observeCoreWebVitals();
     }
@@ -87,7 +87,7 @@ class FrontendLogger {
 
   private collectPageLoadMetrics() {
     const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-    
+
     if (navigation) {
       const metrics = [
         { name: 'dns_lookup', value: navigation.domainLookupEnd - navigation.domainLookupStart },
@@ -95,14 +95,17 @@ class FrontendLogger {
         { name: 'server_response', value: navigation.responseEnd - navigation.requestStart },
         { name: 'dom_parse', value: navigation.domContentLoadedEventEnd - navigation.responseEnd },
         { name: 'page_load', value: navigation.loadEventEnd - navigation.navigationStart },
-        { name: 'dom_ready', value: navigation.domContentLoadedEventEnd - navigation.navigationStart }
+        {
+          name: 'dom_ready',
+          value: navigation.domContentLoadedEventEnd - navigation.navigationStart,
+        },
       ];
 
-      metrics.forEach(metric => {
+      metrics.forEach((metric) => {
         if (metric.value > 0) {
           this.recordMetric(metric.name, metric.value, 'ms', {
             type: 'page_load',
-            url: window.location.href
+            url: window.location.href,
           });
         }
       });
@@ -184,11 +187,7 @@ class FrontendLogger {
     this.userId = userId;
   }
 
-  private createLogEntry(
-    level: LogEntry['level'],
-    message: string,
-    metadata?: any
-  ): LogEntry {
+  private createLogEntry(level: LogEntry['level'], message: string, metadata?: any): LogEntry {
     return {
       timestamp: new Date().toISOString(),
       level,
@@ -198,7 +197,7 @@ class FrontendLogger {
       sessionId: this.sessionId,
       url: typeof window !== 'undefined' ? window.location.href : undefined,
       userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
-      metadata
+      metadata,
     };
   }
 
@@ -228,7 +227,7 @@ class FrontendLogger {
     const entry = this.createLogEntry('error', message, metadata);
     this.addToBuffer(entry);
     console.error('[ERROR]', message, metadata);
-    
+
     // Immediately flush errors
     this.flush();
   }
@@ -240,11 +239,11 @@ class FrontendLogger {
       unit,
       timestamp: new Date().toISOString(),
       url: typeof window !== 'undefined' ? window.location.href : undefined,
-      metadata
+      metadata,
     };
 
     this.metricsBuffer.push(metric);
-    
+
     if (this.metricsBuffer.length >= this.maxBufferSize) {
       this.flush();
     }
@@ -256,7 +255,7 @@ class FrontendLogger {
       action,
       element,
       type: 'user_interaction',
-      ...metadata
+      ...metadata,
     });
   }
 
@@ -264,14 +263,14 @@ class FrontendLogger {
   trackApiCall(url: string, method: string, statusCode?: number, duration?: number, error?: any) {
     const level = error || (statusCode && statusCode >= 400) ? 'error' : 'info';
     const message = error ? 'API call failed' : 'API call completed';
-    
+
     this[level](message, {
       url: url.replace(/([?&](api_key|token)=)[^&]+/g, '$1[REDACTED]'), // Redact sensitive params
       method,
       statusCode,
       duration: duration ? `${duration}ms` : undefined,
       error: error?.message,
-      type: 'api_call'
+      type: 'api_call',
     });
   }
 
@@ -280,13 +279,13 @@ class FrontendLogger {
     this.info('Page view', {
       page,
       type: 'page_view',
-      ...metadata
+      ...metadata,
     });
   }
 
   private addToBuffer(entry: LogEntry) {
     this.logBuffer.push(entry);
-    
+
     if (this.logBuffer.length >= this.maxBufferSize) {
       this.flush();
     }
@@ -301,7 +300,7 @@ class FrontendLogger {
       logs: [...this.logBuffer],
       metrics: [...this.metricsBuffer],
       sessionId: this.sessionId,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     // Clear buffers
@@ -314,9 +313,9 @@ class FrontendLogger {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(this.correlationId && { 'X-Correlation-ID': this.correlationId })
+          ...(this.correlationId && { 'X-Correlation-ID': this.correlationId }),
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
     } catch (error) {
       // Silently fail to avoid infinite loops
@@ -345,10 +344,15 @@ export const debug = (message: string, metadata?: any) => logger.debug(message, 
 export const info = (message: string, metadata?: any) => logger.info(message, metadata);
 export const warn = (message: string, metadata?: any) => logger.warn(message, metadata);
 export const error = (message: string, metadata?: any) => logger.error(message, metadata);
-export const trackUserInteraction = (action: string, element?: string, metadata?: any) => 
+export const trackUserInteraction = (action: string, element?: string, metadata?: any) =>
   logger.trackUserInteraction(action, element, metadata);
-export const trackApiCall = (url: string, method: string, statusCode?: number, duration?: number, error?: any) =>
-  logger.trackApiCall(url, method, statusCode, duration, error);
+export const trackApiCall = (
+  url: string,
+  method: string,
+  statusCode?: number,
+  duration?: number,
+  error?: any
+) => logger.trackApiCall(url, method, statusCode, duration, error);
 export const trackPageView = (page: string, metadata?: any) => logger.trackPageView(page, metadata);
 export const recordMetric = (name: string, value: number, unit: string, metadata?: any) =>
   logger.recordMetric(name, value, unit, metadata);

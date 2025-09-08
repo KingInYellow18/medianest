@@ -1,4 +1,4 @@
-import { MediaSearchResult } from './media';
+import type { MediaSearchResult } from './media';
 
 // Re-export from shared package
 export type {

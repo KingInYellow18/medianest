@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 
 import { AppError } from '../utils/errors';
+import { CatchError } from '../types/common';
 
 export interface PaginationOptions {
   page?: number;
@@ -22,16 +23,16 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput> {
   protected handleDatabaseError(error: any): never {
     // Handle Prisma-specific errors
     if (((error as any).code as any) === 'P2002') {
-      throw new AppError('Duplicate entry', 409, 'DUPLICATE_ENTRY');
+      throw new AppError('DUPLICATE_ENTRY', 'Duplicate entry', 409);
     }
     if (((error as any).code as any) === 'P2025') {
-      throw new AppError('Record not found', 404, 'NOT_FOUND');
+      throw new AppError('NOT_FOUND', 'Record not found', 404);
     }
     if (((error as any).code as any) === 'P2003') {
-      throw new AppError('Foreign key constraint failed', 400, 'FOREIGN_KEY_ERROR');
+      throw new AppError('FOREIGN_KEY_ERROR', 'Foreign key constraint failed', 400);
     }
     if (((error as any).code as any) === 'P2016') {
-      throw new AppError('Query interpretation error', 400, 'QUERY_ERROR');
+      throw new AppError('QUERY_ERROR', 'Query interpretation error', 400);
     }
 
     // Re-throw unknown errors
@@ -75,7 +76,7 @@ export abstract class BaseRepository<T, CreateInput, UpdateInput> {
         limit,
         totalPages: Math.ceil(total / limit),
       };
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }

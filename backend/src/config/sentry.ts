@@ -3,6 +3,7 @@ import * as Sentry from '@sentry/node';
 // @ts-ignore
 import { nodeProfilingIntegration } from '@sentry/profiling-node';
 import { Request, Response, NextFunction } from 'express';
+import { UnknownRecord } from '../types/common';
 
 export interface SentryConfig {
   dsn: string;
@@ -62,18 +63,19 @@ export class SentryService {
           captureAllExceptions: false,
         }),
       ],
-      beforeSend(event: any) {
+      beforeSend(event: UnknownRecord) {
         // Filter out sensitive data
-        if (event.request) {
-          delete event.request.cookies;
-          if (event.request.headers) {
-            delete event.request.headers.authorization;
-            delete event.request.headers.cookie;
+        if (event.request && typeof event.request === 'object') {
+          const request = event.request as any;
+          delete request.cookies;
+          if (request.headers && typeof request.headers === 'object') {
+            delete request.headers.authorization;
+            delete request.headers.cookie;
           }
         }
         return event;
       },
-      beforeSendTransaction(event: any) {
+      beforeSendTransaction(event: UnknownRecord) {
         // Filter sensitive transaction data
         return event;
       },
@@ -105,9 +107,9 @@ export class SentryService {
    */
   errorHandler() {
     return (Sentry as any).Handlers.errorHandler({
-      shouldHandleError(error: any) {
+      shouldHandleError(error: Error) {
         // Only handle errors that should be reported
-        return error.status !== 404;
+        return (error as any).status !== 404;
       },
     });
   }
@@ -115,7 +117,7 @@ export class SentryService {
   /**
    * Capture exception with context
    */
-  captureException(error: Error, context?: any): string {
+  captureException(error: Error, context?: UnknownRecord): string {
     return (Sentry as any).captureException(error, {
       tags: context?.tags,
       extra: context?.extra,
@@ -128,21 +130,21 @@ export class SentryService {
   /**
    * Capture message with context
    */
-  captureMessage(message: string, level: any = 'info', context?: any): string {
+  captureMessage(message: string, level: string = 'info', context?: UnknownRecord): string {
     return (Sentry as any).captureMessage(message, level);
   }
 
   /**
    * Add breadcrumb for debugging
    */
-  addBreadcrumb(breadcrumb: any): void {
+  addBreadcrumb(breadcrumb: UnknownRecord): void {
     (Sentry as any).addBreadcrumb(breadcrumb);
   }
 
   /**
    * Set user context
    */
-  setUser(user: any): void {
+  setUser(user: UnknownRecord): void {
     (Sentry as any).setUser(user);
   }
 
@@ -156,14 +158,14 @@ export class SentryService {
   /**
    * Set extra context data
    */
-  setExtra(key: string, value: any): void {
+  setExtra(key: string, value: unknown): void {
     (Sentry as any).setExtra(key, value);
   }
 
   /**
    * Create custom transaction for performance monitoring
    */
-  startTransaction(name: string, op: string, description?: string): any {
+  startTransaction(name: string, op: string, description?: string): unknown {
     return (Sentry as any).startTransaction({
       name,
       op,

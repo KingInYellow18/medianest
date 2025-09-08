@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
 import { AppError } from '../utils/errors';
@@ -20,7 +19,7 @@ export function csrfProtection() {
 
     // Check for CSRF token in headers or body
     const csrfToken = (req.headers['x-csrf-token'] as string) || req.body._csrf;
-    const sessionCsrfToken = req.session?.csrfToken;
+    const sessionCsrfToken = (req as any).session?.csrfToken;
 
     if (!csrfToken || !sessionCsrfToken || csrfToken !== sessionCsrfToken) {
       logger.warn('CSRF token validation failed', {
@@ -30,7 +29,7 @@ export function csrfProtection() {
         method: req.method,
         correlationId: req.correlationId,
       });
-      throw new AppError('Invalid CSRF token', 403, 'CSRF_INVALID');
+      throw new AppError('CSRF_INVALID', 'Invalid CSRF token', 403);
     }
 
     next();
@@ -40,7 +39,7 @@ export function csrfProtection() {
 // Generate CSRF token
 export function generateCSRFToken(req: Request): string {
   const token = crypto.randomBytes(32).toString('hex');
-  if (req.session) {
+  if ((req as any).session) {
     (req as any).session.csrfToken = token;
   }
   return token;
@@ -52,7 +51,7 @@ export function securityHeaders() {
     // Content Security Policy
     res.setHeader(
       'Content-Security-Policy',
-      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' https:; frame-ancestors 'none';",
+      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' https:; frame-ancestors 'none';"
     );
 
     // X-Frame-Options
@@ -156,7 +155,7 @@ export function requestSizeLimit(maxSize: string = '10mb') {
         path: req.path,
         correlationId: req.correlationId,
       });
-      throw new AppError('Request entity too large', 413, 'REQUEST_TOO_LARGE');
+      throw new AppError('REQUEST_TOO_LARGE', 'Request entity too large', 413);
     }
 
     next();
@@ -195,7 +194,7 @@ export function ipWhitelist(allowedIPs: string[]) {
         path: req.path,
         correlationId: req.correlationId,
       });
-      throw new AppError('Access denied', 403, 'IP_NOT_ALLOWED');
+      throw new AppError('IP_NOT_ALLOWED', 'Access denied', 403);
     }
 
     next();
@@ -206,8 +205,8 @@ export function ipWhitelist(allowedIPs: string[]) {
 export function sessionSecurity() {
   return (req: Request, res: Response, next: NextFunction) => {
     // Regenerate session ID on authentication
-    if (req.user && req.session) {
-      (req as any).session.regenerate((err) => {
+    if (req.user && (req as any).session) {
+      (req as any).session.regenerate((err: any) => {
         if (err) {
           logger.error('Session regeneration failed', {
             error: err,
@@ -253,7 +252,7 @@ export function validateRequest() {
         params: req.params,
         correlationId: req.correlationId,
       });
-      throw new AppError('Invalid request', 400, 'SUSPICIOUS_REQUEST');
+      throw new AppError('SUSPICIOUS_REQUEST', 'Invalid request', 400);
     }
 
     next();

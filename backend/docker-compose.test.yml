@@ -5,16 +5,29 @@ services:
       POSTGRES_DB: medianest_test
       POSTGRES_USER: test
       POSTGRES_PASSWORD: test
+      POSTGRES_HOST_AUTH_METHOD: trust
     ports:
-      - "5433:5432"
+      - '5433:5432'
     tmpfs:
       - /var/lib/postgresql/data
-    command: postgres -c fsync=off -c synchronous_commit=off -c full_page_writes=off
+    command: postgres -c fsync=off -c synchronous_commit=off -c full_page_writes=off -c listen_addresses='*'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U test -d medianest_test']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
   redis-test:
     image: redis:7-alpine
     ports:
-      - "6380:6379"
+      - '6380:6379'
     tmpfs:
       - /data
-    command: redis-server --save "" --appendonly no
+    command: redis-server --save "" --appendonly no --protected-mode no --bind 0.0.0.0
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s

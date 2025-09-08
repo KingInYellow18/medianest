@@ -1,4 +1,5 @@
 import type { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
+
 import { csrfClient } from './api/csrf';
 import { logger } from './utils';
 
@@ -180,7 +181,7 @@ export class CSRFInterceptor {
   install(axiosInstance: AxiosInstance): void {
     // Request interceptor
     axiosInstance.interceptors.request.use(this.requestInterceptor, (error) =>
-      Promise.reject(error),
+      Promise.reject(error)
     );
 
     // Response interceptor

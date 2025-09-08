@@ -2,6 +2,7 @@
 import { Server, Socket } from 'socket.io';
 
 import { logger } from '@/utils/logger';
+import { CatchError } from '../../types/common';
 
 interface RequestStatusUpdate {
   requestId: string;
@@ -61,7 +62,7 @@ export function requestHandlers(io: Server, socket: Socket): void {
       // TODO: Implement mediaRequestRepository.findByUserId when repository is available
       const requests = []; // await mediaRequestRepository.findByUserId(userId);
       socket.emit('user-requests:current', requests);
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to get user requests', { userId, error });
     }
   });
@@ -101,17 +102,20 @@ export function requestHandlers(io: Server, socket: Socket): void {
         if (callback) {
           callback({ success: true, data: history });
         }
-      } catch (error: any) {
+      } catch (error: CatchError) {
         logger.error('Failed to get request history', {
           userId,
-          error: error.message as any,
+          error: error instanceof Error ? error.message : ('Unknown error' as any),
         });
 
         if (callback) {
-          callback({ success: false, error: error.message as any });
+          callback({
+            success: false,
+            error: error instanceof Error ? error.message : ('Unknown error' as any),
+          });
         }
       }
-    },
+    }
   );
 
   // Cancel a request
@@ -144,15 +148,18 @@ export function requestHandlers(io: Server, socket: Socket): void {
       if (callback) {
         callback({ success: true });
       }
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to cancel request', {
         userId,
         requestId,
-        error: error.message as any,
+        error: error instanceof Error ? error.message : ('Unknown error' as any),
       });
 
       if (callback) {
-        callback({ success: false, error: error.message as any });
+        callback({
+          success: false,
+          error: error instanceof Error ? error.message : ('Unknown error' as any),
+        });
       }
     }
   });
@@ -187,15 +194,18 @@ export function requestHandlers(io: Server, socket: Socket): void {
       if (callback) {
         callback({ success: true });
       }
-    } catch (error: any) {
+    } catch (error: CatchError) {
       logger.error('Failed to retry request', {
         userId,
         requestId,
-        error: error.message as any,
+        error: error instanceof Error ? error.message : ('Unknown error' as any),
       });
 
       if (callback) {
-        callback({ success: false, error: error.message as any });
+        callback({
+          success: false,
+          error: error instanceof Error ? error.message : ('Unknown error' as any),
+        });
       }
     }
   });
@@ -206,7 +216,7 @@ export function emitRequestStatusUpdate(
   io: Server,
   requestId: string,
   userId: string,
-  update: RequestStatusUpdate,
+  update: RequestStatusUpdate
 ): void {
   // Emit to specific request room
   io.to(`request:${requestId}`).emit(`request:${requestId}:status`, update);
@@ -243,7 +253,7 @@ export function emitRequestCompletion(
     message: string;
     data?: any;
     error?: string;
-  },
+  }
 ): void {
   const update: RequestStatusUpdate = {
     requestId,
@@ -268,7 +278,7 @@ export function emitRequestCompletion(
 export function emitBulkRequestUpdates(
   io: Server,
   userId: string,
-  updates: RequestStatusUpdate[],
+  updates: RequestStatusUpdate[]
 ): void {
   // Emit to user's request room
   io.to(`user-requests:${userId}`).emit('requests:bulk-update', updates);

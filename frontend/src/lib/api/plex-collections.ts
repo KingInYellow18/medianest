@@ -2,14 +2,14 @@
  * API client functions for Plex collection management
  */
 
-import type { 
+import type {
   PlexCollectionCreation,
   CollectionStatusResponse,
   UserCollectionsResponse,
   CreateCollectionRequest,
   UpdateCollectionRequest,
   CollectionFilters,
-  CollectionSort
+  CollectionSort,
 } from '@/types/plex-collections';
 
 const API_BASE_URL = '/api/v1';
@@ -20,26 +20,25 @@ const API_BASE_URL = '/api/v1';
 function getAuthToken(): string {
   // This should be implemented based on your auth system
   // For now, we'll assume it's available in a cookie or localStorage
-  return document.cookie
-    .split('; ')
-    .find(row => row.startsWith('auth-token='))
-    ?.split('=')[1] || '';
+  return (
+    document.cookie
+      .split('; ')
+      .find((row) => row.startsWith('auth-token='))
+      ?.split('=')[1] || ''
+  );
 }
 
 /**
  * Make authenticated API request
  */
-async function apiRequest<T>(
-  endpoint: string, 
-  options: RequestInit = {}
-): Promise<T> {
+async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = getAuthToken();
-  
+
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
       ...options.headers,
     },
   });
@@ -47,9 +46,9 @@ async function apiRequest<T>(
   if (!response.ok) {
     const errorData = await response.json().catch(() => null);
     throw new Error(
-      errorData?.message || 
-      errorData?.error || 
-      `API request failed: ${response.status} ${response.statusText}`
+      errorData?.message ||
+        errorData?.error ||
+        `API request failed: ${response.status} ${response.statusText}`
     );
   }
 
@@ -74,7 +73,7 @@ export async function fetchUserCollections(
   sort?: CollectionSort
 ): Promise<UserCollectionsResponse> {
   const searchParams = new URLSearchParams();
-  
+
   if (filters?.status && filters.status !== 'all') {
     searchParams.append('status', filters.status);
   }
@@ -88,36 +87,37 @@ export async function fetchUserCollections(
     searchParams.append('startDate', filters.dateRange.start.toISOString());
     searchParams.append('endDate', filters.dateRange.end.toISOString());
   }
-  
+
   if (sort) {
     searchParams.append('sortBy', sort.by);
     searchParams.append('sortDirection', sort.direction);
   }
-  
+
   const queryString = searchParams.toString();
   const endpoint = `/plex/collections/youtube${queryString ? `?${queryString}` : ''}`;
-  
+
   return apiRequest<UserCollectionsResponse>(endpoint);
 }
 
 /**
  * Create a new Plex collection from a YouTube download
  */
-export async function createCollection(request: CreateCollectionRequest): Promise<PlexCollectionCreation> {
-  const response = await apiRequest<CollectionStatusResponse>(
-    '/plex/collections',
-    {
-      method: 'POST',
-      body: JSON.stringify(request),
-    }
-  );
+export async function createCollection(
+  request: CreateCollectionRequest
+): Promise<PlexCollectionCreation> {
+  const response = await apiRequest<CollectionStatusResponse>('/plex/collections', {
+    method: 'POST',
+    body: JSON.stringify(request),
+  });
   return response.collection;
 }
 
 /**
  * Update an existing Plex collection
  */
-export async function updateCollection(request: UpdateCollectionRequest): Promise<PlexCollectionCreation> {
+export async function updateCollection(
+  request: UpdateCollectionRequest
+): Promise<PlexCollectionCreation> {
   const response = await apiRequest<CollectionStatusResponse>(
     `/plex/collections/${request.collectionKey}`,
     {
@@ -132,18 +132,17 @@ export async function updateCollection(request: UpdateCollectionRequest): Promis
  * Delete a Plex collection
  */
 export async function deleteCollection(collectionKey: string): Promise<void> {
-  await apiRequest(
-    `/plex/collections/${collectionKey}`,
-    {
-      method: 'DELETE',
-    }
-  );
+  await apiRequest(`/plex/collections/${collectionKey}`, {
+    method: 'DELETE',
+  });
 }
 
 /**
  * Retry failed collection creation
  */
-export async function retryCollectionCreation(collectionId: string): Promise<PlexCollectionCreation> {
+export async function retryCollectionCreation(
+  collectionId: string
+): Promise<PlexCollectionCreation> {
   const response = await apiRequest<CollectionStatusResponse>(
     `/plex/collections/${collectionId}/retry`,
     {
@@ -157,19 +156,16 @@ export async function retryCollectionCreation(collectionId: string): Promise<Ple
  * Cancel an in-progress collection creation
  */
 export async function cancelCollectionCreation(collectionId: string): Promise<void> {
-  await apiRequest(
-    `/plex/collections/${collectionId}/cancel`,
-    {
-      method: 'POST',
-    }
-  );
+  await apiRequest(`/plex/collections/${collectionId}/cancel`, {
+    method: 'POST',
+  });
 }
 
 /**
  * Add items to an existing collection
  */
 export async function addItemsToCollection(
-  collectionKey: string, 
+  collectionKey: string,
   itemKeys: string[]
 ): Promise<PlexCollectionCreation> {
   const response = await apiRequest<CollectionStatusResponse>(
@@ -186,7 +182,7 @@ export async function addItemsToCollection(
  * Remove items from an existing collection
  */
 export async function removeItemsFromCollection(
-  collectionKey: string, 
+  collectionKey: string,
   itemKeys: string[]
 ): Promise<PlexCollectionCreation> {
   const response = await apiRequest<CollectionStatusResponse>(
@@ -215,11 +211,13 @@ export async function fetchCollectionStats(): Promise<{
 /**
  * Get available Plex library sections for collection creation
  */
-export async function fetchLibrarySections(): Promise<Array<{
-  key: string;
-  title: string;
-  type: string;
-}>> {
+export async function fetchLibrarySections(): Promise<
+  Array<{
+    key: string;
+    title: string;
+    type: string;
+  }>
+> {
   return apiRequest('/plex/libraries');
 }
 
@@ -227,30 +225,32 @@ export async function fetchLibrarySections(): Promise<Array<{
  * Search for media items in Plex to add to collections
  */
 export async function searchPlexMedia(
-  query: string, 
+  query: string,
   librarySection?: string
-): Promise<Array<{
-  key: string;
-  title: string;
-  type: string;
-  thumbnail?: string;
-  year?: number;
-}>> {
+): Promise<
+  Array<{
+    key: string;
+    title: string;
+    type: string;
+    thumbnail?: string;
+    year?: number;
+  }>
+> {
   const searchParams = new URLSearchParams({ query });
   if (librarySection) {
     searchParams.append('librarySection', librarySection);
   }
-  
+
   return apiRequest(`/plex/search?${searchParams.toString()}`);
 }
 
 /**
  * Get detailed information about a specific collection
  */
-export async function fetchCollectionDetail(collectionKey: string): Promise<PlexCollectionCreation> {
-  const response = await apiRequest<CollectionStatusResponse>(
-    `/plex/collections/${collectionKey}`
-  );
+export async function fetchCollectionDetail(
+  collectionKey: string
+): Promise<PlexCollectionCreation> {
+  const response = await apiRequest<CollectionStatusResponse>(`/plex/collections/${collectionKey}`);
   return response.collection;
 }
 
@@ -258,21 +258,21 @@ export async function fetchCollectionDetail(collectionKey: string): Promise<Plex
  * Export collection data
  */
 export async function exportCollection(
-  collectionKey: string, 
+  collectionKey: string,
   format: 'json' | 'csv'
 ): Promise<Blob> {
   const response = await fetch(
     `${API_BASE_URL}/plex/collections/${collectionKey}/export?format=${format}`,
     {
       headers: {
-        'Authorization': `Bearer ${getAuthToken()}`,
+        Authorization: `Bearer ${getAuthToken()}`,
       },
     }
   );
-  
+
   if (!response.ok) {
     throw new Error(`Export failed: ${response.status} ${response.statusText}`);
   }
-  
+
   return response.blob();
 }

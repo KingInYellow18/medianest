@@ -14,30 +14,37 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
-    
+
     // Module Resolution
     "moduleResolution": "node",
+    "moduleDetection": "force",
+    "verbatimModuleSyntax": false,
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    
-    // Emit
+
+    // Emit - Context7 optimized for faster builds
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "removeComments": true,
-    
+    "removeComments": false,
+    "preserveConstEnums": true,
+    "importsNotUsedAsValues": "remove",
+    "noEmitOnError": false,
+
     // Language and Environment
     "target": "ES2022",
     "lib": ["ES2022"],
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+
+    // Context7 Performance Optimizations
+    "isolatedModules": true,
+    "preserveSymlinks": false,
+    "disableSizeLimit": false,
+    "incremental": true,
+    "tsBuildInfoFile": ".tsbuildinfo",
+    "assumeChangesOnlyAffectDirectDependencies": true
   },
-  "exclude": [
-    "node_modules",
-    "dist",
-    "build",
-    ".next",
-    "coverage"
-  ]
+  "exclude": ["node_modules", "dist", "build", ".next", "coverage"]
 }

@@ -14,32 +14,48 @@ const libraryIcons = {
 };
 
 interface LibrarySelectorProps {
-  libraries: PlexLibrary[];
+  libraries?: PlexLibrary[];
   selectedLibrary?: string;
-  onLibraryChange: (libraryKey: string) => void;
+  onLibraryChange?: (libraryKey: string) => void;
+  onSelect?: (library: PlexLibrary) => void;
+  filterTypes?: string[];
 }
 
 export function LibrarySelector({
-  libraries,
+  libraries = [],
   selectedLibrary,
   onLibraryChange,
+  onSelect,
+  filterTypes,
 }: LibrarySelectorProps) {
+  // Filter libraries if filterTypes is provided
+  const filteredLibraries = filterTypes
+    ? libraries.filter((lib) => filterTypes.includes(lib.type))
+    : libraries;
+
+  const handleLibraryClick = (library: PlexLibrary) => {
+    if (onSelect) {
+      onSelect(library);
+    } else if (onLibraryChange) {
+      onLibraryChange(library.key);
+    }
+  };
   return (
     <div className="flex items-center gap-4">
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide flex-1">
-        {libraries.map((library) => {
+        {filteredLibraries.map((library) => {
           const Icon = libraryIcons[library.type] || Film;
           const isSelected = selectedLibrary === library.key;
 
           return (
             <button
               key={library.key}
-              onClick={() => onLibraryChange(library.key)}
+              onClick={() => handleLibraryClick(library)}
               className={clsx(
                 'flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap transition-all',
                 isSelected
                   ? 'bg-blue-500 text-white'
-                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700',
+                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
               )}
             >
               <Icon className="w-4 h-4" />

@@ -21,8 +21,17 @@ if (env.NODE_ENV !== 'production') {
   globalThis.__prisma = prisma;
 }
 
+// Context7 Pattern: Use proper Prisma event types instead of any
+interface QueryEvent {
+  timestamp: Date;
+  query: string;
+  params: string;
+  duration: number;
+  target: string;
+}
+
 // Add connection event logging
-(prisma as any).$on('query', (e: any) => {
+prisma.$on('query', (e: QueryEvent) => {
   if (env.NODE_ENV === 'development') {
     logger.debug('Query executed', { query: e.query, duration: e.duration });
   }

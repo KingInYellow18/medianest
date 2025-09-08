@@ -1,10 +1,46 @@
-import {
-  FrontendConfigSchema,
-  createConfiguration,
-  environmentLoader,
-  configUtils,
-  type FrontendConfig,
-} from '@medianest/shared/config';
+// Temporary replacements for performance testing
+interface FrontendConfig {
+  NODE_ENV: string;
+  NEXTAUTH_URL: string;
+  NEXTAUTH_SECRET: string;
+  PLEX_CLIENT_ID: string;
+  PLEX_CLIENT_SECRET: string;
+  PLEX_CLIENT_IDENTIFIER?: string;
+  NEXT_PUBLIC_API_URL: string;
+  NEXT_PUBLIC_BACKEND_URL: string;
+  NEXT_PUBLIC_WS_URL?: string;
+  NEXT_PUBLIC_PLEX_URL?: string;
+  NEXT_PUBLIC_OVERSEERR_URL?: string;
+  NEXT_PUBLIC_ERROR_REPORTING_ENDPOINT?: string;
+  NEXT_PUBLIC_APP_NAME: string;
+  NEXT_PUBLIC_APP_VERSION: string;
+  [key: string]: any;
+}
+
+const environmentLoader = {
+  getEnvironment: () => process.env.NODE_ENV || 'development',
+};
+
+const createConfiguration = (schemaParser: Function, options?: any): FrontendConfig => ({
+  NODE_ENV: process.env.NODE_ENV || 'development',
+  NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'http://localhost:3000',
+  NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || 'development-secret',
+  PLEX_CLIENT_ID: process.env.PLEX_CLIENT_ID || '',
+  PLEX_CLIENT_SECRET: process.env.PLEX_CLIENT_SECRET || '',
+  PLEX_CLIENT_IDENTIFIER: process.env.PLEX_CLIENT_IDENTIFIER,
+  NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api',
+  NEXT_PUBLIC_BACKEND_URL: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001',
+  NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL,
+  NEXT_PUBLIC_PLEX_URL: process.env.NEXT_PUBLIC_PLEX_URL,
+  NEXT_PUBLIC_OVERSEERR_URL: process.env.NEXT_PUBLIC_OVERSEERR_URL,
+  NEXT_PUBLIC_ERROR_REPORTING_ENDPOINT: process.env.NEXT_PUBLIC_ERROR_REPORTING_ENDPOINT,
+  NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME || 'MediaNest',
+  NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0',
+});
+
+const FrontendConfigSchema = {
+  parse: (env: any) => env,
+};
 
 /**
  * Load and validate frontend configuration

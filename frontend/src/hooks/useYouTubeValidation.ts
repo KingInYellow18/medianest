@@ -32,7 +32,11 @@ export function useYouTubeValidation(url: string) {
 
   const isDuplicate = duplicateCheck?.isDuplicate || false;
   const isValidating = isValidatingMetadata || isCheckingDuplicate;
-  const error = metadataError?.message || (isDuplicate ? 'This URL is already in your download queue or history' : duplicateError?.message);
+  const error =
+    metadataError?.message ||
+    (isDuplicate
+      ? 'This URL is already in your download queue or history'
+      : duplicateError?.message);
 
   return {
     metadata,

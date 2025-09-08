@@ -7,6 +7,7 @@ import {
 } from '@medianest/shared';
 
 import { BaseRepository } from './base.repository';
+import { CatchError } from '../types/common';
 
 export interface ServiceStatusUpdate {
   status?: string;
@@ -25,7 +26,7 @@ export class ServiceStatusRepository extends BaseRepository<
       return await this.prisma.serviceStatus.findUnique({
         where: { serviceName },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -35,7 +36,7 @@ export class ServiceStatusRepository extends BaseRepository<
       return await this.prisma.serviceStatus.findMany({
         orderBy: { serviceName: 'asc' },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -59,7 +60,7 @@ export class ServiceStatusRepository extends BaseRepository<
           ...updateData,
         },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -90,7 +91,7 @@ export class ServiceStatusRepository extends BaseRepository<
         },
         orderBy: { serviceName: 'asc' },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -103,7 +104,7 @@ export class ServiceStatusRepository extends BaseRepository<
         },
         orderBy: { serviceName: 'asc' },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -119,7 +120,7 @@ export class ServiceStatusRepository extends BaseRepository<
         },
         orderBy: { serviceName: 'asc' },
       });
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
@@ -142,7 +143,7 @@ export class ServiceStatusRepository extends BaseRepository<
       });
 
       return result._avg.responseTimeMs;
-    } catch (error: any) {
+    } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
   }
