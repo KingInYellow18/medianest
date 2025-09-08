@@ -3,9 +3,18 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SessionProvider } from 'next-auth/react';
 import { useState, useEffect } from 'react';
-import { ErrorBoundary } from './ErrorBoundary';
+// Context7 Pattern: Dynamic import for better code splitting
+import dynamic from 'next/dynamic';
 import { initializeErrorLogger } from '@/lib/error-logger';
 import { AppError } from '@medianest/shared/client';
+
+// Context7 Pattern: Lazy load ErrorBoundary for better initial bundle
+const ErrorBoundary = dynamic(
+  () => import('./ErrorBoundary').then((mod) => ({ default: mod.ErrorBoundary })),
+  {
+    ssr: true,
+  }
+);
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(

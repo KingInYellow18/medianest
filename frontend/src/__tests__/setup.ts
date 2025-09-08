@@ -19,10 +19,12 @@ jest.mock('next/router', () => ({
 
 // Mock Next.js dynamic imports
 jest.mock('next/dynamic', () => () => {
-  const MockedComponent = () => <div>Mocked Component</div>;
+  const MockedComponent = () => React.createElement('div', null, 'Mocked Component');
   MockedComponent.displayName = 'MockedDynamicComponent';
   return MockedComponent;
 });
+
+import React from 'react';
 
 // Setup test environment
 global.console = {
