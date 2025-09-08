@@ -1,305 +1,362 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { ApiClient, apiClient } from '../../lib/api/client';
 
-// Mock the axios interceptor and client setup
-const mockAxios = {
-  create: vi.fn(() => mockAxiosInstance),
-  defaults: {
-    baseURL: '',
-    timeout: 10000,
-    headers: {},
+// Mock fetch globally
+const mockFetch = vi.fn();
+global.fetch = mockFetch;
+
+// Mock shared package errors
+vi.mock('@medianest/shared', () => ({
+  AppError: class MockAppError extends Error {
+    constructor(
+      message: string,
+      public status?: number,
+      public code?: string,
+      public details?: any
+    ) {
+      super(message);
+      this.name = 'AppError';
+    }
   },
-};
-
-const mockAxiosInstance = {
-  interceptors: {
-    request: {
-      use: vi.fn(),
-      eject: vi.fn(),
-    },
-    response: {
-      use: vi.fn(),
-      eject: vi.fn(),
-    },
+  AuthenticationError: class MockAuthenticationError extends Error {
+    constructor(message: string) {
+      super(message);
+      this.name = 'AuthenticationError';
+    }
   },
-  get: vi.fn(),
-  post: vi.fn(),
-  put: vi.fn(),
-  delete: vi.fn(),
-  patch: vi.fn(),
-  request: vi.fn(),
-};
-
-vi.mock('axios', () => ({
-  default: mockAxios,
-  isAxiosError: vi.fn((error) => error && error.isAxiosError === true),
+  ValidationError: class MockValidationError extends Error {
+    constructor(message: string, public details?: any) {
+      super(message);
+      this.name = 'ValidationError';
+    }
+  },
+  RateLimitError: class MockRateLimitError extends Error {
+    constructor(public retryAfter?: number) {
+      super('Rate limit exceeded');
+      this.name = 'RateLimitError';
+    }
+  },
+  ServiceUnavailableError: class MockServiceUnavailableError extends Error {
+    constructor(service: string) {
+      super(`Service ${service} is unavailable`);
+      this.name = 'ServiceUnavailableError';
+    }
+  },
 }));
 
-vi.mock('../../lib/auth/plex-provider', () => ({
-  getPlexHeaders: vi.fn(() => ({
-    'X-Plex-Client-Identifier': 'test-client',
-    'X-Plex-Product': 'MediaNest',
-  })),
-}));
-
-vi.mock('next-auth/react', () => ({
-  getSession: vi.fn(() =>
-    Promise.resolve({
-      user: { id: '123', name: 'Test User' },
-      accessToken: 'test-access-token',
-    })
-  ),
-}));
-
-// Import after mocking
-import apiClient from '../../lib/api/client';
-
-describe('API Client', () => {
+describe('ApiClient', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('should create axios instance with correct configuration', () => {
-    expect(mockAxios.create).toHaveBeenCalledWith({
-      baseURL: expect.stringContaining('/api'),
-      timeout: expect.any(Number),
-      headers: {
-        'Content-Type': 'application/json',
-      },
+  describe('constructor', () => {
+    it('should create instance with default values', () => {
+      const client = new ApiClient();
+      expect(client).toBeInstanceOf(ApiClient);
+    });
+
+    it('should create instance with custom baseUrl and timeout', () => {
+      const client = new ApiClient('https://api.example.com', 5000);
+      expect(client).toBeInstanceOf(ApiClient);
     });
   });
 
-  it('should setup request interceptor', () => {
-    expect(mockAxiosInstance.interceptors.request.use).toHaveBeenCalled();
+  describe('GET requests', () => {
+    it('should handle successful GET request', async () => {
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: vi.fn().mockResolvedValue({ data: { id: 1, name: 'Test' } }),
+      };
+      mockFetch.mockResolvedValueOnce(mockResponse);
 
-    const requestInterceptor = mockAxiosInstance.interceptors.request.use.mock.calls[0][0];
-    expect(typeof requestInterceptor).toBe('function');
+      const result = await apiClient.get('/test');
+
+      expect(fetch).toHaveBeenCalledWith(
+        '/api/test',
+        expect.objectContaining({
+          method: 'GET',
+          cache: 'default',
+        })
+      );
+      expect(result).toEqual({ id: 1, name: 'Test' });
+    });
+
+    it('should handle GET request with query parameters', async () => {
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: vi.fn().mockResolvedValue({ data: [] }),
+      };
+      mockFetch.mockResolvedValueOnce(mockResponse);
+
+      await apiClient.get('/test', { params: { page: '1', limit: '10' } });
+
+      expect(fetch).toHaveBeenCalledWith('/api/test?page=1&limit=10', expect.any(Object));
+    });
+
+    it('should handle GET request with cache options', async () => {
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: vi.fn().mockResolvedValue({ data: [] }),
+      };
+      mockFetch.mockResolvedValueOnce(mockResponse);
+
+      await apiClient.get('/test', { cache: 'no-cache', revalidate: 60 });
+
+      const fetchCall = mockFetch.mock.calls[0];
+      expect(fetchCall?.[1]?.cache).toBe('no-cache');
+      expect(fetchCall?.[1]?.headers?.['Cache-Control']).toContain('max-age=60');
+    });
   });
 
-  it('should setup response interceptor', () => {
-    expect(mockAxiosInstance.interceptors.response.use).toHaveBeenCalled();
+  describe('POST requests', () => {
+    it('should handle successful POST request', async () => {
+      const mockResponse = {
+        ok: true,
+        status: 201,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: vi.fn().mockResolvedValue({ data: { id: 1 } }),
+      };
+      mockFetch.mockResolvedValueOnce(mockResponse);
 
-    const responseInterceptorSuccess = mockAxiosInstance.interceptors.response.use.mock.calls[0][0];
-    const responseInterceptorError = mockAxiosInstance.interceptors.response.use.mock.calls[0][1];
+      const payload = { name: 'Test Item' };
+      const result = await apiClient.post('/items', payload);
 
-    expect(typeof responseInterceptorSuccess).toBe('function');
-    expect(typeof responseInterceptorError).toBe('function');
+      expect(fetch).toHaveBeenCalledWith(
+        '/api/items',
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+          }),
+          body: JSON.stringify(payload),
+        })
+      );
+      expect(result).toEqual({ id: 1 });
+    });
+
+    it('should handle POST request without body', async () => {
+      const mockResponse = {
+        ok: true,
+        status: 204,
+        headers: new Headers(),
+        json: vi.fn(),
+      };
+      mockFetch.mockResolvedValueOnce(mockResponse);
+
+      const result = await apiClient.post('/action');
+
+      expect(fetch).toHaveBeenCalledWith(
+        '/api/action',
+        expect.objectContaining({
+          method: 'POST',
+          body: undefined,
+        })
+      );
+      expect(result).toEqual({});
+    });
   });
 
-  it('should add auth headers in request interceptor', async () => {
-    const requestInterceptor = mockAxiosInstance.interceptors.request.use.mock.calls[0][0];
+  describe('Error handling', () => {
+    it('should throw ValidationError for 400 status', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 400,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: vi.fn().mockResolvedValue({
+          error: { message: 'Invalid input', details: { field: 'name' } },
+        }),
+        url: '/api/test',
+        statusText: 'Bad Request',
+      };
+      mockFetch.mockResolvedValueOnce(mockResponse);
 
-    const mockConfig = {
-      headers: {},
-      url: '/test-endpoint',
-    };
+      await expect(apiClient.get('/test')).rejects.toThrow('Invalid input');
+    });
 
-    const modifiedConfig = await requestInterceptor(mockConfig);
-
-    expect(modifiedConfig.headers).toHaveProperty('Authorization');
-    expect(modifiedConfig.headers['Authorization']).toContain('Bearer');
-  });
-
-  it('should add plex headers for plex endpoints', async () => {
-    const requestInterceptor = mockAxiosInstance.interceptors.request.use.mock.calls[0][0];
-
-    const mockConfig = {
-      headers: {},
-      url: '/plex/test-endpoint',
-    };
-
-    const modifiedConfig = await requestInterceptor(mockConfig);
-
-    expect(modifiedConfig.headers).toHaveProperty('X-Plex-Client-Identifier');
-    expect(modifiedConfig.headers).toHaveProperty('X-Plex-Product');
-  });
-
-  it('should add request timestamp', async () => {
-    const requestInterceptor = mockAxiosInstance.interceptors.request.use.mock.calls[0][0];
-
-    const mockConfig = {
-      headers: {},
-      url: '/test-endpoint',
-    };
-
-    const modifiedConfig = await requestInterceptor(mockConfig);
-
-    expect(modifiedConfig.metadata).toBeDefined();
-    expect(modifiedConfig.metadata.startTime).toBeDefined();
-    expect(typeof modifiedConfig.metadata.startTime).toBe('number');
-  });
-
-  it('should handle successful response in response interceptor', () => {
-    const responseInterceptor = mockAxiosInstance.interceptors.response.use.mock.calls[0][0];
-
-    const mockResponse = {
-      data: { success: true },
-      status: 200,
-      config: {
-        metadata: { startTime: Date.now() - 100 },
-      },
-    };
-
-    const result = responseInterceptor(mockResponse);
-
-    expect(result).toBe(mockResponse);
-  });
-
-  it('should handle 401 unauthorized error', async () => {
-    const responseErrorInterceptor = mockAxiosInstance.interceptors.response.use.mock.calls[0][1];
-
-    const mockError = {
-      response: {
+    it('should throw AuthenticationError for 401 status', async () => {
+      const mockResponse = {
+        ok: false,
         status: 401,
-        data: { message: 'Unauthorized' },
-      },
-      config: { url: '/test-endpoint' },
-      isAxiosError: true,
-    };
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: vi.fn().mockResolvedValue({
+          error: { message: 'Unauthorized' },
+        }),
+        url: '/api/test',
+        statusText: 'Unauthorized',
+      };
+      mockFetch.mockResolvedValueOnce(mockResponse);
 
-    await expect(responseErrorInterceptor(mockError)).rejects.toBe(mockError);
-  });
+      await expect(apiClient.get('/test')).rejects.toThrow('Unauthorized');
+    });
 
-  it('should handle 403 forbidden error', async () => {
-    const responseErrorInterceptor = mockAxiosInstance.interceptors.response.use.mock.calls[0][1];
-
-    const mockError = {
-      response: {
-        status: 403,
-        data: { message: 'Forbidden' },
-      },
-      config: { url: '/test-endpoint' },
-      isAxiosError: true,
-    };
-
-    await expect(responseErrorInterceptor(mockError)).rejects.toBe(mockError);
-  });
-
-  it('should handle 429 rate limit error', async () => {
-    const responseErrorInterceptor = mockAxiosInstance.interceptors.response.use.mock.calls[0][1];
-
-    const mockError = {
-      response: {
+    it('should throw RateLimitError for 429 status', async () => {
+      const mockResponse = {
+        ok: false,
         status: 429,
-        data: { message: 'Rate limit exceeded' },
-        headers: {
-          'retry-after': '60',
-        },
-      },
-      config: { url: '/test-endpoint' },
-      isAxiosError: true,
-    };
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: vi.fn().mockResolvedValue({
+          error: { message: 'Rate limit exceeded', retryAfter: 60 },
+        }),
+        url: '/api/test',
+        statusText: 'Too Many Requests',
+      };
+      mockFetch.mockResolvedValueOnce(mockResponse);
 
-    await expect(responseErrorInterceptor(mockError)).rejects.toBe(mockError);
-  });
+      await expect(apiClient.get('/test')).rejects.toThrow('Rate limit exceeded');
+    });
 
-  it('should handle 500 server error', async () => {
-    const responseErrorInterceptor = mockAxiosInstance.interceptors.response.use.mock.calls[0][1];
+    it('should throw ServiceUnavailableError for 503 status', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 503,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: vi.fn().mockResolvedValue({
+          error: { message: 'Service unavailable' },
+        }),
+        url: '/api/test',
+        statusText: 'Service Unavailable',
+      };
+      mockFetch.mockResolvedValueOnce(mockResponse);
 
-    const mockError = {
-      response: {
+      await expect(apiClient.get('/test')).rejects.toThrow('Service API is unavailable');
+    });
+
+    it('should handle timeout errors', async () => {
+      mockFetch.mockRejectedValueOnce(new Error('AbortError'));
+      mockFetch.mockRejectedValueOnce({ name: 'AbortError' });
+
+      await expect(apiClient.get('/test', { timeout: 100 })).rejects.toThrow('Request timeout');
+    });
+
+    it('should handle network errors', async () => {
+      mockFetch.mockRejectedValueOnce(new Error('Failed to fetch'));
+
+      await expect(apiClient.get('/test')).rejects.toThrow('Network error');
+    });
+
+    it('should handle non-JSON error responses', async () => {
+      const mockResponse = {
+        ok: false,
         status: 500,
-        data: { message: 'Internal server error' },
-      },
-      config: { url: '/test-endpoint' },
-      isAxiosError: true,
-    };
+        headers: new Headers({ 'content-type': 'text/plain' }),
+        text: vi.fn().mockResolvedValue('Internal Server Error'),
+        json: vi.fn(),
+        url: '/api/test',
+        statusText: 'Internal Server Error',
+      };
+      mockFetch.mockResolvedValueOnce(mockResponse);
 
-    await expect(responseErrorInterceptor(mockError)).rejects.toBe(mockError);
+      await expect(apiClient.get('/test')).rejects.toThrow();
+    });
   });
 
-  it('should handle network error', async () => {
-    const responseErrorInterceptor = mockAxiosInstance.interceptors.response.use.mock.calls[0][1];
+  describe('HTTP methods', () => {
+    beforeEach(() => {
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: vi.fn().mockResolvedValue({ data: { success: true } }),
+      };
+      mockFetch.mockResolvedValue(mockResponse);
+    });
 
-    const mockError = {
-      message: 'Network Error',
-      code: 'NETWORK_ERROR',
-      isAxiosError: true,
-      config: { url: '/test-endpoint' },
-    };
+    it('should handle PUT requests', async () => {
+      const payload = { id: 1, name: 'Updated' };
+      await apiClient.put('/items/1', payload);
 
-    await expect(responseErrorInterceptor(mockError)).rejects.toBe(mockError);
+      expect(fetch).toHaveBeenCalledWith(
+        '/api/items/1',
+        expect.objectContaining({
+          method: 'PUT',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+          }),
+          body: JSON.stringify(payload),
+        })
+      );
+    });
+
+    it('should handle PATCH requests', async () => {
+      const payload = { name: 'Patched' };
+      await apiClient.patch('/items/1', payload);
+
+      expect(fetch).toHaveBeenCalledWith(
+        '/api/items/1',
+        expect.objectContaining({
+          method: 'PATCH',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+          }),
+          body: JSON.stringify(payload),
+        })
+      );
+    });
+
+    it('should handle DELETE requests', async () => {
+      await apiClient.delete('/items/1');
+
+      expect(fetch).toHaveBeenCalledWith(
+        '/api/items/1',
+        expect.objectContaining({
+          method: 'DELETE',
+        })
+      );
+    });
   });
 
-  it('should handle timeout error', async () => {
-    const responseErrorInterceptor = mockAxiosInstance.interceptors.response.use.mock.calls[0][1];
-
-    const mockError = {
-      message: 'Timeout Error',
-      code: 'ECONNABORTED',
-      isAxiosError: true,
-      config: { url: '/test-endpoint' },
-    };
-
-    await expect(responseErrorInterceptor(mockError)).rejects.toBe(mockError);
+  describe('Default instance', () => {
+    it('should export a default apiClient instance', () => {
+      expect(apiClient).toBeInstanceOf(ApiClient);
+    });
   });
 
-  it('should calculate response time', () => {
-    const responseInterceptor = mockAxiosInstance.interceptors.response.use.mock.calls[0][0];
+  describe('Response handling', () => {
+    it('should handle API response with success=false', async () => {
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: vi.fn().mockResolvedValue({
+          success: false,
+          error: { message: 'Business logic error' },
+        }),
+      };
+      mockFetch.mockResolvedValueOnce(mockResponse);
 
-    const startTime = Date.now() - 150;
-    const mockResponse = {
-      data: { success: true },
-      status: 200,
-      config: {
-        metadata: { startTime },
-      },
-    };
+      await expect(apiClient.get('/test')).rejects.toBeDefined();
+    });
 
-    const result = responseInterceptor(mockResponse);
+    it('should handle 204 No Content responses', async () => {
+      const mockResponse = {
+        ok: true,
+        status: 204,
+        headers: new Headers(),
+        json: vi.fn(),
+      };
+      mockFetch.mockResolvedValueOnce(mockResponse);
 
-    expect(result.config.metadata.responseTime).toBeDefined();
-    expect(result.config.metadata.responseTime).toBeGreaterThan(0);
-  });
+      const result = await apiClient.get('/test');
+      expect(result).toEqual({});
+    });
 
-  it('should preserve original config in request interceptor', async () => {
-    const requestInterceptor = mockAxiosInstance.interceptors.request.use.mock.calls[0][0];
+    it('should handle non-JSON success responses', async () => {
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'content-type': 'text/plain' }),
+        json: vi.fn(),
+      };
+      mockFetch.mockResolvedValueOnce(mockResponse);
 
-    const mockConfig = {
-      method: 'POST',
-      url: '/test-endpoint',
-      data: { test: 'data' },
-      headers: {
-        'Custom-Header': 'custom-value',
-      },
-      timeout: 5000,
-    };
-
-    const modifiedConfig = await requestInterceptor(mockConfig);
-
-    expect(modifiedConfig.method).toBe('POST');
-    expect(modifiedConfig.url).toBe('/test-endpoint');
-    expect(modifiedConfig.data).toEqual({ test: 'data' });
-    expect(modifiedConfig.headers['Custom-Header']).toBe('custom-value');
-    expect(modifiedConfig.timeout).toBe(5000);
-  });
-
-  it('should handle missing session gracefully', async () => {
-    // Mock getSession to return null
-    const { getSession } = await import('next-auth/react');
-    vi.mocked(getSession).mockResolvedValueOnce(null);
-
-    const requestInterceptor = mockAxiosInstance.interceptors.request.use.mock.calls[0][0];
-
-    const mockConfig = {
-      headers: {},
-      url: '/test-endpoint',
-    };
-
-    const modifiedConfig = await requestInterceptor(mockConfig);
-
-    // Should not have Authorization header when no session
-    expect(modifiedConfig.headers['Authorization']).toBeUndefined();
-  });
-
-  it('should handle request interceptor error', async () => {
-    const requestErrorInterceptor = mockAxiosInstance.interceptors.request.use.mock.calls[0][1];
-
-    const mockError = new Error('Request setup error');
-
-    await expect(requestErrorInterceptor(mockError)).rejects.toBe(mockError);
-  });
-
-  it('should provide the configured axios instance', () => {
-    expect(apiClient).toBe(mockAxiosInstance);
+      const result = await apiClient.get('/test');
+      expect(result).toEqual({});
+    });
   });
 });

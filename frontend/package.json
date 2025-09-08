@@ -29,7 +29,17 @@
     "bundle:compare": "npm run build && npm run analyze:bundle && npm run build:optimized && npm run analyze:bundle",
     "build:performance": "NODE_ENV=production npm run build",
     "performance:test": "npm run build:optimized && npm run analyze:bundle",
-    "bundle:lightweight": "node scripts/lightweight-bundle-optimizer.js && npm run build && npm run analyze:bundle"
+    "bundle:lightweight": "node scripts/lightweight-bundle-optimizer.js && npm run build && npm run analyze:bundle",
+    "lint:security": "eslint . --config .eslintrc.security.js",
+    "test:smoke": "node scripts/deployment-health-check.js",
+    "performance:benchmark": "node scripts/performance-benchmark.js",
+    "health:check": "node scripts/deployment-health-check.js",
+    "deploy:staging": "npm run build && npm run test && npm run health:check http://staging.medianest.com",
+    "deploy:production": "npm run build && npm run test && npm run performance:benchmark && npm run health:check http://medianest.com",
+    "security:audit": "npm audit && npm run lint:security",
+    "ci:quality-gates": "npm run type-check && npm run lint && npm run security:audit && npm run test:coverage",
+    "build:production": "NODE_ENV=production next build",
+    "analyze:size": "ANALYZE=true npm run build"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
@@ -51,10 +61,14 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-hook-form": "^7.52.2",
+    "sharp": "^0.34.3",
     "socket.io": "^4.8.1",
-    "socket.io-client": "^4.7.5",
+    "socket.io-client": "^4.8.1",
     "tailwind-merge": "^2.5.2",
     "zod": "^3.23.8"
+  },
+  "overrides": {
+    "simple-swizzle": "npm:is-arrayish@^0.3.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^2.1.4",
@@ -96,5 +110,15 @@
     "types-react-codemod": "^3.5.2",
     "typescript": "^5.5.3",
     "vitest": "^3.2.4"
+  },
+  "bundleOptimization": {
+    "excludeFromBundle": [
+      "@testing-library/*",
+      "cypress",
+      "vitest",
+      "msw"
+    ],
+    "treeShaking": true,
+    "compression": true
   }
 }
