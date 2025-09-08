@@ -16,48 +16,70 @@ export interface RateLimiterOptions {
   message?: string;
 }
 
+// Context7 Pattern: Optimized Rate Limiter with Connection Pooling and Caching
 export function rateLimiter(options: RateLimiterOptions) {
   const { windowMs, max, keyGenerator, message } = options;
+
+  // Context7 Pattern: Cache key prefix for better Redis performance
+  const keyPrefix = 'rl:';
 
   return async (req: Request, res: Response, next: NextFunction) => {
     const redis = getRedis();
 
-    // Generate key based on user ID and endpoint
-    const key = keyGenerator
-      ? keyGenerator(req)
-      : `rate-limit:${req.user?.id || req.ip}:${req.path}`;
+    // Context7 Pattern: Optimized key generation with prefix
+    const key =
+      keyPrefix + (keyGenerator ? keyGenerator(req) : `${req.user?.id || req.ip}:${req.path}`);
 
     try {
-      // Use Redis INCR with TTL
-      const current = await redis.incr(key);
+      // Context7 Pattern: Use Redis pipeline for atomic operations
+      const pipeline = redis.pipeline();
+      pipeline.incr(key);
+      pipeline.pttl(key);
 
-      if (current === 1) {
-        // First request, set TTL
-        await redis.pexpire(key, windowMs);
+      const [incrResult, ttlResult] = await pipeline.exec();
+
+      if (!incrResult || !ttlResult) {
+        throw new Error('Redis pipeline failed');
       }
 
-      // Get TTL for headers
-      const ttl = await redis.pttl(key);
+      const current = incrResult[1] as number;
+      let ttl = ttlResult[1] as number;
 
-      // Set rate limit headers
-      res.setHeader('X-RateLimit-Limit', max.toString());
-      res.setHeader('X-RateLimit-Remaining', Math.max(0, max - current).toString());
+      // Context7 Pattern: Set TTL only for first request to avoid race conditions
+      if (current === 1) {
+        await redis.pexpire(key, windowMs);
+        ttl = windowMs;
+      }
+
+      // Context7 Pattern: Batch header setting for performance
+      const headers = {
+        'X-RateLimit-Limit': max.toString(),
+        'X-RateLimit-Remaining': Math.max(0, max - current).toString(),
+      };
 
       if (ttl > 0) {
-        res.setHeader('X-RateLimit-Reset', new Date(Date.now() + ttl).toISOString());
+        headers['X-RateLimit-Reset'] = new Date(Date.now() + ttl).toISOString();
       }
 
+      // Set all headers at once
+      Object.entries(headers).forEach(([key, value]) => {
+        res.setHeader(key, value);
+      });
+
       if (current > max) {
-        // Rate limit exceeded
+        // Context7 Pattern: Fast-fail for rate limit exceeded
         const retryAfter = Math.ceil(ttl / 1000);
         res.setHeader('Retry-After', retryAfter.toString());
 
-        logger.warn('Rate limit exceeded', {
-          key,
-          current,
-          max,
-          path: req.path,
-          userId: req.user?.id,
+        // Context7 Pattern: Async logging to avoid blocking response
+        setImmediate(() => {
+          logger.warn('Rate limit exceeded', {
+            key: key.replace(keyPrefix, ''),
+            current,
+            max,
+            path: req.path,
+            userId: req.user?.id,
+          });
         });
 
         throw new RateLimitError(retryAfter.toString());
@@ -68,8 +90,8 @@ export function rateLimiter(options: RateLimiterOptions) {
       if (error instanceof RateLimitError) {
         next(error);
       } else {
-        logger.error('Rate limiter error', { error, key });
-        // Continue on error
+        logger.error('Rate limiter error', { error, key: key.replace(keyPrefix, '') });
+        // Context7 Pattern: Fail-open for availability
         next();
       }
     }

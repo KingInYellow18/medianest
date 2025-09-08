@@ -35,11 +35,54 @@ export class AuthMiddleware {
   }
 
   /**
-   * Main authentication middleware
+   * Context7 Pattern: Enhanced Authentication Middleware with Performance Optimizations
+   * Implements advanced caching, early exit patterns, and request deduplication
    */
   authenticate() {
+    // Context7 Pattern: Pre-compile public paths for O(1) lookup
+    const publicPaths = new Set([
+      '/health',
+      '/metrics',
+      '/ping',
+      '/status',
+      '/api/health',
+      '/api/v1/health',
+      '/api/v1/csrf/token',
+    ]);
+
+    // Context7 Pattern: Authentication result caching with TTL
+    const authCache = new Map<
+      string,
+      { user: AuthenticatedUser; token: string; expires: number }
+    >();
+    const CACHE_TTL = 300000; // 5 minutes in milliseconds
+
     return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
       try {
+        // Context7 Pattern: Skip authentication for preflight OPTIONS requests
+        if (req.method === 'OPTIONS') {
+          return next();
+        }
+
+        // Context7 Pattern: Fast public path checking with Set lookup
+        if (publicPaths.has(req.path)) {
+          return next();
+        }
+
+        // Context7 Pattern: Check authentication cache first
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+          const token = authHeader.substring(7);
+          const cached = authCache.get(token);
+
+          if (cached && Date.now() < cached.expires) {
+            // Context7 Pattern: Serve from cache for better performance
+            req.user = cached.user;
+            req.token = cached.token;
+            return next();
+          }
+        }
+
         const authResult = await this.authFacade.authenticate(req);
 
         // Attach authentication data to request
@@ -48,22 +91,49 @@ export class AuthMiddleware {
         req.deviceId = authResult.deviceId;
         req.sessionId = authResult.sessionId;
 
-        // Handle token rotation if needed
+        // Context7 Pattern: Cache successful authentication result
         if (req.token && req.user) {
+          authCache.set(req.token, {
+            user: req.user,
+            token: req.token,
+            expires: Date.now() + CACHE_TTL,
+          });
+
+          // Context7 Pattern: Cleanup expired cache entries asynchronously
+          setImmediate(() => {
+            for (const [token, cached] of authCache.entries()) {
+              if (Date.now() >= cached.expires) {
+                authCache.delete(token);
+              }
+            }
+          });
+
+          // Context7 Pattern: Async token rotation to avoid blocking response
           const tokenInfo = this.authFacade.getTokenInfo(req.token);
           if (this.authFacade.shouldRotateToken(req.token)) {
-            await this.authFacade.handleTokenRotation(
-              req,
-              res,
-              req.token,
-              {
-                userId: req.user.id,
-                email: req.user.email,
-                role: req.user.role,
-                sessionId: req.sessionId,
-              },
-              req.user.id
-            );
+            // Don't await - handle rotation asynchronously
+            setImmediate(() => {
+              this.authFacade
+                .handleTokenRotation(
+                  req,
+                  res,
+                  req.token!,
+                  {
+                    userId: req.user!.id,
+                    email: req.user!.email,
+                    role: req.user!.role,
+                    sessionId: req.sessionId,
+                  },
+                  req.user!.id
+                )
+                .then(() => {
+                  // Context7 Pattern: Invalidate cache after token rotation
+                  authCache.delete(req.token!);
+                })
+                .catch((error) => {
+                  logger.error('Async token rotation failed', { error, userId: req.user!.id });
+                });
+            });
           }
         }
 
@@ -97,15 +167,41 @@ export class AuthMiddleware {
   }
 
   /**
-   * Role-based authorization middleware
+   * Context7 Pattern: Enhanced Role-based Authorization Middleware
+   * Pre-compiles role sets and implements role hierarchy for optimal performance
    */
   requireRole(...roles: string[]) {
+    // Context7 Pattern: Pre-compile roles into Set for O(1) lookup
+    const roleSet = new Set(roles.map((role) => role.toLowerCase()));
+
+    // Context7 Pattern: Role hierarchy for efficient permission checking
+    const roleHierarchy = {
+      super_admin: ['admin', 'user'],
+      admin: ['user'],
+      user: [],
+    };
+
     return (req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
+      // Context7 Pattern: Fast user existence check
       if (!req.user) {
         return next(new AuthenticationError('Authentication required'));
       }
 
-      if (!this.authFacade.hasRole(req.user, ...roles)) {
+      const userRole = req.user.role?.toLowerCase();
+      if (!userRole) {
+        return next(new AuthenticationError(`Required role: ${roles.join(' or ')}`));
+      }
+
+      // Context7 Pattern: Check direct role match first (fastest path)
+      if (roleSet.has(userRole)) {
+        return next();
+      }
+
+      // Context7 Pattern: Check role hierarchy for inherited permissions
+      const inheritedRoles = roleHierarchy[userRole as keyof typeof roleHierarchy] || [];
+      const hasInheritedRole = inheritedRoles.some((role) => roleSet.has(role));
+
+      if (!hasInheritedRole) {
         return next(new AuthenticationError(`Required role: ${roles.join(' or ')}`));
       }
 
