@@ -1,6 +1,6 @@
 import React from 'react';
-import { renderHook, act } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { renderHook, act, render } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useToast, ToastProvider } from '../../hooks/useToast';
 
 // Wrapper component for tests that need the ToastProvider
@@ -116,15 +116,9 @@ describe('useToast', () => {
     });
 
     act(() => {
-      result.current.toast({
-        title: 'Custom toast',
-        description: 'Custom description',
-        type: 'success',
-        duration: 10000,
-        action: {
-          label: 'Action',
-          onClick: vi.fn(),
-        },
+      result.current.toast('Custom toast', 'success', 10000, {
+        label: 'Action',
+        onClick: vi.fn(),
       });
     });
 
@@ -147,7 +141,7 @@ describe('useToast', () => {
     });
 
     act(() => {
-      result.current.success('Auto dismiss', { duration: 1000 });
+      result.current.success('Auto dismiss', 1000);
     });
 
     expect(result.current.toasts).toHaveLength(1);
@@ -167,8 +161,7 @@ describe('useToast', () => {
     let toastId: string;
 
     act(() => {
-      const toast = result.current.success('Manual dismiss');
-      toastId = toast.id;
+      toastId = result.current.success('Manual dismiss');
     });
 
     expect(result.current.toasts).toHaveLength(1);
@@ -222,11 +215,7 @@ describe('useToast', () => {
     });
 
     act(() => {
-      result.current.toast({
-        title: 'Persistent toast',
-        type: 'info',
-        duration: 0,
-      });
+      result.current.toast('Persistent toast', 'info', 0);
     });
 
     expect(result.current.toasts).toHaveLength(1);
@@ -281,28 +270,27 @@ describe('useToast', () => {
     const mockAction = vi.fn();
 
     act(() => {
-      result.current.toast({
-        title: 'Toast with action',
-        type: 'info',
-        action: {
-          label: 'Click me',
-          onClick: mockAction,
-        },
+      result.current.toast('Toast with action', 'info', 5000, {
+        label: 'Click me',
+        onClick: mockAction,
       });
     });
 
     expect(result.current.toasts).toHaveLength(1);
 
     const toast = result.current.toasts[0];
-    expect(toast.action).toBeDefined();
-    expect(toast.action?.label).toBe('Click me');
+    expect(toast?.action).toBeDefined();
 
-    // Test action callback
-    act(() => {
-      toast.action?.onClick();
-    });
+    if (toast?.action) {
+      expect(toast.action.label).toBe('Click me');
 
-    expect(mockAction).toHaveBeenCalledTimes(1);
+      // Test action callback
+      act(() => {
+        toast.action!.onClick();
+      });
+
+      expect(mockAction).toHaveBeenCalledTimes(1);
+    }
   });
 
   it('should cleanup timers on unmount', () => {
@@ -311,7 +299,7 @@ describe('useToast', () => {
     });
 
     act(() => {
-      result.current.success('Test toast', { duration: 5000 });
+      result.current.success('Test toast', 5000);
     });
 
     expect(result.current.toasts).toHaveLength(1);

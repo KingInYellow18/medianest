@@ -9,18 +9,25 @@ vi.mock('next/image', () => ({
 }));
 
 const mockMedia: MediaSearchResult = {
-  id: '1',
+  id: 1,
+  tmdbId: 12345,
+  imdbId: 'tt1234567',
   title: 'Test Movie',
+  originalTitle: 'Test Movie',
   overview: 'A test movie overview',
   posterPath: '/test-poster.jpg',
+  backdropPath: '/test-backdrop.jpg',
   releaseDate: '2023-01-01',
   voteAverage: 8.5,
+  voteCount: 1000,
+  popularity: 100,
   mediaType: 'movie' as const,
+  genres: [{ id: 1, name: 'Action' }],
   runtime: 120,
   numberOfSeasons: undefined,
   availability: {
     status: 'available' as const,
-    platforms: ['plex'],
+    plexUrl: 'http://plex.local/movie',
   },
 };
 
@@ -74,7 +81,7 @@ describe('MediaCard', () => {
   it('handles missing poster gracefully', () => {
     const mediaWithoutPoster = {
       ...mockMedia,
-      posterPath: null,
+      posterPath: undefined,
     };
 
     const mockOnSelect = vi.fn();

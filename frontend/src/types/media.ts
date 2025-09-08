@@ -6,6 +6,7 @@ export interface Genre {
 export interface MediaAvailability {
   status: 'available' | 'partial' | 'requested' | 'processing' | 'unavailable';
   plexUrl?: string;
+  platforms?: string[]; // Available platforms (e.g., 'plex', 'netflix')
   seasons?: SeasonAvailability[]; // TV only
   requestedBy?: string;
   requestedAt?: Date;

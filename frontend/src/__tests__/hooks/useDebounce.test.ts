@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import useDebounce from '../../hooks/useDebounce';
+import { useDebounce } from '../../hooks/useDebounce';
 
 describe('useDebounce', () => {
   beforeEach(() => {
@@ -115,12 +115,9 @@ describe('useDebounce', () => {
   it('should cleanup timer on unmount', () => {
     const clearTimeoutSpy = vi.spyOn(global, 'clearTimeout');
 
-    const { result, rerender, unmount } = renderHook(
-      ({ value, delay }) => useDebounce(value, delay),
-      {
-        initialProps: { value: 'initial', delay: 500 },
-      }
-    );
+    const { rerender, unmount } = renderHook(({ value, delay }) => useDebounce(value, delay), {
+      initialProps: { value: 'initial', delay: 500 },
+    });
 
     // Update value to start timer
     rerender({ value: 'updated', delay: 500 });
@@ -203,9 +200,12 @@ describe('useDebounce', () => {
   });
 
   it('should handle null and undefined values', () => {
-    const { result, rerender } = renderHook(({ value, delay }) => useDebounce(value, delay), {
-      initialProps: { value: null, delay: 100 },
-    });
+    const { result, rerender } = renderHook(
+      ({ value, delay }) => useDebounce<string | null | undefined>(value, delay),
+      {
+        initialProps: { value: null as string | null | undefined, delay: 100 },
+      }
+    );
 
     expect(result.current).toBeNull();
 

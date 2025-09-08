@@ -184,3 +184,6 @@ export function useLegacyWebSocket() {
     [isConnected, connectionError, reconnectAttempt, refreshService, reconnect]
   );
 }
+
+// Default exports for backward compatibility
+export default useWebSocket;
