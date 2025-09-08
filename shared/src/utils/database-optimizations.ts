@@ -166,7 +166,7 @@ export class QueryOptimizer {
   }): string {
     const operator = direction === 'desc' ? '<' : '>';
     const orderBy = `ORDER BY ${cursorColumn} ${direction.toUpperCase()}`;
-    
+
     if (cursor) {
       return `
         SELECT * FROM ${table}
@@ -175,7 +175,7 @@ export class QueryOptimizer {
         LIMIT ${limit}
       `;
     }
-    
+
     return `
       SELECT * FROM ${table}
       ${orderBy}
@@ -270,7 +270,7 @@ export class DatabaseOptimizer {
       // Connection pool optimization
       connection_limit: 20,
       pool_timeout: 10,
-      
+
       // Query optimization
       log: [
         {
@@ -278,7 +278,7 @@ export class DatabaseOptimizer {
           level: 'query',
         },
         {
-          emit: 'event', 
+          emit: 'event',
           level: 'error',
         },
         {
@@ -293,13 +293,15 @@ export class DatabaseOptimizer {
    * Generate migration SQL for performance indexes
    */
   static generateIndexMigrationSQL(): string {
-    return PERFORMANCE_INDEXES.map(index => {
+    return PERFORMANCE_INDEXES.map((index) => {
       const indexName = `idx_${index.table}_${index.columns.join('_')}`;
       const unique = index.unique ? 'UNIQUE ' : '';
       const type = index.type && index.type !== 'btree' ? ` USING ${index.type}` : '';
       const partial = index.partial ? ` ${index.partial}` : '';
-      
-      return `CREATE ${unique}INDEX CONCURRENTLY IF NOT EXISTS ${indexName} ON ${index.table}${type} (${index.columns.join(', ')})${partial};`;
+
+      return `CREATE ${unique}INDEX CONCURRENTLY IF NOT EXISTS ${indexName} ON ${
+        index.table
+      }${type} (${index.columns.join(', ')})${partial};`;
     }).join('\n');
   }
 
@@ -307,8 +309,8 @@ export class DatabaseOptimizer {
    * Generate query to analyze table statistics
    */
   static generateAnalyzeTablesSQL(): string {
-    const tables = [...new Set(PERFORMANCE_INDEXES.map(idx => idx.table))];
-    return tables.map(table => `ANALYZE ${table};`).join('\n');
+    const tables = [...new Set(PERFORMANCE_INDEXES.map((idx) => idx.table))];
+    return tables.map((table) => `ANALYZE ${table};`).join('\n');
   }
 
   /**

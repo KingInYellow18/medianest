@@ -1,6 +1,8 @@
 import { EventEmitter } from 'events';
-import { redisConfig } from '../config/redis.config';
+
 import { createServiceLogger } from '../config/logging.config';
+import { redisConfig } from '../config/redis.config';
+
 import { ServiceClient, HealthStatus } from './integration-client-factory';
 
 export interface ServiceHealthStatus extends HealthStatus {
@@ -149,7 +151,7 @@ export class HealthCheckManager extends EventEmitter {
             error: error instanceof Error ? error.message : String(error),
           });
         }
-      },
+      }
     );
 
     await Promise.allSettled(healthCheckPromises);
@@ -160,7 +162,7 @@ export class HealthCheckManager extends EventEmitter {
    */
   private async updateHealthStatus(
     serviceName: string,
-    healthStatus: ServiceHealthStatus,
+    healthStatus: ServiceHealthStatus
   ): Promise<void> {
     const previousStatus = this.healthStatuses.get(serviceName);
     const hasChanged = !previousStatus || previousStatus.healthy !== healthStatus.healthy;
@@ -180,7 +182,7 @@ export class HealthCheckManager extends EventEmitter {
    */
   private async cacheServiceStatus(
     serviceName: string,
-    status: ServiceHealthStatus,
+    status: ServiceHealthStatus
   ): Promise<void> {
     try {
       const cacheKey = `service:health:${serviceName}`;

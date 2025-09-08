@@ -1,5 +1,6 @@
-import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
+
+import * as bcrypt from 'bcrypt';
 
 /**
  * Hash a password using bcrypt

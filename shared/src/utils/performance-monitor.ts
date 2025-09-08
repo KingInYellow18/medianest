@@ -141,7 +141,7 @@ export class PerformanceMonitor {
     const averageResponseTime =
       recentMetrics.reduce((sum, m) => sum + m.requestDuration, 0) / totalRequests;
     const slowRequests = recentMetrics.filter(
-      (m) => m.requestDuration > this.thresholds.slow,
+      (m) => m.requestDuration > this.thresholds.slow
     ).length;
     const errorRequests = recentMetrics.filter((m) => m.statusCode >= 400).length;
     const errorRate = (errorRequests / totalRequests) * 100;
@@ -195,7 +195,7 @@ export class PerformanceMonitor {
    */
   static getPathMetrics(
     path: string,
-    timeWindowMinutes = 5,
+    timeWindowMinutes = 5
   ): {
     requests: number;
     averageTime: number;
@@ -293,13 +293,13 @@ export class PerformanceMonitor {
 
     if (systemStats.memory.heapUsed > this.thresholds.memory_warning) {
       recommendations.push(
-        'Memory usage is high. Consider implementing memory optimization strategies.',
+        'Memory usage is high. Consider implementing memory optimization strategies.'
       );
     }
 
     if (stats.slowRequests / stats.totalRequests > 0.1) {
       recommendations.push(
-        'More than 10% of requests are slow. Review database queries and external API calls.',
+        'More than 10% of requests are slow. Review database queries and external API calls.'
       );
     }
 

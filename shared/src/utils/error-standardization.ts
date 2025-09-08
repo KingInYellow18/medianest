@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
+
 import { logger } from './logger';
 
 /**
@@ -170,7 +171,7 @@ export class StandardizedError extends Error {
     details?: any,
     retryAfter?: number,
     path?: string,
-    userId?: string,
+    userId?: string
   ) {
     const errorInfo = ERROR_MESSAGES[code] || ERROR_MESSAGES.INTERNAL_ERROR;
     super(errorInfo?.message ?? 'Unknown error');
@@ -251,7 +252,7 @@ export class ErrorHandler {
     error: any,
     correlationId: string,
     path?: string,
-    userId?: string,
+    userId?: string
   ): StandardizedError {
     // Already standardized error
     if (error instanceof StandardizedError) {
@@ -266,7 +267,7 @@ export class ErrorHandler {
         this.formatZodError(error),
         undefined,
         path,
-        userId,
+        userId
       );
     }
 
@@ -278,7 +279,7 @@ export class ErrorHandler {
         { originalError: error.message },
         undefined,
         path,
-        userId,
+        userId
       );
     }
 
@@ -290,7 +291,7 @@ export class ErrorHandler {
         { message: 'Unique constraint violation', field: error.meta?.target },
         undefined,
         path,
-        userId,
+        userId
       );
     }
 
@@ -302,7 +303,7 @@ export class ErrorHandler {
         undefined,
         error.retryAfter || 60,
         path,
-        userId,
+        userId
       );
     }
 
@@ -313,7 +314,7 @@ export class ErrorHandler {
       process.env.NODE_ENV === 'development' ? { originalError: error.message } : undefined,
       undefined,
       path,
-      userId,
+      userId
     );
   }
 
@@ -370,7 +371,7 @@ export class ErrorHandler {
    * Async error handler wrapper
    */
   static asyncHandler<T extends any[], R>(
-    fn: (...args: T) => Promise<R>,
+    fn: (...args: T) => Promise<R>
   ): (...args: T) => Promise<R | void> {
     return async (...args: T): Promise<R | void> => {
       try {

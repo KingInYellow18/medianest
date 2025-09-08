@@ -38,7 +38,7 @@ export function parseApiError(response: any): AppError {
       code || 'API_ERROR',
       message || 'An error occurred',
       statusCode || 500,
-      details,
+      details
     );
   }
 

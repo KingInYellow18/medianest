@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { redisConfig } from '../config/redis.config';
+
 import { createServiceLogger } from '../config/logging.config';
+import { redisConfig } from '../config/redis.config';
 
 export interface CacheConfig {
   ttl: number; // Time to live in seconds
@@ -45,25 +46,25 @@ export class CachingMiddleware {
       }
 
       const cacheKey = this.generateCacheKey(req, config);
-      
+
       try {
         // Check cache first
         const cachedResponse = await this.redis.get(cacheKey);
-        
+
         if (cachedResponse) {
           const parsed = JSON.parse(cachedResponse);
-          
+
           // Set cache headers
           res.set('X-Cache', 'HIT');
           res.set('X-Cache-Key', cacheKey);
-          
+
           // Set original headers
           if (parsed.headers) {
             Object.entries(parsed.headers).forEach(([key, value]) => {
               res.set(key, value as string);
             });
           }
-          
+
           this.logger.debug('Cache hit', { cacheKey, path: req.path });
           return res.status(parsed.statusCode || 200).json(parsed.body);
         }
@@ -72,15 +73,15 @@ export class CachingMiddleware {
         const originalJson = res.json;
         let responseBody: any;
         let statusCode = 200;
-        
-        res.json = function(body: any) {
+
+        res.json = function (body: any) {
           responseBody = body;
           return originalJson.call(this, body);
         };
 
         // Intercept status code
         const originalStatus = res.status;
-        res.status = function(code: number) {
+        res.status = function (code: number) {
           statusCode = code;
           return originalStatus.call(this, code);
         };
@@ -88,11 +89,15 @@ export class CachingMiddleware {
         // Continue to next middleware
         res.on('finish', async () => {
           if (statusCode >= 200 && statusCode < 300 && responseBody) {
-            await this.cacheResponse(cacheKey, {
-              body: responseBody,
-              statusCode,
-              headers: this.getResponseHeaders(res, config.varyBy),
-            }, config.ttl);
+            await this.cacheResponse(
+              cacheKey,
+              {
+                body: responseBody,
+                statusCode,
+                headers: this.getResponseHeaders(res, config.varyBy),
+              },
+              config.ttl
+            );
           }
         });
 
@@ -118,18 +123,18 @@ export class CachingMiddleware {
     const baseKey = `api:${req.path}`;
     const queryString = new URLSearchParams(req.query as any).toString();
     const userId = req.user?.id || 'anonymous';
-    
+
     // Include vary headers in key
     const varyParts: string[] = [];
     if (config.varyBy) {
-      config.varyBy.forEach(header => {
+      config.varyBy.forEach((header) => {
         const value = req.get(header);
         if (value) {
           varyParts.push(`${header}:${value}`);
         }
       });
     }
-    
+
     const varyString = varyParts.length > 0 ? `:${varyParts.join(':')}` : '';
     return `${baseKey}:${userId}${queryString ? `:${queryString}` : ''}${varyString}`;
   }
@@ -142,9 +147,9 @@ export class CachingMiddleware {
       await this.redis.setex(key, ttl, JSON.stringify(data));
       this.logger.debug('Response cached', { key, ttl });
     } catch (error) {
-      this.logger.error('Failed to cache response', { 
-        key, 
-        error: (error as Error).message 
+      this.logger.error('Failed to cache response', {
+        key,
+        error: (error as Error).message,
       });
     }
   }
@@ -154,23 +159,23 @@ export class CachingMiddleware {
    */
   private getResponseHeaders(res: Response, varyBy?: string[]): Record<string, string> {
     const headers: Record<string, string> = {};
-    
+
     // Always include content-type
     const contentType = res.get('content-type');
     if (contentType) {
       headers['content-type'] = contentType;
     }
-    
+
     // Include specified headers
     if (varyBy) {
-      varyBy.forEach(header => {
+      varyBy.forEach((header) => {
         const value = res.get(header);
         if (value) {
           headers[header.toLowerCase()] = value;
         }
       });
     }
-    
+
     return headers;
   }
 
@@ -183,14 +188,14 @@ export class CachingMiddleware {
       if (keys.length === 0) {
         return 0;
       }
-      
+
       await this.redis.del(...keys);
       this.logger.info('Cache invalidated', { pattern, keysDeleted: keys.length });
       return keys.length;
     } catch (error) {
-      this.logger.error('Failed to invalidate cache', { 
-        pattern, 
-        error: (error as Error).message 
+      this.logger.error('Failed to invalidate cache', {
+        pattern,
+        error: (error as Error).message,
       });
       return 0;
     }
@@ -219,11 +224,11 @@ export class CachingMiddleware {
     try {
       const info = await this.redis.info('memory');
       const dbsize = await this.redis.dbsize();
-      
+
       // Parse memory usage from info
       const memoryMatch = info.match(/used_memory_human:([^\r\n]+)/);
       const memoryUsage = memoryMatch ? memoryMatch[1] : 'unknown';
-      
+
       return {
         totalKeys: dbsize,
         memoryUsage,

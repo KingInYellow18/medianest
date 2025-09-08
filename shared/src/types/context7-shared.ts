@@ -58,7 +58,7 @@ export interface ApiResponse<TData> {
   readonly meta: ApiMeta;
 }
 
-export interface PaginatedApiResponse<TData> extends ApiResponse<TData[]> {
+export interface PaginatedApiResponse<TData> extends Omit<ApiResponse<TData[]>, 'data'> {
   readonly data: readonly TData[];
   readonly pagination: PaginationMeta;
 }

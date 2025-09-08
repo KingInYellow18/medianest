@@ -1,7 +1,7 @@
 /**
  * Basic shared package test
  */
-import { describe, it, expect } from '@jest/globals';
+import { describe, it, expect } from 'vitest';
 
 // Simple utility function for testing
 export const isValidEmail = (email: string): boolean => {

@@ -37,10 +37,12 @@ export const statusSchema = z.enum(['pending', 'approved', 'processing', 'comple
 export const roleSchema = z.enum(['user', 'admin', 'moderator']);
 
 // Common request headers
-export const commonHeadersSchema = z.object({
-  'x-correlation-id': z.string().optional(),
-  'user-agent': z.string().optional(),
-}).partial();
+export const commonHeadersSchema = z
+  .object({
+    'x-correlation-id': z.string().optional(),
+    'user-agent': z.string().optional(),
+  })
+  .partial();
 
 // Service configuration validation
 export const serviceConfigSchema = z.object({

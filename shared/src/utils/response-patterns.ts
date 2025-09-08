@@ -1,4 +1,5 @@
 import { Response } from 'express';
+
 import { logger } from './logger';
 
 export interface ApiResponse<T = any> {
@@ -51,12 +52,7 @@ export class ResponseBuilder {
   /**
    * Send success response with consistent format
    */
-  static sendSuccess<T>(
-    res: Response,
-    data: T,
-    message?: string,
-    statusCode: number = 200
-  ): void {
+  static sendSuccess<T>(res: Response, data: T, message?: string, statusCode: number = 200): void {
     res.status(statusCode).json(ResponseBuilder.success(data, message));
   }
 
@@ -74,9 +70,7 @@ export class ResponseBuilder {
   ): void {
     res
       .status(statusCode)
-      .json(
-        ResponseBuilder.error(code, message, correlationId, details, retryAfter)
-      );
+      .json(ResponseBuilder.error(code, message, correlationId, details, retryAfter));
   }
 }
 
@@ -87,11 +81,7 @@ export class IntegrationResponsePatterns {
   /**
    * Service not available response
    */
-  static serviceNotAvailable(
-    res: Response,
-    serviceName: string,
-    correlationId: string
-  ): void {
+  static serviceNotAvailable(res: Response, serviceName: string, correlationId: string): void {
     ResponseBuilder.sendError(
       res,
       404,
@@ -130,29 +120,13 @@ export class IntegrationResponsePatterns {
    * Admin access required response
    */
   static adminRequired(res: Response, correlationId: string): void {
-    ResponseBuilder.sendError(
-      res,
-      403,
-      'ADMIN_REQUIRED',
-      'Admin access required',
-      correlationId
-    );
+    ResponseBuilder.sendError(res, 403, 'ADMIN_REQUIRED', 'Admin access required', correlationId);
   }
 
   /**
    * Invalid query parameter response
    */
-  static invalidQuery(
-    res: Response,
-    paramName: string,
-    correlationId: string
-  ): void {
-    ResponseBuilder.sendError(
-      res,
-      400,
-      'INVALID_QUERY',
-      `${paramName} is required`,
-      correlationId
-    );
+  static invalidQuery(res: Response, paramName: string, correlationId: string): void {
+    ResponseBuilder.sendError(res, 400, 'INVALID_QUERY', `${paramName} is required`, correlationId);
   }
 }

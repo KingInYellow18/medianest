@@ -1,127 +1,74 @@
-// Shared constants for MediaNest
+/**
+ * Shared constants for MediaNest
+ */
 
-export const APP_NAME = 'MediaNest';
-export const APP_VERSION = '1.0.0';
+// Re-export from specific modules
+export * from './api';
+export * from './events';
 
-// API Endpoints with nested structure
-export const API_ENDPOINTS = {
+// Rate limiting constants
+export const RATE_LIMITS = {
+  DEFAULT: {
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+  },
   AUTH: {
-    LOGIN: '/api/v1/auth/login',
-    LOGOUT: '/api/v1/auth/logout',
-    SESSION: '/api/v1/auth/session',
-    PLEX: {
-      PIN: '/api/v1/auth/plex/pin',
-      VERIFY: '/api/v1/auth/plex/verify',
-    },
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // limit each IP to 5 login attempts per windowMs
   },
   MEDIA: {
-    SEARCH: '/api/v1/media/search',
-    REQUEST: '/api/v1/media/request',
-    REQUESTS: '/api/v1/media/requests',
+    windowMs: 60 * 1000, // 1 minute
+    max: 30, // limit each IP to 30 media requests per minute
   },
-  SERVICES: {
-    BASE: '/api/v1/services',
-    STATUS: '/api/v1/services/status',
-    CONFIG: '/api/v1/services/config',
-  },
-  YOUTUBE: {
-    VALIDATE: '/api/v1/youtube/validate',
-    DOWNLOAD: '/api/v1/youtube/download',
-    QUEUE: '/api/v1/youtube/queue',
-  },
-  USERS: {
-    PROFILE: '/api/v1/users/profile',
-    PREFERENCES: '/api/v1/users/preferences',
-    QUOTA: '/api/v1/users/quota',
-  },
-};
-
-// Service names (lowercase)
-export const SERVICES = {
-  PLEX: 'plex',
-  OVERSEERR: 'overseerr',
-  UPTIME_KUMA: 'uptime-kuma',
-  YOUTUBE_DL: 'youtube-dl',
 } as const;
 
-// Socket events
-export const SOCKET_EVENTS = {
-  // Connection events
-  CONNECTION: 'connection',
-  CONNECT: 'connect',
-  DISCONNECT: 'disconnect',
+// Service constants
+export const SERVICES = {
+  SONARR: 'sonarr',
+  RADARR: 'radarr',
+  OVERSEERR: 'overseerr',
+  PLEX: 'plex',
+  TAUTULLI: 'tautulli',
+} as const;
 
-  // Service events
-  SERVICE_STATUS: 'service:status',
-  SERVICE_STATUS_ALL: 'service:status:all',
-
-  // Request events
-  REQUEST_UPDATE: 'request:update',
-  REQUEST_CREATED: 'request:created',
-
-  // Download events
-  DOWNLOAD_PROGRESS: 'download:progress',
-  DOWNLOAD_COMPLETE: 'download:complete',
-  DOWNLOAD_ERROR: 'download:error',
-
-  // User events
-  USER_NOTIFICATION: 'user:notification',
-  NOTIFICATION: 'notification',
-};
-
-// Error codes (descriptive format)
+// Error codes
 export const ERROR_CODES = {
-  // Validation errors
   VALIDATION_ERROR: 'VALIDATION_ERROR',
-  INVALID_INPUT: 'INVALID_INPUT',
-  MISSING_REQUIRED_FIELD: 'MISSING_REQUIRED_FIELD',
-
-  // Authentication errors
-  AUTHENTICATION_ERROR: 'AUTHENTICATION_ERROR',
   UNAUTHORIZED: 'UNAUTHORIZED',
-  TOKEN_EXPIRED: 'TOKEN_EXPIRED',
-  INVALID_TOKEN: 'INVALID_TOKEN',
-
-  // Authorization errors
-  AUTHORIZATION_ERROR: 'AUTHORIZATION_ERROR',
   FORBIDDEN: 'FORBIDDEN',
-  INSUFFICIENT_PERMISSIONS: 'INSUFFICIENT_PERMISSIONS',
-
-  // Resource errors
   NOT_FOUND: 'NOT_FOUND',
   CONFLICT: 'CONFLICT',
-
-  // Rate limiting
   RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
-
-  // Server errors
-  INTERNAL_ERROR: 'INTERNAL_ERROR',
   SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
   BAD_REQUEST: 'BAD_REQUEST',
+  INTERNAL_ERROR: 'INTERNAL_ERROR',
 } as const;
 
-// Rate limiting configuration
-export const RATE_LIMITS = {
-  API: {
-    windowMs: 60000, // 1 minute
-    max: 100, // 100 requests per minute
-    keyPrefix: 'rate:api:',
-  },
-  AUTH: {
-    windowMs: 900000, // 15 minutes
-    max: 5, // 5 login attempts per 15 minutes
-    keyPrefix: 'rate:auth:',
-  },
-  YOUTUBE: {
-    windowMs: 3600000, // 1 hour
-    max: 5, // 5 downloads per hour
-    keyPrefix: 'rate:youtube:',
-  },
-  MEDIA_REQUEST: {
-    windowMs: 3600000, // 1 hour
-    max: 20, // 20 requests per hour
-    keyPrefix: 'rate:request:',
-  },
-} as const;
+// Legacy constants for backward compatibility
+export const API_ENDPOINTS = {
+  AUTH: '/api/auth',
+  MEDIA: '/api/media',
+  USERS: '/api/users',
+  HEALTH: '/api/health',
+};
 
-// Note: We're not re-exporting from './events' and './api' to avoid conflicts
+export const HTTP_STATUS = {
+  OK: 200,
+  CREATED: 201,
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  INTERNAL_SERVER_ERROR: 500,
+};
+
+export const USER_ROLES = {
+  ADMIN: 'ADMIN' as const,
+  USER: 'USER' as const,
+};
+
+export const MEDIA_TYPES = {
+  MOVIE: 'movie' as const,
+  TV: 'tv' as const,
+  MUSIC: 'music' as const,
+};
