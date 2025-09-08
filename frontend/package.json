@@ -12,6 +12,7 @@
     "dev": "node server.js",
     "build": "next build",
     "build:analyze": "ANALYZE=true next build",
+    "build:optimized": "cp next.config.bundle-optimized.js next.config.js && npm run build && cp next.config.js.backup next.config.js",
     "start": "NODE_ENV=production node server.js",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --fix",
@@ -21,7 +22,11 @@
     "test:ui": "vitest --ui",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "analyze:performance": "node scripts/analyze-performance.js"
+    "analyze:performance": "node scripts/analyze-performance.js",
+    "analyze:bundle": "node scripts/bundle-analysis.js",
+    "analyze:full": "npm run build:analyze && npm run analyze:bundle",
+    "optimize:bundle": "npm run analyze:bundle && npm run build:optimized && npm run analyze:bundle",
+    "bundle:compare": "npm run build && npm run analyze:bundle && npm run build:optimized && npm run analyze:bundle"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",

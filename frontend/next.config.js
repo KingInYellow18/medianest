@@ -2,7 +2,7 @@
 const nextConfig = {
   // Trust proxy headers for correct protocol detection
   experimental: {
-    // AGGRESSIVE OPTIMIZATION: Optimize package imports for better tree-shaking
+    // Context7 Pattern: Aggressive package import optimization for tree-shaking
     optimizePackageImports: [
       'lucide-react',
       '@headlessui/react',
@@ -15,10 +15,18 @@ const nextConfig = {
       'clsx',
       'tailwind-merge',
       'class-variance-authority',
+      // Context7 Pattern: Additional packages for better bundle splitting
+      'next-auth',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      'react-intersection-observer',
     ],
-    // Enable experimental optimizations for bundle size reduction
-    optimizeServerReact: true,
-    // Remove esmExternals to eliminate warning - using webpack externals instead
+    // Context7 Pattern: Enable React compiler for automatic optimizations (requires babel-plugin-react-compiler)
+    // reactCompiler: true,
+    // Context7 Pattern: Server component optimizations
+    // optimizeServerReact: true,
+    // Context7 Pattern: Partial prerendering for improved performance (requires Next.js canary)
+    // ppr: 'incremental',
   },
 
   webpack: (config, { isServer }) => {
