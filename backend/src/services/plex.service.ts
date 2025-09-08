@@ -2,7 +2,7 @@
 import { redisClient } from '@/config/redis';
 import { PlexClient } from '@/integrations/plex/plex.client';
 import { userRepository, serviceConfigRepository } from '@/repositories';
-import { AppError } from '../utils/errors';
+import { AppError } from '@medianest/shared';
 import { logger } from '@/utils/logger';
 
 import { encryptionService } from './encryption.service';
@@ -63,7 +63,7 @@ export class PlexService {
       }
 
       // Decrypt the user's Plex token
-      const decryptedToken = await encryptionService.decrypt(user.plexToken);
+      const decryptedToken = encryptionService.decryptFromStorage(user.plexToken);
 
       // Create new client
       const client = new PlexClient(config.serviceUrl, decryptedToken);
@@ -90,8 +90,12 @@ export class PlexService {
     }
 
     // Get from Plex
-    const client = await this.getClientForUser(userId);
-    const serverInfo = await client.testConnection();
+    const clientResult = await this.getClientForUser(userId);
+    if (!clientResult.success) {
+      throw clientResult.error;
+    }
+
+    const serverInfo = await clientResult.data.testConnection();
 
     // Cache result
     await redisClient.setex(cacheKey, this.cacheTTL.serverInfo, JSON.stringify(serverInfo));
@@ -109,8 +113,12 @@ export class PlexService {
     }
 
     // Get from Plex
-    const client = await this.getClientForUser(userId);
-    const libraries = await client.getLibraries();
+    const clientResult = await this.getClientForUser(userId);
+    if (!clientResult.success) {
+      throw clientResult.error;
+    }
+
+    const libraries = await clientResult.data.getLibraries();
 
     // Cache result
     await redisClient.setex(cacheKey, this.cacheTTL.libraries, JSON.stringify(libraries));
@@ -138,8 +146,12 @@ export class PlexService {
     }
 
     // Get from Plex
-    const client = await this.getClientForUser(userId);
-    const items = await client.getLibraryItems(libraryKey, options);
+    const clientResult = await this.getClientForUser(userId);
+    if (!clientResult.success) {
+      throw clientResult.error;
+    }
+
+    const items = await clientResult.data.getLibraryItems(libraryKey, options);
 
     // Cache result (30 minutes for library items)
     await redisClient.setex(cacheKey, this.cacheTTL.libraryItems, JSON.stringify(items));
@@ -157,8 +169,12 @@ export class PlexService {
     }
 
     // Search in Plex
-    const client = await this.getClientForUser(userId);
-    const results = await client.search(query);
+    const clientResult = await this.getClientForUser(userId);
+    if (!clientResult.success) {
+      throw clientResult.error;
+    }
+
+    const results = await clientResult.data.search(query);
 
     // Cache result
     await redisClient.setex(cacheKey, this.cacheTTL.search, JSON.stringify(results));
@@ -176,8 +192,12 @@ export class PlexService {
     }
 
     // Get from Plex
-    const client = await this.getClientForUser(userId);
-    const items = await client.getRecentlyAdded();
+    const clientResult = await this.getClientForUser(userId);
+    if (!clientResult.success) {
+      throw clientResult.error;
+    }
+
+    const items = await clientResult.data.getRecentlyAdded();
 
     // Cache result
     await redisClient.setex(cacheKey, this.cacheTTL.recentlyAdded, JSON.stringify(items));
@@ -186,8 +206,12 @@ export class PlexService {
   }
 
   async refreshLibrary(userId: string, libraryKey: string): Promise<void> {
-    const client = await this.getClientForUser(userId);
-    await client.refreshLibrary(libraryKey);
+    const clientResult = await this.getClientForUser(userId);
+    if (!clientResult.success) {
+      throw clientResult.error;
+    }
+
+    await clientResult.data.refreshLibrary(libraryKey);
 
     // Clear library cache after refresh
     const cacheKey = `${this.cachePrefix}libraries:${userId}`;
@@ -195,8 +219,12 @@ export class PlexService {
   }
 
   async scanDirectory(userId: string, libraryKey: string, directory: string): Promise<void> {
-    const client = await this.getClientForUser(userId);
-    await client.scanDirectory(libraryKey, directory);
+    const clientResult = await this.getClientForUser(userId);
+    if (!clientResult.success) {
+      throw clientResult.error;
+    }
+
+    await clientResult.data.scanDirectory(libraryKey, directory);
 
     // Clear related caches
     const librariesKey = `${this.cachePrefix}libraries:${userId}`;
@@ -209,8 +237,12 @@ export class PlexService {
     libraryKey: string,
     options?: { search?: string; sort?: string }
   ) {
-    const client = await this.getClientForUser(userId);
-    const collections = await client.getCollections(libraryKey);
+    const clientResult = await this.getClientForUser(userId);
+    if (!clientResult.success) {
+      throw clientResult.error;
+    }
+
+    const collections = await clientResult.data.getCollections(libraryKey);
 
     // Apply filters if provided
     let filteredCollections = collections;
@@ -242,8 +274,12 @@ export class PlexService {
   }
 
   async getCollectionDetails(userId: string, collectionKey: string) {
-    const client = await this.getClientForUser(userId);
-    return client.getCollectionDetails(collectionKey);
+    const clientResult = await this.getClientForUser(userId);
+    if (!clientResult.success) {
+      throw clientResult.error;
+    }
+
+    return clientResult.data.getCollectionDetails(collectionKey);
   }
 
   async createCollection(
@@ -252,8 +288,12 @@ export class PlexService {
     title: string,
     items: string[] = []
   ): Promise<void> {
-    const client = await this.getClientForUser(userId);
-    await client.createCollection(libraryKey, title, items);
+    const clientResult = await this.getClientForUser(userId);
+    if (!clientResult.success) {
+      throw clientResult.error;
+    }
+
+    await clientResult.data.createCollection(libraryKey, title, items);
   }
 
   // Find YouTube library section

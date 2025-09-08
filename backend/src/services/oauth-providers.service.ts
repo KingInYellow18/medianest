@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import { UserRepository } from '../repositories/user.repository';
 import { SessionTokenRepository } from '../repositories/session-token.repository';
 import { RedisService } from './redis.service';
-import { AppError } from '../utils/errors';
+import { AppError } from '@medianest/shared';
 import { logger } from '../utils/logger';
 import { generateToken } from '../utils/jwt';
 import { generateSecureToken, logSecurityEvent } from '../utils/security';

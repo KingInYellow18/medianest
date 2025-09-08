@@ -1,0 +1,226 @@
+{
+  "timestamp": "2025-09-08T00:00:00.000Z",
+  "assessmentId": "medianest-tech-debt-audit-2025",
+  "version": "1.0.0",
+
+  "currentState": {
+    "security": {
+      "totalVulnerabilities": 585,
+      "criticalVulnerabilities": 4,
+      "highVulnerabilities": 26,
+      "mediumVulnerabilities": 555,
+      "lowVulnerabilities": 1,
+      "owaspCompliance": {
+        "total": 10,
+        "compliant": 2,
+        "partial": 4,
+        "nonCompliant": 4,
+        "score": 20
+      },
+      "exposedSecrets": 4,
+      "authenticationIssues": 6,
+      "securityScore": 15
+    },
+
+    "codeQuality": {
+      "totalFiles": 1558,
+      "sourceCodeFiles": 847,
+      "markdownFiles": 1172,
+      "deadFunctions": 1139,
+      "deadClasses": 334,
+      "typeScriptErrors": 161,
+      "anyTypeUsage": 424,
+      "codeSmells": 420,
+      "technicalDebtHours": 280,
+      "cyclomaticComplexity": {
+        "average": 8.5,
+        "high": 127,
+        "veryHigh": 34
+      }
+    },
+
+    "dependencies": {
+      "totalDependencies": 1641,
+      "productionDependencies": 285,
+      "developmentDependencies": 1350,
+      "vulnerableDependencies": 4,
+      "outdatedPackages": 42,
+      "bundleSizeUncompressed": "628MB",
+      "bundleSizeCompressed": "187MB"
+    },
+
+    "build": {
+      "compilationErrors": 161,
+      "buildSuccess": false,
+      "testCoverage": 0,
+      "testsPassing": 0,
+      "testsTotal": 47,
+      "dockerBuildSuccess": false,
+      "typeScriptCompliance": 20
+    },
+
+    "performance": {
+      "bundleSizeKB": 1260,
+      "frameworkChunksKB": 673,
+      "coreWebVitals": {
+        "good": 2,
+        "needsImprovement": 2,
+        "poor": 1
+      },
+      "lighthouseScore": 40,
+      "apiResponseTimeMs": 100,
+      "databaseQueriesCount": 133,
+      "indexCoverage": 85
+    },
+
+    "documentation": {
+      "totalFiles": 1172,
+      "qualityScore": 35,
+      "architectureScore": 85,
+      "securityDocsScore": 95,
+      "setupInstructionsScore": 25,
+      "apiDocumentationScore": 30,
+      "outdatedDocs": 247
+    },
+
+    "infrastructure": {
+      "dockerSecurityScore": 30,
+      "kubernetesReadiness": false,
+      "monitoringCoverage": 25,
+      "loggingCompliance": 40,
+      "backupStrategy": false,
+      "disasterRecovery": false
+    }
+  },
+
+  "targetState": {
+    "security": {
+      "totalVulnerabilities": 10,
+      "criticalVulnerabilities": 0,
+      "highVulnerabilities": 0,
+      "mediumVulnerabilities": 8,
+      "lowVulnerabilities": 2,
+      "owaspCompliance": {
+        "total": 10,
+        "compliant": 10,
+        "partial": 0,
+        "nonCompliant": 0,
+        "score": 95
+      },
+      "exposedSecrets": 0,
+      "authenticationIssues": 0,
+      "securityScore": 90
+    },
+
+    "codeQuality": {
+      "totalFiles": 1311,
+      "sourceCodeFiles": 847,
+      "markdownFiles": 925,
+      "deadFunctions": 341,
+      "deadClasses": 100,
+      "typeScriptErrors": 0,
+      "anyTypeUsage": 42,
+      "codeSmells": 84,
+      "technicalDebtHours": 56,
+      "cyclomaticComplexity": {
+        "average": 5.2,
+        "high": 25,
+        "veryHigh": 3
+      }
+    },
+
+    "dependencies": {
+      "totalDependencies": 1400,
+      "productionDependencies": 240,
+      "developmentDependencies": 1160,
+      "vulnerableDependencies": 0,
+      "outdatedPackages": 5,
+      "bundleSizeUncompressed": "400MB",
+      "bundleSizeCompressed": "120MB"
+    },
+
+    "build": {
+      "compilationErrors": 0,
+      "buildSuccess": true,
+      "testCoverage": 85,
+      "testsPassing": 127,
+      "testsTotal": 130,
+      "dockerBuildSuccess": true,
+      "typeScriptCompliance": 95
+    },
+
+    "performance": {
+      "bundleSizeKB": 456,
+      "frameworkChunksKB": 280,
+      "coreWebVitals": {
+        "good": 5,
+        "needsImprovement": 0,
+        "poor": 0
+      },
+      "lighthouseScore": 90,
+      "apiResponseTimeMs": 45,
+      "databaseQueriesCount": 87,
+      "indexCoverage": 95
+    },
+
+    "documentation": {
+      "totalFiles": 925,
+      "qualityScore": 80,
+      "architectureScore": 90,
+      "securityDocsScore": 95,
+      "setupInstructionsScore": 85,
+      "apiDocumentationScore": 90,
+      "outdatedDocs": 15
+    },
+
+    "infrastructure": {
+      "dockerSecurityScore": 90,
+      "kubernetesReadiness": true,
+      "monitoringCoverage": 90,
+      "loggingCompliance": 85,
+      "backupStrategy": true,
+      "disasterRecovery": true
+    }
+  },
+
+  "reductionTargets": {
+    "files": {
+      "current": 1558,
+      "target": 1311,
+      "reduction": 247,
+      "reductionPercentage": 15.9
+    },
+    "vulnerabilities": {
+      "current": 585,
+      "target": 10,
+      "reduction": 575,
+      "reductionPercentage": 98.3
+    },
+    "bundleSize": {
+      "current": 628,
+      "target": 400,
+      "reductionMB": 228,
+      "reductionPercentage": 36.3
+    },
+    "technicalDebtHours": {
+      "current": 280,
+      "target": 56,
+      "reduction": 224,
+      "reductionPercentage": 80.0
+    },
+    "deadCode": {
+      "functions": {
+        "current": 1139,
+        "target": 341,
+        "reduction": 798,
+        "reductionPercentage": 70.1
+      },
+      "classes": {
+        "current": 334,
+        "target": 100,
+        "reduction": 234,
+        "reductionPercentage": 70.1
+      }
+    }
+  }
+}

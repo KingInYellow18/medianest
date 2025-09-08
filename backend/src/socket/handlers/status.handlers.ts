@@ -21,7 +21,7 @@ export function registerStatusHandlers(io: Server, socket: Socket): void {
       // Send current status immediately
       const statuses = await statusService.getAllStatuses();
       socket.emit('status:current', statuses);
-    } catch (error: CatchError) {
+    } catch (error: unknown) {
       logger.error('Failed to subscribe to status', { error });
       socket.emit('error', {
         message: 'Failed to subscribe to status updates',
@@ -42,7 +42,7 @@ export function registerStatusHandlers(io: Server, socket: Socket): void {
     try {
       const status = await statusService.getServiceStatus(service);
       socket.emit(`status:${service}`, status);
-    } catch (error: CatchError) {
+    } catch (error: unknown) {
       logger.error('Failed to get service status', { service, error });
       socket.emit('error', {
         message: `Failed to get status for ${service}`,
@@ -68,7 +68,7 @@ export function registerStatusHandlers(io: Server, socket: Socket): void {
         responseTime: status.responseTime,
         timestamp: new Date().toISOString(),
       });
-    } catch (error: CatchError) {
+    } catch (error: unknown) {
       logger.error('Failed to refresh service status', { serviceId, error });
       socket.emit('error', {
         message: `Failed to refresh status for service ${serviceId}`,
@@ -77,9 +77,10 @@ export function registerStatusHandlers(io: Server, socket: Socket): void {
   });
 
   // Enhanced admin refresh with rate limiting
-  socket.on('admin:refresh-status', async () => {
+  socket.on('admin:refresh-status', async (): Promise<void> => {
     if (socket.data.user?.role !== 'admin') {
-      return socket.emit('error', { message: 'Unauthorized' });
+      socket.emit('error', { message: 'Unauthorized' });
+      return;
     }
 
     try {
@@ -89,11 +90,12 @@ export function registerStatusHandlers(io: Server, socket: Socket): void {
       const rateLimitMs = 10000; // 10 seconds between refreshes
 
       if (now - lastRefresh < rateLimitMs) {
-        return socket.emit('error', {
+        socket.emit('error', {
           message: 'Rate limited - wait before refreshing again',
           code: 'RATE_LIMITED',
           retryAfter: Math.ceil((rateLimitMs - (now - lastRefresh)) / 1000),
         });
+        return;
       }
 
       socket.data.lastStatusRefresh = now;
@@ -105,7 +107,7 @@ export function registerStatusHandlers(io: Server, socket: Socket): void {
         timestamp: new Date().toISOString(),
         refreshedBy: socket.data.user?.email,
       });
-    } catch (error: CatchError) {
+    } catch (error: unknown) {
       logger.error('Failed to refresh statuses', { error });
       socket.emit('error', {
         message: 'Failed to refresh service statuses',
@@ -115,9 +117,10 @@ export function registerStatusHandlers(io: Server, socket: Socket): void {
   });
 
   // Subscribe to specific service status
-  socket.on('subscribe:service', async (serviceId: string) => {
+  socket.on('subscribe:service', async (serviceId: string): Promise<void> => {
     if (!serviceId) {
-      return socket.emit('error', { message: 'Service ID is required' });
+      socket.emit('error', { message: 'Service ID is required' });
+      return;
     }
 
     try {
@@ -130,7 +133,7 @@ export function registerStatusHandlers(io: Server, socket: Socket): void {
       // Send current status for this service
       const status = await statusService.getServiceStatus(serviceId);
       socket.emit(`service:${serviceId}:current`, status);
-    } catch (error: CatchError) {
+    } catch (error: unknown) {
       logger.error('Failed to subscribe to service', { serviceId, error });
       socket.emit('error', {
         message: `Failed to subscribe to service ${serviceId}`,
@@ -173,7 +176,7 @@ export function registerStatusHandlers(io: Server, socket: Socket): void {
       if (callback) {
         callback({ success: true, data: history });
       }
-    } catch (error: CatchError) {
+    } catch (error: unknown) {
       logger.error('Failed to get service history', { serviceId, error });
       if (callback) {
         callback({

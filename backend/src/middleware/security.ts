@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
-import { AppError } from '../utils/errors';
+import { AppError } from '@medianest/shared';
 import { logger } from '../utils/logger';
 
 // CSRF Protection Middleware

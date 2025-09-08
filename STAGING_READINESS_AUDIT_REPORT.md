@@ -30,7 +30,7 @@ MediaNest is **NOT READY** for staging deployment due to **4 critical P0 blocker
 1. **Exposed Secrets in Repository**
 
    - JWT secrets, database passwords committed to version control
-   - `JWT_SECRET: da70b067...`, `NEXTAUTH_SECRET: 2091416d...`
+   - `JWT_SECRET: [REDACTED - ROTATED]`, `NEXTAUTH_SECRET: [REDACTED - ROTATED]`
    - **Impact**: Complete system compromise possible
    - **Action**: Immediate secret rotation required
 

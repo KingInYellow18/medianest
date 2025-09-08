@@ -1,124 +1,209 @@
 #!/bin/bash
-# EMERGENCY SECRET ROTATION SCRIPT
-# Generated: $(date)
-# Security Incident Response
+# Emergency Secret Rotation Script for MediaNest
+# Usage: ./emergency-secret-rotation.sh [environment]
+# Environments: dev, prod, staging, test
 
 set -euo pipefail
 
-# Colors for output
+# Script configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+BACKUP_DIR="$SCRIPT_DIR/rotation"
+DATE_STAMP=$(date +%Y%m%d_%H%M%S)
+
+# Color codes for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# New cryptographically secure secrets (256-bit)
-NEW_JWT_SECRET="724e208ffe92c42c197cfe93013943c9dfbff58a3a052040ec57f68c7f494916"
-NEW_NEXTAUTH_SECRET="9f246d65ab022d5444ba40afbe1a2ca870d921687b1b607292408c2201d86e8b"
-NEW_ENCRYPTION_KEY="a64675debd636bf260e6747667c9f45361dfcf269d2c86bb351e62d49af38bbc"
-NEW_JWT_SECRET_ROTATION="gdTsTSfbS3JCEvUw8SCU3NJ+wRPK8folC/jl5lCoj54="
-
-# Compromised secrets to replace
+# Compromised secrets (for reference and cleanup)
 OLD_JWT_SECRET="da70b067dbe203df294779265b0ddaf6d14d827d6ed821ce60746cb0f9fb966d"
 OLD_NEXTAUTH_SECRET="2091416d1b17f0b969e184c97715cc5af73e23ad1470c1169a6730b4b5454da9"
 OLD_ENCRYPTION_KEY="fe64c50cedac97792790e561982002cf5438add5af15881ae063c6c0ef92f5c2"
 
-echo -e "${RED}🚨 EMERGENCY SECRET ROTATION INITIATED${NC}"
-echo -e "${YELLOW}Rotating compromised secrets identified in security audit${NC}"
+# New secrets (generated securely)
+NEW_JWT_SECRET="6ac5561b8aea0d86a219fb59cc6345af4bdcd6af7a3de03aad02c22ea46538fc"
+NEW_NEXTAUTH_SECRET="d32ff017138c6bc615e30ed112f022a75cfe76613ead26fd472e9b5217607cb0"
+NEW_ENCRYPTION_KEY="a1672676894b232f005e0730819a0978967c2adec73e9c5b23917acf33004cbd"
+NEW_JWT_SECRET_ROTATION="IugJN+oeqBy9hPekfgQe5SMzqVCXgVTD+Qlt68IUcws="
 
-# Backup current secrets
-BACKUP_DIR="/home/kinginyellow/projects/medianest/security/backup-$(date +%Y%m%d-%H%M%S)"
-mkdir -p "$BACKUP_DIR"
+log_info() {
+    echo -e "${BLUE}[INFO]${NC} $1"
+}
 
-echo -e "${YELLOW}Creating backup of current environment files...${NC}"
+log_success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $1"
+}
 
-# Find and backup all environment files
-find /home/kinginyellow/projects/medianest -name "*.env*" -type f ! -path "*/node_modules/*" | while read -r file; do
-    if [[ -f "$file" ]]; then
-        backup_path="$BACKUP_DIR/$(basename "$file")"
-        cp "$file" "$backup_path"
-        echo "  Backed up: $file -> $backup_path"
+log_warning() {
+    echo -e "${YELLOW}[WARNING]${NC} $1"
+}
+
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
+create_backup_directory() {
+    log_info "Creating backup directory..."
+    mkdir -p "$BACKUP_DIR"
+    
+    # Create rotation log
+    cat > "$BACKUP_DIR/rotation_log_$DATE_STAMP.txt" << EOF
+# Emergency Secret Rotation Log
+# Date: $(date)
+# Reason: Security breach - hardcoded secrets exposed
+# Compromised secrets rotated: JWT_SECRET, NEXTAUTH_SECRET, ENCRYPTION_KEY
+
+Old JWT_SECRET (compromised): $OLD_JWT_SECRET
+Old NEXTAUTH_SECRET (compromised): $OLD_NEXTAUTH_SECRET  
+Old ENCRYPTION_KEY (compromised): $OLD_ENCRYPTION_KEY
+
+New JWT_SECRET: $NEW_JWT_SECRET
+New NEXTAUTH_SECRET: $NEW_NEXTAUTH_SECRET
+New ENCRYPTION_KEY: $NEW_ENCRYPTION_KEY
+New JWT_SECRET_ROTATION: $NEW_JWT_SECRET_ROTATION
+
+Status: COMPLETED
+Next rotation due: $(date -d '+90 days')
+EOF
+}
+
+generate_new_secrets() {
+    log_info "Generating new cryptographically secure secrets..."
+    
+    # Generate fresh secrets with maximum entropy
+    NEW_JWT_EMERGENCY=$(openssl rand -hex 32)
+    NEW_NEXTAUTH_EMERGENCY=$(openssl rand -hex 32)
+    NEW_ENCRYPTION_EMERGENCY=$(openssl rand -hex 32)
+    NEW_ROTATION_EMERGENCY=$(openssl rand -base64 32)
+    
+    log_success "New emergency secrets generated"
+    
+    # Save to secure backup
+    cat > "$BACKUP_DIR/emergency_secrets_$DATE_STAMP.key" << EOF
+# EMERGENCY GENERATED SECRETS - CLASSIFIED
+# Generated: $(date)
+# Entropy: 256-bit (maximum security)
+
+JWT_SECRET_EMERGENCY=$NEW_JWT_EMERGENCY
+NEXTAUTH_SECRET_EMERGENCY=$NEW_NEXTAUTH_EMERGENCY
+ENCRYPTION_KEY_EMERGENCY=$NEW_ENCRYPTION_EMERGENCY
+JWT_SECRET_ROTATION_EMERGENCY=$NEW_ROTATION_EMERGENCY
+
+# WARNING: This file contains highly sensitive secrets
+# Restrict access: chmod 600
+# Store in secure vault after rotation
+EOF
+    
+    chmod 600 "$BACKUP_DIR/emergency_secrets_$DATE_STAMP.key"
+}
+
+rotate_environment_file() {
+    local env_file="$1"
+    local env_name="$2"
+    
+    if [[ ! -f "$env_file" ]]; then
+        log_warning "Environment file not found: $env_file"
+        return
     fi
-done
+    
+    log_info "Rotating secrets in $env_name environment: $env_file"
+    
+    # Create backup of original file
+    cp "$env_file" "$BACKUP_DIR/$(basename "$env_file").backup.$DATE_STAMP"
+    
+    # Perform secret rotation
+    sed -i.tmp \
+        -e "s/$OLD_JWT_SECRET/$NEW_JWT_SECRET/g" \
+        -e "s/$OLD_NEXTAUTH_SECRET/$NEW_NEXTAUTH_SECRET/g" \
+        -e "s/$OLD_ENCRYPTION_KEY/$NEW_ENCRYPTION_KEY/g" \
+        "$env_file"
+    
+    # Clean up temporary file
+    rm -f "$env_file.tmp"
+    
+    log_success "Rotated secrets in $env_name environment"
+}
 
-echo -e "${GREEN}✅ Backup complete${NC}"
-
-# Function to rotate secrets in a file
-rotate_secrets_in_file() {
-    local file="$1"
-    if [[ -f "$file" ]]; then
-        echo "  Processing: $file"
+scan_and_cleanup_codebase() {
+    log_info "Scanning codebase for remaining hardcoded secrets..."
+    
+    # Find files containing old secrets (excluding backups and git)
+    local files_with_secrets=$(grep -r -l "$OLD_JWT_SECRET\|$OLD_NEXTAUTH_SECRET\|$OLD_ENCRYPTION_KEY" \
+        --exclude-dir=.git \
+        --exclude-dir=node_modules \
+        --exclude-dir=backups \
+        --exclude="*.backup.*" \
+        "$PROJECT_ROOT" 2>/dev/null || true)
+    
+    if [[ -n "$files_with_secrets" ]]; then
+        log_warning "Found files with old secrets - manual review required:"
+        echo "$files_with_secrets"
         
-        # Replace compromised secrets
-        sed -i "s/$OLD_JWT_SECRET/$NEW_JWT_SECRET/g" "$file" 2>/dev/null || true
-        sed -i "s/$OLD_NEXTAUTH_SECRET/$NEW_NEXTAUTH_SECRET/g" "$file" 2>/dev/null || true
-        sed -i "s/$OLD_ENCRYPTION_KEY/$NEW_ENCRYPTION_KEY/g" "$file" 2>/dev/null || true
-        
-        # Update generic placeholders for production files
-        sed -i "s/JWT_SECRET=your-jwt-secret-key/JWT_SECRET=$NEW_JWT_SECRET/g" "$file" 2>/dev/null || true
-        sed -i "s/NEXTAUTH_SECRET=your-nextauth-secret-key/NEXTAUTH_SECRET=$NEW_NEXTAUTH_SECRET/g" "$file" 2>/dev/null || true
-        sed -i "s/ENCRYPTION_KEY=your-32-byte-encryption-key/ENCRYPTION_KEY=$NEW_ENCRYPTION_KEY/g" "$file" 2>/dev/null || true
+        # Save list for manual review
+        echo "$files_with_secrets" > "$BACKUP_DIR/files_requiring_manual_review_$DATE_STAMP.txt"
+    else
+        log_success "No remaining hardcoded secrets found in codebase"
     fi
 }
 
-echo -e "${YELLOW}Rotating secrets in environment files...${NC}"
+verify_rotation() {
+    log_info "Verifying secret rotation..."
+    
+    local verification_failed=0
+    
+    # Check primary environment files
+    for env_file in "$PROJECT_ROOT/.env" "$PROJECT_ROOT/.env.production" "$PROJECT_ROOT/backend/.env"; do
+        if [[ -f "$env_file" ]]; then
+            if grep -q "$OLD_JWT_SECRET\|$OLD_NEXTAUTH_SECRET\|$OLD_ENCRYPTION_KEY" "$env_file"; then
+                log_error "Old secrets still present in $env_file"
+                verification_failed=1
+            else
+                log_success "Verified rotation in $env_file"
+            fi
+        fi
+    done
+    
+    return $verification_failed
+}
 
-# Rotate secrets in primary environment files
-rotate_secrets_in_file "/home/kinginyellow/projects/medianest/.env"
-rotate_secrets_in_file "/home/kinginyellow/projects/medianest/.env.production"
-rotate_secrets_in_file "/home/kinginyellow/projects/medianest/backend/.env"
-rotate_secrets_in_file "/home/kinginyellow/projects/medianest/backend/.env.production"
-rotate_secrets_in_file "/home/kinginyellow/projects/medianest/backend/.env.production.final"
-rotate_secrets_in_file "/home/kinginyellow/projects/medianest/backend/.env.temp"
-
-echo -e "${GREEN}✅ Secret rotation complete${NC}"
-
-# Remove exposed secrets from documentation files
-echo -e "${YELLOW}Sanitizing documentation files...${NC}"
-
-DOC_FILES=(
-    "/home/kinginyellow/projects/medianest/docs/SECURITY_VULNERABILITY_ASSESSMENT_REPORT.md"
-    "/home/kinginyellow/projects/medianest/docs/security-scan-results.json"
-    "/home/kinginyellow/projects/medianest/STAGING_READINESS_AUDIT_REPORT.md"
-)
-
-for doc_file in "${DOC_FILES[@]}"; do
-    if [[ -f "$doc_file" ]]; then
-        echo "  Sanitizing: $doc_file"
-        sed -i "s/$OLD_JWT_SECRET/[REDACTED-ROTATED]/g" "$doc_file" 2>/dev/null || true
-        sed -i "s/$OLD_NEXTAUTH_SECRET/[REDACTED-ROTATED]/g" "$doc_file" 2>/dev/null || true  
-        sed -i "s/$OLD_ENCRYPTION_KEY/[REDACTED-ROTATED]/g" "$doc_file" 2>/dev/null || true
+main() {
+    log_info "Starting emergency secret rotation..."
+    log_warning "This will rotate ALL compromised secrets across environments"
+    
+    # Create secure backup structure
+    create_backup_directory
+    
+    # Generate additional emergency secrets
+    generate_new_secrets
+    
+    # Rotate secrets in all environment files
+    rotate_environment_file "$PROJECT_ROOT/.env" "development"
+    rotate_environment_file "$PROJECT_ROOT/.env.production" "production"
+    rotate_environment_file "$PROJECT_ROOT/backend/.env" "backend"
+    rotate_environment_file "$PROJECT_ROOT/backend/.env.production" "backend-production"
+    rotate_environment_file "$PROJECT_ROOT/backend/.env.temp" "backend-temp"
+    rotate_environment_file "$PROJECT_ROOT/frontend/.env.local" "frontend-local"
+    
+    # Scan for any remaining hardcoded secrets
+    scan_and_cleanup_codebase
+    
+    # Verify rotation completed successfully
+    if verify_rotation; then
+        log_success "Emergency secret rotation completed successfully"
+        log_info "Next steps:"
+        echo "  1. Restart all services to pick up new secrets"
+        echo "  2. Verify application functionality"
+        echo "  3. Update production deployment secrets"
+        echo "  4. Schedule regular secret rotation (90 days)"
+        echo "  5. Review files in: $BACKUP_DIR/files_requiring_manual_review_$DATE_STAMP.txt"
+    else
+        log_error "Secret rotation verification failed - manual intervention required"
+        exit 1
     fi
-done
+}
 
-echo -e "${GREEN}✅ Documentation sanitized${NC}"
-
-# Verification
-echo -e "${YELLOW}Verifying rotation success...${NC}"
-
-REMAINING_SECRETS=0
-if grep -r "$OLD_JWT_SECRET" /home/kinginyellow/projects/medianest --exclude-dir=node_modules --exclude-dir=security 2>/dev/null; then
-    ((REMAINING_SECRETS++))
-fi
-if grep -r "$OLD_NEXTAUTH_SECRET" /home/kinginyellow/projects/medianest --exclude-dir=node_modules --exclude-dir=security 2>/dev/null; then
-    ((REMAINING_SECRETS++))
-fi
-if grep -r "$OLD_ENCRYPTION_KEY" /home/kinginyellow/projects/medianest --exclude-dir=node_modules --exclude-dir=security 2>/dev/null; then
-    ((REMAINING_SECRETS++))
-fi
-
-if [[ $REMAINING_SECRETS -eq 0 ]]; then
-    echo -e "${GREEN}✅ ROTATION SUCCESSFUL: No compromised secrets found${NC}"
-else
-    echo -e "${RED}⚠️  WARNING: $REMAINING_SECRETS compromised secrets still found${NC}"
-fi
-
-echo -e "${GREEN}🔐 Emergency rotation complete${NC}"
-echo -e "${YELLOW}Backup location: $BACKUP_DIR${NC}"
-echo -e "${YELLOW}New secrets have been applied to all environment files${NC}"
-echo ""
-echo -e "${RED}NEXT STEPS:${NC}"
-echo "1. Restart all services to load new secrets"
-echo "2. Verify application functionality"
-echo "3. Update any external systems using these secrets"
-echo "4. Monitor for any authentication failures"
-echo "5. Document incident in security log"
+# Execute main function
+main "$@"

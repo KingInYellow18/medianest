@@ -1,4 +1,8 @@
-import type { Response, Request, NextFunction } from 'express';
+import type {
+  Response,
+  Request as ExpressRequest,
+  NextFunction as ExpressNextFunction,
+} from 'express';
 import { logger } from './logger';
 import { CatchError } from '../types/common';
 import {
@@ -179,7 +183,9 @@ export function sendValidationError(
   message = 'Validation failed',
   details?: Record<string, unknown> | string[]
 ): void {
-  sendError(res, message, 400, 'VALIDATION_ERROR', details);
+  // Convert string array to object format for consistent API response
+  const formattedDetails = Array.isArray(details) ? { errors: details } : details;
+  sendError(res, message, 400, 'VALIDATION_ERROR', formattedDetails);
 }
 
 /**
@@ -257,12 +263,12 @@ export function sendServiceUnavailable(res: Response, message = 'Service unavail
  * @returns Wrapped handler with error catching
  */
 // Context7 Pattern: Use proper Request and NextFunction types
-import type { Request, NextFunction } from 'express';
+// Types already imported above as ExpressRequest and ExpressNextFunction
 
 export function asyncHandler(
-  handler: (req: Request, res: Response, next: NextFunction) => Promise<void>
+  handler: (req: ExpressRequest, res: Response, next: ExpressNextFunction) => Promise<void>
 ) {
-  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  return async (req: ExpressRequest, res: Response, next: ExpressNextFunction): Promise<void> => {
     try {
       await handler(req, res, next);
     } catch (error: CatchError) {

@@ -3,7 +3,7 @@ import type { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 
 import { config } from '@/config';
-import { AppError } from '../utils/errors';
+import { AppError } from '@medianest/shared';
 import { userRepository } from '@/repositories/instances';
 import { encryptionService } from '@/services/encryption.service';
 import { jwtService } from '@/services/jwt.service';

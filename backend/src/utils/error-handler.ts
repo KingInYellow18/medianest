@@ -112,16 +112,17 @@ export function handleDatabaseError(
   logger.error(`Database ${operation} error`, { ...context, error });
 
   // Handle Prisma-specific errors
-  if (error.code === 'P2002') {
+  const err = error as any; // Type assertion for Prisma error codes
+  if (err.code === 'P2002') {
     throw new Error('Duplicate entry');
   }
-  if (error.code === 'P2025') {
+  if (err.code === 'P2025') {
     throw new Error('Record not found');
   }
-  if (error.code === 'P2003') {
+  if (err.code === 'P2003') {
     throw new Error('Foreign key constraint failed');
   }
-  if (error.code === 'P2016') {
+  if (err.code === 'P2016') {
     throw new Error('Query interpretation error');
   }
 
@@ -142,12 +143,13 @@ export function logErrorWithContext(
   customMessage?: string
 ): void {
   const message = customMessage || 'Error occurred';
+  const errObj = error instanceof Error ? error : new Error(String(error));
   logger.error(message, {
     ...context,
     error: {
-      message: error.message,
-      stack: error.stack,
-      name: error.name,
+      message: errObj.message,
+      stack: errObj.stack,
+      name: errObj.name,
     },
   });
 }

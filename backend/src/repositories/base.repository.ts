@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 
-import { AppError } from '../utils/errors';
+import { AppError } from '@medianest/shared';
 import { CatchError } from '../types/common';
 
 export interface PaginationOptions {

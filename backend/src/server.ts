@@ -90,8 +90,13 @@ const limiter = rateLimit({
   // Context7 Pattern: Skip successful requests in development
   skip: (req) => !configService.isProduction() && req.method === 'GET',
   // Context7 Pattern: Custom key generator for better performance
-  keyGenerator: (req) => {
-    return req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
+  keyGenerator: (req): string => {
+    return (
+      (req.headers['x-forwarded-for'] as string) ||
+      (req.connection as any)?.remoteAddress ||
+      req.ip ||
+      'unknown'
+    );
   },
 });
 app.use(limiter);
@@ -226,7 +231,8 @@ app.get('/metrics', (req, res) => {
     const authHeader = req.headers.authorization;
     const metricsToken = configService.get('auth', 'METRICS_TOKEN');
     if (!authHeader || authHeader !== `Bearer ${metricsToken}`) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
   }
 

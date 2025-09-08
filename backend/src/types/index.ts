@@ -3,9 +3,12 @@
 import { User } from '@medianest/shared';
 import { Request } from 'express';
 
+// Import AuthenticatedUser to maintain type consistency
+import { AuthenticatedUser } from './auth';
+
 // Extend Express Request with user
 export interface AuthenticatedRequest extends Request {
-  user?: User;
+  user?: AuthenticatedUser;
   correlationId: string;
 }
 

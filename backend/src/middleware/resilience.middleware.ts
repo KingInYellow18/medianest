@@ -17,7 +17,7 @@ export interface ResilienceMiddlewareOptions {
 
 // Circuit breaker middleware
 export function circuitBreakerMiddleware(serviceName: string) {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       // Store service name in request for downstream handlers
       (req as any).serviceName = serviceName;
@@ -30,14 +30,15 @@ export function circuitBreakerMiddleware(serviceName: string) {
         // Return cached response or fallback
         const fallbackResponse = await getFallbackResponse(serviceName, req);
         if (fallbackResponse) {
-          return res.status(200).json({
+          res.status(200).json({
             data: fallbackResponse,
             cached: true,
             message: 'Service temporarily unavailable, serving cached data',
           });
+          return;
         }
 
-        return res.status(503).json({
+        res.status(503).json({
           error: 'Service temporarily unavailable',
           service: serviceName,
           // @ts-ignore
@@ -54,7 +55,7 @@ export function circuitBreakerMiddleware(serviceName: string) {
 
 // Bulkhead middleware
 export function bulkheadMiddleware(compartmentName: string, maxConcurrent = 10) {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       await resilienceService.executeWithBulkhead(
         compartmentName,
@@ -68,7 +69,7 @@ export function bulkheadMiddleware(compartmentName: string, maxConcurrent = 10) 
     } catch (error: CatchError) {
       if ((error as Error).name === 'BulkheadError') {
         logger.warn(`Bulkhead limit exceeded for compartment: ${compartmentName}`);
-        return res.status(429).json({
+        res.status(429).json({
           error: 'Too many concurrent requests',
           compartment: compartmentName,
           retryAfter: '5s',
@@ -131,11 +132,12 @@ export function gracefulDegradationMiddleware(fallbackStrategies: {
               error: error instanceof Error ? error.message : ('Unknown error' as any),
             });
 
-            return res.status(200).json({
+            res.status(200).json({
               data: cachedResponse,
               cached: true,
               message: 'Serving cached data due to service issue',
             });
+            return;
           }
         }
 
@@ -145,17 +147,18 @@ export function gracefulDegradationMiddleware(fallbackStrategies: {
             error: error instanceof Error ? error.message : ('Unknown error' as any),
           });
 
-          return res.status(200).json({
+          res.status(200).json({
             data: fallbackStrategies.defaultResponse,
             fallback: true,
             message: 'Serving default data due to service issue',
           });
+          return;
         }
 
         if (fallbackStrategies.queueForLater) {
           await queueRequestForLater(req);
 
-          return res.status(202).json({
+          res.status(202).json({
             message: 'Request queued for processing when service is available',
             requestId: generateRequestId(),
           });
@@ -180,7 +183,7 @@ export function gracefulDegradationMiddleware(fallbackStrategies: {
 
 // Comprehensive resilience middleware that combines multiple patterns
 export function comprehensiveResilienceMiddleware(options: ResilienceMiddlewareOptions = {}) {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const {
       enableCircuitBreaker = true,
       enableBulkhead = true,
@@ -210,7 +213,7 @@ export function comprehensiveResilienceMiddleware(options: ResilienceMiddlewareO
           if (enableFallback) {
             const fallback = fallbackResponse || (await getFallbackResponse(serviceName, req));
             if (fallback) {
-              return res.status(200).json({
+              res.status(200).json({
                 data: fallback,
                 fallback: true,
                 message: 'Service temporarily unavailable, serving fallback data',
@@ -218,7 +221,7 @@ export function comprehensiveResilienceMiddleware(options: ResilienceMiddlewareO
             }
           }
 
-          return res.status(503).json({
+          res.status(503).json({
             error: 'Service temporarily unavailable',
             service: serviceName,
             // @ts-ignore
@@ -292,7 +295,7 @@ export function errorRecoveryMiddleware() {
           originalError: error.message as any,
         });
 
-        return res.status(200).json({
+        res.status(200).json({
           data: recoveryResult,
           recovered: true,
           message: 'Request recovered through fallback strategy',

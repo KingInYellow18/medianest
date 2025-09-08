@@ -2,7 +2,7 @@
 import crypto from 'crypto';
 import { UserRepository } from '../repositories/user.repository';
 import { SessionTokenRepository } from '../repositories/session-token.repository';
-import { AppError } from '../utils/errors';
+import { AppError } from '@medianest/shared';
 import { logger } from '../utils/logger';
 
 interface DeviceFingerprint {
@@ -99,7 +99,7 @@ export class DeviceSessionService {
       existingDevice.riskAssessment = await this.assessDeviceRisk(
         userId,
         fingerprint,
-        existingDevice,
+        existingDevice
       );
 
       await this.updateDevice(existingDevice);
@@ -127,7 +127,7 @@ export class DeviceSessionService {
   private async assessDeviceRisk(
     userId: string,
     fingerprint: DeviceFingerprint,
-    existingDevice: SessionDevice | null,
+    existingDevice: SessionDevice | null
   ): Promise<SessionDevice['riskAssessment']> {
     let score = fingerprint.riskScore;
     const factors: string[] = [];
@@ -166,7 +166,7 @@ export class DeviceSessionService {
    */
   private async getDeviceByFingerprint(
     userId: string,
-    deviceId: string,
+    deviceId: string
   ): Promise<SessionDevice | null> {
     // This would typically query a database
     // For now, return null to simulate new device

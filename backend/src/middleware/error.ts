@@ -205,7 +205,7 @@ export const errorHandler = (
 
   // Generic error response
   const isDev = process.env.NODE_ENV === 'development';
-  res.status(500).json({
+  return res.status(500).json({
     success: false,
     error: {
       code: 'INTERNAL_ERROR',

@@ -328,7 +328,7 @@ export class AuthSecurityService {
         }
       } catch (error: CatchError) {
         logger.error('Security wrapper caught error', {
-          error: error.message,
+          error: error instanceof Error ? error.message : String(error),
           path: req.path,
           ipAddress: req.ip,
         });

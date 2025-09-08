@@ -9,7 +9,7 @@ import { Request } from 'express';
 import { AuthenticatedUser } from '../auth';
 import { authSecurityService } from './auth-security-fixes';
 import { logger } from '../utils/logger';
-import { AppError } from '../utils/errors';
+import { AppError } from '@medianest/shared';
 
 export interface AuthValidationContext {
   ipAddress: string;

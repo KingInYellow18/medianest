@@ -3,7 +3,7 @@ import crypto from 'crypto';
 
 import { getRedis } from '../config/redis';
 import { logger } from '../utils/logger';
-import { AppError } from '../utils/errors';
+import { AppError } from '@medianest/shared';
 import { CatchError } from '../types/common';
 
 // Enhanced rate limiting configuration types
@@ -208,7 +208,7 @@ export function createEnhancedRateLimit(
       if (options.skipSuccessfulRequests || options.skipFailedRequests) {
         const originalEnd = res.end.bind(res);
 
-        res.end = function (chunk?: any, encoding?: any) {
+        res.end = function (chunk?: any, encoding?: any): Response<any, Record<string, any>> {
           const wasSuccessful = options.requestWasSuccessful
             ? options.requestWasSuccessful(req, res)
             : res.statusCode < 400;
@@ -224,7 +224,7 @@ export function createEnhancedRateLimit(
           }
 
           return originalEnd(chunk, encoding);
-        };
+        } as any;
       }
 
       next();
@@ -274,24 +274,26 @@ export const strictRateLimit = createEnhancedRateLimit('login', {
 
 // Rate limit reset utility
 export function createRateLimitReset(type: string) {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       if (!(req as any).user || (req as any).user.role !== 'admin') {
-        return res.status(403).json({
+        res.status(403).json({
           success: false,
           message: 'Admin access required',
           error: 'INSUFFICIENT_PERMISSIONS',
         });
+        return;
       }
 
       const { userId, ip } = req.body;
 
       if (!userId && !ip) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: 'Either userId or ip must be provided',
           error: 'INVALID_REQUEST',
         });
+        return;
       }
 
       const store = new RedisRateLimitStore(0); // windowMs doesn't matter for reset

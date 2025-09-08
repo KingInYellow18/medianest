@@ -76,9 +76,9 @@ class PerformanceMonitor {
           memoryUsage: endMemory,
           statusCode: res.statusCode,
           timestamp: Date.now(),
-          userId: (req as any).user?.id,
-          userAgent: req.get('User-Agent'),
-          ip: req.ip,
+          userId: (req as any).user?.id as string | undefined,
+          userAgent: req.get('User-Agent') || undefined,
+          ip: req.ip || 'unknown',
         };
 
         // Log slow requests immediately
@@ -103,8 +103,8 @@ class PerformanceMonitor {
             .catch((error) => logger.warn('Failed to record performance metrics', { error }));
         });
 
-        // Call original end method
-        return originalEnd.apply(this, args);
+        // Call original end method with exact same arguments
+        return (originalEnd as any).apply(this, args);
       };
 
       next();

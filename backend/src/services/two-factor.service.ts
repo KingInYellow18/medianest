@@ -4,7 +4,7 @@ import speakeasy from 'speakeasy';
 import qrcode from 'qrcode';
 import { UserRepository } from '../repositories/user.repository';
 import { RedisService } from './redis.service';
-import { AppError } from '../utils/errors';
+import { AppError } from '@medianest/shared';
 import { logger } from '../utils/logger';
 import {
   generateSecureToken,

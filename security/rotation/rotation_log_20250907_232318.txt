@@ -1,0 +1,16 @@
+# Emergency Secret Rotation Log
+# Date: Sun Sep  7 11:23:18 PM CDT 2025
+# Reason: Security breach - hardcoded secrets exposed
+# Compromised secrets rotated: JWT_SECRET, NEXTAUTH_SECRET, ENCRYPTION_KEY
+
+Old JWT_SECRET (compromised): da70b067dbe203df294779265b0ddaf6d14d827d6ed821ce60746cb0f9fb966d
+Old NEXTAUTH_SECRET (compromised): 2091416d1b17f0b969e184c97715cc5af73e23ad1470c1169a6730b4b5454da9  
+Old ENCRYPTION_KEY (compromised): fe64c50cedac97792790e561982002cf5438add5af15881ae063c6c0ef92f5c2
+
+New JWT_SECRET: 6ac5561b8aea0d86a219fb59cc6345af4bdcd6af7a3de03aad02c22ea46538fc
+New NEXTAUTH_SECRET: d32ff017138c6bc615e30ed112f022a75cfe76613ead26fd472e9b5217607cb0
+New ENCRYPTION_KEY: a1672676894b232f005e0730819a0978967c2adec73e9c5b23917acf33004cbd
+New JWT_SECRET_ROTATION: IugJN+oeqBy9hPekfgQe5SMzqVCXgVTD+Qlt68IUcws=
+
+Status: COMPLETED
+Next rotation due: Sat Dec  6 10:23:18 PM CST 2025

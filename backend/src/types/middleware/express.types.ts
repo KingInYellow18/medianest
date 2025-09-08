@@ -1,11 +1,10 @@
 // Express middleware and request/response extensions
 import { Request, Response, NextFunction } from 'express';
-// @ts-ignore
-import { User } from '@medianest/shared';
+import { AuthenticatedUser } from '../auth';
 
 // Extended Express Request interface
 export interface AuthenticatedRequest extends Request {
-  user?: User;
+  user?: AuthenticatedUser;
   correlationId: string;
   startTime?: number;
 }
@@ -72,11 +71,11 @@ export interface ErrorResponse {
 export type MiddlewareFunction = (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => void | Promise<void>;
 export type ErrorMiddlewareFunction = (
   error: Error,
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => void | Promise<void>;

@@ -98,4 +98,4 @@ export {
 
 // Re-export existing utilities
 export { logger } from './logger';
-export { AppError } from './errors';
+export type { AppError } from './errors';

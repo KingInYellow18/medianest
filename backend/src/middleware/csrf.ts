@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { randomBytes, createHash, timingSafeEqual } from 'crypto';
 import { logger } from '@/utils/logger';
-import { AppError } from '../utils/errors';
+import { AppError } from '@medianest/shared';
 import { CatchError } from '../types/common';
 
 // CSRF token store for session-based tokens

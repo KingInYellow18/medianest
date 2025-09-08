@@ -14,6 +14,7 @@ import { CatchError } from '../types/common';
 interface SocketUserData {
   id: string;
   email: string;
+  name?: string | null;
   role: string;
   plexUsername?: string;
 }
@@ -113,8 +114,11 @@ class OptimizedSocketAuth {
         plexUsername: user.plexUsername,
       };
 
-      socket.data.user = userData;
-      socket.user = userData; // For backward compatibility
+      socket.data.user = {
+        ...userData,
+        name: userData.name || null, // Ensure name field is included
+      };
+      socket.user = socket.data.user; // For backward compatibility
 
       this.trackUserConnection(socket.id, user.id, {
         userId: user.id,
@@ -125,9 +129,10 @@ class OptimizedSocketAuth {
       });
 
       next();
-    } catch (error: CatchError) {
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error(String(error));
       logger.error('Optimized socket authentication failed', {
-        error: error.message,
+        error: err.message,
         socketId: socket.id,
         ip: this.getClientIP(socket),
       });
@@ -214,7 +219,7 @@ class OptimizedSocketAuth {
       }
 
       return true;
-    } catch (error: CatchError) {
+    } catch (error: unknown) {
       logger.error('Rate limit check failed', { error, ip });
       return true; // Fail open
     }

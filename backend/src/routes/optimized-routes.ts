@@ -1,9 +1,18 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { fastAuthenticate, fastAdminAuthenticate } from '../middleware/auth-cache';
 import { RateLimitPresets } from '../middleware/optimized-rate-limit';
 import { logger } from '../utils/logger';
 import compression from 'compression';
-import { AppError } from '../utils/errors';
+import { AppError } from '@medianest/shared';
+import { AuthenticatedUser } from '../auth';
+
+// Extend Request interface
+declare module 'express' {
+  interface Request {
+    id?: string;
+    user?: AuthenticatedUser;
+  }
+}
 
 /**
  * Optimized route configurations for high-performance endpoints
@@ -33,10 +42,11 @@ export function createOptimizedRouter(
   // Request ID middleware (lightweight)
   if (enableRequestId) {
     router.use((req, res, next) => {
-      req.id =
+      const reqId =
         (req.headers['x-request-id'] as string) ||
         `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      res.setHeader('X-Request-ID', req.id);
+      (req as any).id = reqId;
+      res.setHeader('X-Request-ID', reqId);
       next();
     });
   }
@@ -76,7 +86,7 @@ export function createOptimizedRouter(
           path: req.path,
           status: res.statusCode,
           duration: `${duration.toFixed(2)}ms`,
-          requestId: req.id,
+          requestId: (req as any).id,
           userAgent: req.get('User-Agent'),
           ip: req.ip,
         });
@@ -266,7 +276,7 @@ export function routeTimer(slowThreshold = 1000) {
           path: req.path,
           method: req.method,
           duration: `${duration.toFixed(2)}ms`,
-          requestId: req.id,
+          requestId: (req as any).id,
           userId: req.user?.id,
         });
       }

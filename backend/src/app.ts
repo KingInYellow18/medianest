@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -122,7 +122,7 @@ app.use((req, res, next) => {
 });
 
 // Default request timeout (30 seconds)
-app.use(timeoutPresets.medium);
+app.use(timeoutPresets.medium as express.RequestHandler);
 
 // Context7 Pattern: Enhanced logging middleware with performance optimizations
 if (env.NODE_ENV !== 'test') {
@@ -181,4 +181,4 @@ app.use((req, res) => {
 });
 
 // Error handler (must be last)
-app.use(errorHandler);
+app.use(errorHandler as express.ErrorRequestHandler);

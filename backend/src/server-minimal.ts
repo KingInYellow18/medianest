@@ -125,21 +125,23 @@ app.post('/api/users', async (req, res) => {
 });
 
 // Error handling middleware
-app.use((error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  logger.error('Unhandled server error', {
-    error: error instanceof Error ? error.message : 'Unknown error',
-    stack: error.stack,
-    correlationId: req.correlationId || 'no-correlation',
-    timestamp: new Date().toISOString(),
-  });
-  if (!res.headersSent) {
-    res.status(500).json({
-      error: 'Internal server error',
+app.use(
+  (error: Error, req: express.Request, res: express.Response, next: express.NextFunction): void => {
+    logger.error('Unhandled server error', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error.stack,
       correlationId: req.correlationId || 'no-correlation',
       timestamp: new Date().toISOString(),
     });
+    if (!res.headersSent) {
+      res.status(500).json({
+        error: 'Internal server error',
+        correlationId: req.correlationId || 'no-correlation',
+        timestamp: new Date().toISOString(),
+      });
+    }
   }
-});
+);
 
 // Start server
 app.listen(PORT, () => {

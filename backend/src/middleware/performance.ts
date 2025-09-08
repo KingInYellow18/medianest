@@ -103,12 +103,12 @@ export function responseOptimization() {
 // Context7 Pattern: Request size limiter for early rejection
 export function requestSizeLimiter(maxSize: number = 1024 * 1024) {
   // 1MB default
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     const contentLength = parseInt(req.headers['content-length'] || '0', 10);
 
     // Context7 Pattern: Early rejection for oversized requests
     if (contentLength > maxSize) {
-      return res.status(413).json({
+      res.status(413).json({
         success: false,
         error: {
           code: 'PAYLOAD_TOO_LARGE',
@@ -117,6 +117,7 @@ export function requestSizeLimiter(maxSize: number = 1024 * 1024) {
           receivedSize: `${Math.round(contentLength / 1024)}KB`,
         },
       });
+      return;
     }
 
     next();
@@ -176,7 +177,7 @@ export function cacheHeaders(
 export function healthCheckOptimization() {
   const healthPaths = new Set(['/health', '/ping', '/status', '/api/health', '/api/v1/health']);
 
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     // Context7 Pattern: Fast-path for health checks
     if (healthPaths.has(req.path)) {
       // Skip unnecessary middleware for health checks
@@ -185,7 +186,8 @@ export function healthCheckOptimization() {
 
       // Context7 Pattern: Minimal health check response
       if (req.path === '/ping') {
-        return res.status(200).send('pong');
+        res.status(200).send('pong');
+        return;
       }
     }
 

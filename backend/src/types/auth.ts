@@ -1,19 +1,25 @@
 import { Request } from 'express';
-// @ts-ignore
-import { User } from '@medianest/shared';
+import type { User } from '@medianest/shared';
+
+// Authenticated user type (extends User with required fields)
+export interface AuthenticatedUser {
+  id: string;
+  email: string;
+  name: string | null; // Make sure this matches User.name type
+  role: string;
+  status: string;
+  plexId?: string;
+  plexUsername?: string | null;
+  createdAt?: Date;
+  lastLoginAt?: Date | null;
+}
 
 // Auth request interface
 export interface AuthRequest extends Request {
-  user?: User;
+  user?: AuthenticatedUser;
   correlationId: string;
   logger: any;
 }
 
-// Authenticated user type
-export interface AuthenticatedUser extends User {
-  id: string;
-  email: string;
-}
-
 // Export compatibility alias
-export { AuthRequest as AuthenticatedRequest };
+export type { AuthRequest as AuthenticatedRequest };

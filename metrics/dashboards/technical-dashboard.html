@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediaNest Technical Debt Audit - Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f7;
+            color: #1d1d1f;
+            line-height: 1.6;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .dashboard-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .dashboard-header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .status-bar {
+            background: #ff3b30;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #007aff;
+        }
+
+        .metric-card.critical {
+            border-left-color: #ff3b30;
+        }
+
+        .metric-card.warning {
+            border-left-color: #ff9500;
+        }
+
+        .metric-card.success {
+            border-left-color: #34c759;
+        }
+
+        .metric-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-target {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #e5e5e7;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-fill.critical {
+            background: #ff3b30;
+        }
+
+        .progress-fill.warning {
+            background: #ff9500;
+        }
+
+        .progress-fill.success {
+            background: #34c759;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-container h2 {
+            margin-bottom: 1.5rem;
+            color: #1d1d1f;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+        }
+
+        .phase-timeline {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .phase-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .phase-card h3 {
+            color: #007aff;
+            margin-bottom: 1rem;
+        }
+
+        .phase-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .phase-status.pending {
+            background: #ff9500;
+            color: white;
+        }
+
+        .phase-status.in-progress {
+            background: #007aff;
+            color: white;
+        }
+
+        .phase-status.complete {
+            background: #34c759;
+            color: white;
+        }
+
+        .task-list {
+            list-style: none;
+            margin-top: 1rem;
+        }
+
+        .task-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e5e5e7;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+
+        .task-list li:last-child {
+            border-bottom: none;
+        }
+
+        .vulnerability-breakdown {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .vuln-card {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .vuln-card.critical {
+            background: #ff3b30;
+        }
+
+        .vuln-card.high {
+            background: #ff9500;
+        }
+
+        .vuln-card.medium {
+            background: #ffcc00;
+            color: #1d1d1f;
+        }
+
+        .vuln-card.low {
+            background: #34c759;
+        }
+
+        .alert-banner {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+            color: #856404;
+        }
+
+        .alert-banner.critical {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-header">
+        <h1>MediaNest Technical Debt Audit</h1>
+        <p class="subtitle">Comprehensive Before/After Metrics Dashboard</p>
+    </div>
+
+    <div class="status-bar">
+        ❌ PRODUCTION DEPLOYMENT BLOCKED - 4 Critical Security Vulnerabilities Require Immediate Attention
+    </div>
+
+    <div class="container">
+        <!-- Key Metrics Overview -->
+        <div class="metrics-grid">
+            <div class="metric-card critical">
+                <h3>Security Score</h3>
+                <div class="metric-value">15<span style="font-size: 1rem; color: #666;">/100</span></div>
+                <div class="metric-target">Target: 90/100</div>
+                <div class="progress-bar">
+                    <div class="progress-fill critical" style="width: 15%"></div>
+                </div>
+                <small>4 P0 vulnerabilities blocking deployment</small>
+            </div>
+
+            <div class="metric-card critical">
+                <h3>Build Stability</h3>
+                <div class="metric-value">20<span style="font-size: 1rem; color: #666;">/100</span></div>
+                <div class="metric-target">Target: 95/100</div>
+                <div class="progress-bar">
+                    <div class="progress-fill critical" style="width: 20%"></div>
+                </div>
+                <small>161 TypeScript errors preventing build</small>
+            </div>
+
+            <div class="metric-card critical">
+                <h3>Test Coverage</h3>
+                <div class="metric-value">0<span style="font-size: 1rem; color: #666;">%</span></div>
+                <div class="metric-target">Target: 85%</div>
+                <div class="progress-bar">
+                    <div class="progress-fill critical" style="width: 0%"></div>
+                </div>
+                <small>Test infrastructure completely broken</small>
+            </div>
+
+            <div class="metric-card warning">
+                <h3>Performance Score</h3>
+                <div class="metric-value">40<span style="font-size: 1rem; color: #666;">/100</span></div>
+                <div class="metric-target">Target: 90/100</div>
+                <div class="progress-bar">
+                    <div class="progress-fill warning" style="width: 40%"></div>
+                </div>
+                <small>Bundle size optimization needed</small>
+            </div>
+
+            <div class="metric-card warning">
+                <h3>Documentation Quality</h3>
+                <div class="metric-value">35<span style="font-size: 1rem; color: #666;">/100</span></div>
+                <div class="metric-target">Target: 80/100</div>
+                <div class="progress-bar">
+                    <div class="progress-fill warning" style="width: 35%"></div>
+                </div>
+                <small>Setup instructions fail, API docs missing</small>
+            </div>
+
+            <div class="metric-card warning">
+                <h3>Technical Debt</h3>
+                <div class="metric-value">280<span style="font-size: 1rem; color: #666;">h</span></div>
+                <div class="metric-target">Target: 56h (80% reduction)</div>
+                <div class="progress-bar">
+                    <div class="progress-fill warning" style="width: 80%"></div>
+                </div>
+                <small>1,139 dead functions, 334 dead classes</small>
+            </div>
+        </div>
+
+        <!-- Vulnerability Breakdown -->
+        <div class="chart-container">
+            <h2>Security Vulnerability Distribution</h2>
+            <div class="vulnerability-breakdown">
+                <div class="vuln-card critical">
+                    <div style="font-size: 2rem;">4</div>
+                    <div>P0 Critical</div>
+                </div>
+                <div class="vuln-card high">
+                    <div style="font-size: 2rem;">26</div>
+                    <div>P1 High</div>
+                </div>
+                <div class="vuln-card medium">
+                    <div style="font-size: 2rem;">555</div>
+                    <div>P2 Medium</div>
+                </div>
+                <div class="vuln-card low">
+                    <div style="font-size: 2rem;">1</div>
+                    <div>P3 Low</div>
+                </div>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="vulnerabilityChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Before/After Comparison -->
+        <div class="chart-container">
+            <h2>Before vs After Targets</h2>
+            <div class="chart-wrapper">
+                <canvas id="beforeAfterChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Progress Timeline -->
+        <div class="chart-container">
+            <h2>Remediation Timeline</h2>
+            <div class="phase-timeline">
+                <div class="phase-card">
+                    <h3>Phase 1: Emergency Security</h3>
+                    <span class="phase-status pending">Pending</span>
+                    <p><strong>Duration:</strong> 0-7 days</p>
+                    <p><strong>Investment:</strong> 48 hours</p>
+                    <ul class="task-list">
+                        <li>Secret Rotation</li>
+                        <li>Authentication Cache Fix</li>
+                        <li>Docker Security</li>
+                        <li>Critical Dependency Patches</li>
+                    </ul>
+                </div>
+
+                <div class="phase-card">
+                    <h3>Phase 2: Build Stabilization</h3>
+                    <span class="phase-status pending">Pending</span>
+                    <p><strong>Duration:</strong> 7-30 days</p>
+                    <p><strong>Investment:</strong> 120 hours</p>
+                    <ul class="task-list">
+                        <li>TypeScript Error Resolution</li>
+                        <li>Test Infrastructure Repair</li>
+                        <li>Build Process Stabilization</li>
+                    </ul>
+                </div>
+
+                <div class="phase-card">
+                    <h3>Phase 3: Production Excellence</h3>
+                    <span class="phase-status pending">Pending</span>
+                    <p><strong>Duration:</strong> 30-90 days</p>
+                    <p><strong>Investment:</strong> 112 hours</p>
+                    <ul class="task-list">
+                        <li>Performance Optimization</li>
+                        <li>Security Hardening</li>
+                        <li>Documentation Completion</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Code Quality Metrics -->
+        <div class="chart-container">
+            <h2>Code Quality Improvement Targets</h2>
+            <div class="chart-wrapper">
+                <canvas id="codeQualityChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Critical Alerts -->
+        <div class="alert-banner critical">
+            <h3>🚨 Critical Action Required</h3>
+            <p>The following issues require immediate attention within 24 hours:</p>
+            <ul style="margin-top: 1rem; padding-left: 2rem;">
+                <li>4 exposed secrets in version control (JWT_SECRET, NEXTAUTH_SECRET, ENCRYPTION_KEY)</li>
+                <li>Authentication bypass vulnerability enabling privilege escalation</li>
+                <li>Insecure Docker configuration exposing database ports</li>
+                <li>161 TypeScript compilation errors preventing builds</li>
+            </ul>
+        </div>
+
+        <!-- Deployment Decision Matrix -->
+        <div class="chart-container">
+            <h2>Deployment Readiness Decision Matrix</h2>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f5f5f7;">
+                        <th style="padding: 1rem; text-align: left; border: 1px solid #ddd;">Phase</th>
+                        <th style="padding: 1rem; text-align: left; border: 1px solid #ddd;">Status</th>
+                        <th style="padding: 1rem; text-align: left; border: 1px solid #ddd;">Recommendation</th>
+                        <th style="padding: 1rem; text-align: left; border: 1px solid #ddd;">Risk Level</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding: 1rem; border: 1px solid #ddd;">Current State</td>
+                        <td style="padding: 1rem; border: 1px solid #ddd;"><span style="color: #ff3b30;">❌ NOT READY</span></td>
+                        <td style="padding: 1rem; border: 1px solid #ddd;">DO NOT DEPLOY</td>
+                        <td style="padding: 1rem; border: 1px solid #ddd;"><span style="color: #ff3b30;">CRITICAL</span></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1rem; border: 1px solid #ddd;">After Phase 1</td>
+                        <td style="padding: 1rem; border: 1px solid #ddd;"><span style="color: #ff9500;">⚠️ LIMITED</span></td>
+                        <td style="padding: 1rem; border: 1px solid #ddd;">Staging only</td>
+                        <td style="padding: 1rem; border: 1px solid #ddd;"><span style="color: #ff9500;">MEDIUM</span></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1rem; border: 1px solid #ddd;">After Phase 2</td>
+                        <td style="padding: 1rem; border: 1px solid #ddd;"><span style="color: #34c759;">✅ STAGING OK</span></td>
+                        <td style="padding: 1rem; border: 1px solid #ddd;">Staging deployment</td>
+                        <td style="padding: 1rem; border: 1px solid #ddd;"><span style="color: #34c759;">LOW</span></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1rem; border: 1px solid #ddd;">After Phase 3</td>
+                        <td style="padding: 1rem; border: 1px solid #ddd;"><span style="color: #34c759;">✅ PRODUCTION READY</span></td>
+                        <td style="padding: 1rem; border: 1px solid #ddd;">Full production</td>
+                        <td style="padding: 1rem; border: 1px solid #ddd;"><span style="color: #34c759;">MINIMAL</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Chart.js configurations and data
+        const ctx1 = document.getElementById('vulnerabilityChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'doughnut',
+            data: {
+                labels: ['P0 Critical', 'P1 High', 'P2 Medium', 'P3 Low'],
+                datasets: [{
+                    data: [4, 26, 555, 1],
+                    backgroundColor: ['#ff3b30', '#ff9500', '#ffcc00', '#34c759'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        padding: 20
+                    }
+                }
+            }
+        });
+
+        const ctx2 = document.getElementById('beforeAfterChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: ['Security Score', 'Build Stability', 'Test Coverage', 'Performance', 'Documentation'],
+                datasets: [{
+                    label: 'Current State',
+                    data: [15, 20, 0, 40, 35],
+                    backgroundColor: '#ff3b30',
+                    borderRadius: 4
+                }, {
+                    label: 'Target State', 
+                    data: [90, 95, 85, 90, 80],
+                    backgroundColor: '#34c759',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                }
+            }
+        });
+
+        const ctx3 = document.getElementById('codeQualityChart').getContext('2d');
+        new Chart(ctx3, {
+            type: 'horizontalBar',
+            data: {
+                labels: ['Dead Functions', 'Dead Classes', 'TypeScript Errors', 'Bundle Size (MB)', 'Technical Debt (hrs)'],
+                datasets: [{
+                    label: 'Current',
+                    data: [1139, 334, 161, 628, 280],
+                    backgroundColor: '#ff9500'
+                }, {
+                    label: 'Target',
+                    data: [341, 100, 0, 400, 56], 
+                    backgroundColor: '#007aff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                }
+            }
+        });
+
+        // Auto-refresh dashboard every 5 minutes
+        setInterval(() => {
+            location.reload();
+        }, 300000);
+    </script>
+</body>
+</html>

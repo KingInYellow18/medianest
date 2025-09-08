@@ -16,7 +16,7 @@
       "details": {
         "file": ".env",
         "secretType": "JWT_SECRET",
-        "value": "da70b067..."
+        "value": "[REDACTED - ROTATED]"
       },
       "severity": "P0"
     },
@@ -28,7 +28,7 @@
       "details": {
         "file": ".env",
         "secretType": "NEXTAUTH_SECRET",
-        "value": "2091416d..."
+        "value": "[REDACTED - ROTATED]"
       },
       "severity": "P0"
     },
@@ -40,7 +40,7 @@
       "details": {
         "file": ".env",
         "secretType": "ENCRYPTION_KEY",
-        "value": "fe64c50c..."
+        "value": "[REDACTED - ROTATED]"
       },
       "severity": "P0"
     },

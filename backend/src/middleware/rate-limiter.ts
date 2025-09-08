@@ -36,7 +36,8 @@ export function rateLimiter(options: RateLimiterOptions) {
       pipeline.incr(key);
       pipeline.pttl(key);
 
-      const [incrResult, ttlResult] = await pipeline.exec();
+      const results = await pipeline.exec();
+      const [incrResult, ttlResult] = results || [];
 
       if (!incrResult || !ttlResult) {
         throw new Error('Redis pipeline failed');
@@ -52,7 +53,7 @@ export function rateLimiter(options: RateLimiterOptions) {
       }
 
       // Context7 Pattern: Batch header setting for performance
-      const headers = {
+      const headers: Record<string, string> = {
         'X-RateLimit-Limit': max.toString(),
         'X-RateLimit-Remaining': Math.max(0, max - current).toString(),
       };

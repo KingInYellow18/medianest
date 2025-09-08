@@ -1,11 +1,20 @@
 import { Request, Response } from 'express';
 import { OptimizedMediaRequestRepository } from '../repositories/optimized-media-request.repository';
+import { prisma } from '../lib/prisma';
 import { overseerrService } from '../services/overseerr.service';
-import { AppError } from '../utils/errors';
+import { AppError } from '@medianest/shared';
 import { logger } from '../utils/logger';
 import { getRedis } from '../config/redis';
 import { CatchError } from '../types/common';
 import { z } from 'zod';
+import { AuthenticatedUser } from '../auth';
+
+// Extend Request interface for authenticated requests
+declare module 'express' {
+  interface Request {
+    user?: AuthenticatedUser;
+  }
+}
 
 /**
  * Optimized Media Controller with caching, batching, and performance improvements
@@ -46,7 +55,7 @@ interface CachedSearchResult {
 }
 
 export class OptimizedMediaController {
-  private readonly mediaRequestRepo = new OptimizedMediaRequestRepository();
+  private readonly mediaRequestRepo = new OptimizedMediaRequestRepository(prisma);
   private readonly SEARCH_CACHE_TTL = 300; // 5 minutes
   private readonly SEARCH_CACHE_PREFIX = 'media_search:';
   private readonly DETAILS_CACHE_TTL = 3600; // 1 hour

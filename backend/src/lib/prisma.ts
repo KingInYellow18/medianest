@@ -30,12 +30,12 @@ interface QueryEvent {
   target: string;
 }
 
-// Add connection event logging
-prisma.$on('query', (e: QueryEvent) => {
-  if (env.NODE_ENV === 'development') {
+// Add connection event logging with proper typing
+if (env.NODE_ENV === 'development') {
+  (prisma as any).$on('query', (e: QueryEvent) => {
     logger.debug('Query executed', { query: e.query, duration: e.duration });
-  }
-});
+  });
+}
 
 export { prisma };
 export default prisma;

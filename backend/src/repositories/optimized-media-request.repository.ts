@@ -1,4 +1,4 @@
-import { MediaRequest, Prisma } from '@prisma/client';
+import { MediaRequest, Prisma, PrismaClient } from '@prisma/client';
 import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
 import { getRedis } from '../config/redis';
 import { logger } from '../utils/logger';
@@ -64,6 +64,27 @@ export class OptimizedMediaRequestRepository extends BaseRepository<
   private readonly USER_STATS_PREFIX = 'user_requests_stats:';
   private readonly RECENT_REQUESTS_TTL = 30; // 30 seconds for recent requests
   private readonly RECENT_REQUESTS_KEY = 'recent_media_requests';
+
+  constructor(prisma?: PrismaClient) {
+    super(prisma!);
+  }
+
+  /**
+   * Delete a media request by ID
+   */
+  async delete(id: string): Promise<void> {
+    try {
+      await this.prisma.mediaRequest.delete({
+        where: { id },
+      });
+      // Clear related caches
+      const redis = getRedis();
+      await redis.del(`${this.RECENT_REQUESTS_KEY}`);
+      logger.info('Media request deleted', { requestId: id });
+    } catch (error: CatchError) {
+      this.handleDatabaseError(error);
+    }
+  }
 
   /**
    * Optimized findById with selective user data loading

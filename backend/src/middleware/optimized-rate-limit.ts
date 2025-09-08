@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { getRedis } from '../config/redis';
 import { logger } from '../utils/logger';
-import { AppError } from '../utils/errors';
+import { AppError } from '@medianest/shared';
 import { CatchError } from '../types/common';
 
 /**
@@ -64,7 +64,7 @@ class OptimizedRateLimiter {
 
     try {
       const redis = getRedis();
-      scriptHash = await redis.script('LOAD', RATE_LIMIT_SCRIPT);
+      scriptHash = (await redis.script('LOAD', RATE_LIMIT_SCRIPT)) as string;
       return scriptHash;
     } catch (error: CatchError) {
       logger.error('Failed to load rate limit script', { error });
@@ -79,7 +79,7 @@ class OptimizedRateLimiter {
 
     // Default key generation - optimized for common use cases
     const userId = (req as any).user?.id;
-    const ip = req.ip || req.connection.remoteAddress || 'unknown';
+    const ip: string = req.ip || (req.connection as any)?.remoteAddress || 'unknown';
     const endpoint = `${req.method}:${req.route?.path || req.path}`;
 
     return userId ? `rl:user:${userId}:${endpoint}` : `rl:ip:${ip}:${endpoint}`;
@@ -137,8 +137,8 @@ const rateLimiter = new OptimizedRateLimiter();
  * Performance: 3x faster than standard rate limiter, atomic operations
  */
 export function createOptimizedRateLimit(config: RateLimitConfig) {
-  return async (req: Request, res: Response, next: NextFunction) => {
-    const key = rateLimiter.generateKey(req, config.keyGenerator);
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const key = (rateLimiter as any).generateKey(req, config.keyGenerator);
 
     try {
       const result = await rateLimiter.checkLimit(key, config.windowMs, config.maxRequests);

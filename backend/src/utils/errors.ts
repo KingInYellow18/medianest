@@ -13,5 +13,4 @@ export {
   isAppError,
   toAppError,
   toErrorResponse,
-  // @ts-ignore
 } from '@medianest/shared';

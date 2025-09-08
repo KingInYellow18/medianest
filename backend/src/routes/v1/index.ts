@@ -35,7 +35,7 @@ const protectedRouter = Router();
 // Context7 Pattern: Pre-authentication middleware for performance metrics
 protectedRouter.use((req, res, next) => {
   // Add authentication start time for performance monitoring
-  req.authStartTime = process.hrtime.bigint();
+  (req as any).authStartTime = Number(process.hrtime.bigint());
   next();
 });
 
@@ -43,8 +43,9 @@ protectedRouter.use(authenticate); // Single authentication point
 
 // Context7 Pattern: Post-authentication metrics
 protectedRouter.use((req, res, next) => {
-  if (req.authStartTime) {
-    const authDuration = Number(process.hrtime.bigint() - req.authStartTime) / 1e6;
+  const authStartTime = (req as any).authStartTime;
+  if (authStartTime) {
+    const authDuration = (Number(process.hrtime.bigint()) - authStartTime) / 1e6;
     res.setHeader('X-Auth-Time', `${authDuration.toFixed(2)}ms`);
   }
   next();

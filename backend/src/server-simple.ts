@@ -96,7 +96,8 @@ app.post('/api/users', async (req, res) => {
   const { name, email } = req.body;
 
   if (!name || !email) {
-    return res.status(400).json({ error: 'Name and email are required' });
+    res.status(400).json({ error: 'Name and email are required' });
+    return;
   }
 
   // Simulate processing time

@@ -5,8 +5,7 @@ export default defineConfig({
   test: {
     environment: 'node',
     setupFiles: [
-      './tests/setup.ts', 
-      './src/__tests__/setup.ts'
+      './tests/setup.ts'
     ],
     globals: true,
     isolate: true,
@@ -52,8 +51,20 @@ export default defineConfig({
       },
     },
     deps: {
-      external: ['@prisma/client'],
+      external: ['@prisma/client', 'ioredis', 'redis'],
     },
+    // Mock handling configuration
+    mockReset: true,
+    clearMocks: true,
+    restoreMocks: true,
+    // File inclusion patterns
+    include: ['tests/**/*.test.ts', 'src/**/*.test.ts'],
+    exclude: [
+      'node_modules/**',
+      'dist/**',
+      '**/*.d.ts',
+      '**/*.config.*'
+    ],
     env: {
       NODE_ENV: 'test',
       JWT_SECRET: 'test-jwt-secret-key-32-bytes-long',

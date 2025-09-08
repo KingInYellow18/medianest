@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 
 import { mediaRequestRepository } from '@/repositories';
 import { overseerrService } from '@/services/overseerr.service';
-import { AppError } from '../utils/errors';
+import { AppError } from '@medianest/shared';
 import { logger } from '@/utils/logger';
 import { CatchError } from '../types/common';
 

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 
 import { plexService } from '@/services/plex.service';
-import { AppError } from '../utils/errors';
+import { AppError } from '@medianest/shared';
 import { logger } from '@/utils/logger';
 import { CatchError } from '../types/common';
 

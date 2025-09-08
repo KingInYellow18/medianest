@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 // @ts-ignore
-import { AppError } from '../utils/errors';
+import { AppError } from '@medianest/shared';
 import { logger } from '../utils/logger';
 import { errorRecoveryManager } from '../utils/error-recovery';
 import { healthMonitor } from '../services/health-monitor.service';

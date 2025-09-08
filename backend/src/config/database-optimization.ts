@@ -32,7 +32,7 @@ export function createOptimizedPrismaClient(): PrismaClient {
 
   // Query performance monitoring
   prisma.$on('query', (e) => {
-    const duration = parseInt(e.duration);
+    const duration = typeof e.duration === 'number' ? e.duration : parseInt(String(e.duration));
 
     // Log slow queries (>100ms in production, >500ms in development)
     const slowThreshold = process.env.NODE_ENV === 'production' ? 100 : 500;

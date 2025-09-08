@@ -1,8 +1,8 @@
 import { Router } from 'express';
 
-import { authenticate } from '@/middleware/auth';
-import { rateLimiter } from '@/middleware/rate-limiter';
-import { YouTubeController } from '@/controllers/youtube.controller';
+import { authenticate } from '../../middleware/auth';
+import { rateLimiter } from '../../middleware/rate-limiter';
+import { YouTubeController } from '../../controllers/youtube.controller';
 
 const router = Router();
 const youtubeController = new YouTubeController();
@@ -14,7 +14,7 @@ router.use(authenticate);
 router.post(
   '/download',
   rateLimiter({ windowMs: 60 * 60 * 1000, max: 5 }), // 5 per hour
-  youtubeController.createDownload,
+  youtubeController.createDownload
 );
 
 // GET /api/v1/youtube/downloads - Get user's download history

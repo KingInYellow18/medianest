@@ -3,7 +3,7 @@ import { getRedis } from '../config/redis';
 import { userRepository } from '../repositories';
 import { logger } from '../utils/logger';
 import { AuthenticatedRequest } from '../types';
-import { AppError } from '../utils/errors';
+import { AppError } from '@medianest/shared';
 import { CatchError } from '../types/common';
 
 /**
@@ -13,9 +13,13 @@ import { CatchError } from '../types/common';
 export interface CachedUserData {
   id: string;
   email: string;
+  name?: string | null;
   role: string;
   status: string;
+  plexId?: string;
   plexUsername?: string;
+  createdAt?: Date;
+  lastLoginAt?: Date;
   cachedAt: number;
 }
 
@@ -58,9 +62,13 @@ export class AuthCacheService {
       const userData: CachedUserData = {
         id: user.id,
         email: user.email,
+        name: user.name || null,
         role: user.role,
         status: user.status || 'active',
+        plexId: user.plexId || undefined,
         plexUsername: user.plexUsername || undefined,
+        createdAt: user.createdAt || undefined,
+        lastLoginAt: user.lastLoginAt || undefined,
         cachedAt: Date.now(),
       };
 
@@ -78,9 +86,13 @@ export class AuthCacheService {
           ? {
               id: user.id,
               email: user.email,
+              name: user.name || null,
               role: user.role,
               status: user.status || 'active',
+              plexId: user.plexId || undefined,
               plexUsername: user.plexUsername || undefined,
+              createdAt: user.createdAt || undefined,
+              lastLoginAt: user.lastLoginAt || undefined,
               cachedAt: Date.now(),
             }
           : null;
@@ -174,12 +186,17 @@ export function fastAuthenticate(req: Request, res: Response, next: NextFunction
         throw new AppError('UNAUTHORIZED', 'User not found or inactive', 401);
       }
 
-      // Attach minimal user data to request
+      // Attach complete user data to request
       authReq.user = {
         id: user.id,
         email: user.email,
+        name: user.name || null,
         role: user.role,
+        status: user.status,
+        plexId: user.plexId,
         plexUsername: user.plexUsername,
+        createdAt: user.createdAt || new Date(),
+        lastLoginAt: user.lastLoginAt || undefined,
       };
 
       next();
@@ -187,7 +204,9 @@ export function fastAuthenticate(req: Request, res: Response, next: NextFunction
       if (error instanceof AppError) {
         next(error);
       } else {
-        logger.warn('Authentication failed', { error: error.message });
+        logger.warn('Authentication failed', {
+          error: error instanceof Error ? error.message : String(error),
+        });
         next(new AppError('UNAUTHORIZED', 'Authentication failed', 401));
       }
     }

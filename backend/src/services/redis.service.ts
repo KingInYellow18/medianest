@@ -1,6 +1,6 @@
 import Redis from 'ioredis';
 import { logger } from '../utils/logger';
-import { AppError } from '../utils/errors';
+import { AppError } from '@medianest/shared';
 
 export interface RedisConfig {
   url?: string;
@@ -204,7 +204,7 @@ export class RedisService {
         createdAt: data.createdAt.toISOString(),
       });
 
-      await this.client.setex(key, ttlSeconds.toString(), serializedData);
+      await this.client.setex(key, ttlSeconds, serializedData);
       logger.debug('OAuth state stored in Redis', { state, ttlSeconds });
     } catch (error) {
       logger.error('Failed to store OAuth state', { error, state });
@@ -300,7 +300,7 @@ export class RedisService {
         createdAt: data.createdAt.toISOString(),
       });
 
-      await this.client.setex(key, ttlSeconds.toString(), serializedData);
+      await this.client.setex(key, ttlSeconds, serializedData);
       logger.debug('2FA challenge stored in Redis', { challengeId, ttlSeconds });
     } catch (error) {
       logger.error('Failed to store 2FA challenge', { error, challengeId });
@@ -351,7 +351,7 @@ export class RedisService {
         createdAt: data.createdAt.toISOString(),
       });
 
-      await this.client.setex(key, ttl.toString(), serializedData);
+      await this.client.setex(key, ttl, serializedData);
       logger.debug('2FA challenge updated in Redis', { challengeId });
     } catch (error) {
       logger.error('Failed to update 2FA challenge', { error, challengeId });
@@ -427,7 +427,7 @@ export class RedisService {
         createdAt: data.createdAt.toISOString(),
       });
 
-      await this.client.setex(key, ttlSeconds.toString(), serializedData);
+      await this.client.setex(key, ttlSeconds, serializedData);
       logger.debug('Password reset token stored in Redis', { tokenId, ttlSeconds });
     } catch (error) {
       logger.error('Failed to store password reset token', { error, tokenId });
@@ -482,7 +482,7 @@ export class RedisService {
         createdAt: data.createdAt.toISOString(),
       });
 
-      await this.client.setex(key, ttl.toString(), serializedData);
+      await this.client.setex(key, ttl, serializedData);
       logger.debug('Password reset token updated in Redis', { tokenId });
     } catch (error) {
       logger.error('Failed to update password reset token', { error, tokenId });
@@ -564,11 +564,11 @@ export class RedisService {
       });
 
       // Store session data
-      await this.client.setex(sessionKey, ttlSeconds.toString(), serializedData);
+      await this.client.setex(sessionKey, ttlSeconds, serializedData);
 
       // Add to user sessions set
       await this.client.sadd(userSessionsKey, sessionId);
-      await this.client.expire(userSessionsKey, ttlSeconds.toString());
+      await this.client.expire(userSessionsKey, ttlSeconds);
 
       logger.debug('Session stored in Redis', { sessionId, userId: data.userId, ttlSeconds });
     } catch (error) {
@@ -672,7 +672,7 @@ export class RedisService {
       const multi = this.client.multi();
       multi.incr(rateLimitKey);
       multi.ttl(rateLimitKey);
-      multi.expire(rateLimitKey, windowSeconds.toString());
+      multi.expire(rateLimitKey, windowSeconds);
 
       const results = await multi.exec();
 
@@ -685,7 +685,7 @@ export class RedisService {
 
       // If this is the first request, set the TTL
       if (count === 1 && ttl === -1) {
-        await this.client.expire(rateLimitKey, windowSeconds.toString());
+        await this.client.expire(rateLimitKey, windowSeconds);
       }
 
       const remaining = Math.max(0, maxAttempts - count);
@@ -743,7 +743,7 @@ export class RedisService {
       const cacheKey = `${RedisService.KEY_PREFIXES.CACHE}${key}`;
       const serializedValue = JSON.stringify(value);
 
-      await this.client.setex(cacheKey, ttlSeconds.toString(), serializedValue);
+      await this.client.setex(cacheKey, ttlSeconds, serializedValue);
       logger.debug('Cache value stored in Redis', { key, ttlSeconds });
     } catch (error) {
       logger.error('Failed to store cache value', { error, key });

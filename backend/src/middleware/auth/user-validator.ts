@@ -1,19 +1,32 @@
 import { UserRepository } from '../../repositories/user.repository';
 import { AuthenticationError } from '../../utils/errors';
 import { logSecurityEvent } from '../../utils/security';
-
 export interface UserValidationContext {
   ipAddress?: string;
   userAgent?: string;
 }
 
-export interface AuthenticatedUser {
+// User interface matching the database schema
+interface User {
   id: string;
   email: string;
   name: string | null;
   role: string;
+  status: string;
   plexId?: string;
   plexUsername?: string | null;
+}
+
+export interface AuthenticatedUser extends User {
+  id: string;
+  email: string;
+  name: string | null;
+  role: string;
+  status: string;
+  plexId?: string;
+  plexUsername?: string | null;
+  createdAt?: Date;
+  lastLoginAt?: Date | null;
 }
 
 /**
@@ -22,7 +35,7 @@ export interface AuthenticatedUser {
 export async function validateUser(
   userId: string,
   userRepository: UserRepository,
-  context: UserValidationContext,
+  context: UserValidationContext
 ): Promise<AuthenticatedUser> {
   const user = await userRepository.findById(userId);
 
@@ -35,7 +48,7 @@ export async function validateUser(
         ipAddress: context.ipAddress,
         userAgent: context.userAgent,
       },
-      'warn',
+      'warn'
     );
 
     throw new AuthenticationError('User not found or inactive');
@@ -46,9 +59,12 @@ export async function validateUser(
     email: user.email,
     name: user.name,
     role: user.role,
+    status: user.status,
+    createdAt: user.createdAt,
+    lastLoginAt: user.lastLoginAt,
     plexId: user.plexId || undefined,
     plexUsername: user.plexUsername,
-  };
+  } as AuthenticatedUser;
 }
 
 /**
@@ -56,7 +72,7 @@ export async function validateUser(
  */
 export async function validateUserOptional(
   userId: string,
-  userRepository: UserRepository,
+  userRepository: UserRepository
 ): Promise<AuthenticatedUser | null> {
   try {
     const user = await userRepository.findById(userId);
@@ -67,9 +83,12 @@ export async function validateUserOptional(
         email: user.email,
         name: user.name,
         role: user.role,
+        status: user.status,
+        createdAt: user.createdAt,
+        lastLoginAt: user.lastLoginAt,
         plexId: user.plexId || undefined,
         plexUsername: user.plexUsername,
-      };
+      } as AuthenticatedUser;
     }
 
     return null;

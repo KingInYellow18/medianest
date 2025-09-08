@@ -3,7 +3,7 @@ import { UserRepository } from '../repositories/user.repository';
 import { SessionTokenRepository } from '../repositories/session-token.repository';
 import { DeviceSessionService } from '../services/device-session.service';
 import { UnknownRecord } from '../types/common';
-import { AuthenticationError, AppError } from '../utils/errors';
+import { AuthenticationError, AppError } from '@medianest/shared';
 import { logger } from '../utils/logger';
 import { CatchError } from '../types/common';
 
@@ -171,6 +171,26 @@ export class AuthenticationFacade {
     const permissionKey = `${resource}:${action}`;
 
     return permissions.includes(permissionKey) || permissions.includes('*:*');
+  }
+
+  /**
+   * Validate user status and activity
+   */
+  async validateUser(userId: string): Promise<{ status: string; active: boolean } | null> {
+    try {
+      const user = await this.userRepository.findById(userId);
+      if (!user) {
+        return null;
+      }
+
+      return {
+        status: user.status || 'active',
+        active: user.status === 'active',
+      };
+    } catch (error) {
+      logger.error('User validation failed', { userId, error });
+      return null;
+    }
   }
 
   /**

@@ -1,13 +1,12 @@
-// @ts-nocheck
 import { redisClient } from '@/config/redis';
 import { OverseerrClient } from '@/integrations/overseerr/overseerr.client';
 import { serviceConfigRepository, mediaRequestRepository } from '@/repositories';
 import { socketService } from '@/services/socket.service';
-import { AppError } from '../utils/errors';
+import { AppError } from '@medianest/shared';
 import { logger } from '@/utils/logger';
 
 import { encryptionService } from './encryption.service';
-import { CatchError } from '../types/common';
+import { CatchError, UnknownRecord } from '../types/common';
 
 export class OverseerrService {
   private client?: OverseerrClient;
@@ -28,7 +27,7 @@ export class OverseerrService {
       }
 
       // Decrypt API key if needed
-      const apiKey = config.apiKey ? await encryptionService.decrypt(config.apiKey) : '';
+      const apiKey = config.apiKey ? encryptionService.decryptFromStorage(config.apiKey) : '';
 
       this.client = new OverseerrClient({
         url: config.serviceUrl,
@@ -57,12 +56,12 @@ export class OverseerrService {
       const results = await this.client!.searchMedia(query, page);
 
       // Cache for 1 minute
-      await redisClient.setex(cacheKey, this.cacheTTL.search, JSON.stringify(results));
+      await redisClient.setex(cacheKey, this.cacheTTL.search.toString(), JSON.stringify(results));
 
       return results;
     } catch (error: CatchError) {
       logger.error('Media search failed', { query, error });
-      throw new AppError('Failed to search media', 503);
+      throw new AppError('SEARCH_FAILED', 'Failed to search media', 503);
     }
   }
 
@@ -80,12 +79,12 @@ export class OverseerrService {
       const details = await this.client!.getMediaDetails(mediaType, tmdbId);
 
       // Cache for 5 minutes
-      await redisClient.setex(cacheKey, this.cacheTTL.details, JSON.stringify(details));
+      await redisClient.setex(cacheKey, this.cacheTTL.details.toString(), JSON.stringify(details));
 
       return details;
     } catch (error: CatchError) {
       logger.error('Failed to get media details', { mediaType, tmdbId, error });
-      throw new AppError('Failed to get media details', 503);
+      throw new AppError('MEDIA_DETAILS_FAILED', 'Failed to get media details', 503);
     }
   }
 
@@ -101,10 +100,13 @@ export class OverseerrService {
 
     try {
       // Check if already requested in our database
-      const existing = await mediaRequestRepository.findByTmdbId(request.tmdbId, request.mediaType);
+      const existing = await mediaRequestRepository.findByTmdbId(
+        String(request.tmdbId),
+        request.mediaType
+      );
 
       if (existing && existing.status !== 'failed') {
-        throw new AppError('Media already requested', 409);
+        throw new AppError('ALREADY_REQUESTED', 'Media already requested', 409);
       }
 
       // Get media details first
@@ -123,7 +125,6 @@ export class OverseerrService {
         tmdbId: String(request.tmdbId),
         mediaType: request.mediaType,
         title: mediaDetails.title,
-        status: 'pending',
         overseerrId: String(overseerrRequest.id),
       });
 
@@ -141,7 +142,7 @@ export class OverseerrService {
         throw error;
       }
       logger.error('Failed to request media', { userId, request, error });
-      throw new AppError('Failed to submit media request', 500);
+      throw new AppError('REQUEST_FAILED', 'Failed to submit media request', 500);
     }
   }
 
@@ -149,8 +150,8 @@ export class OverseerrService {
     // Always use local database for user-specific filtering
     // Overseerr doesn't have built-in user filtering for API
     return mediaRequestRepository.findByUser(userId, {
-      skip: options.skip || 0,
-      take: options.take || 20,
+      page: Number(options.page) || 1,
+      limit: Number(options.limit) || 20,
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -182,7 +183,7 @@ export class OverseerrService {
       request = await mediaRequestRepository.findByOverseerrId(String(payload.request.id));
     } else if (payload.media?.tmdbId) {
       request = await mediaRequestRepository.findByTmdbId(
-        payload.media.tmdbId,
+        String(payload.media.tmdbId),
         payload.media.mediaType
       );
     }
@@ -213,7 +214,7 @@ export class OverseerrService {
 
   private ensureAvailable(): void {
     if (!this.isAvailable || !this.client) {
-      throw new AppError('Overseerr service unavailable', 503);
+      throw new AppError('SERVICE_UNAVAILABLE', 'Overseerr service unavailable', 503);
     }
   }
 }

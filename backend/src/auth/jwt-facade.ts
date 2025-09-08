@@ -1,7 +1,7 @@
 import * as jwt from 'jsonwebtoken';
 import * as crypto from 'crypto';
 
-import { AppError } from '../utils/errors';
+import { AppError } from '@medianest/shared';
 import { logger } from '../utils/logger';
 import { configService } from '../config/config.service';
 

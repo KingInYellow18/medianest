@@ -28,7 +28,11 @@ export class YouTubeController {
    * Create a new download job
    * POST /api/v1/youtube/download
    */
-  createDownload = async (req: Request, res: Response, next: NextFunction) => {
+  createDownload = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     try {
       const userId = req.user!.id;
 
@@ -114,7 +118,7 @@ export class YouTubeController {
         title: metadata.title,
       });
 
-      res.status(201).json({
+      return res.status(201).json({
         id: download.id,
         videoId: metadata.id,
         title: metadata.title,

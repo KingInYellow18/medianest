@@ -4,7 +4,7 @@ import { mediaRequestRepository, userRepository } from '@/repositories';
 import { plexService } from '@/services/plex.service';
 import { statusService } from '@/services/status.service';
 import { cacheService } from '@/services/cache.service';
-import { AppError } from '../utils/errors';
+import { AppError } from '@medianest/shared';
 import { logger } from '@/utils/logger';
 
 export class DashboardController {

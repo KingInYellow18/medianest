@@ -35,7 +35,7 @@ import { TwoFactorService } from '../services/two-factor.service';
 import { DeviceSessionService } from '../services/device-session.service';
 import { SessionAnalyticsService } from '../services/session-analytics.service';
 import { asyncHandler } from '../utils/async-handler';
-import { AppError, AuthenticationError } from '../utils/errors';
+import { AppError, AuthenticationError } from '@medianest/shared';
 import { generateToken, verifyToken } from '../utils/jwt';
 import { logger } from '../utils/logger';
 import { validatePasswordStrength, generateDeviceFingerprint } from '../utils/security';

@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/utils/logger';
-import { AppError } from '../utils/errors';
+import { AppError } from '@medianest/shared';
 import { CatchError } from '../types/common';
 
 class AdminController {
