@@ -14,10 +14,18 @@
 
 import { vi, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 
+// Context7 Pattern: Define proper types for test infrastructure
+interface MockClient {
+  connect?: () => Promise<void>;
+  disconnect?: () => Promise<void>;
+  quit?: () => Promise<void>;
+  [key: string]: unknown;
+}
+
 // Global Test Infrastructure Setup
 export class TestInfrastructure {
   private static isInitialized = false;
-  private static mockClients: Record<string, any> = {};
+  private static mockClients: Record<string, MockClient> = {};
 
   /**
    * Initialize comprehensive test mocks and infrastructure
@@ -352,7 +360,7 @@ export class TestInfrastructure {
     // Reset specific mock states
     Object.values(this.mockClients).forEach((client) => {
       if (client && typeof client === 'object') {
-        Object.values(client).forEach((fn: any) => {
+        Object.values(client).forEach((fn: unknown) => {
           if (vi.isMockFunction(fn)) {
             fn.mockReset();
           }
@@ -447,7 +455,7 @@ export const createTestRequest = (overrides = {}) => ({
     authorization: `Bearer ${createTestJWT()}`,
     'content-type': 'application/json',
     'user-agent': 'test-agent',
-    ...(overrides as any).headers,
+    ...(overrides as { headers?: Record<string, string> }).headers,
   },
   body: {},
   query: {},

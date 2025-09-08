@@ -1,4 +1,5 @@
-import { beforeAll, afterAll } from 'vitest';
+import { beforeAll, afterAll, vi } from 'vitest';
+import type { Request, Response, NextFunction } from 'express';
 
 /**
  * Security Test Runner Setup
@@ -23,7 +24,8 @@ export const mockRedisClient = {
 };
 
 // Mock rate limiter for security tests
-export const mockRateLimit = (req: any, res: any, next: any) => {
+// Context7 Pattern: Properly typed middleware function
+export const mockRateLimit = (req: Request, res: Response, next: NextFunction) => {
   // Simulate rate limit check
   const rateLimitKey = `rate_limit:${req.ip}:${req.path}`;
   const currentCount = 1; // Mock current request count

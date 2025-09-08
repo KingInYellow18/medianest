@@ -2,11 +2,79 @@
  * Validation Helpers - Common response validation and data checking utilities
  */
 
+// Context7 Pattern: Define proper response types for type safety
+interface ApiResponse<T = unknown> {
+  status: number;
+  body: {
+    success: boolean;
+    data?: T;
+    error?: string;
+    message?: string;
+  };
+}
+
+interface MediaItem {
+  id: string;
+  title: string;
+  mediaType: 'movie' | 'tv';
+  overview?: string;
+  releaseDate?: string;
+}
+
+interface RequestItem {
+  id: string;
+  mediaId: string;
+  userId: string;
+  status: 'pending' | 'approved' | 'denied';
+  requestedAt: string;
+}
+
+interface PaginationResponse<T> {
+  data: T[];
+  pagination?: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  };
+  meta?: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+interface DashboardStats {
+  users: {
+    total: number;
+    active?: number;
+  };
+  requests: {
+    total: number;
+    pending: number;
+    approved?: number;
+    denied?: number;
+  };
+  system: {
+    uptime?: number;
+    version?: string;
+  };
+}
+
+interface PerformanceMetrics {
+  duration: number;
+  memory?: {
+    used: number;
+    limit: number;
+  };
+}
+
 export class ValidationHelper {
   /**
    * Validate API response structure
    */
-  static validateApiResponse(response: any, expectedStatus: number = 200): boolean {
+  static validateApiResponse(response: ApiResponse, expectedStatus: number = 200): boolean {
     try {
       expect(response.status).toBe(expectedStatus);
       expect(response.body).toBeDefined();
@@ -29,7 +97,7 @@ export class ValidationHelper {
   /**
    * Validate media search response structure
    */
-  static validateMediaSearchResponse(response: any): boolean {
+  static validateMediaSearchResponse(response: ApiResponse<MediaItem[]>): boolean {
     try {
       this.validateApiResponse(response, 200);
 
@@ -53,7 +121,7 @@ export class ValidationHelper {
   /**
    * Validate request list response structure
    */
-  static validateRequestListResponse(response: any): boolean {
+  static validateRequestListResponse(response: ApiResponse<RequestItem[]>): boolean {
     try {
       this.validateApiResponse(response, 200);
 
@@ -85,7 +153,7 @@ export class ValidationHelper {
   /**
    * Validate single request response structure
    */
-  static validateRequestResponse(response: any): boolean {
+  static validateRequestResponse(response: ApiResponse<RequestItem>): boolean {
     try {
       this.validateApiResponse(response, 200);
 
@@ -108,7 +176,7 @@ export class ValidationHelper {
   /**
    * Validate user authentication response
    */
-  static validateAuthResponse(response: any): boolean {
+  static validateAuthResponse(response: ApiResponse<{ token: string; user: object }>): boolean {
     try {
       this.validateApiResponse(response, 200);
 
@@ -128,7 +196,7 @@ export class ValidationHelper {
   /**
    * Validate error response structure
    */
-  static validateErrorResponse(response: any, expectedStatus: number): boolean {
+  static validateErrorResponse(response: ApiResponse, expectedStatus: number): boolean {
     try {
       expect(response.status).toBe(expectedStatus);
       expect(response.body.success).toBe(false);
@@ -150,7 +218,7 @@ export class ValidationHelper {
    * Validate pagination response
    */
   static validatePaginationResponse(
-    response: any,
+    response: ApiResponse<PaginationResponse<unknown>>,
     expectedPage: number = 1,
     expectedPageSize: number = 20
   ): boolean {
@@ -173,7 +241,7 @@ export class ValidationHelper {
   /**
    * Validate admin dashboard stats response
    */
-  static validateDashboardStatsResponse(response: any): boolean {
+  static validateDashboardStatsResponse(response: ApiResponse<DashboardStats>): boolean {
     try {
       this.validateApiResponse(response, 200);
 
@@ -195,7 +263,7 @@ export class ValidationHelper {
   /**
    * Validate session timeout response
    */
-  static validateSessionTimeoutResponse(response: any): boolean {
+  static validateSessionTimeoutResponse(response: ApiResponse): boolean {
     try {
       return (
         this.validateErrorResponse(response, 401) && response.body.error.code === 'TOKEN_EXPIRED'
@@ -208,7 +276,7 @@ export class ValidationHelper {
   /**
    * Validate rate limit response
    */
-  static validateRateLimitResponse(response: any): boolean {
+  static validateRateLimitResponse(response: ApiResponse): boolean {
     try {
       const isValid = this.validateErrorResponse(response, 429);
       if (!isValid) return false;
@@ -229,7 +297,10 @@ export class ValidationHelper {
   /**
    * Validate user isolation (no access to other user's data)
    */
-  static validateUserIsolation(userRequests: any[], otherUserRequests: any[]): boolean {
+  static validateUserIsolation(
+    userRequests: RequestItem[],
+    otherUserRequests: RequestItem[]
+  ): boolean {
     try {
       const userIds = userRequests.map((r) => r.id);
       const otherUserIds = otherUserRequests.map((r) => r.id);
@@ -247,7 +318,7 @@ export class ValidationHelper {
    * Validate performance metrics
    */
   static validatePerformanceMetrics(
-    metrics: { duration: number; memory?: any },
+    metrics: PerformanceMetrics,
     thresholds: { maxDuration: number }
   ): boolean {
     try {
