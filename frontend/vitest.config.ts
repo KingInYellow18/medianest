@@ -8,15 +8,15 @@ export default defineConfig({
   esbuild: {
     jsxInject: `import React from 'react'`,
   },
+  // Define global imports for tests
+  define: {
+    global: 'globalThis',
+  },
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: ['./src/test/setup.tsx'],
+    setupFiles: ['./src/__tests__/setup.ts'],
     css: true,
-    // Define global imports for tests
-    define: {
-      global: 'globalThis',
-    },
     // Include TypeScript declaration files
     include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     exclude: [

@@ -3,7 +3,7 @@
  * Based on Microsoft TypeScript and React TypeScript documentation
  */
 
-import { ReactNode, ComponentProps, ElementType, ForwardedRef } from 'react';
+import type { ReactNode, ComponentProps, ElementType, ForwardedRef } from 'react';
 
 // Context7 Pattern: Polymorphic Component Types
 export interface PolymorphicComponentProps<T extends ElementType> {
@@ -260,9 +260,9 @@ export interface VirtualizedListProps<T> {
 }
 
 // Context7 Pattern: Type-Safe Router Types
-export type RouteParams<T extends string> = T extends `${infer _Start}:${infer Param}/${infer Rest}`
+export type RouteParams<T extends string> = T extends `${string}:${infer Param}/${infer Rest}`
   ? { [K in Param]: string } & RouteParams<Rest>
-  : T extends `${infer _Start}:${infer Param}`
+  : T extends `${string}:${infer Param}`
   ? { [K in Param]: string }
   : {};
 

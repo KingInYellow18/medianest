@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
-import { ErrorBoundary } from './ErrorBoundary';
 import { ServiceUnavailableError, isAppError } from '@medianest/shared/client';
+import React from 'react';
+
+import { ErrorBoundary } from './ErrorBoundary';
 
 interface ServiceErrorBoundaryProps {
   children: React.ReactNode;

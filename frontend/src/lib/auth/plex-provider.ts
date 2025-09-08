@@ -34,6 +34,10 @@ export interface PlexPinResponse {
   expiresAt: string;
   authToken?: string;
   clientIdentifier: string;
+  username?: string;
+  title?: string;
+  email?: string;
+  thumb?: string;
 }
 
 export default function PlexProvider<P extends PlexProfile>(
@@ -45,7 +49,7 @@ export default function PlexProvider<P extends PlexProfile>(
     platform?: string;
     platformVersion?: string;
     version?: string;
-  },
+  }
 ): OAuthConfig<P> {
   const clientIdentifier = options.clientIdentifier || generateClientIdentifier();
   const product = options.product || 'MediaNest';
@@ -145,7 +149,7 @@ function generateClientIdentifier(): string {
 // Helper functions for PIN-based authentication flow
 export async function createPlexPin(
   clientIdentifier: string,
-  headers: Record<string, string>,
+  headers: Record<string, string>
 ): Promise<PlexPinResponse> {
   const response = await fetch('https://plex.tv/api/v2/pins', {
     method: 'POST',
@@ -170,7 +174,7 @@ export async function createPlexPin(
 export async function checkPlexPin(
   pinId: number,
   _clientIdentifier: string,
-  headers: Record<string, string>,
+  headers: Record<string, string>
 ): Promise<PlexPinResponse> {
   const response = await fetch(`https://plex.tv/api/v2/pins/${pinId}`, {
     headers: {
@@ -193,7 +197,7 @@ export function getPlexHeaders(
   platform = 'Web',
   platformVersion = '1.0',
   device = 'Web',
-  deviceName = 'MediaNest Web',
+  deviceName = 'MediaNest Web'
 ): Record<string, string> {
   return {
     'X-Plex-Client-Identifier': clientIdentifier,

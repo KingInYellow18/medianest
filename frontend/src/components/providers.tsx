@@ -1,12 +1,13 @@
 'use client';
 
+import type { AppError } from '@medianest/shared';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import dynamic from 'next/dynamic';
 import { SessionProvider } from 'next-auth/react';
 import { useState, useEffect } from 'react';
+
 // Context7 Pattern: Dynamic import for better code splitting
-import dynamic from 'next/dynamic';
 import { initializeErrorLogger } from '@/lib/error-logger';
-import { AppError } from '@medianest/shared/client';
 
 // Context7 Pattern: Lazy load ErrorBoundary for better initial bundle
 const ErrorBoundary = dynamic(

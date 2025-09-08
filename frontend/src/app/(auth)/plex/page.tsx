@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { IconPlaylist } from '@tabler/icons-react';
 import Link from 'next/link';
+import { useState } from 'react';
 
 import { PlexBrowser } from '@/components/plex/PlexBrowser';
-import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/button';
-import { IconPlaylist } from '@tabler/icons-react';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 export default function PlexPage() {
   const [selectedLibrary, setSelectedLibrary] = useState<string>();

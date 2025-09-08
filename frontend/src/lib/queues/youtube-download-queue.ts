@@ -27,7 +27,7 @@ export interface YoutubeDownloadProgress {
  * Add a YouTube download job to the queue
  */
 export async function addYoutubeDownloadJob(
-  data: YoutubeDownloadJobData,
+  data: YoutubeDownloadJobData
 ): Promise<Job<YoutubeDownloadJobData>> {
   const queue = getQueue(QUEUE_NAMES.YOUTUBE_DOWNLOAD);
 
@@ -58,10 +58,7 @@ export async function addYoutubeDownloadJob(
  */
 export async function getUserDownloadJobs(
   userId: string,
-  statuses: Array<'completed' | 'failed' | 'delayed' | 'active' | 'waiting'> = [
-    'active',
-    'waiting',
-  ],
+  statuses: Array<'completed' | 'failed' | 'delayed' | 'active' | 'waiting'> = ['active', 'waiting']
 ): Promise<Job<YoutubeDownloadJobData>[]> {
   const queue = getQueue(QUEUE_NAMES.YOUTUBE_DOWNLOAD);
   const jobs: Job<YoutubeDownloadJobData>[] = [];
@@ -116,7 +113,7 @@ export async function cancelDownloadJob(jobId: string, userId: string): Promise<
  */
 export async function retryDownloadJob(
   jobId: string,
-  userId: string,
+  userId: string
 ): Promise<Job<YoutubeDownloadJobData> | null> {
   const job = await getDownloadJob(jobId);
 

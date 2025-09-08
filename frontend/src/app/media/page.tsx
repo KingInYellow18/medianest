@@ -9,14 +9,14 @@ import { SearchFilters } from '@/components/media/SearchFilters';
 import { SearchInput } from '@/components/media/SearchInput';
 import { useMediaRequest } from '@/hooks/useMediaRequest';
 import { useMediaSearch } from '@/hooks/useMediaSearch';
-import { MediaSearchResult } from '@/types/media';
+import type { MediaSearchResult } from '@/types/media';
 
 // Dynamically import RequestModal to reduce initial bundle size
 const RequestModal = dynamic(
   () => import('@/components/media/RequestModal').then((mod) => mod.RequestModal),
   {
     ssr: false,
-  },
+  }
 );
 
 export default function MediaSearchPage() {
@@ -58,8 +58,8 @@ export default function MediaSearchPage() {
   // Extract unique genres from results for filter dropdown
   const availableGenres = Array.from(
     new Map(
-      results.flatMap((media) => media.genres || []).map((genre) => [genre.id, genre]),
-    ).values(),
+      results.flatMap((media) => media.genres || []).map((genre) => [genre.id, genre])
+    ).values()
   ).sort((a, b) => a.name.localeCompare(b.name));
 
   const handleMediaSelect = useCallback(
@@ -67,7 +67,7 @@ export default function MediaSearchPage() {
       // Navigate to media detail page (to be implemented)
       router.push(`/media/${media.mediaType}/${media.tmdbId}`);
     },
-    [router],
+    [router]
   );
 
   const handleRequestClick = useCallback((media: MediaSearchResult) => {
@@ -83,7 +83,7 @@ export default function MediaSearchPage() {
         genre: newFilters.genre || '',
       });
     },
-    [],
+    []
   );
 
   return (

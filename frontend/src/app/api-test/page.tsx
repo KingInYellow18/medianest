@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Server, Database, Zap, Globe } from 'lucide-react';
 import Link from 'next/link';
+import React, { useState, useEffect } from 'react';
+
 import { ApiConnectionStatus } from '@/components/ApiConnectionStatus';
 
 interface EndpointTest {
@@ -35,7 +36,7 @@ export default function ApiTestPage() {
     const startTime = Date.now();
 
     setTests((prev) =>
-      prev.map((t, i) => (i === index ? { ...t, status: 'pending' as const } : t)),
+      prev.map((t, i) => (i === index ? { ...t, status: 'pending' as const } : t))
     );
 
     try {
@@ -59,8 +60,8 @@ export default function ApiTestPage() {
                 responseTime,
                 error: response.ok ? undefined : `HTTP ${response.status}`,
               }
-            : t,
-        ),
+            : t
+        )
       );
     } catch (error) {
       const responseTime = Date.now() - startTime;
@@ -73,18 +74,21 @@ export default function ApiTestPage() {
                 responseTime,
                 error: error instanceof Error ? error.message : 'Unknown error',
               }
-            : t,
-        ),
+            : t
+        )
       );
     }
   };
 
   const runAllTests = async () => {
     for (let i = 0; i < tests.length; i++) {
-      await runTest(tests[i], i);
-      // Small delay between tests
-      if (i < tests.length - 1) {
-        await new Promise((resolve) => setTimeout(resolve, 500));
+      const test = tests[i];
+      if (test) {
+        await runTest(test, i);
+        // Small delay between tests
+        if (i < tests.length - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }
       }
     }
   };

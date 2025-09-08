@@ -16,6 +16,7 @@ import React, {
   useRef,
   ReactNode,
 } from 'react';
+
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
 import { perfMonitor } from '@/lib/optimization/tree-shaking';
 

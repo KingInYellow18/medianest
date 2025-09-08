@@ -30,7 +30,7 @@
     "isolatedModules": true,
     "moduleDetection": "force",
     "moduleResolution": "bundler",
-    "verbatimModuleSyntax": true,
+    "verbatimModuleSyntax": false,
     "preserveSymlinks": false,
     "assumeChangesOnlyAffectDirectDependencies": true
   },

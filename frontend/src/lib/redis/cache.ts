@@ -36,7 +36,7 @@ export const CACHE_CONFIG = {
 export async function setCache<T>(
   key: string,
   value: T,
-  options: CacheOptions = {},
+  options: CacheOptions = {}
 ): Promise<void> {
   const redis = getRedisClient();
   const fullKey = `${options.keyPrefix || 'cache:'}${key}`;
@@ -140,7 +140,7 @@ export async function getCacheTTL(key: string, options: CacheOptions = {}): Prom
 export async function cacheWrapper<T>(
   key: string,
   compute: () => Promise<T>,
-  options: CacheOptions = {},
+  options: CacheOptions = {}
 ): Promise<T> {
   // Try to get from cache first
   const cached = await getCache<T>(key, options);
@@ -169,7 +169,7 @@ export async function invalidateCachePrefix(prefix: string): Promise<number> {
  */
 export async function batchGetCache<T>(
   keys: string[],
-  options: CacheOptions = {},
+  options: CacheOptions = {}
 ): Promise<Map<string, T>> {
   const redis = getRedisClient();
   const result = new Map<string, T>();
@@ -202,7 +202,7 @@ export async function batchGetCache<T>(
  */
 export async function batchSetCache<T>(
   entries: Map<string, T>,
-  options: CacheOptions = {},
+  options: CacheOptions = {}
 ): Promise<void> {
   const redis = getRedisClient();
 

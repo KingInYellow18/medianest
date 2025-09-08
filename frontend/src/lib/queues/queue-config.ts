@@ -133,7 +133,7 @@ export const QUEUE_CONFIGS = {
 export function createWorker<T = any>(
   name: QueueName,
   processor: (job: any) => Promise<T>,
-  customOptions?: Partial<(typeof QUEUE_CONFIGS)[QueueName]>,
+  customOptions?: Partial<(typeof QUEUE_CONFIGS)[QueueName]>
 ): Worker<T> {
   const connection = createRedisConnection({
     ...connectionOptions,

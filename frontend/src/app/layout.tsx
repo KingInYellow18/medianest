@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
+import dynamic from 'next/dynamic';
 import { Inter } from 'next/font/google';
 // Context7 Pattern: Dynamic import for better bundle splitting
-import dynamic from 'next/dynamic';
 
 import './globals.css';
 

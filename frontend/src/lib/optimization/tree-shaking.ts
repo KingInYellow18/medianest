@@ -60,7 +60,7 @@ export {
 export {
   Play,
   Pause,
-  Stop,
+  Square as Stop, // Using Square icon as Stop replacement
   SkipForward,
   SkipBack,
   Volume2,

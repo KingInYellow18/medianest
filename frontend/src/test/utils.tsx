@@ -1,8 +1,8 @@
-import React, { ReactElement } from 'react';
-import { render, RenderOptions, RenderResult } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { SessionProvider } from 'next-auth/react';
+import { render, RenderOptions, RenderResult } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { SessionProvider } from 'next-auth/react';
+import React, { ReactElement } from 'react';
 
 // Custom render function with providers
 interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
@@ -16,7 +16,7 @@ export function renderWithProviders(
     session = null,
     queryClient = createTestQueryClient(),
     ...renderOptions
-  }: CustomRenderOptions = {},
+  }: CustomRenderOptions = {}
 ): RenderResult & { user: ReturnType<typeof userEvent.setup> } {
   const Wrapper = ({ children }: { children: React.ReactNode }) => {
     return (

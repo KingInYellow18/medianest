@@ -1,5 +1,6 @@
 import Cookies from 'js-cookie';
 import { io, Socket } from 'socket.io-client';
+
 import { getApiConfig } from '@/config';
 
 interface ConnectionOptions {
@@ -36,11 +37,11 @@ interface EnhancedSocketEvents {
   'notification:dismiss': (notificationId: string, callback?: (result: any) => void) => void;
   'notifications:history': (
     options?: { limit?: number; offset?: number },
-    callback?: (result: any) => void,
+    callback?: (result: any) => void
   ) => void;
   'notification:action': (
     data: { notificationId: string; action: string },
-    callback?: (result: any) => void,
+    callback?: (result: any) => void
   ) => void;
 
   // Admin events

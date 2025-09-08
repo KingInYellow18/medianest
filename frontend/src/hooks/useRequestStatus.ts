@@ -14,13 +14,13 @@ export function useRequestStatus(requestId?: string) {
 
     const handleStatusUpdate = (update: RequestStatusUpdate) => {
       queryClient.setQueryData<MediaRequest>(['request', requestId], (old) =>
-        old ? { ...old, ...update } : old,
+        old ? { ...old, ...update } : old
       );
 
       // Also update in user's request list
       queryClient.setQueryData<MediaRequest[]>(
         ['requests', 'user'],
-        (old) => old?.map((req) => (req.id === requestId ? { ...req, ...update } : req)) || [],
+        (old) => old?.map((req) => (req.id === requestId ? { ...req, ...update } : req)) || []
       );
     };
 

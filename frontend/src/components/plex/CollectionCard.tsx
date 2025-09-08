@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+
 import { Card, CardContent } from '@/components/ui/card';
 import { PlexCollectionSummary } from '@/types/plex';
 

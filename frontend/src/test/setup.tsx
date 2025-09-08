@@ -1,7 +1,8 @@
 import '@testing-library/jest-dom';
+import { cleanup } from '@testing-library/react';
 import React from 'react';
 import { beforeAll, afterEach, afterAll, vi } from 'vitest';
-import { cleanup } from '@testing-library/react';
+
 import { server } from './mocks/server';
 
 // Make React and hooks globally available for tests
@@ -108,7 +109,7 @@ Object.defineProperty(window, 'localStorage', {
 global.fetch = global.fetch || vi.fn();
 
 // Mock @medianest/shared package
-vi.mock('@medianest/shared/client', () => ({
+vi.mock('@medianest/shared', () => ({
   AppError: class AppError extends Error {
     constructor(message: string, public statusCode: number = 500) {
       super(message);

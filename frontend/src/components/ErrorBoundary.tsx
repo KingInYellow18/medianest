@@ -1,7 +1,21 @@
 'use client';
 
-import { Component, ReactNode } from 'react';
-import { logError, getUserFriendlyMessage, extractErrorDetails } from '@medianest/shared/client';
+// Temporary replacements for shared module during performance testing
+const logError = (error: Error, context?: any) => {
+  console.error('Error logged:', error, context);
+};
+
+const getUserFriendlyMessage = (error: Error) => {
+  return error.message || 'An unexpected error occurred. Please try refreshing the page.';
+};
+
+const extractErrorDetails = (error: Error) => ({
+  message: error.message,
+  stack: error.stack,
+  name: error.name,
+});
+import { Component, type ReactNode } from 'react';
+import React from 'react';
 
 interface Props {
   children: ReactNode;

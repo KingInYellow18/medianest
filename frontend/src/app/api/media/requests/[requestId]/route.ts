@@ -7,7 +7,7 @@ const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:4000';
 
 export async function GET(
   _request: NextRequest,
-  props: { params: Promise<{ requestId: string }> },
+  props: { params: Promise<{ requestId: string }> }
 ) {
   const params = await props.params;
   try {
@@ -39,7 +39,7 @@ export async function GET(
 
 export async function DELETE(
   _request: NextRequest,
-  props: { params: Promise<{ requestId: string }> },
+  props: { params: Promise<{ requestId: string }> }
 ) {
   const params = await props.params;
   try {

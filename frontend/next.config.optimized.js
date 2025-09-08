@@ -5,7 +5,7 @@ const nextConfig = {
     // AGGRESSIVE TREE-SHAKING: Optimize package imports for 50%+ bundle reduction
     optimizePackageImports: [
       'lucide-react',
-      '@headlessui/react', 
+      '@headlessui/react',
       'date-fns',
       '@tanstack/react-query',
       'framer-motion',
@@ -16,7 +16,7 @@ const nextConfig = {
       'tailwind-merge',
       'class-variance-authority',
       'socket.io-client',
-      'next-auth'
+      'next-auth',
     ],
     // Enable experimental optimizations
     optimizeServerReact: true,
@@ -52,12 +52,12 @@ const nextConfig = {
             priority: 30,
             enforce: true,
           },
-          
+
           // Authentication libraries
           auth: {
             test: /[\\/]node_modules[\\/](next-auth|@auth)[\\/]/,
             name: 'auth',
-            chunks: 'all', 
+            chunks: 'all',
             maxSize: 80000, // 80KB max
             priority: 25,
             enforce: true,
@@ -83,7 +83,7 @@ const nextConfig = {
             enforce: true,
           },
 
-          // Date/Time utilities  
+          // Date/Time utilities
           date: {
             test: /[\\/]node_modules[\\/](date-fns)[\\/]/,
             name: 'date-utils',
@@ -129,15 +129,15 @@ const nextConfig = {
             priority: 5,
             reuseExistingChunk: true,
             maxSize: 40000, // 40KB max for defaults
-          }
+          },
         },
       },
-      
+
       // Enable advanced optimizations
       concatenateModules: true, // Webpack's "ModuleConcatenationPlugin"
       usedExports: true, // Enable tree shaking
       sideEffects: false, // Assume no side effects for better tree shaking
-      
+
       // Additional size optimizations
       removeAvailableModules: true,
       removeEmptyChunks: true,
@@ -153,7 +153,7 @@ const nextConfig = {
     return config;
   },
 
-  // Image optimization 
+  // Image optimization
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: '**.plex.direct' },
@@ -190,10 +190,10 @@ const nextConfig = {
 
   // Enable compression
   compress: true,
-  
+
   // Disable source maps in production
   productionBrowserSourceMaps: false,
-  
+
   // Remove console logs in production
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',

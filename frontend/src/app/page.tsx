@@ -1,4 +1,5 @@
 import Link from 'next/link';
+
 import { ApiConnectionStatus } from '@/components/ApiConnectionStatus';
 
 export default function HomePage() {

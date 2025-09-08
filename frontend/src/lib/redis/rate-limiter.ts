@@ -1,5 +1,6 @@
+import { RATE_LIMITS } from '@medianest/shared';
+
 import { getRedisClient } from './redis-client';
-import { RATE_LIMITS } from '@medianest/shared/client';
 
 export interface RateLimitConfig {
   windowMs: number; // Time window in milliseconds

@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
             message: 'Authentication required',
           },
         },
-        { status: 401 },
+        { status: 401 }
       );
     }
 
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
           message: 'Internal server error',
         },
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

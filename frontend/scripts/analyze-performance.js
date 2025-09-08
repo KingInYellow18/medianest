@@ -53,7 +53,7 @@ const checkLargeFiles = () => {
       } else {
         console.log('✅ No large static files found (all under 100KB)\n');
       }
-    },
+    }
   );
 };
 

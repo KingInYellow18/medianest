@@ -137,7 +137,7 @@ export function SearchBar({
                   }}
                   className={clsx(
                     'w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700 transition-colors text-left',
-                    selectedIndex === index && 'bg-gray-700',
+                    selectedIndex === index && 'bg-gray-700'
                   )}
                 >
                   {suggestion.type === 'history' && (

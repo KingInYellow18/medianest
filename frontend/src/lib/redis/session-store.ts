@@ -77,7 +77,7 @@ export async function getSession(sessionToken: string): Promise<SessionData | nu
  */
 export async function updateSession(
   sessionToken: string,
-  updates: Partial<SessionData>,
+  updates: Partial<SessionData>
 ): Promise<boolean> {
   const redis = getRedisClient();
   const key = `${KEY_PREFIX.SESSION}${sessionToken}`;

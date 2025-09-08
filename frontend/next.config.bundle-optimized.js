@@ -51,7 +51,7 @@ const nextConfig = {
   },
 
   // Webpack optimizations for aggressive bundle splitting
-  webpack: (config, { dev, isServer, buildId }) => {
+  webpack: (config, { dev, isServer }) => {
     // Client-side optimizations only
     if (!isServer) {
       // Node.js fallbacks for client bundle

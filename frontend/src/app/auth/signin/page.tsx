@@ -1,7 +1,7 @@
 'use client';
 
-import Image from 'next/image';
 import { Loader2, AlertCircle } from 'lucide-react';
+import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { useState, useEffect, useCallback } from 'react';

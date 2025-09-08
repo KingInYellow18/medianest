@@ -57,7 +57,7 @@ export function RequestStatusBadge({ status, showLabel = true }: RequestStatusBa
     <div
       className={clsx(
         'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium',
-        config.color,
+        config.color
       )}
     >
       <Icon

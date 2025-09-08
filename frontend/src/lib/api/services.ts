@@ -1,4 +1,5 @@
-import { ServiceStatus } from '@medianest/shared/client';
+import type { ServiceStatus } from '@medianest/shared';
+
 import { getApiConfig } from '@/config';
 
 const { baseUrl: API_BASE_URL } = getApiConfig();

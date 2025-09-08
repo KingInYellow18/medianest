@@ -18,7 +18,7 @@ export function CollectionFilters({ filters, onChange }: CollectionFiltersProps)
 
   useEffect(() => {
     onChange({ ...filters, search: debouncedSearch || undefined });
-  }, [debouncedSearch]);
+  }, [debouncedSearch, filters, onChange]);
 
   const handleSortChange = (sort: CollectionFilters['sort']) => {
     onChange({ ...filters, sort });

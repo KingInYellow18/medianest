@@ -1,4 +1,5 @@
-import { logError, ErrorLogEntry, extractErrorDetails } from '@medianest/shared/client';
+import { logError, ErrorLogEntry, extractErrorDetails } from '@medianest/shared';
+
 import { getErrorReportingConfig, isProduction } from '@/config';
 
 interface ErrorReportingConfig {

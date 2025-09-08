@@ -7,7 +7,7 @@ import { socketManager } from '@/lib/socket';
 import { UseRequestHistoryOptions, RequestHistoryResponse, RequestUpdate } from '@/types/requests';
 
 async function fetchUserRequests(
-  options: UseRequestHistoryOptions,
+  options: UseRequestHistoryOptions
 ): Promise<RequestHistoryResponse> {
   const params = new URLSearchParams({
     page: options.page.toString(),
@@ -67,7 +67,7 @@ export function useRequestHistory(options: UseRequestHistoryOptions) {
         return {
           ...old,
           requests: old.requests.map((req) =>
-            req.id === update.requestId ? { ...req, ...update.data } : req,
+            req.id === update.requestId ? { ...req, ...update.data } : req
           ),
         };
       });

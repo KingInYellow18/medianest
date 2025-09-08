@@ -1,4 +1,4 @@
-import { MediaSearchResult } from './media';
+import type { MediaSearchResult } from './media';
 
 // Re-export from shared package
 export type {
@@ -10,7 +10,7 @@ export type {
   RequestFilters,
   RequestHistoryOptions,
   RequestHistoryResponse,
-} from '@medianest/shared/client';
+} from '@medianest/shared';
 
 export interface TVShowDetails extends MediaSearchResult {
   mediaType: 'tv';

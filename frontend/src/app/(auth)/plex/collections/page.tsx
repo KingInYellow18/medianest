@@ -1,15 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { IconArrowLeft } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
-import type { PlexLibrary, PlexCollectionSummary } from '@/types/plex';
-import { LibrarySelector } from '@/components/plex/LibrarySelector';
 import { CollectionBrowser } from '@/components/plex/CollectionBrowser';
 import { CollectionDetail } from '@/components/plex/CollectionDetail';
-import { PageHeader } from '@/components/ui/PageHeader';
+import { LibrarySelector } from '@/components/plex/LibrarySelector';
 import { Button } from '@/components/ui/button';
-import { IconArrowLeft } from '@tabler/icons-react';
+import { PageHeader } from '@/components/ui/PageHeader';
+import type { PlexLibrary, PlexCollectionSummary } from '@/types/plex';
 
 export default function CollectionsPage() {
   const router = useRouter();

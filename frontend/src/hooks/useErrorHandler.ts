@@ -1,7 +1,5 @@
 'use client';
 
-import { useCallback, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import {
   AppError,
   AuthenticationError,
@@ -10,6 +8,8 @@ import {
   logError,
   isRetryableError,
 } from '@medianest/shared/client';
+import { useRouter } from 'next/navigation';
+import { useCallback, useState } from 'react';
 
 interface ErrorHandlerOptions {
   onAuthError?: () => void;

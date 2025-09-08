@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+
 import { useWebSocket } from '@/contexts/WebSocketContext';
 
 interface DownloadProgress {
@@ -148,7 +149,7 @@ export function useEnhancedDownloads() {
         return null;
       }
     },
-    [downloads, getDownloadStatus],
+    [downloads, getDownloadStatus]
   );
 
   // Cancel download with optimistic update
@@ -188,7 +189,7 @@ export function useEnhancedDownloads() {
         throw error;
       }
     },
-    [cancelDownload, getDownloadStatusCached, refreshQueueStats],
+    [cancelDownload, getDownloadStatusCached, refreshQueueStats]
   );
 
   // Retry download with optimistic update
@@ -224,7 +225,7 @@ export function useEnhancedDownloads() {
         throw error;
       }
     },
-    [retryDownload, getDownloadStatusCached, refreshQueueStats],
+    [retryDownload, getDownloadStatusCached, refreshQueueStats]
   );
 
   // Get downloads by status
@@ -232,7 +233,7 @@ export function useEnhancedDownloads() {
     (status: DownloadProgress['status']) => {
       return Array.from(downloads.values()).filter((download) => download.status === status);
     },
-    [downloads],
+    [downloads]
   );
 
   // Get active downloads
