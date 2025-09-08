@@ -29,6 +29,13 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
+    "db:validate": "ts-node scripts/database-validation.ts",
+    "db:backup": "./scripts/backup-procedures.sh backup",
+    "db:backup:pre-deployment": "./scripts/backup-procedures.sh pre-deployment",
+    "db:restore": "./scripts/backup-procedures.sh restore",
+    "db:backup:list": "./scripts/backup-procedures.sh list",
+    "db:backup:cleanup": "./scripts/backup-procedures.sh cleanup",
+    "migration:rollback": "ts-node scripts/migration-rollback.ts",
     "security:validate": "node scripts/production-security-validator.js",
     "security:test": "./scripts/run-security-tests.sh",
     "deployment:verify": "node scripts/verify-deployment.js"
