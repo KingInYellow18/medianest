@@ -2,49 +2,48 @@ import { describe, it, expect, beforeEach, beforeAll, afterAll, vi } from 'vites
 import { JWTFacade, JWTPayload } from '../../src/auth/jwt-facade';
 import { AppError } from '../../src/utils/errors';
 
-// Mock jsonwebtoken module properly
-vi.mock('jsonwebtoken', async () => {
-  const actual = await vi.importActual('jsonwebtoken');
-  return {
-    ...actual,
-    default: {
-      sign: vi.fn().mockReturnValue('test-jwt-token'),
-      verify: vi.fn().mockReturnValue({ userId: 'test-user-id', role: 'USER' }),
-      decode: vi.fn().mockReturnValue({ userId: 'test-user-id', role: 'USER' }),
-      TokenExpiredError: class extends Error {
-        name = 'TokenExpiredError';
-        expiredAt: Date;
-        constructor(message: string, expiredAt: Date) {
-          super(message);
-          this.expiredAt = expiredAt;
-        }
-      },
-      JsonWebTokenError: class extends Error {
-        name = 'JsonWebTokenError';
-        constructor(message: string) {
-          super(message);
-        }
-      },
-    },
-    sign: vi.fn().mockReturnValue('test-jwt-token'),
-    verify: vi.fn().mockReturnValue({ userId: 'test-user-id', role: 'USER' }),
-    decode: vi.fn().mockReturnValue({ userId: 'test-user-id', role: 'USER' }),
-    TokenExpiredError: class extends Error {
-      name = 'TokenExpiredError';
-      expiredAt: Date;
-      constructor(message: string, expiredAt: Date) {
-        super(message);
-        this.expiredAt = expiredAt;
-      }
-    },
-    JsonWebTokenError: class extends Error {
-      name = 'JsonWebTokenError';
-      constructor(message: string) {
-        super(message);
-      }
-    },
-  };
-});
+// Mock config service BEFORE imports to ensure it's available during module initialization
+vi.mock('../../src/config/config.service', () => ({
+  configService: {
+    getAuthConfig: () => ({
+      JWT_SECRET: 'test-secret-key-for-testing-only-do-not-use-in-production',
+      JWT_ISSUER: 'medianest-test',
+      JWT_AUDIENCE: 'medianest-app-test',
+      JWT_SECRET_ROTATION: undefined,
+    }),
+  },
+}));
+
+// Mock logger to prevent logging during tests
+vi.mock('../../src/utils/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+  },
+}));
+
+// Mock jsonwebtoken module with proper return values
+vi.mock('jsonwebtoken', () => ({
+  sign: vi.fn().mockReturnValue('test-jwt-token'),
+  verify: vi.fn().mockReturnValue({ userId: 'test-user-id', role: 'USER' }),
+  decode: vi.fn().mockReturnValue({ userId: 'test-user-id', role: 'USER' }),
+  TokenExpiredError: class extends Error {
+    name = 'TokenExpiredError';
+    expiredAt: Date;
+    constructor(message: string, expiredAt: Date) {
+      super(message);
+      this.expiredAt = expiredAt;
+    }
+  },
+  JsonWebTokenError: class extends Error {
+    name = 'JsonWebTokenError';
+    constructor(message: string) {
+      super(message);
+    }
+  },
+}));
 
 // Import jwt after mocking
 import * as jwt from 'jsonwebtoken';
@@ -60,31 +59,10 @@ describe('JWTFacade', () => {
   };
 
   beforeAll(() => {
-    // Set required environment variables
+    // Set required environment variables for fallback
     process.env.JWT_SECRET = 'test-secret-key-for-testing-only-do-not-use-in-production';
     process.env.JWT_ISSUER = 'medianest-test';
     process.env.JWT_AUDIENCE = 'medianest-app-test';
-
-    // Mock config service to return test configuration
-    vi.mock('../../src/config/config.service', () => ({
-      configService: {
-        getAuthConfig: () => ({
-          JWT_SECRET: 'test-secret-key-for-testing-only-do-not-use-in-production',
-          JWT_ISSUER: 'medianest-test',
-          JWT_AUDIENCE: 'medianest-app-test',
-        }),
-      },
-    }));
-
-    // Mock logger
-    vi.mock('../../src/utils/logger', () => ({
-      logger: {
-        info: vi.fn(),
-        warn: vi.fn(),
-        error: vi.fn(),
-        debug: vi.fn(),
-      },
-    }));
   });
 
   afterAll(() => {
@@ -116,18 +94,17 @@ describe('JWTFacade', () => {
 
   describe('generateToken', () => {
     it('should generate a valid JWT token', () => {
+      // Mock jwt.sign to return a valid token
+      vi.spyOn(jwt, 'sign').mockReturnValue('test-jwt-token' as any);
+
       const token = jwtFacade.generateToken(mockPayload);
 
       expect(token).toBeDefined();
       expect(typeof token).toBe('string');
+      expect(token).toBe('test-jwt-token');
 
-      // Verify it's a proper JWT format or handle mocked response
-      if (token !== 'test-jwt-token') {
-        expect(token.split('.').length).toBe(3); // JWT has 3 parts
-      } else {
-        // Mocked token - verify it's the expected mock value
-        expect(token).toBe('test-jwt-token');
-      }
+      // Verify jwt.sign was called
+      expect(jwt.sign).toHaveBeenCalled();
     });
 
     it('should generate different tokens for same payload', () => {
@@ -255,6 +232,9 @@ describe('JWTFacade', () => {
 
   describe('generateRefreshToken', () => {
     it('should generate structured refresh token with payload', () => {
+      // Mock jwt.sign for structured refresh tokens
+      vi.spyOn(jwt, 'sign').mockReturnValue('test-refresh-token' as any);
+
       const refreshToken = jwtFacade.generateRefreshToken({
         userId: 'user-123',
         sessionId: 'session-123',
@@ -262,6 +242,10 @@ describe('JWTFacade', () => {
 
       expect(refreshToken).toBeDefined();
       expect(typeof refreshToken).toBe('string');
+      expect(refreshToken).toBe('test-refresh-token');
+
+      // Verify jwt.sign was called for structured token
+      expect(jwt.sign).toHaveBeenCalled();
     });
 
     it('should generate random refresh token without payload', () => {

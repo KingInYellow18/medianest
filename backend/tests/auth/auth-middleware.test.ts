@@ -201,6 +201,19 @@ describe('AuthMiddleware', () => {
         riskScore: 0.1,
       } as any);
 
+      // Mock the AuthenticationFacade authenticate method
+      const { AuthenticationFacade } = await import('../../src/auth');
+      vi.spyOn(AuthenticationFacade.prototype, 'authenticate').mockResolvedValue({
+        user: {
+          id: 'user-123',
+          email: 'test@example.com',
+          role: 'user',
+        },
+        token: 'test-jwt-token',
+        deviceId: 'device-123',
+        sessionId: 'test-session-id',
+      } as any);
+
       const middleware = authMiddleware.authenticate();
       await middleware(mockRequest as any, mockResponse as Response, mockNext);
 
@@ -229,11 +242,12 @@ describe('AuthMiddleware', () => {
 
     it('should call next with error when no authorization header', async () => {
       delete mockRequest.headers!.authorization;
+      delete mockRequest.cookies;
 
       // Mock token extractor to throw error for missing token
-      const { extractToken } = await import('../../src/middleware/auth/token-validator');
-      vi.mocked(extractToken).mockImplementationOnce(() => {
-        throw new AuthenticationError('Authorization header missing');
+      const { validateToken } = await import('../../src/middleware/auth/token-validator');
+      vi.mocked(validateToken).mockImplementationOnce(() => {
+        throw new AuthenticationError('Authentication required');
       });
 
       const middleware = authMiddleware.authenticate();
@@ -245,6 +259,9 @@ describe('AuthMiddleware', () => {
 
   describe('optionalAuth', () => {
     it('should attach user for valid token', async () => {
+      // Set up valid token in request
+      mockRequest.headers!.authorization = 'Bearer test-jwt-token';
+
       mockUserRepository.findById.mockResolvedValue({
         id: 'user-123',
         email: 'test@example.com',
@@ -253,6 +270,17 @@ describe('AuthMiddleware', () => {
         status: 'active',
         plexId: 'plex-123',
         plexUsername: 'testuser',
+      } as any);
+
+      // Mock the AuthenticationFacade authenticateOptional method
+      const { AuthenticationFacade } = await import('../../src/auth');
+      vi.spyOn(AuthenticationFacade.prototype, 'authenticateOptional').mockResolvedValue({
+        user: {
+          id: 'user-123',
+          email: 'test@example.com',
+          role: 'user',
+        },
+        token: 'test-jwt-token',
       } as any);
 
       const middleware = authMiddleware.optionalAuth();
