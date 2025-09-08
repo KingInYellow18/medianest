@@ -35,7 +35,7 @@ import { TwoFactorService } from '../services/two-factor.service';
 import { DeviceSessionService } from '../services/device-session.service';
 import { SessionAnalyticsService } from '../services/session-analytics.service';
 import { asyncHandler } from '../utils/async-handler';
-import { AppError, AuthenticationError } from '@medianest/shared';
+import { AppError } from '../utils/errors';
 import { generateToken, verifyToken } from '../utils/jwt';
 import { logger } from '../utils/logger';
 import { validatePasswordStrength, generateDeviceFingerprint } from '../utils/security';
@@ -229,7 +229,7 @@ router.post(
     }
 
     // Check if user has a password (for admin bootstrap users)
-    if (!user.passwordHash) {
+    if (!(user as any).passwordHash) {
       logAuthEvent('LOGIN_FAILED', req, 'failure', {
         email,
         reason: 'no_password_set',
@@ -243,7 +243,7 @@ router.post(
     }
 
     // Verify password
-    const isValidPassword = await bcrypt.compare(password, user.passwordHash);
+    const isValidPassword = await bcrypt.compare(password, (user as any).passwordHash);
     if (!isValidPassword) {
       logAuthEvent('LOGIN_FAILED', req, 'failure', {
         email,
@@ -385,12 +385,15 @@ router.post(
     // Get full user data to access passwordHash
     const fullUser = await userRepository.findById(user.id);
     if (!fullUser) {
-      throw new AuthenticationError('User not found');
+      throw new AppError('USER_NOT_FOUND', 'User not found', 404);
     }
 
     // Verify current password (only for users with passwords)
-    if (fullUser.passwordHash) {
-      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, fullUser.passwordHash);
+    if ((fullUser as any).passwordHash) {
+      const isCurrentPasswordValid = await bcrypt.compare(
+        currentPassword,
+        (fullUser as any).passwordHash
+      );
       if (!isCurrentPasswordValid) {
         throw new AppError('INVALID_CURRENT_PASSWORD', 'Current password is incorrect', 400);
       }

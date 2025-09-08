@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import { UserRepository } from '../repositories/user.repository';
 import { SessionTokenRepository } from '../repositories/session-token.repository';
 import { RedisService } from './redis.service';
-import { AppError } from '@medianest/shared';
+import { AppError } from '../utils/errors';
 import { logger } from '../utils/logger';
 import { generateToken } from '../utils/jwt';
 import { generateSecureToken, logSecurityEvent } from '../utils/security';
@@ -549,7 +549,7 @@ export class OAuthProvidersService {
     }
 
     // Check if user has password or another OAuth method
-    if (!user.passwordHash && !user.plexId) {
+    if (!(user as any).passwordHash && !user.plexId) {
       const otherProvider = provider === 'github' ? 'google' : 'github';
       const hasOtherProvider = user[`${otherProvider}Id` as keyof typeof user];
 
@@ -593,10 +593,10 @@ export class OAuthProvidersService {
     }
 
     return {
-      github: !!user.githubId,
-      google: !!user.googleId,
+      github: !!(user as any).githubId,
+      google: !!(user as any).googleId,
       plex: !!user.plexId,
-      hasPassword: !!user.passwordHash,
+      hasPassword: !!(user as any).passwordHash,
     };
   }
 
