@@ -32,7 +32,7 @@ jobs:
     name: Check File Sizes
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Check for large files
         run: |
           find . -type f -size +1M | grep -v node_modules | grep -v .git > large_files.txt || true
