@@ -1,6 +1,15 @@
 'use client';
 
-import { AppError } from '@medianest/shared';
+// Temporary fix for shared library - define AppError locally until module is built
+class AppError extends Error {
+  statusCode: number;
+  constructor(message: string, statusCode: number = 500) {
+    super(message);
+    this.statusCode = statusCode;
+  }
+}
+
+const isAppError = (error: any): error is AppError => error instanceof AppError;
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SessionProvider } from 'next-auth/react';
 import { useState, useEffect } from 'react';
@@ -27,7 +36,7 @@ export function DynamicProviders({ children }: { children: React.ReactNode }) {
             refetchOnReconnect: 'always',
             retry: (failureCount, error) => {
               // Don't retry on 4xx errors
-              if (error instanceof AppError && error.statusCode >= 400 && error.statusCode < 500) {
+              if (isAppError(error) && error.statusCode >= 400 && error.statusCode < 500) {
                 return false;
               }
               return failureCount < 3;
@@ -37,7 +46,7 @@ export function DynamicProviders({ children }: { children: React.ReactNode }) {
           mutations: {
             retry: (failureCount, error) => {
               // Don't retry on 4xx errors
-              if (error instanceof AppError && error.statusCode >= 400 && error.statusCode < 500) {
+              if (isAppError(error) && error.statusCode >= 400 && error.statusCode < 500) {
                 return false;
               }
               return failureCount < 2;

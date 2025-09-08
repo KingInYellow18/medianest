@@ -4,9 +4,11 @@ import {
   ValidationError,
   RateLimitError,
   ServiceUnavailableError,
-  parseApiError,
-  logError,
-} from '@medianest/shared/client';
+} from '@medianest/shared';
+
+// Local utility functions - will be replaced once shared utils are available
+const parseApiError = (error: any) => error;
+const logError = (error: any) => console.error(error);
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string>;

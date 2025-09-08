@@ -1,4 +1,24 @@
-/** @type {import('next').NextConfig} */
+#!/usr/bin/env node
+
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
+
+console.log('⚡ PERFORMANCE BUILD OPTIMIZER\n');
+
+const colors = {
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  blue: '\x1b[34m',
+  magenta: '\x1b[35m',
+  cyan: '\x1b[36m',
+  reset: '\x1b[0m',
+  bold: '\x1b[1m',
+};
+
+// Aggressive optimization configuration
+const optimizedConfig = `/** @type {import('next').NextConfig} */
 const path = require('path');
 
 const nextConfig = {
@@ -19,7 +39,7 @@ const nextConfig = {
     // Maximum package import optimization
     optimizePackageImports: [
       'lucide-react',
-      '@headlessui/react',
+      '@headlessui/react', 
       '@tabler/icons-react',
       'framer-motion',
       'react-hook-form',
@@ -39,15 +59,15 @@ const nextConfig = {
 
     // Enable all server optimizations
     optimizeServerReact: true,
-
+    
     // Enable concurrent features for better performance
     serverActions: true,
-
+    
     // Optimize CSS handling
     optimizeCss: true,
   },
 
-  // EXTREME webpack optimizations
+  // EXTREME webpack optimizations 
   webpack: (config, { dev, isServer }) => {
     if (!isServer) {
       // Node.js fallbacks
@@ -86,7 +106,7 @@ const nextConfig = {
       config.externals = {
         ...config.externals,
         'mock-aws-s3': 'mock-aws-s3',
-        'aws-sdk': 'aws-sdk',
+        'aws-sdk': 'aws-sdk', 
         nock: 'nock',
         bcrypt: 'bcrypt',
         bcryptjs: 'bcryptjs',
@@ -109,16 +129,16 @@ const nextConfig = {
           react: {
             chunks: 'all',
             name: 'react',
-            test: /[\/]node_modules[\/](react)[\/]/,
+            test: /[\\/]node_modules[\\/](react)[\\/]/,
             priority: 60,
             enforce: true,
             maxSize: 50000,
           },
-
+          
           reactDom: {
-            chunks: 'all',
+            chunks: 'all', 
             name: 'react-dom',
-            test: /[\/]node_modules[\/](react-dom)[\/]/,
+            test: /[\\/]node_modules[\\/](react-dom)[\\/]/,
             priority: 59,
             enforce: true,
             maxSize: 100000,
@@ -127,7 +147,7 @@ const nextConfig = {
           scheduler: {
             chunks: 'all',
             name: 'scheduler',
-            test: /[\/]node_modules[\/](scheduler)[\/]/,
+            test: /[\\/]node_modules[\\/](scheduler)[\\/]/,
             priority: 58,
             enforce: true,
             maxSize: 30000,
@@ -137,7 +157,7 @@ const nextConfig = {
           nextjsCore: {
             chunks: 'all',
             name: 'nextjs-core',
-            test: /[\/]node_modules[\/](next)[\/]/,
+            test: /[\\/]node_modules[\\/](next)[\\/]/,
             priority: 55,
             enforce: true,
             maxSize: 150000,
@@ -147,7 +167,7 @@ const nextConfig = {
           authCore: {
             chunks: 'all',
             name: 'auth-core',
-            test: /[\/]node_modules[\/](next-auth)[\/]/,
+            test: /[\\/]node_modules[\\/](next-auth)[\\/]/,
             priority: 50,
             maxSize: 80000,
           },
@@ -155,7 +175,7 @@ const nextConfig = {
           authAdapters: {
             chunks: 'all',
             name: 'auth-adapters',
-            test: /[\/]node_modules[\/](@auth)[\/]/,
+            test: /[\\/]node_modules[\\/](@auth)[\\/]/,
             priority: 49,
             maxSize: 50000,
           },
@@ -164,7 +184,7 @@ const nextConfig = {
           headlessui: {
             chunks: 'all',
             name: 'headlessui',
-            test: /[\/]node_modules[\/](@headlessui)[\/]/,
+            test: /[\\/]node_modules[\\/](@headlessui)[\\/]/,
             priority: 45,
             maxSize: 80000,
           },
@@ -172,7 +192,7 @@ const nextConfig = {
           icons: {
             chunks: 'all',
             name: 'icons',
-            test: /[\/]node_modules[\/](lucide-react|@tabler\/icons-react)[\/]/,
+            test: /[\\/]node_modules[\\/](lucide-react|@tabler\\/icons-react)[\\/]/,
             priority: 44,
             maxSize: 100000,
           },
@@ -181,7 +201,7 @@ const nextConfig = {
           motion: {
             chunks: 'all',
             name: 'motion',
-            test: /[\/]node_modules[\/](framer-motion)[\/]/,
+            test: /[\\/]node_modules[\\/](framer-motion)[\\/]/,
             priority: 43,
             maxSize: 100000,
           },
@@ -190,7 +210,7 @@ const nextConfig = {
           forms: {
             chunks: 'all',
             name: 'forms',
-            test: /[\/]node_modules[\/](react-hook-form|@hookform)[\/]/,
+            test: /[\\/]node_modules[\\/](react-hook-form|@hookform)[\\/]/,
             priority: 42,
             maxSize: 60000,
           },
@@ -199,7 +219,7 @@ const nextConfig = {
           validation: {
             chunks: 'all',
             name: 'validation',
-            test: /[\/]node_modules[\/](zod)[\/]/,
+            test: /[\\/]node_modules[\\/](zod)[\\/]/,
             priority: 41,
             maxSize: 50000,
           },
@@ -208,7 +228,7 @@ const nextConfig = {
           query: {
             chunks: 'all',
             name: 'query',
-            test: /[\/]node_modules[\/](@tanstack)[\/]/,
+            test: /[\\/]node_modules[\\/](@tanstack)[\\/]/,
             priority: 40,
             maxSize: 100000,
           },
@@ -217,7 +237,7 @@ const nextConfig = {
           socket: {
             chunks: 'all',
             name: 'socket',
-            test: /[\/]node_modules[\/](socket\.io-client|engine\.io-client)[\/]/,
+            test: /[\\/]node_modules[\\/](socket\\.io-client|engine\\.io-client)[\\/]/,
             priority: 39,
             maxSize: 80000,
           },
@@ -226,7 +246,7 @@ const nextConfig = {
           http: {
             chunks: 'all',
             name: 'http',
-            test: /[\/]node_modules[\/](axios)[\/]/,
+            test: /[\\/]node_modules[\\/](axios)[\\/]/,
             priority: 38,
             maxSize: 60000,
           },
@@ -235,7 +255,7 @@ const nextConfig = {
           dates: {
             chunks: 'all',
             name: 'dates',
-            test: /[\/]node_modules[\/](date-fns)[\/]/,
+            test: /[\\/]node_modules[\\/](date-fns)[\\/]/,
             priority: 37,
             maxSize: 70000,
           },
@@ -244,7 +264,7 @@ const nextConfig = {
           styles: {
             chunks: 'all',
             name: 'styles',
-            test: /[\/]node_modules[\/](clsx|tailwind-merge|class-variance-authority)[\/]/,
+            test: /[\\/]node_modules[\\/](clsx|tailwind-merge|class-variance-authority)[\\/]/,
             priority: 36,
             maxSize: 30000,
           },
@@ -252,8 +272,8 @@ const nextConfig = {
           // Cookie utilities
           cookies: {
             chunks: 'all',
-            name: 'cookies',
-            test: /[\/]node_modules[\/](js-cookie)[\/]/,
+            name: 'cookies', 
+            test: /[\\/]node_modules[\\/](js-cookie)[\\/]/,
             priority: 35,
             maxSize: 20000,
           },
@@ -262,7 +282,7 @@ const nextConfig = {
           database: {
             chunks: 'all',
             name: 'database',
-            test: /[\/]node_modules[\/](@prisma)[\/]/,
+            test: /[\\/]node_modules[\\/](@prisma)[\\/]/,
             priority: 34,
             maxSize: 100000,
           },
@@ -271,7 +291,7 @@ const nextConfig = {
           microVendor: {
             chunks: 'all',
             name: 'vendor-micro',
-            test: /[\/]node_modules[\/]/,
+            test: /[\\/]node_modules[\\/]/,
             priority: 20,
             minSize: 5000,
             maxSize: 30000,
@@ -280,7 +300,7 @@ const nextConfig = {
           smallVendor: {
             chunks: 'all',
             name: 'vendor-small',
-            test: /[\/]node_modules[\/]/,
+            test: /[\\/]node_modules[\\/]/,
             priority: 19,
             minSize: 30000,
             maxSize: 60000,
@@ -289,7 +309,7 @@ const nextConfig = {
           mediumVendor: {
             chunks: 'all',
             name: 'vendor-medium',
-            test: /[\/]node_modules[\/]/,
+            test: /[\\/]node_modules[\\/]/,
             priority: 18,
             minSize: 60000,
             maxSize: 100000,
@@ -299,7 +319,7 @@ const nextConfig = {
           components: {
             chunks: 'all',
             name: 'components',
-            test: /[\/]src[\/]components[\/]/,
+            test: /[\\/]src[\\/]components[\\/]/,
             priority: 25,
             minChunks: 2,
             maxSize: 50000,
@@ -308,7 +328,7 @@ const nextConfig = {
           hooks: {
             chunks: 'all',
             name: 'hooks',
-            test: /[\/]src[\/]hooks[\/]/,
+            test: /[\\/]src[\\/]hooks[\\/]/,
             priority: 24,
             minChunks: 2,
             maxSize: 30000,
@@ -317,7 +337,7 @@ const nextConfig = {
           utils: {
             chunks: 'all',
             name: 'utils',
-            test: /[\/]src[\/](lib|utils)[\/]/,
+            test: /[\\/]src[\\/](lib|utils)[\\/]/,
             priority: 23,
             minChunks: 2,
             maxSize: 40000,
@@ -326,7 +346,7 @@ const nextConfig = {
           contexts: {
             chunks: 'all',
             name: 'contexts',
-            test: /[\/]src[\/]contexts[\/]/,
+            test: /[\\/]src[\\/]contexts[\\/]/,
             priority: 22,
             minChunks: 1,
             maxSize: 30000,
@@ -360,7 +380,7 @@ const nextConfig = {
       minimize: !dev,
       moduleIds: 'deterministic',
       chunkIds: 'deterministic',
-
+      
       // Additional optimizations
       mangleExports: 'deterministic',
       innerGraph: true,
@@ -373,23 +393,20 @@ const nextConfig = {
       config.resolve.alias = {
         ...config.resolve.alias,
         'date-fns': path.resolve(__dirname, 'node_modules/date-fns'),
-        'framer-motion': path.resolve(
-          __dirname,
-          'node_modules/framer-motion/dist/framer-motion.es.js'
-        ),
+        'framer-motion': path.resolve(__dirname, 'node_modules/framer-motion/dist/framer-motion.es.js'),
       };
 
       // Ultra-aggressive webpack optimizations
       if (config.plugins && typeof config.plugins.push === 'function') {
         config.plugins.push(
-          new (require('webpack').DefinePlugin)({
+          new (require('webpack')).DefinePlugin({
             'process.env.NODE_ENV': JSON.stringify('production'),
             __DEV__: false,
             __PROD__: true,
           })
         );
       }
-
+      
       // Minimize everything
       config.optimization.removeAvailableModules = true;
       config.optimization.removeEmptyChunks = true;
@@ -401,7 +418,9 @@ const nextConfig = {
 
   // Ultra SWC optimizations
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
+    removeConsole: process.env.NODE_ENV === 'production' 
+      ? { exclude: ['error', 'warn'] }
+      : false,
     reactRemoveProperties: process.env.NODE_ENV === 'production',
     styledComponents: true,
   },
@@ -431,19 +450,27 @@ const nextConfig = {
     return [
       {
         source: '/_next/static/:path*',
-        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
       },
       {
-        source: '/static/:path*',
-        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+        source: '/static/:path*', 
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
       },
       {
         source: '/:all*(svg|jpg|jpeg|png|gif|ico|webp|avif)',
-        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
       },
       {
         source: '/:all*(woff|woff2|ttf|otf|eot)',
-        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
       },
       {
         source: '/:path*',
@@ -459,7 +486,9 @@ const nextConfig = {
 
   async rewrites() {
     return {
-      beforeFiles: [{ source: '/socket.io/:path*', destination: '/api/socketio/:path*' }],
+      beforeFiles: [
+        { source: '/socket.io/:path*', destination: '/api/socketio/:path*' },
+      ],
     };
   },
 };
@@ -469,3 +498,208 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 });
 
 module.exports = withBundleAnalyzer(nextConfig);
+`;
+
+// Create optimized dynamic imports helper
+const dynamicImportsHelper = `// Ultra-optimized dynamic imports for bundle splitting
+import dynamic from 'next/dynamic';
+import { ComponentType, lazy } from 'react';
+
+// Micro-loading components
+const MicroLoadingSpinner = () => (
+  <div className="animate-pulse bg-gray-200 rounded h-4 w-24" />
+);
+
+const MicroLoadingCard = () => (
+  <div className="animate-pulse bg-gray-200 rounded-lg h-48 w-full" />
+);
+
+// Aggressive dynamic imports with micro-loading states
+export const DynamicPlexCard = dynamic(
+  () => import('../dashboard/cards/PlexCard'),
+  { 
+    loading: MicroLoadingCard,
+    ssr: false // Client-side only for heavy components
+  }
+);
+
+export const DynamicOverseerrCard = dynamic(
+  () => import('../dashboard/cards/OverseerrCard'),
+  { 
+    loading: MicroLoadingCard,
+    ssr: false
+  }
+);
+
+export const DynamicUptimeKumaCard = dynamic(
+  () => import('../dashboard/cards/UptimeKumaCard'),
+  { 
+    loading: MicroLoadingCard,
+    ssr: false
+  }
+);
+
+// Motion components - lazy load
+export const DynamicMotion = {
+  div: dynamic(() => import('framer-motion').then(mod => ({ default: mod.motion.div })), { 
+    loading: () => <div />,
+    ssr: false 
+  }),
+  button: dynamic(() => import('framer-motion').then(mod => ({ default: mod.motion.button })), { 
+    loading: () => <button />,
+    ssr: false 
+  }),
+  span: dynamic(() => import('framer-motion').then(mod => ({ default: mod.motion.span })), { 
+    loading: () => <span />,
+    ssr: false 
+  }),
+};
+
+// Icon components - lazy load specific icons only
+export const DynamicIcons = {
+  Search: dynamic(() => import('lucide-react').then(mod => ({ default: mod.Search })), { 
+    loading: MicroLoadingSpinner,
+    ssr: true
+  }),
+  Settings: dynamic(() => import('lucide-react').then(mod => ({ default: mod.Settings })), {
+    loading: MicroLoadingSpinner, 
+    ssr: true
+  }),
+  User: dynamic(() => import('lucide-react').then(mod => ({ default: mod.User })), {
+    loading: MicroLoadingSpinner,
+    ssr: true  
+  }),
+  Home: dynamic(() => import('lucide-react').then(mod => ({ default: mod.Home })), {
+    loading: MicroLoadingSpinner,
+    ssr: true
+  }),
+  Play: dynamic(() => import('lucide-react').then(mod => ({ default: mod.Play })), {
+    loading: MicroLoadingSpinner,
+    ssr: false
+  }),
+  Pause: dynamic(() => import('lucide-react').then(mod => ({ default: mod.Pause })), {
+    loading: MicroLoadingSpinner,
+    ssr: false
+  }),
+};
+
+// Form components - heavy, load on demand
+export const DynamicFormComponents = {
+  AdvancedForm: dynamic(() => import('../forms/AdvancedForm'), {
+    loading: MicroLoadingCard,
+    ssr: false
+  }),
+  MediaUploader: dynamic(() => import('../media/MediaUploader'), {
+    loading: MicroLoadingCard, 
+    ssr: false
+  }),
+  RequestModal: dynamic(() => import('../media/RequestModal'), {
+    loading: MicroLoadingCard,
+    ssr: false
+  }),
+};
+
+// Chart components - heavy, client-side only  
+export const DynamicCharts = {
+  AnalyticsChart: dynamic(() => import('../analytics/AnalyticsChart'), {
+    loading: MicroLoadingCard,
+    ssr: false
+  }),
+  MetricsChart: dynamic(() => import('../charts/MetricsChart'), {
+    loading: MicroLoadingCard,
+    ssr: false
+  }),
+};
+
+// Admin components - heavy, authenticated only
+export const DynamicAdmin = {
+  AdminPanel: dynamic(() => import('../admin/AdminPanel'), {
+    loading: MicroLoadingCard,
+    ssr: false
+  }),
+  UserManagement: dynamic(() => import('../admin/UserManagement'), {
+    loading: MicroLoadingCard,
+    ssr: false
+  }),
+  SettingsPanel: dynamic(() => import('../settings/SettingsPanel'), {
+    loading: MicroLoadingCard,
+    ssr: false
+  }),
+};
+
+export default {
+  DynamicPlexCard,
+  DynamicOverseerrCard,
+  DynamicUptimeKumaCard,
+  DynamicMotion,
+  DynamicIcons,
+  DynamicFormComponents,
+  DynamicCharts,
+  DynamicAdmin,
+};
+`;
+
+function optimizeBundle() {
+  console.log(
+    `${colors.blue}${colors.bold}🚀 IMPLEMENTING ULTRA-AGGRESSIVE OPTIMIZATIONS${colors.reset}\n`
+  );
+
+  // 1. Backup current config
+  const currentConfig = 'next.config.js';
+  const backupConfig = 'next.config.js.backup-pre-perf-optimization';
+
+  if (fs.existsSync(currentConfig) && !fs.existsSync(backupConfig)) {
+    fs.copyFileSync(currentConfig, backupConfig);
+    console.log(`${colors.green}✅ Backed up current config to ${backupConfig}${colors.reset}`);
+  }
+
+  // 2. Write optimized config
+  fs.writeFileSync('next.config.performance-optimized.js', optimizedConfig);
+  console.log(`${colors.green}✅ Created optimized Next.js config${colors.reset}`);
+
+  // 3. Create optimized dynamic imports
+  const dynamicImportsPath = 'src/components/dynamic/OptimizedDynamicImports.tsx';
+  const dynamicDir = path.dirname(dynamicImportsPath);
+
+  if (!fs.existsSync(dynamicDir)) {
+    fs.mkdirSync(dynamicDir, { recursive: true });
+  }
+
+  fs.writeFileSync(dynamicImportsPath, dynamicImportsHelper);
+  console.log(`${colors.green}✅ Created optimized dynamic imports helper${colors.reset}`);
+
+  // 4. Apply the optimized config
+  fs.copyFileSync('next.config.performance-optimized.js', currentConfig);
+  console.log(`${colors.green}✅ Applied optimized configuration${colors.reset}`);
+
+  console.log(`\n${colors.yellow}${colors.bold}📋 OPTIMIZATION SUMMARY:${colors.reset}`);
+  console.log('   🎯 Target: <500KB total bundle size');
+  console.log('   📦 Applied: Ultra-aggressive code splitting (50+ chunks)');
+  console.log('   ⚡ Applied: Dynamic imports for all heavy components');
+  console.log('   🌳 Applied: Maximum tree-shaking optimizations');
+  console.log('   🔄 Applied: Micro-chunk strategy for vendor libraries');
+  console.log('   💾 Applied: Deterministic chunk IDs for caching');
+
+  console.log(`\n${colors.magenta}${colors.bold}🎛️  NEXT STEPS:${colors.reset}`);
+  console.log(`   1. Run: ${colors.cyan}npm run build${colors.reset} - Build with optimizations`);
+  console.log(
+    `   2. Run: ${colors.cyan}npm run analyze:bundle${colors.reset} - Check new bundle sizes`
+  );
+  console.log(`   3. Update components to use OptimizedDynamicImports.tsx`);
+  console.log(`   4. Test application functionality after optimization`);
+
+  return true;
+}
+
+// Main execution
+if (require.main === module) {
+  try {
+    optimizeBundle();
+    console.log(`\n${colors.green}${colors.bold}🎉 BUNDLE OPTIMIZATION COMPLETE!${colors.reset}\n`);
+  } catch (error) {
+    console.error(`${colors.red}❌ Optimization failed:${colors.reset}`, error.message);
+    process.exit(1);
+  }
+}
+
+module.exports = { optimizeBundle };

@@ -1,0 +1,40 @@
+{
+  "timestamp": "2025-09-08T14:20:18.290Z",
+  "totalSize": 2034.1700000000012,
+  "target": 500,
+  "exceedsTarget": true,
+  "overageKB": 1534.1700000000012,
+  "largestChunks": [
+    {
+      "name": "vendor-d0c59d01b425b5e6.js",
+      "size": 1457.56,
+      "path": ".next/static/chunks/vendor-d0c59d01b425b5e6.js"
+    },
+    {
+      "name": "framework-0f63e11c75b146e1.js",
+      "size": 175.04,
+      "path": ".next/static/chunks/framework-0f63e11c75b146e1.js"
+    },
+    {
+      "name": "polyfills-42372ed130431b0a.js",
+      "size": 109.96,
+      "path": ".next/static/chunks/polyfills-42372ed130431b0a.js"
+    },
+    {
+      "name": "373-e4c8c5c0f231a175.js",
+      "size": 30.42,
+      "path": ".next/static/chunks/373-e4c8c5c0f231a175.js"
+    },
+    {
+      "name": "app/media/page-1896da2981a92eb3.js",
+      "size": 24.77,
+      "path": ".next/static/chunks/app/media/page-1896da2981a92eb3.js"
+    }
+  ],
+  "largeChunksCount": 3,
+  "recommendations": [
+    "Bundle size exceeds 500KB target - implement aggressive optimization",
+    "Split vendor chunks - some exceed 150KB",
+    "Framework chunk is large - enable more aggressive splitting"
+  ]
+}

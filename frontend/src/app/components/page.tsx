@@ -82,7 +82,7 @@ export default function ComponentShowcasePage() {
         return <LazySettingsPanel />;
 
       case 'test-component':
-        return <LazyTestComponent />;
+        return <LazyTestComponent media={{} as any} onClick={() => {}} />;
 
       default:
         return <div>Select a component to test</div>;
