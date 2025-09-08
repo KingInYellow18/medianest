@@ -1,0 +1,200 @@
+{
+  "monitor_info": {
+    "name": "MediaNest Network Performance Monitor",
+    "version": "1.0.0",
+    "timestamp": "2025-09-08T18:57:49.372Z"
+  },
+  "configuration": {
+    "outputDir": "./performance/network-reports",
+    "monitorInterval": 60000,
+    "maxHistory": 100,
+    "services": {
+      "frontend": {
+        "url": "http://localhost:3000",
+        "name": "Frontend"
+      },
+      "backend": {
+        "url": "http://localhost:3001",
+        "name": "Backend"
+      },
+      "nginx": {
+        "url": "http://localhost:80",
+        "name": "Nginx"
+      },
+      "postgres": {
+        "host": "localhost",
+        "port": 5432,
+        "name": "PostgreSQL"
+      },
+      "redis": {
+        "host": "localhost",
+        "port": 6379,
+        "name": "Redis"
+      }
+    }
+  },
+  "metrics": {
+    "timestamp": "2025-09-08T18:57:48.722Z",
+    "monitoring_active": false,
+    "current_status": {
+      "timestamp": "2025-09-08T18:57:48.725Z",
+      "throughput": {
+        "frontend": {
+          "success": false,
+          "error": "",
+          "responseTime": 9.731451
+        },
+        "backend": {
+          "success": false,
+          "error": "",
+          "responseTime": 1.563449999999996
+        },
+        "nginx": {
+          "success": false,
+          "error": "",
+          "responseTime": 0.9894839999999974
+        }
+      },
+      "inter_service": {
+        "postgres": {
+          "success": false,
+          "error": ""
+        },
+        "redis": {
+          "success": false,
+          "error": ""
+        }
+      },
+      "external_apis": {
+        "plex_discovery": {
+          "success": false,
+          "responseTime": 367.439967,
+          "statusCode": 401,
+          "dataSize": 91,
+          "headers": {
+            "date": "Mon, 08 Sep 2025 18:57:49 GMT",
+            "content-type": "application/xml; charset=utf-8",
+            "transfer-encoding": "chunked",
+            "connection": "keep-alive",
+            "cache-control": "no-cache",
+            "x-request-id": "612ea088999590fe8064cd8cd6e76295",
+            "x-runtime": "0.003894",
+            "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+            "referrer-policy": "origin-when-cross-origin",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-xss-protection": "1; mode=block",
+            "vary": "Origin"
+          }
+        },
+        "cloudflare_cdn": {
+          "success": true,
+          "responseTime": 185.46054700000002,
+          "statusCode": 200,
+          "dataSize": 89501,
+          "headers": {
+            "date": "Mon, 08 Sep 2025 18:57:49 GMT",
+            "content-type": "application/javascript; charset=utf-8",
+            "transfer-encoding": "chunked",
+            "connection": "keep-alive",
+            "cf-ray": "97c0ac7aebbd0889-SEA",
+            "access-control-allow-origin": "*",
+            "cache-control": "public, max-age=30672000",
+            "etag": "W/\"603e8adc-15d9d\"",
+            "last-modified": "Tue, 02 Mar 2021 18:58:36 GMT",
+            "cf-cdnjs-via": "cfworker/kv",
+            "cross-origin-resource-policy": "cross-origin",
+            "timing-allow-origin": "*",
+            "x-content-type-options": "nosniff",
+            "cf-cache-status": "HIT",
+            "age": "353832",
+            "expires": "Sat, 29 Aug 2026 18:57:49 GMT",
+            "report-to": "{\"endpoints\":[{\"url\":\"https:\\/\\/a.nel.cloudflare.com\\/report\\/v4?s=DUJSPFLYmRjzhCfdqUAIJuV2yeEyy23K%2FTUv452Bz5uBLwYdHtJCtdLAwJsK9IGkwapE%2Ff6LyyNBTR2iUzBKWV%2FC980ZMUd6Ogwl34X3fm7IyJmxjcMj7ebDBnsKBUFoLpTNQ9e4\"}],\"group\":\"cf-nel\",\"max_age\":604800}",
+            "nel": "{\"success_fraction\":0.01,\"report_to\":\"cf-nel\",\"max_age\":604800}",
+            "strict-transport-security": "max-age=15780000",
+            "server": "cloudflare",
+            "alt-svc": "h3=\":443\"; ma=86400"
+          }
+        },
+        "google_dns": {
+          "success": true,
+          "resolutionTime": 0.6728409999999485,
+          "address": "142.251.32.14"
+        }
+      },
+      "network_policies": {
+        "port_isolation": {
+          "5432": {
+            "accessible": false,
+            "security_status": "PROTECTED"
+          },
+          "6379": {
+            "accessible": false,
+            "security_status": "PROTECTED"
+          }
+        },
+        "service_reachability": {},
+        "security_checks": {}
+      },
+      "bandwidth": {
+        "Small (1KB)": {
+          "success": true,
+          "transferTime": 1.0656510000000026,
+          "throughputKbps": 7687.319769793282,
+          "size": 1024
+        },
+        "Medium (10KB)": {
+          "success": true,
+          "transferTime": 0.46305500000005395,
+          "throughputKbps": 176912.02988843757,
+          "size": 10240
+        },
+        "Large (100KB)": {
+          "success": true,
+          "transferTime": 0.5556129999999939,
+          "throughputKbps": 1474407.546259733,
+          "size": 102400
+        }
+      }
+    },
+    "performance_history": [
+      {
+        "timestamp": "2025-09-08T18:57:48.725Z",
+        "duration": 646.106693,
+        "insights": {
+          "service_health": {
+            "frontend": "UNHEALTHY",
+            "backend": "UNHEALTHY",
+            "nginx": "UNHEALTHY"
+          },
+          "performance_metrics": {
+            "service_availability": 0
+          },
+          "security_status": {
+            "port_isolation": "SECURE"
+          },
+          "recommendations": [
+            "Check frontend service connectivity",
+            "Check backend service connectivity",
+            "Check nginx service connectivity"
+          ]
+        }
+      }
+    ],
+    "alerts": [],
+    "recommendations": []
+  },
+  "memory_store": {
+    "validator_type": "network-performance-monitor",
+    "status": "validation_complete",
+    "key_metrics": {
+      "validation_duration": 646.106693,
+      "service_availability": 0,
+      "avg_response_time": 0,
+      "security_issues": 1,
+      "recommendations_count": 3
+    },
+    "storage_key": "MEDIANEST_PROD_VALIDATION/network_performance",
+    "timestamp": "2025-09-08T18:57:48.725Z"
+  }
+}

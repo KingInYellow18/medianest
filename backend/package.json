@@ -69,7 +69,6 @@
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "speakeasy": "^2.0.0",
-    "vitest-mock-extended": "^0.1.8",
     "winston": "^3.14.2",
     "winston-daily-rotate-file": "^5.0.0",
     "ws": "^8.18.3",
@@ -90,9 +89,12 @@
     "@types/supertest": "^6.0.2",
     "@types/uuid": "^10.0.0",
     "prisma": "^6.15.0",
+    "ts-loader": "^9.5.4",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "webpack": "^5.101.3",
+    "webpack-cli": "^6.0.1"
   },
   "optionalDependencies": {
     "@opentelemetry/auto-instrumentations-node": "^0.62.2",

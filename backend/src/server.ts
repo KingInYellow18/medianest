@@ -224,8 +224,8 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Metrics endpoint (protected in production)
-app.get('/metrics', (req, res) => {
+// Metrics endpoint (protected in production) - Prometheus format
+app.get('/metrics', async (req, res) => {
   // In production, protect this endpoint
   if (configService.isProduction()) {
     const authHeader = req.headers.authorization;
@@ -236,8 +236,14 @@ app.get('/metrics', (req, res) => {
     }
   }
 
-  const { metrics } = require('./utils/monitoring');
-  res.json(metrics.getMetrics());
+  try {
+    const { register } = require('./middleware/metrics');
+    res.set('Content-Type', register.contentType);
+    const metrics = await register.metrics();
+    res.end(metrics);
+  } catch (error: CatchError) {
+    res.status(500).json({ error: 'Failed to collect metrics' });
+  }
 });
 
 // Setup routes

@@ -1,0 +1,58 @@
+{
+  "name": "@medianest/backend",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kinginyellow/medianest.git",
+    "directory": "backend"
+  },
+  "scripts": {
+    "start": "node dist/server.js",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@medianest/shared": "file:../shared",
+    "@opentelemetry/api": "^1.9.0",
+    "@prisma/client": "^6.15.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cookie-parser": "^1.4.9",
+    "@types/ws": "^8.18.1",
+    "axios": "^1.7.7",
+    "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
+    "bull": "^4.16.5",
+    "bullmq": "^5.58.5",
+    "compression": "^1.7.4",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "ioredis": "^5.4.1",
+    "jsonwebtoken": "^9.0.2",
+    "opossum": "^8.1.4",
+    "prom-client": "^15.1.3",
+    "qrcode": "^1.3.3",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "speakeasy": "^2.0.0",
+    "winston": "^3.14.2",
+    "winston-daily-rotate-file": "^5.0.0",
+    "ws": "^8.18.3",
+    "zod": "^3.23.8"
+  },
+  "optionalDependencies": {
+    "@opentelemetry/auto-instrumentations-node": "^0.62.2",
+    "@opentelemetry/exporter-jaeger": "^2.1.0",
+    "@opentelemetry/exporter-otlp-http": "^0.26.0",
+    "@opentelemetry/instrumentation-express": "^0.52.0",
+    "@opentelemetry/instrumentation-http": "^0.204.0",
+    "@opentelemetry/node": "^0.24.0",
+    "@opentelemetry/resources": "^2.1.0",
+    "@opentelemetry/sdk-node": "^0.204.0",
+    "@opentelemetry/semantic-conventions": "^1.37.0"
+  }
+}

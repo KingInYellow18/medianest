@@ -1,0 +1,484 @@
+# MediaNest Docker Swarm Production Stack
+# Production-ready orchestration with service discovery, load balancing, and auto-scaling
+
+version: '3.8'
+
+# DOCKER SWARM NETWORKS - Encrypted Overlay Networks
+networks:
+  medianest-frontend:
+    driver: overlay
+    driver_opts:
+      encrypted: "true"
+    attachable: true
+    labels:
+      - "traefik.enable=true"
+
+  medianest-backend:
+    driver: overlay
+    driver_opts:
+      encrypted: "true"
+    internal: true
+    labels:
+      - "com.medianest.network=backend"
+
+  medianest-data:
+    driver: overlay
+    driver_opts:
+      encrypted: "true"
+    internal: true
+    labels:
+      - "com.medianest.network=data"
+
+  monitoring:
+    driver: overlay
+    driver_opts:
+      encrypted: "true"
+    attachable: true
+
+# DOCKER SWARM VOLUMES - Distributed Storage
+volumes:
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/medianest/data/postgres
+
+  redis_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/medianest/data/redis
+
+  prometheus_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/medianest/monitoring/prometheus
+
+  grafana_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/medianest/monitoring/grafana
+
+  uploads:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/medianest/uploads
+
+# DOCKER SWARM SECRETS - Encrypted Secret Management
+secrets:
+  postgres_password:
+    external: true
+    name: medianest_postgres_password_v1
+  redis_password:
+    external: true
+    name: medianest_redis_password_v1
+  jwt_secret:
+    external: true
+    name: medianest_jwt_secret_v1
+  nextauth_secret:
+    external: true
+    name: medianest_nextauth_secret_v1
+
+services:
+  # ==========================================
+  # LOAD BALANCER & SERVICE DISCOVERY
+  # ==========================================
+  traefik:
+    image: traefik:v3.0
+    command:
+      - "--api.dashboard=true"
+      - "--api.debug=true"
+      - "--log.level=INFO"
+      - "--providers.docker=true"
+      - "--providers.docker.swarmmode=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=medianest-frontend"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.email=admin@medianest.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.addEntryPointsLabels=true"
+      - "--metrics.prometheus.addServicesLabels=true"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_data:/data
+    networks:
+      - medianest-frontend
+      - monitoring
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.2'
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.traefik.rule=Host(`traefik.medianest.local`)"
+        - "traefik.http.routers.traefik.service=api@internal"
+        - "traefik.http.services.traefik.loadbalancer.server.port=8080"
+
+  # ==========================================
+  # DATABASE LAYER
+  # ==========================================
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: medianest
+      POSTGRES_USER: medianest
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --auth-host=scram-sha-256"
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    networks:
+      - medianest-data
+    secrets:
+      - postgres_password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U medianest -d medianest"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.database == true
+        preferences:
+          - spread: node.labels.zone
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+        window: 60s
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+        order: stop-first
+
+  # REDIS CACHE
+  redis:
+    image: redis:7-alpine
+    command: >
+      redis-server
+      --requirepass $(cat /run/secrets/redis_password)
+      --appendonly yes
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - medianest-data
+    secrets:
+      - redis_password
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.cache == true
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 600M
+        reservations:
+          cpus: '0.1'
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+  # ==========================================
+  # APPLICATION LAYER - AUTO-SCALING
+  # ==========================================
+  medianest-app:
+    image: medianest:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.optimized
+      target: production
+    environment:
+      - NODE_ENV=production
+      - NODE_OPTIONS=--max-old-space-size=768
+      - DATABASE_URL=postgresql://medianest:$(cat /run/secrets/postgres_password)@postgres:5432/medianest?sslmode=prefer
+      - REDIS_URL=redis://:$(cat /run/secrets/redis_password)@redis:6379
+      - NEXTAUTH_SECRET_FILE=/run/secrets/nextauth_secret
+      - JWT_SECRET_FILE=/run/secrets/jwt_secret
+    volumes:
+      - uploads:/app/uploads
+    networks:
+      - medianest-backend
+      - medianest-data
+    secrets:
+      - postgres_password
+      - redis_password
+      - jwt_secret
+      - nextauth_secret
+    depends_on:
+      - postgres
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      # AUTO-SCALING CONFIGURATION
+      replicas: 3
+      placement:
+        max_replicas_per_node: 2
+        constraints:
+          - node.labels.app == true
+        preferences:
+          - spread: node.labels.zone
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+      restart_policy:
+        condition: on-failure
+        delay: 15s
+        max_attempts: 3
+        window: 120s
+      # ROLLING UPDATES - ZERO DOWNTIME
+      update_config:
+        parallelism: 1
+        delay: 30s
+        failure_action: rollback
+        monitor: 30s
+        max_failure_ratio: 0.1
+        order: start-first
+      rollback_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: pause
+        monitor: 30s
+        max_failure_ratio: 0.1
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=medianest-frontend"
+        - "traefik.http.routers.medianest.rule=Host(`medianest.local`)"
+        - "traefik.http.routers.medianest.entrypoints=websecure"
+        - "traefik.http.routers.medianest.tls.certresolver=letsencrypt"
+        - "traefik.http.services.medianest.loadbalancer.server.port=3000"
+        - "traefik.http.services.medianest.loadbalancer.healthcheck.path=/api/health"
+        - "traefik.http.services.medianest.loadbalancer.healthcheck.interval=30s"
+
+  # ==========================================
+  # MONITORING & OBSERVABILITY
+  # ==========================================
+  prometheus:
+    image: prom/prometheus:latest
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/etc/prometheus/console_libraries"
+      - "--web.console.templates=/etc/prometheus/consoles"
+      - "--storage.tsdb.retention.time=15d"
+      - "--web.enable-lifecycle"
+      - "--web.listen-address=0.0.0.0:9090"
+      - "--storage.tsdb.wal-compression"
+    volumes:
+      - prometheus_data:/prometheus
+      - ./config/production/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./config/production/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
+    networks:
+      - monitoring
+      - medianest-backend
+    deploy:
+      placement:
+        constraints:
+          - node.labels.monitoring == true
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=medianest-frontend"
+        - "traefik.http.routers.prometheus.rule=Host(`prometheus.medianest.local`)"
+        - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123!@#
+      - GF_SERVER_ROOT_URL=https://grafana.medianest.local
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/production/grafana-dashboards.json:/var/lib/grafana/dashboards/medianest.json:ro
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+    deploy:
+      placement:
+        constraints:
+          - node.labels.monitoring == true
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 256M
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=medianest-frontend"
+        - "traefik.http.routers.grafana.rule=Host(`grafana.medianest.local`)"
+        - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+
+  # CONTAINER MONITORING
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - monitoring
+    deploy:
+      mode: global
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+  # NODE METRICS
+  node-exporter:
+    image: prom/node-exporter:latest
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.rootfs=/rootfs"
+      - "--path.sysfs=/host/sys"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
+    networks:
+      - monitoring
+    deploy:
+      mode: global
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 64M
+        reservations:
+          cpus: '0.05'
+          memory: 32M
+
+  # ==========================================
+  # AUTOMATED SCALING SERVICE
+  # ==========================================
+  swarm-autoscaler:
+    image: alpine:latest
+    command: |
+      sh -c "
+        echo 'Installing Docker CLI and monitoring tools...'
+        apk add --no-cache docker-cli curl jq
+        echo 'Starting autoscaler daemon...'
+        while true; do
+          # Get current CPU usage from Prometheus
+          CPU_USAGE=$$(curl -s 'http://prometheus:9090/api/v1/query?query=avg(rate(container_cpu_usage_seconds_total{name=\"medianest-app\"}[5m])) * 100' | jq -r '.data.result[0].value[1]')
+          
+          # Get current replica count
+          REPLICAS=$$(docker service inspect medianest_medianest-app --format '{{.Spec.Mode.Replicated.Replicas}}')
+          
+          echo \"Current CPU Usage: $$CPU_USAGE%, Replicas: $$REPLICAS\"
+          
+          # Scale up if CPU > 70% and replicas < 5
+          if [ $$(echo \"$$CPU_USAGE > 70\" | bc -l) -eq 1 ] && [ $$REPLICAS -lt 5 ]; then
+            NEW_REPLICAS=$$((REPLICAS + 1))
+            echo \"Scaling UP to $$NEW_REPLICAS replicas\"
+            docker service scale medianest_medianest-app=$$NEW_REPLICAS
+          fi
+          
+          # Scale down if CPU < 30% and replicas > 2
+          if [ $$(echo \"$$CPU_USAGE < 30\" | bc -l) -eq 1 ] && [ $$REPLICAS -gt 2 ]; then
+            NEW_REPLICAS=$$((REPLICAS - 1))
+            echo \"Scaling DOWN to $$NEW_REPLICAS replicas\"
+            docker service scale medianest_medianest-app=$$NEW_REPLICAS
+          fi
+          
+          sleep 60
+        done
+      "
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+      - medianest-app
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 64M
+        reservations:
+          cpus: '0.05'
+          memory: 32M
+      restart_policy:
+        condition: on-failure
+        delay: 30s
+        max_attempts: 5
+
+# ADDITIONAL VOLUME FOR TRAEFIK
+volumes:
+  traefik_data:
+    driver: local

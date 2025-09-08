@@ -1,0 +1,73 @@
+# Multi-stage optimized frontend build
+# Stage 1: Dependencies
+FROM node:18-alpine AS dependencies
+WORKDIR /app
+
+# Copy package files for caching
+COPY package*.json ./
+COPY frontend/package*.json ./frontend/
+COPY shared/package*.json ./shared/
+
+# Install production dependencies
+RUN npm ci --only=production --no-audit --no-fund --prefer-offline
+
+# Stage 2: Build dependencies
+FROM node:18-alpine AS build-dependencies
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY frontend/package*.json ./frontend/
+COPY shared/package*.json ./shared/
+
+# Install all dependencies
+RUN npm ci --no-audit --no-fund --prefer-offline
+
+# Stage 3: Builder
+FROM node:18-alpine AS builder
+WORKDIR /app
+
+# Copy dependencies
+COPY --from=build-dependencies /app/node_modules ./node_modules
+COPY --from=build-dependencies /app/frontend/node_modules ./frontend/node_modules
+COPY --from=build-dependencies /app/shared/node_modules ./shared/node_modules
+
+# Copy source code
+COPY . .
+
+# Build shared module
+WORKDIR /app/shared
+RUN npm run build
+
+# Build frontend with optimizations
+WORKDIR /app/frontend
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN npm run build
+
+# Stage 4: Production runtime
+FROM node:18-alpine AS production
+WORKDIR /app
+
+# Install security updates
+RUN apk add --no-cache dumb-init && apk upgrade
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+
+# Copy Next.js build output
+COPY --from=builder --chown=nodejs:nodejs /app/frontend/.next/standalone ./
+COPY --from=builder --chown=nodejs:nodejs /app/frontend/.next/static ./.next/static
+COPY --from=builder --chown=nodejs:nodejs /app/frontend/public ./public
+
+USER nodejs
+
+# Optimize Node.js runtime
+ENV NODE_ENV=production
+ENV NODE_OPTIONS="--max-old-space-size=256 --enable-source-maps=false"
+ENV NEXT_TELEMETRY_DISABLED=1
+
+EXPOSE 3000
+
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "server.js"]

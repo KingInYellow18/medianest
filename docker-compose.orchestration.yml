@@ -1,0 +1,603 @@
+# MediaNest Advanced Docker Compose Orchestration
+# Production-ready multi-container orchestration with service discovery and load balancing
+
+version: '3.8'
+
+# ADVANCED NETWORK TOPOLOGY
+networks:
+  # Frontend network for public access
+  frontend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.1.0/24
+          gateway: 172.30.1.1
+    labels:
+      - "com.medianest.network.type=frontend"
+      - "com.medianest.network.security=public"
+
+  # Backend network for internal services
+  backend:
+    driver: bridge
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.30.2.0/24
+          gateway: 172.30.2.1
+    labels:
+      - "com.medianest.network.type=backend"
+      - "com.medianest.network.security=internal"
+
+  # Database network for data layer
+  database:
+    driver: bridge
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.30.3.0/24
+          gateway: 172.30.3.1
+    labels:
+      - "com.medianest.network.type=database"
+      - "com.medianest.network.security=private"
+
+  # Monitoring network
+  monitoring:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.4.0/24
+          gateway: 172.30.4.1
+
+# PERSISTENT VOLUMES WITH OPTIMIZATION
+volumes:
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/medianest/postgres
+  redis_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/medianest/redis
+  prometheus_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/medianest/prometheus
+  grafana_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/medianest/grafana
+  uploads:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/medianest/uploads
+
+services:
+  # ==========================================
+  # LOAD BALANCER & SERVICE DISCOVERY
+  # ==========================================
+  traefik:
+    image: traefik:v3.0
+    container_name: medianest-lb
+    restart: unless-stopped
+    command:
+      - "--api.dashboard=true"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=frontend"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.email=admin@medianest.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.addEntryPointsLabels=true"
+      - "--metrics.prometheus.addServicesLabels=true"
+      - "--log.level=INFO"
+      - "--accesslog=true"
+      - "--global.checknewversion=false"
+      - "--global.sendanonymoususage=false"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_data:/data
+      - ./logs/traefik:/var/log/traefik
+    networks:
+      - frontend
+      - backend
+      - monitoring
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.medianest.local`)"
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.routers.traefik.middlewares=auth"
+      - "traefik.http.middlewares.auth.basicauth.users=admin:$$2y$$10$$5KbU6TKjwKqjMqBr4J2U6uZkGPM8.ZkfYzYqnVYqYnJ8HfYdYdU3m" # admin:admin
+      - "com.medianest.component=loadbalancer"
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.2'
+          memory: 128M
+
+  # ==========================================
+  # DATABASE LAYER WITH HIGH AVAILABILITY
+  # ==========================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: medianest-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${DB_NAME:-medianest}
+      - POSTGRES_USER=${DB_USER:-medianest}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-secure_db_password_2024}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF8 --auth-host=scram-sha-256
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      # Performance tuning
+      - shared_preload_libraries=pg_stat_statements
+      - pg_stat_statements.track=all
+      - max_connections=100
+      - shared_buffers=256MB
+      - effective_cache_size=1GB
+      - maintenance_work_mem=64MB
+      - checkpoint_completion_target=0.7
+      - wal_buffers=16MB
+      - default_statistics_target=100
+      - random_page_cost=1.1
+      - effective_io_concurrency=200
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ./infrastructure/database/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+      - ./logs/postgres:/var/log/postgresql
+    networks:
+      database:
+        ipv4_address: 172.30.3.10
+    expose:
+      - "5432"
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-medianest} -d ${DB_NAME:-medianest}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    labels:
+      - "com.medianest.component=database"
+      - "com.medianest.backup.enable=true"
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    security_opt:
+      - no-new-privileges:true
+    user: postgres
+
+  # REDIS CLUSTER FOR HIGH AVAILABILITY
+  redis-master:
+    image: redis:7-alpine
+    container_name: medianest-redis-master
+    restart: unless-stopped
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD:-secure_redis_password_2024}
+      --appendonly yes
+      --appendfsync everysec
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --tcp-keepalive 300
+      --tcp-backlog 511
+      --timeout 0
+      --databases 16
+      --rdbcompression yes
+      --rdbchecksum yes
+      --stop-writes-on-bgsave-error yes
+    volumes:
+      - redis_data:/data
+      - ./logs/redis:/var/log/redis
+    networks:
+      database:
+        ipv4_address: 172.30.3.11
+    expose:
+      - "6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-secure_redis_password_2024}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    labels:
+      - "com.medianest.component=cache"
+      - "com.medianest.redis.role=master"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 640M
+        reservations:
+          cpus: '0.2'
+          memory: 256M
+    security_opt:
+      - no-new-privileges:true
+
+  # ==========================================
+  # APPLICATION LAYER WITH SCALING
+  # ==========================================
+  medianest-app-1:
+    build:
+      context: .
+      dockerfile: Dockerfile.optimized
+      target: production
+      args:
+        - NODE_ENV=production
+    container_name: medianest-app-1
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - NODE_OPTIONS=--max-old-space-size=768
+      - DATABASE_URL=postgresql://${DB_USER:-medianest}:${DB_PASSWORD:-secure_db_password_2024}@postgres:5432/${DB_NAME:-medianest}?sslmode=prefer&connect_timeout=10&connection_limit=20&pool_timeout=30
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-secure_redis_password_2024}@redis-master:6379
+      - NEXTAUTH_URL=https://medianest.local
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-secure_nextauth_secret_2024}
+      - JWT_SECRET=${JWT_SECRET:-secure_jwt_secret_2024}
+      - APP_INSTANCE=1
+    volumes:
+      - uploads:/app/uploads
+      - ./logs/app:/app/logs
+    networks:
+      - backend
+      - database
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis-master:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=backend"
+      - "traefik.http.routers.medianest.rule=Host(`medianest.local`)"
+      - "traefik.http.routers.medianest.entrypoints=websecure"
+      - "traefik.http.routers.medianest.tls.certresolver=letsencrypt"
+      - "traefik.http.services.medianest.loadbalancer.server.port=3000"
+      - "traefik.http.services.medianest.loadbalancer.healthcheck.path=/api/health"
+      - "traefik.http.services.medianest.loadbalancer.healthcheck.interval=30s"
+      - "traefik.http.services.medianest.loadbalancer.sticky=true"
+      - "traefik.http.services.medianest.loadbalancer.sticky.cookie.name=medianest-server"
+      - "com.medianest.component=application"
+      - "com.medianest.instance=1"
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    security_opt:
+      - no-new-privileges:true
+
+  medianest-app-2:
+    build:
+      context: .
+      dockerfile: Dockerfile.optimized
+      target: production
+      args:
+        - NODE_ENV=production
+    container_name: medianest-app-2
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - NODE_OPTIONS=--max-old-space-size=768
+      - DATABASE_URL=postgresql://${DB_USER:-medianest}:${DB_PASSWORD:-secure_db_password_2024}@postgres:5432/${DB_NAME:-medianest}?sslmode=prefer&connect_timeout=10&connection_limit=20&pool_timeout=30
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-secure_redis_password_2024}@redis-master:6379
+      - NEXTAUTH_URL=https://medianest.local
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-secure_nextauth_secret_2024}
+      - JWT_SECRET=${JWT_SECRET:-secure_jwt_secret_2024}
+      - APP_INSTANCE=2
+    volumes:
+      - uploads:/app/uploads
+      - ./logs/app:/app/logs
+    networks:
+      - backend
+      - database
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis-master:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=backend"
+      - "com.medianest.component=application"
+      - "com.medianest.instance=2"
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    security_opt:
+      - no-new-privileges:true
+
+  # ==========================================
+  # MONITORING & OBSERVABILITY STACK
+  # ==========================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: medianest-prometheus
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/etc/prometheus/console_libraries"
+      - "--web.console.templates=/etc/prometheus/consoles"
+      - "--storage.tsdb.retention.time=15d"
+      - "--storage.tsdb.retention.size=8GB"
+      - "--web.enable-lifecycle"
+      - "--web.listen-address=0.0.0.0:9090"
+      - "--storage.tsdb.wal-compression"
+      - "--web.external-url=http://prometheus.medianest.local"
+    volumes:
+      - prometheus_data:/prometheus
+      - ./config/production/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./config/production/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
+    networks:
+      - monitoring
+      - backend
+    ports:
+      - "9090:9090"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=monitoring"
+      - "traefik.http.routers.prometheus.rule=Host(`prometheus.medianest.local`)"
+      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+      - "com.medianest.component=monitoring"
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: medianest-grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin123!@#}
+      - GF_SERVER_ROOT_URL=http://grafana.medianest.local
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel,redis-datasource
+      - GF_FEATURE_TOGGLES_ENABLE=ngalert
+      - GF_UNIFIED_ALERTING_ENABLED=true
+      - GF_ALERTING_ENABLED=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/production/grafana-dashboards.json:/var/lib/grafana/dashboards/medianest.json:ro
+    networks:
+      - monitoring
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=monitoring"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.medianest.local`)"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+      - "com.medianest.component=monitoring"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.2'
+          memory: 256M
+
+  # CONTAINER MONITORING
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: medianest-cadvisor
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - monitoring
+    ports:
+      - "8081:8080"
+    labels:
+      - "com.medianest.component=monitoring"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+  # NODE EXPORTER
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: medianest-node-exporter
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.rootfs=/rootfs"
+      - "--path.sysfs=/host/sys"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
+    networks:
+      - monitoring
+    ports:
+      - "9100:9100"
+    labels:
+      - "com.medianest.component=monitoring"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 64M
+        reservations:
+          cpus: '0.05'
+          memory: 32M
+
+  # ==========================================
+  # AUTOMATED SCALING & HEALTH MONITORING
+  # ==========================================
+  docker-autoscaler:
+    image: alpine:latest
+    container_name: medianest-autoscaler
+    restart: unless-stopped
+    command: |
+      sh -c "
+        apk add --no-cache curl jq bc
+        echo 'Docker Compose Autoscaler Started'
+        while true; do
+          # Get metrics from Prometheus
+          CPU_QUERY='avg(rate(container_cpu_usage_seconds_total{name=~\"medianest-app.*\"}[5m])) * 100'
+          CPU_USAGE=$$(curl -s 'http://prometheus:9090/api/v1/query?query='$$CPU_QUERY | jq -r '.data.result[0].value[1] // \"0\"')
+          
+          MEM_QUERY='avg(container_memory_usage_bytes{name=~\"medianest-app.*\"}) / 1024 / 1024'
+          MEM_USAGE=$$(curl -s 'http://prometheus:9090/api/v1/query?query='$$MEM_QUERY | jq -r '.data.result[0].value[1] // \"0\"')
+          
+          echo \"$(date): CPU Usage: $${CPU_USAGE}%, Memory Usage: $${MEM_USAGE}MB\"
+          
+          # Basic health monitoring (compose doesn't have native autoscaling)
+          if [ $$(echo \"$$CPU_USAGE > 80\" | bc -l) -eq 1 ]; then
+            echo \"HIGH CPU USAGE ALERT: $$CPU_USAGE%\"
+            # In production, you would integrate with external scaling solutions
+            # or notification systems here
+          fi
+          
+          if [ $$(echo \"$$MEM_USAGE > 800\" | bc -l) -eq 1 ]; then
+            echo \"HIGH MEMORY USAGE ALERT: $${MEM_USAGE}MB\"
+          fi
+          
+          sleep 60
+        done
+      "
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+    labels:
+      - "com.medianest.component=autoscaler"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 64M
+        reservations:
+          cpus: '0.05'
+          memory: 32M
+
+# ADDITIONAL VOLUMES
+volumes:
+  traefik_data:
+    driver: local
+
+# CONFIGURATION EXTENSIONS FOR REUSABILITY
+x-app-defaults: &app-defaults
+  restart: unless-stopped
+  networks:
+    - backend
+    - database
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis-master:
+      condition: service_healthy
+  healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+    interval: 30s
+    timeout: 10s
+    retries: 3
+    start_period: 60s
+  deploy:
+    resources:
+      limits:
+        cpus: '2.0'
+        memory: 1G
+      reservations:
+        cpus: '0.5'
+        memory: 512M
+  security_opt:
+    - no-new-privileges:true
+
+x-monitoring-defaults: &monitoring-defaults
+  restart: unless-stopped
+  networks:
+    - monitoring
+  deploy:
+    resources:
+      limits:
+        cpus: '0.5'
+        memory: 256M
+      reservations:
+        cpus: '0.1'
+        memory: 128M

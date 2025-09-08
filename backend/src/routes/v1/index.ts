@@ -16,6 +16,8 @@ import { router as csrfRoutes } from './csrf';
 import { performanceRoutes } from '../performance';
 import { resilienceRouter } from './resilience';
 import { simpleHealthRouter } from '../simple-health';
+import systemRoutes from '../system';
+import testRoutes from '../test';
 
 // Context7 Pattern: Optimized Router with Performance Considerations
 const router = Router();
@@ -28,6 +30,12 @@ router.use('/auth', authRoutes); // High frequency - authentication endpoints
 router.use('/webhooks', webhookRoutes); // Medium frequency - external webhooks
 router.use('/csrf', csrfRoutes); // CSRF endpoints available to all
 router.use('/resilience', resilienceRouter); // Low frequency - monitoring
+router.use('/system', systemRoutes); // System monitoring endpoints
+
+// Test routes for load testing (non-production only)
+if (process.env.NODE_ENV !== 'production') {
+  router.use('/test', testRoutes);
+}
 
 // Context7 Pattern: Enhanced authentication with route-specific optimizations
 const protectedRouter = Router();

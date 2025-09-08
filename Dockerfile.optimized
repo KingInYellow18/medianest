@@ -1,1 +1,263 @@
-# 🚀 OPTIMIZED DOCKER BUILD - MediaNest Production\n# Multi-stage build optimized for performance and security\n# Target: <200MB images with <5 minute build time\n\n# 📦 Build Dependencies Stage\nFROM node:20-alpine AS deps\nWORKDIR /app\n\n# Install system dependencies for native modules\nRUN apk add --no-cache \\\n    libc6-compat \\\n    python3 \\\n    make \\\n    g++ \\\n    && rm -rf /var/cache/apk/*\n\n# Copy package files for dependency resolution\nCOPY package*.json ./\nCOPY shared/package*.json ./shared/\nCOPY backend/package*.json ./backend/\nCOPY frontend/package*.json ./frontend/\n\n# Install dependencies with cache optimization\nRUN \\\n  # Clean npm cache\n  npm cache clean --force && \\\n  # Install production dependencies only\n  npm ci --only=production --no-audit --no-fund --prefer-offline && \\\n  # Remove unnecessary files\n  find node_modules -name \"*.md\" -delete && \\\n  find node_modules -name \"*.txt\" -delete && \\\n  find node_modules -name \"CHANGELOG*\" -delete && \\\n  find node_modules -name \"LICENSE*\" -delete && \\\n  # Clean npm cache again\n  npm cache clean --force\n\n# 🏗️ Shared Library Build Stage\nFROM node:20-alpine AS shared-build\nWORKDIR /app\n\n# Copy dependencies from deps stage\nCOPY --from=deps /app/node_modules ./node_modules\nCOPY --from=deps /app/shared/node_modules ./shared/node_modules\n\n# Copy shared source and build\nCOPY shared/ ./shared/\nRUN cd shared && \\\n    npm run build && \\\n    # Remove source files after build\n    rm -rf src/ && \\\n    # Keep only essential files\n    find . -maxdepth 1 -type f ! -name \"package.json\" ! -name \"*.js\" -delete\n\n# 🔧 Backend Build Stage  \nFROM node:20-alpine AS backend-build\nWORKDIR /app\n\n# Copy dependencies\nCOPY --from=deps /app/node_modules ./node_modules\nCOPY --from=deps /app/backend/node_modules ./backend/node_modules\n\n# Copy shared build\nCOPY --from=shared-build /app/shared/dist ./shared/dist\nCOPY --from=shared-build /app/shared/package.json ./shared/\n\n# Copy backend source\nCOPY backend/package*.json ./backend/\nCOPY backend/tsconfig*.json ./backend/\nCOPY backend/prisma/ ./backend/prisma/\nCOPY backend/src/ ./backend/src/\n\n# Build backend\nRUN cd backend && \\\n    # Generate Prisma client\n    npx prisma generate && \\\n    # Build TypeScript\n    npm run build && \\\n    # Remove unnecessary files\n    rm -rf src/ tsconfig*.json && \\\n    # Optimize Prisma client size\n    find node_modules/@prisma/client -name \"*.d.ts\" -delete && \\\n    find node_modules/@prisma/client -name \"*.map\" -delete\n\n# 🎨 Frontend Build Stage\nFROM node:20-alpine AS frontend-build\nWORKDIR /app\n\n# Copy dependencies\nCOPY --from=deps /app/node_modules ./node_modules\nCOPY --from=deps /app/frontend/node_modules ./frontend/node_modules\n\n# Copy shared build\nCOPY --from=shared-build /app/shared/dist ./shared/dist\nCOPY --from=shared-build /app/shared/package.json ./shared/\n\n# Copy frontend source\nCOPY frontend/package*.json ./frontend/\nCOPY frontend/next.config*.js ./frontend/\nCOPY frontend/tailwind.config.ts ./frontend/\nCOPY frontend/postcss.config.mjs ./frontend/\nCOPY frontend/tsconfig.json ./frontend/\nCOPY frontend/src/ ./frontend/src/\nCOPY frontend/public/ ./frontend/public/\n\n# Build frontend with optimizations\nRUN cd frontend && \\\n    # Use optimized configuration\n    cp next.config.optimized.js next.config.js && \\\n    # Set production environment\n    NODE_ENV=production && \\\n    # Build with performance optimizations\n    npm run build && \\\n    # Verify standalone build\n    test -f .next/standalone/server.js || (echo \"Standalone build failed\" && exit 1) && \\\n    # Remove unnecessary files\n    rm -rf src/ .next/cache && \\\n    find .next -name \"*.map\" -delete && \\\n    # Compress static assets\n    find .next/static -name \"*.js\" -exec gzip -9 {} + && \\\n    find .next/static -name \"*.css\" -exec gzip -9 {} +\n\n# 🎯 Backend Production Image\nFROM node:20-alpine AS backend-production\nWORKDIR /app\n\n# Create non-root user for security\nRUN addgroup -g 1001 -S nodejs && \\\n    adduser -S medianest -u 1001 -G nodejs\n\n# Install production runtime dependencies only\nRUN apk add --no-cache \\\n    dumb-init \\\n    curl \\\n    && rm -rf /var/cache/apk/*\n\n# Copy runtime dependencies (minimal)\nCOPY --from=backend-build --chown=medianest:nodejs /app/backend/node_modules ./backend/node_modules\nCOPY --from=backend-build --chown=medianest:nodejs /app/backend/dist ./backend/dist\nCOPY --from=backend-build --chown=medianest:nodejs /app/backend/prisma ./backend/prisma\nCOPY --from=shared-build --chown=medianest:nodejs /app/shared/dist ./shared/dist\n\n# Copy package.json files\nCOPY --chown=medianest:nodejs backend/package.json ./backend/\nCOPY --chown=medianest:nodejs shared/package.json ./shared/\n\n# Create optimized entrypoint\nCOPY --chown=medianest:nodejs <<EOF /app/entrypoint.sh\n#!/bin/sh\nset -e\n\n# Health check endpoint\nif [ \"\\$1\" = \"healthcheck\" ]; then\n  exec node -e \"require('http').get('http://localhost:3001/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))\"\nfi\n\n# Database migration (if needed)\nif [ \"\\$NODE_ENV\" = \"production\" ] && [ \"\\$RUN_MIGRATIONS\" = \"true\" ]; then\n  echo \"Running database migrations...\"\n  cd /app/backend && npx prisma migrate deploy\nfi\n\n# Start application\nexec dumb-init node backend/dist/server.js\nEOF\n\nRUN chmod +x /app/entrypoint.sh\n\n# Create logs directory\nRUN mkdir -p /app/logs && chown medianest:nodejs /app/logs\n\n# Switch to non-root user\nUSER medianest\n\n# Health check\nHEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \\\n    CMD /app/entrypoint.sh healthcheck\n\n# Expose port\nEXPOSE 3001\n\n# Set environment\nENV NODE_ENV=production\nENV NODE_OPTIONS=\"--max-old-space-size=512\"\n\n# Start application\nENTRYPOINT [\"/app/entrypoint.sh\"]\n\n# 🌐 Frontend Production Image\nFROM node:20-alpine AS frontend-production  \nWORKDIR /app\n\n# Create non-root user\nRUN addgroup -g 1001 -S nodejs && \\\n    adduser -S nextjs -u 1001 -G nodejs\n\n# Install production runtime dependencies\nRUN apk add --no-cache \\\n    dumb-init \\\n    curl \\\n    && rm -rf /var/cache/apk/*\n\n# Copy built application\nCOPY --from=frontend-build --chown=nextjs:nodejs /app/frontend/.next/standalone ./\nCOPY --from=frontend-build --chown=nextjs:nodejs /app/frontend/.next/static ./frontend/.next/static\nCOPY --from=frontend-build --chown=nextjs:nodejs /app/frontend/public ./frontend/public\n\n# Create optimized entrypoint\nCOPY --chown=nextjs:nodejs <<EOF /app/entrypoint.sh\n#!/bin/sh\nset -e\n\n# Health check endpoint\nif [ \"\\$1\" = \"healthcheck\" ]; then\n  exec node -e \"require('http').get('http://localhost:3000/api/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))\"\nfi\n\n# Start Next.js application\nexec dumb-init node frontend/server.js\nEOF\n\nRUN chmod +x /app/entrypoint.sh\n\n# Switch to non-root user\nUSER nextjs\n\n# Health check\nHEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \\\n    CMD /app/entrypoint.sh healthcheck\n\n# Expose port\nEXPOSE 3000\n\n# Set environment\nENV NODE_ENV=production\nENV NEXT_TELEMETRY_DISABLED=1\nENV NODE_OPTIONS=\"--max-old-space-size=512\"\n\n# Start application\nENTRYPOINT [\"/app/entrypoint.sh\"]\n\n# 🔧 Development Image (Multi-service)\nFROM node:20-alpine AS development\nWORKDIR /app\n\n# Install development dependencies\nRUN apk add --no-cache \\\n    git \\\n    curl \\\n    bash \\\n    vim \\\n    && rm -rf /var/cache/apk/*\n\n# Create app user\nRUN addgroup -g 1001 -S nodejs && \\\n    adduser -S app -u 1001 -G nodejs\n\n# Copy all source files\nCOPY --chown=app:nodejs . .\n\n# Install all dependencies (including dev)\nRUN npm ci --no-audit --no-fund\n\n# Create logs directory\nRUN mkdir -p logs && chown app:nodejs logs\n\n# Switch to app user\nUSER app\n\n# Expose development ports\nEXPOSE 3000 3001 4000\n\n# Development command\nCMD [\"npm\", \"run\", \"dev\"]\n\n# 🧪 Test Image\nFROM development AS test\nWORKDIR /app\n\n# Install test browsers\nUSER root\nRUN apk add --no-cache \\\n    chromium \\\n    firefox \\\n    && rm -rf /var/cache/apk/*\n\n# Set browser paths for testing\nENV CHROME_BIN=/usr/bin/chromium-browser\nENV FIREFOX_BIN=/usr/bin/firefox\n\nUSER app\n\n# Test command\nCMD [\"npm\", \"run\", \"test:all\"]\n"
+# 🚀 OPTIMIZED DOCKER BUILD - MediaNest Production
+# Multi-stage build optimized for performance and security
+# Target: <200MB images with <5 minute build time
+
+# 📦 Backend Dependencies Stage
+FROM node:20-alpine AS backend-deps
+WORKDIR /app
+
+# Install system dependencies for native modules
+RUN apk add --no-cache \
+    libc6-compat \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/cache/apk/*
+
+# Copy backend package files
+COPY backend/package*.json ./
+COPY backend/prisma ./prisma/
+
+# Install production dependencies with cache optimization
+RUN npm ci --omit=dev --no-audit --no-fund --prefer-offline --legacy-peer-deps && \
+    npm cache clean --force
+
+# 🔧 Backend Build Stage
+FROM node:20-alpine AS backend-build
+WORKDIR /app
+
+# Install build dependencies
+RUN apk add --no-cache python3 make g++ libc6-compat
+
+# Copy package files and install all dependencies for building
+COPY backend/package*.json ./
+COPY backend/prisma ./prisma/
+RUN npm ci --no-audit --no-fund && npm cache clean --force
+
+# Copy source and build
+COPY backend/tsconfig*.json ./
+COPY backend/src ./src
+
+# Generate Prisma client and build TypeScript
+RUN npx prisma generate && npm run build
+
+# 📦 Frontend Dependencies Stage
+FROM node:20-alpine AS frontend-deps
+WORKDIR /app
+
+# Install system dependencies
+RUN apk add --no-cache libc6-compat
+
+# Copy frontend package files
+COPY frontend/package*.json ./
+
+# Install production dependencies
+RUN npm ci --omit=dev --no-audit --no-fund --prefer-offline --legacy-peer-deps && \
+    npm cache clean --force
+
+# 🎨 Frontend Build Stage
+FROM node:20-alpine AS frontend-build
+WORKDIR /app
+
+# Install build dependencies
+RUN apk add --no-cache libc6-compat
+
+# Copy package files and install all dependencies
+COPY frontend/package*.json ./
+RUN npm ci --no-audit --no-fund && npm cache clean --force
+
+# Copy configuration files
+COPY frontend/next.config.js ./
+COPY frontend/tailwind.config.ts ./
+COPY frontend/postcss.config.mjs ./
+COPY frontend/tsconfig.json ./
+
+# Copy source files
+COPY frontend/src ./src
+COPY frontend/public ./public
+
+# Set build environment
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
+
+# Build Next.js application
+RUN npm run build && \
+    rm -rf src/ .next/cache && \
+    find .next -name "*.map" -delete 2>/dev/null || true
+
+# 🎯 Backend Production Image
+FROM node:20-alpine AS backend-production
+WORKDIR /app
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S medianest -u 1001 -G nodejs
+
+# Install production runtime dependencies
+RUN apk add --no-cache \
+    dumb-init \
+    curl \
+    && rm -rf /var/cache/apk/*
+
+# Copy production dependencies from deps stage
+COPY --from=backend-deps --chown=medianest:nodejs /app/node_modules ./node_modules
+
+# Copy built application from build stage
+COPY --from=backend-build --chown=medianest:nodejs /app/dist ./dist
+COPY --from=backend-build --chown=medianest:nodejs /app/prisma ./prisma
+COPY --chown=medianest:nodejs backend/package.json ./
+
+# Create optimized entrypoint script
+RUN cat > /app/entrypoint.sh << 'EOF'
+#!/bin/sh
+set -e
+
+# Health check endpoint
+if [ "$1" = "healthcheck" ]; then
+    curl -f http://localhost:3001/health || exit 1
+fi
+
+# Database migration (if needed)
+if [ "$NODE_ENV" = "production" ] && [ "$RUN_MIGRATIONS" = "true" ]; then
+    echo "Running database migrations..."
+    npx prisma migrate deploy
+fi
+
+# Start application
+exec dumb-init node dist/server.js
+EOF
+
+RUN chmod +x /app/entrypoint.sh && \
+    chown medianest:nodejs /app/entrypoint.sh
+
+# Create logs directory
+RUN mkdir -p /app/logs && chown medianest:nodejs /app/logs
+
+# Switch to non-root user
+USER medianest
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD /app/entrypoint.sh healthcheck
+
+# Expose port
+EXPOSE 3001
+
+# Set environment
+ENV NODE_ENV=production
+ENV NODE_OPTIONS="--max-old-space-size=512"
+
+# Start application
+ENTRYPOINT ["/app/entrypoint.sh"]
+
+# 🌐 Frontend Production Image
+FROM node:20-alpine AS frontend-production
+WORKDIR /app
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001 -G nodejs
+
+# Install production runtime dependencies
+RUN apk add --no-cache \
+    dumb-init \
+    curl \
+    && rm -rf /var/cache/apk/*
+
+# Copy built application
+COPY --from=frontend-build --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=frontend-build --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=frontend-build --chown=nextjs:nodejs /app/public ./public
+
+# Create optimized entrypoint script
+RUN cat > /app/entrypoint.sh << 'EOF'
+#!/bin/sh
+set -e
+
+# Health check endpoint
+if [ "$1" = "healthcheck" ]; then
+    curl -f http://localhost:3000/api/health || exit 1
+fi
+
+# Start Next.js application
+exec dumb-init node server.js
+EOF
+
+RUN chmod +x /app/entrypoint.sh && \
+    chown nextjs:nodejs /app/entrypoint.sh
+
+# Switch to non-root user
+USER nextjs
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD /app/entrypoint.sh healthcheck
+
+# Expose port
+EXPOSE 3000
+
+# Set environment
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_OPTIONS="--max-old-space-size=512"
+ENV HOSTNAME="0.0.0.0"
+
+# Start application
+ENTRYPOINT ["/app/entrypoint.sh"]
+
+# 🔧 Development Image (Multi-service)
+FROM node:20-alpine AS development
+WORKDIR /app
+
+# Install development dependencies
+RUN apk add --no-cache \
+    git \
+    curl \
+    bash \
+    vim \
+    && rm -rf /var/cache/apk/*
+
+# Create app user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S app -u 1001 -G nodejs
+
+# Copy all source files
+COPY --chown=app:nodejs . .
+
+# Install all dependencies (including dev)
+RUN npm ci --no-audit --no-fund && \
+    cd backend && npm ci --no-audit --no-fund && \
+    cd ../frontend && npm ci --no-audit --no-fund && \
+    cd .. && npm cache clean --force
+
+# Create logs directory
+RUN mkdir -p logs && chown app:nodejs logs
+
+# Switch to app user
+USER app
+
+# Expose development ports
+EXPOSE 3000 3001 4000
+
+# Development command
+CMD ["npm", "run", "dev"]
+
+# 🧪 Test Image
+FROM development AS test
+WORKDIR /app
+
+# Install test browsers
+USER root
+RUN apk add --no-cache \
+    chromium \
+    firefox \
+    && rm -rf /var/cache/apk/*
+
+# Set browser paths for testing
+ENV CHROME_BIN=/usr/bin/chromium-browser
+ENV FIREFOX_BIN=/usr/bin/firefox
+
+USER app
+
+# Test command
+CMD ["npm", "run", "test:all"]

@@ -1,0 +1,14 @@
+{
+  "timestamp": "2025-09-08T13:56:44-05:00",
+  "test_duration": 60,
+  "compose_file": "docker-compose.production-secure.yml",
+  "network_name": "medianest_secure_internal",
+  "tests": {
+    "network_bridge": {},
+    "service_discovery": {},
+    "inter_service": {},
+    "bandwidth": {},
+    "network_policies": {},
+    "container_isolation": {}
+  }
+}

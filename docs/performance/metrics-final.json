@@ -1,0 +1,21 @@
+{
+  "baseline": {
+    "total": 1943364459,
+    "backend": 403161337,
+    "frontend": 546716335,
+    "shared": 196368272,
+    "nodeModules": 327024780,
+    "timestamp": "2025-09-08T20:12:24.051Z",
+    "nextBuild": 109908899,
+    "backendBuild": 2814950
+  },
+  "current": {
+    "total": 1943364831,
+    "timestamp": "2025-09-08T20:12:24.270Z"
+  },
+  "targets": {
+    "bundleReduction": 0.4,
+    "buildTime": 0.3,
+    "compressionRatio": 0.6
+  }
+}

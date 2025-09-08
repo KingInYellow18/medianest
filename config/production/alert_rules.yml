@@ -1,0 +1,181 @@
+# Prometheus Alert Rules for MediaNest Production
+groups:
+  - name: medianest.application.alerts
+    rules:
+      - alert: ApplicationDown
+        expr: up{job="medianest-app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: medianest
+        annotations:
+          summary: "MediaNest application is down"
+          description: "The MediaNest application has been down for more than 1 minute."
+
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{job="medianest-app",status_code=~"5.."}[5m]) / rate(http_requests_total{job="medianest-app"}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          service: medianest
+        annotations:
+          summary: "High HTTP error rate detected"
+          description: "HTTP error rate is {{ $value | humanizePercentage }} for the last 5 minutes."
+
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="medianest-app"}[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: medianest
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is {{ $value }}s for the last 5 minutes."
+
+      - alert: DatabaseConnectionIssues
+        expr: database_connections_active{job="medianest-app"} > 80
+        for: 2m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "High database connection count"
+          description: "Database has {{ $value }} active connections."
+
+  - name: medianest.infrastructure.alerts
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 10m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is above 80% for {{ $labels.instance }} for the last 10 minutes."
+
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes > 0.85
+        for: 10m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is above 85% for {{ $labels.instance }}."
+
+      - alert: LowDiskSpace
+        expr: (node_filesystem_avail_bytes{fstype!="tmpfs"} / node_filesystem_size_bytes{fstype!="tmpfs"}) < 0.1
+        for: 5m
+        labels:
+          severity: critical
+          service: system
+        annotations:
+          summary: "Low disk space warning"
+          description: "Disk space is below 10% on {{ $labels.instance }}, filesystem {{ $labels.mountpoint }}."
+
+      - alert: NodeExporterDown
+        expr: up{job="node-exporter"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          service: monitoring
+        annotations:
+          summary: "Node Exporter is down"
+          description: "Node Exporter on {{ $labels.instance }} has been down for more than 5 minutes."
+
+  - name: medianest.database.alerts
+    rules:
+      - alert: PostgreSQLDown
+        expr: up{job="postgres-exporter"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: database
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL database has been down for more than 2 minutes."
+
+      - alert: PostgreSQLHighConnections
+        expr: pg_stat_database_numbackends / pg_settings_max_connections > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "PostgreSQL high connection usage"
+          description: "PostgreSQL is using more than 80% of available connections."
+
+      - alert: PostgreSQLSlowQueries
+        expr: rate(pg_stat_statements_mean_time_ms[5m]) > 1000
+        for: 10m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "PostgreSQL slow queries detected"
+          description: "Average query execution time is above 1000ms."
+
+  - name: medianest.redis.alerts
+    rules:
+      - alert: RedisDown
+        expr: up{job="redis-exporter"} == 0
+        for: 2m
+        labels:
+          severity: warning
+          service: cache
+        annotations:
+          summary: "Redis is down"
+          description: "Redis cache has been down for more than 2 minutes."
+
+      - alert: RedisHighMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          service: cache
+        annotations:
+          summary: "Redis high memory usage"
+          description: "Redis is using more than 90% of available memory."
+
+      - alert: RedisConnectionSpike
+        expr: rate(redis_connected_clients[5m]) > 100
+        for: 5m
+        labels:
+          severity: warning
+          service: cache
+        annotations:
+          summary: "Redis connection spike detected"
+          description: "Redis connection rate is abnormally high."
+
+  - name: medianest.business.alerts
+    rules:
+      - alert: LowActiveUsers
+        expr: user_sessions_active{job="medianest-app"} < 1
+        for: 30m
+        labels:
+          severity: info
+          service: business
+        annotations:
+          summary: "Low user activity"
+          description: "No active user sessions detected for 30 minutes."
+
+      - alert: MediaRequestFailures
+        expr: rate(media_requests_total{status="failed"}[10m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          service: business
+        annotations:
+          summary: "High media request failure rate"
+          description: "Media request failure rate is above 10% for the last 10 minutes."
+
+      - alert: QueueBacklog
+        expr: queue_size{queue_name!=""} > 50
+        for: 15m
+        labels:
+          severity: warning
+          service: business
+        annotations:
+          summary: "Processing queue backlog"
+          description: "Queue {{ $labels.queue_name }} has {{ $value }} items pending for over 15 minutes."
