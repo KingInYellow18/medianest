@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
-    "@hookform/resolvers": "^3.9.0",
+    "@hookform/resolvers": "^5.2.1",
     "@prisma/client": "^6.11.1",
     "@tanstack/react-query": "^5.51.23",
     "axios": "^1.7.7",
