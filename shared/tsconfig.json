@@ -11,10 +11,21 @@
     "declaration": true,
     "declarationMap": true,
     "noEmit": false,
+    // Context7 Pattern: Incremental compilation for shared libraries
+    "incremental": true,
+    "tsBuildInfoFile": "./.tsbuildinfo",
+    "skipLibCheck": true,
     "paths": {
       "@/*": ["./*"]
     }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts", "src/test-utils/**/*"]
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts", "src/test-utils/**/*"],
+  // Context7 Pattern: ts-node optimizations for development
+  "ts-node": {
+    "transpileOnly": true,
+    "compilerOptions": {
+      "isolatedModules": true
+    }
+  }
 }
