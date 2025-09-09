@@ -55,18 +55,14 @@ interface CachedUserRequestStats {
   cached_at: number;
 }
 
-export class OptimizedMediaRequestRepository extends BaseRepository<
-  MediaRequest,
-  CreateMediaRequestInput,
-  UpdateMediaRequestInput
-> {
+export class OptimizedMediaRequestRepository extends BaseRepository<MediaRequest> {
   private readonly STATS_CACHE_TTL = 60; // 1 minute cache for stats
   private readonly USER_STATS_PREFIX = 'user_requests_stats:';
   private readonly RECENT_REQUESTS_TTL = 30; // 30 seconds for recent requests
   private readonly RECENT_REQUESTS_KEY = 'recent_media_requests';
 
-  constructor(prisma?: PrismaClient) {
-    super(prisma!);
+  constructor(prisma: PrismaClient) {
+    super(prisma);
   }
 
   /**

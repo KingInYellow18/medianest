@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { ServiceStatus, Prisma } from '@prisma/client';
+import { Decimal } from '@prisma/client/runtime/library';
 
 // @ts-ignore
 import {
@@ -16,11 +17,10 @@ export interface ServiceStatusUpdate {
   uptimePercentage?: number;
 }
 
-export class ServiceStatusRepository extends BaseRepository<
-  ServiceStatus,
-  any,
-  ServiceStatusUpdate
-> {
+export class ServiceStatusRepository extends BaseRepository<ServiceStatus> {
+  constructor(prisma: any) {
+    super(prisma);
+  }
   async findByName(serviceName: string): Promise<ServiceStatus | null> {
     try {
       return await this.prisma.serviceStatus.findUnique({

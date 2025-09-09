@@ -3,7 +3,7 @@ import type {
   Request as ExpressRequest,
   NextFunction as ExpressNextFunction,
 } from 'express';
-import type { ApiResponse, LegacyApiResponse } from '@medianest/shared';
+import type { ApiResponse, PaginatedApiResponse, LegacyApiResponse, PaginationMeta } from '@medianest/shared';
 import { logger } from './logger';
 import { CatchError } from '../types/common';
 import {
@@ -18,16 +18,9 @@ import {
 // ApiResponse now imported from @medianest/shared
 
 /**
- * Pagination metadata
+ * Pagination metadata - now imported from @medianest/shared
  */
-export interface PaginationMeta {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-  hasNext: boolean;
-  hasPrev: boolean;
-}
+// PaginationMeta now imported from @medianest/shared
 
 /**
  * Send successful response
@@ -122,7 +115,18 @@ export function sendPaginated<T>(
     hasPrev: pagination.page > 1,
   };
 
-  sendSuccess(res, items, statusCode, { pagination: paginationMeta });
+  // Create a proper PaginatedApiResponse
+  const response: PaginatedApiResponse<T> = {
+    data: items,
+    meta: {
+      timestamp: new Date().toISOString(),
+      requestId: (res.locals?.requestId || 'no-request-id') as any,
+      version: '1.0.0',
+    },
+    pagination: paginationMeta,
+  };
+
+  res.status(statusCode).json(response);
 }
 
 /**

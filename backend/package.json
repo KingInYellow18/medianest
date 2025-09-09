@@ -10,7 +10,7 @@
   },
   "scripts": {
     "dev": "nodemon",
-    "build": "tsc",
+    "build": "tsc --build",
     "start": "node dist/server.js",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --fix",

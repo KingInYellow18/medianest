@@ -47,27 +47,28 @@ router.use(rawBodyParser);
 router.use(validateWebhookHeaders);
 
 // POST /api/webhooks/overseerr - Overseerr media requests and updates
-router.post('/overseerr', async (req: Request, res: Response) => {
+router.post('/overseerr', async (req: Request, res: Response): Promise<void> => {
   await webhookIntegrationService.handleWebhook(req, res, 'overseerr');
 });
 
 // POST /api/webhooks/plex - Plex media server events
-router.post('/plex', async (req: Request, res: Response) => {
+router.post('/plex', async (req: Request, res: Response): Promise<void> => {
   await webhookIntegrationService.handleWebhook(req, res, 'plex');
 });
 
 // POST /api/webhooks/github - GitHub repository events
-router.post('/github', async (req: Request, res: Response) => {
+router.post('/github', async (req: Request, res: Response): Promise<void> => {
   await webhookIntegrationService.handleWebhook(req, res, 'github');
 });
 
 // POST /api/webhooks/generic/:source - Generic webhook handler
-router.post('/generic/:source', async (req: Request, res: Response) => {
+router.post('/generic/:source', async (req: Request, res: Response): Promise<void> => {
   const { source } = req.params;
   
   // Validate source parameter
   if (!source || !/^[a-zA-Z0-9_-]+$/.test(source)) {
-    return res.status(400).json({ error: 'Invalid source parameter' });
+    res.status(400).json({ error: 'Invalid source parameter' });
+    return;
   }
   
   await webhookIntegrationService.handleWebhook(req, res, source);
@@ -111,7 +112,7 @@ router.get('/health', (req: Request, res: Response) => {
 });
 
 // Error handling middleware specific to webhooks
-router.use((error: any, req: Request, res: Response, next: NextFunction) => {
+router.use((error: any, req: Request, res: Response, next: NextFunction): void => {
   logger.error('Webhook route error', {
     path: req.path,
     method: req.method,
@@ -120,10 +121,11 @@ router.use((error: any, req: Request, res: Response, next: NextFunction) => {
   });
   
   if (error instanceof AppError) {
-    return res.status(error.statusCode).json({
+    res.status(error.statusCode).json({
       error: error.message,
       code: error.code,
     });
+    return;
   }
   
   res.status(500).json({

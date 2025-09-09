@@ -108,26 +108,30 @@ export class WebhookIntegrationService {
         processingTime: Date.now() - startTime
       });
 
-    } catch (error) {
+    } catch (error: unknown) {
       const processingTime = Date.now() - startTime;
       
+      // Type guard for AppError with proper type checking
       if (error instanceof AppError) {
+        const appError = error as AppError;
         logger.error('Webhook processing error', {
           webhookId,
           source,
-          error: error.message,
-          code: error.code,
+          error: appError.message,
+          code: appError.code,
           processingTime,
         });
-        res.status(error.statusCode).json({ 
-          error: error.message, 
+        res.status(appError.statusCode).json({ 
+          error: appError.message, 
           id: webhookId 
         });
       } else {
+        // Handle unknown error types safely
+        const errorMessage = error instanceof Error ? error.message : String(error);
         logger.error('Unexpected webhook error', {
           webhookId,
           source,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: errorMessage,
           processingTime,
         });
         res.status(500).json({ 
@@ -138,8 +142,8 @@ export class WebhookIntegrationService {
 
       // Add to retry queue if retryable
       if (this.isRetryableError(error)) {
-        const payload = this.parseWebhookPayload(req.body, source);
-        this.addToRetryQueue(webhookId, payload);
+        const retryPayload = this.parseWebhookPayload(req.body, source);
+        this.addToRetryQueue(webhookId, retryPayload);
       }
     }
   }
@@ -429,10 +433,11 @@ export class WebhookIntegrationService {
           logger.info('Plex library refresh triggered', { libraryKey, mediaType });
         }
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       logger.error('Failed to trigger Plex refresh', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        mediaData: payload.data,
+        error: errorMessage,
+        mediaData: mediaData,
       });
     }
   }
@@ -464,7 +469,8 @@ export class WebhookIntegrationService {
    */
   private cleanupRateLimits(): void {
     const now = Date.now();
-    for (const [key, value] of this.rateLimitMap.entries()) {
+    const entries = Array.from(this.rateLimitMap.entries());
+    for (const [key, value] of entries) {
       if (now > value.resetTime) {
         this.rateLimitMap.delete(key);
       }

@@ -30,11 +30,10 @@ export interface MediaRequestFilters {
   createdBefore?: Date;
 }
 
-export class MediaRequestRepository extends BaseRepository<
-  MediaRequest,
-  CreateMediaRequestInput,
-  UpdateMediaRequestInput
-> {
+export class MediaRequestRepository extends BaseRepository<MediaRequest> {
+  constructor(prisma: any) {
+    super(prisma);
+  }
   async findById(id: string): Promise<MediaRequest | null> {
     try {
       return await this.prisma.mediaRequest.findUnique({
@@ -356,7 +355,7 @@ export class MediaRequestRepository extends BaseRepository<
         take: limit,
         orderBy: options.orderBy || { createdAt: 'desc' },
         include: {
-          requestedBy: {
+          user: {
             select: {
               id: true,
               email: true,

@@ -161,9 +161,13 @@ check_build_time
 echo -e "\n${BLUE}🏗️  Step 4: Clean Build Process${NC}"
 log "Step 4: Build process started"
 
-# Clean previous builds
+# Clean previous builds (but keep shared/dist if it exists to avoid rebuild)
 echo "🧹 Cleaning previous build artifacts..."
-rm -rf backend/dist frontend/.next shared/dist
+rm -rf backend/dist frontend/.next
+# Only clean shared/dist if it doesn't exist or is empty
+if [ ! -d "shared/dist" ] || [ -z "$(ls -A shared/dist 2>/dev/null)" ]; then
+    rm -rf shared/dist
+fi
 log "Cleaned previous build artifacts"
 
 # Build shared dependencies first
@@ -184,7 +188,7 @@ check_build_time
 # Build backend
 echo "🔧 Building backend..."
 BACKEND_START_TIME=$(date +%s)
-if cd backend && npm run build >> "$BUILD_LOG" 2>&1; then
+if cd backend && npx tsc --build --force >> "$BUILD_LOG" 2>&1; then
     BACKEND_END_TIME=$(date +%s)
     BACKEND_BUILD_TIME=$((BACKEND_END_TIME - BACKEND_START_TIME))
     echo -e "${GREEN}✅ Backend built successfully in ${BACKEND_BUILD_TIME}s${NC}"

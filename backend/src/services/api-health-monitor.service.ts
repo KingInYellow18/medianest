@@ -287,7 +287,8 @@ export class ApiHealthMonitorService {
     
     try {
       // Import database connection dynamically to avoid circular dependencies
-      const { prisma } = await import('@/config/database');
+      const { getDatabase } = await import('@/config/database');
+      const prisma = getDatabase();
       
       // Simple connectivity test
       await prisma.$queryRaw`SELECT 1`;

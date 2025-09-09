@@ -82,5 +82,8 @@ export async function disconnectPrisma(): Promise<void> {
   }
 }
 
+// Export getPrisma as an alias for backward compatibility
+export const getPrisma = getPrismaClient;
+
 // Export the default instance
 export default getPrismaClient();

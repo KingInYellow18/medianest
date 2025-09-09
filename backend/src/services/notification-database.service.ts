@@ -293,7 +293,7 @@ class NotificationDatabaseService {
         }),
       ]);
 
-      const byType = typeStats.reduce((acc, item) => {
+      const byType = typeStats.reduce((acc: any, item: any) => {
         acc[item.type] = item._count;
         return acc;
       }, {} as Record<string, number>);

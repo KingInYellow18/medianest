@@ -272,7 +272,7 @@ export class UserRepository extends BaseRepository<User> {
     }
   }
 
-  async findRecent(options: { limit?: number; orderBy?: any } = {}): Promise<User[]> {
+  async findRecent(options: { limit?: number; orderBy?: any } = {}): Promise<Pick<User, 'id' | 'email' | 'name' | 'plexUsername' | 'role' | 'createdAt' | 'lastLoginAt'>[]> {
     try {
       const limit = options.limit || 10;
       

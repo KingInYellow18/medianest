@@ -148,9 +148,9 @@ export class DashboardController {
 
           // Get service statuses
           const serviceStatuses = await statusService.getAllStatuses();
-          const healthyServices = serviceStatuses.filter(s => s.status === 'healthy').length;
-          const unhealthyServices = serviceStatuses.filter(s => s.status === 'unhealthy').length;
-          const unknownServices = serviceStatuses.filter(s => s.status === 'unknown').length;
+          const healthyServices = serviceStatuses.filter(s => s.status === 'up').length;
+          const unhealthyServices = serviceStatuses.filter(s => s.status === 'down').length;
+          const unknownServices = serviceStatuses.filter(s => s.status === 'degraded').length;
 
           // Get system metrics
           const systemMetrics = await this.getSystemMetrics();
@@ -219,7 +219,7 @@ export class DashboardController {
 
           // Format activity items
           const activityItems = [
-            ...recentRequests.map(req => ({
+            ...recentRequests.map((req: any) => ({
               id: req.id,
               type: 'media_request',
               action: `Requested ${req.mediaType}`,
@@ -230,7 +230,7 @@ export class DashboardController {
                 status: req.status,
               },
             })),
-            ...recentUsers.map(user => ({
+            ...recentUsers.map((user: any) => ({
               id: user.id,
               type: 'user_registration',
               action: 'New user registered',

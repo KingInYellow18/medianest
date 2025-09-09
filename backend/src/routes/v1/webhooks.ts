@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 
 import { overseerrService } from '@/services/overseerr.service';
 import { asyncHandler } from '@/utils/async-handler';
@@ -49,7 +49,7 @@ function verifyWebhookSignature(
 // POST /api/webhooks/overseerr - Overseerr webhook endpoint
 router.post(
   '/overseerr',
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req, res): Promise<void> => {
     try {
       // Implement webhook signature verification
       const signature = req.headers['x-overseerr-signature'] as string;
@@ -63,9 +63,10 @@ router.post(
           hasSecret: !!webhookSecret,
           userAgent: req.headers['user-agent']
         });
-        return res.status(401).json({ 
+        res.status(401).json({ 
           error: 'Webhook signature verification failed' 
         });
+        return;
       }
 
       logger.info('Received Overseerr webhook', {

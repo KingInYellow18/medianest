@@ -44,6 +44,7 @@ export type {
 export type {
   Result,
   PaginatedApiResponse,
+  PaginationMeta,
   BaseUser,
   UserRole,
   UserPreferences,

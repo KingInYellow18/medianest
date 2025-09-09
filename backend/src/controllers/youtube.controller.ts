@@ -7,7 +7,7 @@ import { logger } from '@/utils/logger';
 import { youtubeQueue } from '@/config/queues';
 import { getSocketServer } from '@/socket/server';
 import { YouTubeService } from '@/services/youtube.service';
-import { YoutubeDownloadRepository } from '@/repositories/youtube-download.repository';
+import { youtubeDownloadRepository } from '@/repositories/instances';
 import { CatchError } from '../types/common';
 import {
   createDownloadSchema,
@@ -17,11 +17,11 @@ import {
 
 export class YouTubeController {
   private youtubeService: YouTubeService;
-  private youtubeDownloadRepo: YoutubeDownloadRepository;
+  private youtubeDownloadRepo: typeof youtubeDownloadRepository;
 
   constructor() {
     this.youtubeService = new YouTubeService();
-    this.youtubeDownloadRepo = new YoutubeDownloadRepository({} as any);
+    this.youtubeDownloadRepo = youtubeDownloadRepository;
   }
 
   /**

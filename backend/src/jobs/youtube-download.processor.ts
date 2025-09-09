@@ -6,7 +6,7 @@ import { logger } from '@/utils/logger';
 import { getRedis } from '@/config/redis';
 import { getSocketServer } from '@/socket/server';
 import { YouTubeClient } from '@/integrations/youtube/youtube.client';
-import { YoutubeDownloadRepository } from '@/repositories/youtube-download.repository';
+import { youtubeDownloadRepository } from '@/repositories/instances';
 import { plexService } from '@/services/plex.service';
 import { config } from '@/config';
 import { CatchError } from '../types/common';
@@ -29,12 +29,12 @@ interface DownloadJobData {
 export class YouTubeDownloadProcessor {
   private worker: Worker<DownloadJobData>;
   private youtubeClient: YouTubeClient;
-  private youtubeDownloadRepo: YoutubeDownloadRepository;
+  private youtubeDownloadRepo: typeof youtubeDownloadRepository;
   private downloadPath: string;
 
   constructor() {
     this.youtubeClient = new YouTubeClient();
-    this.youtubeDownloadRepo = new YoutubeDownloadRepository({} as any);
+    this.youtubeDownloadRepo = youtubeDownloadRepository;
     this.downloadPath = process.env.DOWNLOAD_PATH || '/var/lib/medianest/downloads';
 
     const redis = getRedis();

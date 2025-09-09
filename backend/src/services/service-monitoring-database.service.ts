@@ -184,9 +184,9 @@ class ServiceMonitoringDatabaseService {
       const uptime30d = this.calculateUptime(metrics30d);
 
       // Calculate average response time (24h)
-      const responseTimeMetrics = metrics24h.filter(m => m.responseTimeMs !== null);
+      const responseTimeMetrics = metrics24h.filter((m: ServiceMetric) => m.responseTimeMs !== null);
       const averageResponseTime = responseTimeMetrics.length > 0
-        ? responseTimeMetrics.reduce((sum, m) => sum + (m.responseTimeMs || 0), 0) / responseTimeMetrics.length
+        ? responseTimeMetrics.reduce((sum: number, m: ServiceMetric) => sum + (m.responseTimeMs || 0), 0) / responseTimeMetrics.length
         : 0;
 
       return {
@@ -287,7 +287,7 @@ class ServiceMonitoringDatabaseService {
       });
 
       const summaries = await Promise.all(
-        services.map(service => this.getServiceSummary(service.serviceName))
+        services.map((service: any) => this.getServiceSummary(service.serviceName))
       );
 
       return summaries.filter(Boolean) as ServiceSummary[];
@@ -431,7 +431,7 @@ class ServiceMonitoringDatabaseService {
   private calculateUptime(metrics: any[]): number {
     if (metrics.length === 0) return 100;
 
-    const upMetrics = metrics.filter(m => m.status === 'up' || m.status === 'degraded');
+    const upMetrics = metrics.filter((m: any) => m.status === 'up' || m.status === 'degraded');
     return Math.round((upMetrics.length / metrics.length) * 100 * 100) / 100;
   }
 
@@ -454,11 +454,11 @@ class ServiceMonitoringDatabaseService {
 
     return Array.from(grouped.entries()).map(([intervalKey, intervalMetrics]) => {
       const timestamp = new Date(parseInt(intervalKey));
-      const upMetrics = intervalMetrics.filter(m => m.status === 'up');
-      const responseTimeMetrics = intervalMetrics.filter(m => m.responseTimeMs !== null);
+      const upMetrics = intervalMetrics.filter((m: any) => m.status === 'up');
+      const responseTimeMetrics = intervalMetrics.filter((m: any) => m.responseTimeMs !== null);
       
       const averageResponseTime = responseTimeMetrics.length > 0
-        ? responseTimeMetrics.reduce((sum, m) => sum + m.responseTimeMs, 0) / responseTimeMetrics.length
+        ? responseTimeMetrics.reduce((sum: number, m: any) => sum + m.responseTimeMs, 0) / responseTimeMetrics.length
         : undefined;
 
       const uptime = (upMetrics.length / intervalMetrics.length) * 100;

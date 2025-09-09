@@ -29,11 +29,10 @@ export interface YoutubeDownloadFilters {
   createdBefore?: Date;
 }
 
-export class YoutubeDownloadRepository extends BaseRepository<
-  YoutubeDownload,
-  CreateYoutubeDownloadInput,
-  UpdateYoutubeDownloadInput
-> {
+export class YoutubeDownloadRepository extends BaseRepository<YoutubeDownload> {
+  constructor(prisma: any) {
+    super(prisma);
+  }
   async findById(id: string): Promise<YoutubeDownload | null> {
     try {
       return await this.prisma.youtubeDownload.findUnique({
