@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
 
-// @ts-ignore
 import { AppError, RateLimitError } from '@medianest/shared';
 
 // Re-export AppError for local imports

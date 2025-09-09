@@ -5,7 +5,7 @@ export class AppError extends Error {
   public readonly code: string;
   public readonly details: any;
 
-  constructor(code: string, message: string, statusCode: number = 500, details: any = {}) {
+  constructor(code: string, message: string, statusCode: number | 400 | 401 | 403 | 404 | 409 | 429 | 500 | 502 | 503 | 504 = 500, details: any = {}) {
     super(message);
     this.code = code;
     this.message = message;
