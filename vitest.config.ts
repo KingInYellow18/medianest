@@ -3,14 +3,56 @@ import { resolve } from 'path';
 
 export default defineConfig({
   test: {
-    // Test environment configuration
-    environment: 'node',
-    globals: true,
+    // MODERN VITEST PROJECTS CONFIGURATION (replaces deprecated workspace)
+    projects: [
+      {
+        test: {
+          name: 'frontend',
+          root: './frontend',
+          environment: 'jsdom',
+          globals: true,
+          setupFiles: ['./tests/setup.ts'],
+          include: ['**/*.{test,spec}.{ts,tsx}'],
+          exclude: ['**/node_modules/**', '**/dist/**']
+        }
+      },
+      {
+        test: {
+          name: 'backend',
+          root: './backend',
+          environment: 'node',
+          globals: true,
+          setupFiles: ['../tests/setup-enhanced.ts'],
+          include: ['tests/**/*.test.ts', 'src/**/*.test.ts'],
+          exclude: [
+            'node_modules/**',
+            'dist/**',
+            'coverage/**',
+            '**/*.d.ts',
+            '**/*.config.*',
+            // Exclude slow performance tests from main suite
+            '**/e2e/**',
+            '**/integration/**',
+            '**/performance/**'
+          ]
+        }
+      },
+      {
+        test: {
+          name: 'shared',
+          root: './shared',
+          environment: 'node', 
+          globals: true,
+          include: ['**/*.{test,spec}.{ts,js}'],
+          exclude: ['**/node_modules/**', '**/dist/**']
+        }
+      }
+    ],
     
-    // Timeout configuration
-    testTimeout: 30000,      // 30 seconds for regular tests
-    hookTimeout: 30000,      // 30 seconds for hooks
-    teardownTimeout: 30000,  // 30 seconds for teardown
+    // Global test configuration
+    testTimeout: 30000,
+    hookTimeout: 30000,
+    teardownTimeout: 30000,
     
     // Performance-optimized settings
     pool: 'forks',
@@ -22,28 +64,13 @@ export default defineConfig({
       }
     },
     
-    // Exclude slow performance tests from main suite
-    exclude: [
-      '**/node_modules/**',
-      '**/dist/**',
-      '**/build/**',
-      // Performance tests (run separately)
-      'tests/performance/**',
-      'tests/e2e/e2e-performance.spec.ts',
-      'tests/security/security-performance.test.ts',
-      // Specific slow tests
-      'backend/tests/performance/load-testing-enhanced.test.ts',
-      'backend/tests/performance/load-testing.test.ts',
-      'backend/tests/e2e/end-to-end-workflows.test.ts',
-      'backend/tests/integration/comprehensive-api-integration.test.ts',
-      'backend/tests/security/security-penetration.test.ts',
-      'backend/tests/integration/database-transaction-tests.test.ts'
-    ],
-    
-    // Test discovery patterns
-    include: [
-      '**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'
-    ],
+    // Modern dependency configuration (replaces deprecated deps.external)
+    server: {
+      deps: {
+        external: ['@medianest/shared'],
+        inline: ['@testing-library/jest-dom']
+      }
+    },
     
     // Coverage configuration
     coverage: {
@@ -105,7 +132,8 @@ export default defineConfig({
       '@backend': resolve(__dirname, './backend/src'),
       '@frontend': resolve(__dirname, './frontend/src'),
       '@shared': resolve(__dirname, './shared/src'),
-      '@tests': resolve(__dirname, './tests')
+      '@tests': resolve(__dirname, './tests'),
+      '@medianest/shared': resolve(__dirname, './shared/src')
     }
   },
   
