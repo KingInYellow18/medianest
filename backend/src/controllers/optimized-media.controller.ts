@@ -60,7 +60,6 @@ export class OptimizedMediaController {
   private readonly SEARCH_CACHE_PREFIX = 'media_search:';
   private readonly DETAILS_CACHE_TTL = 3600; // 1 hour
   private readonly DETAILS_CACHE_PREFIX = 'media_details:';
-  private readonly REQUEST_STATS_TTL = 60; // 1 minute
 
   /**
    * High-performance media search with aggressive caching
@@ -130,8 +129,12 @@ export class OptimizedMediaController {
     try {
       const { mediaType, tmdbId } = req.params;
 
-      if (!['movie', 'tv'].includes(mediaType)) {
+      if (!mediaType || !['movie', 'tv'].includes(mediaType)) {
         throw new AppError('VALIDATION_ERROR', 'Invalid media type', 400);
+      }
+
+      if (!tmdbId) {
+        throw new AppError('VALIDATION_ERROR', 'TMDB ID is required', 400);
       }
 
       const tmdbIdNum = parseInt(tmdbId, 10);

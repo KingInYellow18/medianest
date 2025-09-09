@@ -97,8 +97,6 @@ export interface OverseerrApiConfig extends ApiClientConfig {
 }
 
 export class OverseerrApiClient extends BaseApiClient {
-  private _overseerrUrl: string;
-  private _apiKey: string;
 
   constructor(config: OverseerrApiConfig) {
     super('Overseerr', {
@@ -110,8 +108,6 @@ export class OverseerrApiClient extends BaseApiClient {
       },
     });
 
-    this._overseerrUrl = config.overseerrUrl;
-    this._apiKey = config.apiKey;
   }
 
   async getStatus(): Promise<OverseerrStatus> {

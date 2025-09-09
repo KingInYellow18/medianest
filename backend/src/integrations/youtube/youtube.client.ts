@@ -209,7 +209,7 @@ export class YouTubeClient extends BaseServiceClient {
   /**
    * Build format string for yt-dlp
    */
-  private buildFormatString(quality: string, format: string): string {
+  private buildFormatString(quality: string, _format: string): string {
     if (quality === 'best') {
       return 'bestvideo+bestaudio/best';
     }

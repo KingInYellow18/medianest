@@ -71,7 +71,7 @@ class NotificationDatabaseService {
           actions: input.actions ? JSON.stringify(input.actions) : null,
           persistent: input.persistent || false,
           expiresAt: input.expiresAt,
-          metadata: input.metadata ? JSON.stringify(input.metadata) : null,
+          metadata: input.metadata ? JSON.stringify(input.metadata) : undefined,
           createdAt: new Date(),
         },
       });
@@ -379,7 +379,7 @@ class NotificationDatabaseService {
           actions: input.actions ? JSON.stringify(input.actions) : null,
           persistent: input.persistent || false,
           expiresAt: input.expiresAt,
-          metadata: input.metadata ? JSON.stringify(input.metadata) : null,
+          metadata: input.metadata ? JSON.stringify(input.metadata) : undefined,
           createdAt: new Date(),
         },
       });

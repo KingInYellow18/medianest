@@ -18,7 +18,7 @@ export interface RateLimiterOptions {
 
 // Context7 Pattern: Optimized Rate Limiter with Connection Pooling and Caching
 export function rateLimiter(options: RateLimiterOptions) {
-  const { windowMs, max, keyGenerator, message } = options;
+  const { windowMs, max, keyGenerator } = options;
 
   // Context7 Pattern: Cache key prefix for better Redis performance
   const keyPrefix = 'rl:';

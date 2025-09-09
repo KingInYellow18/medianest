@@ -74,7 +74,6 @@ export class UptimeKumaClient extends EventEmitter {
   private lastHeartbeat: Date | null = null;
   private circuitBreaker: CircuitBreaker;
   // Message ID counter for WebSocket communication
-  private messageId = 0;
 
   private monitors: Map<number, UptimeKumaMonitor> = new Map();
   private latestHeartbeats: Map<number, UptimeKumaHeartbeat> = new Map();

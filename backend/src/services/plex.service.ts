@@ -11,7 +11,6 @@ import type { Brand } from '../types/context7-optimizations';
 
 // Context7 Pattern: Branded types for type safety
 type PlexUserId = Brand<string, 'PlexUserId'>;
-type CacheKey = Brand<string, 'CacheKey'>;
 
 // Context7 Pattern: Readonly configuration
 interface PlexServiceConfig {

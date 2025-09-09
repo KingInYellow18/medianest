@@ -128,7 +128,6 @@ export default defineConfig({
   esbuild: {
     target: 'esnext',
     sourcemap: false,
-    minify: false,
     jsx: 'automatic',
   },
   

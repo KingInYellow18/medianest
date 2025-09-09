@@ -27,8 +27,6 @@ export class AuthCacheService {
   private readonly USER_CACHE_TTL = 120; // 2 minutes (reduced for security)
   private readonly USER_CACHE_PREFIX = 'user:auth:';
   private readonly CACHE_VERSION = 'v3'; // Incremented for security fixes
-  private readonly TOKEN_CACHE_PREFIX = 'token:auth:';
-  private readonly SESSION_CACHE_PREFIX = 'session:auth:';
 
   /**
    * Get cached user data with fallback to database
@@ -149,7 +147,7 @@ export const authCacheService = new AuthCacheService();
  * High-performance authentication middleware with caching
  * Replaces the standard authenticate middleware for critical paths
  */
-export function fastAuthenticate(req: Request, res: Response, next: NextFunction): void {
+export function fastAuthenticate(req: Request, _res: Response, next: NextFunction): void {
   const authReq = req as AuthenticatedRequest;
 
   // Skip if already authenticated by previous middleware

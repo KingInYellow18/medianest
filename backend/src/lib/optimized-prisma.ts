@@ -1,11 +1,10 @@
-import { PrismaClient, Prisma } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { createHash } from 'crypto';
 
 // Optimized Prisma client with connection pooling and caching
 class OptimizedPrismaClient {
   private static instance: PrismaClient;
   private static queryCache = new Map<string, { data: any; timestamp: number }>();
-  private static readonly CACHE_TTL = 300000; // 5 minutes
 
   static getInstance(): PrismaClient {
     if (!OptimizedPrismaClient.instance) {
@@ -28,6 +27,7 @@ class OptimizedPrismaClient {
     return OptimizedPrismaClient.instance;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private static generateCacheKey(params: any): string {
     const keyData = {
       model: params.model,
@@ -37,6 +37,7 @@ class OptimizedPrismaClient {
     return createHash('md5').update(JSON.stringify(keyData)).digest('hex');
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private static clearModelCache(model?: string) {
     if (model) {
       for (const [key] of OptimizedPrismaClient.queryCache) {

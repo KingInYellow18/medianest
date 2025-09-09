@@ -388,3 +388,4 @@ Never save working files, text/mds and tests to the root folder.
 Always use context7 when I need code generation, setup or configuration steps, or
 library/API documentation. This means you should automatically use the Context7 MCP
 tools to resolve library id and get library docs without me having to explicitly ask.
+Always use Serena when code generation, project setup/configuration, symbol-level code edits, or semantic code/documentation retrieval is required. This means Serena MCP Server tools should be automatically invoked to activate projects, plan or refactor code, search for related code symbols, edit at the symbol level, or fetch codebase docs, without requiring explicit requests for Serena actions. Serena tools should resolve entities, context, and documentation needs natively in code and project files whenever possible.

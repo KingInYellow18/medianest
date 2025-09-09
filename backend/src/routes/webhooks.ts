@@ -66,7 +66,7 @@ router.post('/generic/:source', async (req: Request, res: Response) => {
   const { source } = req.params;
   
   // Validate source parameter
-  if (!/^[a-zA-Z0-9_-]+$/.test(source)) {
+  if (!source || !/^[a-zA-Z0-9_-]+$/.test(source)) {
     return res.status(400).json({ error: 'Invalid source parameter' });
   }
   

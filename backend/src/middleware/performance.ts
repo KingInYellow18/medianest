@@ -40,7 +40,7 @@ export function memoryMonitor() {
   let lastCheck = Date.now();
   const CHECK_INTERVAL = 30000; // 30 seconds
 
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (_req: Request, _res: Response, next: NextFunction) => {
     const now = Date.now();
 
     // Context7 Pattern: Throttled memory monitoring to reduce overhead
@@ -71,7 +71,7 @@ export function memoryMonitor() {
 
 // Context7 Pattern: Response optimization middleware
 export function responseOptimization() {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (_req: Request, res: Response, next: NextFunction) => {
     // Context7 Pattern: Set efficient JSON replacer for production
     if (process.env.NODE_ENV === 'production') {
       const originalJson = res.json;
@@ -80,7 +80,7 @@ export function responseOptimization() {
         return originalJson.call(
           this,
           JSON.parse(
-            JSON.stringify(obj, (key, value) => {
+            JSON.stringify(obj, (_key, value) => {
               return value === null || value === undefined ? undefined : value;
             })
           )

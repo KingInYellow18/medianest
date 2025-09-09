@@ -5,7 +5,7 @@ import { Request, Response, NextFunction } from 'express';
  * Implements comprehensive security headers based on OWASP recommendations
  */
 export function securityHeadersMiddleware() {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (_req: Request, res: Response, next: NextFunction) => {
     // Content Security Policy - Strict policy to prevent XSS
     const cspDirectives = [
       "default-src 'self'",

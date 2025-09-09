@@ -34,7 +34,7 @@ export function extractToken(req: Request): string {
  * Validate token blacklist status and log security events
  */
 export function validateTokenBlacklist(
-  token: string,
+  _token: string,
   tokenMetadata: Record<string, unknown>,
   context: TokenValidationContext
 ): void {

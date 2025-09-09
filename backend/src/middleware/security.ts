@@ -5,7 +5,7 @@ import { logger } from '../utils/logger';
 
 // CSRF Protection Middleware
 export function csrfProtection() {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     // Skip CSRF for GET requests and safe methods
     if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
       return next();
@@ -47,7 +47,7 @@ export function generateCSRFToken(req: Request): string {
 
 // Security Headers Middleware
 export function securityHeaders() {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (_req: Request, res: Response, next: NextFunction) => {
     // Content Security Policy
     res.setHeader(
       'Content-Security-Policy',
@@ -84,7 +84,7 @@ export function securityHeaders() {
 
 // Input Sanitization Middleware
 export function sanitizeInput() {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     // Sanitize request body
     if (req.body && typeof req.body === 'object') {
       req.body = sanitizeObject(req.body);
@@ -144,7 +144,7 @@ function sanitizeString(input: string): string {
 export function requestSizeLimit(maxSize: string = '10mb') {
   const maxSizeBytes = parseSize(maxSize);
 
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     const contentLength = parseInt(req.get('content-length') || '0', 10);
 
     if (contentLength > maxSizeBytes) {
@@ -169,7 +169,7 @@ function parseSize(size: string): number {
     throw new Error('Invalid size format');
   }
 
-  const value = parseFloat(match[1]);
+  const value = parseFloat(match[1] ?? '0');
   const unit = (match[2] || 'b').toLowerCase();
 
   const units: Record<string, number> = {
@@ -184,7 +184,7 @@ function parseSize(size: string): number {
 
 // IP Whitelist Middleware
 export function ipWhitelist(allowedIPs: string[]) {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     const clientIP = req.ip || req.connection.remoteAddress;
 
     if (!clientIP || !allowedIPs.includes(clientIP)) {
@@ -203,7 +203,7 @@ export function ipWhitelist(allowedIPs: string[]) {
 
 // Session Security Middleware
 export function sessionSecurity() {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     // Regenerate session ID on authentication
     if (req.user && (req as any).session) {
       (req as any).session.regenerate((err: any) => {
@@ -223,7 +223,7 @@ export function sessionSecurity() {
 
 // Request Validation Middleware
 export function validateRequest() {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     // Check for suspicious patterns
     const suspiciousPatterns = [
       /\.\.\//g, // Directory traversal

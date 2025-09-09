@@ -125,13 +125,13 @@ export function createEnhancedRateLimit(
     },
   };
 
-  const baseConfig = typeConfigs[type || 'default'] || typeConfigs.default;
+  const baseConfig = typeConfigs[type || 'default'] ?? typeConfigs.default;
   const options: EnhancedRateLimitOptions = {
     ...baseConfig,
     ...customOptions,
     standardHeaders: true,
     legacyHeaders: false,
-    store: new RedisRateLimitStore(baseConfig.windowMs),
+    store: new RedisRateLimitStore(baseConfig?.windowMs ?? 60000),
     keyGenerator: customOptions?.keyGenerator || defaultKeyGenerator,
   };
 

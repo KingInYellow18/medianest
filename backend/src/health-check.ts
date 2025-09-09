@@ -9,9 +9,6 @@
 import * as http from 'http';
 import { logger } from './utils/logger';
 
-interface HealthCheckResponse {
-  statusCode: number;
-}
 
 interface HealthCheckError extends Error {
   code?: string;
