@@ -1,0 +1,359 @@
+/* MediaNest Visual Documentation Styles */
+
+/* Mermaid Diagram Custom Styles */
+.mermaid {
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 2rem 0;
+  padding: 1rem;
+  background: var(--md-code-bg-color);
+  border-radius: 0.5rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+}
+
+/* Dark mode adjustments */
+[data-md-color-scheme="slate"] .mermaid {
+  background: var(--md-code-bg-color);
+  border-color: var(--md-default-fg-color--lightest);
+}
+
+/* Responsive diagram containers */
+@media screen and (max-width: 768px) {
+  .mermaid {
+    font-size: 12px;
+    padding: 0.5rem;
+    margin: 1rem 0;
+  }
+  
+  .mermaid svg {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* Print styles for diagrams */
+@media print {
+  .mermaid {
+    background: white !important;
+    border: 1px solid #000;
+    page-break-inside: avoid;
+  }
+  
+  .mermaid svg {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+}
+
+/* Accessibility enhancements */
+.mermaid svg text {
+  font-family: var(--md-text-font);
+  font-size: 14px !important;
+  fill: var(--md-default-fg-color) !important;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .mermaid {
+    border: 2px solid var(--md-default-fg-color);
+    background: var(--md-default-bg-color);
+  }
+}
+
+/* Custom diagram theme colors */
+:root {
+  --diagram-primary: #1976d2;
+  --diagram-secondary: #7b1fa2;
+  --diagram-success: #388e3c;
+  --diagram-warning: #f57c00;
+  --diagram-error: #d32f2f;
+  --diagram-info: #0277bd;
+}
+
+/* Diagram legend styling */
+.diagram-legend {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--md-admonition-bg-color);
+  border-left: 4px solid var(--md-accent-fg-color);
+  border-radius: 0 0.25rem 0.25rem 0;
+}
+
+.legend-item {
+  display: inline-block;
+  margin: 0.25rem 0.5rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.legend-frontend {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.legend-backend {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.legend-database {
+  background: #e8f5e8;
+  color: #388e3c;
+}
+
+.legend-external {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.legend-security {
+  background: #ffebee;
+  color: #d32f2f;
+}
+
+/* Interactive diagram elements */
+.diagram-interactive {
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.diagram-interactive:hover {
+  opacity: 0.8;
+}
+
+/* Diagram table styling */
+.diagram-table {
+  width: 100%;
+  margin: 1rem 0;
+  border-collapse: collapse;
+  background: var(--md-default-bg-color);
+}
+
+.diagram-table th,
+.diagram-table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.diagram-table th {
+  background: var(--md-code-bg-color);
+  font-weight: 600;
+  color: var(--md-primary-fg-color);
+}
+
+/* Performance metrics styling */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.metric-card {
+  padding: 1rem;
+  background: var(--md-code-bg-color);
+  border-radius: 0.5rem;
+  border-left: 4px solid var(--md-accent-fg-color);
+  text-align: center;
+}
+
+.metric-value {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--md-accent-fg-color);
+}
+
+.metric-label {
+  font-size: 0.9rem;
+  color: var(--md-default-fg-color--light);
+  margin-top: 0.25rem;
+}
+
+/* Sequence diagram enhancements */
+.sequence-actor {
+  background: var(--diagram-primary) !important;
+  color: white !important;
+}
+
+.sequence-message {
+  stroke: var(--diagram-primary) !important;
+}
+
+/* Flowchart node styling */
+.flowchart-node {
+  font-family: var(--md-text-font) !important;
+  font-size: 14px !important;
+}
+
+/* ERD styling */
+.er-entityBox {
+  fill: var(--md-code-bg-color) !important;
+  stroke: var(--md-default-fg-color) !important;
+}
+
+.er-relationshipLabel {
+  fill: var(--md-default-fg-color) !important;
+  font-family: var(--md-text-font) !important;
+}
+
+/* Gantt chart styling */
+.gantt-task {
+  fill: var(--diagram-primary) !important;
+}
+
+.gantt-task-text {
+  fill: white !important;
+  font-family: var(--md-text-font) !important;
+}
+
+/* State diagram styling */
+.state-box {
+  fill: var(--md-code-bg-color) !important;
+  stroke: var(--md-default-fg-color) !important;
+}
+
+/* Journey diagram styling */
+.journey-section {
+  fill: var(--diagram-info) !important;
+}
+
+/* Loading state for diagrams */
+.mermaid-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  background: var(--md-code-bg-color);
+  border-radius: 0.5rem;
+  color: var(--md-default-fg-color--light);
+}
+
+.mermaid-loading::after {
+  content: "Loading diagram...";
+  font-style: italic;
+}
+
+/* Error state for diagrams */
+.mermaid-error {
+  padding: 1rem;
+  background: var(--md-typeset-color);
+  border: 2px dashed var(--diagram-error);
+  border-radius: 0.5rem;
+  text-align: center;
+  color: var(--diagram-error);
+}
+
+.mermaid-error::before {
+  content: "⚠️ ";
+  font-size: 1.5rem;
+}
+
+/* Zoom controls for complex diagrams */
+.diagram-controls {
+  position: relative;
+  display: inline-block;
+  margin: 0.5rem 0;
+}
+
+.zoom-button {
+  background: var(--md-accent-fg-color);
+  color: white;
+  border: none;
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  margin: 0 0.25rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background-color 0.2s ease;
+}
+
+.zoom-button:hover {
+  background: var(--md-accent-fg-color--transparent);
+}
+
+/* Fullscreen diagram modal */
+.diagram-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.diagram-modal .mermaid {
+  max-width: 90vw;
+  max-height: 90vh;
+  background: white;
+  margin: 0;
+  overflow: auto;
+}
+
+.close-modal {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: var(--md-accent-fg-color);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* Accessibility improvements */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Focus indicators for interactive elements */
+.diagram-interactive:focus {
+  outline: 2px solid var(--md-accent-fg-color);
+  outline-offset: 2px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .diagram-interactive,
+  .zoom-button {
+    transition: none;
+  }
+}
+
+/* Custom scrollbars for diagram containers */
+.mermaid::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.mermaid::-webkit-scrollbar-track {
+  background: var(--md-default-fg-color--lightest);
+  border-radius: 4px;
+}
+
+.mermaid::-webkit-scrollbar-thumb {
+  background: var(--md-accent-fg-color);
+  border-radius: 4px;
+}
+
+.mermaid::-webkit-scrollbar-thumb:hover {
+  background: var(--md-accent-fg-color--transparent);
+}

@@ -1,0 +1,81 @@
+/* API Documentation Styles */
+.swagger-ui {
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.api-endpoint {
+  background: var(--md-code-bg-color);
+  border-left: 4px solid var(--md-primary-fg-color);
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 0.2rem;
+}
+
+.api-method {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.2rem;
+  font-weight: bold;
+  margin-right: 0.5rem;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+
+.api-method.get { background: #61affe; color: white; }
+.api-method.post { background: #49cc90; color: white; }
+.api-method.put { background: #fca130; color: white; }
+.api-method.delete { background: #f93e3e; color: white; }
+.api-method.patch { background: #50e3c2; color: white; }
+
+.api-response-example {
+  background: var(--md-code-bg-color);
+  padding: 1rem;
+  border-radius: 0.2rem;
+  margin: 1rem 0;
+  overflow-x: auto;
+}
+
+.api-coverage-badge {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  background: #4caf50;
+  color: white;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.api-section-header {
+  background: linear-gradient(135deg, var(--md-primary-fg-color), var(--md-accent-fg-color));
+  color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  margin: 2rem 0 1rem 0;
+}
+
+.api-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.api-table th,
+.api-table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--md-default-fg-color--lighter);
+}
+
+.api-table th {
+  background: var(--md-primary-fg-color--light);
+  font-weight: bold;
+}
+
+.interactive-api-explorer {
+  background: var(--md-code-bg-color);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin: 2rem 0;
+}
