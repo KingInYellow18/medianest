@@ -6,20 +6,30 @@ export default defineConfig({
     // MODERN VITEST PROJECTS CONFIGURATION (replaces deprecated workspace)
     projects: [
       {
+        name: 'frontend',
+        root: './frontend',
         test: {
-          name: 'frontend',
-          root: './frontend',
           environment: 'jsdom',
           globals: true,
           setupFiles: ['./tests/setup.ts'],
           include: ['**/*.{test,spec}.{ts,tsx}'],
           exclude: ['**/node_modules/**', '**/dist/**']
+        },
+        resolve: {
+          alias: {
+            '@': resolve(__dirname, './frontend/src'),
+            '@/components': resolve(__dirname, './frontend/src/components'),
+            '@/utils': resolve(__dirname, './frontend/src/utils'),
+            '@/hooks': resolve(__dirname, './frontend/src/hooks'),
+            '@/types': resolve(__dirname, './frontend/src/types'),
+            '@medianest/shared': resolve(__dirname, './shared/src')
+          }
         }
       },
       {
+        name: 'backend',
+        root: './backend',
         test: {
-          name: 'backend',
-          root: './backend',
           environment: 'node',
           globals: true,
           setupFiles: ['../tests/setup-enhanced.ts'],
@@ -35,16 +45,36 @@ export default defineConfig({
             '**/integration/**',
             '**/performance/**'
           ]
+        },
+        resolve: {
+          alias: {
+            '@': resolve(__dirname, './backend/src'),
+            '@/config': resolve(__dirname, './backend/src/config'),
+            '@/controllers': resolve(__dirname, './backend/src/controllers'),
+            '@/middleware': resolve(__dirname, './backend/src/middleware'),
+            '@/repositories': resolve(__dirname, './backend/src/repositories'),
+            '@/services': resolve(__dirname, './backend/src/services'),
+            '@/utils': resolve(__dirname, './backend/src/utils'),
+            '@/types': resolve(__dirname, './backend/src/types'),
+            '@/routes': resolve(__dirname, './backend/src/routes'),
+            '@medianest/shared': resolve(__dirname, './shared/src')
+          }
         }
       },
       {
+        name: 'shared',
+        root: './shared',
         test: {
-          name: 'shared',
-          root: './shared',
           environment: 'node', 
           globals: true,
           include: ['**/*.{test,spec}.{ts,js}'],
           exclude: ['**/node_modules/**', '**/dist/**']
+        },
+        resolve: {
+          alias: {
+            '@': resolve(__dirname, './shared/src'),
+            '@medianest/shared': resolve(__dirname, './shared/src')
+          }
         }
       }
     ],
@@ -125,7 +155,7 @@ export default defineConfig({
     bail: process.env.CI ? 1 : 0
   },
   
-  // Resolve configuration
+  // Global resolve configuration (fallback for non-project specific imports)
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),

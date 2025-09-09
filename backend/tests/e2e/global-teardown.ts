@@ -77,7 +77,9 @@ async function generateTestReport(): Promise<void> {
     const report = {
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'test',
-      baseUrl: process.env.BASE_URL || 'http://localhost:3000',
+      import { getTestConfig } from '../config/test-constants';
+      const testConfig = getTestConfig('e2e');
+      baseUrl: process.env.BASE_URL || testConfig.server.frontendUrl,
       testEndTime: Date.now(),
       databaseStats: await dbHelpers.getDatabaseStats(),
       cleanup: {

@@ -107,15 +107,17 @@ export default defineConfig({
       '**/performance/**'    // Exclude performance tests
     ],
     
-    // **DEPENDENCY OPTIMIZATIONS**
-    deps: {
-      external: [
-        '@prisma/client', 
-        'ioredis', 
-        'redis',
-        'bcrypt',
-        'jsonwebtoken'
-      ],
+    // **DEPENDENCY OPTIMIZATIONS** (Updated for Vitest 3.x)
+    server: {
+      deps: {
+        external: [
+          '@prisma/client', 
+          'ioredis', 
+          'redis',
+          'bcrypt',
+          'jsonwebtoken'
+        ],
+      }
     },
     
     // **TEST ENVIRONMENT**

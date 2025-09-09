@@ -93,6 +93,32 @@ export class CacheService {
   }
 
   /**
+   * Check if key exists in cache
+   */
+  async exists(key: string): Promise<boolean> {
+    const [exists, error] = await handleAsync(
+      () => redisClient.exists(key),
+      `Cache exists error for key: ${key}`
+    );
+
+    if (error) return false;
+    return Boolean(exists);
+  }
+
+  /**
+   * Get TTL (time to live) for a cache key
+   */
+  async ttl(key: string): Promise<number> {
+    const [ttl, error] = await handleAsync(
+      () => redisClient.ttl(key),
+      `Cache TTL error for key: ${key}`
+    );
+
+    if (error) return -1;
+    return ttl || -1;
+  }
+
+  /**
    * Get cache info
    */
   async getInfo(): Promise<{

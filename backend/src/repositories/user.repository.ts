@@ -235,4 +235,64 @@ export class UserRepository extends BaseRepository<User> {
       this.handleDatabaseError(error);
     }
   }
+
+  async countActiveUsers(): Promise<number> {
+    try {
+      // Define active users as those who logged in within last 30 days
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      return await this.prisma.user.count({
+        where: {
+          lastLoginAt: {
+            gte: thirtyDaysAgo,
+          },
+        },
+      });
+    } catch (error: CatchError) {
+      this.handleDatabaseError(error);
+    }
+  }
+
+  async countRecentUsers(): Promise<number> {
+    try {
+      // Define recent users as those who registered within last 7 days
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      return await this.prisma.user.count({
+        where: {
+          createdAt: {
+            gte: sevenDaysAgo,
+          },
+        },
+      });
+    } catch (error: CatchError) {
+      this.handleDatabaseError(error);
+    }
+  }
+
+  async findRecent(options: { limit?: number; orderBy?: any } = {}): Promise<User[]> {
+    try {
+      const limit = options.limit || 10;
+      
+      const users = await this.prisma.user.findMany({
+        take: limit,
+        orderBy: options.orderBy || { createdAt: 'desc' },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          plexUsername: true,
+          role: true,
+          createdAt: true,
+          lastLoginAt: true,
+        },
+      });
+
+      return users;
+    } catch (error: CatchError) {
+      this.handleDatabaseError(error);
+    }
+  }
 }

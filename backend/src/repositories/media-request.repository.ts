@@ -319,4 +319,73 @@ export class MediaRequestRepository extends BaseRepository<
       this.handleDatabaseError(error);
     }
   }
+
+  async getGlobalCounts(): Promise<Record<string, number> & { total: number }> {
+    try {
+      const counts = await this.prisma.mediaRequest.groupBy({
+        by: ['status'],
+        _count: true,
+      });
+
+      const statusCounts = counts.reduce((acc, item) => {
+        acc[item.status] = item._count;
+        return acc;
+      }, {} as Record<string, number>);
+
+      const total = Object.values(statusCounts).reduce((sum, count) => sum + count, 0);
+
+      return {
+        ...statusCounts,
+        total,
+        pending: statusCounts.pending || 0,
+        approved: statusCounts.approved || 0,
+        available: statusCounts.available || 0,
+        declined: statusCounts.declined || 0,
+        failed: statusCounts.failed || 0,
+      };
+    } catch (error: CatchError) {
+      this.handleDatabaseError(error);
+    }
+  }
+
+  async findRecent(options: { limit?: number; orderBy?: any } = {}): Promise<MediaRequest[]> {
+    try {
+      const limit = options.limit || 10;
+      
+      return await this.prisma.mediaRequest.findMany({
+        take: limit,
+        orderBy: options.orderBy || { createdAt: 'desc' },
+        include: {
+          requestedBy: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              plexUsername: true,
+            },
+          },
+        },
+      });
+    } catch (error: CatchError) {
+      // If requestedBy doesn't exist, fall back to user relation
+      try {
+        return await this.prisma.mediaRequest.findMany({
+          take: options.limit || 10,
+          orderBy: options.orderBy || { createdAt: 'desc' },
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                name: true,
+                plexUsername: true,
+              },
+            },
+          },
+        });
+      } catch (fallbackError: CatchError) {
+        this.handleDatabaseError(fallbackError);
+      }
+    }
+  }
 }

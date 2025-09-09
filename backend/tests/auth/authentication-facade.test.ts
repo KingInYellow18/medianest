@@ -21,6 +21,56 @@ vi.mock('../../src/config/config.service', () => ({
   },
 }));
 
+// Mock JWT facade
+vi.mock('../../src/auth/jwt-facade', () => ({
+  jwtFacade: {
+    generateToken: vi.fn().mockReturnValue('test-jwt-token'),
+    verifyToken: vi.fn().mockReturnValue({
+      userId: 'user-123',
+      email: 'test@example.com',
+      role: 'user',
+      sessionId: 'test-session-id',
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 3600,
+    }),
+    generateRefreshToken: vi.fn().mockReturnValue('test-refresh-token'),
+    verifyRefreshToken: vi.fn().mockReturnValue({
+      userId: 'user-123',
+      sessionId: 'test-session-id',
+    }),
+    getTokenMetadata: vi.fn().mockReturnValue({
+      userId: 'user-123',
+      sessionId: 'test-session-id',
+      tokenId: 'test-token-id',
+    }),
+    isTokenBlacklisted: vi.fn().mockReturnValue(false),
+    blacklistToken: vi.fn(),
+    shouldRotateToken: vi.fn().mockReturnValue(false),
+    rotateTokenIfNeeded: vi.fn().mockReturnValue(null),
+  },
+}));
+
+// Mock auth utilities
+vi.mock('../../src/middleware/auth/token-validator', () => ({
+  extractTokenOptional: vi.fn(),
+  validateToken: vi.fn(),
+}));
+
+vi.mock('../../src/middleware/auth/user-validator', () => ({
+  validateUser: vi.fn(),
+  validateUserOptional: vi.fn(),
+}));
+
+vi.mock('../../src/middleware/auth/device-session-manager', () => ({
+  validateSessionToken: vi.fn().mockResolvedValue(undefined),
+  registerAndAssessDevice: vi.fn().mockResolvedValue({
+    deviceId: 'device-123',
+    isNewDevice: false,
+    riskScore: 0.1,
+  }),
+  updateSessionActivity: vi.fn().mockResolvedValue(undefined),
+}));
+
 describe('AuthenticationFacade', () => {
   let authFacade: AuthenticationFacade;
   let mockUserRepository: any;
@@ -99,7 +149,25 @@ describe('AuthenticationFacade', () => {
   describe('authenticate', () => {
     it('should successfully authenticate a valid request', async () => {
       // Mock successful authentication flow
-      mockUserRepository.findById.mockResolvedValue({
+      const { validateToken } = await import('../../src/middleware/auth/token-validator');
+      const { validateUser } = await import('../../src/middleware/auth/user-validator');
+      const { registerAndAssessDevice } = await import('../../src/middleware/auth/device-session-manager');
+      
+      vi.mocked(validateToken).mockReturnValue({
+        token: 'test-jwt-token',
+        payload: {
+          userId: 'user-123',
+          email: 'test@example.com',
+          role: 'user',
+          sessionId: 'test-session-id',
+        },
+        metadata: {
+          userId: 'user-123',
+          sessionId: 'test-session-id',
+        },
+      } as any);
+      
+      vi.mocked(validateUser).mockResolvedValue({
         id: 'user-123',
         email: 'test@example.com',
         name: 'Test User',
@@ -107,11 +175,9 @@ describe('AuthenticationFacade', () => {
         status: 'active',
         plexId: 'plex-123',
         plexUsername: 'testuser',
-        createdAt: new Date(),
-        updatedAt: new Date(),
       } as any);
-
-      mockDeviceSessionService.registerDevice.mockResolvedValue({
+      
+      vi.mocked(registerAndAssessDevice).mockResolvedValue({
         deviceId: 'device-123',
         isNewDevice: false,
         riskScore: 0.1,
@@ -161,7 +227,11 @@ describe('AuthenticationFacade', () => {
 
   describe('authenticateOptional', () => {
     it('should return user data for valid token', async () => {
-      mockUserRepository.findById.mockResolvedValue({
+      const { extractTokenOptional } = await import('../../src/middleware/auth/token-validator');
+      const { validateUserOptional } = await import('../../src/middleware/auth/user-validator');
+      
+      vi.mocked(extractTokenOptional).mockReturnValue('test-jwt-token');
+      vi.mocked(validateUserOptional).mockResolvedValue({
         id: 'user-123',
         email: 'test@example.com',
         name: 'Test User',
@@ -200,10 +270,11 @@ describe('AuthenticationFacade', () => {
     });
 
     it('should return null for inactive user', async () => {
-      mockUserRepository.findById.mockResolvedValue({
-        id: 'user-123',
-        status: 'inactive',
-      } as any);
+      const { extractTokenOptional } = await import('../../src/middleware/auth/token-validator');
+      const { validateUserOptional } = await import('../../src/middleware/auth/user-validator');
+      
+      vi.mocked(extractTokenOptional).mockReturnValue('test-jwt-token');
+      vi.mocked(validateUserOptional).mockResolvedValue(null); // Inactive users return null
 
       const result = await authFacade.authenticateOptional(mockRequest as Request);
 

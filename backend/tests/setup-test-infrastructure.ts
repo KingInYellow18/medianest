@@ -389,7 +389,10 @@ export class TestInfrastructure {
     process.env.REDIS_URL = 'redis://localhost:6380/0';
     process.env.PLEX_CLIENT_ID = 'test-plex-client-id';
     process.env.PLEX_CLIENT_SECRET = 'test-plex-client-secret';
-    process.env.FRONTEND_URL = 'http://localhost:3000';
+    // Use centralized test configuration
+    import { setTestEnvironment } from './config/test-constants';
+    const config = setTestEnvironment('integration');
+    process.env.FRONTEND_URL = config.server.frontendUrl;
     process.env.LOG_LEVEL = 'silent';
   }
 }

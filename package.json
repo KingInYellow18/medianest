@@ -80,7 +80,7 @@
     "docker:build:dev": "docker build -f Dockerfile.optimized --target development -t medianest:dev .",
     "docker:build:test": "docker build -f Dockerfile.optimized --target test -t medianest:test .",
     "docker:run": "docker run -p 8080:8080 medianest:latest",
-    "docker:compose": "docker-compose up -d",
+    "docker:compose": "docker compose up -d",
     "docker:docs": "docker run --rm -v \"$PWD\":/docs squidfunk/mkdocs-material build",
     "analyze": "npm run analyze:bundle && npm run analyze:performance",
     "analyze:bundle": "cd frontend && npm run analyze:bundle",

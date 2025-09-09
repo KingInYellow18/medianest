@@ -185,12 +185,19 @@ describe('JWTFacade', () => {
     });
 
     it('should throw AppError for invalid token', () => {
-      // Mock jwt.verify to throw an error
-      vi.spyOn(jwt, 'verify').mockImplementation(() => {
+      // Mock verifyWithSecret to throw JsonWebTokenError
+      vi.spyOn(jwtFacade as any, 'verifyWithSecret').mockImplementation(() => {
         throw new jwt.JsonWebTokenError('invalid token');
       });
 
-      expect(() => jwtFacade.verifyToken('invalid.token.here')).toThrow(AppError);
+      try {
+        jwtFacade.verifyToken('invalid.token.here');
+        throw new Error('Expected an error to be thrown');
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(AppError);
+        expect(error.message).toBe('Invalid token');
+        expect(error.statusCode).toBe(401);
+      }
     });
 
     it('should throw AppError for expired token', () => {
@@ -210,8 +217,8 @@ describe('JWTFacade', () => {
     });
 
     it('should validate IP address when provided', () => {
-      // Mock jwt.verify to return token with IP address
-      vi.spyOn(jwt, 'verify').mockReturnValue({
+      // Mock verifyWithSecret to return token with IP address
+      vi.spyOn(jwtFacade as any, 'verifyWithSecret').mockReturnValue({
         userId: 'user-123',
         ipAddress: '192.168.1.1',
         iat: Math.floor(Date.now() / 1000),
@@ -224,9 +231,14 @@ describe('JWTFacade', () => {
       expect(() => jwtFacade.verifyToken(token, { ipAddress: '192.168.1.1' })).not.toThrow();
 
       // Should fail with different IP
-      expect(() => jwtFacade.verifyToken(token, { ipAddress: '192.168.1.2' })).toThrow(
-        'Token IP mismatch'
-      );
+      try {
+        jwtFacade.verifyToken(token, { ipAddress: '192.168.1.2' });
+        throw new Error('Expected an error to be thrown');
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(AppError);
+        expect(error.message).toBe('Token IP mismatch');
+        expect(error.statusCode).toBe(401);
+      }
     });
   });
 
@@ -290,7 +302,14 @@ describe('JWTFacade', () => {
         throw new jwt.JsonWebTokenError('invalid token');
       });
 
-      expect(() => jwtFacade.verifyRefreshToken('invalid-token')).toThrow(AppError);
+      try {
+        jwtFacade.verifyRefreshToken('invalid-token');
+        throw new Error('Expected an error to be thrown');
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(AppError);
+        expect(error.message).toBe('Invalid refresh token');
+        expect(error.statusCode).toBe(401);
+      }
     });
 
     it('should throw error for non-refresh token type', () => {

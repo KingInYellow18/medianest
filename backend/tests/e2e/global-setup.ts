@@ -128,7 +128,9 @@ async function setupUserAuthState(browser: any, stateName: string, credentials: 
 
   try {
     // Navigate to login page
-    await page.goto(process.env.BASE_URL || 'http://localhost:3000/login');
+    import { getTestConfig } from '../config/test-constants';
+    const testConfig = getTestConfig('e2e');
+    await page.goto(process.env.BASE_URL || `${testConfig.server.frontendUrl}/login`);
     
     // Fill login form
     await page.fill('[data-testid="email-input"]', credentials.email);

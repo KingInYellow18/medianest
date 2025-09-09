@@ -5,7 +5,7 @@ import { AuthController, authController } from '../../../src/controllers/auth.co
 import { userRepository } from '../../../src/repositories/instances';
 import { encryptionService } from '../../../src/services/encryption.service';
 import { jwtService } from '../../../src/services/jwt.service';
-import { AppError } from '../../../src/utils/errors';
+import { AppError } from '@medianest/shared';
 import { logger } from '../../../src/utils/logger';
 import { config } from '../../../src/config';
 
@@ -150,12 +150,13 @@ describe('AuthController', () => {
       await controller.generatePin(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockNext).toHaveBeenCalledWith(
-        expect.objectContaining({
-          code: 'PLEX_ERROR',
-          message: 'Invalid response from Plex',
-          statusCode: 502,
-        })
+        expect.any(AppError)
       );
+      
+      const calledError = mockNext.mock.calls[0][0];
+      expect(calledError.code).toBe('PLEX_ERROR');
+      expect(calledError.message).toBe('Invalid response from Plex');
+      expect(calledError.statusCode).toBe(502);
     });
 
     it('should handle Plex service unavailable', async () => {
@@ -169,12 +170,13 @@ describe('AuthController', () => {
       await controller.generatePin(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockNext).toHaveBeenCalledWith(
-        expect.objectContaining({
-          code: 'PLEX_UNREACHABLE',
-          message: 'Cannot connect to Plex server. Please try again.',
-          statusCode: 503,
-        })
+        expect.any(AppError)
       );
+      
+      const calledError = mockNext.mock.calls[0][0];
+      expect(calledError.code).toBe('PLEX_UNREACHABLE');
+      expect(calledError.message).toBe('Cannot connect to Plex server. Please try again.');
+      expect(calledError.statusCode).toBe(503);
     });
 
     it('should handle connection timeout', async () => {
@@ -188,12 +190,13 @@ describe('AuthController', () => {
       await controller.generatePin(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockNext).toHaveBeenCalledWith(
-        expect.objectContaining({
-          code: 'PLEX_TIMEOUT',
-          message: 'Plex server connection timed out. Please try again.',
-          statusCode: 504,
-        })
+        expect.any(AppError)
       );
+      
+      const calledError = mockNext.mock.calls[0][0];
+      expect(calledError.code).toBe('PLEX_TIMEOUT');
+      expect(calledError.message).toBe('Plex server connection timed out. Please try again.');
+      expect(calledError.statusCode).toBe(504);
     });
 
     it('should handle validation errors gracefully', async () => {
@@ -294,7 +297,7 @@ describe('AuthController', () => {
             role: 'user',
           },
           token: 'access-token',
-          rememberToken: 'access-token',
+          rememberToken: null,
           csrfToken: 'test-csrf-token',
         },
       });
@@ -375,12 +378,13 @@ describe('AuthController', () => {
       await controller.verifyPin(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockNext).toHaveBeenCalledWith(
-        expect.objectContaining({
-          code: 'PIN_NOT_AUTHORIZED',
-          message: 'PIN has not been authorized yet. Please complete authorization on plex.tv/link',
-          statusCode: 400,
-        })
+        expect.any(AppError)
       );
+      
+      const calledError = mockNext.mock.calls[0][0];
+      expect(calledError.code).toBe('PIN_NOT_AUTHORIZED');
+      expect(calledError.message).toBe('PIN has not been authorized yet. Please complete authorization on plex.tv/link');
+      expect(calledError.statusCode).toBe(400);
     });
 
     it('should handle invalid PIN', async () => {
@@ -396,12 +400,13 @@ describe('AuthController', () => {
       await controller.verifyPin(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockNext).toHaveBeenCalledWith(
-        expect.objectContaining({
-          code: 'INVALID_PIN',
-          message: 'Invalid or expired PIN',
-          statusCode: 400,
-        })
+        expect.any(AppError)
       );
+      
+      const calledError = mockNext.mock.calls[0][0];
+      expect(calledError.code).toBe('INVALID_PIN');
+      expect(calledError.message).toBe('Invalid or expired PIN');
+      expect(calledError.statusCode).toBe(400);
     });
 
     it('should handle validation errors', async () => {
@@ -410,12 +415,13 @@ describe('AuthController', () => {
       await controller.verifyPin(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockNext).toHaveBeenCalledWith(
-        expect.objectContaining({
-          code: 'VALIDATION_ERROR',
-          message: 'Invalid request data',
-          statusCode: 400,
-        })
+        expect.any(AppError)
       );
+      
+      const calledError = mockNext.mock.calls[0][0];
+      expect(calledError.code).toBe('VALIDATION_ERROR');
+      expect(calledError.message).toBe('Invalid request data');
+      expect(calledError.statusCode).toBe(400);
     });
 
     it('should handle database errors', async () => {
@@ -445,12 +451,13 @@ describe('AuthController', () => {
       await controller.verifyPin(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockNext).toHaveBeenCalledWith(
-        expect.objectContaining({
-          code: 'DATABASE_ERROR',
-          message: 'Failed to save user information',
-          statusCode: 503,
-        })
+        expect.any(AppError)
       );
+      
+      const calledError = mockNext.mock.calls[0][0];
+      expect(calledError.code).toBe('DATABASE_ERROR');
+      expect(calledError.message).toBe('Failed to save user information');
+      expect(calledError.statusCode).toBe(503);
     });
 
     it('should handle JWT generation errors', async () => {
@@ -494,12 +501,13 @@ describe('AuthController', () => {
       await controller.verifyPin(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockNext).toHaveBeenCalledWith(
-        expect.objectContaining({
-          code: 'TOKEN_ERROR',
-          message: 'Failed to generate authentication tokens',
-          statusCode: 503,
-        })
+        expect.any(AppError)
       );
+      
+      const calledError = mockNext.mock.calls[0][0];
+      expect(calledError.code).toBe('TOKEN_ERROR');
+      expect(calledError.message).toBe('Failed to generate authentication tokens');
+      expect(calledError.statusCode).toBe(503);
     });
 
     it('should handle first user as admin', async () => {
