@@ -100,7 +100,7 @@ function sanitizeBody(body: any): any {
 }
 
 // Context7 Pattern: Fast-path error handlers for common scenarios
-function handleValidationError(err: ZodError, req: Request, res: Response, correlationId: string) {
+function handleValidationError(err: ZodError, _req: Request, res: Response, correlationId: string) {
   return res.status(400).json({
     success: false,
     error: {
@@ -112,7 +112,7 @@ function handleValidationError(err: ZodError, req: Request, res: Response, corre
   });
 }
 
-function handleClientError(err: AppError, req: Request, res: Response, correlationId: string) {
+function handleClientError(err: AppError, _req: Request, res: Response, correlationId: string) {
   const userMessage = USER_ERRORS[err.code || ''] || err.message;
   const statusCode = err.statusCode || 400;
 

@@ -10,13 +10,13 @@ mkdocs-git-revision-date-localized-plugin>=1.2.0
 mkdocs-git-committers-plugin-2>=1.2.0
 mkdocs-minify-plugin>=0.7.0
 mkdocs-redirects>=1.2.0
-mkdocs-tags>=0.3.0
+# mkdocs-tags>=0.3.0  # Temporarily disabled - not available
 
 # Social cards and offline support
 pillow>=10.0.0
 cairosvg>=2.7.0
-mkdocs-social>=0.3.0
-mkdocs-offline>=1.0.0
+# mkdocs-social>=0.3.0  # Plugin not found - using built-in social
+# mkdocs-offline>=1.0.0  # Plugin not found - using core offline features
 
 # Markdown extensions
 pygments>=2.15.0
@@ -28,7 +28,7 @@ html5lib>=1.1
 beautifulsoup4>=4.12.0
 
 # Optional: for advanced search
-elasticsearch>=8.0.0
+# elasticsearch>=8.0.0  # Optional - not needed for basic search
 
 # Optional: for API documentation generation
 pydantic>=2.0.0

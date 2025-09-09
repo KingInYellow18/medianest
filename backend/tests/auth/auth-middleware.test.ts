@@ -22,8 +22,33 @@ vi.mock('../../src/config/config.service', () => ({
   },
 }));
 
-// Mock the JWT utilities
-vi.mock('../../src/utils/jwt', () => ({
+// Mock the JWT facade and utilities
+vi.mock('../../src/auth/jwt-facade', () => ({
+  jwtFacade: {
+    generateToken: vi.fn().mockReturnValue('test-jwt-token'),
+    verifyToken: vi.fn().mockReturnValue({
+      userId: 'user-123',
+      email: 'test@example.com',
+      role: 'user',
+      sessionId: 'test-session-id',
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 3600,
+    }),
+    generateRefreshToken: vi.fn().mockReturnValue('test-refresh-token'),
+    verifyRefreshToken: vi.fn().mockReturnValue({
+      userId: 'user-123',
+      sessionId: 'test-session-id',
+    }),
+    getTokenMetadata: vi.fn().mockReturnValue({
+      userId: 'user-123',
+      sessionId: 'test-session-id',
+      tokenId: 'test-token-id',
+    }),
+    isTokenBlacklisted: vi.fn().mockReturnValue(false),
+    blacklistToken: vi.fn(),
+    shouldRotateToken: vi.fn().mockReturnValue(false),
+    rotateTokenIfNeeded: vi.fn().mockReturnValue(null),
+  },
   generateToken: vi.fn().mockReturnValue('test-jwt-token'),
   verifyToken: vi.fn().mockReturnValue({
     userId: 'user-123',
@@ -51,40 +76,15 @@ vi.mock('../../src/utils/jwt', () => ({
 
 // Mock token validator
 vi.mock('../../src/middleware/auth/token-validator', () => ({
-  extractToken: vi.fn().mockReturnValue('test-jwt-token'),
-  extractTokenOptional: vi.fn().mockReturnValue('test-jwt-token'),
-  validateToken: vi.fn().mockReturnValue({
-    token: 'test-jwt-token',
-    payload: {
-      userId: 'user-123',
-      email: 'test@example.com',
-      role: 'user',
-      sessionId: 'test-session-id',
-    },
-    metadata: {
-      tokenId: 'test-token-id',
-    },
-  }),
+  extractToken: vi.fn(),
+  extractTokenOptional: vi.fn(),
+  validateToken: vi.fn(),
 }));
 
 // Mock user validator
 vi.mock('../../src/middleware/auth/user-validator', () => ({
-  validateUser: vi.fn().mockResolvedValue({
-    id: 'user-123',
-    email: 'test@example.com',
-    name: 'Test User',
-    role: 'user',
-    plexId: 'plex-123',
-    plexUsername: 'testuser',
-  }),
-  validateUserOptional: vi.fn().mockResolvedValue({
-    id: 'user-123',
-    email: 'test@example.com',
-    name: 'Test User',
-    role: 'user',
-    plexId: 'plex-123',
-    plexUsername: 'testuser',
-  }),
+  validateUser: vi.fn(),
+  validateUserOptional: vi.fn(),
 }));
 
 // Mock device session manager
@@ -202,8 +202,7 @@ describe('AuthMiddleware', () => {
       } as any);
 
       // Mock the AuthenticationFacade authenticate method
-      const { AuthenticationFacade } = await import('../../src/auth');
-      vi.spyOn(AuthenticationFacade.prototype, 'authenticate').mockResolvedValue({
+      vi.spyOn(authMiddleware['authFacade'], 'authenticate').mockResolvedValue({
         user: {
           id: 'user-123',
           email: 'test@example.com',
@@ -226,11 +225,11 @@ describe('AuthMiddleware', () => {
 
     it('should call next with error for invalid token', async () => {
       mockRequest.headers!.authorization = 'Bearer invalid-token';
+      mockRequest.user = undefined;
 
-      // Mock JWT verification to throw error for invalid token
-      const { verifyToken } = await import('../../src/utils/jwt');
-      vi.mocked(verifyToken).mockImplementationOnce(() => {
-        throw new Error('Invalid token');
+      // Mock facade to throw AuthenticationError
+      vi.spyOn(authMiddleware['authFacade'], 'authenticate').mockImplementation(() => {
+        throw new AuthenticationError('Invalid token');
       });
 
       const middleware = authMiddleware.authenticate();
@@ -244,9 +243,8 @@ describe('AuthMiddleware', () => {
       delete mockRequest.headers!.authorization;
       delete mockRequest.cookies;
 
-      // Mock token extractor to throw error for missing token
-      const { validateToken } = await import('../../src/middleware/auth/token-validator');
-      vi.mocked(validateToken).mockImplementationOnce(() => {
+      // Mock facade to throw AuthenticationError for missing token
+      vi.spyOn(authMiddleware['authFacade'], 'authenticate').mockImplementation(() => {
         throw new AuthenticationError('Authentication required');
       });
 
@@ -273,8 +271,7 @@ describe('AuthMiddleware', () => {
       } as any);
 
       // Mock the AuthenticationFacade authenticateOptional method
-      const { AuthenticationFacade } = await import('../../src/auth');
-      vi.spyOn(AuthenticationFacade.prototype, 'authenticateOptional').mockResolvedValue({
+      vi.spyOn(authMiddleware['authFacade'], 'authenticateOptional').mockResolvedValue({
         user: {
           id: 'user-123',
           email: 'test@example.com',
@@ -293,10 +290,10 @@ describe('AuthMiddleware', () => {
 
     it('should continue without user for invalid token', async () => {
       mockRequest.headers!.authorization = 'Bearer invalid-token';
+      mockRequest.user = undefined;
 
-      // Mock optional token extraction to return null for invalid token
-      const { extractTokenOptional } = await import('../../src/middleware/auth/token-validator');
-      vi.mocked(extractTokenOptional).mockReturnValueOnce(null);
+      // Mock optional authentication to return null for invalid token
+      vi.spyOn(authMiddleware['authFacade'], 'authenticateOptional').mockResolvedValue(null);
 
       const middleware = authMiddleware.optionalAuth();
       await middleware(mockRequest as any, mockResponse as Response, mockNext);
@@ -307,10 +304,10 @@ describe('AuthMiddleware', () => {
 
     it('should continue without user when no token provided', async () => {
       delete mockRequest.headers!.authorization;
+      mockRequest.user = undefined;
 
-      // Mock optional token extraction to return null when no token
-      const { extractTokenOptional } = await import('../../src/middleware/auth/token-validator');
-      vi.mocked(extractTokenOptional).mockReturnValueOnce(null);
+      // Mock optional authentication to return null when no token
+      vi.spyOn(authMiddleware['authFacade'], 'authenticateOptional').mockResolvedValue(null);
 
       const middleware = authMiddleware.optionalAuth();
       await middleware(mockRequest as any, mockResponse as Response, mockNext);

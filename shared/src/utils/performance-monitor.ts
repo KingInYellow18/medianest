@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 // Note: Logger would be injected or imported from appropriate backend package in real usage
 
 export interface PerformanceMetrics {
@@ -52,7 +52,9 @@ export class PerformanceMonitor {
           method: req.method,
           statusCode: res.statusCode,
           userId: req.user?.id,
-          correlationId: (req as any).correlationId,
+          correlationId: req && typeof req === 'object' && 'correlationId' in req 
+            ? String((req as { correlationId?: unknown }).correlationId)
+            : 'no-correlation-id',
         };
 
         // Store metrics
@@ -66,7 +68,9 @@ export class PerformanceMonitor {
             path: req.path,
             method: req.method,
             statusCode: res.statusCode,
-            correlationId: (req as any).correlationId,
+            correlationId: req && typeof req === 'object' && 'correlationId' in req 
+            ? String((req as { correlationId?: unknown }).correlationId)
+            : 'no-correlation-id',
             memoryDelta: {
               heapUsed: endMemory.heapUsed - startMemory.heapUsed,
               heapTotal: endMemory.heapTotal - startMemory.heapTotal,
@@ -80,7 +84,9 @@ export class PerformanceMonitor {
             heapUsed: `${Math.round(endMemory.heapUsed / 1024 / 1024)}MB`,
             heapTotal: `${Math.round(endMemory.heapTotal / 1024 / 1024)}MB`,
             path: req.path,
-            correlationId: (req as any).correlationId,
+            correlationId: req && typeof req === 'object' && 'correlationId' in req 
+            ? String((req as { correlationId?: unknown }).correlationId)
+            : 'no-correlation-id',
           });
         }
       });

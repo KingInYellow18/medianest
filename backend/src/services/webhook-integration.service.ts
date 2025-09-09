@@ -4,7 +4,7 @@ import { logger } from '@/utils/logger';
 import { redisClient } from '@/config/redis';
 import { plexService } from '@/services/plex.service';
 import { getSocketServer } from '@/socket/server';
-import { AppError } from '@medianest/shared/src/errors';
+import { AppError } from '@medianest/shared';
 
 interface WebhookPayload {
   event: string;

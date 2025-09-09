@@ -11,7 +11,6 @@ import type { Brand } from '../types/context7-optimizations';
 
 // Context7 Pattern: Branded types for type safety
 type PlexUserId = Brand<string, 'PlexUserId'>;
-type CacheKey = Brand<string, 'CacheKey'>;
 
 // Context7 Pattern: Readonly configuration
 interface PlexServiceConfig {
@@ -319,6 +318,42 @@ export class PlexService {
     );
 
     return otherLib ? otherLib.key : null;
+  }
+
+  // Clear all cache entries for a specific user
+  async clearUserCache(userId: string): Promise<void> {
+    try {
+      const plexUserId = userId as PlexUserId;
+      
+      // Remove client from memory cache
+      this.clients.delete(plexUserId);
+      
+      // Clear all Redis cache keys for this user
+      const cacheKeys = [
+        `${this.cachePrefix}server:${userId}`,
+        `${this.cachePrefix}libraries:${userId}`,
+        `${this.cachePrefix}recent:${userId}`,
+      ];
+      
+      // Also clear any search and item cache keys (using pattern)
+      const searchPattern = `${this.cachePrefix}search:${userId}:*`;
+      const itemPattern = `${this.cachePrefix}items:${userId}:*`;
+      
+      // Get keys matching patterns
+      const searchKeys = await redisClient.keys(searchPattern);
+      const itemKeys = await redisClient.keys(itemPattern);
+      
+      // Combine all keys to delete
+      const allKeys = [...cacheKeys, ...searchKeys, ...itemKeys];
+      
+      if (allKeys.length > 0) {
+        await redisClient.del(allKeys);
+        logger.info('Cleared Plex cache for user', { userId, keysCleared: allKeys.length });
+      }
+    } catch (error: CatchError) {
+      // Don't throw - cache clearing should be graceful
+      logger.warn('Failed to clear user cache, continuing gracefully', { userId, error });
+    }
   }
 
   // Clean up idle clients periodically (every 30 minutes)

@@ -272,8 +272,8 @@ class PerformanceMonitor {
       // Sort keys by timestamp (embedded in key)
       const sortedKeys = keys
         .sort((a, b) => {
-          const timestampA = parseInt(a.split(':')[1]);
-          const timestampB = parseInt(b.split(':')[1]);
+          const timestampA = parseInt(a.split(':')[1] ?? '0', 10);
+          const timestampB = parseInt(b.split(':')[1] ?? '0', 10);
           return timestampB - timestampA;
         })
         .slice(0, limit);
@@ -330,7 +330,7 @@ class PerformanceMonitor {
       const expiredKeys: string[] = [];
 
       for (const key of keys) {
-        const timestamp = parseInt(key.split(':')[1]);
+        const timestamp = parseInt(key.split(':')[1] ?? '0', 10);
         if (timestamp < cutoffTime) {
           expiredKeys.push(key);
         }
@@ -352,7 +352,7 @@ class PerformanceMonitor {
     if (sortedArray.length === 0) return 0;
 
     const index = Math.ceil((percentile / 100) * sortedArray.length) - 1;
-    return sortedArray[Math.max(0, Math.min(index, sortedArray.length - 1))];
+    return sortedArray[Math.max(0, Math.min(index, sortedArray.length - 1))] ?? 0;
   }
 
   /**
@@ -413,7 +413,7 @@ export const performanceMiddleware = performanceMonitor.middleware();
 /**
  * Route handler for performance stats endpoint
  */
-export async function getPerformanceStats(req: Request, res: Response): Promise<void> {
+export async function getPerformanceStats(_req: Request, res: Response): Promise<void> {
   try {
     const stats = await performanceMonitor.getPerformanceStats();
 

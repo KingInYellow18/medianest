@@ -130,7 +130,7 @@ export class SentryService {
   /**
    * Capture message with context
    */
-  captureMessage(message: string, level: string = 'info', context?: UnknownRecord): string {
+  captureMessage(message: string, level: string = 'info', _context?: UnknownRecord): string {
     return (Sentry as any).captureMessage(message, level);
   }
 

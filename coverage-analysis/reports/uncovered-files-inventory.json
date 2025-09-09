@@ -1,0 +1,165 @@
+{
+  "analysis_date": "2025-01-09",
+  "total_source_files": 490,
+  "total_test_files": 363,
+  "coverage_ratio": 0.74,
+  "critical_gaps": [
+    {
+      "file": "backend/src/services/redis.service.ts",
+      "lines": 860,
+      "priority": "CRITICAL",
+      "business_impact": "Authentication, caching, session management",
+      "test_coverage": 0,
+      "estimated_effort_hours": 8,
+      "risk_level": "HIGH",
+      "functions_uncovered": [
+        "RedisService.connect()",
+        "RedisService.setOAuthState()",
+        "RedisService.getOAuthState()",
+        "RedisService.set2FAChallenge()",
+        "RedisService.get2FAChallenge()",
+        "RedisService.setPasswordResetToken()",
+        "RedisService.cacheSearchResults()",
+        "RedisService.invalidateCache()"
+      ]
+    },
+    {
+      "file": "backend/src/controllers/optimized-media.controller.ts", 
+      "lines": 537,
+      "priority": "HIGH",
+      "business_impact": "Media request processing, core user workflow",
+      "test_coverage": 0,
+      "estimated_effort_hours": 6,
+      "risk_level": "HIGH",
+      "functions_uncovered": [
+        "searchMedia()",
+        "requestMedia()",
+        "getUserRequests()",
+        "updateRequestStatus()",
+        "deleteRequest()",
+        "getRequestDetails()"
+      ]
+    },
+    {
+      "file": "backend/src/services/oauth-providers.service.ts",
+      "lines": 630,
+      "priority": "HIGH", 
+      "business_impact": "External authentication providers",
+      "test_coverage": 0,
+      "estimated_effort_hours": 7,
+      "risk_level": "HIGH",
+      "functions_uncovered": [
+        "githubAuth()",
+        "googleAuth()",
+        "validateProvider()",
+        "exchangeToken()",
+        "getUserProfile()",
+        "handleAuthCallback()"
+      ]
+    },
+    {
+      "file": "backend/src/config/config.service.ts",
+      "lines": 522,
+      "priority": "CRITICAL",
+      "business_impact": "Application configuration and startup",
+      "test_coverage": 0,
+      "estimated_effort_hours": 4,
+      "risk_level": "CRITICAL",
+      "functions_uncovered": [
+        "loadConfig()",
+        "validateConfig()",
+        "getPlexConfig()",
+        "getIntegrationsConfig()",
+        "getDatabaseConfig()",
+        "getRedisConfig()"
+      ]
+    },
+    {
+      "file": "backend/src/routes/performance.ts",
+      "lines": 635,
+      "priority": "MEDIUM",
+      "business_impact": "Performance monitoring and metrics",
+      "test_coverage": 0,
+      "estimated_effort_hours": 4,
+      "risk_level": "MEDIUM",
+      "functions_uncovered": [
+        "getMetrics()",
+        "getHealthCheck()",
+        "getSystemInfo()",
+        "getPerformanceReport()"
+      ]
+    }
+  ],
+  "authentication_test_failures": [
+    {
+      "test_file": "backend/tests/auth/jwt-facade.test.ts",
+      "failed_tests": 2,
+      "issues": ["AppError type assertion failures"],
+      "impact": "JWT token validation coverage incomplete"
+    },
+    {
+      "test_file": "backend/tests/auth/authentication-facade.test.ts", 
+      "failed_tests": 4,
+      "issues": ["Invalid token errors", "Missing authorization header handling"],
+      "impact": "Core authentication flow coverage compromised"
+    }
+  ],
+  "frontend_gaps": [
+    {
+      "pattern": "frontend/src/components/**/*.tsx",
+      "files": 16,
+      "average_lines": 15,
+      "test_coverage": "minimal",
+      "priority": "MEDIUM",
+      "estimated_effort_hours": 12
+    }
+  ],
+  "middleware_gaps": [
+    {
+      "file": "backend/src/middleware/auth.ts",
+      "priority": "HIGH", 
+      "test_coverage": "partial",
+      "missing_scenarios": ["edge cases", "error conditions"]
+    },
+    {
+      "file": "backend/src/middleware/error-handling.middleware.ts",
+      "priority": "HIGH",
+      "test_coverage": "minimal", 
+      "missing_scenarios": ["error transformation", "logging behavior"]
+    }
+  ],
+  "coverage_improvement_plan": {
+    "phase_1_critical": {
+      "target_coverage_increase": 15,
+      "estimated_hours": 25,
+      "priority_files": [
+        "redis.service.ts",
+        "optimized-media.controller.ts", 
+        "config.service.ts"
+      ]
+    },
+    "phase_2_high": {
+      "target_coverage_increase": 10,
+      "estimated_hours": 18,
+      "priority_files": [
+        "oauth-providers.service.ts",
+        "database-connection-pool.ts"
+      ]
+    },
+    "phase_3_infrastructure": {
+      "target_coverage_increase": 8,
+      "estimated_hours": 12,
+      "priority_files": [
+        "performance.ts",
+        "resilience.service.ts"
+      ]
+    }
+  },
+  "success_criteria": {
+    "line_coverage_target": 90,
+    "branch_coverage_target": 85,
+    "function_coverage_target": 80,
+    "zero_failing_tests": true,
+    "critical_paths_covered": true
+  }
+}

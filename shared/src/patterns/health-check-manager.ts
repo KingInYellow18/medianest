@@ -3,7 +3,7 @@ import { EventEmitter } from 'events';
 import { createServiceLogger } from '../config/logging.config';
 import { redisConfig } from '../config/redis.config';
 
-import { ServiceClient, HealthStatus } from './integration-client-factory';
+import type { ServiceClient, HealthStatus } from './integration-client-factory';
 
 export interface ServiceHealthStatus extends HealthStatus {
   service: string;

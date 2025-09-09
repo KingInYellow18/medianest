@@ -17,14 +17,6 @@ interface OAuthConfig {
   scope: string;
 }
 
-interface OAuthState {
-  state: string;
-  provider: 'github' | 'google';
-  redirectUri: string;
-  createdAt: Date;
-  ipAddress: string;
-  userAgent: string;
-}
 
 interface OAuthUserInfo {
   id: string;
@@ -101,7 +93,7 @@ export class OAuthProvidersService {
     }
   ): Promise<{ authUrl: string; state: string }> {
     const config = this.configs[provider];
-    if (!config.clientId || !config.clientSecret) {
+    if (!config || !config.clientId || !config.clientSecret) {
       throw new AppError('OAUTH_NOT_CONFIGURED', `${provider} OAuth not configured`, 500);
     }
 
@@ -127,10 +119,10 @@ export class OAuthProvidersService {
 
     switch (provider) {
       case 'github':
-        authUrl = this.generateGitHubAuthUrl(state, redirectUri, config);
+        authUrl = this.generateGitHubAuthUrl(state, redirectUri, config!);
         break;
       case 'google':
-        authUrl = this.generateGoogleAuthUrl(state, redirectUri, config);
+        authUrl = this.generateGoogleAuthUrl(state, redirectUri, config!);
         break;
       default:
         throw new AppError('UNSUPPORTED_PROVIDER', 'Unsupported OAuth provider', 400);
@@ -283,6 +275,9 @@ export class OAuthProvidersService {
     redirectUri: string
   ): Promise<string> {
     const config = this.configs[provider];
+    if (!config) {
+      throw new AppError('OAUTH_NOT_CONFIGURED', `${provider} OAuth not configured`, 500);
+    }
 
     switch (provider) {
       case 'github':

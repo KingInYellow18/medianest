@@ -1,0 +1,319 @@
+# ==============================================================================
+# 🚀 MEDIANEST DEVELOPMENT ENVIRONMENT - CONSOLIDATED
+# ==============================================================================
+# Usage: docker-compose -f config/docker/docker-compose.dev.yml up -d
+# Features: Hot reload, debugging, development tools, exposed ports
+# Technology: Single consolidated Dockerfile with development target
+# ==============================================================================
+
+
+# Development environment variables (YAML anchor for reuse)
+# Development values prioritize debugging and hot-reload over security
+x-dev-env: &dev-env
+  # Development mode enables verbose logging and hot-reload features
+  NODE_ENV: development
+  # Development database connection with development credentials
+  # connection_limit: limits concurrent connections to prevent resource exhaustion
+  # pool_timeout: maximum seconds to wait for connection from pool
+  DATABASE_URL: postgresql://medianest:medianest_dev_password@postgres:5432/medianest_dev?connection_limit=20&pool_timeout=30
+  # Redis connection for development (no auth for simplicity)
+  REDIS_URL: redis://redis:6379
+  # NextAuth.js authentication URL (should match frontend dev server)
+  NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+  # NextAuth.js secret (weak secret OK for development, NEVER use in production)
+  NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-dev_secret_12345}
+  # Plex OAuth client ID from environment (obtain from Plex developers)
+  PLEX_CLIENT_ID: ${PLEX_CLIENT_ID}
+  # Plex OAuth client secret from environment (keep secure even in dev)
+  PLEX_CLIENT_SECRET: ${PLEX_CLIENT_SECRET}
+  # Encryption key for development (weak key OK for dev data)
+  ENCRYPTION_KEY: ${ENCRYPTION_KEY:-dev_encryption_key_12345}
+  # JWT secret for development (weak secret OK for dev tokens)
+  JWT_SECRET: ${JWT_SECRET:-dev_jwt_secret_12345}
+  # Debug namespace filter for development logging (use * for all or specific modules)
+  DEBUG: ${DEBUG:-*}
+  # Log level for development: debug shows all logs including SQL queries
+  LOG_LEVEL: ${LOG_LEVEL:-debug}
+
+services:
+  # ==============================================================================
+  # 🗄️ DATABASE - Development PostgreSQL
+  # ==============================================================================
+  postgres:
+    # PostgreSQL 16 Alpine - lightweight and secure for development
+    image: postgres:16-alpine
+    # Fixed container name for easy management and connection
+    container_name: medianest-postgres-dev
+    # Restart policy for development reliability
+    restart: unless-stopped
+    environment:
+      # Development database name (separate from production)
+      POSTGRES_DB: medianest_dev
+      # Database user for application connections
+      POSTGRES_USER: medianest
+      # Development password (simple for dev, secure for production)
+      POSTGRES_PASSWORD: medianest_dev_password
+      # UTF-8 encoding for international character support
+      POSTGRES_INITDB_ARGS: --encoding=UTF-8
+    volumes:
+      # Persistent storage for development data (survives container restarts)
+      - postgres_dev_data:/var/lib/postgresql/data
+      # Database initialization script (runs on first container start)
+      - ../../infrastructure/database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    ports:
+      # Expose PostgreSQL port for direct database access from host
+      # Allows connection via database tools (pgAdmin, TablePlus, etc.)
+      - '5432:5432'
+    healthcheck:
+      # Health check command: verify PostgreSQL is accepting connections
+      test: ['CMD-SHELL', 'pg_isready -U medianest -d medianest_dev']
+      # Check every 5 seconds (faster than production for quick feedback)
+      interval: 5s
+      # Timeout per health check attempt
+      timeout: 3s
+      # Allow more retries for development (database might be slow to start)
+      retries: 5
+      # Initial grace period before first health check
+      start_period: 10s
+    networks:
+      # Connect to development network for inter-service communication
+      - medianest-dev
+
+  # ==============================================================================
+  # 📊 CACHE - Development Redis
+  # ==============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: medianest-redis-dev
+    restart: unless-stopped
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --save 60 1000
+    volumes:
+      - redis_dev_data:/data
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    networks:
+      - medianest-dev
+
+  # ==============================================================================
+  # 🚀 APPLICATION - Development Backend (Hot Reload)
+  # ==============================================================================
+  backend:
+    build:
+      # Build context: project root for access to all workspaces
+      context: ../..
+      # Use consolidated Dockerfile with development target
+      dockerfile: config/docker/Dockerfile.consolidated
+      # Development target includes dev dependencies and debugging tools
+      target: development
+      args:
+        # Override NODE_ENV for development optimizations
+        - NODE_ENV=development
+    # Development container name for easy identification
+    container_name: medianest-backend-dev
+    # Restart policy for development stability
+    restart: unless-stopped
+    environment:
+      # Inherit all development environment variables
+      <<: *dev-env
+      # Backend server port (exposed for direct access)
+      PORT: 4000
+      # Enable polling for file watchers in Docker (required for hot-reload)
+      # Fixes file watching issues in containerized environments
+      CHOKIDAR_USEPOLLING: "true"
+    ports:
+      # Backend API server port for frontend and direct API access
+      - '4000:4000'
+      # Node.js debugger port for IDE debugging (VS Code, WebStorm, etc.)
+      - '9229:9229'
+    volumes:
+      # Hot reload volumes: mount source code for live editing
+      # 'cached' option improves performance on macOS Docker Desktop
+      # Backend TypeScript source code (enables hot-reload on changes)
+      - ../../backend/src:/app/backend/src:cached
+      # Shared TypeScript source code (common utilities, types)
+      - ../../shared/src:/app/shared/src:cached
+      # Anonymous volume for node_modules (prevents host/container conflicts)
+      - backend_dev_node_modules:/app/backend/node_modules
+      # Development upload storage (reset when container recreated)
+      - backend_dev_uploads:/app/backend/uploads
+      # Development logs storage for debugging and monitoring
+      - backend_dev_logs:/app/backend/logs
+    depends_on:
+      # Wait for PostgreSQL to be healthy before starting backend
+      postgres:
+        condition: service_healthy
+      # Wait for Redis to be healthy before starting backend
+      redis:
+        condition: service_healthy
+    healthcheck:
+      # Health check: verify backend API is responding
+      test: ['CMD', 'curl', '-f', 'http://localhost:4000/api/health']
+      # Check more frequently in development for faster feedback
+      interval: 10s
+      # Quick timeout for development responsiveness
+      timeout: 5s
+      # Fewer retries in development (restart faster if needed)
+      retries: 3
+      # Longer startup time for development (includes npm install)
+      start_period: 30s
+    networks:
+      # Connect to development network
+      - medianest-dev
+    # Development debugging: Allow ptrace for Node.js debugging
+    cap_add:
+      - SYS_PTRACE
+    # Development command: start with hot-reload and debugging enabled
+    command: ["npm", "run", "dev:backend"]
+
+  # ==============================================================================
+  # 🎨 FRONTEND - Development Next.js (Hot Reload)
+  # ==============================================================================
+  frontend:
+    build:
+      context: ../..
+      dockerfile: config/docker/Dockerfile.consolidated
+      target: development
+      args:
+        - NODE_ENV=development
+    container_name: medianest-frontend-dev
+    restart: unless-stopped
+    environment:
+      <<: *dev-env
+      PORT: 3000
+      NEXT_TELEMETRY_DISABLED: 1
+      FAST_REFRESH: "true"
+      CHOKIDAR_USEPOLLING: "true"
+    ports:
+      - '3000:3000'
+    volumes:
+      # Hot reload volumes
+      - ../../frontend/src:/app/frontend/src:cached
+      - ../../frontend/pages:/app/frontend/pages:cached
+      - ../../frontend/components:/app/frontend/components:cached
+      - ../../shared/src:/app/shared/src:cached
+      - frontend_dev_node_modules:/app/frontend/node_modules
+      - frontend_dev_next:/app/frontend/.next
+    depends_on:
+      - backend
+    networks:
+      - medianest-dev
+    command: ["npm", "run", "dev:frontend"]
+
+  # ==============================================================================
+  # 🔍 DEVELOPMENT TOOLS
+  # ==============================================================================
+  
+  # Database Admin Interface
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: medianest-pgadmin-dev
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: dev@medianest.local
+      PGADMIN_DEFAULT_PASSWORD: devpassword
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - '8080:80'
+    volumes:
+      - pgadmin_dev_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - medianest-dev
+    profiles:
+      - tools
+
+  # Redis Admin Interface  
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: medianest-redis-commander-dev
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    ports:
+      - '8081:8081'
+    depends_on:
+      - redis
+    networks:
+      - medianest-dev
+    profiles:
+      - tools
+
+  # Mail Development Server
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: medianest-mailhog-dev
+    restart: unless-stopped
+    ports:
+      - '8025:8025'  # Web UI
+      - '1025:1025'  # SMTP
+    networks:
+      - medianest-dev
+    profiles:
+      - tools
+
+# ==============================================================================
+# 📦 VOLUMES
+# ==============================================================================
+volumes:
+  postgres_dev_data:
+    driver: local
+  redis_dev_data:
+    driver: local
+  backend_dev_node_modules:
+    driver: local
+  frontend_dev_node_modules:
+    driver: local
+  frontend_dev_next:
+    driver: local
+  backend_dev_uploads:
+    driver: local
+  backend_dev_logs:
+    driver: local
+  pgadmin_dev_data:
+    driver: local
+
+# ==============================================================================
+# 🌐 NETWORKS
+# ==============================================================================
+networks:
+  medianest-dev:
+    driver: bridge
+    name: medianest-development
+    ipam:
+      config:
+        - subnet: 172.30.0.0/16
+
+# ==============================================================================
+# 🚀 USAGE EXAMPLES
+# ==============================================================================
+#
+# Start development environment:
+# docker-compose -f config/docker/docker-compose.dev.yml up -d
+#
+# Start with development tools:
+# docker-compose -f config/docker/docker-compose.dev.yml --profile tools up -d
+#
+# View logs:
+# docker-compose -f config/docker/docker-compose.dev.yml logs -f backend
+#
+# Access services:
+# Frontend: http://localhost:3000
+# Backend: http://localhost:4000/api
+# PgAdmin: http://localhost:8080 (with --profile tools)
+# Redis Commander: http://localhost:8081 (with --profile tools)
+# Mailhog: http://localhost:8025 (with --profile tools)
+#
+# Rebuild after changes:
+# docker-compose -f config/docker/docker-compose.dev.yml up -d --build

@@ -66,7 +66,7 @@ class ServiceMonitoringDatabaseService {
           responseTimeMs: metric.responseTimeMs,
           uptimePercentage: metric.uptimePercentage,
           errorMessage: metric.errorMessage,
-          metadata: metric.metadata ? JSON.stringify(metric.metadata) : null,
+          metadata: metric.metadata ? JSON.stringify(metric.metadata) : undefined,
           incidentId: metric.incidentId,
           timestamp: new Date(),
         },
@@ -214,11 +214,11 @@ class ServiceMonitoringDatabaseService {
           id: this.generateId('incident'),
           serviceName: incident.serviceName,
           title: incident.title,
-          description: incident.description,
+          description: incident.description ?? '',
           severity: incident.severity,
           status: incident.status,
           affectedUsers: incident.affectedUsers,
-          metadata: incident.metadata ? JSON.stringify(incident.metadata) : null,
+          metadata: incident.metadata ? JSON.stringify(incident.metadata) : undefined,
           startedAt: new Date(),
         },
       });
@@ -485,7 +485,7 @@ class ServiceMonitoringDatabaseService {
     }, {});
 
     return Object.entries(statusCounts)
-      .sort(([,a], [,b]) => (b as number) - (a as number))[0][0] as any;
+      .sort(([,a], [,b]) => (b as number) - (a as number))[0]?.[0] as any ?? 'unknown';
   }
 
   /**

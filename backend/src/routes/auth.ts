@@ -94,7 +94,7 @@ router.get(
   '/plex/pin/:id/status',
   validate(checkPinSchema),
   asyncHandler(async (req, res) => {
-    const pinId = parseInt(req.params.id, 10);
+    const pinId = parseInt(req.params.id ?? '0', 10);
     const pin = await plexAuthService.checkPin(pinId);
 
     res.json({

@@ -72,7 +72,7 @@ class OptimizedRateLimiter {
     }
   }
 
-  private generateKey(req: Request, keyGenerator?: (req: Request) => string): string {
+  public generateKey(req: Request, keyGenerator?: (req: Request) => string): string {
     if (keyGenerator) {
       return `rl:${keyGenerator(req)}`;
     }
@@ -113,9 +113,9 @@ class OptimizedRateLimiter {
 
       return {
         allowed: retryAfter === 0,
-        count,
-        remaining,
-        retryAfter: retryAfter > 0 ? retryAfter : undefined,
+        count: count ?? 0,
+        remaining: remaining ?? 0,
+        retryAfter: (retryAfter ?? 0) > 0 ? retryAfter : undefined,
       };
     } catch (error: CatchError) {
       logger.error('Rate limit check failed', { error, key });
@@ -241,8 +241,8 @@ export async function checkBatchRateLimit(
 
     keys.forEach((key, index) => {
       const outcome = outcomes[index];
-      if (outcome.status === 'fulfilled') {
-        results.set(key, outcome.value.allowed);
+      if (outcome?.status === 'fulfilled') {
+        results.set(key, outcome.value?.allowed ?? true);
       } else {
         // Fail open on error
         results.set(key, true);

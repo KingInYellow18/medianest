@@ -43,18 +43,27 @@
     "useDefineForClassFields": true,
     "exactOptionalPropertyTypes": false,
 
-    // Context7 Pattern: Balanced strict settings for performance and safety
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
+    // Context7 Pattern: Full strict mode for A+ configuration
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "noImplicitReturns": true,
     "skipLibCheck": true,
-    "noUncheckedIndexedAccess": false,
+    "noUncheckedIndexedAccess": true,
     "checkJs": false,
     "allowUnreachableCode": false,
-    "allowUnusedLabels": false
+    "allowUnusedLabels": false,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitAny": true,
+    "noFallthroughCasesInSwitch": true
   },
-  "include": ["src/**/*", "config/**/*"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"],
+  "references": [
+    { "path": "../shared" }
+  ],
   "ts-node": {
     "require": ["tsconfig-paths/register"],
     "transpileOnly": true,

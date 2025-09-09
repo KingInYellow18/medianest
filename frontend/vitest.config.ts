@@ -1,69 +1,138 @@
-/// <reference types="vitest" />
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import path from 'path'
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+
+const cpuCount = require('os').cpus().length;
+const maxWorkers = Math.max(2, Math.min(6, cpuCount));
 
 export default defineConfig({
   plugins: [react()],
-  esbuild: {
-    jsxInject: `import React from 'react'`,
-  },
-  // Define global imports for tests
-  define: {
-    global: 'globalThis',
-  },
   test: {
-    globals: true,
     environment: 'jsdom',
-    setupFiles: ['./src/__tests__/setup.ts'],
-    css: true,
-    // Include TypeScript declaration files
-    include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-    exclude: [
-      'node_modules',
-      'dist',
-      '.next',
-      'out',
-    ],
-    // Coverage configuration
+    globals: true,
+    setupFiles: ['./tests/setup.ts'],
+    
+    // **OPTIMIZED PARALLEL EXECUTION FOR FRONTEND**
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        singleThread: false,
+        minThreads: 2,
+        maxThreads: maxWorkers,
+        isolate: false,        // Better performance for component tests
+        useAtomics: true,
+      },
+      forks: {
+        singleFork: false,
+        isolate: false,
+      },
+    },
+    
+    // **PERFORMANCE TIMEOUTS**
+    testTimeout: 8000,       // Frontend components can be slower
+    hookTimeout: 3000,       // DOM setup time
+    teardownTimeout: 3000,
+    
+    // **EXECUTION STRATEGY**
+    bail: 0,
+    retry: 0,
+    sequence: {
+      shuffle: false,         // Deterministic for CI
+      concurrent: true,       // Enable concurrent execution
+    },
+    
+    // **MOCK OPTIMIZATIONS**
+    mockReset: false,        // Reduce overhead
+    clearMocks: false,
+    restoreMocks: false,
+    
+    // **OPTIMIZED COVERAGE**
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'],
+      reporter: ['text-summary', 'json'],
+      
+      // Performance settings
+      clean: false,
+      cleanOnRerun: false,
+      skipFull: true,
+      reportOnFailure: false,
+      
       exclude: [
-        'coverage/**',
-        'dist/**',
-        '.next/**',
-        'out/**',
-        'node_modules/**',
-        'src/**/*.d.ts',
-        'src/test/**',
-        'src/**/*.config.*',
+        'node_modules/',
+        'tests/',
+        '**/*.d.ts',
+        'next.config.js',
+        '.next/',
+        'src/types/**',
+        'src/styles/**',
+        '**/*.stories.*',
+        '**/mocks/**',
+        '**/fixtures/**',
+        'src/lib/test-utils/**'
       ],
+      
+      include: [
+        'src/components/**/*.{ts,tsx}',
+        'src/lib/**/*.{ts,tsx}',
+        'src/utils/**/*.{ts,tsx}',
+        'src/hooks/**/*.{ts,tsx}'
+      ],
+      
+      // Relaxed thresholds for speed
+      thresholds: {
+        branches: 50,
+        functions: 50,
+        lines: 50,
+        statements: 50,
+      },
     },
-    // Mock CSS and static assets
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-      '@/components': path.resolve(__dirname, './src/components'),
-      '@/lib': path.resolve(__dirname, './src/lib'),
-      '@/hooks': path.resolve(__dirname, './src/hooks'),
-      '@/services': path.resolve(__dirname, './src/services'),
-      '@/contexts': path.resolve(__dirname, './src/contexts'),
-      '@/types': path.resolve(__dirname, './types'),
-      '@/utils': path.resolve(__dirname, './src/utils'),
-      '@medianest/shared': path.resolve(__dirname, '../shared/dist'),
+    
+    // **OPTIMIZED FILE PATTERNS**
+    include: [
+      'src/**/*.{test,spec}.{ts,tsx}',
+      'tests/**/*.{test,spec}.{ts,tsx}'
+    ],
+    
+    exclude: [
+      'node_modules/**',
+      '.next/**',
+      'coverage/**',
+      '**/*.d.ts',
+      '**/*.config.*',
+      '**/e2e/**',           // Exclude slow E2E tests
+      '**/integration/**',   // Run integration separately
+      '**/visual/**'         // Exclude visual regression tests
+    ],
+    
+    // **ENVIRONMENT OPTIMIZATIONS**
+    env: {
+      NODE_ENV: 'test',
+      NEXT_TELEMETRY_DISABLED: '1',
+      VITEST_POOL_SIZE: maxWorkers.toString(),
+      NODE_OPTIONS: '--max-old-space-size=2048'
     },
   },
+  
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
       '@/components': path.resolve(__dirname, './src/components'),
       '@/lib': path.resolve(__dirname, './src/lib'),
-      '@/hooks': path.resolve(__dirname, './src/hooks'),
-      '@/services': path.resolve(__dirname, './src/services'),
-      '@/contexts': path.resolve(__dirname, './src/contexts'),
-      '@/types': path.resolve(__dirname, './types'),
       '@/utils': path.resolve(__dirname, './src/utils'),
-      '@medianest/shared': path.resolve(__dirname, '../shared/dist'),
+      '@/hooks': path.resolve(__dirname, './src/hooks'),
+      '@/types': path.resolve(__dirname, './src/types')
     },
   },
-})
+  
+  // **BUILD OPTIMIZATIONS**
+  esbuild: {
+    target: 'esnext',
+    sourcemap: false,
+    jsx: 'automatic',
+  },
+  
+  optimizeDeps: {
+    include: ['react', 'react-dom', '@testing-library/react', '@testing-library/jest-dom'],
+    exclude: ['next']
+  }
+});

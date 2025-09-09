@@ -166,19 +166,24 @@ class MemoryMonitor {
     // Calculate growth trend
     let consistentGrowth = 0;
     for (let i = 1; i < recentMetrics.length; i++) {
-      if (recentMetrics[i].heapUsed > recentMetrics[i - 1].heapUsed) {
+      const currentMetric = recentMetrics[i];
+      const previousMetric = recentMetrics[i - 1];
+      if (currentMetric?.heapUsed && previousMetric?.heapUsed && 
+          currentMetric.heapUsed > previousMetric.heapUsed) {
         consistentGrowth++;
       }
     }
 
     // If heap is consistently growing in 80% of measurements
     if (consistentGrowth / recentMetrics.length > 0.8) {
-      const growthRate = (recentMetrics[recentMetrics.length - 1].heapUsed - recentMetrics[0].heapUsed) / recentMetrics.length;
+      const lastMetric = recentMetrics[recentMetrics.length - 1];
+      const firstMetric = recentMetrics[0];
+      const growthRate = (lastMetric?.heapUsed ?? 0) - (firstMetric?.heapUsed ?? 0) / recentMetrics.length;
       
       this.triggerAlert({
         type: 'MEMORY_LEAK',
         severity: 'HIGH',
-        metrics: recentMetrics[recentMetrics.length - 1],
+        metrics: lastMetric!,
         threshold: growthRate,
         message: `Potential memory leak detected: consistent heap growth of ${(growthRate / 1024).toFixed(2)}KB per measurement`
       });
@@ -194,7 +199,11 @@ class MemoryMonitor {
     }
 
     const recent = this.metrics.slice(-5);
-    const growthRate = (recent[recent.length - 1].heapUsed - recent[0].heapUsed) / recent.length;
+    const lastRecent = recent[recent.length - 1];
+    const firstRecent = recent[0];
+    if (!lastRecent || !firstRecent) return;
+    
+    const growthRate = (lastRecent.heapUsed - firstRecent.heapUsed) / recent.length;
     
     // Alert if growing more than 10MB per measurement cycle
     const rapidGrowthThreshold = 10 * 1024 * 1024; // 10MB
@@ -203,7 +212,7 @@ class MemoryMonitor {
       this.triggerAlert({
         type: 'GROWTH_ANOMALY',
         severity: 'CRITICAL',
-        metrics: recent[recent.length - 1],
+        metrics: lastRecent,
         threshold: rapidGrowthThreshold,
         message: `Rapid memory growth detected: ${(growthRate / (1024 * 1024)).toFixed(2)}MB per measurement cycle`
       });
@@ -215,6 +224,8 @@ class MemoryMonitor {
    */
   private detectFragmentation(): void {
     const latest = this.metrics[this.metrics.length - 1];
+    if (!latest) return;
+    
     const fragmentationRatio = latest.heapTotal / latest.heapUsed;
     
     // Alert if heap total is much larger than used (fragmentation)
@@ -297,16 +308,24 @@ class MemoryMonitor {
     healthScore: number; // 0-100
   } {
     const current = this.metrics[this.metrics.length - 1];
+    if (!current) {
+      throw new Error('No memory metrics available');
+    }
     
     let trend: 'INCREASING' | 'DECREASING' | 'STABLE' = 'STABLE';
     if (this.metrics.length >= 5) {
       const recent = this.metrics.slice(-5);
-      const avgGrowth = (recent[recent.length - 1].heapUsed - recent[0].heapUsed) / recent.length;
+      const lastRecent = recent[recent.length - 1];
+      const firstRecent = recent[0];
       
-      if (avgGrowth > 1024 * 1024) { // > 1MB growth per cycle
-        trend = 'INCREASING';
-      } else if (avgGrowth < -1024 * 1024) { // > 1MB decrease per cycle
-        trend = 'DECREASING';
+      if (lastRecent && firstRecent) {
+        const avgGrowth = (lastRecent.heapUsed - firstRecent.heapUsed) / recent.length;
+        
+        if (avgGrowth > 1024 * 1024) { // > 1MB growth per cycle
+          trend = 'INCREASING';
+        } else if (avgGrowth < -1024 * 1024) { // > 1MB decrease per cycle
+          trend = 'DECREASING';
+        }
       }
     }
 

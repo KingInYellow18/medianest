@@ -342,13 +342,13 @@ async function getCachedResponseForRequest(req: Request): Promise<any> {
   }
 }
 
-async function getCachedData(key: string): Promise<any> {
+async function getCachedData(_key: string): Promise<any> {
   // Implementation would use Redis or another cache
   // This is a placeholder
   return null;
 }
 
-function getDefaultResponse(serviceName: string, path: string): any {
+function getDefaultResponse(serviceName: string, _path: string): any {
   // Return service-specific default responses
   const defaults: Record<string, any> = {
     'youtube-service': { videos: [], message: 'Service temporarily unavailable' },
@@ -374,7 +374,7 @@ function generateRequestId(): string {
 
 async function handleRetryableError(
   req: Request,
-  res: Response,
+  _res: Response,
   error: Error,
   options: { maxAttempts?: number; initialDelay?: number }
 ): Promise<void> {

@@ -1,0 +1,650 @@
+# =============================================================================
+# MediaNest Consolidated Docker Compose Architecture
+# =============================================================================
+# 
+# USAGE:
+# Development: docker-compose -f docker-compose.consolidated.yml --profile dev up
+# Production:  docker-compose -f docker-compose.consolidated.yml --profile prod up
+# Testing:     docker-compose -f docker-compose.consolidated.yml --profile test up
+# Full Stack:  docker-compose -f docker-compose.consolidated.yml --profile full up
+#
+# PROFILES:
+# - dev: Development environment with hot reload
+# - prod: Production environment with security hardening
+# - test: Testing environment with browsers and test databases
+# - monitoring: Observability stack (Prometheus, Grafana)
+# - full: Complete stack including monitoring and tools
+# =============================================================================
+
+
+# =============================================================================
+# SHARED CONFIGURATION
+# =============================================================================
+
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      max-size: 10m
+      max-file: 3
+
+x-restart: &restart-policy
+  restart: unless-stopped
+
+x-healthcheck: &healthcheck-defaults
+  interval: 30s
+  timeout: 10s
+  retries: 3
+  start_period: 40s
+
+x-resource-limits: &resource-limits
+  deploy:
+    resources:
+      limits:
+        memory: 1G
+        cpus: '1.0'
+      reservations:
+        memory: 256M
+        cpus: '0.25'
+
+# Environment Variables
+x-common-env: &common-env
+  NODE_ENV: ${NODE_ENV:-production}
+  TZ: ${TZ:-UTC}
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+  
+x-database-env: &database-env
+  DATABASE_URL: ${DATABASE_URL:-postgresql://medianest:${POSTGRES_PASSWORD:-secure_password}@postgres:5432/medianest?connection_limit=20&pool_timeout=30&statement_timeout=60000}
+  POSTGRES_DB: ${POSTGRES_DB:-medianest}
+  POSTGRES_USER: ${POSTGRES_USER:-medianest}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secure_password}
+
+x-redis-env: &redis-env
+  REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+  REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+
+x-security-env: &security-env
+  JWT_SECRET: ${JWT_SECRET}
+  ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+  NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+  NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+
+# =============================================================================
+# SERVICES
+# =============================================================================
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # CORE APPLICATION SERVICES
+  # ---------------------------------------------------------------------------
+
+  backend:
+    build:
+      context: ../..
+      dockerfile: config/docker/Dockerfile.consolidated
+      target: backend-production
+      args:
+        NODE_ENV: ${NODE_ENV:-production}
+        SECURITY_LEVEL: ${SECURITY_LEVEL:-standard}
+        OPTIMIZATION_LEVEL: ${OPTIMIZATION_LEVEL:-size}
+        ENABLE_MONITORING: ${ENABLE_MONITORING:-false}
+        NODE_OPTIONS: "--max-old-space-size=768"
+      cache_from:
+        - medianest/backend:latest
+        - medianest/backend:cache
+    image: medianest/backend:${TAG:-latest}
+    container_name: medianest-backend
+    <<: [*logging, *restart-policy, *resource-limits]
+    environment:
+      <<: [*common-env, *database-env, *redis-env, *security-env]
+      PORT: 3001
+      ENABLE_METRICS: ${ENABLE_MONITORING:-false}
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS:-false}
+    ports:
+      - "${BACKEND_PORT:-3001}:3001"
+    volumes:
+      - backend_uploads:/app/uploads:rw
+      - backend_logs:/app/logs:rw
+      - backend_temp:/app/temp:rw
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "/app/entrypoint.sh", "health"]
+    networks:
+      - medianest-internal
+      - medianest-external
+    profiles:
+      - prod
+      - full
+
+  frontend:
+    build:
+      context: ../..
+      dockerfile: config/docker/Dockerfile.consolidated
+      target: frontend-production
+      args:
+        NODE_ENV: ${NODE_ENV:-production}
+        OPTIMIZATION_LEVEL: ${OPTIMIZATION_LEVEL:-size}
+      cache_from:
+        - medianest/frontend:latest
+        - medianest/frontend:cache
+    image: medianest/frontend:${TAG:-latest}
+    container_name: medianest-frontend
+    <<: [*logging, *restart-policy]
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+    environment:
+      <<: *common-env
+      PORT: 3000
+      NEXT_TELEMETRY_DISABLED: 1
+      INTERNAL_API_URL: http://backend:3001
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      - backend
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "/app/entrypoint.sh", "health"]
+    networks:
+      - medianest-internal
+      - medianest-external
+    profiles:
+      - prod
+      - full
+
+  nginx:
+    build:
+      context: ../..
+      dockerfile: config/docker/Dockerfile.consolidated
+      target: nginx-proxy
+      args:
+        NGINX_VERSION: 1.25.3
+      cache_from:
+        - medianest/nginx:latest
+    image: medianest/nginx:${TAG:-latest}
+    container_name: medianest-nginx
+    <<: [*logging, *restart-policy]
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+        reservations:
+          memory: 64M
+          cpus: '0.1'
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - nginx_cache:/var/cache/nginx:rw
+      - nginx_logs:/var/log/nginx:rw
+      - ssl_certs:/etc/nginx/ssl:ro
+    depends_on:
+      - backend
+      - frontend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    networks:
+      - medianest-external
+    profiles:
+      - prod
+      - full
+
+  # ---------------------------------------------------------------------------
+  # DEVELOPMENT SERVICES
+  # ---------------------------------------------------------------------------
+
+  app-dev:
+    build:
+      context: ../..
+      dockerfile: config/docker/Dockerfile.consolidated
+      target: development
+      args:
+        NODE_ENV: development
+        ENABLE_DEBUG: true
+    image: medianest/development:${TAG:-latest}
+    container_name: medianest-dev
+    <<: *logging
+    restart: "no"
+    environment:
+      <<: [*common-env, *database-env, *redis-env, *security-env]
+      NODE_ENV: development
+      DEBUG: "medianest:*"
+      CHOKIDAR_USEPOLLING: "true"
+    ports:
+      - "3000:3000"  # Frontend
+      - "3001:3001"  # Backend
+      - "4000:4000"  # Dev server
+      - "9229:9229"  # Debug port
+    volumes:
+      - ../..:/app:cached
+      - dev_node_modules:/app/node_modules
+      - dev_backend_modules:/app/backend/node_modules
+      - dev_frontend_modules:/app/frontend/node_modules
+      - dev_logs:/app/logs
+    depends_on:
+      postgres-dev:
+        condition: service_healthy
+      redis-dev:
+        condition: service_healthy
+    networks:
+      - medianest-dev
+    profiles:
+      - dev
+      - full
+
+  # ---------------------------------------------------------------------------
+  # DATABASE SERVICES
+  # ---------------------------------------------------------------------------
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: medianest-postgres
+    <<: [*logging, *restart-policy]
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    environment:
+      <<: *database-env
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+      POSTGRES_SHARED_PRELOAD_LIBRARIES: "pg_stat_statements"
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data:rw
+      - postgres_backups:/backups:rw
+      - ../../infrastructure/database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ../../infrastructure/database/optimizations.sql:/docker-entrypoint-initdb.d/02-optimizations.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-medianest} -d ${POSTGRES_DB:-medianest}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - medianest-internal
+    profiles:
+      - prod
+      - full
+
+  postgres-dev:
+    image: postgres:16-alpine
+    container_name: medianest-postgres-dev
+    <<: *logging
+    restart: "no"
+    environment:
+      <<: *database-env
+      POSTGRES_DB: medianest_dev
+      POSTGRES_PASSWORD: dev_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ../../infrastructure/database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ../../infrastructure/database/dev-data.sql:/docker-entrypoint-initdb.d/02-dev-data.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U medianest -d medianest_dev"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - medianest-dev
+    profiles:
+      - dev
+      - test
+
+  redis:
+    image: redis:7-alpine
+    container_name: medianest-redis
+    <<: [*logging, *restart-policy]
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 64M
+          cpus: '0.1'
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+      --tcp-keepalive 300
+      --timeout 0
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data:rw
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - medianest-internal
+    profiles:
+      - prod
+      - full
+
+  redis-dev:
+    image: redis:7-alpine
+    container_name: medianest-redis-dev
+    <<: *logging
+    restart: "no"
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_dev_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    networks:
+      - medianest-dev
+    profiles:
+      - dev
+      - test
+
+  # ---------------------------------------------------------------------------
+  # TESTING SERVICES
+  # ---------------------------------------------------------------------------
+
+  test-runner:
+    build:
+      context: ../..
+      dockerfile: config/docker/Dockerfile.consolidated
+      target: test-runner
+      args:
+        NODE_ENV: test
+    image: medianest/test:${TAG:-latest}
+    container_name: medianest-test
+    <<: *logging
+    restart: "no"
+    environment:
+      <<: [*common-env, *database-env, *redis-env]
+      NODE_ENV: test
+      CI: true
+      DATABASE_URL: postgresql://medianest:test_password@postgres-test:5432/medianest_test
+    volumes:
+      - test_results:/app/test-results:rw
+      - test_coverage:/app/coverage:rw
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+    networks:
+      - medianest-test
+    profiles:
+      - test
+
+  postgres-test:
+    image: postgres:16-alpine
+    container_name: medianest-postgres-test
+    <<: *logging
+    restart: "no"
+    environment:
+      POSTGRES_DB: medianest_test
+      POSTGRES_USER: medianest
+      POSTGRES_PASSWORD: test_password
+    tmpfs:
+      - /var/lib/postgresql/data:rw,noexec,nosuid,size=1G
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U medianest -d medianest_test"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - medianest-test
+    profiles:
+      - test
+
+  redis-test:
+    image: redis:7-alpine
+    container_name: medianest-redis-test
+    <<: *logging
+    restart: "no"
+    command: redis-server --save ""
+    tmpfs:
+      - /data:rw,noexec,nosuid,size=256M
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    networks:
+      - medianest-test
+    profiles:
+      - test
+
+  # ---------------------------------------------------------------------------
+  # UTILITY SERVICES
+  # ---------------------------------------------------------------------------
+
+  migration-runner:
+    build:
+      context: ../..
+      dockerfile: config/docker/Dockerfile.consolidated
+      target: migration-runner
+    image: medianest/migration:${TAG:-latest}
+    container_name: medianest-migration
+    <<: *logging
+    restart: "no"
+    environment:
+      <<: [*database-env, *common-env]
+      DATABASE_URL: ${DATABASE_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - medianest-internal
+    profiles:
+      - migration
+      - full
+
+  # ---------------------------------------------------------------------------
+  # MONITORING SERVICES
+  # ---------------------------------------------------------------------------
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: medianest-prometheus
+    <<: [*logging, *restart-policy]
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    ports:
+      - "9090:9090"
+    volumes:
+      - ../../config/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus:rw
+    networks:
+      - medianest-monitoring
+    profiles:
+      - monitoring
+      - full
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: medianest-grafana
+    <<: [*logging, *restart-policy]
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-simple-json-datasource"
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana:rw
+      - ../../config/monitoring/grafana/:/etc/grafana/provisioning/:ro
+    depends_on:
+      - prometheus
+    networks:
+      - medianest-monitoring
+    profiles:
+      - monitoring
+      - full
+
+# =============================================================================
+# VOLUMES
+# =============================================================================
+
+volumes:
+  # Production Data
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_PATH:-./data}/postgres
+  
+  redis_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_PATH:-./data}/redis
+
+  # Application Data
+  backend_uploads:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_PATH:-./data}/uploads
+
+  backend_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_PATH:-./data}/logs
+
+  backend_temp:
+    driver: local
+
+  # Cache and Static Assets
+  nginx_cache:
+    driver: local
+  
+  nginx_logs:
+    driver: local
+
+  ssl_certs:
+    external: true
+    name: ssl_certificates
+
+  # Development Data
+  postgres_dev_data:
+    driver: local
+    
+  redis_dev_data:
+    driver: local
+    
+  dev_node_modules:
+    driver: local
+    
+  dev_backend_modules:
+    driver: local
+    
+  dev_frontend_modules:
+    driver: local
+    
+  dev_logs:
+    driver: local
+
+  # Testing Data
+  test_results:
+    driver: local
+    
+  test_coverage:
+    driver: local
+
+  # Monitoring Data
+  prometheus_data:
+    driver: local
+    
+  grafana_data:
+    driver: local
+
+  # Backup Data
+  postgres_backups:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${BACKUP_PATH:-./backups}/postgres
+
+# =============================================================================
+# NETWORKS
+# =============================================================================
+
+networks:
+  medianest-external:
+    driver: bridge
+    name: medianest-external
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+          gateway: 172.28.0.1
+
+  medianest-internal:
+    driver: bridge
+    name: medianest-internal
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.29.0.0/16
+          gateway: 172.29.0.1
+
+  medianest-dev:
+    driver: bridge
+    name: medianest-development
+    ipam:
+      config:
+        - subnet: 172.30.0.0/16
+
+  medianest-test:
+    driver: bridge
+    name: medianest-testing
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.31.0.0/16
+
+  medianest-monitoring:
+    driver: bridge
+    name: medianest-monitoring
+    ipam:
+      config:
+        - subnet: 172.32.0.0/16

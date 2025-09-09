@@ -1,0 +1,391 @@
+name: 🔍 Documentation Validation
+
+on:
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - '.github/workflows/docs-validation.yml'
+      - 'scripts/validate-docs.sh'
+      - 'scripts/check-links.sh'
+  push:
+    branches: [develop, feature/*]
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+  workflow_dispatch:
+    inputs:
+      validation_type:
+        description: 'Type of validation to run'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - links-only
+          - spelling-only
+          - structure-only
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18'
+
+jobs:
+  # Validate documentation structure and content
+  validate-structure:
+    name: 📋 Validate Structure
+    runs-on: ubuntu-latest
+    if: github.event.inputs.validation_type == 'full' || github.event.inputs.validation_type == 'structure-only' || github.event.inputs.validation_type == ''
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: 📦 Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install mkdocs-material mkdocs-awesome-pages-plugin mkdocs-mermaid2-plugin
+          pip install pyyaml markdown
+
+      - name: 🔧 Make validation script executable
+        run: chmod +x scripts/validate-docs.sh
+
+      - name: ✅ Run structure validation
+        run: ./scripts/validate-docs.sh structure
+
+      - name: 🏗️ Test MkDocs build
+        run: |
+          mkdocs build --strict --verbose
+          echo "✅ MkDocs build successful"
+
+      - name: 📊 Validate YAML frontmatter
+        run: |
+          python3 << 'EOF'
+          import os
+          import yaml
+          import sys
+          
+          errors = []
+          
+          for root, dirs, files in os.walk('docs'):
+              for file in files:
+                  if file.endswith('.md'):
+                      filepath = os.path.join(root, file)
+                      with open(filepath, 'r', encoding='utf-8') as f:
+                          content = f.read()
+                      
+                      if content.startswith('---'):
+                          try:
+                              frontmatter_end = content.find('---', 3)
+                              if frontmatter_end != -1:
+                                  frontmatter = content[3:frontmatter_end]
+                                  yaml.safe_load(frontmatter)
+                                  print(f"✅ Valid YAML in {filepath}")
+                              else:
+                                  errors.append(f"❌ Unclosed frontmatter in {filepath}")
+                          except yaml.YAMLError as e:
+                              errors.append(f"❌ Invalid YAML in {filepath}: {e}")
+          
+          if errors:
+              for error in errors:
+                  print(error)
+              sys.exit(1)
+          else:
+              print("✅ All YAML frontmatter is valid")
+          EOF
+
+  # Check internal and external links
+  validate-links:
+    name: 🔗 Validate Links
+    runs-on: ubuntu-latest
+    if: github.event.inputs.validation_type == 'full' || github.event.inputs.validation_type == 'links-only' || github.event.inputs.validation_type == ''
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: 📦 Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install mkdocs-material mkdocs-awesome-pages-plugin mkdocs-mermaid2-plugin
+          pip install requests beautifulsoup4
+
+      - name: 📦 Install Node.js dependencies
+        run: |
+          npm install -g markdown-link-check
+          npm install -g broken-link-checker
+
+      - name: 🏗️ Build documentation for link checking
+        run: |
+          mkdocs build --strict
+
+      - name: 🔧 Make link checking script executable
+        run: chmod +x scripts/check-links.sh
+
+      - name: 🔗 Check internal links
+        run: ./scripts/check-links.sh internal
+
+      - name: 🌐 Check external links
+        continue-on-error: true
+        run: ./scripts/check-links.sh external
+
+      - name: 📝 Upload link check results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: link-check-results
+          path: |
+            link-check-*.log
+            broken-links-*.json
+          retention-days: 7
+
+  # Spell checking
+  validate-spelling:
+    name: 📝 Spell Check
+    runs-on: ubuntu-latest
+    if: github.event.inputs.validation_type == 'full' || github.event.inputs.validation_type == 'spelling-only' || github.event.inputs.validation_type == ''
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 📦 Install aspell
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y aspell aspell-en
+
+      - name: 🔍 Run spell check
+        run: |
+          # Create custom dictionary for technical terms
+          cat > .aspell.en.pws << 'EOF'
+          personal_ws-1.1 en 50
+          MediaNest
+          MkDocs
+          GitHub
+          PostgreSQL
+          Redis
+          Docker
+          Kubernetes
+          API
+          REST
+          GraphQL
+          JSON
+          YAML
+          CI/CD
+          DevOps
+          microservices
+          scalability
+          TypeScript
+          JavaScript
+          Python
+          Node.js
+          React
+          Vue.js
+          npm
+          pip
+          virtualization
+          containerization
+          orchestration
+          deployment
+          authentication
+          authorization
+          middleware
+          backend
+          frontend
+          fullstack
+          codebase
+          repository
+          workflow
+          artifact
+          EOF
+          
+          # Check spelling in markdown files
+          find docs -name "*.md" -exec aspell --personal=.aspell.en.pws --mode=markdown check {} \;
+          echo "✅ Spell check completed"
+
+  # Content quality checks
+  validate-content:
+    name: 📊 Content Quality
+    runs-on: ubuntu-latest
+    if: github.event.inputs.validation_type == 'full' || github.event.inputs.validation_type == ''
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: 📦 Install dependencies
+        run: |
+          pip install markdown beautifulsoup4 textstat
+
+      - name: 🔍 Analyze content quality
+        run: |
+          python3 << 'EOF'
+          import os
+          import re
+          import markdown
+          from bs4 import BeautifulSoup
+          import textstat
+          
+          def analyze_markdown_file(filepath):
+              with open(filepath, 'r', encoding='utf-8') as f:
+                  content = f.read()
+              
+              # Remove frontmatter
+              if content.startswith('---'):
+                  content = re.sub(r'^---.*?---\s*', '', content, flags=re.DOTALL)
+              
+              # Convert to HTML and extract text
+              html = markdown.markdown(content)
+              soup = BeautifulSoup(html, 'html.parser')
+              text = soup.get_text()
+              
+              # Analyze readability
+              flesch_score = textstat.flesch_reading_ease(text)
+              
+              # Count elements
+              word_count = len(text.split())
+              heading_count = len(re.findall(r'^#+\s', content, re.MULTILINE))
+              code_block_count = len(re.findall(r'```', content))
+              link_count = len(re.findall(r'\[.*?\]\(.*?\)', content))
+              
+              return {
+                  'file': filepath,
+                  'word_count': word_count,
+                  'flesch_score': flesch_score,
+                  'headings': heading_count,
+                  'code_blocks': code_block_count // 2,  # Each code block has opening and closing
+                  'links': link_count
+              }
+          
+          print("📊 Content Quality Analysis")
+          print("=" * 50)
+          
+          for root, dirs, files in os.walk('docs'):
+              for file in files:
+                  if file.endswith('.md'):
+                      filepath = os.path.join(root, file)
+                      try:
+                          analysis = analyze_markdown_file(filepath)
+                          
+                          print(f"\n📄 {analysis['file']}")
+                          print(f"   Words: {analysis['word_count']}")
+                          print(f"   Readability Score: {analysis['flesch_score']:.1f}")
+                          print(f"   Headings: {analysis['headings']}")
+                          print(f"   Code Blocks: {analysis['code_blocks']}")
+                          print(f"   Links: {analysis['links']}")
+                          
+                          # Quality recommendations
+                          if analysis['word_count'] < 100:
+                              print("   ⚠️  Consider adding more content (< 100 words)")
+                          if analysis['flesch_score'] < 30:
+                              print("   ⚠️  Content may be difficult to read")
+                          if analysis['headings'] == 0 and analysis['word_count'] > 200:
+                              print("   ⚠️  Consider adding headings for better structure")
+                              
+                      except Exception as e:
+                          print(f"❌ Error analyzing {filepath}: {e}")
+          
+          print("\n✅ Content quality analysis completed")
+          EOF
+
+  # Security checks
+  validate-security:
+    name: 🔒 Security Check
+    runs-on: ubuntu-latest
+    if: github.event.inputs.validation_type == 'full' || github.event.inputs.validation_type == ''
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🔍 Check for sensitive information
+        run: |
+          echo "🔒 Scanning for sensitive information..."
+          
+          # Check for common secrets patterns
+          SENSITIVE_PATTERNS=(
+            "password.*=.*['\"][^'\"]*['\"]"
+            "secret.*=.*['\"][^'\"]*['\"]"
+            "token.*=.*['\"][^'\"]*['\"]"
+            "key.*=.*['\"][^'\"]*['\"]"
+            "api_key.*=.*['\"][^'\"]*['\"]"
+            "database_url.*=.*['\"][^'\"]*['\"]"
+            "-----BEGIN.*KEY-----"
+            "sk-[a-zA-Z0-9]{32,}"
+            "ghp_[a-zA-Z0-9]{36}"
+            "gho_[a-zA-Z0-9]{36}"
+            "ghu_[a-zA-Z0-9]{36}"
+            "ghs_[a-zA-Z0-9]{36}"
+            "ghr_[a-zA-Z0-9]{36}"
+          )
+          
+          ISSUES_FOUND=0
+          
+          for pattern in "${SENSITIVE_PATTERNS[@]}"; do
+            if grep -r -i -E "$pattern" docs/ --include="*.md" --include="*.yml" --include="*.yaml"; then
+              echo "❌ Found potential sensitive information matching pattern: $pattern"
+              ISSUES_FOUND=$((ISSUES_FOUND + 1))
+            fi
+          done
+          
+          if [ $ISSUES_FOUND -eq 0 ]; then
+            echo "✅ No sensitive information detected in documentation"
+          else
+            echo "❌ Found $ISSUES_FOUND potential security issues"
+            exit 1
+          fi
+
+  # Generate validation report
+  generate-report:
+    name: 📊 Generate Report
+    runs-on: ubuntu-latest
+    needs: [validate-structure, validate-links, validate-spelling, validate-content, validate-security]
+    if: always()
+    
+    steps:
+      - name: 📊 Create validation summary
+        run: |
+          echo "## 🔍 Documentation Validation Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status | Result |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Structure | ${{ needs.validate-structure.result }} | ${{ needs.validate-structure.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Links | ${{ needs.validate-links.result }} | ${{ needs.validate-links.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Spelling | ${{ needs.validate-spelling.result }} | ${{ needs.validate-spelling.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Content Quality | ${{ needs.validate-content.result }} | ${{ needs.validate-content.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security | ${{ needs.validate-security.result }} | ${{ needs.validate-security.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          OVERALL_STATUS="✅ All checks passed"
+          if [[ "${{ needs.validate-structure.result }}" != "success" ]] || \
+             [[ "${{ needs.validate-links.result }}" != "success" ]] || \
+             [[ "${{ needs.validate-spelling.result }}" != "success" ]] || \
+             [[ "${{ needs.validate-content.result }}" != "success" ]] || \
+             [[ "${{ needs.validate-security.result }}" != "success" ]]; then
+            OVERALL_STATUS="❌ Some checks failed"
+          fi
+          
+          echo "### Overall Status: $OVERALL_STATUS" >> $GITHUB_STEP_SUMMARY

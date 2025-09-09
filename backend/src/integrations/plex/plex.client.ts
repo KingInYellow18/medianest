@@ -37,11 +37,9 @@ export interface PlexMediaItem {
 export class PlexClient {
   private client: AxiosInstance;
   private serverUrl: string;
-  private _plexToken: string;
 
   constructor(serverUrl: string, plexToken: string) {
     this.serverUrl = serverUrl.replace(/\/$/, ''); // Remove trailing slash
-    this._plexToken = plexToken;
 
     // Create axios instance with basic config
     this.client = axios.create({

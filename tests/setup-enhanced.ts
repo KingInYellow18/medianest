@@ -1,24 +1,35 @@
 import { afterAll, afterEach, beforeAll, beforeEach, vi } from 'vitest';
-import { globalMockRedis, resetMockRedis } from './redis-mock-setup';
+// Removed import from deleted redis-mock-setup file
+
+// Global mock Redis implementation
+const mockRedis = {
+  get: vi.fn(),
+  set: vi.fn(),
+  del: vi.fn(),
+  exists: vi.fn(),
+  expire: vi.fn(),
+  flushall: vi.fn(),
+  disconnect: vi.fn(),
+  eval: vi.fn(),
+  status: 'ready'
+};
 
 // **CRITICAL REDIS MOCKING STRATEGY - PREVENT ALL REAL CONNECTIONS**
 // Mock ioredis completely to prevent any real Redis connections
 vi.mock('ioredis', () => {
-  const { globalMockRedis } = require('./redis-mock-setup');
   return {
-    default: vi.fn(() => globalMockRedis),
-    Redis: vi.fn(() => globalMockRedis)
+    default: vi.fn(() => mockRedis),
+    Redis: vi.fn(() => mockRedis)
   };
 });
 
 // Mock all Redis configuration modules
 vi.mock('@/config/redis', () => {
-  const { globalMockRedis } = require('./redis-mock-setup');
   return {
-    redis: globalMockRedis,
-    redisClient: globalMockRedis,
-    getRedis: vi.fn(() => globalMockRedis),
-    initializeRedis: vi.fn().mockResolvedValue(globalMockRedis)
+    redis: mockRedis,
+    redisClient: mockRedis,
+    getRedis: vi.fn(() => mockRedis),
+    initializeRedis: vi.fn().mockResolvedValue(mockRedis)
   };
 });
 
@@ -145,21 +156,24 @@ global.createTestJWT = (payload = {}) => {
 };
 
 // **REDIS MOCK UTILITIES FOR TESTS**
-global.createMockRedis = () => globalMockRedis;
+global.createMockRedis = () => mockRedis;
 
 global.mockRateLimitAllowed = (key: string, limit = 100, remaining = 99) => {
   const resetTime = Math.floor(Date.now() / 1000) + 60;
-  globalMockRedis.eval.mockResolvedValueOnce([1, limit, remaining, resetTime]);
+  mockRedis.eval.mockResolvedValueOnce([1, limit, remaining, resetTime]);
 };
 
 global.mockRateLimitExceeded = (key: string, limit = 100) => {
   const resetTime = Math.floor(Date.now() / 1000) + 60;
-  globalMockRedis.eval.mockResolvedValueOnce([0, limit, 0, resetTime]);
+  mockRedis.eval.mockResolvedValueOnce([0, limit, 0, resetTime]);
 };
 
 // Reset all mocks before each test to ensure clean state
 beforeEach(() => {
-  resetMockRedis();
+  // Reset mock Redis for clean test state
+  Object.values(mockRedis).forEach(fn => {
+    if (typeof fn?.mockReset === 'function') fn.mockReset();
+  });
   vi.clearAllTimers();
   
   // Clear fetch mock
@@ -176,7 +190,10 @@ afterEach(() => {
 
 // Global cleanup
 afterAll(() => {
-  resetMockRedis();
+  // Reset mock Redis for clean test state
+  Object.values(mockRedis).forEach(fn => {
+    if (typeof fn?.mockReset === 'function') fn.mockReset();
+  });
   vi.restoreAllMocks();
   vi.clearAllTimers();
 });

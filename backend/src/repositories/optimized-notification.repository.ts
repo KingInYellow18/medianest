@@ -176,7 +176,7 @@ export class OptimizedNotificationRepository extends OptimizedBaseRepository<
   /**
    * Get notification statistics
    */
-  async getStats(userId: string) {
+  async getNotificationStats(userId: string) {
     return this.query(async (client) => {
       const [totalCount, unreadCount, typeStats, recentCount] = await Promise.all([
         client.notification.count({
@@ -224,7 +224,7 @@ export class OptimizedNotificationRepository extends OptimizedBaseRepository<
         }),
       ]);
 
-      const byType = typeStats.reduce((acc, item) => {
+      const byType = typeStats.reduce((acc: Record<string, number>, item: any) => {
         acc[item.type] = item._count;
         return acc;
       }, {} as Record<string, number>);

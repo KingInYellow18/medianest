@@ -17,7 +17,7 @@ export interface PaginatedResult<T> {
   totalPages: number;
 }
 
-export abstract class BaseRepository<T, CreateInput, UpdateInput> {
+export abstract class BaseRepository<T> {
   constructor(protected prisma: PrismaClient) {}
 
   protected handleDatabaseError(error: any): never {

@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
 
 import { logger } from './logger';
@@ -336,7 +336,10 @@ export class ErrorHandler {
    */
   static middleware() {
     return (err: any, req: Request, res: Response, _next: NextFunction) => {
-      const correlationId = (req as any).correlationId || 'no-correlation-id';
+      const correlationId =
+        req && typeof req === 'object' && 'correlationId' in req
+          ? String((req as { correlationId?: unknown }).correlationId)
+          : 'no-correlation-id';
       const standardError = this.createStandardError(err, correlationId, req.path, req.user?.id);
 
       // Log error with full context
@@ -377,7 +380,7 @@ export class ErrorHandler {
       try {
         return await fn(...args);
       } catch (error) {
-        const [_req, _res, next] = args as any;
+        const [_req, _res, next] = args as unknown as [Request, Response, NextFunction];
         if (next && typeof next === 'function') {
           next(error);
         } else {

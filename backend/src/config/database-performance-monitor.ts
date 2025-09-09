@@ -46,7 +46,7 @@ class DatabasePerformanceMonitor {
   private metrics: PerformanceMetrics[] = [];
   private readonly maxMetricsHistory = 1000; // Keep last 1000 metrics
   private alertConfig: AlertConfig;
-  private monitoringInterval?: NodeJS.Timer;
+  private monitoringInterval?: NodeJS.Timeout;
   private alertCallbacks: ((alert: any) => void)[] = [];
   private isMonitoring = false;
 
@@ -281,7 +281,7 @@ class DatabasePerformanceMonitor {
    * Get current performance metrics
    */
   getCurrentMetrics(): PerformanceMetrics | null {
-    return this.metrics.length > 0 ? this.metrics[this.metrics.length - 1] : null;
+    return this.metrics.length > 0 ? this.metrics[this.metrics.length - 1] ?? null : null;
   }
 
   /**
@@ -324,13 +324,27 @@ class DatabasePerformanceMonitor {
     const totalErrors = periodMetrics.reduce((sum, m) => sum + m.queryStats.errors, 0);
     const maxMemoryUsage = Math.max(...periodMetrics.map(m => (m.memory.heapUsed / m.memory.heapTotal) * 100));
 
+    const firstMetric = periodMetrics[0];
+    const lastMetric = periodMetrics[periodMetrics.length - 1];
+    
+    if (!firstMetric || !lastMetric) {
+      return {
+        avgPoolUtilization: 0,
+        avgQueryTime: 0,
+        totalErrors: 0,
+        maxMemoryUsage: 0,
+        periodStart: new Date(),
+        periodEnd: new Date(),
+      };
+    }
+
     return {
       avgPoolUtilization: Math.round(avgPoolUtilization * 100) / 100,
       avgQueryTime: Math.round(avgQueryTime * 100) / 100,
       totalErrors,
       maxMemoryUsage: Math.round(maxMemoryUsage * 100) / 100,
-      periodStart: periodMetrics[0].timestamp,
-      periodEnd: periodMetrics[periodMetrics.length - 1].timestamp,
+      periodStart: firstMetric.timestamp,
+      periodEnd: lastMetric.timestamp,
     };
   }
 
@@ -391,7 +405,7 @@ class DatabasePerformanceMonitor {
   /**
    * Generate performance recommendations
    */
-  private generateRecommendations(metrics: PerformanceMetrics[]): string[] {
+  private generateRecommendations(_metrics: PerformanceMetrics[]): string[] {
     const recommendations: string[] = [];
     const stats = this.getPerformanceStats();
 
@@ -422,8 +436,10 @@ class DatabasePerformanceMonitor {
 
     const first = metrics[0];
     const last = metrics[metrics.length - 1];
+    
+    if (!first || !last) return 'stable';
 
-    let firstValue, lastValue;
+    let firstValue: number, lastValue: number;
 
     switch (field) {
       case 'poolUtilization':

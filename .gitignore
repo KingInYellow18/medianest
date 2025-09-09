@@ -141,3 +141,9 @@ claude-flow
 claude-flow.bat
 claude-flow.ps1
 hive-mind-prompt-*.txt
+
+# MKdocs generated files
+site/
+
+# Python virtual environment
+venv/

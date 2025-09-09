@@ -3,7 +3,6 @@ import { UserRepository } from '../repositories/user.repository';
 import { SessionTokenRepository } from '../repositories/session-token.repository';
 import { DeviceSessionService } from '../services/device-session.service';
 import { UnknownRecord } from '../types/common';
-import { AuthenticationError, AppError } from '@medianest/shared';
 import { logger } from '../utils/logger';
 import { CatchError } from '../types/common';
 
@@ -14,7 +13,6 @@ import {
   generateRefreshToken,
   verifyRefreshToken,
   getTokenMetadata,
-  isTokenBlacklisted,
   blacklistToken,
   shouldRotateToken,
   rotateTokenIfNeeded,
@@ -25,7 +23,6 @@ import {
 
 // Token validation utilities
 import {
-  extractToken,
   extractTokenOptional,
   validateToken as validateTokenUtil,
   TokenValidationContext,

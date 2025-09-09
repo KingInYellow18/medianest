@@ -48,7 +48,7 @@ class SecurityAuditLogger {
       maxFiles: 10,
       logToConsole: process.env.NODE_ENV !== 'production',
       logToFile: true,
-      logToDatabase: false,
+      logToDatabase: true, // Enable database logging for security events
       sensitiveFields: ['password', 'token', 'secret', 'key', 'hash'],
       ...config,
     };
@@ -151,8 +151,54 @@ class SecurityAuditLogger {
     }
   }
 
-  private async logToDatabase(_events: SecurityEvent[]): Promise<void> {
-    // TODO: Implement database logging
+  private async logToDatabase(events: SecurityEvent[]): Promise<void> {
+    try {
+      // Import Prisma client for database operations
+      const { getPrisma } = await import('../db/prisma');
+      const prisma = getPrisma();
+      
+      // Log security events to ErrorLog table with security-specific metadata
+      for (const event of events) {
+        await prisma.errorLog.create({
+          data: {
+            id: event.id,
+            correlationId: event.correlationId || event.id,
+            userId: event.userId || 'anonymous',
+            errorCode: `SECURITY_${event.level.toUpperCase()}`,
+            errorMessage: `Security Event: ${event.event}`,
+            stackTrace: JSON.stringify({
+              category: event.category,
+              action: event.action,
+              resource: event.resource,
+              outcome: event.outcome,
+              riskScore: event.riskScore,
+              details: event.details
+            }),
+            requestPath: event.resource || 'unknown',
+            requestMethod: event.action || 'unknown',
+            statusCode: event.outcome === 'success' ? 200 : event.outcome === 'failure' ? 400 : 403,
+            metadata: {
+              securityEvent: true,
+              level: event.level,
+              category: event.category,
+              ipAddress: event.ipAddress,
+              userAgent: event.userAgent,
+              timestamp: event.timestamp,
+              ...event.details
+            },
+            createdAt: new Date(event.timestamp)
+          }
+        });
+      }
+      
+      logger.debug(`Security audit: ${events.length} events logged to database`);
+    } catch (error: CatchError) {
+      logger.error('Failed to log security events to database', { 
+        error: getErrorMessage(error),
+        eventCount: events.length 
+      });
+      // Don't re-throw to prevent audit logging from breaking the application
+    }
   }
 
   private async rotateLogFileIfNeeded(): Promise<void> {

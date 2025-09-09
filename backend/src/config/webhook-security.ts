@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import { configService } from './config.service';
 import { logger } from '../utils/logger';
-import { AppError } from '@medianest/shared/src/errors';
+import { AppError } from '@medianest/shared';
 
 /**
  * Webhook signature verification utility
@@ -86,7 +86,7 @@ export class WebhookSecurity {
   /**
    * Rate limiting for webhook endpoints
    */
-  public isRateLimited(clientIp: string): boolean {
+  public isRateLimited(_clientIp: string): boolean {
     // Implement rate limiting logic here
     // This is a placeholder for webhook-specific rate limiting
     return false;

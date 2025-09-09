@@ -158,8 +158,8 @@ class OptimizedSocketAuth {
     // Check query parameters (fallback)
     if (socket.handshake.query?.token) {
       return Array.isArray(socket.handshake.query.token)
-        ? socket.handshake.query.token[0]
-        : socket.handshake.query.token;
+        ? socket.handshake.query.token[0] ?? null
+        : socket.handshake.query.token ?? null;
     }
 
     return null;
@@ -193,7 +193,7 @@ class OptimizedSocketAuth {
     const forwarded = socket.handshake.headers['x-forwarded-for'];
     if (forwarded) {
       const ip = Array.isArray(forwarded) ? forwarded[0] : forwarded;
-      return ip.split(',')[0].trim();
+      return ip?.split(',')[0]?.trim() ?? 'unknown';
     }
 
     return socket.handshake.address || 'unknown';

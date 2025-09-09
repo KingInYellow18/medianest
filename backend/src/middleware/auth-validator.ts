@@ -5,11 +5,9 @@
  * Prevents bypass attempts and validates all authentication components
  */
 
-import { Request } from 'express';
 import { AuthenticatedUser } from '../auth';
 import { authSecurityService } from './auth-security-fixes';
 import { logger } from '../utils/logger';
-import { AppError } from '@medianest/shared';
 
 export interface AuthValidationContext {
   ipAddress: string;
@@ -137,7 +135,7 @@ export class AuthValidator {
    */
   private async validateTokenSecurity(
     token: string,
-    userId: string,
+    _userId: string,
     context: AuthValidationContext
   ): Promise<{ isValid: boolean; reason?: string; riskScore: number }> {
     // Check token blacklist
@@ -203,7 +201,7 @@ export class AuthValidator {
    * Validate user session consistency
    */
   private async validateSession(
-    userId: string,
+    _userId: string,
     context: AuthValidationContext
   ): Promise<{ isValid: boolean; reason?: string; riskScore: number }> {
     if (!context.sessionId) {

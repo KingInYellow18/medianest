@@ -1,0 +1,46 @@
+// PM2 Ecosystem Configuration for Production Unified Container
+module.exports = {
+  apps: [
+    {
+      name: 'medianest-backend',
+      cwd: '/app/backend',
+      script: 'dist/server.js',
+      instances: 1,
+      exec_mode: 'cluster',
+      env: {
+        NODE_ENV: 'production',
+        PORT: 4000,
+        HOSTNAME: '0.0.0.0'
+      },
+      error_file: '/app/backend/logs/pm2-error.log',
+      out_file: '/app/backend/logs/pm2-out.log',
+      log_file: '/app/backend/logs/pm2-combined.log',
+      time: true,
+      max_memory_restart: '1G',
+      restart_delay: 4000,
+      max_restarts: 10,
+      min_uptime: '10s'
+    },
+    {
+      name: 'medianest-frontend',
+      cwd: '/app/frontend',
+      script: 'npm',
+      args: 'start',
+      instances: 1,
+      exec_mode: 'fork',
+      env: {
+        NODE_ENV: 'production',
+        PORT: 3000,
+        HOSTNAME: '0.0.0.0'
+      },
+      error_file: '/app/frontend/logs/pm2-error.log',
+      out_file: '/app/frontend/logs/pm2-out.log',
+      log_file: '/app/frontend/logs/pm2-combined.log',
+      time: true,
+      max_memory_restart: '512M',
+      restart_delay: 4000,
+      max_restarts: 10,
+      min_uptime: '10s'
+    }
+  ]
+};

@@ -122,7 +122,10 @@ export function formatRelativeTime(date: Date | string): string {
   for (const interval of intervals) {
     const count = Math.floor(Math.abs(diffInSeconds) / interval.seconds);
     if (count >= 1) {
-      return rtf.format(diffInSeconds < 0 ? -count : count, interval.label as any);
+      return rtf.format(
+        diffInSeconds < 0 ? -count : count, 
+        interval.label as Intl.RelativeTimeFormatUnit
+      );
     }
   }
 

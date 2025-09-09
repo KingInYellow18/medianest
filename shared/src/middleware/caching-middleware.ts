@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 
 import { createServiceLogger } from '../config/logging.config';
 import { redisConfig } from '../config/redis.config';
@@ -121,7 +121,7 @@ export class CachingMiddleware {
 
     // Default key generation
     const baseKey = `api:${req.path}`;
-    const queryString = new URLSearchParams(req.query as any).toString();
+    const queryString = new URLSearchParams(req.query as Record<string, string>).toString();
     const userId = req.user?.id || 'anonymous';
 
     // Include vary headers in key

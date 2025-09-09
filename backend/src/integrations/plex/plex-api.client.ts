@@ -99,7 +99,6 @@ export interface PlexApiConfig extends ApiClientConfig {
 }
 
 export class PlexApiClient extends BaseApiClient {
-  private _plexToken: string;
   private serverUrl?: string;
 
   constructor(config: PlexApiConfig) {
@@ -119,7 +118,6 @@ export class PlexApiClient extends BaseApiClient {
       },
     });
 
-    this._plexToken = config.plexToken;
     this.serverUrl = config.serverUrl;
   }
 

@@ -13,7 +13,7 @@ interface TimeoutOptions {
 export function requestTimeout(options: TimeoutOptions = {}) {
   const { timeout = 30000, message = 'Request timeout' } = options;
 
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (_req: Request, res: Response, next: NextFunction) => {
     // Set timeout on the request
     const timer = setTimeout(() => {
       if (!res.headersSent) {

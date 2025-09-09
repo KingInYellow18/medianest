@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from 'express';
+import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -82,7 +82,7 @@ app.use(
     limit: '1mb', // Context7: Reduced limit for better performance and security
     strict: true,
     type: ['application/json', 'application/vnd.api+json'],
-    verify: (req, res, buf) => {
+    verify: (_req, _res, buf) => {
       // Context7 Pattern: Early JSON validation
       if (buf.length > 0 && buf[0] !== 123 && buf[0] !== 91) {
         // Not starting with { or [

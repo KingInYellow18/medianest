@@ -49,7 +49,7 @@ export interface MediaRequest {
 export class OverseerrClient {
   private client: AxiosInstance;
 
-  constructor(private config: OverseerrConfig) {
+  constructor(config: OverseerrConfig) {
     this.client = axios.create({
       baseURL: config.url.replace(/\/$/, '') + '/api/v1',
       timeout: 5000,

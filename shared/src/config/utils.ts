@@ -3,7 +3,7 @@ import path from 'path';
 
 import dotenv from 'dotenv';
 
-import { Environment } from './schemas';
+import type { Environment } from './schemas';
 
 /**
  * Interface for environment variable loaders

@@ -1,5 +1,5 @@
 // Frontend-specific type declarations
-import { User, MediaRequest, ServiceStatus } from '@medianest/shared';
+import type { User, MediaRequest, ServiceStatus } from '@medianest/shared';
 
 // Next.js page props
 export interface PageProps {

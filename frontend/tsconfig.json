@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
     "lib": [
-      "dom",
-      "dom.iterable",
-      "es6"
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
     ],
     "allowJs": true,
     "skipLibCheck": true,
@@ -12,6 +12,8 @@
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
+    "composite": true,
+    "tsBuildInfoFile": "./.tsbuildinfo",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
@@ -25,9 +27,15 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@medianest/shared": [
+        "../shared/dist"
+      ],
+      "@medianest/shared/*": [
+        "../shared/dist/*"
       ]
     },
-    "target": "ES2017"
+    "target": "ES2022"
   },
   "include": [
     "next-env.d.ts",
@@ -36,6 +44,11 @@
     ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "tailwind.config.ts",
+    "tests/setup.ts"
+  ],
+  "references": [
+    { "path": "../shared" }
   ]
 }

@@ -5,7 +5,6 @@
 import { PrismaClient, Prisma } from '@prisma/client';
 import { logger } from '../utils/logger';
 import { env } from './env';
-import { createClient } from 'redis';
 import { CatchError } from '../types/common';
 
 // Connection pool configuration

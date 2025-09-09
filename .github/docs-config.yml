@@ -1,0 +1,397 @@
+# MediaNest Documentation Automation Configuration
+# This file centralizes all documentation pipeline settings
+
+# Version and metadata
+version: "2.0.0"
+last_updated: "2025-09-09"
+maintained_by: "MediaNest Documentation Team"
+
+# Environment Configuration
+environments:
+  production:
+    url: "https://docs.medianest.com"
+    branch: "main"
+    deployment_target: "github-pages"
+    google_analytics: true
+    search_enabled: true
+    social_cards: true
+    
+  staging:
+    url: "https://staging-docs.medianest.com" 
+    branch: "develop"
+    deployment_target: "github-pages-staging"
+    google_analytics: false
+    search_enabled: true
+    social_cards: false
+    
+  preview:
+    url_pattern: "https://{owner}.github.io/{repo}/pr-{number}"
+    branch_pattern: "pr-*"
+    deployment_target: "github-pages-preview"
+    google_analytics: false
+    search_enabled: false
+    social_cards: false
+
+# Build Configuration
+build:
+  python_version: "3.12"
+  node_version: "20"
+  mkdocs_version: "latest"
+  
+  # MkDocs plugins and extensions
+  dependencies:
+    - "mkdocs-material>=9.4.0"
+    - "mkdocs-git-revision-date-localized-plugin"
+    - "mkdocs-minify-plugin"
+    - "mkdocs-redirects"
+    - "mkdocs-tags"
+    - "mkdocs-social"
+    - "pygments"
+    - "pymdown-extensions"
+  
+  # Build optimization
+  optimization:
+    minify_html: true
+    minify_css: true
+    minify_js: true
+    compress_images: true
+    generate_gzip: true
+    
+  # Build validation
+  validation:
+    strict_mode: true
+    check_links: true
+    validate_html: true
+    check_accessibility: true
+
+# Quality Assurance Configuration
+qa:
+  # Content validation
+  content_validation:
+    enabled: true
+    markdown_linting: true
+    spell_check: false  # Disabled due to technical terms
+    grammar_check: false
+    
+  # Performance testing
+  performance_testing:
+    enabled: true
+    lighthouse_audit: true
+    max_page_load_time: 5.0  # seconds
+    max_bundle_size: 10      # MB
+    performance_budget:
+      first_contentful_paint: "2s"
+      largest_contentful_paint: "4s"
+      cumulative_layout_shift: 0.1
+      total_blocking_time: "300ms"
+    
+  # Security testing
+  security_testing:
+    enabled: true
+    scan_xss_vectors: true
+    check_insecure_links: true
+    validate_headers: true
+    
+  # Cross-platform testing
+  cross_platform_testing:
+    enabled: true
+    operating_systems:
+      - "ubuntu-latest"
+      - "windows-latest" 
+      - "macos-latest"
+    python_versions:
+      - "3.10"
+      - "3.11"
+      - "3.12"
+
+# Monitoring Configuration
+monitoring:
+  # Health checks
+  health_checks:
+    enabled: true
+    frequency: "0 */6 * * *"  # Every 6 hours
+    timeout: 30  # seconds
+    
+  # Performance monitoring
+  performance_monitoring:
+    enabled: true
+    max_response_time: 5.0  # seconds
+    max_response_size: 10   # MB
+    
+  # Content monitoring
+  content_monitoring:
+    enabled: true
+    check_search_functionality: true
+    validate_sitemap: true
+    check_security_headers: true
+    
+  # Link monitoring
+  link_monitoring:
+    enabled: true
+    check_external_links: false  # Disabled to avoid rate limiting
+    check_internal_links: true
+    max_broken_links: 5
+
+# Backup Configuration
+backup:
+  # Backup types and schedules
+  incremental:
+    enabled: true
+    schedule: "0 3 * * *"  # Daily at 3 AM UTC
+    retention_days: 90
+    compression: "gzip"
+    
+  full:
+    enabled: true
+    schedule: "0 3 * * 0"  # Weekly on Sunday
+    retention_days: 90
+    compression: "gzip"
+    include_git_history: true
+    
+  archive:
+    enabled: true
+    schedule: "0 3 1 * *"  # Monthly on 1st
+    retention_days: 365
+    compression: "xz"
+    include_git_history: true
+    
+  # Backup limits
+  limits:
+    max_backup_size_gb: 5
+    max_artifacts: 50
+
+# Notification Configuration  
+notifications:
+  # Slack notifications
+  slack:
+    enabled: false  # Enable when webhook is configured
+    webhook_url_secret: "SLACK_WEBHOOK_URL"
+    notify_on:
+      - "deployment_success"
+      - "deployment_failure"
+      - "backup_completion"
+      - "critical_health_issues"
+      
+  # Email notifications
+  email:
+    enabled: false  # Enable when SMTP is configured
+    notify_on:
+      - "critical_health_issues"
+      - "security_vulnerabilities"
+      
+  # GitHub issues
+  github_issues:
+    enabled: true
+    create_on:
+      - "critical_health_issues"
+      - "repeated_deployment_failures"
+    labels:
+      - "documentation"
+      - "automated"
+      - "alert"
+
+# Deployment Configuration
+deployment:
+  # GitHub Pages settings
+  github_pages:
+    enabled: true
+    custom_domain: "docs.medianest.com"
+    enforce_https: true
+    
+  # Alternative deployment targets
+  netlify:
+    enabled: false
+    site_id: ""
+    
+  s3:
+    enabled: false
+    bucket: ""
+    cloudfront_distribution_id: ""
+    
+  # Deployment strategies
+  strategies:
+    production:
+      type: "blue_green"
+      health_check_url: "/"
+      rollback_on_failure: true
+      
+    staging: 
+      type: "replace"
+      health_check_url: "/"
+      rollback_on_failure: false
+
+# Security Configuration
+security:
+  # Content Security Policy
+  csp:
+    enabled: true
+    directives:
+      default-src: "'self'"
+      script-src: "'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com"
+      style-src: "'self' 'unsafe-inline' https://fonts.googleapis.com"
+      font-src: "'self' https://fonts.gstatic.com"
+      img-src: "'self' data: https:"
+      connect-src: "'self' https://www.google-analytics.com"
+      
+  # Security headers
+  headers:
+    x-content-type-options: "nosniff"
+    x-frame-options: "DENY"
+    x-xss-protection: "1; mode=block"
+    referrer-policy: "strict-origin-when-cross-origin"
+    permissions-policy: "geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=()"
+    
+  # Vulnerability scanning
+  scanning:
+    enabled: true
+    fail_on_high_severity: true
+    ignore_dev_dependencies: true
+
+# Cache Configuration
+cache:
+  # Build cache
+  build_cache:
+    enabled: true
+    key_pattern: "{runner.os}-mkdocs-{hashFiles('requirements.txt', 'mkdocs.yml')}"
+    paths:
+      - "~/.cache/pip"
+      - ".venv"
+      
+  # Asset cache
+  asset_cache:
+    enabled: true
+    max_age:
+      css: "31536000"  # 1 year
+      js: "31536000"   # 1 year
+      images: "31536000"  # 1 year
+      html: "3600"     # 1 hour
+
+# Analytics Configuration
+analytics:
+  # Google Analytics
+  google_analytics:
+    enabled: true
+    property_id_secret: "GOOGLE_ANALYTICS_KEY"
+    
+  # Performance tracking
+  performance_tracking:
+    enabled: true
+    track_page_views: true
+    track_search_queries: true
+    track_download_clicks: true
+
+# Content Configuration
+content:
+  # Required documentation sections
+  required_sections:
+    - "docs/index.md"
+    - "docs/README.md" 
+    - "docs/api/index.md"
+    - "docs/user/index.md"
+    - "docs/development/index.md"
+    - "docs/architecture/index.md"
+    
+  # Content validation rules
+  validation_rules:
+    min_words_per_page: 50
+    require_h1_heading: true
+    max_heading_level: 4
+    require_meta_description: false
+    
+  # Content organization
+  organization:
+    max_depth: 4
+    index_required: true
+    consistent_naming: true
+
+# Integration Configuration
+integrations:
+  # Version control
+  git:
+    auto_commit_stubs: true
+    commit_message_prefix: "docs:"
+    
+  # External services
+  algolia:
+    enabled: false
+    app_id_secret: "ALGOLIA_APP_ID"
+    api_key_secret: "ALGOLIA_API_KEY"
+    
+  # Social media
+  social:
+    twitter_card: true
+    open_graph: true
+    
+# Workflow Configuration
+workflows:
+  # Main documentation workflow
+  docs_build_deploy:
+    file: "docs.yml"
+    triggers:
+      - "push: [main, develop]"
+      - "pull_request: [main, develop]"  
+      - "workflow_dispatch"
+      - "schedule: 0 2 * * *"
+    paths:
+      - "docs/**"
+      - "mkdocs.yml"
+      - "scripts/build-docs.sh"
+      - "scripts/deploy-docs.sh"
+      
+  # QA workflow
+  docs_qa:
+    file: "docs-qa.yml"
+    triggers:
+      - "pull_request"
+      - "push: [main, develop]"
+      - "workflow_dispatch"
+    paths:
+      - "docs/**"
+      - "mkdocs.yml"
+      - "*.md"
+      
+  # Monitoring workflow  
+  docs_monitoring:
+    file: "docs-monitoring.yml"
+    triggers:
+      - "schedule: 0 */6 * * *"
+      - "workflow_dispatch"
+    environments: ["production", "staging"]
+    
+  # Backup workflow
+  docs_backup:
+    file: "docs-backup.yml"
+    triggers:
+      - "schedule: 0 3 * * *"
+      - "workflow_run: Documentation Build & Deploy"
+      - "workflow_dispatch"
+
+# Maintenance Configuration
+maintenance:
+  # Dependency updates
+  dependency_updates:
+    enabled: true
+    schedule: "weekly"
+    auto_merge_patch: false
+    
+  # Artifact cleanup
+  artifact_cleanup:
+    enabled: true
+    retention_policy:
+      documentation_builds: 30  # days
+      qa_reports: 7            # days
+      monitoring_reports: 30   # days
+      backup_artifacts: 90     # days
+      
+  # Link checking
+  link_checking:
+    enabled: true
+    schedule: "weekly"
+    external_links: false
+    
+# Feature Flags
+feature_flags:
+  experimental_features: false
+  beta_plugins: false
+  advanced_analytics: false
+  ai_content_suggestions: false

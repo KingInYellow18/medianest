@@ -1,0 +1,477 @@
+{% extends "base.html" %}
+
+<!-- Custom blocks for MediaNest branding and enhancements -->
+
+{% block extrahead %}
+  <!-- Enhanced meta tags for better SEO -->
+  <meta name="description" content="{{ config.site_description or 'MediaNest - Advanced Media Management Platform with Plex Integration' }}">
+  <meta name="keywords" content="MediaNest, Media Management, Plex Integration, Docker, API, Documentation">
+  <meta name="author" content="{{ config.site_author or 'MediaNest Development Team' }}">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{ page.canonical_url or config.site_url }}">
+  <meta property="og:title" content="{{ page.title }} - {{ config.site_name }}">
+  <meta property="og:description" content="{{ page.meta.description or config.site_description }}">
+  <meta property="og:image" content="{{ config.site_url }}/assets/images/medianest-og.png">
+  
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="{{ page.canonical_url or config.site_url }}">
+  <meta property="twitter:title" content="{{ page.title }} - {{ config.site_name }}">
+  <meta property="twitter:description" content="{{ page.meta.description or config.site_description }}">
+  <meta property="twitter:image" content="{{ config.site_url }}/assets/images/medianest-og.png">
+  
+  <!-- Favicons -->
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ 'assets/images/apple-touch-icon.png' | url }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ 'assets/images/favicon-32x32.png' | url }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ 'assets/images/favicon-16x16.png' | url }}">
+  <link rel="manifest" href="{{ 'assets/images/site.webmanifest' | url }}">
+  <link rel="mask-icon" href="{{ 'assets/images/safari-pinned-tab.svg' | url }}" color="#673ab7">
+  <meta name="msapplication-TileColor" content="#673ab7">
+  <meta name="theme-color" content="#673ab7">
+  
+  <!-- Preload critical resources -->
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" as="style">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+  <!-- Enhanced structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "{{ config.site_name }}",
+    "description": "{{ config.site_description }}",
+    "url": "{{ config.site_url }}",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "{{ config.site_url }}/search/?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "{{ config.site_author }}",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "{{ config.site_url }}/assets/images/logo.svg"
+      }
+    }
+  }
+  </script>
+  
+  <!-- Performance monitoring -->
+  <script>
+    window.MediaNestPerf = {
+      start: performance.now(),
+      marks: {}
+    };
+  </script>
+{% endblock %}
+
+{% block announce %}
+  {% if config.extra.announcement %}
+    <div class="md-banner">
+      <div class="md-banner__inner md-grid md-typeset">
+        {{ config.extra.announcement | markdown }}
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}
+
+{% block header %}
+  {{ super() }}
+  
+  <!-- Enhanced header with version selector -->
+  {% if config.extra.version %}
+    <div class="md-header__version">
+      <select class="md-header__version-select" onchange="window.location.href = this.value">
+        {% for version in config.extra.version.versions %}
+          <option value="{{ version.url }}" {% if version.current %}selected{% endif %}>
+            {{ version.title }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  <!-- Progress indicator for long pages -->
+  <div class="md-progress" aria-hidden="true">
+    <div class="md-progress__bar"></div>
+  </div>
+  
+  <!-- Main content with enhanced structure -->
+  <div class="md-content" data-md-component="content">
+    <div class="md-content__inner md-grid">
+      
+      <!-- Breadcrumb navigation -->
+      {% if page.ancestors %}
+        <nav class="md-breadcrumb" aria-label="Breadcrumb">
+          <ol class="md-breadcrumb__list">
+            {% for ancestor in page.ancestors %}
+              <li class="md-breadcrumb__item">
+                <a href="{{ ancestor.url | url }}" class="md-breadcrumb__link">
+                  {{ ancestor.title }}
+                </a>
+              </li>
+            {% endfor %}
+            <li class="md-breadcrumb__item md-breadcrumb__item--current">
+              {{ page.title }}
+            </li>
+          </ol>
+        </nav>
+      {% endif %}
+      
+      <!-- Page metadata -->
+      <div class="md-content__meta">
+        {% if page.meta.tags %}
+          <div class="md-tags">
+            {% for tag in page.meta.tags %}
+              <span class="md-tag">{{ tag }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+        
+        {% if page.meta.author or page.meta.date %}
+          <div class="md-content__meta-info">
+            {% if page.meta.author %}
+              <span class="md-meta__author">
+                <i class="md-icon">👤</i> {{ page.meta.author }}
+              </span>
+            {% endif %}
+            {% if page.meta.date %}
+              <span class="md-meta__date">
+                <i class="md-icon">📅</i> 
+                <time datetime="{{ page.meta.date }}">{{ page.meta.date }}</time>
+              </span>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+      
+      <!-- Main article content -->
+      <article class="md-content__article" id="main">
+        {{ super() }}
+      </article>
+      
+      <!-- Page footer with contribution info -->
+      {% if page.edit_url or page.meta.contributors %}
+        <footer class="md-content__footer">
+          <div class="md-content__footer-inner">
+            {% if page.edit_url %}
+              <a href="{{ page.edit_url }}" class="md-content__edit" title="Edit this page">
+                <i class="md-icon">✏️</i> Edit this page
+              </a>
+            {% endif %}
+            
+            {% if page.meta.contributors %}
+              <div class="md-content__contributors">
+                <span>Contributors:</span>
+                {% for contributor in page.meta.contributors %}
+                  <span class="md-contributor">{{ contributor }}</span>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </footer>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
+
+{% block footer %}
+  <footer class="md-footer">
+    {% if page.previous_page or page.next_page %}
+      <nav class="md-footer__nav md-grid" aria-label="Footer navigation">
+        {% if page.previous_page %}
+          <a href="{{ page.previous_page.url | url }}" class="md-footer__link md-footer__link--prev" rel="prev">
+            <div class="md-footer__button md-icon">
+              ←
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">Previous</span>
+              <div class="md-ellipsis">{{ page.previous_page.title }}</div>
+            </div>
+          </a>
+        {% endif %}
+        
+        {% if page.next_page %}
+          <a href="{{ page.next_page.url | url }}" class="md-footer__link md-footer__link--next" rel="next">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">Next</span>
+              <div class="md-ellipsis">{{ page.next_page.title }}</div>
+            </div>
+            <div class="md-footer__button md-icon">
+              →
+            </div>
+          </a>
+        {% endif %}
+      </nav>
+    {% endif %}
+    
+    <div class="md-footer-meta md-typeset">
+      <div class="md-footer-meta__inner md-grid">
+        
+        <!-- Social links -->
+        {% if config.extra.social %}
+          <div class="md-footer-social">
+            {% for social in config.extra.social %}
+              <a href="{{ social.link }}" target="_blank" rel="noopener" 
+                 class="md-footer-social__link" title="{{ social.name }}">
+                {% include ".icons/" ~ social.icon ~ ".svg" %}
+              </a>
+            {% endfor %}
+          </div>
+        {% endif %}
+        
+        <!-- Copyright and legal -->
+        <div class="md-footer-copyright">
+          {% if config.copyright %}
+            <div class="md-footer-copyright__highlight">
+              {{ config.copyright }}
+            </div>
+          {% endif %}
+          
+          <div class="md-footer-legal">
+            Made with ❤️ by the MediaNest Team |
+            <a href="/privacy/">Privacy</a> |
+            <a href="/terms/">Terms</a> |
+            <a href="/security/">Security</a>
+          </div>
+        </div>
+        
+        <!-- Build info -->
+        <div class="md-footer-build">
+          {% if config.extra.version %}
+            Version {{ config.extra.version.default }} |
+          {% endif %}
+          Built with <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank">Material for MkDocs</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  
+  <!-- Enhanced analytics and tracking -->
+  {% if config.extra.analytics %}
+    <script>
+      // Enhanced analytics with custom events
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      
+      // Track page performance
+      window.addEventListener('load', function() {
+        gtag('event', 'page_load_time', {
+          event_category: 'Performance',
+          event_label: window.location.pathname,
+          value: Math.round(performance.now())
+        });
+      });
+      
+      // Track search usage
+      document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.querySelector('.md-search__input');
+        if (searchInput) {
+          searchInput.addEventListener('input', function() {
+            gtag('event', 'search', {
+              search_term: this.value,
+              event_category: 'engagement'
+            });
+          });
+        }
+      });
+    </script>
+  {% endif %}
+  
+  <!-- Service Worker for offline functionality -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js')
+          .then(function(registration) {
+            console.log('ServiceWorker registered: ', registration.scope);
+          })
+          .catch(function(err) {
+            console.log('ServiceWorker registration failed: ', err);
+          });
+      });
+    }
+  </script>
+  
+  <!-- Performance monitoring -->
+  <script>
+    window.MediaNestPerf.marks.scriptsLoaded = performance.now();
+    
+    // Log performance data
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        const perfData = {
+          loadTime: performance.now() - window.MediaNestPerf.start,
+          scriptsTime: window.MediaNestPerf.marks.scriptsLoaded - window.MediaNestPerf.start
+        };
+        console.log('MediaNest Docs Performance:', perfData);
+      }, 1000);
+    });
+  </script>
+{% endblock %}
+
+<!-- Custom styles for the enhanced template -->
+<style>
+  .md-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    z-index: 200;
+    background: transparent;
+  }
+  
+  .md-progress__bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--md-primary-fg-color), var(--md-accent-fg-color));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+  
+  .md-breadcrumb {
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+  }
+  
+  .md-breadcrumb__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .md-breadcrumb__item:not(:last-child)::after {
+    content: '›';
+    margin-left: 0.5rem;
+    color: var(--md-default-fg-color--light);
+  }
+  
+  .md-breadcrumb__link {
+    color: var(--md-primary-fg-color);
+    text-decoration: none;
+  }
+  
+  .md-breadcrumb__link:hover {
+    text-decoration: underline;
+  }
+  
+  .md-content__meta {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--md-default-fg-color--lightest);
+  }
+  
+  .md-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .md-tag {
+    background: var(--md-primary-fg-color);
+    color: var(--md-primary-bg-color);
+    padding: 0.2rem 0.5rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+  
+  .md-content__meta-info {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.85rem;
+    color: var(--md-default-fg-color--light);
+  }
+  
+  .md-content__footer {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--md-default-fg-color--lightest);
+  }
+  
+  .md-content__footer-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  .md-content__edit {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--md-primary-fg-color);
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: color 0.2s;
+  }
+  
+  .md-content__edit:hover {
+    color: var(--md-primary-fg-color--dark);
+  }
+  
+  .md-footer-social {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .md-footer-social__link {
+    color: var(--md-footer-fg-color--light);
+    transition: color 0.2s;
+  }
+  
+  .md-footer-social__link:hover {
+    color: var(--md-footer-fg-color);
+  }
+  
+  .md-footer-legal,
+  .md-footer-build {
+    font-size: 0.75rem;
+    color: var(--md-footer-fg-color--light);
+    text-align: center;
+  }
+  
+  .md-footer-legal a,
+  .md-footer-build a {
+    color: var(--md-footer-fg-color--light);
+    text-decoration: none;
+  }
+  
+  .md-footer-legal a:hover,
+  .md-footer-build a:hover {
+    color: var(--md-footer-fg-color);
+    text-decoration: underline;
+  }
+  
+  @media screen and (max-width: 44.9375em) {
+    .md-breadcrumb {
+      font-size: 0.75rem;
+    }
+    
+    .md-content__meta-info {
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    
+    .md-content__footer-inner {
+      flex-direction: column;
+      text-align: center;
+    }
+  }
+</style>

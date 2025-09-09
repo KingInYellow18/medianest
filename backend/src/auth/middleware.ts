@@ -153,7 +153,6 @@ export class AuthMiddleware {
           });
 
           // Context7 Pattern: Async token rotation to avoid blocking response
-          const tokenInfo = this.authFacade.getTokenInfo(req.token);
           if (this.authFacade.shouldRotateToken(req.token)) {
             // Don't await - handle rotation asynchronously
             setImmediate(() => {
@@ -200,7 +199,7 @@ export class AuthMiddleware {
    * Optional authentication middleware
    */
   optionalAuth() {
-    return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    return async (req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
       try {
         const authResult = await this.authFacade.authenticateOptional(req);
 

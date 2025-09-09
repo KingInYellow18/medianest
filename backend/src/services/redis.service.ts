@@ -680,8 +680,8 @@ export class RedisService {
         throw new Error('Rate limit multi operation failed');
       }
 
-      const count = results[0][1] as number;
-      const ttl = results[1][1] as number;
+      const count = (results[0]?.[1] ?? 0) as number;
+      const ttl = (results[1]?.[1] ?? -1) as number;
 
       // If this is the first request, set the TTL
       if (count === 1 && ttl === -1) {
@@ -718,8 +718,8 @@ export class RedisService {
         return { count: 0, remaining: maxAttempts, resetTime: null };
       }
 
-      const count = parseInt(results[0][1] as string) || 0;
-      const ttl = results[1][1] as number;
+      const count = parseInt((results[0]?.[1] as string) ?? '0') || 0;
+      const ttl = (results[1]?.[1] ?? 0) as number;
 
       const remaining = Math.max(0, maxAttempts - count);
       const resetTime = ttl > 0 ? new Date(Date.now() + ttl * 1000) : null;
@@ -806,13 +806,13 @@ export class RedisService {
       const usedMemoryBytesMatch = info.match(/used_memory:(\d+)/);
       const maxMemoryBytesMatch = info.match(/maxmemory:(\d+)/);
 
-      const usedMemory = usedMemoryMatch ? usedMemoryMatch[1].trim() : 'unknown';
-      const maxMemory = maxMemoryMatch ? maxMemoryMatch[1].trim() : 'unlimited';
+      const usedMemory = usedMemoryMatch?.[1]?.trim() ?? 'unknown';
+      const maxMemory = maxMemoryMatch?.[1]?.trim() ?? 'unlimited';
 
       let memoryUsagePercent = 0;
       if (usedMemoryBytesMatch && maxMemoryBytesMatch) {
-        const used = parseInt(usedMemoryBytesMatch[1]);
-        const max = parseInt(maxMemoryBytesMatch[1]);
+        const used = parseInt(usedMemoryBytesMatch[1] ?? '0');
+        const max = parseInt(maxMemoryBytesMatch[1] ?? '0');
         memoryUsagePercent = max > 0 ? (used / max) * 100 : 0;
       }
 

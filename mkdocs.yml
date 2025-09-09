@@ -1,12 +1,12 @@
 # MkDocs Configuration for MediaNest - Professional Documentation Platform
 site_name: MediaNest Documentation
-site_url: https://docs.medianest.com
+site_url: https://kinginyellow.github.io/medianest/  # GitHub Pages URL
 site_author: MediaNest Development Team
 site_description: Complete documentation for MediaNest - Advanced Media Management Platform with Plex Integration, API, and Developer Resources
 
 # Repository Configuration
-repo_name: MediaNest/MediaNest
-repo_url: https://github.com/medianest/medianest
+repo_name: kinginyellow/medianest
+repo_url: https://github.com/kinginyellow/medianest
 edit_uri: edit/develop/docs/
 remote_branch: develop
 remote_name: origin
@@ -21,7 +21,6 @@ copyright: >
 # Theme Configuration
 theme:
   name: material
-  custom_dir: docs/overrides
 
   # Color Scheme
   palette:
@@ -86,79 +85,42 @@ theme:
 # Navigation
 nav:
   - Home: index.md
-
   - Getting Started:
       - getting-started/index.md
       - Quick Start: getting-started/quickstart.md
-      - System Requirements: getting-started/requirements.md
-      - First Time Setup: getting-started/first-setup.md
-
-  - Installation:
-      - installation/index.md
-      - Docker Installation: installation/docker.md
-      - Manual Installation: installation/manual.md
-      - Configuration: installation/configuration.md
-      - Environment Variables: installation/environment.md
-      - Database Setup: installation/database.md
-
-  - User Guides:
-      - user-guides/index.md
-      - Media Management: user-guides/media-management.md
-      - File Organization: user-guides/file-organization.md
-      - Search and Filtering: user-guides/search-filtering.md
-      - Metadata Management: user-guides/metadata.md
-      - Collections: user-guides/collections.md
-      - Sharing and Permissions: user-guides/sharing.md
-      - Backup and Sync: user-guides/backup-sync.md
-
+      - Development Setup: getting-started/development-setup.md
+  - Architecture:
+      - Component Architecture: architecture/component-architecture.md
+      - Data Flow: architecture/data-flow.md
+      - System Overview: architecture/system-overview.md
+      - Architecture Decisions:
+        - ADR-001 Architecture: architecture/decisions/adr-001-architecture.md
   - API Reference:
-      - api/index.md
-      - Authentication: api/authentication.md
-      - Media API: api/media.md
-      - Collections API: api/collections.md
-      - User Management: api/users.md
-      - Search API: api/search.md
-      - Webhooks: api/webhooks.md
-      - Rate Limiting: api/rate-limiting.md
-      - Error Handling: api/errors.md
-
-  - Developer Docs:
-      - developers/index.md
-      - Architecture Overview: developers/architecture.md
+      - Overview: api/overview.md
+      - WebSocket API: api/websocket.md
+      - Endpoints:
+        - Dashboard: api/endpoints/dashboard.md
+        - Media: api/endpoints/media.md
+        - Plex: api/endpoints/plex.md
+  - Deployment:
+      - CI/CD: deployment/ci-cd.md
+  - Developers:
       - Contributing: developers/contributing.md
-      - Development Setup: developers/development-setup.md
-      - Coding Standards: developers/coding-standards.md
-      - Testing: developers/testing.md
-      - Deployment: developers/deployment.md
-      - Database Schema: developers/database-schema.md
-      - Plugin Development: developers/plugins.md
+      - Workflow: developers/workflow.md
+  - Visuals:
+      - Database Schema: visuals/database-schema.md
+      - Deployment Architecture: visuals/deployment-architecture.md
+      - System Flow: visuals/system-flow.md
+  - Standards:
+      - Documentation Checklist: standards/documentation-checklist.md
 
-  - Troubleshooting:
-      - troubleshooting/index.md
-      - Common Issues: troubleshooting/common-issues.md
-      - Performance Issues: troubleshooting/performance.md
-      - Database Issues: troubleshooting/database.md
-      - Media Processing: troubleshooting/media-processing.md
-      - Authentication Problems: troubleshooting/authentication.md
-      - Logs and Debugging: troubleshooting/debugging.md
-
-  - Reference:
-      - reference/index.md
-      - CLI Commands: reference/cli.md
-      - Configuration Reference: reference/config-reference.md
-      - Supported Formats: reference/formats.md
-      - FAQ: reference/faq.md
-      - Glossary: reference/glossary.md
-      - Changelog: reference/changelog.md
-
-# Enhanced Plugins for Professional Documentation
+# Essential Plugins - Minimal Working Configuration
 plugins:
-  # Core search with advanced features
+  # Core search functionality
   - search:
       separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
       lang:
         - en
-      prebuild_index: true
 
   # Performance optimization
   - minify:
@@ -168,6 +130,8 @@ plugins:
       htmlmin_opts:
         remove_comments: true
         remove_empty_space: true
+        remove_optional_attribute_quotes: false
+        reduce_empty_attributes: true
 
   # Git integration for content management
   - git-revision-date-localized:
@@ -176,28 +140,7 @@ plugins:
       locale: en
       fallback_to_build_date: true
       enable_creation_date: true
-
-  # Content organization
-  - tags:
-      tags_file: reference/tags.md
-
-  # Social media integration
-  - social:
-      enabled: !ENV [CI, false]
-      cards: true
-      cards_layout_options:
-        background_color: '#673ab7'
-        color: '#ffffff'
-      cards_color:
-        fill: '#673ab7'
-        text: '#ffffff'
-
-  # Meta tags for SEO
-  - meta
-
-  # Privacy plugin for GDPR compliance
-  - privacy:
-      enabled: !ENV [CI, false]
+      enable_git_follow: false
 
 # Markdown Extensions
 markdown_extensions:
@@ -207,14 +150,19 @@ markdown_extensions:
   - def_list
   - footnotes
   - md_in_html
+  - tables
   - toc:
       permalink: true
       title: On this page
+      baselevel: 1
+      separator: "-"
   - pymdownx.arithmatex:
       generic: true
   - pymdownx.betterem:
       smart_enable: all
   - pymdownx.caret
+  - pymdownx.critic:
+      mode: view
   - pymdownx.details
   - pymdownx.emoji:
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
@@ -223,39 +171,60 @@ markdown_extensions:
       anchor_linenums: true
       line_spans: __span
       pygments_lang_class: true
+      auto_title: true
+      linenums: true
   - pymdownx.inlinehilite
   - pymdownx.keys
   - pymdownx.magiclink:
       repo_url_shorthand: true
-      user: medianest
+      user: kinginyellow
       repo: medianest
+      normalize_issue_symbols: true
   - pymdownx.mark
   - pymdownx.smartsymbols
+  - pymdownx.snippets:
+      check_paths: true
+      base_path: 
+        - docs/snippets
+        - .
   - pymdownx.superfences:
       custom_fences:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
+        - name: swagger-ui
+          class: swagger-ui
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.tasklist:
       custom_checkbox: true
+      clickable_checkbox: true
   - pymdownx.tilde
 
 # Enhanced Assets and Scripts
 extra_css:
-  - assets/stylesheets/extra.css
-  - assets/stylesheets/medianest-theme.css
-  - assets/stylesheets/animations.css
-  - assets/stylesheets/responsive.css
+  - stylesheets/extra.css
+  - stylesheets/medianest-theme.css
+  - stylesheets/animations.css
+  - stylesheets/responsive.css
+  - stylesheets/diagram-styles.css
+  - stylesheets/api-docs.css
+  - stylesheets/code-highlights.css
+  - stylesheets/mermaid-custom.css
 
 extra_javascript:
-  - assets/javascripts/medianest.js
-  - assets/javascripts/search-enhancements.js
-  - assets/javascripts/analytics.js
+  - javascripts/extra.js
+  - javascripts/medianest.js
+  - javascripts/search-enhancements.js
+  - javascripts/analytics.js
+  - javascripts/api-explorer.js
+  - javascripts/diagram-interactions.js
+  - javascripts/mermaid-config.js
   - https://polyfill.io/v3/polyfill.min.js?features=es6
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
   - https://unpkg.com/mermaid@10/dist/mermaid.min.js
+  - https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui-bundle.js
 
 # Extended Configuration & Integrations
 extra:

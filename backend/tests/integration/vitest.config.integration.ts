@@ -1,195 +1,160 @@
-/**
- * Vitest Configuration for Integration Tests
- * 
- * Optimized configuration for integration testing with:
- * - Extended timeouts and memory management
- * - Database and service setup hooks
- * - Coverage reporting with integration focus
- * - Parallel execution coordination
- */
-
+/// <reference types="vitest" />
 import { defineConfig } from 'vitest/config';
 import path from 'path';
 
+/**
+ * Vitest Configuration for Integration Tests
+ * 
+ * Replaces Jest configuration with modern Vitest setup for:
+ * - Database integration testing
+ * - API endpoint testing
+ * - Service layer testing
+ * - External service mocking
+ */
 export default defineConfig({
   test: {
-    // Test environment
+    name: 'integration-tests',
     environment: 'node',
+    setupFiles: ['./setup/vitest-integration-setup.ts'],
+    globals: true,
     
-    // Test file patterns
+    // **INTEGRATION TEST OPTIMIZATIONS**
+    testTimeout: 45000,      // 45 seconds for database operations
+    hookTimeout: 15000,      // 15 seconds for setup/teardown
+    threads: false,          // Sequential execution for database consistency
+    isolate: true,           // Isolate tests for clean database state
+    maxConcurrency: 1,       // One test at a time for integration
+    
+    // **FILE PATTERNS**
     include: [
-      'tests/integration/**/*.test.{ts,js}',
-      'tests/integration/**/*.integration.{ts,js}'
+      'tests/integration/**/*.test.ts',
+      'tests/integration/**/*.spec.ts',
+      'tests/integration/**/*.integration.ts'
     ],
     
-    // Exclude patterns
     exclude: [
-      '**/node_modules/**',
-      '**/dist/**',
-      '**/*.d.ts'
+      'tests/integration/setup/**',
+      'tests/integration/fixtures/**',
+      'tests/integration/helpers/**'
     ],
     
-    // Timeout configuration
-    testTimeout: 300000, // 5 minutes for integration tests
-    hookTimeout: 60000,  // 1 minute for setup/teardown hooks
-    
-    // Global setup and teardown
-    globalSetup: [
-      './tests/integration/setup/global-setup.ts'
-    ],
-    
-    globalTeardown: [
-      './tests/integration/setup/global-teardown.ts'
-    ],
-    
-    // Setup files run for each test file
-    setupFiles: [
-      './tests/integration/setup/test-setup.ts'
-    ],
-    
-    // Parallel execution configuration
-    pool: 'threads',
-    threads: {
-      minThreads: 1,
-      maxThreads: process.env.CI ? 2 : 4
+    // **ENVIRONMENT CONFIGURATION**
+    env: {
+      NODE_ENV: 'test',
+      LOG_LEVEL: 'error',
+      
+      // Test Database (separate from unit tests)
+      DATABASE_URL: 'postgresql://test:test@localhost:5433/medianest_integration_test',
+      DATABASE_POOL_SIZE: '2',
+      DATABASE_TIMEOUT: '10000',
+      
+      // Test Redis (separate instance)
+      REDIS_URL: 'redis://localhost:6380/2',
+      REDIS_TEST_DB: '2',
+      
+      // Authentication
+      JWT_SECRET: 'integration-test-jwt-secret-key-32-bytes-long',
+      JWT_ISSUER: 'medianest-integration-test',
+      JWT_AUDIENCE: 'medianest-integration-users',
+      ENCRYPTION_KEY: 'integration-test-key-32-chars-long',
+      
+      // External Services (mocked)
+      PLEX_CLIENT_ID: 'integration-test-plex-id',
+      PLEX_CLIENT_SECRET: 'integration-test-plex-secret',
+      FRONTEND_URL: 'http://localhost:3000',
+      
+      // Performance settings
+      NODE_OPTIONS: '--max-old-space-size=2048',
+      DATABASE_LOGGING: 'false'
     },
     
-    // Isolation configuration
-    isolate: true,
-    
-    // Coverage configuration
+    // **COVERAGE CONFIGURATION**
     coverage: {
-      enabled: process.env.COLLECT_COVERAGE === 'true',
       provider: 'v8',
+      reporter: ['text', 'text-summary', 'html', 'json', 'lcov'],
+      reportsDirectory: './test-reports/integration/coverage',
       
-      // Include patterns
+      // Include patterns for integration coverage
       include: [
-        'src/**/*.{ts,js}',
-        '!src/**/*.d.ts',
-        '!src/**/*.test.{ts,js}',
-        '!src/**/__tests__/**'
+        'src/controllers/**/*.ts',
+        'src/services/**/*.ts',
+        'src/repositories/**/*.ts',
+        'src/middleware/**/*.ts',
+        'src/routes/**/*.ts'
       ],
       
-      // Exclude patterns
       exclude: [
-        '**/node_modules/**',
-        '**/dist/**',
-        '**/tests/**',
-        '**/*.config.*',
-        '**/*.setup.*'
+        'src/**/*.test.ts',
+        'src/**/*.spec.ts',
+        'src/**/*.d.ts',
+        'src/types/**',
+        'src/schemas/**',
+        'tests/**'
       ],
       
-      // Coverage thresholds
+      // Higher thresholds for integration tests
       thresholds: {
         global: {
+          branches: 75,
+          functions: 80,
           lines: 75,
-          functions: 75,
-          branches: 70,
+          statements: 75
+        },
+        // Critical integration paths
+        './src/services/': {
+          branches: 80,
+          functions: 85,
+          lines: 80,
+          statements: 80
+        },
+        './src/controllers/': {
+          branches: 75,
+          functions: 80,
+          lines: 75,
           statements: 75
         }
-      },
-      
-      // Reporters
-      reporter: [
-        'text',
-        'text-summary',
-        'html',
-        'lcov',
-        'json'
-      ],
-      
-      // Output directory
-      reportsDirectory: './test-reports/integration/coverage'
-    },
-    
-    // Reporters
-    reporter: [
-      'verbose',
-      'json',
-      ['html', { 
-        outputFile: './test-reports/integration/index.html',
-        subdir: '.'
-      }],
-      ['junit', { 
-        outputFile: './test-reports/integration/junit.xml'
-      }]
-    ],
-    
-    // Output configuration
-    outputFile: {
-      json: './test-reports/integration/results.json',
-      html: './test-reports/integration/index.html',
-      junit: './test-reports/integration/junit.xml'
-    },
-    
-    // Watch mode configuration
-    watch: false, // Integration tests typically don't run in watch mode
-    
-    // Retry configuration
-    retry: process.env.CI ? 2 : 0,
-    
-    // Bail configuration
-    bail: process.env.CI ? 1 : 0,
-    
-    // Sequence configuration
-    sequence: {
-      hooks: 'stack', // Run hooks in sequence
-      concurrent: false // Don't run different test files concurrently by default
-    },
-    
-    // Pool options for better resource management
-    poolOptions: {
-      threads: {
-        // Minimum number of threads
-        minThreads: 1,
-        // Maximum number of threads  
-        maxThreads: process.env.CI ? 2 : 4,
-        // Thread isolation
-        isolate: true,
-        // Use single thread for heavy integration tests
-        singleThread: process.env.SINGLE_THREAD === 'true'
       }
     },
     
-    // File parallelism
-    fileParallelism: process.env.PARALLEL_FILES !== 'false',
+    // **REPORTERS**
+    reporters: [
+      'verbose',
+      'json',
+      ['html', { outputFile: './test-reports/integration/index.html' }],
+      ['junit', { outputFile: './test-reports/integration/junit.xml' }]
+    ],
     
-    // Test name pattern
-    testNamePattern: process.env.TEST_NAME_PATTERN,
+    // **RETRY CONFIGURATION**
+    retry: process.env.CI ? 2 : 0,
     
-    // Globals (if needed)
-    globals: true,
+    // **MOCK CONFIGURATION**
+    mockReset: true,      // Reset mocks between tests
+    clearMocks: true,     // Clear mock calls
+    restoreMocks: true,   // Restore original implementations
     
-    // Log heap usage
-    logHeapUsage: process.env.LOG_HEAP === 'true',
-    
-    // Open handles detection
-    detectOpenHandles: true,
-    
-    // Environment variables
-    env: {
-      NODE_ENV: 'test',
-      TEST_ENV: 'integration'
+    // **POOL OPTIONS** 
+    pool: 'forks',        // Use forks for better isolation
+    poolOptions: {
+      forks: {
+        singleFork: true,  // Single fork for integration tests
+        isolate: true
+      }
     }
   },
   
-  // Resolve configuration
   resolve: {
     alias: {
       '@': path.resolve(__dirname, '../../src'),
-      '@tests': path.resolve(__dirname, '../'),
-      '@integration': path.resolve(__dirname, './')
+      '@tests': path.resolve(__dirname, '..'),
+      '@fixtures': path.resolve(__dirname, './fixtures'),
+      '@helpers': path.resolve(__dirname, './helpers')
     }
   },
   
-  // Define configuration
-  define: {
-    __TEST__: true,
-    __INTEGRATION_TEST__: true
-  },
-  
-  // Esbuild configuration for TypeScript
+  // **BUILD OPTIMIZATIONS**
   esbuild: {
-    target: 'node18'
+    target: 'node18',
+    sourcemap: false,
+    minify: false
   }
 });

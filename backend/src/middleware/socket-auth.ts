@@ -98,7 +98,7 @@ async function authenticateSocket(
     // 4. Check cookies
     if (!token && socket.handshake.headers.cookie) {
       const cookies = parseCookies(socket.handshake.headers.cookie);
-      token = cookies['auth-token'];
+      token = cookies['auth-token'] ?? null;
     }
 
     if (!token) {

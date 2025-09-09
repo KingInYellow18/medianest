@@ -1,52 +1,106 @@
 #!/bin/sh
+# ==============================================================================
+# MediaNest Production Container Entry Point
+# ==============================================================================
+# This script manages the startup and shutdown lifecycle of MediaNest services
+# Features:
+# - Graceful signal handling (SIGTERM, SIGINT)  
+# - Database migration with retry logic
+# - Service health monitoring and recovery
+# - Proper process management for container orchestration
+# ==============================================================================
 
-# MediaNest Production Entry Point
-# Handles graceful startup and shutdown with proper signal handling
-
-# Exit on error
+# Shell configuration for production reliability
+# Exit immediately if any command fails (fail-fast principle)
 set -e
+# Enable pipefail to catch errors in command pipelines
+set -o pipefail
 
-# Trap signals for graceful shutdown
-trap 'echo "Received shutdown signal, stopping services..."; kill -TERM $BACKEND_PID $FRONTEND_PID 2>/dev/null; wait $BACKEND_PID $FRONTEND_PID; exit 0' TERM INT
+# Signal handling for graceful container shutdown
+# Docker sends SIGTERM for graceful shutdown, SIGKILL after timeout
+# This trap ensures proper cleanup of background processes
+trap 'echo "🛑 Received shutdown signal, stopping services gracefully..."; kill -TERM $BACKEND_PID $FRONTEND_PID 2>/dev/null; wait $BACKEND_PID $FRONTEND_PID; echo "✅ All services stopped cleanly"; exit 0' TERM INT
 
 echo "Starting MediaNest v1.0.0..."
 echo "Environment: ${NODE_ENV:-production}"
 
-# Validate critical environment variables
+# ==============================================================================
+# ENVIRONMENT VALIDATION - Ensure critical variables are configured
+# ==============================================================================
+# Validate required environment variables before starting services
+# Prevents runtime failures and provides clear error messages
+
+echo "🔍 Validating environment configuration..."
+
+# Database connection validation
+# DATABASE_URL is critical for all database operations (authentication, content storage)
 if [ -z "$DATABASE_URL" ]; then
-    echo "ERROR: DATABASE_URL is not set"
+    echo "❌ ERROR: DATABASE_URL environment variable is not set"
+    echo "   Required format: postgresql://user:password@host:port/database"
+    echo "   Example: postgresql://medianest:password@postgres:5432/medianest"
     exit 1
 fi
 
+# JWT secret validation  
+# JWT_SECRET is critical for user authentication and session management
 if [ -z "$JWT_SECRET" ]; then
-    echo "ERROR: JWT_SECRET is not set"
+    echo "❌ ERROR: JWT_SECRET environment variable is not set"
+    echo "   Generate with: openssl rand -base64 32"
+    echo "   This secret signs all authentication tokens - keep secure!"
     exit 1
 fi
 
+# Encryption key validation
+# ENCRYPTION_KEY is critical for encrypting sensitive user data at rest
 if [ -z "$ENCRYPTION_KEY" ]; then
-    echo "ERROR: ENCRYPTION_KEY is not set"
+    echo "❌ ERROR: ENCRYPTION_KEY environment variable is not set" 
+    echo "   Generate with: openssl rand -base64 32"
+    echo "   This key encrypts sensitive data - backup securely!"
     exit 1
 fi
 
-# Run database migrations with retry logic
-echo "Running database migrations..."
-cd /app/backend
-MAX_RETRIES=5
-RETRY_COUNT=0
+echo "✅ Environment validation passed"
 
+# ==============================================================================
+# DATABASE MIGRATION - Apply schema changes with retry logic  
+# ==============================================================================
+# Database migrations must complete successfully before starting application services
+# Retry logic handles temporary database unavailability during container orchestration
+
+echo "🗄️ Applying database migrations..."
+cd /app/backend
+
+# Migration retry configuration
+MAX_RETRIES=5        # Maximum retry attempts for resilient deployment
+RETRY_COUNT=0        # Current attempt counter
+RETRY_DELAY=5        # Seconds to wait between retry attempts
+
+# Migration retry loop with exponential backoff consideration
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+    echo "📋 Migration attempt $((RETRY_COUNT + 1))/$MAX_RETRIES..."
+    
+    # Execute Prisma migrations (applies pending schema changes)
     if npx prisma migrate deploy; then
-        echo "Database migrations completed successfully"
+        echo "✅ Database migrations completed successfully"
+        echo "📊 Database schema is now up-to-date"
         break
     else
         RETRY_COUNT=$((RETRY_COUNT + 1))
-        echo "Migration failed (attempt $RETRY_COUNT/$MAX_RETRIES), retrying in 5 seconds..."
-        sleep 5
+        
+        if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+            echo "⚠️  Migration failed (attempt $RETRY_COUNT/$MAX_RETRIES)"
+            echo "🔄 Retrying in $RETRY_DELAY seconds..."
+            echo "   Common causes: Database not ready, network connectivity, lock conflicts"
+            sleep $RETRY_DELAY
+        fi
     fi
 done
 
+# Final failure check after all retry attempts exhausted
 if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
-    echo "ERROR: Failed to run database migrations after $MAX_RETRIES attempts"
+    echo "❌ CRITICAL ERROR: Failed to run database migrations after $MAX_RETRIES attempts"
+    echo "   Check database connectivity and schema integrity"
+    echo "   Container will exit to prevent data corruption"
     exit 1
 fi
 
