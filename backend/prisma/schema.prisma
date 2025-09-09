@@ -187,3 +187,48 @@ model ErrorLog {
   @@index([userId])
   @@map("error_logs")
 }
+
+model ServiceMetric {
+  id          String   @id @default(uuid())
+  serviceName String   @map("service_name")
+  metricName  String   @map("metric_name")
+  metricValue Float    @map("metric_value")
+  timestamp   DateTime @default(now())
+  metadata    Json?
+  
+  @@index([serviceName, metricName])
+  @@index([timestamp])
+  @@map("service_metrics")
+}
+
+model ServiceIncident {
+  id          String   @id @default(uuid())
+  serviceName String   @map("service_name")
+  incidentType String  @map("incident_type")
+  description String
+  severity    String   @default("low")
+  status      String   @default("open")
+  createdAt   DateTime @default(now()) @map("created_at")
+  resolvedAt  DateTime? @map("resolved_at")
+  metadata    Json?
+  
+  @@index([serviceName, status])
+  @@index([createdAt])
+  @@map("service_incidents")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  type      String
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  readAt    DateTime? @map("read_at")
+  metadata  Json?
+  
+  @@index([userId, read])
+  @@index([createdAt])
+  @@map("notifications")
+}

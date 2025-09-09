@@ -47,8 +47,8 @@ export class LeakDetector extends EventEmitter {
     // Capture baseline counts
     this.baselineCounts.set('process-listeners', process.listenerCount('uncaughtException') + process.listenerCount('unhandledRejection'));
     this.baselineCounts.set('timers', this.getActiveTimerCount());
-    this.baselineCounts.set('handles', process._getActiveHandles().length);
-    this.baselineCounts.set('requests', process._getActiveRequests().length);
+    this.baselineCounts.set('handles', (process as any)._getActiveHandles().length);
+    this.baselineCounts.set('requests', (process as any)._getActiveRequests().length);
     
     logger.info('Baseline captured for leak detection', Object.fromEntries(this.baselineCounts));
   }
@@ -72,7 +72,7 @@ export class LeakDetector extends EventEmitter {
       }
 
       // Check active handles (includes sockets, timers, etc.)
-      const currentHandles = process._getActiveHandles().length;
+      const currentHandles = (process as any)._getActiveHandles().length;
       const baselineHandles = this.baselineCounts.get('handles') || 0;
       
       if (currentHandles > baselineHandles + 10) {
@@ -86,7 +86,7 @@ export class LeakDetector extends EventEmitter {
       }
 
       // Check active requests
-      const currentRequests = process._getActiveRequests().length;
+      const currentRequests = (process as any)._getActiveRequests().length;
       const baselineRequests = this.baselineCounts.get('requests') || 0;
       
       if (currentRequests > baselineRequests + 20) {
@@ -172,7 +172,7 @@ export class LeakDetector extends EventEmitter {
   private getActiveTimerCount(): number {
     try {
       // This is a heuristic - Node.js doesn't expose timer count directly
-      const handles = process._getActiveHandles();
+      const handles = (process as any)._getActiveHandles();
       return handles.filter((handle: any) => 
         handle.constructor?.name === 'Timer' || 
         handle.constructor?.name === 'Timeout' ||
@@ -185,7 +185,7 @@ export class LeakDetector extends EventEmitter {
 
   private analyzeActiveHandles(): { sockets: number; timers: number; others: number } {
     try {
-      const handles = process._getActiveHandles();
+      const handles = (process as any)._getActiveHandles();
       let sockets = 0;
       let timers = 0;
       let others = 0;
@@ -209,8 +209,8 @@ export class LeakDetector extends EventEmitter {
   }
 
   public getLeakReport(): any {
-    const currentHandles = process._getActiveHandles().length;
-    const currentRequests = process._getActiveRequests().length;
+    const currentHandles = (process as any)._getActiveHandles().length;
+    const currentRequests = (process as any)._getActiveRequests().length;
     const handleAnalysis = this.analyzeActiveHandles();
     
     return {
