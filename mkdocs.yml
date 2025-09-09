@@ -21,7 +21,6 @@ copyright: >
 # Theme Configuration
 theme:
   name: material
-  custom_dir: docs/overrides
 
   # Color Scheme
   palette:
@@ -70,7 +69,6 @@ theme:
     - search.suggest
     - toc.follow
     - toc.integrate
-    - content.code.annotate
 
   # Branding Assets
   logo: assets/images/logo.svg
@@ -87,180 +85,42 @@ theme:
 # Navigation
 nav:
   - Home: index.md
-
   - Getting Started:
       - getting-started/index.md
       - Quick Start: getting-started/quickstart.md
-      - System Requirements: getting-started/requirements.md
-      - First Time Setup: getting-started/first-setup.md
-
-  - Installation:
-      - installation/index.md
-      - Docker Installation: installation/docker.md
-      - Manual Installation: installation/manual.md
-      - Configuration: installation/configuration.md
-      - Environment Variables: installation/environment.md
-      - Database Setup: installation/database.md
-
-  - User Guides:
-      - user-guides/index.md
-      - Complete User Guide: user/COMPLETE_USER_GUIDE.md
-      - Media Management: user-guides/media-management.md
-      - File Organization: user-guides/file-organization.md
-      - Search and Filtering: user-guides/search-filtering.md
-      - Metadata Management: user-guides/metadata.md
-      - Collections: user-guides/collections.md
-      - Advanced Features: user-guides/advanced-features.md
-      - Admin Guide: user-guides/admin-guide.md
-
+      - Development Setup: getting-started/development-setup.md
+  - Architecture:
+      - Component Architecture: architecture/component-architecture.md
+      - Data Flow: architecture/data-flow.md
+      - System Overview: architecture/system-overview.md
+      - Architecture Decisions:
+        - ADR-001 Architecture: architecture/decisions/adr-001-architecture.md
   - API Reference:
-      - api/index.md
-      - Interactive Explorer: api/interactive-explorer.md
-      - OpenAPI Specification: api/OPENAPI_SPECIFICATION.md
-      - REST API Reference: api/REST_API_REFERENCE.md
-      - WebSocket API: api/WEBSOCKET_API_REFERENCE.md
-      - Authentication: api/authentication.md
-      - Media - Comprehensive: api/media-comprehensive.md
-      - Collections API: api/collections.md
-      - Dashboard API: api/dashboard.md
-      - Performance API: api/performance-comprehensive.md
-      - Integration API: api/integration-comprehensive.md
-      - Plex Integration: api/plex.md
-      - Admin Operations: api/admin.md
-      - User Management: api/users.md
-      - Health Monitoring: api/health.md
-      - Search API: api/search.md
-      - Webhooks: api/webhooks.md
-      - Error Codes Reference: api/ERROR_CODES_REFERENCE.md
-      - Implementation Summary: api/IMPLEMENTATION_SUMMARY.md
-      - Maintenance Procedures: api/maintenance-procedures.md
+      - Overview: api/overview.md
+      - WebSocket API: api/websocket.md
+      - Endpoints:
+        - Dashboard: api/endpoints/dashboard.md
+        - Media: api/endpoints/media.md
+        - Plex: api/endpoints/plex.md
+  - Deployment:
+      - CI/CD: deployment/ci-cd.md
+  - Developers:
+      - Contributing: developers/contributing.md
+      - Workflow: developers/workflow.md
+  - Visuals:
+      - Database Schema: visuals/database-schema.md
+      - Deployment Architecture: visuals/deployment-architecture.md
+      - System Flow: visuals/system-flow.md
+  - Standards:
+      - Documentation Checklist: standards/documentation-checklist.md
 
-  - System Architecture:
-      - architecture/SYSTEM_ARCHITECTURE.md
-      - Complete System Analysis: architecture/COMPLETE_SYSTEM_ANALYSIS.md
-      - Component Relationships: architecture/COMPONENT_RELATIONSHIPS.md
-      - Data Models Documentation: architecture/DATA_MODELS_DOCUMENTATION.md
-      - API Endpoint Inventory: architecture/API_ENDPOINT_INVENTORY.md
-
-  - Visual Documentation:
-      - visuals/index.md
-      - System Architecture: visuals/system-architecture-diagram.md
-      - Data Flow Diagrams: visuals/data-flow-diagrams.md
-      - API Workflows: visuals/api-workflow-diagrams.md
-      - Database Schema: visuals/database-schema-diagram.md
-      - Deployment Topology: visuals/deployment-topology.md
-      - User Journey Maps: visuals/user-journey-flowcharts.md
-
-  - Technical Specifications:
-      - Infrastructure Architecture: technical-specs/infrastructure-architecture.md
-      - Security Architecture: technical-specs/security-architecture.md
-      - Network Design: technical-specs/network-design.md
-      - Performance Optimization: technical-specs/performance-optimization.md
-      - Microservices Strategy: technical-specs/microservices-strategy.md
-      - Observability Strategy: technical-specs/observability-strategy.md
-      - Storage Strategy: technical-specs/storage-strategy.md
-      - API Gateway Design: technical-specs/api-gateway-design.md
-      - Container Security: technical-specs/container-security.md
-      - Zero Trust Implementation: technical-specs/zero-trust-implementation.md
-      - Service Mesh: technical-specs/service-mesh.md
-      - Network Security: technical-specs/network-security.md
-      - IAM Strategy: technical-specs/iam-strategy.md
-      - Alerting Design: technical-specs/alerting-design.md
-      - SLA/SLO Design: technical-specs/sla-slo-design.md
-      - Integration Architecture: technical-specs/integration-architecture.md
-      - Data Flow Design: technical-specs/data-flow-design.md
-      - Dashboard Design: technical-specs/dashboard-design.md
-      - Compute Scaling: technical-specs/compute-scaling.md
-      - Incident Response: technical-specs/incident-response.md
-      - Security Framework Summary: technical-specs/security-framework-summary.md
-
-  - Implementation Guides:
-      - DevOps Implementation: implementation/devops-implementation-summary.md
-      - CI/CD Pipeline: implementation/cicd-pipeline.md
-      - Container Orchestration: implementation/container-orchestration.md
-      - Deployment Automation: implementation/deployment-automation.md
-      - GitOps Workflow: implementation/gitops-workflow.md
-      - Monitoring Strategy: implementation/monitoring-strategy.md
-      - Testing Strategy: implementation/testing-strategy.md
-      - Automated Testing: implementation/automated-testing.md
-      - Performance Testing: implementation/performance-testing.md
-      - Security Testing: implementation/security-testing.md
-      - Infrastructure Testing: implementation/infrastructure-testing.md
-
-  - Operations & Deployment:
-      - operations/DEPLOYMENT_RUNBOOK.md
-      - Production Deployment: operations/PRODUCTION_DEPLOYMENT_PROCEDURES.md
-      - Monitoring Guide: operations/MONITORING.md
-      - Performance Guide: operations/COMPREHENSIVE_PERFORMANCE_GUIDE.md
-      - Orchestration Guide: operations/ORCHESTRATION_IMPLEMENTATION_GUIDE.md
-      - Bundle Optimization: operations/BUNDLE_OPTIMIZATION_IMPLEMENTATION.md
-      - Docker Guides:
-        - Docker Usage Guide: docker/DOCKER_USAGE_GUIDE.md
-        - Docker Build & Deployment: docker/DOCKER_BUILD_DEPLOYMENT_GUIDE.md
-        - Docker Security Checklist: docker/DOCKER_SECURITY_VALIDATION_CHECKLIST.md
-        - Docker Performance Benchmarking: docker/DOCKER_PERFORMANCE_BENCHMARKING_GUIDE.md
-        - Docker Troubleshooting: docker/DOCKER_TROUBLESHOOTING_GUIDE.md
-        - Docker Consolidated README: docker/DOCKER_CONSOLIDATED_README.md
-
-  - Developer Resources:
-      - developers/index.md
-      - Developer Onboarding: development/DEVELOPER_ONBOARDING.md
-      - Codebase Structure: developer/CODEBASE_STRUCTURE_MAP.md
-      - Contributing Guide: developer/CONTRIBUTING.md
-      - Testing Guide: developer/TESTING.md
-      - Test Architecture: developer/TEST_ARCHITECTURE_BLUEPRINT.md
-      - Test Coverage Strategy: developer/TEST_COVERAGE_STRATEGY.md
-
-  - Security:
-      - security/SECURITY.md
-      - Security Audit Report: security/SECURITY_AUDIT_REPORT.md
-      - Security Operations: security/SECURITY_OPERATIONS_GUIDE.md
-      - Security Compliance: security/SECURITY_COMPLIANCE_CHECKLIST.md
-      - Immediate Security Actions: security/IMMEDIATE_SECURITY_ACTIONS_REQUIRED.md
-
-  - Documentation Standards:
-      - Documentation Style Guide: standards/documentation-style-guide.md
-      - MkDocs Material Standards: standards/mkdocs-material-standards.md
-      - API Design Standards: standards/api-design-standards.md
-      - Development Patterns: standards/development-patterns.md
-      - Content Templates: standards/content-templates.md
-      - Quality Checklist: standards/quality-checklist.md
-      - Dependency Strategy: standards/dependency-strategy.md
-      - Automation Scripts: standards/automation-scripts.md
-
-  - Performance & Monitoring:
-      - performance/PERFORMANCE.md
-      - Baseline Analysis: performance/baseline-analysis.md
-      - Optimization Summary: performance/optimization-summary-report.md
-      - Performance Final Report: performance/PERFORMANCE_SWARM_FINAL_REPORT.md
-      - Optimization Achievement: performance/OPTIMIZATION_ACHIEVEMENT_SUMMARY.md
-
-  - Testing Documentation:
-      - Test Debt Assessment: testing/test-debt-assessment-report.md
-      - Test Suite Analysis: testing/test-suite-analysis-report.md
-
-  - Technical Debt:
-      - Technical Debt Audit: technical-debt/TECHNICAL_DEBT_AUDIT_EXECUTIVE_REPORT.md
-      - Executive Briefing: technical-debt/EXECUTIVE_BRIEFING.md
-      - Implementation Guide: technical-debt/TECHNICAL_IMPLEMENTATION_GUIDE.md
-      - Cleanup Completion: technical-debt/CLEANUP_COMPLETION_REPORT.md
-
-  - Troubleshooting:
-      - troubleshooting/index.md
-      - Common Issues: troubleshooting/common-issues.md
-
-  - Reference:
-      - reference/index.md
-      - CLI Commands: reference/cli.md
-
-# Enhanced Plugins for Professional Documentation
+# Essential Plugins - Minimal Working Configuration
 plugins:
-  # Core search with advanced features
+  # Core search functionality
   - search:
       separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
       lang:
         - en
-      # prebuild_index: true  # Not supported in this version
 
   # Performance optimization
   - minify:
@@ -270,6 +130,8 @@ plugins:
       htmlmin_opts:
         remove_comments: true
         remove_empty_space: true
+        remove_optional_attribute_quotes: false
+        reduce_empty_attributes: true
 
   # Git integration for content management
   - git-revision-date-localized:
@@ -278,54 +140,7 @@ plugins:
       locale: en
       fallback_to_build_date: true
       enable_creation_date: true
-
-  # Content organization
-  - tags:
-
-  # Social media integration
-  - social:
-      enabled: !ENV [CI, false]
-      cards: true
-      cards_layout_options:
-        background_color: '#673ab7'
-        color: '#ffffff'
-      # cards_color deprecated - using cards_layout_options instead
-
-  # Meta tags for SEO
-  - meta
-
-  # Privacy plugin for GDPR compliance
-  - privacy:
-      enabled: !ENV [CI, false]
-
-  # Section index for better navigation
-  - section-index
-
-  # Awesome pages for flexible nav
-  - awesome-pages:
-      filename: .pages
-      collapse_single_pages: true
-      strict: false
-
-  # Include markdown files for reuse
-  - include-markdown:
-      opening_tag: '{%'
-      closing_tag: '%}'
-      encoding: utf-8
-      preserve_includer_indent: true
-
-  # Auto-generate navigation from directory structure
-  - gen-files:
-      scripts:
-        - docs/gen_ref_pages.py
-
-  # Literate programming support
-  - mkdocstrings:
-      handlers:
-        python:
-          options:
-            docstring_style: google
-            show_source: false
+      enable_git_follow: false
 
 # Markdown Extensions
 markdown_extensions:
@@ -382,9 +197,6 @@ markdown_extensions:
           format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true
-      slugify: !!python/object/apply:pymdownx.slugs.slugify
-        kwds:
-          case: lower
   - pymdownx.tasklist:
       custom_checkbox: true
       clickable_checkbox: true
@@ -392,20 +204,23 @@ markdown_extensions:
 
 # Enhanced Assets and Scripts
 extra_css:
-  - assets/stylesheets/extra.css
-  - assets/stylesheets/medianest-theme.css
-  - assets/stylesheets/animations.css
-  - assets/stylesheets/responsive.css
-  - assets/stylesheets/diagram-styles.css
-  - assets/stylesheets/api-docs.css
-  - assets/stylesheets/code-highlights.css
+  - stylesheets/extra.css
+  - stylesheets/medianest-theme.css
+  - stylesheets/animations.css
+  - stylesheets/responsive.css
+  - stylesheets/diagram-styles.css
+  - stylesheets/api-docs.css
+  - stylesheets/code-highlights.css
+  - stylesheets/mermaid-custom.css
 
 extra_javascript:
-  - assets/javascripts/medianest.js
-  - assets/javascripts/search-enhancements.js
-  - assets/javascripts/analytics.js
-  - assets/javascripts/api-explorer.js
-  - assets/javascripts/diagram-interactions.js
+  - javascripts/extra.js
+  - javascripts/medianest.js
+  - javascripts/search-enhancements.js
+  - javascripts/analytics.js
+  - javascripts/api-explorer.js
+  - javascripts/diagram-interactions.js
+  - javascripts/mermaid-config.js
   - https://polyfill.io/v3/polyfill.min.js?features=es6
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
   - https://unpkg.com/mermaid@10/dist/mermaid.min.js

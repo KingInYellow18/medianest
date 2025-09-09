@@ -1,0 +1,1020 @@
+openapi: 3.0.4
+info:
+  title: MediaNest API
+  description: |
+    MediaNest API provides endpoints for managing media requests, Plex integration, 
+    dashboard statistics, and user authentication. All protected endpoints require 
+    JWT authentication via cookies or headers.
+    
+    ## Authentication
+    MediaNest uses Plex OAuth for authentication. The authentication flow:
+    1. Generate a PIN using `/auth/plex/pin`
+    2. User authorizes on Plex with the PIN
+    3. Verify the PIN using `/auth/plex/verify`
+    4. Authenticated requests use JWT tokens stored in cookies
+    
+    ## Rate Limiting
+    API endpoints are rate-limited to prevent abuse. Rate limit headers are included in responses.
+    
+    ## Error Handling
+    All endpoints return consistent error responses with proper HTTP status codes and error messages.
+  version: 1.0.0
+  contact:
+    name: MediaNest Support
+    url: https://github.com/medianest/medianest
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3001/api/v1
+    description: Development server
+  - url: https://api.medianest.io/api/v1
+    description: Production server
+
+security:
+  - cookieAuth: []
+  - bearerAuth: []
+
+paths:
+  # Authentication Endpoints
+  /auth/plex/pin:
+    post:
+      tags:
+        - Authentication
+      summary: Generate Plex OAuth PIN
+      description: Generate a PIN code for Plex OAuth authentication flow
+      responses:
+        '200':
+          description: PIN generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: PIN ID for verification
+                  code:
+                    type: string
+                    description: PIN code for user authorization
+                  url:
+                    type: string
+                    description: Plex authorization URL
+                  expires_in:
+                    type: integer
+                    description: PIN expiration time in seconds
+              example:
+                id: "12345"
+                code: "ABCD"
+                url: "https://app.plex.tv/auth/#!?clientID=..."
+                expires_in: 600
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /auth/plex/verify:
+    post:
+      tags:
+        - Authentication
+      summary: Verify Plex OAuth PIN
+      description: Verify the PIN code and create user session
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - pinId
+              properties:
+                pinId:
+                  type: string
+                  description: PIN ID from pin generation
+            example:
+              pinId: "12345"
+      responses:
+        '200':
+          description: Authentication successful
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: JWT authentication cookie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+              example:
+                success: true
+                user:
+                  id: "user-123"
+                  email: "user@example.com"
+                  role: "user"
+                token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/session:
+    get:
+      tags:
+        - Authentication
+      summary: Get current session
+      description: Get information about the current authenticated user session
+      responses:
+        '200':
+          description: Session information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  session:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      expires:
+                        type: string
+                        format: date-time
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Logout user
+      description: Invalidate current session and clear authentication cookies
+      responses:
+        '200':
+          description: Successfully logged out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # Media Endpoints
+  /media/search:
+    get:
+      tags:
+        - Media
+      summary: Search for media
+      description: Search for movies and TV shows using TMDB
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+          description: Search query
+          example: "The Matrix"
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [movie, tv, all]
+            default: all
+          description: Type of media to search for
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MediaItem'
+                  total_results:
+                    type: integer
+                  total_pages:
+                    type: integer
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /media/{mediaType}/{tmdbId}:
+    get:
+      tags:
+        - Media
+      summary: Get media details
+      description: Get detailed information about a specific media item
+      parameters:
+        - name: mediaType
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [movie, tv]
+          description: Type of media
+        - name: tmdbId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: TMDB ID of the media
+      responses:
+        '200':
+          description: Media details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaDetails'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /media/request:
+    post:
+      tags:
+        - Media
+      summary: Submit media request
+      description: Submit a request for a movie or TV show
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - mediaType
+              properties:
+                title:
+                  type: string
+                  minLength: 1
+                  maxLength: 500
+                  description: Title of the media
+                mediaType:
+                  type: string
+                  enum: [movie, tv]
+                  description: Type of media
+                tmdbId:
+                  type: string
+                  description: TMDB ID (optional)
+                overseerrId:
+                  type: string
+                  description: Overseerr ID (optional)
+            example:
+              title: "The Matrix"
+              mediaType: "movie"
+              tmdbId: "603"
+      responses:
+        '201':
+          description: Request created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaRequest'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /media/requests:
+    get:
+      tags:
+        - Media
+      summary: Get user's media requests
+      description: Get all media requests made by the current user
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of requests to return
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Number of requests to skip
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, approved, declined, completed]
+          description: Filter by request status
+      responses:
+        '200':
+          description: List of user's requests
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  requests:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MediaRequest'
+                  total:
+                    type: integer
+                  hasMore:
+                    type: boolean
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /media/requests/{requestId}:
+    get:
+      tags:
+        - Media
+      summary: Get specific request details
+      description: Get details of a specific media request
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Request ID
+      responses:
+        '200':
+          description: Request details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    delete:
+      tags:
+        - Media
+      summary: Delete a pending request
+      description: Delete a media request that is still pending
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Request ID
+      responses:
+        '200':
+          description: Request deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '403':
+          description: Cannot delete non-pending request
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # Plex Integration Endpoints
+  /plex/server:
+    get:
+      tags:
+        - Plex
+      summary: Get Plex server information
+      description: Get information about the connected Plex server
+      responses:
+        '200':
+          description: Plex server information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlexServer'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '503':
+          description: Plex server unavailable
+
+  /plex/libraries:
+    get:
+      tags:
+        - Plex
+      summary: Get Plex libraries
+      description: Get all available Plex media libraries
+      responses:
+        '200':
+          description: List of Plex libraries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PlexLibrary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /plex/libraries/{libraryKey}/items:
+    get:
+      tags:
+        - Plex
+      summary: Get library items
+      description: Get items from a specific Plex library
+      parameters:
+        - name: libraryKey
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Plex library key
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+          description: Number of items to return
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Number of items to skip
+      responses:
+        '200':
+          description: Library items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PlexItem'
+                  total:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /plex/search:
+    get:
+      tags:
+        - Plex
+      summary: Search Plex libraries
+      description: Search across all Plex libraries
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+          description: Search query
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PlexItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /plex/recently-added:
+    get:
+      tags:
+        - Plex
+      summary: Get recently added items
+      description: Get recently added items from Plex
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of items to return
+      responses:
+        '200':
+          description: Recently added items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PlexItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # Dashboard Endpoints
+  /dashboard/stats:
+    get:
+      tags:
+        - Dashboard
+      summary: Get dashboard statistics
+      description: Get overall dashboard statistics and metrics
+      responses:
+        '200':
+          description: Dashboard statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardStats'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /dashboard/status:
+    get:
+      tags:
+        - Dashboard
+      summary: Get all service statuses
+      description: Get the current status of all monitored services
+      responses:
+        '200':
+          description: Service statuses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServiceStatus'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /dashboard/status/{service}:
+    get:
+      tags:
+        - Dashboard
+      summary: Get specific service status
+      description: Get the current status of a specific service
+      parameters:
+        - name: service
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Service identifier
+      responses:
+        '200':
+          description: Service status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceStatus'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /dashboard/notifications:
+    get:
+      tags:
+        - Dashboard
+      summary: Get user notifications
+      description: Get notifications for the current user
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of notifications to return
+        - name: unread
+          in: query
+          schema:
+            type: boolean
+          description: Filter for unread notifications only
+      responses:
+        '200':
+          description: User notifications
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  notifications:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Notification'
+                  unreadCount:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+      description: JWT token stored in HTTP-only cookie
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token in Authorization header
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique user identifier
+        email:
+          type: string
+          format: email
+          description: User's email address
+        role:
+          type: string
+          enum: [user, admin]
+          description: User role
+        plexId:
+          type: string
+          description: Plex user ID
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    MediaItem:
+      type: object
+      properties:
+        id:
+          type: string
+          description: TMDB ID
+        title:
+          type: string
+          description: Media title
+        overview:
+          type: string
+          description: Media description
+        poster_path:
+          type: string
+          description: Poster image path
+        backdrop_path:
+          type: string
+          description: Backdrop image path
+        release_date:
+          type: string
+          format: date
+          description: Release date
+        media_type:
+          type: string
+          enum: [movie, tv]
+          description: Type of media
+        vote_average:
+          type: number
+          description: Average rating
+
+    MediaDetails:
+      allOf:
+        - $ref: '#/components/schemas/MediaItem'
+        - type: object
+          properties:
+            genres:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+            runtime:
+              type: integer
+              description: Runtime in minutes
+            status:
+              type: string
+              description: Media status
+            budget:
+              type: integer
+              description: Budget (for movies)
+            revenue:
+              type: integer
+              description: Revenue (for movies)
+
+    MediaRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Request ID
+        title:
+          type: string
+          description: Requested media title
+        mediaType:
+          type: string
+          enum: [movie, tv]
+          description: Type of media
+        tmdbId:
+          type: string
+          description: TMDB ID
+        overseerrId:
+          type: string
+          description: Overseerr ID
+        status:
+          type: string
+          enum: [pending, approved, declined, completed, failed]
+          description: Request status
+        requestedBy:
+          type: string
+          description: User ID who made the request
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        processedAt:
+          type: string
+          format: date-time
+          description: When request was processed
+
+    PlexServer:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Server name
+        version:
+          type: string
+          description: Plex server version
+        platform:
+          type: string
+          description: Server platform
+        platformVersion:
+          type: string
+          description: Platform version
+        machineIdentifier:
+          type: string
+          description: Unique server identifier
+        size:
+          type: integer
+          description: Total library size
+
+    PlexLibrary:
+      type: object
+      properties:
+        key:
+          type: string
+          description: Library key
+        title:
+          type: string
+          description: Library name
+        type:
+          type: string
+          enum: [movie, show, artist, photo]
+          description: Library type
+        size:
+          type: integer
+          description: Number of items in library
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update time
+
+    PlexItem:
+      type: object
+      properties:
+        key:
+          type: string
+          description: Item key
+        title:
+          type: string
+          description: Item title
+        type:
+          type: string
+          description: Item type
+        summary:
+          type: string
+          description: Item summary
+        year:
+          type: integer
+          description: Release year
+        thumb:
+          type: string
+          description: Thumbnail path
+        art:
+          type: string
+          description: Art path
+        addedAt:
+          type: string
+          format: date-time
+          description: Date added to Plex
+
+    DashboardStats:
+      type: object
+      properties:
+        totalRequests:
+          type: integer
+          description: Total number of requests
+        pendingRequests:
+          type: integer
+          description: Number of pending requests
+        completedRequests:
+          type: integer
+          description: Number of completed requests
+        totalUsers:
+          type: integer
+          description: Total number of users
+        activeUsers:
+          type: integer
+          description: Number of active users
+        systemUptime:
+          type: number
+          description: System uptime in seconds
+        diskUsage:
+          type: object
+          properties:
+            total:
+              type: number
+            used:
+              type: number
+            available:
+              type: number
+        memoryUsage:
+          type: object
+          properties:
+            total:
+              type: number
+            used:
+              type: number
+            free:
+              type: number
+
+    ServiceStatus:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Service identifier
+        name:
+          type: string
+          description: Service name
+        status:
+          type: string
+          enum: [up, down, degraded]
+          description: Service status
+        responseTime:
+          type: number
+          description: Response time in milliseconds
+        lastChecked:
+          type: string
+          format: date-time
+          description: Last health check time
+        uptime:
+          type: number
+          description: Service uptime percentage
+        error:
+          type: string
+          description: Error message if service is down
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Notification ID
+        type:
+          type: string
+          enum: [info, success, warning, error]
+          description: Notification type
+        title:
+          type: string
+          description: Notification title
+        message:
+          type: string
+          description: Notification message
+        read:
+          type: boolean
+          description: Whether notification has been read
+        persistent:
+          type: boolean
+          description: Whether notification persists until dismissed
+        createdAt:
+          type: string
+          format: date-time
+        readAt:
+          type: string
+          format: date-time
+          description: When notification was read
+
+  responses:
+    BadRequest:
+      description: Bad request - invalid input
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: string
+
+    Unauthorized:
+      description: Unauthorized - authentication required
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Unauthorized"
+              message:
+                type: string
+                example: "Authentication required"
+
+    Forbidden:
+      description: Forbidden - insufficient permissions
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Forbidden"
+              message:
+                type: string
+                example: "Insufficient permissions"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Not Found"
+              message:
+                type: string
+                example: "Resource not found"
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Internal Server Error"
+              message:
+                type: string
+                example: "An unexpected error occurred"
+
+tags:
+  - name: Authentication
+    description: Authentication and session management
+  - name: Media
+    description: Media search and request management
+  - name: Plex
+    description: Plex server integration
+  - name: Dashboard
+    description: Dashboard statistics and monitoring
