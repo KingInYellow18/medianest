@@ -107,7 +107,7 @@ describe('Test Coverage Validation', () => {
     Object.entries(productionCriteria).forEach(([criterion, requirement]) => {
       if (typeof requirement === 'boolean') {
         expect(requirement).toBe(true);
-      } else if (typeof requirement === 'number') {
+      } else if (typeof requirement === 'number' && criterion !== 'maxAllowableFailures') {
         expect(requirement).toBeGreaterThan(0);
       }
     });

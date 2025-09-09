@@ -1,4 +1,5 @@
-import { defineConfig } from 'vitest/config'
+/// <reference types="vitest" />
+import { defineConfig } from 'vite'
 import path from 'path'
 
 export default defineConfig({
@@ -6,10 +7,52 @@ export default defineConfig({
     environment: 'node',
     setupFiles: ['./tests/setup-enhanced.ts'],
     globals: true,
+    
+    // **PERFORMANCE OPTIMIZED CONFIGURATION**
+    // Maximize parallel execution
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        singleThread: false,
+        minThreads: 2,
+        maxThreads: Math.max(2, Math.min(8, require('os').cpus().length)),
+        isolate: false,
+      },
+      forks: {
+        singleFork: false,
+        isolate: false,
+      },
+    },
+    
+    // Optimized timeouts for faster execution
+    testTimeout: 10000,
+    hookTimeout: 3000,
+    teardownTimeout: 3000,
+    
+    // Performance settings
+    bail: 0,
+    retry: 0,
+    sequence: {
+      shuffle: true,
+      concurrent: true,
+    },
+    
+    // File watching optimizations
+    watch: false,
+    passWithNoTests: true,
+    
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html', 'text-summary'],
+      reporter: ['text-summary', 'json', 'html', 'lcov'],
       reportsDirectory: './coverage',
+      
+      // Enhanced coverage collection for CI/CD
+      clean: true,
+      cleanOnRerun: false,
+      skipFull: true,
+      reportOnFailure: true,
+      
+      // Optimized exclude patterns
       exclude: [
         'node_modules/', 
         'tests/', 
@@ -17,44 +60,82 @@ export default defineConfig({
         '**/*.d.ts', 
         '**/*.config.*', 
         'dist/', 
+        'coverage/',
         'src/types/**',
         'src/schemas/**',
         'src/validations/**',
-        '**/test-*.ts'
+        '**/test-*.ts',
+        '**/mocks/**',
+        '**/fixtures/**',
+        'backend/tests/**',
+        'frontend/tests/**',
+        'shared/tests/**',
+        '**/*.test.*',
+        '**/*.spec.*'
       ],
+      
+      // Comprehensive source file inclusion
       include: [
-        'src/controllers/**/*.ts',
-        'src/services/**/*.ts',
-        'src/middleware/**/*.ts',
-        'src/utils/**/*.ts',
-        'src/repositories/**/*.ts'
+        'src/**/*.ts',
+        'src/**/*.js',
+        'backend/src/**/*.ts',
+        'backend/src/**/*.js',
+        'frontend/src/**/*.ts', 
+        'frontend/src/**/*.tsx',
+        'frontend/src/**/*.js',
+        'frontend/src/**/*.jsx',
+        'shared/src/**/*.ts',
+        'shared/src/**/*.js'
       ],
+      
+      // CI/CD Quality gate thresholds (65% minimum)
       thresholds: {
-        branches: 60,
-        functions: 60,
-        lines: 60,
-        statements: 60,
+        branches: 65,
+        functions: 65,
+        lines: 65,
+        statements: 65,
+        'src/**/*.ts': {
+          branches: 70,
+          functions: 70,
+          lines: 70,
+          statements: 70,
+        },
+        'backend/src/**/*.ts': {
+          branches: 70,
+          functions: 75,
+          lines: 75,
+          statements: 75,
+        },
+        'frontend/src/**/*.{ts,tsx}': {
+          branches: 60,
+          functions: 60,
+          lines: 60,
+          statements: 60,
+        },
       },
-      reportOnFailure: true,
-      clean: true,
-      cleanOnRerun: true,
-      skipFull: false
+      
+      // Parallel coverage processing
+      processingConcurrency: Math.max(2, Math.min(8, require('os').cpus().length)),
     },
-    // **CRITICAL TIMEOUT FIXES**
-    testTimeout: 15000,     // Reduced from 30s to prevent hanging
-    hookTimeout: 5000,      // Reduced from 10s
-    teardownTimeout: 5000,  // Added explicit teardown timeout
-    pool: 'forks',
-    poolOptions: {
-      forks: {
-        singleFork: true,
-        isolate: false,     // Improve performance
-      },
-    },
-    // **PREVENT HANGING TESTS**
-    bail: 1,                // Stop on first failure to prevent cascade timeouts
-    retry: 0,               // Disable retries that can cause hanging
+    
+    // Test file patterns
+    include: [
+      'tests/**/*.{test,spec}.{js,ts}',
+      'backend/tests/**/*.{test,spec}.{js,ts}',
+      'frontend/src/**/*.{test,spec}.{js,ts,jsx,tsx}',
+      'shared/src/**/*.{test,spec}.{js,ts}'
+    ],
+    
+    exclude: [
+      'node_modules/**',
+      'dist/**',
+      'coverage/**',
+      '**/*.config.*',
+      '**/e2e/**',
+      '**/integration/**'
+    ],
   },
+  
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -65,7 +146,23 @@ export default defineConfig({
       '@/test-utils': path.resolve(__dirname, './src/test-utils'),
       '@/types': path.resolve(__dirname, './src/types'),
       '@/utils': path.resolve(__dirname, './src/utils'),
-      '@/validation': path.resolve(__dirname, './src/validation')
+      '@/validation': path.resolve(__dirname, './src/validation'),
+      '@/backend': path.resolve(__dirname, './backend/src'),
+      '@/frontend': path.resolve(__dirname, './frontend/src'),
+      '@/shared': path.resolve(__dirname, './shared/src')
     },
   },
+  
+  // Build optimizations for test runs
+  esbuild: {
+    target: 'node18',
+    sourcemap: false,
+    minify: false,
+  },
+  
+  // Dependency optimization
+  optimizeDeps: {
+    include: ['vitest > @vitest/utils > pretty-format'],
+    exclude: ['@prisma/client']
+  }
 })

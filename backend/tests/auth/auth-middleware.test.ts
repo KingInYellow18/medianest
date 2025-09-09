@@ -51,40 +51,15 @@ vi.mock('../../src/utils/jwt', () => ({
 
 // Mock token validator
 vi.mock('../../src/middleware/auth/token-validator', () => ({
-  extractToken: vi.fn().mockReturnValue('test-jwt-token'),
-  extractTokenOptional: vi.fn().mockReturnValue('test-jwt-token'),
-  validateToken: vi.fn().mockReturnValue({
-    token: 'test-jwt-token',
-    payload: {
-      userId: 'user-123',
-      email: 'test@example.com',
-      role: 'user',
-      sessionId: 'test-session-id',
-    },
-    metadata: {
-      tokenId: 'test-token-id',
-    },
-  }),
+  extractToken: vi.fn(),
+  extractTokenOptional: vi.fn(),
+  validateToken: vi.fn(),
 }));
 
 // Mock user validator
 vi.mock('../../src/middleware/auth/user-validator', () => ({
-  validateUser: vi.fn().mockResolvedValue({
-    id: 'user-123',
-    email: 'test@example.com',
-    name: 'Test User',
-    role: 'user',
-    plexId: 'plex-123',
-    plexUsername: 'testuser',
-  }),
-  validateUserOptional: vi.fn().mockResolvedValue({
-    id: 'user-123',
-    email: 'test@example.com',
-    name: 'Test User',
-    role: 'user',
-    plexId: 'plex-123',
-    plexUsername: 'testuser',
-  }),
+  validateUser: vi.fn(),
+  validateUserOptional: vi.fn(),
 }));
 
 // Mock device session manager
@@ -226,10 +201,11 @@ describe('AuthMiddleware', () => {
 
     it('should call next with error for invalid token', async () => {
       mockRequest.headers!.authorization = 'Bearer invalid-token';
+      mockRequest.user = undefined;
 
-      // Mock JWT verification to throw error for invalid token
-      const { verifyToken } = await import('../../src/utils/jwt');
-      vi.mocked(verifyToken).mockImplementationOnce(() => {
+      // Mock token validation to throw error for invalid token
+      const { validateToken } = await import('../../src/middleware/auth/token-validator');
+      vi.mocked(validateToken).mockImplementationOnce(() => {
         throw new Error('Invalid token');
       });
 
@@ -293,10 +269,11 @@ describe('AuthMiddleware', () => {
 
     it('should continue without user for invalid token', async () => {
       mockRequest.headers!.authorization = 'Bearer invalid-token';
+      mockRequest.user = undefined;
 
       // Mock optional token extraction to return null for invalid token
       const { extractTokenOptional } = await import('../../src/middleware/auth/token-validator');
-      vi.mocked(extractTokenOptional).mockReturnValueOnce(null);
+      vi.mocked(extractTokenOptional).mockImplementation(() => null);
 
       const middleware = authMiddleware.optionalAuth();
       await middleware(mockRequest as any, mockResponse as Response, mockNext);
@@ -307,10 +284,11 @@ describe('AuthMiddleware', () => {
 
     it('should continue without user when no token provided', async () => {
       delete mockRequest.headers!.authorization;
+      mockRequest.user = undefined;
 
       // Mock optional token extraction to return null when no token
       const { extractTokenOptional } = await import('../../src/middleware/auth/token-validator');
-      vi.mocked(extractTokenOptional).mockReturnValueOnce(null);
+      vi.mocked(extractTokenOptional).mockImplementation(() => null);
 
       const middleware = authMiddleware.optionalAuth();
       await middleware(mockRequest as any, mockResponse as Response, mockNext);
