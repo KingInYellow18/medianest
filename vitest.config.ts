@@ -15,7 +15,7 @@ export default defineConfig({
       threads: {
         singleThread: false,
         minThreads: 2,
-        maxThreads: Math.max(2, Math.min(8, require('os').cpus().length)),
+        maxThreads: 6,
         isolate: false,
       },
       forks: {
@@ -115,7 +115,7 @@ export default defineConfig({
       },
       
       // Parallel coverage processing
-      processingConcurrency: Math.max(2, Math.min(8, require('os').cpus().length)),
+      processingConcurrency: 4,
     },
     
     // Test file patterns

@@ -15,7 +15,7 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
 
-    // Module Resolution
+    // Module Resolution - Compatible with all packages
     "moduleResolution": "node",
     "moduleDetection": "force",
     "verbatimModuleSyntax": false,
@@ -38,13 +38,17 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
 
-    // Context7 Performance Optimizations
+    // Context7 Performance Optimizations - Enhanced for A+ grade
     "isolatedModules": true,
     "preserveSymlinks": false,
     "disableSizeLimit": false,
     "incremental": true,
     "tsBuildInfoFile": ".tsbuildinfo",
-    "assumeChangesOnlyAffectDirectDependencies": true
+    "assumeChangesOnlyAffectDirectDependencies": true,
+    "useDefineForClassFields": true,
+    "exactOptionalPropertyTypes": false,
+    "allowImportingTsExtensions": false,
+    "maxNodeModuleJsDepth": 0
   },
   "exclude": ["node_modules", "dist", "build", ".next", "coverage"]
 }

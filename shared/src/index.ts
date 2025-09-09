@@ -18,7 +18,8 @@ export * from './errors';
 // Export types last, with explicit re-exports to resolve conflicts
 export type {
   User,
-  ApiResponse,
+  ApiResponse,  // Now uses consolidated Context7 definition
+  LegacyApiResponse,  // For backward compatibility
   ApiError,
   // Re-export specific types from types module to avoid conflicts
   ServiceStatus,
@@ -39,9 +40,9 @@ export type {
 } from './types';
 
 // Export Context7 types with explicit naming to avoid conflicts
+// Note: ApiResponse is already exported above as the canonical version
 export type {
   Result,
-  ApiResponse as Context7ApiResponse,
   PaginatedApiResponse,
   BaseUser,
   UserRole,

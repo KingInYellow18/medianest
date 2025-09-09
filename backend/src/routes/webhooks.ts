@@ -1,14 +1,14 @@
 import { Router } from 'express';
 import { Request, Response, NextFunction } from 'express';
 import { webhookIntegrationService } from '@/services/webhook-integration.service';
-import { enhancedRateLimit } from '@/middleware/enhanced-rate-limit';
+import createEnhancedRateLimit from '@/middleware/enhanced-rate-limit';
 import { logger } from '@/utils/logger';
-import { AppError } from '@medianest/shared/src/errors';
+import { AppError } from '@medianest/shared';
 
 const router = Router();
 
 // Webhook-specific rate limiting (more strict)
-const webhookRateLimit = enhancedRateLimit({
+const webhookRateLimit = createEnhancedRateLimit('webhook', {
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // 100 webhooks per 15 minutes per IP
   message: 'Webhook rate limit exceeded',

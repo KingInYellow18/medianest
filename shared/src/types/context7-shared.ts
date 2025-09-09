@@ -270,12 +270,12 @@ export type JsonValue = JsonPrimitive | JsonObject | JsonArray;
 export type Serializable<T> = T extends JsonValue
   ? T
   : T extends Date
-  ? string
-  : T extends (infer U)[]
-  ? Serializable<U>[]
-  : T extends object
-  ? { [K in keyof T]: Serializable<T[K]> }
-  : never;
+    ? string
+    : T extends (infer U)[]
+      ? Serializable<U>[]
+      : T extends object
+        ? { [K in keyof T]: Serializable<T[K]> }
+        : never;
 
 // Context7 Pattern: Type-Safe Environment Configuration
 export interface Environment {

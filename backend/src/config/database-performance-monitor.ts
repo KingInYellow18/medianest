@@ -46,7 +46,7 @@ class DatabasePerformanceMonitor {
   private metrics: PerformanceMetrics[] = [];
   private readonly maxMetricsHistory = 1000; // Keep last 1000 metrics
   private alertConfig: AlertConfig;
-  private monitoringInterval?: NodeJS.Timer;
+  private monitoringInterval?: NodeJS.Timeout;
   private alertCallbacks: ((alert: any) => void)[] = [];
   private isMonitoring = false;
 

@@ -3,34 +3,19 @@ import type {
   Request as ExpressRequest,
   NextFunction as ExpressNextFunction,
 } from 'express';
+import type { ApiResponse, LegacyApiResponse } from '@medianest/shared';
 import { logger } from './logger';
 import { CatchError } from '../types/common';
 import {
-  getErrorMessage,
   toError,
-  isError,
   isValidationError,
   isHttpError,
 } from '../types/error-types';
 
 /**
- * Standard API response structure
+ * Standard API response structure - now imported from shared
  */
-// Context7 Pattern: Use proper generic types instead of any
-export interface ApiResponse<T = unknown> {
-  success: boolean;
-  data?: T;
-  error?: {
-    message: string;
-    code?: string;
-    details?: Record<string, unknown>;
-  };
-  meta?: {
-    timestamp: string;
-    requestId?: string;
-    pagination?: PaginationMeta;
-  };
-}
+// ApiResponse now imported from @medianest/shared
 
 /**
  * Pagination metadata
@@ -55,13 +40,14 @@ export function sendSuccess<T>(
   res: Response,
   data: T,
   statusCode = 200,
-  meta?: Partial<ApiResponse['meta']>
+  meta?: Partial<ApiResponse<T>['meta']>
 ): void {
   const response: ApiResponse<T> = {
-    success: true,
     data,
     meta: {
       timestamp: new Date().toISOString(),
+      requestId: (res.locals?.requestId || 'no-request-id') as any,
+      version: '1.0.0',
       ...meta,
     },
   };
@@ -85,7 +71,7 @@ export function sendError(
   code?: string,
   details?: Record<string, unknown>
 ): void {
-  const response: ApiResponse = {
+  const response: LegacyApiResponse = {
     success: false,
     error: {
       message,

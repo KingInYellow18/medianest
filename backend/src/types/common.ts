@@ -1,6 +1,7 @@
 /**
  * Common type definitions to replace 'any' types
  */
+import type { ApiResponse } from '@medianest/shared';
 
 // Error handling types
 export interface ErrorWithMessage {
@@ -154,24 +155,8 @@ export interface DatabaseResult<T = unknown> {
   metadata?: UnknownRecord;
 }
 
-// API Response types
-export interface ApiResponse<T = unknown> {
-  success: boolean;
-  data?: T;
-  error?: ErrorWithMessage;
-  message?: string;
-  metadata?: {
-    timestamp: string;
-    requestId?: string;
-    version?: string;
-    pagination?: {
-      page: number;
-      limit: number;
-      total: number;
-      totalPages: number;
-    };
-  };
-}
+// API Response types - now imported from shared
+// export interface ApiResponse - removed, use from @medianest/shared
 
 export interface PaginatedResponse<T = unknown> extends ApiResponse<T[]> {
   data: T[];

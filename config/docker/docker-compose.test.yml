@@ -1,0 +1,381 @@
+# ==============================================================================
+# 🧪 MEDIANEST TESTING ENVIRONMENT - CONSOLIDATED
+# ==============================================================================
+# Usage: docker-compose -f config/docker/docker-compose.test.yml up --abort-on-container-exit
+# Features: Fast startup, isolated testing, CI/CD optimized, ephemeral data
+# Technology: Single consolidated Dockerfile with test target
+# ==============================================================================
+
+
+# Test environment variables
+x-test-env: &test-env
+  NODE_ENV: test
+  DATABASE_URL: postgresql://test_user:test_password@postgres-test:5432/medianest_test?connection_limit=10&pool_timeout=10
+  REDIS_URL: redis://redis-test:6379
+  NEXTAUTH_URL: http://localhost:3000
+  NEXTAUTH_SECRET: test_secret_12345
+  ENCRYPTION_KEY: test_encryption_key_12345
+  JWT_SECRET: test_jwt_secret_12345
+  LOG_LEVEL: warn
+  CI: "true"
+
+services:
+  # ==============================================================================
+  # 🗄️ TEST DATABASE - Fast PostgreSQL
+  # ==============================================================================
+  postgres-test:
+    image: postgres:16-alpine
+    container_name: medianest-postgres-test
+    restart: 'no'
+    environment:
+      POSTGRES_DB: medianest_test
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_INITDB_ARGS: --encoding=UTF-8
+    ports:
+      - '5433:5432'
+    # Use tmpfs for maximum speed (data is ephemeral)
+    tmpfs:
+      - /var/lib/postgresql/data:noexec,nosuid,size=500m
+    # Optimized for speed, not durability
+    command: >
+      postgres 
+      -c fsync=off 
+      -c synchronous_commit=off 
+      -c full_page_writes=off 
+      -c random_page_cost=1.0
+      -c effective_io_concurrency=200
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U test_user -d medianest_test']
+      interval: 2s
+      timeout: 1s
+      retries: 10
+      start_period: 5s
+    networks:
+      - test-network
+
+  # ==============================================================================
+  # 📊 TEST CACHE - Fast Redis
+  # ==============================================================================
+  redis-test:
+    image: redis:7-alpine
+    container_name: medianest-redis-test
+    restart: 'no'
+    ports:
+      - '6380:6379'
+    # Use tmpfs for maximum speed (data is ephemeral)
+    tmpfs:
+      - /data:noexec,nosuid,size=100m
+    # Disable persistence for speed
+    command: >
+      redis-server
+      --save ""
+      --appendonly no
+      --maxmemory 64mb
+      --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 2s
+      timeout: 1s
+      retries: 10
+      start_period: 2s
+    networks:
+      - test-network
+
+  # ==============================================================================
+  # 🧪 UNIFIED TEST RUNNER - Both Backend & Frontend Tests
+  # ==============================================================================
+  test-runner:
+    build:
+      context: ../..
+      dockerfile: config/docker/Dockerfile.consolidated
+      target: test
+      args:
+        - NODE_ENV=test
+    container_name: medianest-test-runner
+    restart: 'no'
+    environment:
+      <<: *test-env
+      BACKEND_PORT: 4000
+      FRONTEND_PORT: 3000
+      TEST_DATABASE_URL: postgresql://test_user:test_password@postgres-test:5432/medianest_test
+      TEST_REDIS_URL: redis://redis-test:6379
+    volumes:
+      # Mount test source files
+      - ../../backend/tests:/app/backend/tests:cached
+      - ../../frontend/tests:/app/frontend/tests:cached
+      - ../../shared/tests:/app/shared/tests:cached
+      # Mount source for coverage
+      - ../../backend/src:/app/backend/src:cached
+      - ../../frontend/src:/app/frontend/src:cached
+      - ../../shared/src:/app/shared/src:cached
+      # Output volumes
+      - test_coverage:/app/coverage
+      - test_reports:/app/test-reports
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+    networks:
+      - test-network
+    # Run all tests with coverage
+    command: ["npm", "run", "test:ci:full"]
+
+  # ==============================================================================
+  # 🧪 BACKEND UNIT TESTS - Isolated backend testing
+  # ==============================================================================
+  backend-test:
+    build:
+      context: ../..
+      dockerfile: config/docker/Dockerfile.consolidated
+      target: test
+      args:
+        - NODE_ENV=test
+    container_name: medianest-backend-test
+    restart: 'no'
+    environment:
+      <<: *test-env
+      PORT: 4000
+      TEST_DATABASE_URL: postgresql://test_user:test_password@postgres-test:5432/medianest_test
+      TEST_REDIS_URL: redis://redis-test:6379
+    volumes:
+      - ../../backend/tests:/app/backend/tests:cached
+      - ../../backend/src:/app/backend/src:cached
+      - ../../shared:/app/shared:cached
+      - test_coverage:/app/coverage
+      - test_reports:/app/test-reports
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+    networks:
+      - test-network
+    command: ["npm", "run", "test:backend"]
+    profiles:
+      - backend
+
+  # ==============================================================================
+  # 🎨 FRONTEND UNIT TESTS - Isolated frontend testing  
+  # ==============================================================================
+  frontend-test:
+    build:
+      context: ../..
+      dockerfile: config/docker/Dockerfile.consolidated
+      target: test
+      args:
+        - NODE_ENV=test
+    container_name: medianest-frontend-test
+    restart: 'no'
+    environment:
+      <<: *test-env
+      PORT: 3000
+      NEXT_TELEMETRY_DISABLED: 1
+    volumes:
+      - ../../frontend/tests:/app/frontend/tests:cached
+      - ../../frontend/src:/app/frontend/src:cached
+      - ../../shared:/app/shared:cached
+      - test_coverage:/app/coverage
+      - test_reports:/app/test-reports
+    networks:
+      - test-network
+    command: ["npm", "run", "test:frontend"]
+    profiles:
+      - frontend
+
+  # ==============================================================================
+  # 🔗 INTEGRATION TESTS - Service-to-service testing
+  # ==============================================================================
+  integration-test:
+    build:
+      context: ../..
+      dockerfile: config/docker/Dockerfile.consolidated
+      target: test
+      args:
+        - NODE_ENV=test
+    container_name: medianest-integration-test
+    restart: 'no'
+    environment:
+      <<: *test-env
+      BACKEND_URL: http://backend-service:4000
+      FRONTEND_URL: http://frontend-service:3000
+    volumes:
+      - ../../tests:/app/tests:cached
+      - test_coverage:/app/coverage
+      - test_reports:/app/test-reports
+    depends_on:
+      - backend-service
+      - frontend-service
+    networks:
+      - test-network
+    command: ["npm", "run", "test:integration"]
+    profiles:
+      - integration
+
+  # ==============================================================================
+  # 🚀 TEST SERVICES - Backend Service for Integration Tests
+  # ==============================================================================
+  backend-service:
+    build:
+      context: ../..
+      dockerfile: config/docker/Dockerfile.consolidated
+      target: backend-production
+    container_name: medianest-backend-service-test
+    restart: 'no'
+    environment:
+      <<: *test-env
+      PORT: 4000
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+    networks:
+      - test-network
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:4000/api/health']
+      interval: 5s
+      timeout: 2s
+      retries: 5
+      start_period: 10s
+    profiles:
+      - integration
+
+  # ==============================================================================
+  # 🎨 TEST SERVICES - Frontend Service for Integration Tests  
+  # ==============================================================================
+  frontend-service:
+    build:
+      context: ../..
+      dockerfile: config/docker/Dockerfile.consolidated
+      target: frontend-production
+    container_name: medianest-frontend-service-test
+    restart: 'no'
+    environment:
+      <<: *test-env
+      PORT: 3000
+      NEXT_TELEMETRY_DISABLED: 1
+    depends_on:
+      - backend-service
+    networks:
+      - test-network
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/api/health']
+      interval: 5s
+      timeout: 2s
+      retries: 5
+      start_period: 15s
+    profiles:
+      - integration
+
+  # ==============================================================================
+  # 🌐 E2E TESTING - Playwright/Cypress
+  # ==============================================================================
+  e2e-test:
+    build:
+      context: ../..
+      dockerfile: config/docker/Dockerfile.consolidated
+      target: test
+      args:
+        - NODE_ENV=test
+    container_name: medianest-e2e-test
+    restart: 'no'
+    environment:
+      <<: *test-env
+      BASE_URL: http://frontend-service:3000
+      API_URL: http://backend-service:4000
+      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+    volumes:
+      - ../../tests/e2e:/app/tests/e2e:cached
+      - test_reports:/app/test-reports
+      - test_screenshots:/app/screenshots
+      - test_videos:/app/videos
+      - playwright_browsers:/ms-playwright
+    depends_on:
+      frontend-service:
+        condition: service_healthy
+      backend-service:
+        condition: service_healthy
+    networks:
+      - test-network
+    command: ["npm", "run", "test:e2e"]
+    profiles:
+      - e2e
+
+  # ==============================================================================
+  # 📊 TEST REPORTING - Generate unified test report
+  # ==============================================================================
+  test-report:
+    image: node:20-alpine
+    container_name: medianest-test-report
+    restart: 'no'
+    volumes:
+      - test_coverage:/app/coverage:ro
+      - test_reports:/app/reports:ro
+      - ../../scripts/test-report.js:/app/generate-report.js:ro
+    working_dir: /app
+    command: node generate-report.js
+    depends_on:
+      - test-runner
+    networks:
+      - test-network
+    profiles:
+      - report
+
+# ==============================================================================
+# 📦 VOLUMES
+# ==============================================================================
+volumes:
+  test_coverage:
+    driver: local
+  test_reports:
+    driver: local
+  test_screenshots:
+    driver: local
+  test_videos:
+    driver: local
+  playwright_browsers:
+    driver: local
+
+# ==============================================================================
+# 🌐 NETWORKS
+# ==============================================================================
+networks:
+  test-network:
+    driver: bridge
+    name: medianest-testing
+    ipam:
+      config:
+        - subnet: 172.50.0.0/16
+
+# ==============================================================================
+# 🚀 USAGE EXAMPLES
+# ==============================================================================
+# 
+# Run all tests (unified):
+# docker-compose -f config/docker/docker-compose.test.yml up --abort-on-container-exit
+#
+# Run only backend tests:
+# docker-compose -f config/docker/docker-compose.test.yml --profile backend up --abort-on-container-exit
+#
+# Run only frontend tests:
+# docker-compose -f config/docker/docker-compose.test.yml --profile frontend up --abort-on-container-exit
+#
+# Run integration tests:
+# docker-compose -f config/docker/docker-compose.test.yml --profile integration up --abort-on-container-exit
+#
+# Run E2E tests:
+# docker-compose -f config/docker/docker-compose.test.yml --profile e2e up --abort-on-container-exit
+#
+# Generate test report:
+# docker-compose -f config/docker/docker-compose.test.yml --profile report up --abort-on-container-exit
+#
+# Clean up test environment:
+# docker-compose -f config/docker/docker-compose.test.yml down -v
+#
+# Performance test mode (fast):
+# docker-compose -f config/docker/docker-compose.test.yml up test-runner --abort-on-container-exit

@@ -3,12 +3,11 @@
 // Re-export all types from specific modules
 export * from './service';
 
-// Export Context7 types with explicit names to avoid conflicts
-// NOTE: AppError and ValidationError are excluded here to prevent conflicts
-// They are exported from the errors module instead
+// Export Context7 types with proper naming for consolidation
+// ApiResponse is now the canonical version from Context7 (readonly properties)
 export type {
   Result,
-  ApiResponse as Context7ApiResponse,
+  ApiResponse,  // This is now the primary ApiResponse interface
   PaginatedApiResponse,
   BaseUser,
   UserRole,
@@ -51,7 +50,9 @@ export interface User {
   lastLoginAt?: Date;
 }
 
-export interface ApiResponse<T = any> {
+// Legacy API Response interface for backward compatibility with existing response builders
+// This maintains the old structure while we transition to Context7 ApiResponse
+export interface LegacyApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   message?: string;

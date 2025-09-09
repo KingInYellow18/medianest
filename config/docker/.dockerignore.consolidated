@@ -1,0 +1,346 @@
+# =============================================================================
+# MediaNest Consolidated .dockerignore
+# Optimized for Multi-Stage Builds with Maximum Cache Efficiency
+# =============================================================================
+
+# =============================================================================
+# CRITICAL SECURITY EXCLUSIONS (Never include in any build context)
+# =============================================================================
+
+# Environment and secrets
+.env*
+!.env.example
+*.env
+.env.local
+.env.production*
+.env.staging*
+.env.development*
+.env.test*
+.environment
+secrets/
+certificates/
+*.pem
+*.key
+*.crt
+*.p12
+*.jks
+*.pfx
+
+# Authentication and tokens
+.auth
+.credentials
+.secrets
+token*
+*_token
+*_secret
+*_key
+*.token
+
+# =============================================================================
+# BUILD OPTIMIZATION EXCLUSIONS
+# =============================================================================
+
+# Version Control (Large directories that change frequently)
+.git/
+.gitignore
+.gitattributes
+.gitmodules
+.github/
+.gitlab-ci.yml
+.travis.yml
+.circleci/
+azure-pipelines.yml
+
+# Development Tools (Not needed in production)
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Node.js ecosystem (Will be installed fresh in container)
+node_modules/
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn
+.pnp*
+*.tsbuildinfo
+.tsbuildinfo
+
+# Build artifacts (Will be generated in container)
+dist/
+build/
+.next/
+coverage/
+.nyc_output
+out/
+*.log
+logs/
+.build-cache/
+
+# =============================================================================
+# DEVELOPMENT EXCLUSIONS (Not needed in production builds)
+# =============================================================================
+
+# Testing infrastructure
+test/
+tests/
+__tests__/
+**/*.test.*
+**/*.spec.*
+*.test.ts
+*.spec.ts
+*.test.js
+*.spec.js
+test-results/
+playwright-report/
+cypress/
+.coverage/
+coverage/
+jest.config*
+playwright.config*
+vitest.config*
+cypress.config*
+.stryker-tmp/
+
+# Development configuration
+nodemon.json
+.eslintrc*
+.prettierrc*
+.editorconfig
+.stylelintrc*
+.babelrc*
+babel.config*
+webpack.config*
+rollup.config*
+vite.config*
+jest.config*
+tsconfig.json
+!backend/tsconfig.json
+!frontend/tsconfig.json
+!shared/tsconfig.json
+
+# Documentation (Large files not needed at runtime)
+README*
+CHANGELOG*
+CONTRIBUTING*
+LICENSE*
+*.md
+!package.json
+docs/
+documentation/
+examples/
+demo/
+
+# =============================================================================
+# CACHE OPTIMIZATION (Exclude files that change frequently)
+# =============================================================================
+
+# Temporary and cache files
+tmp/
+temp/
+.tmp/
+*.tmp
+*.temp
+cache/
+.cache/
+.parcel-cache/
+.next/cache/
+.swc/
+.turbo/
+
+# OS and editor temporary files
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.swp
+*.swo
+.vscode/settings.json
+
+# Package manager temporary files
+.yarn-integrity
+.yarn-cache/
+.pnp.*
+.eslintcache
+.stylelintcache
+
+# =============================================================================
+# RUNTIME EXCLUSIONS (Directories created at runtime)
+# =============================================================================
+
+# Application runtime directories
+uploads/
+downloads/
+data/
+backups/
+storage/
+public/uploads/
+static/uploads/
+
+# Logging directories
+logs/
+log/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# =============================================================================
+# DOCKER SPECIFIC EXCLUSIONS
+# =============================================================================
+
+# Docker files (prevent recursive inclusion)
+Dockerfile*
+docker-compose*
+.dockerignore*
+.docker/
+docker/
+
+# Kubernetes and orchestration
+k8s/
+kubernetes/
+helm/
+.kube/
+*.yaml
+*.yml
+!docker-compose.consolidated.yml
+
+# =============================================================================
+# CI/CD AND DEPLOYMENT EXCLUSIONS
+# =============================================================================
+
+# Infrastructure as Code
+terraform/
+ansible/
+cloudformation/
+infrastructure/
+deployment/
+scripts/deployment/
+.terraform/
+
+# Monitoring and alerting configurations
+monitoring/
+alerts/
+grafana/
+prometheus/
+
+# =============================================================================
+# LANGUAGE SPECIFIC OPTIMIZATIONS
+# =============================================================================
+
+# TypeScript
+*.tsbuildinfo
+.tsbuildinfo
+typings/
+
+# Next.js specific
+.next/
+out/
+.vercel/
+
+# React specific
+.react-dev-utils/
+public/hot-update*
+
+# Node.js specific
+.node_repl_history
+jspm_packages/
+*.tgz
+lib-cov/
+nyc_output/
+
+# =============================================================================
+# SIZE OPTIMIZATION PATTERNS
+# =============================================================================
+
+# Large binary files (if any)
+*.iso
+*.tar
+*.tar.gz
+*.zip
+*.rar
+*.7z
+*.dmg
+*.pkg
+*.deb
+*.rpm
+
+# Media files (usually not needed in containers)
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.svg
+*.ico
+*.webp
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+*.mp3
+*.wav
+*.ogg
+
+# Font files (include only if needed)
+fonts/
+*.ttf
+*.woff
+*.woff2
+*.eot
+*.otf
+
+# =============================================================================
+# PROJECT SPECIFIC EXCLUSIONS
+# =============================================================================
+
+# MediaNest specific exclusions
+.medianest/
+medianest-data/
+.swarm/
+backups/
+migrations/backup/
+seed-data/
+
+# Build optimization exclusions
+cleanup-backups*/
+site/
+**/site/
+**/.vitepress/
+**/.vuepress/
+
+# Performance monitoring exclusions
+.lighthouse/
+performance-reports/
+bundle-analyzer/
+
+# =============================================================================
+# CONDITIONAL INCLUSIONS (for multi-stage builds)
+# =============================================================================
+
+# Include only essential package files
+!package.json
+!*/package.json
+!package-lock.json
+!*/package-lock.json
+
+# Include only essential configuration
+!next.config.js
+!tailwind.config.ts
+!postcss.config.mjs
+
+# Include essential schema files
+!**/schema.prisma
+!**/prisma/schema.prisma

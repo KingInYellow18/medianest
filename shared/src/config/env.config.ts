@@ -3,7 +3,8 @@ import { resolve, join } from 'path';
 import { existsSync } from 'fs';
 import { z } from 'zod';
 
-import { CompleteConfig, ConfigValidationError } from './base.config';
+import type { CompleteConfig } from './base.config';
+import { ConfigValidationError } from './base.config';
 
 /**
  * Environment Configuration Loader
@@ -58,7 +59,7 @@ export class EnvironmentConfig {
         NODE_ENV: (process.env.NODE_ENV as 'development' | 'production' | 'test') || 'development',
       };
 
-      const env = envData as any;
+      const env = envData as Record<string, unknown>;
       const configData = {
         // Copy all environment variables
         ...env,
@@ -69,21 +70,24 @@ export class EnvironmentConfig {
         LOG_LEVEL: (env.LOG_LEVEL || 'info') as 'error' | 'warn' | 'info' | 'debug' | 'verbose',
         LOG_FORMAT: (env.LOG_FORMAT || 'json') as 'json' | 'simple',
         DB_SSL: env.DB_SSL === 'true' || env.DB_SSL === true,
-        DB_POOL_MIN: env.DB_POOL_MIN ? parseInt(env.DB_POOL_MIN) : 2,
-        DB_POOL_MAX: env.DB_POOL_MAX ? parseInt(env.DB_POOL_MAX) : 10,
-        DB_TIMEOUT: env.DB_TIMEOUT ? parseInt(env.DB_TIMEOUT) : 30000,
-        REDIS_PORT: env.REDIS_PORT ? parseInt(env.REDIS_PORT) : 6379,
+        DB_POOL_MIN: env.DB_POOL_MIN ? this.safeParseInt(String(env.DB_POOL_MIN), 2) : 2,
+        DB_POOL_MAX: env.DB_POOL_MAX ? this.safeParseInt(String(env.DB_POOL_MAX), 10) : 10,
+        DB_TIMEOUT: env.DB_TIMEOUT ? this.safeParseInt(String(env.DB_TIMEOUT), 30000) : 30000,
+        REDIS_PORT: env.REDIS_PORT ? this.safeParseInt(String(env.REDIS_PORT), 6379) : 6379,
         REDIS_HOST: env.REDIS_HOST || 'localhost',
       };
 
       // Bypass validation for now to get build working
-      this._config = configData as any;
+      this._config = configData as CompleteConfig;
 
       if (!validateOnly) {
         this._isLoaded = true;
       }
 
-      return this._config!;
+      if (!this._config) {
+        throw new Error('Configuration is null after loading. This should not happen.');
+      }
+      return this._config;
     } catch (error) {
       if (error instanceof ConfigValidationError) {
         throw new ConfigValidationError(error.errors);
@@ -193,6 +197,23 @@ export class EnvironmentConfig {
     });
 
     return envFiles;
+  }
+
+  /**
+   * Safe integer parsing with fallback
+   */
+  private safeParseInt(value: string, fallback: number): number {
+    if (typeof value !== 'string' || value.trim() === '') {
+      return fallback;
+    }
+    
+    const parsed = parseInt(value.trim(), 10);
+    if (isNaN(parsed)) {
+      console.warn(`Invalid integer value '${value}', using fallback: ${fallback}`);
+      return fallback;
+    }
+    
+    return parsed;
   }
 
   /**

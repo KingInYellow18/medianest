@@ -3,7 +3,7 @@
   "compilerOptions": {
     "module": "commonjs",
     "outDir": "./dist",
-    "composite": false,
+    "composite": true,
     "noEmit": false,
     // Context7 Pattern: Root-level incremental compilation with project references
     "incremental": true,
@@ -23,5 +23,9 @@
     "tests/**/*",
     "coverage/**/*"
   ],
-  "references": [{ "path": "./shared" }, { "path": "./backend" }]
+  "references": [
+    { "path": "./shared" },
+    { "path": "./backend" },
+    { "path": "./frontend" }
+  ]
 }

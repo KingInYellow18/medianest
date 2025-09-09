@@ -1,0 +1,512 @@
+# ========================================================================
+# 🚀 CI/CD Test Optimization Pipeline
+# ========================================================================
+# Purpose: Maximize test execution performance in CI/CD environments
+# Features: Dynamic scaling, intelligent caching, parallel execution
+# ========================================================================
+
+name: Optimized Test Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      run_all_tests:
+        description: 'Run all tests (ignore cache)'
+        required: false
+        default: 'false'
+        type: boolean
+      worker_count:
+        description: 'Number of parallel workers'
+        required: false
+        default: '0'
+        type: string
+
+env:
+  NODE_ENV: test
+  CI: true
+  # Performance optimizations
+  NODE_OPTIONS: '--max-old-space-size=7168 --max-semi-space-size=512'
+  UV_THREADPOOL_SIZE: 8
+  VITEST_SEGFAULT_RETRY: 3
+  # Test configuration
+  VITEST_POOL_SIZE: ${{ github.event.inputs.worker_count || '0' }}
+  FORCE_COLOR: 1
+  TERM: xterm-256color
+
+jobs:
+  # ========================================================================
+  # 📊 Pre-Analysis Job
+  # ========================================================================
+  analyze:
+    name: 🔍 Test Analysis
+    runs-on: ubuntu-latest
+    outputs:
+      test_matrix: ${{ steps.matrix.outputs.matrix }}
+      cache_key: ${{ steps.cache.outputs.key }}
+      should_run: ${{ steps.changes.outputs.should_run }}
+      worker_count: ${{ steps.config.outputs.workers }}
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # For change detection
+          
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: 📦 Install Dependencies
+        run: |
+          npm ci --prefer-offline --no-audit --no-fund
+          # Install optimizer dependencies
+          npm install --no-save glob fast-glob
+          
+      - name: ⚙️ Calculate Optimal Configuration
+        id: config
+        run: |
+          # Calculate optimal worker count based on available resources
+          WORKERS=${{ github.event.inputs.worker_count }}
+          if [[ "$WORKERS" == "0" || -z "$WORKERS" ]]; then
+            CPU_COUNT=$(nproc)
+            WORKERS=$((CPU_COUNT > 8 ? 6 : CPU_COUNT - 2))
+            WORKERS=$((WORKERS < 2 ? 2 : WORKERS))
+          fi
+          echo "workers=$WORKERS" >> $GITHUB_OUTPUT
+          echo "🔧 Optimal workers: $WORKERS (CPU: $(nproc), Memory: $(($(free -m | awk 'NR==2{print $2}') / 1024))GB)"
+          
+      - name: 🔍 Detect Changes
+        id: changes
+        run: |
+          RUN_ALL=${{ github.event.inputs.run_all_tests }}
+          
+          if [[ "$RUN_ALL" == "true" ]]; then
+            echo "should_run=all" >> $GITHUB_OUTPUT
+            echo "📋 Running all tests (user requested)"
+            exit 0
+          fi
+          
+          # Check for relevant changes
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD || echo "all")
+          
+          if echo "$CHANGED_FILES" | grep -qE '\.(ts|js|tsx|jsx)$|package\.json|vitest\.config|tsconfig\.json'; then
+            echo "should_run=changed" >> $GITHUB_OUTPUT
+            echo "📋 Running affected tests (code changes detected)"
+            echo "Changed files: $CHANGED_FILES"
+          else
+            echo "should_run=minimal" >> $GITHUB_OUTPUT
+            echo "📋 Running minimal test suite (no code changes)"
+          fi
+          
+      - name: 🧮 Generate Test Matrix
+        id: matrix
+        run: |
+          # Generate dynamic test matrix based on analysis
+          node -e "
+            const fs = require('fs');
+            const path = require('path');
+            const glob = require('fast-glob');
+            
+            async function generateMatrix() {
+              const testFiles = await glob([
+                'tests/**/*.{test,spec}.{ts,js}',
+                'backend/tests/**/*.{test,spec}.{ts,js}',
+                'frontend/src/**/*.{test,spec}.{ts,tsx,js,jsx}',
+                'shared/src/**/*.{test,spec}.{ts,js}'
+              ]);
+              
+              const shouldRun = '${{ steps.changes.outputs.should_run }}';
+              const workers = parseInt('${{ steps.config.outputs.workers }}');
+              
+              // Group tests by type and estimated duration
+              const testGroups = {
+                unit: testFiles.filter(f => !f.includes('integration') && !f.includes('e2e')),
+                integration: testFiles.filter(f => f.includes('integration')),
+                e2e: testFiles.filter(f => f.includes('e2e'))
+              };
+              
+              // Create matrix based on test groups and worker count
+              const matrix = [];
+              
+              if (shouldRun === 'minimal') {
+                // Only run critical unit tests
+                matrix.push({
+                  name: 'Critical Unit Tests',
+                  type: 'unit',
+                  pattern: 'tests/unit/critical/**/*.test.ts backend/tests/unit/controllers/*.test.ts',
+                  timeout: 300000,
+                  workers: Math.min(2, workers)
+                });
+              } else {
+                // Full matrix for changed/all scenarios
+                if (testGroups.unit.length > 0) {
+                  const unitChunks = Math.min(workers, Math.ceil(testGroups.unit.length / 50));
+                  for (let i = 0; i < unitChunks; i++) {
+                    matrix.push({
+                      name: \`Unit Tests \${i + 1}/\${unitChunks}\`,
+                      type: 'unit',
+                      shard: \`\${i + 1}/\${unitChunks}\`,
+                      timeout: 600000,
+                      workers: Math.ceil(workers / unitChunks)
+                    });
+                  }
+                }
+                
+                if (testGroups.integration.length > 0) {
+                  matrix.push({
+                    name: 'Integration Tests',
+                    type: 'integration',
+                    timeout: 1200000,
+                    workers: Math.min(workers, 4)
+                  });
+                }
+                
+                if (testGroups.e2e.length > 0) {
+                  matrix.push({
+                    name: 'E2E Tests',
+                    type: 'e2e',
+                    timeout: 1800000,
+                    workers: 2
+                  });
+                }
+              }
+              
+              console.log(JSON.stringify({ include: matrix }, null, 2));
+            }
+            
+            generateMatrix();
+          " > matrix.json
+          
+          MATRIX=$(cat matrix.json)
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+          echo "📊 Test matrix generated:"
+          cat matrix.json
+          
+      - name: 🔑 Generate Cache Key
+        id: cache
+        run: |
+          # Generate cache key based on dependencies and configuration
+          DEPS_HASH=$(sha256sum package-lock.json | cut -d' ' -f1)
+          CONFIG_HASH=$(find . -name 'vitest.config.*' -o -name 'tsconfig.json' | sort | xargs sha256sum | sha256sum | cut -d' ' -f1)
+          CACHE_KEY="test-cache-v3-$DEPS_HASH-$CONFIG_HASH"
+          echo "key=$CACHE_KEY" >> $GITHUB_OUTPUT
+          echo "🔑 Cache key: $CACHE_KEY"
+
+  # ========================================================================
+  # 🧪 Parallel Test Execution
+  # ========================================================================
+  test:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    needs: analyze
+    if: needs.analyze.outputs.should_run != 'none'
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.analyze.outputs.test_matrix) }}
+    timeout-minutes: ${{ matrix.timeout && (matrix.timeout / 60000) || 30 }}
+    
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+        
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: 🗄️ Setup Redis
+        uses: supercharge/redis-github-action@1.7.0
+        with:
+          redis-version: 7
+          redis-port: 6379
+          
+      - name: 🐘 Setup PostgreSQL
+        uses: harmon758/postgresql-action@v1
+        with:
+          postgresql version: '15'
+          postgresql db: medianest_test
+          postgresql user: test
+          postgresql password: test
+          
+      - name: 📦 Install Dependencies
+        run: |
+          npm ci --prefer-offline --no-audit --no-fund
+          
+          # Install test-specific dependencies based on matrix type
+          case "${{ matrix.type }}" in
+            "e2e")
+              npm install --no-save playwright @playwright/test
+              npx playwright install chromium
+              ;;
+            "integration")
+              npm install --no-save supertest
+              ;;
+          esac
+          
+      - name: 🔄 Restore Test Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            .test-cache
+            test-results
+            coverage
+            node_modules/.cache
+          key: ${{ needs.analyze.outputs.cache_key }}-${{ matrix.type }}
+          restore-keys: |
+            ${{ needs.analyze.outputs.cache_key }}-
+            test-cache-v3-
+            
+      - name: 🔧 Configure Test Environment
+        run: |
+          # Create optimized test directories
+          mkdir -p test-results coverage .test-cache
+          
+          # Set up environment variables for optimal performance
+          echo "VITEST_POOL_SIZE=${{ matrix.workers || needs.analyze.outputs.worker_count }}" >> $GITHUB_ENV
+          echo "NODE_OPTIONS=--max-old-space-size=7168 --max-semi-space-size=512" >> $GITHUB_ENV
+          echo "VITEST_REPORTER=verbose,json" >> $GITHUB_ENV
+          echo "COVERAGE_PROVIDER=v8" >> $GITHUB_ENV
+          
+          # Database configuration for tests
+          echo "DATABASE_URL=postgresql://test:test@localhost:5432/medianest_test" >> $GITHUB_ENV
+          echo "REDIS_URL=redis://localhost:6379/15" >> $GITHUB_ENV
+          
+      - name: 🏃‍♂️ Run Optimized Tests
+        run: |
+          case "${{ matrix.type }}" in
+            "unit")
+              if [[ "${{ matrix.shard }}" ]]; then
+                echo "🧪 Running unit tests (shard ${{ matrix.shard }})"
+                npx vitest run --shard=${{ matrix.shard }} --reporter=verbose --reporter=json --outputFile=test-results/unit-${{ matrix.shard }}.json
+              else
+                echo "🧪 Running all unit tests"
+                npm run test:ci
+              fi
+              ;;
+            "integration")
+              echo "🔗 Running integration tests"
+              npm run test:integration
+              ;;
+            "e2e")
+              echo "🌐 Running E2E tests"
+              npm run test:e2e
+              ;;
+            *)
+              if [[ "${{ matrix.pattern }}" ]]; then
+                echo "🎯 Running tests with pattern: ${{ matrix.pattern }}"
+                npx vitest run ${{ matrix.pattern }} --reporter=verbose --reporter=json --outputFile=test-results/custom.json
+              else
+                echo "📋 Running default test suite"
+                npm run test
+              fi
+              ;;
+          esac
+          
+      - name: 📊 Process Test Results
+        if: always()
+        run: |
+          # Aggregate and process test results
+          node -e "
+            const fs = require('fs');
+            const path = require('path');
+            
+            try {
+              const resultsDir = 'test-results';
+              const files = fs.readdirSync(resultsDir).filter(f => f.endsWith('.json'));
+              
+              let totalTests = 0;
+              let passedTests = 0;
+              let failedTests = 0;
+              let duration = 0;
+              
+              for (const file of files) {
+                const data = JSON.parse(fs.readFileSync(path.join(resultsDir, file), 'utf-8'));
+                if (data.numTotalTests) {
+                  totalTests += data.numTotalTests;
+                  passedTests += data.numPassedTests || 0;
+                  failedTests += data.numFailedTests || 0;
+                  duration += data.testResults?.reduce((sum, r) => sum + (r.perfStats?.runtime || 0), 0) || 0;
+                }
+              }
+              
+              console.log('📊 TEST RESULTS SUMMARY:');
+              console.log(\`   Total: \${totalTests}\`);
+              console.log(\`   Passed: \${passedTests}\`);
+              console.log(\`   Failed: \${failedTests}\`);
+              console.log(\`   Duration: \${(duration / 1000).toFixed(2)}s\`);
+              console.log(\`   Success Rate: \${((passedTests / totalTests) * 100).toFixed(1)}%\`);
+              
+              // Write summary
+              fs.writeFileSync('test-results/summary.json', JSON.stringify({
+                type: '${{ matrix.type }}',
+                name: '${{ matrix.name }}',
+                total: totalTests,
+                passed: passedTests,
+                failed: failedTests,
+                duration,
+                timestamp: new Date().toISOString()
+              }));
+            } catch (error) {
+              console.error('Failed to process results:', error.message);
+            }
+          "
+          
+      - name: 📤 Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results-${{ matrix.type }}-${{ github.run_number }}
+          path: |
+            test-results/
+            coverage/
+          retention-days: 7
+          
+      - name: 📈 Upload Coverage to Codecov
+        if: matrix.type == 'unit'
+        uses: codecov/codecov-action@v3
+        with:
+          directory: ./coverage
+          flags: ${{ matrix.type }}
+          name: codecov-${{ matrix.type }}
+          fail_ci_if_error: false
+
+  # ========================================================================
+  # 📋 Results Aggregation
+  # ========================================================================
+  aggregate:
+    name: 📊 Aggregate Results
+    runs-on: ubuntu-latest
+    needs: [analyze, test]
+    if: always() && needs.analyze.outputs.should_run != 'none'
+    
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+        
+      - name: 📥 Download All Results
+        uses: actions/download-artifact@v3
+        with:
+          path: all-results
+          
+      - name: 📊 Generate Final Report
+        run: |
+          echo "## 🧪 Test Execution Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Execution Details:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Trigger: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Branch: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Workers: ${{ needs.analyze.outputs.worker_count }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Strategy: ${{ needs.analyze.outputs.should_run }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Process all test result summaries
+          find all-results -name 'summary.json' -exec cat {} \; | \
+          node -e "
+            const readline = require('readline');
+            const rl = readline.createInterface({ input: process.stdin });
+            
+            let totalTests = 0;
+            let totalPassed = 0;
+            let totalFailed = 0;
+            let totalDuration = 0;
+            const suiteResults = [];
+            
+            rl.on('line', (line) => {
+              try {
+                const data = JSON.parse(line);
+                totalTests += data.total || 0;
+                totalPassed += data.passed || 0;
+                totalFailed += data.failed || 0;
+                totalDuration += data.duration || 0;
+                suiteResults.push(data);
+              } catch (e) {}
+            });
+            
+            rl.on('close', () => {
+              console.log('**Test Suite Results:**');
+              console.log('');
+              
+              for (const suite of suiteResults) {
+                const successRate = suite.total > 0 ? ((suite.passed / suite.total) * 100).toFixed(1) : '0.0';
+                const duration = (suite.duration / 1000).toFixed(2);
+                const status = suite.failed === 0 ? '✅' : '❌';
+                console.log(\`| \${status} \${suite.name || suite.type} | \${suite.passed}/\${suite.total} | \${successRate}% | \${duration}s |\`);
+              }
+              
+              console.log('');
+              console.log('**Overall Summary:**');
+              console.log('');
+              console.log(\`- **Total Tests:** \${totalTests}\`);
+              console.log(\`- **Passed:** \${totalPassed} ✅\`);
+              console.log(\`- **Failed:** \${totalFailed} ❌\`);
+              console.log(\`- **Success Rate:** \${totalTests > 0 ? ((totalPassed / totalTests) * 100).toFixed(1) : 0}%\`);
+              console.log(\`- **Total Duration:** \${(totalDuration / 1000).toFixed(2)}s\`);
+              
+              // Performance insights
+              if (suiteResults.length > 1) {
+                const avgDuration = totalDuration / suiteResults.length / 1000;
+                console.log('');
+                console.log('**Performance Insights:**');
+                console.log('');
+                console.log(\`- **Parallel Execution:** \${suiteResults.length} job(s)\`);
+                console.log(\`- **Average Job Duration:** \${avgDuration.toFixed(2)}s\`);
+                console.log(\`- **Estimated Sequential Time:** ~\${(totalDuration / 1000).toFixed(0)}s\`);
+                
+                const estimatedSequential = suiteResults.reduce((sum, s) => sum + s.duration, 0) / 1000;
+                const actualParallel = Math.max(...suiteResults.map(s => s.duration)) / 1000;
+                const speedup = (estimatedSequential / actualParallel).toFixed(1);
+                console.log(\`- **Parallelization Speedup:** ~\${speedup}x\`);
+              }
+              
+              // Set exit code based on results
+              if (totalFailed > 0) {
+                console.log('');
+                console.log('❌ **Test suite failed with failures**');
+                process.exit(1);
+              } else {
+                console.log('');
+                console.log('✅ **All tests passed successfully**');
+                process.exit(0);
+              }
+            });
+          " >> $GITHUB_STEP_SUMMARY
+          
+      - name: ✅ Set Final Status
+        run: |
+          # This step will fail if any tests failed, thanks to the exit code above
+          echo "Test suite completed successfully"
+
+  # ========================================================================
+  # 🧹 Cleanup and Caching
+  # ========================================================================
+  cleanup:
+    name: 🧹 Cleanup
+    runs-on: ubuntu-latest
+    needs: [analyze, aggregate]
+    if: always()
+    
+    steps:
+      - name: 🗑️ Cleanup Old Artifacts
+        run: |
+          echo "🧹 Cleanup job completed (artifacts auto-expire in 7 days)"
+          
+      - name: 📈 Update Performance Metrics
+        if: success()
+        run: |
+          echo "📊 Performance metrics would be updated here"
+          echo "This could include updating test execution time trends, success rates, etc."
+
+# ========================================================================
+# 🎯 Performance Monitoring
+# ========================================================================
+# Additional jobs for performance monitoring and alerting can be added here
+# Examples:
+# - Benchmark comparison with previous runs
+# - Slack/Discord notifications for performance regressions
+# - Dashboard updates with test execution metrics

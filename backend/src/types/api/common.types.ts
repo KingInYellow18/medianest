@@ -1,11 +1,7 @@
 // Common API response and error types
+import type { ApiResponse } from '@medianest/shared';
 
-export interface ApiResponse<T = unknown> {
-  success: boolean;
-  data?: T;
-  message?: string;
-  error?: ApiError;
-}
+// ApiResponse now imported from shared package
 
 export interface ApiError {
   code: string;

@@ -12,7 +12,7 @@ export interface ApiClientConfig {
   circuitBreakerOptions?: CircuitBreakerOptions;
 }
 
-export interface ApiResponse<T = any> {
+export interface HttpApiResponse<T = unknown> {
   data: T;
   status: number;
   headers: Record<string, string>;
@@ -45,10 +45,10 @@ export abstract class BaseApiClient {
     });
   }
 
-  protected async request<T = any>(
+  protected async request<T = unknown>(
     endpoint: string,
     options: RequestInit = {}
-  ): Promise<ApiResponse<T>> {
+  ): Promise<HttpApiResponse<T>> {
     const url = `${this.config.baseURL}${endpoint}`;
     const timeout = this.config.timeout || 5000;
 
@@ -95,7 +95,7 @@ export abstract class BaseApiClient {
           data = (await response.text()) as T;
         }
 
-        const apiResponse: ApiResponse<T> = {
+        const apiResponse: HttpApiResponse<T> = {
           data,
           status: response.status,
           headers: responseHeaders,
@@ -139,10 +139,10 @@ export abstract class BaseApiClient {
     });
   }
 
-  protected async requestWithRetry<T = any>(
+  protected async requestWithRetry<T = unknown>(
     endpoint: string,
     options: RequestInit = {}
-  ): Promise<ApiResponse<T>> {
+  ): Promise<HttpApiResponse<T>> {
     const maxRetries = this.config.retryAttempts || 3;
     const retryDelay = this.config.retryDelay || 1000;
 

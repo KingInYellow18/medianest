@@ -65,11 +65,11 @@ export function logError(error: Error | AppError, context?: any): ErrorLogEntry 
   if (
     typeof globalThis !== 'undefined' &&
     'window' in globalThis &&
-    typeof (globalThis as any).window !== 'undefined'
+    typeof (globalThis as { window?: unknown }).window !== 'undefined'
   ) {
-    const win = (globalThis as any).window;
-    entry.userAgent = win.navigator?.userAgent;
-    entry.url = win.location?.href;
+    const win = (globalThis as unknown as { window: { location?: { href?: string }; navigator?: { userAgent?: string } } }).window;
+    entry.userAgent = win?.navigator?.userAgent;
+    entry.url = win?.location?.href;
   }
 
   // In production, send to error tracking service

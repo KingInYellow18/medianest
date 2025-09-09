@@ -127,7 +127,7 @@ export function generateRandomString(length: number = 16): string {
 
   for (let i = 0; i < length; i++) {
     result +=
-      chars[bytes?.[i] ? bytes[i] % chars.length : Math.floor(Math.random() * chars.length)];
+      chars[bytes[i] !== undefined ? bytes[i] % chars.length : Math.floor(Math.random() * chars.length)];
   }
 
   return result;
@@ -193,7 +193,7 @@ export function encryptSensitiveData(
   const keyHash = crypto.createHash('sha256').update(secretKey).digest();
 
   const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipher('aes-256-cbc', keyHash.slice(0, 32));
+  const cipher = crypto.createCipheriv(algorithm, keyHash.slice(0, 32), iv);
 
   let encrypted = cipher.update(data, 'utf8', 'hex');
   encrypted += cipher.final('hex');
@@ -216,7 +216,7 @@ export function decryptSensitiveData(encryptedData: string, iv: string, key?: st
   const keyHash = crypto.createHash('sha256').update(secretKey).digest();
 
   const ivBuffer = Buffer.from(iv, 'hex');
-  const decipher = crypto.createDecipher('aes-256-gcm', keyHash);
+  const decipher = crypto.createDecipheriv(algorithm, keyHash, ivBuffer);
 
   let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
   decrypted += decipher.final('utf8');

@@ -1,4 +1,5 @@
-import Redis, { RedisOptions, Cluster } from 'ioredis';
+import Redis, { Cluster } from 'ioredis';
+import type { RedisOptions } from 'ioredis';
 import { z } from 'zod';
 
 import type { RedisConfig } from './base.config';

@@ -2,7 +2,7 @@ import { logger } from '@/utils/logger';
 import { redisClient } from '@/config/redis';
 import { PlexClient } from '@/integrations/plex/plex.client';
 import { YouTubeClient } from '@/integrations/youtube/youtube.client';
-import { AppError } from '@medianest/shared/src/errors';
+import { AppError } from '@medianest/shared';
 
 export interface HealthStatus {
   service: string;

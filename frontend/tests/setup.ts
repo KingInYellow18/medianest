@@ -97,7 +97,7 @@ vi.mock('socket.io-client', () => {
       _getHandlers: (event: string) => {
         return eventHandlers.get(event) || [];
       },
-      _mockConnectionOptions: undefined as any,
+      _mockConnectionOptions: undefined,
     };
 
     return mockSocket;
@@ -154,11 +154,21 @@ function setupFetchMock() {
     }
   );
 
-  global.fetch = mockFetch as any;
+  // Type-safe global fetch assignment
+  if (typeof global !== 'undefined' && global) {
+    (global as any).fetch = mockFetch;
+  }
 }
 
 // Setup the fetch mock immediately
 setupFetchMock();
 
-// Reset global state before each test
-(globalThis as any).resetBeforeEachTest = true;
+// Reset global state before each test with type safety
+if (typeof globalThis !== 'undefined' && globalThis) {
+  Object.defineProperty(globalThis, 'resetBeforeEachTest', {
+    value: true,
+    writable: true,
+    enumerable: false,
+    configurable: true
+  });
+}

@@ -1,25 +1,16 @@
-import { Response } from 'express';
+import type { Response } from 'express';
+
+import type { LegacyApiResponse } from '../types/index';
 
 import { logger } from './logger';
 
-export interface ApiResponse<T = any> {
-  success: boolean;
-  data?: T;
-  message?: string;
-  error?: {
-    code: string;
-    message: string;
-    correlationId: string;
-    details?: any;
-    retryAfter?: number;
-  };
-}
+// Using LegacyApiResponse for backward compatibility with existing response patterns
 
 export class ResponseBuilder {
   /**
    * Build standardized success response
    */
-  static success<T>(data: T, message?: string): ApiResponse<T> {
+  static success<T>(data: T, message?: string): LegacyApiResponse<T> {
     return {
       success: true,
       data,
@@ -36,7 +27,7 @@ export class ResponseBuilder {
     correlationId: string,
     details?: any,
     retryAfter?: number
-  ): ApiResponse {
+  ): LegacyApiResponse<never> {
     return {
       success: false,
       error: {
