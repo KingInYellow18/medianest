@@ -705,7 +705,7 @@ it('should include lastUpdated in media response', async () => {
 
 - **Team Wiki**: Internal knowledge base
 - **Architecture Decisions**: `/docs/architecture/ADR/`
-- **API Documentation**: `/docs/api/`
+- **API Documentation**: See actual implementations in `/backend/src/routes/` and `/backend/src/controllers/`
 - **Deployment Guide**: `/docs/deployment/`
 
 ### External Resources
