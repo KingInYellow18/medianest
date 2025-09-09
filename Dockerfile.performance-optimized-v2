@@ -1,0 +1,350 @@
+# 🚀 ULTRA-OPTIMIZED DOCKERFILE - MediaNest Production
+# Advanced BuildKit features with maximum performance optimization
+# Target: <3 minute builds, <200MB images, 80%+ cache hit rate
+
+# syntax=docker/dockerfile:1.7-labs
+ARG NODE_VERSION=20
+ARG ALPINE_VERSION=3.19
+ARG BUILDPLATFORM
+ARG TARGETPLATFORM
+
+# ================================================================
+# 📦 DEPENDENCY OPTIMIZATION STAGE
+# ================================================================
+FROM --platform=$BUILDPLATFORM node:${NODE_VERSION}-alpine${ALPINE_VERSION} AS deps-cache
+WORKDIR /app
+
+# Install system dependencies for native modules (cached layer)
+RUN --mount=type=cache,target=/var/cache/apk,sharing=locked \
+    --mount=type=cache,target=/var/lib/apk,sharing=locked \
+    apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    libc6-compat \
+    && rm -rf /tmp/*
+
+# Copy package files for optimal layer caching
+COPY package*.json ./
+COPY shared/package*.json ./shared/
+COPY backend/package*.json ./backend/
+COPY frontend/package*.json ./frontend/
+
+# Generate package-lock hash for cache key optimization
+RUN sha256sum package*.json */package*.json > /tmp/package-hash.txt
+
+# ================================================================
+# 🔧 SHARED DEPENDENCIES STAGE  
+# ================================================================
+FROM deps-cache AS shared-deps
+WORKDIR /app
+
+# Install shared dependencies with aggressive caching
+RUN --mount=type=cache,target=/root/.npm,sharing=locked \
+    --mount=type=cache,target=/app/node_modules/.cache,sharing=locked \
+    npm ci --prefer-offline --no-audit --no-fund --workspace=shared \
+    && npm cache clean --force
+
+# Copy and build shared package
+COPY shared/src ./shared/src
+COPY shared/tsconfig*.json ./shared/
+RUN --mount=type=cache,target=/app/shared/node_modules/.cache \
+    cd shared && npm run build
+
+# ================================================================
+# 🎯 BACKEND OPTIMIZATION STAGE
+# ================================================================
+FROM deps-cache AS backend-deps
+WORKDIR /app
+
+# Copy shared build artifacts
+COPY --from=shared-deps /app/shared/dist ./shared/dist
+COPY --from=shared-deps /app/shared/package.json ./shared/
+
+# Install backend production dependencies
+RUN --mount=type=cache,target=/root/.npm,sharing=locked \
+    --mount=type=cache,target=/app/node_modules/.cache,sharing=locked \
+    npm ci --prefer-offline --no-audit --no-fund --workspace=backend --omit=dev
+
+FROM backend-deps AS backend-build
+
+# Install build dependencies
+RUN --mount=type=cache,target=/root/.npm,sharing=locked \
+    npm ci --prefer-offline --no-audit --no-fund --workspace=backend
+
+# Copy source and configuration
+COPY backend/src ./backend/src
+COPY backend/prisma ./backend/prisma
+COPY backend/tsconfig*.json ./backend/
+
+# Generate Prisma client and build with caching
+RUN --mount=type=cache,target=/app/backend/node_modules/.cache \
+    --mount=type=cache,target=/tmp/prisma-engines \
+    cd backend && \
+    PRISMA_ENGINES_MIRROR=file:///tmp/prisma-engines npx prisma generate && \
+    npm run build && \
+    # Remove source maps and optimize
+    find dist -name "*.map" -delete 2>/dev/null || true
+
+# ================================================================
+# 🎨 FRONTEND OPTIMIZATION STAGE  
+# ================================================================
+FROM deps-cache AS frontend-deps
+WORKDIR /app
+
+# Copy shared build artifacts
+COPY --from=shared-deps /app/shared/dist ./shared/dist
+COPY --from=shared-deps /app/shared/package.json ./shared/
+
+# Install frontend production dependencies
+RUN --mount=type=cache,target=/root/.npm,sharing=locked \
+    --mount=type=cache,target=/app/node_modules/.cache,sharing=locked \
+    npm ci --prefer-offline --no-audit --no-fund --workspace=frontend --omit=dev
+
+FROM frontend-deps AS frontend-build
+
+# Install build dependencies  
+RUN --mount=type=cache,target=/root/.npm,sharing=locked \
+    npm ci --prefer-offline --no-audit --no-fund --workspace=frontend
+
+# Copy configuration files
+COPY frontend/next.config.js ./frontend/
+COPY frontend/tailwind.config.ts ./frontend/
+COPY frontend/postcss.config.mjs ./frontend/
+COPY frontend/tsconfig*.json ./frontend/
+
+# Copy source files
+COPY frontend/src ./frontend/src
+COPY frontend/public ./frontend/public
+
+# Build with Next.js optimizations
+RUN --mount=type=cache,target=/app/frontend/.next/cache,sharing=locked \
+    cd frontend && \
+    # Set optimal environment variables
+    export NEXT_TELEMETRY_DISABLED=1 && \
+    export NODE_ENV=production && \
+    export NODE_OPTIONS="--max-old-space-size=4096" && \
+    # Build with output optimization
+    npm run build && \
+    # Remove unnecessary files
+    rm -rf src && \
+    find .next -name "*.map" -delete 2>/dev/null || true
+
+# ================================================================
+# 🏗️ BACKEND PRODUCTION STAGE
+# ================================================================  
+FROM --platform=$TARGETPLATFORM node:${NODE_VERSION}-alpine${ALPINE_VERSION} AS backend-production
+WORKDIR /app
+
+# Install runtime dependencies only
+RUN --mount=type=cache,target=/var/cache/apk,sharing=locked \
+    apk add --no-cache \
+    dumb-init \
+    tini \
+    curl \
+    && rm -rf /var/cache/apk/* /tmp/*
+
+# Create optimized user
+RUN addgroup -g 1001 -S medianest && \
+    adduser -S medianest -u 1001 -G medianest
+
+# Copy production dependencies (minimal)
+COPY --from=backend-deps --chown=medianest:medianest /app/backend/node_modules ./node_modules
+COPY --from=backend-deps --chown=medianest:medianest /app/shared ./shared
+
+# Copy built application
+COPY --from=backend-build --chown=medianest:medianest /app/backend/dist ./dist
+COPY --from=backend-build --chown=medianest:medianest /app/backend/prisma ./prisma
+COPY --chown=medianest:medianest backend/package.json ./
+
+# Create optimized startup script
+RUN cat > /app/start.sh << 'EOF' && \
+    chmod +x /app/start.sh && \
+    chown medianest:medianest /app/start.sh
+#!/bin/sh
+set -e
+
+# Health check mode
+if [ "$1" = "healthcheck" ]; then
+    exec curl -sf http://localhost:3001/health
+fi
+
+# Database migration (production only)
+if [ "$NODE_ENV" = "production" ] && [ "$RUN_MIGRATIONS" = "true" ]; then
+    echo "🔄 Running database migrations..."
+    npx prisma migrate deploy
+fi
+
+# Start application with proper signal handling
+echo "🚀 Starting MediaNest Backend..."
+exec dumb-init node dist/server.js
+EOF
+
+# Switch to non-root user
+USER medianest
+
+# Optimize Node.js runtime
+ENV NODE_ENV=production \
+    NODE_OPTIONS="--max-old-space-size=512 --enable-source-maps=false" \
+    NPM_CONFIG_UPDATE_NOTIFIER=false \
+    NPM_CONFIG_FUND=false
+
+# Health check with timeout optimization  
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD ["/app/start.sh", "healthcheck"]
+
+EXPOSE 3001
+ENTRYPOINT ["/app/start.sh"]
+
+# ================================================================
+# 🌐 FRONTEND PRODUCTION STAGE
+# ================================================================
+FROM --platform=$TARGETPLATFORM node:${NODE_VERSION}-alpine${ALPINE_VERSION} AS frontend-production
+WORKDIR /app
+
+# Install minimal runtime dependencies
+RUN --mount=type=cache,target=/var/cache/apk,sharing=locked \
+    apk add --no-cache \
+    dumb-init \
+    tini \
+    curl \
+    && rm -rf /var/cache/apk/* /tmp/*
+
+# Create optimized user
+RUN addgroup -g 1001 -S nextjs && \
+    adduser -S nextjs -u 1001 -G nextjs
+
+# Copy Next.js standalone output (optimal for production)
+COPY --from=frontend-build --chown=nextjs:nextjs /app/frontend/.next/standalone ./
+COPY --from=frontend-build --chown=nextjs:nextjs /app/frontend/.next/static ./.next/static
+COPY --from=frontend-build --chown=nextjs:nextjs /app/frontend/public ./public
+
+# Create optimized startup script
+RUN cat > /app/start.sh << 'EOF' && \
+    chmod +x /app/start.sh && \
+    chown nextjs:nextjs /app/start.sh
+#!/bin/sh
+set -e
+
+# Health check mode
+if [ "$1" = "healthcheck" ]; then
+    exec curl -sf http://localhost:3000/api/health
+fi
+
+# Start Next.js with proper signal handling
+echo "🚀 Starting MediaNest Frontend..."
+exec dumb-init node server.js
+EOF
+
+# Switch to non-root user
+USER nextjs
+
+# Optimize Next.js runtime
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    NODE_OPTIONS="--max-old-space-size=512" \
+    HOSTNAME="0.0.0.0" \
+    PORT=3000
+
+# Health check optimization
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD ["/app/start.sh", "healthcheck"]
+
+EXPOSE 3000
+ENTRYPOINT ["/app/start.sh"]
+
+# ================================================================
+# 🧪 DEVELOPMENT STAGE (Optimized)
+# ================================================================
+FROM --platform=$BUILDPLATFORM node:${NODE_VERSION}-alpine${ALPINE_VERSION} AS development
+WORKDIR /app
+
+# Install development tools
+RUN --mount=type=cache,target=/var/cache/apk,sharing=locked \
+    apk add --no-cache \
+    git \
+    bash \
+    curl \
+    vim \
+    && rm -rf /var/cache/apk/*
+
+# Create development user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S devuser -u 1001 -G nodejs
+
+# Copy package files and install with caching
+COPY --chown=devuser:nodejs package*.json ./
+COPY --chown=devuser:nodejs shared/package*.json ./shared/
+COPY --chown=devuser:nodejs backend/package*.json ./backend/  
+COPY --chown=devuser:nodejs frontend/package*.json ./frontend/
+
+# Install all dependencies with aggressive caching
+RUN --mount=type=cache,target=/root/.npm,sharing=locked \
+    --mount=type=cache,target=/app/node_modules/.cache,sharing=locked \
+    npm ci --prefer-offline --no-audit --no-fund
+
+# Copy source code
+COPY --chown=devuser:nodejs . .
+
+# Create logs directory
+RUN mkdir -p logs tmp && \
+    chown -R devuser:nodejs logs tmp
+
+# Switch to dev user  
+USER devuser
+
+# Development environment
+ENV NODE_ENV=development \
+    CHOKIDAR_USEPOLLING=true \
+    WATCHPACK_POLLING=true
+
+# Expose development ports
+EXPOSE 3000 3001 5173 9229
+
+# Development command with hot reloading
+CMD ["npm", "run", "dev"]
+
+# ================================================================
+# 🧪 TESTING STAGE  
+# ================================================================
+FROM development AS testing
+WORKDIR /app
+
+# Install testing browsers and tools
+USER root
+RUN --mount=type=cache,target=/var/cache/apk,sharing=locked \
+    apk add --no-cache \
+    chromium \
+    firefox-esr \
+    xvfb \
+    && rm -rf /var/cache/apk/*
+
+# Set browser environment variables
+ENV CHROME_BIN=/usr/bin/chromium-browser \
+    FIREFOX_BIN=/usr/bin/firefox \
+    DISPLAY=:99
+
+# Switch back to dev user
+USER devuser
+
+# Testing command
+CMD ["npm", "run", "test:all"]
+
+# ================================================================
+# 📋 BUILD METADATA
+# ================================================================
+ARG BUILD_DATE
+ARG VCS_REF
+ARG VERSION
+
+LABEL \
+    org.opencontainers.image.created=$BUILD_DATE \
+    org.opencontainers.image.authors="MediaNest Team" \
+    org.opencontainers.image.url="https://medianest.com" \
+    org.opencontainers.image.documentation="https://docs.medianest.com" \
+    org.opencontainers.image.source="https://github.com/medianest/medianest" \
+    org.opencontainers.image.version=$VERSION \
+    org.opencontainers.image.revision=$VCS_REF \
+    org.opencontainers.image.vendor="MediaNest" \
+    org.opencontainers.image.title="MediaNest - Advanced Media Management Platform" \
+    org.opencontainers.image.description="Optimized production-ready container for MediaNest platform"
