@@ -8,11 +8,18 @@
 
 
 # Production environment variables (sourced from .env.prod)
+# YAML anchors (&prod-env) allow variable reuse across multiple services
+# Reduces duplication and ensures consistency across containers
 x-prod-env: &prod-env
+  # Node.js runtime environment - production enables optimizations
   NODE_ENV: production
+  # Logging verbosity: error|warn|info|debug - info balances visibility/performance  
   LOG_LEVEL: ${LOG_LEVEL:-info}
+  # Frontend URL for CORS validation - must match actual domain in production
   FRONTEND_URL: ${FRONTEND_URL}
+  # Cross-Origin Resource Sharing allowed origins - comma-separated list
   CORS_ORIGIN: ${CORS_ORIGIN}
+  # Database migration control - set to 'true' for deployment, 'false' for scaling
   RUN_MIGRATIONS: ${RUN_MIGRATIONS:-false}
 
 services:
@@ -21,56 +28,89 @@ services:
   # ==============================================================================
   nginx:
     build:
+      # Build context points to nginx-specific directory with Dockerfile
       context: ../../infrastructure/nginx
       dockerfile: Dockerfile
+    # Tagged image for version control and registry deployment
     image: medianest/nginx:${VERSION:-latest}
+    # Fixed container name for service discovery and logging
     container_name: medianest-nginx
     volumes:
+      # Production nginx configuration (read-only for security)
       - ../../infrastructure/nginx/nginx-prod.conf:/etc/nginx/nginx.conf:ro
+      # SSL certificates directory (read-only after certbot generation)
       - ../../infrastructure/nginx/ssl:/etc/nginx/ssl:ro
+      # Persistent nginx access/error logs for analysis and monitoring
       - nginx_logs:/var/log/nginx
+      # Certbot challenge directory for SSL certificate validation
       - certbot_webroot:/var/www/certbot:ro
+      # Let's Encrypt SSL certificates (read-only for nginx consumption)
       - certbot_ssl:/etc/letsencrypt:ro
     ports:
+      # HTTP port for initial requests and Let's Encrypt challenges
       - '80:80'
+      # HTTPS port for encrypted traffic (production traffic endpoint)
       - '443:443'
     environment:
+      # Domain name for SSL certificate and virtual host configuration
       - DOMAIN_NAME=${DOMAIN_NAME}
     depends_on:
+      # Wait for frontend health check before starting nginx proxy
       frontend:
         condition: service_healthy
+      # Wait for backend health check before starting nginx proxy
       backend:
         condition: service_healthy
+    # Restart policy: restart unless explicitly stopped (production resilience)
     restart: unless-stopped
+    # Connect to frontend network for proxying to application services
     networks:
       - frontend-network
     deploy:
       resources:
         limits:
+          # Maximum CPU usage: 1 full core for nginx under high load
           cpus: '1'
+          # Maximum RAM: 256MB sufficient for nginx + SSL termination
           memory: 256M
         reservations:
+          # Guaranteed CPU: 25% of one core for baseline performance
           cpus: '0.25'
+          # Guaranteed RAM: 128MB for nginx processes and buffers
           memory: 128M
     healthcheck:
+      # Check nginx status endpoint (configured in nginx.conf)
       test: ['CMD', 'curl', '-f', 'http://localhost/nginx_status']
+      # Health check frequency: every 30 seconds
       interval: 30s
+      # Timeout per health check attempt
       timeout: 10s
+      # Mark unhealthy after 3 consecutive failures
       retries: 3
+      # Initial grace period before health checks start
       start_period: 30s
     logging:
+      # Use Docker's JSON file log driver for structured logs
       driver: json-file
       options:
+        # Rotate logs when they reach 10MB to prevent disk space issues
         max-size: '10m'
+        # Keep 3 log files (current + 2 rotated) for troubleshooting history
         max-file: '3'
     security_opt:
+      # Prevent privilege escalation within container (security hardening)
       - no-new-privileges:true
     cap_drop:
+      # Drop all Linux capabilities by default (principle of least privilege)
       - ALL
     cap_add:
+      # Add only essential capabilities for nginx operation
+      # CHOWN: Change file ownership for log files
       - CHOWN
+      # SETUID/SETGID: Switch between root and nginx user
       - SETUID
       - SETGID
+      # NET_BIND_SERVICE: Bind to privileged ports 80/443
       - NET_BIND_SERVICE
 
   # ==============================================================================
@@ -78,37 +118,64 @@ services:
   # ==============================================================================
   backend:
     build:
+      # Build context: project root for access to all source directories
       context: ../..
+      # Use consolidated Dockerfile with multi-stage build optimization
       dockerfile: config/docker/Dockerfile.consolidated
+      # Target production-optimized backend stage (excludes dev dependencies)
       target: backend-production
       args:
+        # Build metadata for version tracking and debugging
+        # BUILD_DATE: ISO timestamp for build reproducibility
         - BUILD_DATE=${BUILD_DATE:-$(date -u +'%Y-%m-%dT%H:%M:%SZ')}
+        # VCS_REF: Git commit hash for version correlation
         - VCS_REF=${VCS_REF:-$(git rev-parse --short HEAD)}
+    # Production image with version tag for rollback capability
     image: medianest/backend:${VERSION:-latest}
+    # Fixed container name for service discovery and monitoring
     container_name: medianest-backend
     environment:
+      # Inherit shared production environment variables
       <<: *prod-env
+      # Backend HTTP server port (internal container port)
       PORT: 4000
+      # Bind to all interfaces for container network accessibility
       HOST: 0.0.0.0
+      # Database connection string from Docker secrets (more secure than env vars)
       DATABASE_URL_FILE: /run/secrets/database_url
+      # Redis connection string from Docker secrets
       REDIS_URL_FILE: /run/secrets/redis_url
+      # JWT signing key from Docker secrets (critical for auth security)
       JWT_SECRET_FILE: /run/secrets/jwt_secret
+      # Data encryption key from Docker secrets (for sensitive data at rest)
       ENCRYPTION_KEY_FILE: /run/secrets/encryption_key
+      # Plex OAuth client ID from Docker secrets
       PLEX_CLIENT_ID_FILE: /run/secrets/plex_client_id
+      # Plex OAuth client secret from Docker secrets
       PLEX_CLIENT_SECRET_FILE: /run/secrets/plex_client_secret
     volumes:
+      # User-uploaded files storage (read-write for file operations)
       - app_uploads:/app/backend/uploads:rw
+      # Application logs storage (read-write for log rotation and analysis)
       - backend_logs:/app/backend/logs:rw
     secrets:
+      # Database connection string (PostgreSQL with connection pooling)
       - database_url
+      # Redis connection string (session store and caching)
       - redis_url
+      # JWT signing secret (for authentication token validation)
       - jwt_secret
+      # Data encryption key (for sensitive data encryption at rest)
       - encryption_key
+      # Plex OAuth integration client ID
       - plex_client_id
+      # Plex OAuth integration client secret
       - plex_client_secret
     depends_on:
+      # Wait for PostgreSQL database to be healthy before starting
       postgres:
         condition: service_healthy
+      # Wait for Redis cache to be healthy before starting
       redis:
         condition: service_healthy
     restart: unless-stopped
@@ -428,49 +495,75 @@ services:
       - backup
 
 # ==============================================================================
-# 📦 VOLUMES
+# 📦 VOLUMES - Persistent storage configuration for production
 # ==============================================================================
+# All volumes use bind mounts to host filesystem for production reliability
+# This ensures data survives container recreations and enables host-based backups
 volumes:
-  # Database storage
+  # =========================
+  # Database storage volumes
+  # =========================
   postgres_data:
+    # Local driver for direct host filesystem access
     driver: local
     driver_opts:
+      # Bind mount: directly maps host directory to container volume
       type: none
+      # Bind option: mount host directory inside container
       o: bind
+      # Host directory path for PostgreSQL data (customizable via DATA_PATH)
+      # Default: ./data/postgres relative to compose file location
       device: ${DATA_PATH:-./data}/postgres
   redis_data:
     driver: local
     driver_opts:
       type: none
       o: bind
+      # Host directory path for Redis persistence (RDB snapshots + AOF logs)
+      # Default: ./data/redis relative to compose file location
       device: ${DATA_PATH:-./data}/redis
 
-  # Application storage
+  # =========================
+  # Application storage volumes
+  # =========================
   app_uploads:
     driver: local
     driver_opts:
       type: none
       o: bind
+      # Host directory for user uploaded files (avatars, media, attachments)
+      # Must be writable by container user (UID 1001)
+      # Default: ./data/uploads relative to compose file location
       device: ${DATA_PATH:-./data}/uploads
 
-  # Logs
+  # =========================
+  # Log storage volumes
+  # =========================
   backend_logs:
     driver: local
     driver_opts:
       type: none
       o: bind
+      # Backend application logs (Express.js access/error logs, custom app logs)
+      # Rotated automatically by application logging configuration
+      # Default: ./logs/backend relative to compose file location
       device: ${LOG_PATH:-./logs}/backend
   frontend_logs:
     driver: local
     driver_opts:
       type: none
       o: bind
+      # Frontend application logs (Next.js server logs, client-side error logs)
+      # Default: ./logs/frontend relative to compose file location
       device: ${LOG_PATH:-./logs}/frontend
   nginx_logs:
     driver: local
     driver_opts:
       type: none
       o: bind
+      # Nginx access and error logs for request analysis and troubleshooting
+      # Includes SSL handshake logs and upstream connection logs
+      # Default: ./logs/nginx relative to compose file location
       device: ${LOG_PATH:-./logs}/nginx
 
   # Backups
@@ -514,52 +607,102 @@ volumes:
     driver: local
 
 # ==============================================================================
-# 🌐 NETWORKS
+# 🌐 NETWORKS - Isolated network topology for security and performance
 # ==============================================================================
+# Two-tier network architecture separates concerns and improves security
 networks:
   backend-network:
+    # Bridge driver for inter-container communication on single host
     driver: bridge
+    # IPAM: IP Address Management for predictable container networking
     ipam:
       config:
+        # Backend subnet: Database, Redis, Backend API (isolated from internet)
+        # Subnet provides 254 usable IP addresses (172.20.0.1-172.20.0.254)
+        # Gateway automatically assigned to 172.20.0.1
         - subnet: 172.20.0.0/24
   frontend-network:
     driver: bridge
     ipam:
       config:
+        # Frontend subnet: Nginx, Frontend, monitoring (internet-facing)
+        # Subnet provides 254 usable IP addresses (172.21.0.1-172.21.0.254)
+        # Nginx acts as single entry point from this network to backend
         - subnet: 172.21.0.0/24
 
 # ==============================================================================
-# 🔐 SECRETS
+# 🔐 SECRETS - Secure credential management using Docker secrets
 # ==============================================================================
+# Docker secrets are mounted as files in /run/secrets/ inside containers
+# More secure than environment variables (not visible in process lists)
+# Secrets should be generated before deployment and never committed to git
 secrets:
+  # =========================
   # Database secrets
+  # =========================
   database_url:
+    # Complete PostgreSQL connection string including credentials
+    # Format: postgresql://user:password@host:port/database?options
+    # File should contain: postgresql://medianest:secure_password@postgres:5432/medianest
     file: ../../secrets/database_url
   postgres_password:
+    # PostgreSQL user password (must match password in database_url)
+    # Used by PostgreSQL container for POSTGRES_PASSWORD_FILE
+    # Generate with: openssl rand -base64 32
     file: ../../secrets/postgres_password
 
+  # =========================
   # Redis secrets
+  # =========================
   redis_url:
+    # Redis connection string with authentication if enabled
+    # Format: redis://[username:password@]host:port[/database]
+    # Example: redis://:secure_password@redis:6379/0
     file: ../../secrets/redis_url
   redis_password:
+    # Redis authentication password (AUTH command password)
+    # Used by Redis container for requirepass configuration
+    # Generate with: openssl rand -base64 24
     file: ../../secrets/redis_password
 
+  # =========================
   # Application secrets
+  # =========================
   nextauth_secret:
+    # NextAuth.js session encryption key (critical for auth security)
+    # Used for encrypting JWT tokens and session cookies
+    # Generate with: openssl rand -base64 32
     file: ../../secrets/nextauth_secret
   jwt_secret:
+    # Backend JWT signing secret (must be strong and unique)
+    # Used for signing and verifying authentication tokens
+    # Generate with: openssl rand -base64 32
     file: ../../secrets/jwt_secret
   encryption_key:
+    # Application-level encryption key for sensitive data at rest
+    # Used for encrypting API keys, personal data, etc.
+    # Generate with: openssl rand -base64 32
     file: ../../secrets/encryption_key
 
-  # OAuth secrets
+  # =========================
+  # OAuth integration secrets
+  # =========================
   plex_client_id:
+    # Plex OAuth application client ID (obtain from Plex developer console)
+    # Used for Plex Media Server integration and user authentication
     file: ../../secrets/plex_client_id
   plex_client_secret:
+    # Plex OAuth application client secret (keep confidential)
+    # Used for Plex OAuth token exchange and API authentication
     file: ../../secrets/plex_client_secret
 
-  # Monitoring secrets (optional)
+  # =========================
+  # Monitoring secrets (optional - only with monitoring profile)
+  # =========================
   grafana_password:
+    # Grafana admin user password for dashboard access
+    # Used for GF_SECURITY_ADMIN_PASSWORD_FILE environment variable
+    # Generate with: openssl rand -base64 16
     file: ../../secrets/grafana_password
 
 # ==============================================================================
