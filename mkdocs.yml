@@ -1,12 +1,12 @@
 # MkDocs Configuration for MediaNest - Professional Documentation Platform
 site_name: MediaNest Documentation
-site_url: https://docs.medianest.com
+site_url: https://kinginyellow.github.io/medianest/  # GitHub Pages URL
 site_author: MediaNest Development Team
 site_description: Complete documentation for MediaNest - Advanced Media Management Platform with Plex Integration, API, and Developer Resources
 
 # Repository Configuration
-repo_name: MediaNest/MediaNest
-repo_url: https://github.com/medianest/medianest
+repo_name: kinginyellow/medianest
+repo_url: https://github.com/kinginyellow/medianest
 edit_uri: edit/develop/docs/
 remote_branch: develop
 remote_name: origin
@@ -158,7 +158,7 @@ plugins:
       separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
       lang:
         - en
-      prebuild_index: true
+      # prebuild_index: true  # Not supported in this version
 
   # Performance optimization
   - minify:
@@ -179,7 +179,6 @@ plugins:
 
   # Content organization
   - tags:
-      tags_file: reference/tags.md
 
   # Social media integration
   - social:
@@ -188,9 +187,7 @@ plugins:
       cards_layout_options:
         background_color: '#673ab7'
         color: '#ffffff'
-      cards_color:
-        fill: '#673ab7'
-        text: '#ffffff'
+      # cards_color deprecated - using cards_layout_options instead
 
   # Meta tags for SEO
   - meta

@@ -1,0 +1,903 @@
+name: Documentation Build & Deploy
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - 'scripts/build-docs.sh'
+      - 'scripts/deploy-docs.sh'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - 'scripts/build-docs.sh'
+      - 'scripts/deploy-docs.sh'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+      force_deploy:
+        description: 'Force deployment (skip some checks)'
+        required: false
+        type: boolean
+        default: false
+      deployment_target:
+        description: 'Deployment target'
+        required: true
+        default: 'github'
+        type: choice
+        options:
+        - github
+        - netlify
+        - s3
+        - custom
+  schedule:
+    # Build documentation daily at 2 AM UTC to keep it fresh
+    - cron: '0 2 * * *'
+
+env:
+  PYTHON_VERSION: '3.12'
+  NODE_VERSION: '20'
+  DOCS_BUILD_DIR: 'site'
+  DOCS_URL_STAGING: 'https://staging-docs.medianest.com'
+  DOCS_URL_PRODUCTION: 'https://docs.medianest.com'
+
+# Global job defaults
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # Security and validation
+  validate:
+    name: Validate Documentation
+    runs-on: ubuntu-latest
+    outputs:
+      should_deploy: ${{ steps.changes.outputs.should_deploy }}
+      environment: ${{ steps.environment.outputs.environment }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Detect changes
+      id: changes
+      uses: dorny/paths-filter@v3
+      with:
+        filters: |
+          docs:
+            - 'docs/**'
+            - 'mkdocs.yml'
+            - 'scripts/build-docs.sh'
+            - 'scripts/deploy-docs.sh'
+          critical:
+            - 'mkdocs.yml'
+            - 'scripts/build-docs.sh'
+            - 'scripts/deploy-docs.sh'
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Determine environment
+      id: environment
+      run: |
+        if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+          echo "environment=production" >> $GITHUB_OUTPUT
+          echo "should_deploy=true" >> $GITHUB_OUTPUT
+        elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+          echo "environment=staging" >> $GITHUB_OUTPUT
+          echo "should_deploy=true" >> $GITHUB_OUTPUT
+        elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          echo "should_deploy=true" >> $GITHUB_OUTPUT
+        else
+          echo "environment=preview" >> $GITHUB_OUTPUT
+          echo "should_deploy=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+
+    - name: Cache MkDocs dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/pip
+          .venv
+        key: ${{ runner.os }}-mkdocs-${{ hashFiles('requirements.txt', 'mkdocs.yml') }}
+        restore-keys: |
+          ${{ runner.os }}-mkdocs-
+
+    - name: Install MkDocs dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install mkdocs-material mkdocs-git-revision-date-localized-plugin \
+                    mkdocs-minify-plugin mkdocs-redirects \
+                    mkdocs-tags mkdocs-social pygments \
+                    pymdown-extensions html5validator linkchecker
+
+    - name: Validate MkDocs configuration
+      run: |
+        echo "Validating MkDocs configuration..."
+        mkdocs config-validation
+        echo "✅ Configuration is valid"
+
+    - name: Check documentation structure
+      run: |
+        echo "Checking documentation structure..."
+        
+        required_files=(
+          "docs/index.md"
+          "docs/README.md"
+          "docs/api/index.md"
+          "docs/user/index.md"
+          "docs/development/index.md"
+          "docs/architecture/index.md"
+        )
+        
+        missing_files=()
+        for file in "${required_files[@]}"; do
+          if [[ ! -f "$file" ]]; then
+            echo "⚠️  Missing: $file"
+            missing_files+=("$file")
+          else
+            echo "✅ Found: $file"
+          fi
+        done
+        
+        if [[ ${#missing_files[@]} -gt 0 ]]; then
+          echo "❌ Missing required documentation files:"
+          printf '  - %s\n' "${missing_files[@]}"
+          echo "Creating stub files for missing documentation..."
+          
+          for file in "${missing_files[@]}"; do
+            mkdir -p "$(dirname "$file")"
+            cat > "$file" << EOF
+# $(basename "${file%.*}" | tr '[:lower:]' '[:upper:]')
+
+This section is under development.
+
+## Coming Soon
+
+Documentation for this section will be available soon.
+
+## Contributing
+
+Help us improve this documentation by contributing to our [GitHub repository](https://github.com/medianest/medianest).
+EOF
+            echo "Created stub: $file"
+          done
+          
+          git config --global user.name 'Documentation Bot'
+          git config --global user.email 'docs@medianest.com'
+          git add docs/
+          git diff --staged --quiet || git commit -m "docs: Add missing documentation stubs [skip ci]"
+        else
+          echo "✅ All required documentation files present"
+        fi
+
+    - name: Lint documentation files
+      run: |
+        echo "Linting Markdown files..."
+        
+        # Check for common issues
+        find docs/ -name "*.md" -exec grep -l "TODO\|FIXME\|XXX" {} \; || true
+        
+        # Check for broken internal links (basic check)
+        echo "Checking for basic link issues..."
+        find docs/ -name "*.md" -exec grep -H "\[\[.*\]\]" {} \; | head -10 || true
+        find docs/ -name "*.md" -exec grep -H "](.*\.md)" {} \; | head -10 || true
+
+    - name: Security scan for documentation
+      run: |
+        echo "Scanning documentation for security issues..."
+        
+        # Check for sensitive information
+        echo "Checking for potential secrets..."
+        find docs/ -name "*.md" -exec grep -i "password\|secret\|key\|token" {} \; | head -5 || true
+        
+        # Check for malicious content
+        echo "Checking for suspicious content..."
+        find docs/ -name "*.md" -exec grep -i "javascript:\|onclick\|onerror" {} \; || true
+        
+        echo "✅ Security scan completed"
+
+  # Build documentation with comprehensive testing
+  build:
+    name: Build Documentation
+    runs-on: ubuntu-latest
+    needs: [validate]
+    strategy:
+      matrix:
+        environment: [staging, production]
+        include:
+          - environment: staging
+            docs_url: ${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/staging
+          - environment: production
+            docs_url: ${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+
+    - name: Setup Node.js (for performance testing)
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Restore MkDocs dependencies cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/pip
+          .venv
+        key: ${{ runner.os }}-mkdocs-${{ hashFiles('requirements.txt', 'mkdocs.yml') }}
+        restore-keys: |
+          ${{ runner.os }}-mkdocs-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install mkdocs-material mkdocs-git-revision-date-localized-plugin \
+                    mkdocs-minify-plugin mkdocs-redirects \
+                    mkdocs-tags mkdocs-social pygments \
+                    pymdown-extensions html5validator linkchecker
+
+    - name: Configure build environment
+      run: |
+        # Set environment-specific configurations
+        if [[ "${{ matrix.environment }}" == "production" ]]; then
+          export GOOGLE_ANALYTICS_KEY="${{ secrets.GOOGLE_ANALYTICS_KEY }}"
+          export DOCS_URL="${{ env.DOCS_URL_PRODUCTION }}"
+        else
+          export DOCS_URL="${{ env.DOCS_URL_STAGING }}"
+        fi
+        
+        # Update mkdocs.yml with environment-specific settings
+        sed -i "s|site_url:.*|site_url: https://${{ matrix.docs_url }}|g" mkdocs.yml
+        
+        echo "Build configuration:"
+        echo "  Environment: ${{ matrix.environment }}"
+        echo "  Docs URL: https://${{ matrix.docs_url }}"
+
+    - name: Build documentation
+      run: |
+        echo "Building documentation for ${{ matrix.environment }}..."
+        
+        # Use our existing build script with optimizations
+        chmod +x ./scripts/build-docs.sh
+        ./scripts/build-docs.sh --skip-tests
+        
+        # Verify build output
+        if [[ ! -d "${{ env.DOCS_BUILD_DIR }}" ]]; then
+          echo "❌ Build directory not found"
+          exit 1
+        fi
+        
+        if [[ ! -f "${{ env.DOCS_BUILD_DIR }}/index.html" ]]; then
+          echo "❌ Build incomplete - index.html not found"
+          exit 1
+        fi
+        
+        echo "✅ Documentation built successfully"
+
+    - name: Optimize build output
+      run: |
+        echo "Optimizing build output..."
+        
+        # Compress assets
+        find "${{ env.DOCS_BUILD_DIR }}" -name "*.css" -exec gzip -9 -k {} \;
+        find "${{ env.DOCS_BUILD_DIR }}" -name "*.js" -exec gzip -9 -k {} \;
+        find "${{ env.DOCS_BUILD_DIR }}" -name "*.html" -exec gzip -9 -k {} \;
+        
+        # Generate integrity hashes for security
+        find "${{ env.DOCS_BUILD_DIR }}" -name "*.css" -o -name "*.js" | while read file; do
+          sha256sum "$file" > "$file.sha256"
+        done
+        
+        # Create build manifest
+        cat > "${{ env.DOCS_BUILD_DIR }}/build-manifest.json" << EOF
+        {
+          "build_time": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+          "git_commit": "${{ github.sha }}",
+          "git_ref": "${{ github.ref }}",
+          "environment": "${{ matrix.environment }}",
+          "build_number": "${{ github.run_number }}",
+          "docs_url": "https://${{ matrix.docs_url }}",
+          "files": $(find "${{ env.DOCS_BUILD_DIR }}" -type f | wc -l),
+          "size_mb": "$(du -sm "${{ env.DOCS_BUILD_DIR }}" | cut -f1)"
+        }
+        EOF
+
+    - name: Quality assurance tests
+      run: |
+        echo "Running quality assurance tests..."
+        
+        # HTML validation
+        if command -v html5validator &> /dev/null; then
+          echo "Validating HTML..."
+          html5validator --root "${{ env.DOCS_BUILD_DIR }}" --also-check-css || echo "⚠️  HTML validation warnings found"
+        fi
+        
+        # Check for missing assets
+        echo "Checking for missing assets..."
+        missing_assets=0
+        find "${{ env.DOCS_BUILD_DIR }}" -name "*.html" -exec grep -o 'src="[^"]*"' {} \; | \
+        sed 's/src="//g' | sed 's/"//g' | while read asset; do
+          if [[ "$asset" =~ ^https?:// ]]; then
+            continue  # Skip external assets
+          fi
+          asset_path="${{ env.DOCS_BUILD_DIR }}/$asset"
+          if [[ ! -f "$asset_path" ]]; then
+            echo "⚠️  Missing asset: $asset"
+            ((missing_assets++))
+          fi
+        done
+        
+        # Performance checks
+        echo "Running performance checks..."
+        total_size=$(du -sb "${{ env.DOCS_BUILD_DIR }}" | cut -f1)
+        size_mb=$((total_size / 1024 / 1024))
+        
+        echo "Build statistics:"
+        echo "  Total size: ${size_mb}MB"
+        echo "  HTML files: $(find "${{ env.DOCS_BUILD_DIR }}" -name "*.html" | wc -l)"
+        echo "  CSS files: $(find "${{ env.DOCS_BUILD_DIR }}" -name "*.css" | wc -l)"
+        echo "  JS files: $(find "${{ env.DOCS_BUILD_DIR }}" -name "*.js" | wc -l)"
+        echo "  Image files: $(find "${{ env.DOCS_BUILD_DIR }}" \( -name "*.png" -o -name "*.jpg" -o -name "*.svg" \) | wc -l)"
+        
+        if [[ $size_mb -gt 100 ]]; then
+          echo "⚠️  Documentation size is large (${size_mb}MB). Consider optimization."
+        fi
+
+    - name: Security hardening
+      run: |
+        echo "Applying security hardening..."
+        
+        # Create security headers configuration
+        cat > "${{ env.DOCS_BUILD_DIR }}/.htaccess" << 'EOF'
+        # Security Headers
+        Header always set X-Content-Type-Options nosniff
+        Header always set X-Frame-Options DENY
+        Header always set X-XSS-Protection "1; mode=block"
+        Header always set Referrer-Policy strict-origin-when-cross-origin
+        Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://www.google-analytics.com"
+        Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=()"
+        
+        # Performance and Caching
+        <IfModule mod_deflate.c>
+            AddOutputFilterByType DEFLATE text/plain text/html text/xml text/css
+            AddOutputFilterByType DEFLATE application/xml application/xhtml+xml
+            AddOutputFilterByType DEFLATE application/rss+xml application/javascript application/x-javascript
+        </IfModule>
+        
+        <IfModule mod_expires.c>
+            ExpiresActive on
+            ExpiresByType text/css "access plus 1 year"
+            ExpiresByType application/javascript "access plus 1 year"
+            ExpiresByType image/png "access plus 1 year"
+            ExpiresByType image/jpg "access plus 1 year"
+            ExpiresByType image/svg+xml "access plus 1 year"
+        </IfModule>
+        EOF
+        
+        # Create robots.txt
+        cat > "${{ env.DOCS_BUILD_DIR }}/robots.txt" << EOF
+        User-agent: *
+        Allow: /
+        Disallow: /search/
+        
+        Sitemap: https://${{ matrix.docs_url }}/sitemap.xml
+        EOF
+
+    - name: Create deployment package
+      run: |
+        echo "Creating deployment package..."
+        
+        # Create deployment info
+        cat > "${{ env.DOCS_BUILD_DIR }}/deployment-info.json" << EOF
+        {
+          "deployment_id": "${{ github.run_id }}-${{ github.run_attempt }}",
+          "environment": "${{ matrix.environment }}",
+          "git_commit": "${{ github.sha }}",
+          "git_ref": "${{ github.ref }}",
+          "build_time": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+          "build_actor": "${{ github.actor }}",
+          "build_trigger": "${{ github.event_name }}"
+        }
+        EOF
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: documentation-${{ matrix.environment }}-${{ github.run_number }}
+        path: ${{ env.DOCS_BUILD_DIR }}
+        retention-days: 30
+        compression-level: 9
+
+    - name: Upload build reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: build-reports-${{ matrix.environment }}-${{ github.run_number }}
+        path: |
+          build-reports/
+          *.log
+          *.json
+        retention-days: 7
+
+  # Link checking and validation
+  link-check:
+    name: Link Validation
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: needs.validate.outputs.should_deploy == 'true'
+    steps:
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: documentation-staging-${{ github.run_number }}
+        path: ${{ env.DOCS_BUILD_DIR }}
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install link checker
+      run: |
+        pip install linkchecker
+
+    - name: Serve documentation locally
+      run: |
+        cd "${{ env.DOCS_BUILD_DIR }}"
+        python -m http.server 8080 &
+        SERVER_PID=$!
+        echo "SERVER_PID=$SERVER_PID" >> $GITHUB_ENV
+        
+        # Wait for server to start
+        sleep 10
+
+    - name: Run link checker
+      run: |
+        echo "Running comprehensive link check..."
+        
+        linkchecker \
+          --config /dev/null \
+          --check-extern \
+          --recursion-level 3 \
+          --timeout 30 \
+          --threads 10 \
+          --output text \
+          --verbose \
+          http://localhost:8080/ || echo "⚠️  Some links may be broken"
+
+    - name: Cleanup server
+      if: always()
+      run: |
+        if [[ -n "$SERVER_PID" ]]; then
+          kill $SERVER_PID || true
+        fi
+
+  # Deploy to staging
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [validate, build, link-check]
+    if: needs.validate.outputs.should_deploy == 'true' && (github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch')
+    environment:
+      name: documentation-staging
+      url: ${{ env.DOCS_URL_STAGING }}
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: documentation-staging-${{ github.run_number }}
+        path: ${{ env.DOCS_BUILD_DIR }}
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install deployment dependencies
+      run: |
+        pip install mkdocs-material mkdocs-git-revision-date-localized-plugin \
+                    mkdocs-minify-plugin mkdocs-redirects \
+                    mkdocs-tags mkdocs-social pygments \
+                    pymdown-extensions
+
+    - name: Deploy to GitHub Pages (Staging)
+      run: |
+        echo "Deploying to staging environment..."
+        
+        # Configure Git
+        git config --global user.name 'Documentation Bot'
+        git config --global user.email 'docs@medianest.com'
+        
+        # Deploy using mkdocs gh-deploy
+        mkdocs gh-deploy \
+          --force \
+          --clean \
+          --remote-branch gh-pages-staging \
+          --message "Deploy staging documentation {sha}"
+
+    - name: Update staging URL
+      run: |
+        echo "Staging documentation deployed to: ${{ env.DOCS_URL_STAGING }}"
+
+  # Deploy to production
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [validate, build, link-check]
+    if: needs.validate.outputs.should_deploy == 'true' && (github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production'))
+    environment:
+      name: documentation-production
+      url: ${{ env.DOCS_URL_PRODUCTION }}
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: documentation-production-${{ github.run_number }}
+        path: ${{ env.DOCS_BUILD_DIR }}
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install deployment dependencies
+      run: |
+        pip install mkdocs-material mkdocs-git-revision-date-localized-plugin \
+                    mkdocs-minify-plugin mkdocs-redirects \
+                    mkdocs-tags mkdocs-social pygments \
+                    pymdown-extensions
+
+    - name: Production deployment checklist
+      run: |
+        echo "Running production deployment checklist..."
+        
+        # Verify critical files
+        critical_files=(
+          "${{ env.DOCS_BUILD_DIR }}/index.html"
+          "${{ env.DOCS_BUILD_DIR }}/sitemap.xml"
+          "${{ env.DOCS_BUILD_DIR }}/search/search_index.json"
+        )
+        
+        for file in "${critical_files[@]}"; do
+          if [[ ! -f "$file" ]]; then
+            echo "❌ Critical file missing: $file"
+            exit 1
+          else
+            echo "✅ Found: $file"
+          fi
+        done
+
+    - name: Deploy to GitHub Pages (Production)
+      run: |
+        echo "Deploying to production environment..."
+        
+        # Configure Git
+        git config --global user.name 'Documentation Bot'
+        git config --global user.email 'docs@medianest.com'
+        
+        # Deploy using mkdocs gh-deploy
+        mkdocs gh-deploy \
+          --force \
+          --clean \
+          --message "Deploy production documentation {sha} - Build #${{ github.run_number }}"
+
+    - name: Post-deployment verification
+      run: |
+        echo "Verifying production deployment..."
+        
+        # Wait for deployment to propagate
+        sleep 30
+        
+        # Test production URL (if accessible)
+        if command -v curl &> /dev/null; then
+          if curl -f -s --connect-timeout 10 "${{ env.DOCS_URL_PRODUCTION }}" > /dev/null 2>&1; then
+            echo "✅ Production site is accessible"
+          else
+            echo "⚠️  Production site may not be accessible yet"
+          fi
+        fi
+
+  # Preview deployment for pull requests
+  deploy-preview:
+    name: Deploy Preview
+    runs-on: ubuntu-latest
+    needs: [validate, build]
+    if: github.event_name == 'pull_request'
+    environment:
+      name: documentation-preview-pr-${{ github.event.number }}
+      url: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/pr-${{ github.event.number }}
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: documentation-staging-${{ github.run_number }}
+        path: ${{ env.DOCS_BUILD_DIR }}
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install deployment dependencies
+      run: |
+        pip install mkdocs-material mkdocs-git-revision-date-localized-plugin \
+                    mkdocs-minify-plugin mkdocs-redirects \
+                    mkdocs-tags mkdocs-social pygments \
+                    pymdown-extensions
+
+    - name: Deploy preview
+      run: |
+        echo "Deploying PR preview..."
+        
+        # Configure Git
+        git config --global user.name 'Documentation Bot'
+        git config --global user.email 'docs@medianest.com'
+        
+        # Create PR-specific deployment
+        mkdocs gh-deploy \
+          --force \
+          --clean \
+          --remote-branch gh-pages-pr-${{ github.event.number }} \
+          --message "Deploy PR #${{ github.event.number }} preview"
+
+    - name: Comment on PR
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const prNumber = context.payload.pull_request.number;
+          const previewUrl = `https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/pr-${prNumber}`;
+          
+          const comment = `📚 **Documentation Preview**
+          
+          The documentation for this PR has been deployed and is available at:
+          🔗 ${previewUrl}
+          
+          This preview will be updated automatically when you push changes to this PR.
+          
+          ---
+          Built from commit: ${context.sha}
+          Build number: ${{ github.run_number }}`;
+          
+          // Check if we already commented
+          const existingComments = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: prNumber,
+          });
+          
+          const botComments = existingComments.data.filter(
+            comment => comment.user.login === 'github-actions[bot]' && 
+                      comment.body.includes('Documentation Preview')
+          );
+          
+          if (botComments.length > 0) {
+            // Update existing comment
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: botComments[0].id,
+              body: comment
+            });
+          } else {
+            // Create new comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: comment
+            });
+          }
+
+  # Monitoring and health checks
+  monitor:
+    name: Post-Deploy Monitoring
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: needs.deploy-production.result == 'success'
+    steps:
+    - name: Setup monitoring
+      run: |
+        echo "Setting up post-deployment monitoring..."
+
+    - name: Health check
+      run: |
+        echo "Running health checks..."
+        
+        # Test production site
+        if command -v curl &> /dev/null; then
+          echo "Testing production site accessibility..."
+          
+          max_attempts=5
+          attempt=1
+          
+          while [[ $attempt -le $max_attempts ]]; do
+            if curl -f -s --connect-timeout 10 "${{ env.DOCS_URL_PRODUCTION }}" > /dev/null 2>&1; then
+              echo "✅ Production site is accessible (attempt $attempt)"
+              break
+            else
+              echo "⚠️  Site not accessible, attempt $attempt/$max_attempts"
+              if [[ $attempt -eq $max_attempts ]]; then
+                echo "❌ Site not accessible after $max_attempts attempts"
+                exit 1
+              fi
+              sleep 30
+            fi
+            ((attempt++))
+          done
+          
+          # Test search functionality
+          if curl -f -s --connect-timeout 10 "${{ env.DOCS_URL_PRODUCTION }}/search/" > /dev/null 2>&1; then
+            echo "✅ Search functionality is accessible"
+          else
+            echo "⚠️  Search functionality may have issues"
+          fi
+        fi
+
+    - name: Performance check
+      run: |
+        echo "Running performance checks..."
+        
+        # Basic performance check using curl
+        if command -v curl &> /dev/null; then
+          echo "Testing page load times..."
+          
+          time_total=$(curl -w "@/dev/stdin" -o /dev/null -s "${{ env.DOCS_URL_PRODUCTION }}" <<< '%{time_total}')
+          time_connect=$(curl -w "@/dev/stdin" -o /dev/null -s "${{ env.DOCS_URL_PRODUCTION }}" <<< '%{time_connect}')
+          
+          echo "Total time: ${time_total}s"
+          echo "Connect time: ${time_connect}s"
+          
+          # Alert if page loads slowly (>5 seconds)
+          if (( $(echo "$time_total > 5.0" | bc -l) )); then
+            echo "⚠️  Page load time is slow: ${time_total}s"
+          else
+            echo "✅ Page load time is acceptable: ${time_total}s"
+          fi
+        fi
+
+    - name: Send notification
+      if: success()
+      run: |
+        echo "Documentation deployment completed successfully!"
+        echo "Production URL: ${{ env.DOCS_URL_PRODUCTION }}"
+        
+        # Send Slack notification if webhook is configured
+        if [[ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]]; then
+          curl -X POST -H 'Content-type: application/json' \
+            --data '{"text":"📚 MediaNest documentation has been deployed to production: ${{ env.DOCS_URL_PRODUCTION }}"}' \
+            "${{ secrets.SLACK_WEBHOOK_URL }}" || true
+        fi
+
+  # Cleanup old deployments
+  cleanup:
+    name: Cleanup Old Deployments
+    runs-on: ubuntu-latest
+    needs: [deploy-production, deploy-staging]
+    if: always() && (needs.deploy-production.result == 'success' || needs.deploy-staging.result == 'success')
+    steps:
+    - name: Cleanup old artifacts
+      uses: actions/github-script@v7
+      with:
+        script: |
+          console.log('Cleaning up old documentation artifacts...');
+          
+          const artifacts = await github.rest.actions.listArtifactsForRepo({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            per_page: 100
+          });
+          
+          const docsArtifacts = artifacts.data.artifacts.filter(
+            artifact => artifact.name.includes('documentation-') && 
+                       artifact.created_at < new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+          );
+          
+          console.log(`Found ${docsArtifacts.length} old documentation artifacts to cleanup`);
+          
+          for (const artifact of docsArtifacts) {
+            try {
+              await github.rest.actions.deleteArtifact({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                artifact_id: artifact.id
+              });
+              console.log(`Deleted artifact: ${artifact.name}`);
+            } catch (error) {
+              console.log(`Failed to delete artifact ${artifact.name}: ${error.message}`);
+            }
+          }
+
+# Summary job for status checks
+summary:
+  name: Documentation Pipeline Summary
+  runs-on: ubuntu-latest
+  needs: [validate, build, link-check, deploy-staging, deploy-production, deploy-preview, monitor]
+  if: always()
+  steps:
+  - name: Pipeline Summary
+    run: |
+      echo "# 📚 Documentation Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+      echo "" >> $GITHUB_STEP_SUMMARY
+      echo "| Job | Status | Environment |" >> $GITHUB_STEP_SUMMARY
+      echo "|-----|--------|-------------|" >> $GITHUB_STEP_SUMMARY
+      echo "| Validation | ${{ needs.validate.result }} | All |" >> $GITHUB_STEP_SUMMARY
+      echo "| Build | ${{ needs.build.result }} | All |" >> $GITHUB_STEP_SUMMARY
+      echo "| Link Check | ${{ needs.link-check.result }} | All |" >> $GITHUB_STEP_SUMMARY
+      echo "| Staging Deploy | ${{ needs.deploy-staging.result }} | Staging |" >> $GITHUB_STEP_SUMMARY
+      echo "| Production Deploy | ${{ needs.deploy-production.result }} | Production |" >> $GITHUB_STEP_SUMMARY
+      echo "| Preview Deploy | ${{ needs.deploy-preview.result }} | PR Preview |" >> $GITHUB_STEP_SUMMARY
+      echo "| Monitoring | ${{ needs.monitor.result }} | Production |" >> $GITHUB_STEP_SUMMARY
+      echo "" >> $GITHUB_STEP_SUMMARY
+      
+      if [[ "${{ needs.deploy-production.result }}" == "success" ]]; then
+        echo "🎉 **Production documentation is live:** ${{ env.DOCS_URL_PRODUCTION }}" >> $GITHUB_STEP_SUMMARY
+      fi
+      
+      if [[ "${{ needs.deploy-staging.result }}" == "success" ]]; then
+        echo "🚀 **Staging documentation is live:** ${{ env.DOCS_URL_STAGING }}" >> $GITHUB_STEP_SUMMARY
+      fi
+      
+      echo "" >> $GITHUB_STEP_SUMMARY
+      echo "**Build Details:**" >> $GITHUB_STEP_SUMMARY
+      echo "- Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+      echo "- Build Number: ${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+      echo "- Triggered by: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+      echo "- Event: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,315 @@
+# MediaNest Consolidated Multi-Stage Dockerfile
+# Replaces 23+ individual Dockerfiles with a single optimized build
+# Supports: development, production, security-hardened, and specialized deployments
+
+# ===== BUILD ARGUMENTS =====
+ARG NODE_VERSION=20
+ARG ALPINE_VERSION=3.18
+ARG NGINX_VERSION=1.25
+
+# Environment Configuration
+ARG NODE_ENV=production
+ARG BUILD_TARGET=backend-production
+ARG SECURITY_LEVEL=standard
+ARG OPTIMIZATION_LEVEL=size
+
+# Feature Flags
+ARG ENABLE_MONITORING=false
+ARG ENABLE_DEBUG=false
+ARG ENABLE_TELEMETRY=false
+ARG ENABLE_SECURITY_SCANNING=false
+
+# Performance Tuning
+ARG NODE_OPTIONS="--max-old-space-size=768"
+ARG NGINX_WORKER_PROCESSES=auto
+
+# Security Configuration
+ARG USER_ID=1001
+ARG GROUP_ID=1001
+
+# ===== STAGE 1: Base Dependencies =====
+FROM node:${NODE_VERSION}-alpine AS base
+
+# Install essential system packages
+RUN apk add --no-cache \
+    dumb-init \
+    curl \
+    && apk upgrade \
+    && rm -rf /var/cache/apk/*
+
+# Create application user for security
+RUN addgroup -g ${GROUP_ID:-1001} -S nodejs && \
+    adduser -S medianest -u ${USER_ID:-1001} -G nodejs
+
+WORKDIR /app
+
+# ===== STAGE 2: Development Dependencies =====
+FROM base AS dev-dependencies
+
+# Install development tools
+RUN apk add --no-cache \
+    git \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/cache/apk/*
+
+# Copy package files for dependency installation
+COPY package*.json ./
+COPY shared/package*.json ./shared/
+COPY backend/package*.json ./backend/
+COPY frontend/package*.json ./frontend/
+
+# Install all dependencies (including dev dependencies)
+RUN npm ci --no-audit --no-fund
+
+# ===== STAGE 3: Production Dependencies =====
+FROM base AS prod-dependencies
+
+# Copy package files
+COPY package*.json ./
+COPY shared/package*.json ./shared/
+COPY backend/package*.json ./backend/
+COPY frontend/package*.json ./frontend/
+
+# Install only production dependencies
+RUN npm ci --only=production --no-audit --no-fund && \
+    npm cache clean --force
+
+# ===== STAGE 4: Shared Components Builder =====
+FROM dev-dependencies AS shared-builder
+
+# Copy shared source code
+COPY shared/src ./shared/src
+COPY shared/tsconfig.json ./shared/
+
+# Build shared TypeScript packages
+WORKDIR /app/shared
+RUN npm run build
+
+# ===== STAGE 5: Backend Builder =====
+FROM dev-dependencies AS backend-builder
+
+# Copy shared build artifacts
+COPY --from=shared-builder /app/shared/dist ./shared/dist
+COPY --from=shared-builder /app/shared/package.json ./shared/
+
+# Copy backend configuration and source
+COPY backend/tsconfig.json ./backend/
+COPY backend/prisma ./backend/prisma
+COPY backend/src ./backend/src
+
+# Generate Prisma client and build backend
+WORKDIR /app/backend
+RUN npx prisma generate && npm run build
+
+# ===== STAGE 6: Frontend Builder =====
+FROM dev-dependencies AS frontend-builder
+
+# Copy shared build artifacts
+COPY --from=shared-builder /app/shared/dist ./shared/dist
+COPY --from=shared-builder /app/shared/package.json ./shared/
+
+# Copy frontend configuration and source
+COPY frontend/next.config.js ./frontend/
+COPY frontend/tailwind.config.ts ./frontend/
+COPY frontend/postcss.config.mjs ./frontend/
+COPY frontend/tsconfig.json ./frontend/
+COPY frontend/src ./frontend/src
+COPY frontend/public ./frontend/public
+COPY frontend/prisma ./frontend/prisma
+
+# Build frontend with production optimizations
+WORKDIR /app/frontend
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN npm run build
+
+# ===== STAGE 7: Development Runtime =====
+FROM dev-dependencies AS development
+
+# Install additional development tools
+RUN apk add --no-cache \
+    bash \
+    vim \
+    && rm -rf /var/cache/apk/*
+
+# Copy all source code for development
+COPY --chown=medianest:nodejs . .
+
+# Create logs directory
+RUN mkdir -p logs && chown medianest:nodejs logs
+
+# Switch to application user
+USER medianest
+
+# Development environment variables
+ENV NODE_ENV=development
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Expose development ports
+EXPOSE 3000 3001 5432 6379 9229
+
+# Development startup command
+CMD ["npm", "run", "dev"]
+
+# ===== STAGE 8: Backend Production =====
+FROM prod-dependencies AS backend-production
+
+# Copy built backend application
+COPY --from=backend-builder --chown=medianest:nodejs /app/backend/dist ./backend/dist
+COPY --from=backend-builder --chown=medianest:nodejs /app/backend/prisma ./backend/prisma
+COPY --from=shared-builder --chown=medianest:nodejs /app/shared/dist ./shared/dist
+
+# Copy production configuration
+COPY --chown=medianest:nodejs docker-entrypoint.sh ./
+RUN chmod +x docker-entrypoint.sh
+
+# Create logs directory
+RUN mkdir -p logs && chown medianest:nodejs logs
+
+# Switch to application user
+USER medianest
+
+# Production environment variables
+ENV NODE_ENV=production
+ENV NODE_OPTIONS=${NODE_OPTIONS}
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD node backend/dist/health-check.js || exit 1
+
+EXPOSE 3001
+
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["./docker-entrypoint.sh", "node", "backend/dist/server.js"]
+
+# ===== STAGE 9: Frontend Production =====
+FROM prod-dependencies AS frontend-production
+
+# Copy built frontend application
+COPY --from=frontend-builder --chown=medianest:nodejs /app/frontend/.next/standalone ./
+COPY --from=frontend-builder --chown=medianest:nodejs /app/frontend/.next/static ./.next/static
+COPY --from=frontend-builder --chown=medianest:nodejs /app/frontend/public ./public
+
+# Switch to application user
+USER medianest
+
+# Production environment variables
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_OPTIONS="--max-old-space-size=256"
+
+EXPOSE 3000
+
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "server.js"]
+
+# ===== STAGE 10: Nginx Production =====
+FROM nginx:${NGINX_VERSION}-alpine AS nginx-production
+
+# Install security updates
+RUN apk upgrade && rm -rf /var/cache/apk/*
+
+# Create nginx user
+RUN addgroup -g 101 -S nginx && \
+    adduser -S nginx -u 101 -G nginx
+
+# Copy nginx configuration
+COPY config/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY config/nginx/medianest.conf /etc/nginx/conf.d/default.conf
+
+# Create cache directories
+RUN mkdir -p /var/cache/nginx && \
+    chown -R nginx:nginx /var/cache/nginx
+
+# Security hardening
+USER nginx
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost/health || exit 1
+
+EXPOSE 80 443
+
+CMD ["nginx", "-g", "daemon off;"]
+
+# ===== STAGE 11: Security Hardened =====
+FROM backend-production AS security-hardened
+
+# Switch back to root for security hardening
+USER root
+
+# Install security tools conditionally
+RUN if [ "${ENABLE_SECURITY_SCANNING}" = "true" ]; then \
+        apk add --no-cache \
+        ca-certificates \
+        && rm -rf /var/cache/apk/*; \
+    fi
+
+# Apply additional security hardening
+RUN if [ "${SECURITY_LEVEL}" = "hardened" ]; then \
+        # Remove unnecessary packages
+        apk del --purge curl && \
+        # Remove shell history
+        rm -f /home/medianest/.ash_history && \
+        # Remove package manager cache
+        rm -rf /var/cache/apk/* && \
+        # Set restrictive permissions
+        chmod 750 /app && \
+        chown -R root:nodejs /app && \
+        chmod -R 640 /app/backend/dist && \
+        chmod 750 /app/docker-entrypoint.sh; \
+    fi
+
+# Switch back to application user
+USER medianest
+
+# Security-focused environment variables
+ENV NODE_ENV=production
+ENV NODE_OPTIONS="--max-old-space-size=512"
+ENV AUDIT_LEVEL=2
+
+# Restrict capabilities and apply security options
+# (Applied at compose level)
+
+EXPOSE 3001
+
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["./docker-entrypoint.sh", "node", "backend/dist/server.js"]
+
+# ===== STAGE 12: Test Runner =====
+FROM dev-dependencies AS test-runner
+
+# Copy all source code
+COPY . .
+
+# Install test-specific dependencies
+RUN npm ci --include=dev
+
+# Build for testing
+RUN npm run build:test
+
+# Test environment
+ENV NODE_ENV=test
+ENV CI=true
+
+# Run tests
+CMD ["npm", "run", "test:ci"]
+
+# ===== STAGE 13: Database Migration =====
+FROM backend-builder AS migration-runner
+
+# Copy migration scripts
+COPY backend/migrations ./backend/migrations
+COPY backend/seeds ./backend/seeds
+
+# Migration environment
+ENV NODE_ENV=production
+
+# Migration command
+CMD ["npm", "run", "migrate:deploy"]
+
+# ===== Build Target Selection =====
+# Default to backend-production if no target specified
+FROM backend-production AS final

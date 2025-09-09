@@ -1,0 +1,164 @@
+{
+  "timestamp": "2025-09-08T20:12:53.263Z",
+  "agent": "Bundle Analysis",
+  "findings": {
+    "duplicates": [],
+    "bloat": [
+      {
+        "package": "root",
+        "dependency": "@types/express",
+        "type": "heavy"
+      },
+      {
+        "package": "root",
+        "dependency": "@types/node",
+        "type": "heavy"
+      },
+      {
+        "package": "root",
+        "dependency": "typescript",
+        "type": "heavy"
+      },
+      {
+        "package": "root",
+        "dependency": "@types/react",
+        "type": "heavy"
+      },
+      {
+        "package": "root",
+        "dependency": "@types/react-dom",
+        "type": "heavy"
+      },
+      {
+        "package": "root",
+        "dependency": "webpack-bundle-analyzer",
+        "type": "heavy"
+      },
+      {
+        "package": "backend",
+        "dependency": "@types/express",
+        "type": "heavy"
+      },
+      {
+        "package": "backend",
+        "dependency": "@types/node",
+        "type": "heavy"
+      },
+      {
+        "package": "backend",
+        "dependency": "typescript",
+        "type": "heavy"
+      },
+      {
+        "package": "frontend",
+        "dependency": "@types/node",
+        "type": "heavy"
+      },
+      {
+        "package": "frontend",
+        "dependency": "@types/react",
+        "type": "heavy"
+      },
+      {
+        "package": "frontend",
+        "dependency": "@types/react-dom",
+        "type": "heavy"
+      },
+      {
+        "package": "frontend",
+        "dependency": "typescript",
+        "type": "heavy"
+      },
+      {
+        "package": "frontend",
+        "dependency": "eslint",
+        "type": "heavy"
+      },
+      {
+        "package": "frontend",
+        "dependency": "eslint-config-next",
+        "type": "heavy"
+      },
+      {
+        "package": "shared",
+        "dependency": "@types/express",
+        "type": "heavy"
+      },
+      {
+        "package": "shared",
+        "dependency": "@types/node",
+        "type": "heavy"
+      },
+      {
+        "package": "shared",
+        "dependency": "@typescript-eslint/eslint-plugin",
+        "type": "heavy"
+      },
+      {
+        "package": "shared",
+        "dependency": "@typescript-eslint/parser",
+        "type": "heavy"
+      },
+      {
+        "package": "shared",
+        "dependency": "eslint",
+        "type": "heavy"
+      },
+      {
+        "package": "shared",
+        "dependency": "eslint-config-prettier",
+        "type": "heavy"
+      },
+      {
+        "package": "shared",
+        "dependency": "eslint-import-resolver-typescript",
+        "type": "heavy"
+      },
+      {
+        "package": "shared",
+        "dependency": "eslint-plugin-import",
+        "type": "heavy"
+      },
+      {
+        "package": "shared",
+        "dependency": "eslint-plugin-prettier",
+        "type": "heavy"
+      },
+      {
+        "package": "shared",
+        "dependency": "typescript",
+        "type": "heavy"
+      }
+    ],
+    "unused": [],
+    "opportunities": [
+      {
+        "type": "unused-deps",
+        "description": "Implement depcheck or similar tool for unused dependency detection",
+        "impact": "high"
+      }
+    ]
+  },
+  "recommendations": [
+    {
+      "priority": "high",
+      "action": "Implement webpack-bundle-analyzer for frontend",
+      "impact": "Visualize bundle composition and identify optimization opportunities"
+    },
+    {
+      "priority": "high",
+      "action": "Add depcheck to identify unused dependencies",
+      "impact": "Remove unused packages to reduce bundle size"
+    },
+    {
+      "priority": "medium",
+      "action": "Implement dependency deduplication",
+      "impact": "Reduce duplicate packages across workspaces"
+    },
+    {
+      "priority": "medium",
+      "action": "Enable production-only dependency installation",
+      "impact": "Exclude dev dependencies from production builds"
+    }
+  ]
+}

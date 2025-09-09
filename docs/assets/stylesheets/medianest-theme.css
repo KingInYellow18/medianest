@@ -1,0 +1,440 @@
+/* MediaNest Brand Theme - Professional Documentation Design */
+
+:root {
+  /* MediaNest Brand Identity */
+  --mn-brand-purple: #673ab7;
+  --mn-brand-purple-light: #9575cd;
+  --mn-brand-purple-dark: #512da8;
+  --mn-brand-accent: #9c27b0;
+  --mn-brand-success: #4caf50;
+  --mn-brand-warning: #ff9800;
+  --mn-brand-error: #f44336;
+  --mn-brand-info: #2196f3;
+  
+  /* Professional gradients */
+  --mn-gradient-primary: linear-gradient(135deg, var(--mn-brand-purple) 0%, var(--mn-brand-purple-light) 100%);
+  --mn-gradient-accent: linear-gradient(135deg, var(--mn-brand-accent) 0%, var(--mn-brand-purple) 100%);
+  
+  /* Enhanced shadows for depth */
+  --mn-shadow-sm: 0 1px 3px rgba(103, 58, 183, 0.12), 0 1px 2px rgba(103, 58, 183, 0.08);
+  --mn-shadow-md: 0 4px 6px rgba(103, 58, 183, 0.12), 0 2px 4px rgba(103, 58, 183, 0.08);
+  --mn-shadow-lg: 0 10px 15px rgba(103, 58, 183, 0.12), 0 4px 6px rgba(103, 58, 183, 0.08);
+  --mn-shadow-xl: 0 20px 25px rgba(103, 58, 183, 0.12), 0 8px 10px rgba(103, 58, 183, 0.08);
+}
+
+/* Custom MediaNest header branding */
+.md-header {
+  background: var(--mn-gradient-primary);
+  box-shadow: var(--mn-shadow-md);
+}
+
+.md-header--shadow {
+  box-shadow: var(--mn-shadow-lg);
+}
+
+/* Enhanced logo styling */
+.md-header__button.md-logo {
+  margin: 0.2rem;
+  padding: 0.2rem;
+}
+
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg {
+  height: 2.2rem;
+  width: auto;
+  filter: brightness(1.1) contrast(1.1);
+  transition: all 0.3s ease;
+}
+
+.md-header__button.md-logo:hover img,
+.md-header__button.md-logo:hover svg {
+  filter: brightness(1.2) contrast(1.2) saturate(1.1);
+  transform: scale(1.05);
+}
+
+/* Professional navigation styling */
+.md-tabs {
+  background: var(--mn-gradient-accent);
+  box-shadow: var(--mn-shadow-sm);
+}
+
+.md-tabs__link {
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  transition: all 0.2s ease;
+}
+
+.md-tabs__link--active,
+.md-tabs__link:hover {
+  color: rgba(255, 255, 255, 0.95);
+  opacity: 1;
+}
+
+/* Enhanced sidebar navigation */
+.md-nav--primary .md-nav__title {
+  background: var(--mn-gradient-primary);
+  color: white;
+  font-weight: 600;
+  box-shadow: var(--mn-shadow-sm);
+}
+
+.md-nav__item .md-nav__link {
+  border-radius: 0.25rem;
+  margin: 0.1rem 0.5rem;
+  padding: 0.5rem 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.md-nav__item .md-nav__link:hover {
+  background-color: rgba(103, 58, 183, 0.08);
+  color: var(--mn-brand-purple);
+  transform: translateX(0.25rem);
+}
+
+.md-nav__item .md-nav__link--active {
+  background: var(--mn-gradient-primary);
+  color: white;
+  font-weight: 600;
+  box-shadow: var(--mn-shadow-sm);
+}
+
+/* Professional content styling */
+.md-content {
+  background: linear-gradient(180deg, 
+    rgba(255, 255, 255, 0.02) 0%, 
+    rgba(103, 58, 183, 0.01) 100%);
+}
+
+/* Enhanced typography with MediaNest branding */
+.md-typeset h1 {
+  background: var(--mn-gradient-primary);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 800;
+  font-size: 2.2rem;
+  letter-spacing: -0.02em;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.md-typeset h1::after {
+  content: '';
+  position: absolute;
+  bottom: -0.5rem;
+  left: 0;
+  width: 4rem;
+  height: 3px;
+  background: var(--mn-gradient-accent);
+  border-radius: 2px;
+}
+
+.md-typeset h2 {
+  color: var(--mn-brand-purple);
+  font-weight: 700;
+  border-bottom: 2px solid var(--mn-brand-purple-light);
+  padding-bottom: 0.5rem;
+  margin-top: 2.5rem;
+  position: relative;
+}
+
+.md-typeset h2::before {
+  content: '';
+  position: absolute;
+  left: -1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 1.5rem;
+  background: var(--mn-gradient-primary);
+  border-radius: 2px;
+}
+
+/* Professional code styling */
+.md-typeset .highlight {
+  background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
+  border: 1px solid var(--mn-brand-purple-light);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: var(--mn-shadow-sm);
+}
+
+[data-md-color-scheme="slate"] .md-typeset .highlight {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-color: var(--mn-brand-purple);
+}
+
+.md-typeset .highlight pre {
+  background: transparent;
+  border: none;
+}
+
+/* Enhanced code blocks with MediaNest branding */
+.md-typeset .codehilite .hll,
+.md-typeset .highlight .hll {
+  background: rgba(103, 58, 183, 0.15);
+}
+
+.md-typeset code {
+  background: rgba(103, 58, 183, 0.1);
+  color: var(--mn-brand-purple-dark);
+  border: 1px solid rgba(103, 58, 183, 0.2);
+  padding: 0.2em 0.4em;
+  border-radius: 0.3rem;
+  font-weight: 500;
+}
+
+[data-md-color-scheme="slate"] .md-typeset code {
+  background: rgba(103, 58, 183, 0.2);
+  color: var(--mn-brand-purple-light);
+  border-color: rgba(103, 58, 183, 0.3);
+}
+
+/* Professional admonitions with MediaNest styling */
+.md-typeset .admonition {
+  border-radius: 0.5rem;
+  box-shadow: var(--mn-shadow-md);
+  border-left: 4px solid var(--mn-brand-purple);
+  overflow: hidden;
+}
+
+.md-typeset .admonition.tip {
+  border-left-color: var(--mn-brand-success);
+}
+
+.md-typeset .admonition.warning {
+  border-left-color: var(--mn-brand-warning);
+}
+
+.md-typeset .admonition.danger {
+  border-left-color: var(--mn-brand-error);
+}
+
+.md-typeset .admonition.info {
+  border-left-color: var(--mn-brand-info);
+}
+
+/* Custom MediaNest admonition */
+.md-typeset .admonition.medianest {
+  border-left-color: var(--mn-brand-purple);
+  background: linear-gradient(135deg, 
+    rgba(103, 58, 183, 0.05) 0%, 
+    rgba(149, 117, 205, 0.02) 100%);
+}
+
+.md-typeset .admonition.medianest > .admonition-title {
+  background: var(--mn-gradient-primary);
+  color: white;
+  font-weight: 600;
+}
+
+/* Enhanced buttons with MediaNest branding */
+.md-button {
+  background: var(--mn-gradient-primary);
+  border: 2px solid transparent;
+  color: white;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  border-radius: 0.5rem;
+  box-shadow: var(--mn-shadow-sm);
+  transition: all 0.3s ease;
+}
+
+.md-button:hover {
+  background: var(--mn-gradient-accent);
+  transform: translateY(-2px);
+  box-shadow: var(--mn-shadow-lg);
+}
+
+.md-button--secondary {
+  background: transparent;
+  border-color: var(--mn-brand-purple);
+  color: var(--mn-brand-purple);
+}
+
+.md-button--secondary:hover {
+  background: var(--mn-brand-purple);
+  color: white;
+}
+
+/* Professional search styling */
+.md-search__form {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 2rem;
+  box-shadow: var(--mn-shadow-sm);
+  backdrop-filter: blur(10px);
+}
+
+.md-search__input {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.md-search__input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Enhanced tables with MediaNest styling */
+.md-typeset table:not([class]) {
+  border: 1px solid var(--mn-brand-purple-light);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: var(--mn-shadow-sm);
+}
+
+.md-typeset table:not([class]) th {
+  background: var(--mn-gradient-primary);
+  color: white;
+  font-weight: 600;
+  padding: 1rem;
+}
+
+.md-typeset table:not([class]) td {
+  padding: 0.8rem;
+  border-bottom: 1px solid rgba(103, 58, 183, 0.1);
+}
+
+.md-typeset table:not([class]) tr:nth-child(even) {
+  background: rgba(103, 58, 183, 0.02);
+}
+
+.md-typeset table:not([class]) tr:hover {
+  background: rgba(103, 58, 183, 0.05);
+}
+
+/* Professional footer styling */
+.md-footer {
+  background: var(--mn-gradient-primary);
+  color: white;
+}
+
+.md-footer-meta {
+  background: var(--mn-brand-purple-dark);
+}
+
+.md-footer__link {
+  color: rgba(255, 255, 255, 0.8);
+  transition: color 0.2s ease;
+}
+
+.md-footer__link:hover {
+  color: white;
+}
+
+/* API documentation enhancements */
+.md-typeset .api-endpoint {
+  background: var(--mn-gradient-primary);
+  color: white;
+  padding: 0.3rem 0.8rem;
+  border-radius: 1rem;
+  font-weight: 600;
+  font-size: 0.8rem;
+  display: inline-block;
+  margin: 0.2rem 0;
+}
+
+.md-typeset .api-endpoint.get {
+  background: linear-gradient(135deg, var(--mn-brand-success) 0%, #66bb6a 100%);
+}
+
+.md-typeset .api-endpoint.post {
+  background: linear-gradient(135deg, var(--mn-brand-info) 0%, #42a5f5 100%);
+}
+
+.md-typeset .api-endpoint.put {
+  background: linear-gradient(135deg, var(--mn-brand-warning) 0%, #ffa726 100%);
+}
+
+.md-typeset .api-endpoint.delete {
+  background: linear-gradient(135deg, var(--mn-brand-error) 0%, #ef5350 100%);
+}
+
+/* Responsive enhancements */
+@media screen and (max-width: 76.1875em) {
+  .md-nav--primary .md-nav__title[for="__drawer"] {
+    background: var(--mn-gradient-primary);
+    color: white;
+  }
+  
+  .md-typeset h1 {
+    font-size: 1.8rem;
+  }
+  
+  .md-typeset h2::before {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 44.9375em) {
+  .md-typeset h1 {
+    font-size: 1.6rem;
+  }
+  
+  .md-nav__item .md-nav__link {
+    margin: 0.1rem 0.25rem;
+    padding: 0.4rem 0.6rem;
+  }
+}
+
+/* Loading states and animations */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.md-loading {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Print optimizations for MediaNest branding */
+@media print {
+  .md-typeset h1 {
+    -webkit-text-fill-color: var(--mn-brand-purple);
+    color: var(--mn-brand-purple);
+    background: none;
+  }
+  
+  .md-typeset h2 {
+    color: var(--mn-brand-purple-dark);
+  }
+  
+  .md-button {
+    background: var(--mn-brand-purple);
+    color: white;
+  }
+}
+
+/* Accessibility enhancements */
+@media (prefers-reduced-motion: reduce) {
+  .md-header__button.md-logo:hover img,
+  .md-header__button.md-logo:hover svg,
+  .md-button:hover,
+  .md-nav__item .md-nav__link:hover {
+    transform: none;
+  }
+  
+  .md-loading {
+    animation: none;
+  }
+}
+
+/* High contrast mode for accessibility */
+@media (prefers-contrast: high) {
+  :root {
+    --mn-brand-purple: #4527a0;
+    --mn-brand-purple-light: #7b1fa2;
+    --mn-brand-purple-dark: #311b92;
+  }
+  
+  .md-typeset .admonition {
+    border-width: 2px;
+  }
+  
+  .md-button {
+    border-width: 2px;
+  }
+}
