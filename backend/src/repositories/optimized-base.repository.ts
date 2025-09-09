@@ -48,7 +48,7 @@ export abstract class OptimizedBaseRepository<T, CreateInput, UpdateInput> {
         return await operation(client);
       } catch (error: CatchError) {
         this.handleDatabaseError(error, operationName);
-        throw error; // TypeScript requires this but it won't be reached
+        // handleDatabaseError never returns (throws), so no return needed
       }
     }, `${this.modelName}.${operationName}`);
   }
@@ -65,7 +65,7 @@ export abstract class OptimizedBaseRepository<T, CreateInput, UpdateInput> {
         return await operations(client);
       } catch (error: CatchError) {
         this.handleDatabaseError(error, operationName);
-        throw error; // TypeScript requires this but it won't be reached
+        // handleDatabaseError never returns (throws), so no return needed
       }
     }, `${this.modelName}.${operationName}`);
   }
@@ -116,8 +116,7 @@ export abstract class OptimizedBaseRepository<T, CreateInput, UpdateInput> {
   protected async findById(
     id: string,
     queryBuilder: (client: any) => any,
-    include?: any,
-    cacheOptions?: CacheOptions
+    include?: any
   ): Promise<T | null> {
     return this.query(async (client) => {
       const model = queryBuilder(client);

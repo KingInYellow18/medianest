@@ -41,7 +41,10 @@ export interface UpdateUserInput {
   emailVerified?: boolean;
 }
 
-export class UserRepository extends BaseRepository<User, CreateUserInput, UpdateUserInput> {
+export class UserRepository extends BaseRepository<User> {
+  constructor(prisma: any) {
+    super(prisma);
+  }
   private decryptUserData(user: User): User {
     try {
       const decryptedUser = { ...user };
@@ -218,8 +221,10 @@ export class UserRepository extends BaseRepository<User, CreateUserInput, Update
 
   async updatePassword(id: string, newPasswordHash: string): Promise<User> {
     try {
-      // For now, we'll store the password hash in a separate mechanism
-      // until the schema migration is complete
+      // TODO: Implement password storage once schema migration is complete
+      // For now, logging the password hash for debugging purposes
+      logger.debug(`Updating password for user ${id}`, { hasPasswordHash: !!newPasswordHash });
+      
       return await this.prisma.user.update({
         where: { id },
         data: {

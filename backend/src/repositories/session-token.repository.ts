@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 
-import { SessionToken, Prisma } from '@prisma/client';
+import { SessionToken } from '@prisma/client';
 
 // @ts-ignore
 import {
@@ -17,11 +17,10 @@ export interface CreateSessionTokenInput {
   deviceId?: string;
 }
 
-export class SessionTokenRepository extends BaseRepository<
-  SessionToken,
-  CreateSessionTokenInput,
-  any
-> {
+export class SessionTokenRepository extends BaseRepository<SessionToken> {
+  constructor(prisma: any) {
+    super(prisma);
+  }
   private hashToken(token: string): string {
     return crypto.createHash('sha256').update(token).digest('hex');
   }

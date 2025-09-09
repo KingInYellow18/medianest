@@ -1,4 +1,4 @@
-import { ServiceConfig, Prisma } from '@prisma/client';
+import { ServiceConfig } from '@prisma/client';
 
 import { encryptionService } from '../services/encryption.service';
 // @ts-ignore
@@ -26,11 +26,11 @@ export interface UpdateServiceConfigInput {
   updatedBy?: string;
 }
 
-export class ServiceConfigRepository extends BaseRepository<
-  ServiceConfig,
-  CreateServiceConfigInput,
-  UpdateServiceConfigInput
-> {
+export class ServiceConfigRepository extends BaseRepository<ServiceConfig> {
+  constructor(prisma: any) {
+    super(prisma);
+  }
+
   private decryptServiceData(config: ServiceConfig): ServiceConfig {
     try {
       const decryptedConfig = { ...config };
