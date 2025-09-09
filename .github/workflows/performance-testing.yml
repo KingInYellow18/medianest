@@ -1,0 +1,524 @@
+name: Performance Testing Pipeline
+
+on:
+  schedule:
+    # Run performance tests nightly at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      test_suite:
+        description: 'Performance test suite to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - suite
+          - e2e
+          - security
+      performance_threshold:
+        description: 'Performance regression threshold (%)'
+        required: false
+        default: '10'
+        type: string
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'backend/src/**'
+      - 'frontend/src/**'
+      - 'tests/performance/**'
+      - 'tests/e2e/e2e-performance.spec.ts'
+      - 'tests/security/security-performance.test.ts'
+
+env:
+  NODE_VERSION: '18'
+  PERFORMANCE_THRESHOLD: ${{ github.event.inputs.performance_threshold || '10' }}
+
+jobs:
+  performance-test-setup:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run_performance: ${{ steps.check_changes.outputs.should_run }}
+      baseline_exists: ${{ steps.check_baseline.outputs.exists }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check for performance-impacting changes
+        id: check_changes
+        run: |
+          if [[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Check if changes affect performance-critical areas
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+          echo "Changed files: $CHANGED_FILES"
+          
+          if echo "$CHANGED_FILES" | grep -E "(backend/src|frontend/src|tests/performance|\.yml$)" > /dev/null; then
+            echo "should_run=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_run=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check for performance baseline
+        id: check_baseline
+        run: |
+          if [[ -f "test-results/performance-baseline.json" ]]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+  performance-suite-tests:
+    needs: performance-test-setup
+    if: needs.performance-test-setup.outputs.should_run_performance == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: medianest_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd backend && npm ci
+          cd ../frontend && npm ci
+
+      - name: Setup test environment
+        run: |
+          mkdir -p test-results
+          cp .env.example .env.test
+          echo "NODE_ENV=test" >> .env.test
+          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/medianest_test" >> .env.test
+          echo "REDIS_URL=redis://localhost:6379" >> .env.test
+
+      - name: Run database migrations
+        run: |
+          cd backend
+          npm run db:migrate
+
+      - name: Run performance test suite
+        if: ${{ github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'suite' || github.event.inputs.test_suite == '' }}
+        run: |
+          npm run test:performance:suite -- --reporter=json --outputFile=test-results/performance-suite-results.json
+        env:
+          CI: true
+          NODE_ENV: test
+          NODE_OPTIONS: '--max-old-space-size=4096'
+
+      - name: Upload performance suite results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-suite-results
+          path: test-results/performance-suite-results.json
+          retention-days: 30
+
+  e2e-performance-tests:
+    needs: performance-test-setup
+    if: needs.performance-test-setup.outputs.should_run_performance == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: medianest_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd backend && npm ci
+          cd ../frontend && npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium
+
+      - name: Setup test environment
+        run: |
+          mkdir -p test-results
+          cp .env.example .env.test
+          echo "NODE_ENV=test" >> .env.test
+          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/medianest_test" >> .env.test
+
+      - name: Start test servers
+        run: |
+          cd backend && npm run start:test &
+          cd frontend && npm run build && npm run start &
+          sleep 10
+
+      - name: Run E2E performance tests
+        if: ${{ github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'e2e' || github.event.inputs.test_suite == '' }}
+        run: |
+          npm run test:performance:e2e -- --reporter=json --outputFile=test-results/e2e-performance-results.json
+        env:
+          CI: true
+          NODE_ENV: test
+
+      - name: Upload E2E performance results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-performance-results
+          path: test-results/e2e-performance-results.json
+          retention-days: 30
+
+  security-performance-tests:
+    needs: performance-test-setup
+    if: needs.performance-test-setup.outputs.should_run_performance == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: medianest_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd backend && npm ci
+
+      - name: Setup test environment
+        run: |
+          mkdir -p test-results
+          cp .env.example .env.test
+          echo "NODE_ENV=test" >> .env.test
+          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/medianest_test" >> .env.test
+
+      - name: Run security performance tests
+        if: ${{ github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'security' || github.event.inputs.test_suite == '' }}
+        run: |
+          npm run test:performance:security -- --reporter=json --outputFile=test-results/security-performance-results.json
+        env:
+          CI: true
+          NODE_ENV: test
+
+      - name: Upload security performance results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-performance-results
+          path: test-results/security-performance-results.json
+          retention-days: 30
+
+  performance-analysis:
+    needs: [performance-suite-tests, e2e-performance-tests, security-performance-tests]
+    if: always() && (needs.performance-suite-tests.result == 'success' || needs.e2e-performance-tests.result == 'success' || needs.security-performance-tests.result == 'success')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Download all performance results
+        uses: actions/download-artifact@v4
+        with:
+          path: test-results/
+
+      - name: Install analysis dependencies
+        run: npm install lodash @types/lodash
+
+      - name: Analyze performance results
+        run: |
+          cat > analyze-performance.js << 'EOF'
+          const fs = require('fs');
+          const path = require('path');
+          const _ = require('lodash');
+          
+          const resultsDir = 'test-results';
+          const baselinePath = 'test-results/performance-baseline.json';
+          const currentResults = {};
+          
+          // Load current results
+          const resultFiles = [
+            'performance-suite-results/performance-suite-results.json',
+            'e2e-performance-results/e2e-performance-results.json',
+            'security-performance-results/security-performance-results.json'
+          ];
+          
+          for (const file of resultFiles) {
+            const fullPath = path.join(resultsDir, file);
+            if (fs.existsSync(fullPath)) {
+              try {
+                const data = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
+                const testSuite = path.basename(file, '.json').replace('-results', '');
+                currentResults[testSuite] = data;
+                console.log(`✅ Loaded ${testSuite} results`);
+              } catch (error) {
+                console.log(`❌ Error loading ${file}:`, error.message);
+              }
+            }
+          }
+          
+          // Load baseline if it exists
+          let baseline = {};
+          if (fs.existsSync(baselinePath)) {
+            try {
+              baseline = JSON.parse(fs.readFileSync(baselinePath, 'utf8'));
+              console.log('📊 Loaded performance baseline');
+            } catch (error) {
+              console.log('⚠️ Error loading baseline:', error.message);
+            }
+          } else {
+            console.log('📝 No baseline found, creating new baseline');
+          }
+          
+          // Analyze performance
+          const analysis = {
+            timestamp: new Date().toISOString(),
+            commit: process.env.GITHUB_SHA || 'unknown',
+            branch: process.env.GITHUB_REF_NAME || 'unknown',
+            results: currentResults,
+            regressions: [],
+            improvements: [],
+            summary: {
+              totalTests: 0,
+              passedTests: 0,
+              failedTests: 0,
+              averageResponseTime: 0,
+              memoryUsage: 0
+            }
+          };
+          
+          // Calculate summary metrics
+          Object.values(currentResults).forEach(suite => {
+            if (suite.tests) {
+              analysis.summary.totalTests += suite.tests.length;
+              analysis.summary.passedTests += suite.tests.filter(t => t.status === 'passed').length;
+              analysis.summary.failedTests += suite.tests.filter(t => t.status === 'failed').length;
+            }
+          });
+          
+          // Compare with baseline
+          if (baseline.results) {
+            const threshold = parseFloat(process.env.PERFORMANCE_THRESHOLD || '10') / 100;
+            console.log(`🎯 Using performance threshold: ${threshold * 100}%`);
+            
+            // Compare key metrics (this is simplified - in reality you'd compare specific test metrics)
+            Object.keys(currentResults).forEach(suite => {
+              if (baseline.results[suite]) {
+                console.log(`🔍 Comparing ${suite} with baseline`);
+                // Add specific metric comparisons here
+              }
+            });
+          }
+          
+          // Update baseline
+          const newBaseline = {
+            timestamp: analysis.timestamp,
+            commit: analysis.commit,
+            branch: analysis.branch,
+            results: currentResults
+          };
+          
+          fs.writeFileSync(baselinePath, JSON.stringify(newBaseline, null, 2));
+          fs.writeFileSync('test-results/performance-analysis.json', JSON.stringify(analysis, null, 2));
+          
+          console.log('📈 Performance Analysis Complete');
+          console.log(`Total Tests: ${analysis.summary.totalTests}`);
+          console.log(`Passed: ${analysis.summary.passedTests}`);
+          console.log(`Failed: ${analysis.summary.failedTests}`);
+          
+          // Exit with error if there are test failures
+          if (analysis.summary.failedTests > 0) {
+            console.error(`❌ ${analysis.summary.failedTests} performance tests failed`);
+            process.exit(1);
+          }
+          
+          console.log('✅ All performance tests passed');
+          EOF
+          
+          node analyze-performance.js
+
+      - name: Generate performance report
+        run: |
+          cat > generate-report.js << 'EOF'
+          const fs = require('fs');
+          
+          if (!fs.existsSync('test-results/performance-analysis.json')) {
+            console.log('No analysis results found');
+            process.exit(0);
+          }
+          
+          const analysis = JSON.parse(fs.readFileSync('test-results/performance-analysis.json', 'utf8'));
+          
+          let report = `# Performance Test Report
+          
+          **Branch:** ${analysis.branch}
+          **Commit:** ${analysis.commit}
+          **Timestamp:** ${analysis.timestamp}
+          
+          ## Summary
+          - **Total Tests:** ${analysis.summary.totalTests}
+          - **Passed:** ${analysis.summary.passedTests}
+          - **Failed:** ${analysis.summary.failedTests}
+          
+          ## Test Suites
+          `;
+          
+          Object.keys(analysis.results).forEach(suite => {
+            const data = analysis.results[suite];
+            report += `
+          ### ${suite.charAt(0).toUpperCase() + suite.slice(1)} Suite
+          - **Status:** ${data.tests && data.tests.length > 0 ? '✅ Completed' : '❌ No Results'}
+          - **Tests:** ${data.tests ? data.tests.length : 0}
+          `;
+          });
+          
+          if (analysis.regressions.length > 0) {
+            report += `
+          ## Performance Regressions ⚠️
+          `;
+            analysis.regressions.forEach(reg => {
+              report += `- ${reg.metric}: ${reg.change}% regression\n`;
+            });
+          }
+          
+          if (analysis.improvements.length > 0) {
+            report += `
+          ## Performance Improvements 🚀
+          `;
+            analysis.improvements.forEach(imp => {
+              report += `- ${imp.metric}: ${imp.change}% improvement\n`;
+            });
+          }
+          
+          fs.writeFileSync('test-results/performance-report.md', report);
+          console.log('📄 Performance report generated');
+          EOF
+          
+          node generate-report.js
+
+      - name: Comment PR with performance results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            if (!fs.existsSync('test-results/performance-report.md')) {
+              console.log('No performance report found');
+              return;
+            }
+            
+            const report = fs.readFileSync('test-results/performance-report.md', 'utf8');
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            });
+
+      - name: Upload performance analysis
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-analysis
+          path: |
+            test-results/performance-analysis.json
+            test-results/performance-report.md
+            test-results/performance-baseline.json
+          retention-days: 90
+
+      - name: Update performance badge
+        if: github.ref == 'refs/heads/main'
+        run: |
+          mkdir -p .github/badges
+          
+          if [[ -f "test-results/performance-analysis.json" ]]; then
+            FAILED_TESTS=$(node -e "
+              const analysis = JSON.parse(require('fs').readFileSync('test-results/performance-analysis.json', 'utf8'));
+              console.log(analysis.summary.failedTests);
+            ")
+            
+            if [[ "$FAILED_TESTS" == "0" ]]; then
+              echo '{"schemaVersion": 1, "label": "performance", "message": "passing", "color": "green"}' > .github/badges/performance.json
+            else
+              echo '{"schemaVersion": 1, "label": "performance", "message": "failing", "color": "red"}' > .github/badges/performance.json
+            fi
+          fi
+
+      - name: Commit performance baseline
+        if: github.ref == 'refs/heads/main' && github.event_name == 'schedule'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add test-results/performance-baseline.json .github/badges/performance.json
+          git diff --staged --quiet || git commit -m "chore: update performance baseline [skip ci]"
+          git push

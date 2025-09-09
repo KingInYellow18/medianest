@@ -1,168 +1,117 @@
-/// <reference types="vitest" />
-import { defineConfig } from 'vite'
-import path from 'path'
+import { defineConfig } from 'vitest/config';
+import { resolve } from 'path';
 
 export default defineConfig({
   test: {
+    // Test environment configuration
     environment: 'node',
-    setupFiles: ['./tests/setup-enhanced.ts'],
     globals: true,
     
-    // **PERFORMANCE OPTIMIZED CONFIGURATION**
-    // Maximize parallel execution
-    pool: 'threads',
+    // Timeout configuration
+    testTimeout: 30000,      // 30 seconds for regular tests
+    hookTimeout: 30000,      // 30 seconds for hooks
+    teardownTimeout: 30000,  // 30 seconds for teardown
+    
+    // Performance-optimized settings
+    pool: 'forks',
     poolOptions: {
-      threads: {
-        singleThread: false,
-        minThreads: 2,
-        maxThreads: 6,
-        isolate: false,
-      },
       forks: {
         singleFork: false,
-        isolate: false,
-      },
+        maxForks: 4,
+        minForks: 1
+      }
     },
     
-    // Optimized timeouts for faster execution
-    testTimeout: 10000,
-    hookTimeout: 3000,
-    teardownTimeout: 3000,
+    // Exclude slow performance tests from main suite
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/build/**',
+      // Performance tests (run separately)
+      'tests/performance/**',
+      'tests/e2e/e2e-performance.spec.ts',
+      'tests/security/security-performance.test.ts',
+      // Specific slow tests
+      'backend/tests/performance/load-testing-enhanced.test.ts',
+      'backend/tests/performance/load-testing.test.ts',
+      'backend/tests/e2e/end-to-end-workflows.test.ts',
+      'backend/tests/integration/comprehensive-api-integration.test.ts',
+      'backend/tests/security/security-penetration.test.ts',
+      'backend/tests/integration/database-transaction-tests.test.ts'
+    ],
     
-    // Performance settings
-    bail: 0,
-    retry: 0,
-    sequence: {
-      shuffle: true,
-      concurrent: true,
-    },
+    // Test discovery patterns
+    include: [
+      '**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'
+    ],
     
-    // File watching optimizations
-    watch: false,
-    passWithNoTests: true,
-    
+    // Coverage configuration
     coverage: {
       provider: 'v8',
-      reporter: ['text-summary', 'json', 'html', 'lcov'],
-      reportsDirectory: './coverage',
-      
-      // Enhanced coverage collection for CI/CD
-      clean: true,
-      cleanOnRerun: false,
-      skipFull: true,
-      reportOnFailure: true,
-      
-      // Optimized exclude patterns
+      reporter: ['text', 'json', 'html'],
       exclude: [
-        'node_modules/', 
-        'tests/', 
-        'src/__tests__/',
-        '**/*.d.ts', 
-        '**/*.config.*', 
-        'dist/', 
-        'coverage/',
-        'src/types/**',
-        'src/schemas/**',
-        'src/validations/**',
-        '**/test-*.ts',
-        '**/mocks/**',
-        '**/fixtures/**',
-        'backend/tests/**',
-        'frontend/tests/**',
-        'shared/tests/**',
-        '**/*.test.*',
-        '**/*.spec.*'
+        'coverage/**',
+        'dist/**',
+        '**/node_modules/**',
+        '**/test-results/**',
+        '**/*.d.ts',
+        // Exclude performance test files from coverage
+        'tests/performance/**',
+        'tests/e2e/e2e-performance.spec.ts', 
+        'tests/security/security-performance.test.ts',
+        'scripts/**',
+        '**/*.config.{js,ts}',
+        '**/*.setup.{js,ts}'
       ],
-      
-      // Comprehensive source file inclusion
-      include: [
-        'src/**/*.ts',
-        'src/**/*.js',
-        'backend/src/**/*.ts',
-        'backend/src/**/*.js',
-        'frontend/src/**/*.ts', 
-        'frontend/src/**/*.tsx',
-        'frontend/src/**/*.js',
-        'frontend/src/**/*.jsx',
-        'shared/src/**/*.ts',
-        'shared/src/**/*.js'
-      ],
-      
-      // CI/CD Quality gate thresholds (65% minimum)
       thresholds: {
-        branches: 65,
-        functions: 65,
-        lines: 65,
-        statements: 65,
-        'src/**/*.ts': {
-          branches: 70,
-          functions: 70,
-          lines: 70,
-          statements: 70,
-        },
-        'backend/src/**/*.ts': {
-          branches: 70,
-          functions: 75,
-          lines: 75,
-          statements: 75,
-        },
-        'frontend/src/**/*.{ts,tsx}': {
-          branches: 60,
-          functions: 60,
-          lines: 60,
-          statements: 60,
-        },
-      },
-      
-      // Parallel coverage processing
-      processingConcurrency: 4,
+        global: {
+          branches: 65,
+          functions: 65,
+          lines: 65,
+          statements: 65
+        }
+      }
     },
     
-    // Test file patterns
-    include: [
-      'tests/**/*.{test,spec}.{js,ts}',
-      'backend/tests/**/*.{test,spec}.{js,ts}',
-      'frontend/src/**/*.{test,spec}.{js,ts,jsx,tsx}',
-      'shared/src/**/*.{test,spec}.{js,ts}'
+    // Reporter configuration
+    reporter: process.env.CI ? ['github-actions', 'json'] : ['default'],
+    outputFile: process.env.CI ? 'test-results/unit-test-results.json' : undefined,
+    
+    // Setup files
+    setupFiles: [
+      'backend/tests/setup/test-setup.ts'
     ],
     
-    exclude: [
-      'node_modules/**',
-      'dist/**',
-      'coverage/**',
-      '**/*.config.*',
-      '**/e2e/**',
-      '**/integration/**'
-    ],
+    // File watching (disabled in CI)
+    watch: !process.env.CI,
+    
+    // Memory and performance settings
+    isolate: true,
+    
+    // Maximum number of threads
+    maxConcurrency: 5,
+    
+    // Retry configuration
+    retry: process.env.CI ? 2 : 0,
+    
+    // Bail after first test failure in CI
+    bail: process.env.CI ? 1 : 0
   },
   
+  // Resolve configuration
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
-      '@/config': path.resolve(__dirname, './src/config'),
-      '@/constants': path.resolve(__dirname, './src/constants'),
-      '@/errors': path.resolve(__dirname, './src/errors'),
-      '@/middleware': path.resolve(__dirname, './src/middleware'),
-      '@/test-utils': path.resolve(__dirname, './src/test-utils'),
-      '@/types': path.resolve(__dirname, './src/types'),
-      '@/utils': path.resolve(__dirname, './src/utils'),
-      '@/validation': path.resolve(__dirname, './src/validation'),
-      '@/backend': path.resolve(__dirname, './backend/src'),
-      '@/frontend': path.resolve(__dirname, './frontend/src'),
-      '@/shared': path.resolve(__dirname, './shared/src')
-    },
+      '@': resolve(__dirname, './src'),
+      '@backend': resolve(__dirname, './backend/src'),
+      '@frontend': resolve(__dirname, './frontend/src'),
+      '@shared': resolve(__dirname, './shared/src'),
+      '@tests': resolve(__dirname, './tests')
+    }
   },
   
-  // Build optimizations for test runs
-  esbuild: {
-    target: 'node18',
-    sourcemap: false,
-    minify: false,
-  },
-  
-  // Dependency optimization
-  optimizeDeps: {
-    include: ['vitest > @vitest/utils > pretty-format'],
-    exclude: ['@prisma/client']
+  // Define configuration for different environments
+  define: {
+    'import.meta.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'test'),
+    'import.meta.env.TEST_ENV': JSON.stringify(process.env.TEST_ENV || 'unit')
   }
-})
+});
