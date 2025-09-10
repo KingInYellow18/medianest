@@ -135,15 +135,24 @@ export function setupAuthServiceMocks() {
       return null;
     }),
     
-    validateToken: vi.fn().mockImplementation((token) => {
-      if (!token) {
-        throw new Error('Token required');
+    validateToken: vi.fn().mockImplementation((req, context) => {
+      const authHeader = req.headers?.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        throw new Error('Authentication required');
       }
+      
+      const token = authHeader.substring(7);
+      if (token === 'invalid-token') {
+        throw new Error('Invalid token');
+      }
+      
       return {
         token,
         payload: createDefaultPayload(),
         metadata: {
           tokenId: 'test-token-id',
+          userId: 'user-123',
+          sessionId: 'test-session-id',
           issuedAt: new Date(),
           expiresAt: new Date(Date.now() + 900000),
         },
@@ -153,8 +162,18 @@ export function setupAuthServiceMocks() {
 
   // Mock user validator
   const mockUserValidator = {
-    validateUser: vi.fn().mockResolvedValue(createMockUser()),
-    validateUserOptional: vi.fn().mockResolvedValue(createMockUser()),
+    validateUser: vi.fn().mockImplementation((userId, userRepository, context) => {
+      const user = createMockUser({ id: userId });
+      if (user.status !== 'active') {
+        const error = new Error('User account is not active');
+        error.name = 'AuthenticationError';
+        throw error;
+      }
+      return Promise.resolve(user);
+    }),
+    validateUserOptional: vi.fn().mockImplementation((userId, userRepository) => {
+      return Promise.resolve(createMockUser({ id: userId }));
+    }),
   };
 
   // Mock device session manager
@@ -187,12 +206,28 @@ export function setupAuthServiceMocks() {
       mockJWTUtils.isTokenBlacklisted.mockReturnValue(false);
       mockJWTUtils.shouldRotateToken.mockReturnValue(false);
       
-      mockTokenValidator.extractToken.mockImplementation((req) => {
-        const auth = req.headers?.authorization;
-        if (auth && auth.startsWith('Bearer ')) {
-          return auth.substring(7);
+      mockTokenValidator.validateToken.mockImplementation((req, context) => {
+        const authHeader = req.headers?.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+          throw new Error('Authentication required');
         }
-        throw new Error('Authorization header missing');
+        
+        const token = authHeader.substring(7);
+        if (token === 'invalid-token') {
+          throw new Error('Invalid token');
+        }
+        
+        return {
+          token,
+          payload: createDefaultPayload(),
+          metadata: {
+            tokenId: 'test-token-id',
+            userId: 'user-123',
+            sessionId: 'test-session-id',
+            issuedAt: new Date(),
+            expiresAt: new Date(Date.now() + 900000),
+          },
+        };
       });
       
       mockUserValidator.validateUser.mockResolvedValue(createMockUser());

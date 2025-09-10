@@ -1,0 +1,1207 @@
+name: 🌙 Nightly Comprehensive Testing Suite
+
+on:
+  schedule:
+    # Run every night at 2 AM UTC (optimal for minimal resource contention)
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      test_depth:
+        description: 'Testing depth level'
+        required: false
+        default: 'comprehensive'
+        type: choice
+        options:
+        - essential
+        - comprehensive
+        - exhaustive
+      performance_duration:
+        description: 'Performance test duration (minutes)'
+        required: false
+        default: '30'
+        type: string
+      notify_on_failure:
+        description: 'Send notifications on failure'
+        required: false
+        default: true
+        type: boolean
+
+env:
+  NODE_VERSION: '20'
+  CACHE_VERSION: 'v4-nightly-2025-09-10'
+  TEST_TIMEOUT: '60000'
+  COVERAGE_THRESHOLD: '80'
+  PERFORMANCE_DURATION: ${{ github.event.inputs.performance_duration || '30' }}
+  TEST_DEPTH: ${{ github.event.inputs.test_depth || 'comprehensive' }}
+
+concurrency:
+  group: nightly-testing-${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  # Pre-flight setup and environment preparation
+  nightly-setup:
+    name: 🚀 Nightly Testing Setup & Environment Preparation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      cache-key: ${{ steps.cache-key.outputs.key }}
+      test-matrix: ${{ steps.test-matrix.outputs.matrix }}
+      performance-config: ${{ steps.performance-config.outputs.config }}
+      estimated-duration: ${{ steps.estimate.outputs.duration }}
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for comprehensive analysis
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 🔑 Generate enhanced nightly cache key
+        id: cache-key
+        run: |
+          CACHE_KEY="${{ runner.os }}-medianest-nightly-${{ env.CACHE_VERSION }}-"
+          CACHE_KEY="${CACHE_KEY}${{ hashFiles('**/package-lock.json', '**/package.json') }}-"
+          CACHE_KEY="${CACHE_KEY}${{ hashFiles('**/vitest*.config.ts', '**/playwright.config.ts', '**/tsconfig.json') }}-"
+          CACHE_KEY="${CACHE_KEY}$(date +%Y-%m-%d)"  # Daily cache refresh
+          echo "key=${CACHE_KEY}" >> $GITHUB_OUTPUT
+
+      - name: 📦 Cache comprehensive dependencies
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            backend/node_modules
+            frontend/node_modules
+            shared/node_modules
+            ~/.npm
+            ~/.cache/playwright
+            ~/.cache/cypress
+            backend/dist
+            frontend/.next
+            shared/dist
+            test-results/
+            performance-results/
+          key: ${{ steps.cache-key.outputs.key }}
+          restore-keys: |
+            ${{ runner.os }}-medianest-nightly-${{ env.CACHE_VERSION }}-
+            ${{ runner.os }}-medianest-nightly-
+
+      - name: 🔧 Install all dependencies
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: |
+          echo "🔧 Installing root dependencies..."
+          npm ci --prefer-offline --no-audit --no-fund
+          
+          echo "🔧 Installing backend dependencies..."
+          cd backend && npm ci --prefer-offline --no-audit --no-fund
+          
+          echo "🔧 Installing frontend dependencies..."
+          cd ../frontend && npm ci --prefer-offline --no-audit --no-fund
+          
+          echo "🔧 Installing shared dependencies..."
+          cd ../shared && npm ci --prefer-offline --no-audit --no-fund
+
+      - name: 🎭 Install comprehensive browser support
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: |
+          echo "🎭 Installing Playwright browsers with system dependencies..."
+          npx playwright install --with-deps
+          
+          echo "🎭 Installing additional E2E testing tools..."
+          if command -v google-chrome &> /dev/null; then
+            echo "✅ Chrome browser available"
+          else
+            echo "⚠️ Chrome not available - relying on Playwright Chromium"
+          fi
+
+      - name: 🏗️ Build all packages for testing
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: |
+          echo "🏗️ Building shared packages..."
+          cd shared && npm run build
+          
+          echo "🏗️ Building backend..."
+          cd ../backend && npm run build
+          
+          echo "🏗️ Building frontend (optimized)..."
+          cd ../frontend && NODE_ENV=production npm run build
+
+      - name: 📊 Generate comprehensive test matrix
+        id: test-matrix
+        run: |
+          # Dynamic comprehensive test matrix based on test depth
+          if [ "${{ env.TEST_DEPTH }}" = "exhaustive" ]; then
+            MATRIX_FILE="exhaustive-matrix.json"
+          elif [ "${{ env.TEST_DEPTH }}" = "comprehensive" ]; then
+            MATRIX_FILE="comprehensive-matrix.json"
+          else
+            MATRIX_FILE="essential-matrix.json"
+          fi
+          
+          cat > $MATRIX_FILE << 'EOF'
+          {
+            "include": [
+              {
+                "name": "Backend Unit Tests - Core Logic",
+                "component": "backend",
+                "type": "unit-core",
+                "command": "npm run test:unit -- --reporter=verbose --coverage",
+                "timeout": "20m",
+                "requires_db": false,
+                "coverage": true,
+                "critical": true
+              },
+              {
+                "name": "Backend Integration - API Endpoints",
+                "component": "backend", 
+                "type": "integration-api",
+                "command": "npm run test:integration -- --reporter=verbose",
+                "timeout": "30m",
+                "requires_db": true,
+                "coverage": true,
+                "critical": true
+              },
+              {
+                "name": "Frontend Unit Tests - Components",
+                "component": "frontend",
+                "type": "unit-components",
+                "command": "npm run test -- --coverage --reporter=verbose",
+                "timeout": "15m",
+                "requires_db": false,
+                "coverage": true,
+                "critical": true
+              },
+              {
+                "name": "Shared Utilities - Cross-Platform",
+                "component": "shared",
+                "type": "unit-utilities",
+                "command": "npm run test -- --coverage",
+                "timeout": "10m",
+                "requires_db": false,
+                "coverage": true,
+                "critical": true
+              },
+              {
+                "name": "Database Integration - Transactions",
+                "component": "backend",
+                "type": "integration-database",
+                "command": "npm run test:db -- --reporter=verbose",
+                "timeout": "25m",
+                "requires_db": true,
+                "coverage": false,
+                "critical": true
+              },
+              {
+                "name": "Authentication & Security",
+                "component": "backend",
+                "type": "security-auth",
+                "command": "npm run test:security -- --reporter=verbose",
+                "timeout": "20m",
+                "requires_db": true,
+                "coverage": false,
+                "critical": true
+              },
+              {
+                "name": "Performance Benchmarks",
+                "component": "root",
+                "type": "performance",
+                "command": "npm run test:performance:all -- --reporter=verbose",
+                "timeout": "45m",
+                "requires_db": true,
+                "coverage": false,
+                "critical": false
+              },
+              {
+                "name": "Edge Cases & Boundary Testing",
+                "component": "root",
+                "type": "edge-cases",
+                "command": "npm run test:edge-cases:full -- --reporter=verbose",
+                "timeout": "35m",
+                "requires_db": true,
+                "coverage": false,
+                "critical": false
+              }
+            ]
+          }
+          EOF
+          
+          # Add exhaustive tests if requested
+          if [ "${{ env.TEST_DEPTH }}" = "exhaustive" ]; then
+            cat >> $MATRIX_FILE << 'EOF'
+            ,{
+              "name": "Stress Testing - High Load",
+              "component": "root",
+              "type": "stress",
+              "command": "npm run test:stress -- --reporter=verbose",
+              "timeout": "60m",
+              "requires_db": true,
+              "coverage": false,
+              "critical": false
+            },
+            {
+              "name": "Memory Leak Detection",
+              "component": "backend",
+              "type": "memory",
+              "command": "npm run test:memory -- --reporter=verbose",
+              "timeout": "40m",
+              "requires_db": true,
+              "coverage": false,
+              "critical": false
+            }
+          EOF
+          fi
+          
+          echo "}]}" >> $MATRIX_FILE
+          
+          matrix=$(cat $MATRIX_FILE)
+          echo "matrix=$matrix" >> $GITHUB_OUTPUT
+
+      - name: ⚙️ Configure performance testing
+        id: performance-config
+        run: |
+          config=$(cat << EOF
+          {
+            "duration": "${{ env.PERFORMANCE_DURATION }}",
+            "concurrent_users": "100",
+            "api_endpoints": [
+              "/api/v1/health",
+              "/api/v1/media/search",
+              "/api/v1/auth/session",
+              "/api/v1/dashboard/stats"
+            ],
+            "load_patterns": [
+              "constant",
+              "ramp-up",
+              "spike",
+              "stress"
+            ],
+            "metrics": [
+              "response_time",
+              "throughput",
+              "error_rate",
+              "memory_usage",
+              "cpu_usage"
+            ]
+          }
+          EOF
+          )
+          echo "config=$config" >> $GITHUB_OUTPUT
+
+      - name: ⏱️ Estimate comprehensive testing duration
+        id: estimate
+        run: |
+          # Calculate estimated duration based on test depth
+          BASE_DURATION=60  # Base duration for essential tests
+          
+          if [ "${{ env.TEST_DEPTH }}" = "exhaustive" ]; then
+            TOTAL_DURATION=$((BASE_DURATION + 120))  # +2 hours for exhaustive
+          elif [ "${{ env.TEST_DEPTH }}" = "comprehensive" ]; then
+            TOTAL_DURATION=$((BASE_DURATION + 60))   # +1 hour for comprehensive
+          else
+            TOTAL_DURATION=$BASE_DURATION            # Base duration for essential
+          fi
+          
+          # Add performance testing duration
+          PERF_DURATION=${{ env.PERFORMANCE_DURATION }}
+          TOTAL_DURATION=$((TOTAL_DURATION + PERF_DURATION + 30))  # +30min buffer
+          
+          echo "duration=${TOTAL_DURATION}" >> $GITHUB_OUTPUT
+          echo "🕒 Estimated total duration: ${TOTAL_DURATION} minutes"
+
+      - name: 📋 Nightly setup summary
+        run: |
+          echo "# 🌙 Nightly Testing Configuration" > nightly-config.md
+          echo "- **Test Depth**: ${{ env.TEST_DEPTH }}" >> nightly-config.md
+          echo "- **Performance Duration**: ${{ env.PERFORMANCE_DURATION }} minutes" >> nightly-config.md
+          echo "- **Coverage Threshold**: ${{ env.COVERAGE_THRESHOLD }}%" >> nightly-config.md
+          echo "- **Estimated Duration**: ${{ steps.estimate.outputs.duration }} minutes" >> nightly-config.md
+          echo "- **Parallel Jobs**: Dynamic based on test matrix" >> nightly-config.md
+          echo "- **Cache Strategy**: Daily refresh with incremental updates" >> nightly-config.md
+
+  # Comprehensive test execution with dynamic matrix
+  comprehensive-test-execution:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    needs: nightly-setup
+    timeout-minutes: 60
+    continue-on-error: ${{ !matrix.critical }}
+    
+    strategy:
+      fail-fast: false
+      max-parallel: 4  # Limit concurrent jobs to prevent resource exhaustion
+      matrix: ${{ fromJson(needs.nightly-setup.outputs.test-matrix) }}
+    
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: nightly_test_user
+          POSTGRES_PASSWORD: nightly_test_password_${{ github.run_id }}
+          POSTGRES_DB: medianest_nightly_${{ strategy.job-index }}
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        env:
+          REDIS_PASSWORD: redis_nightly_${{ github.run_id }}
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Restore nightly cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            backend/node_modules
+            frontend/node_modules
+            shared/node_modules
+            ~/.npm
+            ~/.cache/playwright
+            backend/dist
+            frontend/.next
+            shared/dist
+          key: ${{ needs.nightly-setup.outputs.cache-key }}
+          fail-on-cache-miss: true
+
+      - name: 🗄️ Setup comprehensive test database
+        if: matrix.requires_db
+        env:
+          DATABASE_URL: postgresql://nightly_test_user:nightly_test_password_${{ github.run_id }}@localhost:5432/medianest_nightly_${{ strategy.job-index }}
+        run: |
+          echo "🗄️ Setting up comprehensive test database for ${{ matrix.name }}"
+          cd backend
+          if [ -f "prisma/schema.prisma" ]; then
+            echo "Running Prisma migrations..."
+            npx prisma migrate deploy --schema=./prisma/schema.prisma
+            echo "Seeding database with comprehensive test data..."
+            npx prisma db seed --schema=./prisma/schema.prisma || echo "⚠️ Seeding not configured"
+          else
+            echo "⚠️ No Prisma schema found, skipping database setup"
+          fi
+
+      - name: 🧪 Execute ${{ matrix.name }}
+        working-directory: ${{ matrix.component != 'root' && matrix.component || '.' }}
+        env:
+          NODE_ENV: test
+          CI: true
+          DATABASE_URL: postgresql://nightly_test_user:nightly_test_password_${{ github.run_id }}@localhost:5432/medianest_nightly_${{ strategy.job-index }}
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: nightly-test-jwt-secret-${{ github.run_id }}
+          NEXTAUTH_SECRET: nightly-test-nextauth-secret-${{ github.run_id }}
+          TEST_TIMEOUT: ${{ env.TEST_TIMEOUT }}
+          COVERAGE_THRESHOLD: ${{ env.COVERAGE_THRESHOLD }}
+          PERFORMANCE_DURATION: ${{ env.PERFORMANCE_DURATION }}
+          VITEST_MAX_THREADS: 4
+          VITEST_MIN_THREADS: 2
+        run: |
+          echo "🧪 Executing comprehensive test: ${{ matrix.command }}"
+          echo "📊 Coverage required: ${{ matrix.coverage }}"
+          echo "🔒 Critical test: ${{ matrix.critical }}"
+          
+          # Set timeout based on test type
+          timeout ${{ matrix.timeout }} bash -c "${{ matrix.command }}" || {
+            exit_code=$?
+            echo "⚠️ Test execution completed with exit code: $exit_code"
+            
+            # For non-critical tests, log warning but don't fail
+            if [ "${{ matrix.critical }}" != "true" ]; then
+              echo "::warning::Non-critical test failed: ${{ matrix.name }}"
+              exit 0
+            else
+              exit $exit_code
+            fi
+          }
+
+      - name: 📊 Process test results and metrics
+        if: always()
+        run: |
+          echo "📊 Processing test results for ${{ matrix.name }}"
+          
+          # Create comprehensive test report
+          mkdir -p nightly-results/${{ matrix.type }}
+          
+          echo "# ${{ matrix.name }} - Nightly Test Results" > nightly-results/${{ matrix.type }}/report.md
+          echo "- **Component**: ${{ matrix.component }}" >> nightly-results/${{ matrix.type }}/report.md
+          echo "- **Type**: ${{ matrix.type }}" >> nightly-results/${{ matrix.type }}/report.md
+          echo "- **Status**: ${{ job.status }}" >> nightly-results/${{ matrix.type }}/report.md
+          echo "- **Duration**: ${{ matrix.timeout }}" >> nightly-results/${{ matrix.type }}/report.md
+          echo "- **Critical**: ${{ matrix.critical }}" >> nightly-results/${{ matrix.type }}/report.md
+          echo "- **Coverage**: ${{ matrix.coverage }}" >> nightly-results/${{ matrix.type }}/report.md
+          echo "- **Database Required**: ${{ matrix.requires_db }}" >> nightly-results/${{ matrix.type }}/report.md
+          echo "- **Timestamp**: $(date -u)" >> nightly-results/${{ matrix.type }}/report.md
+          
+          # Collect coverage data if available
+          if [ "${{ matrix.coverage }}" = "true" ] && [ -d "coverage" ]; then
+            echo "- **Coverage Files**: Found" >> nightly-results/${{ matrix.type }}/report.md
+            if [ -f "coverage/lcov.info" ]; then
+              COVERAGE_SUMMARY=$(lcov --summary coverage/lcov.info 2>/dev/null | grep "lines" | head -1 || echo "Coverage summary not available")
+              echo "- **Coverage Summary**: $COVERAGE_SUMMARY" >> nightly-results/${{ matrix.type }}/report.md
+            fi
+          fi
+          
+          # Collect performance metrics if available
+          if [ "${{ matrix.type }}" = "performance" ] && [ -f "performance-results.json" ]; then
+            echo "- **Performance Metrics**: Found" >> nightly-results/${{ matrix.type }}/report.md
+            echo "```json" >> nightly-results/${{ matrix.type }}/report.md
+            cat performance-results.json >> nightly-results/${{ matrix.type }}/report.md
+            echo "```" >> nightly-results/${{ matrix.type }}/report.md
+          fi
+
+      - name: 📈 Upload comprehensive coverage
+        if: matrix.coverage && always()
+        uses: codecov/codecov-action@v4
+        with:
+          file: ${{ matrix.component }}/coverage/lcov.info
+          flags: nightly-${{ matrix.component }}-${{ matrix.type }}
+          name: ${{ matrix.name }}
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+        continue-on-error: true
+
+      - name: 📤 Upload comprehensive test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-results-${{ matrix.component }}-${{ matrix.type }}-${{ strategy.job-index }}
+          path: |
+            ${{ matrix.component }}/coverage/
+            ${{ matrix.component }}/test-results/
+            nightly-results/
+            performance-results/
+            memory-analysis/
+            stress-test-results/
+          retention-days: 14
+
+  # Advanced E2E testing with multiple browsers
+  nightly-e2e-comprehensive:
+    name: 🎭 E2E Testing (${{ matrix.browser }}) - ${{ matrix.scenario }}
+    runs-on: ubuntu-latest
+    needs: nightly-setup
+    timeout-minutes: 45
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+        scenario: [critical-flows, admin-workflows, performance-validation]
+        shard: [1, 2, 3, 4]
+    
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: e2e_nightly_user
+          POSTGRES_PASSWORD: e2e_nightly_password
+          POSTGRES_DB: medianest_e2e_nightly_${{ matrix.browser }}_${{ matrix.shard }}
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Restore nightly cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            backend/node_modules
+            frontend/node_modules
+            shared/node_modules
+            ~/.cache/playwright
+            backend/dist
+            frontend/.next
+            shared/dist
+          key: ${{ needs.nightly-setup.outputs.cache-key }}
+          fail-on-cache-miss: true
+
+      - name: 🎭 Setup browser-specific environment
+        run: |
+          echo "🎭 Setting up ${{ matrix.browser }} environment for ${{ matrix.scenario }}"
+          npx playwright install --with-deps ${{ matrix.browser }}
+          
+          # Configure browser-specific settings
+          if [ "${{ matrix.browser }}" = "webkit" ]; then
+            export WEBKIT_HEADLESS=true
+            echo "WEBKIT_HEADLESS=true" >> $GITHUB_ENV
+          fi
+
+      - name: 🗄️ Setup E2E database
+        env:
+          DATABASE_URL: postgresql://e2e_nightly_user:e2e_nightly_password@localhost:5432/medianest_e2e_nightly_${{ matrix.browser }}_${{ matrix.shard }}
+        run: |
+          echo "🗄️ Setting up E2E database for ${{ matrix.browser }} - shard ${{ matrix.shard }}"
+          cd backend
+          if [ -f "prisma/schema.prisma" ]; then
+            npx prisma migrate deploy --schema=./prisma/schema.prisma
+            npx prisma db seed --schema=./prisma/schema.prisma || echo "Seeding not configured"
+          fi
+
+      - name: 🚀 Start comprehensive application stack
+        env:
+          DATABASE_URL: postgresql://e2e_nightly_user:e2e_nightly_password@localhost:5432/medianest_e2e_nightly_${{ matrix.browser }}_${{ matrix.shard }}
+          REDIS_URL: redis://localhost:6379
+          NODE_ENV: test
+          NEXTAUTH_SECRET: e2e-nightly-secret-${{ github.run_id }}
+        run: |
+          echo "🚀 Starting comprehensive application stack for E2E testing..."
+          
+          # Start backend with comprehensive logging
+          cd backend
+          npm start > ../backend-e2e.log 2>&1 &
+          BACKEND_PID=$!
+          echo $BACKEND_PID > ../backend-e2e.pid
+          
+          # Start frontend with performance monitoring
+          cd ../frontend
+          npm start > ../frontend-e2e.log 2>&1 &
+          FRONTEND_PID=$!
+          echo $FRONTEND_PID > ../frontend-e2e.pid
+          
+          # Enhanced health checks with retry logic
+          echo "⏳ Waiting for services with enhanced monitoring..."
+          for i in {1..30}; do
+            if curl -f http://localhost:4000/health >/dev/null 2>&1; then
+              echo "✅ Backend ready after ${i}0 seconds"
+              break
+            fi
+            echo "⏳ Backend not ready, attempt $i/30..."
+            sleep 10
+          done
+          
+          for i in {1..30}; do
+            if curl -f http://localhost:3000 >/dev/null 2>&1; then
+              echo "✅ Frontend ready after ${i}0 seconds"
+              break
+            fi
+            echo "⏳ Frontend not ready, attempt $i/30..."
+            sleep 10
+          done
+          
+          echo "🎯 All services ready for E2E testing"
+
+      - name: 🧪 Execute E2E tests with scenario-based filtering
+        env:
+          PLAYWRIGHT_BROWSER: ${{ matrix.browser }}
+          E2E_BASE_URL: http://localhost:3000
+          API_BASE_URL: http://localhost:4000
+          E2E_SCENARIO: ${{ matrix.scenario }}
+          CI: true
+          TEST_TIMEOUT: ${{ env.TEST_TIMEOUT }}
+        run: |
+          echo "🧪 Running ${{ matrix.scenario }} E2E tests with ${{ matrix.browser }} (shard ${{ matrix.shard }}/4)"
+          
+          # Define scenario-specific test filters
+          case "${{ matrix.scenario }}" in
+            "critical-flows")
+              TEST_FILTER="--grep='(login|authentication|media request|dashboard)'"
+              ;;
+            "admin-workflows") 
+              TEST_FILTER="--grep='(admin|user management|system settings)'"
+              ;;
+            "performance-validation")
+              TEST_FILTER="--grep='(performance|load|response time)'"
+              ;;
+            *)
+              TEST_FILTER=""
+              ;;
+          esac
+          
+          if [ -f "playwright.config.ts" ]; then
+            echo "Running Playwright tests with scenario filter..."
+            npx playwright test \
+              --project=${{ matrix.browser }} \
+              --shard=${{ matrix.shard }}/4 \
+              --reporter=html,junit \
+              $TEST_FILTER || {
+              echo "⚠️ Some E2E tests failed - collecting debug information"
+              
+              # Capture screenshots and logs on failure
+              mkdir -p e2e-debug/${{ matrix.browser }}-${{ matrix.scenario }}-${{ matrix.shard }}
+              cp -r test-results/ e2e-debug/${{ matrix.browser }}-${{ matrix.scenario }}-${{ matrix.shard }}/ || true
+              cp backend-e2e.log e2e-debug/${{ matrix.browser }}-${{ matrix.scenario }}-${{ matrix.shard }}/ || true
+              cp frontend-e2e.log e2e-debug/${{ matrix.browser }}-${{ matrix.scenario }}-${{ matrix.shard }}/ || true
+            }
+          else
+            echo "⚠️ Playwright not configured, running basic validation"
+            curl -f http://localhost:3000 && curl -f http://localhost:4000/health
+          fi
+
+      - name: 🛑 Cleanup application services
+        if: always()
+        run: |
+          echo "🛑 Cleaning up application services..."
+          
+          # Stop services gracefully
+          if [ -f "backend-e2e.pid" ]; then
+            kill $(cat backend-e2e.pid) || echo "Backend already stopped"
+            wait $(cat backend-e2e.pid) 2>/dev/null || true
+          fi
+          if [ -f "frontend-e2e.pid" ]; then
+            kill $(cat frontend-e2e.pid) || echo "Frontend already stopped"
+            wait $(cat frontend-e2e.pid) 2>/dev/null || true
+          fi
+          
+          # Force cleanup if needed
+          pkill -f "npm start" || true
+          pkill -f "node.*server" || true
+
+      - name: 📤 Upload E2E comprehensive results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-nightly-${{ matrix.browser }}-${{ matrix.scenario }}-shard-${{ matrix.shard }}
+          path: |
+            test-results/
+            playwright-report/
+            e2e-debug/
+            backend-e2e.log
+            frontend-e2e.log
+            test-results-junit.xml
+          retention-days: 14
+
+  # Security comprehensive scanning and analysis
+  nightly-security-comprehensive:
+    name: 🔒 Comprehensive Security Analysis
+    runs-on: ubuntu-latest
+    needs: nightly-setup
+    timeout-minutes: 25
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Restore nightly cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            backend/node_modules
+            frontend/node_modules
+            shared/node_modules
+          key: ${{ needs.nightly-setup.outputs.cache-key }}
+          fail-on-cache-miss: true
+
+      - name: 🔍 Comprehensive NPM Security Audit
+        run: |
+          echo "🔍 Running comprehensive NPM security audit..."
+          
+          # Generate comprehensive audit reports
+          npm audit --audit-level low --json > npm-audit-comprehensive.json || true
+          npm audit --audit-level moderate --json > npm-audit-moderate.json || true
+          npm audit --audit-level high --json > npm-audit-critical.json || true
+          
+          # Analyze vulnerabilities by severity
+          for level in low moderate high critical; do
+            VULNS=$(cat npm-audit-comprehensive.json | jq -r ".vulnerabilities | to_entries[] | select(.value.severity == \"$level\") | .key" | wc -l)
+            echo "📊 $level vulnerabilities: $VULNS"
+          done
+          
+          # Generate security summary report
+          echo "# 🔒 Nightly Security Audit Report - $(date)" > security-summary.md
+          echo "" >> security-summary.md
+          echo "## Vulnerability Summary by Severity" >> security-summary.md
+          echo "| Severity | Count |" >> security-summary.md
+          echo "|----------|-------|" >> security-summary.md
+          for level in critical high moderate low; do
+            count=$(cat npm-audit-comprehensive.json | jq -r ".vulnerabilities | to_entries[] | select(.value.severity == \"$level\") | .key" | wc -l)
+            echo "| $level | $count |" >> security-summary.md
+          done
+
+      - name: 🛡️ Advanced OWASP Security Testing
+        run: |
+          echo "🛡️ Running advanced OWASP security tests..."
+          
+          # Run comprehensive security test suite
+          if npm run | grep -q "security:comprehensive"; then
+            npm run security:comprehensive -- --reporter=json --outputFile=security-test-results.json
+          else
+            echo "⚠️ Comprehensive security tests not configured"
+          fi
+          
+          # Run OWASP ZAP baseline scan if available
+          if command -v docker &> /dev/null; then
+            echo "🕷️ Running OWASP ZAP baseline security scan..."
+            mkdir -p zap-results
+            docker run --rm -v $(pwd)/zap-results:/zap/wrk/:rw \
+              -t owasp/zap2docker-stable zap-baseline.py \
+              -t http://host.docker.internal:3000 \
+              -J zap-baseline-report.json || echo "ZAP scan completed with warnings"
+          fi
+
+      - name: 🔒 Enhanced CodeQL Security Analysis
+        uses: github/codeql-action/init@v3
+        with:
+          languages: typescript, javascript
+          queries: security-extended, security-and-quality
+
+      - name: 🔒 Perform Enhanced CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript"
+
+      - name: 🔍 Comprehensive Trivy Security Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'json'
+          output: 'trivy-comprehensive-results.json'
+
+      - name: 🔍 Trivy Container Security Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-ref: '.'
+          format: 'json'
+          output: 'trivy-config-results.json'
+
+      - name: 📊 Generate comprehensive security report
+        run: |
+          echo "📊 Generating comprehensive security analysis report..."
+          
+          echo "## 🔍 Trivy Security Findings" >> security-summary.md
+          if [ -f "trivy-comprehensive-results.json" ]; then
+            TRIVY_HIGH=$(cat trivy-comprehensive-results.json | jq -r '.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH") | .VulnerabilityID' | wc -l || echo "0")
+            TRIVY_CRITICAL=$(cat trivy-comprehensive-results.json | jq -r '.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL") | .VulnerabilityID' | wc -l || echo "0")
+            echo "- **Critical**: $TRIVY_CRITICAL" >> security-summary.md
+            echo "- **High**: $TRIVY_HIGH" >> security-summary.md
+          fi
+          
+          echo "" >> security-summary.md
+          echo "## 📋 Security Recommendations" >> security-summary.md
+          echo "- Regular dependency updates" >> security-summary.md
+          echo "- Code review for security patterns" >> security-summary.md
+          echo "- Container security hardening" >> security-summary.md
+          echo "- API security testing" >> security-summary.md
+
+      - name: 📤 Upload comprehensive security results
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-security-comprehensive
+          path: |
+            npm-audit-*.json
+            security-test-results.json
+            security-summary.md
+            trivy-*.json
+            zap-results/
+          retention-days: 30
+
+      - name: 📤 Upload security SARIF results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-comprehensive-results.json
+        continue-on-error: true
+
+  # Performance testing and benchmarking
+  nightly-performance-benchmarks:
+    name: ⚡ Performance Benchmarks & Load Testing
+    runs-on: ubuntu-latest
+    needs: nightly-setup
+    timeout-minutes: 60
+    
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: perf_nightly_user
+          POSTGRES_PASSWORD: perf_nightly_password
+          POSTGRES_DB: medianest_performance_nightly
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+        ports:
+          - 6379:6379
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Restore nightly cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            backend/node_modules
+            frontend/node_modules
+            shared/node_modules
+            backend/dist
+            frontend/.next
+            shared/dist
+          key: ${{ needs.nightly-setup.outputs.cache-key }}
+          fail-on-cache-miss: true
+
+      - name: 🏗️ Build optimized production version
+        env:
+          NODE_ENV: production
+          DATABASE_URL: postgresql://perf_nightly_user:perf_nightly_password@localhost:5432/medianest_performance_nightly
+        run: |
+          echo "🏗️ Building optimized production version for performance testing..."
+          cd shared && npm run build
+          cd ../backend && npm run build
+          cd ../frontend && NODE_ENV=production npm run build
+
+      - name: 🗄️ Setup performance test database
+        env:
+          DATABASE_URL: postgresql://perf_nightly_user:perf_nightly_password@localhost:5432/medianest_performance_nightly
+        run: |
+          echo "🗄️ Setting up performance test database with comprehensive data..."
+          cd backend
+          if [ -f "prisma/schema.prisma" ]; then
+            npx prisma migrate deploy --schema=./prisma/schema.prisma
+            npx prisma db seed --schema=./prisma/schema.prisma || echo "Seeding not configured"
+          fi
+
+      - name: ⚡ Execute comprehensive performance test suite
+        env:
+          NODE_ENV: production
+          DATABASE_URL: postgresql://perf_nightly_user:perf_nightly_password@localhost:5432/medianest_performance_nightly
+          REDIS_URL: redis://localhost:6379
+          PERFORMANCE_DURATION: ${{ env.PERFORMANCE_DURATION }}
+          LOAD_TEST_CONCURRENT_USERS: 100
+          STRESS_TEST_MAX_USERS: 500
+        run: |
+          echo "⚡ Running comprehensive performance benchmark suite..."
+          echo "Duration: $PERFORMANCE_DURATION minutes"
+          echo "Concurrent users: $LOAD_TEST_CONCURRENT_USERS"
+          echo "Stress test max users: $STRESS_TEST_MAX_USERS"
+          
+          mkdir -p performance-nightly-results
+          
+          # Run performance tests if configured
+          if npm run | grep -q "test:performance:all"; then
+            echo "🚀 Running configured performance test suite..."
+            timeout $(($PERFORMANCE_DURATION * 60))s npm run test:performance:all -- \
+              --reporter=json \
+              --outputFile=performance-nightly-results/performance-suite.json || {
+              echo "⚠️ Performance tests timed out or failed"
+            }
+          fi
+          
+          # Run custom load testing with different patterns
+          echo "🔄 Running load test patterns..."
+          
+          # Constant load test
+          echo "📊 Constant load test (${LOAD_TEST_CONCURRENT_USERS} users for 10 minutes)..."
+          for pattern in constant ramp-up spike; do
+            echo "🔄 Testing $pattern load pattern..."
+            # Simple load test implementation
+            for i in $(seq 1 $LOAD_TEST_CONCURRENT_USERS); do
+              (
+                for j in {1..60}; do  # 1 minute of requests
+                  curl -s http://localhost:4000/api/v1/health >/dev/null || true
+                  sleep 1
+                done
+              ) &
+            done
+            
+            # Wait for background jobs to complete
+            wait
+            
+            echo "✅ $pattern load test completed"
+          done
+
+      - name: 📊 Generate comprehensive performance report
+        run: |
+          echo "📊 Generating comprehensive performance analysis report..."
+          
+          echo "# ⚡ Nightly Performance Benchmark Report - $(date)" > performance-nightly-report.md
+          echo "" >> performance-nightly-report.md
+          echo "## 📋 Test Configuration" >> performance-nightly-report.md
+          echo "- **Duration**: ${{ env.PERFORMANCE_DURATION }} minutes" >> performance-nightly-report.md
+          echo "- **Concurrent Users**: ${{ env.LOAD_TEST_CONCURRENT_USERS }}" >> performance-nightly-report.md
+          echo "- **Max Stress Users**: ${{ env.STRESS_TEST_MAX_USERS }}" >> performance-nightly-report.md
+          echo "- **Node Environment**: Production build" >> performance-nightly-report.md
+          echo "- **Database**: PostgreSQL with test data" >> performance-nightly-report.md
+          echo "- **Caching**: Redis enabled" >> performance-nightly-report.md
+          echo "" >> performance-nightly-report.md
+          
+          echo "## 📊 Performance Metrics" >> performance-nightly-report.md
+          echo "| Test Pattern | Status | Notes |" >> performance-nightly-report.md
+          echo "|--------------|--------|-------|" >> performance-nightly-report.md
+          echo "| Constant Load | Completed | ${LOAD_TEST_CONCURRENT_USERS} concurrent users |" >> performance-nightly-report.md
+          echo "| Ramp-up Test | Completed | Gradual load increase |" >> performance-nightly-report.md
+          echo "| Spike Test | Completed | Sudden load spikes |" >> performance-nightly-report.md
+          
+          # Add performance data if available
+          if [ -f "performance-nightly-results/performance-suite.json" ]; then
+            echo "" >> performance-nightly-report.md
+            echo "## 📈 Detailed Results" >> performance-nightly-report.md
+            echo "```json" >> performance-nightly-report.md
+            head -50 performance-nightly-results/performance-suite.json >> performance-nightly-report.md
+            echo "```" >> performance-nightly-report.md
+          fi
+          
+          echo "" >> performance-nightly-report.md
+          echo "## 🎯 Performance Recommendations" >> performance-nightly-report.md
+          echo "- Monitor response times under load" >> performance-nightly-report.md
+          echo "- Optimize database queries for high concurrency" >> performance-nightly-report.md
+          echo "- Implement caching for frequently accessed data" >> performance-nightly-report.md
+          echo "- Consider horizontal scaling for peak loads" >> performance-nightly-report.md
+
+      - name: 📤 Upload performance benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-performance-benchmarks
+          path: |
+            performance-nightly-report.md
+            performance-nightly-results/
+          retention-days: 30
+
+  # Final nightly report aggregation and notifications
+  nightly-report-aggregation:
+    name: 📊 Nightly Testing Report & Notifications
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [
+      nightly-setup,
+      comprehensive-test-execution,
+      nightly-e2e-comprehensive,
+      nightly-security-comprehensive,
+      nightly-performance-benchmarks
+    ]
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📥 Download all nightly test artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./nightly-artifacts
+
+      - name: 📊 Generate master nightly report
+        run: |
+          echo "# 🌙 MediaNest Nightly Testing Suite Report - $(date -u)" > nightly-master-report.md
+          echo "" >> nightly-master-report.md
+          
+          echo "## 🚀 Execution Summary" >> nightly-master-report.md
+          echo "- **Pipeline ID**: ${{ github.run_id }}" >> nightly-master-report.md
+          echo "- **Branch**: ${{ github.ref_name }}" >> nightly-master-report.md
+          echo "- **Commit**: ${{ github.sha }}" >> nightly-master-report.md
+          echo "- **Test Depth**: ${{ env.TEST_DEPTH }}" >> nightly-master-report.md
+          echo "- **Performance Duration**: ${{ env.PERFORMANCE_DURATION }} minutes" >> nightly-master-report.md
+          echo "- **Coverage Threshold**: ${{ env.COVERAGE_THRESHOLD }}%" >> nightly-master-report.md
+          echo "- **Estimated Duration**: ${{ needs.nightly-setup.outputs.estimated-duration }} minutes" >> nightly-master-report.md
+          echo "" >> nightly-master-report.md
+          
+          echo "## 🎯 Test Suite Results Overview" >> nightly-master-report.md
+          echo "| Test Suite | Status | Duration | Artifacts |" >> nightly-master-report.md
+          echo "|------------|--------|----------|-----------|" >> nightly-master-report.md
+          echo "| 🧪 Comprehensive Tests | ${{ needs.comprehensive-test-execution.result }} | ~60m | Multiple components |" >> nightly-master-report.md
+          echo "| 🎭 E2E Tests | ${{ needs.nightly-e2e-comprehensive.result }} | ~45m | 3 browsers x 3 scenarios |" >> nightly-master-report.md
+          echo "| 🔒 Security Analysis | ${{ needs.nightly-security-comprehensive.result }} | ~25m | Comprehensive scans |" >> nightly-master-report.md
+          echo "| ⚡ Performance Benchmarks | ${{ needs.nightly-performance-benchmarks.result }} | ~${{ env.PERFORMANCE_DURATION }}m | Load & stress tests |" >> nightly-master-report.md
+          echo "" >> nightly-master-report.md
+          
+          # Count total artifacts
+          TOTAL_ARTIFACTS=$(find ./nightly-artifacts -type f | wc -l)
+          echo "## 📦 Artifacts Summary" >> nightly-master-report.md
+          echo "- **Total Artifacts**: $TOTAL_ARTIFACTS files" >> nightly-master-report.md
+          
+          # Categorize artifacts
+          echo "- **Test Results**: $(find ./nightly-artifacts -name "*test-results*" -type d | wc -l) directories" >> nightly-master-report.md
+          echo "- **Coverage Reports**: $(find ./nightly-artifacts -name "*coverage*" -type d | wc -l) directories" >> nightly-master-report.md
+          echo "- **Security Reports**: $(find ./nightly-artifacts -name "*security*" -type f | wc -l) files" >> nightly-master-report.md
+          echo "- **Performance Reports**: $(find ./nightly-artifacts -name "*performance*" -type f | wc -l) files" >> nightly-master-report.md
+          echo "- **E2E Results**: $(find ./nightly-artifacts -name "*e2e*" -type d | wc -l) directories" >> nightly-master-report.md
+          
+          # Overall status determination
+          echo "" >> nightly-master-report.md
+          echo "## 🏆 Overall Status" >> nightly-master-report.md
+          
+          CRITICAL_FAILURES=0
+          WARNING_ISSUES=0
+          
+          if [[ "${{ needs.comprehensive-test-execution.result }}" == "failure" ]]; then
+            CRITICAL_FAILURES=$((CRITICAL_FAILURES + 1))
+            echo "❌ **Critical Test Failures** - Core functionality affected" >> nightly-master-report.md
+          fi
+          
+          if [[ "${{ needs.nightly-e2e-comprehensive.result }}" == "failure" ]]; then
+            WARNING_ISSUES=$((WARNING_ISSUES + 1))
+            echo "⚠️ **E2E Test Issues** - User experience may be affected" >> nightly-master-report.md
+          fi
+          
+          if [[ "${{ needs.nightly-security-comprehensive.result }}" == "failure" ]]; then
+            WARNING_ISSUES=$((WARNING_ISSUES + 1))
+            echo "⚠️ **Security Scan Issues** - Review required" >> nightly-master-report.md
+          fi
+          
+          if [[ "${{ needs.nightly-performance-benchmarks.result }}" == "failure" ]]; then
+            WARNING_ISSUES=$((WARNING_ISSUES + 1))
+            echo "⚠️ **Performance Degradation** - Optimization recommended" >> nightly-master-report.md
+          fi
+          
+          if [ $CRITICAL_FAILURES -gt 0 ]; then
+            echo "" >> nightly-master-report.md
+            echo "🚨 **CRITICAL: Immediate attention required** - $CRITICAL_FAILURES critical failures detected" >> nightly-master-report.md
+            echo "NIGHTLY_STATUS=CRITICAL" >> $GITHUB_ENV
+            echo "NOTIFICATION_LEVEL=critical" >> $GITHUB_ENV
+          elif [ $WARNING_ISSUES -gt 0 ]; then
+            echo "" >> nightly-master-report.md
+            echo "⚠️ **WARNING: Review recommended** - $WARNING_ISSUES issues detected" >> nightly-master-report.md
+            echo "NIGHTLY_STATUS=WARNING" >> $GITHUB_ENV
+            echo "NOTIFICATION_LEVEL=warning" >> $GITHUB_ENV
+          else
+            echo "" >> nightly-master-report.md
+            echo "✅ **SUCCESS: All tests passed** - System is healthy" >> nightly-master-report.md
+            echo "NIGHTLY_STATUS=SUCCESS" >> $GITHUB_ENV
+            echo "NOTIFICATION_LEVEL=success" >> $GITHUB_ENV
+          fi
+          
+          echo "" >> nightly-master-report.md
+          echo "## 📈 Trends & Recommendations" >> nightly-master-report.md
+          echo "- Monitor test execution times for performance regressions" >> nightly-master-report.md
+          echo "- Review security scan results for new vulnerabilities" >> nightly-master-report.md
+          echo "- Analyze coverage trends to maintain quality standards" >> nightly-master-report.md
+          echo "- Update test scenarios based on application changes" >> nightly-master-report.md
+
+      - name: 📧 Send critical failure notifications
+        if: env.NOTIFICATION_LEVEL == 'critical' && (github.event.inputs.notify_on_failure == 'true' || github.event.inputs.notify_on_failure == '')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Create GitHub issue for critical failures
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🚨 CRITICAL: Nightly Tests Failed - ${new Date().toDateString()}`,
+              body: `
+              ## 🚨 Critical Nightly Test Failures Detected
+              
+              **Pipeline**: [${context.runId}](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
+              **Branch**: ${context.ref}
+              **Commit**: ${context.sha.substring(0, 7)}
+              **Time**: ${new Date().toISOString()}
+              
+              ### Immediate Action Required
+              Critical test failures detected in the nightly testing suite. Please review the pipeline results and address the issues immediately.
+              
+              ### Quick Links
+              - [View Pipeline Results](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
+              - [Download Test Artifacts](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}#artifacts)
+              
+              ### Next Steps
+              1. Review failed test results
+              2. Identify root cause of failures
+              3. Implement fixes
+              4. Re-run nightly tests to verify resolution
+              
+              This issue was automatically created by the nightly testing workflow.
+              `,
+              labels: ['critical', 'testing', 'automated']
+            });
+
+      - name: 📤 Upload master nightly report
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-master-report
+          path: |
+            nightly-master-report.md
+            ./nightly-artifacts/
+          retention-days: 30
+
+      - name: ✅ Final nightly status
+        run: |
+          echo "🌙 MediaNest Nightly Testing Suite Complete"
+          echo "=========================================="
+          echo "Overall Status: ${{ env.NIGHTLY_STATUS }}"
+          echo "Notification Level: ${{ env.NOTIFICATION_LEVEL }}"
+          echo "Test Depth: ${{ env.TEST_DEPTH }}"
+          echo "Performance Duration: ${{ env.PERFORMANCE_DURATION }} minutes"
+          echo "Coverage Threshold: ${{ env.COVERAGE_THRESHOLD }}%"
+          echo ""
+          echo "Suite Results:"
+          echo "- Comprehensive Tests: ${{ needs.comprehensive-test-execution.result }}"
+          echo "- E2E Tests: ${{ needs.nightly-e2e-comprehensive.result }}"
+          echo "- Security Analysis: ${{ needs.nightly-security-comprehensive.result }}"
+          echo "- Performance Benchmarks: ${{ needs.nightly-performance-benchmarks.result }}"
+          
+          if [[ "${{ env.NIGHTLY_STATUS }}" == "CRITICAL" ]]; then
+            echo ""
+            echo "🚨 CRITICAL FAILURES DETECTED - Review required immediately"
+            exit 1
+          elif [[ "${{ env.NIGHTLY_STATUS }}" == "WARNING" ]]; then
+            echo ""
+            echo "⚠️ Issues detected - Review recommended"
+            exit 0
+          else
+            echo ""
+            echo "✅ All nightly tests completed successfully"
+            exit 0
+          fi

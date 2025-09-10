@@ -5,7 +5,7 @@ import { logger } from '@/utils/logger';
 import { AppError } from '@medianest/shared';
 import { CatchError } from '../types/common';
 
-class AdminController {
+export class AdminController {
   /**
    * Get all users with pagination, filtering, and sorting
    */

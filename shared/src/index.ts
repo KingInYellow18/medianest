@@ -3,6 +3,9 @@
 // Export shared utilities first (no conflicts)
 export * from './utils';
 
+// Handle generateId conflict by explicitly re-exporting
+export { generateId as utilsGenerateId } from './utils';
+
 // Export shared constants (no conflicts)
 export * from './constants';
 
@@ -78,3 +81,7 @@ export {
   createRequestId,
   createSessionId,
 } from './types/context7-shared';
+
+// Export test utilities conditionally (available but not built by default)
+// TODO: Fix test-utils type issues and re-enable
+// export * from './test-utils';

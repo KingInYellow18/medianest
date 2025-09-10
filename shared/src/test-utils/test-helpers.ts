@@ -111,7 +111,7 @@ export function createTestContext(): TestContext & {
   const cleanupFns: (() => void)[] = [];
 
   return {
-    cleanup: cleanupFns,
+    cleanupFns: cleanupFns,
     addCleanup: (fn: () => void) => {
       cleanupFns.push(fn);
     },

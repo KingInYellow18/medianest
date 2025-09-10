@@ -148,6 +148,17 @@ export class CacheService {
       memoryUsage,
     };
   }
+
+  /**
+   * Clear all cache entries
+   */
+  async clear(): Promise<void> {
+    await safeAsyncTry(
+      () => redisClient.flushall(),
+      undefined,
+      'Cache clear error'
+    );
+  }
 }
 
 export const cacheService = new CacheService();
