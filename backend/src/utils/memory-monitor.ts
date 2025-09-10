@@ -5,6 +5,8 @@
  * and prevent DoS attacks through resource exhaustion
  */
 
+import { logger } from '../utils/logger';
+
 interface MemoryMetrics {
   heapUsed: number;
   heapTotal: number;
@@ -61,7 +63,8 @@ class MemoryMonitor {
       return; // Already monitoring
     }
 
-    console.log('🔍 Starting memory leak detection monitoring...');
+    // Use proper logger instead of console.log
+    logger.info('Memory leak detection monitoring started');
     
     this.monitoringInterval = setInterval(() => {
       this.collectMetrics();
@@ -79,7 +82,8 @@ class MemoryMonitor {
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = null;
-      console.log('🛑 Memory monitoring stopped');
+      // Use proper logger instead of console.log
+      logger.info('Memory monitoring stopped');
     }
   }
 
@@ -244,7 +248,8 @@ class MemoryMonitor {
    * Trigger memory alert
    */
   private triggerAlert(alert: MemoryAlert): void {
-    console.warn(`🚨 MEMORY ALERT [${alert.severity}]: ${alert.message}`, {
+    // Use proper logger instead of console.warn
+    logger.warn(`Memory alert [${alert.severity}]: ${alert.message}`, {
       type: alert.type,
       heapUsedMB: (alert.metrics.heapUsed / (1024 * 1024)).toFixed(2),
       heapTotalMB: (alert.metrics.heapTotal / (1024 * 1024)).toFixed(2),
@@ -257,7 +262,8 @@ class MemoryMonitor {
       try {
         callback(alert);
       } catch (error) {
-        console.error('Error in memory alert callback:', error);
+        // Use proper logger instead of console.error
+        logger.error('Error in memory alert callback:', error);
       }
     });
 
@@ -272,17 +278,20 @@ class MemoryMonitor {
    * Handle critical memory events in production
    */
   private handleCriticalMemoryEvent(alert: MemoryAlert): void {
-    console.error('🚨 CRITICAL MEMORY EVENT - Taking defensive actions');
+    // Use proper logger instead of console.error
+    logger.error('Critical memory event - taking defensive actions');
     
     // Force garbage collection if available
     if (global.gc) {
-      console.log('🧹 Forcing garbage collection...');
+      // Use proper logger instead of console.log
+      logger.info('Forcing garbage collection');
       global.gc();
     }
 
     // Log process memory status
     const memUsage = process.memoryUsage();
-    console.error('Process memory status:', {
+    // Use proper logger instead of console.error
+    logger.error('Process memory status:', {
       pid: process.pid,
       heapUsed: `${(memUsage.heapUsed / (1024 * 1024)).toFixed(2)}MB`,
       heapTotal: `${(memUsage.heapTotal / (1024 * 1024)).toFixed(2)}MB`,

@@ -41,7 +41,7 @@ cd frontend && npm run build
 
 ## Current Build Script Analysis
 
-The `build-stabilizer-fixed.sh` script follows correct patterns:
+The `build-stabilizer.sh` script follows correct patterns:
 
 1. ✅ Environment validation
 2. ✅ Dependency synchronization

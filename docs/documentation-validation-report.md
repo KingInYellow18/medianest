@@ -31,7 +31,7 @@ The MediaNest deployment documentation has undergone comprehensive validation ac
 | **docs/deployment/README.md** | ✅ COMPLETE | 95% | Deployment hub with clear navigation |
 | **docs/deployment/PREREQUISITES_CHECKLIST.md** | ✅ COMPLETE | 97% | Thorough system requirements with validation scripts |
 | **docs/deployment/TROUBLESHOOTING_GUIDE.md** | ✅ COMPLETE | 96% | Comprehensive issue diagnosis and solutions |
-| **docs/deployment/DEPLOYMENT_VALIDATION.md** | ✅ COMPLETE | 94% | Complete post-deployment validation procedures |
+| **docs/deployment/deployment-validation.md** | ✅ COMPLETE | 94% | Complete post-deployment validation procedures |
 | **docs/deployment/MERGE_TO_STAGING.md** | ✅ COMPLETE | 99% | Detailed staging merge procedures with safeguards |
 
 ### Supporting Infrastructure Documentation

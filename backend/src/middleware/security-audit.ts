@@ -108,28 +108,40 @@ class SecurityAuditLogger {
   }
 
   private logToConsole(event: SecurityEvent): void {
+    // Security fix: Replace console statements with proper logger
+    // Only log in development, never in production
+    if (process.env.NODE_ENV === 'production') {
+      return; // Never log security events to console in production
+    }
+
     const logMessage = `[SECURITY AUDIT] ${event.level.toUpperCase()} - ${event.category}:${
       event.event
     }`;
-    const logData = {
+    
+    // Sanitized log data - only include non-sensitive fields
+    const sanitizedLogData = {
       id: event.id,
       timestamp: event.timestamp,
-      userId: event.userId,
-      ipAddress: event.ipAddress,
+      userId: event.userId ? '[USER]' : undefined, // Mask user ID
+      ipAddress: event.ipAddress ? '[IP_MASKED]' : undefined, // Mask IP
       outcome: event.outcome,
-      details: event.details,
+      category: event.category,
+      action: event.action,
+      resource: event.resource
+      // Explicitly exclude details to prevent data leakage
     };
 
+    // Use proper logger instead of console statements
     switch (event.level) {
       case 'critical':
       case 'error':
-        console.error(logMessage, logData);
+        logger.error(logMessage, sanitizedLogData);
         break;
       case 'warn':
-        console.warn(logMessage, logData);
+        logger.warn(logMessage, sanitizedLogData);
         break;
       default:
-        console.log(logMessage, logData);
+        logger.info(logMessage, sanitizedLogData);
     }
   }
 

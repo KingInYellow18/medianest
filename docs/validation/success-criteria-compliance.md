@@ -54,7 +54,7 @@
 
 #### ✅ **3. Technical Architecture Roadmap**
 **Status**: COMPLIANT  
-**Evidence**: `/docs/architecture/ARCHITECTURE_EVOLUTION_ROADMAP.md`  
+**Evidence**: `/docs/architecture/architecture-evolution-roadmap.md`  
 **Quality Score**: B (82/100)  
 
 **Validation Details**:

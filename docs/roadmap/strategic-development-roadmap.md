@@ -14,7 +14,7 @@
 
 #### Critical Path Items
 1. **Build System Repair** (Week 1-2)
-   - Fix `build-stabilizer-fixed.sh` script execution failures
+   - Fix `build-stabilizer.sh` script execution failures
    - Resolve TypeScript compilation errors across backend/frontend/shared modules
    - Stabilize Vitest test runner configuration
    - **Success Criteria**: 100% build success rate, zero compilation errors
