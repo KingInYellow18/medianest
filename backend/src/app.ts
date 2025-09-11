@@ -1,3 +1,20 @@
+/**
+ * MediaNest Application Server - Main Express application setup
+ * 
+ * This module configures and initializes the complete MediaNest backend application including:
+ * - Express server with optimized middleware stack
+ * - Socket.IO server for real-time communication
+ * - Security headers and CORS configuration
+ * - Performance optimizations and compression
+ * - Request logging and error handling
+ * - API route mounting and 404 handling
+ * 
+ * @fileoverview Main application entry point with comprehensive middleware configuration
+ * @version 2.0.0
+ * @author MediaNest Team
+ * @since 1.0.0
+ */
+
 import { createServer } from 'http';
 
 import compression from 'compression';
@@ -19,13 +36,31 @@ import v1Router from './routes/v1';
 import { initSocketHandlers, setIO } from './socket/socket';
 import { logger } from './utils/logger';
 
-// Create Express app
+/**
+ * Express application instance
+ * @type {express.Application}
+ * @description Main Express app with all middleware and routes configured
+ */
 export const app = express();
 
-// Create HTTP server
+/**
+ * HTTP server instance
+ * @type {http.Server}
+ * @description HTTP server wrapping the Express app for Socket.IO integration
+ */
 export const httpServer = createServer(app);
 
-// Create Socket.IO server
+/**
+ * Socket.IO server instance
+ * @type {SocketIOServer}
+ * @description Real-time WebSocket server for live updates and notifications
+ * 
+ * Configuration:
+ * - CORS enabled for frontend domain
+ * - 60s ping timeout for connection stability
+ * - 25s ping interval for keepalive
+ * - Credentials support for authenticated connections
+ */
 export const io = new SocketIOServer(httpServer, {
   cors: {
     origin: env.FRONTEND_URL,
@@ -35,13 +70,23 @@ export const io = new SocketIOServer(httpServer, {
   pingInterval: 25000,
 });
 
-// Set Socket.IO instance globally
+/**
+ * Initialize Socket.IO global instance and event handlers
+ * @description Sets up Socket.IO for global access and initializes all event handlers
+ */
 setIO(io);
-
-// Initialize Socket.IO handlers
 initSocketHandlers(io);
 
-// Middleware
+/**
+ * CORS Configuration
+ * @description Cross-Origin Resource Sharing middleware for frontend communication
+ * 
+ * Features:
+ * - Restricts origin to configured frontend URL
+ * - Supports credentials for authenticated requests
+ * - Allows standard HTTP methods plus PATCH
+ * - Permits required headers for API and security
+ */
 app.use(
   cors({
     origin: env.FRONTEND_URL,
@@ -51,9 +96,31 @@ app.use(
   }),
 );
 
+/**
+ * Security Headers Middleware
+ * @description Helmet.js security middleware for setting various HTTP headers
+ * - X-Content-Type-Options: nosniff
+ * - X-Frame-Options: DENY
+ * - X-XSS-Protection: 1; mode=block
+ * - And many other security headers
+ */
 app.use(helmet());
 
-// Context7 Pattern: Enhanced compression with performance optimizations
+/**
+ * Enhanced Compression Middleware
+ * @description Context7 Pattern: Advanced compression with performance optimizations
+ * 
+ * Features:
+ * - Dynamic compression level based on environment
+ * - 1KB threshold to avoid compressing small responses
+ * - 16KB chunks for optimal streaming performance
+ * - Memory usage optimization with reduced window bits
+ * - RLE strategy optimized for JSON/text content
+ * - Smart filtering to skip images and pre-compressed content
+ * 
+ * @performance Production uses level 4 compression for CPU efficiency
+ * @performance Development uses level 6 for better compression ratio
+ */
 app.use(
   compression({
     level: process.env.NODE_ENV === 'production' ? 4 : 6, // Context7: Lower CPU in prod
@@ -77,7 +144,20 @@ app.use(
   }),
 );
 
-// Context7 Pattern: Optimized body parsing with security enhancements
+/**
+ * Enhanced JSON Body Parsing
+ * @description Context7 Pattern: Optimized body parsing with security enhancements
+ * 
+ * Security Features:
+ * - 1MB limit for DoS protection
+ * - Strict JSON parsing
+ * - Content-type validation
+ * - Early JSON format validation
+ * - Buffer inspection to prevent malformed payloads
+ * 
+ * @security Prevents large payload attacks
+ * @security Validates JSON format before parsing
+ */
 app.use(
   express.json({
     limit: '1mb', // Context7: Reduced limit for better performance and security
@@ -93,6 +173,18 @@ app.use(
   }),
 );
 
+/**
+ * URL-Encoded Body Parsing
+ * @description Context7 Pattern: Secure URL-encoded data parsing
+ * 
+ * Security Features:
+ * - Simple parsing (extended: false) for better security
+ * - 100KB limit for form data protection
+ * - 20 parameter limit to prevent parameter pollution attacks
+ * - Explicit content-type restriction
+ * 
+ * @security Prevents parameter pollution and large form attacks
+ */
 app.use(
   express.urlencoded({
     extended: false, // Context7: Use simple parsing for better security
@@ -102,10 +194,25 @@ app.use(
   }),
 );
 
-// Cookie parser for CSRF tokens
+/**
+ * Cookie Parser Middleware
+ * @description Parses cookies for CSRF token validation and session management
+ */
 app.use(cookieParser());
 
-// Context7 Pattern: Performance optimization middleware applied early
+/**
+ * Performance Optimization Middleware
+ * @description Context7 Pattern: Early performance optimizations and security headers
+ * 
+ * Features:
+ * - Efficient security headers for all responses
+ * - Keep-alive connection optimization
+ * - Early exit optimization for health check endpoints
+ * - Caching headers for health endpoints
+ * 
+ * @performance Keep-alive with 5s timeout and 1000 max requests
+ * @performance Pre-compiled health check paths for fast lookup
+ */
 app.use((req, res, next) => {
   // Context7 Pattern: Set efficient headers for all responses
   res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -122,10 +229,28 @@ app.use((req, res, next) => {
   next();
 });
 
-// Default request timeout (30 seconds)
+/**
+ * Request Timeout Middleware
+ * @description Default 30-second timeout for all requests to prevent hanging connections
+ * @timeout 30 seconds (medium preset)
+ */
 app.use(timeoutPresets.medium as express.RequestHandler);
 
-// Context7 Pattern: Enhanced logging middleware with performance optimizations
+/**
+ * Enhanced Request Logging Middleware
+ * @description Context7 Pattern: High-performance logging with optimizations
+ * 
+ * Features:
+ * - High-precision timing with process.hrtime.bigint()
+ * - Smart filtering to reduce noise from health checks
+ * - Structured logging with performance metrics
+ * - Slow request detection and warnings
+ * - User agent and IP tracking for security
+ * 
+ * @performance Pre-compiled health check paths for fast lookup
+ * @performance Skips detailed logging for health endpoints
+ * @performance Sub-millisecond timing precision
+ */
 if (env.NODE_ENV !== 'test') {
   // Context7 Pattern: Pre-compile health check paths for fast lookup
   const healthPaths = new Set(['/health', '/ping', '/status', '/metrics']);
@@ -166,12 +291,23 @@ if (env.NODE_ENV !== 'test') {
   });
 }
 
-// Health check endpoint moved to /api/v1/health
-
-// API routes
+/**
+ * API Routes Configuration
+ * @description Mounts all API v1 routes under /api/v1 prefix
+ * @note Health check endpoint is located at /api/v1/health
+ */
 app.use('/api/v1', v1Router);
 
-// 404 handler
+/**
+ * 404 Not Found Handler
+ * @description Handles all unmatched routes with structured error response
+ * 
+ * Response Format:
+ * - error: Human-readable error type
+ * - message: Specific error with method and path
+ * - path: Requested path for debugging
+ * - timestamp: ISO timestamp for tracking
+ */
 app.use((req, res) => {
   res.status(404).json({
     error: 'Not Found',
@@ -181,10 +317,24 @@ app.use((req, res) => {
   });
 });
 
-// Error handler (must be last)
+/**
+ * Global Error Handler
+ * @description Central error handling middleware (must be mounted last)
+ * @important This middleware must be the last middleware in the stack
+ */
 app.use(errorHandler as express.ErrorRequestHandler);
 
-// Export createApp function for tests
+/**
+ * Create Application Instance
+ * @function createApp
+ * @description Factory function for creating the Express app instance (primarily for testing)
+ * @returns {express.Application} Configured Express application
+ * 
+ * @example
+ * // In tests
+ * const testApp = createApp();
+ * const response = await request(testApp).get('/api/v1/health');
+ */
 export function createApp() {
   return app;
 }

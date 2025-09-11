@@ -219,6 +219,10 @@ app.use(correlationIdMiddleware);
 app.use(securityHeaders());
 app.use(requestLogger);
 
+// Apply Prometheus metrics middleware
+const { prometheusMiddleware } = require('./metrics/prometheus');
+app.use(prometheusMiddleware);
+
 // Health check endpoint
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -237,7 +241,7 @@ app.get('/metrics', async (req, res) => {
   }
 
   try {
-    const { register } = require('./middleware/metrics');
+    const { register } = require('./metrics/prometheus');
     res.set('Content-Type', register.contentType);
     const metrics = await register.metrics();
     res.end(metrics);

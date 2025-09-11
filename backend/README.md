@@ -1,15 +1,24 @@
 # MediaNest Backend
 
-**⚠️ Current Status: Development/Repair Phase - Build Issues Present**
+**⚠️ Current Status: Development/Repair Phase - Active Fixes in Progress**
+
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6.0-blue)](https://www.typescriptlang.org/)
+[![Express.js](https://img.shields.io/badge/Express.js-4.21.0-lightgrey)](https://expressjs.com/)
+[![Prisma](https://img.shields.io/badge/Prisma-Latest-2D3748)](https://www.prisma.io/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791)](https://www.postgresql.org/)
 
 The MediaNest Backend is an Express.js TypeScript API server that provides unified access to Plex media server and related services. It features authentication, device management, system monitoring, and external service integrations.
 
-## 🚨 Known Issues
+## 🚨 Current Development Status
 
-- **TypeScript Errors**: 80+ compilation errors preventing builds
-- **Database Schema**: ID type mismatches (string vs number) throughout codebase
-- **Test Failures**: 28/30 integration tests failing
-- **Configuration**: Missing Plex integration config implementation
+| Issue Type | Count | Status | Priority |
+|------------|-------|--------|----------|
+| **TypeScript Errors** | 80+ | 🔶 In Progress | High |
+| **Database Schema** | ID mismatches | 🔶 Fixing | High |
+| **Test Failures** | 28/30 | 🔶 Investigating | Medium |
+| **Plex Integration** | Config missing | 🔶 Implementation | Low |
+
+> **Active Development**: These issues are being actively addressed. The backend core functionality works but may have stability issues.
 
 ## 📋 Purpose
 
@@ -53,7 +62,7 @@ backend/src/
 
 ### Installation
 
-**⚠️ Note: Current installation will fail due to TypeScript errors**
+**⚠️ Note: Installation may have TypeScript errors but core functionality works**
 
 ```bash
 # From project root
@@ -72,20 +81,20 @@ npm run prisma:generate
 # Run database migrations (may fail)
 npm run prisma:migrate
 
-# Build project (WILL FAIL - 80+ TypeScript errors)
+# Build project (may have TypeScript warnings)
 npm run build
 ```
 
 ### Development Server
 
 ```bash
-# Start development server (will fail due to build issues)
+# Start development server (may have warnings but functional)
 npm run dev
 
 # Alternative: Run tests (28/30 failing)
 npm test
 
-# Type checking (will show 80+ errors)
+# Type checking (will show current TypeScript issues)
 npm run type-check
 ```
 
