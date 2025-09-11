@@ -111,7 +111,7 @@ export function createTestContext(): TestContext & {
   const cleanupFns: (() => void)[] = [];
 
   return {
-    cleanup: cleanupFns,
+    cleanupFns: cleanupFns,
     addCleanup: (fn: () => void) => {
       cleanupFns.push(fn);
     },
@@ -127,7 +127,7 @@ export function createTestContext(): TestContext & {
  */
 export async function expectToReject(
   promise: Promise<any>,
-  expectedError?: string | RegExp | Error,
+  expectedError?: string | RegExp | Error
 ): Promise<void> {
   try {
     await promise;

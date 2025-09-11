@@ -3,6 +3,9 @@
 // Export shared utilities first (no conflicts)
 export * from './utils';
 
+// Handle generateId conflict by explicitly re-exporting
+export { generateId as utilsGenerateId } from './utils';
+
 // Export shared constants (no conflicts)
 export * from './constants';
 
@@ -18,8 +21,8 @@ export * from './errors';
 // Export types last, with explicit re-exports to resolve conflicts
 export type {
   User,
-  ApiResponse,  // Now uses consolidated Context7 definition
-  LegacyApiResponse,  // For backward compatibility
+  ApiResponse, // Now uses consolidated Context7 definition
+  LegacyApiResponse, // For backward compatibility
   ApiError,
   // Re-export specific types from types module to avoid conflicts
   ServiceStatus,
@@ -78,3 +81,7 @@ export {
   createRequestId,
   createSessionId,
 } from './types/context7-shared';
+
+// Export test utilities conditionally (available but not built by default)
+// TODO: Fix test-utils type issues and re-enable
+// export * from './test-utils';

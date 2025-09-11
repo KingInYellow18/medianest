@@ -221,14 +221,19 @@ export class UserRepository extends BaseRepository<User> {
 
   async updatePassword(id: string, newPasswordHash: string): Promise<User> {
     try {
-      // TODO: Implement password storage once schema migration is complete
-      // For now, logging the password hash for debugging purposes
-      logger.debug(`Updating password for user ${id}`, { hasPasswordHash: !!newPasswordHash });
-      
+      // CRITICAL: Password hash storage not implemented - schema needs password field
+      // This method currently only clears the password change requirement
+      // TODO: Add password field to User schema and implement proper password storage
+      logger.warn(`Password update attempted for user ${id} but storage not implemented`, {
+        hasPasswordHash: !!newPasswordHash,
+        issue: 'USER_SCHEMA_MISSING_PASSWORD_FIELD',
+      });
+
       return await this.prisma.user.update({
         where: { id },
         data: {
           requiresPasswordChange: false,
+          // TODO: Add when schema updated: password: newPasswordHash
         },
       });
     } catch (error: CatchError) {
@@ -272,10 +277,14 @@ export class UserRepository extends BaseRepository<User> {
     }
   }
 
-  async findRecent(options: { limit?: number; orderBy?: any } = {}): Promise<Pick<User, 'id' | 'email' | 'name' | 'plexUsername' | 'role' | 'createdAt' | 'lastLoginAt'>[]> {
+  async findRecent(
+    options: { limit?: number; orderBy?: any } = {}
+  ): Promise<
+    Pick<User, 'id' | 'email' | 'name' | 'plexUsername' | 'role' | 'createdAt' | 'lastLoginAt'>[]
+  > {
     try {
       const limit = options.limit || 10;
-      
+
       const users = await this.prisma.user.findMany({
         take: limit,
         orderBy: options.orderBy || { createdAt: 'desc' },

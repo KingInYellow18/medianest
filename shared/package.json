@@ -26,6 +26,11 @@
       "require": "./dist/config/index.js",
       "import": "./dist/config/index.js"
     },
+    "./config/utils": {
+      "types": "./dist/config/utils.d.ts",
+      "require": "./dist/config/utils.js",
+      "import": "./dist/config/utils.js"
+    },
     "./utils": {
       "types": "./dist/utils/index.d.ts",
       "require": "./dist/utils/index.js",

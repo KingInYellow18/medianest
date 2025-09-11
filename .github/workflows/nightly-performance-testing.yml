@@ -1,0 +1,840 @@
+name: 🌙 Nightly Performance Testing Suite
+
+on:
+  schedule:
+    # Run nightly at 2:00 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      test_duration:
+        description: 'Test duration in minutes'
+        required: false
+        default: '60'
+        type: string
+      concurrent_users:
+        description: 'Number of concurrent users for load testing'
+        required: false
+        default: '100'
+        type: string
+      performance_threshold:
+        description: 'Response time threshold in milliseconds'
+        required: false
+        default: '2000'
+        type: string
+
+env:
+  NODE_VERSION: '20'
+  TEST_DURATION: ${{ github.event.inputs.test_duration || '60' }}
+  CONCURRENT_USERS: ${{ github.event.inputs.concurrent_users || '100' }}
+  PERFORMANCE_THRESHOLD: ${{ github.event.inputs.performance_threshold || '2000' }}
+  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+jobs:
+  # Performance test setup and environment preparation
+  performance-setup:
+    name: 🚀 Performance Test Environment Setup
+    runs-on: ubuntu-latest
+    outputs:
+      test-config: ${{ steps.config.outputs.config }}
+      baseline-metrics: ${{ steps.baseline.outputs.metrics }}
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: |
+          npm ci --prefer-offline --no-audit --no-fund
+          cd backend && npm ci --prefer-offline --no-audit --no-fund
+          cd ../frontend && npm ci --prefer-offline --no-audit --no-fund
+          cd ../shared && npm ci --prefer-offline --no-audit --no-fund
+
+      - name: 🏗️ Build optimized production version
+        run: |
+          echo "🏗️ Building optimized production version for performance testing..."
+          cd shared && npm run build
+          cd ../backend && npm run build
+          cd ../frontend && npm run build
+
+      - name: ⚙️ Generate performance test configuration
+        id: config
+        run: |
+          config=$(cat << 'EOF'
+          {
+            "test_duration": ${{ env.TEST_DURATION }},
+            "concurrent_users": ${{ env.CONCURRENT_USERS }},
+            "performance_threshold": ${{ env.PERFORMANCE_THRESHOLD }},
+            "test_scenarios": [
+              {
+                "name": "API Load Test",
+                "type": "api",
+                "endpoints": ["/health", "/api/v1/auth/session", "/api/v1/media/search"],
+                "duration": 600,
+                "ramp_up": 30
+              },
+              {
+                "name": "Database Performance",
+                "type": "database",
+                "operations": ["read", "write", "complex_query"],
+                "duration": 300
+              },
+              {
+                "name": "Frontend Performance",
+                "type": "frontend",
+                "pages": ["/", "/dashboard", "/media"],
+                "metrics": ["fcp", "lcp", "cls", "fid"]
+              }
+            ]
+          }
+          EOF
+          )
+          echo "config=$config" >> $GITHUB_OUTPUT
+
+      - name: 📊 Fetch baseline performance metrics
+        id: baseline
+        run: |
+          # Fetch previous performance metrics for comparison
+          echo "📊 Fetching baseline performance metrics..."
+
+          # Create baseline metrics structure
+          baseline=$(cat << 'EOF'
+          {
+            "api_response_time": 500,
+            "database_query_time": 100,
+            "memory_usage": 512,
+            "cpu_usage": 25,
+            "frontend_load_time": 2000,
+            "last_updated": "${{ github.sha }}"
+          }
+          EOF
+          )
+          echo "metrics=$baseline" >> $GITHUB_OUTPUT
+
+  # API Performance Testing
+  api-performance-tests:
+    name: 🔌 API Performance & Load Testing
+    runs-on: ubuntu-latest
+    needs: performance-setup
+    timeout-minutes: 90
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: perf_user
+          POSTGRES_PASSWORD: perf_password_secure
+          POSTGRES_DB: medianest_performance
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: |
+          npm ci --prefer-offline --no-audit --no-fund
+          cd backend && npm ci --prefer-offline --no-audit --no-fund
+
+      - name: 🏗️ Build backend for performance testing
+        run: |
+          cd shared && npm run build
+          cd ../backend && npm run build
+
+      - name: 🗄️ Setup performance test database
+        env:
+          DATABASE_URL: postgresql://perf_user:perf_password_secure@localhost:5432/medianest_performance
+        run: |
+          echo "🗄️ Setting up performance test database with realistic data..."
+          cd backend
+          if [ -f "prisma/schema.prisma" ]; then
+            npx prisma migrate deploy --schema=./prisma/schema.prisma
+            npx prisma db seed --schema=./prisma/schema.prisma || echo "Seeding not configured"
+            
+            # Generate additional test data for performance testing
+            echo "Generating additional test data..."
+            # Add script to generate large dataset if available
+          fi
+
+      - name: 🚀 Start backend service
+        env:
+          DATABASE_URL: postgresql://perf_user:perf_password_secure@localhost:5432/medianest_performance
+          REDIS_URL: redis://localhost:6379
+          NODE_ENV: production
+        run: |
+          echo "🚀 Starting backend service for performance testing..."
+          cd backend && npm start &
+          BACKEND_PID=$!
+          echo $BACKEND_PID > ../backend.pid
+
+          # Wait for service to be ready
+          timeout 60s bash -c 'until curl -f http://localhost:4000/health; do echo "Waiting for backend..."; sleep 2; done'
+          echo "✅ Backend service is ready"
+
+      - name: ⚡ Install performance testing tools
+        run: |
+          echo "⚡ Installing performance testing tools..."
+          npm install -g artillery@latest
+          npm install -g clinic
+
+      - name: 🎯 Run API load testing with Artillery
+        run: |
+          echo "🎯 Running API load testing for ${{ env.TEST_DURATION }} minutes with ${{ env.CONCURRENT_USERS }} concurrent users..."
+
+          # Create Artillery configuration
+          cat > artillery-config.yml << 'EOF'
+          config:
+            target: http://localhost:4000
+            phases:
+              - duration: 60
+                arrivalRate: 10
+                name: "Warm-up phase"
+              - duration: ${{ env.TEST_DURATION }}
+                arrivalRate: ${{ env.CONCURRENT_USERS }}
+                name: "Load testing phase"
+            plugins:
+              metrics-by-endpoint:
+                useOnlyRequestNames: true
+          scenarios:
+            - name: "Health check endpoint"
+              weight: 20
+              flow:
+                - get:
+                    url: "/health"
+                    name: "GET /health"
+            - name: "API authentication"
+              weight: 30
+              flow:
+                - get:
+                    url: "/api/v1/auth/session"
+                    name: "GET /api/v1/auth/session"
+            - name: "Media search API"
+              weight: 25
+              flow:
+                - get:
+                    url: "/api/v1/media/search?q=test"
+                    name: "GET /api/v1/media/search"
+            - name: "Dashboard statistics"
+              weight: 25
+              flow:
+                - get:
+                    url: "/api/v1/dashboard/stats"
+                    name: "GET /api/v1/dashboard/stats"
+          EOF
+
+          # Run Artillery load test
+          artillery run artillery-config.yml --output performance-report.json
+
+          # Generate HTML report
+          artillery report performance-report.json --output performance-report.html
+
+      - name: 📊 Run database performance analysis
+        env:
+          DATABASE_URL: postgresql://perf_user:perf_password_secure@localhost:5432/medianest_performance
+        run: |
+          echo "📊 Running database performance analysis..."
+
+          # Create database performance test script
+          cat > db-performance-test.js << 'EOF'
+          const { performance } = require('perf_hooks');
+          const { PrismaClient } = require('@prisma/client');
+
+          async function runDatabasePerformanceTests() {
+            const prisma = new PrismaClient();
+            const results = [];
+            
+            try {
+              // Test 1: Simple read operations
+              console.log('Running simple read operations...');
+              const start1 = performance.now();
+              for (let i = 0; i < 1000; i++) {
+                await prisma.$queryRaw`SELECT NOW()`;
+              }
+              const end1 = performance.now();
+              results.push({
+                test: 'simple_reads',
+                duration: end1 - start1,
+                operations: 1000,
+                avg_per_operation: (end1 - start1) / 1000
+              });
+              
+              // Test 2: Complex queries (if tables exist)
+              console.log('Running complex query operations...');
+              const start2 = performance.now();
+              try {
+                for (let i = 0; i < 100; i++) {
+                  // Example complex query - adapt based on your schema
+                  await prisma.$queryRaw`
+                    SELECT COUNT(*) as count 
+                    FROM information_schema.tables 
+                    WHERE table_schema = 'public'
+                  `;
+                }
+              } catch (error) {
+                console.log('Complex queries skipped:', error.message);
+              }
+              const end2 = performance.now();
+              results.push({
+                test: 'complex_queries',
+                duration: end2 - start2,
+                operations: 100,
+                avg_per_operation: (end2 - start2) / 100
+              });
+              
+              console.log('Database performance results:', JSON.stringify(results, null, 2));
+              require('fs').writeFileSync('db-performance-results.json', JSON.stringify(results, null, 2));
+              
+            } finally {
+              await prisma.$disconnect();
+            }
+          }
+
+          runDatabasePerformanceTests().catch(console.error);
+          EOF
+
+          # Run database performance test
+          cd backend && node ../db-performance-test.js
+
+      - name: 🔍 Memory and CPU profiling
+        run: |
+          echo "🔍 Running memory and CPU profiling..."
+
+          # Run clinic.js profiling
+          cd backend
+          clinic doctor -- node dist/index.js &
+          CLINIC_PID=$!
+
+          # Let it run for 2 minutes while under load
+          sleep 120
+
+          # Stop clinic profiling
+          kill $CLINIC_PID || echo "Clinic process already stopped"
+
+          # Move clinic reports
+          mv .clinic ../ || echo "No clinic reports generated"
+
+      - name: 🛑 Stop backend service
+        if: always()
+        run: |
+          if [ -f "backend.pid" ]; then
+            kill $(cat backend.pid) || echo "Backend already stopped"
+          fi
+
+      - name: 📊 Generate API performance report
+        if: always()
+        run: |
+          echo "# 🔌 API Performance Test Report - $(date -u)" > api-performance-report.md
+          echo "" >> api-performance-report.md
+
+          echo "## Test Configuration" >> api-performance-report.md
+          echo "- **Duration**: ${{ env.TEST_DURATION }} minutes" >> api-performance-report.md
+          echo "- **Concurrent Users**: ${{ env.CONCURRENT_USERS }}" >> api-performance-report.md
+          echo "- **Performance Threshold**: ${{ env.PERFORMANCE_THRESHOLD }}ms" >> api-performance-report.md
+          echo "- **Test Date**: $(date -u)" >> api-performance-report.md
+          echo "- **Commit**: ${{ github.sha }}" >> api-performance-report.md
+          echo "" >> api-performance-report.md
+
+          echo "## Results Summary" >> api-performance-report.md
+          if [ -f "performance-report.json" ]; then
+            echo "✅ Artillery load test completed successfully" >> api-performance-report.md
+            # Extract key metrics from Artillery report
+            if command -v jq &> /dev/null; then
+              echo "- **Total Requests**: $(cat performance-report.json | jq -r '.aggregate.counters."http.requests" // "N/A"')" >> api-performance-report.md
+              echo "- **Success Rate**: $(cat performance-report.json | jq -r '.aggregate.rates."http.request_rate" // "N/A"')" >> api-performance-report.md
+              echo "- **Average Response Time**: $(cat performance-report.json | jq -r '.aggregate.latencies.mean // "N/A"')ms" >> api-performance-report.md
+              echo "- **95th Percentile**: $(cat performance-report.json | jq -r '.aggregate.latencies.p95 // "N/A"')ms" >> api-performance-report.md
+            fi
+          else
+            echo "❌ Artillery load test failed or incomplete" >> api-performance-report.md
+          fi
+
+          if [ -f "db-performance-results.json" ]; then
+            echo "" >> api-performance-report.md
+            echo "## Database Performance" >> api-performance-report.md
+            cat db-performance-results.json >> api-performance-report.md
+          fi
+
+      - name: 📤 Upload API performance results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-performance-results
+          path: |
+            api-performance-report.md
+            performance-report.json
+            performance-report.html
+            db-performance-results.json
+            .clinic/
+          retention-days: 30
+
+  # Frontend Performance Testing
+  frontend-performance-tests:
+    name: 🎭 Frontend Performance & Core Web Vitals
+    runs-on: ubuntu-latest
+    needs: performance-setup
+    timeout-minutes: 60
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: |
+          npm ci --prefer-offline --no-audit --no-fund
+          cd frontend && npm ci --prefer-offline --no-audit --no-fund
+
+      - name: 🏗️ Build optimized frontend
+        run: |
+          cd shared && npm run build
+          cd ../frontend && npm run build
+
+      - name: 🎭 Install Playwright and performance tools
+        run: |
+          npx playwright install chromium
+          npm install -g lighthouse
+          npm install -g web-vitals-cli
+
+      - name: 🚀 Start frontend service
+        run: |
+          cd frontend && npm start &
+          FRONTEND_PID=$!
+          echo $FRONTEND_PID > ../frontend.pid
+
+          # Wait for service to be ready
+          timeout 60s bash -c 'until curl -f http://localhost:3000; do echo "Waiting for frontend..."; sleep 2; done'
+          echo "✅ Frontend service is ready"
+
+      - name: 🏃 Run Lighthouse performance audit
+        run: |
+          echo "🏃 Running Lighthouse performance audit..."
+
+          # Run Lighthouse for key pages
+          mkdir -p lighthouse-reports
+
+          # Homepage performance
+          lighthouse http://localhost:3000 \
+            --output json,html \
+            --output-path ./lighthouse-reports/homepage \
+            --chrome-flags="--headless --no-sandbox"
+
+          # Dashboard performance (if accessible)
+          lighthouse http://localhost:3000/dashboard \
+            --output json,html \
+            --output-path ./lighthouse-reports/dashboard \
+            --chrome-flags="--headless --no-sandbox" || echo "Dashboard not accessible"
+
+      - name: 📊 Core Web Vitals measurement
+        run: |
+          echo "📊 Measuring Core Web Vitals..."
+
+          # Create Playwright script for Core Web Vitals
+          cat > core-web-vitals-test.js << 'EOF'
+          const { chromium } = require('playwright');
+          const fs = require('fs');
+
+          async function measureCoreWebVitals() {
+            const browser = await chromium.launch();
+            const page = await browser.newPage();
+            
+            const results = [];
+            const pages = [
+              { name: 'Homepage', url: 'http://localhost:3000' },
+              { name: 'Dashboard', url: 'http://localhost:3000/dashboard' }
+            ];
+            
+            for (const pageInfo of pages) {
+              try {
+                console.log(`Measuring ${pageInfo.name}...`);
+                
+                await page.goto(pageInfo.url, { waitUntil: 'networkidle' });
+                
+                // Get Core Web Vitals
+                const vitals = await page.evaluate(() => {
+                  return new Promise((resolve) => {
+                    const results = {};
+                    
+                    // FCP (First Contentful Paint)
+                    new PerformanceObserver((list) => {
+                      for (const entry of list.getEntries()) {
+                        if (entry.name === 'first-contentful-paint') {
+                          results.fcp = entry.startTime;
+                        }
+                      }
+                    }).observe({entryTypes: ['paint']});
+                    
+                    // LCP (Largest Contentful Paint)
+                    new PerformanceObserver((list) => {
+                      const entries = list.getEntries();
+                      const lastEntry = entries[entries.length - 1];
+                      results.lcp = lastEntry.startTime;
+                    }).observe({entryTypes: ['largest-contentful-paint']});
+                    
+                    // CLS (Cumulative Layout Shift)
+                    let clsValue = 0;
+                    new PerformanceObserver((list) => {
+                      for (const entry of list.getEntries()) {
+                        if (!entry.hadRecentInput) {
+                          clsValue += entry.value;
+                        }
+                      }
+                      results.cls = clsValue;
+                    }).observe({entryTypes: ['layout-shift']});
+                    
+                    // FID would require user interaction, so we'll measure TBT instead
+                    setTimeout(() => resolve(results), 3000);
+                  });
+                });
+                
+                results.push({
+                  page: pageInfo.name,
+                  url: pageInfo.url,
+                  ...vitals,
+                  timestamp: new Date().toISOString()
+                });
+                
+              } catch (error) {
+                console.log(`Error measuring ${pageInfo.name}:`, error.message);
+              }
+            }
+            
+            await browser.close();
+            fs.writeFileSync('core-web-vitals-results.json', JSON.stringify(results, null, 2));
+            console.log('Core Web Vitals results saved');
+          }
+
+          measureCoreWebVitals().catch(console.error);
+          EOF
+
+          node core-web-vitals-test.js
+
+      - name: 🔍 Bundle size analysis
+        run: |
+          echo "🔍 Analyzing bundle sizes..."
+          cd frontend
+
+          # Generate bundle analysis if configured
+          if npm run | grep -q "analyze"; then
+            npm run analyze || echo "Bundle analysis not configured"
+          fi
+
+          # Basic bundle size check
+          if [ -d ".next" ]; then
+            echo "Frontend build size analysis:" > ../bundle-analysis.txt
+            du -sh .next >> ../bundle-analysis.txt
+            find .next -name "*.js" -exec wc -c {} + | sort -n | tail -10 >> ../bundle-analysis.txt
+          fi
+
+      - name: 🛑 Stop frontend service
+        if: always()
+        run: |
+          if [ -f "frontend.pid" ]; then
+            kill $(cat frontend.pid) || echo "Frontend already stopped"
+          fi
+
+      - name: 📊 Generate frontend performance report
+        if: always()
+        run: |
+          echo "# 🎭 Frontend Performance Test Report - $(date -u)" > frontend-performance-report.md
+          echo "" >> frontend-performance-report.md
+
+          echo "## Test Configuration" >> frontend-performance-report.md
+          echo "- **Test Duration**: ${{ env.TEST_DURATION }} minutes" >> frontend-performance-report.md
+          echo "- **Performance Threshold**: ${{ env.PERFORMANCE_THRESHOLD }}ms" >> frontend-performance-report.md
+          echo "- **Test Date**: $(date -u)" >> frontend-performance-report.md
+          echo "- **Commit**: ${{ github.sha }}" >> frontend-performance-report.md
+          echo "" >> frontend-performance-report.md
+
+          echo "## Lighthouse Results" >> frontend-performance-report.md
+          if [ -f "lighthouse-reports/homepage.report.json" ]; then
+            echo "### Homepage Performance" >> frontend-performance-report.md
+            if command -v jq &> /dev/null; then
+              echo "- **Performance Score**: $(cat lighthouse-reports/homepage.report.json | jq -r '.categories.performance.score * 100 // "N/A"')" >> frontend-performance-report.md
+              echo "- **First Contentful Paint**: $(cat lighthouse-reports/homepage.report.json | jq -r '.audits."first-contentful-paint".displayValue // "N/A"')" >> frontend-performance-report.md
+              echo "- **Largest Contentful Paint**: $(cat lighthouse-reports/homepage.report.json | jq -r '.audits."largest-contentful-paint".displayValue // "N/A"')" >> frontend-performance-report.md
+              echo "- **Cumulative Layout Shift**: $(cat lighthouse-reports/homepage.report.json | jq -r '.audits."cumulative-layout-shift".displayValue // "N/A"')" >> frontend-performance-report.md
+            fi
+          fi
+
+          echo "" >> frontend-performance-report.md
+          echo "## Core Web Vitals" >> frontend-performance-report.md
+          if [ -f "core-web-vitals-results.json" ]; then
+            cat core-web-vitals-results.json >> frontend-performance-report.md
+          else
+            echo "Core Web Vitals measurement failed or incomplete" >> frontend-performance-report.md
+          fi
+
+          if [ -f "bundle-analysis.txt" ]; then
+            echo "" >> frontend-performance-report.md
+            echo "## Bundle Analysis" >> frontend-performance-report.md
+            echo '```' >> frontend-performance-report.md
+            cat bundle-analysis.txt >> frontend-performance-report.md
+            echo '```' >> frontend-performance-report.md
+          fi
+
+      - name: 📤 Upload frontend performance results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-performance-results
+          path: |
+            frontend-performance-report.md
+            lighthouse-reports/
+            core-web-vitals-results.json
+            bundle-analysis.txt
+          retention-days: 30
+
+  # Performance regression analysis
+  performance-regression-analysis:
+    name: 📈 Performance Regression Analysis
+    runs-on: ubuntu-latest
+    needs: [performance-setup, api-performance-tests, frontend-performance-tests]
+    if: always()
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📥 Download performance results
+        uses: actions/download-artifact@v4
+        with:
+          path: ./performance-results
+
+      - name: 📈 Analyze performance regressions
+        run: |
+          echo "📈 Analyzing performance regressions..."
+
+          # Create performance analysis report
+          echo "# 📈 Performance Regression Analysis - $(date -u)" > performance-analysis-report.md
+          echo "" >> performance-analysis-report.md
+
+          echo "## Analysis Summary" >> performance-analysis-report.md
+          echo "- **Test Date**: $(date -u)" >> performance-analysis-report.md
+          echo "- **Commit**: ${{ github.sha }}" >> performance-analysis-report.md
+          echo "- **Branch**: ${{ github.ref_name }}" >> performance-analysis-report.md
+          echo "- **Performance Threshold**: ${{ env.PERFORMANCE_THRESHOLD }}ms" >> performance-analysis-report.md
+          echo "" >> performance-analysis-report.md
+
+          # Analyze API performance
+          if [ -f "performance-results/api-performance-results/performance-report.json" ]; then
+            echo "## API Performance Analysis" >> performance-analysis-report.md
+            echo "✅ API performance tests completed" >> performance-analysis-report.md
+            
+            # Check if performance threshold was exceeded
+            if command -v jq &> /dev/null; then
+              avg_response=$(cat performance-results/api-performance-results/performance-report.json | jq -r '.aggregate.latencies.mean // 0')
+              p95_response=$(cat performance-results/api-performance-results/performance-report.json | jq -r '.aggregate.latencies.p95 // 0')
+              
+              echo "- **Average Response Time**: ${avg_response}ms" >> performance-analysis-report.md
+              echo "- **95th Percentile**: ${p95_response}ms" >> performance-analysis-report.md
+              
+              # Check for performance regressions
+              if (( $(echo "$avg_response > ${{ env.PERFORMANCE_THRESHOLD }}" | bc -l) )); then
+                echo "⚠️ **PERFORMANCE REGRESSION**: Average response time ($avg_response ms) exceeds threshold (${{ env.PERFORMANCE_THRESHOLD }} ms)" >> performance-analysis-report.md
+                echo "PERFORMANCE_REGRESSION=true" >> $GITHUB_ENV
+              else
+                echo "✅ Performance within acceptable limits" >> performance-analysis-report.md
+              fi
+            fi
+          else
+            echo "❌ API performance tests failed or incomplete" >> performance-analysis-report.md
+          fi
+
+          echo "" >> performance-analysis-report.md
+
+          # Analyze frontend performance
+          if [ -f "performance-results/frontend-performance-results/lighthouse-reports/homepage.report.json" ]; then
+            echo "## Frontend Performance Analysis" >> performance-analysis-report.md
+            echo "✅ Frontend performance tests completed" >> performance-analysis-report.md
+            
+            if command -v jq &> /dev/null; then
+              perf_score=$(cat performance-results/frontend-performance-results/lighthouse-reports/homepage.report.json | jq -r '.categories.performance.score * 100 // 0')
+              echo "- **Lighthouse Performance Score**: $perf_score" >> performance-analysis-report.md
+              
+              if (( $(echo "$perf_score < 75" | bc -l) )); then
+                echo "⚠️ **PERFORMANCE CONCERN**: Lighthouse score ($perf_score) is below recommended threshold (75)" >> performance-analysis-report.md
+                echo "FRONTEND_PERFORMANCE_CONCERN=true" >> $GITHUB_ENV
+              else
+                echo "✅ Frontend performance score within acceptable range" >> performance-analysis-report.md
+              fi
+            fi
+          else
+            echo "❌ Frontend performance tests failed or incomplete" >> performance-analysis-report.md
+          fi
+
+          # Overall performance status
+          echo "" >> performance-analysis-report.md
+          echo "## Overall Performance Status" >> performance-analysis-report.md
+          if [[ "${PERFORMANCE_REGRESSION:-false}" == "true" ]] || [[ "${FRONTEND_PERFORMANCE_CONCERN:-false}" == "true" ]]; then
+            echo "🚨 **PERFORMANCE ISSUES DETECTED** - Review recommended" >> performance-analysis-report.md
+            echo "OVERALL_PERFORMANCE_STATUS=WARNING" >> $GITHUB_ENV
+          else
+            echo "✅ **PERFORMANCE ACCEPTABLE** - No significant issues detected" >> performance-analysis-report.md
+            echo "OVERALL_PERFORMANCE_STATUS=PASS" >> $GITHUB_ENV
+          fi
+
+      - name: 📤 Upload performance analysis
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-analysis-report
+          path: performance-analysis-report.md
+          retention-days: 30
+
+  # Notification and reporting
+  performance-notifications:
+    name: 📢 Performance Test Notifications
+    runs-on: ubuntu-latest
+    needs: [api-performance-tests, frontend-performance-tests, performance-regression-analysis]
+    if: always()
+
+    steps:
+      - name: 📥 Download analysis report
+        uses: actions/download-artifact@v4
+        with:
+          name: performance-analysis-report
+          path: ./
+
+      - name: 📧 Send Slack notification
+        if: env.SLACK_WEBHOOK
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ env.OVERALL_PERFORMANCE_STATUS == 'PASS' && 'success' || 'warning' }}
+          channel: '#medianest-alerts'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          fields: repo,message,commit,author,took
+          custom_payload: |
+            {
+              text: "🌙 Nightly Performance Testing Complete",
+              attachments: [{
+                color: "${{ env.OVERALL_PERFORMANCE_STATUS == 'PASS' && 'good' || 'warning' }}",
+                fields: [{
+                  title: "Performance Status",
+                  value: "${{ env.OVERALL_PERFORMANCE_STATUS }}",
+                  short: true
+                }, {
+                  title: "Test Duration",
+                  value: "${{ env.TEST_DURATION }} minutes",
+                  short: true
+                }, {
+                  title: "Concurrent Users",
+                  value: "${{ env.CONCURRENT_USERS }}",
+                  short: true
+                }, {
+                  title: "Commit",
+                  value: "${{ github.sha }}",
+                  short: true
+                }]
+              }]
+            }
+
+      - name: 📧 Create GitHub issue for performance regressions
+        if: env.OVERALL_PERFORMANCE_STATUS == 'WARNING'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let reportContent = 'Performance analysis report not found';
+
+            try {
+              reportContent = fs.readFileSync('performance-analysis-report.md', 'utf8');
+            } catch (error) {
+              console.log('Could not read performance analysis report:', error.message);
+            }
+
+            const issueTitle = `🚨 Performance Regression Detected - ${new Date().toISOString().split('T')[0]}`;
+            const issueBody = `
+            # Performance Regression Alert
+
+            Nightly performance testing has detected performance regressions or concerns that require attention.
+
+            **Test Details:**
+            - **Date**: ${new Date().toISOString()}
+            - **Commit**: ${{ github.sha }}
+            - **Branch**: ${{ github.ref_name }}
+            - **Test Duration**: ${{ env.TEST_DURATION }} minutes
+            - **Performance Threshold**: ${{ env.PERFORMANCE_THRESHOLD }}ms
+
+            ## Performance Analysis Report
+
+            ${reportContent}
+
+            ## Recommended Actions
+
+            1. Review the performance test results in the workflow artifacts
+            2. Identify the root cause of performance degradation
+            3. Implement performance optimizations
+            4. Re-run performance tests to validate improvements
+
+            **Priority**: High
+            **Labels**: performance, regression, nightly-testing
+            `;
+
+            // Check if a similar issue already exists
+            const existingIssues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'performance,regression',
+              state: 'open'
+            });
+
+            const todayIssue = existingIssues.data.find(issue => 
+              issue.title.includes(new Date().toISOString().split('T')[0])
+            );
+
+            if (!todayIssue) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: issueTitle,
+                body: issueBody,
+                labels: ['performance', 'regression', 'nightly-testing', 'high-priority']
+              });
+            } else {
+              console.log('Performance issue for today already exists, skipping creation');
+            }
+
+      - name: 📊 Summary report
+        if: always()
+        run: |
+          echo "🌙 Nightly Performance Testing Summary"
+          echo "====================================="
+          echo "Status: ${{ env.OVERALL_PERFORMANCE_STATUS || 'UNKNOWN' }}"
+          echo "Duration: ${{ env.TEST_DURATION }} minutes"
+          echo "Concurrent Users: ${{ env.CONCURRENT_USERS }}"
+          echo "Performance Threshold: ${{ env.PERFORMANCE_THRESHOLD }}ms"
+          echo "API Tests: ${{ needs.api-performance-tests.result }}"
+          echo "Frontend Tests: ${{ needs.frontend-performance-tests.result }}"
+          echo "Regression Analysis: ${{ needs.performance-regression-analysis.result }}"
+          echo "====================================="

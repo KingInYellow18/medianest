@@ -194,7 +194,7 @@ export default defineConfig({
           NODE_ENV: 'test',
           DATABASE_URL: 'postgresql://e2e_user:e2e_password@localhost:5434/medianest_e2e',
           REDIS_URL: 'redis://localhost:6381',
-          JWT_SECRET: 'e2e-jwt-secret-key-for-testing',
+          JWT_SECRET: 'e2e-jwt-secret-key-for-testing-32-chars-long',
           ENCRYPTION_KEY: 'e2e-encryption-key-32-chars-long',
           PLEX_CLIENT_ID: 'e2e-test-client-id',
           PLEX_CLIENT_SECRET: 'e2e-test-client-secret',

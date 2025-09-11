@@ -1,9 +1,11 @@
 /**
  * 🔍 MEMORY LEAK DETECTION & MONITORING
- * 
+ *
  * Production-grade memory monitoring to detect potential memory leaks
  * and prevent DoS attacks through resource exhaustion
  */
+
+import { logger } from '../utils/logger';
 
 interface MemoryMetrics {
   heapUsed: number;
@@ -27,20 +29,20 @@ class MemoryMonitor {
   private metrics: MemoryMetrics[] = [];
   private alertCallbacks: ((alert: MemoryAlert) => void)[] = [];
   private monitoringInterval: NodeJS.Timeout | null = null;
-  
+
   // Configuration
   private readonly maxMetricsHistory = 100;
   private readonly monitoringIntervalMs = 30000; // 30 seconds
   private readonly memoryThresholds = {
     CRITICAL: 500 * 1024 * 1024, // 500MB
-    HIGH: 300 * 1024 * 1024,     // 300MB
-    MEDIUM: 200 * 1024 * 1024,   // 200MB
+    HIGH: 300 * 1024 * 1024, // 300MB
+    MEDIUM: 200 * 1024 * 1024, // 200MB
   };
 
   private constructor() {
     // Initialize memory monitoring
     this.startMonitoring();
-    
+
     // Handle process exit to cleanup
     process.on('SIGTERM', () => this.stopMonitoring());
     process.on('SIGINT', () => this.stopMonitoring());
@@ -61,8 +63,9 @@ class MemoryMonitor {
       return; // Already monitoring
     }
 
-    console.log('🔍 Starting memory leak detection monitoring...');
-    
+    // Use proper logger instead of console.log
+    logger.info('Memory leak detection monitoring started');
+
     this.monitoringInterval = setInterval(() => {
       this.collectMetrics();
       this.analyzeMemoryPatterns();
@@ -79,7 +82,8 @@ class MemoryMonitor {
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = null;
-      console.log('🛑 Memory monitoring stopped');
+      // Use proper logger instead of console.log
+      logger.info('Memory monitoring stopped');
     }
   }
 
@@ -88,14 +92,14 @@ class MemoryMonitor {
    */
   private collectMetrics(): void {
     const memUsage = process.memoryUsage();
-    
+
     const metrics: MemoryMetrics = {
       heapUsed: memUsage.heapUsed,
       heapTotal: memUsage.heapTotal,
       external: memUsage.external,
       arrayBuffers: memUsage.arrayBuffers,
       rss: memUsage.rss,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     this.metrics.push(metrics);
@@ -119,10 +123,10 @@ class MemoryMonitor {
 
     // Check for memory leaks (consistent growth)
     this.detectMemoryLeaks();
-    
+
     // Check for rapid memory growth
     this.detectRapidGrowth();
-    
+
     // Check for memory fragmentation issues
     this.detectFragmentation();
   }
@@ -140,7 +144,7 @@ class MemoryMonitor {
         severity: 'CRITICAL',
         metrics,
         threshold: this.memoryThresholds.CRITICAL,
-        message: `Critical memory usage: ${heapUsedMB.toFixed(2)}MB heap, ${rssMB.toFixed(2)}MB RSS`
+        message: `Critical memory usage: ${heapUsedMB.toFixed(2)}MB heap, ${rssMB.toFixed(2)}MB RSS`,
       });
     } else if (metrics.heapUsed > this.memoryThresholds.HIGH) {
       this.triggerAlert({
@@ -148,7 +152,7 @@ class MemoryMonitor {
         severity: 'HIGH',
         metrics,
         threshold: this.memoryThresholds.HIGH,
-        message: `High memory usage: ${heapUsedMB.toFixed(2)}MB heap, ${rssMB.toFixed(2)}MB RSS`
+        message: `High memory usage: ${heapUsedMB.toFixed(2)}MB heap, ${rssMB.toFixed(2)}MB RSS`,
       });
     }
   }
@@ -158,7 +162,7 @@ class MemoryMonitor {
    */
   private detectMemoryLeaks(): void {
     const recentMetrics = this.metrics.slice(-20); // Last 20 measurements
-    
+
     if (recentMetrics.length < 20) {
       return;
     }
@@ -168,8 +172,11 @@ class MemoryMonitor {
     for (let i = 1; i < recentMetrics.length; i++) {
       const currentMetric = recentMetrics[i];
       const previousMetric = recentMetrics[i - 1];
-      if (currentMetric?.heapUsed && previousMetric?.heapUsed && 
-          currentMetric.heapUsed > previousMetric.heapUsed) {
+      if (
+        currentMetric?.heapUsed &&
+        previousMetric?.heapUsed &&
+        currentMetric.heapUsed > previousMetric.heapUsed
+      ) {
         consistentGrowth++;
       }
     }
@@ -178,14 +185,15 @@ class MemoryMonitor {
     if (consistentGrowth / recentMetrics.length > 0.8) {
       const lastMetric = recentMetrics[recentMetrics.length - 1];
       const firstMetric = recentMetrics[0];
-      const growthRate = (lastMetric?.heapUsed ?? 0) - (firstMetric?.heapUsed ?? 0) / recentMetrics.length;
-      
+      const growthRate =
+        (lastMetric?.heapUsed ?? 0) - (firstMetric?.heapUsed ?? 0) / recentMetrics.length;
+
       this.triggerAlert({
         type: 'MEMORY_LEAK',
         severity: 'HIGH',
         metrics: lastMetric!,
         threshold: growthRate,
-        message: `Potential memory leak detected: consistent heap growth of ${(growthRate / 1024).toFixed(2)}KB per measurement`
+        message: `Potential memory leak detected: consistent heap growth of ${(growthRate / 1024).toFixed(2)}KB per measurement`,
       });
     }
   }
@@ -202,19 +210,19 @@ class MemoryMonitor {
     const lastRecent = recent[recent.length - 1];
     const firstRecent = recent[0];
     if (!lastRecent || !firstRecent) return;
-    
+
     const growthRate = (lastRecent.heapUsed - firstRecent.heapUsed) / recent.length;
-    
+
     // Alert if growing more than 10MB per measurement cycle
     const rapidGrowthThreshold = 10 * 1024 * 1024; // 10MB
-    
+
     if (growthRate > rapidGrowthThreshold) {
       this.triggerAlert({
         type: 'GROWTH_ANOMALY',
         severity: 'CRITICAL',
         metrics: lastRecent,
         threshold: rapidGrowthThreshold,
-        message: `Rapid memory growth detected: ${(growthRate / (1024 * 1024)).toFixed(2)}MB per measurement cycle`
+        message: `Rapid memory growth detected: ${(growthRate / (1024 * 1024)).toFixed(2)}MB per measurement cycle`,
       });
     }
   }
@@ -225,17 +233,18 @@ class MemoryMonitor {
   private detectFragmentation(): void {
     const latest = this.metrics[this.metrics.length - 1];
     if (!latest) return;
-    
+
     const fragmentationRatio = latest.heapTotal / latest.heapUsed;
-    
+
     // Alert if heap total is much larger than used (fragmentation)
-    if (fragmentationRatio > 3 && latest.heapTotal > 100 * 1024 * 1024) { // 100MB threshold
+    if (fragmentationRatio > 3 && latest.heapTotal > 100 * 1024 * 1024) {
+      // 100MB threshold
       this.triggerAlert({
         type: 'GROWTH_ANOMALY',
         severity: 'MEDIUM',
         metrics: latest,
         threshold: 3,
-        message: `Memory fragmentation detected: ${fragmentationRatio.toFixed(2)}x ratio (${(latest.heapTotal / (1024 * 1024)).toFixed(2)}MB total vs ${(latest.heapUsed / (1024 * 1024)).toFixed(2)}MB used)`
+        message: `Memory fragmentation detected: ${fragmentationRatio.toFixed(2)}x ratio (${(latest.heapTotal / (1024 * 1024)).toFixed(2)}MB total vs ${(latest.heapUsed / (1024 * 1024)).toFixed(2)}MB used)`,
       });
     }
   }
@@ -244,20 +253,22 @@ class MemoryMonitor {
    * Trigger memory alert
    */
   private triggerAlert(alert: MemoryAlert): void {
-    console.warn(`🚨 MEMORY ALERT [${alert.severity}]: ${alert.message}`, {
+    // Use proper logger instead of console.warn
+    logger.warn(`Memory alert [${alert.severity}]: ${alert.message}`, {
       type: alert.type,
       heapUsedMB: (alert.metrics.heapUsed / (1024 * 1024)).toFixed(2),
       heapTotalMB: (alert.metrics.heapTotal / (1024 * 1024)).toFixed(2),
       rssMB: (alert.metrics.rss / (1024 * 1024)).toFixed(2),
-      timestamp: new Date(alert.metrics.timestamp).toISOString()
+      timestamp: new Date(alert.metrics.timestamp).toISOString(),
     });
 
     // Notify registered callbacks
-    this.alertCallbacks.forEach(callback => {
+    this.alertCallbacks.forEach((callback) => {
       try {
         callback(alert);
       } catch (error) {
-        console.error('Error in memory alert callback:', error);
+        // Use proper logger instead of console.error
+        logger.error('Error in memory alert callback:', error);
       }
     });
 
@@ -272,23 +283,26 @@ class MemoryMonitor {
    * Handle critical memory events in production
    */
   private handleCriticalMemoryEvent(alert: MemoryAlert): void {
-    console.error('🚨 CRITICAL MEMORY EVENT - Taking defensive actions');
-    
+    // Use proper logger instead of console.error
+    logger.error('Critical memory event - taking defensive actions');
+
     // Force garbage collection if available
     if (global.gc) {
-      console.log('🧹 Forcing garbage collection...');
+      // Use proper logger instead of console.log
+      logger.info('Forcing garbage collection');
       global.gc();
     }
 
     // Log process memory status
     const memUsage = process.memoryUsage();
-    console.error('Process memory status:', {
+    // Use proper logger instead of console.error
+    logger.error('Process memory status:', {
       pid: process.pid,
       heapUsed: `${(memUsage.heapUsed / (1024 * 1024)).toFixed(2)}MB`,
       heapTotal: `${(memUsage.heapTotal / (1024 * 1024)).toFixed(2)}MB`,
       rss: `${(memUsage.rss / (1024 * 1024)).toFixed(2)}MB`,
       external: `${(memUsage.external / (1024 * 1024)).toFixed(2)}MB`,
-      uptime: `${process.uptime().toFixed(0)}s`
+      uptime: `${process.uptime().toFixed(0)}s`,
     });
   }
 
@@ -311,19 +325,21 @@ class MemoryMonitor {
     if (!current) {
       throw new Error('No memory metrics available');
     }
-    
+
     let trend: 'INCREASING' | 'DECREASING' | 'STABLE' = 'STABLE';
     if (this.metrics.length >= 5) {
       const recent = this.metrics.slice(-5);
       const lastRecent = recent[recent.length - 1];
       const firstRecent = recent[0];
-      
+
       if (lastRecent && firstRecent) {
         const avgGrowth = (lastRecent.heapUsed - firstRecent.heapUsed) / recent.length;
-        
-        if (avgGrowth > 1024 * 1024) { // > 1MB growth per cycle
+
+        if (avgGrowth > 1024 * 1024) {
+          // > 1MB growth per cycle
           trend = 'INCREASING';
-        } else if (avgGrowth < -1024 * 1024) { // > 1MB decrease per cycle
+        } else if (avgGrowth < -1024 * 1024) {
+          // > 1MB decrease per cycle
           trend = 'DECREASING';
         }
       }
@@ -332,10 +348,10 @@ class MemoryMonitor {
     // Calculate health score (100 = perfect, 0 = critical)
     let healthScore = 100;
     const heapUsedMB = current.heapUsed / (1024 * 1024);
-    
+
     if (heapUsedMB > 400) healthScore = Math.max(0, 100 - (heapUsedMB - 400) * 2);
     else if (heapUsedMB > 200) healthScore = Math.max(70, 100 - (heapUsedMB - 200) * 0.15);
-    
+
     return { current, trend, healthScore };
   }
 
@@ -349,12 +365,12 @@ class MemoryMonitor {
     healthScore: number;
   } {
     const status = this.getCurrentMemoryStatus();
-    
+
     return {
       current: status.current,
       history: this.metrics.slice(-50), // Last 50 measurements
       alerts: this.alertCallbacks.length,
-      healthScore: status.healthScore
+      healthScore: status.healthScore,
     };
   }
 }

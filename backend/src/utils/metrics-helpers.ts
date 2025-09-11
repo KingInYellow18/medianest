@@ -115,7 +115,8 @@ export class MetricsCollector {
         // Placeholder values for now
         (recordDatabaseMetrics as any).updateConnectionPool(5, 10);
       } catch (error: CatchError) {
-        console.error('Error collecting database metrics:', error);
+        // Use proper logger instead of console.error
+        logger.error('Error collecting database metrics:', error);
       }
     }, 30000);
 
@@ -129,7 +130,8 @@ export class MetricsCollector {
         // Placeholder value for now
         (recordRedisMetrics as any).updateConnections(2);
       } catch (error: CatchError) {
-        console.error('Error collecting Redis metrics:', error);
+        // Use proper logger instead of console.error
+        logger.error('Error collecting Redis metrics:', error);
       }
     }, 30000);
 
@@ -154,7 +156,8 @@ export class MetricsCollector {
         (recordBusinessMetrics as any).updateMediaLibrarySize('movies', 1000);
         (recordBusinessMetrics as any).updateMediaLibrarySize('tv', 500);
       } catch (error: CatchError) {
-        console.error('Error collecting business metrics:', error);
+        // Use proper logger instead of console.error
+        logger.error('Error collecting business metrics:', error);
       }
     }, 60000);
 

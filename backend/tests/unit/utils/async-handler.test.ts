@@ -28,6 +28,7 @@ class IsolatedAsyncHandlerMocks {
     this.mockResponse.send = vi.fn().mockReturnValue(this.mockResponse);
     this.mockResponse.sendStatus = vi.fn().mockReturnValue(this.mockResponse);
     this.mockResponse.end = vi.fn().mockReturnValue(this.mockResponse);
+    this.mockResponse.locals = {};
 
     this.mockNext = vi.fn();
   }
@@ -49,19 +50,19 @@ let isolatedMocks: IsolatedAsyncHandlerMocks;
 describe('AsyncHandler Utility', () => {
   beforeEach(async () => {
     // CRITICAL: Complete test isolation using DeviceSessionService pattern
-    
+
     // 1. Create completely fresh isolated mocks - no shared state
     isolatedMocks = new IsolatedAsyncHandlerMocks();
-    
+
     // 2. AGGRESSIVE mock clearing to prevent cross-test contamination
     vi.clearAllMocks();
     vi.resetAllMocks();
-    
+
     // 3. Set test environment
     process.env.NODE_ENV = 'test';
-    
+
     // 4. Allow a small delay for mock setup to complete
-    await new Promise(resolve => setTimeout(resolve, 1));
+    await new Promise((resolve) => setTimeout(resolve, 1));
   });
 
   afterEach(() => {
@@ -77,17 +78,36 @@ describe('AsyncHandler Utility', () => {
       const wrappedFunction = asyncHandler(asyncFunction);
 
       await wrappedFunction(
-        isolatedMocks.mockRequest as Request, 
-        isolatedMocks.mockResponse as Response, 
+        isolatedMocks.mockRequest as Request,
+        isolatedMocks.mockResponse as Response,
         isolatedMocks.mockNext
       );
 
       expect(asyncFunction).toHaveBeenCalledWith(
-        isolatedMocks.mockRequest, 
-        isolatedMocks.mockResponse, 
+        isolatedMocks.mockRequest,
+        isolatedMocks.mockResponse,
         isolatedMocks.mockNext
       );
       expect(isolatedMocks.mockNext).not.toHaveBeenCalled();
+    });
+
+    it('should pass through return values', async () => {
+      const returnValue = { data: 'test' };
+      const asyncFunction = vi.fn().mockResolvedValue(returnValue);
+      const wrappedFunction = asyncHandler(asyncFunction);
+
+      const result = await wrappedFunction(
+        isolatedMocks.mockRequest as Request,
+        isolatedMocks.mockResponse as Response,
+        isolatedMocks.mockNext
+      );
+
+      expect(result).toBe(returnValue);
+      expect(asyncFunction).toHaveBeenCalledWith(
+        isolatedMocks.mockRequest,
+        isolatedMocks.mockResponse,
+        isolatedMocks.mockNext
+      );
     });
 
     it('should handle async function execution without return checking', async () => {
@@ -97,8 +117,8 @@ describe('AsyncHandler Utility', () => {
       const wrappedFunction = asyncHandler(asyncFunction);
 
       await wrappedFunction(
-        isolatedMocks.mockRequest as Request, 
-        isolatedMocks.mockResponse as Response, 
+        isolatedMocks.mockRequest as Request,
+        isolatedMocks.mockResponse as Response,
         isolatedMocks.mockNext
       );
 
@@ -114,8 +134,8 @@ describe('AsyncHandler Utility', () => {
       const wrappedFunction = asyncHandler(asyncFunction);
 
       await wrappedFunction(
-        isolatedMocks.mockRequest as Request, 
-        isolatedMocks.mockResponse as Response, 
+        isolatedMocks.mockRequest as Request,
+        isolatedMocks.mockResponse as Response,
         isolatedMocks.mockNext
       );
 
@@ -133,14 +153,29 @@ describe('AsyncHandler Utility', () => {
       const wrappedFunction = asyncHandler(asyncFunction);
 
       await wrappedFunction(
-        isolatedMocks.mockRequest as Request, 
-        isolatedMocks.mockResponse as Response, 
+        isolatedMocks.mockRequest as Request,
+        isolatedMocks.mockResponse as Response,
         isolatedMocks.mockNext
       );
 
       expect(isolatedMocks.mockRequest.params.id).toBe('456');
       expect(isolatedMocks.mockResponse.status).toHaveBeenCalledWith(200);
       expect(isolatedMocks.mockResponse.json).toHaveBeenCalledWith({ modified: true });
+    });
+
+    it('should handle functions that modify response locals', async () => {
+      const asyncFunction = vi.fn().mockImplementation(async (req, res) => {
+        res.locals = { ...res.locals, customData: 'test' };
+      });
+      const wrappedFunction = asyncHandler(asyncFunction);
+
+      await wrappedFunction(
+        isolatedMocks.mockRequest as Request,
+        isolatedMocks.mockResponse as Response,
+        isolatedMocks.mockNext
+      );
+
+      expect(isolatedMocks.mockResponse.locals).toEqual({ customData: 'test' });
     });
   });
 
@@ -151,8 +186,8 @@ describe('AsyncHandler Utility', () => {
       const wrappedFunction = asyncHandler(asyncFunction);
 
       await wrappedFunction(
-        isolatedMocks.mockRequest as Request, 
-        isolatedMocks.mockResponse as Response, 
+        isolatedMocks.mockRequest as Request,
+        isolatedMocks.mockResponse as Response,
         isolatedMocks.mockNext
       );
 
@@ -161,17 +196,33 @@ describe('AsyncHandler Utility', () => {
     });
 
     it('should handle different error types', async () => {
-      const customError = { message: 'Custom error', code: 500 };
-      const asyncFunction = vi.fn().mockRejectedValue(customError);
-      const wrappedFunction = asyncHandler(asyncFunction);
+      const testCases = [
+        new Error('Standard Error'),
+        new TypeError('Type Error'),
+        new RangeError('Range Error'),
+        { message: 'Custom Error Object', code: 'CUSTOM_ERROR' },
+        'String Error',
+        null,
+        undefined,
+        42,
+      ];
 
-      await wrappedFunction(
-        isolatedMocks.mockRequest as Request, 
-        isolatedMocks.mockResponse as Response, 
-        isolatedMocks.mockNext
-      );
+      for (const error of testCases) {
+        const asyncFunction = vi.fn().mockRejectedValue(error);
+        const wrappedFunction = asyncHandler(asyncFunction);
 
-      expect(isolatedMocks.mockNext).toHaveBeenCalledWith(customError);
+        await wrappedFunction(
+          isolatedMocks.mockRequest as Request,
+          isolatedMocks.mockResponse as Response,
+          isolatedMocks.mockNext
+        );
+
+        expect(isolatedMocks.mockNext).toHaveBeenCalledWith(error);
+
+        // Reset for next iteration
+        isolatedMocks.cleanup();
+        isolatedMocks.reset();
+      }
     });
 
     it('should handle synchronous errors thrown in async function', async () => {
@@ -182,8 +233,8 @@ describe('AsyncHandler Utility', () => {
       const wrappedFunction = asyncHandler(asyncFunction);
 
       await wrappedFunction(
-        isolatedMocks.mockRequest as Request, 
-        isolatedMocks.mockResponse as Response, 
+        isolatedMocks.mockRequest as Request,
+        isolatedMocks.mockResponse as Response,
         isolatedMocks.mockNext
       );
 
@@ -192,12 +243,12 @@ describe('AsyncHandler Utility', () => {
 
     it('should handle promise rejection', async () => {
       const error = new Error('Promise rejection');
-      const asyncFunction = vi.fn().mockRejectedValue(error);
+      const asyncFunction = vi.fn().mockImplementation(() => Promise.reject(error));
       const wrappedFunction = asyncHandler(asyncFunction);
 
       await wrappedFunction(
-        isolatedMocks.mockRequest as Request, 
-        isolatedMocks.mockResponse as Response, 
+        isolatedMocks.mockRequest as Request,
+        isolatedMocks.mockResponse as Response,
         isolatedMocks.mockNext
       );
 
@@ -213,13 +264,13 @@ describe('AsyncHandler Utility', () => {
       const wrappedFunction = asyncHandler(asyncFunction);
 
       await wrappedFunction(
-        isolatedMocks.mockRequest as Request, 
-        isolatedMocks.mockResponse as Response, 
+        isolatedMocks.mockRequest as Request,
+        isolatedMocks.mockResponse as Response,
         isolatedMocks.mockNext
       );
 
       expect(isolatedMocks.mockNext).toHaveBeenCalledWith(error);
-      // Response methods should not be called when error occurs
+      // Response methods should not be called when error occurs immediately
       expect(isolatedMocks.mockResponse.status).not.toHaveBeenCalled();
     });
   });
@@ -230,18 +281,47 @@ describe('AsyncHandler Utility', () => {
         getUser: vi.fn().mockImplementation(async (req, res) => {
           const user = { id: '123', name: 'Test User' };
           res.json(user);
-        })
+        }),
       };
       const wrappedMethod = asyncHandler(mockController.getUser);
 
       await wrappedMethod(
-        isolatedMocks.mockRequest as Request, 
-        isolatedMocks.mockResponse as Response, 
+        isolatedMocks.mockRequest as Request,
+        isolatedMocks.mockResponse as Response,
         isolatedMocks.mockNext
       );
 
       expect(mockController.getUser).toHaveBeenCalled();
-      expect(isolatedMocks.mockResponse.json).toHaveBeenCalledWith({ id: '123', name: 'Test User' });
+      expect(isolatedMocks.mockResponse.json).toHaveBeenCalledWith({
+        id: '123',
+        name: 'Test User',
+      });
+      expect(isolatedMocks.mockNext).not.toHaveBeenCalled();
+    });
+
+    it('should work with class-based controller methods', async () => {
+      class TestController {
+        async getUser(req: Request, res: Response) {
+          const userId = req.params.id;
+          res.json({ id: userId, name: 'Test User' });
+        }
+      }
+
+      const controller = new TestController();
+      const wrappedMethod = asyncHandler(controller.getUser.bind(controller));
+
+      isolatedMocks.mockRequest.params = { id: '123' };
+
+      await wrappedMethod(
+        isolatedMocks.mockRequest as Request,
+        isolatedMocks.mockResponse as Response,
+        isolatedMocks.mockNext
+      );
+
+      expect(isolatedMocks.mockResponse.json).toHaveBeenCalledWith({
+        id: '123',
+        name: 'Test User',
+      });
       expect(isolatedMocks.mockNext).not.toHaveBeenCalled();
     });
 
@@ -253,8 +333,8 @@ describe('AsyncHandler Utility', () => {
       const wrappedMiddleware = asyncHandler(middlewareFunction);
 
       await wrappedMiddleware(
-        isolatedMocks.mockRequest as Request, 
-        isolatedMocks.mockResponse as Response, 
+        isolatedMocks.mockRequest as Request,
+        isolatedMocks.mockResponse as Response,
         isolatedMocks.mockNext
       );
 
@@ -270,8 +350,8 @@ describe('AsyncHandler Utility', () => {
       const wrappedMiddleware = asyncHandler(middlewareFunction);
 
       await wrappedMiddleware(
-        isolatedMocks.mockRequest as Request, 
-        isolatedMocks.mockResponse as Response, 
+        isolatedMocks.mockRequest as Request,
+        isolatedMocks.mockResponse as Response,
         isolatedMocks.mockNext
       );
 
@@ -286,8 +366,8 @@ describe('AsyncHandler Utility', () => {
       const wrappedMiddleware = asyncHandler(middlewareFunction);
 
       await wrappedMiddleware(
-        isolatedMocks.mockRequest as Request, 
-        isolatedMocks.mockResponse as Response, 
+        isolatedMocks.mockRequest as Request,
+        isolatedMocks.mockResponse as Response,
         isolatedMocks.mockNext
       );
 
@@ -297,15 +377,83 @@ describe('AsyncHandler Utility', () => {
     });
   });
 
-  describe('edge cases', () => {
+  describe('performance and edge cases', () => {
+    it('should handle functions that resolve immediately', async () => {
+      const immediateFunction = vi.fn().mockImplementation(() => Promise.resolve('immediate'));
+      const wrappedFunction = asyncHandler(immediateFunction);
+
+      const startTime = Date.now();
+      await wrappedFunction(
+        isolatedMocks.mockRequest as Request,
+        isolatedMocks.mockResponse as Response,
+        isolatedMocks.mockNext
+      );
+      const endTime = Date.now();
+
+      expect(endTime - startTime).toBeLessThan(50); // Should be very fast
+      expect(immediateFunction).toHaveBeenCalled();
+    });
+
+    it('should handle functions with delays', async () => {
+      const delayedFunction = vi.fn().mockImplementation(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        return 'delayed';
+      });
+      const wrappedFunction = asyncHandler(delayedFunction);
+
+      const startTime = Date.now();
+      await wrappedFunction(
+        isolatedMocks.mockRequest as Request,
+        isolatedMocks.mockResponse as Response,
+        isolatedMocks.mockNext
+      );
+      const endTime = Date.now();
+
+      expect(endTime - startTime).toBeGreaterThanOrEqual(45);
+      expect(delayedFunction).toHaveBeenCalled();
+    });
+
+    it('should handle concurrent wrapped function calls', async () => {
+      let callCount = 0;
+      const concurrentFunction = vi.fn().mockImplementation(async () => {
+        callCount++;
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        return `call-${callCount}`;
+      });
+      const wrappedFunction = asyncHandler(concurrentFunction);
+
+      const promises = [
+        wrappedFunction(
+          isolatedMocks.mockRequest as Request,
+          isolatedMocks.mockResponse as Response,
+          isolatedMocks.mockNext
+        ),
+        wrappedFunction(
+          isolatedMocks.mockRequest as Request,
+          isolatedMocks.mockResponse as Response,
+          isolatedMocks.mockNext
+        ),
+        wrappedFunction(
+          isolatedMocks.mockRequest as Request,
+          isolatedMocks.mockResponse as Response,
+          isolatedMocks.mockNext
+        ),
+      ];
+
+      await Promise.all(promises);
+
+      expect(concurrentFunction).toHaveBeenCalledTimes(3);
+      expect(callCount).toBe(3);
+    });
+
     it('should handle null/undefined functions gracefully', async () => {
       // This test ensures that if somehow a null function is passed, it's handled
       const asyncFunction = vi.fn().mockResolvedValue(undefined);
       const wrappedFunction = asyncHandler(asyncFunction);
 
       await wrappedFunction(
-        isolatedMocks.mockRequest as Request, 
-        isolatedMocks.mockResponse as Response, 
+        isolatedMocks.mockRequest as Request,
+        isolatedMocks.mockResponse as Response,
         isolatedMocks.mockNext
       );
 
@@ -322,8 +470,8 @@ describe('AsyncHandler Utility', () => {
       const wrappedFunction = asyncHandler(asyncFunction);
 
       await wrappedFunction(
-        isolatedMocks.mockRequest as Request, 
-        isolatedMocks.mockResponse as Response, 
+        isolatedMocks.mockRequest as Request,
+        isolatedMocks.mockResponse as Response,
         isolatedMocks.mockNext
       );
 
@@ -332,18 +480,101 @@ describe('AsyncHandler Utility', () => {
 
     it('should preserve function context', async () => {
       const context = { value: 'test-context' };
-      const asyncFunction = vi.fn().mockImplementation(async function(req, res) {
+      const asyncFunction = vi.fn().mockImplementation(async function (this: any, req, res) {
         res.json({ context: this.value });
       });
       const wrappedFunction = asyncHandler(asyncFunction.bind(context));
 
       await wrappedFunction(
-        isolatedMocks.mockRequest as Request, 
-        isolatedMocks.mockResponse as Response, 
+        isolatedMocks.mockRequest as Request,
+        isolatedMocks.mockResponse as Response,
         isolatedMocks.mockNext
       );
 
       expect(isolatedMocks.mockResponse.json).toHaveBeenCalledWith({ context: 'test-context' });
+    });
+
+    it('should handle empty functions', async () => {
+      const emptyFunction = vi.fn().mockImplementation(async () => {});
+      const wrappedFunction = asyncHandler(emptyFunction);
+
+      await wrappedFunction(
+        isolatedMocks.mockRequest as Request,
+        isolatedMocks.mockResponse as Response,
+        isolatedMocks.mockNext
+      );
+
+      expect(emptyFunction).toHaveBeenCalled();
+      expect(isolatedMocks.mockNext).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('TypeScript compatibility', () => {
+    it('should maintain type safety for request/response', async () => {
+      interface CustomRequest extends Request {
+        customProp: string;
+      }
+
+      const typedFunction = vi
+        .fn()
+        .mockImplementation(async (req: CustomRequest, res: Response) => {
+          res.json({ custom: req.customProp });
+        });
+
+      const wrappedFunction = asyncHandler(typedFunction);
+
+      const customRequest = { ...isolatedMocks.mockRequest, customProp: 'test' } as CustomRequest;
+
+      await wrappedFunction(
+        customRequest,
+        isolatedMocks.mockResponse as Response,
+        isolatedMocks.mockNext
+      );
+
+      expect(typedFunction).toHaveBeenCalledWith(
+        customRequest,
+        isolatedMocks.mockResponse,
+        isolatedMocks.mockNext
+      );
+      expect(isolatedMocks.mockResponse.json).toHaveBeenCalledWith({ custom: 'test' });
+    });
+
+    it('should work with different return types', async () => {
+      const stringFunction = vi.fn().mockResolvedValue('string');
+      const numberFunction = vi.fn().mockResolvedValue(42);
+      const objectFunction = vi.fn().mockResolvedValue({ key: 'value' });
+      const voidFunction = vi.fn().mockResolvedValue(undefined);
+
+      const wrappedString = asyncHandler(stringFunction);
+      const wrappedNumber = asyncHandler(numberFunction);
+      const wrappedObject = asyncHandler(objectFunction);
+      const wrappedVoid = asyncHandler(voidFunction);
+
+      await wrappedString(
+        isolatedMocks.mockRequest as Request,
+        isolatedMocks.mockResponse as Response,
+        isolatedMocks.mockNext
+      );
+      await wrappedNumber(
+        isolatedMocks.mockRequest as Request,
+        isolatedMocks.mockResponse as Response,
+        isolatedMocks.mockNext
+      );
+      await wrappedObject(
+        isolatedMocks.mockRequest as Request,
+        isolatedMocks.mockResponse as Response,
+        isolatedMocks.mockNext
+      );
+      await wrappedVoid(
+        isolatedMocks.mockRequest as Request,
+        isolatedMocks.mockResponse as Response,
+        isolatedMocks.mockNext
+      );
+
+      expect(stringFunction).toHaveBeenCalled();
+      expect(numberFunction).toHaveBeenCalled();
+      expect(objectFunction).toHaveBeenCalled();
+      expect(voidFunction).toHaveBeenCalled();
     });
   });
 });
