@@ -19,6 +19,23 @@ export type SafeDatabaseResult<T> =
       code?: string;
     };
 
+// Alias for backwards compatibility
+export type SafeOperationResult<T> = SafeDatabaseResult<T>;
+
+/**
+ * Database error class
+ */
+export class DatabaseError extends Error {
+  constructor(
+    message: string,
+    public code?: string,
+    public meta?: any,
+  ) {
+    super(message);
+    this.name = 'DatabaseError';
+  }
+}
+
 /**
  * Null-safe database result handler class
  */

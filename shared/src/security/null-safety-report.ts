@@ -169,6 +169,19 @@ unsafe type assertions, and configuration parsing vulnerabilities.
 Runtime monitoring will track and prevent future violations.
 `);
 
+// Export classes for index.ts
+export class NullSafetyReporter {
+  static generateReport() {
+    return {
+      report: NULL_SAFETY_MISSION_REPORT,
+      summary: SECURITY_IMPROVEMENTS_SUMMARY,
+      validation: VALIDATION_RESULTS,
+    };
+  }
+}
+
+export type NullSafetyReport = typeof VALIDATION_RESULTS;
+
 export default {
   report: NULL_SAFETY_MISSION_REPORT,
   summary: SECURITY_IMPROVEMENTS_SUMMARY,

@@ -7,7 +7,20 @@
 
 // Core utilities
 export * from './type-guards';
-export * from './safe-parsing';
+// Export safe-parsing but exclude conflicting safeJsonParse (use the one from type-guards)
+export {
+  safeParseInt,
+  safeParsePort,
+  safeJsonParseSimple,
+  safeParseBoolean,
+  safeGetEnv,
+  requireEnv,
+  safeParseFloat,
+  safeParseArray,
+  safeParseUrl,
+  safeParseDatabaseTimeout,
+  safeParsePoolSize,
+} from './safe-parsing';
 export * from './validation';
 
 // String and data utilities

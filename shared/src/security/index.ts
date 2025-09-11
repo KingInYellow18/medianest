@@ -6,10 +6,11 @@ export * from './null-safety-audit';
 export * from './null-safety-report';
 
 // Explicit re-exports for better IDE support
+export type { NullSafetyViolation } from './null-safety-audit';
 export {
   nullSafetyMiddleware,
   auditEnvironmentVariables,
-  NullSafetyViolation,
 } from './null-safety-audit';
 
-export { NullSafetyReporter, NullSafetyReport } from './null-safety-report';
+export type { NullSafetyReport } from './null-safety-report';
+export { NullSafetyReporter } from './null-safety-report';

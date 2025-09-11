@@ -61,9 +61,10 @@ export function safeParsePort(value: unknown, defaultPort: number = 3000): numbe
 }
 
 /**
- * Safe JSON parsing with fallback
+ * Safe JSON parsing with fallback (simple version)
+ * Note: For advanced JSON parsing with validation, use safeJsonParse from type-guards
  */
-export function safeJsonParse<T>(jsonString: unknown, fallback: T): T {
+export function safeJsonParseSimple<T>(jsonString: unknown, fallback: T): T {
   if (!isString(jsonString)) {
     return fallback;
   }

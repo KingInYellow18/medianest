@@ -21,17 +21,21 @@ export * from './errors';
 // Export architectural patterns
 export * from './patterns';
 
-// Export middleware
-export * from './middleware';
+// Export middleware (with specific exclusions to avoid conflicts)
+export { CachingMiddleware } from './middleware';
+export type { CacheConfig as MiddlewareCacheConfig } from './middleware';
 
 // Export database utilities
 export * from './database';
 
-// Export caching utilities
+// Export caching utilities  
 export * from './cache';
 
 // Export security utilities
 export * from './security';
+
+// Re-export specific cache types to avoid conflicts
+export type { PerformanceCacheConfig as CachePerformanceConfig } from './cache';
 
 // Export types last, with explicit re-exports to resolve conflicts
 export type {
