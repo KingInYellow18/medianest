@@ -1,7 +1,7 @@
 import { test, expect, Browser, Page, BrowserContext } from '@playwright/test';
-import { LoginPage } from '../tests/e2e/pages/login.page';
-import { AdminDashboardPage } from '../tests/e2e/pages/admin.page';
-import { AuthHelper } from '../tests/e2e/helpers/auth';
+import { LoginPage } from './pages/login.page';
+import { AdminPage } from './pages/admin.page';
+import { AuthHelper } from './helpers/auth';
 
 /**
  * Comprehensive Media Request User Journey E2E Tests

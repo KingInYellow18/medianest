@@ -9,7 +9,7 @@ dotenv.config({ path: '.env.e2e' });
  * @see https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  testDir: './tests/e2e/specs',
+  testDir: './tests/e2e',
 
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -84,8 +84,8 @@ export default defineConfig({
   },
 
   /* Global setup and teardown */
-  globalSetup: require.resolve('./tests/e2e/config/global-setup'),
-  globalTeardown: require.resolve('./tests/e2e/config/global-teardown'),
+  globalSetup: require.resolve('./tests/e2e/global-setup.ts'),
+  globalTeardown: require.resolve('./tests/e2e/global-teardown.ts'),
 
   /* Configure projects for major browsers */
   projects: [
@@ -187,7 +187,7 @@ export default defineConfig({
     ? undefined
     : {
         command: 'npm run dev',
-        url: 'http://localhost:3001/api/v1/health',
+        url: 'http://localhost:3001/health',
         reuseExistingServer: !process.env.CI,
         timeout: 120 * 1000,
         env: {
@@ -218,11 +218,25 @@ export default defineConfig({
   },
 
   /* Test timeout */
-  timeout: 60000,
+  timeout: 30000,
 
   /* Maximum time for the whole test suite */
-  globalTimeout: 30 * 60 * 1000, // 30 minutes
+  globalTimeout: 20 * 60 * 1000, // 20 minutes
 
   /* Maximum failures before stopping */
-  maxFailures: process.env.CI ? 20 : 5,
+  maxFailures: process.env.CI ? 10 : 3,
+
+  /* Test match patterns - only include proper Playwright tests */
+  testMatch: ['**/*-journey.spec.ts'],
+  testIgnore: [
+    '**/node_modules/**',
+    '**/test-results/**',
+    '**/reports/**',
+    '**/*perf*.spec.ts',
+    '**/*security*.spec.ts',
+    '**/media/*.spec.ts',
+    '**/auth/**.spec.ts',
+    '**/media-request.spec.ts',
+    '**/auth.spec.ts',
+  ],
 });

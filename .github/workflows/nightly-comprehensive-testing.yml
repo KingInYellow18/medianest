@@ -82,7 +82,6 @@ jobs:
             shared/node_modules
             ~/.npm
             ~/.cache/playwright
-            ~/.cache/cypress
             backend/dist
             frontend/.next
             shared/dist

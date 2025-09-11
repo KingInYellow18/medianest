@@ -1,12 +1,6 @@
 import { test, expect, Browser, Page, BrowserContext } from '@playwright/test';
-import {
-  AdminDashboardPage,
-  AdminUsersPage,
-  AdminServicesPage,
-  AdminStatsPage,
-  AdminBroadcastPage,
-} from '../tests/e2e/pages/admin.page';
-import { AuthHelper } from '../tests/e2e/helpers/auth';
+import { AdminPage } from './pages/admin.page';
+import { AuthHelper } from './helpers/auth';
 
 /**
  * Comprehensive Admin Dashboard User Journey E2E Tests

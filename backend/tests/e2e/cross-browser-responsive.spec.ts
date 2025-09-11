@@ -1,5 +1,5 @@
 import { test, expect, devices } from '@playwright/test';
-import { AuthHelper } from '../tests/e2e/helpers/auth';
+import { AuthHelper } from './helpers/auth';
 
 /**
  * Comprehensive Cross-Browser and Responsive Design E2E Tests

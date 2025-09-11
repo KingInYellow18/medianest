@@ -43,7 +43,6 @@ tests/
 **/*.spec.*
 jest.config.js
 playwright.config.ts
-cypress/
 
 # CI/CD
 .github/

@@ -1,5 +1,5 @@
 import { test, expect, Browser, Page, BrowserContext } from '@playwright/test';
-import { AuthHelper } from '../tests/e2e/helpers/auth';
+import { AuthHelper } from './helpers/auth';
 
 /**
  * Comprehensive Plex Integration User Journey E2E Tests
