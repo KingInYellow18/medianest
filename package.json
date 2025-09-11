@@ -5,7 +5,7 @@
   "type": "module",
   "main": "src/index.js",
   "scripts": {
-    "build": "./scripts/build-stabilizer-fixed.sh",
+    "build": "./scripts/build-stabilizer.sh",
     "build:fast": "npm run build:backend && npm run build:frontend",
     "build:optimized": "node scripts/build-performance-enhancer.js optimize && npm run build",
     "build:clean": "npm run clean && npm run build",

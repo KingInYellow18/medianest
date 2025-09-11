@@ -30,4 +30,4 @@ echo "🚀 Executing final build..."
 echo "📋 Build order: shared → backend → frontend"
 
 # Use the optimized build stabilizer script
-exec ./scripts/build-stabilizer-fixed.sh
+exec ./scripts/build-stabilizer.sh
