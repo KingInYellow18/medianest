@@ -1,0 +1,139 @@
+name: Nightly Performance Tests
+
+on:
+  schedule:
+    # Run daily at 2:00 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Allow manual triggering
+
+env:
+  NODE_VERSION: '20'
+  CI: true
+
+jobs:
+  performance-tests:
+    name: Performance Testing Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: medianest_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Setup test database
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/medianest_test
+        run: |
+          cd backend
+          npx prisma migrate deploy
+
+      - name: Run performance test suite
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://test:test@localhost:5432/medianest_test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-jwt-secret-key
+        run: npm run test:performance:suite
+
+      - name: Run E2E performance tests
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://test:test@localhost:5432/medianest_test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-jwt-secret-key
+        run: npm run test:performance:e2e
+
+      - name: Generate performance report
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://test:test@localhost:5432/medianest_test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-jwt-secret-key
+        run: npm run test:performance:report
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: performance-results-${{ github.run_number }}
+          path: |
+            test-results/performance-*.json
+            test-results/nightly-performance-*.json
+          retention-days: 30
+
+      - name: Comment on main branch
+        if: failure() && github.ref == 'refs/heads/main'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            await github.rest.issues.create({
+              owner,
+              repo,
+              title: '🚨 Nightly Performance Tests Failed',
+              body: `Performance tests failed on ${new Date().toISOString().split('T')[0]}\n\nSee run: ${context.payload.workflow_run?.html_url || 'N/A'}`,
+              labels: ['performance', 'nightly-failure']
+            });
+
+  benchmark:
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Run benchmarks
+        run: npm run benchmark
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: benchmark-results-${{ github.run_number }}
+          path: benchmark-results/
+          retention-days: 30

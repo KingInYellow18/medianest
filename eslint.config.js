@@ -1,11 +1,11 @@
-const globals = require("globals");
-const tsParser = require("@typescript-eslint/parser");
-const typescriptEslint = require("@typescript-eslint/eslint-plugin");
-const importPlugin = require("eslint-plugin-import");
-const prettier = require("eslint-plugin-prettier");
-const js = require("@eslint/js");
+import globals from "globals";
+import tsParser from "@typescript-eslint/parser";
+import typescriptEslint from "@typescript-eslint/eslint-plugin";
+import importPlugin from "eslint-plugin-import";
+import prettier from "eslint-plugin-prettier";
+import js from "@eslint/js";
 
-module.exports = [
+export default [
     // Ignore patterns for all configs
     {
         ignores: [
@@ -68,7 +68,7 @@ module.exports = [
             ecmaVersion: 2022,
             sourceType: "module",
             parserOptions: {
-                tsconfigRootDir: __dirname + "/backend",
+                tsconfigRootDir: import.meta.dirname + "/backend",
                 project: ["./tsconfig.json"],
             },
         },
@@ -133,7 +133,7 @@ module.exports = [
             ecmaVersion: 2022,
             sourceType: "module",
             parserOptions: {
-                tsconfigRootDir: __dirname + "/shared",
+                tsconfigRootDir: import.meta.dirname + "/shared",
                 project: ["./tsconfig.json"],
             },
         },

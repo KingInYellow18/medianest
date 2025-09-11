@@ -1,0 +1,53 @@
+{
+  "timestamp": "2025-09-11T02:10:18.249Z",
+  "metrics": {
+    "totalTests": 63,
+    "passedTests": 63,
+    "failedTests": 0,
+    "successRate": "100.0"
+  },
+  "isolation": {
+    "effective": false,
+    "cascadeFailures": false,
+    "crossContamination": false
+  },
+  "testFiles": [
+    {
+      "passed": 32,
+      "failed": 0,
+      "total": 32,
+      "output": "\n> @medianest/backend@1.0.0 test\n> vitest run --run --reporter=verbose cache.service.test.ts\n\n\n RUN  v3.2.4 /home/kinginyellow/projects/medianest/backend\n\n ✓ tests/unit/services/cache.service.test.ts > CacheService > get > should get cached value successfully 7ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > get > should return null for non-existent key 2ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > get > should return null on Redis error 2ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > get > should return fallback value for invalid JSON 2ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > get > should handle empty string values 3ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > get > should preserve type information 3ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > set > should set cached value with default TTL 3ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > set > should set cached value with custom TTL 2ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > set > should handle complex objects 3ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > set > should handle null and undefined values 2ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > set > should handle primitive values 3ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > set > should handle Redis errors gracefully 3ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > del > should delete single key 3ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > del > should delete multiple keys 2ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > del > should handle empty array 2ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > del > should handle single key in array 3ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > del > should handle Redis errors gracefully 2ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > exists > should check if key exists 3ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > exists > should return false for non-existent key 3ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > exists > should handle Redis errors 3ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > ttl > should get TTL for key 3ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > ttl > should return -1 for key without TTL 3ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > ttl > should return -2 for non-existent key 3ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > ttl > should handle Redis errors 3ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > getOrSet > should get value from cache if exists 4ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > getOrSet > should call callback and cache result if not in cache 3ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > invalidatePattern > should invalidate keys matching pattern 3ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > invalidatePattern > should handle no matching keys 3ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > getInfo > should get cache info successfully 4ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > getInfo > should handle Redis errors gracefully 4ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > clear > should clear all cache 3ms\n ✓ tests/unit/services/cache.service.test.ts > CacheService > clear > should handle Redis errors gracefully 3ms\n\n Test Files  1 passed (1)\n      Tests  32 passed (32)\n   Start at  21:10:11\n   Duration  657ms (transform 118ms, setup 259ms, collect 76ms, tests 100ms, environment 0ms, prepare 80ms)\n\n",
+      "file": "cache.service.test.ts"
+    },
+    {
+      "passed": 9,
+      "failed": 0,
+      "total": 9,
+      "output": "\n> @medianest/backend@1.0.0 test\n> vitest run --run --reporter=verbose security-basic.test.ts\n\n\n RUN  v3.2.4 /home/kinginyellow/projects/medianest/backend\n\n ✓ tests/security/security-basic.test.ts > Basic Security Tests - DeviceSessionService Pattern > Security Boundary Isolation Tests > should isolate encryption service state between tests 4ms\n ✓ tests/security/security-basic.test.ts > Basic Security Tests - DeviceSessionService Pattern > Security Boundary Isolation Tests > should isolate JWT service state between tests 2ms\n ✓ tests/security/security-basic.test.ts > Basic Security Tests - DeviceSessionService Pattern > Security Boundary Isolation Tests > should isolate session manager state between tests 2ms\n ✓ tests/security/security-basic.test.ts > Basic Security Tests - DeviceSessionService Pattern > Security Boundary Isolation Tests > should isolate rate limiter state between tests 2ms\n ✓ tests/security/security-basic.test.ts > Basic Security Tests - DeviceSessionService Pattern > Security Boundary Isolation Tests > should isolate CSRF token state between tests 4ms\n ✓ tests/security/security-basic.test.ts > Basic Security Tests - DeviceSessionService Pattern > Security Mock Validation Tests > should maintain mock function integrity 2ms\n ✓ tests/security/security-basic.test.ts > Basic Security Tests - DeviceSessionService Pattern > Security Mock Validation Tests > should provide realistic security mock behaviors 2ms\n ✓ tests/security/security-basic.test.ts > Basic Security Tests - DeviceSessionService Pattern > Security Cleanup Validation Tests > should properly cleanup mock call history 1ms\n ✓ tests/security/security-basic.test.ts > Basic Security Tests - DeviceSessionService Pattern > Security Cleanup Validation Tests > should maintain test isolation across test runs 2ms\n\n Test Files  1 passed (1)\n      Tests  9 passed (9)\n   Start at  21:10:12\n   Duration  532ms (transform 72ms, setup 254ms, collect 21ms, tests 24ms, environment 0ms, prepare 79ms)\n\n",
+      "file": "security-basic.test.ts"
+    },
+    {
+      "passed": 22,
+      "failed": 0,
+      "total": 22,
+      "output": "\n> @medianest/backend@1.0.0 test\n> vitest run --run --reporter=verbose device-session.service.test.ts\n\n\n RUN  v3.2.4 /home/kinginyellow/projects/medianest/backend\n\n ✓ tests/unit/services/device-session.service.test.ts > DeviceSessionService > createSession > should create a new device session successfully 9ms\n ✓ tests/unit/services/device-session.service.test.ts > DeviceSessionService > createSession > should handle database errors during creation 3ms\n ✓ tests/unit/services/device-session.service.test.ts > DeviceSessionService > createSession > should create session with minimal required data 2ms\n ✓ tests/unit/services/device-session.service.test.ts > DeviceSessionService > getActiveSessionsForUser > should return active sessions for user 4ms\n ✓ tests/unit/services/device-session.service.test.ts > DeviceSessionService > getActiveSessionsForUser > should handle database errors 2ms\n ✓ tests/unit/services/device-session.service.test.ts > DeviceSessionService > updateSessionActivity > should update session activity successfully 4ms\n ✓ tests/unit/services/device-session.service.test.ts > DeviceSessionService > updateSessionActivity > should handle non-existent session 3ms\n ✓ tests/unit/services/device-session.service.test.ts > DeviceSessionService > revokeSession > should revoke session successfully 3ms\n ✓ tests/unit/services/device-session.service.test.ts > DeviceSessionService > revokeSession > should handle unauthorized revocation attempt 4ms\n ✓ tests/unit/services/device-session.service.test.ts > DeviceSessionService > revokeAllUserSessions > should revoke all user sessions except current 3ms\n ✓ tests/unit/services/device-session.service.test.ts > DeviceSessionService > revokeAllUserSessions > should revoke all user sessions if no current session specified 3ms\n ✓ tests/unit/services/device-session.service.test.ts > DeviceSessionService > getSessionById > should get session from cache first 3ms\n ✓ tests/unit/services/device-session.service.test.ts > DeviceSessionService > getSessionById > should get session from database if not cached 3ms\n ✓ tests/unit/services/device-session.service.test.ts > DeviceSessionService > getSessionById > should return null if session not found 3ms\n ✓ tests/unit/services/device-session.service.test.ts > DeviceSessionService > getSessionById > should handle cache errors gracefully 3ms\n ✓ tests/unit/services/device-session.service.test.ts > DeviceSessionService > cleanupExpiredSessions > should cleanup sessions older than specified hours 4ms\n ✓ tests/unit/services/device-session.service.test.ts > DeviceSessionService > cleanupExpiredSessions > should use default cleanup period of 720 hours (30 days) 3ms\n ✓ tests/unit/services/device-session.service.test.ts > DeviceSessionService > getSessionStats > should return session statistics for user 3ms\n ✓ tests/unit/services/device-session.service.test.ts > DeviceSessionService > getSessionStats > should handle database errors 4ms\n ✓ tests/unit/services/device-session.service.test.ts > DeviceSessionService > isSessionActive > should return true for active session 4ms\n ✓ tests/unit/services/device-session.service.test.ts > DeviceSessionService > isSessionActive > should return false for inactive session 3ms\n ✓ tests/unit/services/device-session.service.test.ts > DeviceSessionService > isSessionActive > should handle cache errors gracefully 3ms\n\n Test Files  1 passed (1)\n      Tests  22 passed (22)\n   Start at  21:10:13\n   Duration  621ms (transform 120ms, setup 254ms, collect 69ms, tests 78ms, environment 0ms, prepare 75ms)\n\n",
+      "file": "device-session.service.test.ts"
+    }
+  ],
+  "errors": [
+    {
+      "file": "auth.controller.test.ts",
+      "error": "Command failed: npm test -- --run --reporter=verbose auth.controller.test.ts 2>&1"
+    },
+    {
+      "file": "user.repository.test.ts",
+      "error": "Command failed: npm test -- --run --reporter=verbose user.repository.test.ts 2>&1"
+    }
+  ],
+  "recommendations": [
+    "Review failing tests for shared state issues",
+    "Validate mock factory implementations",
+    "Check beforeEach/afterEach cleanup procedures",
+    "Review import order and hoisting issues"
+  ]
+}

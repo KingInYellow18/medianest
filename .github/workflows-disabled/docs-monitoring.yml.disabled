@@ -1,0 +1,610 @@
+name: Documentation Site Health Monitoring
+
+on:
+  schedule:
+    # Check documentation health every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      target_environment:
+        description: 'Environment to monitor'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+        - production
+        - staging
+        - both
+      force_alerts:
+        description: 'Force send alerts regardless of status'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  DOCS_URL_STAGING: 'https://staging-docs.medianest.com'
+  DOCS_URL_PRODUCTION: 'https://docs.medianest.com'
+  MONITORING_TIMEOUT: 30
+  MAX_PAGE_LOAD_TIME: 5.0
+  MAX_RESPONSE_SIZE_MB: 10
+
+jobs:
+  health-check:
+    name: Site Health Check
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        environment: [production, staging]
+        include:
+          - environment: production
+            url: 'https://docs.medianest.com'
+            critical: true
+          - environment: staging
+            url: 'https://staging-docs.medianest.com'
+            critical: false
+    steps:
+    - name: Basic connectivity check
+      id: connectivity
+      run: |
+        echo "Testing connectivity to ${{ matrix.environment }} documentation..."
+        
+        # Test basic connectivity
+        if curl -f -s --connect-timeout ${{ env.MONITORING_TIMEOUT }} "${{ matrix.url }}" > /dev/null 2>&1; then
+          echo "status=healthy" >> $GITHUB_OUTPUT
+          echo "✅ ${{ matrix.environment }} site is accessible"
+        else
+          echo "status=unhealthy" >> $GITHUB_OUTPUT
+          echo "❌ ${{ matrix.environment }} site is not accessible"
+        fi
+
+    - name: Performance metrics
+      id: performance
+      if: steps.connectivity.outputs.status == 'healthy'
+      run: |
+        echo "Collecting performance metrics for ${{ matrix.environment }}..."
+        
+        # Create a temp file for curl metrics
+        cat > curl-format.txt << 'EOF'
+        time_namelookup:  %{time_namelookup}s
+        time_connect:     %{time_connect}s
+        time_appconnect:  %{time_appconnect}s
+        time_pretransfer: %{time_pretransfer}s
+        time_redirect:    %{time_redirect}s
+        time_starttransfer: %{time_starttransfer}s
+        time_total:       %{time_total}s
+        speed_download:   %{speed_download} bytes/sec
+        speed_upload:     %{speed_upload} bytes/sec
+        size_download:    %{size_download} bytes
+        size_upload:      %{size_upload} bytes
+        size_header:      %{size_header} bytes
+        size_request:     %{size_request} bytes
+        http_code:        %{http_code}
+        EOF
+        
+        # Collect metrics
+        metrics=$(curl -w "@curl-format.txt" -o /dev/null -s "${{ matrix.url }}")
+        echo "$metrics"
+        
+        # Extract key metrics
+        time_total=$(echo "$metrics" | grep "time_total:" | awk '{print $2}' | sed 's/s//')
+        http_code=$(echo "$metrics" | grep "http_code:" | awk '{print $2}')
+        size_download=$(echo "$metrics" | grep "size_download:" | awk '{print $2}')
+        speed_download=$(echo "$metrics" | grep "speed_download:" | awk '{print $2}')
+        
+        echo "time_total=$time_total" >> $GITHUB_OUTPUT
+        echo "http_code=$http_code" >> $GITHUB_OUTPUT
+        echo "size_download=$size_download" >> $GITHUB_OUTPUT
+        echo "speed_download=$speed_download" >> $GITHUB_OUTPUT
+        
+        # Performance assessment
+        if (( $(echo "$time_total > ${{ env.MAX_PAGE_LOAD_TIME }}" | bc -l) )); then
+          echo "performance_status=slow" >> $GITHUB_OUTPUT
+          echo "⚠️  Page load time is slow: ${time_total}s"
+        else
+          echo "performance_status=good" >> $GITHUB_OUTPUT
+          echo "✅ Page load time is acceptable: ${time_total}s"
+        fi
+        
+        # Size check (convert to MB)
+        size_mb=$(echo "scale=2; $size_download / 1024 / 1024" | bc)
+        echo "size_mb=$size_mb" >> $GITHUB_OUTPUT
+        
+        if (( $(echo "$size_mb > ${{ env.MAX_RESPONSE_SIZE_MB }}" | bc -l) )); then
+          echo "size_status=large" >> $GITHUB_OUTPUT
+          echo "⚠️  Response size is large: ${size_mb}MB"
+        else
+          echo "size_status=good" >> $GITHUB_OUTPUT
+          echo "✅ Response size is acceptable: ${size_mb}MB"
+        fi
+
+    - name: Content validation
+      id: content
+      if: steps.connectivity.outputs.status == 'healthy'
+      run: |
+        echo "Validating content for ${{ matrix.environment }}..."
+        
+        # Download homepage
+        homepage_content=$(curl -s --connect-timeout ${{ env.MONITORING_TIMEOUT }} "${{ matrix.url }}")
+        
+        # Check for essential elements
+        checks=(
+          "MediaNest Documentation"
+          "<title>"
+          "</html>"
+          "search"
+          "navigation"
+        )
+        
+        failed_checks=0
+        for check in "${checks[@]}"; do
+          if echo "$homepage_content" | grep -q "$check"; then
+            echo "✅ Found: $check"
+          else
+            echo "❌ Missing: $check"
+            ((failed_checks++))
+          fi
+        done
+        
+        # Check for common errors
+        error_indicators=(
+          "404 Not Found"
+          "500 Internal Server Error"
+          "502 Bad Gateway"
+          "503 Service Unavailable"
+          "Error"
+          "Exception"
+        )
+        
+        error_found=false
+        for error in "${error_indicators[@]}"; do
+          if echo "$homepage_content" | grep -qi "$error"; then
+            echo "❌ Found error indicator: $error"
+            error_found=true
+            break
+          fi
+        done
+        
+        if [[ $failed_checks -eq 0 && $error_found == false ]]; then
+          echo "content_status=healthy" >> $GITHUB_OUTPUT
+          echo "✅ Content validation passed"
+        else
+          echo "content_status=unhealthy" >> $GITHUB_OUTPUT
+          echo "❌ Content validation failed ($failed_checks checks failed, errors found: $error_found)"
+        fi
+
+    - name: Search functionality check
+      id: search
+      if: steps.connectivity.outputs.status == 'healthy'
+      run: |
+        echo "Testing search functionality for ${{ matrix.environment }}..."
+        
+        # Check if search index exists
+        search_url="${{ matrix.url }}/search/search_index.json"
+        if curl -f -s --connect-timeout ${{ env.MONITORING_TIMEOUT }} "$search_url" > /dev/null 2>&1; then
+          echo "search_status=healthy" >> $GITHUB_OUTPUT
+          echo "✅ Search index is accessible"
+        else
+          echo "search_status=unhealthy" >> $GITHUB_OUTPUT
+          echo "❌ Search index is not accessible"
+        fi
+
+    - name: Security headers check
+      id: security
+      if: steps.connectivity.outputs.status == 'healthy'
+      run: |
+        echo "Checking security headers for ${{ matrix.environment }}..."
+        
+        # Get headers
+        headers=$(curl -I -s --connect-timeout ${{ env.MONITORING_TIMEOUT }} "${{ matrix.url }}")
+        
+        # Check for security headers
+        security_headers=(
+          "X-Content-Type-Options"
+          "X-Frame-Options"
+          "Content-Security-Policy"
+        )
+        
+        missing_headers=0
+        for header in "${security_headers[@]}"; do
+          if echo "$headers" | grep -qi "$header"; then
+            echo "✅ Found security header: $header"
+          else
+            echo "⚠️  Missing security header: $header"
+            ((missing_headers++))
+          fi
+        done
+        
+        if [[ $missing_headers -eq 0 ]]; then
+          echo "security_status=good" >> $GITHUB_OUTPUT
+          echo "✅ Security headers check passed"
+        else
+          echo "security_status=poor" >> $GITHUB_OUTPUT
+          echo "⚠️  Security headers check failed ($missing_headers headers missing)"
+        fi
+
+    - name: RSS/Sitemap validation
+      id: sitemap
+      if: steps.connectivity.outputs.status == 'healthy'
+      run: |
+        echo "Validating sitemap for ${{ matrix.environment }}..."
+        
+        # Check sitemap
+        sitemap_url="${{ matrix.url }}/sitemap.xml"
+        if curl -f -s --connect-timeout ${{ env.MONITORING_TIMEOUT }} "$sitemap_url" > /dev/null 2>&1; then
+          sitemap_content=$(curl -s --connect-timeout ${{ env.MONITORING_TIMEOUT }} "$sitemap_url")
+          
+          # Validate XML structure
+          if echo "$sitemap_content" | grep -q "<urlset"; then
+            echo "sitemap_status=healthy" >> $GITHUB_OUTPUT
+            echo "✅ Sitemap is valid XML"
+            
+            # Count URLs in sitemap
+            url_count=$(echo "$sitemap_content" | grep -c "<loc>")
+            echo "sitemap_urls=$url_count" >> $GITHUB_OUTPUT
+            echo "📊 Sitemap contains $url_count URLs"
+          else
+            echo "sitemap_status=invalid" >> $GITHUB_OUTPUT
+            echo "❌ Sitemap is not valid XML"
+          fi
+        else
+          echo "sitemap_status=missing" >> $GITHUB_OUTPUT
+          echo "❌ Sitemap is not accessible"
+        fi
+
+    - name: Create monitoring report
+      run: |
+        echo "# 📊 Documentation Health Report - ${{ matrix.environment }}" >> monitoring-report-${{ matrix.environment }}.md
+        echo "" >> monitoring-report-${{ matrix.environment }}.md
+        echo "**Environment:** ${{ matrix.environment }}" >> monitoring-report-${{ matrix.environment }}.md
+        echo "**URL:** ${{ matrix.url }}" >> monitoring-report-${{ matrix.environment }}.md
+        echo "**Check Time:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> monitoring-report-${{ matrix.environment }}.md
+        echo "**Critical:** ${{ matrix.critical }}" >> monitoring-report-${{ matrix.environment }}.md
+        echo "" >> monitoring-report-${{ matrix.environment }}.md
+        
+        echo "## Status Summary" >> monitoring-report-${{ matrix.environment }}.md
+        echo "" >> monitoring-report-${{ matrix.environment }}.md
+        echo "| Component | Status | Details |" >> monitoring-report-${{ matrix.environment }}.md
+        echo "|-----------|--------|---------|" >> monitoring-report-${{ matrix.environment }}.md
+        echo "| Connectivity | ${{ steps.connectivity.outputs.status }} | HTTP Response |" >> monitoring-report-${{ matrix.environment }}.md
+        echo "| Performance | ${{ steps.performance.outputs.performance_status }} | Load Time: ${{ steps.performance.outputs.time_total }}s |" >> monitoring-report-${{ matrix.environment }}.md
+        echo "| Content | ${{ steps.content.outputs.content_status }} | Page Content Validation |" >> monitoring-report-${{ matrix.environment }}.md
+        echo "| Search | ${{ steps.search.outputs.search_status }} | Search Index Accessibility |" >> monitoring-report-${{ matrix.environment }}.md
+        echo "| Security | ${{ steps.security.outputs.security_status }} | Security Headers |" >> monitoring-report-${{ matrix.environment }}.md
+        echo "| Sitemap | ${{ steps.sitemap.outputs.sitemap_status }} | XML Sitemap (${{ steps.sitemap.outputs.sitemap_urls || 'N/A' }} URLs) |" >> monitoring-report-${{ matrix.environment }}.md
+        echo "" >> monitoring-report-${{ matrix.environment }}.md
+        
+        echo "## Performance Metrics" >> monitoring-report-${{ matrix.environment }}.md
+        echo "" >> monitoring-report-${{ matrix.environment }}.md
+        echo "- **Load Time:** ${{ steps.performance.outputs.time_total }}s" >> monitoring-report-${{ matrix.environment }}.md
+        echo "- **Response Size:** ${{ steps.performance.outputs.size_mb }}MB" >> monitoring-report-${{ matrix.environment }}.md
+        echo "- **Download Speed:** ${{ steps.performance.outputs.speed_download }} bytes/sec" >> monitoring-report-${{ matrix.environment }}.md
+        echo "- **HTTP Code:** ${{ steps.performance.outputs.http_code }}" >> monitoring-report-${{ matrix.environment }}.md
+        echo "" >> monitoring-report-${{ matrix.environment }}.md
+        
+        # Overall health status
+        if [[ "${{ steps.connectivity.outputs.status }}" == "healthy" && \
+              "${{ steps.content.outputs.content_status }}" == "healthy" ]]; then
+          echo "overall_status=healthy" >> monitoring-report-${{ matrix.environment }}.md
+          echo "**Overall Status: 🟢 HEALTHY**" >> monitoring-report-${{ matrix.environment }}.md
+        elif [[ "${{ steps.connectivity.outputs.status }}" == "unhealthy" ]]; then
+          echo "overall_status=critical" >> monitoring-report-${{ matrix.environment }}.md
+          echo "**Overall Status: 🔴 CRITICAL**" >> monitoring-report-${{ matrix.environment }}.md
+        else
+          echo "overall_status=warning" >> monitoring-report-${{ matrix.environment }}.md
+          echo "**Overall Status: 🟡 WARNING**" >> monitoring-report-${{ matrix.environment }}.md
+        fi
+
+    - name: Upload monitoring report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: monitoring-report-${{ matrix.environment }}
+        path: monitoring-report-${{ matrix.environment }}.md
+        retention-days: 30
+
+    outputs:
+      connectivity: ${{ steps.connectivity.outputs.status }}
+      performance: ${{ steps.performance.outputs.performance_status }}
+      content: ${{ steps.content.outputs.content_status }}
+      search: ${{ steps.search.outputs.search_status }}
+      security: ${{ steps.security.outputs.security_status }}
+      sitemap: ${{ steps.sitemap.outputs.sitemap_status }}
+
+  link-health-check:
+    name: Link Health Check
+    runs-on: ubuntu-latest
+    needs: [health-check]
+    if: needs.health-check.outputs.connectivity == 'healthy'
+    strategy:
+      matrix:
+        environment: [production]
+        include:
+          - environment: production
+            url: 'https://docs.medianest.com'
+    steps:
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install link checker
+      run: |
+        pip install linkchecker requests beautifulsoup4
+
+    - name: Run comprehensive link check
+      run: |
+        echo "Running comprehensive link check for ${{ matrix.environment }}..."
+        
+        # Create configuration file for linkchecker
+        cat > linkchecker.conf << EOF
+        [checking]
+        threads = 10
+        timeout = 30
+        maxhttpredirects = 10
+        
+        [output]
+        status = 1
+        verbose = 1
+        warnings = 1
+        EOF
+        
+        # Run linkchecker with configuration
+        linkchecker \
+          --config linkchecker.conf \
+          --check-extern \
+          --recursion-level 2 \
+          --output text \
+          --file-output text/linkcheck-results.txt \
+          "${{ matrix.url }}" || echo "Some links may be broken"
+
+    - name: Analyze link check results
+      run: |
+        echo "Analyzing link check results..."
+        
+        if [[ -f "linkcheck-results.txt" ]]; then
+          # Count different types of results
+          total_links=$(grep -c "^URL" linkcheck-results.txt || echo "0")
+          broken_links=$(grep -c "Error:" linkcheck-results.txt || echo "0")
+          warnings=$(grep -c "Warning:" linkcheck-results.txt || echo "0")
+          
+          echo "Link Check Summary:"
+          echo "  Total links checked: $total_links"
+          echo "  Broken links: $broken_links"
+          echo "  Warnings: $warnings"
+          
+          # Create summary report
+          cat > link-health-report.md << EOF
+        # 🔗 Link Health Report - ${{ matrix.environment }}
+        
+        **Environment:** ${{ matrix.environment }}
+        **URL:** ${{ matrix.url }}
+        **Check Time:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+        
+        ## Summary
+        - **Total Links Checked:** $total_links
+        - **Broken Links:** $broken_links
+        - **Warnings:** $warnings
+        
+        ## Status
+        EOF
+          
+          if [[ $broken_links -eq 0 ]]; then
+            echo "**Overall Link Health: 🟢 HEALTHY**" >> link-health-report.md
+          elif [[ $broken_links -le 5 ]]; then
+            echo "**Overall Link Health: 🟡 WARNING** ($broken_links broken links)" >> link-health-report.md
+          else
+            echo "**Overall Link Health: 🔴 CRITICAL** ($broken_links broken links)" >> link-health-report.md
+          fi
+          
+          # Add broken links details if any
+          if [[ $broken_links -gt 0 ]]; then
+            echo "" >> link-health-report.md
+            echo "## Broken Links" >> link-health-report.md
+            echo "" >> link-health-report.md
+            grep -A 2 -B 1 "Error:" linkcheck-results.txt >> link-health-report.md || true
+          fi
+        fi
+
+    - name: Upload link check results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: link-health-report-${{ matrix.environment }}
+        path: |
+          link-health-report.md
+          linkcheck-results.txt
+        retention-days: 7
+
+  alert:
+    name: Send Alerts
+    runs-on: ubuntu-latest
+    needs: [health-check, link-health-check]
+    if: always() && (failure() || github.event.inputs.force_alerts == 'true' || needs.health-check.outputs.connectivity == 'unhealthy')
+    steps:
+    - name: Evaluate alert conditions
+      id: evaluate
+      run: |
+        echo "Evaluating alert conditions..."
+        
+        # Check for critical issues
+        if [[ "${{ needs.health-check.outputs.connectivity }}" == "unhealthy" ]]; then
+          echo "alert_level=critical" >> $GITHUB_OUTPUT
+          echo "alert_message=🚨 CRITICAL: Documentation site is not accessible" >> $GITHUB_OUTPUT
+        elif [[ "${{ needs.health-check.outputs.content }}" == "unhealthy" ]]; then
+          echo "alert_level=high" >> $GITHUB_OUTPUT
+          echo "alert_message=⚠️  HIGH: Documentation content validation failed" >> $GITHUB_OUTPUT
+        elif [[ "${{ needs.health-check.outputs.search }}" == "unhealthy" ]]; then
+          echo "alert_level=medium" >> $GITHUB_OUTPUT
+          echo "alert_message=⚠️  MEDIUM: Documentation search functionality is broken" >> $GITHUB_OUTPUT
+        elif [[ "${{ needs.health-check.outputs.performance }}" == "slow" ]]; then
+          echo "alert_level=low" >> $GITHUB_OUTPUT
+          echo "alert_message=ℹ️  LOW: Documentation site is loading slowly" >> $GITHUB_OUTPUT
+        else
+          echo "alert_level=info" >> $GITHUB_OUTPUT
+          echo "alert_message=ℹ️  Documentation monitoring completed" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Send Slack notification
+      if: steps.evaluate.outputs.alert_level == 'critical' || steps.evaluate.outputs.alert_level == 'high'
+      run: |
+        if [[ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]]; then
+          echo "Sending Slack notification..."
+          
+          # Determine color based on alert level
+          case "${{ steps.evaluate.outputs.alert_level }}" in
+            "critical") color="danger" ;;
+            "high") color="warning" ;;
+            "medium") color="warning" ;;
+            *) color="good" ;;
+          esac
+          
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{
+              \"attachments\": [{
+                \"color\": \"$color\",
+                \"title\": \"MediaNest Documentation Health Alert\",
+                \"text\": \"${{ steps.evaluate.outputs.alert_message }}\",
+                \"fields\": [
+                  {
+                    \"title\": \"Alert Level\",
+                    \"value\": \"${{ steps.evaluate.outputs.alert_level }}\",
+                    \"short\": true
+                  },
+                  {
+                    \"title\": \"Environment\",
+                    \"value\": \"Production\",
+                    \"short\": true
+                  },
+                  {
+                    \"title\": \"URL\",
+                    \"value\": \"${{ env.DOCS_URL_PRODUCTION }}\",
+                    \"short\": false
+                  },
+                  {
+                    \"title\": \"Build\",
+                    \"value\": \"${{ github.run_number }}\",
+                    \"short\": true
+                  }
+                ],
+                \"footer\": \"GitHub Actions\",
+                \"ts\": $(date +%s)
+              }]
+            }" \
+            "${{ secrets.SLACK_WEBHOOK_URL }}" || echo "Failed to send Slack notification"
+        else
+          echo "Slack webhook URL not configured, skipping notification"
+        fi
+
+    - name: Send email notification
+      if: steps.evaluate.outputs.alert_level == 'critical'
+      run: |
+        echo "Critical alert detected - email notification would be sent here"
+        echo "Alert: ${{ steps.evaluate.outputs.alert_message }}"
+        echo "Time: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        echo "Environment: Production"
+        echo "URL: ${{ env.DOCS_URL_PRODUCTION }}"
+
+    - name: Create GitHub issue for critical alerts
+      if: steps.evaluate.outputs.alert_level == 'critical'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const alertMessage = '${{ steps.evaluate.outputs.alert_message }}';
+          const alertLevel = '${{ steps.evaluate.outputs.alert_level }}';
+          
+          const issueTitle = `🚨 Documentation Site Health Alert - ${alertLevel.toUpperCase()}`;
+          const issueBody = `
+          ## Alert Details
+          
+          **Alert Level:** ${alertLevel.toUpperCase()}
+          **Message:** ${alertMessage}
+          **Environment:** Production
+          **URL:** ${{ env.DOCS_URL_PRODUCTION }}
+          **Detection Time:** ${new Date().toISOString()}
+          **Build Number:** ${{ github.run_number }}
+          
+          ## Health Check Results
+          
+          - **Connectivity:** ${{ needs.health-check.outputs.connectivity }}
+          - **Performance:** ${{ needs.health-check.outputs.performance }}
+          - **Content:** ${{ needs.health-check.outputs.content }}
+          - **Search:** ${{ needs.health-check.outputs.search }}
+          - **Security:** ${{ needs.health-check.outputs.security }}
+          - **Sitemap:** ${{ needs.health-check.outputs.sitemap }}
+          
+          ## Recommended Actions
+          
+          1. Check the documentation deployment pipeline
+          2. Verify GitHub Pages configuration
+          3. Test the site manually from different locations
+          4. Review recent changes to documentation
+          5. Check for DNS or CDN issues
+          
+          This issue was automatically created by the documentation monitoring workflow.
+          `;
+          
+          // Check if a similar issue already exists
+          const existingIssues = await github.rest.issues.listForRepo({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            state: 'open',
+            labels: ['documentation', 'alert', 'automated'],
+            per_page: 10
+          });
+          
+          const hasExistingAlert = existingIssues.data.some(
+            issue => issue.title.includes('Documentation Site Health Alert')
+          );
+          
+          if (!hasExistingAlert) {
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: issueTitle,
+              body: issueBody,
+              labels: ['documentation', 'alert', 'automated', alertLevel]
+            });
+            
+            console.log('Created GitHub issue for critical documentation alert');
+          } else {
+            console.log('Similar alert issue already exists, skipping issue creation');
+          }
+
+  summary:
+    name: Monitoring Summary
+    runs-on: ubuntu-latest
+    needs: [health-check, link-health-check, alert]
+    if: always()
+    steps:
+    - name: Generate summary
+      run: |
+        echo "# 📊 Documentation Monitoring Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Check Time:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+        echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        echo "## Environment Status" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Environment | Connectivity | Performance | Content | Search | Security | Sitemap |" >> $GITHUB_STEP_SUMMARY
+        echo "|-------------|--------------|-------------|---------|--------|----------|---------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Production | ${{ needs.health-check.outputs.connectivity }} | ${{ needs.health-check.outputs.performance }} | ${{ needs.health-check.outputs.content }} | ${{ needs.health-check.outputs.search }} | ${{ needs.health-check.outputs.security }} | ${{ needs.health-check.outputs.sitemap }} |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Overall status
+        if [[ "${{ needs.health-check.outputs.connectivity }}" == "healthy" && "${{ needs.health-check.outputs.content }}" == "healthy" ]]; then
+          echo "🟢 **Overall Status: HEALTHY**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ All primary systems are operational" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "🔴 **Overall Status: ISSUES DETECTED**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "⚠️  Issues detected with documentation site" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Quick Actions" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "- [📊 View Monitoring Reports](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+        echo "- [📚 Visit Documentation](https://docs.medianest.com)" >> $GITHUB_STEP_SUMMARY
+        echo "- [🔧 Deployment Workflow](https://github.com/${{ github.repository }}/actions/workflows/docs.yml)" >> $GITHUB_STEP_SUMMARY
