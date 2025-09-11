@@ -1,12 +1,13 @@
-import { MediaRequest, Prisma } from '@prisma/client';
-
-// @ts-ignore
 import {
   NotFoundError, // @ts-ignore
 } from '@medianest/shared';
+import { MediaRequest, Prisma } from '@prisma/client';
+
+// @ts-ignore
+
+import { CatchError } from '../types/common';
 
 import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
-import { CatchError } from '../types/common';
 
 export interface CreateMediaRequestInput {
   userId: string;
@@ -56,7 +57,7 @@ export class MediaRequestRepository extends BaseRepository<MediaRequest> {
 
   async findByUser(
     userId: string,
-    options: PaginationOptions = {}
+    options: PaginationOptions = {},
   ): Promise<PaginatedResult<MediaRequest>> {
     return this.paginate<MediaRequest>(this.prisma.mediaRequest, { userId }, options, undefined, {
       user: {
@@ -72,7 +73,7 @@ export class MediaRequestRepository extends BaseRepository<MediaRequest> {
 
   async findByFilters(
     filters: MediaRequestFilters,
-    options: PaginationOptions = {}
+    options: PaginationOptions = {},
   ): Promise<PaginatedResult<MediaRequest>> {
     const where: Prisma.MediaRequestWhereInput = {};
 
@@ -208,10 +209,13 @@ export class MediaRequestRepository extends BaseRepository<MediaRequest> {
       _count: true,
     });
 
-    return requests.reduce((acc, item) => {
-      acc[item.status] = item._count;
-      return acc;
-    }, {} as Record<string, number>);
+    return requests.reduce(
+      (acc, item) => {
+        acc[item.status] = item._count;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
   }
 
   async getRecentRequests(limit: number = 10, offset: number = 0): Promise<MediaRequest[]> {
@@ -283,7 +287,7 @@ export class MediaRequestRepository extends BaseRepository<MediaRequest> {
 
   async findMany(
     filters: MediaRequestFilters = {},
-    options: { skip?: number; take?: number; orderBy?: any } = {}
+    options: { skip?: number; take?: number; orderBy?: any } = {},
   ): Promise<MediaRequest[]> {
     const where: any = {};
 
@@ -326,10 +330,13 @@ export class MediaRequestRepository extends BaseRepository<MediaRequest> {
         _count: true,
       });
 
-      const statusCounts = counts.reduce((acc, item) => {
-        acc[item.status] = item._count;
-        return acc;
-      }, {} as Record<string, number>);
+      const statusCounts = counts.reduce(
+        (acc, item) => {
+          acc[item.status] = item._count;
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
 
       const total = Object.values(statusCounts).reduce((sum, count) => sum + count, 0);
 
@@ -350,7 +357,7 @@ export class MediaRequestRepository extends BaseRepository<MediaRequest> {
   async findRecent(options: { limit?: number; orderBy?: any } = {}): Promise<MediaRequest[]> {
     try {
       const limit = options.limit || 10;
-      
+
       return await this.prisma.mediaRequest.findMany({
         take: limit,
         orderBy: options.orderBy || { createdAt: 'desc' },

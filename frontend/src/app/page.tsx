@@ -4,5 +4,5 @@ export default function Home() {
       <h1>MediaNest</h1>
       <p>Advanced Media Management Platform</p>
     </main>
-  )
+  );
 }

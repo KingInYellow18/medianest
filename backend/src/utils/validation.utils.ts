@@ -66,7 +66,7 @@ export function isNotEmptyObject(value: object | null | undefined): boolean {
 export function validateRequiredFields(
   obj: Record<string, any>,
   requiredFields: string[],
-  objectName = 'Object'
+  objectName = 'Object',
 ): void {
   const missingFields: string[] = [];
 
@@ -91,7 +91,7 @@ export function validateRequiredFields(
 export function requireFields<T extends Record<string, any>>(
   obj: T,
   requiredFields: (keyof T)[],
-  objectName = 'Object'
+  objectName = 'Object',
 ): T {
   validateRequiredFields(obj, requiredFields as string[], objectName);
   return obj;
@@ -105,7 +105,7 @@ export function requireFields<T extends Record<string, any>>(
  */
 export function assertNotNull<T>(
   value: T | null | undefined,
-  message = 'Value cannot be null or undefined'
+  message = 'Value cannot be null or undefined',
 ): asserts value is T {
   if (isNullOrUndefined(value)) {
     throw new Error(message);
@@ -120,7 +120,7 @@ export function assertNotNull<T>(
  */
 export function assertNotEmpty(
   value: string | null | undefined,
-  message = 'Value cannot be empty'
+  message = 'Value cannot be empty',
 ): asserts value is string {
   if (isEmpty(value)) {
     throw new Error(message);
@@ -135,7 +135,7 @@ export function assertNotEmpty(
  */
 export function assertNotEmptyArray<T>(
   value: T[] | null | undefined,
-  message = 'Array cannot be empty'
+  message = 'Array cannot be empty',
 ): asserts value is T[] {
   if (isEmptyArray(value)) {
     throw new Error(message);
@@ -151,7 +151,7 @@ export function assertNotEmptyArray<T>(
 export function safeGet<T, K extends keyof T>(
   obj: T | null | undefined,
   key: K,
-  fallback: T[K]
+  fallback: T[K],
 ): T[K] {
   if (isNullOrUndefined(obj) || isNullOrUndefined(obj[key])) {
     return fallback;
@@ -214,7 +214,7 @@ export function createValidationError(
   message: string,
   field?: string,
   value?: any,
-  context?: Record<string, any>
+  context?: Record<string, any>,
 ): Error {
   const error = new Error(message);
   (error as any).field = field;
@@ -254,7 +254,7 @@ export function sanitizeInput(input: string | null | undefined): string {
  */
 export function deepValidate(
   obj: Record<string, any>,
-  schema: Record<string, (value: any) => boolean | string>
+  schema: Record<string, (value: any) => boolean | string>,
 ): { isValid: boolean; errors: string[] } {
   const errors: string[] = [];
 

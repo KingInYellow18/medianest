@@ -1,9 +1,10 @@
+import { AppError } from '@medianest/shared';
 import { Request, Response } from 'express';
 
-import { plexService } from '@/services/plex.service';
-import { AppError } from '@medianest/shared';
-import { logger } from '@/utils/logger';
 import { CatchError } from '../types/common';
+
+import { plexService } from '@/services/plex.service';
+import { logger } from '@/utils/logger';
 
 export class PlexController {
   async getServerInfo(req: Request, res: Response) {

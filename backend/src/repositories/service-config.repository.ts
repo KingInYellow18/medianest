@@ -1,14 +1,14 @@
+import {
+  NotFoundError, // @ts-ignore
+} from '@medianest/shared';
 import { ServiceConfig } from '@prisma/client';
 
 import { encryptionService } from '../services/encryption.service';
 // @ts-ignore
-import {
-  NotFoundError, // @ts-ignore
-} from '@medianest/shared';
+import { CatchError } from '../types/common';
 import { logger } from '../utils/logger';
 
 import { BaseRepository } from './base.repository';
-import { CatchError } from '../types/common';
 
 export interface CreateServiceConfigInput {
   serviceName: string;

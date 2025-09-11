@@ -107,7 +107,7 @@ export function validateSecrets(): ValidationResult {
           `Missing required secret: ${secret.name} (${secret.envVar})\n` +
             `  Description: ${secret.description}\n` +
             (secret.generateCommand ? `  Generate with: ${secret.generateCommand}\n` : '') +
-            `  Add to .env: ${secret.envVar}=<your-${secret.envVar.toLowerCase()}>`
+            `  Add to .env: ${secret.envVar}=<your-${secret.envVar.toLowerCase()}>`,
         );
       } else {
         result.warnings.push(`Optional secret not set: ${secret.name} (${secret.envVar})`);
@@ -122,7 +122,7 @@ export function validateSecrets(): ValidationResult {
         `Secret too short: ${secret.name} (${secret.envVar})\n` +
           `  Current length: ${value.length} characters\n` +
           `  Required minimum: ${secret.minLength} characters\n` +
-          (secret.generateCommand ? `  Generate secure value: ${secret.generateCommand}` : '')
+          (secret.generateCommand ? `  Generate secure value: ${secret.generateCommand}` : ''),
       );
     }
 
@@ -132,7 +132,7 @@ export function validateSecrets(): ValidationResult {
       result.errors.push(
         `Production secret appears to be a test value: ${secret.name} (${secret.envVar})\n` +
           `  Please generate a secure production secret\n` +
-          (secret.generateCommand ? `  Generate with: ${secret.generateCommand}` : '')
+          (secret.generateCommand ? `  Generate with: ${secret.generateCommand}` : ''),
       );
     }
   }
@@ -180,10 +180,10 @@ export function validateSecretsOrThrow(): void {
 
   logger.info('✅ All required secrets validated successfully', {
     validatedSecrets: REQUIRED_SECRETS.filter(
-      (s) => s.required || (s.production && process.env.NODE_ENV === 'production')
+      (s) => s.required || (s.production && process.env.NODE_ENV === 'production'),
     ).map((s) => s.envVar),
     optionalSecrets: REQUIRED_SECRETS.filter(
-      (s) => !s.required && !(s.production && process.env.NODE_ENV === 'production')
+      (s) => !s.required && !(s.production && process.env.NODE_ENV === 'production'),
     )
       .map((s) => s.envVar)
       .filter((envVar) => process.env[envVar]),
@@ -223,17 +223,17 @@ export function getSecretsSetupHelp(): string {
     '',
     '2. Generate required secrets:',
     ...REQUIRED_SECRETS.filter((s) => s.generateCommand).map(
-      (s) => `   ${s.envVar}=$(${s.generateCommand})`
+      (s) => `   ${s.envVar}=$(${s.generateCommand})`,
     ),
     '',
     '3. Update .env with your values:',
     ...REQUIRED_SECRETS.filter((s) => s.required).map(
-      (s) => `   ${s.envVar}=<paste-generated-value>`
+      (s) => `   ${s.envVar}=<paste-generated-value>`,
     ),
     '',
     '4. Optional configuration:',
     ...REQUIRED_SECRETS.filter((s) => !s.required).map(
-      (s) => `   ${s.envVar}=<your-value>  # ${s.description}`
+      (s) => `   ${s.envVar}=<your-value>  # ${s.description}`,
     ),
     '',
     '5. Restart the application',

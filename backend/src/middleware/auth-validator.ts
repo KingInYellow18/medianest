@@ -6,8 +6,9 @@
  */
 
 import { AuthenticatedUser } from '../auth';
-import { authSecurityService } from './auth-security-fixes';
 import { logger } from '../utils/logger';
+
+import { authSecurityService } from './auth-security-fixes';
 
 export interface AuthValidationContext {
   ipAddress: string;
@@ -31,7 +32,7 @@ export class AuthValidator {
   async validateAuthentication(
     user: AuthenticatedUser,
     token: string,
-    context: AuthValidationContext
+    context: AuthValidationContext,
   ): Promise<AuthValidationResult> {
     const validationResults: Array<{ isValid: boolean; reason?: string; riskScore: number }> = [];
 
@@ -97,7 +98,7 @@ export class AuthValidator {
    * Validate user account status and permissions
    */
   private async validateUserStatus(
-    user: AuthenticatedUser
+    user: AuthenticatedUser,
   ): Promise<{ isValid: boolean; reason?: string; riskScore: number }> {
     // Check user status
     if (!user.status || user.status !== 'active') {
@@ -136,7 +137,7 @@ export class AuthValidator {
   private async validateTokenSecurity(
     token: string,
     _userId: string,
-    context: AuthValidationContext
+    context: AuthValidationContext,
   ): Promise<{ isValid: boolean; reason?: string; riskScore: number }> {
     // Check token blacklist
     const isBlacklisted = await authSecurityService.isTokenBlacklisted(token);
@@ -202,7 +203,7 @@ export class AuthValidator {
    */
   private async validateSession(
     _userId: string,
-    context: AuthValidationContext
+    context: AuthValidationContext,
   ): Promise<{ isValid: boolean; reason?: string; riskScore: number }> {
     if (!context.sessionId) {
       return {
@@ -223,12 +224,12 @@ export class AuthValidator {
    */
   private async validateUserActivity(
     userId: string,
-    context: AuthValidationContext
+    context: AuthValidationContext,
   ): Promise<{ isValid: boolean; reason?: string; riskScore: number }> {
     const activityResult = await authSecurityService.detectSuspiciousActivity(
       userId,
       context.ipAddress,
-      context.userAgent
+      context.userAgent,
     );
 
     if (activityResult.isSuspicious) {
@@ -265,7 +266,7 @@ export class AuthValidator {
    */
   async validateAdminAccess(
     user: AuthenticatedUser,
-    context: AuthValidationContext
+    context: AuthValidationContext,
   ): Promise<AuthValidationResult> {
     const baseValidation = await this.validateAuthentication(user, '', context);
 

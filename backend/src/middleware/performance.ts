@@ -2,6 +2,7 @@
 // Implements official Express.js performance optimization patterns
 
 import { Request, Response, NextFunction } from 'express';
+
 import { logger } from '../utils/logger';
 
 // Context7 Pattern: Request timing middleware for performance monitoring
@@ -82,8 +83,8 @@ export function responseOptimization() {
           JSON.parse(
             JSON.stringify(obj, (_key, value) => {
               return value === null || value === undefined ? undefined : value;
-            })
-          )
+            }),
+          ),
         );
       };
     }
@@ -131,7 +132,7 @@ export function cacheHeaders(
     public?: boolean;
     immutable?: boolean;
     etag?: boolean;
-  } = {}
+  } = {},
 ) {
   const { maxAge = 0, public: isPublic = false, immutable = false, etag = false } = options;
 

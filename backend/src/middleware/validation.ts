@@ -1,10 +1,10 @@
 // @ts-nocheck
+import { AppError } from '@medianest/shared';
 import { Request, Response, NextFunction } from 'express';
 import { z, ZodError, ZodSchema } from 'zod';
 
-import { AppError } from '@medianest/shared';
-import { logger } from '../utils/logger';
 import { CatchError } from '../types/common';
+import { logger } from '../utils/logger';
 
 interface ValidationData {
   body?: any;
@@ -71,7 +71,7 @@ export function validate(schema: ZodSchema) {
           validationError.message,
           400,
           'VALIDATION_ERROR',
-          validationError.details
+          validationError.details,
         );
 
         next(appError);

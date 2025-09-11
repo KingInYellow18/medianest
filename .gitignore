@@ -20,6 +20,8 @@ coverage/
 .nyc_output
 test-results/
 playwright-report/
+coverage/.tmp
+*.performance-test.tmp
 
 # Next.js
 .next/
@@ -58,6 +60,7 @@ debug.log
 
 # TypeScript
 *.tsbuildinfo
+.tsbuildinfo
 next-env.d.ts
 shared/src/**/*.js
 shared/src/**/*.js.map
@@ -128,6 +131,12 @@ venv/
 *.json.temp
 *.js.backup
 *.ts.backup
+
+# Cleanup and migration files
+.medianest-cleanup/
+**/backups/
+**/*.backup
+**/.performance-test.tmp
 
 # Claude Flow generated files
 .claude/settings.local.json

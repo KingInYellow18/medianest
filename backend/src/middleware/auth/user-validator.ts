@@ -35,7 +35,7 @@ export interface AuthenticatedUser extends User {
 export async function validateUser(
   userId: string,
   userRepository: UserRepository,
-  context: UserValidationContext
+  context: UserValidationContext,
 ): Promise<AuthenticatedUser> {
   const user = await userRepository.findById(userId);
 
@@ -48,7 +48,7 @@ export async function validateUser(
         ipAddress: context.ipAddress,
         userAgent: context.userAgent,
       },
-      'warn'
+      'warn',
     );
 
     throw new AuthenticationError('User not found or inactive');
@@ -72,7 +72,7 @@ export async function validateUser(
  */
 export async function validateUserOptional(
   userId: string,
-  userRepository: UserRepository
+  userRepository: UserRepository,
 ): Promise<AuthenticatedUser | null> {
   try {
     const user = await userRepository.findById(userId);

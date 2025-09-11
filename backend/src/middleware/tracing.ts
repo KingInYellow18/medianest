@@ -1,6 +1,6 @@
 // @ts-nocheck
-import { Request, Response, NextFunction } from 'express';
 import { trace, context, SpanStatusCode, SpanKind } from '@opentelemetry/api';
+import { Request, Response, NextFunction } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 
 // Types extended in types/express.d.ts

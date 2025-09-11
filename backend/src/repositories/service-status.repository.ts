@@ -1,14 +1,15 @@
 // @ts-nocheck
+import {
+  NotFoundError, // @ts-ignore
+} from '@medianest/shared';
 import { ServiceStatus, Prisma } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 
 // @ts-ignore
-import {
-  NotFoundError, // @ts-ignore
-} from '@medianest/shared';
+
+import { CatchError } from '../types/common';
 
 import { BaseRepository } from './base.repository';
-import { CatchError } from '../types/common';
 
 export interface ServiceStatusUpdate {
   status?: string;
@@ -68,7 +69,7 @@ export class ServiceStatusRepository extends BaseRepository<ServiceStatus> {
   async updateStatus(
     serviceName: string,
     status: string,
-    responseTimeMs?: number
+    responseTimeMs?: number,
   ): Promise<ServiceStatus> {
     return this.upsert(serviceName, {
       status,

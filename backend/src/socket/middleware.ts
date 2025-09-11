@@ -2,13 +2,14 @@ import jwt from 'jsonwebtoken';
 import { Socket } from 'socket.io';
 import { ExtendedError } from 'socket.io/dist/namespace';
 
+import { CatchError } from '../types/common';
+
 import { userRepository } from '@/repositories';
 import { logger } from '@/utils/logger';
-import { CatchError } from '../types/common';
 
 export async function authenticateSocket(
   socket: Socket,
-  next: (err?: ExtendedError) => void
+  next: (err?: ExtendedError) => void,
 ): Promise<void> {
   try {
     const token =
@@ -50,7 +51,7 @@ export async function authenticateSocket(
  */
 export async function authenticateAdminSocket(
   socket: Socket,
-  next: (err?: ExtendedError) => void
+  next: (err?: ExtendedError) => void,
 ): Promise<void> {
   try {
     const token =

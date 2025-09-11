@@ -1,8 +1,9 @@
-import { logger } from '@/utils/logger';
+import { AppError } from '@medianest/shared';
+
 import { redisClient } from '@/config/redis';
 import { PlexClient } from '@/integrations/plex/plex.client';
 import { YouTubeClient } from '@/integrations/youtube/youtube.client';
-import { AppError } from '@medianest/shared';
+import { logger } from '@/utils/logger';
 
 export interface HealthStatus {
   service: string;
@@ -58,10 +59,10 @@ export class ApiHealthMonitorService {
     }
 
     logger.info('Starting API health monitoring');
-    
+
     // Initial health check
     this.performAllHealthChecks();
-    
+
     // Schedule periodic checks
     this.intervalId = setInterval(() => {
       this.performAllHealthChecks();
@@ -140,19 +141,20 @@ export class ApiHealthMonitorService {
    * Perform health checks for all registered services
    */
   private async performAllHealthChecks(): Promise<void> {
-    const promises = Array.from(this.services.keys()).map(serviceName =>
-      this.getServiceHealth(serviceName)
+    const promises = Array.from(this.services.keys()).map((serviceName) =>
+      this.getServiceHealth(serviceName),
     );
 
     await Promise.allSettled(promises);
 
     // Log unhealthy services
-    const unhealthyServices = Array.from(this.healthCache.values())
-      .filter(status => status.status === 'unhealthy');
+    const unhealthyServices = Array.from(this.healthCache.values()).filter(
+      (status) => status.status === 'unhealthy',
+    );
 
     if (unhealthyServices.length > 0) {
       logger.warn('Unhealthy services detected', {
-        services: unhealthyServices.map(s => ({
+        services: unhealthyServices.map((s) => ({
           name: s.service,
           error: s.error,
         })),
@@ -166,9 +168,9 @@ export class ApiHealthMonitorService {
   private calculateOverallHealth(services: HealthStatus[]): SystemHealth['overall'] {
     if (services.length === 0) return 'unhealthy';
 
-    const healthyCount = services.filter(s => s.status === 'healthy').length;
-    const degradedCount = services.filter(s => s.status === 'degraded').length;
-    const unhealthyCount = services.filter(s => s.status === 'unhealthy').length;
+    const healthyCount = services.filter((s) => s.status === 'healthy').length;
+    const degradedCount = services.filter((s) => s.status === 'degraded').length;
+    const unhealthyCount = services.filter((s) => s.status === 'unhealthy').length;
 
     // System is healthy if all services are healthy
     if (healthyCount === services.length) {
@@ -189,7 +191,7 @@ export class ApiHealthMonitorService {
    */
   private async checkPlexHealth(): Promise<HealthCheckResult> {
     const startTime = Date.now();
-    
+
     try {
       // We would need a service account or admin token for health checks
       const adminUserId = process.env.PLEX_ADMIN_USER_ID;
@@ -203,7 +205,7 @@ export class ApiHealthMonitorService {
 
       const { plexService } = await import('@/services/plex.service');
       const serverInfo = await plexService.getServerInfo(adminUserId);
-      
+
       return {
         success: true,
         latency: Date.now() - startTime,
@@ -227,11 +229,11 @@ export class ApiHealthMonitorService {
    */
   private async checkYouTubeHealth(): Promise<HealthCheckResult> {
     const startTime = Date.now();
-    
+
     try {
       const client = new YouTubeClient();
       const isAvailable = await client.checkAvailability();
-      
+
       return {
         success: isAvailable,
         latency: Date.now() - startTime,
@@ -254,17 +256,17 @@ export class ApiHealthMonitorService {
    */
   private async checkRedisHealth(): Promise<HealthCheckResult> {
     const startTime = Date.now();
-    
+
     try {
       const testKey = 'health:check:redis';
       const testValue = `test-${Date.now()}`;
-      
+
       await redisClient.set(testKey, testValue, 'EX', 10);
       const retrievedValue = await redisClient.get(testKey);
       await redisClient.del(testKey);
-      
+
       const success = retrievedValue === testValue;
-      
+
       return {
         success,
         latency: Date.now() - startTime,
@@ -284,15 +286,15 @@ export class ApiHealthMonitorService {
    */
   private async checkDatabaseHealth(): Promise<HealthCheckResult> {
     const startTime = Date.now();
-    
+
     try {
       // Import database connection dynamically to avoid circular dependencies
       const { getDatabase } = await import('@/config/database');
       const prisma = getDatabase();
-      
+
       // Simple connectivity test
       await prisma.$queryRaw`SELECT 1`;
-      
+
       return {
         success: true,
         latency: Date.now() - startTime,
@@ -309,7 +311,10 @@ export class ApiHealthMonitorService {
   /**
    * Get service uptime statistics
    */
-  async getUptimeStats(serviceName: string, hours: number = 24): Promise<{
+  async getUptimeStats(
+    serviceName: string,
+    hours: number = 24,
+  ): Promise<{
     uptime: number;
     totalChecks: number;
     failedChecks: number;
@@ -318,7 +323,7 @@ export class ApiHealthMonitorService {
     try {
       const key = `health:stats:${serviceName}`;
       const stats = await redisClient.get(key);
-      
+
       if (!stats) {
         return {
           uptime: 0,
@@ -347,7 +352,7 @@ export class ApiHealthMonitorService {
     try {
       const key = `health:stats:${serviceName}`;
       const existing = await redisClient.get(key);
-      
+
       let stats = {
         uptime: 0,
         totalChecks: 0,
@@ -364,7 +369,7 @@ export class ApiHealthMonitorService {
       if (!result.success) {
         stats.failedChecks++;
       }
-      
+
       // Calculate running average latency
       stats.averageLatency = (stats.averageLatency + result.latency) / 2;
       stats.uptime = ((stats.totalChecks - stats.failedChecks) / stats.totalChecks) * 100;
@@ -387,12 +392,16 @@ export class ApiHealthMonitorService {
     };
   }> {
     const trends: any = {};
-    
+
     try {
       for (const serviceName of this.services.keys()) {
         const key = `health:trends:${serviceName}`;
-        const data = await redisClient.lrange(key, 0, Math.floor((hours * 60) / (this.checkInterval / 60000)));
-        
+        const data = await redisClient.lrange(
+          key,
+          0,
+          Math.floor((hours * 60) / (this.checkInterval / 60000)),
+        );
+
         trends[serviceName] = {
           timestamps: [],
           statuses: [],

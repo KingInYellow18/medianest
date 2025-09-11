@@ -1,14 +1,15 @@
+import { BadRequestError, NotFoundError, ConflictError } from '@medianest/shared';
 import { Request, Response, NextFunction } from 'express';
 
 // @ts-ignore
-import { BadRequestError, NotFoundError, ConflictError } from '@medianest/shared';
 
-import { logger } from '@/utils/logger';
-import { youtubeQueue } from '@/config/queues';
-import { getSocketServer } from '@/socket/server';
-import { YouTubeService } from '@/services/youtube.service';
-import { youtubeDownloadRepository } from '@/repositories/instances';
 import { CatchError } from '../types/common';
+
+import { youtubeQueue } from '@/config/queues';
+import { youtubeDownloadRepository } from '@/repositories/instances';
+import { YouTubeService } from '@/services/youtube.service';
+import { getSocketServer } from '@/socket/server';
+import { logger } from '@/utils/logger';
 import {
   createDownloadSchema,
   getDownloadSchema,
@@ -31,7 +32,7 @@ export class YouTubeController {
   createDownload = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<Response | void> => {
     try {
       const userId = req.user!.id;
@@ -93,7 +94,7 @@ export class YouTubeController {
             type: 'exponential',
             delay: 5000,
           },
-        }
+        },
       );
 
       // Update download with job ID
@@ -190,7 +191,7 @@ export class YouTubeController {
             createdAt: download.createdAt,
             completedAt: download.completedAt,
           };
-        })
+        }),
       );
 
       res.json({

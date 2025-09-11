@@ -1,12 +1,14 @@
-import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import compression from 'compression';
-import cookieParser from 'cookie-parser';
-import { Server as SocketIOServer } from 'socket.io';
 import { createServer } from 'http';
 
+import compression from 'compression';
+import cookieParser from 'cookie-parser';
+import cors from 'cors';
+import express from 'express';
+import helmet from 'helmet';
+import { Server as SocketIOServer } from 'socket.io';
+
 // Middleware imports
+import { env } from './config/env';
 import { errorHandler } from './middleware/error';
 import { timeoutPresets } from './middleware/timeout';
 
@@ -14,9 +16,8 @@ import { timeoutPresets } from './middleware/timeout';
 import v1Router from './routes/v1';
 
 // Utils
-import { logger } from './utils/logger';
-import { env } from './config/env';
 import { initSocketHandlers, setIO } from './socket/socket';
+import { logger } from './utils/logger';
 
 // Create Express app
 export const app = express();
@@ -47,7 +48,7 @@ app.use(
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Correlation-Id'],
-  })
+  }),
 );
 
 app.use(helmet());
@@ -73,7 +74,7 @@ app.use(
       // Use default compression filter for other content
       return compression.filter(req, res);
     },
-  })
+  }),
 );
 
 // Context7 Pattern: Optimized body parsing with security enhancements
@@ -89,7 +90,7 @@ app.use(
         throw new Error('Invalid JSON format');
       }
     },
-  })
+  }),
 );
 
 app.use(
@@ -98,7 +99,7 @@ app.use(
     limit: '100kb', // Context7: Smaller limit for URL-encoded data
     parameterLimit: 20, // Context7: Limit parameters to prevent abuse
     type: 'application/x-www-form-urlencoded',
-  })
+  }),
 );
 
 // Cookie parser for CSRF tokens

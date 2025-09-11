@@ -1,11 +1,12 @@
 // Use built-in fetch (Node.js 18+)
+import { AppError } from '@medianest/shared';
+
 import { SessionTokenRepository } from '../repositories/session-token.repository';
 import { UserRepository } from '../repositories/user.repository';
-import { AppError } from '@medianest/shared';
+import { CatchError } from '../types/common';
+import { PlexUser as PlexUserType, PlexAuthPin } from '../types/integration/external-apis.types';
 import { generateToken } from '../utils/jwt';
 import { logger } from '../utils/logger';
-import { PlexUser as PlexUserType, PlexAuthPin } from '../types/integration/external-apis.types';
-import { CatchError } from '../types/common';
 
 export interface PlexPin {
   id: number;

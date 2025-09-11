@@ -14,14 +14,14 @@ function getDatabaseUrl(): string {
 
   // Parse the URL to add connection pooling parameters
   const url = new URL(baseUrl);
-  
+
   // Optimized for homelab with 10-20 users
   // Conservative settings to avoid overwhelming a homelab database
   url.searchParams.set('connection_limit', '20'); // Max 20 connections
   url.searchParams.set('pool_timeout', '10'); // 10 second timeout
   url.searchParams.set('connect_timeout', '10'); // 10 second connection timeout
   url.searchParams.set('statement_timeout', '30000'); // 30 second statement timeout
-  
+
   return url.toString();
 }
 

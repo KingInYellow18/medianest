@@ -1,14 +1,15 @@
 import crypto from 'crypto';
 
-import { SessionToken } from '@prisma/client';
-
-// @ts-ignore
 import {
   NotFoundError, // @ts-ignore
 } from '@medianest/shared';
+import { SessionToken } from '@prisma/client';
+
+// @ts-ignore
+
+import { CatchError } from '../types/common';
 
 import { BaseRepository } from './base.repository';
-import { CatchError } from '../types/common';
 
 export interface CreateSessionTokenInput {
   userId: string;
@@ -26,7 +27,7 @@ export class SessionTokenRepository extends BaseRepository<SessionToken> {
   }
 
   async create(
-    data: CreateSessionTokenInput
+    data: CreateSessionTokenInput,
   ): Promise<{ token: string; sessionToken: SessionToken }> {
     try {
       // Generate a secure random token

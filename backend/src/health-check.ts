@@ -7,8 +7,8 @@
  */
 
 import * as http from 'http';
-import { logger } from './utils/logger';
 
+import { logger } from './utils/logger';
 
 interface HealthCheckError extends Error {
   code?: string;

@@ -1,8 +1,8 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
 import http from 'http';
 import https from 'https';
 
 import { ServiceUnavailableError, BadRequestError } from '@medianest/shared';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
 
 import { logger } from '@/utils/logger';
 
@@ -95,7 +95,7 @@ export abstract class BaseServiceClient {
       (error) => {
         logger.error(`${this.name} API request error`, { error });
         return Promise.reject(error);
-      }
+      },
     );
 
     // Response interceptor
@@ -114,7 +114,7 @@ export abstract class BaseServiceClient {
           error: error instanceof Error ? error.message : 'Unknown error',
         });
         return Promise.reject(error);
-      }
+      },
     );
   }
 

@@ -1,7 +1,8 @@
-import { logger } from './logger';
-import { CircuitBreakerFactory } from './circuit-breaker';
 import { CatchError } from '../types/common';
 import { toError, getErrorMessage } from '../types/error-types';
+
+import { CircuitBreakerFactory } from './circuit-breaker';
+import { logger } from './logger';
 // WAVE 2 AGENT #11: INTEGRATION ORCHESTRATOR - CONDITIONAL REDIS IMPORT
 // Only import Redis if not in test environment or if Redis is explicitly enabled
 let IORedisClass: any;
@@ -282,7 +283,7 @@ export class ErrorRecoveryManager {
     });
 
     throw new Error(
-      `Recovery failed after trying ${applicableActions.length} actions: ${error.message}`
+      `Recovery failed after trying ${applicableActions.length} actions: ${error.message}`,
     );
   }
 
@@ -306,7 +307,7 @@ export class ErrorRecoveryManager {
     error: Error,
     context: ErrorContext,
     recoveryAction: string,
-    result: unknown
+    result: unknown,
   ): Promise<void> {
     if (!this.redis) return;
 
@@ -326,7 +327,7 @@ export class ErrorRecoveryManager {
 
   getErrorHistory(
     operation: string,
-    service?: string
+    service?: string,
   ): Array<{ error: Error; context: ErrorContext; timestamp: Date }> {
     const key = `${operation}:${service || 'unknown'}`;
     return this.errorHistory.get(key) || [];
@@ -355,7 +356,7 @@ export class ErrorRecoveryManager {
       maxAttempts?: number;
       initialDelay?: number;
       enableRecovery?: boolean;
-    }
+    },
   ): Promise<T> {
     const options = {
       maxAttempts: 3,
@@ -413,7 +414,7 @@ export class ErrorRecoveryManager {
   // Cascade failure prevention
   async checkCascadeRisk(
     operation: string,
-    service?: string
+    service?: string,
   ): Promise<{
     risk: 'low' | 'medium' | 'high';
     recommendation: string;
@@ -422,7 +423,7 @@ export class ErrorRecoveryManager {
   }> {
     const history = this.getErrorHistory(operation, service);
     const recentErrors = history.filter(
-      (h) => Date.now() - h.timestamp.getTime() < 300000 // Last 5 minutes
+      (h) => Date.now() - h.timestamp.getTime() < 300000, // Last 5 minutes
     ).length;
 
     let risk: 'low' | 'medium' | 'high' = 'low';
@@ -507,7 +508,7 @@ export async function withRecovery<T>(
     maxAttempts?: number;
     initialDelay?: number;
     enableRecovery?: boolean;
-  }
+  },
 ): Promise<T> {
   const fullContext: ErrorContext = {
     ...context,

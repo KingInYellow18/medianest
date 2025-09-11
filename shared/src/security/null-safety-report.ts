@@ -90,7 +90,7 @@ export const SECURITY_IMPROVEMENTS_SUMMARY = {
   criticalSecurityIssuesResolved: 8,
   riskReductionPercentage: 90,
   overallSecurityScore: 9.3,
-  
+
   keyAchievements: [
     'Zero unsafe type assertions remaining in codebase',
     'Comprehensive database null safety implementation',
@@ -127,7 +127,7 @@ export const SECURITY_IMPROVEMENTS_SUMMARY = {
 
   complianceStandards: [
     'OWASP Top 10 - Input Validation (A03)',
-    'OWASP Top 10 - Security Misconfiguration (A05)', 
+    'OWASP Top 10 - Security Misconfiguration (A05)',
     'OWASP ASVS - Data Validation Requirements',
     'CWE-476 - NULL Pointer Dereference Prevention',
     'CWE-690 - Unchecked Return Value Protection',

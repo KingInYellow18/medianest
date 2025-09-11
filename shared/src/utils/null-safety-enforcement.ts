@@ -23,7 +23,7 @@ export type SafeResult<T, E = Error> =
  */
 export function safeOperation<T, E extends Error = Error>(
   operation: () => T,
-  errorMessage?: string
+  errorMessage?: string,
 ): SafeResult<T, E> {
   try {
     const result = operation();
@@ -39,7 +39,7 @@ export function safeOperation<T, E extends Error = Error>(
  */
 export async function safeAsyncOperation<T, E extends Error = Error>(
   operation: () => Promise<T>,
-  errorMessage?: string
+  errorMessage?: string,
 ): Promise<SafeResult<T, E>> {
   try {
     const result = await operation();
@@ -126,7 +126,7 @@ export class SafeEnvironmentParser {
 
     if (!isValidInteger(parsed)) {
       console.warn(
-        `SafeEnvironmentParser: Invalid integer '${value}', using default: ${defaultValue}`
+        `SafeEnvironmentParser: Invalid integer '${value}', using default: ${defaultValue}`,
       );
       return defaultValue;
     }
@@ -134,7 +134,7 @@ export class SafeEnvironmentParser {
     // Additional bounds checking for common use cases
     if (trimmed.includes('PORT') && (parsed < 1 || parsed > 65535)) {
       console.warn(
-        `SafeEnvironmentParser: Port ${parsed} out of range, using default: ${defaultValue}`
+        `SafeEnvironmentParser: Port ${parsed} out of range, using default: ${defaultValue}`,
       );
       return defaultValue;
     }
@@ -162,7 +162,7 @@ export class SafeEnvironmentParser {
     }
 
     console.warn(
-      `SafeEnvironmentParser: Ambiguous boolean '${value}', using default: ${defaultValue}`
+      `SafeEnvironmentParser: Ambiguous boolean '${value}', using default: ${defaultValue}`,
     );
     return defaultValue;
   }
@@ -248,7 +248,7 @@ export class PrismaQuerySafety {
    */
   static async findUnique<T>(
     query: Promise<T | null>,
-    errorContext: string
+    errorContext: string,
   ): Promise<DatabaseResultHandler<T>> {
     try {
       const result = await query;
@@ -277,7 +277,7 @@ export class PrismaQuerySafety {
    */
   static async mutateWithRollback<T>(
     transaction: () => Promise<T>,
-    errorContext: string
+    errorContext: string,
   ): Promise<SafeResult<T>> {
     try {
       const result = await transaction();

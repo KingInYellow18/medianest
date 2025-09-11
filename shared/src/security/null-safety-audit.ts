@@ -85,7 +85,7 @@ export class NullSafetyValidator {
     value: unknown,
     defaultValue: number,
     context: string,
-    options: { min?: number; max?: number } = {}
+    options: { min?: number; max?: number } = {},
   ): number {
     if (!isString(value)) {
       return defaultValue;
@@ -125,7 +125,7 @@ export class NullSafetyValidator {
     text: string,
     fallback: T,
     context: string,
-    validator?: (value: unknown) => value is T
+    validator?: (value: unknown) => value is T,
   ): T {
     try {
       const result = safeJsonParse(text, fallback, validator);
@@ -184,7 +184,7 @@ export class NullSafetyValidator {
 
     const overallScore = Math.max(
       0,
-      maxScore - criticalPenalty - highPenalty - mediumPenalty - lowPenalty
+      maxScore - criticalPenalty - highPenalty - mediumPenalty - lowPenalty,
     );
 
     // Generate recommendations
@@ -236,7 +236,7 @@ export function nullSafetyMiddleware() {
       // Ensure body exists if method expects it
       if (['POST', 'PUT', 'PATCH'].includes(req.method) && req.body === undefined) {
         console.warn(
-          `Null Safety Warning: ${req.method} request to ${req.path} has undefined body`
+          `Null Safety Warning: ${req.method} request to ${req.path} has undefined body`,
         );
       }
 
@@ -268,7 +268,7 @@ export function nullSafetyMiddleware() {
  */
 export function withDatabaseSafety<T>(
   operation: () => Promise<T>,
-  context: string
+  context: string,
 ): Promise<T | null> {
   return operation().catch((error) => {
     console.error(`Database Safety Error in ${context}:`, error);

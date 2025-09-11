@@ -1,9 +1,9 @@
-import { Router } from 'express';
-import { Request, Response, NextFunction } from 'express';
-import { webhookIntegrationService } from '@/services/webhook-integration.service';
-import createEnhancedRateLimit from '@/middleware/enhanced-rate-limit';
-import { logger } from '@/utils/logger';
 import { AppError } from '@medianest/shared';
+import { Router, Request, Response, NextFunction } from 'express';
+
+import createEnhancedRateLimit from '@/middleware/enhanced-rate-limit';
+import { webhookIntegrationService } from '@/services/webhook-integration.service';
+import { logger } from '@/utils/logger';
 
 const router = Router();
 
@@ -27,17 +27,20 @@ const rawBodyParser = (req: Request, res: Response, next: NextFunction) => {
 const validateWebhookHeaders = (req: Request, res: Response, next: NextFunction) => {
   const userAgent = req.headers['user-agent'] || '';
   const contentType = req.headers['content-type'] || '';
-  
+
   // Basic validation - adjust based on your webhook sources
-  if (!contentType.includes('application/json') && !contentType.includes('application/x-www-form-urlencoded')) {
-    logger.warn('Invalid webhook content type', { 
-      contentType, 
+  if (
+    !contentType.includes('application/json') &&
+    !contentType.includes('application/x-www-form-urlencoded')
+  ) {
+    logger.warn('Invalid webhook content type', {
+      contentType,
       userAgent,
       ip: req.ip,
-      path: req.path 
+      path: req.path,
     });
   }
-  
+
   next();
 };
 
@@ -64,13 +67,13 @@ router.post('/github', async (req: Request, res: Response): Promise<void> => {
 // POST /api/webhooks/generic/:source - Generic webhook handler
 router.post('/generic/:source', async (req: Request, res: Response): Promise<void> => {
   const { source } = req.params;
-  
+
   // Validate source parameter
   if (!source || !/^[a-zA-Z0-9_-]+$/.test(source)) {
     res.status(400).json({ error: 'Invalid source parameter' });
     return;
   }
-  
+
   await webhookIntegrationService.handleWebhook(req, res, source);
 });
 
@@ -82,15 +85,14 @@ router.get('/stats', async (req: Request, res: Response, next: NextFunction) => 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       throw new AppError('UNAUTHORIZED', 'Authentication required', 401);
     }
-    
+
     const stats = await webhookIntegrationService.getWebhookStats();
-    
+
     res.json({
       success: true,
       data: stats,
       timestamp: new Date().toISOString(),
     });
-    
   } catch (error) {
     next(error);
   }
@@ -119,7 +121,7 @@ router.use((error: any, req: Request, res: Response, next: NextFunction): void =
     error: error instanceof Error ? error.message : 'Unknown error',
     stack: error instanceof Error ? error.stack : undefined,
   });
-  
+
   if (error instanceof AppError) {
     res.status(error.statusCode).json({
       error: error.message,
@@ -127,7 +129,7 @@ router.use((error: any, req: Request, res: Response, next: NextFunction): void =
     });
     return;
   }
-  
+
   res.status(500).json({
     error: 'Internal webhook processing error',
     message: 'The webhook could not be processed at this time',

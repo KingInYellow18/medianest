@@ -26,7 +26,7 @@ export class ResponseBuilder {
     message: string,
     correlationId: string,
     details?: any,
-    retryAfter?: number
+    retryAfter?: number,
   ): LegacyApiResponse<never> {
     return {
       success: false,
@@ -57,7 +57,7 @@ export class ResponseBuilder {
     message: string,
     correlationId: string,
     details?: any,
-    retryAfter?: number
+    retryAfter?: number,
   ): void {
     res
       .status(statusCode)
@@ -78,7 +78,7 @@ export class IntegrationResponsePatterns {
       404,
       'SERVICE_NOT_AVAILABLE',
       `${serviceName} integration not available`,
-      correlationId
+      correlationId,
     );
   }
 
@@ -90,7 +90,7 @@ export class IntegrationResponsePatterns {
     serviceName: string,
     error: Error,
     userId?: string,
-    correlationId?: string
+    correlationId?: string,
   ): void {
     logger.error(`Failed ${serviceName} operation`, {
       userId,
@@ -103,7 +103,7 @@ export class IntegrationResponsePatterns {
       500,
       'SERVICE_ERROR',
       `Failed to retrieve ${serviceName} data`,
-      correlationId || 'no-correlation-id'
+      correlationId || 'no-correlation-id',
     );
   }
 

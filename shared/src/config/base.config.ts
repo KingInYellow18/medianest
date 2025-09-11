@@ -9,22 +9,22 @@ export const BaseConfigSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   APP_NAME: z.string().default('MediaNest'),
   APP_VERSION: z.string().default('1.0.0'),
-  
+
   // Logging Configuration
   LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug', 'verbose']).default('info'),
   LOG_FORMAT: z.enum(['json', 'simple']).default('json'),
   LOG_MAX_FILES: z.coerce.number().default(7),
   LOG_MAX_SIZE: z.string().default('20m'),
-  
+
   // Security
   JWT_SECRET: z.string().min(32),
   JWT_EXPIRES_IN: z.string().default('24h'),
   BCRYPT_ROUNDS: z.coerce.number().default(12),
-  
+
   // CORS Configuration
   CORS_ORIGIN: z.union([z.string(), z.array(z.string())]).default('http://localhost:3000'),
   CORS_CREDENTIALS: z.coerce.boolean().default(true),
-  
+
   // Rate Limiting
   RATE_LIMIT_WINDOW_MS: z.coerce.number().default(15 * 60 * 1000), // 15 minutes
   RATE_LIMIT_MAX_REQUESTS: z.coerce.number().default(100),
@@ -59,7 +59,7 @@ export const RedisConfigSchema = z.object({
   REDIS_MAX_RETRIES: z.coerce.number().default(3),
   REDIS_RETRY_DELAY_MS: z.coerce.number().default(2000),
   REDIS_KEY_PREFIX: z.string().default('medianest:'),
-  
+
   // Session Configuration
   SESSION_SECRET: z.string().min(32),
   SESSION_MAX_AGE: z.coerce.number().default(24 * 60 * 60 * 1000), // 24 hours
@@ -74,16 +74,16 @@ export const ServerConfigSchema = z.object({
   PORT: z.coerce.number().default(3001),
   HOST: z.string().default('0.0.0.0'),
   TRUST_PROXY: z.coerce.boolean().default(true),
-  
+
   // Health Check Configuration
   HEALTH_CHECK_TIMEOUT: z.coerce.number().default(10000),
   HEALTH_CHECK_INTERVAL: z.coerce.number().default(30000),
-  
+
   // Request Configuration
   REQUEST_TIMEOUT: z.coerce.number().default(30000),
   BODY_LIMIT: z.string().default('10mb'),
   JSON_LIMIT: z.string().default('1mb'),
-  
+
   // WebSocket Configuration
   WS_PORT: z.coerce.number().optional(),
   WS_CORS_ORIGIN: z.union([z.string(), z.array(z.string())]).optional(),
@@ -102,15 +102,15 @@ export const ExternalServicesConfigSchema = z.object({
   PLEX_VERSION: z.string().default('1.0.0'),
   PLEX_PLATFORM: z.string().default('Web'),
   PLEX_DEVICE: z.string().default('MediaNest Server'),
-  
+
   // Overseerr Configuration
   OVERSEERR_URL: z.string().url().optional(),
   OVERSEERR_API_KEY: z.string().optional(),
-  
+
   // Uptime Kuma Configuration
   UPTIME_KUMA_URL: z.string().url().optional(),
   UPTIME_KUMA_TOKEN: z.string().optional(),
-  
+
   // Notification Configuration
   WEBHOOK_URL: z.string().url().optional(),
   EMAIL_SMTP_HOST: z.string().optional(),
@@ -123,8 +123,7 @@ export const ExternalServicesConfigSchema = z.object({
  * Complete Configuration Schema
  * Combines all configuration schemas
  */
-export const CompleteConfigSchema = BaseConfigSchema
-  .merge(DatabaseConfigSchema)
+export const CompleteConfigSchema = BaseConfigSchema.merge(DatabaseConfigSchema)
   .merge(RedisConfigSchema)
   .merge(ServerConfigSchema)
   .merge(ExternalServicesConfigSchema);
@@ -153,7 +152,7 @@ export class ConfigValidationError extends Error {
 export function validateConfig<T>(
   schema: z.ZodSchema<T>,
   config: unknown,
-  context: string = 'configuration'
+  context: string = 'configuration',
 ): T {
   try {
     return schema.parse(config);
@@ -168,9 +167,6 @@ export function validateConfig<T>(
 /**
  * Creates a configuration loader function
  */
-export function createConfigLoader<T>(
-  schema: z.ZodSchema<T>,
-  context: string = 'configuration'
-) {
+export function createConfigLoader<T>(schema: z.ZodSchema<T>, context: string = 'configuration') {
   return (config: unknown): T => validateConfig(schema, config, context);
 }

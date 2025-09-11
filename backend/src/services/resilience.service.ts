@@ -1,16 +1,18 @@
 // @ts-nocheck
 import { EventEmitter } from 'events';
-import { logger } from '../utils/logger';
+
+import { BullMQAdapter } from 'bull-board/bullMQAdapter';
+import { Queue as BullMQQueue, Worker, Job } from 'bullmq';
+import IORedis from 'ioredis';
+
+import { CatchError } from '../types/common';
 import {
   CircuitBreaker,
   CircuitBreakerFactory,
   CircuitBreakerStats,
 } from '../utils/circuit-breaker';
+import { logger } from '../utils/logger';
 import { retryWithBackoff, RetryOptions } from '../utils/retry';
-import { BullMQAdapter } from 'bull-board/bullMQAdapter';
-import { Queue as BullMQQueue, Worker, Job } from 'bullmq';
-import IORedis from 'ioredis';
-import { CatchError } from '../types/common';
 
 export interface ResilienceConfig {
   circuitBreaker?: {
@@ -176,7 +178,7 @@ export class ResilienceService extends EventEmitter {
   async executeWithCircuitBreaker<T>(
     serviceName: string,
     operation: () => Promise<T>,
-    fallbackFn?: () => Promise<T>
+    fallbackFn?: () => Promise<T>,
   ): Promise<T> {
     const dependency = this.dependencies.get(serviceName);
     if (!dependency?.circuitBreaker) {
@@ -202,7 +204,7 @@ export class ResilienceService extends EventEmitter {
   async executeWithRetry<T>(
     operation: () => Promise<T>,
     options: Partial<RetryOptions> = {},
-    context?: any
+    context?: any,
   ): Promise<T> {
     const retryOptions: RetryOptions = {
       maxAttempts: 3,
@@ -238,7 +240,7 @@ export class ResilienceService extends EventEmitter {
       {
         removeOnComplete: 100,
         removeOnFail: 50,
-      }
+      },
     );
 
     this.emit('retryExhausted', error, context);
@@ -251,7 +253,7 @@ export class ResilienceService extends EventEmitter {
   async executeWithBulkhead<T>(
     compartment: string,
     operation: () => Promise<T>,
-    maxConcurrent = this.DEFAULT_MAX_CONCURRENT
+    maxConcurrent = this.DEFAULT_MAX_CONCURRENT,
   ): Promise<T> {
     const currentCalls = this.concurrentCalls.get(compartment) || 0;
 
@@ -347,7 +349,7 @@ export class ResilienceService extends EventEmitter {
   // Critical Service Failure Handling
   private async handleCriticalServiceFailure(
     dependency: ServiceDependency,
-    healthResult: HealthCheckResult
+    healthResult: HealthCheckResult,
   ): Promise<void> {
     logger.error(`Critical service failure detected: ${dependency.name}`, healthResult);
 
@@ -368,7 +370,7 @@ export class ResilienceService extends EventEmitter {
 
   private async escalateServiceFailure(
     dependency: ServiceDependency,
-    healthResult: HealthCheckResult
+    healthResult: HealthCheckResult,
   ): Promise<void> {
     // Add to high-priority queue for immediate attention
     await this.deadLetterQueue.add(
@@ -382,7 +384,7 @@ export class ResilienceService extends EventEmitter {
       {
         priority: 1,
         removeOnComplete: 10,
-      }
+      },
     );
   }
 
@@ -446,7 +448,7 @@ export class ResilienceService extends EventEmitter {
       {
         connection: this.redis,
         concurrency: 5,
-      }
+      },
     );
 
     worker.on('failed', (job, err) => {

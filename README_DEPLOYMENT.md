@@ -893,11 +893,11 @@ docker compose -f config/docker/docker-compose.prod.yml ps
 
 ### Additional Documentation
 
-- [Backend Configuration](docs/backend/README.md)
-- [Frontend Configuration](docs/frontend/README.md)
-- [Security Hardening Guide](docs/SECURITY.md)
-- [Performance Optimization](docs/PERFORMANCE.md)
-- [API Documentation](docs/API.md)
+- [Backend Configuration](backend/README.md)
+- [Frontend Configuration](frontend/README.md)
+- [Security Documentation](ARCHITECTURE.md#7-security-architecture)
+- [Performance Documentation](ARCHITECTURE.md#10-performance--scalability)
+- [API Documentation](docs/api/overview.md)
 
 ---
 

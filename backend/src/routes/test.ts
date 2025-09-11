@@ -1,4 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
+
 import { getDatabase } from '../config/database';
 import { getRedis } from '../config/redis';
 import { logger } from '../utils/logger';
@@ -54,7 +55,7 @@ router.post(
         error: error.message,
       });
     }
-  }
+  },
 );
 
 /**
@@ -92,7 +93,7 @@ router.post(
         error: error.message,
       });
     }
-  }
+  },
 );
 
 /**
@@ -132,7 +133,7 @@ router.get(
         error: error.message,
       });
     }
-  }
+  },
 );
 
 export default router;

@@ -18,6 +18,21 @@ export * from './validation';
 // Export error classes from errors module (these are the main implementations)
 export * from './errors';
 
+// Export architectural patterns
+export * from './patterns';
+
+// Export middleware
+export * from './middleware';
+
+// Export database utilities
+export * from './database';
+
+// Export caching utilities
+export * from './cache';
+
+// Export security utilities
+export * from './security';
+
 // Export types last, with explicit re-exports to resolve conflicts
 export type {
   User,

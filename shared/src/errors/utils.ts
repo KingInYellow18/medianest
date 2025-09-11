@@ -38,7 +38,7 @@ export function parseApiError(response: any): AppError {
       code || 'API_ERROR',
       message || 'An error occurred',
       statusCode || 500,
-      details
+      details,
     );
   }
 
@@ -67,7 +67,11 @@ export function logError(error: Error | AppError, context?: any): ErrorLogEntry 
     'window' in globalThis &&
     typeof (globalThis as { window?: unknown }).window !== 'undefined'
   ) {
-    const win = (globalThis as unknown as { window: { location?: { href?: string }; navigator?: { userAgent?: string } } }).window;
+    const win = (
+      globalThis as unknown as {
+        window: { location?: { href?: string }; navigator?: { userAgent?: string } };
+      }
+    ).window;
     entry.userAgent = win?.navigator?.userAgent;
     entry.url = win?.location?.href;
   }

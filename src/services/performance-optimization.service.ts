@@ -1,25 +1,21 @@
 /**
  * Performance Optimization Service
- * 
+ *
  * Implements real-time performance monitoring, optimization strategies,
  * and automated performance improvements for MediaNest production deployment.
- * 
+ *
  * Targets: <200ms API responses, <50ms DB queries, <512MB memory usage
  */
 
 // External dependencies
-import { Redis } from 'ioredis';
+import { PerformanceMonitor, DatabaseOptimizer, CachingMiddleware } from '@medianest/shared';
 import { PrismaClient } from '@prisma/client';
+import { Redis } from 'ioredis';
 
 // Internal utilities
 import { logger } from '../utils/logger';
 
 // Shared utilities (using barrel exports)
-import { 
-  PerformanceMonitor,
-  DatabaseOptimizer,
-  CachingMiddleware 
-} from '@medianest/shared';
 
 export interface OptimizationConfig {
   enableAutoOptimization: boolean;
@@ -76,13 +72,13 @@ export class PerformanceOptimizationService {
     redis: Redis,
     prisma: PrismaClient,
     cachingMiddleware: CachingMiddleware,
-    config: OptimizationConfig
+    config: OptimizationConfig,
   ) {
     this.redis = redis;
     this.prisma = prisma;
     this.cachingMiddleware = cachingMiddleware;
     this.config = config;
-    
+
     this.startPerformanceMonitoring();
   }
 
@@ -95,19 +91,18 @@ export class PerformanceOptimizationService {
       try {
         const metrics = await this.collectPerformanceMetrics();
         this.metricsBuffer.push(metrics);
-        
+
         // Keep only last 100 metrics (50 minutes of data)
         if (this.metricsBuffer.length > 100) {
           this.metricsBuffer = this.metricsBuffer.slice(-100);
         }
-        
+
         if (this.config.enableAutoOptimization) {
           await this.analyzeAndOptimize(metrics);
         }
-        
+
         // Store metrics in Redis for dashboard
         await this.storeMetricsInRedis(metrics);
-        
       } catch (error) {
         logger.error('Performance monitoring error:', error);
       }
@@ -118,16 +113,11 @@ export class PerformanceOptimizationService {
    * Collect comprehensive performance metrics
    */
   private async collectPerformanceMetrics(): Promise<PerformanceMetrics> {
-    const [
-      apiStats,
-      databaseStats,
-      cacheStats,
-      systemStats
-    ] = await Promise.all([
+    const [apiStats, databaseStats, cacheStats, systemStats] = await Promise.all([
       this.getAPIMetrics(),
       this.getDatabaseMetrics(),
       this.getCacheMetrics(),
-      this.getSystemMetrics()
+      this.getSystemMetrics(),
     ]);
 
     return {
@@ -135,7 +125,7 @@ export class PerformanceOptimizationService {
       apiMetrics: apiStats,
       databaseMetrics: databaseStats,
       systemMetrics: systemStats,
-      cacheMetrics: cacheStats
+      cacheMetrics: cacheStats,
     };
   }
 
@@ -144,12 +134,12 @@ export class PerformanceOptimizationService {
    */
   private async getAPIMetrics() {
     const performanceStats = PerformanceMonitor.getStats(5); // Last 5 minutes
-    
+
     return {
       averageResponseTime: performanceStats.averageResponseTime,
       p95ResponseTime: this.calculateP95(performanceStats),
       errorRate: performanceStats.errorRate,
-      throughput: performanceStats.totalRequests / 5 // per minute
+      throughput: performanceStats.totalRequests / 5, // per minute
     };
   }
 
@@ -159,16 +149,16 @@ export class PerformanceOptimizationService {
   private async getDatabaseMetrics() {
     try {
       // Get connection pool status
-      const poolStatus = await this.prisma.$queryRaw`
+      const poolStatus = (await this.prisma.$queryRaw`
         SELECT 
           numbackends as active_connections,
           (SELECT setting FROM pg_settings WHERE name = 'max_connections')::int as max_connections
         FROM pg_stat_database 
         WHERE datname = current_database()
-      ` as any[];
+      `) as any[];
 
       // Get slow query information
-      const slowQueries = await this.prisma.$queryRaw`
+      const slowQueries = (await this.prisma.$queryRaw`
         SELECT 
           query,
           mean_exec_time,
@@ -178,7 +168,7 @@ export class PerformanceOptimizationService {
         WHERE mean_exec_time > ${this.config.performanceThresholds.slowQueryMs}
         ORDER BY mean_exec_time DESC 
         LIMIT 10
-      ` as any[];
+      `) as any[];
 
       const activeConnections = poolStatus[0]?.active_connections || 0;
       const maxConnections = poolStatus[0]?.max_connections || 100;
@@ -187,7 +177,7 @@ export class PerformanceOptimizationService {
         averageQueryTime: this.calculateAverageQueryTime(slowQueries),
         slowQueries: slowQueries.length,
         connectionPoolUsage: (activeConnections / maxConnections) * 100,
-        activeConnections
+        activeConnections,
       };
     } catch (error) {
       logger.warn('Could not collect database metrics:', error.message);
@@ -195,7 +185,7 @@ export class PerformanceOptimizationService {
         averageQueryTime: 0,
         slowQueries: 0,
         connectionPoolUsage: 0,
-        activeConnections: 0
+        activeConnections: 0,
       };
     }
   }
@@ -207,23 +197,23 @@ export class PerformanceOptimizationService {
     try {
       const cacheStats = await this.cachingMiddleware.getCacheStats();
       const redisInfo = await this.redis.info('stats');
-      
+
       // Parse Redis info for hit/miss statistics
       const hitMatches = redisInfo.match(/keyspace_hits:(\d+)/);
       const missMatches = redisInfo.match(/keyspace_misses:(\d+)/);
       const evictionMatches = redisInfo.match(/evicted_keys:(\d+)/);
-      
+
       const hits = hitMatches ? parseInt(hitMatches[1]) : 0;
       const misses = missMatches ? parseInt(missMatches[1]) : 0;
       const evictions = evictionMatches ? parseInt(evictionMatches[1]) : 0;
-      
+
       const hitRate = hits + misses > 0 ? hits / (hits + misses) : 0;
 
       return {
         hitRate,
         totalKeys: cacheStats.totalKeys,
         memoryUsage: cacheStats.memoryUsage,
-        evictions
+        evictions,
       };
     } catch (error) {
       logger.warn('Could not collect cache metrics:', error.message);
@@ -231,7 +221,7 @@ export class PerformanceOptimizationService {
         hitRate: 0,
         totalKeys: 0,
         memoryUsage: 'unknown',
-        evictions: 0
+        evictions: 0,
       };
     }
   }
@@ -243,7 +233,7 @@ export class PerformanceOptimizationService {
     return {
       memoryUsage: process.memoryUsage(),
       cpuUsage: process.cpuUsage(),
-      uptime: process.uptime()
+      uptime: process.uptime(),
     };
   }
 
@@ -295,19 +285,23 @@ export class PerformanceOptimizationService {
   private async optimizeSlowEndpoints(metrics: PerformanceMetrics): Promise<void> {
     logger.info('Optimizing slow API endpoints', {
       p95ResponseTime: metrics.apiMetrics.p95ResponseTime,
-      threshold: this.config.performanceThresholds.slowResponseMs
+      threshold: this.config.performanceThresholds.slowResponseMs,
     });
 
     // Get slow endpoints from performance monitor
     const slowPaths = PerformanceMonitor.getStats(5).topSlowPaths;
-    
-    for (const path of slowPaths.slice(0, 5)) { // Top 5 slowest
+
+    for (const path of slowPaths.slice(0, 5)) {
+      // Top 5 slowest
       if (path.averageTime > this.config.performanceThresholds.slowResponseMs) {
         // Apply caching to slow endpoints
         await this.applyCachingToEndpoint(path.path);
-        
+
         // Log optimization action
-        this.logOptimization('api_caching', `Applied caching to ${path.path} (${path.averageTime}ms avg)`);
+        this.logOptimization(
+          'api_caching',
+          `Applied caching to ${path.path} (${path.averageTime}ms avg)`,
+        );
       }
     }
   }
@@ -318,17 +312,17 @@ export class PerformanceOptimizationService {
   private async optimizeDatabaseQueries(metrics: PerformanceMetrics): Promise<void> {
     logger.info('Optimizing database queries', {
       averageQueryTime: metrics.databaseMetrics.averageQueryTime,
-      slowQueries: metrics.databaseMetrics.slowQueries
+      slowQueries: metrics.databaseMetrics.slowQueries,
     });
 
     if (this.config.optimizationStrategies.queryOptimization) {
       try {
         // Analyze table statistics
         await this.prisma.$executeRawUnsafe(DatabaseOptimizer.generateAnalyzeTablesSQL());
-        
+
         // Update query planner statistics
         await this.prisma.$executeRawUnsafe('ANALYZE;');
-        
+
         this.logOptimization('database_analyze', 'Updated table statistics for query optimization');
       } catch (error) {
         logger.error('Database optimization failed:', error);
@@ -341,10 +335,10 @@ export class PerformanceOptimizationService {
    */
   private async optimizeMemoryUsage(metrics: PerformanceMetrics): Promise<void> {
     const memoryUsageMB = metrics.systemMetrics.memoryUsage.heapUsed / 1024 / 1024;
-    
+
     logger.info('Optimizing memory usage', {
       currentUsage: `${memoryUsageMB.toFixed(2)}MB`,
-      threshold: `${this.config.performanceThresholds.highMemoryMB}MB`
+      threshold: `${this.config.performanceThresholds.highMemoryMB}MB`,
     });
 
     if (this.config.optimizationStrategies.memoryManagement) {
@@ -368,20 +362,23 @@ export class PerformanceOptimizationService {
   private async optimizeCacheStrategy(metrics: PerformanceMetrics): Promise<void> {
     logger.info('Optimizing cache strategy', {
       hitRate: `${(metrics.cacheMetrics.hitRate * 100).toFixed(2)}%`,
-      threshold: `${(this.config.performanceThresholds.lowCacheHitRate * 100).toFixed(2)}%`
+      threshold: `${(this.config.performanceThresholds.lowCacheHitRate * 100).toFixed(2)}%`,
     });
 
     if (this.config.optimizationStrategies.cacheOptimization) {
       // Extend TTL for frequently accessed data
-      const frequentEndpoints = PerformanceMonitor.getStats(10).topSlowPaths
-        .filter(path => path.count > 10)
+      const frequentEndpoints = PerformanceMonitor.getStats(10)
+        .topSlowPaths.filter((path) => path.count > 10)
         .slice(0, 3);
 
       for (const endpoint of frequentEndpoints) {
         await this.extendCacheTTL(endpoint.path);
       }
 
-      this.logOptimization('cache_strategy', `Extended TTL for ${frequentEndpoints.length} frequently accessed endpoints`);
+      this.logOptimization(
+        'cache_strategy',
+        `Extended TTL for ${frequentEndpoints.length} frequently accessed endpoints`,
+      );
     }
   }
 
@@ -391,11 +388,13 @@ export class PerformanceOptimizationService {
   private async optimizeConnectionPool(metrics: PerformanceMetrics): Promise<void> {
     logger.warn('High connection pool usage detected', {
       usage: `${metrics.databaseMetrics.connectionPoolUsage.toFixed(2)}%`,
-      activeConnections: metrics.databaseMetrics.activeConnections
+      activeConnections: metrics.databaseMetrics.activeConnections,
     });
 
-    this.logOptimization('connection_pool_warning', 
-      `High pool usage: ${metrics.databaseMetrics.connectionPoolUsage.toFixed(2)}%`);
+    this.logOptimization(
+      'connection_pool_warning',
+      `High pool usage: ${metrics.databaseMetrics.connectionPoolUsage.toFixed(2)}%`,
+    );
   }
 
   /**
@@ -403,14 +402,18 @@ export class PerformanceOptimizationService {
    */
   private async applyCachingToEndpoint(endpoint: string): Promise<void> {
     const cacheKey = `auto_cache:${endpoint.replace(/\//g, ':')}`;
-    
+
     // Set cache configuration for this endpoint
-    await this.redis.hset('endpoint_cache_config', endpoint, JSON.stringify({
-      ttl: 300, // 5 minutes
-      enabled: true,
-      autoOptimized: true,
-      timestamp: Date.now()
-    }));
+    await this.redis.hset(
+      'endpoint_cache_config',
+      endpoint,
+      JSON.stringify({
+        ttl: 300, // 5 minutes
+        enabled: true,
+        autoOptimized: true,
+        timestamp: Date.now(),
+      }),
+    );
 
     logger.info('Applied automatic caching', { endpoint, cacheKey });
   }
@@ -424,7 +427,7 @@ export class PerformanceOptimizationService {
       const parsed = JSON.parse(config);
       parsed.ttl = Math.min(parsed.ttl * 1.5, 3600); // Max 1 hour
       parsed.lastOptimized = Date.now();
-      
+
       await this.redis.hset('endpoint_cache_config', endpoint, JSON.stringify(parsed));
       logger.info('Extended cache TTL', { endpoint, newTTL: parsed.ttl });
     }
@@ -437,11 +440,11 @@ export class PerformanceOptimizationService {
     try {
       const key = `performance_metrics:${Date.now()}`;
       await this.redis.setex(key, 3600, JSON.stringify(metrics)); // 1 hour TTL
-      
+
       // Keep only recent metrics (last 24 hours)
-      const cutoff = Date.now() - (24 * 60 * 60 * 1000);
+      const cutoff = Date.now() - 24 * 60 * 60 * 1000;
       const keys = await this.redis.keys('performance_metrics:*');
-      
+
       for (const key of keys) {
         const timestamp = parseInt(key.split(':')[1]);
         if (timestamp < cutoff) {
@@ -460,7 +463,7 @@ export class PerformanceOptimizationService {
     this.optimizationHistory.push({
       timestamp: new Date(),
       action,
-      impact: description
+      impact: description,
     });
 
     // Keep only last 100 optimization actions
@@ -492,7 +495,7 @@ export class PerformanceOptimizationService {
       currentMetrics,
       trends,
       recentOptimizations: this.optimizationHistory.slice(-10),
-      recommendations
+      recommendations,
     };
   }
 
@@ -504,36 +507,51 @@ export class PerformanceOptimizationService {
       return {
         responseTimeTrend: 'stable' as const,
         memoryTrend: 'stable' as const,
-        cachePerformanceTrend: 'stable' as const
+        cachePerformanceTrend: 'stable' as const,
       };
     }
 
     const recent = this.metricsBuffer.slice(-5);
     const older = this.metricsBuffer.slice(-10, -5);
 
-    const recentAvgResponseTime = recent.reduce((sum, m) => sum + m.apiMetrics.p95ResponseTime, 0) / recent.length;
-    const olderAvgResponseTime = older.reduce((sum, m) => sum + m.apiMetrics.p95ResponseTime, 0) / older.length;
+    const recentAvgResponseTime =
+      recent.reduce((sum, m) => sum + m.apiMetrics.p95ResponseTime, 0) / recent.length;
+    const olderAvgResponseTime =
+      older.reduce((sum, m) => sum + m.apiMetrics.p95ResponseTime, 0) / older.length;
 
-    const recentAvgMemory = recent.reduce((sum, m) => sum + m.systemMetrics.memoryUsage.heapUsed, 0) / recent.length;
-    const olderAvgMemory = older.reduce((sum, m) => sum + m.systemMetrics.memoryUsage.heapUsed, 0) / older.length;
+    const recentAvgMemory =
+      recent.reduce((sum, m) => sum + m.systemMetrics.memoryUsage.heapUsed, 0) / recent.length;
+    const olderAvgMemory =
+      older.reduce((sum, m) => sum + m.systemMetrics.memoryUsage.heapUsed, 0) / older.length;
 
-    const recentAvgCacheHit = recent.reduce((sum, m) => sum + m.cacheMetrics.hitRate, 0) / recent.length;
-    const olderAvgCacheHit = older.reduce((sum, m) => sum + m.cacheMetrics.hitRate, 0) / older.length;
+    const recentAvgCacheHit =
+      recent.reduce((sum, m) => sum + m.cacheMetrics.hitRate, 0) / recent.length;
+    const olderAvgCacheHit =
+      older.reduce((sum, m) => sum + m.cacheMetrics.hitRate, 0) / older.length;
 
     const threshold = 0.05; // 5% change threshold
 
     return {
-      responseTimeTrend: Math.abs(recentAvgResponseTime - olderAvgResponseTime) / olderAvgResponseTime < threshold 
-        ? 'stable' as const
-        : recentAvgResponseTime < olderAvgResponseTime ? 'improving' as const : 'degrading' as const,
-      
-      memoryTrend: Math.abs(recentAvgMemory - olderAvgMemory) / olderAvgMemory < threshold
-        ? 'stable' as const  
-        : recentAvgMemory < olderAvgMemory ? 'improving' as const : 'degrading' as const,
-      
-      cachePerformanceTrend: Math.abs(recentAvgCacheHit - olderAvgCacheHit) / olderAvgCacheHit < threshold
-        ? 'stable' as const
-        : recentAvgCacheHit > olderAvgCacheHit ? 'improving' as const : 'degrading' as const
+      responseTimeTrend:
+        Math.abs(recentAvgResponseTime - olderAvgResponseTime) / olderAvgResponseTime < threshold
+          ? ('stable' as const)
+          : recentAvgResponseTime < olderAvgResponseTime
+            ? ('improving' as const)
+            : ('degrading' as const),
+
+      memoryTrend:
+        Math.abs(recentAvgMemory - olderAvgMemory) / olderAvgMemory < threshold
+          ? ('stable' as const)
+          : recentAvgMemory < olderAvgMemory
+            ? ('improving' as const)
+            : ('degrading' as const),
+
+      cachePerformanceTrend:
+        Math.abs(recentAvgCacheHit - olderAvgCacheHit) / olderAvgCacheHit < threshold
+          ? ('stable' as const)
+          : recentAvgCacheHit > olderAvgCacheHit
+            ? ('improving' as const)
+            : ('degrading' as const),
     };
   }
 
@@ -547,31 +565,43 @@ export class PerformanceOptimizationService {
 
     // API Response Time recommendations
     if (metrics.apiMetrics.p95ResponseTime > 200) {
-      recommendations.push('API response times are above target. Consider implementing response caching and query optimization.');
+      recommendations.push(
+        'API response times are above target. Consider implementing response caching and query optimization.',
+      );
     }
 
     // Database performance recommendations
     if (metrics.databaseMetrics.slowQueries > 5) {
-      recommendations.push('Multiple slow queries detected. Review database indexes and query optimization.');
+      recommendations.push(
+        'Multiple slow queries detected. Review database indexes and query optimization.',
+      );
     }
 
     if (metrics.databaseMetrics.connectionPoolUsage > 80) {
-      recommendations.push('High database connection pool usage. Consider connection pool tuning or query optimization.');
+      recommendations.push(
+        'High database connection pool usage. Consider connection pool tuning or query optimization.',
+      );
     }
 
     // Memory usage recommendations
     const memoryUsageMB = metrics.systemMetrics.memoryUsage.heapUsed / 1024 / 1024;
     if (memoryUsageMB > 400) {
-      recommendations.push('High memory usage detected. Consider implementing memory optimization strategies.');
+      recommendations.push(
+        'High memory usage detected. Consider implementing memory optimization strategies.',
+      );
     }
 
     // Cache performance recommendations
     if (metrics.cacheMetrics.hitRate < 0.7) {
-      recommendations.push('Cache hit rate is below optimal. Review caching strategy and TTL configuration.');
+      recommendations.push(
+        'Cache hit rate is below optimal. Review caching strategy and TTL configuration.',
+      );
     }
 
     if (recommendations.length === 0) {
-      recommendations.push('All performance metrics are within acceptable ranges. System is performing optimally.');
+      recommendations.push(
+        'All performance metrics are within acceptable ranges. System is performing optimally.',
+      );
     }
 
     return recommendations;

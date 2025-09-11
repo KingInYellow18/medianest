@@ -1,6 +1,6 @@
+import { generateCorrelationId } from '@medianest/shared';
 import { Request, Response, NextFunction } from 'express';
 // @ts-ignore
-import { generateCorrelationId } from '@medianest/shared';
 
 import { createChildLogger } from '../utils/logger';
 

@@ -1,10 +1,11 @@
-import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
 
-import { getRedis } from '../config/redis';
-import { logger } from '../utils/logger';
 import { AppError } from '@medianest/shared';
+import { Request, Response, NextFunction } from 'express';
+
+import { getRedis } from '../config/redis';
 import { CatchError } from '../types/common';
+import { logger } from '../utils/logger';
 
 // Enhanced rate limiting configuration types
 export interface EnhancedRateLimitOptions {
@@ -93,7 +94,7 @@ class RedisRateLimitStore implements RateLimitStore {
 // Enhanced rate limiter factory
 export function createEnhancedRateLimit(
   type?: string,
-  customOptions?: Partial<EnhancedRateLimitOptions>
+  customOptions?: Partial<EnhancedRateLimitOptions>,
 ) {
   // Default configurations for different types
   const typeConfigs: Record<string, EnhancedRateLimitOptions> = {
@@ -128,7 +129,7 @@ export function createEnhancedRateLimit(
   const baseConfig = typeConfigs[type || 'default'] ?? typeConfigs.default;
   const windowMs = baseConfig?.windowMs ?? 60000;
   const max = baseConfig?.max ?? 100;
-  
+
   const options: EnhancedRateLimitOptions = {
     ...baseConfig,
     ...customOptions,
@@ -173,7 +174,7 @@ export function createEnhancedRateLimit(
         res.setHeader('X-RateLimit-Remaining', rateLimitInfo.remaining.toString());
         res.setHeader(
           'X-RateLimit-Reset',
-          Math.ceil(rateLimitInfo.reset.getTime() / 1000).toString()
+          Math.ceil(rateLimitInfo.reset.getTime() / 1000).toString(),
         );
       }
 

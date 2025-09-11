@@ -1,11 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
-import { AuthenticationFacade, AuthenticatedUser } from './index';
-import { UserRepository } from '../repositories/user.repository';
+
 import { SessionTokenRepository } from '../repositories/session-token.repository';
+import { UserRepository } from '../repositories/user.repository';
 import { DeviceSessionService } from '../services/device-session.service';
+import { CatchError } from '../types/common';
 import { AuthenticationError } from '../utils/errors';
 import { logger } from '../utils/logger';
-import { CatchError } from '../types/common';
+
+import { AuthenticationFacade, AuthenticatedUser } from './index';
 
 // Extended request interface
 export interface AuthenticatedRequest extends Request {
@@ -25,12 +27,12 @@ export class AuthMiddleware {
   constructor(
     userRepository: UserRepository,
     sessionTokenRepository: SessionTokenRepository,
-    deviceSessionService: DeviceSessionService
+    deviceSessionService: DeviceSessionService,
   ) {
     this.authFacade = new AuthenticationFacade(
       userRepository,
       sessionTokenRepository,
-      deviceSessionService
+      deviceSessionService,
     );
   }
 
@@ -167,7 +169,7 @@ export class AuthMiddleware {
                     role: req.user!.role,
                     sessionId: req.sessionId,
                   },
-                  req.user!.id
+                  req.user!.id,
                 )
                 .then(() => {
                   // ZERO TRUST: Invalidate ALL cache entries for this user after token rotation
@@ -313,7 +315,7 @@ export class AuthMiddleware {
 export function createAuthMiddleware(
   userRepository: UserRepository,
   sessionTokenRepository: SessionTokenRepository,
-  deviceSessionService: DeviceSessionService
+  deviceSessionService: DeviceSessionService,
 ): AuthMiddleware {
   return new AuthMiddleware(userRepository, sessionTokenRepository, deviceSessionService);
 }
@@ -324,12 +326,12 @@ let middlewareInstance: AuthMiddleware | null = null;
 export function initializeAuthMiddleware(
   userRepository: UserRepository,
   sessionTokenRepository: SessionTokenRepository,
-  deviceSessionService: DeviceSessionService
+  deviceSessionService: DeviceSessionService,
 ): void {
   middlewareInstance = createAuthMiddleware(
     userRepository,
     sessionTokenRepository,
-    deviceSessionService
+    deviceSessionService,
   );
 }
 

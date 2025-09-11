@@ -1,10 +1,11 @@
 import jwt from 'jsonwebtoken';
 import { Socket } from 'socket.io';
 import { ExtendedError } from 'socket.io/dist/namespace';
-import { authCacheService } from '../middleware/auth-cache';
-import { logger } from '../utils/logger';
+
 import { getRedis } from '../config/redis';
+import { authCacheService } from '../middleware/auth-cache';
 import { CatchError } from '../types/common';
+import { logger } from '../utils/logger';
 
 /**
  * Optimized Socket.IO authentication with caching and connection pooling
@@ -51,7 +52,7 @@ class OptimizedSocketAuth {
       adminOnly?: boolean;
       rateLimitPerUser?: number;
       rateLimitPerIP?: number;
-    } = {}
+    } = {},
   ): Promise<void> {
     const {
       required = true,
@@ -158,8 +159,8 @@ class OptimizedSocketAuth {
     // Check query parameters (fallback)
     if (socket.handshake.query?.token) {
       return Array.isArray(socket.handshake.query.token)
-        ? socket.handshake.query.token[0] ?? null
-        : socket.handshake.query.token ?? null;
+        ? (socket.handshake.query.token[0] ?? null)
+        : (socket.handshake.query.token ?? null);
     }
 
     return null;
@@ -355,7 +356,7 @@ const optimizedSocketAuth = new OptimizedSocketAuth();
  */
 export const optimizedSocketAuthMiddleware = (
   socket: Socket,
-  next: (err?: ExtendedError) => void
+  next: (err?: ExtendedError) => void,
 ): void => {
   optimizedSocketAuth.authenticateSocket(socket, next, { required: true });
 };
@@ -365,7 +366,7 @@ export const optimizedSocketAuthMiddleware = (
  */
 export const optimizedSocketOptionalAuthMiddleware = (
   socket: Socket,
-  next: (err?: ExtendedError) => void
+  next: (err?: ExtendedError) => void,
 ): void => {
   optimizedSocketAuth.authenticateSocket(socket, next, { required: false });
 };
@@ -375,7 +376,7 @@ export const optimizedSocketOptionalAuthMiddleware = (
  */
 export const optimizedSocketAdminMiddleware = (
   socket: Socket,
-  next: (err?: ExtendedError) => void
+  next: (err?: ExtendedError) => void,
 ): void => {
   optimizedSocketAuth.authenticateSocket(socket, next, { required: true, adminOnly: true });
 };
@@ -388,7 +389,7 @@ export const optimizedSocketRateLimitedMiddleware =
     options: {
       rateLimitPerUser?: number;
       rateLimitPerIP?: number;
-    } = {}
+    } = {},
   ) =>
   (socket: Socket, next: (err?: ExtendedError) => void): void => {
     optimizedSocketAuth.authenticateSocket(socket, next, {

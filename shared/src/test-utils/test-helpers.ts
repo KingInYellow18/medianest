@@ -127,7 +127,7 @@ export function createTestContext(): TestContext & {
  */
 export async function expectToReject(
   promise: Promise<any>,
-  expectedError?: string | RegExp | Error
+  expectedError?: string | RegExp | Error,
 ): Promise<void> {
   try {
     await promise;

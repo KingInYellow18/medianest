@@ -1,12 +1,13 @@
-import { YoutubeDownload, Prisma } from '@prisma/client';
-
-// @ts-ignore
 import {
   NotFoundError, // @ts-ignore
 } from '@medianest/shared';
+import { YoutubeDownload, Prisma } from '@prisma/client';
+
+// @ts-ignore
+
+import { CatchError } from '../types/common';
 
 import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
-import { CatchError } from '../types/common';
 
 export interface CreateYoutubeDownloadInput {
   userId: string;
@@ -55,7 +56,7 @@ export class YoutubeDownloadRepository extends BaseRepository<YoutubeDownload> {
 
   async findByUser(
     userId: string,
-    options: PaginationOptions = {}
+    options: PaginationOptions = {},
   ): Promise<PaginatedResult<YoutubeDownload>> {
     return this.paginate<YoutubeDownload>(
       this.prisma.youtubeDownload,
@@ -71,13 +72,13 @@ export class YoutubeDownloadRepository extends BaseRepository<YoutubeDownload> {
             plexUsername: true,
           },
         },
-      }
+      },
     );
   }
 
   async findByFilters(
     filters: YoutubeDownloadFilters,
-    options: PaginationOptions = {}
+    options: PaginationOptions = {},
   ): Promise<PaginatedResult<YoutubeDownload>> {
     const where: Prisma.YoutubeDownloadWhereInput = {};
 
@@ -191,10 +192,13 @@ export class YoutubeDownloadRepository extends BaseRepository<YoutubeDownload> {
       _count: true,
     });
 
-    return downloads.reduce((acc, item) => {
-      acc[item.status] = item._count;
-      return acc;
-    }, {} as Record<string, number>);
+    return downloads.reduce(
+      (acc, item) => {
+        acc[item.status] = item._count;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
   }
 
   async getActiveDownloads(): Promise<YoutubeDownload[]> {

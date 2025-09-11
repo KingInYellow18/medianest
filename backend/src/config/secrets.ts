@@ -1,7 +1,8 @@
 import { readFileSync, existsSync } from 'fs';
 import path from 'path';
-import { logger } from '../utils/logger';
+
 import { CatchError } from '../types/common';
+import { logger } from '../utils/logger';
 
 /**
  * Reads a secret from Docker secrets or falls back to environment variable
@@ -79,7 +80,7 @@ export function validateSecrets(
     name: string;
     value: string | undefined;
     description: string;
-  }>
+  }>,
 ): void {
   const missingSecrets = requiredSecrets.filter((secret) => !secret.value || secret.value === '');
 

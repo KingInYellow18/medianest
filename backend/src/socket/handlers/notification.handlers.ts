@@ -1,7 +1,8 @@
 import { Server, Socket } from 'socket.io';
 
-import { logger } from '@/utils/logger';
 import { CatchError } from '../../types/common';
+
+import { logger } from '@/utils/logger';
 
 interface NotificationData {
   id: string;
@@ -183,7 +184,7 @@ export function registerNotificationHandlers(io: Server, socket: Socket): void {
           });
         }
       }
-    }
+    },
   );
 
   // Handle notification action (like "View" or "Retry")
@@ -225,7 +226,7 @@ export function registerNotificationHandlers(io: Server, socket: Socket): void {
           });
         }
       }
-    }
+    },
   );
 }
 
@@ -233,7 +234,7 @@ export function registerNotificationHandlers(io: Server, socket: Socket): void {
 export function sendNotificationToUser(
   io: Server,
   userId: string,
-  notification: Omit<NotificationData, 'id' | 'createdAt'>
+  notification: Omit<NotificationData, 'id' | 'createdAt'>,
 ): void {
   const notificationData: NotificationData = {
     id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -261,7 +262,7 @@ export function sendNotificationToUser(
 export function sendNotificationToUsers(
   io: Server,
   userIds: string[],
-  notification: Omit<NotificationData, 'id' | 'createdAt'>
+  notification: Omit<NotificationData, 'id' | 'createdAt'>,
 ): void {
   userIds.forEach((userId) => {
     sendNotificationToUser(io, userId, notification);
@@ -272,7 +273,7 @@ export function sendNotificationToUsers(
 export function broadcastNotificationToRole(
   io: Server,
   role: string,
-  notification: Omit<NotificationData, 'id' | 'createdAt'>
+  notification: Omit<NotificationData, 'id' | 'createdAt'>,
 ): void {
   const notificationData: NotificationData = {
     id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -297,7 +298,7 @@ export function broadcastNotificationToRole(
 // Helper function to broadcast system-wide notification
 export function broadcastSystemNotification(
   io: Server,
-  notification: Omit<NotificationData, 'id' | 'createdAt'>
+  notification: Omit<NotificationData, 'id' | 'createdAt'>,
 ): void {
   const notificationData: NotificationData = {
     id: `sysnotif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,

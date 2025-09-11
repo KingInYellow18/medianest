@@ -33,7 +33,11 @@ export class UptimeKumaClient extends EventEmitter {
   private connected = false;
   private reconnectTimer?: NodeJS.Timeout;
 
-  constructor(private url: string, private username?: string, private password?: string) {
+  constructor(
+    private url: string,
+    private username?: string,
+    private password?: string,
+  ) {
     super();
   }
 
@@ -118,7 +122,7 @@ export class UptimeKumaClient extends EventEmitter {
             logger.error('Uptime Kuma authentication failed', { msg: res?.msg });
             reject(new Error(res?.msg || 'Authentication failed'));
           }
-        }
+        },
       );
     });
   }

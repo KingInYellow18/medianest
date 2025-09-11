@@ -1,6 +1,6 @@
 /**
  * Shared utility functions for MediaNest
- * 
+ *
  * This module provides a centralized export for all utility functions,
  * organized by category for better tree-shaking and maintainability.
  */
@@ -32,7 +32,12 @@ export * from './database-optimizations';
 export { logger } from './logger';
 
 // Commonly used functions - explicit re-exports for better IDE support
-export { generateCorrelationId, generateSimpleId, generateSessionId, generateRequestId } from './generators';
+export {
+  generateCorrelationId,
+  generateSimpleId,
+  generateSessionId,
+  generateRequestId,
+} from './generators';
 export { isNonNullable, isString, isNumber, isBoolean, isDefined } from './type-guards';
 export { formatDate, formatDateTime, formatBytes, formatPercentage } from './format';
 export { isValidEmail, isValidUrl, isValidUuid, sanitizeString } from './validation';

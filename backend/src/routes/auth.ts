@@ -1,21 +1,23 @@
-import bcrypt from 'bcrypt';
-import { Router } from 'express';
 import crypto from 'crypto';
 
+import bcrypt from 'bcrypt';
+import { Router } from 'express';
+
+import { prisma } from '../lib/prisma';
 import { authMiddleware } from '../middleware/auth';
-import { validate, validateBody } from '../middleware/validation';
-import { securityHeaders, sanitizeInput } from '../middleware/security';
 import {
   createEnhancedRateLimit,
   // emailRateLimit, // REMOVED - no longer needed
   userRateLimit,
   createRateLimitReset,
 } from '../middleware/enhanced-rate-limit';
+import { securityHeaders, sanitizeInput } from '../middleware/security';
 import {
   securityAuditMiddleware,
   logAuthEvent,
   logCriticalSecurityEvent,
 } from '../middleware/security-audit';
+import { validate, validateBody } from '../middleware/validation';
 import { SessionTokenRepository } from '../repositories/session-token.repository';
 import { UserRepository } from '../repositories/user.repository';
 import {
@@ -27,19 +29,18 @@ import {
   logoutSchema,
   changePasswordSchema,
 } from '../schemas/auth.schemas';
-import { PlexAuthService } from '../services/plex-auth.service';
-import { PasswordResetService } from '../services/password-reset.service';
 // import { EmailService } from '../services/email.service'; // REMOVED - email system disabled
-import { OAuthProvidersService } from '../services/oauth-providers.service';
-import { TwoFactorService } from '../services/two-factor.service';
 import { DeviceSessionService } from '../services/device-session.service';
+import { OAuthProvidersService } from '../services/oauth-providers.service';
+import { PasswordResetService } from '../services/password-reset.service';
+import { PlexAuthService } from '../services/plex-auth.service';
 import { SessionAnalyticsService } from '../services/session-analytics.service';
+import { TwoFactorService } from '../services/two-factor.service';
 import { asyncHandler } from '../utils/async-handler';
 import { AppError } from '../utils/errors';
 import { generateToken, verifyToken } from '../utils/jwt';
 import { logger } from '../utils/logger';
 import { validatePasswordStrength, generateDeviceFingerprint } from '../utils/security';
-import { prisma } from '../lib/prisma';
 
 const router = Router();
 
@@ -57,12 +58,12 @@ const redisService = new (require('../services/redis.service').RedisService)();
 const passwordResetService = new PasswordResetService(
   userRepository,
   sessionTokenRepository,
-  redisService
+  redisService,
 );
 const oauthService = new OAuthProvidersService(
   userRepository,
   sessionTokenRepository,
-  redisService
+  redisService,
 );
 const twoFactorService = new TwoFactorService(userRepository, redisService);
 const deviceSessionService = new DeviceSessionService(userRepository, sessionTokenRepository);
@@ -86,7 +87,7 @@ router.post(
         pollInterval: 5000, // 5 seconds recommended polling interval
       },
     });
-  })
+  }),
 );
 
 // GET /api/auth/plex/pin/:id/status - Check PIN status
@@ -105,7 +106,7 @@ router.get(
         expiresAt: pin.expiresAt,
       },
     });
-  })
+  }),
 );
 
 // POST /api/auth/plex - Complete Plex OAuth flow
@@ -139,7 +140,7 @@ router.post(
         isNewUser: result.isNewUser,
       },
     });
-  })
+  }),
 );
 
 // POST /api/auth/admin - Admin bootstrap login
@@ -206,7 +207,7 @@ router.post(
         message: 'Admin user created successfully',
       },
     });
-  })
+  }),
 );
 
 // POST /api/auth/login - Password-based login (for admin)
@@ -238,7 +239,7 @@ router.post(
       throw new AppError(
         'NO_PASSWORD_SET',
         'This user cannot login with password. Please use Plex authentication.',
-        400
+        400,
       );
     }
 
@@ -264,7 +265,7 @@ router.post(
         role: user.role,
         plexId: user.plexId || undefined,
       },
-      rememberMe
+      rememberMe,
     );
 
     // Create session token
@@ -306,7 +307,7 @@ router.post(
         token,
       },
     });
-  })
+  }),
 );
 
 // POST /api/auth/logout - Logout
@@ -346,7 +347,7 @@ router.post(
         message: allSessions ? 'All sessions ended' : 'Logged out successfully',
       },
     });
-  })
+  }),
 );
 
 // GET /api/auth/session - Get current session info
@@ -370,7 +371,7 @@ router.get(
         authenticated: true,
       },
     });
-  })
+  }),
 );
 
 // POST /api/auth/change-password - Change password
@@ -392,7 +393,7 @@ router.post(
     if ((fullUser as any).passwordHash) {
       const isCurrentPasswordValid = await bcrypt.compare(
         currentPassword,
-        (fullUser as any).passwordHash
+        (fullUser as any).passwordHash,
       );
       if (!isCurrentPasswordValid) {
         throw new AppError('INVALID_CURRENT_PASSWORD', 'Current password is incorrect', 400);
@@ -418,7 +419,7 @@ router.post(
         message: 'Password changed successfully',
       },
     });
-  })
+  }),
 );
 
 // POST /api/auth/password-reset/request - DISABLED (email system removed)
@@ -432,7 +433,7 @@ router.post(
       message: 'Password reset via email is currently disabled. Please contact an administrator.',
       error: 'EMAIL_SYSTEM_DISABLED',
     });
-  })
+  }),
 );
 
 // POST /api/auth/password-reset/verify - DISABLED (email system removed)
@@ -446,7 +447,7 @@ router.post(
       message: 'Password reset via email is currently disabled. Please contact an administrator.',
       error: 'EMAIL_SYSTEM_DISABLED',
     });
-  })
+  }),
 );
 
 // POST /api/auth/password-reset/confirm - DISABLED (email system removed)
@@ -460,7 +461,7 @@ router.post(
       message: 'Password reset via email is currently disabled. Please contact an administrator.',
       error: 'EMAIL_SYSTEM_DISABLED',
     });
-  })
+  }),
 );
 
 export default router;

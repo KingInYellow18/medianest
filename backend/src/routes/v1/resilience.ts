@@ -1,13 +1,14 @@
 // @ts-nocheck
 import { Router, Request, Response } from 'express';
-import { resilienceService } from '../../services/resilience.service';
+import { z } from 'zod';
+
+import { validate } from '../../middleware/validate';
 import { healthMonitor } from '../../services/health-monitor.service';
+import { resilienceService } from '../../services/resilience.service';
+import { asyncHandler } from '../../utils/async-handler';
 import { CircuitBreakerFactory } from '../../utils/circuit-breaker';
 import { errorRecoveryManager } from '../../utils/error-recovery';
 import { logger } from '../../utils/logger';
-import { asyncHandler } from '../../utils/async-handler';
-import { validate } from '../../middleware/validate';
-import { z } from 'zod';
 import { CatchError } from '../types/common';
 
 const router = Router();
@@ -54,7 +55,7 @@ router.get(
       data: healthStatus,
       timestamp: new Date(),
     });
-  })
+  }),
 );
 
 /**
@@ -81,7 +82,7 @@ router.get(
       data: componentHealth,
       timestamp: new Date(),
     });
-  })
+  }),
 );
 
 /**
@@ -111,7 +112,7 @@ router.get(
         },
       },
     });
-  })
+  }),
 );
 
 /**
@@ -152,7 +153,7 @@ router.get(
         circuitBreakers: stats,
       },
     });
-  })
+  }),
 );
 
 /**
@@ -231,7 +232,7 @@ router.post(
         error: `Failed to perform action: ${(error as Error).message}`,
       });
     }
-  })
+  }),
 );
 
 /**
@@ -252,7 +253,7 @@ router.get(
         timestamp: healthStatus.timestamp,
       },
     });
-  })
+  }),
 );
 
 /**
@@ -298,7 +299,7 @@ router.post(
         error: `Failed to register dependency: ${(error as Error).message}`,
       });
     }
-  })
+  }),
 );
 
 /**
@@ -340,7 +341,7 @@ router.get(
         error: 'Failed to retrieve recovery history',
       });
     }
-  })
+  }),
 );
 
 /**
@@ -401,7 +402,7 @@ router.post(
         },
       });
     }
-  })
+  }),
 );
 
 /**
@@ -424,7 +425,7 @@ router.get(
     try {
       const riskAssessment = await errorRecoveryManager.checkCascadeRisk(
         operation,
-        typeof service === 'string' ? service : undefined
+        typeof service === 'string' ? service : undefined,
       );
 
       res.json({
@@ -448,7 +449,7 @@ router.get(
         error: 'Failed to assess cascade risk',
       });
     }
-  })
+  }),
 );
 
 /**
@@ -480,7 +481,7 @@ router.delete(
         error: 'Failed to clear recovery history',
       });
     }
-  })
+  }),
 );
 
 /**
@@ -506,7 +507,7 @@ router.get(
 
     // Deduct points for open circuit breakers
     const openCircuitBreakers = Object.values(circuitBreakerStats).filter(
-      (s) => s.state === 'OPEN'
+      (s) => s.state === 'OPEN',
     );
     resilienceScore -= openCircuitBreakers.length * 15;
 
@@ -525,10 +526,10 @@ router.get(
           resilienceScore >= 80
             ? 'excellent'
             : resilienceScore >= 60
-            ? 'good'
-            : resilienceScore >= 40
-            ? 'fair'
-            : 'poor',
+              ? 'good'
+              : resilienceScore >= 40
+                ? 'fair'
+                : 'poor',
         systemHealth: healthStatus,
         serviceHealth: resilienceStatus,
         circuitBreakers: {
@@ -542,19 +543,19 @@ router.get(
           healthStatus,
           circuitBreakerStats,
           errorStats,
-          performanceMetrics
+          performanceMetrics,
         ),
         timestamp: new Date(),
       },
     });
-  })
+  }),
 );
 
 function generateRecommendations(
   healthStatus: any,
   circuitBreakerStats: any,
   errorStats: any,
-  performanceMetrics: any
+  performanceMetrics: any,
 ): string[] {
   const recommendations: string[] = [];
 
@@ -564,39 +565,39 @@ function generateRecommendations(
     recommendations.push(
       `Address ${unhealthyComponents.length} unhealthy component(s): ${unhealthyComponents
         .map((c: any) => c.name)
-        .join(', ')}`
+        .join(', ')}`,
     );
   }
 
   // Circuit breaker recommendations
   const openCircuitBreakers = Object.entries(circuitBreakerStats).filter(
-    ([, stats]: [string, any]) => stats.state === 'OPEN'
+    ([, stats]: [string, any]) => stats.state === 'OPEN',
   );
   if (openCircuitBreakers.length > 0) {
     recommendations.push(
       `Investigate ${openCircuitBreakers.length} open circuit breaker(s): ${openCircuitBreakers
         .map(([name]) => name)
-        .join(', ')}`
+        .join(', ')}`,
     );
   }
 
   // Performance recommendations
   if (performanceMetrics.errorRate > 5) {
     recommendations.push(
-      `High error rate detected (${performanceMetrics.errorRate}%), investigate root causes`
+      `High error rate detected (${performanceMetrics.errorRate}%), investigate root causes`,
     );
   }
 
   if (performanceMetrics.avgResponseTime > 2000) {
     recommendations.push(
-      `High average response time (${performanceMetrics.avgResponseTime}ms), consider performance optimization`
+      `High average response time (${performanceMetrics.avgResponseTime}ms), consider performance optimization`,
     );
   }
 
   // Error recovery recommendations
   if (errorStats.recentErrors > 10) {
     recommendations.push(
-      `High recent error count (${errorStats.recentErrors}), monitor for cascade failures`
+      `High recent error count (${errorStats.recentErrors}), monitor for cascade failures`,
     );
   }
 

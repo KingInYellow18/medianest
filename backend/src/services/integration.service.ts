@@ -5,9 +5,9 @@ import { getPrismaClient } from '../db/prisma';
 import { OverseerrApiClient } from '../integrations/overseerr/overseerr-api.client';
 import { PlexApiClient } from '../integrations/plex/plex-api.client';
 import { UptimeKumaClient } from '../integrations/uptime-kuma/uptime-kuma-client';
-import { logger } from '../utils/logger';
-import { asError, getErrorMessage } from '../utils/error-handling';
 import { CatchError } from '../types/common';
+import { asError, getErrorMessage } from '../utils/error-handling';
+import { logger } from '../utils/logger';
 
 export interface ServiceHealthStatus {
   service: string;
@@ -90,7 +90,7 @@ export class IntegrationService extends EventEmitter {
       if (this.config.plex.defaultToken) {
         const plexClient = await PlexApiClient.createFromUserToken(
           this.config.plex.defaultToken,
-          this.config.plex.serverUrl
+          this.config.plex.serverUrl,
         );
 
         this.clients.set('plex', plexClient);
@@ -114,7 +114,7 @@ export class IntegrationService extends EventEmitter {
     try {
       const overseerrClient = await OverseerrApiClient.createFromConfig(
         this.config.overseerr.url,
-        this.config.overseerr.apiKey
+        this.config.overseerr.apiKey,
       );
 
       this.clients.set('overseerr', overseerrClient);
@@ -168,9 +168,12 @@ export class IntegrationService extends EventEmitter {
     this.performHealthChecks();
 
     // Schedule regular health checks every 2 minutes
-    this.healthCheckInterval = setInterval(() => {
-      this.performHealthChecks();
-    }, 2 * 60 * 1000);
+    this.healthCheckInterval = setInterval(
+      () => {
+        this.performHealthChecks();
+      },
+      2 * 60 * 1000,
+    );
   }
 
   private async performHealthChecks(): Promise<void> {
@@ -234,7 +237,7 @@ export class IntegrationService extends EventEmitter {
 
           logger.error(`Health check failed for ${serviceName}`, { error: getErrorMessage(error) });
         }
-      }
+      },
     );
 
     await Promise.allSettled(healthCheckPromises);
@@ -242,7 +245,7 @@ export class IntegrationService extends EventEmitter {
 
   private async cacheServiceStatus(
     serviceName: string,
-    status: ServiceHealthStatus
+    status: ServiceHealthStatus,
   ): Promise<void> {
     try {
       const cacheKey = `service:health:${serviceName}`;

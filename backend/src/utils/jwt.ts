@@ -1,9 +1,11 @@
-import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 
 import { AppError } from '@medianest/shared';
-import { logger } from './logger';
+import jwt from 'jsonwebtoken';
+
 import { configService } from '../config/config.service';
+
+import { logger } from './logger';
 
 export interface JWTPayload {
   userId: string;
@@ -45,7 +47,7 @@ const JWT_AUDIENCE = jwtConfig.JWT_AUDIENCE;
 // Validate JWT secret at startup
 if (!JWT_SECRET || JWT_SECRET === 'dev-secret') {
   throw new Error(
-    'JWT_SECRET is required and cannot be the default dev value. Generate one with: openssl rand -base64 32'
+    'JWT_SECRET is required and cannot be the default dev value. Generate one with: openssl rand -base64 32',
   );
 }
 
@@ -58,7 +60,7 @@ const TOKEN_ROTATION_THRESHOLD = 5 * 60 * 1000; // 5 minutes before expiry
 export function generateToken(
   payload: JWTPayload,
   rememberMe: boolean = false,
-  options?: JWTOptions
+  options?: JWTOptions,
 ): string {
   const expiresIn = rememberMe ? REMEMBER_ME_TOKEN_EXPIRY : DEFAULT_TOKEN_EXPIRY;
 
@@ -102,7 +104,7 @@ export function verifyToken(
     allowRotation?: boolean;
     ipAddress?: string;
     userAgent?: string;
-  }
+  },
 ): JWTPayload {
   try {
     let decoded: JWTPayload;
@@ -254,7 +256,7 @@ export function shouldRotateToken(token: string): boolean {
 export function rotateTokenIfNeeded(
   token: string,
   payload: JWTPayload,
-  options?: JWTOptions
+  options?: JWTOptions,
 ): TokenRotationInfo | null {
   if (!shouldRotateToken(token)) {
     return null;
@@ -312,7 +314,7 @@ export function verifyRefreshToken(refreshToken: string): { userId: string; sess
     throw new AppError(
       'REFRESH_TOKEN_VERIFICATION_FAILED',
       'Refresh token verification failed',
-      401
+      401,
     );
   }
 }

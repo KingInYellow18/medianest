@@ -1,16 +1,19 @@
 import type {
+  ApiResponse,
+  PaginatedApiResponse,
+  LegacyApiResponse,
+  PaginationMeta,
+} from '@medianest/shared';
+import type {
   Response,
   Request as ExpressRequest,
   NextFunction as ExpressNextFunction,
 } from 'express';
-import type { ApiResponse, PaginatedApiResponse, LegacyApiResponse, PaginationMeta } from '@medianest/shared';
-import { logger } from './logger';
+
 import { CatchError } from '../types/common';
-import {
-  toError,
-  isValidationError,
-  isHttpError,
-} from '../types/error-types';
+import { toError, isValidationError, isHttpError } from '../types/error-types';
+
+import { logger } from './logger';
 
 /**
  * Standard API response structure - now imported from shared
@@ -33,7 +36,7 @@ export function sendSuccess<T>(
   res: Response,
   data: T,
   statusCode = 200,
-  meta?: Partial<ApiResponse<T>['meta']>
+  meta?: Partial<ApiResponse<T>['meta']>,
 ): void {
   const response: ApiResponse<T> = {
     data,
@@ -62,7 +65,7 @@ export function sendError(
   message: string,
   statusCode = 500,
   code?: string,
-  details?: Record<string, unknown>
+  details?: Record<string, unknown>,
 ): void {
   const response: LegacyApiResponse = {
     success: false,
@@ -102,7 +105,7 @@ export function sendPaginated<T>(
     limit: number;
     total: number;
   },
-  statusCode = 200
+  statusCode = 200,
 ): void {
   const totalPages = Math.ceil(pagination.total / pagination.limit);
 
@@ -171,7 +174,7 @@ export function sendNotFound(res: Response, resource = 'Resource'): void {
 export function sendValidationError(
   res: Response,
   message = 'Validation failed',
-  details?: Record<string, unknown> | string[]
+  details?: Record<string, unknown> | string[],
 ): void {
   // Convert string array to object format for consistent API response
   const formattedDetails = Array.isArray(details) ? { errors: details } : details;
@@ -214,7 +217,7 @@ export function sendConflict(res: Response, message = 'Resource conflict'): void
 export function sendRateLimit(
   res: Response,
   message = 'Rate limit exceeded',
-  retryAfter?: number
+  retryAfter?: number,
 ): void {
   if (retryAfter) {
     res.setHeader('Retry-After', retryAfter.toString());
@@ -232,7 +235,7 @@ export function sendRateLimit(
 export function sendInternalError(
   res: Response,
   message = 'Internal server error',
-  details?: Record<string, unknown>
+  details?: Record<string, unknown>,
 ): void {
   const isDevelopment = process.env.NODE_ENV === 'development';
   sendError(res, message, 500, 'INTERNAL_ERROR', isDevelopment ? details : undefined);
@@ -256,7 +259,7 @@ export function sendServiceUnavailable(res: Response, message = 'Service unavail
 // Types already imported above as ExpressRequest and ExpressNextFunction
 
 export function asyncHandler(
-  handler: (req: ExpressRequest, res: Response, next: ExpressNextFunction) => Promise<void>
+  handler: (req: ExpressRequest, res: Response, next: ExpressNextFunction) => Promise<void>,
 ) {
   return async (req: ExpressRequest, res: Response, next: ExpressNextFunction): Promise<void> => {
     try {

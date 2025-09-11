@@ -2,11 +2,9 @@ import 'tsconfig-paths/register';
 import 'dotenv/config';
 
 // Validate all required secrets before starting the application
-import { validateSecretsOrThrow } from './config/secrets-validator';
 validateSecretsOrThrow();
 
 // Import centralized configuration service
-import { configService } from './config/config.service';
 
 import { createServer } from 'http';
 
@@ -16,11 +14,15 @@ import express from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 
+import { configService } from './config/config.service';
 import { initializeDatabase } from './config/database';
 import { initializeQueues } from './config/queues';
 import { initializeRedis } from './config/redis';
+import { validateSecretsOrThrow } from './config/secrets-validator';
 import { correlationIdMiddleware } from './middleware/correlation-id';
 import { errorHandler } from './middleware/error';
+import { requestLogger } from './middleware/logging';
+import { applyPerformanceMiddleware } from './middleware/performance';
 import {
   handleUncaughtException,
   handleUnhandledRejection,
@@ -28,14 +30,12 @@ import {
   secureErrorHandler,
 } from './middleware/secure-error';
 import { securityHeaders } from './middleware/security';
-import { requestLogger } from './middleware/logging';
-import { applyPerformanceMiddleware } from './middleware/performance';
 import { setupRoutes } from './routes';
 import { setIntegrationService } from './routes/integrations';
 import { IntegrationService } from './services/integration.service';
 import { MediaNestSocketServer } from './socket/socket-server';
-import { logger } from './utils/logger';
 import { CatchError } from './types/common';
+import { logger } from './utils/logger';
 
 const app = express();
 const httpServer = createServer(app);
@@ -75,7 +75,7 @@ app.use(
       includeSubDomains: true,
       preload: true,
     },
-  })
+  }),
 );
 
 // Context7 Pattern: Optimized Rate Limiting with Memory Store
@@ -143,7 +143,7 @@ app.use(
     // Context7 Pattern: Cache preflight responses
     maxAge: 86400, // 24 hours
     optionsSuccessStatus: 200, // Some legacy browsers choke on 204
-  })
+  }),
 );
 
 // Context7 Pattern: Optimized Body Parsing and Compression
@@ -169,7 +169,7 @@ app.use(
 
       return compression.filter(req, res);
     },
-  })
+  }),
 );
 
 // Context7 Pattern: Optimized JSON parsing with enhanced security and performance
@@ -194,7 +194,7 @@ app.use(
           }
           return value;
         },
-  })
+  }),
 );
 
 // Context7 Pattern: Enhanced URL encoded parsing with security measures
@@ -211,7 +211,7 @@ app.use(
         throw new Error('Invalid URL-encoded content');
       }
     },
-  })
+  }),
 );
 // Context7 Pattern: Apply performance middleware early in the stack
 app.use(applyPerformanceMiddleware());

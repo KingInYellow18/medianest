@@ -186,6 +186,38 @@ Response includes pagination metadata:
 }
 ```
 
+## Available Endpoints
+
+### Public Endpoints (No Authentication Required)
+- `GET /health` - Simple health check for Docker
+- `GET /api/health` - Detailed health check with system status
+- `POST /api/v1/auth/plex/pin` - Generate Plex authentication PIN
+- `POST /api/v1/auth/plex/verify` - Verify PIN and authenticate user
+- `POST /api/v1/webhooks/*` - External webhooks (Overseerr, etc.)
+- `GET /api/v1/csrf` - Get CSRF token
+- `GET /api/v1/resilience/*` - System resilience monitoring
+
+### Protected Endpoints (Authentication Required)
+- `GET /api/v1/auth/session` - Get current user session
+- `POST /api/v1/auth/logout` - Logout user
+- `GET /api/v1/dashboard/*` - Dashboard statistics and status
+- `GET /api/v1/media/*` - Media search, requests, and management
+- `GET /api/v1/services/*` - External service status and configuration
+- `GET /api/v1/plex/*` - Plex server integration and library access
+- `POST /api/v1/youtube/*` - YouTube download management
+- `GET /api/v1/performance/*` - System performance metrics
+- `GET /api/v1/errors/*` - Error reporting and analytics
+
+### Admin Endpoints (Admin Role Required)
+- `GET /api/v1/admin/*` - User management and system administration
+- `PUT /api/v1/admin/services/*` - Service configuration management
+- `GET /api/v1/admin/config` - System configuration access
+
+For detailed endpoint documentation, see:
+- [Dashboard Endpoints](endpoints/dashboard.md)
+- [Media Endpoints](endpoints/media.md) 
+- [Plex Endpoints](endpoints/plex.md)
+
 ## WebSocket Events
 
 MediaNest provides real-time updates via WebSocket connections. See [WebSocket Documentation](websocket.md) for details.

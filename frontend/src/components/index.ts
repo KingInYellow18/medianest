@@ -1,9 +1,9 @@
 /**
  * Component exports - Barrel file for cleaner imports
- * 
+ *
  * Usage:
  * import { UserManagement, ServiceStatus, Modal } from '@/components';
- * 
+ *
  * Or import specific categories:
  * import { UserManagement } from '@/components/admin';
  * import { Modal, ToastProvider } from '@/components/ui';

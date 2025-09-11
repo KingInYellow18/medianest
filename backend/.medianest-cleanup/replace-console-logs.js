@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * Bulk Console.log Replacement Script
- * 
- * This script replaces all console.log, console.error, console.warn, and console.info 
+ *
+ * This script replaces all console.log, console.error, console.warn, and console.info
  * statements with proper logger calls using structured logging.
  */
 
@@ -30,40 +30,40 @@ const REPLACEMENT_PATTERNS = [
         // Simple string
         return `logger.info(${content});`;
       }
-    }
+    },
   },
-  
+
   // Console.error patterns
   {
     pattern: /console\.error\((.*?)\);/g,
     replacement: (match, content) => {
       if (content.includes(',')) {
-        const parts = content.split(',').map(p => p.trim());
+        const parts = content.split(',').map((p) => p.trim());
         const message = parts[0];
         const data = parts.slice(1).join(', ');
         return `logger.error(${message}, { error: ${data} });`;
       }
       return `logger.error(${content});`;
-    }
+    },
   },
-  
+
   // Console.warn patterns
   {
     pattern: /console\.warn\((.*?)\);/g,
-    replacement: (match, content) => `logger.warn(${content});`
+    replacement: (match, content) => `logger.warn(${content});`,
   },
-  
-  // Console.info patterns  
+
+  // Console.info patterns
   {
     pattern: /console\.info\((.*?)\);/g,
-    replacement: (match, content) => `logger.info(${content});`
+    replacement: (match, content) => `logger.info(${content});`,
   },
-  
+
   // Console.debug patterns
   {
     pattern: /console\.debug\((.*?)\);/g,
-    replacement: (match, content) => `logger.debug(${content});`
-  }
+    replacement: (match, content) => `logger.debug(${content});`,
+  },
 ];
 
 // Files to exclude from replacement
@@ -73,12 +73,12 @@ const EXCLUDE_PATTERNS = [
   '**/*.d.ts',
   '**/logs/**',
   '**/*.log',
-  '**/scripts/verify-deployment.js' // Keep as console for deployment verification
+  '**/scripts/verify-deployment.js', // Keep as console for deployment verification
 ];
 
 // Check if file should be excluded
 function shouldExcludeFile(filePath) {
-  return EXCLUDE_PATTERNS.some(pattern => {
+  return EXCLUDE_PATTERNS.some((pattern) => {
     const regex = new RegExp(pattern.replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*'));
     return regex.test(filePath);
   });
@@ -95,7 +95,7 @@ function needsLoggerImport(content, filePath) {
 function addLoggerImport(content, filePath) {
   const isTypeScript = filePath.endsWith('.ts');
   const isModule = content.includes('import ') || content.includes('export ');
-  
+
   if (isTypeScript && isModule) {
     // TypeScript with ES6 imports
     const importStatement = "import { logger } from './utils/logger';\n";
@@ -103,7 +103,9 @@ function addLoggerImport(content, filePath) {
       // Add after last import
       const lastImportIndex = content.lastIndexOf('import ');
       const nextLineIndex = content.indexOf('\n', lastImportIndex);
-      return content.slice(0, nextLineIndex + 1) + importStatement + content.slice(nextLineIndex + 1);
+      return (
+        content.slice(0, nextLineIndex + 1) + importStatement + content.slice(nextLineIndex + 1)
+      );
     } else {
       return importStatement + content;
     }
@@ -120,7 +122,7 @@ function processFile(filePath) {
     const content = fs.readFileSync(filePath, 'utf8');
     let modifiedContent = content;
     let hasChanges = false;
-    
+
     // Apply replacement patterns
     REPLACEMENT_PATTERNS.forEach(({ pattern, replacement }) => {
       const newContent = modifiedContent.replace(pattern, replacement);
@@ -129,19 +131,19 @@ function processFile(filePath) {
         modifiedContent = newContent;
       }
     });
-    
+
     // Add logger import if needed
     if (hasChanges && needsLoggerImport(modifiedContent, filePath)) {
       modifiedContent = addLoggerImport(modifiedContent, filePath);
     }
-    
+
     // Write back if changes were made
     if (hasChanges) {
       fs.writeFileSync(filePath, modifiedContent);
       console.log(`✅ Processed: ${path.relative(BACKEND_DIR, filePath)}`);
       return 1;
     }
-    
+
     return 0;
   } catch (error) {
     console.error(`❌ Error processing ${filePath}:`, error.message);
@@ -152,50 +154,45 @@ function processFile(filePath) {
 // Main function
 function main() {
   console.log('🚀 Starting console.log replacement...\n');
-  
+
   // Find all TypeScript and JavaScript files
-  const filePatterns = [
-    'src/**/*.ts',
-    'src/**/*.js',
-    'scripts/**/*.ts', 
-    'scripts/**/*.js'
-  ];
-  
+  const filePatterns = ['src/**/*.ts', 'src/**/*.js', 'scripts/**/*.ts', 'scripts/**/*.js'];
+
   let totalFiles = 0;
   let processedFiles = 0;
-  
-  filePatterns.forEach(pattern => {
+
+  filePatterns.forEach((pattern) => {
     const files = glob.sync(pattern, { cwd: BACKEND_DIR });
-    
-    files.forEach(file => {
+
+    files.forEach((file) => {
       const fullPath = path.join(BACKEND_DIR, file);
-      
+
       if (!shouldExcludeFile(fullPath)) {
         totalFiles++;
         processedFiles += processFile(fullPath);
       }
     });
   });
-  
+
   console.log(`\n📊 Replacement complete:`);
   console.log(`   Total files scanned: ${totalFiles}`);
   console.log(`   Files modified: ${processedFiles}`);
   console.log(`   Files unchanged: ${totalFiles - processedFiles}`);
-  
+
   // Verify remaining console statements
   console.log('\n🔍 Checking for remaining console statements...');
   const remainingPattern = 'console\\.(log|error|warn|info|debug)';
   const { execSync } = require('child_process');
-  
+
   try {
     const result = execSync(
       `grep -r "${remainingPattern}" src --include="*.ts" --include="*.js" | grep -v node_modules | wc -l`,
-      { cwd: BACKEND_DIR, encoding: 'utf8' }
+      { cwd: BACKEND_DIR, encoding: 'utf8' },
     );
-    
+
     const remainingCount = parseInt(result.trim());
     console.log(`   Remaining console statements: ${remainingCount}`);
-    
+
     if (remainingCount === 0) {
       console.log('✅ All console statements successfully replaced!');
     } else {

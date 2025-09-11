@@ -1,7 +1,9 @@
 import type { Request, Response, NextFunction } from 'express';
+
+import { CatchError } from '../types/common';
+
 import { csrfProtection } from '@/middleware/csrf';
 import { logger } from '@/utils/logger';
-import { CatchError } from '../types/common';
 
 export class CSRFController {
   /**

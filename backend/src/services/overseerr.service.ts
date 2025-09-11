@@ -1,12 +1,14 @@
+import { AppError } from '@medianest/shared';
+
+import { CatchError, UnknownRecord } from '../types/common';
+
+import { encryptionService } from './encryption.service';
+
 import { redisClient } from '@/config/redis';
 import { OverseerrClient } from '@/integrations/overseerr/overseerr.client';
 import { serviceConfigRepository, mediaRequestRepository } from '@/repositories';
 import { socketService } from '@/services/socket.service';
-import { AppError } from '@medianest/shared';
 import { logger } from '@/utils/logger';
-
-import { encryptionService } from './encryption.service';
-import { CatchError, UnknownRecord } from '../types/common';
 
 export class OverseerrService {
   private client?: OverseerrClient;
@@ -94,7 +96,7 @@ export class OverseerrService {
       mediaType: 'movie' | 'tv';
       tmdbId: number;
       seasons?: number[];
-    }
+    },
   ) {
     this.ensureAvailable();
 
@@ -102,7 +104,7 @@ export class OverseerrService {
       // Check if already requested in our database
       const existing = await mediaRequestRepository.findByTmdbId(
         String(request.tmdbId),
-        request.mediaType
+        request.mediaType,
       );
 
       if (existing && existing.status !== 'failed') {
@@ -184,7 +186,7 @@ export class OverseerrService {
     } else if (payload.media?.tmdbId) {
       request = await mediaRequestRepository.findByTmdbId(
         String(payload.media.tmdbId),
-        payload.media.mediaType
+        payload.media.mediaType,
       );
     }
 

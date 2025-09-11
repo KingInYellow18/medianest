@@ -1,18 +1,21 @@
 // @ts-nocheck
 import crypto from 'crypto';
-import bcrypt from 'bcrypt';
-import { UserRepository } from '../repositories/user.repository';
-import { SessionTokenRepository } from '../repositories/session-token.repository';
-import { RedisService } from './redis.service';
+
 import { AppError } from '@medianest/shared';
-import { logger } from '../utils/logger';
+import bcrypt from 'bcrypt';
+
+import { SessionTokenRepository } from '../repositories/session-token.repository';
+import { UserRepository } from '../repositories/user.repository';
 import { CatchError } from '../types/common';
+import { logger } from '../utils/logger';
 import {
   generateSecureToken,
   validatePasswordStrength,
   checkPasswordReuse,
   logSecurityEvent,
 } from '../utils/security';
+
+import { RedisService } from './redis.service';
 // Email service removed - password reset via email disabled
 
 interface PasswordResetToken {
@@ -55,7 +58,7 @@ export class PasswordResetService {
   constructor(
     userRepository: UserRepository,
     sessionTokenRepository: SessionTokenRepository,
-    redisService: RedisService
+    redisService: RedisService,
     // emailService: EmailService, // REMOVED - email functionality disabled
   ) {
     this.userRepository = userRepository;
@@ -85,7 +88,7 @@ export class PasswordResetService {
             ipAddress,
             userAgent,
           },
-          'warn'
+          'warn',
         );
 
         // Still return success to prevent email enumeration
@@ -107,7 +110,7 @@ export class PasswordResetService {
             ipAddress,
             userAgent,
           },
-          'warn'
+          'warn',
         );
 
         return {
@@ -132,7 +135,7 @@ export class PasswordResetService {
               userAgent,
               existingTokenId: existingToken.data.id,
             },
-            'info'
+            'info',
           );
 
           return {
@@ -188,7 +191,7 @@ export class PasswordResetService {
           userAgent,
           expiresAt,
         },
-        'info'
+        'info',
       );
 
       return {
@@ -213,7 +216,7 @@ export class PasswordResetService {
    */
   async verifyResetToken(
     tokenId: string,
-    token: string
+    token: string,
   ): Promise<{ valid: boolean; userId?: string; expiresAt?: Date }> {
     try {
       const tokenRecord = await this.redisService.getPasswordResetToken(tokenId);
@@ -237,7 +240,7 @@ export class PasswordResetService {
       const providedHash = crypto.createHash('sha256').update(token).digest('hex');
       const isValid = crypto.timingSafeEqual(
         Buffer.from(tokenRecord.hashedToken, 'hex'),
-        Buffer.from(providedHash, 'hex')
+        Buffer.from(providedHash, 'hex'),
       );
 
       if (!isValid) {
@@ -248,7 +251,7 @@ export class PasswordResetService {
             userId: tokenRecord.userId,
             ipAddress: tokenRecord.ipAddress,
           },
-          'warn'
+          'warn',
         );
 
         return { valid: false };
@@ -295,7 +298,7 @@ export class PasswordResetService {
         throw new AppError(
           `Password does not meet requirements: ${passwordValidation.errors.join(', ')}`,
           400,
-          'WEAK_PASSWORD'
+          'WEAK_PASSWORD',
         );
       }
 
@@ -306,7 +309,7 @@ export class PasswordResetService {
           throw new AppError(
             'Please choose a password you have not used recently',
             400,
-            'PASSWORD_REUSED'
+            'PASSWORD_REUSED',
           );
         }
       }
@@ -352,7 +355,7 @@ export class PasswordResetService {
           userAgent,
           passwordScore: passwordValidation.score,
         },
-        'info'
+        'info',
       );
 
       return {
@@ -388,7 +391,7 @@ export class PasswordResetService {
           tokenId,
           userId: tokenRecord.userId,
         },
-        'info'
+        'info',
       );
     }
   }
@@ -408,7 +411,7 @@ export class PasswordResetService {
     // Note: This would require storing all reset tokens for a user
     // For now, return empty array as Redis keys would need additional indexing
     logger.warn(
-      'Reset history not available with Redis implementation - requires additional indexing'
+      'Reset history not available with Redis implementation - requires additional indexing',
     );
     return [];
   }
@@ -440,7 +443,7 @@ export class PasswordResetService {
     // Note: Statistics would require additional indexing in Redis
     // For now, return minimal stats
     logger.warn(
-      'Password reset statistics not available with Redis implementation - requires additional indexing'
+      'Password reset statistics not available with Redis implementation - requires additional indexing',
     );
     return { totalActive: 0, totalUsed: 0, totalExpired: 0 };
   }

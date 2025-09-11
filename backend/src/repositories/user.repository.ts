@@ -3,13 +3,13 @@ import bcrypt from 'bcrypt';
 
 import { encryptionService } from '../services/encryption.service';
 // @ts-ignore
+import { CatchError } from '../types/common';
 import {
   AppError, // @ts-ignore
 } from '../utils/errors';
 import { logger } from '../utils/logger';
 
 import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
-import { CatchError } from '../types/common';
 
 export interface CreateUserInput {
   email: string;
@@ -278,7 +278,7 @@ export class UserRepository extends BaseRepository<User> {
   }
 
   async findRecent(
-    options: { limit?: number; orderBy?: any } = {}
+    options: { limit?: number; orderBy?: any } = {},
   ): Promise<
     Pick<User, 'id' | 'email' | 'name' | 'plexUsername' | 'role' | 'createdAt' | 'lastLoginAt'>[]
   > {

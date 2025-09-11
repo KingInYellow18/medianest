@@ -1,6 +1,6 @@
+import { getErrorMessage } from '../../utils/error-handling';
 import { logger } from '../../utils/logger';
 import { BaseApiClient, ApiClientConfig } from '../base-api-client';
-import { getErrorMessage } from '../../utils/error-handling';
 // Removed unused import
 
 export interface PlexServer {
@@ -138,7 +138,7 @@ export class PlexApiClient extends BaseApiClient {
     try {
       const response = await this.request<{ MediaContainer: { Server: PlexServer[] } }>(
         '/api/v2/resources',
-        { method: 'GET' }
+        { method: 'GET' },
       );
 
       return response.data.MediaContainer?.Server || [];
@@ -157,7 +157,7 @@ export class PlexApiClient extends BaseApiClient {
     try {
       const response = await this.requestToServer<{ MediaContainer: { Directory: PlexLibrary[] } }>(
         baseUrl,
-        '/library/sections'
+        '/library/sections',
       );
 
       return response.data.MediaContainer?.Directory || [];

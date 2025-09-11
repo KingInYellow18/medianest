@@ -1,6 +1,6 @@
+import { CatchError } from '../types/common';
 import { CircuitBreaker, CircuitBreakerOptions } from '../utils/circuit-breaker';
 import { logger } from '../utils/logger';
-import { CatchError } from '../types/common';
 
 export interface ApiClientConfig {
   baseURL: string;
@@ -31,7 +31,10 @@ export abstract class BaseApiClient {
   protected circuitBreaker: CircuitBreaker;
   protected lastHealthCheck: HealthStatus | null = null;
 
-  constructor(protected serviceName: string, protected config: ApiClientConfig) {
+  constructor(
+    protected serviceName: string,
+    protected config: ApiClientConfig,
+  ) {
     const defaultCircuitBreakerOptions: CircuitBreakerOptions = {
       failureThreshold: 5,
       resetTimeout: 30000, // 30 seconds
@@ -47,7 +50,7 @@ export abstract class BaseApiClient {
 
   protected async request<T = unknown>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
   ): Promise<HttpApiResponse<T>> {
     const url = `${this.config.baseURL}${endpoint}`;
     const timeout = this.config.timeout || 5000;
@@ -110,7 +113,7 @@ export abstract class BaseApiClient {
           });
 
           throw new Error(
-            `${this.serviceName} API error: ${response.status} ${response.statusText}`
+            `${this.serviceName} API error: ${response.status} ${response.statusText}`,
           );
         }
 
@@ -141,7 +144,7 @@ export abstract class BaseApiClient {
 
   protected async requestWithRetry<T = unknown>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
   ): Promise<HttpApiResponse<T>> {
     const maxRetries = this.config.retryAttempts || 3;
     const retryDelay = this.config.retryDelay || 1000;

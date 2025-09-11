@@ -1,5 +1,6 @@
 // @ts-ignore
 import { trace, context, SpanStatusCode, SpanKind, Span } from '@opentelemetry/api';
+
 import { CatchError } from '../types/common';
 
 /**
@@ -17,7 +18,7 @@ export class TracerUtil {
     options?: {
       kind?: any;
       attributes?: Record<string, string | number | boolean>;
-    }
+    },
   ): Promise<T> {
     const span = this.tracer.startSpan(spanName, {
       kind: options?.kind || (SpanKind as any).INTERNAL,
@@ -27,7 +28,7 @@ export class TracerUtil {
     try {
       const result = await (context as any).with(
         (trace as any).setSpan((context as any).active(), span),
-        () => fn(span)
+        () => fn(span),
       );
       span.setStatus({ code: (SpanStatusCode as any).OK });
       return result;
@@ -52,7 +53,7 @@ export class TracerUtil {
     options?: {
       kind?: any;
       attributes?: Record<string, string | number | boolean>;
-    }
+    },
   ): T {
     const span = this.tracer.startSpan(spanName, {
       kind: options?.kind || (SpanKind as any).INTERNAL,
@@ -62,7 +63,7 @@ export class TracerUtil {
     try {
       const result = (context as any).with(
         (trace as any).setSpan((context as any).active(), span),
-        () => fn(span)
+        () => fn(span),
       );
       span.setStatus({ code: (SpanStatusCode as any).OK });
       return result;
@@ -85,7 +86,7 @@ export class TracerUtil {
     operation: string,
     table: string,
     fn: (span: any) => Promise<T>,
-    query?: string
+    query?: string,
   ): Promise<T> {
     return this.withSpan(`db.${operation}`, fn, {
       kind: (SpanKind as any).CLIENT,
@@ -105,7 +106,7 @@ export class TracerUtil {
     operation: string,
     key: string,
     fn: (span: any) => Promise<T>,
-    ttl?: number
+    ttl?: number,
   ): Promise<T> {
     return this.withSpan(`cache.${operation}`, fn, {
       kind: (SpanKind as any).CLIENT,
@@ -125,7 +126,7 @@ export class TracerUtil {
     method: string,
     url: string,
     fn: (span: any) => Promise<T>,
-    service?: string
+    service?: string,
   ): Promise<T> {
     const urlObj = new URL(url);
 
@@ -147,7 +148,7 @@ export class TracerUtil {
   async withBusinessSpan<T>(
     operationName: string,
     fn: (span: any) => Promise<T>,
-    attributes?: Record<string, string | number | boolean>
+    attributes?: Record<string, string | number | boolean>,
   ): Promise<T> {
     return this.withSpan(`business.${operationName}`, fn, {
       kind: (SpanKind as any).INTERNAL,

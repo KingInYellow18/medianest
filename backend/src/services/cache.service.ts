@@ -1,9 +1,9 @@
 // @ts-nocheck
 import { redisClient } from '@/config/redis';
-import { logger } from '@/utils/logger';
 import { handleAsync, handleCacheError, safeAsyncTry } from '@/utils/error-handler';
-import { isNotNullOrUndefined } from '@/utils/validation.utils';
+import { logger } from '@/utils/logger';
 import { safeJsonParse, safeJsonStringify } from '@/utils/transform.utils';
+import { isNotNullOrUndefined } from '@/utils/validation.utils';
 
 export class CacheService {
   private readonly defaultTTL = 300; // 5 minutes default
@@ -29,7 +29,7 @@ export class CacheService {
     await safeAsyncTry(
       () => redisClient.setex(key, ttlSeconds, jsonValue),
       undefined,
-      `Cache set error for key: ${key}`
+      `Cache set error for key: ${key}`,
     );
   }
 
@@ -41,13 +41,13 @@ export class CacheService {
       await safeAsyncTry(
         () => redisClient.del(keys),
         undefined,
-        'Cache delete error for array keys'
+        'Cache delete error for array keys',
       );
     } else if (typeof keys === 'string') {
       await safeAsyncTry(
         () => redisClient.del(keys),
         undefined,
-        `Cache delete error for key: ${keys}`
+        `Cache delete error for key: ${keys}`,
       );
     }
   }
@@ -77,14 +77,14 @@ export class CacheService {
   async invalidatePattern(pattern: string): Promise<void> {
     const [keys, keysError] = await handleAsync(
       () => redisClient.keys(pattern),
-      `Cache pattern keys lookup error: ${pattern}`
+      `Cache pattern keys lookup error: ${pattern}`,
     );
 
     if (keysError || !keys || keys.length === 0) return;
 
     const [, delError] = await handleAsync(
       () => redisClient.del(keys),
-      `Cache pattern delete error: ${pattern}`
+      `Cache pattern delete error: ${pattern}`,
     );
 
     if (!delError) {
@@ -98,7 +98,7 @@ export class CacheService {
   async exists(key: string): Promise<boolean> {
     const [exists, error] = await handleAsync(
       () => redisClient.exists(key),
-      `Cache exists error for key: ${key}`
+      `Cache exists error for key: ${key}`,
     );
 
     if (error) return false;
@@ -111,7 +111,7 @@ export class CacheService {
   async ttl(key: string): Promise<number> {
     const [ttl, error] = await handleAsync(
       () => redisClient.ttl(key),
-      `Cache TTL error for key: ${key}`
+      `Cache TTL error for key: ${key}`,
     );
 
     if (error) return -1;
@@ -127,12 +127,12 @@ export class CacheService {
   }> {
     const [info, infoError] = await handleAsync(
       () => redisClient.info('memory'),
-      'Cache info memory error'
+      'Cache info memory error',
     );
 
     const [dbSize, dbSizeError] = await handleAsync(
       () => redisClient.dbsize(),
-      'Cache dbsize error'
+      'Cache dbsize error',
     );
 
     if (infoError || dbSizeError) {

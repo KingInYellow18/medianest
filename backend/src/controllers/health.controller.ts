@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
-import { cacheService } from '@/services/cache.service';
-import { getPrismaClient } from '@/db/prisma';
+
 import { redisClient } from '@/config/redis';
+import { getPrismaClient } from '@/db/prisma';
+import { cacheService } from '@/services/cache.service';
 import { logger } from '@/utils/logger';
 
 export class HealthController {

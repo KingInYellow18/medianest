@@ -1,8 +1,9 @@
 import { Server, Socket } from 'socket.io';
 
+import { CatchError } from '../../types/common';
+
 import { statusService } from '@/services/status.service';
 import { logger } from '@/utils/logger';
-import { CatchError } from '../../types/common';
 
 // Enhanced status handlers with rate limiting and better error handling
 export function statusHandlers(io: Server, socket: Socket): void {
@@ -197,7 +198,7 @@ export function broadcastServiceUpdate(
     responseTime?: number;
     error?: string;
     details?: Record<string, any>;
-  }
+  },
 ): void {
   const updateData = {
     serviceId,
@@ -228,7 +229,7 @@ export function broadcastSystemAlert(
     title: string;
     message: string;
     serviceId?: string;
-  }
+  },
 ): void {
   const alertData = {
     ...alert,

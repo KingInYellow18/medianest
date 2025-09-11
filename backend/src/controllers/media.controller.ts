@@ -1,10 +1,11 @@
+import { AppError } from '@medianest/shared';
 import { Request, Response } from 'express';
+
+import { CatchError } from '../types/common';
 
 import { mediaRequestRepository } from '@/repositories';
 import { overseerrService } from '@/services/overseerr.service';
-import { AppError } from '@medianest/shared';
 import { logger } from '@/utils/logger';
-import { CatchError } from '../types/common';
 
 export class MediaController {
   async searchMedia(req: Request, res: Response) {
@@ -49,7 +50,7 @@ export class MediaController {
 
       const details = await overseerrService.getMediaDetails(
         mediaType as 'movie' | 'tv',
-        Number(tmdbId)
+        Number(tmdbId),
       );
 
       res.json({

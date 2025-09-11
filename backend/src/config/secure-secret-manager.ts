@@ -1,6 +1,6 @@
 /**
  * 🔐 SECURE SECRET MANAGEMENT
- * 
+ *
  * Production-grade secret management with rotation support
  * and environment-aware configuration loading
  */
@@ -56,7 +56,7 @@ class SecureSecretManager {
 
     this.validateSecrets(config);
     this.secrets = config;
-    
+
     return config;
   }
 
@@ -93,10 +93,10 @@ class SecureSecretManager {
    */
   private validateSecrets(config: SecretConfig): void {
     const requiredSecrets = ['JWT_SECRET', 'NEXTAUTH_SECRET', 'ENCRYPTION_KEY'] as const;
-    
+
     for (const key of requiredSecrets) {
       const secret = config[key];
-      
+
       if (!secret) {
         throw new Error(`Missing required secret: ${key}`);
       }
@@ -111,10 +111,10 @@ class SecureSecretManager {
         'changeme',
         'development',
         'test-secret',
-        'placeholder'
+        'placeholder',
       ];
 
-      if (insecurePatterns.some(pattern => secret.toLowerCase().includes(pattern))) {
+      if (insecurePatterns.some((pattern) => secret.toLowerCase().includes(pattern))) {
         throw new Error(`Insecure secret detected for ${key}. Please generate a proper secret.`);
       }
     }
@@ -164,7 +164,9 @@ class SecureSecretManager {
 
     if (this.isProduction()) {
       if (!this.useDockerSecrets && !process.env.JWT_SECRET) {
-        issues.push('Production environment should use Docker secrets or secure environment variables');
+        issues.push(
+          'Production environment should use Docker secrets or secure environment variables',
+        );
       }
 
       if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 64) {
@@ -176,7 +178,7 @@ class SecureSecretManager {
         'JWT_SKIP_VERIFICATION',
         'AUTH_BYPASS',
         'SKIP_AUTH_CHECK',
-        'DISABLE_SECURITY'
+        'DISABLE_SECURITY',
       ];
 
       for (const flag of dangerousFlags) {
@@ -188,7 +190,7 @@ class SecureSecretManager {
 
     return {
       valid: issues.length === 0,
-      issues
+      issues,
     };
   }
 }

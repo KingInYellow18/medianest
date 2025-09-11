@@ -241,7 +241,7 @@ export const isError = (value: unknown): value is ErrorWithMessage => {
 
 // Context7 Pattern: Asserting type guards for better performance
 export const assertIsError: (value: unknown) => asserts value is ErrorWithMessage = (
-  value
+  value,
 ): void => {
   if (!isError(value)) {
     throw new TypeError('Expected ErrorWithMessage');

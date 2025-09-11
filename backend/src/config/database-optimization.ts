@@ -119,13 +119,13 @@ export async function checkDatabaseHealth(prisma: PrismaClient): Promise<{
     // Connection time recommendations
     if (connectionTime > 100) {
       recommendations.push(
-        'Database connection time is high. Consider connection pooling optimization.'
+        'Database connection time is high. Consider connection pooling optimization.',
       );
     }
 
     if (connectionTime > 500) {
       recommendations.push(
-        'Critical: Database connection time exceeds 500ms. Check network and database performance.'
+        'Critical: Database connection time exceeds 500ms. Check network and database performance.',
       );
       return {
         status: 'error',
@@ -144,7 +144,7 @@ export async function checkDatabaseHealth(prisma: PrismaClient): Promise<{
 
       if (longRunningQueries[0]?.count > 0) {
         recommendations.push(
-          `Found ${longRunningQueries[0].count} long-running queries. Consider query optimization.`
+          `Found ${longRunningQueries[0].count} long-running queries. Consider query optimization.`,
         );
       }
     } catch {

@@ -1,14 +1,15 @@
 // Internal dependencies
+import {
+  BaseIntegrationClient,
+  ClientConfig,
+  HealthStatus,
+  ClientInitializer,
+} from '@medianest/shared';
+
 import { UptimeKumaClient } from '../../integrations/uptime-kuma/uptime-kuma-client';
 import { logger } from '../../utils/logger';
 
 // Shared utilities (using barrel exports)
-import { 
-  BaseIntegrationClient,
-  ClientConfig, 
-  HealthStatus,
-  ClientInitializer 
-} from '@medianest/shared';
 
 export interface UptimeKumaConfig extends ClientConfig {
   url?: string;
@@ -37,7 +38,7 @@ export class UptimeKumaIntegrationService extends BaseIntegrationClient {
     }
 
     const kumaConfig = this.config as UptimeKumaConfig;
-    
+
     if (!kumaConfig.url) {
       logger.debug('Uptime Kuma integration disabled or not configured');
       return false;
@@ -60,7 +61,7 @@ export class UptimeKumaIntegrationService extends BaseIntegrationClient {
           return client;
         },
         3,
-        2000
+        2000,
       );
 
       if (this.client) {
@@ -86,9 +87,9 @@ export class UptimeKumaIntegrationService extends BaseIntegrationClient {
     });
 
     this.client.on('heartbeat', (heartbeat) => {
-      logger.debug('Uptime Kuma heartbeat received', { 
+      logger.debug('Uptime Kuma heartbeat received', {
         monitorId: heartbeat.monitorId,
-        status: heartbeat.status 
+        status: heartbeat.status,
       });
     });
 
@@ -117,7 +118,7 @@ export class UptimeKumaIntegrationService extends BaseIntegrationClient {
    */
   async healthCheck(): Promise<HealthStatus> {
     const startTime = Date.now();
-    
+
     if (!this.client) {
       return {
         healthy: false,
@@ -129,11 +130,11 @@ export class UptimeKumaIntegrationService extends BaseIntegrationClient {
     try {
       const isHealthy = this.client.isHealthy();
       const responseTime = Date.now() - startTime;
-      
+
       if (isHealthy) {
         this.logSuccess('health check', responseTime);
       }
-      
+
       return {
         healthy: isHealthy,
         lastChecked: new Date(),
@@ -142,7 +143,7 @@ export class UptimeKumaIntegrationService extends BaseIntegrationClient {
       };
     } catch (error) {
       this.logError('health check', error as Error);
-      
+
       return {
         healthy: false,
         lastChecked: new Date(),

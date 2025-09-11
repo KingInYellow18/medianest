@@ -2,8 +2,8 @@ import { Router } from 'express';
 
 import { authController } from '@/controllers/auth.controller';
 import { authenticate } from '@/middleware/auth';
-import { asyncHandler } from '@/utils/async-handler';
 import { validateCSRFToken, generateCSRFToken } from '@/middleware/csrf';
+import { asyncHandler } from '@/utils/async-handler';
 
 const router = Router();
 

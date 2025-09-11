@@ -37,7 +37,7 @@ export interface PrismaUpdateOptions<T = unknown> {
 }
 
 // Database error types
-export type DatabaseErrorType = 
+export type DatabaseErrorType =
   | 'CONNECTION_ERROR'
   | 'QUERY_ERROR'
   | 'CONSTRAINT_ERROR'

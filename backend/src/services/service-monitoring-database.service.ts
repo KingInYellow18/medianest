@@ -3,8 +3,8 @@
  * Replaces mock service history and monitoring data
  */
 import { executeQuery, executeTransaction } from '../config/database-connection-pool';
-import { logger } from '../utils/logger';
 import { CatchError } from '../types/common';
+import { logger } from '../utils/logger';
 
 export interface ServiceMetric {
   id: string;
@@ -121,58 +121,52 @@ class ServiceMonitoringDatabaseService {
       const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-      const [
-        latestMetric,
-        metrics24h,
-        metrics7d,
-        metrics30d,
-        activeIncidents,
-        totalIncidents,
-      ] = await Promise.all([
-        // Latest metric
-        client.serviceMetric.findFirst({
-          where: { serviceName },
-          orderBy: { timestamp: 'desc' },
-        }),
-        // 24h metrics
-        client.serviceMetric.findMany({
-          where: {
-            serviceName,
-            timestamp: { gte: oneDayAgo },
-          },
-          orderBy: { timestamp: 'asc' },
-        }),
-        // 7d metrics
-        client.serviceMetric.findMany({
-          where: {
-            serviceName,
-            timestamp: { gte: sevenDaysAgo },
-          },
-          orderBy: { timestamp: 'asc' },
-        }),
-        // 30d metrics
-        client.serviceMetric.findMany({
-          where: {
-            serviceName,
-            timestamp: { gte: thirtyDaysAgo },
-          },
-          orderBy: { timestamp: 'asc' },
-        }),
-        // Active incidents
-        client.serviceIncident.count({
-          where: {
-            serviceName,
-            status: { not: 'resolved' },
-          },
-        }),
-        // Total incidents (30d)
-        client.serviceIncident.count({
-          where: {
-            serviceName,
-            startedAt: { gte: thirtyDaysAgo },
-          },
-        }),
-      ]);
+      const [latestMetric, metrics24h, metrics7d, metrics30d, activeIncidents, totalIncidents] =
+        await Promise.all([
+          // Latest metric
+          client.serviceMetric.findFirst({
+            where: { serviceName },
+            orderBy: { timestamp: 'desc' },
+          }),
+          // 24h metrics
+          client.serviceMetric.findMany({
+            where: {
+              serviceName,
+              timestamp: { gte: oneDayAgo },
+            },
+            orderBy: { timestamp: 'asc' },
+          }),
+          // 7d metrics
+          client.serviceMetric.findMany({
+            where: {
+              serviceName,
+              timestamp: { gte: sevenDaysAgo },
+            },
+            orderBy: { timestamp: 'asc' },
+          }),
+          // 30d metrics
+          client.serviceMetric.findMany({
+            where: {
+              serviceName,
+              timestamp: { gte: thirtyDaysAgo },
+            },
+            orderBy: { timestamp: 'asc' },
+          }),
+          // Active incidents
+          client.serviceIncident.count({
+            where: {
+              serviceName,
+              status: { not: 'resolved' },
+            },
+          }),
+          // Total incidents (30d)
+          client.serviceIncident.count({
+            where: {
+              serviceName,
+              startedAt: { gte: thirtyDaysAgo },
+            },
+          }),
+        ]);
 
       if (!latestMetric) {
         return null;
@@ -184,10 +178,16 @@ class ServiceMonitoringDatabaseService {
       const uptime30d = this.calculateUptime(metrics30d);
 
       // Calculate average response time (24h)
-      const responseTimeMetrics = metrics24h.filter((m: ServiceMetric) => m.responseTimeMs !== null);
-      const averageResponseTime = responseTimeMetrics.length > 0
-        ? responseTimeMetrics.reduce((sum: number, m: ServiceMetric) => sum + (m.responseTimeMs || 0), 0) / responseTimeMetrics.length
-        : 0;
+      const responseTimeMetrics = metrics24h.filter(
+        (m: ServiceMetric) => m.responseTimeMs !== null,
+      );
+      const averageResponseTime =
+        responseTimeMetrics.length > 0
+          ? responseTimeMetrics.reduce(
+              (sum: number, m: ServiceMetric) => sum + (m.responseTimeMs || 0),
+              0,
+            ) / responseTimeMetrics.length
+          : 0;
 
       return {
         serviceName,
@@ -207,7 +207,9 @@ class ServiceMonitoringDatabaseService {
   /**
    * Create service incident
    */
-  async createIncident(incident: Omit<ServiceIncident, 'id' | 'startedAt'>): Promise<ServiceIncident> {
+  async createIncident(
+    incident: Omit<ServiceIncident, 'id' | 'startedAt'>,
+  ): Promise<ServiceIncident> {
     return executeQuery(async (client) => {
       const record = await client.serviceIncident.create({
         data: {
@@ -232,7 +234,7 @@ class ServiceMonitoringDatabaseService {
    */
   async updateIncident(
     incidentId: string,
-    updates: Partial<Pick<ServiceIncident, 'status' | 'description' | 'resolvedAt'>>
+    updates: Partial<Pick<ServiceIncident, 'status' | 'description' | 'resolvedAt'>>,
   ): Promise<ServiceIncident | null> {
     return executeQuery(async (client) => {
       const updateData: any = { ...updates };
@@ -287,7 +289,7 @@ class ServiceMonitoringDatabaseService {
       });
 
       const summaries = await Promise.all(
-        services.map((service: any) => this.getServiceSummary(service.serviceName))
+        services.map((service: any) => this.getServiceSummary(service.serviceName)),
       );
 
       return summaries.filter(Boolean) as ServiceSummary[];
@@ -300,7 +302,7 @@ class ServiceMonitoringDatabaseService {
   async getDowntimeEvents(
     serviceName: string,
     fromDate: Date,
-    toDate: Date
+    toDate: Date,
   ): Promise<Array<{ startTime: Date; endTime?: Date; duration?: number }>> {
     return executeQuery(async (client) => {
       const downMetrics = await client.serviceMetric.findMany({
@@ -345,7 +347,8 @@ class ServiceMonitoringDatabaseService {
 
         if (upMetric) {
           currentDowntime.endTime = upMetric.timestamp;
-          currentDowntime.duration = upMetric.timestamp.getTime() - currentDowntime.startTime.getTime();
+          currentDowntime.duration =
+            upMetric.timestamp.getTime() - currentDowntime.startTime.getTime();
         }
 
         downtimeEvents.push(currentDowntime);
@@ -442,37 +445,41 @@ class ServiceMonitoringDatabaseService {
     const grouped = new Map<string, any[]>();
     const intervalMs = interval === 'hour' ? 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
 
-    metrics.forEach(metric => {
+    metrics.forEach((metric) => {
       const intervalKey = Math.floor(metric.timestamp.getTime() / intervalMs) * intervalMs;
       const key = intervalKey.toString();
-      
+
       if (!grouped.has(key)) {
         grouped.set(key, []);
       }
       grouped.get(key)!.push(metric);
     });
 
-    return Array.from(grouped.entries()).map(([intervalKey, intervalMetrics]) => {
-      const timestamp = new Date(parseInt(intervalKey));
-      const upMetrics = intervalMetrics.filter((m: any) => m.status === 'up');
-      const responseTimeMetrics = intervalMetrics.filter((m: any) => m.responseTimeMs !== null);
-      
-      const averageResponseTime = responseTimeMetrics.length > 0
-        ? responseTimeMetrics.reduce((sum: number, m: any) => sum + m.responseTimeMs, 0) / responseTimeMetrics.length
-        : undefined;
+    return Array.from(grouped.entries())
+      .map(([intervalKey, intervalMetrics]) => {
+        const timestamp = new Date(parseInt(intervalKey));
+        const upMetrics = intervalMetrics.filter((m: any) => m.status === 'up');
+        const responseTimeMetrics = intervalMetrics.filter((m: any) => m.responseTimeMs !== null);
 
-      const uptime = (upMetrics.length / intervalMetrics.length) * 100;
-      const mostCommonStatus = this.getMostCommonStatus(intervalMetrics);
+        const averageResponseTime =
+          responseTimeMetrics.length > 0
+            ? responseTimeMetrics.reduce((sum: number, m: any) => sum + m.responseTimeMs, 0) /
+              responseTimeMetrics.length
+            : undefined;
 
-      return {
-        id: `agg_${intervalKey}`,
-        serviceName: intervalMetrics[0].serviceName,
-        status: mostCommonStatus,
-        responseTimeMs: averageResponseTime,
-        uptimePercentage: uptime,
-        timestamp,
-      };
-    }).sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+        const uptime = (upMetrics.length / intervalMetrics.length) * 100;
+        const mostCommonStatus = this.getMostCommonStatus(intervalMetrics);
+
+        return {
+          id: `agg_${intervalKey}`,
+          serviceName: intervalMetrics[0].serviceName,
+          status: mostCommonStatus,
+          responseTimeMs: averageResponseTime,
+          uptimePercentage: uptime,
+          timestamp,
+        };
+      })
+      .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
   }
 
   /**
@@ -484,8 +491,11 @@ class ServiceMonitoringDatabaseService {
       return counts;
     }, {});
 
-    return Object.entries(statusCounts)
-      .sort(([,a], [,b]) => (b as number) - (a as number))[0]?.[0] as any ?? 'unknown';
+    return (
+      (Object.entries(statusCounts).sort(
+        ([, a], [, b]) => (b as number) - (a as number),
+      )[0]?.[0] as any) ?? 'unknown'
+    );
   }
 
   /**
@@ -493,12 +503,12 @@ class ServiceMonitoringDatabaseService {
    */
   private getServiceDisplayName(serviceName: string): string {
     const displayNames: Record<string, string> = {
-      'plex': 'Plex Media Server',
-      'overseerr': 'Overseerr',
-      'medianest': 'MediaNest',
+      plex: 'Plex Media Server',
+      overseerr: 'Overseerr',
+      medianest: 'MediaNest',
       'uptime-kuma': 'Uptime Kuma',
-      'redis': 'Redis Cache',
-      'database': 'PostgreSQL Database',
+      redis: 'Redis Cache',
+      database: 'PostgreSQL Database',
     };
 
     return displayNames[serviceName] || serviceName.charAt(0).toUpperCase() + serviceName.slice(1);
@@ -514,26 +524,29 @@ if (process.env.NODE_ENV === 'production') {
     const now = new Date();
     const nextCleanup = new Date();
     nextCleanup.setHours(3, 0, 0, 0);
-    
+
     if (nextCleanup <= now) {
       nextCleanup.setDate(nextCleanup.getDate() + 1);
     }
-    
+
     const msUntilCleanup = nextCleanup.getTime() - now.getTime();
-    
+
     setTimeout(() => {
       serviceMonitoringService.cleanupOldMetrics(90).catch((error) => {
         logger.error('Failed to cleanup old service metrics', { error });
       });
-      
+
       // Schedule next cleanup
-      setInterval(() => {
-        serviceMonitoringService.cleanupOldMetrics(90).catch((error) => {
-          logger.error('Failed to cleanup old service metrics', { error });
-        });
-      }, 24 * 60 * 60 * 1000); // Daily
+      setInterval(
+        () => {
+          serviceMonitoringService.cleanupOldMetrics(90).catch((error) => {
+            logger.error('Failed to cleanup old service metrics', { error });
+          });
+        },
+        24 * 60 * 60 * 1000,
+      ); // Daily
     }, msUntilCleanup);
   };
-  
+
   scheduleCleanup();
 }

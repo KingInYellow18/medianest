@@ -1,5 +1,5 @@
-import { Router } from 'express';
-import { Request, Response } from 'express';
+import { Router, Request, Response } from 'express';
+
 import { sendSuccess, asyncHandler } from '../../utils/response.utils';
 
 const router = Router();
@@ -52,7 +52,7 @@ router.get(
     };
 
     sendSuccess(res, data);
-  })
+  }),
 );
 
 export default router;

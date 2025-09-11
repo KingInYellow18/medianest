@@ -12,8 +12,8 @@ import type {
   Link,
   TraceState,
 } from '@opentelemetry/api';
-import type { NodeSDKConfiguration } from '@opentelemetry/sdk-node';
 import type { Resource } from '@opentelemetry/resources';
+import type { NodeSDKConfiguration } from '@opentelemetry/sdk-node';
 import type { Sampler, SamplingResult, SamplingDecision } from '@opentelemetry/sdk-trace-base';
 
 // Core OpenTelemetry types - properly aligned with @opentelemetry/api
@@ -143,7 +143,7 @@ export interface TracingSampler extends Sampler {
     spanName: string,
     spanKind: SpanKind,
     attributes: Attributes,
-    links: Link[]
+    links: Link[],
   ): SamplingResult;
   toString(): string;
 }
@@ -235,7 +235,7 @@ export interface TracingMetadata {
 export type IgnoreIncomingRequestHook = (request: IncomingHttpRequest) => boolean;
 export type RequestHook = (
   span: TracingSpan,
-  request: IncomingHttpRequest | OutgoingHttpRequest
+  request: IncomingHttpRequest | OutgoingHttpRequest,
 ) => void;
 export type ResponseHook = (span: TracingSpan, response: HttpInstrumentationResponse) => void;
 export type LayerIgnoreFunction = (name: string, type: ExpressLayerType) => boolean;

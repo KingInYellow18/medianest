@@ -35,12 +35,12 @@ export const adminBootstrapSchema = z.object({
         .min(8, 'Password must be at least 8 characters')
         .regex(
           /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-          'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'
+          'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
         ),
       name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
       confirmPassword: z.string(),
     })
-    .refine(data => data.password === data.confirmPassword, {
+    .refine((data) => data.password === data.confirmPassword, {
       message: 'Passwords do not match',
       path: ['confirmPassword'],
     }),
@@ -74,11 +74,11 @@ export const changePasswordSchema = z.object({
         .min(8, 'Password must be at least 8 characters')
         .regex(
           /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-          'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'
+          'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
         ),
       confirmNewPassword: z.string(),
     })
-    .refine(data => data.newPassword === data.confirmNewPassword, {
+    .refine((data) => data.newPassword === data.confirmNewPassword, {
       message: 'New passwords do not match',
       path: ['confirmNewPassword'],
     }),
@@ -92,7 +92,7 @@ export const sessionSchema = z
         authorization: z
           .string()
           .regex(/^Bearer .+$/, 'Invalid authorization header format')
-          .transform(val => val.replace('Bearer ', ''))
+          .transform((val) => val.replace('Bearer ', ''))
           .optional(),
       })
       .optional(),
@@ -102,7 +102,7 @@ export const sessionSchema = z
       })
       .optional(),
   })
-  .refine(data => data.headers?.authorization || data.cookies?.['auth-token'], {
+  .refine((data) => data.headers?.authorization || data.cookies?.['auth-token'], {
     message: 'Authentication token is required',
     path: ['authorization'],
   });

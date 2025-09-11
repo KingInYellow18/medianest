@@ -1,10 +1,10 @@
 import { Response } from 'express';
 import { z } from 'zod';
 
-import { plexService } from '@/services/plex.service';
 import { ApiError } from '@/middleware/error-handler';
-import { logger } from '@/utils/logger';
+import { plexService } from '@/services/plex.service';
 import { AuthRequest } from '@/types/auth';
+import { logger } from '@/utils/logger';
 // Removed unused import
 
 // Validation schemas

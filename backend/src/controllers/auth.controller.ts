@@ -1,9 +1,9 @@
+import { AppError } from '@medianest/shared';
 import axios from 'axios';
 import type { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 
 import { config } from '@/config';
-import { AppError } from '@medianest/shared';
 import { userRepository } from '@/repositories/instances';
 import { encryptionService } from '@/services/encryption.service';
 import { jwtService } from '@/services/jwt.service';
@@ -86,8 +86,8 @@ export class AuthController {
             new AppError(
               'PLEX_UNREACHABLE',
               'Cannot connect to Plex server. Please try again.',
-              503
-            )
+              503,
+            ),
           );
         }
         if (
@@ -95,7 +95,11 @@ export class AuthController {
           ((error as any).code as any) === 'ETIMEDOUT'
         ) {
           return next(
-            new AppError('PLEX_TIMEOUT', 'Plex server connection timed out. Please try again.', 504)
+            new AppError(
+              'PLEX_TIMEOUT',
+              'Plex server connection timed out. Please try again.',
+              504,
+            ),
           );
         }
       }
@@ -145,8 +149,8 @@ export class AuthController {
           new AppError(
             'PIN_NOT_AUTHORIZED',
             'PIN has not been authorized yet. Please complete authorization on plex.tv/link',
-            400
-          )
+            400,
+          ),
         );
       }
 
@@ -165,7 +169,7 @@ export class AuthController {
       } catch (userError) {
         logger.error('Failed to get user info from Plex', { error: userError });
         return next(
-          new AppError('PLEX_ERROR', 'Failed to retrieve user information from Plex', 502)
+          new AppError('PLEX_ERROR', 'Failed to retrieve user information from Plex', 502),
         );
       }
 
@@ -283,7 +287,7 @@ export class AuthController {
         }
         if (error.response?.status! >= 500) {
           return next(
-            new AppError('PLEX_UNAVAILABLE', 'Plex service temporarily unavailable', 503)
+            new AppError('PLEX_UNAVAILABLE', 'Plex service temporarily unavailable', 503),
           );
         }
         if (

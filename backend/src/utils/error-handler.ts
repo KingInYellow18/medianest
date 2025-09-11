@@ -8,7 +8,7 @@ import { logger } from './logger';
  */
 export async function handleAsync<T>(
   fn: () => Promise<T>,
-  errorMessage?: string
+  errorMessage?: string,
 ): Promise<[T | null, Error | null]> {
   try {
     const result = await fn();
@@ -28,7 +28,7 @@ export async function handleAsync<T>(
  */
 export async function handleAsyncWithThrow<T>(
   fn: () => Promise<T>,
-  errorMessage?: string
+  errorMessage?: string,
 ): Promise<T> {
   try {
     return await fn();
@@ -66,7 +66,7 @@ export function safeTry<T>(fn: () => T, defaultValue: T, errorMessage?: string):
 export async function safeAsyncTry<T>(
   fn: () => Promise<T>,
   defaultValue: T,
-  errorMessage?: string
+  errorMessage?: string,
 ): Promise<T> {
   try {
     return await fn();
@@ -90,7 +90,7 @@ export function handleCacheError<T>(
   operation: string,
   key: string | string[],
   error: unknown,
-  defaultValue: T
+  defaultValue: T,
 ): T {
   logger.error(`Cache ${operation} error`, { key, error });
   return defaultValue;
@@ -107,7 +107,7 @@ export function handleCacheError<T>(
 export function handleDatabaseError(
   operation: string,
   context: Record<string, unknown>,
-  error: unknown
+  error: unknown,
 ): never {
   logger.error(`Database ${operation} error`, { ...context, error });
 
@@ -140,7 +140,7 @@ export function handleDatabaseError(
 export function logErrorWithContext(
   error: unknown,
   context: Record<string, unknown>,
-  customMessage?: string
+  customMessage?: string,
 ): void {
   const message = customMessage || 'Error occurred';
   const errObj = error instanceof Error ? error : new Error(String(error));
@@ -166,7 +166,7 @@ export function createErrorResponse(
   message: string,
   code?: string,
   statusCode?: number,
-  details?: Record<string, unknown>
+  details?: Record<string, unknown>,
 ) {
   return {
     error: {

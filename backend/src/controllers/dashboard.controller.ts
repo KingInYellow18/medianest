@@ -1,10 +1,10 @@
+import { AppError } from '@medianest/shared';
 import { Request, Response } from 'express';
 
 import { mediaRequestRepository, userRepository } from '@/repositories';
+import { cacheService } from '@/services/cache.service';
 import { plexService } from '@/services/plex.service';
 import { statusService } from '@/services/status.service';
-import { cacheService } from '@/services/cache.service';
-import { AppError } from '@medianest/shared';
 import { logger } from '@/utils/logger';
 
 export class DashboardController {
@@ -15,7 +15,7 @@ export class DashboardController {
       const statuses = await cacheService.getOrSet(
         cacheKey,
         () => statusService.getAllStatuses(),
-        300 // 5 minutes
+        300, // 5 minutes
       );
 
       // Set cache headers for client-side caching
@@ -51,7 +51,7 @@ export class DashboardController {
       const status = await cacheService.getOrSet(
         cacheKey,
         () => statusService.getServiceStatus(service),
-        300 // 5 minutes
+        300, // 5 minutes
       );
 
       if (!status) {
@@ -148,9 +148,9 @@ export class DashboardController {
 
           // Get service statuses
           const serviceStatuses = await statusService.getAllStatuses();
-          const healthyServices = serviceStatuses.filter(s => s.status === 'up').length;
-          const unhealthyServices = serviceStatuses.filter(s => s.status === 'down').length;
-          const unknownServices = serviceStatuses.filter(s => s.status === 'degraded').length;
+          const healthyServices = serviceStatuses.filter((s) => s.status === 'up').length;
+          const unhealthyServices = serviceStatuses.filter((s) => s.status === 'down').length;
+          const unknownServices = serviceStatuses.filter((s) => s.status === 'degraded').length;
 
           // Get system metrics
           const systemMetrics = await this.getSystemMetrics();
@@ -175,7 +175,7 @@ export class DashboardController {
             system: systemMetrics,
           };
         },
-        300 // 5 minutes
+        300, // 5 minutes
       );
 
       // Set cache headers
@@ -244,7 +244,7 @@ export class DashboardController {
 
           return activityItems.slice(0, 15);
         },
-        120 // 2 minutes
+        120, // 2 minutes
       );
 
       res.json({

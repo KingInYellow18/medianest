@@ -478,7 +478,7 @@ interface WebSocketEvents {
 
 ### 6.4 Error Handling Best Practices
 
-For comprehensive error handling implementation, see `/docs/ERROR_HANDLING_LOGGING_STRATEGY.md`.
+The application implements comprehensive error handling with structured logging and user-friendly error messages.
 
 #### Key Principles
 
@@ -1020,7 +1020,7 @@ While designed for 10-20 users, the architecture supports growth:
 
 ### 11.1 Logging Strategy
 
-For detailed logging implementation and configuration, see `/docs/ERROR_HANDLING_LOGGING_STRATEGY.md`.
+The logging system uses Winston with multiple transports and structured JSON format for comprehensive observability.
 
 #### Key Components
 - **Winston logger**: Multiple transports (Console, File, DailyRotate)
@@ -1201,11 +1201,11 @@ See `/docs/DEVELOPMENT.md` for detailed setup instructions.
 
 ### C. API Documentation
 
-See `/docs/API.md` for detailed API specifications.
+See `/docs/api/overview.md` and related API documentation files for detailed API specifications.
 
 ### D. Implementation Strategies
 
-- `/docs/ERROR_HANDLING_LOGGING_STRATEGY.md` - Error handling and logging implementation
+- Error handling and logging implementation is detailed in sections 6.4 and 11.1 of this document
 - `/docs/future/SECURITY_STRATEGY.md` - Security implementation details (coming soon)
 - `/docs/future/PERFORMANCE_STRATEGY.md` - Performance optimization guide (coming soon)
 

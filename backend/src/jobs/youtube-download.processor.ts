@@ -1,15 +1,17 @@
-import { Worker, Job } from 'bullmq';
-import path from 'path';
 import fs from 'fs/promises';
+import path from 'path';
 
-import { logger } from '@/utils/logger';
+import { Worker, Job } from 'bullmq';
+
+import { CatchError } from '../types/common';
+
+import { config } from '@/config';
 import { getRedis } from '@/config/redis';
-import { getSocketServer } from '@/socket/server';
 import { YouTubeClient } from '@/integrations/youtube/youtube.client';
 import { youtubeDownloadRepository } from '@/repositories/instances';
 import { plexService } from '@/services/plex.service';
-import { config } from '@/config';
-import { CatchError } from '../types/common';
+import { getSocketServer } from '@/socket/server';
+import { logger } from '@/utils/logger';
 
 interface DownloadJobData {
   downloadId: string;
@@ -53,7 +55,7 @@ export class YouTubeDownloadProcessor {
           max: 5,
           duration: 60000, // Max 5 jobs per minute
         },
-      }
+      },
     );
 
     this.setupEventHandlers();
@@ -112,7 +114,7 @@ export class YouTubeDownloadProcessor {
               status: 'downloading',
             });
           }
-        }
+        },
       );
 
       // Create metadata files for Plex
@@ -231,7 +233,7 @@ export class YouTubeDownloadProcessor {
    */
   private async createPlexMetadata(
     videoPath: string,
-    metadata: DownloadJobData['metadata']
+    metadata: DownloadJobData['metadata'],
   ): Promise<void> {
     try {
       // Create NFO file for Plex
@@ -307,7 +309,7 @@ export class YouTubeDownloadProcessor {
       // This assumes the download path is mounted in the same location in Plex
       const plexPath = userDir.replace(
         this.downloadPath,
-        config.PLEX_YOUTUBE_LIBRARY_PATH || '/data/youtube'
+        config.PLEX_YOUTUBE_LIBRARY_PATH || '/data/youtube',
       );
 
       // Trigger targeted scan for the user's directory
@@ -341,7 +343,7 @@ export class YouTubeDownloadProcessor {
           const filePath = path.join(userDir, file);
           const stats = await fs.stat(filePath);
           return { file, filePath, mtime: stats.mtime, size: stats.size };
-        })
+        }),
       );
 
       // Sort by modification time (oldest first)

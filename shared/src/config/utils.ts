@@ -137,7 +137,7 @@ export class EnvironmentConfigLoader {
       useDockerSecrets?: boolean;
       envFilePath?: string;
       secretsPath?: string;
-    } = {}
+    } = {},
   ): Record<string, string> {
     if (this.envCache) {
       return this.envCache;
@@ -250,7 +250,7 @@ export const configUtils = {
     value: string | undefined,
     defaultValue: number,
     min?: number,
-    max?: number
+    max?: number,
   ): number => {
     if (!value) return defaultValue;
 
@@ -316,7 +316,7 @@ export function createConfiguration<T>(
     useDockerSecrets?: boolean;
     envFilePath?: string;
     secretsPath?: string;
-  } = {}
+  } = {},
 ): T {
   const loader = EnvironmentConfigLoader.getInstance();
   const env = loader.loadEnvironment(options);

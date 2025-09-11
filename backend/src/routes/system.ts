@@ -1,5 +1,7 @@
-import { Router, Request, Response, NextFunction } from 'express';
 import { execSync } from 'child_process';
+
+import { Router, Request, Response, NextFunction } from 'express';
+
 import { logger } from '../utils/logger';
 
 const router = Router();
@@ -40,15 +42,15 @@ router.get(
           const containerName = process.env.CONTAINER_NAME || 'medianest_app';
           const memoryLimit = execSync(
             `cat /sys/fs/cgroup/memory/memory.limit_in_bytes 2>/dev/null || echo "0"`,
-            { encoding: 'utf8' }
+            { encoding: 'utf8' },
           ).trim();
           const cpuQuota = execSync(
             `cat /sys/fs/cgroup/cpu/cpu.cfs_quota_us 2>/dev/null || echo "-1"`,
-            { encoding: 'utf8' }
+            { encoding: 'utf8' },
           ).trim();
           const cpuPeriod = execSync(
             `cat /sys/fs/cgroup/cpu/cpu.cfs_period_us 2>/dev/null || echo "100000"`,
-            { encoding: 'utf8' }
+            { encoding: 'utf8' },
           ).trim();
 
           if (parseInt(memoryLimit) > 0) {
@@ -74,7 +76,7 @@ router.get(
         message: error.message,
       });
     }
-  }
+  },
 );
 
 /**
@@ -117,7 +119,7 @@ router.get(
         message: error.message,
       });
     }
-  }
+  },
 );
 
 export default router;

@@ -1,16 +1,16 @@
 /// <reference path="../types/express.d.ts" />
 import { Request, Response, NextFunction } from 'express';
 
+import { AuthenticationFacade, AuthenticatedUser } from '../auth';
+import { prisma } from '../lib/prisma';
 import { SessionTokenRepository } from '../repositories/session-token.repository';
 import { UserRepository } from '../repositories/user.repository';
+import { DeviceSessionService } from '../services/device-session.service';
+import { CatchError } from '../types/common';
 import { AuthenticationError } from '../utils/errors';
 import { logger } from '../utils/logger';
-import { DeviceSessionService } from '../services/device-session.service';
-import { prisma } from '../lib/prisma';
 
 // Import unified authentication facade
-import { AuthenticationFacade, AuthenticatedUser } from '../auth';
-import { CatchError } from '../types/common';
 
 // Types are extended in types/express.d.ts
 
@@ -23,7 +23,7 @@ const deviceSessionService = new DeviceSessionService(userRepository, sessionTok
 const authFacade = new AuthenticationFacade(
   userRepository,
   sessionTokenRepository,
-  deviceSessionService
+  deviceSessionService,
 );
 
 export function authMiddleware() {

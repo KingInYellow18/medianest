@@ -31,7 +31,7 @@ export function getErrorMessage(error: any): string {
  */
 export function hasErrorProperty<T>(
   error: any,
-  property: string
+  property: string,
 ): error is Error & Record<string, T> {
   return (error as Error) && property in error;
 }
@@ -50,7 +50,7 @@ export function isHttpError(error: any): error is Error & { status: number } {
  * Type guard for errors with response data
  */
 export function isApiError(
-  error: any
+  error: any,
 ): error is Error & { response: { status: number; data: unknown } } {
   return (
     (error as Error) &&

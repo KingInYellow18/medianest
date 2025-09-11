@@ -8,14 +8,16 @@ import { isString } from '../utils/type-guards';
 /**
  * Safe database result type
  */
-export type SafeDatabaseResult<T> = {
-  success: true;
-  data: T;
-} | {
-  success: false;
-  error: string;
-  code?: string;
-};
+export type SafeDatabaseResult<T> =
+  | {
+      success: true;
+      data: T;
+    }
+  | {
+      success: false;
+      error: string;
+      code?: string;
+    };
 
 /**
  * Null-safe database result handler class
@@ -23,7 +25,7 @@ export type SafeDatabaseResult<T> = {
 export class SafeDatabaseResultHandler<T> {
   constructor(
     private result: T | null,
-    private error?: Error
+    private error?: Error,
   ) {}
 
   /**
@@ -76,9 +78,7 @@ export class SafeDatabaseResultHandler<T> {
       const mapped = mapper(this.result);
       return new SafeDatabaseResultHandler(mapped);
     } catch (error) {
-      const mappingError = error instanceof Error 
-        ? error 
-        : new Error('Mapping operation failed');
+      const mappingError = error instanceof Error ? error : new Error('Mapping operation failed');
       return new SafeDatabaseResultHandler<U>(null, mappingError);
     }
   }
@@ -93,11 +93,11 @@ export class SafePrismaOperations {
    */
   static async findUnique<T>(
     operation: () => Promise<T | null>,
-    context: string = 'findUnique'
+    context: string = 'findUnique',
   ): Promise<SafeDatabaseResultHandler<T>> {
     try {
       const result = await operation();
-      
+
       if (result === null) {
         return new SafeDatabaseResultHandler<T>(null);
       }
@@ -114,7 +114,7 @@ export class SafePrismaOperations {
    */
   static async findMany<T>(
     operation: () => Promise<T[]>,
-    context: string = 'findMany'
+    context: string = 'findMany',
   ): Promise<T[]> {
     try {
       const result = await operation();
@@ -130,11 +130,11 @@ export class SafePrismaOperations {
    */
   static async create<T>(
     operation: () => Promise<T>,
-    context: string = 'create'
+    context: string = 'create',
   ): Promise<SafeDatabaseResultHandler<T>> {
     try {
       const result = await operation();
-      
+
       if (result === null || result === undefined) {
         const error = new Error(`Create operation in ${context} returned null/undefined`);
         return new SafeDatabaseResultHandler<T>(null, error);
@@ -152,11 +152,11 @@ export class SafePrismaOperations {
    */
   static async update<T>(
     operation: () => Promise<T>,
-    context: string = 'update'
+    context: string = 'update',
   ): Promise<SafeDatabaseResultHandler<T>> {
     try {
       const result = await operation();
-      
+
       if (result === null || result === undefined) {
         const error = new Error(`Update operation in ${context} returned null/undefined`);
         return new SafeDatabaseResultHandler<T>(null, error);
@@ -174,11 +174,11 @@ export class SafePrismaOperations {
    */
   static async transaction<T>(
     operation: () => Promise<T>,
-    context: string = 'transaction'
+    context: string = 'transaction',
   ): Promise<SafeDatabaseResultHandler<T>> {
     try {
       const result = await operation();
-      
+
       if (result === null || result === undefined) {
         const error = new Error(`Transaction in ${context} returned null/undefined`);
         return new SafeDatabaseResultHandler<T>(null, error);
@@ -204,9 +204,7 @@ export class SafePrismaOperations {
       return error;
     }
 
-    const unknownError = new Error(
-      `Unknown database error in ${context}: ${String(error)}`
-    );
+    const unknownError = new Error(`Unknown database error in ${context}: ${String(error)}`);
     console.error(`Unknown database error in ${context}:`, error);
     return unknownError;
   }
@@ -255,11 +253,7 @@ export class DatabaseNullSafety {
   /**
    * Assert record exists or throw
    */
-  static requireRecord<T>(
-    record: T | null,
-    resourceName: string,
-    identifier?: string | number
-  ): T {
+  static requireRecord<T>(record: T | null, resourceName: string, identifier?: string | number): T {
     if (!this.recordExists(record)) {
       const idStr = identifier ? ` with ID ${identifier}` : '';
       throw new Error(`${resourceName}${idStr} not found`);
@@ -273,7 +267,7 @@ export class DatabaseNullSafety {
   static getProperty<T, K extends keyof T>(
     record: T | null,
     property: K,
-    defaultValue: T[K]
+    defaultValue: T[K],
   ): T[K] {
     if (!this.recordExists(record)) {
       return defaultValue;
@@ -289,7 +283,7 @@ export class DatabaseNullSafety {
   static getRelation<T, R>(
     record: T | null,
     relationGetter: (record: T) => R | null,
-    defaultValue: R
+    defaultValue: R,
   ): R {
     if (!this.recordExists(record)) {
       return defaultValue;
@@ -371,7 +365,7 @@ export function databaseErrorMiddleware() {
     // Handle Prisma-specific errors
     if (error && typeof error === 'object' && 'code' in error) {
       const prismaError = error as { code: string; message: string; meta?: any };
-      
+
       console.error('Database operation failed:', {
         code: prismaError.code,
         message: prismaError.message,
@@ -386,19 +380,19 @@ export function databaseErrorMiddleware() {
             error: 'Resource already exists',
             code: 'CONFLICT',
           });
-        
+
         case 'P2025': // Record not found
           return res.status(404).json({
             error: 'Resource not found',
             code: 'NOT_FOUND',
           });
-        
+
         case 'P2003': // Foreign key constraint violation
           return res.status(400).json({
             error: 'Invalid reference to related resource',
             code: 'INVALID_REFERENCE',
           });
-        
+
         default:
           return res.status(500).json({
             error: 'Database operation failed',

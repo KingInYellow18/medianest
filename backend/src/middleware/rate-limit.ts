@@ -1,14 +1,14 @@
 // @ts-nocheck
-import { Request, Response, NextFunction } from 'express';
-
-import { getRedis } from '../config/redis';
-import { getRateLimitConfig } from '../config';
-// @ts-ignore
 import {
   RateLimitError, // @ts-ignore
 } from '@medianest/shared';
-import { logger } from '../utils/logger';
+import { Request, Response, NextFunction } from 'express';
+
+import { getRateLimitConfig } from '../config';
+import { getRedis } from '../config/redis';
+// @ts-ignore
 import { CatchError } from '../types/common';
+import { logger } from '../utils/logger';
 
 interface RateLimitOptions {
   windowMs: number;
@@ -63,7 +63,7 @@ export function createRateLimit(options: RateLimitOptions) {
       res.setHeader('X-RateLimit-Limit', max);
       res.setHeader(
         'X-RateLimit-Remaining',
-        Math.max(0, max - parseInt((await redis.get(key)) || '0'))
+        Math.max(0, max - parseInt((await redis.get(key)) || '0')),
       );
       res.setHeader('X-RateLimit-Reset', new Date(Date.now() + ttl * 1000).toISOString());
 

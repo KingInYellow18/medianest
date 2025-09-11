@@ -1,8 +1,8 @@
+import { AppError, RateLimitError } from '@medianest/shared';
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
 
 // @ts-ignore
-import { AppError, RateLimitError } from '@medianest/shared';
 
 // Re-export AppError for local imports
 export { AppError, RateLimitError };
@@ -134,7 +134,7 @@ export const errorHandler = (
   err: Error | AppError,
   req: Request,
   res: Response,
-  _next: NextFunction
+  _next: NextFunction,
 ) => {
   const correlationId = req.correlationId || 'no-correlation-id';
   const startTime = Date.now();

@@ -3,6 +3,7 @@ import * as Sentry from '@sentry/node';
 // @ts-ignore
 import { nodeProfilingIntegration } from '@sentry/profiling-node';
 import { Request, Response, NextFunction } from 'express';
+
 import { UnknownRecord } from '../types/common';
 
 export interface SentryConfig {

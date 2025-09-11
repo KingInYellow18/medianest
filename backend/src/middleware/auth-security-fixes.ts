@@ -13,10 +13,12 @@
  */
 
 import crypto from 'crypto';
+
 import { Request, Response } from 'express';
+
 import { getRedis } from '../config/redis';
-import { logger } from '../utils/logger';
 import { CatchError } from '../types/common';
+import { logger } from '../utils/logger';
 
 export interface SecurityAuditLog {
   userId: string;
@@ -58,7 +60,7 @@ export class AuthSecurityService {
           userId,
           reason,
           timestamp: new Date().toISOString(),
-        })
+        }),
       );
 
       await this.logSecurityEvent({
@@ -193,7 +195,7 @@ export class AuthSecurityService {
     userId: string,
     sessionId: string,
     ipAddress: string,
-    type: 'user' | 'token' | 'session'
+    type: 'user' | 'token' | 'session',
   ): string {
     const ipHash = this.hashIP(ipAddress);
     const baseKey = `${type}:auth:v3:${userId}:${sessionId}:${ipHash}`;
@@ -214,7 +216,7 @@ export class AuthSecurityService {
   async detectSuspiciousActivity(
     userId: string,
     ipAddress: string,
-    userAgent?: string
+    userAgent?: string,
   ): Promise<{
     isSuspicious: boolean;
     riskScore: number;
@@ -281,7 +283,7 @@ export class AuthSecurityService {
     userId: string,
     sessionId: string,
     token: string,
-    ipAddress: string
+    ipAddress: string,
   ): Promise<void> {
     try {
       // Blacklist current token

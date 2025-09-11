@@ -1,8 +1,9 @@
 import { Router, Request, Response } from 'express';
+
 import { getPrisma } from '../db/prisma';
-import { sendSuccess, sendError } from '../utils/response.utils';
-import { logger } from '../utils/logger';
 import { CatchError } from '../types/common';
+import { logger } from '../utils/logger';
+import { sendSuccess, sendError } from '../utils/response.utils';
 
 const router = Router();
 
@@ -11,19 +12,21 @@ router.get('/users', async (req: Request, res: Response) => {
   try {
     const prisma = getPrisma();
     const { page = 1, limit = 20, search } = req.query as any;
-    
+
     const pageNum = parseInt(page) || 1;
     const limitNum = Math.min(parseInt(limit) || 20, 100);
     const skip = (pageNum - 1) * limitNum;
-    
-    const where = search ? {
-      OR: [
-        { email: { contains: search, mode: 'insensitive' as const } },
-        { name: { contains: search, mode: 'insensitive' as const } },
-        { plexUsername: { contains: search, mode: 'insensitive' as const } }
-      ]
-    } : {};
-    
+
+    const where = search
+      ? {
+          OR: [
+            { email: { contains: search, mode: 'insensitive' as const } },
+            { name: { contains: search, mode: 'insensitive' as const } },
+            { plexUsername: { contains: search, mode: 'insensitive' as const } },
+          ],
+        }
+      : {};
+
     const [users, total] = await Promise.all([
       prisma.user.findMany({
         where,
@@ -38,21 +41,21 @@ router.get('/users', async (req: Request, res: Response) => {
           status: true,
           createdAt: true,
           lastLoginAt: true,
-          requiresPasswordChange: true
+          requiresPasswordChange: true,
         },
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
       }),
-      prisma.user.count({ where })
+      prisma.user.count({ where }),
     ]);
-    
+
     sendSuccess(res, {
       users,
       pagination: {
         page: pageNum,
         limit: limitNum,
         total,
-        totalPages: Math.ceil(total / limitNum)
-      }
+        totalPages: Math.ceil(total / limitNum),
+      },
     });
   } catch (error: CatchError) {
     logger.error('Admin users list failed:', error);
@@ -64,7 +67,7 @@ router.get('/users', async (req: Request, res: Response) => {
 router.get('/services', async (_req: Request, res: Response) => {
   try {
     const prisma = getPrisma();
-    
+
     const services = await prisma.serviceConfig.findMany({
       select: {
         id: true,
@@ -78,14 +81,14 @@ router.get('/services', async (_req: Request, res: Response) => {
           select: {
             id: true,
             email: true,
-            name: true
-          }
-        }
+            name: true,
+          },
+        },
         // Note: apiKey excluded for security
       },
-      orderBy: { serviceName: 'asc' }
+      orderBy: { serviceName: 'asc' },
     });
-    
+
     sendSuccess(res, { services });
   } catch (error: CatchError) {
     logger.error('Admin services list failed:', error);

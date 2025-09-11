@@ -1,8 +1,9 @@
 // @ts-nocheck
 import { Router } from 'express';
+
+import * as plexController from '@/controllers/v1/plex.controller';
 import { authMiddleware, requireAuth } from '@/middleware/auth';
 import { rateLimiter } from '@/middleware/rate-limiter';
-import * as plexController from '@/controllers/v1/plex.controller';
 
 const router = Router();
 

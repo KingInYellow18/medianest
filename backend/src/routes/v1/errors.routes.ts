@@ -1,11 +1,12 @@
 // @ts-nocheck
 import { Router } from 'express';
 import { z } from 'zod';
+
+import { logger } from '../../lib/logger';
 import { authMiddleware } from '../../middleware/auth.middleware';
 import { validateRequest } from '../../middleware/validation.middleware';
-import { asyncHandler } from '../../utils/asyncHandler';
-import { logger } from '../../lib/logger';
 import { errorRepository } from '../../repositories/error.repository';
+import { asyncHandler } from '../../utils/asyncHandler';
 
 const router = Router();
 

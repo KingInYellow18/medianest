@@ -96,7 +96,7 @@ export class CachingMiddleware {
                 statusCode,
                 headers: this.getResponseHeaders(res, config.varyBy),
               },
-              config.ttl
+              config.ttl,
             );
           }
         });

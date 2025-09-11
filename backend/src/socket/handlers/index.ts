@@ -1,13 +1,15 @@
 import { Server, Socket } from 'socket.io';
 
-import { logger } from '@/utils/logger';
+import { CatchError } from '../../types/common';
+
+import { registerAdminHandlers } from './admin.handlers';
+import { registerDownloadHandlers } from './download.handlers';
 import { notificationHandlers } from './notification.handlers';
 import { requestHandlers } from './request.handlers';
 import { statusHandlers } from './status.handlers';
 import { registerYouTubeHandlers } from './youtube.handler';
-import { registerDownloadHandlers } from './download.handlers';
-import { registerAdminHandlers } from './admin.handlers';
-import { CatchError } from '../../types/common';
+
+import { logger } from '@/utils/logger';
 
 export function registerHandlers(io: Server, socket: Socket): void {
   // Service status subscriptions

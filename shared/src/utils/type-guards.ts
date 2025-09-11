@@ -83,7 +83,7 @@ export function safeGetProperty<T extends Record<string, any>, K extends keyof T
   obj: T | null | undefined,
   key: K,
   validator: (value: unknown) => boolean,
-  defaultValue: T[K]
+  defaultValue: T[K],
 ): T[K] {
   if (!obj || typeof obj !== 'object') {
     return defaultValue;
@@ -99,7 +99,7 @@ export function safeGetProperty<T extends Record<string, any>, K extends keyof T
 export function safeArrayAccess<T>(
   array: T[] | null | undefined,
   index: number,
-  defaultValue: T
+  defaultValue: T,
 ): T {
   if (!Array.isArray(array) || !isValidInteger(index)) {
     return defaultValue;
@@ -118,7 +118,7 @@ export function safeArrayAccess<T>(
  */
 export function validateRequestBody<T>(
   body: unknown,
-  validator: (data: unknown) => data is T
+  validator: (data: unknown) => data is T,
 ): { isValid: true; data: T } | { isValid: false; data: null } {
   if (!body || typeof body !== 'object') {
     return { isValid: false, data: null };
@@ -146,7 +146,7 @@ export function safeGetCorrelationId(req: unknown): string {
  * Prisma error type guard
  */
 export function isPrismaClientKnownRequestError(
-  error: unknown
+  error: unknown,
 ): error is { code: string; message: string; meta?: any } {
   return (
     isObject(error) &&
@@ -161,7 +161,7 @@ export function isPrismaClientKnownRequestError(
  * HTTP error type guard
  */
 export function isHttpError(
-  error: unknown
+  error: unknown,
 ): error is { status: number; message: string; response?: any } {
   return (
     isObject(error) &&
@@ -176,7 +176,7 @@ export function isHttpError(
  * Express request with user type guard
  */
 export function hasUser<T extends { user?: { id: string } }>(
-  req: T
+  req: T,
 ): req is T & { user: { id: string } } {
   return isObject(req.user) && 'id' in req.user && isString(req.user.id);
 }
@@ -212,7 +212,7 @@ export function parseIntegerEnv(key: string, defaultValue: number): number {
   const parsed = parseInt(value, 10);
   if (isNaN(parsed)) {
     console.warn(
-      `Invalid integer environment variable ${key}=${value}, using default: ${defaultValue}`
+      `Invalid integer environment variable ${key}=${value}, using default: ${defaultValue}`,
     );
     return defaultValue;
   }
@@ -239,7 +239,7 @@ export function parseBooleanEnv(key: string, defaultValue: boolean = false): boo
 export function safeJsonParse<T>(
   text: string,
   fallback: T,
-  validator?: (value: unknown) => value is T
+  validator?: (value: unknown) => value is T,
 ): T {
   if (!isString(text) || text.length === 0) {
     return fallback;
@@ -283,7 +283,7 @@ export function tryJsonParse<T = unknown>(text: string): T | null {
  */
 export function safePropAccess<T extends object, K extends keyof T>(
   obj: T | null | undefined,
-  key: K
+  key: K,
 ): T[K] | undefined {
   if (!isObject(obj) || !(key in obj)) {
     return undefined;
@@ -345,7 +345,7 @@ export function createSafeGetter<T>(defaultValue: T) {
  */
 export function createValidator<T>(
   guard: (value: unknown) => value is T,
-  errorMessage: string
+  errorMessage: string,
 ): (value: unknown) => T {
   return (value: unknown): T => {
     if (!guard(value)) {

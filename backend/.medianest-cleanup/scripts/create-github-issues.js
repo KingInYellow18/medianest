@@ -3,12 +3,12 @@
 /**
  * GitHub Issues Creation Script
  * Automatically creates GitHub issues from MediaNest TODO analysis
- * 
+ *
  * Usage: node create-github-issues.js [--dry-run] [--category=<category>]
- * 
+ *
  * Environment Variables:
  * - GITHUB_TOKEN: Personal access token with repo permissions
- * - GITHUB_REPO: Repository in format 'owner/repo' 
+ * - GITHUB_REPO: Repository in format 'owner/repo'
  * - GITHUB_API_URL: GitHub API URL (defaults to api.github.com)
  */
 
@@ -22,7 +22,7 @@ const config = {
   repo: process.env.GITHUB_REPO || 'your-org/medianest',
   apiUrl: process.env.GITHUB_API_URL || 'https://api.github.com',
   dryRun: process.argv.includes('--dry-run'),
-  category: process.argv.find(arg => arg.startsWith('--category='))?.split('=')[1],
+  category: process.argv.find((arg) => arg.startsWith('--category='))?.split('=')[1],
   templatesDir: path.join(__dirname, '../github-issue-templates'),
 };
 
@@ -47,7 +47,7 @@ const issueTemplates = {
     assignee: null,
   },
   'performance-monitoring': {
-    file: 'performance-monitoring.md', 
+    file: 'performance-monitoring.md',
     label: 'performance',
     milestone: 'Performance & Monitoring',
     assignee: null,
@@ -64,13 +64,13 @@ const issueTemplates = {
     milestone: 'Media Management',
     assignee: null,
   },
-  'administrative': {
+  administrative: {
     file: 'administrative.md',
     label: 'admin',
-    milestone: 'Administrative Features', 
+    milestone: 'Administrative Features',
     assignee: null,
   },
-  'integration': {
+  integration: {
     file: 'integration.md',
     label: 'integration',
     milestone: 'External Integrations',
@@ -84,27 +84,27 @@ const issueTemplates = {
 async function parseIssueTemplate(templatePath) {
   const content = await fs.readFile(templatePath, 'utf-8');
   const issues = [];
-  
+
   // Split by issue headers (## Issue N:)
   const issueBlocks = content.split(/^## Issue \d+:/gm).slice(1);
-  
+
   issueBlocks.forEach((block, index) => {
     const lines = block.trim().split('\n');
     const titleLine = lines[0]?.trim();
-    
+
     if (!titleLine) return;
-    
+
     // Extract metadata
-    let title = titleLine;
+    const title = titleLine;
     let file = '';
     let type = 'enhancement';
     let priority = 'medium';
     let labels = [];
-    
+
     // Parse metadata from the block
     const metadataRegex = /\*\*(File|Type|Priority|Labels)\*\*:\s*(.+)/g;
     let match;
-    
+
     while ((match = metadataRegex.exec(block)) !== null) {
       const [, key, value] = match;
       switch (key.toLowerCase()) {
@@ -118,19 +118,21 @@ async function parseIssueTemplate(templatePath) {
           priority = value;
           break;
         case 'labels':
-          labels = value.split(', ').map(l => l.trim());
+          labels = value.split(', ').map((l) => l.trim());
           break;
       }
     }
-    
+
     // Extract description (everything after the metadata until acceptance criteria)
-    const descriptionMatch = block.match(/### Description\s*([\s\S]*?)(?=### Acceptance Criteria|$)/);
+    const descriptionMatch = block.match(
+      /### Description\s*([\s\S]*?)(?=### Acceptance Criteria|$)/,
+    );
     const description = descriptionMatch ? descriptionMatch[1].trim() : '';
-    
+
     // Extract acceptance criteria
     const criteriaMatch = block.match(/### Acceptance Criteria\s*([\s\S]*?)(?=###|$)/);
     const acceptanceCriteria = criteriaMatch ? criteriaMatch[1].trim() : '';
-    
+
     issues.push({
       title,
       file,
@@ -142,7 +144,7 @@ async function parseIssueTemplate(templatePath) {
       body: block,
     });
   });
-  
+
   return issues;
 }
 
@@ -151,16 +153,16 @@ async function parseIssueTemplate(templatePath) {
  */
 async function createGitHubIssue(issue, templateConfig) {
   const [owner, repo] = config.repo.split('/');
-  
+
   // Prepare labels
   const allLabels = [
     templateConfig.label,
     `priority-${issue.priority}`,
     `type-${issue.type}`,
     ...issue.labels,
-    'todo-conversion'
+    'todo-conversion',
   ].filter(Boolean);
-  
+
   // Prepare issue body
   const body = `${issue.description}
 
@@ -188,7 +190,7 @@ This issue was automatically generated from TODO comments in the codebase as par
     labels: allLabels,
     assignees: templateConfig.assignee ? [templateConfig.assignee] : [],
   };
-  
+
   if (config.dryRun) {
     console.log(`🔍 [DRY RUN] Would create issue:`, {
       title: issueData.title,
@@ -197,7 +199,7 @@ This issue was automatically generated from TODO comments in the codebase as par
     });
     return { html_url: 'dry-run', number: Math.floor(Math.random() * 1000) };
   }
-  
+
   try {
     const response = await octokit.rest.issues.create(issueData);
     console.log(`✅ Created issue #${response.data.number}: ${issue.title}`);
@@ -216,19 +218,19 @@ async function ensureMilestone(milestoneTitle, description) {
     console.log(`🔍 [DRY RUN] Would ensure milestone: ${milestoneTitle}`);
     return;
   }
-  
+
   const [owner, repo] = config.repo.split('/');
-  
+
   try {
     // Check if milestone exists
     const milestones = await octokit.rest.issues.listMilestones({ owner, repo });
-    const existing = milestones.data.find(m => m.title === milestoneTitle);
-    
+    const existing = milestones.data.find((m) => m.title === milestoneTitle);
+
     if (existing) {
       console.log(`📋 Milestone exists: ${milestoneTitle}`);
       return existing;
     }
-    
+
     // Create milestone
     const response = await octokit.rest.issues.createMilestone({
       owner,
@@ -236,7 +238,7 @@ async function ensureMilestone(milestoneTitle, description) {
       title: milestoneTitle,
       description: description || `Issues related to ${milestoneTitle}`,
     });
-    
+
     console.log(`📋 Created milestone: ${milestoneTitle}`);
     return response.data;
   } catch (error) {
@@ -251,17 +253,17 @@ async function main() {
   console.log('🚀 Starting GitHub Issues Creation from TODO Analysis');
   console.log(`📁 Repository: ${config.repo}`);
   console.log(`🏃 Mode: ${config.dryRun ? 'DRY RUN' : 'LIVE'}`);
-  
+
   if (config.category) {
     console.log(`🎯 Category Filter: ${config.category}`);
   }
-  
+
   const results = {
     created: [],
     failed: [],
     skipped: [],
   };
-  
+
   // Process each template category
   for (const [categoryName, templateConfig] of Object.entries(issueTemplates)) {
     // Skip if category filter is specified and doesn't match
@@ -269,19 +271,19 @@ async function main() {
       console.log(`⏭️  Skipping category: ${categoryName}`);
       continue;
     }
-    
+
     console.log(`\n📂 Processing category: ${categoryName}`);
-    
+
     try {
       // Ensure milestone exists
       await ensureMilestone(templateConfig.milestone);
-      
+
       // Parse template file
       const templatePath = path.join(config.templatesDir, templateConfig.file);
       const issues = await parseIssueTemplate(templatePath);
-      
+
       console.log(`📝 Found ${issues.length} issues in ${categoryName}`);
-      
+
       // Create issues
       for (const issue of issues) {
         try {
@@ -291,10 +293,10 @@ async function main() {
             issue: createdIssue,
             title: issue.title,
           });
-          
+
           // Rate limiting - wait between requests
           if (!config.dryRun) {
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise((resolve) => setTimeout(resolve, 1000));
           }
         } catch (error) {
           results.failed.push({
@@ -312,34 +314,34 @@ async function main() {
       });
     }
   }
-  
+
   // Print summary
   console.log('\n📊 Issue Creation Summary:');
   console.log(`✅ Created: ${results.created.length}`);
   console.log(`❌ Failed: ${results.failed.length}`);
   console.log(`⏭️  Skipped: ${results.skipped.length}`);
-  
+
   if (results.created.length > 0) {
     console.log('\n🎯 Created Issues:');
-    results.created.forEach(r => {
+    results.created.forEach((r) => {
       console.log(`  - ${r.title} (${r.category})`);
     });
   }
-  
+
   if (results.failed.length > 0) {
     console.log('\n❌ Failed Issues:');
-    results.failed.forEach(r => {
+    results.failed.forEach((r) => {
       console.log(`  - ${r.title || r.category}: ${r.error}`);
     });
   }
-  
+
   // Generate summary report
   const reportPath = path.join(__dirname, '../issue-creation-report.json');
   await fs.writeFile(reportPath, JSON.stringify(results, null, 2));
   console.log(`\n📝 Detailed report saved: ${reportPath}`);
-  
+
   console.log('\n✨ Issue creation process completed!');
-  
+
   if (config.dryRun) {
     console.log('\n💡 This was a dry run. To create issues for real, run without --dry-run flag');
     console.log('💡 Make sure to set GITHUB_TOKEN environment variable');
@@ -348,7 +350,7 @@ async function main() {
 
 // Execute if run directly
 if (require.main === module) {
-  main().catch(error => {
+  main().catch((error) => {
     console.error('💥 Fatal error:', error);
     process.exit(1);
   });

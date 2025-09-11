@@ -52,14 +52,14 @@ export interface RateLimitEnvironment {
 }
 
 // Complete environment interface
-export interface Environment 
+export interface Environment
   extends DatabaseEnvironment,
-          AuthEnvironment,
-          RedisEnvironment,
-          ServerEnvironment,
-          LoggingEnvironment,
-          IntegrationEnvironment,
-          RateLimitEnvironment {}
+    AuthEnvironment,
+    RedisEnvironment,
+    ServerEnvironment,
+    LoggingEnvironment,
+    IntegrationEnvironment,
+    RateLimitEnvironment {}
 
 // Type-safe environment accessor
 export interface TypedProcessEnv extends NodeJS.ProcessEnv {

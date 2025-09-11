@@ -1,9 +1,11 @@
-import { Request, Response, NextFunction } from 'express';
 import fs from 'fs/promises';
 import path from 'path';
-import { logger } from '../utils/logger';
+
+import { Request, Response, NextFunction } from 'express';
+
 import { CatchError } from '../types/common';
 import { getErrorMessage } from '../types/error-types';
+import { logger } from '../utils/logger';
 
 interface SecurityEvent {
   id: string;
@@ -406,7 +408,7 @@ export function logAuthEvent(
   event: string,
   req: Request,
   outcome: 'success' | 'failure' | 'blocked',
-  details: Record<string, any> = {}
+  details: Record<string, any> = {},
 ): void {
   auditLogger.logEvent({
     level: outcome === 'success' ? 'info' : 'warn',
@@ -429,7 +431,7 @@ export function logAuthEvent(
 export function logCriticalSecurityEvent(
   event: string,
   req: Request,
-  details: Record<string, any> = {}
+  details: Record<string, any> = {},
 ): void {
   auditLogger.logEvent({
     level: 'critical',

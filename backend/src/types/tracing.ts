@@ -173,7 +173,4 @@ export interface InstrumentationConfig {
 /**
  * Export all types for use in application
  */
-export type {
-  SpanKind,
-  SpanStatusCode,
-};
+export type { SpanKind, SpanStatusCode };
