@@ -4,8 +4,11 @@ MediaNest provides a comprehensive RESTful API for managing media requests, Plex
 
 ## Base URL
 
-- **Development**: `http://localhost:3001/api/v1`
-- **Production**: `https://api.medianest.io/api/v1`
+- **Development**: `http://localhost:3000/api` (Next.js dev server)
+- **Production**: `https://your-domain.com/api` (Docker Compose with Nginx)
+- **Backend Direct**: `http://localhost:4000/api` (Express server, development only)
+
+**Note**: In production Docker Compose deployment, all API requests go through the Nginx reverse proxy at your configured domain.
 
 ## Authentication
 
@@ -34,7 +37,12 @@ MediaNest uses **Plex OAuth** for user authentication with JWT tokens for sessio
 
 #### Generate PIN
 ```bash
-curl -X POST http://localhost:3001/api/v1/auth/plex/pin \
+# Development
+curl -X POST http://localhost:3000/api/auth/plex/pin \
+  -H "Content-Type: application/json"
+
+# Production
+curl -X POST https://your-domain.com/api/auth/plex/pin \
   -H "Content-Type: application/json"
 ```
 
@@ -50,7 +58,13 @@ Response:
 
 #### Verify PIN
 ```bash
-curl -X POST http://localhost:3001/api/v1/auth/plex/verify \
+# Development
+curl -X POST http://localhost:3000/api/auth/plex/verify \
+  -H "Content-Type: application/json" \
+  -d '{"pinId": "12345"}'
+
+# Production
+curl -X POST https://your-domain.com/api/auth/plex/verify \
   -H "Content-Type: application/json" \
   -d '{"pinId": "12345"}'
 ```
@@ -70,7 +84,12 @@ Response:
 
 #### Get Current Session
 ```bash
-curl http://localhost:3001/api/v1/auth/session \
+# Development
+curl http://localhost:3000/api/auth/session \
+  -H "Cookie: token=<jwt-token>"
+
+# Production
+curl https://your-domain.com/api/auth/session \
   -H "Cookie: token=<jwt-token>"
 ```
 
@@ -191,27 +210,29 @@ Response includes pagination metadata:
 ### Public Endpoints (No Authentication Required)
 - `GET /health` - Simple health check for Docker
 - `GET /api/health` - Detailed health check with system status
-- `POST /api/v1/auth/plex/pin` - Generate Plex authentication PIN
-- `POST /api/v1/auth/plex/verify` - Verify PIN and authenticate user
-- `POST /api/v1/webhooks/*` - External webhooks (Overseerr, etc.)
-- `GET /api/v1/csrf` - Get CSRF token
-- `GET /api/v1/resilience/*` - System resilience monitoring
+- `POST /api/auth/plex/pin` - Generate Plex authentication PIN
+- `POST /api/auth/plex/verify` - Verify PIN and authenticate user
+- `POST /api/webhooks/*` - External webhooks (Overseerr, etc.)
+- `GET /api/csrf` - Get CSRF token
+- `GET /api/system/status` - System status monitoring
 
 ### Protected Endpoints (Authentication Required)
-- `GET /api/v1/auth/session` - Get current user session
-- `POST /api/v1/auth/logout` - Logout user
-- `GET /api/v1/dashboard/*` - Dashboard statistics and status
-- `GET /api/v1/media/*` - Media search, requests, and management
-- `GET /api/v1/services/*` - External service status and configuration
-- `GET /api/v1/plex/*` - Plex server integration and library access
-- `POST /api/v1/youtube/*` - YouTube download management
-- `GET /api/v1/performance/*` - System performance metrics
-- `GET /api/v1/errors/*` - Error reporting and analytics
+- `GET /api/auth/session` - Get current user session
+- `POST /api/auth/logout` - Logout user
+- `GET /api/dashboard/*` - Dashboard statistics and status
+- `GET /api/media/*` - Media search, requests, and management
+- `GET /api/services/*` - External service status and configuration
+- `GET /api/plex/*` - Plex server integration and library access
+- `POST /api/youtube/*` - YouTube download management
+- `GET /api/performance/*` - System performance metrics
+- `GET /api/system/*` - System information and analytics
 
 ### Admin Endpoints (Admin Role Required)
-- `GET /api/v1/admin/*` - User management and system administration
-- `PUT /api/v1/admin/services/*` - Service configuration management
-- `GET /api/v1/admin/config` - System configuration access
+- `GET /api/admin/*` - User management and system administration
+- `PUT /api/admin/services/*` - Service configuration management
+- `GET /api/admin/config` - System configuration access
+- `POST /api/admin/backup` - Create system backup
+- `GET /api/admin/logs` - Access system logs
 
 For detailed endpoint documentation, see:
 - [Dashboard Endpoints](endpoints/dashboard.md)

@@ -255,7 +255,7 @@ npm run test:enterprise:sso | grep "auth_success_rate" # >99% success rate
 **Production Validation Commands**:
 ```bash
 # Production readiness validation
-kubectl get pods --all-namespaces | grep -v "Running" | wc -l # Should be 0
+docker compose -f config/docker/docker-compose.prod.yml ps | grep -v "Up" | wc -l # Should be 0
 npm run test:disaster-recovery | grep "rto|rpo" # Validate recovery targets
 npm run security:pentest | grep "critical|high" # Should be 0
 npm run test:production-load --users=2000 | grep "success_rate" # Must be >99%

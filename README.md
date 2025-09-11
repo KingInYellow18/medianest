@@ -55,12 +55,18 @@ A unified web portal for managing Plex media server and related services.
    npm run dev
    ```
 
-### Docker Development
+### Docker Compose Deployment
 
-To run the entire stack with Docker:
+**Production-Ready Deployment with Docker Compose:**
 
 ```bash
-# Build and start all services
+# Quick Production Setup
+./deployment/scripts/deploy-compose.sh --domain your-domain.com
+
+# Manual Production Setup
+docker compose -f config/docker/docker-compose.prod.yml up -d
+
+# Development Environment
 npm run docker:compose
 
 # View logs
@@ -69,6 +75,8 @@ npm run docker:logs
 # Stop all services
 docker compose down
 ```
+
+**For comprehensive deployment guide, see [README_DEPLOYMENT.md](README_DEPLOYMENT.md)**
 
 ## Project Structure
 
@@ -225,11 +233,14 @@ A: Use these commands to run tests:
 - `npm run test:e2e` - Run end-to-end tests with Playwright
 
 **Q: How do I deploy MediaNest?**
-A: Several deployment options are available:
+A: MediaNest is designed for **Docker Compose deployment**:
 
-- **Docker**: Use `npm run docker:build` and `npm run docker:up`
-- **Manual**: Run `npm run build` to build for production
-- **Cloud**: Deploy the built application to your preferred cloud platform
+- **Production**: Use `./deployment/scripts/deploy-compose.sh --domain your-domain.com`
+- **Development**: Use `npm run docker:compose` for local development
+- **Manual Setup**: Use `docker compose -f config/docker/docker-compose.prod.yml up -d`
+- **Cloud**: Deploy using Docker Compose on any VPS or cloud provider
+
+See [README_DEPLOYMENT.md](README_DEPLOYMENT.md) for detailed deployment instructions.
 
 **Q: Can I customize MediaNest?**
 A: Yes! MediaNest is designed to be extensible:

@@ -36,7 +36,7 @@ As a MediaNest administrator, I want detailed health check endpoints so that I c
 - [ ] Redis connectivity checked
 - [ ] External service status verified
 - [ ] Response time SLAs validated
-- [ ] Kubernetes/Docker health probe compatible
+- [ ] Docker health check compatible
 - [ ] Status page UI implemented
 
 ## Technical Requirements
@@ -145,4 +145,4 @@ As a MediaNest administrator, I want detailed health check endpoints so that I c
 
 ## Notes & Context
 
-Health checks are critical for automated deployments and monitoring. The basic health check should be very fast for frequent polling. Consider implementing a /ready endpoint separately from /health for Kubernetes compatibility.
+Health checks are critical for automated deployments and monitoring. The basic health check should be very fast for frequent polling. Consider implementing a /ready endpoint separately from /health for Docker Compose health checks and monitoring systems.

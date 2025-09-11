@@ -125,73 +125,71 @@ graph TD
     style E fill:#ffb74d
 ```
 
-## Kubernetes Deployment Architecture
+## Production Docker Compose Architecture
 
-Production-ready Kubernetes deployment with high availability:
+Simplified production deployment with Docker Compose providing enterprise-grade features:
 
 ```mermaid
 graph TB
-    subgraph "Kubernetes Cluster"
-        subgraph "Ingress"
-            A[Ingress Controller]
-            B[SSL Certificates]
-            C[Load Balancer]
+    subgraph "Docker Compose Stack"
+        subgraph "Reverse Proxy Layer"
+            A[Nginx Container]
+            B[SSL/TLS Termination]
+            C[Rate Limiting & Security]
         end
         
-        subgraph "Application Namespace"
-            D[Frontend Deployment]
-            E[Backend Deployment]
-            F[Worker Deployment]
-            
-            G[Frontend Service]
-            H[Backend Service]
-            I[Worker Service]
+        subgraph "Application Services"
+            D[Frontend Container]
+            E[Backend Container]
+            F[Background Workers]
         end
         
-        subgraph "Data Namespace"
-            J[PostgreSQL StatefulSet]
-            K[Redis Deployment]
-            L[PVC Storage]
+        subgraph "Data Services"
+            G[PostgreSQL Container]
+            H[Redis Container]
         end
         
-        subgraph "Monitoring Namespace"
-            M[Prometheus Deployment]
-            N[Grafana Deployment]
-            O[AlertManager]
+        subgraph "Monitoring Services"
+            I[Prometheus Container]
+            J[Grafana Container]
+            K[Log Aggregation]
         end
         
-        subgraph "Configuration"
-            P[ConfigMaps]
-            Q[Secrets]
-            R[Service Accounts]
+        subgraph "Storage & Secrets"
+            L[Docker Volumes]
+            M[Docker Secrets]
+            N[Backup Storage]
         end
     end
     
-    A --> G
-    A --> H
-    G --> D
-    H --> E
-    I --> F
+    A --> D
+    A --> E
+    B --> A
+    C --> A
     
-    E --> J
+    E --> G
+    E --> H
+    F --> G
+    F --> H
+    
+    E --> I
+    D --> I
+    I --> J
     E --> K
-    J --> L
     
-    D --> M
+    G --> L
+    H --> L
     E --> M
-    M --> N
-    M --> O
+    D --> M
     
-    D --> P
-    E --> P
-    D --> Q
-    E --> Q
+    L --> N
     
     style D fill:#4fc3f7
     style E fill:#4fc3f7
     style F fill:#4fc3f7
-    style J fill:#ffb74d
-    style K fill:#ffb74d
+    style G fill:#ffb74d
+    style H fill:#ffb74d
+    style A fill:#81c784
 ```
 
 ## Network Architecture

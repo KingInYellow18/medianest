@@ -341,28 +341,60 @@ npm run clean        # Clean build artifacts
 
 ## 🚀 Deployment
 
-### Docker
+### Docker Compose Production Deployment
+
+The backend is designed for Docker Compose deployment as part of the MediaNest stack:
+
+```bash
+# Production deployment from project root
+./deployment/scripts/deploy-compose.sh --domain your-domain.com
+
+# Or manual deployment
+docker compose -f config/docker/docker-compose.prod.yml up -d
+
+# Database migrations are handled automatically
+# Health checks verify service readiness
+```
+
+### Container Architecture
 
 ```dockerfile
-# Production Dockerfile available
+# Production container (backend/Dockerfile.prod)
 FROM node:20-alpine
-# See backend/Dockerfile.prod for full configuration
+USER 1000:1000  # Non-root security
+
+# Optimized for:
+# - Security (non-root, minimal base image)
+# - Performance (multi-stage build, optimized deps)
+# - Reliability (health checks, graceful shutdown)
 ```
 
 ### Environment Setup
 
-1. **Database Migration**: Run Prisma migrations
-2. **Environment Variables**: Configure production settings
-3. **Redis Setup**: Configure job queue
-4. **Reverse Proxy**: Configure nginx/Apache
-5. **SSL Certificates**: HTTPS configuration
+1. **Automated Setup**: Use `deploy-compose.sh` for complete setup
+2. **Database Migration**: Automatic Prisma migrations on startup
+3. **Secret Management**: Docker secrets for sensitive data
+4. **SSL/Reverse Proxy**: Nginx container handles HTTPS
+5. **Health Monitoring**: Built-in health checks and monitoring
 
-### Health Checks
+### Health Checks & Monitoring
 
-- `GET /api/health` - Application health
-- Database connectivity check
-- Redis connectivity check
-- External service availability
+**Built-in Health Endpoints:**
+- `GET /health` - Basic container health (for Docker health checks)
+- `GET /api/health` - Detailed application health with dependencies
+- `GET /api/status` - Service status and metrics
+
+**Docker Health Check:**
+```dockerfile
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD curl -f http://localhost:4000/health || exit 1
+```
+
+**Monitoring Integration:**
+- Prometheus metrics endpoint: `/metrics`
+- Structured JSON logging for centralized log aggregation
+- Real-time WebSocket status updates
+- External service health monitoring (Plex, Overseerr, Uptime Kuma)
 
 ## 🔗 Related Modules
 

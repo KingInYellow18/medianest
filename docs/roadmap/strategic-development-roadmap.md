@@ -146,7 +146,7 @@
 
 #### Platform Evolution
 
-- **Microservices Architecture**: Containerized deployment with Kubernetes orchestration
+- **Microservices Architecture**: Containerized deployment with Docker Compose orchestration and eventual service mesh
 - **Multi-tenant Support**: Enterprise-ready multi-organization capabilities
 - **Advanced Security**: Zero-trust architecture with comprehensive audit trails
 

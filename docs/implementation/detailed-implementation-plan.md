@@ -282,7 +282,7 @@ Week 12: Search analytics and optimization
 **Priority**: CRITICAL | **Budget**: $60K | **Team**: 6 engineers
 
 #### Production Infrastructure
-- **Container Orchestration**: Kubernetes deployment
+- **Container Orchestration**: Docker Compose deployment with monitoring
 - **CI/CD Pipeline**: Automated testing and deployment
 - **Security Hardening**: Penetration testing, security audit
 - **Disaster Recovery**: Backup and recovery procedures
