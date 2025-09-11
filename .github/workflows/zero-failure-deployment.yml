@@ -323,17 +323,16 @@ jobs:
 
       - name: Setup deployment tools
         run: |
-          echo "🔧 Setting up deployment tools..."
+          echo "🔧 Setting up Docker Compose deployment tools..."
           
-          # Install kubectl
-          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          chmod +x kubectl
-          sudo mv kubectl /usr/local/bin/
+          # Install docker-compose if not available
+          if ! command -v docker-compose &> /dev/null; then
+            sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
+          fi
           
-          # Install helm
-          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-          
-          echo "✅ Deployment tools ready"
+          docker-compose version
+          echo "✅ Docker Compose deployment tools ready"
 
       - name: Create deployment backup
         id: backup
@@ -369,11 +368,12 @@ jobs:
           echo "Backend Image: ${{ needs.container-build.outputs.backend-image }}"
           echo "Frontend Image: ${{ needs.container-build.outputs.frontend-image }}"
           
-          # Simulate deployment steps
-          echo "📦 Deploying containers..."
-          sleep 5
+          # Deploy using Docker Compose
+          echo "📦 Deploying containers with Docker Compose..."
+          docker-compose -f docker-compose.production.yml pull
+          docker-compose -f docker-compose.production.yml up -d --force-recreate
           
-          echo "🔄 Updating load balancer configuration..."
+          echo "🔄 Updating service configuration..."
           sleep 3
           
           echo "✅ Blue-green deployment completed: $DEPLOYMENT_ID"
