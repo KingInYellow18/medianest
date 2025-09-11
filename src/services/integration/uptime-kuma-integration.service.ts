@@ -1,11 +1,14 @@
+// Internal dependencies
 import { UptimeKumaClient } from '../../integrations/uptime-kuma/uptime-kuma-client';
 import { logger } from '../../utils/logger';
+
+// Shared utilities (using barrel exports)
 import { 
   BaseIntegrationClient,
   ClientConfig, 
   HealthStatus,
   ClientInitializer 
-} from '../../../shared/src/patterns/integration-client-factory';
+} from '@medianest/shared';
 
 export interface UptimeKumaConfig extends ClientConfig {
   url?: string;

@@ -1,11 +1,14 @@
+// Internal dependencies
 import { OverseerrApiClient } from '../../integrations/overseerr/overseerr-api.client';
 import { logger } from '../../utils/logger';
+
+// Shared utilities (using barrel exports)
 import { 
   BaseIntegrationClient,
   ClientConfig, 
   HealthStatus,
   ClientInitializer 
-} from '../../../shared/src/patterns/integration-client-factory';
+} from '@medianest/shared';
 
 export interface OverseerrConfig extends ClientConfig {
   url?: string;

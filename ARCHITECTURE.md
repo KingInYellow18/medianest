@@ -172,43 +172,52 @@ frontend/src/
 
 ```
 backend/src/
+├── auth/              # Authentication utilities
+├── config/            # Configuration files
+│   ├── database.ts
+│   ├── redis.ts
+│   └── queues.ts
 ├── controllers/        # Request handlers
 │   ├── auth.controller.ts
 │   ├── dashboard.controller.ts
 │   ├── media.controller.ts
 │   ├── plex.controller.ts
 │   └── youtube.controller.ts
-├── services/           # Business logic layer
-│   ├── encryption.service.ts
-│   ├── jwt.service.ts
-│   ├── overseerr.service.ts
-│   ├── plex.service.ts
-│   └── status.service.ts
-├── repositories/       # Data access layer
-│   ├── base.repository.ts
-│   ├── user.repository.ts
-│   ├── media-request.repository.ts
-│   ├── service-status.repository.ts
-│   └── youtube-download.repository.ts
+├── db/                # Database utilities
 ├── integrations/      # External service clients
 │   ├── plex/          # Plex API client with circuit breaker
 │   ├── overseerr/     # Overseerr API client
 │   └── uptime-kuma/   # Uptime Kuma monitoring client
+├── jobs/              # Background job processors (minimal)
+├── lib/               # Library functions
 ├── middleware/         # Express middleware
 │   ├── auth.ts        # JWT authentication
 │   ├── error.ts       # Global error handler
 │   ├── logging.ts     # Winston request logging
 │   ├── rate-limit.ts  # Redis-based rate limiting
 │   └── validate.ts    # Zod schema validation
+├── repositories/       # Data access layer
+│   ├── base.repository.ts
+│   ├── user.repository.ts
+│   ├── media-request.repository.ts
+│   ├── service-status.repository.ts
+│   └── youtube-download.repository.ts
+├── routes/            # Route definitions
+├── schemas/           # Schema definitions
+├── scripts/           # Utility scripts
+├── security/          # Security utilities
+├── services/           # Business logic layer
+│   ├── encryption.service.ts
+│   ├── jwt.service.ts
+│   ├── overseerr.service.ts
+│   ├── plex.service.ts
+│   └── status.service.ts
 ├── socket/            # WebSocket handlers
 │   ├── handlers/      # Event handlers
 │   └── middleware.ts  # Socket.io authentication
-├── jobs/              # Background job processors (minimal)
+├── __tests__/         # Test files
+├── types/             # TypeScript type definitions
 ├── utils/             # Helper functions
-├── config/            # Configuration files
-│   ├── database.ts
-│   ├── redis.ts
-│   └── queues.ts
 └── validations/       # Zod validation schemas
 ```
 

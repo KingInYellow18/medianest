@@ -49,6 +49,8 @@
     "test:performance:suite": "vitest run --config vitest.performance.config.ts tests/performance/performance-suite.test.ts --reporter=verbose",
     "test:performance:e2e": "vitest run tests/e2e/e2e-performance.spec.ts --reporter=verbose",
     "test:performance:security": "vitest run tests/security/security-performance.test.ts --reporter=verbose",
+    "test:security": "./scripts/run-security-tests.sh",
+    "test:security:validate": "node scripts/validate-security-framework.js",
     "test:performance:all": "npm run test:performance:suite && npm run test:performance:e2e && npm run test:performance:security",
     "test:performance:report": "npm run test:performance:all -- --reporter=json --outputFile=test-results/performance-results.json",
     "test:ci": "npm run test:fast -- --coverage --coverage.threshold.lines=65",

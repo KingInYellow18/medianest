@@ -7,12 +7,19 @@
  * Targets: <200ms API responses, <50ms DB queries, <512MB memory usage
  */
 
+// External dependencies
 import { Redis } from 'ioredis';
 import { PrismaClient } from '@prisma/client';
+
+// Internal utilities
 import { logger } from '../utils/logger';
-import { PerformanceMonitor } from '../../shared/src/utils/performance-monitor';
-import { DatabaseOptimizer } from '../../shared/src/utils/database-optimizations';
-import { CachingMiddleware } from '../../shared/src/middleware/caching-middleware';
+
+// Shared utilities (using barrel exports)
+import { 
+  PerformanceMonitor,
+  DatabaseOptimizer,
+  CachingMiddleware 
+} from '@medianest/shared';
 
 export interface OptimizationConfig {
   enableAutoOptimization: boolean;

@@ -1,11 +1,14 @@
+// Internal dependencies
 import { PlexApiClient } from '../../integrations/plex/plex-api.client';
 import { logger } from '../../utils/logger';
+
+// Shared utilities (using barrel exports)
 import { 
   BaseIntegrationClient,
   ClientConfig, 
   HealthStatus,
   ClientInitializer 
-} from '../../../shared/src/patterns/integration-client-factory';
+} from '@medianest/shared';
 
 export interface PlexConfig extends ClientConfig {
   serverUrl?: string;

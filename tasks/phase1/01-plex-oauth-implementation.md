@@ -149,7 +149,7 @@ ENCRYPTION_KEY=<32-byte-key-for-token-encryption>
 - `prisma` - Database ORM
 
 ## References
-- [Architecture.md - Section 7.1](/docs/ARCHITECTURE.md#71-authentication-flow)
+- [Architecture.md - Section 7.1](../../ARCHITECTURE.md#71-authentication-flow)
 - [Plex OAuth Documentation](https://forums.plex.tv/t/authenticating-with-plex/609370)
 - [NextAuth.js Custom Provider Guide](https://next-auth.js.org/configuration/providers/custom-provider)
 

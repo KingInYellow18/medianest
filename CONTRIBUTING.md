@@ -50,7 +50,7 @@ We are committed to providing a friendly, safe, and welcoming environment for al
 ### Understanding the Project
 
 1. Read the [README.md](README.md) for project overview
-2. Review [ARCHITECTURE.md](docs/ARCHITECTURE.md) for system design
+2. Review [ARCHITECTURE.md](ARCHITECTURE.md) for system design
 3. Check [CLAUDE.md](CLAUDE.md) for AI assistant guidelines
 4. Explore the [docs/](docs/) directory for detailed documentation
 
