@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import * as bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import { logger } from './logger';
 import { configService } from '../config/config.service';
 
@@ -126,8 +126,7 @@ export function generateRandomString(length: number = 16): string {
   let result = '';
 
   for (let i = 0; i < length; i++) {
-    result +=
-      chars[(bytes[i] ?? Math.floor(Math.random() * 255)) % chars.length];
+    result += chars[(bytes[i] ?? Math.floor(Math.random() * 255)) % chars.length];
   }
 
   return result;
