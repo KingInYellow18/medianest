@@ -11,7 +11,7 @@
 import { performance } from 'perf_hooks';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-const { DatabaseSecurityManager } = require('../config/security/database-security');
+const { DatabaseSecurityManager } = require('../config/security/database-security.cjs');
 
 // Color output for better readability
 const colors = {

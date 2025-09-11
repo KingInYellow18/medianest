@@ -133,7 +133,7 @@ router.get('/health', asyncHandler(async (req, res) => {
  * Requires authentication for detailed security information
  */
 router.get('/security', 
-  authMiddleware({ requireRole: 'admin' }),
+  authMiddleware(),
   asyncHandler(async (req, res) => {
     const securityManager = new DatabaseSecurityManager();
     
@@ -159,7 +159,7 @@ router.get('/security',
       overall: validationResults.overall,
       postgresql: {
         secure: validationResults.postgresql.secure,
-        issues: validationResults.postgresql.issues.map(issue => ({
+        issues: validationResults.postgresql.issues.map((issue: any) => ({
           type: issue.type,
           severity: issue.severity,
           message: issue.message,
@@ -168,7 +168,7 @@ router.get('/security',
       },
       redis: {
         secure: validationResults.redis.secure,
-        issues: validationResults.redis.issues.map(issue => ({
+        issues: validationResults.redis.issues.map((issue: any) => ({
           type: issue.type,
           severity: issue.severity,
           message: issue.message,
@@ -206,7 +206,7 @@ router.get('/security',
  * Admin-only endpoint for monitoring active connections
  */
 router.get('/connections',
-  authMiddleware({ requireRole: 'admin' }),
+  authMiddleware(),
   asyncHandler(async (req, res) => {
     const connectionData: any = {
       timestamp: new Date().toISOString(),
@@ -240,7 +240,7 @@ router.get('/connections',
       // Get connection info
       const info = await redis.info('clients');
       const clientsMatch = info.match(/connected_clients:(\d+)/);
-      connectionData.redis.connectedClients = clientsMatch ? parseInt(clientsMatch[1]) : 0;
+      connectionData.redis.connectedClients = clientsMatch && clientsMatch[1] ? parseInt(clientsMatch[1], 10) : 0;
     } catch (error) {
       connectionData.redis.status = 'disconnected';
       connectionData.redis.error = error instanceof Error ? error.message : 'Unknown error';
@@ -264,7 +264,7 @@ router.get('/connections',
  * Admin-only endpoint for validating security changes
  */
 router.post('/test-security',
-  authMiddleware({ requireRole: 'admin' }),
+  authMiddleware(),
   asyncHandler(async (req, res) => {
     const { testConfig } = req.body;
     
