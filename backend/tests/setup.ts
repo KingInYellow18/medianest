@@ -4,7 +4,7 @@
  */
 
 import { afterAll, afterEach, beforeAll, beforeEach, vi } from 'vitest';
-import '../../tests/setup-comprehensive';
+import '../../tests/setup-shared';
 
 // Backend-specific mocks
 vi.mock('../src/config/database', () => ({

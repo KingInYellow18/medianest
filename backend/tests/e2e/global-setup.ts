@@ -1,6 +1,7 @@
 import { chromium, FullConfig } from '@playwright/test';
 import { dbHelpers } from './utils/db-helpers';
 import { apiHelpers } from './utils/api-helpers';
+import { getTestConfig } from '../config/test-constants';
 
 /**
  * Global setup for E2E tests
@@ -128,7 +129,6 @@ async function setupUserAuthState(browser: any, stateName: string, credentials: 
 
   try {
     // Navigate to login page
-    import { getTestConfig } from '../config/test-constants';
     const testConfig = getTestConfig('e2e');
     await page.goto(process.env.BASE_URL || `${testConfig.server.frontendUrl}/login`);
     

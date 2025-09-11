@@ -95,6 +95,19 @@ jobs:
           echo "🦠 Malware packages detected: $MALWARE_COUNT"
           echo "📦 Total dependencies to isolate: $SUSPICIOUS"
 
+      - name: Run Trivy filesystem vulnerability scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+
       - name: Upload audit artifacts
         uses: actions/upload-artifact@v4
         with:

@@ -11,7 +11,7 @@
     "build:clean": "npm run clean && npm run build",
     "build:backend": "cd backend && npm run build",
     "build:frontend": "cd frontend && npm run build",
-    "build:docker": "docker build -f Dockerfile.optimized --target backend-production -t medianest-backend . && docker build -f Dockerfile.optimized --target frontend-production -t medianest-frontend .",
+    "build:docker": "docker build -f Dockerfile --target backend-production -t medianest-backend . && docker build -f Dockerfile --target frontend-production -t medianest-frontend .",
     "build:docs": "./scripts/build-docs.sh",
     "build:docs:dev": "./scripts/build-docs.sh --dev",
     "build:docs:fast": "./scripts/build-docs.sh --skip-deps --skip-tests",
@@ -84,10 +84,10 @@
     "clean:deep": "npm run clean && npm run clean:cache && rimraf node_modules */node_modules",
     "clean:docs": "rimraf site",
     "clean:all": "npm run clean && rimraf node_modules",
-    "docker:build": "docker build -f Dockerfile.optimized -t medianest:latest .",
+    "docker:build": "docker build -f Dockerfile -t medianest:latest .",
     "docker:build:optimized": "npm run build:docker",
-    "docker:build:dev": "docker build -f Dockerfile.optimized --target development -t medianest:dev .",
-    "docker:build:test": "docker build -f Dockerfile.optimized --target test -t medianest:test .",
+    "docker:build:dev": "docker build -f Dockerfile --target development -t medianest:dev .",
+    "docker:build:test": "docker build -f Dockerfile --target test -t medianest:test .",
     "docker:run": "docker run -p 8080:8080 medianest:latest",
     "docker:compose": "docker compose up -d",
     "docker:docs": "docker run --rm -v \"$PWD\":/docs squidfunk/mkdocs-material build",
@@ -231,13 +231,5 @@
       "@typescript-eslint/explicit-function-return-type": "warn",
       "react/prop-types": "off"
     }
-  },
-  "prettier": {
-    "semi": true,
-    "trailingComma": "es5",
-    "singleQuote": true,
-    "printWidth": 100,
-    "tabWidth": 2,
-    "useTabs": false
   }
 }

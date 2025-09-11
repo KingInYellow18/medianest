@@ -4,11 +4,16 @@ node_modules/
 .pnp.js
 pnpm-lock.yaml
 
-# Package manager cache
+# Package manager cache and temporary files
 .npm/
 .yarn/
 .pnpm-store/
 .turbo/
+package-lock.json.backup
+package-lock.json.local
+package-lock.json.remote
+package-lock.json.temp
+yarn.lock.backup
 
 # Testing
 coverage/
@@ -44,6 +49,8 @@ debug.log
 .env.test.local
 .env.production.local
 .env.*.local
+*.env.backup
+*.env.temp
 
 # Cloud deployment
 .vercel
@@ -108,28 +115,23 @@ ruv-memory.db*
 *.memory.json
 .ai-session*
 .neural-cache/
-
-
-
-
-
-
-
-
-
-
 # MKdocs generated files
 site/
 
 # Python virtual environment
 venv/
 
+# Configuration backups and temporary files
+*.config.backup
+*.config.temp
+*.json.backup
+*.json.temp
+*.js.backup
+*.ts.backup
+
 # Claude Flow generated files
 .claude/settings.local.json
 .mcp.json
-claude-flow.config.json
-.swarm/
-.hive-mind/
 memory/claude-flow-data.json
 memory/sessions/*
 !memory/sessions/README.md
@@ -138,12 +140,6 @@ memory/agents/*
 coordination/memory_bank/*
 coordination/subtasks/*
 coordination/orchestration/*
-*.db
-*.db-journal
-*.db-wal
-*.sqlite
-*.sqlite-journal
-*.sqlite-wal
 claude-flow
 claude-flow.bat
 claude-flow.ps1

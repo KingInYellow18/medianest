@@ -1,7 +1,0 @@
-{
-  "frontend/**/*.{js,jsx,ts,tsx}": ["prettier --write --cache"],
-  "backend/**/*.ts": ["prettier --write --cache"],
-  "shared/**/*.ts": ["prettier --write --cache"],
-  "**/*.{json,md,yml,yaml}": ["prettier --write --cache"],
-  "**/*.sh": ["chmod +x"]
-}

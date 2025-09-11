@@ -12,12 +12,13 @@ export class AuthTestHelper {
   private prisma: PrismaClient;
   private userCounter = 0;
 
-  constructor() {
-    this.prisma = new PrismaClient();
+  constructor(prismaClient?: PrismaClient) {
+    this.prisma = prismaClient || new PrismaClient();
   }
 
-  async createTestUser(email?: string, role: 'USER' | 'ADMIN' = 'USER') {
+  async createTestUser(username?: string, email?: string, role: 'USER' | 'ADMIN' = 'USER') {
     this.userCounter++;
+    const testUsername = username || `testuser${this.userCounter}`;
     const testEmail = email || `testuser${this.userCounter}@medianest.test`;
     const hashedPassword = await bcrypt.hash('password123', 10);
 
@@ -25,7 +26,7 @@ export class AuthTestHelper {
       data: {
         email: testEmail,
         plexId: `plex-test-${this.userCounter}`,
-        plexUsername: `testuser${this.userCounter}`,
+        plexUsername: testUsername,
         role,
         status: 'ACTIVE',
         passwordHash: hashedPassword
@@ -33,8 +34,12 @@ export class AuthTestHelper {
     });
   }
 
-  async createTestAdmin(email?: string) {
-    return await this.createTestUser(email, 'ADMIN');
+  async createTestAdmin(username?: string, email?: string) {
+    return await this.createTestUser(username, email, 'ADMIN');
+  }
+
+  async generateValidToken(userId: string, role: string = 'USER') {
+    return await this.generateAccessToken(userId);
   }
 
   async generateAccessToken(userId: string) {

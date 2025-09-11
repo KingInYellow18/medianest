@@ -188,7 +188,7 @@ The DeviceSessionService template deployment caused performance regression in Ca
 - Redis performance benchmarking (`/tests/redis-performance-benchmark.js`)
 - Database stress testing with cache performance validation
 - Load testing infrastructure with 1000+ cache operations
-- Performance measurement commands in Cypress testing
+- Performance measurement commands in Playwright testing
 
 **Load Testing Results Analysis**:
 

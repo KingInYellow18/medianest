@@ -219,7 +219,6 @@ MediaNest uses 150+ environment variables organized by category for maximum flex
 | `TEST_DATABASE_URL`             | Test database URL               | postgres:// URL | -                       | ✅       | Tests          |
 | `TEST_REDIS_URL`                | Test Redis URL                  | redis:// URL    | -                       | ✅       | Tests          |
 | `TEST_BASE_URL`                 | Base URL for tests              | URL             | `http://localhost:3001` | ❌       | Tests          |
-| `CYPRESS_AUTH_TOKEN`            | Cypress auth token              | String          | -                       | ❌       | Cypress        |
 | `MAX_CONCURRENT_USERS`          | Load test max users             | Number          | `1000`                  | ❌       | Load Tests     |
 | `TEST_DURATION`                 | Test duration (sec)             | Number          | `300`                   | ❌       | Load Tests     |
 | `STRESS_TEST_MAX_CONNECTIONS`   | Max DB test connections         | Number          | `500`                   | ❌       | Stress Tests   |

@@ -182,3 +182,8 @@ app.use((req, res) => {
 
 // Error handler (must be last)
 app.use(errorHandler as express.ErrorRequestHandler);
+
+// Export createApp function for tests
+export function createApp() {
+  return app;
+}

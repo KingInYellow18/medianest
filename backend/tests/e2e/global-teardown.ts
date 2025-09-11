@@ -1,6 +1,7 @@
 import { FullConfig } from '@playwright/test';
 import { dbHelpers } from './utils/db-helpers';
 import { apiHelpers } from './utils/api-helpers';
+import { getTestConfig } from '../config/test-constants';
 
 /**
  * Global teardown for E2E tests
@@ -74,11 +75,10 @@ async function generateTestReport(): Promise<void> {
   const fs = require('fs').promises;
   
   try {
+    const testConfig = getTestConfig('e2e');
     const report = {
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'test',
-      import { getTestConfig } from '../config/test-constants';
-      const testConfig = getTestConfig('e2e');
       baseUrl: process.env.BASE_URL || testConfig.server.frontendUrl,
       testEndTime: Date.now(),
       databaseStats: await dbHelpers.getDatabaseStats(),

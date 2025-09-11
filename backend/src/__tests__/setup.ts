@@ -191,11 +191,14 @@ export const setupGlobalMocks = () => {
     genSalt: vi.fn().mockResolvedValue('salt'),
   }));
 
-  // Mock bcryptjs (alternative bcrypt implementation)
-  vi.mock('bcryptjs', () => ({
+  // Mock bcrypt (standardized on bcrypt, removed bcryptjs)
+  vi.mock('bcrypt', () => ({
     hash: vi.fn().mockResolvedValue('hashed-password'),
     compare: vi.fn().mockResolvedValue(true),
     genSalt: vi.fn().mockResolvedValue('salt'),
+    hashSync: vi.fn().mockReturnValue('hashed-password'),
+    compareSync: vi.fn().mockReturnValue(true),
+    genSaltSync: vi.fn().mockReturnValue('salt'),
   }));
 
   // Mock JWT

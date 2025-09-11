@@ -362,7 +362,7 @@ export class MockRegistry {
     };
 
     vi.mock('bcrypt', () => bcryptMock);
-    vi.mock('bcryptjs', () => bcryptMock);
+    // Standardized on bcrypt only, removed bcryptjs to prevent conflicts
 
     // Argon2 mock
     vi.mock('argon2', () => ({

@@ -46,8 +46,8 @@ A unified web portal for managing Plex media server and related services.
 4. **Database setup**
 
    ```bash
-   npm run db:generate
-   npm run db:migrate
+   cd backend && npx prisma generate
+   cd backend && npx prisma migrate deploy
    ```
 
 5. **Start development servers**
@@ -61,13 +61,13 @@ To run the entire stack with Docker:
 
 ```bash
 # Build and start all services
-npm run docker:up
+npm run docker:compose
 
 # View logs
 npm run docker:logs
 
 # Stop all services
-npm run docker:down
+docker compose down
 ```
 
 ## Project Structure
@@ -112,16 +112,17 @@ medianest/
 
 ### Database Commands
 
-- `npm run db:generate` - Generate Prisma client
-- `npm run db:migrate` - Run database migrations
-- `npm run db:studio` - Open Prisma Studio
+- `cd backend && npx prisma generate` - Generate Prisma client
+- `cd backend && npx prisma migrate deploy` - Run database migrations  
+- `cd backend && npx prisma studio` - Open Prisma Studio
+- `npm run db:check` - Check database health
 
 ### Docker Commands
 
 - `npm run docker:build` - Build Docker images
-- `npm run docker:up` - Start all services with Docker Compose
-- `npm run docker:down` - Stop all services
+- `npm run docker:compose` - Start all services with Docker Compose
 - `npm run docker:logs` - View container logs
+- `docker compose down` - Stop all services (use docker compose directly)
 
 ## Configuration
 
@@ -261,7 +262,7 @@ A: Verify these settings:
 - PostgreSQL is running and accessible
 - `DATABASE_URL` in your `.env` file is correct
 - Database user has proper permissions
-- Run `npm run db:migrate` to apply database migrations
+- Run `cd backend && npx prisma migrate deploy` to apply database migrations
 
 **Q: How do I update MediaNest to the latest version?**
 A: Follow these steps:
@@ -269,7 +270,7 @@ A: Follow these steps:
 1. Backup your database and configuration files
 2. Pull the latest changes: `git pull origin main`
 3. Update dependencies: `npm install`
-4. Run database migrations: `npm run db:migrate`
+4. Run database migrations: `cd backend && npx prisma migrate deploy`
 5. Rebuild the application: `npm run build`
 6. Restart your services
 

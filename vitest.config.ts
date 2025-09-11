@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitest/config';
 import { resolve } from 'path';
+import { cpus } from 'os';
 
 export default defineConfig({
   test: {
@@ -89,8 +90,8 @@ export default defineConfig({
     poolOptions: {
       threads: {
         singleThread: false,
-        maxThreads: Math.min(32, require('os').cpus().length * 4), // Maximum CPU utilization
-        minThreads: Math.max(4, Math.floor(require('os').cpus().length / 2)),
+        maxThreads: Math.min(32, cpus().length * 4), // Maximum CPU utilization
+        minThreads: Math.max(4, Math.floor(cpus().length / 2)),
         useAtomics: true,
         isolate: false // CRITICAL: 5x speed boost through context sharing
       }
@@ -160,7 +161,7 @@ export default defineConfig({
     isolate: process.env.CI ? false : false, // Aggressive: Disable isolation everywhere for maximum speed
     
     // PERFORMANCE OPTIMIZED: Dynamic concurrency based on CPU cores
-    maxConcurrency: Math.max(12, require('os').cpus().length * 3), // CPU-optimized parallelization
+    maxConcurrency: Math.max(12, cpus().length * 3), // CPU-optimized parallelization
     
     // Retry configuration
     retry: process.env.CI ? 2 : 0,
