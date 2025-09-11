@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { MediaController, mediaController } from '../../../src/controllers/media.controller';
 import { mediaRequestRepository } from '../../../src/repositories';
 import { overseerrService } from '../../../src/services/overseerr.service';
-import { AppError } from '../../../src/utils/errors';
+import { AppError } from '@medianest/shared';
 import { logger } from '../../../src/utils/logger';
 
 // Mock dependencies

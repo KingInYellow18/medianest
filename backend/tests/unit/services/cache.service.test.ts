@@ -15,6 +15,10 @@ vi.mock('../../../src/config/redis', () => ({
     ttl: vi.fn(),
     flushall: vi.fn(),
     ping: vi.fn(),
+    info: vi.fn(),
+    dbsize: vi.fn(),
+    mget: vi.fn(),
+    keys: vi.fn(),
   },
 }));
 
@@ -529,6 +533,79 @@ describe('CacheService', () => {
         undefined,
         expect.stringContaining('key1')
       );
+    });
+  });
+
+  describe('getInfo', () => {
+    it('should get cache information successfully', async () => {
+      const memoryInfo = 'used_memory_human:16.25M\nused_memory:17032192';
+      const dbSize = 42;
+
+      (redisClient.info as Mock).mockResolvedValue(memoryInfo);
+      (redisClient.dbsize as Mock).mockResolvedValue(dbSize);
+
+      const result = await cacheService.getInfo();
+
+      expect(handleAsync).toHaveBeenCalledWith(
+        expect.any(Function),
+        'Cache info memory error'
+      );
+      expect(handleAsync).toHaveBeenCalledWith(
+        expect.any(Function),
+        'Cache dbsize error'
+      );
+      expect(redisClient.info).toHaveBeenCalledWith('memory');
+      expect(redisClient.dbsize).toHaveBeenCalled();
+      expect(result).toEqual({
+        keyCount: 42,
+        memoryUsage: '16.25M'
+      });
+    });
+
+    it('should handle Redis info error', async () => {
+      const error = new Error('Redis info error');
+
+      (handleAsync as Mock)
+        .mockResolvedValueOnce([null, error])
+        .mockResolvedValueOnce([100, null]);
+
+      const result = await cacheService.getInfo();
+
+      expect(result).toEqual({
+        keyCount: 0,
+        memoryUsage: 'unknown'
+      });
+    });
+
+    it('should handle Redis dbsize error', async () => {
+      const memoryInfo = 'used_memory_human:16.25M';
+      const error = new Error('Redis dbsize error');
+
+      (handleAsync as Mock)
+        .mockResolvedValueOnce([memoryInfo, null])
+        .mockResolvedValueOnce([null, error]);
+
+      const result = await cacheService.getInfo();
+
+      expect(result).toEqual({
+        keyCount: 0,
+        memoryUsage: 'unknown'
+      });
+    });
+
+    it('should handle malformed memory info', async () => {
+      const malformedInfo = 'invalid_memory_format';
+      const dbSize = 10;
+
+      (redisClient.info as Mock).mockResolvedValue(malformedInfo);
+      (redisClient.dbsize as Mock).mockResolvedValue(dbSize);
+
+      const result = await cacheService.getInfo();
+
+      expect(result).toEqual({
+        keyCount: 10,
+        memoryUsage: 'unknown'
+      });
     });
   });
 });

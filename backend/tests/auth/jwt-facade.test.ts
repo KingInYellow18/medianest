@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, beforeAll, afterAll, vi } from 'vitest';
 import { JWTFacade, JWTPayload } from '../../src/auth/jwt-facade';
-import { AppError } from '../../src/utils/errors';
+import { AppError } from '@medianest/shared';
 
 // Mock config service BEFORE imports to ensure it's available during module initialization
 vi.mock('../../src/config/config.service', () => ({

@@ -402,7 +402,7 @@ describe('AsyncHandler Utility', () => {
       const wrappedFunction = asyncHandler(delayedFunction);
 
       const startTime = Date.now();
-      await wrappedFunction(
+      const result = await wrappedFunction(
         isolatedMocks.mockRequest as Request,
         isolatedMocks.mockResponse as Response,
         isolatedMocks.mockNext
@@ -411,6 +411,7 @@ describe('AsyncHandler Utility', () => {
 
       expect(endTime - startTime).toBeGreaterThanOrEqual(45);
       expect(delayedFunction).toHaveBeenCalled();
+      expect(result).toBe('delayed');
     });
 
     it('should handle concurrent wrapped function calls', async () => {
@@ -440,10 +441,11 @@ describe('AsyncHandler Utility', () => {
         ),
       ];
 
-      await Promise.all(promises);
+      const results = await Promise.all(promises);
 
       expect(concurrentFunction).toHaveBeenCalledTimes(3);
       expect(callCount).toBe(3);
+      expect(results).toHaveLength(3);
     });
 
     it('should handle null/undefined functions gracefully', async () => {
