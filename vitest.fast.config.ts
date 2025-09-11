@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitest/config';
 import { resolve } from 'path';
+import { cpus } from 'os';
 
 /**
  * ULTRA-FAST TEST CONFIGURATION
@@ -12,17 +13,21 @@ import { resolve } from 'path';
  * - Shared context across tests
  * - Pre-compiled mocks and utilities
  * - Memory-efficient test isolation
+ * 
+ * ARCHITECTURE UPDATE: Fixed dynamic import issues for sub-2-minute execution
  */
 
 export default defineConfig({
+  // MODERN CACHE CONFIGURATION
+  cacheDir: '.vitest-cache',
   test: {
     // MAXIMUM PERFORMANCE: Threads with shared context
     pool: 'threads',
     poolOptions: {
       threads: {
         singleThread: false,
-        maxThreads: require('os').cpus().length,
-        minThreads: Math.floor(require('os').cpus().length / 2),
+        maxThreads: cpus().length, // Fix: Use proper ES6 import
+        minThreads: Math.max(2, Math.floor(cpus().length / 2)),
         useAtomics: true,
         isolate: false // CRITICAL: Share context for 5x speed boost
       }
@@ -33,8 +38,8 @@ export default defineConfig({
     hookTimeout: 1000,   // 1s setup
     teardownTimeout: 500, // 0.5s cleanup
     
-    // MAXIMUM CONCURRENCY
-    maxConcurrency: require('os').cpus().length * 4,
+    // OPTIMIZED CONCURRENCY: Reduce from 4x to 2x CPU cores for optimal performance
+    maxConcurrency: cpus().length * 2,
     
     // DEVELOPMENT OPTIMIZATIONS
     environment: 'node',
@@ -62,8 +67,8 @@ export default defineConfig({
       enabled: false
     },
     
-    // FASTEST REPORTER: Minimal output
-    reporter: ['basic'],
+    // OPTIMAL REPORTER: Fast output without deprecation warnings
+    reporter: [['default', { summary: false }]],
     
     // NO RETRIES: Fail fast for development
     retry: 0,
@@ -73,19 +78,24 @@ export default defineConfig({
     watch: true,
     isolate: false,
     
-    // CACHE EVERYTHING
-    cache: {
-      dir: '.vitest-cache'
-    },
+    // Modern caching configuration (cache.dir is deprecated)
     
-    // MINIMAL DEPENDENCY PROCESSING
+    // MODERN DEPENDENCY OPTIMIZATION: Use Vitest v3 APIs
     deps: {
-      external: [
-        /^@medianest\/shared/,
-        /^winston/,
-        /^ioredis/,
-        /^@testing-library/
-      ]
+      optimizer: {
+        ssr: {
+          enabled: true,
+          include: [
+            '@testing-library/jest-dom'
+          ],
+          exclude: [
+            '@medianest/shared',
+            'winston',
+            'ioredis',
+            '@testing-library/react'
+          ]
+        }
+      }
     },
     
     // OPTIMIZED SEQUENCE

@@ -1,0 +1,184 @@
+# ==============================================================================
+# 📈 PROMETHEUS CONFIGURATION - MEDIANEST PLG STACK
+# ==============================================================================
+# Scrape interval: 5s for real-time monitoring
+# Retention: 30 days (configured in docker-compose.yml)
+# Service discovery: Static configurations for Docker Compose services
+# ==============================================================================
+
+global:
+  # Global scrape interval (can be overridden per job)
+  scrape_interval: 5s
+  # Global evaluation interval for recording rules and alerts
+  evaluation_interval: 5s
+  # External labels added to all metrics (useful for federation)
+  external_labels:
+    cluster: 'medianest-dev'
+    environment: 'development'
+    project: 'medianest'
+
+# Rule files - alerting and recording rules
+rule_files:
+  - "rules/*.yml"
+
+# Scrape configurations
+scrape_configs:
+  # ==============================================================================
+  # 🎯 PROMETHEUS SELF-MONITORING
+  # ==============================================================================
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['prometheus:9090']
+    scrape_interval: 5s
+    metrics_path: /metrics
+    scrape_timeout: 4s
+
+  # ==============================================================================
+  # 🖥️ SYSTEM METRICS - Node Exporter
+  # ==============================================================================
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 5s
+    metrics_path: /metrics
+    scrape_timeout: 4s
+    # Relabel to add instance labels
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: node-exporter:9100
+
+  # ==============================================================================
+  # 🐳 CONTAINER METRICS - cAdvisor
+  # ==============================================================================
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 5s
+    metrics_path: /metrics
+    scrape_timeout: 4s
+    # Filter out high-cardinality labels to reduce memory usage
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'container_(cpu_usage_seconds_total|memory_usage_bytes|network_receive_bytes_total|network_transmit_bytes_total|fs_usage_bytes|fs_limit_bytes)'
+        action: keep
+
+  # ==============================================================================
+  # 🗄️ DATABASE METRICS - PostgreSQL Exporter
+  # ==============================================================================
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    scrape_interval: 10s  # Slightly longer for database metrics
+    metrics_path: /metrics
+    scrape_timeout: 8s
+    # Add database-specific labels
+    relabel_configs:
+      - target_label: 'database'
+        replacement: 'medianest'
+      - target_label: 'service'
+        replacement: 'postgresql'
+
+  # ==============================================================================
+  # 📊 CACHE METRICS - Redis Exporter
+  # ==============================================================================
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 5s
+    metrics_path: /metrics
+    scrape_timeout: 4s
+    # Add Redis-specific labels
+    relabel_configs:
+      - target_label: 'service'
+        replacement: 'redis'
+      - target_label: 'cache_type'
+        replacement: 'redis'
+
+  # ==============================================================================
+  # 🚀 APPLICATION METRICS - MEDIANEST Backend
+  # ==============================================================================
+  - job_name: 'medianest-backend'
+    static_configs:
+      - targets: ['backend:4000']
+    scrape_interval: 5s
+    metrics_path: /api/metrics  # Endpoint to be implemented
+    scrape_timeout: 4s
+    # Backend service labels
+    relabel_configs:
+      - target_label: 'service'
+        replacement: 'medianest-backend'
+      - target_label: 'application'
+        replacement: 'medianest'
+      - target_label: 'tier'
+        replacement: 'backend'
+    # Continue scraping even if /api/metrics is not yet implemented
+    honor_labels: true
+
+  # ==============================================================================
+  # 🚚 LOG SHIPPING METRICS - Promtail
+  # ==============================================================================
+  - job_name: 'promtail'
+    static_configs:
+      - targets: ['promtail:9080']
+    scrape_interval: 10s
+    metrics_path: /metrics
+    scrape_timeout: 8s
+
+  # ==============================================================================
+  # 📊 MONITORING STACK METRICS
+  # ==============================================================================
+  - job_name: 'loki'
+    static_configs:
+      - targets: ['loki:3100']
+    scrape_interval: 10s
+    metrics_path: /metrics
+    scrape_timeout: 8s
+
+  - job_name: 'grafana'
+    static_configs:
+      - targets: ['grafana:3001']
+    scrape_interval: 30s  # Less frequent for visualization service
+    metrics_path: /metrics
+    scrape_timeout: 10s
+
+# ==============================================================================
+# 🔔 ALERTING CONFIGURATION
+# ==============================================================================
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - alertmanager:9093  # Uncomment when adding Alertmanager
+
+# ==============================================================================
+# 🎛️ RECORDING RULES CONFIGURATION
+# ==============================================================================
+# Recording rules for pre-computed metrics (reduces query load)
+# Defined in rules/ directory, loaded via rule_files above
+
+# ==============================================================================
+# 📊 METRIC RELABELING EXAMPLES
+# ==============================================================================
+# Common relabeling patterns for MEDIANEST metrics:
+#
+# 1. Add environment labels:
+#    relabel_configs:
+#      - target_label: 'environment'
+#        replacement: 'development'
+#
+# 2. Extract service from container name:
+#    metric_relabel_configs:
+#      - source_labels: [container_label_com_docker_compose_service]
+#        target_label: service
+#
+# 3. Filter high-cardinality metrics:
+#    metric_relabel_configs:
+#      - source_labels: [__name__]
+#        regex: 'unwanted_metric_.*'
+#        action: drop
+#
+# ==============================================================================

@@ -1,0 +1,367 @@
+# ==============================================================================
+# 📊 MEDIANEST PLG OBSERVABILITY STACK
+# ==============================================================================
+# Usage: docker-compose -f monitoring/docker-compose.yml up -d
+# Features: Prometheus, Loki, Grafana, Promtail, Node Exporter, cAdvisor
+# Integration: Compatible with existing MEDIANEST Docker networks
+# ==============================================================================
+
+version: '3.8'
+
+# Shared environment variables for consistent configuration
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-restart-policy: &restart-policy
+  restart: unless-stopped
+
+services:
+  # ==============================================================================
+  # 📈 PROMETHEUS - Metrics Collection & Storage
+  # ==============================================================================
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: medianest-prometheus
+    <<: *restart-policy
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+      - '--log.level=info'
+    ports:
+      - '9090:9090'
+    volumes:
+      - ./config/prometheus:/etc/prometheus:ro
+      - prometheus_data:/prometheus
+    networks:
+      - medianest-monitoring
+      - medianest-development  # Connect to existing dev network
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:9090/-/healthy']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging: *default-logging
+
+  # ==============================================================================
+  # 📋 LOKI - Log Aggregation & Storage
+  # ==============================================================================
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: medianest-loki
+    <<: *restart-policy
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - '3100:3100'
+    volumes:
+      - ./config/loki:/etc/loki:ro
+      - loki_data:/loki
+    networks:
+      - medianest-monitoring
+      - medianest-development
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:3100/ready']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging: *default-logging
+
+  # ==============================================================================
+  # 📊 GRAFANA - Visualization & Dashboards
+  # ==============================================================================
+  grafana:
+    image: grafana/grafana:10.1.0
+    container_name: medianest-grafana
+    <<: *restart-policy
+    user: "0"  # Run as root to avoid permission issues
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-medianest123}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_DOMAIN=localhost
+      - GF_SERVER_HTTP_PORT=3002
+      - GF_SERVER_ROOT_URL=http://localhost:3002/
+      - GF_LOG_LEVEL=info
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_INSTALL_PLUGINS=redis-datasource,postgres-datasource
+      - GF_FEATURE_TOGGLES_ENABLE=publicDashboards
+    ports:
+      - '3002:3002'  # Changed from 3000 to avoid frontend conflict
+    volumes:
+      - ./config/grafana:/etc/grafana/provisioning:ro
+      - grafana_data:/var/lib/grafana
+      - grafana_logs:/var/log/grafana
+    networks:
+      - medianest-monitoring
+      - medianest-development
+    depends_on:
+      - prometheus
+      - loki
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -f http://localhost:3002/api/health || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging: *default-logging
+
+  # ==============================================================================
+  # 🚚 PROMTAIL - Log Shipping Agent
+  # ==============================================================================
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: medianest-promtail
+    <<: *restart-policy
+    command: -config.file=/etc/promtail/config.yml
+    ports:
+      - '9080:9080'
+    volumes:
+      - ./config/promtail:/etc/promtail:ro
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Mount MEDIANEST application logs
+      - ../backend/logs:/app/logs:ro
+      # Mount Docker Compose logs from dev environment
+      - backend_dev_logs:/docker/backend/logs:ro
+    networks:
+      - medianest-monitoring
+      - medianest-development
+    depends_on:
+      - loki
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:9080/ready']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    logging: *default-logging
+
+  # ==============================================================================
+  # 🖥️ NODE EXPORTER - System Metrics
+  # ==============================================================================
+  node-exporter:
+    image: prom/node-exporter:v1.6.1
+    container_name: medianest-node-exporter
+    <<: *restart-policy
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      - '--collector.textfile.directory=/etc/node-exporter/'
+    ports:
+      - '9100:9100'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+      - ./config/node-exporter:/etc/node-exporter:ro
+    networks:
+      - medianest-monitoring
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:9100/metrics']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    logging: *default-logging
+
+  # ==============================================================================
+  # 🐳 CADVISOR - Container Metrics
+  # ==============================================================================
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.2
+    container_name: medianest-cadvisor
+    <<: *restart-policy
+    privileged: true
+    ports:
+      - '8082:8080'  # Changed to 8082 to avoid pgadmin conflict
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    devices:
+      - /dev/kmsg
+    networks:
+      - medianest-monitoring
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:8080/healthz']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging: *default-logging
+
+  # ==============================================================================
+  # 🔍 POSTGRES EXPORTER - Database Metrics
+  # ==============================================================================
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.13.2
+    container_name: medianest-postgres-exporter
+    <<: *restart-policy
+    environment:
+      - DATA_SOURCE_NAME=postgresql://medianest:medianest_dev_password@postgres:5432/medianest_dev?sslmode=disable
+      - PG_EXPORTER_EXTEND_QUERY_PATH=/etc/postgres_exporter/queries.yaml
+    ports:
+      - '9187:9187'
+    volumes:
+      - ./config/postgres-exporter:/etc/postgres_exporter:ro
+    networks:
+      - medianest-monitoring
+      - medianest-development
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:9187/metrics']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging: *default-logging
+
+  # ==============================================================================
+  # 📊 REDIS EXPORTER - Cache Metrics
+  # ==============================================================================
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.55.0
+    container_name: medianest-redis-exporter
+    <<: *restart-policy
+    environment:
+      - REDIS_ADDR=redis://redis:6379
+      - REDIS_EXPORTER_CHECK_KEYS=*
+      - REDIS_EXPORTER_CHECK_KEY_GROUPS=*
+    ports:
+      - '9121:9121'
+    networks:
+      - medianest-monitoring
+      - medianest-development
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:9121/metrics']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    logging: *default-logging
+
+# ==============================================================================
+# 📦 VOLUMES - Persistent Storage
+# ==============================================================================
+volumes:
+  # Prometheus time-series data (30-day retention)
+  prometheus_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/prometheus
+  
+  # Loki log data (30-day retention)
+  loki_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/loki
+  
+  # Grafana dashboards, users, and settings
+  grafana_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/grafana
+  
+  # Grafana application logs
+  grafana_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/grafana/logs
+
+  # Import backend logs volume from dev environment
+  backend_dev_logs:
+    external: true
+    name: medianest_backend_dev_logs
+
+# ==============================================================================
+# 🌐 NETWORKS
+# ==============================================================================
+networks:
+  # Dedicated monitoring network for PLG stack internal communication
+  medianest-monitoring:
+    driver: bridge
+    name: medianest-monitoring
+    ipam:
+      config:
+        - subnet: 172.31.0.0/16
+          gateway: 172.31.0.1
+
+  # Connect to existing development network for service discovery
+  medianest-development:
+    external: true
+    name: medianest-development
+
+# ==============================================================================
+# 📊 SERVICE DISCOVERY & PORT MAPPING
+# ==============================================================================
+#
+# Services accessible from host:
+# - Grafana:           http://localhost:3002 (admin/medianest123)
+# - Prometheus:        http://localhost:9090
+# - Loki:              http://localhost:3100
+# - Promtail:          http://localhost:9080
+# - Node Exporter:     http://localhost:9100/metrics
+# - cAdvisor:          http://localhost:8082
+# - Postgres Exporter: http://localhost:9187/metrics
+# - Redis Exporter:    http://localhost:9121/metrics
+#
+# Internal service discovery (within monitoring network):
+# - prometheus:9090, loki:3100, grafana:3002, promtail:9080
+# - node-exporter:9100, cadvisor:8080
+# - postgres-exporter:9187, redis-exporter:9121
+#
+# MEDIANEST services (via medianest-development network):
+# - backend:4000, frontend:3000, postgres:5432, redis:6379
+#
+# ==============================================================================
+# 🚀 USAGE EXAMPLES
+# ==============================================================================
+#
+# Start monitoring stack:
+# docker-compose -f monitoring/docker-compose.yml up -d
+#
+# Start with existing MEDIANEST dev environment:
+# docker-compose -f config/docker/docker-compose.dev.yml up -d
+# docker-compose -f monitoring/docker-compose.yml up -d
+#
+# View monitoring logs:
+# docker-compose -f monitoring/docker-compose.yml logs -f grafana
+#
+# Scale specific services:
+# docker-compose -f monitoring/docker-compose.yml up -d --scale promtail=2
+#
+# Check service health:
+# docker-compose -f monitoring/docker-compose.yml ps
+#
+# Stop monitoring stack:
+# docker-compose -f monitoring/docker-compose.yml down
+#
+# Remove all data (CAUTION - deletes metrics and logs):
+# docker-compose -f monitoring/docker-compose.yml down -v
+#
+# ==============================================================================

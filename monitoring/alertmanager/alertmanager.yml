@@ -1,0 +1,387 @@
+# Enhanced AlertManager Configuration for MEDIANEST
+# Multi-channel routing with severity-based escalation
+
+global:
+  # SMTP configuration for email notifications
+  smtp_smarthost: '${SMTP_HOST:-localhost:587}'
+  smtp_from: '${SMTP_FROM:-alerts@medianest.local}'
+  smtp_auth_username: '${SMTP_USERNAME:-alerts@medianest.local}'
+  smtp_auth_password: '${SMTP_PASSWORD:-changeme}'
+  smtp_require_tls: true
+  
+  # Slack webhook configuration
+  slack_api_url: '${SLACK_WEBHOOK_URL:-https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK}'
+  
+  # Global notification settings
+  resolve_timeout: 5m
+  http_config:
+    tls_config:
+      insecure_skip_verify: false
+
+# Custom alert templates
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Main routing tree with severity-based escalation
+route:
+  group_by: ['alertname', 'cluster', 'service', 'severity']
+  group_wait: 10s
+  group_interval: 30s
+  repeat_interval: 2h
+  receiver: 'default-notifications'
+  
+  routes:
+    # CRITICAL SECURITY ALERTS - Immediate notification
+    - match:
+        severity: critical
+        component: security
+      receiver: 'security-critical'
+      group_wait: 0s
+      group_interval: 5s
+      repeat_interval: 10m
+      continue: false
+
+    # CRITICAL INFRASTRUCTURE - Immediate notification
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 0s
+      group_interval: 10s
+      repeat_interval: 15m
+      continue: true
+
+    # AUTHENTICATION & SECURITY ALERTS
+    - match_re:
+        component: '(authentication|security)'
+      receiver: 'security-alerts'
+      group_interval: 15s
+      repeat_interval: 30m
+      continue: true
+
+    # APPLICATION PERFORMANCE ALERTS
+    - match:
+        component: api
+      receiver: 'application-alerts'
+      group_interval: 30s
+      repeat_interval: 1h
+
+    # BUSINESS LOGIC ALERTS
+    - match:
+        component: business
+      receiver: 'business-alerts'
+      group_interval: 1m
+      repeat_interval: 4h
+
+    # INFRASTRUCTURE ALERTS
+    - match:
+        component: infrastructure
+      receiver: 'infrastructure-alerts'
+      group_interval: 1m
+      repeat_interval: 6h
+
+    # DATABASE & CACHE ALERTS
+    - match_re:
+        service: '(postgres|redis|cache).*'
+      receiver: 'database-alerts'
+      group_interval: 30s
+      repeat_interval: 1h
+
+    # CONTAINER ALERTS
+    - match:
+        component: containers
+      receiver: 'container-alerts'
+      group_interval: 45s
+      repeat_interval: 2h
+
+    # MONITORING STACK HEALTH
+    - match:
+        component: monitoring
+      receiver: 'monitoring-alerts'
+      group_interval: 2m
+      repeat_interval: 8h
+
+# Notification receivers
+receivers:
+  # Default catch-all receiver
+  - name: 'default-notifications'
+    webhook_configs:
+      - url: '${DEFAULT_WEBHOOK_URL:-http://localhost:5001/webhook}'
+        send_resolved: true
+        title: 'MEDIANEST Alert: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          **Alert:** {{ .Annotations.summary }}
+          **Service:** {{ .Labels.service }}
+          **Severity:** {{ .Labels.severity }}
+          **Description:** {{ .Annotations.description }}
+          {{ end }}
+
+  # CRITICAL SECURITY ALERTS - Multiple channels with escalation
+  - name: 'security-critical'
+    # Immediate Slack notification
+    slack_configs:
+      - channel: '#security-alerts'
+        title: '🚨 CRITICAL SECURITY ALERT: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          **🔴 CRITICAL SECURITY INCIDENT**
+          
+          **Alert:** {{ .Annotations.summary }}
+          **Service:** {{ .Labels.service }}
+          **Event Type:** {{ .Labels.event_type }}
+          **Attack Type:** {{ if .Labels.attack_type }}{{ .Labels.attack_type }}{{ else }}Unknown{{ end }}
+          **Source:** {{ if .Labels.source_ip }}{{ .Labels.source_ip }}{{ else }}Internal{{ end }}
+          **Description:** {{ .Annotations.description }}
+          
+          **🔗 Runbook:** {{ .Annotations.runbook_url }}
+          **📊 Dashboard:** {{ .Annotations.dashboard_url }}
+          
+          **⏰ Fired At:** {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}
+          {{ end }}
+        color: 'danger'
+        send_resolved: true
+        actions:
+          - type: button
+            text: 'View Runbook'
+            url: '{{ (index .Alerts 0).Annotations.runbook_url }}'
+          - type: button
+            text: 'View Dashboard'
+            url: '{{ (index .Alerts 0).Annotations.dashboard_url }}'
+
+    # Immediate email to security team
+    email_configs:
+      - to: '${SECURITY_EMAIL:-security@medianest.local}'
+        subject: '🚨 CRITICAL SECURITY ALERT: {{ .GroupLabels.alertname }}'
+        body: |
+          CRITICAL SECURITY INCIDENT DETECTED
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Service: {{ .Labels.service }}
+          Event Type: {{ .Labels.event_type }}
+          Attack Type: {{ if .Labels.attack_type }}{{ .Labels.attack_type }}{{ else }}Unknown{{ end }}
+          Source: {{ if .Labels.source_ip }}{{ .Labels.source_ip }}{{ else }}Internal{{ end }}
+          Description: {{ .Annotations.description }}
+          
+          Runbook: {{ .Annotations.runbook_url }}
+          Dashboard: {{ .Annotations.dashboard_url }}
+          
+          Fired At: {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}
+          {{ end }}
+        headers:
+          X-Priority: '1'
+          X-Alert-Type: 'SECURITY'
+
+    # PagerDuty integration for critical security
+    webhook_configs:
+      - url: '${PAGERDUTY_WEBHOOK_URL:-http://localhost:5001/pagerduty}'
+        send_resolved: true
+        title: 'CRITICAL SECURITY: {{ .GroupLabels.alertname }}'
+
+  # CRITICAL ALERTS - Operations team
+  - name: 'critical-alerts'
+    slack_configs:
+      - channel: '#alerts-critical'
+        title: '🔴 CRITICAL: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          **🚨 CRITICAL ALERT**
+          
+          **Service:** {{ .Labels.service }}
+          **Component:** {{ .Labels.component }}
+          **Alert:** {{ .Annotations.summary }}
+          **Description:** {{ .Annotations.description }}
+          
+          {{ if .Annotations.runbook_url }}**🔗 Runbook:** {{ .Annotations.runbook_url }}{{ end }}
+          {{ if .Annotations.dashboard_url }}**📊 Dashboard:** {{ .Annotations.dashboard_url }}{{ end }}
+          
+          **⏰ Fired At:** {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}
+          {{ end }}
+        color: 'danger'
+        send_resolved: true
+
+    email_configs:
+      - to: '${OPS_EMAIL:-ops@medianest.local}'
+        subject: '🔴 CRITICAL ALERT: {{ .GroupLabels.alertname }}'
+        body: |
+          {{ template "email.critical.html" . }}
+        headers:
+          X-Priority: '1'
+          Content-Type: 'text/html'
+
+  # SECURITY ALERTS - Security team
+  - name: 'security-alerts'
+    slack_configs:
+      - channel: '#security-alerts'
+        title: '🔐 Security Alert: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          **🟡 SECURITY EVENT**
+          
+          **Event Type:** {{ .Labels.event_type }}
+          **Service:** {{ .Labels.service }}
+          **Alert:** {{ .Annotations.summary }}
+          **Description:** {{ .Annotations.description }}
+          
+          {{ if .Annotations.runbook_url }}**🔗 Runbook:** {{ .Annotations.runbook_url }}{{ end }}
+          
+          **⏰ Fired At:** {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}
+          {{ end }}
+        color: 'warning'
+        send_resolved: true
+
+  # APPLICATION ALERTS - Development team
+  - name: 'application-alerts'
+    slack_configs:
+      - channel: '#alerts-application'
+        title: '⚡ Application Alert: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          **Service:** {{ .Labels.service }}
+          **Component:** {{ .Labels.component }}
+          **Alert:** {{ .Annotations.summary }}
+          **Description:** {{ .Annotations.description }}
+          
+          {{ if .Annotations.dashboard_url }}**📊 Dashboard:** {{ .Annotations.dashboard_url }}{{ end }}
+          {{ end }}
+        color: 'warning'
+        send_resolved: true
+
+  # BUSINESS ALERTS - Product team
+  - name: 'business-alerts'
+    slack_configs:
+      - channel: '#alerts-business'
+        title: '📈 Business Alert: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          **Business Metric:** {{ .Labels.tier }}
+          **Service:** {{ .Labels.service }}
+          **Alert:** {{ .Annotations.summary }}
+          **Description:** {{ .Annotations.description }}
+          
+          {{ if .Annotations.dashboard_url }}**📊 Dashboard:** {{ .Annotations.dashboard_url }}{{ end }}
+          {{ end }}
+        color: '#FFA500'
+        send_resolved: true
+
+    email_configs:
+      - to: '${BUSINESS_EMAIL:-product@medianest.local}'
+        subject: 'Business Metric Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          Business metric alert detected.
+          
+          {{ range .Alerts }}
+          Metric: {{ .Labels.tier }}
+          Service: {{ .Labels.service }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          
+          Dashboard: {{ .Annotations.dashboard_url }}
+          {{ end }}
+
+  # INFRASTRUCTURE ALERTS - Infrastructure team
+  - name: 'infrastructure-alerts'
+    slack_configs:
+      - channel: '#alerts-infrastructure'
+        title: '🏗️ Infrastructure Alert: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          **Instance:** {{ .Labels.instance }}
+          **Component:** {{ .Labels.component }}
+          **Alert:** {{ .Annotations.summary }}
+          **Description:** {{ .Annotations.description }}
+          
+          {{ if .Annotations.dashboard_url }}**📊 Dashboard:** {{ .Annotations.dashboard_url }}{{ end }}
+          {{ end }}
+        color: '#FF9900'
+        send_resolved: true
+
+  # DATABASE ALERTS - Database team
+  - name: 'database-alerts'
+    slack_configs:
+      - channel: '#alerts-database'
+        title: '🗄️ Database Alert: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          **Database:** {{ .Labels.service }}
+          **Alert:** {{ .Annotations.summary }}
+          **Description:** {{ .Annotations.description }}
+          
+          {{ if .Annotations.dashboard_url }}**📊 Dashboard:** {{ .Annotations.dashboard_url }}{{ end }}
+          {{ end }}
+        color: '#9932CC'
+        send_resolved: true
+
+  # CONTAINER ALERTS - DevOps team
+  - name: 'container-alerts'
+    slack_configs:
+      - channel: '#alerts-containers'
+        title: '🐳 Container Alert: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          **Container:** {{ .Labels.service }}
+          **Alert:** {{ .Annotations.summary }}
+          **Description:** {{ .Annotations.description }}
+          
+          {{ if .Annotations.dashboard_url }}**📊 Dashboard:** {{ .Annotations.dashboard_url }}{{ end }}
+          {{ end }}
+        color: '#0db7ed'
+        send_resolved: true
+
+  # MONITORING ALERTS - SRE team
+  - name: 'monitoring-alerts'
+    slack_configs:
+      - channel: '#alerts-monitoring'
+        title: '📊 Monitoring Alert: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          **Monitoring Service:** {{ .Labels.service }}
+          **Alert:** {{ .Annotations.summary }}
+          **Description:** {{ .Annotations.description }}
+          {{ end }}
+        color: '#36C5F0'
+        send_resolved: true
+
+# Inhibition rules to prevent alert spam
+inhibit_rules:
+  # Inhibit lower severity alerts when critical is firing for same service
+  - source_match:
+      severity: 'critical'
+    target_match_re:
+      severity: 'warning|info'
+    equal: ['alertname', 'service', 'instance']
+
+  # Inhibit specific alert combinations
+  - source_match:
+      alertname: 'AuthServiceDown'
+    target_match_re:
+      alertname: '(HighAuthFailureRate|SessionTokenLeakage|UnauthorizedAPIAccess)'
+    equal: ['service']
+
+  - source_match:
+      alertname: 'ApplicationDown'
+    target_match_re:
+      alertname: '(HighErrorRate|CriticalResponseTime|DatabaseDown)'
+    equal: ['service']
+
+  # Inhibit container alerts when node is down
+  - source_match:
+      alertname: 'NodeDown'
+    target_match_re:
+      alertname: '(Container.*|HighContainerMemoryUsage|ContainerCPUThrottling)'
+    equal: ['instance']
+
+  # Inhibit business alerts when infrastructure is down
+  - source_match:
+      component: 'infrastructure'
+      severity: 'critical'
+    target_match:
+      component: 'business'
+    equal: ['instance']
+
+  # Inhibit security alerts during maintenance windows
+  - source_match:
+      alertname: 'MaintenanceMode'
+    target_match:
+      component: 'security'
+    equal: ['service']

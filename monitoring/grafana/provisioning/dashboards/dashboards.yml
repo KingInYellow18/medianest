@@ -1,0 +1,59 @@
+# Auto-Provisioning Dashboard Configuration for MEDIANEST
+# Automatically loads all JSON dashboards from the dashboards directory
+apiVersion: 1
+
+providers:
+  # MEDIANEST System Overview Dashboards
+  - name: 'medianest-system'
+    orgId: 1
+    folder: 'MEDIANEST System'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards/system
+
+  # MEDIANEST Application Performance Dashboards  
+  - name: 'medianest-application'
+    orgId: 1
+    folder: 'MEDIANEST Application'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards/application
+
+  # MEDIANEST Business Metrics Dashboards
+  - name: 'medianest-business'
+    orgId: 1
+    folder: 'MEDIANEST Business'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards/business
+
+  # MEDIANEST Logs and Observability Dashboards
+  - name: 'medianest-logs'
+    orgId: 1
+    folder: 'MEDIANEST Logs'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards/logs
+
+  # MEDIANEST Infrastructure Dashboards
+  - name: 'medianest-infrastructure'
+    orgId: 1
+    folder: 'MEDIANEST Infrastructure'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards/infrastructure

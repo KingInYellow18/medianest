@@ -1,0 +1,330 @@
+# ==============================================================================
+# 🚚 PROMTAIL CONFIGURATION - MEDIANEST PLG STACK
+# ==============================================================================
+# Log shipping agent for Docker containers and application logs
+# Optimized for MEDIANEST Express.js + Next.js + PostgreSQL + Redis stack
+# Includes structured log parsing and label extraction
+# ==============================================================================
+
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+  log_level: info
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+    # Batching configuration for efficient log shipping
+    batchwait: 1s
+    batchsize: 1048576  # 1MB batches
+    
+    # External labels added to all logs
+    external_labels:
+      cluster: medianest-dev
+      environment: development
+      project: medianest
+
+positions:
+  filename: /tmp/positions.yaml
+
+scrape_configs:
+  # ==============================================================================
+  # 🐳 DOCKER CONTAINER LOGS
+  # ==============================================================================
+  - job_name: docker-containers
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: docker-containers
+          __path__: /var/lib/docker/containers/*/*-json.log
+    
+    # Pipeline for Docker container logs
+    pipeline_stages:
+      # Parse Docker JSON log format
+      - json:
+          expressions:
+            output: log
+            stream: stream
+            timestamp: time
+      
+      # Extract timestamp
+      - timestamp:
+          source: timestamp
+          format: RFC3339Nano
+      
+      # Extract container labels from log path
+      - regex:
+          expression: '/var/lib/docker/containers/(?P<container_id>[^/]+)/.*'
+          
+      # Add container metadata
+      - docker:
+          host: unix:///var/run/docker.sock
+          match:
+            source: container_id
+          labels:
+            - container_name
+            - image_name
+            - compose_service
+            - compose_project
+      
+      # Parse structured logs (JSON format from Winston/Next.js)
+      - match:
+          selector: '{compose_project="medianest"}'
+          stages:
+            - json:
+                expressions:
+                  level: level
+                  message: message
+                  service: service
+                  timestamp: timestamp
+                  correlation_id: correlationId
+                  request_id: requestId
+                  user_id: userId
+                  endpoint: endpoint
+                  method: method
+                  status_code: statusCode
+                  response_time: responseTime
+                  error: error
+            
+            # Convert log level to standard format
+            - template:
+                source: level
+                template: '{{ .level | lower }}'
+      
+      # Label extraction for better filtering
+      - labels:
+          level:
+          service:
+          method:
+          status_code:
+          container_name:
+          image_name:
+          compose_service:
+
+  # ==============================================================================
+  # 🚀 MEDIANEST BACKEND APPLICATION LOGS
+  # ==============================================================================
+  - job_name: medianest-backend
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: medianest-backend
+          service: backend
+          application: medianest
+          __path__: /app/logs/*.log
+    
+    pipeline_stages:
+      # Parse Winston JSON logs
+      - json:
+          expressions:
+            timestamp: timestamp
+            level: level
+            message: message
+            service: service
+            correlation_id: correlationId
+            request_id: requestId
+            user_id: userId
+            endpoint: endpoint
+            method: method
+            status_code: statusCode
+            response_time: responseTime
+            error: error
+            stack: stack
+      
+      # Convert timestamp
+      - timestamp:
+          source: timestamp
+          format: RFC3339
+      
+      # Normalize log levels
+      - template:
+          source: level
+          template: '{{ .level | lower }}'
+      
+      # Extract labels for filtering
+      - labels:
+          level:
+          service:
+          endpoint:
+          method:
+          status_code:
+          correlation_id:
+
+  # ==============================================================================
+  # 🗄️ POSTGRESQL LOGS
+  # ==============================================================================
+  - job_name: postgresql
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: postgresql
+          service: database
+          database: postgresql
+          __path__: /docker/backend/logs/postgresql*.log
+    
+    pipeline_stages:
+      # Parse PostgreSQL log format
+      - regex:
+          expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} \w+) \[(?P<pid>\d+)\] (?P<level>\w+):\s+(?P<message>.*)'
+      
+      # Convert timestamp
+      - timestamp:
+          source: timestamp
+          format: '2006-01-02 15:04:05.000 MST'
+      
+      # Normalize log level
+      - template:
+          source: level
+          template: '{{ .level | lower }}'
+      
+      # Extract SQL statements and errors
+      - regex:
+          expression: '^(statement|execute|ERROR):\s+(?P<query>.*)'
+          source: message
+      
+      # Label extraction
+      - labels:
+          level:
+          pid:
+
+  # ==============================================================================
+  # 📊 REDIS LOGS
+  # ==============================================================================
+  - job_name: redis
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: redis
+          service: cache
+          cache_type: redis
+          __path__: /docker/backend/logs/redis*.log
+    
+    pipeline_stages:
+      # Parse Redis log format
+      - regex:
+          expression: '^(?P<pid>\d+):(?P<role>\w+) (?P<timestamp>\d{2} \w{3} \d{4} \d{2}:\d{2}:\d{2}\.\d{3}) (?P<level>[\*\#\-\.]) (?P<message>.*)'
+      
+      # Convert Redis log level symbols to standard levels
+      - template:
+          source: level
+          template: |
+            {{ if eq .level "*" }}info
+            {{ else if eq .level "#" }}warn  
+            {{ else if eq .level "-" }}debug
+            {{ else if eq .level "." }}debug
+            {{ else }}info{{ end }}
+      
+      # Label extraction
+      - labels:
+          level:
+          role:
+          pid:
+
+  # ==============================================================================
+  # 🖥️ SYSTEM LOGS
+  # ==============================================================================
+  - job_name: system
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: system
+          service: system
+          __path__: /var/log/{auth,kern,mail,cron,daemon,user,messages}.log
+    
+    pipeline_stages:
+      # Parse standard syslog format
+      - regex:
+          expression: '^(?P<timestamp>\w{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2}) (?P<hostname>\S+) (?P<program>[^:\[]+)(\[(?P<pid>\d+)\])?: (?P<message>.*)'
+      
+      # Convert syslog timestamp (add current year)
+      - timestamp:
+          source: timestamp
+          format: 'Jan 2 15:04:05'
+          location: 'UTC'
+      
+      # Extract log level from message patterns
+      - regex:
+          expression: '(?i)(error|err|fail|fatal|panic|warn|warning|info|debug)'
+          source: message
+      
+      # Label extraction
+      - labels:
+          hostname:
+          program:
+          pid:
+
+  # ==============================================================================
+  # 🚨 ERROR LOG AGGREGATION
+  # ==============================================================================
+  - job_name: error-logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: error-logs
+          service: aggregated-errors
+          __path__: /var/log/*error*.log
+    
+    pipeline_stages:
+      # Enhanced error parsing
+      - multiline:
+          firstline: '^\d{4}-\d{2}-\d{2}'
+          max_wait_time: 3s
+      
+      # Extract error patterns
+      - regex:
+          expression: '(?i)(?P<error_type>error|exception|fatal|panic|fail)'
+          source: message
+      
+      # Label extraction for error categorization
+      - labels:
+          error_type:
+
+# ==============================================================================
+# 🏷️ LABEL STANDARDIZATION
+# ==============================================================================
+# Standard labels used across all MEDIANEST logs:
+# - job: Source of the logs (docker-containers, medianest-backend, etc.)
+# - service: Service name (backend, frontend, database, cache, system)
+# - level: Log level (error, warn, info, debug)
+# - environment: deployment environment (development, staging, production)
+# - cluster: cluster identifier (medianest-dev)
+# - project: project name (medianest)
+
+# Application-specific labels:
+# - correlation_id: Request correlation ID for tracing
+# - request_id: Unique request identifier
+# - user_id: User identifier for user-specific filtering
+# - endpoint: API endpoint path
+# - method: HTTP method (GET, POST, etc.)
+# - status_code: HTTP status code
+# - response_time: Request processing time
+
+# Infrastructure-specific labels:
+# - container_name: Docker container name
+# - image_name: Docker image name
+# - compose_service: Docker Compose service name
+# - hostname: System hostname
+# - program: System program/daemon name
+# - pid: Process ID
+
+# ==============================================================================
+# 📊 LOG VOLUME ESTIMATES
+# ==============================================================================
+# Expected daily log volume for MEDIANEST development:
+# - Backend API logs: ~100MB/day
+# - Frontend logs: ~50MB/day  
+# - PostgreSQL logs: ~200MB/day
+# - Redis logs: ~10MB/day
+# - Docker container logs: ~100MB/day
+# - System logs: ~50MB/day
+# Total estimated: ~510MB/day
+
+# With 30-day retention: ~15GB total log storage
+# Compressed: ~3-5GB (Loki compression ratio 3-5x)
+
+# ==============================================================================

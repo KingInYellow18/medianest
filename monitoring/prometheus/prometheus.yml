@@ -1,0 +1,193 @@
+# Prometheus Configuration for MEDIANEST PLG Stack
+# Complete metrics collection configuration
+
+global:
+  scrape_interval: 5s  # 5-second scrape interval as specified
+  evaluation_interval: 5s
+  external_labels:
+    monitor: 'medianest-monitor'
+    environment: '${ENVIRONMENT:-development}'
+    cluster: 'medianest-local'
+
+rule_files:
+  - "alerts.yml"
+  - "alerts/application-alerts.yml"
+  - "alerts/infrastructure-alerts.yml"
+  - "alerts/business-alerts.yml"
+  - "alerts/security-alerts.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+scrape_configs:
+  # MEDIANEST Backend Application Metrics
+  - job_name: 'medianest-backend'
+    static_configs:
+      - targets: ['backend:4000']  # Backend runs on port 4000
+    metrics_path: '/metrics'
+    scrape_interval: 5s
+    scrape_timeout: 10s
+    honor_labels: true
+    params:
+      format: ['prometheus']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: backend:4000
+      - target_label: service
+        replacement: medianest-backend
+      - target_label: component
+        replacement: application
+    metric_relabel_configs:
+      # Drop high-cardinality metrics if needed
+      - source_labels: [__name__]
+        regex: 'go_memstats_.*'
+        action: drop
+      # Add service labels
+      - target_label: application
+        replacement: medianest
+      - target_label: tier
+        replacement: backend
+
+  # Frontend Application Metrics (if instrumented)
+  - job_name: 'medianest-frontend'
+    static_configs:
+      - targets: ['frontend:3000']
+    metrics_path: '/metrics'
+    scrape_interval: 15s  # Less frequent for frontend
+    honor_labels: true
+    relabel_configs:
+      - target_label: service
+        replacement: medianest-frontend
+      - target_label: component
+        replacement: web
+
+  # Node Exporter - System Metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 5s
+    relabel_configs:
+      - target_label: service
+        replacement: node-exporter
+      - target_label: component
+        replacement: infrastructure
+
+  # cAdvisor - Container Metrics
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 5s
+    metrics_path: '/metrics'
+    relabel_configs:
+      - target_label: service
+        replacement: cadvisor
+      - target_label: component
+        replacement: containers
+    metric_relabel_configs:
+      # Keep only essential container metrics to reduce cardinality
+      - source_labels: [__name__]
+        regex: 'container_(cpu_usage_seconds_total|memory_usage_bytes|network_receive_bytes_total|network_transmit_bytes_total|fs_usage_bytes|fs_limit_bytes)'
+        action: keep
+      # Drop machine-level metrics to reduce noise
+      - source_labels: [id]
+        regex: '/machine'
+        action: drop
+
+  # PostgreSQL Exporter
+  - job_name: 'postgres-exporter'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    scrape_interval: 10s
+    relabel_configs:
+      - target_label: service
+        replacement: postgres-exporter
+      - target_label: component
+        replacement: database
+      - target_label: database
+        replacement: postgresql
+
+  # Redis Exporter
+  - job_name: 'redis-exporter'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 10s
+    relabel_configs:
+      - target_label: service
+        replacement: redis-exporter
+      - target_label: component
+        replacement: cache
+      - target_label: database
+        replacement: redis
+
+  # Prometheus Self-Monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 10s
+    metrics_path: '/metrics'
+    relabel_configs:
+      - target_label: service
+        replacement: prometheus
+      - target_label: component
+        replacement: monitoring
+
+  # Grafana Metrics
+  - job_name: 'grafana'
+    static_configs:
+      - targets: ['grafana:3001']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    relabel_configs:
+      - target_label: service
+        replacement: grafana
+      - target_label: component
+        replacement: visualization
+
+  # Optional: Loki for log metrics
+  - job_name: 'loki'
+    static_configs:
+      - targets: ['loki:3100']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    relabel_configs:
+      - target_label: service
+        replacement: loki
+      - target_label: component
+        replacement: logs
+
+  # Optional: Promtail for log forwarding metrics
+  - job_name: 'promtail'
+    static_configs:
+      - targets: ['promtail:9080']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    relabel_configs:
+      - target_label: service
+        replacement: promtail
+      - target_label: component
+        replacement: log-forwarding
+
+# Storage configuration for metrics retention
+storage:
+  tsdb:
+    path: /prometheus/data
+    retention.time: 30d  # 30-day retention as specified
+    retention.size: 50GB
+    wal-compression: true
+    min-block-duration: 2h
+    max-block-duration: 25h
+
+# Remote write configuration (optional for long-term storage)
+# remote_write:
+#   - url: "http://victoria-metrics:8428/api/v1/write"
+#     queue_config:
+#       max_samples_per_send: 10000
+#       capacity: 20000
+#       max_shards: 200

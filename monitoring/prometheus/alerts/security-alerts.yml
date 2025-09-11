@@ -1,0 +1,395 @@
+# MEDIANEST Security Alert Rules
+# Authentication failures, rate limiting, and suspicious activity detection
+
+groups:
+  # Authentication Security
+  - name: medianest.security.authentication
+    rules:
+      - alert: BruteForceAttackDetected
+        expr: >
+          rate(http_requests_total{job="medianest-backend",endpoint=~".*/(auth|login).*",status_code="401"}[5m]) > 5
+        for: 2m
+        labels:
+          severity: critical
+          component: security
+          service: authentication
+          tier: attack_detection
+          event_type: auth_failure
+          attack_type: brute_force
+        annotations:
+          summary: "SECURITY: Brute force attack detected"
+          description: "{{ $value }} authentication failures per second - potential brute force attack"
+          runbook_url: "https://docs.medianest.io/runbooks/brute-force-attack"
+
+      - alert: SuspiciousAuthenticationActivity
+        expr: >
+          count by (source_ip) (
+            rate(http_requests_total{job="medianest-backend",endpoint=~".*/(auth|login).*",status_code="401"}[10m]) > 1
+          ) > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: security
+          service: authentication
+          tier: threat_detection
+          event_type: auth_failure
+          attack_type: distributed
+        annotations:
+          summary: "Suspicious authentication activity from multiple IPs"
+          description: "{{ $value }} different IP addresses showing failed authentication attempts"
+          runbook_url: "https://docs.medianest.io/runbooks/suspicious-auth"
+
+      - alert: AccountLockoutSpike
+        expr: >
+          rate(account_lockouts_total{job="medianest-backend"}[5m]) > 0.1
+        for: 3m
+        labels:
+          severity: warning
+          component: security
+          service: account_management
+          tier: protection
+          event_type: account_lockout
+        annotations:
+          summary: "Spike in account lockouts detected"
+          description: "{{ $value }} account lockouts per second - possible attack or system issue"
+          runbook_url: "https://docs.medianest.io/runbooks/account-lockouts"
+
+      - alert: PrivilegeEscalationAttempt
+        expr: >
+          rate(privilege_escalation_attempts_total{job="medianest-backend"}[5m]) > 0
+        for: 0s
+        labels:
+          severity: critical
+          component: security
+          service: authorization
+          tier: privilege_control
+          event_type: privilege_escalation
+          attack_type: escalation
+        annotations:
+          summary: "SECURITY: Privilege escalation attempt detected"
+          description: "{{ $value }} privilege escalation attempts per second from {{ $labels.source_ip }}"
+          runbook_url: "https://docs.medianest.io/runbooks/privilege-escalation"
+
+  # Session Security
+  - name: medianest.security.session
+    rules:
+      - alert: SessionHijackingDetected
+        expr: >
+          rate(session_hijacking_attempts_total{job="medianest-backend"}[5m]) > 0
+        for: 0s
+        labels:
+          severity: critical
+          component: security
+          service: session_management
+          tier: session_protection
+          event_type: session_hijacking
+          attack_type: hijacking
+        annotations:
+          summary: "SECURITY: Session hijacking attempt detected"
+          description: "{{ $value }} session hijacking attempts detected from {{ $labels.source_ip }}"
+          runbook_url: "https://docs.medianest.io/runbooks/session-hijacking"
+
+      - alert: UnusualSessionActivity
+        expr: >
+          rate(concurrent_sessions_per_user{job="medianest-backend"}[10m]) > 5
+        for: 10m
+        labels:
+          severity: warning
+          component: security
+          service: session_management
+          tier: anomaly_detection
+          event_type: unusual_activity
+        annotations:
+          summary: "Unusual session activity - high concurrent sessions"
+          description: "User {{ $labels.user_id }} has {{ $value }} concurrent sessions"
+          runbook_url: "https://docs.medianest.io/runbooks/unusual-sessions"
+
+      - alert: SessionTokenLeakage
+        expr: >
+          rate(invalid_session_token_usage_total{job="medianest-backend"}[5m]) > 2
+        for: 3m
+        labels:
+          severity: critical
+          component: security
+          service: session_management
+          tier: token_security
+          event_type: token_leakage
+        annotations:
+          summary: "SECURITY: Possible session token leakage"
+          description: "{{ $value }} invalid session token usage attempts per second"
+          runbook_url: "https://docs.medianest.io/runbooks/token-leakage"
+
+  # API Security
+  - name: medianest.security.api
+    rules:
+      - alert: RateLimitExceeded
+        expr: >
+          rate(http_requests_total{job="medianest-backend",status_code="429"}[5m]) > 1
+        for: 2m
+        labels:
+          severity: warning
+          component: security
+          service: rate_limiting
+          tier: ddos_protection
+          event_type: rate_limit
+        annotations:
+          summary: "Rate limiting triggered - possible DDoS attempt"
+          description: "{{ $value }} rate-limited requests per second from {{ $labels.source_ip }}"
+          runbook_url: "https://docs.medianest.io/runbooks/rate-limiting"
+
+      - alert: CriticalRateLimitExceeded
+        expr: >
+          rate(http_requests_total{job="medianest-backend",status_code="429"}[1m]) > 10
+        for: 1m
+        labels:
+          severity: critical
+          component: security
+          service: rate_limiting
+          tier: ddos_protection
+          event_type: rate_limit
+          attack_type: ddos
+        annotations:
+          summary: "SECURITY: Critical rate limit exceeded - DDoS attack likely"
+          description: "{{ $value }} rate-limited requests per second - DDoS attack in progress"
+          runbook_url: "https://docs.medianest.io/runbooks/ddos-attack"
+
+      - alert: UnauthorizedAPIAccess
+        expr: >
+          rate(http_requests_total{job="medianest-backend",status_code="403"}[5m]) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          component: security
+          service: authorization
+          tier: access_control
+          event_type: unauthorized_access
+        annotations:
+          summary: "High rate of unauthorized API access attempts"
+          description: "{{ $value }} unauthorized access attempts per second"
+          runbook_url: "https://docs.medianest.io/runbooks/unauthorized-access"
+
+      - alert: SQLInjectionAttempt
+        expr: >
+          rate(sql_injection_attempts_total{job="medianest-backend"}[5m]) > 0
+        for: 0s
+        labels:
+          severity: critical
+          component: security
+          service: input_validation
+          tier: injection_protection
+          event_type: sql_injection
+          attack_type: injection
+        annotations:
+          summary: "SECURITY: SQL injection attempt detected"
+          description: "{{ $value }} SQL injection attempts from {{ $labels.source_ip }}"
+          runbook_url: "https://docs.medianest.io/runbooks/sql-injection"
+
+      - alert: XSSAttemptDetected
+        expr: >
+          rate(xss_attempts_total{job="medianest-backend"}[5m]) > 0
+        for: 0s
+        labels:
+          severity: critical
+          component: security
+          service: input_validation
+          tier: xss_protection
+          event_type: xss_attempt
+          attack_type: xss
+        annotations:
+          summary: "SECURITY: XSS attempt detected"
+          description: "{{ $value }} XSS attempts from {{ $labels.source_ip }}"
+          runbook_url: "https://docs.medianest.io/runbooks/xss-attempt"
+
+  # Network Security
+  - name: medianest.security.network
+    rules:
+      - alert: UnusualNetworkTraffic
+        expr: >
+          rate(node_network_receive_bytes_total[5m]) > 
+          (avg_over_time(rate(node_network_receive_bytes_total[5m])[1h:5m]) * 5)
+        for: 10m
+        labels:
+          severity: warning
+          component: security
+          service: network_monitoring
+          tier: anomaly_detection
+          event_type: unusual_traffic
+        annotations:
+          summary: "Unusual network traffic pattern detected"
+          description: "Network traffic is {{ $value }}x higher than normal on {{ $labels.device }}"
+          runbook_url: "https://docs.medianest.io/runbooks/unusual-traffic"
+
+      - alert: PortScanDetected
+        expr: >
+          rate(port_scan_attempts_total{job="medianest-backend"}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          component: security
+          service: network_monitoring
+          tier: reconnaissance_detection
+          event_type: port_scan
+          attack_type: reconnaissance
+        annotations:
+          summary: "Port scan activity detected"
+          description: "{{ $value }} port scan attempts per second from {{ $labels.source_ip }}"
+          runbook_url: "https://docs.medianest.io/runbooks/port-scan"
+
+      - alert: SuspiciousOutboundConnections
+        expr: >
+          rate(outbound_connections_blocked_total{job="medianest-backend"}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: security
+          service: network_monitoring
+          tier: egress_monitoring
+          event_type: suspicious_outbound
+        annotations:
+          summary: "Suspicious outbound connections blocked"
+          description: "{{ $value }} suspicious outbound connections blocked per second"
+          runbook_url: "https://docs.medianest.io/runbooks/suspicious-outbound"
+
+  # Data Security
+  - name: medianest.security.data
+    rules:
+      - alert: UnauthorizedDataAccess
+        expr: >
+          rate(unauthorized_data_access_attempts_total{job="medianest-backend"}[5m]) > 0
+        for: 0s
+        labels:
+          severity: critical
+          component: security
+          service: data_protection
+          tier: access_control
+          event_type: data_breach_attempt
+        annotations:
+          summary: "SECURITY: Unauthorized data access attempt"
+          description: "{{ $value }} unauthorized data access attempts from {{ $labels.source_ip }}"
+          runbook_url: "https://docs.medianest.io/runbooks/data-breach"
+
+      - alert: DataExfiltrationAttempt
+        expr: >
+          rate(large_data_transfer_attempts_total{job="medianest-backend"}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+          component: security
+          service: data_protection
+          tier: exfiltration_detection
+          event_type: data_exfiltration
+        annotations:
+          summary: "SECURITY: Possible data exfiltration attempt"
+          description: "{{ $value }} large data transfer attempts detected"
+          runbook_url: "https://docs.medianest.io/runbooks/data-exfiltration"
+
+      - alert: SensitiveDataExposure
+        expr: >
+          rate(sensitive_data_exposure_incidents_total{job="medianest-backend"}[5m]) > 0
+        for: 0s
+        labels:
+          severity: critical
+          component: security
+          service: data_protection
+          tier: privacy_protection
+          event_type: data_exposure
+        annotations:
+          summary: "SECURITY: Sensitive data exposure detected"
+          description: "{{ $value }} sensitive data exposure incidents"
+          runbook_url: "https://docs.medianest.io/runbooks/data-exposure"
+
+  # System Security
+  - name: medianest.security.system
+    rules:
+      - alert: SecurityConfigurationChange
+        expr: >
+          rate(security_config_changes_total{job="medianest-backend"}[5m]) > 0
+        for: 0s
+        labels:
+          severity: warning
+          component: security
+          service: configuration_management
+          tier: change_detection
+          event_type: config_change
+        annotations:
+          summary: "Security configuration change detected"
+          description: "{{ $value }} security configuration changes in the last 5 minutes"
+          runbook_url: "https://docs.medianest.io/runbooks/config-changes"
+
+      - alert: MalwareDetectionAlert
+        expr: >
+          rate(malware_detection_alerts_total{job="medianest-backend"}[5m]) > 0
+        for: 0s
+        labels:
+          severity: critical
+          component: security
+          service: malware_protection
+          tier: threat_detection
+          event_type: malware_detection
+        annotations:
+          summary: "SECURITY: Malware detected"
+          description: "{{ $value }} malware detection alerts"
+          runbook_url: "https://docs.medianest.io/runbooks/malware-detection"
+
+      - alert: FileIntegrityViolation
+        expr: >
+          rate(file_integrity_violations_total{job="medianest-backend"}[5m]) > 0
+        for: 0s
+        labels:
+          severity: critical
+          component: security
+          service: file_integrity
+          tier: integrity_monitoring
+          event_type: integrity_violation
+        annotations:
+          summary: "SECURITY: File integrity violation detected"
+          description: "{{ $value }} file integrity violations detected"
+          runbook_url: "https://docs.medianest.io/runbooks/file-integrity"
+
+  # Compliance and Audit
+  - name: medianest.security.compliance
+    rules:
+      - alert: AuditLogTampering
+        expr: >
+          rate(audit_log_tampering_attempts_total{job="medianest-backend"}[5m]) > 0
+        for: 0s
+        labels:
+          severity: critical
+          component: security
+          service: audit_logging
+          tier: audit_integrity
+          event_type: audit_tampering
+        annotations:
+          summary: "SECURITY: Audit log tampering attempt detected"
+          description: "{{ $value }} audit log tampering attempts"
+          runbook_url: "https://docs.medianest.io/runbooks/audit-tampering"
+
+      - alert: ComplianceViolation
+        expr: >
+          rate(compliance_violations_total{job="medianest-backend"}[5m]) > 0
+        for: 0s
+        labels:
+          severity: warning
+          component: security
+          service: compliance_monitoring
+          tier: regulatory_compliance
+          event_type: compliance_violation
+        annotations:
+          summary: "Compliance violation detected"
+          description: "{{ $value }} compliance violations of type {{ $labels.violation_type }}"
+          runbook_url: "https://docs.medianest.io/runbooks/compliance-violation"
+
+      - alert: SecurityEventLogGap
+        expr: >
+          (time() - security_event_log_last_timestamp{job="medianest-backend"}) > 300
+        for: 5m
+        labels:
+          severity: warning
+          component: security
+          service: audit_logging
+          tier: monitoring_integrity
+          event_type: log_gap
+        annotations:
+          summary: "Security event logging gap detected"
+          description: "No security events logged for {{ $value }}s (threshold: 300s)"
+          runbook_url: "https://docs.medianest.io/runbooks/log-gap"

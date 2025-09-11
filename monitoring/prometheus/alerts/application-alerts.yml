@@ -1,0 +1,285 @@
+# MEDIANEST Application-Specific Alert Rules
+# Critical business logic and API health monitoring
+
+groups:
+  # Authentication & Security Alerts
+  - name: medianest.auth.critical
+    rules:
+      - alert: AuthServiceDown
+        expr: up{job="medianest-backend",service="medianest-backend"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          component: authentication
+          service: medianest-backend
+          tier: security
+        annotations:
+          summary: "CRITICAL: Authentication service is unavailable"
+          description: "Authentication service has been down for {{ $value }} seconds. All user authentication is blocked."
+          runbook_url: "https://docs.medianest.io/runbooks/auth-service-down"
+          dashboard_url: "http://grafana:3001/d/medianest-auth/authentication-metrics"
+
+      - alert: HighAuthFailureRate
+        expr: >
+          (
+            rate(http_requests_total{job="medianest-backend",endpoint=~".*/(auth|login|verify).*",status_code=~"4[0-9][0-9]"}[5m]) /
+            rate(http_requests_total{job="medianest-backend",endpoint=~".*/(auth|login|verify).*"}[5m])
+          ) > 0.25
+        for: 2m
+        labels:
+          severity: critical
+          component: authentication
+          service: medianest-backend
+          tier: security
+          event_type: auth_failure
+        annotations:
+          summary: "High authentication failure rate detected"
+          description: "Authentication failure rate is {{ $value | humanizePercentage }} over 5 minutes (threshold: 25%)"
+          runbook_url: "https://docs.medianest.io/runbooks/auth-failures"
+
+      - alert: SuspiciousAuthActivity
+        expr: >
+          rate(http_requests_total{job="medianest-backend",endpoint=~".*/(auth|login|verify).*",status_code="429"}[1m]) > 5
+        for: 1m
+        labels:
+          severity: warning
+          component: authentication
+          service: medianest-backend
+          tier: security
+          event_type: rate_limit
+        annotations:
+          summary: "Rate limiting triggered on authentication endpoints"
+          description: "{{ $value }} rate-limited authentication requests per minute detected"
+          runbook_url: "https://docs.medianest.io/runbooks/rate-limiting"
+
+  # API Performance Alerts
+  - name: medianest.api.performance
+    rules:
+      - alert: CriticalAPIResponseTime
+        expr: >
+          histogram_quantile(0.95,
+            rate(http_request_duration_seconds_bucket{job="medianest-backend",endpoint=~".*/(auth|media|dashboard).*"}[5m])
+          ) > 2
+        for: 2m
+        labels:
+          severity: critical
+          component: api
+          service: medianest-backend
+          tier: performance
+        annotations:
+          summary: "Critical API response time on {{ $labels.endpoint }}"
+          description: "95th percentile response time is {{ $value }}s (threshold: 2s) for endpoint {{ $labels.endpoint }}"
+          dashboard_url: "http://grafana:3001/d/medianest-perf/api-performance"
+
+      - alert: HighAPIErrorRate
+        expr: >
+          (
+            rate(http_requests_total{job="medianest-backend",status_code=~"5[0-9][0-9]"}[5m]) /
+            rate(http_requests_total{job="medianest-backend"}[5m])
+          ) > 0.01
+        for: 2m
+        labels:
+          severity: critical
+          component: api
+          service: medianest-backend
+          tier: reliability
+        annotations:
+          summary: "High API error rate detected"
+          description: "Server error rate is {{ $value | humanizePercentage }} (threshold: 1%)"
+          dashboard_url: "http://grafana:3001/d/medianest-errors/error-analysis"
+
+      - alert: MediaControllerErrors
+        expr: >
+          rate(http_requests_total{job="medianest-backend",endpoint=~".*/media.*",status_code=~"5[0-9][0-9]"}[5m]) > 0.1
+        for: 3m
+        labels:
+          severity: warning
+          component: media
+          service: medianest-backend
+          tier: business
+        annotations:
+          summary: "Media controller experiencing high error rate"
+          description: "{{ $value }} errors per second on media endpoints"
+          runbook_url: "https://docs.medianest.io/runbooks/media-errors"
+
+  # Business Logic Alerts
+  - name: medianest.business.critical
+    rules:
+      - alert: MediaRequestQueueBacklog
+        expr: media_request_queue_size{job="medianest-backend"} > 100
+        for: 10m
+        labels:
+          severity: warning
+          component: business
+          service: media-processing
+          tier: user_experience
+        annotations:
+          summary: "High media request queue backlog"
+          description: "Media request queue has {{ $value }} pending items (threshold: 100)"
+          runbook_url: "https://docs.medianest.io/runbooks/queue-backlog"
+
+      - alert: CriticalMediaRequestBacklog
+        expr: media_request_queue_size{job="medianest-backend"} > 500
+        for: 5m
+        labels:
+          severity: critical
+          component: business
+          service: media-processing
+          tier: user_experience
+        annotations:
+          summary: "CRITICAL: Media request queue severely backed up"
+          description: "Media request queue has {{ $value }} pending items (threshold: 500)"
+          runbook_url: "https://docs.medianest.io/runbooks/queue-critical"
+
+      - alert: PlexIntegrationFailure
+        expr: >
+          rate(plex_api_requests_total{status="error"}[5m]) /
+          rate(plex_api_requests_total[5m]) > 0.2
+        for: 3m
+        labels:
+          severity: critical
+          component: integration
+          service: plex-service
+          tier: business
+        annotations:
+          summary: "High Plex integration failure rate"
+          description: "Plex API error rate is {{ $value | humanizePercentage }} (threshold: 20%)"
+          runbook_url: "https://docs.medianest.io/runbooks/plex-integration"
+
+      - alert: OverseerrIntegrationDown
+        expr: overseerr_service_available{job="medianest-backend"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          component: integration
+          service: overseerr-service
+          tier: business
+        annotations:
+          summary: "Overseerr integration unavailable"
+          description: "Cannot connect to Overseerr service for {{ $value }} minutes"
+          runbook_url: "https://docs.medianest.io/runbooks/overseerr-down"
+
+  # User Experience Alerts
+  - name: medianest.user.experience
+    rules:
+      - alert: NoActiveUserSessions
+        expr: active_user_sessions{job="medianest-backend"} < 1
+        for: 2h
+        labels:
+          severity: info
+          component: user_engagement
+          service: session-management
+          tier: business
+        annotations:
+          summary: "No active user sessions detected"
+          description: "No users have been active for {{ $value }} hours"
+          dashboard_url: "http://grafana:3001/d/medianest-users/user-activity"
+
+      - alert: HighUserRequestFailures
+        expr: >
+          rate(user_request_failures_total{job="medianest-backend"}[10m]) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          component: user_experience
+          service: medianest-backend
+          tier: business
+        annotations:
+          summary: "High user request failure rate"
+          description: "{{ $value }} user requests failing per second"
+          runbook_url: "https://docs.medianest.io/runbooks/user-request-failures"
+
+  # Health Check Alerts
+  - name: medianest.health.monitoring
+    rules:
+      - alert: HealthCheckFailure
+        expr: medianest_health_check_status{job="medianest-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: health
+          service: medianest-backend
+          tier: infrastructure
+        annotations:
+          summary: "Application health check failing"
+          description: "Health check endpoint returning unhealthy status"
+          runbook_url: "https://docs.medianest.io/runbooks/health-check-failure"
+
+      - alert: ReadinessCheckFailure
+        expr: medianest_readiness_check_status{job="medianest-backend"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          component: readiness
+          service: medianest-backend
+          tier: infrastructure
+        annotations:
+          summary: "Application readiness check failing"
+          description: "Readiness check indicates service not ready to accept traffic"
+          runbook_url: "https://docs.medianest.io/runbooks/readiness-failure"
+
+  # JWT & Session Management
+  - name: medianest.session.security
+    rules:
+      - alert: HighJWTVerificationFailures
+        expr: >
+          rate(jwt_verification_failures_total{job="medianest-backend"}[5m]) > 1
+        for: 3m
+        labels:
+          severity: warning
+          component: authentication
+          service: jwt-service
+          tier: security
+          event_type: auth_failure
+        annotations:
+          summary: "High JWT verification failure rate"
+          description: "{{ $value }} JWT verification failures per second"
+          runbook_url: "https://docs.medianest.io/runbooks/jwt-failures"
+
+      - alert: SessionTokenLeakage
+        expr: >
+          rate(invalid_session_token_attempts_total{job="medianest-backend"}[5m]) > 5
+        for: 2m
+        labels:
+          severity: critical
+          component: authentication
+          service: session-management
+          tier: security
+          event_type: security
+        annotations:
+          summary: "Potential session token leakage detected"
+          description: "{{ $value }} invalid session token attempts per second - possible token compromise"
+          runbook_url: "https://docs.medianest.io/runbooks/token-leakage"
+
+  # Cache Performance
+  - name: medianest.cache.performance
+    rules:
+      - alert: LowCacheHitRate
+        expr: >
+          (
+            rate(cache_hits_total{job="medianest-backend"}[10m]) /
+            (rate(cache_hits_total{job="medianest-backend"}[10m]) + rate(cache_misses_total{job="medianest-backend"}[10m]))
+          ) < 0.85
+        for: 10m
+        labels:
+          severity: warning
+          component: cache
+          service: cache-service
+          tier: performance
+        annotations:
+          summary: "Low cache hit rate detected"
+          description: "Cache hit rate is {{ $value | humanizePercentage }} (threshold: 85%)"
+          dashboard_url: "http://grafana:3001/d/medianest-cache/cache-performance"
+
+      - alert: CacheServiceUnavailable
+        expr: cache_service_available{job="medianest-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: cache
+          service: cache-service
+          tier: infrastructure
+        annotations:
+          summary: "Cache service unavailable"
+          description: "Cache service has been unavailable for {{ $value }} seconds"
+          runbook_url: "https://docs.medianest.io/runbooks/cache-unavailable"

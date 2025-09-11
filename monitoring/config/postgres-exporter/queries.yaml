@@ -1,0 +1,380 @@
+# ==============================================================================
+# 🗄️ POSTGRESQL EXPORTER QUERIES - MEDIANEST PLG STACK
+# ==============================================================================
+# Custom queries for MEDIANEST PostgreSQL monitoring
+# Optimized for application-specific metrics and performance insights
+# ==============================================================================
+
+# ==============================================================================
+# 📊 DATABASE CONNECTION METRICS
+# ==============================================================================
+pg_database_connections:
+  query: |
+    SELECT 
+      datname as database,
+      count(*) as connections,
+      sum(case when state = 'active' then 1 else 0 end) as active_connections,
+      sum(case when state = 'idle' then 1 else 0 end) as idle_connections,
+      sum(case when state = 'idle in transaction' then 1 else 0 end) as idle_in_transaction
+    FROM pg_stat_activity 
+    WHERE datname IS NOT NULL 
+    GROUP BY datname
+  metrics:
+    - database:
+        usage: "LABEL"
+        description: "Database name"
+    - connections:
+        usage: "GAUGE"
+        description: "Total number of connections to database"
+    - active_connections:
+        usage: "GAUGE"
+        description: "Number of active connections"
+    - idle_connections:
+        usage: "GAUGE"
+        description: "Number of idle connections"
+    - idle_in_transaction:
+        usage: "GAUGE"
+        description: "Number of idle in transaction connections"
+
+# ==============================================================================
+# 🎯 MEDIANEST SPECIFIC TABLE METRICS
+# ==============================================================================
+pg_table_stats:
+  query: |
+    SELECT 
+      schemaname as schema,
+      tablename as table,
+      n_tup_ins as inserts,
+      n_tup_upd as updates,
+      n_tup_del as deletes,
+      n_live_tup as live_tuples,
+      n_dead_tup as dead_tuples,
+      n_tup_hot_upd as hot_updates,
+      vacuum_count,
+      autovacuum_count,
+      analyze_count,
+      autoanalyze_count
+    FROM pg_stat_user_tables
+    WHERE schemaname = 'public'
+  metrics:
+    - schema:
+        usage: "LABEL"
+        description: "Schema name"
+    - table:
+        usage: "LABEL"
+        description: "Table name"
+    - inserts:
+        usage: "COUNTER"
+        description: "Number of rows inserted"
+    - updates:
+        usage: "COUNTER"
+        description: "Number of rows updated"
+    - deletes:
+        usage: "COUNTER"
+        description: "Number of rows deleted"
+    - live_tuples:
+        usage: "GAUGE"
+        description: "Number of live tuples"
+    - dead_tuples:
+        usage: "GAUGE"
+        description: "Number of dead tuples"
+    - hot_updates:
+        usage: "COUNTER"
+        description: "Number of hot updates"
+    - vacuum_count:
+        usage: "COUNTER"
+        description: "Number of vacuum operations"
+    - autovacuum_count:
+        usage: "COUNTER"
+        description: "Number of autovacuum operations"
+    - analyze_count:
+        usage: "COUNTER"
+        description: "Number of analyze operations"
+    - autoanalyze_count:
+        usage: "COUNTER"
+        description: "Number of autoanalyze operations"
+
+# ==============================================================================
+# 🔍 QUERY PERFORMANCE METRICS (requires pg_stat_statements)
+# ==============================================================================
+pg_stat_statements:
+  query: |
+    SELECT 
+      left(query, 100) as query_prefix,
+      calls,
+      total_time,
+      mean_time,
+      min_time,
+      max_time,
+      stddev_time,
+      rows,
+      100.0 * shared_blks_hit / nullif(shared_blks_hit + shared_blks_read, 0) as hit_percent
+    FROM pg_stat_statements 
+    WHERE calls > 10
+    ORDER BY total_time DESC 
+    LIMIT 20
+  metrics:
+    - query_prefix:
+        usage: "LABEL"
+        description: "Query prefix (first 100 characters)"
+    - calls:
+        usage: "COUNTER"
+        description: "Number of times executed"
+    - total_time:
+        usage: "COUNTER"
+        description: "Total time spent in statement (ms)"
+    - mean_time:
+        usage: "GAUGE"
+        description: "Mean time per execution (ms)"
+    - min_time:
+        usage: "GAUGE"
+        description: "Minimum execution time (ms)"
+    - max_time:
+        usage: "GAUGE"
+        description: "Maximum execution time (ms)"
+    - stddev_time:
+        usage: "GAUGE"
+        description: "Standard deviation of execution time (ms)"
+    - rows:
+        usage: "COUNTER"
+        description: "Total number of rows retrieved or affected"
+    - hit_percent:
+        usage: "GAUGE"
+        description: "Cache hit percentage"
+
+# ==============================================================================
+# 💾 INDEX USAGE METRICS
+# ==============================================================================
+pg_index_usage:
+  query: |
+    SELECT 
+      schemaname as schema,
+      tablename as table,
+      indexname as index,
+      idx_tup_read,
+      idx_tup_fetch,
+      CASE 
+        WHEN idx_tup_read = 0 THEN 0 
+        ELSE (idx_tup_fetch::float / idx_tup_read::float) * 100 
+      END as index_efficiency
+    FROM pg_stat_user_indexes
+    WHERE schemaname = 'public'
+    AND idx_tup_read > 0
+  metrics:
+    - schema:
+        usage: "LABEL"
+        description: "Schema name"
+    - table:
+        usage: "LABEL"
+        description: "Table name"
+    - index:
+        usage: "LABEL"
+        description: "Index name"
+    - idx_tup_read:
+        usage: "COUNTER"
+        description: "Number of index entries returned by scans"
+    - idx_tup_fetch:
+        usage: "COUNTER"
+        description: "Number of live table rows fetched via index"
+    - index_efficiency:
+        usage: "GAUGE"
+        description: "Index efficiency percentage"
+
+# ==============================================================================
+# 🔒 LOCK MONITORING
+# ==============================================================================
+pg_locks:
+  query: |
+    SELECT 
+      mode,
+      count(*) as lock_count
+    FROM pg_locks 
+    WHERE granted = true
+    GROUP BY mode
+  metrics:
+    - mode:
+        usage: "LABEL"
+        description: "Lock mode"
+    - lock_count:
+        usage: "GAUGE"
+        description: "Number of locks in this mode"
+
+# ==============================================================================
+# 📈 WAL (Write-Ahead Log) METRICS
+# ==============================================================================
+pg_wal_stats:
+  query: |
+    SELECT 
+      'wal_segments' as metric,
+      count(*) as value
+    FROM pg_ls_waldir()
+    WHERE name ~ '^[0-9A-F]{24}$'
+    UNION ALL
+    SELECT 
+      'wal_size_bytes' as metric,
+      sum(size) as value
+    FROM pg_ls_waldir()
+  metrics:
+    - metric:
+        usage: "LABEL"
+        description: "WAL metric type"
+    - value:
+        usage: "GAUGE"
+        description: "WAL metric value"
+
+# ==============================================================================
+# 🎬 MEDIANEST APPLICATION METRICS
+# ==============================================================================
+pg_medianest_users:
+  query: |
+    SELECT 
+      'total_users' as metric,
+      count(*) as value
+    FROM users
+    WHERE deleted_at IS NULL
+    UNION ALL
+    SELECT 
+      'active_users_7d' as metric,
+      count(*) as value
+    FROM users 
+    WHERE last_login > NOW() - INTERVAL '7 days'
+    AND deleted_at IS NULL
+    UNION ALL
+    SELECT 
+      'new_users_today' as metric,
+      count(*) as value
+    FROM users 
+    WHERE created_at > CURRENT_DATE
+    AND deleted_at IS NULL
+  metrics:
+    - metric:
+        usage: "LABEL"
+        description: "User metric type"
+    - value:
+        usage: "GAUGE"
+        description: "User count"
+
+pg_medianest_media:
+  query: |
+    SELECT 
+      'total_media_items' as metric,
+      count(*) as value
+    FROM media_items
+    WHERE deleted_at IS NULL
+    UNION ALL
+    SELECT 
+      'recent_plays_24h' as metric,
+      count(*) as value
+    FROM media_plays 
+    WHERE played_at > NOW() - INTERVAL '24 hours'
+    UNION ALL
+    SELECT 
+      'unique_viewers_24h' as metric,
+      count(DISTINCT user_id) as value
+    FROM media_plays 
+    WHERE played_at > NOW() - INTERVAL '24 hours'
+  metrics:
+    - metric:
+        usage: "LABEL"
+        description: "Media metric type"
+    - value:
+        usage: "GAUGE"
+        description: "Media count"
+
+# ==============================================================================
+# 🔧 DATABASE MAINTENANCE METRICS
+# ==============================================================================
+pg_maintenance_status:
+  query: |
+    SELECT 
+      'database_size_bytes' as metric,
+      pg_database_size(current_database()) as value
+    UNION ALL
+    SELECT 
+      'total_connections_configured' as metric,
+      setting::int as value
+    FROM pg_settings 
+    WHERE name = 'max_connections'
+    UNION ALL
+    SELECT 
+      'shared_buffers_bytes' as metric,
+      setting::bigint * 8192 as value  -- Convert from 8KB blocks to bytes
+    FROM pg_settings 
+    WHERE name = 'shared_buffers'
+  metrics:
+    - metric:
+        usage: "LABEL"
+        description: "Maintenance metric type"
+    - value:
+        usage: "GAUGE"
+        description: "Maintenance metric value"
+
+# ==============================================================================
+# 📊 PERFORMANCE INSIGHTS
+# ==============================================================================
+pg_performance_insights:
+  query: |
+    WITH active_queries AS (
+      SELECT 
+        count(*) as active_query_count,
+        avg(EXTRACT(EPOCH FROM (now() - query_start))) as avg_query_duration_seconds
+      FROM pg_stat_activity 
+      WHERE state = 'active' 
+      AND query NOT LIKE '%pg_stat_activity%'
+    ),
+    cache_hit_ratio AS (
+      SELECT 
+        CASE 
+          WHEN (blks_hit + blks_read) = 0 THEN 100
+          ELSE (blks_hit::float / (blks_hit + blks_read)::float) * 100 
+        END as cache_hit_ratio
+      FROM pg_stat_database 
+      WHERE datname = current_database()
+    )
+    SELECT 
+      'active_queries' as metric,
+      active_query_count as value
+    FROM active_queries
+    UNION ALL
+    SELECT 
+      'avg_query_duration_seconds' as metric,
+      avg_query_duration_seconds as value
+    FROM active_queries
+    UNION ALL
+    SELECT 
+      'cache_hit_ratio_percent' as metric,
+      cache_hit_ratio as value
+    FROM cache_hit_ratio
+  metrics:
+    - metric:
+        usage: "LABEL"
+        description: "Performance metric type"
+    - value:
+        usage: "GAUGE"
+        description: "Performance metric value"
+
+# ==============================================================================
+# 🚨 ALERTING THRESHOLDS CONFIGURATION
+# ==============================================================================
+# Recommended alert thresholds for MEDIANEST PostgreSQL:
+#
+# Critical Alerts:
+# - connections > 80% of max_connections
+# - cache_hit_ratio < 95%
+# - active_query_duration > 30 seconds
+# - dead_tuples > 10% of live_tuples per table
+# - database_size growth > 20% per day
+#
+# Warning Alerts:
+# - connections > 60% of max_connections  
+# - cache_hit_ratio < 98%
+# - active_query_duration > 10 seconds
+# - vacuum operations falling behind
+# - WAL segments growing rapidly
+#
+# Info Alerts:
+# - New user registrations
+# - Media consumption trends
+# - Query pattern changes
+#
+# ==============================================================================
