@@ -1,15 +1,27 @@
 # MediaNest Frontend
 
-**⚠️ Current Status: Development/Repair Phase - Build Issues Present**
+**🔥 Modern React 19 + Next.js 15 Application**
+
+[![Next.js](https://img.shields.io/badge/Next.js-15-000000)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6.0-blue)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-Latest-38B2AC)](https://tailwindcss.com/)
+
+**Current Status: Active Development - Core Features Functional**
 
 The MediaNest Frontend is a Next.js 15 React 19 application providing a modern, responsive web interface for managing Plex media servers and related services. It features real-time updates, responsive design, and comprehensive media management capabilities.
 
-## 🚨 Known Issues
+## 📈 Development Progress
 
-- **Build Dependencies**: React 19 + Next.js 15 compatibility issues
-- **Type Conflicts**: Frontend/backend type mismatches
-- **Socket.io Integration**: Connection stability issues
-- **Test Coverage**: Limited testing due to build problems
+| Feature | Status | Notes |
+|---------|--------|-------|
+| **Core UI** | ✅ Working | Modern responsive design |
+| **Authentication** | ✅ Working | JWT-based auth flow |
+| **API Integration** | 🔶 Partial | Some endpoints functional |
+| **Real-time Updates** | 🔶 Partial | Socket.io connection issues |
+| **Testing** | ❌ Limited | Needs test expansion |
+
+> **React 19 + Next.js 15**: Cutting-edge features may require `--legacy-peer-deps` for some packages.
 
 ## 📋 Purpose
 
@@ -59,7 +71,7 @@ frontend/src/
 
 ### Installation
 
-**⚠️ Note: May require legacy peer deps flag due to React 19 + Next.js 15**
+**💡 Note: Uses latest React 19 + Next.js 15 - some packages may need compatibility flags**
 
 ```bash
 # From project root
