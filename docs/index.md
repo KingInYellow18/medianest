@@ -27,62 +27,103 @@
 MediaNest is a comprehensive media management platform designed to seamlessly integrate with Plex Media Server and provide advanced media organization, metadata management, and automation capabilities. Built with modern technologies and containerized deployment, MediaNest offers both powerful API capabilities and an intuitive user interface.
 
 <div class="feature-grid">
-  <div class="feature-card">
+  <div class="feature-card md3-card" data-tag="media">
     <div class="feature-card__icon">🎬</div>
     <h3 class="feature-card__title">Media Management</h3>
     <p class="feature-card__description">
       Advanced media organization with automated metadata extraction, intelligent file naming, and comprehensive library management capabilities.
     </p>
-    <a href="user-guides/media-management/" class="feature-card__link">Learn More</a>
+    <div class="feature-card__tags">
+      <span class="md3-chip" data-tag="media">Media</span>
+      <span class="md3-chip" data-tag="tutorial">Tutorial</span>
+    </div>
+    <a href="user-guides/media-management/" class="md3-button md3-button--text feature-card__link">Learn More</a>
   </div>
 
-  <div class="feature-card">
+  <div class="feature-card md3-card" data-tag="plex">
     <div class="feature-card__icon">🔌</div>
     <h3 class="feature-card__title">Plex Integration</h3>
     <p class="feature-card__description">
       Seamless integration with Plex Media Server for synchronized library management, metadata synchronization, and enhanced media discovery.
     </p>
-    <a href="api/plex/" class="feature-card__link">Explore Integration</a>
+    <div class="feature-card__tags">
+      <span class="md3-chip" data-tag="plex">Plex</span>
+      <span class="md3-chip" data-tag="setup">Setup</span>
+    </div>
+    <a href="api/plex/" class="md3-button md3-button--text feature-card__link">Explore Integration</a>
   </div>
 
-  <div class="feature-card">
+  <div class="feature-card md3-card" data-tag="api" data-api-endpoint="/api">
     <div class="feature-card__icon">⚡</div>
     <h3 class="feature-card__title">REST API</h3>
     <p class="feature-card__description">
       Comprehensive REST API with OpenAPI specification, authentication, rate limiting, and extensive endpoint coverage for all platform features.
     </p>
-    <a href="api/" class="feature-card__link">API Docs</a>
+    <div class="feature-card__tags">
+      <span class="md3-chip" data-tag="api">API</span>
+      <span class="md3-chip" data-tag="reference">Reference</span>
+    </div>
+    <div class="feature-card__actions">
+      <a href="api/" class="md3-button md3-button--text feature-card__link">API Docs</a>
+      <button class="md3-button md3-button--outlined api-try-button">🚀 Try Live</button>
+    </div>
   </div>
 
-  <div class="feature-card">
+  <div class="feature-card md3-card" data-tag="docker">
     <div class="feature-card__icon">🐳</div>
     <h3 class="feature-card__title">Docker Ready</h3>
     <p class="feature-card__description">
       Fully containerized deployment with Docker Compose, multi-stage builds, health checks, and production-ready orchestration.
     </p>
-    <a href="installation/docker/" class="feature-card__link">Docker Setup</a>
+    <div class="feature-card__tags">
+      <span class="md3-chip" data-tag="docker">Docker</span>
+      <span class="md3-chip" data-tag="setup">Setup</span>
+    </div>
+    <a href="installation/docker/" class="md3-button md3-button--text feature-card__link">Docker Setup</a>
   </div>
 
-  <div class="feature-card">
+  <div class="feature-card md3-card" data-tag="security">
     <div class="feature-card__icon">🔒</div>
     <h3 class="feature-card__title">Security First</h3>
     <p class="feature-card__description">
       Enterprise-grade security with JWT authentication, role-based access control, API rate limiting, and comprehensive audit logging.
     </p>
-    <a href="security/" class="feature-card__link">Security Guide</a>
+    <div class="feature-card__tags">
+      <span class="md3-chip" data-tag="security">Security</span>
+      <span class="md3-chip" data-tag="advanced">Advanced</span>
+    </div>
+    <a href="security/" class="md3-button md3-button--text feature-card__link">Security Guide</a>
   </div>
 
-  <div class="feature-card">
+  <div class="feature-card md3-card" data-tag="performance">
     <div class="feature-card__icon">📊</div>
     <h3 class="feature-card__title">Analytics & Monitoring</h3>
     <p class="feature-card__description">
       Built-in analytics dashboard, performance monitoring, health checks, and comprehensive logging for operational excellence.
     </p>
-    <a href="operations/MONITORING/" class="feature-card__link">Monitoring</a>
+    <div class="feature-card__tags">
+      <span class="md3-chip" data-tag="performance">Performance</span>
+      <span class="md3-chip" data-tag="monitoring">Monitoring</span>
+    </div>
+    <a href="operations/MONITORING/" class="md3-button md3-button--text feature-card__link">Monitoring</a>
   </div>
 </div>
 
 ## Quick Start
+
+<div class="quick-search-section">
+  <div class="md3-search-bar">
+    <span class="md3-search-icon">🔍</span>
+    <input type="text" class="md3-search-input" placeholder="Search documentation... (Ctrl+K)" id="quick-search">
+    <div class="search-suggestions" style="display: none;"></div>
+  </div>
+  <div class="quick-links">
+    <button class="md3-chip md3-chip--filter" data-filter="setup">Quick Setup</button>
+    <button class="md3-chip md3-chip--filter" data-filter="api">API Guide</button>
+    <button class="md3-chip md3-chip--filter" data-filter="docker">Docker</button>
+    <button class="md3-chip md3-chip--filter" data-filter="troubleshooting">Help</button>
+  </div>
+</div>
 
 Get MediaNest up and running in minutes with our streamlined setup process:
 

@@ -40,16 +40,20 @@ theme:
         icon: material/brightness-4
         name: Switch to light mode
 
-  # Enhanced Features for Professional Documentation
+  # Enhanced Features for Professional Documentation Platform
   features:
+    # Announcements and content actions
     - announce.dismiss
     - content.action.edit
     - content.action.view
     - content.code.annotate
     - content.code.copy
     - content.code.select
+    - content.footnote.tooltips
     - content.tabs.link
     - content.tooltips
+    
+    # Header and navigation enhancements
     - header.autohide
     - navigation.expand
     - navigation.footer
@@ -64,9 +68,13 @@ theme:
     - navigation.tabs.sticky
     - navigation.top
     - navigation.tracking
+    
+    # Enhanced search capabilities
     - search.highlight
     - search.share
     - search.suggest
+    
+    # Table of contents improvements
     - toc.follow
     - toc.integrate
 
@@ -102,6 +110,9 @@ nav:
         - Dashboard: api/endpoints/dashboard.md
         - Media: api/endpoints/media.md
         - Plex: api/endpoints/plex.md
+  - Operations:
+      - Monitoring Stack: operations/monitoring-stack.md
+      - Alert Runbooks: operations/runbooks/alert-runbooks.md
   - Deployment:
       - CI/CD: deployment/ci-cd.md
   - Developers:
@@ -114,15 +125,28 @@ nav:
   - Standards:
       - Documentation Checklist: standards/documentation-checklist.md
 
-# Essential Plugins - Minimal Working Configuration
+# Enhanced Plugins Configuration - Professional Documentation Platform
 plugins:
-  # Core search functionality
+  # Advanced search with enhanced capabilities
   - search:
       separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
       lang:
         - en
-
-  # Performance optimization
+      # Advanced search features
+      indexing: 'full'
+      
+  # Enhanced tags system (requires mkdocs-material[tags])
+  # - tags:
+  #     tags_file: tags.md
+      
+  # Social card generation (requires mkdocs-material[social])
+  # - social:
+  #     cards: true
+  #     cards_layout_options:
+  #       background_color: '#f3e5f5'
+  #       color: '#673ab7'
+      
+  # Enhanced minification
   - minify:
       minify_html: true
       minify_js: true
@@ -132,15 +156,33 @@ plugins:
         remove_empty_space: true
         remove_optional_attribute_quotes: false
         reduce_empty_attributes: true
-
-  # Git integration for content management
+        collapse_whitespace: true
+        remove_redundant_attributes: true
+        
+  # Privacy plugin (requires mkdocs-material[privacy])
+  # - privacy:
+  #     enabled: true
+      
+  # Git integration for enhanced content management
   - git-revision-date-localized:
       type: timeago
       timezone: UTC
       locale: en
       fallback_to_build_date: true
       enable_creation_date: true
-      enable_git_follow: false
+      enable_git_follow: true
+      exclude:
+        - index.md
+        - tags.md
+        
+  # Git committers (requires mkdocs-git-committers-plugin-2)
+  # - git-committers:
+  #     repository: kinginyellow/medianest
+  #     branch: develop
+      
+  # Automatic redirects (requires mkdocs-redirects)
+  # - redirects:
+  #     redirect_maps: {}
 
 # Markdown Extensions
 markdown_extensions:
@@ -164,9 +206,7 @@ markdown_extensions:
   - pymdownx.critic:
       mode: view
   - pymdownx.details
-  - pymdownx.emoji:
-      emoji_generator: !!python/name:material.extensions.emoji.to_svg
-      emoji_index: !!python/name:material.extensions.emoji.twemoji
+  - pymdownx.emoji
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
@@ -191,10 +231,6 @@ markdown_extensions:
       custom_fences:
         - name: mermaid
           class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_code_format
-        - name: swagger-ui
-          class: swagger-ui
-          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.tasklist:
@@ -206,6 +242,7 @@ markdown_extensions:
 extra_css:
   - stylesheets/extra.css
   - stylesheets/medianest-theme.css
+  - stylesheets/material-enhancements.css
   - stylesheets/animations.css
   - stylesheets/responsive.css
   - stylesheets/diagram-styles.css
@@ -217,9 +254,7 @@ extra_javascript:
   - javascripts/extra.js
   - javascripts/medianest.js
   - javascripts/search-enhancements.js
-  - javascripts/analytics.js
   - javascripts/api-explorer.js
-  - javascripts/diagram-interactions.js
   - javascripts/mermaid-config.js
   - https://polyfill.io/v3/polyfill.min.js?features=es6
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
@@ -233,11 +268,11 @@ extra:
     provider: mike
     default: latest
     alias: true
-
-  # Enhanced social links
+    
+  # Enhanced social links with proper branding
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/medianest/medianest
+      link: https://github.com/kinginyellow/medianest
       name: GitHub Repository
     - icon: fontawesome/brands/docker
       link: https://hub.docker.com/r/medianest/medianest
@@ -251,11 +286,14 @@ extra:
     - icon: fontawesome/solid/globe
       link: https://medianest.com
       name: Official Website
-
-  # Analytics and feedback
+    - icon: fontawesome/solid/book
+      link: https://kinginyellow.github.io/medianest/
+      name: Documentation
+      
+  # Enhanced analytics and feedback system
   analytics:
     provider: google
-    property: !ENV [GOOGLE_ANALYTICS_KEY, '']
+    property: G-XXXXXXXXXX  # Replace with actual Google Analytics ID
     feedback:
       title: Was this page helpful?
       ratings:
@@ -264,21 +302,36 @@ extra:
           data: 1
           note: >-
             Thanks for your feedback! Consider starring us on 
-            <a href="https://github.com/medianest/medianest" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://github.com/kinginyellow/medianest" target="_blank" rel="noopener">GitHub</a>
+            and sharing with the community.
         - icon: material/emoticon-sad-outline
           name: This page could be improved
           data: 0
           note: >-
             Thanks for your feedback! Help us improve by
-            <a href="https://github.com/medianest/medianest/issues/new/?title=[Docs]+{title}+-+{url}" target="_blank" rel="noopener">creating an issue</a>
-            or <a href="https://github.com/medianest/medianest/edit/develop/docs/{path}" target="_blank" rel="noopener">editing this page</a>.
-
-  # Status and announcements
+            <a href="https://github.com/kinginyellow/medianest/issues/new/?title=[Docs]+{title}+-+{url}" target="_blank" rel="noopener">creating an issue</a>
+            or <a href="https://github.com/kinginyellow/medianest/edit/develop/docs/{path}" target="_blank" rel="noopener">editing this page</a>.
+            
+  # Tags configuration
+  tags:
+    API: api
+    Docker: docker
+    Setup: setup
+    Configuration: config
+    Security: security
+    Performance: performance
+    Tutorial: tutorial
+    Reference: reference
+    
+  # Status indicators for content
   status:
     new: Recently added
     deprecated: Deprecated
-
-  # Consent management for privacy
+    beta: Beta feature
+    stable: Stable
+    experimental: Experimental
+    
+  # Enhanced consent management
   consent:
     title: Cookie consent
     description: >-
@@ -290,9 +343,27 @@ extra:
       - accept
       - reject
       - manage
-
-  # Generator notice
+    cookies:
+      analytics:
+        name: Google Analytics
+        checked: false
+      github:
+        name: GitHub
+        checked: false
+        
+  # Enhanced homepage features
+  homepage: https://kinginyellow.github.io/medianest/
+  
+  # Generator attribution
   generator: false
+  
+  # Custom variables for templates
+  medianest:
+    version: "2.0.0"
+    github_repo: "kinginyellow/medianest"
+    docker_image: "medianest/medianest"
+    api_base_url: "https://api.medianest.com"
+    demo_url: "https://demo.medianest.com"
 
 # Validation
 validation:
