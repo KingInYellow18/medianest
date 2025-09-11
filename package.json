@@ -122,7 +122,12 @@
     "deploy:safe": "npm run deploy:zero-failure",
     "ci:full": "npm run pipeline:validate && npm run test:ci:full && npm run security:scan",
     "ci:performance": "npm run test:ci:performance && npm run analyze:performance",
-    "nightly:performance": "npm run test:performance:all -- --reporter=verbose --reporter=json --outputFile=test-results/nightly-performance-$(date +%Y%m%d).json"
+    "nightly:performance": "npm run test:performance:all -- --reporter=verbose --reporter=json --outputFile=test-results/nightly-performance-$(date +%Y%m%d).json",
+    "hooks:bypass": "./scripts/git-hooks-bypass.sh",
+    "hooks:performance": "./scripts/git-hooks-performance.sh",
+    "hooks:install": "husky prepare",
+    "hooks:test": "./scripts/git-hooks-health-check.sh",
+    "prepare": "husky prepare || true"
   },
   "keywords": [
     "media",
