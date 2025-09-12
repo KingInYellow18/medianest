@@ -12,21 +12,17 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./tests/setup.ts'],
     
-    // **OPTIMIZED PARALLEL EXECUTION FOR FRONTEND**
-    pool: 'threads',
+    // **STABILIZED EXECUTION FOR FRONTEND - FIX WORKER THREAD TERMINATION**
+    pool: 'forks',
     poolOptions: {
-      threads: {
-        singleThread: false,
-        minThreads: 2,
-        maxThreads: maxWorkers,
-        isolate: false,        // Better performance for component tests
-        useAtomics: true,
-      },
       forks: {
-        singleFork: false,
-        isolate: false,
+        singleFork: true,
+        isolate: true,
       },
     },
+    // Prevent worker thread termination errors
+    maxWorkers: 1,
+    minWorkers: 1,
     
     // **PERFORMANCE TIMEOUTS**
     testTimeout: 8000,       // Frontend components can be slower

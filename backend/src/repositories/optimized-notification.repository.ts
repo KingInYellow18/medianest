@@ -1,8 +1,13 @@
 /**
  * Optimized Notification Repository with Connection Pool
  */
+import {
+  NotificationRecord,
+  CreateNotificationInput,
+  NotificationFilters,
+} from '../services/notification-database.service';
+
 import { OptimizedBaseRepository } from './optimized-base.repository';
-import { NotificationRecord, CreateNotificationInput, NotificationFilters } from '../services/notification-database.service';
 
 interface NotificationCreateInput {
   userId: string;
@@ -62,15 +67,12 @@ export class OptimizedNotificationRepository extends OptimizedBaseRepository<
     userId: string,
     filters: NotificationFilters = {},
     limit: number = 50,
-    offset: number = 0
+    offset: number = 0,
   ) {
     return this.query(async (client) => {
       const where: any = {
         userId,
-        OR: [
-          { expiresAt: null },
-          { expiresAt: { gt: new Date() } },
-        ],
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
       };
 
       // Apply filters
@@ -116,10 +118,7 @@ export class OptimizedNotificationRepository extends OptimizedBaseRepository<
           userId,
           readAt: null,
           dismissedAt: null,
-          OR: [
-            { expiresAt: null },
-            { expiresAt: { gt: new Date() } },
-          ],
+          OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
         },
         orderBy: { createdAt: 'desc' },
         take: 100,
@@ -161,10 +160,7 @@ export class OptimizedNotificationRepository extends OptimizedBaseRepository<
         where: {
           userId,
           readAt: null,
-          OR: [
-            { expiresAt: null },
-            { expiresAt: { gt: new Date() } },
-          ],
+          OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
         },
         data: { readAt: new Date() },
       });
@@ -182,10 +178,7 @@ export class OptimizedNotificationRepository extends OptimizedBaseRepository<
         client.notification.count({
           where: {
             userId,
-            OR: [
-              { expiresAt: null },
-              { expiresAt: { gt: new Date() } },
-            ],
+            OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
           },
         }),
         client.notification.count({
@@ -193,20 +186,14 @@ export class OptimizedNotificationRepository extends OptimizedBaseRepository<
             userId,
             readAt: null,
             dismissedAt: null,
-            OR: [
-              { expiresAt: null },
-              { expiresAt: { gt: new Date() } },
-            ],
+            OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
           },
         }),
         client.notification.groupBy({
           by: ['type'],
           where: {
             userId,
-            OR: [
-              { expiresAt: null },
-              { expiresAt: { gt: new Date() } },
-            ],
+            OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
           },
           _count: true,
         }),
@@ -216,18 +203,18 @@ export class OptimizedNotificationRepository extends OptimizedBaseRepository<
             createdAt: {
               gte: new Date(Date.now() - 24 * 60 * 60 * 1000),
             },
-            OR: [
-              { expiresAt: null },
-              { expiresAt: { gt: new Date() } },
-            ],
+            OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
           },
         }),
       ]);
 
-      const byType = typeStats.reduce((acc: Record<string, number>, item: any) => {
-        acc[item.type] = item._count;
-        return acc;
-      }, {} as Record<string, number>);
+      const byType = typeStats.reduce(
+        (acc: Record<string, number>, item: any) => {
+          acc[item.type] = item._count;
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
 
       return {
         total: totalCount,
@@ -243,11 +230,11 @@ export class OptimizedNotificationRepository extends OptimizedBaseRepository<
    */
   async createBulkNotifications(
     userIds: string[],
-    input: Omit<CreateNotificationInput, 'userId'>
+    input: Omit<CreateNotificationInput, 'userId'>,
   ): Promise<number> {
     if (userIds.length === 0) return 0;
 
-    const notifications = userIds.map(userId => ({
+    const notifications = userIds.map((userId) => ({
       userId,
       type: input.type,
       title: input.title,

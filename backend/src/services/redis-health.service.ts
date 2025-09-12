@@ -1,5 +1,6 @@
-import { RedisService } from './redis.service';
 import { logger } from '../utils/logger';
+
+import { RedisService } from './redis.service';
 
 export interface RedisHealthStatus {
   status: 'healthy' | 'degraded' | 'unhealthy';
@@ -140,7 +141,7 @@ export class RedisHealthService {
    */
   async waitForHealthy(
     timeoutMs: number = 30000,
-    checkIntervalMs: number = 1000
+    checkIntervalMs: number = 1000,
   ): Promise<boolean> {
     const startTime = Date.now();
 

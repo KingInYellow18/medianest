@@ -1,9 +1,12 @@
-import { Request, Response, NextFunction } from 'express';
 import { performance } from 'perf_hooks';
+
+import { Request, Response, NextFunction } from 'express';
+
 // @ts-ignore
-import { logger, logPerformanceMetric, logError } from './logging';
-import { getCorrelationId } from '../utils/correlationId';
 import { CatchError } from '../types/common';
+import { getCorrelationId } from '../utils/correlationId';
+
+import { logger } from '../utils/logger';
 
 // API-specific logging middleware
 export const apiLoggingMiddleware = (req: Request, res: Response, next: NextFunction): void => {
@@ -59,7 +62,10 @@ export const apiLoggingMiddleware = (req: Request, res: Response, next: NextFunc
     // Log performance metrics for slow requests
     if (duration > 1000) {
       // > 1 second
-      logPerformanceMetric('slow_api_request', duration, 'ms', correlationId, {
+      logger.warn('Slow API request detected', {
+        correlationId,
+        metric: 'slow_api_request',
+        duration,
         endpoint: `${req.method} ${req.path}`,
         statusCode: res.statusCode,
       });
@@ -68,10 +74,14 @@ export const apiLoggingMiddleware = (req: Request, res: Response, next: NextFunc
     // Log performance metrics for different response size categories
     if (responseSize > 0) {
       let sizeCategory = 'small';
-      if (responseSize > 1024 * 1024) sizeCategory = 'large'; // > 1MB
+      if (responseSize > 1024 * 1024)
+        sizeCategory = 'large'; // > 1MB
       else if (responseSize > 1024 * 100) sizeCategory = 'medium'; // > 100KB
 
-      logPerformanceMetric('api_response_size', responseSize, 'bytes', correlationId, {
+      logger.debug('API response size recorded', {
+        correlationId,
+        metric: 'api_response_size',
+        size: responseSize,
         endpoint: `${req.method} ${req.path}`,
         category: sizeCategory,
       });
@@ -82,15 +92,15 @@ export const apiLoggingMiddleware = (req: Request, res: Response, next: NextFunc
   res.on('error', (error) => {
     const duration = performance.now() - startTime;
 
-    logError(error, {
+    logger.error('API response error', {
       correlationId,
       operation: 'api_response',
-      metadata: {
-        method: req.method,
-        url: req.url,
-        duration,
-        statusCode: res.statusCode,
-      },
+      error: error.message,
+      stack: error.stack,
+      method: req.method,
+      url: req.url,
+      duration,
+      statusCode: res.statusCode,
     });
   });
 
@@ -109,9 +119,11 @@ export const createDatabaseLoggerMiddleware = (pool: any) => {
     });
 
     pool.on('error', (error: Error) => {
-      logError(error, {
+      logger.error('Database connection error', {
         correlationId: getCorrelationId(),
         operation: 'database_connection',
+        error: error.message,
+        stack: error.stack,
       });
     });
 
@@ -142,7 +154,10 @@ export const createDatabaseLoggerMiddleware = (pool: any) => {
         // Log slow queries
         if (duration > 1000) {
           // > 1 second
-          logPerformanceMetric('slow_database_query', duration, 'ms', correlationId, {
+          logger.warn('Slow database query detected', {
+            correlationId,
+            metric: 'slow_database_query',
+            duration,
             query: sanitizeQuery(text),
             rowCount: result.rowCount,
           });
@@ -152,14 +167,14 @@ export const createDatabaseLoggerMiddleware = (pool: any) => {
       } catch (error: CatchError) {
         const duration = performance.now() - startTime;
 
-        logError(error as Error, {
+        logger.error('Database query error', {
           correlationId,
           operation: 'database_query',
-          metadata: {
-            query: sanitizeQuery(text),
-            duration,
-            paramCount: params?.length || 0,
-          },
+          error: (error as Error).message,
+          stack: (error as Error).stack,
+          query: sanitizeQuery(text),
+          duration,
+          paramCount: params?.length || 0,
         });
         throw error;
       }
@@ -172,7 +187,7 @@ export const logExternalServiceCall = async <T>(
   serviceName: string,
   operation: string,
   serviceCall: () => Promise<T>,
-  metadata?: Record<string, any>
+  metadata?: Record<string, any>,
 ): Promise<T> => {
   const startTime = performance.now();
   const correlationId = getCorrelationId() || 'system';
@@ -200,7 +215,10 @@ export const logExternalServiceCall = async <T>(
     // Log slow external calls
     if (duration > 5000) {
       // > 5 seconds
-      logPerformanceMetric('slow_external_service_call', duration, 'ms', correlationId, {
+      logger.warn('Slow external service call detected', {
+        correlationId,
+        metric: 'slow_external_service_call',
+        duration,
         service: serviceName,
         operation,
       });
@@ -210,15 +228,15 @@ export const logExternalServiceCall = async <T>(
   } catch (error: CatchError) {
     const duration = performance.now() - startTime;
 
-    logError(error as Error, {
+    logger.error('External service call error', {
       correlationId,
       operation: 'external_service_call',
-      metadata: {
-        service: serviceName,
-        operation,
-        duration,
-        ...metadata,
-      },
+      error: (error as Error).message,
+      stack: (error as Error).stack,
+      service: serviceName,
+      operationName: operation,
+      duration,
+      ...metadata,
     });
     throw error;
   }

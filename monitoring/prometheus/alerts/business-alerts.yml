@@ -1,0 +1,323 @@
+# MEDIANEST Business Logic Alert Rules
+# User activity, conversion metrics, and business KPIs
+
+groups:
+  # User Engagement Metrics
+  - name: medianest.business.engagement
+    rules:
+      - alert: LowUserConversionRate
+        expr: >
+          (
+            rate(media_requests_completed_total{job="medianest-backend"}[1h]) /
+            rate(media_searches_total{job="medianest-backend"}[1h])
+          ) < 0.05
+        for: 30m
+        labels:
+          severity: warning
+          component: business
+          service: user-engagement
+          tier: conversion
+        annotations:
+          summary: "Low user conversion rate detected"
+          description: "Search-to-request conversion rate is {{ $value | humanizePercentage }} (threshold: 5%)"
+          dashboard_url: "http://grafana:3001/d/medianest-business/business-metrics"
+
+      - alert: UserSessionDropoff
+        expr: >
+          (
+            rate(user_sessions_started_total{job="medianest-backend"}[1h]) -
+            rate(user_sessions_completed_total{job="medianest-backend"}[1h])
+          ) / rate(user_sessions_started_total{job="medianest-backend"}[1h]) > 0.7
+        for: 30m
+        labels:
+          severity: warning
+          component: business
+          service: user-experience
+          tier: retention
+        annotations:
+          summary: "High user session dropout rate"
+          description: "{{ $value | humanizePercentage }} of user sessions are dropping off (threshold: 70%)"
+          runbook_url: "https://docs.medianest.io/runbooks/session-dropout"
+
+      - alert: NoNewUserRegistrations
+        expr: >
+          rate(user_registrations_total{job="medianest-backend"}[6h]) == 0
+        for: 6h
+        labels:
+          severity: info
+          component: business
+          service: user-growth
+          tier: acquisition
+        annotations:
+          summary: "No new user registrations in 6 hours"
+          description: "No new users have registered in the last 6 hours"
+          dashboard_url: "http://grafana:3001/d/medianest-users/user-growth"
+
+  # Media Request Processing
+  - name: medianest.business.media_processing
+    rules:
+      - alert: MediaRequestProcessingDelay
+        expr: >
+          histogram_quantile(0.95,
+            rate(media_request_processing_duration_seconds_bucket{job="medianest-backend"}[15m])
+          ) > 300
+        for: 15m
+        labels:
+          severity: warning
+          component: business
+          service: media-processing
+          tier: user_experience
+        annotations:
+          summary: "High media request processing delay"
+          description: "95th percentile processing time is {{ $value }}s (threshold: 300s)"
+          runbook_url: "https://docs.medianest.io/runbooks/processing-delay"
+
+      - alert: HighMediaRequestFailureRate
+        expr: >
+          (
+            rate(media_requests_failed_total{job="medianest-backend"}[10m]) /
+            rate(media_requests_total{job="medianest-backend"}[10m])
+          ) > 0.1
+        for: 10m
+        labels:
+          severity: critical
+          component: business
+          service: media-processing
+          tier: reliability
+        annotations:
+          summary: "High media request failure rate"
+          description: "Media request failure rate is {{ $value | humanizePercentage }} (threshold: 10%)"
+          runbook_url: "https://docs.medianest.io/runbooks/request-failures"
+
+      - alert: MediaRequestQueueStalled
+        expr: >
+          (
+            media_request_queue_size{job="medianest-backend"} > 10
+          ) and (
+            rate(media_requests_processed_total{job="medianest-backend"}[10m]) == 0
+          )
+        for: 10m
+        labels:
+          severity: critical
+          component: business
+          service: media-processing
+          tier: reliability
+        annotations:
+          summary: "Media request queue is stalled"
+          description: "Queue has {{ $value }} items but no processing activity for 10 minutes"
+          runbook_url: "https://docs.medianest.io/runbooks/queue-stalled"
+
+  # Service Integration Health
+  - name: medianest.business.integrations
+    rules:
+      - alert: PlexServiceDegraded
+        expr: >
+          (
+            rate(plex_api_requests_total{status="timeout"}[10m]) +
+            rate(plex_api_requests_total{status="error"}[10m])
+          ) / rate(plex_api_requests_total[10m]) > 0.15
+        for: 10m
+        labels:
+          severity: warning
+          component: integration
+          service: plex-service
+          tier: availability
+        annotations:
+          summary: "Plex service showing degraded performance"
+          description: "Plex service error/timeout rate is {{ $value | humanizePercentage }} (threshold: 15%)"
+          runbook_url: "https://docs.medianest.io/runbooks/plex-degraded"
+
+      - alert: OverseerrServiceUnavailable
+        expr: overseerr_service_available{job="medianest-backend"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          component: integration
+          service: overseerr-service
+          tier: availability
+        annotations:
+          summary: "Overseerr service is unavailable"
+          description: "Cannot connect to Overseerr service for media requests"
+          runbook_url: "https://docs.medianest.io/runbooks/overseerr-unavailable"
+
+      - alert: ExternalAPIRateLimitHit
+        expr: >
+          rate(external_api_requests_total{status="rate_limited"}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: integration
+          service: "{{ $labels.service }}"
+          tier: performance
+        annotations:
+          summary: "External API rate limit hit for {{ $labels.service }}"
+          description: "{{ $value }} rate-limited requests per second to {{ $labels.service }}"
+          runbook_url: "https://docs.medianest.io/runbooks/rate-limits"
+
+  # User Activity Patterns
+  - name: medianest.business.activity
+    rules:
+      - alert: UnusualUserActivitySpike
+        expr: >
+          rate(http_requests_total{job="medianest-backend"}[5m]) > 
+          (avg_over_time(rate(http_requests_total{job="medianest-backend"}[5m])[1h:5m]) * 3)
+        for: 10m
+        labels:
+          severity: info
+          component: business
+          service: user-activity
+          tier: monitoring
+        annotations:
+          summary: "Unusual spike in user activity"
+          description: "Current request rate {{ $value }} is 3x higher than normal"
+          dashboard_url: "http://grafana:3001/d/medianest-activity/user-activity"
+
+      - alert: UserActivityDrop
+        expr: >
+          rate(http_requests_total{job="medianest-backend"}[15m]) < 
+          (avg_over_time(rate(http_requests_total{job="medianest-backend"}[15m])[3h:15m]) * 0.3)
+        for: 30m
+        labels:
+          severity: warning
+          component: business
+          service: user-activity
+          tier: monitoring
+        annotations:
+          summary: "Significant drop in user activity"
+          description: "Current request rate {{ $value }} is 70% below normal"
+          dashboard_url: "http://grafana:3001/d/medianest-activity/user-activity"
+
+  # Data Quality and Consistency
+  - name: medianest.business.data_quality
+    rules:
+      - alert: InconsistentMediaMetadata
+        expr: >
+          rate(media_metadata_validation_failures_total{job="medianest-backend"}[10m]) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+          component: business
+          service: data-quality
+          tier: integrity
+        annotations:
+          summary: "High media metadata validation failure rate"
+          description: "{{ $value }} metadata validation failures per second"
+          runbook_url: "https://docs.medianest.io/runbooks/metadata-validation"
+
+      - alert: DatabaseSyncLag
+        expr: >
+          (time() - media_catalog_last_sync_timestamp{job="medianest-backend"}) > 3600
+        for: 0s
+        labels:
+          severity: warning
+          component: business
+          service: data-sync
+          tier: consistency
+        annotations:
+          summary: "Media catalog sync is lagging"
+          description: "Last sync was {{ $value }}s ago (threshold: 3600s)"
+          runbook_url: "https://docs.medianest.io/runbooks/sync-lag"
+
+  # Business Metrics and KPIs
+  - name: medianest.business.kpis
+    rules:
+      - alert: LowDailyActiveUsers
+        expr: >
+          daily_active_users{job="medianest-backend"} < 
+          (avg_over_time(daily_active_users{job="medianest-backend"}[7d]) * 0.5)
+        for: 0s
+        labels:
+          severity: warning
+          component: business
+          service: user-engagement
+          tier: kpi
+        annotations:
+          summary: "Daily active users below 50% of weekly average"
+          description: "{{ $value }} active users today vs {{ avg_over_time(daily_active_users{job=\"medianest-backend\"}[7d]) }} weekly average"
+          dashboard_url: "http://grafana:3001/d/medianest-kpis/business-kpis"
+
+      - alert: HighMediaRequestCancellationRate
+        expr: >
+          (
+            rate(media_requests_cancelled_total{job="medianest-backend"}[1h]) /
+            rate(media_requests_total{job="medianest-backend"}[1h])
+          ) > 0.3
+        for: 1h
+        labels:
+          severity: warning
+          component: business
+          service: user-satisfaction
+          tier: kpi
+        annotations:
+          summary: "High media request cancellation rate"
+          description: "{{ $value | humanizePercentage }} of requests are being cancelled (threshold: 30%)"
+          runbook_url: "https://docs.medianest.io/runbooks/high-cancellations"
+
+  # Resource Utilization Business Impact
+  - name: medianest.business.resource_impact
+    rules:
+      - alert: StorageCapacityImpactingUserExperience
+        expr: >
+          (
+            (1 - (node_filesystem_avail_bytes{mountpoint="/media"} / node_filesystem_size_bytes{mountpoint="/media"})) * 100
+          ) > 90
+        for: 5m
+        labels:
+          severity: critical
+          component: business
+          service: storage
+          tier: user_experience
+        annotations:
+          summary: "Media storage near capacity - impacting user experience"
+          description: "Media storage is {{ $value }}% full (threshold: 90%) - new requests may fail"
+          runbook_url: "https://docs.medianest.io/runbooks/storage-capacity"
+
+      - alert: NetworkBandwidthAffectingStreaming
+        expr: >
+          rate(node_network_transmit_bytes_total{device!~"lo|veth.*|docker.*"}[5m]) * 8 / 1024 / 1024 > 80
+        for: 10m
+        labels:
+          severity: warning
+          component: business
+          service: streaming
+          tier: performance
+        annotations:
+          summary: "High network utilization may affect streaming quality"
+          description: "Network utilization is {{ $value }}Mbps on {{ $labels.device }} - may impact streaming"
+          dashboard_url: "http://grafana:3001/d/medianest-network/network-performance"
+
+  # User Experience Quality
+  - name: medianest.business.ux_quality
+    rules:
+      - alert: SlowMediaSearchResponse
+        expr: >
+          histogram_quantile(0.95,
+            rate(media_search_duration_seconds_bucket{job="medianest-backend"}[10m])
+          ) > 3
+        for: 10m
+        labels:
+          severity: warning
+          component: business
+          service: search-performance
+          tier: user_experience
+        annotations:
+          summary: "Slow media search response times"
+          description: "95th percentile search time is {{ $value }}s (threshold: 3s)"
+          runbook_url: "https://docs.medianest.io/runbooks/slow-search"
+
+      - alert: MediaRequestTimeoutRate
+        expr: >
+          (
+            rate(media_requests_timeout_total{job="medianest-backend"}[15m]) /
+            rate(media_requests_total{job="medianest-backend"}[15m])
+          ) > 0.05
+        for: 15m
+        labels:
+          severity: warning
+          component: business
+          service: user-experience
+          tier: reliability
+        annotations:
+          summary: "High media request timeout rate"
+          description: "{{ $value | humanizePercentage }} of requests are timing out (threshold: 5%)"
+          runbook_url: "https://docs.medianest.io/runbooks/request-timeouts"

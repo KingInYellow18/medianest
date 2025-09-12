@@ -1,0 +1,178 @@
+# ==============================================================================
+# 📊 GRAFANA DASHBOARD PROVISIONING - MEDIANEST PLG STACK
+# ==============================================================================
+# Auto-provisioned dashboards for MEDIANEST observability
+# Includes application, infrastructure, and business metrics dashboards
+# ==============================================================================
+
+apiVersion: 1
+
+providers:
+  # ==============================================================================
+  # 🚀 APPLICATION DASHBOARDS
+  # ==============================================================================
+  - name: 'medianest-application'
+    orgId: 1
+    folder: 'MEDIANEST Application'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/application
+
+  # ==============================================================================
+  # 🖥️ INFRASTRUCTURE DASHBOARDS  
+  # ==============================================================================
+  - name: 'medianest-infrastructure'
+    orgId: 1
+    folder: 'MEDIANEST Infrastructure'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/infrastructure
+
+  # ==============================================================================
+  # 🗄️ DATABASE DASHBOARDS
+  # ==============================================================================
+  - name: 'medianest-database'
+    orgId: 1
+    folder: 'MEDIANEST Database'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/database
+
+  # ==============================================================================
+  # 📊 BUSINESS METRICS DASHBOARDS
+  # ==============================================================================
+  - name: 'medianest-business'
+    orgId: 1
+    folder: 'MEDIANEST Business'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/business
+
+  # ==============================================================================
+  # 🔍 LOGS & TROUBLESHOOTING DASHBOARDS
+  # ==============================================================================
+  - name: 'medianest-logs'
+    orgId: 1
+    folder: 'MEDIANEST Logs & Debug'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/logs
+
+  # ==============================================================================
+  # 📈 MONITORING STACK DASHBOARDS
+  # ==============================================================================
+  - name: 'medianest-monitoring'
+    orgId: 1
+    folder: 'PLG Stack Monitoring'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/monitoring
+
+# ==============================================================================
+# 📊 DASHBOARD ORGANIZATION STRUCTURE
+# ==============================================================================
+#
+# MEDIANEST Application/
+# ├── 🎯 Application Overview (main dashboard)
+# ├── 🚀 Backend API Performance  
+# ├── 🎨 Frontend Performance
+# ├── 🔐 Authentication & Users
+# └── 📱 Plex Integration Metrics
+#
+# MEDIANEST Infrastructure/
+# ├── 🖥️ System Overview (Node Exporter)
+# ├── 🐳 Container Metrics (cAdvisor)
+# ├── 🌐 Network & Storage
+# └── 🔧 Docker Compose Services
+#
+# MEDIANEST Database/
+# ├── 🗄️ PostgreSQL Performance
+# ├── 📊 Redis Cache Metrics
+# ├── 🔍 Query Analysis
+# └── 💾 Storage & Backup Status
+#
+# MEDIANEST Business/
+# ├── 📊 User Activity
+# ├── 🎬 Media Consumption
+# ├── 📈 Usage Trends
+# └── 💰 Performance KPIs
+#
+# MEDIANEST Logs & Debug/
+# ├── 🔍 Log Explorer
+# ├── 🚨 Error Analysis
+# ├── 🔗 Request Tracing
+# └── 🐛 Debug Console
+#
+# PLG Stack Monitoring/
+# ├── 📊 Prometheus Health
+# ├── 📋 Loki Operations
+# ├── 📈 Grafana Usage
+# └── 🚚 Promtail Shipping
+#
+# ==============================================================================
+# 🎨 DASHBOARD DESIGN PRINCIPLES
+# ==============================================================================
+#
+# 1. **Hierarchical Navigation**:
+#    - Start with overview dashboards
+#    - Drill down to specific components
+#    - Link related dashboards
+#
+# 2. **Consistent Styling**:
+#    - MEDIANEST color scheme
+#    - Standardized panel layouts
+#    - Common time ranges and refresh intervals
+#
+# 3. **Performance Focus**:
+#    - Optimize query performance
+#    - Use template variables for filtering
+#    - Implement efficient caching
+#
+# 4. **Actionable Insights**:
+#    - Clear alert conditions
+#    - Meaningful thresholds
+#    - Links to resolution guides
+#
+# 5. **User Experience**:
+#    - Mobile-friendly layouts
+#    - Intuitive navigation
+#    - Context-aware filtering
+#
+# ==============================================================================
+# 🔧 CUSTOMIZATION NOTES
+# ==============================================================================
+#
+# Dashboard updates:
+# - allowUiUpdates: true enables editing via UI
+# - Changes saved to file system automatically
+# - Version control recommended for dashboard JSON
+#
+# Folder organization:
+# - Logical grouping by service/function
+# - Consistent naming conventions
+# - Proper access controls per folder
+#
+# Auto-refresh settings:
+# - updateIntervalSeconds: 10 for development
+# - Production: Consider longer intervals (60-300s)
+# - Balance freshness vs. system load
+#
+# ==============================================================================

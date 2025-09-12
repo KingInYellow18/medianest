@@ -8,7 +8,7 @@ export const mockUsers: Partial<User>[] = [
     plexUsername: 'testuser',
     email: 'test@example.com',
     role: 'user',
-    plexToken: 'mock-plex-token',
+    // plexToken: 'mock-plex-token', // Not in User type
     createdAt: new Date('2024-01-01'),
     lastLoginAt: new Date('2024-01-15'),
     status: 'active',
@@ -19,7 +19,7 @@ export const mockUsers: Partial<User>[] = [
     plexUsername: 'admin',
     email: 'admin@example.com',
     role: 'admin',
-    plexToken: 'mock-admin-plex-token',
+    // plexToken: 'mock-admin-plex-token', // Not in User type
     createdAt: new Date('2024-01-01'),
     lastLoginAt: new Date('2024-01-15'),
     status: 'active',

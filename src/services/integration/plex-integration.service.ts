@@ -1,11 +1,15 @@
+// Internal dependencies
+import {
+  BaseIntegrationClient,
+  ClientConfig,
+  HealthStatus,
+  ClientInitializer,
+} from '@medianest/shared';
+
 import { PlexApiClient } from '../../integrations/plex/plex-api.client';
 import { logger } from '../../utils/logger';
-import { 
-  BaseIntegrationClient,
-  ClientConfig, 
-  HealthStatus,
-  ClientInitializer 
-} from '../../../shared/src/patterns/integration-client-factory';
+
+// Shared utilities (using barrel exports)
 
 export interface PlexConfig extends ClientConfig {
   serverUrl?: string;
@@ -34,7 +38,7 @@ export class PlexIntegrationService extends BaseIntegrationClient {
     }
 
     const plexConfig = this.config as PlexConfig;
-    
+
     if (!plexConfig.defaultToken) {
       logger.warn('Plex default token not configured');
       return false;
@@ -46,11 +50,11 @@ export class PlexIntegrationService extends BaseIntegrationClient {
         async () => {
           return await PlexApiClient.createFromUserToken(
             plexConfig.defaultToken!,
-            plexConfig.serverUrl
+            plexConfig.serverUrl,
           );
         },
         3,
-        2000
+        2000,
       );
 
       if (this.client) {
@@ -94,7 +98,7 @@ export class PlexIntegrationService extends BaseIntegrationClient {
    */
   async healthCheck(): Promise<HealthStatus> {
     const startTime = Date.now();
-    
+
     if (!this.client) {
       return {
         healthy: false,
@@ -106,10 +110,10 @@ export class PlexIntegrationService extends BaseIntegrationClient {
     try {
       // Perform basic health check by getting user info
       await this.client.getUser();
-      
+
       const responseTime = Date.now() - startTime;
       this.logSuccess('health check', responseTime);
-      
+
       return {
         healthy: true,
         lastChecked: new Date(),
@@ -117,7 +121,7 @@ export class PlexIntegrationService extends BaseIntegrationClient {
       };
     } catch (error) {
       this.logError('health check', error as Error);
-      
+
       return {
         healthy: false,
         lastChecked: new Date(),

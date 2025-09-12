@@ -1,12 +1,15 @@
 // @ts-nocheck
 import { EventEmitter } from 'events';
-import { logger } from '../utils/logger';
-import { resilienceService } from './resilience.service';
-import { CircuitBreakerFactory } from '../utils/circuit-breaker';
+import { performance } from 'perf_hooks';
+
 import { PrismaClient } from '@prisma/client';
 import IORedis from 'ioredis';
-import { performance } from 'perf_hooks';
+
 import { CatchError } from '../types/common';
+import { CircuitBreakerFactory } from '../utils/circuit-breaker';
+import { logger } from '../utils/logger';
+
+import { resilienceService } from './resilience.service';
 
 export interface ComponentHealth {
   name: string;
@@ -55,7 +58,10 @@ export class HealthMonitorService extends EventEmitter {
   private errorCount = 0;
   private totalResponseTime = 0;
 
-  constructor(private prisma?: PrismaClient, private redis?: IORedis) {
+  constructor(
+    private prisma?: PrismaClient,
+    private redis?: IORedis,
+  ) {
     super();
     this.startTime = new Date();
     this.performanceMetrics = this.initializeMetrics();

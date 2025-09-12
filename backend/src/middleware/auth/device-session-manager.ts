@@ -1,9 +1,10 @@
 import { Request } from 'express';
-import { DeviceSessionService } from '../../services/device-session.service';
+
 import { SessionTokenRepository } from '../../repositories/session-token.repository';
+import { DeviceSessionService } from '../../services/device-session.service';
+import { UnknownRecord } from '../../types/common';
 import { AuthenticationError } from '../../utils/errors';
 import { logSecurityEvent } from '../../utils/security';
-import { UnknownRecord } from '../../types/common';
 
 export interface DeviceRegistrationResult {
   deviceId: string;
@@ -28,7 +29,7 @@ export async function validateSessionToken(
   token: string,
   tokenMetadata: UnknownRecord,
   sessionTokenRepository: SessionTokenRepository,
-  context: { userId: string; ipAddress?: string; userAgent?: string }
+  context: { userId: string; ipAddress?: string; userAgent?: string },
 ): Promise<void> {
   const sessionToken = await sessionTokenRepository.validate(token);
 
@@ -41,7 +42,7 @@ export async function validateSessionToken(
         ipAddress: context.ipAddress,
         userAgent: context.userAgent,
       },
-      'warn'
+      'warn',
     );
 
     throw new AuthenticationError('Invalid session');
@@ -54,7 +55,7 @@ export async function validateSessionToken(
 export async function registerAndAssessDevice(
   userId: string,
   req: Request,
-  deviceSessionService: DeviceSessionService
+  deviceSessionService: DeviceSessionService,
 ): Promise<DeviceRegistrationResult> {
   const deviceRegistration = await (deviceSessionService as any).registerDevice(userId, {
     userAgent: req.get('user-agent') || '',
@@ -74,7 +75,7 @@ export async function registerAndAssessDevice(
         ipAddress: req.ip,
         userAgent: req.get('user-agent'),
       },
-      'error'
+      'error',
     );
 
     throw new AuthenticationError('Device blocked due to high risk score');
@@ -94,7 +95,7 @@ export async function registerAndAssessDevice(
 export async function updateSessionActivity(
   sessionId: string | undefined,
   context: SessionUpdateContext,
-  deviceSessionService: DeviceSessionService
+  deviceSessionService: DeviceSessionService,
 ): Promise<void> {
   if (!sessionId) return;
 

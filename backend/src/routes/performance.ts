@@ -13,9 +13,10 @@
  * - POST /api/performance/optimize - Trigger automatic optimizations
  */
 
+import { PrismaClient } from '@prisma/client';
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
-import { PrismaClient } from '@prisma/client';
+
 // WAVE 3 AGENT #9: API ROUTES - ENHANCED REDIS CONDITIONAL IMPORT
 // Only import Redis if not in test environment or if Redis is explicitly enabled
 let Redis: any;
@@ -30,12 +31,12 @@ if (
     console.warn('Redis not available, continuing without caching:', error.message as any);
   }
 }
-import { logger } from '../utils/logger';
-import { PerformanceMonitor } from '../../../shared/src/utils/performance-monitor';
 import { DatabaseOptimizer } from '../../../shared/src/utils/database-optimizations';
+import { PerformanceMonitor } from '../../../shared/src/utils/performance-monitor';
 import { authMiddleware } from '../middleware/auth';
 import { validateRequest } from '../middleware/validation';
 import { CatchError } from '../types/common';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -171,7 +172,7 @@ router.get(
         details: process.env.NODE_ENV === 'development' ? (error.message as any) : undefined,
       });
     }
-  }
+  },
 );
 
 /**
@@ -194,15 +195,15 @@ router.get('/health', async (req: Request, res: Response) => {
     // Calculate health scores (0-100)
     const responseTimeScore = Math.max(
       0,
-      100 - (performanceStats.averageResponseTime / thresholds.responseTime) * 100
+      100 - (performanceStats.averageResponseTime / thresholds.responseTime) * 100,
     );
     const errorRateScore = Math.max(
       0,
-      100 - (performanceStats.errorRate / thresholds.errorRate) * 100
+      100 - (performanceStats.errorRate / thresholds.errorRate) * 100,
     );
     const memoryScore = Math.max(
       0,
-      100 - (systemStats.memory.heapUsed / systemStats.memory.heapTotal) * 100
+      100 - (systemStats.memory.heapUsed / systemStats.memory.heapTotal) * 100,
     );
 
     // Overall health score
@@ -229,8 +230,8 @@ router.get('/health', async (req: Request, res: Response) => {
     if (systemStats.memory.heapUsed / systemStats.memory.heapTotal > thresholds.memoryUsage) {
       issues.push(
         `High memory usage: ${Math.round(
-          (systemStats.memory.heapUsed / systemStats.memory.heapTotal) * 100
-        )}%`
+          (systemStats.memory.heapUsed / systemStats.memory.heapTotal) * 100,
+        )}%`,
       );
     }
 
@@ -387,12 +388,12 @@ router.get('/database', async (req: Request, res: Response) => {
     const connectionUsage = conn.total_connections / conn.max_connections;
     if (connectionUsage > 0.8) {
       response.recommendations.push(
-        'High connection usage detected. Consider connection pooling optimization.'
+        'High connection usage detected. Consider connection pooling optimization.',
       );
     }
     if (queryStats && queryStats[0].slow_queries > 5) {
       response.recommendations.push(
-        'Multiple slow queries detected. Review query performance and indexing.'
+        'Multiple slow queries detected. Review query performance and indexing.',
       );
     }
     if (response.recommendations.length === 0) {
@@ -452,7 +453,7 @@ router.get('/recommendations', async (req: Request, res: Response) => {
         priority: 'high',
         title: 'High Memory Usage',
         description: `Current memory usage is ${memoryUsageMB.toFixed(
-          2
+          2,
         )}MB, approaching the 512MB target.`,
         impact: 'Risk of memory leaks, potential application crashes',
         implementation:
@@ -467,7 +468,7 @@ router.get('/recommendations', async (req: Request, res: Response) => {
         priority: 'medium',
         title: 'Elevated Error Rate',
         description: `Current error rate is ${performanceStats.errorRate.toFixed(
-          2
+          2,
         )}%, above the 1% target.`,
         impact: 'Reduced application reliability, poor user experience',
         implementation:
@@ -483,7 +484,7 @@ router.get('/recommendations', async (req: Request, res: Response) => {
         priority: 'medium',
         title: 'High Slow Request Rate',
         description: `${(slowRequestRate * 100).toFixed(
-          2
+          2,
         )}% of requests are slow (>1s), above the 10% threshold.`,
         impact: 'Poor perceived performance, user dissatisfaction',
         implementation:

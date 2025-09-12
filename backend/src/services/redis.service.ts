@@ -1,6 +1,7 @@
-import Redis from 'ioredis';
-import { logger } from '../utils/logger';
 import { AppError } from '@medianest/shared';
+import Redis from 'ioredis';
+
+import { logger } from '../utils/logger';
 
 export interface RedisConfig {
   url?: string;
@@ -195,7 +196,7 @@ export class RedisService {
   async setOAuthState(
     state: string,
     data: OAuthStateData,
-    ttlSeconds: number = 600
+    ttlSeconds: number = 600,
   ): Promise<void> {
     try {
       const key = `${RedisService.KEY_PREFIXES.OAUTH_STATE}${state}`;
@@ -290,7 +291,7 @@ export class RedisService {
   async set2FAChallenge(
     challengeId: string,
     data: TwoFactorChallengeData,
-    ttlSeconds: number = 300
+    ttlSeconds: number = 300,
   ): Promise<void> {
     try {
       const key = `${RedisService.KEY_PREFIXES.TWOFACTOR_CHALLENGE}${challengeId}`;
@@ -377,7 +378,7 @@ export class RedisService {
    * Find active 2FA challenge for user
    */
   async findActive2FAChallenge(
-    userId: string
+    userId: string,
   ): Promise<{ challengeId: string; data: TwoFactorChallengeData } | null> {
     try {
       const pattern = `${RedisService.KEY_PREFIXES.TWOFACTOR_CHALLENGE}*`;
@@ -417,7 +418,7 @@ export class RedisService {
   async setPasswordResetToken(
     tokenId: string,
     data: PasswordResetTokenData,
-    ttlSeconds: number = 900
+    ttlSeconds: number = 900,
   ): Promise<void> {
     try {
       const key = `${RedisService.KEY_PREFIXES.PASSWORD_RESET}${tokenId}`;
@@ -434,7 +435,7 @@ export class RedisService {
       throw new AppError(
         'REDIS_PWD_RESET_STORE_FAILED',
         'Failed to store password reset token',
-        500
+        500,
       );
     }
   }
@@ -489,7 +490,7 @@ export class RedisService {
       throw new AppError(
         'REDIS_PWD_RESET_UPDATE_FAILED',
         'Failed to update password reset token',
-        500
+        500,
       );
     }
   }
@@ -512,7 +513,7 @@ export class RedisService {
    * Find active password reset token for user
    */
   async findActivePasswordResetToken(
-    userId: string
+    userId: string,
   ): Promise<{ tokenId: string; data: PasswordResetTokenData } | null> {
     try {
       const pattern = `${RedisService.KEY_PREFIXES.PASSWORD_RESET}*`;
@@ -552,7 +553,7 @@ export class RedisService {
   async setSession(
     sessionId: string,
     data: SessionData,
-    ttlSeconds: number = 86400
+    ttlSeconds: number = 86400,
   ): Promise<void> {
     try {
       const sessionKey = `${RedisService.KEY_PREFIXES.SESSION}${sessionId}`;
@@ -663,7 +664,7 @@ export class RedisService {
   async incrementRateLimit(
     key: string,
     windowSeconds: number = 60,
-    maxAttempts: number = 5
+    maxAttempts: number = 5,
   ): Promise<{ count: number; remaining: number; resetTime: Date }> {
     try {
       const rateLimitKey = `${RedisService.KEY_PREFIXES.RATE_LIMIT}${key}`;
@@ -703,7 +704,7 @@ export class RedisService {
    */
   async getRateLimit(
     key: string,
-    maxAttempts: number = 5
+    maxAttempts: number = 5,
   ): Promise<{ count: number; remaining: number; resetTime: Date | null }> {
     try {
       const rateLimitKey = `${RedisService.KEY_PREFIXES.RATE_LIMIT}${key}`;

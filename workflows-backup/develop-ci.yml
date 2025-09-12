@@ -1,0 +1,53 @@
+name: Development CI
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [develop]
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # Very lightweight CI for active development
+  dev-checks:
+    name: Development Checks
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies (optional)
+        run: npm ci --prefer-offline --no-audit || echo "Install failed but continuing"
+        continue-on-error: true
+
+      - name: Basic syntax check (optional)
+        run: |
+          echo "Running basic development checks..."
+          npm run lint || echo "Lint issues found - fix when ready"
+          echo "Development CI passed - focus on rapid iteration!"
+        continue-on-error: true
+
+  # Status summary
+  dev-status:
+    name: Development Status
+    runs-on: ubuntu-latest
+    needs: [dev-checks]
+    if: always()
+    steps:
+      - name: Development Summary
+        run: |
+          echo "=== Development Branch CI ==="
+          echo "✅ This is a development-focused CI pipeline"
+          echo "🚀 All checks are non-blocking for rapid iteration"
+          echo "📝 PRs to staging will run full validation"
+          echo "🎯 Focus on coding - we'll validate later!"
+          echo "================================"

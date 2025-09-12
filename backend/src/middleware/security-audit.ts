@@ -1,9 +1,11 @@
-import { Request, Response, NextFunction } from 'express';
 import fs from 'fs/promises';
 import path from 'path';
-import { logger } from '../utils/logger';
+
+import { Request, Response, NextFunction } from 'express';
+
 import { CatchError } from '../types/common';
 import { getErrorMessage } from '../types/error-types';
+import { logger } from '../utils/logger';
 
 interface SecurityEvent {
   id: string;
@@ -108,28 +110,40 @@ class SecurityAuditLogger {
   }
 
   private logToConsole(event: SecurityEvent): void {
+    // Security fix: Replace console statements with proper logger
+    // Only log in development, never in production
+    if (process.env.NODE_ENV === 'production') {
+      return; // Never log security events to console in production
+    }
+
     const logMessage = `[SECURITY AUDIT] ${event.level.toUpperCase()} - ${event.category}:${
       event.event
     }`;
-    const logData = {
+
+    // Sanitized log data - only include non-sensitive fields
+    const sanitizedLogData = {
       id: event.id,
       timestamp: event.timestamp,
-      userId: event.userId,
-      ipAddress: event.ipAddress,
+      userId: event.userId ? '[USER]' : undefined, // Mask user ID
+      ipAddress: event.ipAddress ? '[IP_MASKED]' : undefined, // Mask IP
       outcome: event.outcome,
-      details: event.details,
+      category: event.category,
+      action: event.action,
+      resource: event.resource,
+      // Explicitly exclude details to prevent data leakage
     };
 
+    // Use proper logger instead of console statements
     switch (event.level) {
       case 'critical':
       case 'error':
-        console.error(logMessage, logData);
+        logger.error(logMessage, sanitizedLogData);
         break;
       case 'warn':
-        console.warn(logMessage, logData);
+        logger.warn(logMessage, sanitizedLogData);
         break;
       default:
-        console.log(logMessage, logData);
+        logger.info(logMessage, sanitizedLogData);
     }
   }
 
@@ -156,7 +170,7 @@ class SecurityAuditLogger {
       // Import Prisma client for database operations
       const { getPrisma } = await import('../db/prisma');
       const prisma = getPrisma();
-      
+
       // Log security events to ErrorLog table with security-specific metadata
       for (const event of events) {
         await prisma.errorLog.create({
@@ -172,7 +186,7 @@ class SecurityAuditLogger {
               resource: event.resource,
               outcome: event.outcome,
               riskScore: event.riskScore,
-              details: event.details
+              details: event.details,
             }),
             requestPath: event.resource || 'unknown',
             requestMethod: event.action || 'unknown',
@@ -184,18 +198,18 @@ class SecurityAuditLogger {
               ipAddress: event.ipAddress,
               userAgent: event.userAgent,
               timestamp: event.timestamp,
-              ...event.details
+              ...event.details,
             },
-            createdAt: new Date(event.timestamp)
-          }
+            createdAt: new Date(event.timestamp),
+          },
         });
       }
-      
+
       logger.debug(`Security audit: ${events.length} events logged to database`);
     } catch (error: CatchError) {
-      logger.error('Failed to log security events to database', { 
+      logger.error('Failed to log security events to database', {
         error: getErrorMessage(error),
-        eventCount: events.length 
+        eventCount: events.length,
       });
       // Don't re-throw to prevent audit logging from breaking the application
     }
@@ -394,7 +408,7 @@ export function logAuthEvent(
   event: string,
   req: Request,
   outcome: 'success' | 'failure' | 'blocked',
-  details: Record<string, any> = {}
+  details: Record<string, any> = {},
 ): void {
   auditLogger.logEvent({
     level: outcome === 'success' ? 'info' : 'warn',
@@ -417,7 +431,7 @@ export function logAuthEvent(
 export function logCriticalSecurityEvent(
   event: string,
   req: Request,
-  details: Record<string, any> = {}
+  details: Record<string, any> = {},
 ): void {
   auditLogger.logEvent({
     level: 'critical',

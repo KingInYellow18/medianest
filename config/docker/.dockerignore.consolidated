@@ -208,9 +208,9 @@ docker-compose*
 .docker/
 docker/
 
-# Kubernetes and orchestration
-k8s/
-kubernetes/
+# Kubernetes and orchestration (removed - simplified to Docker Compose)
+# k8s/
+# kubernetes/
 helm/
 .kube/
 *.yaml

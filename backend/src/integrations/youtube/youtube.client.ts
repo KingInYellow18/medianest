@@ -143,7 +143,7 @@ export class YouTubeClient extends BaseServiceClient {
     outputPath: string,
     quality: string = 'best',
     format: string = 'mp4',
-    onProgress?: (progress: number) => void
+    onProgress?: (progress: number) => void,
   ): Promise<{ filePath: string; fileSize: number }> {
     return new Promise((resolve, reject) => {
       const args = [
@@ -238,7 +238,7 @@ export class YouTubeClient extends BaseServiceClient {
 
     // Prefer maxresdefault
     const maxres = validThumbnails.find(
-      (t) => t.id === 'maxresdefault' || t.url?.includes('maxresdefault')
+      (t) => t.id === 'maxresdefault' || t.url?.includes('maxresdefault'),
     );
     if (maxres) return maxres.url || null;
 

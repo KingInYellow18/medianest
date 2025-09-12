@@ -1,10 +1,11 @@
+import { AppError } from '@medianest/shared';
+import compression from 'compression';
 import { Router, Request, Response } from 'express';
+
+import { AuthenticatedUser } from '../auth';
 import { fastAuthenticate, fastAdminAuthenticate } from '../middleware/auth-cache';
 import { RateLimitPresets } from '../middleware/optimized-rate-limit';
 import { logger } from '../utils/logger';
-import compression from 'compression';
-import { AppError } from '@medianest/shared';
-import { AuthenticatedUser } from '../auth';
 
 // Extend Request interface
 declare module 'express' {
@@ -28,7 +29,7 @@ export function createOptimizedRouter(
     enableCompression?: boolean;
     enableRequestId?: boolean;
     logRequests?: boolean;
-  } = {}
+  } = {},
 ): Router {
   const {
     enableCaching = true,
@@ -64,7 +65,7 @@ export function createOptimizedRouter(
           }
           return compression.filter(req, res);
         },
-      })
+      }),
     );
   }
 
@@ -297,7 +298,7 @@ export function optimizedRoute(
     rateLimit?: 'public' | 'api' | 'media' | 'auth';
     cache?: boolean;
     timeout?: number;
-  } = {}
+  } = {},
 ) {
   const { auth = 'user', rateLimit = 'api', cache = false, timeout = 30000 } = options;
 
@@ -325,10 +326,10 @@ export function optimizedRoute(
       ...(rateLimit === 'auth'
         ? [RateLimitPresets.auth]
         : rateLimit === 'media'
-        ? [RateLimitPresets.mediaSearch]
-        : rateLimit === 'api'
-        ? [RateLimitPresets.api]
-        : [RateLimitPresets.auth]),
+          ? [RateLimitPresets.mediaSearch]
+          : rateLimit === 'api'
+            ? [RateLimitPresets.api]
+            : [RateLimitPresets.auth]),
 
       // Cache headers
       ...(cache

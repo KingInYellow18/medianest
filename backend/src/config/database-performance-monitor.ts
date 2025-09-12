@@ -2,9 +2,10 @@
  * Database Performance Monitoring and Metrics
  * Provides real-time performance monitoring and alerting
  */
-import { logger } from '../utils/logger';
-import { getDatabaseStats } from './database-connection-pool';
 import { CatchError } from '../types/common';
+import { logger } from '../utils/logger';
+
+import { getDatabaseStats } from './database-connection-pool';
 
 interface PerformanceMetrics {
   timestamp: Date;
@@ -117,7 +118,7 @@ class DatabasePerformanceMonitor {
       const loadAvg = require('os').loadavg();
 
       // Calculate CPU percentage (simplified)
-      const cpuPercent = (cpuUsage.user + cpuUsage.system) / 1000000 / process.uptime() * 100;
+      const cpuPercent = ((cpuUsage.user + cpuUsage.system) / 1000000 / process.uptime()) * 100;
 
       const metrics: PerformanceMetrics = {
         timestamp,
@@ -196,7 +197,8 @@ class DatabasePerformanceMonitor {
     }
 
     // Error rate
-    const errorRate = (metrics.queryStats.errors / Math.max(metrics.queryStats.totalQueries, 1)) * 100;
+    const errorRate =
+      (metrics.queryStats.errors / Math.max(metrics.queryStats.totalQueries, 1)) * 100;
     if (errorRate > this.alertConfig.errorRateThreshold) {
       alerts.push({
         type: 'high_error_rate',
@@ -222,7 +224,7 @@ class DatabasePerformanceMonitor {
     }
 
     // Trigger alerts
-    alerts.forEach(alert => {
+    alerts.forEach((alert) => {
       logger.warn('Database performance alert', alert);
       this.triggerAlert(alert);
     });
@@ -232,7 +234,7 @@ class DatabasePerformanceMonitor {
    * Trigger alert callbacks
    */
   private triggerAlert(alert: any): void {
-    this.alertCallbacks.forEach(callback => {
+    this.alertCallbacks.forEach((callback) => {
       try {
         callback(alert);
       } catch (error) {
@@ -281,7 +283,7 @@ class DatabasePerformanceMonitor {
    * Get current performance metrics
    */
   getCurrentMetrics(): PerformanceMetrics | null {
-    return this.metrics.length > 0 ? this.metrics[this.metrics.length - 1] ?? null : null;
+    return this.metrics.length > 0 ? (this.metrics[this.metrics.length - 1] ?? null) : null;
   }
 
   /**
@@ -306,7 +308,7 @@ class DatabasePerformanceMonitor {
     periodEnd: Date;
   } {
     const cutoffTime = new Date(Date.now() - minutes * 60 * 1000);
-    const periodMetrics = this.metrics.filter(m => m.timestamp >= cutoffTime);
+    const periodMetrics = this.metrics.filter((m) => m.timestamp >= cutoffTime);
 
     if (periodMetrics.length === 0) {
       return {
@@ -319,14 +321,20 @@ class DatabasePerformanceMonitor {
       };
     }
 
-    const avgPoolUtilization = periodMetrics.reduce((sum, m) => sum + m.connectionPool.poolUtilization, 0) / periodMetrics.length;
-    const avgQueryTime = periodMetrics.reduce((sum, m) => sum + m.queryStats.averageResponseTime, 0) / periodMetrics.length;
+    const avgPoolUtilization =
+      periodMetrics.reduce((sum, m) => sum + m.connectionPool.poolUtilization, 0) /
+      periodMetrics.length;
+    const avgQueryTime =
+      periodMetrics.reduce((sum, m) => sum + m.queryStats.averageResponseTime, 0) /
+      periodMetrics.length;
     const totalErrors = periodMetrics.reduce((sum, m) => sum + m.queryStats.errors, 0);
-    const maxMemoryUsage = Math.max(...periodMetrics.map(m => (m.memory.heapUsed / m.memory.heapTotal) * 100));
+    const maxMemoryUsage = Math.max(
+      ...periodMetrics.map((m) => (m.memory.heapUsed / m.memory.heapTotal) * 100),
+    );
 
     const firstMetric = periodMetrics[0];
     const lastMetric = periodMetrics[periodMetrics.length - 1];
-    
+
     if (!firstMetric || !lastMetric) {
       return {
         avgPoolUtilization: 0,
@@ -373,7 +381,7 @@ class DatabasePerformanceMonitor {
     recommendations: string[];
   } {
     const cutoffTime = new Date(Date.now() - hours * 60 * 60 * 1000);
-    const reportMetrics = this.metrics.filter(m => m.timestamp >= cutoffTime);
+    const reportMetrics = this.metrics.filter((m) => m.timestamp >= cutoffTime);
 
     if (reportMetrics.length === 0) {
       return {
@@ -436,7 +444,7 @@ class DatabasePerformanceMonitor {
 
     const first = metrics[0];
     const last = metrics[metrics.length - 1];
-    
+
     if (!first || !last) return 'stable';
 
     let firstValue: number, lastValue: number;
@@ -479,7 +487,7 @@ if (process.env.NODE_ENV === 'production') {
   // Set up alert handler for logging
   databasePerformanceMonitor.onAlert((alert) => {
     logger.warn('Database performance alert triggered', alert);
-    
+
     // In production, you might want to send alerts to monitoring systems
     // like Sentry, PagerDuty, or Slack
   });

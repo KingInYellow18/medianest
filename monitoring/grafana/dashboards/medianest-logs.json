@@ -1,0 +1,192 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "MEDIANEST - Application Logs",
+    "tags": ["medianest", "logs", "monitoring"],
+    "style": "dark",
+    "timezone": "browser",
+    "refresh": "30s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Log Volume by Service",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0},
+        "targets": [
+          {
+            "expr": "sum by (service) (count_over_time({service=~\"medianest.*\"}[5m]))",
+            "refId": "A",
+            "datasource": "${DS_LOKI}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {"displayMode": "list", "orientation": "horizontal"},
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Error Rate",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 6, "x": 6, "y": 0},
+        "targets": [
+          {
+            "expr": "sum(rate({service=~\"medianest.*\",level=\"error\"}[5m]))",
+            "refId": "A",
+            "datasource": "${DS_LOKI}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 5},
+                {"color": "red", "value": 10}
+              ]
+            },
+            "unit": "reqps"
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Response Time Distribution",
+        "type": "histogram",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "targets": [
+          {
+            "expr": "{service=\"medianest-backend\"} | json | response_time != \"\" | unwrap response_time",
+            "refId": "A",
+            "datasource": "${DS_LOKI}"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Recent Error Logs",
+        "type": "logs",
+        "gridPos": {"h": 12, "w": 24, "x": 0, "y": 8},
+        "targets": [
+          {
+            "expr": "{service=~\"medianest.*\",level=\"error\"}",
+            "refId": "A",
+            "datasource": "${DS_LOKI}"
+          }
+        ],
+        "options": {
+          "showTime": true,
+          "showLabels": true,
+          "sortOrder": "Descending",
+          "wrapLogMessage": false,
+          "enableLogDetails": true
+        }
+      },
+      {
+        "id": 5,
+        "title": "HTTP Status Codes",
+        "type": "piechart",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+        "targets": [
+          {
+            "expr": "sum by (status_code) (count_over_time({service=\"medianest-backend\"} | json | status_code != \"\" [5m]))",
+            "refId": "A",
+            "datasource": "${DS_LOKI}"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Top Request URLs",
+        "type": "barchart",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20},
+        "targets": [
+          {
+            "expr": "topk(10, sum by (url) (count_over_time({service=\"medianest-backend\"} | json | url != \"\" [5m])))",
+            "refId": "A",
+            "datasource": "${DS_LOKI}"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Application Logs by Correlation ID",
+        "type": "logs",
+        "gridPos": {"h": 12, "w": 24, "x": 0, "y": 28},
+        "targets": [
+          {
+            "expr": "{service=~\"medianest.*\"} | json | correlation_id != \"no-correlation-id\"",
+            "refId": "A",
+            "datasource": "${DS_LOKI}"
+          }
+        ],
+        "options": {
+          "showTime": true,
+          "showLabels": true,
+          "sortOrder": "Descending",
+          "wrapLogMessage": false,
+          "enableLogDetails": true
+        }
+      },
+      {
+        "id": 8,
+        "title": "Security Events",
+        "type": "logs",
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 40},
+        "targets": [
+          {
+            "expr": "{service=~\"medianest.*\"} |~ \"Security Event\"",
+            "refId": "A",
+            "datasource": "${DS_LOKI}"
+          }
+        ],
+        "options": {
+          "showTime": true,
+          "showLabels": true,
+          "sortOrder": "Descending"
+        }
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "name": "service",
+          "type": "query",
+          "query": "label_values(service)",
+          "datasource": "${DS_LOKI}",
+          "refresh": 1,
+          "includeAll": true,
+          "multi": true
+        },
+        {
+          "name": "level",
+          "type": "query",
+          "query": "label_values(level)",
+          "datasource": "${DS_LOKI}",
+          "refresh": 1,
+          "includeAll": true,
+          "multi": true
+        }
+      ]
+    },
+    "annotations": {
+      "list": [
+        {
+          "name": "Deployment Events",
+          "datasource": "${DS_LOKI}",
+          "enable": true,
+          "expr": "{service=~\"medianest.*\"} |~ \"deployment|release\"",
+          "textFormat": "{{message}}"
+        }
+      ]
+    }
+  }
+}

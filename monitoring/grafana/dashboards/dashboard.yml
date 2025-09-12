@@ -1,0 +1,14 @@
+# Grafana Dashboard Provisioning Configuration
+apiVersion: 1
+
+providers:
+  - name: 'MEDIANEST Dashboards'
+    orgId: 1
+    folder: 'MEDIANEST'
+    folderUid: 'medianest'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards

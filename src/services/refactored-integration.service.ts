@@ -1,14 +1,30 @@
+// External dependencies
 import { EventEmitter } from 'events';
 
-import { HealthCheckManager, ServiceHealthStatus } from '../../shared/src/patterns/health-check-manager';
-import { IntegrationClientFactory, ServiceClient } from '../../shared/src/patterns/integration-client-factory';
-import { logger } from '../utils/logger';
-import { PlexIntegrationService, PlexConfig } from './integration/plex-integration.service';
-import { OverseerrIntegrationService, OverseerrConfig } from './integration/overseerr-integration.service';
-import { UptimeKumaIntegrationService, UptimeKumaConfig } from './integration/uptime-kuma-integration.service';
-import { PlexApiClient } from '../integrations/plex/plex-api.client';
+// Shared utilities (using barrel exports)
+import {
+  HealthCheckManager,
+  ServiceHealthStatus,
+  IntegrationClientFactory,
+  ServiceClient,
+} from '@medianest/shared';
+
+// Internal dependencies
 import { OverseerrApiClient } from '../integrations/overseerr/overseerr-api.client';
+import { PlexApiClient } from '../integrations/plex/plex-api.client';
 import { UptimeKumaClient } from '../integrations/uptime-kuma/uptime-kuma-client';
+import { logger } from '../utils/logger';
+
+// Service integration imports
+import {
+  OverseerrIntegrationService,
+  OverseerrConfig,
+} from './integration/overseerr-integration.service';
+import { PlexIntegrationService, PlexConfig } from './integration/plex-integration.service';
+import {
+  UptimeKumaIntegrationService,
+  UptimeKumaConfig,
+} from './integration/uptime-kuma-integration.service';
 
 export interface ServiceIntegrationConfig {
   plex?: PlexConfig;
@@ -31,9 +47,7 @@ export class RefactoredIntegrationService extends EventEmitter {
 
   constructor(private config: ServiceIntegrationConfig = {}) {
     super();
-    this.healthManager = new HealthCheckManager(
-      config.healthCheckInterval || 2 * 60 * 1000
-    );
+    this.healthManager = new HealthCheckManager(config.healthCheckInterval || 2 * 60 * 1000);
     this.setupHealthManagerEvents();
   }
 
@@ -55,7 +69,7 @@ export class RefactoredIntegrationService extends EventEmitter {
     try {
       const initPromises = [
         this.initializePlexIntegration(),
-        this.initializeOverseerrIntegration(), 
+        this.initializeOverseerrIntegration(),
         this.initializeUptimeKumaIntegration(),
       ];
 
@@ -88,7 +102,7 @@ export class RefactoredIntegrationService extends EventEmitter {
     try {
       this.plexService = new PlexIntegrationService(this.config.plex);
       const initialized = await this.plexService.initialize();
-      
+
       if (initialized) {
         this.services.set('plex', this.plexService);
         this.healthManager.registerClient('plex', this.plexService);
@@ -112,7 +126,7 @@ export class RefactoredIntegrationService extends EventEmitter {
     try {
       this.overseerrService = new OverseerrIntegrationService(this.config.overseerr);
       const initialized = await this.overseerrService.initialize();
-      
+
       if (initialized) {
         this.services.set('overseerr', this.overseerrService);
         this.healthManager.registerClient('overseerr', this.overseerrService);
@@ -136,11 +150,11 @@ export class RefactoredIntegrationService extends EventEmitter {
     try {
       this.uptimeKumaService = new UptimeKumaIntegrationService(this.config.uptimeKuma);
       const initialized = await this.uptimeKumaService.initialize();
-      
+
       if (initialized) {
         this.services.set('uptimeKuma', this.uptimeKumaService);
         this.healthManager.registerClient('uptimeKuma', this.uptimeKumaService);
-        
+
         // Forward Uptime Kuma specific events
         this.forwardUptimeKumaEvents();
         logger.info('Uptime Kuma integration registered with health monitoring');
@@ -273,14 +287,14 @@ export class RefactoredIntegrationService extends EventEmitter {
    */
   async refreshServiceConfiguration(): Promise<void> {
     logger.info('Refreshing service configurations');
-    
+
     // Clear client caches
     IntegrationClientFactory.clearCache();
-    
+
     if (this.plexService) {
       this.plexService.clearUserClientsCache();
     }
-    
+
     // Trigger health checks to validate configurations
     // Health manager will automatically perform checks
   }
@@ -295,7 +309,7 @@ export class RefactoredIntegrationService extends EventEmitter {
     cacheStats: any;
   } {
     const health = this.getOverallSystemHealth();
-    
+
     return {
       totalServices: health.totalServices,
       healthyServices: health.healthyServices,
@@ -319,21 +333,21 @@ export class RefactoredIntegrationService extends EventEmitter {
     if (this.plexService) {
       this.plexService.shutdown();
     }
-    
+
     if (this.overseerrService) {
       this.overseerrService.shutdown();
     }
-    
+
     if (this.uptimeKumaService) {
       this.uptimeKumaService.shutdown();
     }
 
     // Clear service registry
     this.services.clear();
-    
+
     // Clear factory cache
     IntegrationClientFactory.clearCache();
-    
+
     // Remove all event listeners
     this.removeAllListeners();
 

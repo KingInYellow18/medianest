@@ -1,23 +1,24 @@
 import { Router } from 'express';
 
-import { authenticate } from '@/middleware/auth';
-
-import adminRoutes from './admin';
-import authRoutes from './auth';
-import dashboardRoutes from './dashboard';
-import healthRoutes from './health';
-import mediaRoutes from './media';
-import plexRoutes from './plex';
-import servicesRoutes from './services';
-import webhookRoutes from './webhooks';
-import youtubeRoutes from './youtube';
-import { errorsRoutes } from './errors.routes';
-import { router as csrfRoutes } from './csrf';
 import { performanceRoutes } from '../performance';
-import { resilienceRouter } from './resilience';
 import { simpleHealthRouter } from '../simple-health';
 import systemRoutes from '../system';
 import testRoutes from '../test';
+
+import adminRoutes from './admin';
+import authRoutes from './auth';
+import { router as csrfRoutes } from './csrf';
+import dashboardRoutes from './dashboard';
+import { errorsRoutes } from './errors.routes';
+import healthRoutes from './health';
+import mediaRoutes from './media';
+import plexRoutes from './plex';
+import { resilienceRouter } from './resilience';
+import servicesRoutes from './services';
+import webhookRoutes from './webhooks';
+import youtubeRoutes from './youtube';
+
+import { authenticate } from '@/middleware/auth';
 
 // Context7 Pattern: Optimized Router with Performance Considerations
 const router = Router();

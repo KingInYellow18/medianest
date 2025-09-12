@@ -1,13 +1,14 @@
-import { Request, Response } from 'express';
-import { OptimizedMediaRequestRepository } from '../repositories/optimized-media-request.repository';
-import { prisma } from '../lib/prisma';
-import { overseerrService } from '../services/overseerr.service';
 import { AppError } from '@medianest/shared';
-import { logger } from '../utils/logger';
-import { getRedis } from '../config/redis';
-import { CatchError } from '../types/common';
+import { Request, Response } from 'express';
 import { z } from 'zod';
+
 import { AuthenticatedUser } from '../auth';
+import { getRedis } from '../config/redis';
+import { prisma } from '../lib/prisma';
+import { OptimizedMediaRequestRepository } from '../repositories/optimized-media-request.repository';
+import { overseerrService } from '../services/overseerr.service';
+import { CatchError } from '../types/common';
+import { logger } from '../utils/logger';
 
 // Extend Request interface for authenticated requests
 declare module 'express' {
@@ -158,12 +159,12 @@ export class OptimizedMediaController {
       // Fetch from service
       const details = await overseerrService.getMediaDetails(
         mediaType as 'movie' | 'tv',
-        tmdbIdNum
+        tmdbIdNum,
       );
 
       // Cache in background
       this.cacheMediaDetails(cacheKey, details).catch((err) =>
-        logger.warn('Failed to cache media details', { error: err, mediaType, tmdbId })
+        logger.warn('Failed to cache media details', { error: err, mediaType, tmdbId }),
       );
 
       res.json({
@@ -198,7 +199,7 @@ export class OptimizedMediaController {
       const isDuplicate = await this.mediaRequestRepo.checkDuplicate(
         userId,
         String(finalTmdbId),
-        validatedData.mediaType
+        validatedData.mediaType,
       );
 
       if (isDuplicate) {

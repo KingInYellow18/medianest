@@ -14,7 +14,7 @@ export async function retryAsync<T>(
     maxDelay?: number;
     exponential?: boolean;
     onRetry?: (attempt: number, error: Error) => void;
-  } = {}
+  } = {},
 ): Promise<T> {
   const {
     maxAttempts = 3,
@@ -75,7 +75,7 @@ export function sleep(ms: number): Promise<void> {
 export async function withTimeout<T>(
   promise: Promise<T>,
   timeoutMs: number,
-  timeoutMessage = `Operation timed out after ${timeoutMs}ms`
+  timeoutMessage = `Operation timed out after ${timeoutMs}ms`,
 ): Promise<T> {
   const timeoutPromise = new Promise<never>((_, reject) => {
     setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);
@@ -94,7 +94,7 @@ export async function withTimeout<T>(
 export async function processBatch<T, R>(
   items: T[],
   batchSize: number,
-  processor: (item: T, index: number) => Promise<R>
+  processor: (item: T, index: number) => Promise<R>,
 ): Promise<R[]> {
   const results: R[] = [];
 
@@ -124,7 +124,7 @@ export async function processBatchWithErrors<T, R>(
   options: {
     continueOnError?: boolean;
     onError?: (error: Error, item: T, index: number) => void;
-  } = {}
+  } = {},
 ): Promise<{
   results: (R | null)[];
   errors: (Error | null)[];
@@ -179,7 +179,7 @@ export async function processBatchWithErrors<T, R>(
  */
 export function debounceAsync<T extends (...args: unknown[]) => Promise<any>>(
   fn: T,
-  delay: number
+  delay: number,
 ): T {
   let timeoutId: NodeJS.Timeout | null = null;
   let latestResolve: ((value: any) => void) | null = null;
@@ -214,7 +214,7 @@ export function debounceAsync<T extends (...args: unknown[]) => Promise<any>>(
  */
 export function throttleAsync<T extends (...args: unknown[]) => Promise<any>>(
   fn: T,
-  limit: number
+  limit: number,
 ): T {
   let lastExecuted = 0;
   let pending = false;
@@ -235,19 +235,22 @@ export function throttleAsync<T extends (...args: unknown[]) => Promise<any>>(
           });
       } else {
         const waitTime = limit - (now - lastExecuted);
-        setTimeout(() => {
-          if (!pending) {
-            lastExecuted = Date.now();
-            pending = true;
+        setTimeout(
+          () => {
+            if (!pending) {
+              lastExecuted = Date.now();
+              pending = true;
 
-            fn(...args)
-              .then(resolve)
-              .catch(reject)
-              .finally(() => {
-                pending = false;
-              });
-          }
-        }, Math.max(0, waitTime));
+              fn(...args)
+                .then(resolve)
+                .catch(reject)
+                .finally(() => {
+                  pending = false;
+                });
+            }
+          },
+          Math.max(0, waitTime),
+        );
       }
     });
   }) as T;
@@ -265,7 +268,7 @@ export function createCircuitBreaker<T extends (...args: unknown[]) => Promise<a
     failureThreshold?: number;
     resetTimeout?: number;
     onStateChange?: (state: 'open' | 'half-open' | 'closed') => void;
-  } = {}
+  } = {},
 ): T {
   const { failureThreshold = 5, resetTimeout = 60000, onStateChange } = options;
 
@@ -364,7 +367,7 @@ export function createSemaphore(maxConcurrency: number) {
  */
 export async function withSemaphore<T>(
   semaphore: { acquire: () => Promise<() => void> },
-  fn: () => Promise<T>
+  fn: () => Promise<T>,
 ): Promise<T> {
   const release = await semaphore.acquire();
   try {
@@ -380,7 +383,7 @@ export async function withSemaphore<T>(
  * @returns Promisified function
  */
 export function promisify<T>(
-  fn: (callback: (error: Error | null, result?: T) => void) => void
+  fn: (callback: (error: Error | null, result?: T) => void) => void,
 ): () => Promise<T> {
   return () => {
     return new Promise<T>((resolve, reject) => {

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { csrfController } from '@/controllers/csrf.controller';
 import { authenticate, requireAdmin, optionalAuth } from '@/middleware/auth';
 import { generateCSRFToken, refreshCSRFToken } from '@/middleware/csrf';

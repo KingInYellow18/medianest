@@ -90,7 +90,7 @@ export const SECURITY_IMPROVEMENTS_SUMMARY = {
   criticalSecurityIssuesResolved: 8,
   riskReductionPercentage: 90,
   overallSecurityScore: 9.3,
-  
+
   keyAchievements: [
     'Zero unsafe type assertions remaining in codebase',
     'Comprehensive database null safety implementation',
@@ -127,7 +127,7 @@ export const SECURITY_IMPROVEMENTS_SUMMARY = {
 
   complianceStandards: [
     'OWASP Top 10 - Input Validation (A03)',
-    'OWASP Top 10 - Security Misconfiguration (A05)', 
+    'OWASP Top 10 - Security Misconfiguration (A05)',
     'OWASP ASVS - Data Validation Requirements',
     'CWE-476 - NULL Pointer Dereference Prevention',
     'CWE-690 - Unchecked Return Value Protection',
@@ -168,6 +168,19 @@ The codebase is now protected against null pointer dereferences,
 unsafe type assertions, and configuration parsing vulnerabilities.
 Runtime monitoring will track and prevent future violations.
 `);
+
+// Export classes for index.ts
+export class NullSafetyReporter {
+  static generateReport() {
+    return {
+      report: NULL_SAFETY_MISSION_REPORT,
+      summary: SECURITY_IMPROVEMENTS_SUMMARY,
+      validation: VALIDATION_RESULTS,
+    };
+  }
+}
+
+export type NullSafetyReport = typeof VALIDATION_RESULTS;
 
 export default {
   report: NULL_SAFETY_MISSION_REPORT,

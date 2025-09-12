@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
+
 import { getRedis } from '../config/redis';
-import { logger } from '../utils/logger';
 import { CatchError } from '../types/common';
+import { logger } from '../utils/logger';
 
 /**
  * Comprehensive performance monitoring middleware

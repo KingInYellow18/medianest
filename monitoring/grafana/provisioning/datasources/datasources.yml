@@ -1,0 +1,92 @@
+# Auto-Provisioning Data Sources for MEDIANEST PLG Stack
+# Prometheus for metrics, Loki for logs
+apiVersion: 1
+
+datasources:
+  # Prometheus datasource for application and infrastructure metrics
+  - name: Prometheus
+    type: prometheus
+    uid: prometheus-uid
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+    basicAuth: false
+    jsonData:
+      httpMethod: POST
+      prometheusType: Prometheus
+      prometheusVersion: 2.40.0
+      cacheLevel: 'High'
+      disableMetricsLookup: false
+      customQueryParameters: ''
+      timeInterval: 30s
+      queryTimeout: 60s
+      defaultEditor: code
+      exemplarTraceIdDestinations:
+        - name: trace_id
+          datasourceUid: jaeger-uid
+    secureJsonData: {}
+
+  # Loki datasource for centralized log aggregation
+  - name: Loki
+    type: loki
+    uid: loki-uid
+    access: proxy
+    url: http://loki:3100
+    editable: true
+    basicAuth: false
+    jsonData:
+      httpHeaderName1: 'X-Scope-OrgID'
+      maxLines: 1000
+      derivedFields:
+        - name: TraceID
+          matcherRegex: "trace_id=(\\w+)"
+          url: '${__value.raw}'
+          datasourceUid: jaeger-uid
+        - name: Hostname
+          matcherRegex: "hostname=(\\w+)"
+          url: ''
+        - name: RequestID
+          matcherRegex: "request_id=([\\w-]+)"
+          url: ''
+    secureJsonData:
+      httpHeaderValue1: 'medianest'
+
+  # Node Exporter for system metrics (optional, if running)
+  - name: Node Exporter
+    type: prometheus
+    uid: node-exporter-uid
+    access: proxy
+    url: http://node-exporter:9100
+    editable: true
+    basicAuth: false
+    jsonData:
+      httpMethod: GET
+      timeInterval: 15s
+      queryTimeout: 30s
+    secureJsonData: {}
+
+  # PostgreSQL direct connection for database metrics (optional)
+  - name: PostgreSQL
+    type: postgres
+    uid: postgres-uid
+    access: proxy
+    url: postgres:5432
+    database: medianest_dev
+    user: medianest
+    editable: true
+    basicAuth: false
+    jsonData:
+      sslmode: disable
+      maxOpenConns: 100
+      maxIdleConns: 100
+      maxIdleConnsAuto: true
+      connMaxLifetime: 14400
+      postgresVersion: 1600
+      timescaledb: false
+    secureJsonData:
+      password: medianest_dev_password
+
+deleteDatasources:
+  - name: TestData DB
+    orgId: 1

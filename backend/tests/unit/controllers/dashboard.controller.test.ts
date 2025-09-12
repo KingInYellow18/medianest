@@ -5,7 +5,7 @@ import { mediaRequestRepository, userRepository } from '../../../src/repositorie
 import { plexService } from '../../../src/services/plex.service';
 import { statusService } from '../../../src/services/status.service';
 import { cacheService } from '../../../src/services/cache.service';
-import { AppError } from '../../../src/utils/errors';
+import { AppError } from '@medianest/shared';
 import { logger } from '../../../src/utils/logger';
 
 // Mock dependencies

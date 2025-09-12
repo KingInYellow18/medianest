@@ -366,7 +366,25 @@ chmod 644 data/certbot/ssl/fullchain.pem
 
 ### Step 6: Deploy MediaNest
 
-**Run the deployment:**
+**Option A: Automated Deployment (Recommended)**
+
+```bash
+# Complete automated production deployment
+./deployment/scripts/deploy-compose.sh \
+  --domain your-domain.com \
+  --email your-email@domain.com \
+  --ssl-method letsencrypt
+
+# The script automatically handles:
+# - SSL certificate generation and configuration
+# - Environment variable setup
+# - Secret generation and security
+# - Database initialization and migrations
+# - Service health verification
+# - Nginx reverse proxy configuration
+```
+
+**Option B: Manual Deployment**
 
 ```bash
 # Pull latest images
@@ -379,27 +397,87 @@ docker compose -f config/docker/docker-compose.prod.yml up -d --build
 docker compose -f config/docker/docker-compose.prod.yml ps
 ```
 
+**Script Options:**
+
+```bash
+# Available deployment script options:
+./deployment/scripts/deploy-compose.sh [OPTIONS]
+
+# Options:
+  --domain DOMAIN          # Your domain name (required)
+  --email EMAIL           # Email for SSL certificates (required)
+  --ssl-method METHOD     # 'letsencrypt' or 'selfsigned' (default: letsencrypt)
+  --backup-existing       # Backup existing installation before deployment
+  --skip-ssl             # Skip SSL certificate setup
+  --dev-mode             # Deploy in development mode
+  --help                 # Show help information
+
+# Examples:
+./deployment/scripts/deploy-compose.sh --domain media.example.com --email admin@example.com
+./deployment/scripts/deploy-compose.sh --domain localhost --ssl-method selfsigned --dev-mode
+```
+
 **Expected output - ALL services should show "Up" status:**
 ```
 NAME                   IMAGE                    COMMAND                  STATUS              PORTS
-medianest-nginx        medianest/nginx:latest   "/docker-entrypoint.…"   Up 30 seconds       0.0.0.0:80->80/tcp, 0.0.0.0:443->443/tcp
-medianest-frontend     medianest/frontend       "docker-entrypoint.s…"   Up 45 seconds       3000/tcp
-medianest-backend      medianest/backend        "docker-entrypoint.s…"   Up 60 seconds       4000/tcp
-medianest-postgres     postgres:16-alpine       "docker-entrypoint.s…"   Up (healthy) 75 seconds   5432/tcp
-medianest-redis        redis:7-alpine           "docker-entrypoint.s…"   Up (healthy) 75 seconds   6379/tcp
+medianest-nginx        nginx:alpine            "/docker-entrypoint.…"   Up 30 seconds       0.0.0.0:80->80/tcp, 0.0.0.0:443->443/tcp
+medianest-frontend     medianest-frontend      "docker-entrypoint.s…"   Up 45 seconds       3000/tcp
+medianest-backend      medianest-backend       "docker-entrypoint.s…"   Up 60 seconds       4000/tcp
+medianest-postgres     postgres:16-alpine      "docker-entrypoint.s…"   Up (healthy) 75 seconds   5432/tcp
+medianest-redis        redis:7-alpine          "docker-entrypoint.s…"   Up (healthy) 75 seconds   6379/tcp
+```
+
+**Service Health Status:**
+
+After deployment, verify all services are healthy:
+
+```bash
+# Check individual service health
+docker compose -f config/docker/docker-compose.prod.yml exec backend curl -f http://localhost:4000/health
+docker compose -f config/docker/docker-compose.prod.yml exec frontend curl -f http://localhost:3000/api/health
+
+# Check database connectivity
+docker compose -f config/docker/docker-compose.prod.yml exec postgres pg_isready -U medianest
+
+# Check Redis connectivity
+docker compose -f config/docker/docker-compose.prod.yml exec redis redis-cli ping
 ```
 
 ### Step 7: Initialize Database
 
+**If using automated deployment script, this step is handled automatically.**
+
+**For manual deployment:**
+
 ```bash
 # Wait for database to be ready
-sleep 30
+echo "Waiting for database to start..."
+while ! docker compose -f config/docker/docker-compose.prod.yml exec postgres pg_isready -U medianest -q; do
+  sleep 2
+done
+echo "Database is ready!"
 
 # Run database migrations
 docker compose -f config/docker/docker-compose.prod.yml exec backend npm run db:migrate
 
+# Seed initial data (admin user, default settings)
+docker compose -f config/docker/docker-compose.prod.yml exec backend npm run db:seed
+
 # Verify database initialization
 docker compose -f config/docker/docker-compose.prod.yml exec backend npm run db:check
+```
+
+**Database Verification:**
+
+```bash
+# Check database tables were created
+docker compose -f config/docker/docker-compose.prod.yml exec postgres psql -U medianest -d medianest -c "\dt"
+
+# Verify admin user exists
+docker compose -f config/docker/docker-compose.prod.yml exec postgres psql -U medianest -d medianest -c "SELECT username, role FROM users WHERE role='admin';"
+
+# Check database health
+docker compose -f config/docker/docker-compose.prod.yml exec backend node -e "const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient(); prisma.\$connect().then(() => console.log('✅ Database connected')).catch(err => console.error('❌ Database error:', err.message)).finally(() => process.exit());"
 ```
 
 ---
@@ -893,11 +971,11 @@ docker compose -f config/docker/docker-compose.prod.yml ps
 
 ### Additional Documentation
 
-- [Backend Configuration](docs/backend/README.md)
-- [Frontend Configuration](docs/frontend/README.md)
-- [Security Hardening Guide](docs/SECURITY.md)
-- [Performance Optimization](docs/PERFORMANCE.md)
-- [API Documentation](docs/API.md)
+- [Backend Configuration](backend/README.md)
+- [Frontend Configuration](frontend/README.md)
+- [Security Documentation](ARCHITECTURE.md#7-security-architecture)
+- [Performance Documentation](ARCHITECTURE.md#10-performance--scalability)
+- [API Documentation](docs/api/overview.md)
 
 ---
 
@@ -947,6 +1025,71 @@ Your MediaNest instance should now be fully operational at: `https://your-domain
 - **API Status:** https://your-domain.com/api/status
 
 For ongoing maintenance, refer to the monitoring and maintenance sections above.
+
+---
+
+## 🚀 Docker Compose Architecture Overview
+
+MediaNest uses a modern Docker Compose architecture optimized for both development and production deployment:
+
+### Service Architecture
+
+```
+medianest-stack/
+├── nginx (Reverse Proxy)
+│   ├── SSL/TLS Termination
+│   ├── Static File Serving
+│   └── Rate Limiting & Security
+│
+├── frontend (Next.js Application)
+│   ├── React 18+ with App Router
+│   ├── Server-Side Rendering
+│   └── WebSocket Client
+│
+├── backend (Express.js API)
+│   ├── RESTful API Endpoints
+│   ├── WebSocket Server (Socket.io)
+│   ├── Background Job Processing
+│   └── External Service Integrations
+│
+├── postgres (Database)
+│   ├── PostgreSQL 16 with Alpine
+│   ├── Automated Backups
+│   └── Health Checks
+│
+└── redis (Cache & Queue)
+    ├── Session Storage
+    ├── Job Queue (BullMQ)
+    └── Caching Layer
+```
+
+### Container Features
+
+**Security:**
+- All containers run as non-root users (1000:1000)
+- Docker secrets for sensitive data
+- Minimal Alpine-based images
+- Security scanning and updates
+
+**Reliability:**
+- Health checks for all services
+- Automatic restart policies
+- Graceful shutdown handling
+- Resource limits and monitoring
+
+**Performance:**
+- Multi-stage Docker builds
+- Optimized image layers
+- Connection pooling
+- Efficient caching strategies
+
+### Deployment Options
+
+| Method | Use Case | Complexity | Features |
+|--------|----------|------------|----------|
+| **Automated Script** | Production | Low | SSL, monitoring, backups |
+| **Manual Compose** | Development/Testing | Medium | Full control, customization |
+| **Hybrid** | Staging/Custom | Medium | Partial automation |
 
 ---
 

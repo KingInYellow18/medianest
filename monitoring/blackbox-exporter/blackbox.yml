@@ -1,0 +1,108 @@
+# Blackbox Exporter Configuration for MEDIANEST
+
+modules:
+  # HTTP GET probe for basic health checks
+  http_2xx:
+    prober: http
+    timeout: 5s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      valid_status_codes: [200]
+      method: GET
+      headers:
+        Accept: "application/json"
+      no_follow_redirects: false
+      fail_if_ssl: false
+      fail_if_not_ssl: false
+      tls_config:
+        insecure_skip_verify: false
+
+  # HTTP POST probe for API endpoints
+  http_post_2xx:
+    prober: http
+    timeout: 5s
+    http:
+      method: POST
+      headers:
+        Content-Type: "application/json"
+      body: '{"health": "check"}'
+      valid_status_codes: [200, 201]
+
+  # HTTPS probe with SSL verification
+  http_2xx_ssl:
+    prober: http
+    timeout: 5s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      valid_status_codes: [200]
+      method: GET
+      fail_if_not_ssl: true
+      tls_config:
+        insecure_skip_verify: false
+
+  # HTTP probe expecting authentication
+  http_auth:
+    prober: http
+    timeout: 10s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      valid_status_codes: [200, 401]  # 401 is expected for protected endpoints
+      method: GET
+      headers:
+        Authorization: "Bearer test-token"
+
+  # TCP probe for database connectivity
+  tcp_connect:
+    prober: tcp
+    timeout: 5s
+    tcp:
+      query_response:
+        - expect: "."
+
+  # DNS probe for domain resolution
+  dns_lookup:
+    prober: dns
+    timeout: 5s
+    dns:
+      query_name: "medianest.local"
+      query_type: "A"
+      valid_rcodes:
+        - NOERROR
+
+  # ICMP probe for basic connectivity
+  icmp:
+    prober: icmp
+    timeout: 5s
+    icmp:
+      preferred_ip_protocol: "ip4"
+
+  # Custom probe for MEDIANEST API health
+  medianest_api_health:
+    prober: http
+    timeout: 10s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      valid_status_codes: [200]
+      method: GET
+      headers:
+        Accept: "application/json"
+        User-Agent: "Blackbox-Exporter/1.0"
+      fail_if_body_not_matches_regexp:
+        - '"status":\s*"ok"'
+      fail_if_header_not_matches:
+        - header: "Content-Type"
+          regexp: "application/json"
+
+  # WebSocket probe for socket.io connectivity
+  ws_connect:
+    prober: http
+    timeout: 10s
+    http:
+      valid_http_versions: ["HTTP/1.1"]
+      valid_status_codes: [101]  # WebSocket upgrade response
+      method: GET
+      headers:
+        Connection: "Upgrade"
+        Upgrade: "websocket"
+        Sec-WebSocket-Key: "dGhlIHNhbXBsZSBub25jZQ=="
+        Sec-WebSocket-Version: "13"

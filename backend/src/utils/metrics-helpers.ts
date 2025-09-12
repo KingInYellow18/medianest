@@ -1,13 +1,14 @@
 // @ts-nocheck
 import { performance } from 'perf_hooks';
+
 // @ts-ignore
-import { CatchError } from '../types/common';
 import {
   recordDatabaseMetrics,
   recordRedisMetrics,
   recordExternalServiceMetrics,
   recordBusinessMetrics,
 } from '../middleware/metrics';
+import { CatchError } from '../types/common';
 
 /**
  * Higher-order function to wrap database operations with metrics
@@ -15,7 +16,7 @@ import {
 export function withDatabaseMetrics<T extends (...args: unknown[]) => Promise<any>>(
   operation: string,
   table: string,
-  fn: T
+  fn: T,
 ): T {
   return (async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
     const startTime = performance.now();
@@ -39,7 +40,7 @@ export function withDatabaseMetrics<T extends (...args: unknown[]) => Promise<an
  */
 export function withRedisMetrics<T extends (...args: unknown[]) => Promise<any>>(
   operation: string,
-  fn: T
+  fn: T,
 ): T {
   return (async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
     const startTime = performance.now();
@@ -64,7 +65,7 @@ export function withRedisMetrics<T extends (...args: unknown[]) => Promise<any>>
 export function withExternalServiceMetrics<T extends (...args: unknown[]) => Promise<any>>(
   service: string,
   endpoint: string,
-  fn: T
+  fn: T,
 ): T {
   return (async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
     const startTime = performance.now();
@@ -115,7 +116,8 @@ export class MetricsCollector {
         // Placeholder values for now
         (recordDatabaseMetrics as any).updateConnectionPool(5, 10);
       } catch (error: CatchError) {
-        console.error('Error collecting database metrics:', error);
+        // Use proper logger instead of console.error
+        logger.error('Error collecting database metrics:', error);
       }
     }, 30000);
 
@@ -129,7 +131,8 @@ export class MetricsCollector {
         // Placeholder value for now
         (recordRedisMetrics as any).updateConnections(2);
       } catch (error: CatchError) {
-        console.error('Error collecting Redis metrics:', error);
+        // Use proper logger instead of console.error
+        logger.error('Error collecting Redis metrics:', error);
       }
     }, 30000);
 
@@ -154,7 +157,8 @@ export class MetricsCollector {
         (recordBusinessMetrics as any).updateMediaLibrarySize('movies', 1000);
         (recordBusinessMetrics as any).updateMediaLibrarySize('tv', 500);
       } catch (error: CatchError) {
-        console.error('Error collecting business metrics:', error);
+        // Use proper logger instead of console.error
+        logger.error('Error collecting business metrics:', error);
       }
     }, 60000);
 
@@ -197,7 +201,7 @@ export const MetricsUtils = {
   recordMediaRequest(
     type: 'movie' | 'tv' | 'music',
     status: 'requested' | 'approved' | 'downloaded' | 'failed',
-    userId: string
+    userId: string,
   ): void {
     (recordBusinessMetrics as any).recordMediaRequest(type, status, userId);
   },
@@ -207,7 +211,7 @@ export const MetricsUtils = {
    */
   recordUserActivity(
     activity: 'login' | 'logout' | 'search' | 'request' | 'download',
-    userId: string
+    userId: string,
   ): void {
     (recordBusinessMetrics as any).recordUserActivity(activity, userId);
   },

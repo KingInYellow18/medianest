@@ -22,6 +22,11 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "paths": {
+      "@medianest/shared": ["./shared/dist", "./shared/src"],
+      "@medianest/shared/*": ["./shared/dist/*", "./shared/src/*"]
+    },
 
     // Emit - Context7 optimized for faster builds
     "declaration": true,

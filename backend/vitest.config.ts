@@ -11,39 +11,42 @@ export default defineConfig({
     setupFiles: ['./tests/setup.ts'],
     globals: true,
     
-    // **OPTIMIZED PARALLEL EXECUTION**
+    // **SINGLE THREAD EXECUTION - ELIMINATES WORKER THREAD ISSUES**
     pool: 'threads',
     poolOptions: {
       threads: {
-        singleThread: false,
-        minThreads: 2,
-        maxThreads: maxWorkers,
-        isolate: false, // Better performance
-        useAtomics: true,
-      },
-      forks: {
-        singleFork: false,
-        isolate: false,
+        singleThread: true, // CRITICAL: Single thread eliminates worker termination
+        minThreads: 1,
+        maxThreads: 1, // Force single thread
+        isolate: false, // Disable isolation for single thread performance
+        useAtomics: false, // Not needed for single thread
       },
     },
     
-    // **PERFORMANCE TIMEOUTS**
-    testTimeout: 8000,    // Reduced from 30s
-    hookTimeout: 2000,    // Reduced setup time
-    teardownTimeout: 2000,
+    // **STABILIZED TIMEOUTS - PREVENT WORKER TERMINATION**
+    testTimeout: 15000,   // Increased for worker stability
+    hookTimeout: 10000,   // Increased for proper cleanup
+    teardownTimeout: 5000, // Reduced - file handles should close quickly
     
-    // **EXECUTION STRATEGY**
-    bail: 0,
-    retry: 0,
+    // **SINGLE THREAD EXECUTION STRATEGY**
+    bail: 3, // Stop after 3 failures
+    retry: 0, // No retries needed in single thread
     sequence: {
-      shuffle: false,      // Deterministic for CI
-      concurrent: true,    // Enable concurrent execution
+      shuffle: false,      // Deterministic execution
+      concurrent: false,   // Single thread, no concurrency
+      setupTimeout: 15000, // Reduced timeout for single thread
     },
     
-    // **MOCK OPTIMIZATIONS**
-    mockReset: false,     // Reduce overhead
-    clearMocks: false,
-    restoreMocks: false,
+    // **SINGLE THREAD CONCURRENCY**
+    maxConcurrency: 1, // Single thread only
+    
+    // **MOCK STABILIZATION - PREVENT MEMORY LEAKS**
+    mockReset: true,      // Enable for proper cleanup
+    clearMocks: true,     // Enable for test isolation
+    restoreMocks: true,   // Enable for proper teardown
+    
+    // **DEBUG REPORTER: Identify hanging processes**
+    reporter: ['default', 'hanging-process'],
     
     // **OPTIMIZED COVERAGE**
     coverage: {
@@ -139,10 +142,26 @@ export default defineConfig({
       DATABASE_TIMEOUT: '3000',    // Reduced timeout
       REDIS_TEST_DB: '15',
       
-      // Performance flags
-      VITEST_POOL_SIZE: maxWorkers.toString(),
-      NODE_OPTIONS: '--max-old-space-size=4096'
+      // Performance flags - WORKER THREAD STABILITY
+      VITEST_POOL_SIZE: Math.min(maxWorkers, 4).toString(),
+      NODE_OPTIONS: '--max-old-space-size=2048 --enable-source-maps=false',
+      // Critical: Add worker thread pool configuration
+      UV_THREADPOOL_SIZE: '8',
+      // Prevent worker thread memory issues
+      VITEST_SEGFAULT_RETRY: '3',
+      // Worker termination handling
+      VITEST_WORKER_TIMEOUT: '30000',
+      
+      // CRITICAL: Resource cleanup to prevent hanging processes
+      VITE_CJS_IGNORE_WARNING: 'true',
+      FORCE_COLOR: '0', // Disable colors to prevent terminal hangs
     },
+    
+    // **RESOURCE CLEANUP CONFIGURATION**
+    // Force proper cleanup to prevent hanging processes
+    fileParallelism: false,
+    // Ensure proper shutdown
+    forceRerunTriggers: ['**/vitest.config.*', '**/package.json'],
   },
   
   resolve: {

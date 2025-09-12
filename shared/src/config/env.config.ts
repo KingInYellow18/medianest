@@ -206,13 +206,13 @@ export class EnvironmentConfig {
     if (typeof value !== 'string' || value.trim() === '') {
       return fallback;
     }
-    
+
     const parsed = parseInt(value.trim(), 10);
     if (isNaN(parsed)) {
       console.warn(`Invalid integer value '${value}', using fallback: ${fallback}`);
       return fallback;
     }
-    
+
     return parsed;
   }
 

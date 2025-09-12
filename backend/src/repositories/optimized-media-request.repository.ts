@@ -1,8 +1,10 @@
 import { MediaRequest, Prisma, PrismaClient } from '@prisma/client';
-import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
+
 import { getRedis } from '../config/redis';
-import { logger } from '../utils/logger';
 import { CatchError } from '../types/common';
+import { logger } from '../utils/logger';
+
+import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
 
 /**
  * Optimized Media Request Repository with aggressive caching and query optimization
@@ -55,18 +57,14 @@ interface CachedUserRequestStats {
   cached_at: number;
 }
 
-export class OptimizedMediaRequestRepository extends BaseRepository<
-  MediaRequest,
-  CreateMediaRequestInput,
-  UpdateMediaRequestInput
-> {
+export class OptimizedMediaRequestRepository extends BaseRepository<MediaRequest> {
   private readonly STATS_CACHE_TTL = 60; // 1 minute cache for stats
   private readonly USER_STATS_PREFIX = 'user_requests_stats:';
   private readonly RECENT_REQUESTS_TTL = 30; // 30 seconds for recent requests
   private readonly RECENT_REQUESTS_KEY = 'recent_media_requests';
 
-  constructor(prisma?: PrismaClient) {
-    super(prisma!);
+  constructor(prisma: PrismaClient) {
+    super(prisma);
   }
 
   /**
@@ -130,7 +128,7 @@ export class OptimizedMediaRequestRepository extends BaseRepository<
    */
   async findByUser(
     userId: string,
-    options: PaginationOptions & { includeFullUser?: boolean } = {}
+    options: PaginationOptions & { includeFullUser?: boolean } = {},
   ): Promise<PaginatedResult<MediaRequest>> {
     const { includeFullUser = false, ...paginationOptions } = options;
 
@@ -143,7 +141,7 @@ export class OptimizedMediaRequestRepository extends BaseRepository<
         user: {
           select: includeFullUser ? FULL_USER_SELECT : MINIMAL_USER_SELECT,
         },
-      }
+      },
     );
   }
 
@@ -152,7 +150,7 @@ export class OptimizedMediaRequestRepository extends BaseRepository<
    */
   async findByFilters(
     filters: MediaRequestFilters,
-    options: PaginationOptions & { includeFullUser?: boolean } = {}
+    options: PaginationOptions & { includeFullUser?: boolean } = {},
   ): Promise<PaginatedResult<MediaRequest>> {
     const { includeFullUser = false, ...paginationOptions } = options;
     const where: Prisma.MediaRequestWhereInput = {};
@@ -178,7 +176,7 @@ export class OptimizedMediaRequestRepository extends BaseRepository<
         user: {
           select: includeFullUser ? FULL_USER_SELECT : MINIMAL_USER_SELECT,
         },
-      }
+      },
     );
   }
 
@@ -270,7 +268,7 @@ export class OptimizedMediaRequestRepository extends BaseRepository<
   async getRecentRequests(
     limit: number = 10,
     offset: number = 0,
-    useCache = true
+    useCache = true,
   ): Promise<MediaRequest[]> {
     if (useCache && offset === 0) {
       try {
@@ -284,7 +282,7 @@ export class OptimizedMediaRequestRepository extends BaseRepository<
           if (requests.length > 0) {
             // Return cached data immediately, refresh in background
             this.refreshRecentRequestsCache().catch((err) =>
-              logger.warn('Background refresh failed', { error: err })
+              logger.warn('Background refresh failed', { error: err }),
             );
 
             return requests.slice(0, limit);
@@ -327,7 +325,7 @@ export class OptimizedMediaRequestRepository extends BaseRepository<
       await redis.setex(
         this.RECENT_REQUESTS_KEY,
         this.RECENT_REQUESTS_TTL,
-        JSON.stringify(requests)
+        JSON.stringify(requests),
       );
     } catch (error) {
       logger.error('Failed to refresh recent requests cache', { error });
@@ -340,7 +338,7 @@ export class OptimizedMediaRequestRepository extends BaseRepository<
   async bulkUpdateStatus(
     requestIds: string[],
     status: string,
-    invalidateCache = true
+    invalidateCache = true,
   ): Promise<number> {
     if (requestIds.length === 0) return 0;
 
@@ -359,7 +357,7 @@ export class OptimizedMediaRequestRepository extends BaseRepository<
       if (invalidateCache && result.count > 0) {
         // Invalidate related caches in background
         this.invalidateRelatedCaches(requestIds).catch((err) =>
-          logger.warn('Cache invalidation failed', { error: err })
+          logger.warn('Cache invalidation failed', { error: err }),
         );
       }
 
@@ -406,7 +404,7 @@ export class OptimizedMediaRequestRepository extends BaseRepository<
 
       // Invalidate user stats cache in background
       this.invalidateUserStatsCache(data.userId).catch((err) =>
-        logger.warn('Stats cache invalidation failed', { error: err })
+        logger.warn('Stats cache invalidation failed', { error: err }),
       );
 
       return request;
@@ -443,7 +441,7 @@ export class OptimizedMediaRequestRepository extends BaseRepository<
       // Invalidate caches if status changed
       if (data.status && data.status !== current.status) {
         this.invalidateUserStatsCache(current.userId).catch((err) =>
-          logger.warn('Stats cache invalidation failed', { error: err })
+          logger.warn('Stats cache invalidation failed', { error: err }),
         );
       }
 
@@ -524,7 +522,7 @@ export class OptimizedMediaRequestRepository extends BaseRepository<
       take?: number;
       orderBy?: any;
       includeFullUser?: boolean;
-    } = {}
+    } = {},
   ): Promise<MediaRequest[]> {
     const { includeFullUser = false, ...queryOptions } = options;
     const where: Prisma.MediaRequestWhereInput = {};

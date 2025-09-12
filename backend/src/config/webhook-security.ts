@@ -1,7 +1,10 @@
 import crypto from 'crypto';
-import { configService } from './config.service';
-import { logger } from '../utils/logger';
+
 import { AppError } from '@medianest/shared';
+
+import { logger } from '../utils/logger';
+
+import { configService } from './config.service';
 
 /**
  * Webhook signature verification utility
@@ -26,7 +29,7 @@ export class WebhookSecurity {
     payload: string,
     signature: string,
     secret: string,
-    algorithm: string = 'sha256'
+    algorithm: string = 'sha256',
   ): boolean {
     try {
       if (!signature || !secret || !payload) {
@@ -43,7 +46,7 @@ export class WebhookSecurity {
       const expectedSignature = signature.replace('sha256=', '');
       return crypto.timingSafeEqual(
         Buffer.from(calculatedSignature, 'hex'),
-        Buffer.from(expectedSignature, 'hex')
+        Buffer.from(expectedSignature, 'hex'),
       );
     } catch (error) {
       logger.error('Webhook signature verification failed', { error });
@@ -60,7 +63,7 @@ export class WebhookSecurity {
       throw new AppError(
         'WEBHOOK_SECRET_NOT_CONFIGURED',
         'Webhook secret not configured for signature verification',
-        500
+        500,
       );
     }
 
@@ -76,7 +79,7 @@ export class WebhookSecurity {
       throw new AppError(
         'GITHUB_WEBHOOK_SECRET_NOT_CONFIGURED',
         'GitHub webhook secret not configured',
-        500
+        500,
       );
     }
 
@@ -101,16 +104,16 @@ export class WebhookSecurity {
     }
 
     const sanitized = { ...payload };
-    
+
     // Remove sensitive fields that might be in webhook payloads
     const sensitiveFields = ['token', 'secret', 'password', 'apiKey', 'api_key'];
-    
+
     const sanitizeObject = (obj: any): void => {
       if (typeof obj !== 'object' || obj === null) return;
-      
-      Object.keys(obj).forEach(key => {
+
+      Object.keys(obj).forEach((key) => {
         const lowerKey = key.toLowerCase();
-        if (sensitiveFields.some(field => lowerKey.includes(field))) {
+        if (sensitiveFields.some((field) => lowerKey.includes(field))) {
           obj[key] = '[REDACTED]';
         } else if (typeof obj[key] === 'object') {
           sanitizeObject(obj[key]);

@@ -1,18 +1,20 @@
 // @ts-nocheck
-import { logger } from '../utils/logger';
-import { resilienceService } from './resilience.service';
-import { healthMonitor } from './health-monitor.service';
-import { errorRecoveryManager } from '../utils/error-recovery';
-import { CircuitBreakerFactory } from '../utils/circuit-breaker';
+import { PrismaClient } from '@prisma/client';
+import IORedis from 'ioredis';
+
 import {
   getMergedConfig,
   serviceDependencies,
   bulkheadCompartments,
   alertThresholds,
 } from '../config/resilience.config';
-import { PrismaClient } from '@prisma/client';
-import IORedis from 'ioredis';
 import { CatchError } from '../types/common';
+import { CircuitBreakerFactory } from '../utils/circuit-breaker';
+import { errorRecoveryManager } from '../utils/error-recovery';
+import { logger } from '../utils/logger';
+
+import { healthMonitor } from './health-monitor.service';
+import { resilienceService } from './resilience.service';
 
 export class ResilienceInitializationService {
   private initialized = false;
@@ -144,7 +146,7 @@ export class ResilienceInitializationService {
   private async createHealthCheckFunction(
     dependency: any,
     prisma?: PrismaClient,
-    redis?: IORedis
+    redis?: IORedis,
   ): Promise<() => Promise<any>> {
     switch (dependency.name) {
       case 'database':

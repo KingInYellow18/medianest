@@ -1,9 +1,10 @@
 import { Router, Request, Response } from 'express';
+
 import { getPrisma } from '../db/prisma';
-import { sendSuccess, sendError } from '../utils/response.utils';
-import { logger } from '../utils/logger';
 import { authMiddleware } from '../middleware/auth';
 import { CatchError } from '../types/common';
+import { logger } from '../utils/logger';
+import { sendSuccess, sendError } from '../utils/response.utils';
 
 const router = Router();
 
@@ -14,54 +15,54 @@ router.use(authMiddleware);
 router.get('/status', async (req: Request, res: Response) => {
   try {
     const prisma = getPrisma();
-    
+
     // Get service statuses and recent activity
     const [serviceStatuses, recentRequests, recentDownloads] = await Promise.all([
       prisma.serviceStatus.findMany({
-        orderBy: { serviceName: 'asc' }
+        orderBy: { serviceName: 'asc' },
       }),
       prisma.mediaRequest.findMany({
         take: 5,
         include: {
           user: {
-            select: { id: true, email: true, name: true }
-          }
+            select: { id: true, email: true, name: true },
+          },
         },
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
       }),
       prisma.youtubeDownload.findMany({
         take: 5,
         include: {
           user: {
-            select: { id: true, email: true, name: true }
-          }
+            select: { id: true, email: true, name: true },
+          },
         },
-        orderBy: { createdAt: 'desc' }
-      })
+        orderBy: { createdAt: 'desc' },
+      }),
     ]);
-    
+
     // Calculate summary statistics
     const requestStats = await prisma.mediaRequest.groupBy({
       by: ['status'],
-      _count: { status: true }
+      _count: { status: true },
     });
-    
+
     const downloadStats = await prisma.youtubeDownload.groupBy({
       by: ['status'],
-      _count: { status: true }
+      _count: { status: true },
     });
-    
+
     sendSuccess(res, {
-      services: serviceStatuses.map(service => ({
+      services: serviceStatuses.map((service) => ({
         name: service.serviceName,
         status: service.status,
         responseTime: service.responseTimeMs,
         lastCheck: service.lastCheckAt,
-        uptime: service.uptimePercentage
+        uptime: service.uptimePercentage,
       })),
       recentActivity: {
         mediaRequests: recentRequests,
-        youtubeDownloads: recentDownloads
+        youtubeDownloads: recentDownloads,
       },
       statistics: {
         mediaRequests: requestStats.reduce((acc, stat) => {
@@ -71,8 +72,8 @@ router.get('/status', async (req: Request, res: Response) => {
         youtubeDownloads: downloadStats.reduce((acc, stat) => {
           acc[stat.status] = stat._count.status;
           return acc;
-        }, {} as any)
-      }
+        }, {} as any),
+      },
     });
   } catch (error: CatchError) {
     logger.error('Dashboard status check failed:', error);

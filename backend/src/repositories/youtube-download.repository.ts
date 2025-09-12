@@ -1,12 +1,13 @@
-import { YoutubeDownload, Prisma } from '@prisma/client';
-
-// @ts-ignore
 import {
   NotFoundError, // @ts-ignore
 } from '@medianest/shared';
+import { YoutubeDownload, Prisma } from '@prisma/client';
+
+// @ts-ignore
+
+import { CatchError } from '../types/common';
 
 import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
-import { CatchError } from '../types/common';
 
 export interface CreateYoutubeDownloadInput {
   userId: string;
@@ -29,11 +30,10 @@ export interface YoutubeDownloadFilters {
   createdBefore?: Date;
 }
 
-export class YoutubeDownloadRepository extends BaseRepository<
-  YoutubeDownload,
-  CreateYoutubeDownloadInput,
-  UpdateYoutubeDownloadInput
-> {
+export class YoutubeDownloadRepository extends BaseRepository<YoutubeDownload> {
+  constructor(prisma: any) {
+    super(prisma);
+  }
   async findById(id: string): Promise<YoutubeDownload | null> {
     try {
       return await this.prisma.youtubeDownload.findUnique({
@@ -56,7 +56,7 @@ export class YoutubeDownloadRepository extends BaseRepository<
 
   async findByUser(
     userId: string,
-    options: PaginationOptions = {}
+    options: PaginationOptions = {},
   ): Promise<PaginatedResult<YoutubeDownload>> {
     return this.paginate<YoutubeDownload>(
       this.prisma.youtubeDownload,
@@ -72,13 +72,13 @@ export class YoutubeDownloadRepository extends BaseRepository<
             plexUsername: true,
           },
         },
-      }
+      },
     );
   }
 
   async findByFilters(
     filters: YoutubeDownloadFilters,
-    options: PaginationOptions = {}
+    options: PaginationOptions = {},
   ): Promise<PaginatedResult<YoutubeDownload>> {
     const where: Prisma.YoutubeDownloadWhereInput = {};
 
@@ -192,10 +192,13 @@ export class YoutubeDownloadRepository extends BaseRepository<
       _count: true,
     });
 
-    return downloads.reduce((acc, item) => {
-      acc[item.status] = item._count;
-      return acc;
-    }, {} as Record<string, number>);
+    return downloads.reduce(
+      (acc, item) => {
+        acc[item.status] = item._count;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
   }
 
   async getActiveDownloads(): Promise<YoutubeDownload[]> {

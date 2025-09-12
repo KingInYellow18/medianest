@@ -1,13 +1,14 @@
-import { Request, Response, NextFunction } from 'express';
-
-// @ts-ignore
 import {
   RateLimitError, // @ts-ignore
 } from '@medianest/shared';
+import { Request, Response, NextFunction } from 'express';
 
-import { logger } from '@/utils/logger';
-import { getRedis } from '@/config/redis';
+// @ts-ignore
+
 import { CatchError } from '../types/common';
+
+import { getRedis } from '@/config/redis';
+import { logger } from '@/utils/logger';
 
 export interface RateLimiterOptions {
   windowMs: number;

@@ -3,8 +3,8 @@ import { Router } from 'express';
 import { adminController } from '@/controllers/admin.controller';
 import { mediaController } from '@/controllers/media.controller';
 import { authenticate, requireAdmin } from '@/middleware/auth';
-import { asyncHandler } from '@/utils/async-handler';
 import { validate } from '@/middleware/validate';
+import { asyncHandler } from '@/utils/async-handler';
 import { getUsersSchema, updateUserRoleSchema, deleteUserSchema } from '@/validations/admin';
 
 const router = Router();

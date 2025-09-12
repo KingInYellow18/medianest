@@ -1,0 +1,517 @@
+name: Documentation Backup & Archive
+
+on:
+  schedule:
+    # Daily backup at 3 AM UTC
+    - cron: '0 3 * * *'
+  workflow_run:
+    workflows: ["Documentation Build & Deploy"]
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      backup_type:
+        description: 'Type of backup to perform'
+        required: true
+        default: 'incremental'
+        type: choice
+        options:
+        - incremental
+        - full
+        - archive
+      retention_days:
+        description: 'Retention period in days'
+        required: false
+        default: '90'
+        type: string
+
+env:
+  BACKUP_RETENTION_DAYS: 90
+  ARCHIVE_RETENTION_DAYS: 365
+  MAX_BACKUP_SIZE_GB: 5
+
+jobs:
+  backup-documentation:
+    name: Backup Documentation
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install backup tools
+      run: |
+        pip install mkdocs-material mkdocs-git-revision-date-localized-plugin \
+                    mkdocs-minify-plugin mkdocs-redirects \
+                    mkdocs-tags mkdocs-social pygments \
+                    pymdown-extensions
+        
+        # Install compression and archival tools
+        sudo apt-get update
+        sudo apt-get install -y zip unzip tar gzip bzip2 xz-utils
+
+    - name: Determine backup type
+      id: backup-type
+      run: |
+        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          BACKUP_TYPE="${{ github.event.inputs.backup_type }}"
+          RETENTION_DAYS="${{ github.event.inputs.retention_days }}"
+        elif [[ "${{ github.event_name }}" == "schedule" ]]; then
+          BACKUP_TYPE="incremental"
+          RETENTION_DAYS="${{ env.BACKUP_RETENTION_DAYS }}"
+        else
+          BACKUP_TYPE="incremental"
+          RETENTION_DAYS="${{ env.BACKUP_RETENTION_DAYS }}"
+        fi
+        
+        echo "backup_type=$BACKUP_TYPE" >> $GITHUB_OUTPUT
+        echo "retention_days=$RETENTION_DAYS" >> $GITHUB_OUTPUT
+        
+        echo "📦 Backup Type: $BACKUP_TYPE"
+        echo "⏰ Retention: $RETENTION_DAYS days"
+
+    - name: Create backup directory structure
+      run: |
+        BACKUP_DATE=$(date -u '+%Y-%m-%d_%H-%M-%S')
+        BACKUP_DIR="documentation-backup-$BACKUP_DATE"
+        
+        mkdir -p "$BACKUP_DIR"/{source,build,metadata,git,config}
+        
+        echo "BACKUP_DATE=$BACKUP_DATE" >> $GITHUB_ENV
+        echo "BACKUP_DIR=$BACKUP_DIR" >> $GITHUB_ENV
+        
+        echo "📁 Created backup directory: $BACKUP_DIR"
+
+    - name: Backup source documentation
+      run: |
+        echo "📄 Backing up source documentation files..."
+        
+        # Copy documentation source files
+        cp -r docs/ "$BACKUP_DIR/source/" || echo "No docs directory found"
+        cp mkdocs.yml "$BACKUP_DIR/config/" 2>/dev/null || echo "No mkdocs.yml found"
+        cp *.md "$BACKUP_DIR/source/" 2>/dev/null || echo "No root markdown files"
+        
+        # Copy documentation-related scripts
+        mkdir -p "$BACKUP_DIR/scripts"
+        cp scripts/build-docs.sh "$BACKUP_DIR/scripts/" 2>/dev/null || echo "No build-docs.sh found"
+        cp scripts/deploy-docs.sh "$BACKUP_DIR/scripts/" 2>/dev/null || echo "No deploy-docs.sh found"
+        
+        # Copy GitHub workflows
+        mkdir -p "$BACKUP_DIR/workflows"
+        cp .github/workflows/docs*.yml "$BACKUP_DIR/workflows/" 2>/dev/null || echo "No docs workflows found"
+        
+        echo "✅ Source backup completed"
+
+    - name: Build and backup documentation
+      run: |
+        echo "🔨 Building documentation for backup..."
+        
+        # Build documentation
+        mkdocs build --clean --verbose
+        
+        if [[ -d "site" ]]; then
+          cp -r site/ "$BACKUP_DIR/build/"
+          echo "✅ Built documentation backed up"
+        else
+          echo "⚠️  Documentation build failed, no built files to backup"
+        fi
+
+    - name: Backup Git history and metadata
+      if: steps.backup-type.outputs.backup_type == 'full' || steps.backup-type.outputs.backup_type == 'archive'
+      run: |
+        echo "📜 Backing up Git history and metadata..."
+        
+        # Git log for documentation-related changes
+        git log --oneline --since="30 days ago" -- docs/ mkdocs.yml > "$BACKUP_DIR/git/recent-changes.log" || true
+        git log --stat --since="90 days ago" -- docs/ mkdocs.yml > "$BACKUP_DIR/git/detailed-changes.log" || true
+        
+        # Current branch and commit info
+        git branch -a > "$BACKUP_DIR/git/branches.txt" || true
+        git rev-parse HEAD > "$BACKUP_DIR/git/current-commit.txt" || true
+        git status --porcelain > "$BACKUP_DIR/git/status.txt" || true
+        
+        # Contributors information
+        git shortlog -sn --since="1 year ago" -- docs/ mkdocs.yml > "$BACKUP_DIR/git/contributors.txt" || true
+        
+        echo "✅ Git metadata backup completed"
+
+    - name: Generate backup metadata
+      run: |
+        echo "📊 Generating backup metadata..."
+        
+        cat > "$BACKUP_DIR/metadata/backup-info.json" << EOF
+        {
+          "backup_date": "$BACKUP_DATE",
+          "backup_type": "${{ steps.backup-type.outputs.backup_type }}",
+          "retention_days": ${{ steps.backup-type.outputs.retention_days }},
+          "git_commit": "${{ github.sha }}",
+          "git_ref": "${{ github.ref }}",
+          "triggered_by": "${{ github.actor }}",
+          "workflow_run_id": "${{ github.run_id }}",
+          "repository": "${{ github.repository }}",
+          "backup_size_bytes": $(du -sb "$BACKUP_DIR" | cut -f1),
+          "file_count": $(find "$BACKUP_DIR" -type f | wc -l),
+          "created_by": "GitHub Actions Documentation Backup Workflow"
+        }
+        EOF
+        
+        # Generate file manifest
+        find "$BACKUP_DIR" -type f -exec ls -la {} \; | sort > "$BACKUP_DIR/metadata/file-manifest.txt"
+        
+        # Generate checksums for integrity verification
+        find "$BACKUP_DIR" -type f -not -path "*/metadata/*" -exec sha256sum {} \; > "$BACKUP_DIR/metadata/checksums.sha256"
+        
+        # Create human-readable summary
+        cat > "$BACKUP_DIR/README.md" << EOF
+        # MediaNest Documentation Backup
+        
+        **Backup Date:** $BACKUP_DATE
+        **Backup Type:** ${{ steps.backup-type.outputs.backup_type }}
+        **Git Commit:** ${{ github.sha }}
+        **Repository:** ${{ github.repository }}
+        **Created By:** ${{ github.actor }}
+        
+        ## Contents
+        
+        - \`source/\` - Source documentation files (Markdown, assets)
+        - \`build/\` - Built documentation (HTML, CSS, JS)
+        - \`config/\` - Configuration files (mkdocs.yml, etc.)
+        - \`scripts/\` - Documentation build and deployment scripts
+        - \`workflows/\` - GitHub Actions workflows
+        - \`git/\` - Git history and metadata (full/archive backups only)
+        - \`metadata/\` - Backup metadata and verification files
+        
+        ## Verification
+        
+        To verify backup integrity, run:
+        \`\`\`bash
+        cd metadata/
+        sha256sum -c checksums.sha256
+        \`\`\`
+        
+        ## Restoration
+        
+        To restore documentation from this backup:
+        1. Extract the backup archive
+        2. Copy contents of \`source/\` to \`docs/\` directory
+        3. Copy \`config/mkdocs.yml\` to repository root
+        4. Run \`mkdocs build\` to rebuild documentation
+        
+        ## File Count
+        **Total Files:** $(find "$BACKUP_DIR" -type f | wc -l)
+        **Total Size:** $(du -sh "$BACKUP_DIR" | cut -f1)
+        EOF
+        
+        echo "✅ Backup metadata generated"
+
+    - name: Compress backup
+      run: |
+        echo "🗜️  Compressing backup archive..."
+        
+        # Create compressed archive
+        if [[ "${{ steps.backup-type.outputs.backup_type }}" == "archive" ]]; then
+          # Use maximum compression for archives
+          tar -cJf "${BACKUP_DIR}.tar.xz" "$BACKUP_DIR"
+          ARCHIVE_FILE="${BACKUP_DIR}.tar.xz"
+          COMPRESSION_TYPE="xz"
+        else
+          # Use fast compression for regular backups
+          tar -czf "${BACKUP_DIR}.tar.gz" "$BACKUP_DIR"
+          ARCHIVE_FILE="${BACKUP_DIR}.tar.gz"
+          COMPRESSION_TYPE="gzip"
+        fi
+        
+        # Get archive information
+        ARCHIVE_SIZE=$(ls -lh "$ARCHIVE_FILE" | awk '{print $5}')
+        ARCHIVE_SIZE_BYTES=$(stat -f%z "$ARCHIVE_FILE" 2>/dev/null || stat -c%s "$ARCHIVE_FILE")
+        COMPRESSION_RATIO=$(echo "scale=2; $(du -sb "$BACKUP_DIR" | cut -f1) / $ARCHIVE_SIZE_BYTES" | bc -l)
+        
+        echo "ARCHIVE_FILE=$ARCHIVE_FILE" >> $GITHUB_ENV
+        echo "ARCHIVE_SIZE=$ARCHIVE_SIZE" >> $GITHUB_ENV
+        echo "COMPRESSION_TYPE=$COMPRESSION_TYPE" >> $GITHUB_ENV
+        echo "COMPRESSION_RATIO=$COMPRESSION_RATIO" >> $GITHUB_ENV
+        
+        echo "✅ Backup compressed: $ARCHIVE_FILE ($ARCHIVE_SIZE)"
+        echo "📊 Compression ratio: ${COMPRESSION_RATIO}:1"
+        
+        # Check archive size limit
+        ARCHIVE_SIZE_GB=$(echo "scale=2; $ARCHIVE_SIZE_BYTES / 1024 / 1024 / 1024" | bc -l)
+        if (( $(echo "$ARCHIVE_SIZE_GB > ${{ env.MAX_BACKUP_SIZE_GB }}" | bc -l) )); then
+          echo "⚠️  Warning: Archive size ($ARCHIVE_SIZE_GB GB) exceeds limit (${{ env.MAX_BACKUP_SIZE_GB }} GB)"
+        fi
+
+    - name: Upload backup artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: documentation-backup-${{ env.BACKUP_DATE }}
+        path: ${{ env.ARCHIVE_FILE }}
+        retention-days: ${{ steps.backup-type.outputs.retention_days }}
+        compression-level: 0  # Already compressed
+
+    - name: Generate backup report
+      run: |
+        echo "📋 Generating backup report..."
+        
+        cat > backup-report.md << EOF
+        # 📦 Documentation Backup Report
+        
+        **Backup Completed:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+        **Backup Type:** ${{ steps.backup-type.outputs.backup_type }}
+        **Archive File:** ${{ env.ARCHIVE_FILE }}
+        **Compression:** ${{ env.COMPRESSION_TYPE }}
+        **Archive Size:** ${{ env.ARCHIVE_SIZE }}
+        **Compression Ratio:** ${{ env.COMPRESSION_RATIO }}:1
+        **Retention Period:** ${{ steps.backup-type.outputs.retention_days }} days
+        
+        ## Backup Contents
+        
+        - ✅ Source documentation files
+        - ✅ Built documentation (HTML/CSS/JS)
+        - ✅ Configuration files
+        - ✅ Build and deployment scripts
+        - ✅ GitHub Actions workflows
+        EOF
+        
+        if [[ "${{ steps.backup-type.outputs.backup_type }}" == "full" || "${{ steps.backup-type.outputs.backup_type }}" == "archive" ]]; then
+          echo "- ✅ Git history and metadata" >> backup-report.md
+        else
+          echo "- ⏭️  Git history (not included in incremental backup)" >> backup-report.md
+        fi
+        
+        cat >> backup-report.md << EOF
+        
+        ## Repository Information
+        
+        - **Repository:** ${{ github.repository }}
+        - **Commit:** ${{ github.sha }}
+        - **Branch:** ${{ github.ref }}
+        - **Triggered by:** ${{ github.actor }}
+        - **Workflow Run:** ${{ github.run_id }}
+        
+        ## Verification
+        
+        The backup includes SHA256 checksums for integrity verification.
+        To verify the backup after extraction:
+        
+        \`\`\`bash
+        cd metadata/
+        sha256sum -c checksums.sha256
+        \`\`\`
+        
+        ## Restoration Instructions
+        
+        1. Download the backup artifact from GitHub Actions
+        2. Extract the archive:
+           - For .tar.gz: \`tar -xzf documentation-backup-*.tar.gz\`
+           - For .tar.xz: \`tar -xJf documentation-backup-*.tar.xz\`
+        3. Copy files from \`source/\` to your \`docs/\` directory
+        4. Copy \`config/mkdocs.yml\` to repository root
+        5. Install dependencies: \`pip install -r requirements.txt\`
+        6. Rebuild: \`mkdocs build\`
+        
+        EOF
+
+    - name: Upload backup report
+      uses: actions/upload-artifact@v4
+      with:
+        name: backup-report-${{ env.BACKUP_DATE }}
+        path: backup-report.md
+        retention-days: ${{ steps.backup-type.outputs.retention_days }}
+
+  cleanup-old-backups:
+    name: Cleanup Old Backups
+    runs-on: ubuntu-latest
+    needs: [backup-documentation]
+    if: always()
+    permissions:
+      actions: write
+    steps:
+    - name: Cleanup old backup artifacts
+      uses: actions/github-script@v7
+      with:
+        script: |
+          console.log('Starting cleanup of old documentation backup artifacts...');
+          
+          const retentionDays = parseInt('${{ needs.backup-documentation.outputs.retention_days }}') || 90;
+          const cutoffDate = new Date(Date.now() - (retentionDays * 24 * 60 * 60 * 1000));
+          
+          console.log(`Retention period: ${retentionDays} days`);
+          console.log(`Cutoff date: ${cutoffDate.toISOString()}`);
+          
+          // Get all artifacts
+          const artifacts = await github.rest.actions.listArtifactsForRepo({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            per_page: 100
+          });
+          
+          // Filter documentation backup artifacts older than retention period
+          const backupArtifacts = artifacts.data.artifacts.filter(artifact => {
+            const isBackupArtifact = artifact.name.includes('documentation-backup-') || 
+                                   artifact.name.includes('backup-report-');
+            const isOld = new Date(artifact.created_at) < cutoffDate;
+            return isBackupArtifact && isOld;
+          });
+          
+          console.log(`Found ${backupArtifacts.length} old backup artifacts to cleanup`);
+          
+          let deletedCount = 0;
+          let totalSizeFreed = 0;
+          
+          for (const artifact of backupArtifacts) {
+            try {
+              console.log(`Deleting artifact: ${artifact.name} (${artifact.size_in_bytes} bytes, created: ${artifact.created_at})`);
+              
+              await github.rest.actions.deleteArtifact({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                artifact_id: artifact.id
+              });
+              
+              deletedCount++;
+              totalSizeFreed += artifact.size_in_bytes;
+              
+            } catch (error) {
+              console.error(`Failed to delete artifact ${artifact.name}: ${error.message}`);
+            }
+          }
+          
+          const totalSizeMB = (totalSizeFreed / 1024 / 1024).toFixed(2);
+          
+          console.log(`Cleanup completed:`);
+          console.log(`- Artifacts deleted: ${deletedCount}`);
+          console.log(`- Space freed: ${totalSizeMB} MB`);
+          
+          // Set outputs for summary
+          core.setOutput('deleted_count', deletedCount);
+          core.setOutput('size_freed_mb', totalSizeMB);
+
+    - name: Update backup retention policy
+      run: |
+        echo "📋 Updating backup retention policy..."
+        
+        # Create or update backup policy documentation
+        cat > backup-retention-policy.md << EOF
+        # 📦 Documentation Backup Retention Policy
+        
+        **Last Updated:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+        
+        ## Retention Periods
+        
+        | Backup Type | Retention Period | Description |
+        |-------------|------------------|-------------|
+        | Incremental | 90 days | Daily snapshots of documentation changes |
+        | Full | 90 days | Complete backup including Git history |
+        | Archive | 365 days | Long-term archival with maximum compression |
+        
+        ## Automatic Cleanup
+        
+        - Old backup artifacts are automatically deleted after their retention period
+        - Cleanup runs after each backup operation
+        - Manual cleanup can be triggered via workflow dispatch
+        
+        ## Storage Limits
+        
+        - Maximum backup size: ${{ env.MAX_BACKUP_SIZE_GB }} GB per backup
+        - Backups exceeding the limit will generate warnings
+        - Large backups may require manual review
+        
+        ## Recovery Process
+        
+        1. Identify the backup artifact from GitHub Actions
+        2. Download the backup archive
+        3. Extract and verify using included checksums
+        4. Follow restoration instructions in backup README
+        
+        EOF
+        
+        echo "✅ Backup retention policy updated"
+
+  backup-summary:
+    name: Backup Summary
+    runs-on: ubuntu-latest
+    needs: [backup-documentation, cleanup-old-backups]
+    if: always()
+    steps:
+    - name: Generate backup summary
+      run: |
+        echo "# 📦 Documentation Backup Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Backup Date:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+        echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Repository:** ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        echo "## Backup Status" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [[ "${{ needs.backup-documentation.result }}" == "success" ]]; then
+          echo "✅ **Backup Status: SUCCESS**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Type:** ${{ needs.backup-documentation.outputs.backup_type || 'incremental' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Retention:** ${{ needs.backup-documentation.outputs.retention_days || '90' }} days" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **Backup Status: FAILED**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The backup operation encountered errors. Please check the workflow logs." >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Cleanup Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [[ "${{ needs.cleanup-old-backups.result }}" == "success" ]]; then
+          echo "✅ **Cleanup Status: SUCCESS**" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **Cleanup Status: FAILED**" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Next Steps" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "- [📥 View Backup Artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+        echo "- [🔄 Manual Backup](https://github.com/${{ github.repository }}/actions/workflows/docs-backup.yml)" >> $GITHUB_STEP_SUMMARY
+        echo "- [📚 Documentation Site](https://docs.medianest.com)" >> $GITHUB_STEP_SUMMARY
+
+    - name: Send backup notification
+      if: needs.backup-documentation.result == 'success' && (github.event_name == 'schedule' || github.event.inputs.backup_type == 'archive')
+      run: |
+        echo "📩 Sending backup completion notification..."
+        
+        # Send Slack notification for scheduled backups and archives
+        if [[ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]]; then
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{
+              \"text\": \"📦 MediaNest documentation backup completed successfully\",
+              \"attachments\": [{
+                \"color\": \"good\",
+                \"fields\": [
+                  {
+                    \"title\": \"Backup Type\",
+                    \"value\": \"${{ needs.backup-documentation.outputs.backup_type || 'incremental' }}\",
+                    \"short\": true
+                  },
+                  {
+                    \"title\": \"Retention\",
+                    \"value\": \"${{ needs.backup-documentation.outputs.retention_days || '90' }} days\",
+                    \"short\": true
+                  },
+                  {
+                    \"title\": \"Repository\",
+                    \"value\": \"${{ github.repository }}\",
+                    \"short\": false
+                  }
+                ]
+              }]
+            }" \
+            "${{ secrets.SLACK_WEBHOOK_URL }}" || echo "Failed to send Slack notification"
+        fi

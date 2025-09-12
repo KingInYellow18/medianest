@@ -58,7 +58,7 @@ export interface Maybe<T> {
 // Context7 Pattern: Type-Level Programming
 export type Join<T extends readonly string[], D extends string = ','> = T extends readonly [
   infer F,
-  ...infer R
+  ...infer R,
 ]
   ? F extends string
     ? R extends readonly string[]
@@ -202,5 +202,5 @@ export interface RenderMetadata {
 export type EventHandler<TEvent extends Event, TReturn = void> = (event: TEvent) => TReturn;
 
 export type SyntheticEventHandler<TElement extends Element, TReturn = void> = (
-  event: React.SyntheticEvent<TElement>
+  event: React.SyntheticEvent<TElement>,
 ) => TReturn;

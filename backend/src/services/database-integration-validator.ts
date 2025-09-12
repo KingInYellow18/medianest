@@ -3,9 +3,10 @@
  * Validates that all mock data has been replaced with real database operations
  */
 import { executeQuery, getDatabaseStats } from '../config/database-connection-pool';
+import { logger } from '../utils/logger';
+
 import { notificationDatabaseService } from './notification-database.service';
 import { serviceMonitoringService } from './service-monitoring-database.service';
-import { logger } from '../utils/logger';
 
 interface ValidationResult {
   passed: boolean;
@@ -43,7 +44,7 @@ class DatabaseIntegrationValidator {
       await this.testCleanupOperations(),
     ];
 
-    const passedTests = tests.filter(t => t.passed).length;
+    const passedTests = tests.filter((t) => t.passed).length;
     const connectionStats = getDatabaseStats();
     const avgQueryTime = Date.now() - startTime;
 
@@ -73,7 +74,7 @@ class DatabaseIntegrationValidator {
   private async testConnectionPool(): Promise<ValidationResult> {
     try {
       const stats = getDatabaseStats();
-      
+
       const checks = [
         stats.totalPoolSize > 0,
         stats.maxPoolSize >= 10,
@@ -103,7 +104,7 @@ class DatabaseIntegrationValidator {
   private async testNotificationOperations(): Promise<ValidationResult> {
     try {
       const testUserId = 'test-user-' + Date.now();
-      
+
       // Test create
       const notification = await notificationDatabaseService.createNotification({
         userId: testUserId,
@@ -115,7 +116,7 @@ class DatabaseIntegrationValidator {
 
       // Test read
       const pending = await notificationDatabaseService.getPendingNotifications(testUserId);
-      const hasCreated = pending.some(n => n.id === notification.id);
+      const hasCreated = pending.some((n) => n.id === notification.id);
 
       // Test mark as read
       await notificationDatabaseService.markNotificationRead(notification.id, testUserId);
@@ -144,7 +145,7 @@ class DatabaseIntegrationValidator {
   private async testServiceMonitoring(): Promise<ValidationResult> {
     try {
       const serviceName = 'test-service-' + Date.now();
-      
+
       // Test record metric
       const metric = await serviceMonitoringService.recordMetric({
         serviceName,
@@ -155,7 +156,7 @@ class DatabaseIntegrationValidator {
 
       // Test get summary
       const summary = await serviceMonitoringService.getServiceSummary(serviceName);
-      
+
       // Test get all summaries
       const allSummaries = await serviceMonitoringService.getAllServiceSummaries();
 
@@ -180,13 +181,10 @@ class DatabaseIntegrationValidator {
   private async testPerformanceMetrics(): Promise<ValidationResult> {
     try {
       const startTime = Date.now();
-      
+
       // Execute multiple queries to test performance
       const queries = Array.from({ length: 10 }, () =>
-        executeQuery(
-          async (client) => client.$queryRaw`SELECT 1 as test`,
-          'performance-test'
-        )
+        executeQuery(async (client) => client.$queryRaw`SELECT 1 as test`, 'performance-test'),
       );
 
       await Promise.all(queries);
@@ -225,7 +223,7 @@ class DatabaseIntegrationValidator {
       const created = await notificationDatabaseService.createNotification(testData);
       const retrieved = await notificationDatabaseService.getUserNotifications(testData.userId);
 
-      const persisted = retrieved.notifications.some(n => n.id === created.id);
+      const persisted = retrieved.notifications.some((n) => n.id === created.id);
 
       return {
         passed: persisted,
@@ -248,7 +246,7 @@ class DatabaseIntegrationValidator {
   private async testTransactionSupport(): Promise<ValidationResult> {
     try {
       const testUserId = 'transaction-test-' + Date.now();
-      
+
       // Test transaction rollback
       let transactionFailed = false;
       try {
@@ -303,7 +301,7 @@ class DatabaseIntegrationValidator {
       try {
         await executeQuery(
           async (client) => client.$queryRaw`SELECT FROM invalid_table`,
-          'error-test'
+          'error-test',
         );
       } catch {
         errorCaught = true;
@@ -368,7 +366,7 @@ class DatabaseIntegrationValidator {
 
   private generateRecommendations(tests: ValidationResult[], connectionStats: any): string[] {
     const recommendations: string[] = [];
-    const failedTests = tests.filter(t => !t.passed);
+    const failedTests = tests.filter((t) => !t.passed);
 
     if (failedTests.length > 0) {
       recommendations.push(`${failedTests.length} tests failed - review error logs`);
@@ -382,7 +380,7 @@ class DatabaseIntegrationValidator {
       recommendations.push('Connection pool hit ratio is low - monitor connection patterns');
     }
 
-    const performanceTest = tests.find(t => t.testName === 'Query Performance Metrics');
+    const performanceTest = tests.find((t) => t.testName === 'Query Performance Metrics');
     if (performanceTest && !performanceTest.passed) {
       recommendations.push('Query performance is below target - optimize slow queries');
     }
@@ -400,5 +398,4 @@ class DatabaseIntegrationValidator {
 export const databaseIntegrationValidator = new DatabaseIntegrationValidator();
 
 // Export validation function for easy testing
-export const validateDatabaseIntegration = () => 
-  databaseIntegrationValidator.validateIntegration();
+export const validateDatabaseIntegration = () => databaseIntegrationValidator.validateIntegration();

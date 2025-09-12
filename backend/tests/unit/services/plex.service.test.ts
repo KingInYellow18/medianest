@@ -3,7 +3,7 @@ import { PlexService } from '../../../src/services/plex.service';
 import { redisClient } from '../../../src/config/redis';
 import { PlexClient } from '../../../src/integrations/plex/plex.client';
 import { userRepository, serviceConfigRepository } from '../../../src/repositories';
-import { AppError } from '../../../src/utils/errors';
+import { AppError } from '@medianest/shared';
 import { logger } from '../../../src/utils/logger';
 import { encryptionService } from '../../../src/services/encryption.service';
 

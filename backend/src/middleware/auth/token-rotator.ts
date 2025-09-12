@@ -1,4 +1,5 @@
 import { Response } from 'express';
+
 import { SessionTokenRepository } from '../../repositories/session-token.repository';
 import { rotateTokenIfNeeded } from '../../utils/jwt';
 

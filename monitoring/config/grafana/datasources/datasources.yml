@@ -1,0 +1,221 @@
+# ==============================================================================
+# 📊 GRAFANA DATASOURCES - MEDIANEST PLG STACK
+# ==============================================================================
+# Auto-provisioned datasources for MEDIANEST observability
+# Includes Prometheus (metrics), Loki (logs), PostgreSQL, and Redis
+# ==============================================================================
+
+apiVersion: 1
+
+# Delete existing datasources before provisioning
+deleteDatasources:
+  - name: Prometheus
+    orgId: 1
+  - name: Loki
+    orgId: 1
+  - name: PostgreSQL
+    orgId: 1
+  - name: Redis
+    orgId: 1
+
+datasources:
+  # ==============================================================================
+  # 📈 PROMETHEUS - Metrics Datasource
+  # ==============================================================================
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    version: 1
+    editable: true
+    orgId: 1
+    
+    # JSON data configuration
+    jsonData:
+      # Query timeout
+      queryTimeout: 60s
+      # Default query type
+      defaultRegion: default
+      # Custom query parameters
+      customQueryParameters: ''
+      # Time interval options
+      timeInterval: 5s
+      # Scrape interval alignment
+      scrapeInterval: 5s
+      # HTTP method for queries
+      httpMethod: POST
+      # Enable exemplars
+      exemplarTraceIdDestinations:
+        - name: trace_id
+          datasourceUid: loki-uid
+      # Enable recording rules
+      disableRecordingRules: false
+      # Enable alerting rules  
+      disableRuleAlerting: false
+      # Cache level
+      incrementalQuerying: true
+      # Correlation settings for traces
+      correlations:
+        - targetUID: loki-uid
+          label: Loki Logs
+          description: View related logs in Loki
+
+    # UID for referencing in dashboards
+    uid: prometheus-uid
+    
+    # Default queries for quick access
+    targets:
+      - expr: 'up'
+        refId: A
+
+  # ==============================================================================
+  # 📋 LOKI - Logs Datasource
+  # ==============================================================================
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    version: 1
+    editable: true
+    orgId: 1
+    
+    # JSON data configuration
+    jsonData:
+      # Maximum number of lines to display
+      maxLines: 1000
+      # Default query type
+      derivedFields:
+        # Extract correlation IDs for linking with metrics
+        - name: correlation_id
+          label: Correlation ID
+          regex: '"correlationId":"([^"]+)"'
+          url: '/explore?left=["now-1h","now","Prometheus",{"expr":"http_requests_total{correlation_id=\"$${__value.raw}\""}]'
+          datasourceUid: prometheus-uid
+        
+        # Extract request IDs
+        - name: request_id
+          label: Request ID  
+          regex: '"requestId":"([^"]+)"'
+          
+        # Extract user IDs for user session analysis
+        - name: user_id
+          label: User ID
+          regex: '"userId":"([^"]+)"'
+          url: '/explore?left=["now-6h","now","Loki",{"expr":"{service=\"backend\"} |= \"$${__value.raw}\""}]'
+      
+      # Alert correlation
+      alertmanager:
+        handleGrafanaManagedAlerts: true
+      
+      # Live streaming
+      timeInterval: 1s
+
+    # UID for referencing in dashboards  
+    uid: loki-uid
+
+  # ==============================================================================
+  # 🗄️ POSTGRESQL - Database Datasource
+  # ==============================================================================
+  - name: PostgreSQL
+    type: postgres
+    access: proxy
+    url: postgres:5432
+    database: medianest_dev
+    user: medianest
+    secureJsonData:
+      password: medianest_dev_password
+    version: 1
+    editable: true
+    orgId: 1
+    
+    # JSON data configuration
+    jsonData:
+      # SSL configuration
+      sslmode: disable
+      # Connection settings
+      maxOpenConns: 10
+      maxIdleConns: 2
+      connMaxLifetime: 14400  # 4 hours
+      # Query timeout
+      queryTimeout: 60s
+      # Time column configuration
+      timescaledb: false
+      # PostgreSQL version
+      postgresVersion: 1500  # PostgreSQL 15
+      
+    # UID for referencing in dashboards
+    uid: postgres-uid
+
+  # ==============================================================================
+  # 📊 REDIS - Cache Datasource
+  # ==============================================================================
+  - name: Redis
+    type: redis-datasource
+    access: proxy
+    url: redis://redis:6379
+    version: 1
+    editable: true
+    orgId: 1
+    
+    # JSON data configuration
+    jsonData:
+      # Connection pool size
+      poolSize: 5
+      # Connection timeout
+      timeout: 10
+      # Ping interval
+      pingInterval: 0
+      # Pipeline window
+      pipelineWindow: 0
+      # TLS configuration
+      tlsSkipVerify: true
+      
+    # UID for referencing in dashboards
+    uid: redis-uid
+
+# ==============================================================================
+# 🔗 DATASOURCE CORRELATION CONFIGURATION
+# ==============================================================================
+# Cross-datasource correlations for seamless navigation:
+#
+# 1. Prometheus → Loki:
+#    - From metric alerts, jump to related logs
+#    - Use correlation_id label for precise matching
+#
+# 2. Loki → Prometheus:  
+#    - From error logs, view related metrics
+#    - Use service and endpoint labels for context
+#
+# 3. PostgreSQL → Prometheus:
+#    - From slow query analysis, view database metrics
+#    - Use query fingerprints for correlation
+#
+# 4. Redis → Prometheus:
+#    - From cache analysis, view performance metrics
+#    - Use Redis command patterns for correlation
+#
+# ==============================================================================
+# 📊 USAGE EXAMPLES
+# ==============================================================================
+#
+# Prometheus queries:
+# - up{job="medianest-backend"}
+# - rate(http_requests_total[5m])
+# - histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
+#
+# Loki queries:
+# - {service="backend"} |= "error"
+# - {compose_service="medianest-backend-dev"} | json | level="error" 
+# - {job="docker-containers"} |= "correlation_id" | json
+#
+# PostgreSQL queries:
+# - SELECT * FROM pg_stat_activity WHERE state = 'active'
+# - SELECT query, calls, total_time FROM pg_stat_statements ORDER BY total_time DESC
+#
+# Redis queries:  
+# - INFO memory
+# - SLOWLOG GET 10
+# - CLIENT LIST
+#
+# ==============================================================================

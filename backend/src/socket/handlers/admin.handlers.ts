@@ -1,9 +1,11 @@
 // @ts-nocheck
 import { Server, Socket } from 'socket.io';
-import { logger } from '@/utils/logger';
-import { statusService } from '@/services/status.service';
-import { userRepository } from '@/repositories';
+
 import { CatchError } from '../../types/common';
+
+import { userRepository } from '@/repositories';
+import { statusService } from '@/services/status.service';
+import { logger } from '@/utils/logger';
 
 interface AdminBroadcastData {
   type: 'announcement' | 'maintenance' | 'warning' | 'info';
@@ -303,7 +305,7 @@ export function emitAdminActivity(
     description: string;
     userId?: string;
     metadata?: Record<string, any>;
-  }
+  },
 ): void {
   io.of('/admin')
     .to('admin-activity')

@@ -1,7 +1,9 @@
 import Redis from 'ioredis';
-import { logger } from '../utils/logger';
-import { getRedisConfig } from './index';
+
 import { CatchError } from '../types/common';
+import { logger } from '../utils/logger';
+
+import { getRedisConfig } from './index';
 
 let redisClient: Redis;
 
@@ -145,7 +147,7 @@ end
 export const checkRateLimit = async (
   key: string,
   limit: number,
-  windowSeconds: number
+  windowSeconds: number,
 ): Promise<{ allowed: boolean; retryAfter?: number }> => {
   try {
     const redis = getRedis();

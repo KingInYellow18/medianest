@@ -1,7 +1,10 @@
 import crypto from 'crypto';
-import * as bcrypt from 'bcryptjs';
-import { logger } from './logger';
+
+import bcrypt from 'bcrypt';
+
 import { configService } from '../config/config.service';
+
+import { logger } from './logger';
 
 // Password Policy Configuration
 export interface PasswordPolicy {
@@ -51,7 +54,7 @@ const COMMON_PASSWORDS = new Set([
 // Password strength validation
 export function validatePasswordStrength(
   password: string,
-  policy: PasswordPolicy = DEFAULT_PASSWORD_POLICY
+  policy: PasswordPolicy = DEFAULT_PASSWORD_POLICY,
 ): { isValid: boolean; errors: string[]; score: number } {
   const errors: string[] = [];
   let score = 0;
@@ -126,8 +129,7 @@ export function generateRandomString(length: number = 16): string {
   let result = '';
 
   for (let i = 0; i < length; i++) {
-    result +=
-      chars[(bytes[i] ?? Math.floor(Math.random() * 255)) % chars.length];
+    result += chars[(bytes[i] ?? Math.floor(Math.random() * 255)) % chars.length];
   }
 
   return result;
@@ -181,12 +183,12 @@ export function generateBackupCodes(count: number = 10): string[] {
 // Encrypt sensitive data
 export function encryptSensitiveData(
   data: string,
-  key?: string
+  key?: string,
 ): { encrypted: string; iv: string } {
   const algorithm = 'aes-256-gcm';
   if (!key && !configService.get('auth', 'ENCRYPTION_KEY')) {
     throw new Error(
-      'ENCRYPTION_KEY configuration is required. Generate one with: openssl rand -base64 32'
+      'ENCRYPTION_KEY configuration is required. Generate one with: openssl rand -base64 32',
     );
   }
   const secretKey = key || configService.get('auth', 'ENCRYPTION_KEY')!;
@@ -209,7 +211,7 @@ export function decryptSensitiveData(encryptedData: string, iv: string, key?: st
   const algorithm = 'aes-256-gcm';
   if (!key && !configService.get('auth', 'ENCRYPTION_KEY')) {
     throw new Error(
-      'ENCRYPTION_KEY configuration is required. Generate one with: openssl rand -base64 32'
+      'ENCRYPTION_KEY configuration is required. Generate one with: openssl rand -base64 32',
     );
   }
   const secretKey = key || configService.get('auth', 'ENCRYPTION_KEY')!;
@@ -233,7 +235,7 @@ export function generateRateLimitKey(identifier: string, action: string): string
 export function logSecurityEvent(
   event: string,
   details: Record<string, unknown>,
-  level: 'info' | 'warn' | 'error' = 'warn'
+  level: 'info' | 'warn' | 'error' = 'warn',
 ): void {
   const securityLog = {
     event,
@@ -247,10 +249,10 @@ export function logSecurityEvent(
 // Check if password has been previously used
 export function checkPasswordReuse(
   newPassword: string,
-  previousPasswords: string[]
+  previousPasswords: string[],
 ): Promise<boolean> {
   return Promise.all(previousPasswords.map((oldHash) => bcrypt.compare(newPassword, oldHash))).then(
-    (results) => results.some(Boolean)
+    (results) => results.some(Boolean),
   );
 }
 
@@ -263,7 +265,7 @@ export function generateSessionId(): string {
 export function generateDeviceFingerprint(
   userAgent: string,
   ip: string,
-  acceptLanguage?: string
+  acceptLanguage?: string,
 ): string {
   const data = `${userAgent}:${ip}:${acceptLanguage || ''}`;
   return crypto.createHash('sha256').update(data).digest('hex');

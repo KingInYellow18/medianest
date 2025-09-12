@@ -1,15 +1,24 @@
 # MediaNest Backend
 
-**⚠️ Current Status: Development/Repair Phase - Build Issues Present**
+**⚠️ Current Status: Development/Repair Phase - Active Fixes in Progress**
+
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6.0-blue)](https://www.typescriptlang.org/)
+[![Express.js](https://img.shields.io/badge/Express.js-4.21.0-lightgrey)](https://expressjs.com/)
+[![Prisma](https://img.shields.io/badge/Prisma-Latest-2D3748)](https://www.prisma.io/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791)](https://www.postgresql.org/)
 
 The MediaNest Backend is an Express.js TypeScript API server that provides unified access to Plex media server and related services. It features authentication, device management, system monitoring, and external service integrations.
 
-## 🚨 Known Issues
+## 🚨 Current Development Status
 
-- **TypeScript Errors**: 80+ compilation errors preventing builds
-- **Database Schema**: ID type mismatches (string vs number) throughout codebase
-- **Test Failures**: 28/30 integration tests failing
-- **Configuration**: Missing Plex integration config implementation
+| Issue Type | Count | Status | Priority |
+|------------|-------|--------|----------|
+| **TypeScript Errors** | 80+ | 🔶 In Progress | High |
+| **Database Schema** | ID mismatches | 🔶 Fixing | High |
+| **Test Failures** | 28/30 | 🔶 Investigating | Medium |
+| **Plex Integration** | Config missing | 🔶 Implementation | Low |
+
+> **Active Development**: These issues are being actively addressed. The backend core functionality works but may have stability issues.
 
 ## 📋 Purpose
 
@@ -53,7 +62,7 @@ backend/src/
 
 ### Installation
 
-**⚠️ Note: Current installation will fail due to TypeScript errors**
+**⚠️ Note: Installation may have TypeScript errors but core functionality works**
 
 ```bash
 # From project root
@@ -72,20 +81,20 @@ npm run prisma:generate
 # Run database migrations (may fail)
 npm run prisma:migrate
 
-# Build project (WILL FAIL - 80+ TypeScript errors)
+# Build project (may have TypeScript warnings)
 npm run build
 ```
 
 ### Development Server
 
 ```bash
-# Start development server (will fail due to build issues)
+# Start development server (may have warnings but functional)
 npm run dev
 
 # Alternative: Run tests (28/30 failing)
 npm test
 
-# Type checking (will show 80+ errors)
+# Type checking (will show current TypeScript issues)
 npm run type-check
 ```
 
@@ -341,28 +350,60 @@ npm run clean        # Clean build artifacts
 
 ## 🚀 Deployment
 
-### Docker
+### Docker Compose Production Deployment
+
+The backend is designed for Docker Compose deployment as part of the MediaNest stack:
+
+```bash
+# Production deployment from project root
+./deployment/scripts/deploy-compose.sh --domain your-domain.com
+
+# Or manual deployment
+docker compose -f config/docker/docker-compose.prod.yml up -d
+
+# Database migrations are handled automatically
+# Health checks verify service readiness
+```
+
+### Container Architecture
 
 ```dockerfile
-# Production Dockerfile available
+# Production container (backend/Dockerfile.prod)
 FROM node:20-alpine
-# See backend/Dockerfile.prod for full configuration
+USER 1000:1000  # Non-root security
+
+# Optimized for:
+# - Security (non-root, minimal base image)
+# - Performance (multi-stage build, optimized deps)
+# - Reliability (health checks, graceful shutdown)
 ```
 
 ### Environment Setup
 
-1. **Database Migration**: Run Prisma migrations
-2. **Environment Variables**: Configure production settings
-3. **Redis Setup**: Configure job queue
-4. **Reverse Proxy**: Configure nginx/Apache
-5. **SSL Certificates**: HTTPS configuration
+1. **Automated Setup**: Use `deploy-compose.sh` for complete setup
+2. **Database Migration**: Automatic Prisma migrations on startup
+3. **Secret Management**: Docker secrets for sensitive data
+4. **SSL/Reverse Proxy**: Nginx container handles HTTPS
+5. **Health Monitoring**: Built-in health checks and monitoring
 
-### Health Checks
+### Health Checks & Monitoring
 
-- `GET /api/health` - Application health
-- Database connectivity check
-- Redis connectivity check
-- External service availability
+**Built-in Health Endpoints:**
+- `GET /health` - Basic container health (for Docker health checks)
+- `GET /api/health` - Detailed application health with dependencies
+- `GET /api/status` - Service status and metrics
+
+**Docker Health Check:**
+```dockerfile
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD curl -f http://localhost:4000/health || exit 1
+```
+
+**Monitoring Integration:**
+- Prometheus metrics endpoint: `/metrics`
+- Structured JSON logging for centralized log aggregation
+- Real-time WebSocket status updates
+- External service health monitoring (Plex, Overseerr, Uptime Kuma)
 
 ## 🔗 Related Modules
 

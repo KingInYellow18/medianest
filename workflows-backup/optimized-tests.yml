@@ -1,0 +1,91 @@
+name: Optimized Test Suite
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  # Dynamic matrix generation based on changes
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      test-strategy: ${{ steps.analyze.outputs.strategy }}
+      worker-count: ${{ steps.analyze.outputs.workers }}
+      test-files: ${{ steps.analyze.outputs.files }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          
+      - name: Analyze changes
+        id: analyze
+        run: |
+          # Determine optimal test strategy
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD | wc -l)
+          
+          if [ "$CHANGED_FILES" -lt 5 ]; then
+            echo "strategy=minimal" >> $GITHUB_OUTPUT
+            echo "workers=2" >> $GITHUB_OUTPUT
+          elif [ "$CHANGED_FILES" -lt 20 ]; then
+            echo "strategy=changed" >> $GITHUB_OUTPUT
+            echo "workers=4" >> $GITHUB_OUTPUT
+          else
+            echo "strategy=all" >> $GITHUB_OUTPUT
+            echo "workers=8" >> $GITHUB_OUTPUT
+          fi
+
+  # Optimized test execution with dynamic scaling
+  test:
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        worker: [1, 2, 3, 4, 5, 6, 7, 8]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci --only=production --ignore-scripts
+        
+      - name: Setup test infrastructure
+        run: |
+          # Create optimized test database
+          docker run -d --name postgres-test             -e POSTGRES_DB=test_db             -e POSTGRES_USER=test             -e POSTGRES_PASSWORD=test             -p 5433:5432             postgres:15-alpine
+            
+          # Create optimized Redis instance
+          docker run -d --name redis-test             -p 6380:6379             redis:7-alpine redis-server --maxmemory 128mb
+            
+      - name: Run optimized tests
+        run: |
+          node scripts/test-suite-optimizer.js ${{ needs.prepare.outputs.test-strategy }}
+        env:
+          CI: true
+          DATABASE_URL: postgresql://test:test@localhost:5433/test_db
+          REDIS_URL: redis://localhost:6380
+          
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop postgres-test redis-test || true
+          docker rm postgres-test redis-test || true
+
+  # Performance monitoring and reporting
+  performance:
+    needs: test
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Generate performance report
+        run: |
+          echo "## Test Performance Report" >> $GITHUB_STEP_SUMMARY
+          echo "- Strategy: ${{ needs.prepare.outputs.test-strategy }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Workers: ${{ needs.prepare.outputs.worker-count }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Optimization Level: Adaptive" >> $GITHUB_STEP_SUMMARY

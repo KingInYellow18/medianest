@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
-import { logger } from '../utils/logger';
+
 import { resilienceService } from '../services/resilience.service';
-import { retryWithBackoff } from '../utils/retry';
 import { CatchError } from '../types/common';
+import { logger } from '../utils/logger';
+import { retryWithBackoff } from '../utils/retry';
 
 export interface ResilienceMiddlewareOptions {
   enableCircuitBreaker?: boolean;
@@ -64,7 +65,7 @@ export function bulkheadMiddleware(compartmentName: string, maxConcurrent = 10) 
           (req as any).compartment = compartmentName;
           next();
         },
-        maxConcurrent
+        maxConcurrent,
       );
     } catch (error: CatchError) {
       if ((error as Error).name === 'BulkheadError') {
@@ -202,7 +203,7 @@ export function comprehensiveResilienceMiddleware(options: ResilienceMiddlewareO
           async () => {
             // Continue with request processing
           },
-          maxConcurrent
+          maxConcurrent,
         );
       }
 
@@ -376,7 +377,7 @@ async function handleRetryableError(
   req: Request,
   _res: Response,
   error: Error,
-  options: { maxAttempts?: number; initialDelay?: number }
+  options: { maxAttempts?: number; initialDelay?: number },
 ): Promise<void> {
   const { maxAttempts = 3, initialDelay = 1000 } = options;
 
@@ -391,7 +392,7 @@ async function handleRetryableError(
         initialDelay,
         maxDelay: 10000,
         factor: 2,
-      }
+      },
     );
   } catch (retryError) {
     logger.error('Request retry failed', {

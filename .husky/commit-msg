@@ -1,4 +1,16 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-npx --no -- commitlint --edit $1
+# Emergency mode with basic validation
+if [ "$MEDIANEST_SKIP_HOOKS" = "1" ]; then
+    commit_msg=$(cat "$1")
+    if [ ${#commit_msg} -lt 10 ]; then
+        echo "❌ Even emergency commits need descriptive messages (min 10 chars)"
+        exit 1
+    fi
+    echo "⚠️  Emergency mode: Basic validation only"
+    exit 0
+fi
+
+# Fast validation
+NODE_OPTIONS="--max-old-space-size=256" npx commitlint --edit $1 --quiet

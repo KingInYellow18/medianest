@@ -87,7 +87,7 @@ export class PlexClient {
           throw new Error('Unable to connect to Plex server');
         }
         return Promise.reject(error);
-      }
+      },
     );
   }
 
@@ -137,7 +137,7 @@ export class PlexClient {
     options: {
       offset?: number;
       limit?: number;
-    } = {}
+    } = {},
   ): Promise<{ items: PlexMediaItem[]; totalSize: number }> {
     const params = new URLSearchParams({
       'X-Plex-Container-Start': String(options.offset || 0),

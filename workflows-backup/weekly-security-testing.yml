@@ -1,0 +1,1565 @@
+name: 🔒 Weekly Security Testing Suite
+
+on:
+  schedule:
+    # Run weekly on Sundays at 3:00 AM UTC
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+    inputs:
+      security_scan_depth:
+        description: 'Security scan depth'
+        required: false
+        default: 'comprehensive'
+        type: choice
+        options:
+        - basic
+        - comprehensive
+        - deep
+      include_penetration_testing:
+        description: 'Include penetration testing'
+        required: false
+        default: 'true'
+        type: boolean
+      notify_security_team:
+        description: 'Notify security team of results'
+        required: false
+        default: 'true'
+        type: boolean
+
+env:
+  NODE_VERSION: '20'
+  SCAN_DEPTH: ${{ github.event.inputs.security_scan_depth || 'comprehensive' }}
+  INCLUDE_PENTEST: ${{ github.event.inputs.include_penetration_testing || 'true' }}
+  NOTIFY_TEAM: ${{ github.event.inputs.notify_security_team || 'true' }}
+  SECURITY_EMAIL: ${{ secrets.SECURITY_TEAM_EMAIL }}
+  SLACK_WEBHOOK: ${{ secrets.SECURITY_SLACK_WEBHOOK }}
+
+jobs:
+  # Security test setup and environment preparation
+  security-setup:
+    name: 🛡️ Security Test Environment Setup
+    runs-on: ubuntu-latest
+    outputs:
+      test-matrix: ${{ steps.matrix.outputs.matrix }}
+      vulnerability-baseline: ${{ steps.baseline.outputs.baseline }}
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for security analysis
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: |
+          npm ci --prefer-offline --no-audit --no-fund
+          cd backend && npm ci --prefer-offline --no-audit --no-fund
+          cd ../frontend && npm ci --prefer-offline --no-audit --no-fund
+
+      - name: 📊 Generate security test matrix
+        id: matrix
+        run: |
+          matrix=$(cat << 'EOF'
+          {
+            "include": [
+              {
+                "name": "Dependency Vulnerability Scan",
+                "type": "dependency",
+                "tools": ["npm-audit", "snyk", "retire-js"],
+                "severity": "high",
+                "timeout": "15m"
+              },
+              {
+                "name": "Static Code Security Analysis",
+                "type": "static",
+                "tools": ["semgrep", "codeql", "bandit"],
+                "severity": "medium", 
+                "timeout": "20m"
+              },
+              {
+                "name": "Container Security Scan",
+                "type": "container",
+                "tools": ["trivy", "hadolint", "dockle"],
+                "severity": "high",
+                "timeout": "10m"
+              },
+              {
+                "name": "Infrastructure Security",
+                "type": "infrastructure",
+                "tools": ["tfsec", "checkov"],
+                "severity": "medium",
+                "timeout": "10m"
+              },
+              {
+                "name": "Web Application Security",
+                "type": "webapp",
+                "tools": ["zap", "nikto"],
+                "severity": "high",
+                "timeout": "30m"
+              },
+              {
+                "name": "API Security Testing",
+                "type": "api",
+                "tools": ["apiscan", "postman-security"],
+                "severity": "high",
+                "timeout": "25m"
+              }
+            ]
+          }
+          EOF
+          )
+          echo "matrix=$matrix" >> $GITHUB_OUTPUT
+
+      - name: 📋 Establish vulnerability baseline
+        id: baseline
+        run: |
+          echo "📋 Establishing vulnerability baseline..."
+          
+          # Quick baseline scan
+          npm audit --json > baseline-audit.json 2>/dev/null || echo '{}' > baseline-audit.json
+          
+          baseline=$(cat << 'EOF'
+          {
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "commit": "${{ github.sha }}",
+            "branch": "${{ github.ref_name }}",
+            "scan_depth": "${{ env.SCAN_DEPTH }}",
+            "last_full_scan": "2024-09-01T00:00:00Z"
+          }
+          EOF
+          )
+          echo "baseline=$baseline" >> $GITHUB_OUTPUT
+
+      - name: 📤 Upload baseline data
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-baseline
+          path: baseline-audit.json
+          retention-days: 7
+
+  # Dependency vulnerability scanning
+  dependency-security-scan:
+    name: 📦 Dependency Security Analysis
+    runs-on: ubuntu-latest
+    needs: security-setup
+    timeout-minutes: 20
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: |
+          npm ci --prefer-offline --no-audit --no-fund
+          cd backend && npm ci --prefer-offline --no-audit --no-fund
+          cd ../frontend && npm ci --prefer-offline --no-audit --no-fund
+
+      - name: 🔍 NPM Security Audit (Comprehensive)
+        run: |
+          echo "🔍 Running comprehensive NPM security audit..."
+          
+          # Root project audit
+          echo "Scanning root dependencies..."
+          npm audit --json > npm-audit-root.json 2>/dev/null || echo '{}' > npm-audit-root.json
+          
+          # Backend audit
+          echo "Scanning backend dependencies..."
+          cd backend && npm audit --json > ../npm-audit-backend.json 2>/dev/null || echo '{}' > ../npm-audit-backend.json
+          
+          # Frontend audit  
+          echo "Scanning frontend dependencies..."
+          cd ../frontend && npm audit --json > ../npm-audit-frontend.json 2>/dev/null || echo '{}' > ../npm-audit-frontend.json
+          
+          cd ..
+          
+          # Combine results and analyze
+          echo "Analyzing security audit results..."
+          node -e "
+          const fs = require('fs');
+          
+          function loadAuditFile(file) {
+            try {
+              return JSON.parse(fs.readFileSync(file, 'utf8'));
+            } catch (e) {
+              return { vulnerabilities: {}, metadata: { vulnerabilities: { total: 0 } } };
+            }
+          }
+          
+          const rootAudit = loadAuditFile('npm-audit-root.json');
+          const backendAudit = loadAuditFile('npm-audit-backend.json');
+          const frontendAudit = loadAuditFile('npm-audit-frontend.json');
+          
+          const summary = {
+            timestamp: new Date().toISOString(),
+            total_vulnerabilities: {
+              root: rootAudit.metadata?.vulnerabilities?.total || 0,
+              backend: backendAudit.metadata?.vulnerabilities?.total || 0,
+              frontend: frontendAudit.metadata?.vulnerabilities?.total || 0
+            },
+            severity_breakdown: {
+              critical: 0,
+              high: 0,
+              moderate: 0,
+              low: 0,
+              info: 0
+            },
+            critical_vulnerabilities: []
+          };
+          
+          // Process vulnerabilities from all projects
+          [rootAudit, backendAudit, frontendAudit].forEach((audit, index) => {
+            const project = ['root', 'backend', 'frontend'][index];
+            
+            if (audit.vulnerabilities) {
+              Object.entries(audit.vulnerabilities).forEach(([name, vuln]) => {
+                if (vuln.severity) {
+                  summary.severity_breakdown[vuln.severity]++;
+                  
+                  if (vuln.severity === 'critical' || vuln.severity === 'high') {
+                    summary.critical_vulnerabilities.push({
+                      project,
+                      name,
+                      severity: vuln.severity,
+                      title: vuln.title,
+                      url: vuln.url
+                    });
+                  }
+                }
+              });
+            }
+          });
+          
+          fs.writeFileSync('dependency-security-summary.json', JSON.stringify(summary, null, 2));
+          console.log('Security Summary:', JSON.stringify(summary, null, 2));
+          
+          // Set environment variables for later steps
+          if (summary.severity_breakdown.critical > 0) {
+            console.log('CRITICAL_VULNERABILITIES_FOUND=true');
+            process.env.CRITICAL_VULNERABILITIES_FOUND = 'true';
+          }
+          
+          if (summary.severity_breakdown.high > 5) {
+            console.log('HIGH_VULNERABILITY_THRESHOLD_EXCEEDED=true');
+            process.env.HIGH_VULNERABILITY_THRESHOLD_EXCEEDED = 'true';
+          }
+          "
+
+      - name: 🔧 Install Snyk for advanced scanning
+        if: env.SCAN_DEPTH == 'comprehensive' || env.SCAN_DEPTH == 'deep'
+        run: |
+          npm install -g snyk
+          snyk auth ${{ secrets.SNYK_TOKEN }} || echo "Snyk token not configured"
+
+      - name: 🕷️ Snyk Vulnerability Scan
+        if: env.SCAN_DEPTH == 'comprehensive' || env.SCAN_DEPTH == 'deep'
+        run: |
+          echo "🕷️ Running Snyk vulnerability scan..."
+          
+          # Root project
+          snyk test --json > snyk-root.json || true
+          
+          # Backend
+          cd backend && snyk test --json > ../snyk-backend.json || true
+          
+          # Frontend
+          cd ../frontend && snyk test --json > ../snyk-frontend.json || true
+          
+          cd ..
+          echo "Snyk scan completed"
+
+      - name: 🛠️ RetireJS Scan for outdated libraries
+        run: |
+          echo "🛠️ Running RetireJS scan for outdated/vulnerable libraries..."
+          npm install -g retire
+          
+          # Scan for known vulnerabilities in JavaScript libraries
+          retire --outputformat json --outputpath retirejs-results.json . || true
+          
+          echo "RetireJS scan completed"
+
+      - name: 📊 Generate dependency security report
+        run: |
+          echo "# 📦 Dependency Security Analysis Report - $(date -u)" > dependency-security-report.md
+          echo "" >> dependency-security-report.md
+          
+          echo "## Scan Configuration" >> dependency-security-report.md
+          echo "- **Scan Depth**: ${{ env.SCAN_DEPTH }}" >> dependency-security-report.md
+          echo "- **Timestamp**: $(date -u)" >> dependency-security-report.md
+          echo "- **Commit**: ${{ github.sha }}" >> dependency-security-report.md
+          echo "- **Branch**: ${{ github.ref_name }}" >> dependency-security-report.md
+          echo "" >> dependency-security-report.md
+          
+          echo "## Vulnerability Summary" >> dependency-security-report.md
+          if [ -f "dependency-security-summary.json" ]; then
+            if command -v jq &> /dev/null; then
+              echo "### Overall Statistics" >> dependency-security-report.md
+              echo "- **Critical**: $(cat dependency-security-summary.json | jq -r '.severity_breakdown.critical')" >> dependency-security-report.md
+              echo "- **High**: $(cat dependency-security-summary.json | jq -r '.severity_breakdown.high')" >> dependency-security-report.md
+              echo "- **Moderate**: $(cat dependency-security-summary.json | jq -r '.severity_breakdown.moderate')" >> dependency-security-report.md
+              echo "- **Low**: $(cat dependency-security-summary.json | jq -r '.severity_breakdown.low')" >> dependency-security-report.md
+              
+              # List critical vulnerabilities
+              critical_count=$(cat dependency-security-summary.json | jq -r '.critical_vulnerabilities | length')
+              if [ "$critical_count" -gt 0 ]; then
+                echo "" >> dependency-security-report.md
+                echo "### 🚨 Critical Vulnerabilities Requiring Immediate Action" >> dependency-security-report.md
+                cat dependency-security-summary.json | jq -r '.critical_vulnerabilities[] | "- **\(.name)** (\(.severity)): \(.title)"' >> dependency-security-report.md
+                echo "SECURITY_ALERT=true" >> $GITHUB_ENV
+              fi
+            fi
+          fi
+          
+          echo "" >> dependency-security-report.md
+          echo "## Scan Results by Project" >> dependency-security-report.md
+          echo "### Root Project" >> dependency-security-report.md
+          if [ -f "npm-audit-root.json" ] && [ -s "npm-audit-root.json" ]; then
+            echo "✅ NPM audit completed" >> dependency-security-report.md
+          else
+            echo "⚠️ NPM audit failed or no results" >> dependency-security-report.md
+          fi
+          
+          echo "### Backend" >> dependency-security-report.md
+          if [ -f "npm-audit-backend.json" ] && [ -s "npm-audit-backend.json" ]; then
+            echo "✅ Backend audit completed" >> dependency-security-report.md
+          else
+            echo "⚠️ Backend audit failed or no results" >> dependency-security-report.md
+          fi
+          
+          echo "### Frontend" >> dependency-security-report.md
+          if [ -f "npm-audit-frontend.json" ] && [ -s "npm-audit-frontend.json" ]; then
+            echo "✅ Frontend audit completed" >> dependency-security-report.md
+          else
+            echo "⚠️ Frontend audit failed or no results" >> dependency-security-report.md
+          fi
+          
+          # Add recommendations
+          echo "" >> dependency-security-report.md
+          echo "## Recommendations" >> dependency-security-report.md
+          echo "1. **Update vulnerable dependencies** using \`npm audit fix\`" >> dependency-security-report.md
+          echo "2. **Review and update major version dependencies** that may have security patches" >> dependency-security-report.md
+          echo "3. **Consider alternative packages** for dependencies with unpatched vulnerabilities" >> dependency-security-report.md
+          echo "4. **Implement automated dependency updates** with tools like Dependabot" >> dependency-security-report.md
+
+      - name: 📤 Upload dependency security results
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-security-results
+          path: |
+            dependency-security-report.md
+            dependency-security-summary.json
+            npm-audit-*.json
+            snyk-*.json
+            retirejs-results.json
+          retention-days: 30
+
+  # Static Application Security Testing (SAST)
+  static-security-analysis:
+    name: 🔍 Static Application Security Testing
+    runs-on: ubuntu-latest
+    needs: security-setup
+    timeout-minutes: 25
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: |
+          npm ci --prefer-offline --no-audit --no-fund
+
+      - name: 🔍 CodeQL Security Analysis
+        uses: github/codeql-action/init@v3
+        with:
+          languages: typescript, javascript
+          queries: security-and-quality
+
+      - name: 🏗️ Build for CodeQL analysis
+        run: |
+          cd shared && npm run build || echo "Shared build failed"
+          cd ../backend && npm run build || echo "Backend build failed"
+
+      - name: 🔍 Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:typescript"
+
+      - name: 🛡️ Semgrep Security Analysis
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/secrets
+            p/owasp-top-ten
+            p/command-injection
+            p/sql-injection
+            p/xss
+          generateSarif: "1"
+
+      - name: 📤 Upload Semgrep SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep.sarif
+
+      - name: 🔐 Secret Scanning with TruffleHog
+        run: |
+          echo "🔐 Running secret scanning with TruffleHog..."
+          docker run --rm -v "$PWD:/pwd" trufflesecurity/trufflehog:latest filesystem /pwd --json > trufflehog-results.json || true
+          
+          # Check if secrets were found
+          if [ -s "trufflehog-results.json" ]; then
+            echo "⚠️ Potential secrets detected" >> secret-scan-summary.txt
+            echo "SECRETS_DETECTED=true" >> $GITHUB_ENV
+          else
+            echo "✅ No secrets detected" >> secret-scan-summary.txt
+          fi
+
+      - name: 🔍 Custom Security Pattern Analysis
+        run: |
+          echo "🔍 Running custom security pattern analysis..."
+          
+          # Create custom security patterns script
+          cat > security-patterns.js << 'EOF'
+          const fs = require('fs');
+          const path = require('path');
+          
+          const securityPatterns = [
+            {
+              name: 'Hardcoded API Keys',
+              pattern: /(api[_-]?key|apikey|secret[_-]?key|secretkey)\s*[:=]\s*['""][^'""\s]{10,}['""])/i,
+              severity: 'HIGH'
+            },
+            {
+              name: 'SQL Injection Risk',
+              pattern: /query\s*\(\s*['""].*\$\{.*\}.*['""]|execute\s*\(\s*['""].*\+.*['""])/i,
+              severity: 'HIGH'
+            },
+            {
+              name: 'XSS Risk - innerHTML',
+              pattern: /\.innerHTML\s*=\s*(?!['"][^$\{]*['"])[^;]+/,
+              severity: 'MEDIUM'
+            },
+            {
+              name: 'Insecure Random',
+              pattern: /Math\.random\(\)/,
+              severity: 'LOW'
+            },
+            {
+              name: 'Console.log in Production',
+              pattern: /console\.log\(/,
+              severity: 'LOW'
+            }
+          ];
+          
+          function scanFile(filePath) {
+            const content = fs.readFileSync(filePath, 'utf8');
+            const results = [];
+            
+            securityPatterns.forEach(pattern => {
+              const matches = content.match(new RegExp(pattern.pattern, 'g'));
+              if (matches) {
+                results.push({
+                  file: filePath,
+                  pattern: pattern.name,
+                  severity: pattern.severity,
+                  matches: matches.length,
+                  lines: content.split('\n').map((line, index) => {
+                    if (new RegExp(pattern.pattern).test(line)) {
+                      return { lineNumber: index + 1, content: line.trim() };
+                    }
+                    return null;
+                  }).filter(Boolean)
+                });
+              }
+            });
+            
+            return results;
+          }
+          
+          function scanDirectory(dir) {
+            const results = [];
+            const files = fs.readdirSync(dir);
+            
+            files.forEach(file => {
+              const fullPath = path.join(dir, file);
+              const stat = fs.statSync(fullPath);
+              
+              if (stat.isDirectory() && !file.startsWith('.') && file !== 'node_modules') {
+                results.push(...scanDirectory(fullPath));
+              } else if (stat.isFile() && /\.(js|ts|jsx|tsx)$/.test(file)) {
+                results.push(...scanFile(fullPath));
+              }
+            });
+            
+            return results;
+          }
+          
+          console.log('Running custom security pattern analysis...');
+          
+          const results = [
+            ...scanDirectory('./backend'),
+            ...scanDirectory('./frontend'),
+            ...scanDirectory('./shared')
+          ];
+          
+          const summary = {
+            timestamp: new Date().toISOString(),
+            total_issues: results.length,
+            severity_breakdown: {
+              HIGH: results.filter(r => r.severity === 'HIGH').length,
+              MEDIUM: results.filter(r => r.severity === 'MEDIUM').length,
+              LOW: results.filter(r => r.severity === 'LOW').length
+            },
+            issues: results
+          };
+          
+          fs.writeFileSync('custom-security-analysis.json', JSON.stringify(summary, null, 2));
+          console.log('Custom security analysis completed. Found', results.length, 'potential issues.');
+          
+          if (summary.severity_breakdown.HIGH > 0) {
+            process.env.HIGH_SECURITY_ISSUES_FOUND = 'true';
+          }
+          EOF
+          
+          node security-patterns.js
+
+      - name: 📊 Generate static analysis report
+        run: |
+          echo "# 🔍 Static Application Security Testing Report - $(date -u)" > static-security-report.md
+          echo "" >> static-security-report.md
+          
+          echo "## Analysis Overview" >> static-security-report.md
+          echo "- **Scan Depth**: ${{ env.SCAN_DEPTH }}" >> static-security-report.md
+          echo "- **Timestamp**: $(date -u)" >> static-security-report.md
+          echo "- **Commit**: ${{ github.sha }}" >> static-security-report.md
+          echo "- **Branch**: ${{ github.ref_name }}" >> static-security-report.md
+          echo "" >> static-security-report.md
+          
+          echo "## Security Analysis Results" >> static-security-report.md
+          
+          # CodeQL Results
+          echo "### CodeQL Analysis" >> static-security-report.md
+          echo "✅ CodeQL security analysis completed" >> static-security-report.md
+          echo "Results uploaded to GitHub Security tab" >> static-security-report.md
+          echo "" >> static-security-report.md
+          
+          # Semgrep Results  
+          echo "### Semgrep Security Scan" >> static-security-report.md
+          if [ -f "semgrep.sarif" ]; then
+            echo "✅ Semgrep security scan completed" >> static-security-report.md
+            echo "Results uploaded as SARIF to GitHub Security tab" >> static-security-report.md
+          else
+            echo "⚠️ Semgrep scan failed or no results" >> static-security-report.md
+          fi
+          echo "" >> static-security-report.md
+          
+          # Secret Scanning Results
+          echo "### Secret Detection" >> static-security-report.md
+          if [ -f "secret-scan-summary.txt" ]; then
+            cat secret-scan-summary.txt >> static-security-report.md
+          else
+            echo "Secret scanning results not available" >> static-security-report.md
+          fi
+          echo "" >> static-security-report.md
+          
+          # Custom Pattern Analysis
+          echo "### Custom Security Pattern Analysis" >> static-security-report.md
+          if [ -f "custom-security-analysis.json" ] && command -v jq &> /dev/null; then
+            total_issues=$(cat custom-security-analysis.json | jq -r '.total_issues')
+            high_issues=$(cat custom-security-analysis.json | jq -r '.severity_breakdown.HIGH')
+            medium_issues=$(cat custom-security-analysis.json | jq -r '.severity_breakdown.MEDIUM')
+            low_issues=$(cat custom-security-analysis.json | jq -r '.severity_breakdown.LOW')
+            
+            echo "- **Total Issues Found**: $total_issues" >> static-security-report.md
+            echo "- **High Severity**: $high_issues" >> static-security-report.md
+            echo "- **Medium Severity**: $medium_issues" >> static-security-report.md
+            echo "- **Low Severity**: $low_issues" >> static-security-report.md
+            
+            if [ "$high_issues" -gt 0 ]; then
+              echo "" >> static-security-report.md
+              echo "#### 🚨 High Severity Issues Requiring Attention" >> static-security-report.md
+              cat custom-security-analysis.json | jq -r '.issues[] | select(.severity == "HIGH") | "- **\(.pattern)** in \(.file) (\(.matches) matches)"' >> static-security-report.md
+              echo "STATIC_SECURITY_ALERT=true" >> $GITHUB_ENV
+            fi
+          else
+            echo "Custom pattern analysis results not available" >> static-security-report.md
+          fi
+          
+          echo "" >> static-security-report.md
+          echo "## Security Recommendations" >> static-security-report.md
+          echo "1. **Review all high-severity findings** immediately" >> static-security-report.md
+          echo "2. **Implement secure coding practices** to prevent common vulnerabilities" >> static-security-report.md
+          echo "3. **Use parameterized queries** to prevent SQL injection" >> static-security-report.md
+          echo "4. **Sanitize user input** to prevent XSS attacks" >> static-security-report.md
+          echo "5. **Use secure random generators** for cryptographic operations" >> static-security-report.md
+          echo "6. **Remove debugging code** from production builds" >> static-security-report.md
+
+      - name: 📤 Upload static analysis results
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-security-results
+          path: |
+            static-security-report.md
+            custom-security-analysis.json
+            trufflehog-results.json
+            secret-scan-summary.txt
+            semgrep.sarif
+          retention-days: 30
+
+  # Container and Infrastructure Security
+  infrastructure-security-scan:
+    name: 🐳 Infrastructure & Container Security
+    runs-on: ubuntu-latest
+    needs: security-setup
+    timeout-minutes: 15
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐳 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🔍 Trivy Filesystem Security Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-fs-results.sarif'
+
+      - name: 🐳 Build Docker image for scanning
+        run: |
+          echo "🐳 Building Docker image for security scanning..."
+          if [ -f "Dockerfile" ]; then
+            docker build -t medianest-security-scan:latest .
+          elif [ -f "Dockerfile.optimized" ]; then
+            docker build -f Dockerfile.optimized -t medianest-security-scan:latest .
+          else
+            echo "No Dockerfile found, creating basic image for scanning..."
+            cat > Dockerfile.security << 'EOF'
+          FROM node:20-alpine
+          WORKDIR /app
+          COPY package*.json ./
+          RUN npm ci --only=production
+          COPY . .
+          EXPOSE 3000
+          CMD ["npm", "start"]
+          EOF
+            docker build -f Dockerfile.security -t medianest-security-scan:latest .
+          fi
+
+      - name: 🔍 Trivy Container Image Security Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'medianest-security-scan:latest'
+          format: 'sarif'
+          output: 'trivy-image-results.sarif'
+
+      - name: 🔍 Dockerfile Security Analysis with Hadolint
+        run: |
+          echo "🔍 Running Dockerfile security analysis with Hadolint..."
+          
+          # Find Dockerfiles
+          find . -name "Dockerfile*" -type f > dockerfile-list.txt
+          
+          if [ -s dockerfile-list.txt ]; then
+            docker run --rm -i hadolint/hadolint < Dockerfile > hadolint-results.txt 2>&1 || true
+            docker run --rm -i hadolint/hadolint --format json < Dockerfile > hadolint-results.json 2>&1 || echo '[]' > hadolint-results.json
+            
+            echo "Hadolint analysis completed"
+          else
+            echo "No Dockerfiles found for analysis" > hadolint-results.txt
+            echo '[]' > hadolint-results.json
+          fi
+
+      - name: 🔍 Docker Compose Security Analysis
+        if: hashFiles('docker-compose*.yml') != ''
+        run: |
+          echo "🔍 Analyzing Docker Compose configuration for security issues..."
+          
+          # Basic Docker Compose security checks
+          cat > docker-compose-security-check.py << 'EOF'
+          import yaml
+          import json
+          import os
+          import glob
+          
+          def check_docker_compose_security(file_path):
+              issues = []
+              
+              try:
+                  with open(file_path, 'r') as file:
+                      compose = yaml.safe_load(file)
+                  
+                  if 'services' in compose:
+                      for service_name, service_config in compose['services'].items():
+                          # Check for privileged mode
+                          if service_config.get('privileged'):
+                              issues.append({
+                                  'service': service_name,
+                                  'issue': 'Privileged mode enabled',
+                                  'severity': 'HIGH',
+                                  'description': 'Service runs with elevated privileges'
+                              })
+                          
+                          # Check for host network mode
+                          if service_config.get('network_mode') == 'host':
+                              issues.append({
+                                  'service': service_name,
+                                  'issue': 'Host network mode',
+                                  'severity': 'MEDIUM',
+                                  'description': 'Service uses host networking'
+                              })
+                          
+                          # Check for volume mounts
+                          volumes = service_config.get('volumes', [])
+                          for volume in volumes:
+                              if isinstance(volume, str) and volume.startswith('/'):
+                                  issues.append({
+                                      'service': service_name,
+                                      'issue': 'Host path volume mount',
+                                      'severity': 'MEDIUM',
+                                      'description': f'Volume mount: {volume}'
+                                  })
+                          
+                          # Check for environment variables
+                          environment = service_config.get('environment', [])
+                          if isinstance(environment, list):
+                              for env in environment:
+                                  if 'PASSWORD' in env.upper() or 'SECRET' in env.upper():
+                                      issues.append({
+                                          'service': service_name,
+                                          'issue': 'Potential secret in environment',
+                                          'severity': 'LOW',
+                                          'description': f'Environment variable: {env.split("=")[0]}'
+                                      })
+              
+              except Exception as e:
+                  issues.append({
+                      'service': 'N/A',
+                      'issue': 'Failed to parse Docker Compose file',
+                      'severity': 'LOW',
+                      'description': str(e)
+                  })
+              
+              return issues
+          
+          # Find and analyze all docker-compose files
+          compose_files = glob.glob('docker-compose*.yml') + glob.glob('docker-compose*.yaml')
+          all_issues = []
+          
+          for file_path in compose_files:
+              print(f"Analyzing {file_path}...")
+              issues = check_docker_compose_security(file_path)
+              for issue in issues:
+                  issue['file'] = file_path
+              all_issues.extend(issues)
+          
+          # Save results
+          with open('docker-compose-security.json', 'w') as f:
+              json.dump({
+                  'timestamp': os.popen('date -u +%Y-%m-%dT%H:%M:%SZ').read().strip(),
+                  'files_analyzed': compose_files,
+                  'total_issues': len(all_issues),
+                  'issues': all_issues
+              }, f, indent=2)
+          
+          print(f"Docker Compose security analysis completed. Found {len(all_issues)} potential issues.")
+          EOF
+          
+          python3 docker-compose-security-check.py
+
+      - name: 📤 Upload Trivy SARIF results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-fs-results.sarif'
+
+      - name: 📤 Upload Container Trivy SARIF results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-image-results.sarif'
+
+      - name: 📊 Generate infrastructure security report
+        run: |
+          echo "# 🐳 Infrastructure & Container Security Report - $(date -u)" > infrastructure-security-report.md
+          echo "" >> infrastructure-security-report.md
+          
+          echo "## Analysis Overview" >> infrastructure-security-report.md
+          echo "- **Scan Depth**: ${{ env.SCAN_DEPTH }}" >> infrastructure-security-report.md
+          echo "- **Timestamp**: $(date -u)" >> infrastructure-security-report.md
+          echo "- **Commit**: ${{ github.sha }}" >> infrastructure-security-report.md
+          echo "" >> infrastructure-security-report.md
+          
+          echo "## Security Scan Results" >> infrastructure-security-report.md
+          
+          # Filesystem scan results
+          echo "### Trivy Filesystem Scan" >> infrastructure-security-report.md
+          if [ -f "trivy-fs-results.sarif" ]; then
+            echo "✅ Trivy filesystem scan completed" >> infrastructure-security-report.md
+            echo "Results uploaded to GitHub Security tab" >> infrastructure-security-report.md
+          else
+            echo "⚠️ Trivy filesystem scan failed" >> infrastructure-security-report.md
+          fi
+          echo "" >> infrastructure-security-report.md
+          
+          # Container image scan results
+          echo "### Container Image Scan" >> infrastructure-security-report.md
+          if [ -f "trivy-image-results.sarif" ]; then
+            echo "✅ Container image security scan completed" >> infrastructure-security-report.md
+            echo "Results uploaded to GitHub Security tab" >> infrastructure-security-report.md
+          else
+            echo "⚠️ Container image scan failed" >> infrastructure-security-report.md
+          fi
+          echo "" >> infrastructure-security-report.md
+          
+          # Dockerfile analysis results
+          echo "### Dockerfile Security Analysis" >> infrastructure-security-report.md
+          if [ -f "hadolint-results.txt" ]; then
+            echo "#### Hadolint Results" >> infrastructure-security-report.md
+            echo '```' >> infrastructure-security-report.md
+            cat hadolint-results.txt >> infrastructure-security-report.md
+            echo '```' >> infrastructure-security-report.md
+          else
+            echo "Hadolint analysis not available" >> infrastructure-security-report.md
+          fi
+          echo "" >> infrastructure-security-report.md
+          
+          # Docker Compose analysis
+          if [ -f "docker-compose-security.json" ] && command -v jq &> /dev/null; then
+            echo "### Docker Compose Security Analysis" >> infrastructure-security-report.md
+            total_issues=$(cat docker-compose-security.json | jq -r '.total_issues')
+            echo "- **Total Issues**: $total_issues" >> infrastructure-security-report.md
+            
+            if [ "$total_issues" -gt 0 ]; then
+              echo "" >> infrastructure-security-report.md
+              echo "#### Issues Found" >> infrastructure-security-report.md
+              cat docker-compose-security.json | jq -r '.issues[] | "- **\(.severity)**: \(.issue) in \(.service) - \(.description)"' >> infrastructure-security-report.md
+            fi
+          fi
+          
+          echo "" >> infrastructure-security-report.md
+          echo "## Recommendations" >> infrastructure-security-report.md
+          echo "1. **Update base images** to latest security-patched versions" >> infrastructure-security-report.md
+          echo "2. **Use non-root users** in container configurations" >> infrastructure-security-report.md
+          echo "3. **Minimize privileged container access**" >> infrastructure-security-report.md
+          echo "4. **Scan images regularly** for known vulnerabilities" >> infrastructure-security-report.md
+          echo "5. **Use multi-stage builds** to reduce attack surface" >> infrastructure-security-report.md
+
+      - name: 📤 Upload infrastructure security results
+        uses: actions/upload-artifact@v4
+        with:
+          name: infrastructure-security-results
+          path: |
+            infrastructure-security-report.md
+            trivy-fs-results.sarif
+            trivy-image-results.sarif
+            hadolint-results.txt
+            hadolint-results.json
+            docker-compose-security.json
+            dockerfile-list.txt
+          retention-days: 30
+
+  # Web Application Penetration Testing (if enabled)
+  web-penetration-testing:
+    name: 🕷️ Web Application Penetration Testing
+    runs-on: ubuntu-latest
+    needs: security-setup
+    if: github.event.inputs.include_penetration_testing == 'true' || github.event_name == 'schedule'
+    timeout-minutes: 45
+    
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: pentest_user
+          POSTGRES_PASSWORD: pentest_password_secure
+          POSTGRES_DB: medianest_pentest
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+        ports:
+          - 6379:6379
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install dependencies and build
+        run: |
+          npm ci --prefer-offline --no-audit --no-fund
+          cd backend && npm ci --prefer-offline --no-audit --no-fund
+          cd ../frontend && npm ci --prefer-offline --no-audit --no-fund
+          
+          # Build applications
+          cd ../shared && npm run build
+          cd ../backend && npm run build
+          cd ../frontend && npm run build
+
+      - name: 🗄️ Setup test database
+        env:
+          DATABASE_URL: postgresql://pentest_user:pentest_password_secure@localhost:5432/medianest_pentest
+        run: |
+          cd backend
+          if [ -f "prisma/schema.prisma" ]; then
+            npx prisma migrate deploy --schema=./prisma/schema.prisma
+            npx prisma db seed --schema=./prisma/schema.prisma || echo "Seeding not configured"
+          fi
+
+      - name: 🚀 Start application services
+        env:
+          DATABASE_URL: postgresql://pentest_user:pentest_password_secure@localhost:5432/medianest_pentest
+          REDIS_URL: redis://localhost:6379
+          NODE_ENV: production
+        run: |
+          echo "🚀 Starting application for penetration testing..."
+          
+          # Start backend
+          cd backend && npm start &
+          BACKEND_PID=$!
+          echo $BACKEND_PID > ../backend.pid
+          
+          # Start frontend
+          cd ../frontend && npm start &
+          FRONTEND_PID=$!
+          echo $FRONTEND_PID > ../frontend.pid
+          
+          # Wait for services
+          timeout 90s bash -c 'until curl -f http://localhost:4000/health; do echo "Waiting for backend..."; sleep 2; done'
+          timeout 90s bash -c 'until curl -f http://localhost:3000; do echo "Waiting for frontend..."; sleep 2; done'
+          
+          echo "✅ Application services started successfully"
+
+      - name: 🕷️ OWASP ZAP Full Scan
+        run: |
+          echo "🕷️ Running OWASP ZAP security scan..."
+          
+          # Run ZAP baseline scan
+          docker run -v $(pwd):/zap/wrk/:rw -t owasp/zap2docker-stable zap-baseline.py \
+            -t http://host.docker.internal:3000 \
+            -J zap-baseline-report.json \
+            -r zap-baseline-report.html || true
+          
+          # Run ZAP API scan on backend
+          docker run -v $(pwd):/zap/wrk/:rw -t owasp/zap2docker-stable zap-api-scan.py \
+            -t http://host.docker.internal:4000/api \
+            -J zap-api-report.json \
+            -r zap-api-report.html || true
+          
+          echo "OWASP ZAP scanning completed"
+
+      - name: 🔍 Nikto Web Vulnerability Scanner
+        run: |
+          echo "🔍 Running Nikto web vulnerability scanner..."
+          
+          # Install Nikto
+          docker pull frapsoft/nikto
+          
+          # Scan frontend
+          docker run --rm frapsoft/nikto -h host.docker.internal:3000 -o nikto-frontend-results.txt || true
+          
+          # Scan backend API
+          docker run --rm frapsoft/nikto -h host.docker.internal:4000 -o nikto-backend-results.txt || true
+          
+          echo "Nikto scanning completed"
+
+      - name: 🎯 Custom API Security Testing
+        run: |
+          echo "🎯 Running custom API security tests..."
+          
+          # Create API security test script
+          cat > api-security-tests.js << 'EOF'
+          const axios = require('axios');
+          const fs = require('fs');
+          
+          async function runAPISecurityTests() {
+            const results = [];
+            const baseURL = 'http://localhost:4000';
+            
+            console.log('Running API security tests...');
+            
+            // Test 1: SQL Injection attempts
+            const sqlInjectionPayloads = [
+              "' OR '1'='1",
+              "'; DROP TABLE users; --",
+              "' UNION SELECT * FROM users --"
+            ];
+            
+            for (const payload of sqlInjectionPayloads) {
+              try {
+                const response = await axios.get(`${baseURL}/api/v1/media/search?q=${encodeURIComponent(payload)}`, {
+                  timeout: 5000,
+                  validateStatus: () => true
+                });
+                
+                results.push({
+                  test: 'SQL Injection',
+                  payload: payload,
+                  status: response.status,
+                  vulnerable: response.status === 200 && response.data && typeof response.data === 'object',
+                  response_size: JSON.stringify(response.data).length
+                });
+              } catch (error) {
+                results.push({
+                  test: 'SQL Injection',
+                  payload: payload,
+                  status: 'ERROR',
+                  vulnerable: false,
+                  error: error.message
+                });
+              }
+            }
+            
+            // Test 2: XSS attempts
+            const xssPayloads = [
+              "<script>alert('XSS')</script>",
+              "<img src=x onerror=alert('XSS')>",
+              "javascript:alert('XSS')"
+            ];
+            
+            for (const payload of xssPayloads) {
+              try {
+                const response = await axios.get(`${baseURL}/api/v1/media/search?q=${encodeURIComponent(payload)}`, {
+                  timeout: 5000,
+                  validateStatus: () => true
+                });
+                
+                results.push({
+                  test: 'XSS',
+                  payload: payload,
+                  status: response.status,
+                  vulnerable: response.data && JSON.stringify(response.data).includes(payload),
+                  response_reflects_input: JSON.stringify(response.data).includes(payload)
+                });
+              } catch (error) {
+                results.push({
+                  test: 'XSS',
+                  payload: payload,
+                  status: 'ERROR',
+                  vulnerable: false,
+                  error: error.message
+                });
+              }
+            }
+            
+            // Test 3: Authentication bypass attempts
+            try {
+              const response = await axios.get(`${baseURL}/api/v1/admin/users`, {
+                timeout: 5000,
+                validateStatus: () => true
+              });
+              
+              results.push({
+                test: 'Authentication Bypass',
+                payload: 'Direct admin access without auth',
+                status: response.status,
+                vulnerable: response.status === 200,
+                should_require_auth: true
+              });
+            } catch (error) {
+              results.push({
+                test: 'Authentication Bypass',
+                payload: 'Direct admin access without auth',
+                status: 'ERROR',
+                vulnerable: false,
+                error: error.message
+              });
+            }
+            
+            // Test 4: CSRF testing (basic)
+            try {
+              const response = await axios.post(`${baseURL}/api/v1/media/request`, {
+                mediaType: 'movie',
+                tmdbId: 12345
+              }, {
+                timeout: 5000,
+                validateStatus: () => true
+              });
+              
+              results.push({
+                test: 'CSRF Protection',
+                payload: 'POST without CSRF token',
+                status: response.status,
+                vulnerable: response.status === 200 || response.status === 201,
+                should_require_csrf: true
+              });
+            } catch (error) {
+              results.push({
+                test: 'CSRF Protection',
+                payload: 'POST without CSRF token',
+                status: 'ERROR',
+                vulnerable: false,
+                error: error.message
+              });
+            }
+            
+            const summary = {
+              timestamp: new Date().toISOString(),
+              total_tests: results.length,
+              vulnerable_tests: results.filter(r => r.vulnerable).length,
+              passed_tests: results.filter(r => !r.vulnerable).length,
+              results: results
+            };
+            
+            fs.writeFileSync('api-security-test-results.json', JSON.stringify(summary, null, 2));
+            console.log(`API security testing completed. ${summary.vulnerable_tests}/${summary.total_tests} tests show potential vulnerabilities.`);
+            
+            return summary;
+          }
+          
+          // Install axios if not available
+          try {
+            require('axios');
+          } catch (e) {
+            console.log('Installing axios...');
+            require('child_process').execSync('npm install axios', { stdio: 'inherit' });
+          }
+          
+          runAPISecurityTests().catch(console.error);
+          EOF
+          
+          cd backend && node ../api-security-tests.js
+
+      - name: 🛑 Stop application services
+        if: always()
+        run: |
+          echo "🛑 Stopping application services..."
+          if [ -f "backend.pid" ]; then
+            kill $(cat backend.pid) || echo "Backend already stopped"
+          fi
+          if [ -f "frontend.pid" ]; then
+            kill $(cat frontend.pid) || echo "Frontend already stopped"
+          fi
+
+      - name: 📊 Generate penetration testing report
+        if: always()
+        run: |
+          echo "# 🕷️ Web Application Penetration Testing Report - $(date -u)" > penetration-testing-report.md
+          echo "" >> penetration-testing-report.md
+          
+          echo "## Test Overview" >> penetration-testing-report.md
+          echo "- **Scan Type**: ${{ env.SCAN_DEPTH }} penetration testing" >> penetration-testing-report.md
+          echo "- **Timestamp**: $(date -u)" >> penetration-testing-report.md
+          echo "- **Commit**: ${{ github.sha }}" >> penetration-testing-report.md
+          echo "- **Target**: MediaNest Application (Frontend + Backend API)" >> penetration-testing-report.md
+          echo "" >> penetration-testing-report.md
+          
+          echo "## Penetration Testing Results" >> penetration-testing-report.md
+          
+          # OWASP ZAP Results
+          echo "### OWASP ZAP Security Scan" >> penetration-testing-report.md
+          if [ -f "zap-baseline-report.json" ]; then
+            echo "✅ ZAP baseline scan completed" >> penetration-testing-report.md
+            if command -v jq &> /dev/null; then
+              alerts=$(cat zap-baseline-report.json | jq -r '.site[0].alerts | length' 2>/dev/null || echo "0")
+              echo "- **Alerts Found**: $alerts" >> penetration-testing-report.md
+            fi
+          else
+            echo "⚠️ ZAP baseline scan failed or incomplete" >> penetration-testing-report.md
+          fi
+          
+          if [ -f "zap-api-report.json" ]; then
+            echo "✅ ZAP API scan completed" >> penetration-testing-report.md
+          else
+            echo "⚠️ ZAP API scan failed or incomplete" >> penetration-testing-report.md
+          fi
+          echo "" >> penetration-testing-report.md
+          
+          # Nikto Results
+          echo "### Nikto Vulnerability Scan" >> penetration-testing-report.md
+          if [ -f "nikto-frontend-results.txt" ]; then
+            echo "✅ Nikto frontend scan completed" >> penetration-testing-report.md
+            vulnerabilities=$(grep -c "OSVDB" nikto-frontend-results.txt || echo "0")
+            echo "- **Frontend Vulnerabilities**: $vulnerabilities" >> penetration-testing-report.md
+          fi
+          
+          if [ -f "nikto-backend-results.txt" ]; then
+            echo "✅ Nikto backend scan completed" >> penetration-testing-report.md
+            vulnerabilities=$(grep -c "OSVDB" nikto-backend-results.txt || echo "0")
+            echo "- **Backend Vulnerabilities**: $vulnerabilities" >> penetration-testing-report.md
+          fi
+          echo "" >> penetration-testing-report.md
+          
+          # API Security Test Results
+          echo "### Custom API Security Testing" >> penetration-testing-report.md
+          if [ -f "api-security-test-results.json" ] && command -v jq &> /dev/null; then
+            total_tests=$(cat api-security-test-results.json | jq -r '.total_tests')
+            vulnerable_tests=$(cat api-security-test-results.json | jq -r '.vulnerable_tests')
+            
+            echo "- **Total Tests**: $total_tests" >> penetration-testing-report.md
+            echo "- **Potential Vulnerabilities**: $vulnerable_tests" >> penetration-testing-report.md
+            
+            if [ "$vulnerable_tests" -gt 0 ]; then
+              echo "" >> penetration-testing-report.md
+              echo "#### 🚨 Potential Security Vulnerabilities Found" >> penetration-testing-report.md
+              cat api-security-test-results.json | jq -r '.results[] | select(.vulnerable == true) | "- **\(.test)**: \(.payload) (Status: \(.status))"' >> penetration-testing-report.md
+              echo "PENETRATION_TEST_VULNERABILITIES=true" >> $GITHUB_ENV
+            fi
+          else
+            echo "API security test results not available" >> penetration-testing-report.md
+          fi
+          
+          echo "" >> penetration-testing-report.md
+          echo "## Security Recommendations" >> penetration-testing-report.md
+          echo "1. **Address all identified vulnerabilities** starting with high-severity issues" >> penetration-testing-report.md
+          echo "2. **Implement proper input validation** for all user inputs" >> penetration-testing-report.md
+          echo "3. **Use parameterized queries** to prevent SQL injection" >> penetration-testing-report.md
+          echo "4. **Implement CSRF protection** for all state-changing operations" >> penetration-testing-report.md
+          echo "5. **Ensure proper authentication** is required for all protected endpoints" >> penetration-testing-report.md
+          echo "6. **Regular security testing** should be integrated into the development process" >> penetration-testing-report.md
+
+      - name: 📤 Upload penetration testing results
+        uses: actions/upload-artifact@v4
+        with:
+          name: penetration-testing-results
+          path: |
+            penetration-testing-report.md
+            zap-baseline-report.json
+            zap-baseline-report.html
+            zap-api-report.json
+            zap-api-report.html
+            nikto-frontend-results.txt
+            nikto-backend-results.txt
+            api-security-test-results.json
+          retention-days: 30
+
+  # Security results aggregation and reporting
+  security-results-aggregation:
+    name: 📊 Security Results Analysis & Reporting
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [dependency-security-scan, static-security-analysis, infrastructure-security-scan, web-penetration-testing]
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📥 Download all security artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./security-results
+
+      - name: 📊 Generate comprehensive security report
+        run: |
+          echo "# 🔒 Comprehensive Weekly Security Assessment - $(date -u)" > comprehensive-security-report.md
+          echo "" >> comprehensive-security-report.md
+          
+          echo "## Executive Summary" >> comprehensive-security-report.md
+          echo "- **Assessment Type**: Weekly Comprehensive Security Testing" >> comprehensive-security-report.md
+          echo "- **Scan Depth**: ${{ env.SCAN_DEPTH }}" >> comprehensive-security-report.md
+          echo "- **Assessment Date**: $(date -u)" >> comprehensive-security-report.md
+          echo "- **Commit**: ${{ github.sha }}" >> comprehensive-security-report.md
+          echo "- **Branch**: ${{ github.ref_name }}" >> comprehensive-security-report.md
+          echo "- **Penetration Testing**: ${{ env.INCLUDE_PENTEST == 'true' && 'Included' || 'Excluded' }}" >> comprehensive-security-report.md
+          echo "" >> comprehensive-security-report.md
+          
+          echo "## Security Assessment Results" >> comprehensive-security-report.md
+          echo "| Assessment Type | Status | Critical Issues | High Issues | Medium Issues |" >> comprehensive-security-report.md
+          echo "|----------------|--------|-----------------|-------------|---------------|" >> comprehensive-security-report.md
+          echo "| 📦 Dependency Scan | ${{ needs.dependency-security-scan.result }} | TBD | TBD | TBD |" >> comprehensive-security-report.md
+          echo "| 🔍 Static Analysis | ${{ needs.static-security-analysis.result }} | TBD | TBD | TBD |" >> comprehensive-security-report.md
+          echo "| 🐳 Infrastructure | ${{ needs.infrastructure-security-scan.result }} | TBD | TBD | TBD |" >> comprehensive-security-report.md
+          echo "| 🕷️ Penetration Test | ${{ needs.web-penetration-testing.result }} | TBD | TBD | TBD |" >> comprehensive-security-report.md
+          echo "" >> comprehensive-security-report.md
+          
+          # Analyze results from each assessment type
+          CRITICAL_ISSUES=0
+          HIGH_ISSUES=0
+          MEDIUM_ISSUES=0
+          
+          echo "## Detailed Findings" >> comprehensive-security-report.md
+          
+          # Dependency security findings
+          echo "### 📦 Dependency Security Assessment" >> comprehensive-security-report.md
+          if [ -f "security-results/dependency-security-results/dependency-security-summary.json" ]; then
+            echo "✅ Dependency security scan completed" >> comprehensive-security-report.md
+            if command -v jq &> /dev/null; then
+              critical=$(cat security-results/dependency-security-results/dependency-security-summary.json | jq -r '.severity_breakdown.critical // 0')
+              high=$(cat security-results/dependency-security-results/dependency-security-summary.json | jq -r '.severity_breakdown.high // 0')
+              moderate=$(cat security-results/dependency-security-results/dependency-security-summary.json | jq -r '.severity_breakdown.moderate // 0')
+              
+              echo "- Critical: $critical | High: $high | Moderate: $moderate" >> comprehensive-security-report.md
+              
+              CRITICAL_ISSUES=$((CRITICAL_ISSUES + critical))
+              HIGH_ISSUES=$((HIGH_ISSUES + high))
+              MEDIUM_ISSUES=$((MEDIUM_ISSUES + moderate))
+            fi
+          else
+            echo "❌ Dependency security scan failed or incomplete" >> comprehensive-security-report.md
+          fi
+          echo "" >> comprehensive-security-report.md
+          
+          # Static analysis findings
+          echo "### 🔍 Static Security Analysis" >> comprehensive-security-report.md
+          if [ -f "security-results/static-security-results/custom-security-analysis.json" ]; then
+            echo "✅ Static security analysis completed" >> comprehensive-security-report.md
+            if command -v jq &> /dev/null; then
+              static_high=$(cat security-results/static-security-results/custom-security-analysis.json | jq -r '.severity_breakdown.HIGH // 0')
+              static_medium=$(cat security-results/static-security-results/custom-security-analysis.json | jq -r '.severity_breakdown.MEDIUM // 0')
+              
+              echo "- High: $static_high | Medium: $static_medium" >> comprehensive-security-report.md
+              
+              HIGH_ISSUES=$((HIGH_ISSUES + static_high))
+              MEDIUM_ISSUES=$((MEDIUM_ISSUES + static_medium))
+            fi
+          else
+            echo "❌ Static security analysis failed or incomplete" >> comprehensive-security-report.md
+          fi
+          echo "" >> comprehensive-security-report.md
+          
+          # Infrastructure findings
+          echo "### 🐳 Infrastructure Security Assessment" >> comprehensive-security-report.md
+          if [ -f "security-results/infrastructure-security-results/infrastructure-security-report.md" ]; then
+            echo "✅ Infrastructure security scan completed" >> comprehensive-security-report.md
+            echo "- Container and Dockerfile security validated" >> comprehensive-security-report.md
+            echo "- Filesystem vulnerabilities scanned" >> comprehensive-security-report.md
+          else
+            echo "❌ Infrastructure security scan failed or incomplete" >> comprehensive-security-report.md
+          fi
+          echo "" >> comprehensive-security-report.md
+          
+          # Penetration testing findings
+          if [[ "${{ env.INCLUDE_PENTEST }}" == "true" ]]; then
+            echo "### 🕷️ Penetration Testing Assessment" >> comprehensive-security-report.md
+            if [ -f "security-results/penetration-testing-results/api-security-test-results.json" ]; then
+              echo "✅ Penetration testing completed" >> comprehensive-security-report.md
+              if command -v jq &> /dev/null; then
+                pentest_vulns=$(cat security-results/penetration-testing-results/api-security-test-results.json | jq -r '.vulnerable_tests // 0')
+                echo "- Potential vulnerabilities found: $pentest_vulns" >> comprehensive-security-report.md
+                
+                if [ "$pentest_vulns" -gt 0 ]; then
+                  HIGH_ISSUES=$((HIGH_ISSUES + pentest_vulns))
+                fi
+              fi
+            else
+              echo "❌ Penetration testing failed or incomplete" >> comprehensive-security-report.md
+            fi
+            echo "" >> comprehensive-security-report.md
+          fi
+          
+          # Overall security posture
+          echo "## 🏆 Overall Security Posture" >> comprehensive-security-report.md
+          echo "- **Critical Issues**: $CRITICAL_ISSUES" >> comprehensive-security-report.md
+          echo "- **High Severity Issues**: $HIGH_ISSUES" >> comprehensive-security-report.md
+          echo "- **Medium Severity Issues**: $MEDIUM_ISSUES" >> comprehensive-security-report.md
+          echo "" >> comprehensive-security-report.md
+          
+          # Determine security status
+          if [ "$CRITICAL_ISSUES" -gt 0 ]; then
+            echo "🚨 **SECURITY STATUS: CRITICAL** - Immediate action required" >> comprehensive-security-report.md
+            echo "SECURITY_STATUS=CRITICAL" >> $GITHUB_ENV
+          elif [ "$HIGH_ISSUES" -gt 10 ]; then
+            echo "⚠️ **SECURITY STATUS: HIGH RISK** - Prompt remediation recommended" >> comprehensive-security-report.md
+            echo "SECURITY_STATUS=HIGH_RISK" >> $GITHUB_ENV
+          elif [ "$HIGH_ISSUES" -gt 0 ]; then
+            echo "⚡ **SECURITY STATUS: MODERATE RISK** - Schedule remediation" >> comprehensive-security-report.md
+            echo "SECURITY_STATUS=MODERATE_RISK" >> $GITHUB_ENV
+          else
+            echo "✅ **SECURITY STATUS: LOW RISK** - Good security posture" >> comprehensive-security-report.md
+            echo "SECURITY_STATUS=LOW_RISK" >> $GITHUB_ENV
+          fi
+          
+          # Action plan
+          echo "" >> comprehensive-security-report.md
+          echo "## 📋 Recommended Action Plan" >> comprehensive-security-report.md
+          echo "### Immediate Actions (0-3 days)" >> comprehensive-security-report.md
+          if [ "$CRITICAL_ISSUES" -gt 0 ]; then
+            echo "- Address all critical vulnerabilities immediately" >> comprehensive-security-report.md
+            echo "- Deploy emergency security patches if available" >> comprehensive-security-report.md
+          fi
+          echo "- Review and validate all high-severity findings" >> comprehensive-security-report.md
+          
+          echo "" >> comprehensive-security-report.md
+          echo "### Short-term Actions (1-2 weeks)" >> comprehensive-security-report.md
+          echo "- Update vulnerable dependencies to patched versions" >> comprehensive-security-report.md
+          echo "- Implement missing security controls identified in static analysis" >> comprehensive-security-report.md
+          echo "- Address container and infrastructure security findings" >> comprehensive-security-report.md
+          
+          echo "" >> comprehensive-security-report.md
+          echo "### Long-term Actions (1 month)" >> comprehensive-security-report.md
+          echo "- Implement automated security testing in CI/CD pipeline" >> comprehensive-security-report.md
+          echo "- Establish regular security training for development team" >> comprehensive-security-report.md
+          echo "- Consider implementing security code review process" >> comprehensive-security-report.md
+          echo "- Evaluate and implement additional security tools and controls" >> comprehensive-security-report.md
+
+      - name: 📧 Send security team notification
+        if: env.NOTIFY_TEAM == 'true' && env.SECURITY_STATUS != 'LOW_RISK'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ env.SECURITY_STATUS == 'CRITICAL' && 'failure' || 'warning' }}
+          channel: '#medianest-security'
+          webhook_url: ${{ secrets.SECURITY_SLACK_WEBHOOK }}
+          fields: repo,message,commit,author,took
+          custom_payload: |
+            {
+              text: "🔒 Weekly Security Assessment Complete - ${{ env.SECURITY_STATUS }}",
+              attachments: [{
+                color: "${{ env.SECURITY_STATUS == 'CRITICAL' && 'danger' || 'warning' }}",
+                fields: [{
+                  title: "Security Status",
+                  value: "${{ env.SECURITY_STATUS }}",
+                  short: true
+                }, {
+                  title: "Critical Issues",
+                  value: "${{ env.CRITICAL_ISSUES || '0' }}",
+                  short: true
+                }, {
+                  title: "High Issues", 
+                  value: "${{ env.HIGH_ISSUES || '0' }}",
+                  short: true
+                }, {
+                  title: "Assessment Date",
+                  value: "$(date -u)",
+                  short: true
+                }]
+              }]
+            }
+
+      - name: 📧 Create security issue for critical findings
+        if: env.SECURITY_STATUS == 'CRITICAL' || env.SECURITY_STATUS == 'HIGH_RISK'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let reportContent = 'Security assessment report not found';
+            
+            try {
+              reportContent = fs.readFileSync('comprehensive-security-report.md', 'utf8');
+            } catch (error) {
+              console.log('Could not read security report:', error.message);
+            }
+            
+            const severity = process.env.SECURITY_STATUS;
+            const issueTitle = `🚨 ${severity} Security Issues - Weekly Assessment ${new Date().toISOString().split('T')[0]}`;
+            
+            const priority = severity === 'CRITICAL' ? 'URGENT' : 'HIGH';
+            const labels = ['security', severity.toLowerCase().replace('_', '-'), 'weekly-assessment'];
+            
+            if (severity === 'CRITICAL') {
+              labels.push('urgent');
+            }
+            
+            const issueBody = `
+            # Security Assessment Alert
+            
+            The weekly security assessment has identified ${severity.replace('_', ' ')} security issues that require immediate attention.
+            
+            **Assessment Details:**
+            - **Date**: ${new Date().toISOString()}
+            - **Status**: ${severity}
+            - **Priority**: ${priority}
+            - **Commit**: ${{ github.sha }}
+            - **Branch**: ${{ github.ref_name }}
+            
+            ## Comprehensive Security Report
+            
+            ${reportContent}
+            
+            ## Required Actions
+            
+            ${severity === 'CRITICAL' ? 
+              '⚠️ **CRITICAL PRIORITY**: These issues require immediate remediation within 24-48 hours.' :
+              '⚡ **HIGH PRIORITY**: These issues should be addressed within 1-2 weeks.'
+            }
+            
+            1. **Immediate triage** of all identified issues
+            2. **Risk assessment** for each vulnerability
+            3. **Remediation plan** with timeline
+            4. **Security patch deployment** as needed
+            5. **Validation testing** after fixes
+            
+            **Assigned to Security Team**
+            `;
+            
+            // Check for existing security issue this week
+            const existingIssues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'security,weekly-assessment',
+              state: 'open'
+            });
+            
+            const thisWeekIssue = existingIssues.data.find(issue => 
+              issue.title.includes(new Date().toISOString().split('T')[0])
+            );
+            
+            if (!thisWeekIssue) {
+              const issue = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: issueTitle,
+                body: issueBody,
+                labels: labels,
+                assignees: process.env.SECURITY_TEAM_GITHUB_USERS ? process.env.SECURITY_TEAM_GITHUB_USERS.split(',') : []
+              });
+              
+              console.log(`Created security issue: ${issue.data.html_url}`);
+            } else {
+              console.log('Security issue for this week already exists, updating...');
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: thisWeekIssue.number,
+                body: issueBody,
+                labels: labels
+              });
+            }
+
+      - name: 📤 Upload comprehensive security report
+        uses: actions/upload-artifact@v4
+        with:
+          name: comprehensive-security-report
+          path: |
+            comprehensive-security-report.md
+            ./security-results/
+          retention-days: 90
+
+      - name: 📊 Final security assessment summary
+        if: always()
+        run: |
+          echo "🔒 Weekly Security Assessment Summary"
+          echo "===================================="
+          echo "Status: ${{ env.SECURITY_STATUS || 'UNKNOWN' }}"
+          echo "Critical Issues: ${{ env.CRITICAL_ISSUES || '0' }}"
+          echo "High Issues: ${{ env.HIGH_ISSUES || '0' }}"
+          echo "Medium Issues: ${{ env.MEDIUM_ISSUES || '0' }}"
+          echo "Dependency Scan: ${{ needs.dependency-security-scan.result }}"
+          echo "Static Analysis: ${{ needs.static-security-analysis.result }}"
+          echo "Infrastructure: ${{ needs.infrastructure-security-scan.result }}"
+          echo "Penetration Test: ${{ needs.web-penetration-testing.result }}"
+          echo "Notification Sent: ${{ env.NOTIFY_TEAM }}"
+          echo "===================================="

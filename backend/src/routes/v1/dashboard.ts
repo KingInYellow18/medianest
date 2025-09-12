@@ -2,9 +2,9 @@
 import { Router } from 'express';
 
 import { dashboardController } from '@/controllers/dashboard.controller';
-import { asyncHandler } from '@/utils/async-handler';
 import { cachePresets } from '@/middleware/cache-headers';
 import { cacheHeaders } from '@/middleware/performance';
+import { asyncHandler } from '@/utils/async-handler';
 
 const router = Router();
 

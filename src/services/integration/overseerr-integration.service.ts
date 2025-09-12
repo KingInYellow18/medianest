@@ -1,11 +1,15 @@
+// Internal dependencies
+import {
+  BaseIntegrationClient,
+  ClientConfig,
+  HealthStatus,
+  ClientInitializer,
+} from '@medianest/shared';
+
 import { OverseerrApiClient } from '../../integrations/overseerr/overseerr-api.client';
 import { logger } from '../../utils/logger';
-import { 
-  BaseIntegrationClient,
-  ClientConfig, 
-  HealthStatus,
-  ClientInitializer 
-} from '../../../shared/src/patterns/integration-client-factory';
+
+// Shared utilities (using barrel exports)
 
 export interface OverseerrConfig extends ClientConfig {
   url?: string;
@@ -33,7 +37,7 @@ export class OverseerrIntegrationService extends BaseIntegrationClient {
     }
 
     const overseerrConfig = this.config as OverseerrConfig;
-    
+
     if (!overseerrConfig.url || !overseerrConfig.apiKey) {
       logger.debug('Overseerr integration disabled or not configured');
       return false;
@@ -45,11 +49,11 @@ export class OverseerrIntegrationService extends BaseIntegrationClient {
         async () => {
           return await OverseerrApiClient.createFromConfig(
             overseerrConfig.url!,
-            overseerrConfig.apiKey!
+            overseerrConfig.apiKey!,
           );
         },
         3,
-        2000
+        2000,
       );
 
       if (this.client) {
@@ -75,7 +79,7 @@ export class OverseerrIntegrationService extends BaseIntegrationClient {
    */
   async healthCheck(): Promise<HealthStatus> {
     const startTime = Date.now();
-    
+
     if (!this.client) {
       return {
         healthy: false,
@@ -87,10 +91,10 @@ export class OverseerrIntegrationService extends BaseIntegrationClient {
     try {
       // Perform health check by getting status
       await this.client.getStatus();
-      
+
       const responseTime = Date.now() - startTime;
       this.logSuccess('health check', responseTime);
-      
+
       return {
         healthy: true,
         lastChecked: new Date(),
@@ -98,7 +102,7 @@ export class OverseerrIntegrationService extends BaseIntegrationClient {
       };
     } catch (error) {
       this.logError('health check', error as Error);
-      
+
       return {
         healthy: false,
         lastChecked: new Date(),

@@ -15,7 +15,7 @@ export function safeParseInt(
     min?: number;
     max?: number;
     allowNegative?: boolean;
-  } = {}
+  } = {},
 ): number {
   // Type guard for string input
   if (!isString(value)) {
@@ -61,12 +61,10 @@ export function safeParsePort(value: unknown, defaultPort: number = 3000): numbe
 }
 
 /**
- * Safe JSON parsing with fallback
+ * Safe JSON parsing with fallback (simple version)
+ * Note: For advanced JSON parsing with validation, use safeJsonParse from type-guards
  */
-export function safeJsonParse<T>(
-  jsonString: unknown,
-  fallback: T
-): T {
+export function safeJsonParseSimple<T>(jsonString: unknown, fallback: T): T {
   if (!isString(jsonString)) {
     return fallback;
   }
@@ -86,10 +84,7 @@ export function safeJsonParse<T>(
 /**
  * Safe boolean parsing
  */
-export function safeParseBoolean(
-  value: unknown,
-  defaultValue: boolean = false
-): boolean {
+export function safeParseBoolean(value: unknown, defaultValue: boolean = false): boolean {
   if (typeof value === 'boolean') {
     return value;
   }
@@ -116,10 +111,7 @@ export function safeParseBoolean(
 /**
  * Safe environment variable access
  */
-export function safeGetEnv(
-  key: string,
-  defaultValue: string = ''
-): string {
+export function safeGetEnv(key: string, defaultValue: string = ''): string {
   const value = process.env[key];
   return isString(value) ? value : defaultValue;
 }
@@ -129,7 +121,7 @@ export function safeGetEnv(
  */
 export function requireEnv(key: string): string {
   const value = process.env[key];
-  
+
   if (!isString(value) || value.trim() === '') {
     throw new Error(`Required environment variable '${key}' is missing or empty`);
   }
@@ -147,7 +139,7 @@ export function safeParseFloat(
     min?: number;
     max?: number;
     allowNaN?: boolean;
-  } = {}
+  } = {},
 ): number {
   if (isNumber(value)) {
     return value;
@@ -177,10 +169,7 @@ export function safeParseFloat(
 /**
  * Safe array parsing from JSON string
  */
-export function safeParseArray<T>(
-  value: unknown,
-  fallback: T[] = []
-): T[] {
+export function safeParseArray<T>(value: unknown, fallback: T[] = []): T[] {
   if (Array.isArray(value)) {
     return value;
   }
@@ -200,10 +189,7 @@ export function safeParseArray<T>(
 /**
  * Safe URL parsing
  */
-export function safeParseUrl(
-  value: unknown,
-  fallback: string = ''
-): string {
+export function safeParseUrl(value: unknown, fallback: string = ''): string {
   if (!isString(value)) {
     return fallback;
   }
@@ -219,10 +205,7 @@ export function safeParseUrl(
 /**
  * Safe database timeout parsing
  */
-export function safeParseDatabaseTimeout(
-  value: unknown,
-  defaultTimeout: number = 30000
-): number {
+export function safeParseDatabaseTimeout(value: unknown, defaultTimeout: number = 30000): number {
   return safeParseInt(value, defaultTimeout, {
     min: 1000, // Minimum 1 second
     max: 300000, // Maximum 5 minutes
@@ -233,10 +216,7 @@ export function safeParseDatabaseTimeout(
 /**
  * Safe pool size parsing
  */
-export function safeParsePoolSize(
-  value: unknown,
-  defaultSize: number = 10
-): number {
+export function safeParsePoolSize(value: unknown, defaultSize: number = 10): number {
   return safeParseInt(value, defaultSize, {
     min: 1,
     max: 100,

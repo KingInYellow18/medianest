@@ -1,8 +1,9 @@
 // @ts-nocheck
 import { Server, Socket } from 'socket.io';
 
-import { logger } from '@/utils/logger';
 import { CatchError } from '../../types/common';
+
+import { logger } from '@/utils/logger';
 
 interface RequestStatusUpdate {
   requestId: string;
@@ -115,7 +116,7 @@ export function requestHandlers(io: Server, socket: Socket): void {
           });
         }
       }
-    }
+    },
   );
 
   // Cancel a request
@@ -216,7 +217,7 @@ export function emitRequestStatusUpdate(
   io: Server,
   requestId: string,
   userId: string,
-  update: RequestStatusUpdate
+  update: RequestStatusUpdate,
 ): void {
   // Emit to specific request room
   io.to(`request:${requestId}`).emit(`request:${requestId}:status`, update);
@@ -253,7 +254,7 @@ export function emitRequestCompletion(
     message: string;
     data?: any;
     error?: string;
-  }
+  },
 ): void {
   const update: RequestStatusUpdate = {
     requestId,
@@ -278,7 +279,7 @@ export function emitRequestCompletion(
 export function emitBulkRequestUpdates(
   io: Server,
   userId: string,
-  updates: RequestStatusUpdate[]
+  updates: RequestStatusUpdate[],
 ): void {
   // Emit to user's request room
   io.to(`user-requests:${userId}`).emit('requests:bulk-update', updates);

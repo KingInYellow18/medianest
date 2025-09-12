@@ -220,7 +220,7 @@ export const isMockPrismaClient = (value: unknown): value is MockPrismaClient =>
 };
 
 export const isMockFunction = (
-  value: unknown
+  value: unknown,
 ): value is MockedFunction<(...args: unknown[]) => unknown> => {
   return typeof value === 'function' && 'mockReset' in value;
 };

@@ -1,17 +1,19 @@
 // @ts-nocheck
-import { redisClient } from '@/config/redis';
-import { UptimeKumaClient } from '@/integrations/uptime-kuma/uptime-kuma.client';
-import { serviceConfigRepository } from '@/repositories';
-import { socketService } from '@/services/socket.service';
-import { logger } from '@/utils/logger';
 import {
   ServiceStatus as SharedServiceStatus,
   ServiceName,
   SOCKET_EVENTS, // @ts-ignore
 } from '@medianest/shared';
 
-import { encryptionService } from './encryption.service';
 import { CatchError } from '../types/common';
+
+import { encryptionService } from './encryption.service';
+
+import { redisClient } from '@/config/redis';
+import { UptimeKumaClient } from '@/integrations/uptime-kuma/uptime-kuma.client';
+import { serviceConfigRepository } from '@/repositories';
+import { socketService } from '@/services/socket.service';
+import { logger } from '@/utils/logger';
 
 // Extend the shared ServiceStatus type for backend-specific fields
 export interface ServiceStatus

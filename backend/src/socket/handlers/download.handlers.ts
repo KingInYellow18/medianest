@@ -1,9 +1,11 @@
 // @ts-nocheck
 import { Server, Socket } from 'socket.io';
-import { logger } from '@/utils/logger';
+
+import { CatchError } from '../../types/common';
+
 import { youtubeQueue } from '@/config/queues';
 import { YoutubeDownloadRepository } from '@/repositories/youtube-download.repository';
-import { CatchError } from '../../types/common';
+import { logger } from '@/utils/logger';
 
 interface DownloadProgress {
   downloadId: string;
@@ -161,10 +163,10 @@ export function registerDownloadHandlers(io: Server, socket: Socket): void {
             state === 'waiting'
               ? 'pending'
               : state === 'active'
-              ? 'downloading'
-              : state === 'completed'
-              ? 'completed'
-              : 'failed',
+                ? 'downloading'
+                : state === 'completed'
+                  ? 'completed'
+                  : 'failed',
           metadata: {
             title: job.data.metadata?.title,
             duration: job.data.metadata?.duration,
@@ -360,7 +362,7 @@ export function emitDownloadProgress(
   io: Server,
   userId: string,
   downloadId: string,
-  progress: DownloadProgress
+  progress: DownloadProgress,
 ): void {
   // Emit to user's download room
   io.of('/downloads').to(`downloads:user:${userId}`).emit('download:progress', progress);
@@ -389,7 +391,7 @@ export function emitDownloadComplete(
     filePath: string;
     fileSize: number;
     metadata?: any;
-  }
+  },
 ): void {
   const completeData = {
     downloadId,
@@ -417,7 +419,7 @@ export function emitDownloadFailure(
   io: Server,
   userId: string,
   downloadId: string,
-  error: string
+  error: string,
 ): void {
   const failureData = {
     downloadId,

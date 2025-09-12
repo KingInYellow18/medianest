@@ -3,8 +3,8 @@ import { EventEmitter } from 'events';
 import WebSocket from 'ws';
 
 import { CircuitBreaker } from '../../utils/circuit-breaker';
-import { logger } from '../../utils/logger';
 import { getErrorMessage } from '../../utils/error-handling';
+import { logger } from '../../utils/logger';
 
 export interface UptimeKumaMonitor {
   id: number;

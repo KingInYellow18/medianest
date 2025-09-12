@@ -1,14 +1,17 @@
-import axios from 'axios';
 import crypto from 'crypto';
-import { UserRepository } from '../repositories/user.repository';
-import { SessionTokenRepository } from '../repositories/session-token.repository';
-import { RedisService } from './redis.service';
-import { AppError } from '../utils/errors';
-import { logger } from '../utils/logger';
-import { generateToken } from '../utils/jwt';
-import { generateSecureToken, logSecurityEvent } from '../utils/security';
+
+import axios from 'axios';
+
 import { configService } from '../config/config.service';
+import { SessionTokenRepository } from '../repositories/session-token.repository';
+import { UserRepository } from '../repositories/user.repository';
 import { CatchError } from '../types/common';
+import { AppError } from '../utils/errors';
+import { generateToken } from '../utils/jwt';
+import { logger } from '../utils/logger';
+import { generateSecureToken, logSecurityEvent } from '../utils/security';
+
+import { RedisService } from './redis.service';
 
 interface OAuthConfig {
   clientId: string;
@@ -16,7 +19,6 @@ interface OAuthConfig {
   redirectUri: string;
   scope: string;
 }
-
 
 interface OAuthUserInfo {
   id: string;
@@ -50,7 +52,7 @@ export class OAuthProvidersService {
   constructor(
     userRepository: UserRepository,
     sessionTokenRepository: SessionTokenRepository,
-    redisService: RedisService
+    redisService: RedisService,
   ) {
     this.userRepository = userRepository;
     this.sessionTokenRepository = sessionTokenRepository;
@@ -90,7 +92,7 @@ export class OAuthProvidersService {
       redirectUri?: string;
       ipAddress: string;
       userAgent: string;
-    }
+    },
   ): Promise<{ authUrl: string; state: string }> {
     const config = this.configs[provider];
     if (!config || !config.clientId || !config.clientSecret) {
@@ -112,7 +114,7 @@ export class OAuthProvidersService {
         ipAddress: options.ipAddress,
         userAgent: options.userAgent,
       },
-      600
+      600,
     ); // 10 minutes
 
     let authUrl: string;
@@ -136,7 +138,7 @@ export class OAuthProvidersService {
         ipAddress: options.ipAddress,
         userAgent: options.userAgent,
       },
-      'info'
+      'info',
     );
 
     return { authUrl, state };
@@ -152,7 +154,7 @@ export class OAuthProvidersService {
     options: {
       ipAddress: string;
       userAgent: string;
-    }
+    },
   ): Promise<OAuthResult> {
     // Verify state parameter
     const stateData = await this.redisService.getOAuthState(state);
@@ -164,7 +166,7 @@ export class OAuthProvidersService {
           state,
           ipAddress: options.ipAddress,
         },
-        'error'
+        'error',
       );
       throw new AppError('INVALID_OAUTH_STATE', 'Invalid OAuth state', 400);
     }
@@ -201,7 +203,7 @@ export class OAuthProvidersService {
           isNewUser: result.isNewUser,
           ipAddress: options.ipAddress,
         },
-        'info'
+        'info',
       );
 
       return result;
@@ -217,7 +219,7 @@ export class OAuthProvidersService {
           error: error instanceof Error ? error.message : 'Unknown error',
           ipAddress: options.ipAddress,
         },
-        'error'
+        'error',
       );
 
       if (error instanceof AppError) {
@@ -272,7 +274,7 @@ export class OAuthProvidersService {
   private async exchangeCodeForToken(
     provider: 'github' | 'google',
     code: string,
-    redirectUri: string
+    redirectUri: string,
   ): Promise<string> {
     const config = this.configs[provider];
     if (!config) {
@@ -295,7 +297,7 @@ export class OAuthProvidersService {
   private async exchangeGitHubCode(
     code: string,
     redirectUri: string,
-    config: OAuthConfig
+    config: OAuthConfig,
   ): Promise<string> {
     const response = await axios.post(
       'https://github.com/login/oauth/access_token',
@@ -310,14 +312,14 @@ export class OAuthProvidersService {
           Accept: 'application/json',
           'User-Agent': 'MediaNest-OAuth',
         },
-      }
+      },
     );
 
     if (response.data.error) {
       throw new AppError(
         'GITHUB_OAUTH_ERROR',
         `GitHub OAuth error: ${response.data.error_description}`,
-        400
+        400,
       );
     }
 
@@ -330,7 +332,7 @@ export class OAuthProvidersService {
   private async exchangeGoogleCode(
     code: string,
     redirectUri: string,
-    config: OAuthConfig
+    config: OAuthConfig,
   ): Promise<string> {
     const response = await axios.post(
       'https://oauth2.googleapis.com/token',
@@ -345,14 +347,14 @@ export class OAuthProvidersService {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-      }
+      },
     );
 
     if (response.data.error) {
       throw new AppError(
         'GOOGLE_OAUTH_ERROR',
         `Google OAuth error: ${response.data.error_description}`,
-        400
+        400,
       );
     }
 
@@ -364,7 +366,7 @@ export class OAuthProvidersService {
    */
   private async getUserInfo(
     provider: 'github' | 'google',
-    accessToken: string
+    accessToken: string,
   ): Promise<OAuthUserInfo> {
     switch (provider) {
       case 'github':
@@ -446,7 +448,7 @@ export class OAuthProvidersService {
     options: {
       ipAddress: string;
       userAgent: string;
-    }
+    },
   ): Promise<OAuthResult> {
     // Check if user exists by email
     let user = await this.userRepository.findByEmail(userInfo.email);
@@ -475,7 +477,7 @@ export class OAuthProvidersService {
           provider,
           ipAddress: options.ipAddress,
         },
-        'info'
+        'info',
       );
     } else {
       // Update existing user with OAuth information
@@ -506,7 +508,7 @@ export class OAuthProvidersService {
       {
         ipAddress: options.ipAddress,
         userAgent: options.userAgent,
-      }
+      },
     );
 
     // Create session token
@@ -552,7 +554,7 @@ export class OAuthProvidersService {
         throw new AppError(
           'LAST_AUTH_METHOD',
           'Cannot unlink last authentication method. Please set a password first.',
-          400
+          400,
         );
       }
     }
@@ -569,7 +571,7 @@ export class OAuthProvidersService {
         userId,
         provider,
       },
-      'info'
+      'info',
     );
   }
 

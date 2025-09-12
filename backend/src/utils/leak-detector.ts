@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events';
+
 import { logger } from './logger';
 
 export interface LeakDetectionResult {
@@ -26,7 +27,7 @@ export class LeakDetector extends EventEmitter {
 
     this.isRunning = true;
     this.captureBaseline();
-    
+
     logger.info('Leak detection started', { intervalMs });
 
     this.detectionInterval = setInterval(() => {
@@ -45,11 +46,14 @@ export class LeakDetector extends EventEmitter {
 
   private captureBaseline(): void {
     // Capture baseline counts
-    this.baselineCounts.set('process-listeners', process.listenerCount('uncaughtException') + process.listenerCount('unhandledRejection'));
+    this.baselineCounts.set(
+      'process-listeners',
+      process.listenerCount('uncaughtException') + process.listenerCount('unhandledRejection'),
+    );
     this.baselineCounts.set('timers', this.getActiveTimerCount());
     this.baselineCounts.set('handles', (process as any)._getActiveHandles().length);
     this.baselineCounts.set('requests', (process as any)._getActiveRequests().length);
-    
+
     logger.info('Baseline captured for leak detection', Object.fromEntries(this.baselineCounts));
   }
 
@@ -58,58 +62,59 @@ export class LeakDetector extends EventEmitter {
 
     try {
       // Check event listeners
-      const currentProcessListeners = process.listenerCount('uncaughtException') + process.listenerCount('unhandledRejection');
+      const currentProcessListeners =
+        process.listenerCount('uncaughtException') + process.listenerCount('unhandledRejection');
       const baselineProcessListeners = this.baselineCounts.get('process-listeners') || 0;
-      
+
       if (currentProcessListeners > baselineProcessListeners + 5) {
         leaks.push({
           category: 'event-listener',
           severity: 'high',
           description: `Process event listeners increased from ${baselineProcessListeners} to ${currentProcessListeners}`,
           count: currentProcessListeners,
-          recommendation: 'Check for uncleaned uncaughtException/unhandledRejection listeners'
+          recommendation: 'Check for uncleaned uncaughtException/unhandledRejection listeners',
         });
       }
 
       // Check active handles (includes sockets, timers, etc.)
       const currentHandles = (process as any)._getActiveHandles().length;
       const baselineHandles = this.baselineCounts.get('handles') || 0;
-      
+
       if (currentHandles > baselineHandles + 10) {
         leaks.push({
           category: 'socket',
           severity: currentHandles > baselineHandles + 50 ? 'critical' : 'high',
           description: `Active handles increased from ${baselineHandles} to ${currentHandles}`,
           count: currentHandles,
-          recommendation: 'Check for unclosed sockets, file handles, or timers'
+          recommendation: 'Check for unclosed sockets, file handles, or timers',
         });
       }
 
       // Check active requests
       const currentRequests = (process as any)._getActiveRequests().length;
       const baselineRequests = this.baselineCounts.get('requests') || 0;
-      
+
       if (currentRequests > baselineRequests + 20) {
         leaks.push({
           category: 'other',
           severity: 'medium',
           description: `Active requests increased from ${baselineRequests} to ${currentRequests}`,
           count: currentRequests,
-          recommendation: 'Check for hanging HTTP requests or database queries'
+          recommendation: 'Check for hanging HTTP requests or database queries',
         });
       }
 
       // Check timer count
       const currentTimers = this.getActiveTimerCount();
       const baselineTimers = this.baselineCounts.get('timers') || 0;
-      
+
       if (currentTimers > baselineTimers + 10) {
         leaks.push({
           category: 'timer',
           severity: 'medium',
           description: `Active timers increased from ${baselineTimers} to ${currentTimers}`,
           count: currentTimers,
-          recommendation: 'Check for uncleared setTimeout/setInterval calls'
+          recommendation: 'Check for uncleared setTimeout/setInterval calls',
         });
       }
 
@@ -121,7 +126,7 @@ export class LeakDetector extends EventEmitter {
           severity: handleAnalysis.sockets > 50 ? 'critical' : 'high',
           description: `High number of active socket handles: ${handleAnalysis.sockets}`,
           count: handleAnalysis.sockets,
-          recommendation: 'Check Socket.IO connections and HTTP clients for proper cleanup'
+          recommendation: 'Check Socket.IO connections and HTTP clients for proper cleanup',
         });
       }
 
@@ -131,7 +136,7 @@ export class LeakDetector extends EventEmitter {
           severity: 'medium',
           description: `High number of active timer handles: ${handleAnalysis.timers}`,
           count: handleAnalysis.timers,
-          recommendation: 'Audit setTimeout/setInterval usage and ensure cleanup'
+          recommendation: 'Audit setTimeout/setInterval usage and ensure cleanup',
         });
       }
 
@@ -139,8 +144,8 @@ export class LeakDetector extends EventEmitter {
       if (leaks.length > 0) {
         logger.warn('Memory leaks detected', {
           leakCount: leaks.length,
-          criticalLeaks: leaks.filter(l => l.severity === 'critical').length,
-          highLeaks: leaks.filter(l => l.severity === 'high').length
+          criticalLeaks: leaks.filter((l) => l.severity === 'critical').length,
+          highLeaks: leaks.filter((l) => l.severity === 'high').length,
         });
 
         for (const leak of leaks) {
@@ -148,13 +153,13 @@ export class LeakDetector extends EventEmitter {
             logger.error(`${leak.severity.toUpperCase()} LEAK: ${leak.description}`, {
               category: leak.category,
               count: leak.count,
-              recommendation: leak.recommendation
+              recommendation: leak.recommendation,
             });
           } else {
             logger.warn(`${leak.severity.toUpperCase()} LEAK: ${leak.description}`, {
               category: leak.category,
               count: leak.count,
-              recommendation: leak.recommendation
+              recommendation: leak.recommendation,
             });
           }
         }
@@ -163,7 +168,6 @@ export class LeakDetector extends EventEmitter {
       } else {
         logger.debug('No memory leaks detected');
       }
-
     } catch (error) {
       logger.error('Error during leak detection', { error: (error as Error).message });
     }
@@ -173,10 +177,11 @@ export class LeakDetector extends EventEmitter {
     try {
       // This is a heuristic - Node.js doesn't expose timer count directly
       const handles = (process as any)._getActiveHandles();
-      return handles.filter((handle: any) => 
-        handle.constructor?.name === 'Timer' || 
-        handle.constructor?.name === 'Timeout' ||
-        handle.constructor?.name === 'Immediate'
+      return handles.filter(
+        (handle: any) =>
+          handle.constructor?.name === 'Timer' ||
+          handle.constructor?.name === 'Timeout' ||
+          handle.constructor?.name === 'Immediate',
       ).length;
     } catch {
       return 0;
@@ -192,10 +197,14 @@ export class LeakDetector extends EventEmitter {
 
       for (const handle of handles) {
         const type = handle.constructor?.name || 'unknown';
-        
+
         if (type.includes('Socket') || type.includes('TCP') || type.includes('UDP')) {
           sockets++;
-        } else if (type.includes('Timer') || type.includes('Timeout') || type.includes('Immediate')) {
+        } else if (
+          type.includes('Timer') ||
+          type.includes('Timeout') ||
+          type.includes('Immediate')
+        ) {
           timers++;
         } else {
           others++;
@@ -212,27 +221,27 @@ export class LeakDetector extends EventEmitter {
     const currentHandles = (process as any)._getActiveHandles().length;
     const currentRequests = (process as any)._getActiveRequests().length;
     const handleAnalysis = this.analyzeActiveHandles();
-    
+
     return {
       active: {
         handles: currentHandles,
         requests: currentRequests,
         sockets: handleAnalysis.sockets,
         timers: handleAnalysis.timers,
-        others: handleAnalysis.others
+        others: handleAnalysis.others,
       },
       baseline: Object.fromEntries(this.baselineCounts),
       growth: {
         handles: currentHandles - (this.baselineCounts.get('handles') || 0),
-        requests: currentRequests - (this.baselineCounts.get('requests') || 0)
+        requests: currentRequests - (this.baselineCounts.get('requests') || 0),
       },
       recommendations: [
         'Monitor Socket.IO connections for proper disconnect handling',
         'Ensure Redis connections are properly closed',
         'Check for uncleared timers and intervals',
         'Verify database connection pooling is working correctly',
-        'Audit event listener registration and removal'
-      ]
+        'Audit event listener registration and removal',
+      ],
     };
   }
 }
@@ -243,16 +252,16 @@ export const leakDetector = new LeakDetector();
 // Auto-start leak detection
 if (process.env.NODE_ENV !== 'test') {
   leakDetector.start();
-  
+
   leakDetector.on('leaks-detected', (leaks: LeakDetectionResult[]) => {
-    const criticalCount = leaks.filter(l => l.severity === 'critical').length;
-    const highCount = leaks.filter(l => l.severity === 'high').length;
-    
+    const criticalCount = leaks.filter((l) => l.severity === 'critical').length;
+    const highCount = leaks.filter((l) => l.severity === 'high').length;
+
     if (criticalCount > 0 || highCount > 0) {
       logger.error('URGENT: Memory leaks require immediate attention', {
         critical: criticalCount,
         high: highCount,
-        total: leaks.length
+        total: leaks.length,
       });
     }
   });

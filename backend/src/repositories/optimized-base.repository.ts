@@ -2,10 +2,11 @@
  * Optimized Base Repository with Connection Pool Integration
  * Replaces direct Prisma client usage with connection pooling
  */
-import { executeQuery, executeTransaction } from '../config/database-connection-pool';
 import { AppError } from '@medianest/shared';
-import { logger } from '../utils/logger';
+
+import { executeQuery, executeTransaction } from '../config/database-connection-pool';
 import { CatchError } from '../types/common';
+import { logger } from '../utils/logger';
 
 export interface PaginationOptions {
   page?: number;
@@ -41,7 +42,7 @@ export abstract class OptimizedBaseRepository<T, CreateInput, UpdateInput> {
    */
   protected async query<R>(
     operation: (client: any) => Promise<R>,
-    operationName: string = 'query'
+    operationName: string = 'query',
   ): Promise<R> {
     return executeQuery(async (client) => {
       try {
@@ -58,7 +59,7 @@ export abstract class OptimizedBaseRepository<T, CreateInput, UpdateInput> {
    */
   protected async transaction<R>(
     operations: (client: any) => Promise<R>,
-    operationName: string = 'transaction'
+    operationName: string = 'transaction',
   ): Promise<R> {
     return executeTransaction(async (client) => {
       try {
@@ -78,7 +79,7 @@ export abstract class OptimizedBaseRepository<T, CreateInput, UpdateInput> {
     where: any = {},
     options: PaginationOptions = {},
     select?: any,
-    include?: any
+    include?: any,
   ): Promise<PaginatedResult<M>> {
     return this.query(async (client) => {
       const { page, limit, skip, take } = this.getPaginationParams(options);
@@ -116,7 +117,7 @@ export abstract class OptimizedBaseRepository<T, CreateInput, UpdateInput> {
   protected async findById(
     id: string,
     queryBuilder: (client: any) => any,
-    include?: any
+    include?: any,
   ): Promise<T | null> {
     return this.query(async (client) => {
       const model = queryBuilder(client);
@@ -133,7 +134,7 @@ export abstract class OptimizedBaseRepository<T, CreateInput, UpdateInput> {
   protected async create(
     data: CreateInput,
     queryBuilder: (client: any) => any,
-    include?: any
+    include?: any,
   ): Promise<T> {
     return this.query(async (client) => {
       const model = queryBuilder(client);
@@ -151,11 +152,11 @@ export abstract class OptimizedBaseRepository<T, CreateInput, UpdateInput> {
     id: string,
     data: UpdateInput,
     queryBuilder: (client: any) => any,
-    include?: any
+    include?: any,
   ): Promise<T> {
     return this.transaction(async (client) => {
       const model = queryBuilder(client);
-      
+
       // Check existence first
       const exists = await model.findUnique({
         where: { id },
@@ -177,13 +178,10 @@ export abstract class OptimizedBaseRepository<T, CreateInput, UpdateInput> {
   /**
    * Delete with existence check
    */
-  protected async delete(
-    id: string,
-    queryBuilder: (client: any) => any
-  ): Promise<T> {
+  protected async delete(id: string, queryBuilder: (client: any) => any): Promise<T> {
     return this.transaction(async (client) => {
       const model = queryBuilder(client);
-      
+
       // Check existence first
       const exists = await model.findUnique({
         where: { id },
@@ -206,7 +204,7 @@ export abstract class OptimizedBaseRepository<T, CreateInput, UpdateInput> {
   protected async bulkCreate(
     data: CreateInput[],
     queryBuilder: (client: any) => any,
-    batchSize: number = 100
+    batchSize: number = 100,
   ): Promise<{ count: number; items?: T[] }> {
     if (data.length === 0) {
       return { count: 0, items: [] };
@@ -220,7 +218,7 @@ export abstract class OptimizedBaseRepository<T, CreateInput, UpdateInput> {
       // Process in batches to avoid overwhelming database
       for (let i = 0; i < data.length; i += batchSize) {
         const batch = data.slice(i, i + batchSize);
-        
+
         const result = await model.createMany({
           data: batch,
           skipDuplicates: true,
@@ -239,7 +237,7 @@ export abstract class OptimizedBaseRepository<T, CreateInput, UpdateInput> {
   protected async bulkUpdate(
     where: any,
     data: Partial<UpdateInput>,
-    queryBuilder: (client: any) => any
+    queryBuilder: (client: any) => any,
   ): Promise<number> {
     return this.query(async (client) => {
       const model = queryBuilder(client);
@@ -254,10 +252,7 @@ export abstract class OptimizedBaseRepository<T, CreateInput, UpdateInput> {
   /**
    * Count with optimized query
    */
-  protected async count(
-    where: any = {},
-    queryBuilder: (client: any) => any
-  ): Promise<number> {
+  protected async count(where: any = {}, queryBuilder: (client: any) => any): Promise<number> {
     return this.query(async (client) => {
       const model = queryBuilder(client);
       return await model.count({ where });
@@ -267,10 +262,7 @@ export abstract class OptimizedBaseRepository<T, CreateInput, UpdateInput> {
   /**
    * Exists check with optimized query
    */
-  protected async exists(
-    where: any,
-    queryBuilder: (client: any) => any
-  ): Promise<boolean> {
+  protected async exists(where: any, queryBuilder: (client: any) => any): Promise<boolean> {
     return this.query(async (client) => {
       const model = queryBuilder(client);
       const result = await model.findFirst({
@@ -287,7 +279,7 @@ export abstract class OptimizedBaseRepository<T, CreateInput, UpdateInput> {
   protected async aggregate(
     operations: any,
     where: any = {},
-    queryBuilder: (client: any) => any
+    queryBuilder: (client: any) => any,
   ): Promise<any> {
     return this.query(async (client) => {
       const model = queryBuilder(client);
@@ -306,7 +298,7 @@ export abstract class OptimizedBaseRepository<T, CreateInput, UpdateInput> {
     where: any = {},
     having: any = {},
     queryBuilder: (client: any) => any,
-    aggregations?: any
+    aggregations?: any,
   ): Promise<any[]> {
     return this.query(async (client) => {
       const model = queryBuilder(client);
@@ -335,51 +327,27 @@ export abstract class OptimizedBaseRepository<T, CreateInput, UpdateInput> {
     // Handle Prisma-specific errors
     switch (error.code) {
       case 'P2002':
-        throw new AppError(
-          'DUPLICATE_ENTRY',
-          `Duplicate ${this.modelName} entry`,
-          409,
-          { field: error.meta?.target }
-        );
+        throw new AppError('DUPLICATE_ENTRY', `Duplicate ${this.modelName} entry`, 409, {
+          field: error.meta?.target,
+        });
       case 'P2025':
-        throw new AppError(
-          'NOT_FOUND',
-          `${this.modelName} not found`,
-          404
-        );
+        throw new AppError('NOT_FOUND', `${this.modelName} not found`, 404);
       case 'P2003':
-        throw new AppError(
-          'FOREIGN_KEY_ERROR',
-          'Foreign key constraint failed',
-          400,
-          { field: error.meta?.field_name }
-        );
+        throw new AppError('FOREIGN_KEY_ERROR', 'Foreign key constraint failed', 400, {
+          field: error.meta?.field_name,
+        });
       case 'P2016':
-        throw new AppError(
-          'QUERY_ERROR',
-          'Query interpretation error',
-          400
-        );
+        throw new AppError('QUERY_ERROR', 'Query interpretation error', 400);
       case 'P2021':
-        throw new AppError(
-          'TABLE_NOT_FOUND',
-          `Table '${error.meta?.table}' does not exist`,
-          500
-        );
+        throw new AppError('TABLE_NOT_FOUND', `Table '${error.meta?.table}' does not exist`, 500);
       case 'P2024':
-        throw new AppError(
-          'CONNECTION_ERROR',
-          'Database connection timed out',
-          503
-        );
+        throw new AppError('CONNECTION_ERROR', 'Database connection timed out', 503);
       default:
         // Re-throw unknown errors with additional context
-        throw new AppError(
-          'DATABASE_ERROR',
-          `Database operation failed: ${error.message}`,
-          500,
-          { operation, model: this.modelName }
-        );
+        throw new AppError('DATABASE_ERROR', `Database operation failed: ${error.message}`, 500, {
+          operation,
+          model: this.modelName,
+        });
     }
   }
 
@@ -408,11 +376,7 @@ export abstract class OptimizedBaseRepository<T, CreateInput, UpdateInput> {
   protected validateInput(data: any, operation: 'create' | 'update'): void {
     // Override in child classes for specific validation
     if (!data || typeof data !== 'object') {
-      throw new AppError(
-        'INVALID_INPUT',
-        `Invalid ${operation} data for ${this.modelName}`,
-        400
-      );
+      throw new AppError('INVALID_INPUT', `Invalid ${operation} data for ${this.modelName}`, 400);
     }
   }
 
@@ -422,7 +386,7 @@ export abstract class OptimizedBaseRepository<T, CreateInput, UpdateInput> {
   async getStats(): Promise<{ total: number; recentCount: number }> {
     return this.query(async (client) => {
       const model = this.getModel(client);
-      
+
       const [total, recentCount] = await Promise.all([
         model.count(),
         model.count({

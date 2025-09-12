@@ -76,7 +76,7 @@ export class OverseerrClient {
         }
 
         return Promise.reject(error);
-      }
+      },
     );
   }
 
@@ -94,7 +94,7 @@ export class OverseerrClient {
   // Search for media (simplified)
   async searchMedia(
     query: string,
-    page = 1
+    page = 1,
   ): Promise<{
     results: MediaSearchResult[];
     totalPages: number;
@@ -144,7 +144,7 @@ export class OverseerrClient {
     options: {
       take?: number;
       skip?: number;
-    } = {}
+    } = {},
   ): Promise<{
     results: MediaRequestInfo[];
     pageInfo: {

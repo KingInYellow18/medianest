@@ -1,0 +1,318 @@
+# MEDIANEST Infrastructure Alert Rules
+# System resources, containers, and infrastructure health monitoring
+
+groups:
+  # System Resource Alerts
+  - name: medianest.infrastructure.system
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+          service: system
+          tier: resources
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is {{ $value }}% (threshold: 80%) on {{ $labels.instance }}"
+          dashboard_url: "http://grafana:3001/d/medianest-infra/infrastructure-overview"
+
+      - alert: CriticalCPUUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[2m])) * 100) > 95
+        for: 2m
+        labels:
+          severity: critical
+          component: infrastructure
+          service: system
+          tier: resources
+        annotations:
+          summary: "CRITICAL: CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is {{ $value }}% (threshold: 95%) on {{ $labels.instance }}"
+          runbook_url: "https://docs.medianest.io/runbooks/high-cpu"
+
+      - alert: HighMemoryUsage
+        expr: >
+          (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+          service: system
+          tier: resources
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage is {{ $value }}% (threshold: 85%) on {{ $labels.instance }}"
+          dashboard_url: "http://grafana:3001/d/medianest-infra/infrastructure-overview"
+
+      - alert: CriticalMemoryUsage
+        expr: >
+          (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 95
+        for: 2m
+        labels:
+          severity: critical
+          component: infrastructure
+          service: system
+          tier: resources
+        annotations:
+          summary: "CRITICAL: Memory usage on {{ $labels.instance }}"
+          description: "Memory usage is {{ $value }}% (threshold: 95%) on {{ $labels.instance }}"
+          runbook_url: "https://docs.medianest.io/runbooks/memory-pressure"
+
+      - alert: LowDiskSpace
+        expr: >
+          (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|fuse.lxcfs"} / node_filesystem_size_bytes{fstype!~"tmpfs|fuse.lxcfs"})) * 100 > 85
+        for: 10m
+        labels:
+          severity: warning
+          component: infrastructure
+          service: system
+          tier: storage
+        annotations:
+          summary: "Low disk space on {{ $labels.instance }}"
+          description: "Disk usage is {{ $value }}% on {{ $labels.device }} at {{ $labels.instance }} (threshold: 85%)"
+          dashboard_url: "http://grafana:3001/d/medianest-storage/storage-overview"
+
+      - alert: CriticalDiskSpace
+        expr: >
+          (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|fuse.lxcfs"} / node_filesystem_size_bytes{fstype!~"tmpfs|fuse.lxcfs"})) * 100 > 95
+        for: 5m
+        labels:
+          severity: critical
+          component: infrastructure
+          service: system
+          tier: storage
+        annotations:
+          summary: "CRITICAL: Disk space on {{ $labels.instance }}"
+          description: "Disk usage is {{ $value }}% on {{ $labels.device }} at {{ $labels.instance }} (threshold: 95%)"
+          runbook_url: "https://docs.medianest.io/runbooks/disk-full"
+
+      - alert: HighDiskIOWait
+        expr: avg by(instance) (rate(node_cpu_seconds_total{mode="iowait"}[5m])) * 100 > 20
+        for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+          service: system
+          tier: performance
+        annotations:
+          summary: "High disk I/O wait on {{ $labels.instance }}"
+          description: "I/O wait is {{ $value }}% (threshold: 20%) on {{ $labels.instance }}"
+          runbook_url: "https://docs.medianest.io/runbooks/high-iowait"
+
+  # Container Monitoring
+  - name: medianest.infrastructure.containers
+    rules:
+      - alert: ContainerDown
+        expr: up{job="cadvisor"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: containers
+          service: cadvisor
+          tier: monitoring
+        annotations:
+          summary: "Container monitoring is down"
+          description: "cAdvisor container monitoring has been unreachable for {{ $value }} minutes"
+          runbook_url: "https://docs.medianest.io/runbooks/cadvisor-down"
+
+      - alert: HighContainerMemoryUsage
+        expr: >
+          (container_memory_usage_bytes{name!="",name!~".*prometheus.*",name!~".*grafana.*"} / container_spec_memory_limit_bytes{name!="",name!~".*prometheus.*",name!~".*grafana.*"}) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          component: containers
+          service: "{{ $labels.name }}"
+          tier: resources
+        annotations:
+          summary: "High memory usage in container {{ $labels.name }}"
+          description: "Container {{ $labels.name }} memory usage is {{ $value }}% (threshold: 85%)"
+          dashboard_url: "http://grafana:3001/d/medianest-containers/container-overview"
+
+      - alert: CriticalContainerMemoryUsage
+        expr: >
+          (container_memory_usage_bytes{name!="",name!~".*prometheus.*",name!~".*grafana.*"} / container_spec_memory_limit_bytes{name!="",name!~".*prometheus.*",name!~".*grafana.*"}) * 100 > 95
+        for: 2m
+        labels:
+          severity: critical
+          component: containers
+          service: "{{ $labels.name }}"
+          tier: resources
+        annotations:
+          summary: "CRITICAL: Memory usage in container {{ $labels.name }}"
+          description: "Container {{ $labels.name }} memory usage is {{ $value }}% (threshold: 95%)"
+          runbook_url: "https://docs.medianest.io/runbooks/container-memory"
+
+      - alert: ContainerCPUThrottling
+        expr: >
+          rate(container_cpu_cfs_throttled_seconds_total{name!="",name!~".*prometheus.*",name!~".*grafana.*"}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: containers
+          service: "{{ $labels.name }}"
+          tier: performance
+        annotations:
+          summary: "Container CPU throttling detected"
+          description: "Container {{ $labels.name }} is experiencing {{ $value }}s of CPU throttling per second"
+          runbook_url: "https://docs.medianest.io/runbooks/cpu-throttling"
+
+      - alert: ContainerRestartLoop
+        expr: >
+          rate(container_start_time_seconds{name!="",name!~".*prometheus.*",name!~".*grafana.*"}[10m]) > 0.01
+        for: 5m
+        labels:
+          severity: critical
+          component: containers
+          service: "{{ $labels.name }}"
+          tier: reliability
+        annotations:
+          summary: "Container restart loop detected"
+          description: "Container {{ $labels.name }} is restarting frequently ({{ $value }} restarts/second)"
+          runbook_url: "https://docs.medianest.io/runbooks/container-restart-loop"
+
+  # Node Health
+  - name: medianest.infrastructure.nodes
+    rules:
+      - alert: NodeDown
+        expr: up{job="node-exporter"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: infrastructure
+          service: node
+          tier: availability
+        annotations:
+          summary: "Node {{ $labels.instance }} is down"
+          description: "Node exporter on {{ $labels.instance }} has been down for {{ $value }} minutes"
+          runbook_url: "https://docs.medianest.io/runbooks/node-down"
+
+      - alert: HighLoadAverage
+        expr: node_load15 / on(instance) count by (instance)(node_cpu_seconds_total{mode="idle"}) > 2
+        for: 10m
+        labels:
+          severity: warning
+          component: infrastructure
+          service: system
+          tier: performance
+        annotations:
+          summary: "High load average on {{ $labels.instance }}"
+          description: "Load average is {{ $value }} (threshold: 2x CPU cores) on {{ $labels.instance }}"
+          dashboard_url: "http://grafana:3001/d/medianest-infra/infrastructure-overview"
+
+      - alert: NetworkInterfaceDown
+        expr: node_network_up{device!~"lo|veth.*|docker.*|flannel.*|cali.*|cbr.*"} == 0
+        for: 2m
+        labels:
+          severity: warning
+          component: infrastructure
+          service: network
+          tier: connectivity
+        annotations:
+          summary: "Network interface {{ $labels.device }} down on {{ $labels.instance }}"
+          description: "Network interface {{ $labels.device }} is down on {{ $labels.instance }}"
+          runbook_url: "https://docs.medianest.io/runbooks/network-interface-down"
+
+      - alert: HighNetworkErrors
+        expr: >
+          rate(node_network_receive_errs_total[5m]) + rate(node_network_transmit_errs_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+          service: network
+          tier: connectivity
+        annotations:
+          summary: "High network errors on {{ $labels.instance }}"
+          description: "{{ $value }} network errors per second on {{ $labels.device }} at {{ $labels.instance }}"
+          runbook_url: "https://docs.medianest.io/runbooks/network-errors"
+
+  # Process Monitoring
+  - name: medianest.infrastructure.processes
+    rules:
+      - alert: TooManyProcesses
+        expr: node_processes_state{state="running"} > 300
+        for: 10m
+        labels:
+          severity: warning
+          component: infrastructure
+          service: system
+          tier: resources
+        annotations:
+          summary: "Too many running processes on {{ $labels.instance }}"
+          description: "{{ $value }} running processes (threshold: 300) on {{ $labels.instance }}"
+          dashboard_url: "http://grafana:3001/d/medianest-infra/infrastructure-overview"
+
+      - alert: SystemClockSkew
+        expr: abs(node_time_seconds - on(instance) timestamp(up{job="node-exporter"})) > 30
+        for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+          service: system
+          tier: time
+        annotations:
+          summary: "System clock skew detected on {{ $labels.instance }}"
+          description: "Clock is {{ $value }}s out of sync (threshold: 30s) on {{ $labels.instance }}"
+          runbook_url: "https://docs.medianest.io/runbooks/clock-skew"
+
+  # File Descriptor Limits
+  - name: medianest.infrastructure.limits
+    rules:
+      - alert: HighFileDescriptorUsage
+        expr: >
+          (node_filefd_allocated / node_filefd_maximum) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+          component: infrastructure
+          service: system
+          tier: limits
+        annotations:
+          summary: "High file descriptor usage on {{ $labels.instance }}"
+          description: "File descriptor usage is {{ $value }}% (threshold: 80%) on {{ $labels.instance }}"
+          runbook_url: "https://docs.medianest.io/runbooks/file-descriptors"
+
+      - alert: CriticalFileDescriptorUsage
+        expr: >
+          (node_filefd_allocated / node_filefd_maximum) * 100 > 95
+        for: 5m
+        labels:
+          severity: critical
+          component: infrastructure
+          service: system
+          tier: limits
+        annotations:
+          summary: "CRITICAL: File descriptor usage on {{ $labels.instance }}"
+          description: "File descriptor usage is {{ $value }}% (threshold: 95%) on {{ $labels.instance }}"
+          runbook_url: "https://docs.medianest.io/runbooks/file-descriptors-critical"
+
+  # Docker/Container Runtime
+  - name: medianest.infrastructure.docker
+    rules:
+      - alert: DockerDaemonDown
+        expr: engine_daemon_engine_info{} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: containers
+          service: docker
+          tier: runtime
+        annotations:
+          summary: "Docker daemon is down"
+          description: "Docker daemon is not responding on {{ $labels.instance }}"
+          runbook_url: "https://docs.medianest.io/runbooks/docker-daemon-down"
+
+      - alert: HighDockerContainerCount
+        expr: count by (instance) (container_last_seen{name!=""}) > 50
+        for: 10m
+        labels:
+          severity: warning
+          component: containers
+          service: docker
+          tier: limits
+        annotations:
+          summary: "High container count on {{ $labels.instance }}"
+          description: "{{ $value }} containers running (threshold: 50) on {{ $labels.instance }}"
+          dashboard_url: "http://grafana:3001/d/medianest-containers/container-overview"

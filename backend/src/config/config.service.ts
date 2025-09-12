@@ -3,8 +3,8 @@
  * Replaces 92+ direct process.env accesses with type-safe configuration
  */
 
-import { readSecret, readSecretFromFile } from './secrets';
 import { logger } from '../utils/logger';
+
 import {
   AppConfig,
   ServerConfig,
@@ -22,6 +22,7 @@ import {
   ConfigValidationResult,
   ConfigSource,
 } from './config.types';
+import { readSecret, readSecretFromFile } from './secrets';
 
 export class ConfigService {
   private readonly config: AppConfig;
@@ -38,11 +39,11 @@ export class ConfigService {
   get<T extends keyof AppConfig>(category: T): AppConfig[T];
   get<T extends keyof AppConfig, K extends keyof AppConfig[T]>(
     category: T,
-    key: K
+    key: K,
   ): AppConfig[T][K];
   get<T extends keyof AppConfig, K extends keyof AppConfig[T]>(
     category: T,
-    key?: K
+    key?: K,
   ): AppConfig[T] | AppConfig[T][K] {
     if (key) {
       return this.config[category][key];
@@ -289,7 +290,7 @@ export class ConfigService {
     return {
       REDIS_URL: readSecretFromFile(
         'REDIS_URL_FILE',
-        process.env.REDIS_URL || 'redis://localhost:6379'
+        process.env.REDIS_URL || 'redis://localhost:6379',
       ),
       REDIS_HOST: this.getStringEnv('REDIS_HOST', 'localhost') || 'localhost',
       REDIS_PORT: this.getIntEnv('REDIS_PORT', 6379),
@@ -435,7 +436,7 @@ export class ConfigService {
     key: string,
     value: unknown,
     source: 'env' | 'docker_secret' | 'default',
-    isSecret: boolean
+    isSecret: boolean,
   ): void {
     this.configSources.push({
       key,
@@ -489,7 +490,7 @@ export class ConfigService {
       for (const config of required) {
         if (!config.value || config.value === '' || config.value === 'dev-secret') {
           errors.push(
-            `Missing or invalid required configuration: ${config.key} - ${config.description}`
+            `Missing or invalid required configuration: ${config.key} - ${config.description}`,
           );
         }
       }

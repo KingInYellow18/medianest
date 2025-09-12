@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { createTestUser, createTestJWT, createTestRequest, createTestResponse, getMockRedis } from './setup-comprehensive';
+import { createTestUser, createTestJWT, createMockRequest, createMockResponse } from './helpers/test-utilities';
 
 describe('Test Infrastructure Examples', () => {
   describe('Redis Mocking', () => {

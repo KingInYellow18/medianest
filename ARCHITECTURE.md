@@ -172,43 +172,52 @@ frontend/src/
 
 ```
 backend/src/
+├── auth/              # Authentication utilities
+├── config/            # Configuration files
+│   ├── database.ts
+│   ├── redis.ts
+│   └── queues.ts
 ├── controllers/        # Request handlers
 │   ├── auth.controller.ts
 │   ├── dashboard.controller.ts
 │   ├── media.controller.ts
 │   ├── plex.controller.ts
 │   └── youtube.controller.ts
-├── services/           # Business logic layer
-│   ├── encryption.service.ts
-│   ├── jwt.service.ts
-│   ├── overseerr.service.ts
-│   ├── plex.service.ts
-│   └── status.service.ts
-├── repositories/       # Data access layer
-│   ├── base.repository.ts
-│   ├── user.repository.ts
-│   ├── media-request.repository.ts
-│   ├── service-status.repository.ts
-│   └── youtube-download.repository.ts
+├── db/                # Database utilities
 ├── integrations/      # External service clients
 │   ├── plex/          # Plex API client with circuit breaker
 │   ├── overseerr/     # Overseerr API client
 │   └── uptime-kuma/   # Uptime Kuma monitoring client
+├── jobs/              # Background job processors (minimal)
+├── lib/               # Library functions
 ├── middleware/         # Express middleware
 │   ├── auth.ts        # JWT authentication
 │   ├── error.ts       # Global error handler
 │   ├── logging.ts     # Winston request logging
 │   ├── rate-limit.ts  # Redis-based rate limiting
 │   └── validate.ts    # Zod schema validation
+├── repositories/       # Data access layer
+│   ├── base.repository.ts
+│   ├── user.repository.ts
+│   ├── media-request.repository.ts
+│   ├── service-status.repository.ts
+│   └── youtube-download.repository.ts
+├── routes/            # Route definitions
+├── schemas/           # Schema definitions
+├── scripts/           # Utility scripts
+├── security/          # Security utilities
+├── services/           # Business logic layer
+│   ├── encryption.service.ts
+│   ├── jwt.service.ts
+│   ├── overseerr.service.ts
+│   ├── plex.service.ts
+│   └── status.service.ts
 ├── socket/            # WebSocket handlers
 │   ├── handlers/      # Event handlers
 │   └── middleware.ts  # Socket.io authentication
-├── jobs/              # Background job processors (minimal)
+├── __tests__/         # Test files
+├── types/             # TypeScript type definitions
 ├── utils/             # Helper functions
-├── config/            # Configuration files
-│   ├── database.ts
-│   ├── redis.ts
-│   └── queues.ts
 └── validations/       # Zod validation schemas
 ```
 
@@ -469,7 +478,7 @@ interface WebSocketEvents {
 
 ### 6.4 Error Handling Best Practices
 
-For comprehensive error handling implementation, see `/docs/ERROR_HANDLING_LOGGING_STRATEGY.md`.
+The application implements comprehensive error handling with structured logging and user-friendly error messages.
 
 #### Key Principles
 
@@ -690,58 +699,81 @@ const axiosConfig = {
 
 ## 9. Deployment Architecture
 
-### 9.1 Docker Compose Configuration
+### 9.1 Docker Compose Architecture
+
+MediaNest uses Docker Compose for all deployment scenarios, providing a simplified yet production-ready approach.
+
+#### Production Configuration (docker-compose.prod.yml)
 
 ```yaml
-# docker-compose.yml (Production)
 version: '3.8'
 
 services:
   nginx:
     image: nginx:alpine
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-      - ./certs:/etc/nginx/certs
+      - ./config/nginx/prod.conf:/etc/nginx/nginx.conf
+      - ./data/certbot/ssl:/etc/nginx/ssl
     ports:
       - '443:443'
       - '80:80'
     depends_on:
-      - app
+      - frontend
+      - backend
+    restart: unless-stopped
 
-  app:
-    build: .
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgresql://user:pass@postgres:5432/medianest?connection_limit=20&pool_timeout=30
-      - REDIS_URL=redis://redis:6379
     volumes:
-      - ./youtube:/app/youtube:rw
+      - uploads:/app/uploads:ro
+    user: '1000:1000'
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL_FILE=/run/secrets/database_url
+      - REDIS_URL_FILE=/run/secrets/redis_url
+    volumes:
       - uploads:/app/uploads:rw
     secrets:
+      - database_url
+      - redis_url
       - encryption_key
-      - nextauth_secret
-    user: '1000:1000' # Run as non-root
+      - jwt_secret
+    user: '1000:1000'
     depends_on:
       - postgres
       - redis
+    restart: unless-stopped
 
   postgres:
-    image: postgres:15-alpine
+    image: postgres:16-alpine
     environment:
       - POSTGRES_DB=medianest
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD_FILE=/run/secrets/db_password
-      - POSTGRES_INITDB_ARGS=--encoding=UTF-8
+      - POSTGRES_USER=medianest
+      - POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
     volumes:
       - postgres_data:/var/lib/postgresql/data
     secrets:
-      - db_password
+      - postgres_password
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    command: redis-server --appendonly yes --requirepass-file /run/secrets/redis_password
     volumes:
       - redis_data:/data
+    secrets:
+      - redis_password
+    restart: unless-stopped
 
 volumes:
   postgres_data:
@@ -749,16 +781,56 @@ volumes:
   uploads:
 
 secrets:
-  db_password:
-    file: ./secrets/db_password
+  database_url:
+    file: ./secrets/database_url
+  redis_url:
+    file: ./secrets/redis_url
+  postgres_password:
+    file: ./secrets/postgres_password
+  redis_password:
+    file: ./secrets/redis_password
   encryption_key:
     file: ./secrets/encryption_key
-  nextauth_secret:
-    file: ./secrets/nextauth_secret
-# Additional environments:
-# - docker-compose.dev.yml: Development with hot reload
-# - docker-compose.test.yml: Test environment (root and backend specific)
+  jwt_secret:
+    file: ./secrets/jwt_secret
 ```
+
+#### Development Configuration (docker-compose.dev.yml)
+
+```yaml
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=medianest_dev
+      - POSTGRES_USER=dev
+      - POSTGRES_PASSWORD=dev
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_dev_data:/data
+
+volumes:
+  postgres_dev_data:
+  redis_dev_data:
+```
+
+#### Deployment Scripts
+
+MediaNest includes automated deployment scripts:
+- `./deployment/scripts/deploy-compose.sh` - Production deployment
+- `./deployment/scripts/backup.sh` - Database backup automation
+- `./deployment/scripts/restore.sh` - Disaster recovery
+- `./deployment/scripts/update.sh` - Zero-downtime updates
 
 #### Frontend Custom Server
 
@@ -819,7 +891,44 @@ export const initializeSocket = (server: Server) => {
 };
 ```
 
-### 9.2 Environment Configuration
+### 9.2 Automated Deployment
+
+#### Quick Production Deployment
+
+```bash
+# Automated production deployment
+./deployment/scripts/deploy-compose.sh --domain your-domain.com --email admin@your-domain.com
+
+# The script handles:
+# - SSL certificate generation (Let's Encrypt)
+# - Environment configuration
+# - Secret generation
+# - Database initialization
+# - Service health checks
+# - Nginx configuration
+```
+
+#### Manual Deployment Steps
+
+```bash
+# 1. Generate secrets
+./deployment/scripts/generate-secrets.sh
+
+# 2. Configure environment
+cp .env.production.example .env.production
+# Edit .env.production with your domain and settings
+
+# 3. Deploy services
+docker compose -f config/docker/docker-compose.prod.yml up -d
+
+# 4. Initialize database
+docker compose -f config/docker/docker-compose.prod.yml exec backend npm run db:migrate
+
+# 5. Verify deployment
+curl -f https://your-domain.com/api/health
+```
+
+### 9.3 Environment Configuration
 
 ```bash
 # .env file structure
@@ -850,7 +959,7 @@ ADMIN_PASSWORD=admin
 ENCRYPTION_KEY=<generated-32-byte-key>
 ```
 
-### 9.3 Service Configuration Management
+### 9.4 Service Configuration Management
 
 External service configurations are managed through the admin UI after initial deployment:
 
@@ -889,7 +998,7 @@ External service configurations are managed through the admin UI after initial d
    - Configuration changes logged with admin user ID
    - Service health checked on save
 
-### 9.4 Encryption Implementation
+### 9.5 Encryption Implementation
 
 ```javascript
 // lib/crypto.js
@@ -926,7 +1035,7 @@ export function decrypt(data) {
 }
 ```
 
-### 9.5 BullMQ Configuration
+### 9.6 BullMQ Configuration
 
 ````typescript
 // backend/src/config/queues.ts
@@ -1011,7 +1120,7 @@ While designed for 10-20 users, the architecture supports growth:
 
 ### 11.1 Logging Strategy
 
-For detailed logging implementation and configuration, see `/docs/ERROR_HANDLING_LOGGING_STRATEGY.md`.
+The logging system uses Winston with multiple transports and structured JSON format for comprehensive observability.
 
 #### Key Components
 - **Winston logger**: Multiple transports (Console, File, DailyRotate)
@@ -1192,11 +1301,11 @@ See `/docs/DEVELOPMENT.md` for detailed setup instructions.
 
 ### C. API Documentation
 
-See `/docs/API.md` for detailed API specifications.
+See `/docs/api/overview.md` and related API documentation files for detailed API specifications.
 
 ### D. Implementation Strategies
 
-- `/docs/ERROR_HANDLING_LOGGING_STRATEGY.md` - Error handling and logging implementation
+- Error handling and logging implementation is detailed in sections 6.4 and 11.1 of this document
 - `/docs/future/SECURITY_STRATEGY.md` - Security implementation details (coming soon)
 - `/docs/future/PERFORMANCE_STRATEGY.md` - Performance optimization guide (coming soon)
 

@@ -25,12 +25,16 @@ export default defineConfig({
         statements: 60
       }
     },
-    pool: 'threads',
+    pool: 'forks',
     poolOptions: {
-      threads: {
-        singleThread: true
+      forks: {
+        singleFork: true,
+        isolate: true
       }
-    }
+    },
+    // Prevent worker thread termination errors
+    maxWorkers: 1,
+    minWorkers: 1
   },
   resolve: {
     alias: {

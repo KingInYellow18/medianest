@@ -9,7 +9,7 @@ import { createHash } from 'crypto';
 
 // Types for secret management
 export interface SecretConfig {
-  provider: 'env' | 'file' | 'aws' | 'azure' | 'vault' | 'k8s';
+  provider: 'env' | 'file' | 'aws' | 'azure' | 'vault';
   options?: Record<string, any>;
 }
 
@@ -295,9 +295,7 @@ export class SecretManager {
       case 'aws':
         this.providers.push(new AWSSecretsProvider());
         break;
-      case 'k8s':
-        this.providers.push(new KubernetesSecretsProvider());
-        break;
+      // k8s provider removed - use environment variables or vault instead
       // Add more providers as needed
     }
   }

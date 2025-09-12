@@ -41,7 +41,7 @@ The application demonstrates excellent security fundamentals with no critical se
   ```
 - **Remediation:**
   1. Generate new JWT secret: `openssl rand -hex 32`
-  2. Store in secure secrets management (Docker secrets/Kubernetes)
+  2. Store in secure secrets management (Docker secrets)
   3. Remove from .env file and add to .gitignore
 
 #### 🚨 **H002: Exposed Flow-Nexus Session Token**

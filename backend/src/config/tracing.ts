@@ -1,10 +1,13 @@
-import { NodeSDK } from '@opentelemetry/sdk-node';
-import { logger } from '../utils/logger';
+import type { Sampler } from '@opentelemetry/api';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { JaegerExporter } from '@opentelemetry/exporter-jaeger';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-otlp-http';
-import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
+import { NodeSDK } from '@opentelemetry/sdk-node';
+import type { SpanExporter, SamplingResult } from '@opentelemetry/sdk-trace-base';
+import { SamplingDecision } from '@opentelemetry/sdk-trace-base';
 import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-node';
+import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
+
 import type {
   TracingSDK,
   ResourceAttributes,
@@ -13,9 +16,7 @@ import type {
   TracingSpan,
   HttpInstrumentationResponse,
 } from '../types/opentelemetry';
-import type { Sampler } from '@opentelemetry/api';
-import type { SpanExporter, SamplingResult } from '@opentelemetry/sdk-trace-base';
-import { SamplingDecision } from '@opentelemetry/sdk-trace-base';
+import { logger } from '../utils/logger';
 
 // Environment configuration
 const SERVICE_NAME = process.env.SERVICE_NAME || 'observe-backend';
@@ -134,7 +135,7 @@ if (TRACING_ENABLED) {
         maxQueueSize: 1000,
         exportTimeoutMillis: 30000,
         scheduledDelayMillis: 5000,
-      }
+      },
     ),
     instrumentations,
     sampler: sampler as Sampler,

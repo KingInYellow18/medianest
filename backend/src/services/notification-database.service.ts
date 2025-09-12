@@ -3,8 +3,8 @@
  * Replaces mock notification data with real database operations
  */
 import { executeQuery, executeTransaction } from '../config/database-connection-pool';
-import { logger } from '../utils/logger';
 import { CatchError } from '../types/common';
+import { logger } from '../utils/logger';
 
 export interface NotificationRecord {
   id: string;
@@ -87,16 +87,13 @@ class NotificationDatabaseService {
     userId: string,
     filters: NotificationFilters = {},
     limit: number = 50,
-    offset: number = 0
+    offset: number = 0,
   ): Promise<{ notifications: NotificationRecord[]; total: number }> {
     return executeQuery(async (client) => {
       const where: any = {
         userId,
         // Auto-filter expired notifications unless explicitly requested
-        OR: [
-          { expiresAt: null },
-          { expiresAt: { gt: new Date() } },
-        ],
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
       };
 
       if (filters.type) {
@@ -144,10 +141,7 @@ class NotificationDatabaseService {
           userId,
           readAt: null,
           dismissedAt: null,
-          OR: [
-            { expiresAt: null },
-            { expiresAt: { gt: new Date() } },
-          ],
+          OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
         },
         orderBy: { createdAt: 'desc' },
         take: 100, // Limit to prevent overwhelming client
@@ -160,7 +154,10 @@ class NotificationDatabaseService {
   /**
    * Mark notification as read
    */
-  async markNotificationRead(notificationId: string, userId: string): Promise<NotificationRecord | null> {
+  async markNotificationRead(
+    notificationId: string,
+    userId: string,
+  ): Promise<NotificationRecord | null> {
     return executeQuery(async (client) => {
       // Verify ownership before updating
       const existing = await client.notification.findFirst({
@@ -195,10 +192,7 @@ class NotificationDatabaseService {
         where: {
           userId,
           readAt: null,
-          OR: [
-            { expiresAt: null },
-            { expiresAt: { gt: new Date() } },
-          ],
+          OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
         },
         data: {
           readAt: new Date(),
@@ -212,7 +206,10 @@ class NotificationDatabaseService {
   /**
    * Dismiss notification (remove from UI without marking as read)
    */
-  async dismissNotification(notificationId: string, userId: string): Promise<NotificationRecord | null> {
+  async dismissNotification(
+    notificationId: string,
+    userId: string,
+  ): Promise<NotificationRecord | null> {
     return executeQuery(async (client) => {
       // Verify ownership before updating
       const existing = await client.notification.findFirst({
@@ -248,10 +245,7 @@ class NotificationDatabaseService {
         client.notification.count({
           where: {
             userId,
-            OR: [
-              { expiresAt: null },
-              { expiresAt: { gt: new Date() } },
-            ],
+            OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
           },
         }),
         // Unread notifications
@@ -260,10 +254,7 @@ class NotificationDatabaseService {
             userId,
             readAt: null,
             dismissedAt: null,
-            OR: [
-              { expiresAt: null },
-              { expiresAt: { gt: new Date() } },
-            ],
+            OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
           },
         }),
         // Group by type
@@ -271,10 +262,7 @@ class NotificationDatabaseService {
           by: ['type'],
           where: {
             userId,
-            OR: [
-              { expiresAt: null },
-              { expiresAt: { gt: new Date() } },
-            ],
+            OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
           },
           _count: true,
         }),
@@ -285,18 +273,18 @@ class NotificationDatabaseService {
             createdAt: {
               gte: new Date(Date.now() - 24 * 60 * 60 * 1000),
             },
-            OR: [
-              { expiresAt: null },
-              { expiresAt: { gt: new Date() } },
-            ],
+            OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
           },
         }),
       ]);
 
-      const byType = typeStats.reduce((acc, item) => {
-        acc[item.type] = item._count;
-        return acc;
-      }, {} as Record<string, number>);
+      const byType = typeStats.reduce(
+        (acc: any, item: any) => {
+          acc[item.type] = item._count;
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
 
       return {
         total: totalCount,
@@ -364,7 +352,7 @@ class NotificationDatabaseService {
    * Create system-wide notification for all users
    */
   async createSystemNotification(
-    input: Omit<CreateNotificationInput, 'userId'>
+    input: Omit<CreateNotificationInput, 'userId'>,
   ): Promise<NotificationRecord> {
     return executeQuery(async (client) => {
       // Create system notification with special userId
@@ -396,10 +384,7 @@ class NotificationDatabaseService {
       const notifications = await client.notification.findMany({
         where: {
           userId: 'system',
-          OR: [
-            { expiresAt: null },
-            { expiresAt: { gt: new Date() } },
-          ],
+          OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
         },
         orderBy: { createdAt: 'desc' },
         take: 50,
@@ -414,12 +399,12 @@ class NotificationDatabaseService {
    */
   async createBulkNotifications(
     userIds: string[],
-    input: Omit<CreateNotificationInput, 'userId'>
+    input: Omit<CreateNotificationInput, 'userId'>,
   ): Promise<number> {
     if (userIds.length === 0) return 0;
 
     return executeTransaction(async (client) => {
-      const notifications = userIds.map(userId => ({
+      const notifications = userIds.map((userId) => ({
         id: this.generateNotificationId(),
         userId,
         type: input.type,
@@ -478,37 +463,43 @@ export const notificationDatabaseService = new NotificationDatabaseService();
 // Setup cleanup cron jobs
 if (process.env.NODE_ENV === 'production') {
   // Clean up expired notifications every hour
-  setInterval(() => {
-    notificationDatabaseService.cleanupExpiredNotifications().catch((error) => {
-      logger.error('Failed to cleanup expired notifications', { error });
-    });
-  }, 60 * 60 * 1000);
+  setInterval(
+    () => {
+      notificationDatabaseService.cleanupExpiredNotifications().catch((error) => {
+        logger.error('Failed to cleanup expired notifications', { error });
+      });
+    },
+    60 * 60 * 1000,
+  );
 
   // Clean up old read notifications daily at 2 AM
   const scheduleCleanup = () => {
     const now = new Date();
     const nextCleanup = new Date();
     nextCleanup.setHours(2, 0, 0, 0);
-    
+
     if (nextCleanup <= now) {
       nextCleanup.setDate(nextCleanup.getDate() + 1);
     }
-    
+
     const msUntilCleanup = nextCleanup.getTime() - now.getTime();
-    
+
     setTimeout(() => {
       notificationDatabaseService.cleanupOldNotifications().catch((error) => {
         logger.error('Failed to cleanup old notifications', { error });
       });
-      
+
       // Schedule next cleanup
-      setInterval(() => {
-        notificationDatabaseService.cleanupOldNotifications().catch((error) => {
-          logger.error('Failed to cleanup old notifications', { error });
-        });
-      }, 24 * 60 * 60 * 1000); // Daily
+      setInterval(
+        () => {
+          notificationDatabaseService.cleanupOldNotifications().catch((error) => {
+            logger.error('Failed to cleanup old notifications', { error });
+          });
+        },
+        24 * 60 * 60 * 1000,
+      ); // Daily
     }, msUntilCleanup);
   };
-  
+
   scheduleCleanup();
 }

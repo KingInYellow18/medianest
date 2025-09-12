@@ -1,13 +1,15 @@
 // Context7 Optimized Plex Service - Removed @ts-nocheck for better type safety
+import { AppError } from '@medianest/shared';
+
+import { CatchError, UserId, isNotNull, Result, success, failure } from '../types/common';
+import type { Brand } from '../types/context7-optimizations';
+
+import { encryptionService } from './encryption.service';
+
 import { redisClient } from '@/config/redis';
 import { PlexClient } from '@/integrations/plex/plex.client';
 import { userRepository, serviceConfigRepository } from '@/repositories';
-import { AppError } from '@medianest/shared';
 import { logger } from '@/utils/logger';
-
-import { encryptionService } from './encryption.service';
-import { CatchError, UserId, isNotNull, Result, success, failure } from '../types/common';
-import type { Brand } from '../types/context7-optimizations';
 
 // Context7 Pattern: Branded types for type safety
 type PlexUserId = Brand<string, 'PlexUserId'>;
@@ -51,7 +53,7 @@ export class PlexService {
       const user = await userRepository.findById(userId);
       if (!user?.plexToken) {
         return failure(
-          new AppError('PLEX_USER_NOT_FOUND', 'User not found or missing Plex token', 401)
+          new AppError('PLEX_USER_NOT_FOUND', 'User not found or missing Plex token', 401),
         );
       }
 
@@ -74,7 +76,7 @@ export class PlexService {
     } catch (error: CatchError) {
       logger.error('Failed to connect to Plex', { userId, error });
       return failure(
-        new AppError('PLEX_CONNECTION_FAILED', 'Failed to connect to Plex server', 503)
+        new AppError('PLEX_CONNECTION_FAILED', 'Failed to connect to Plex server', 503),
       );
     }
   }
@@ -131,7 +133,7 @@ export class PlexService {
     options?: {
       offset?: number;
       limit?: number;
-    }
+    },
   ) {
     // Cache library items with pagination parameters
     const offset = options?.offset || 0;
@@ -234,7 +236,7 @@ export class PlexService {
   async getCollections(
     userId: string,
     libraryKey: string,
-    options?: { search?: string; sort?: string }
+    options?: { search?: string; sort?: string },
   ) {
     const clientResult = await this.getClientForUser(userId);
     if (!clientResult.success) {
@@ -249,7 +251,7 @@ export class PlexService {
     if (options?.search) {
       const searchLower = options.search.toLowerCase();
       filteredCollections = filteredCollections.filter((collection: any) =>
-        collection.title.toLowerCase().includes(searchLower)
+        collection.title.toLowerCase().includes(searchLower),
       );
     }
 
@@ -285,7 +287,7 @@ export class PlexService {
     userId: string,
     libraryKey: string,
     title: string,
-    items: string[] = []
+    items: string[] = [],
   ): Promise<void> {
     const clientResult = await this.getClientForUser(userId);
     if (!clientResult.success) {
@@ -304,7 +306,7 @@ export class PlexService {
       (lib: any) =>
         lib.title.toLowerCase().includes('youtube') ||
         lib.type === 'youtube' ||
-        lib.type === 'other' // YouTube content might be in 'other' type library
+        lib.type === 'other', // YouTube content might be in 'other' type library
     );
 
     if (youtubeLib) {
@@ -314,7 +316,7 @@ export class PlexService {
     // Fallback: look for 'Other Videos' or similar
     const otherLib = libraries.find(
       (lib: any) =>
-        lib.title.toLowerCase().includes('other') || lib.title.toLowerCase().includes('video')
+        lib.title.toLowerCase().includes('other') || lib.title.toLowerCase().includes('video'),
     );
 
     return otherLib ? otherLib.key : null;
@@ -324,28 +326,28 @@ export class PlexService {
   async clearUserCache(userId: string): Promise<void> {
     try {
       const plexUserId = userId as PlexUserId;
-      
+
       // Remove client from memory cache
       this.clients.delete(plexUserId);
-      
+
       // Clear all Redis cache keys for this user
       const cacheKeys = [
         `${this.cachePrefix}server:${userId}`,
         `${this.cachePrefix}libraries:${userId}`,
         `${this.cachePrefix}recent:${userId}`,
       ];
-      
+
       // Also clear any search and item cache keys (using pattern)
       const searchPattern = `${this.cachePrefix}search:${userId}:*`;
       const itemPattern = `${this.cachePrefix}items:${userId}:*`;
-      
+
       // Get keys matching patterns
       const searchKeys = await redisClient.keys(searchPattern);
       const itemKeys = await redisClient.keys(itemPattern);
-      
+
       // Combine all keys to delete
       const allKeys = [...cacheKeys, ...searchKeys, ...itemKeys];
-      
+
       if (allKeys.length > 0) {
         await redisClient.del(allKeys);
         logger.info('Cleared Plex cache for user', { userId, keysCleared: allKeys.length });
@@ -358,17 +360,20 @@ export class PlexService {
 
   // Clean up idle clients periodically (every 30 minutes)
   startCleanupTimer(): void {
-    setInterval(() => {
-      const now = Date.now();
-      const maxIdleTime = 30 * 60 * 1000; // 30 minutes
+    setInterval(
+      () => {
+        const now = Date.now();
+        const maxIdleTime = 30 * 60 * 1000; // 30 minutes
 
-      // In a production app, we'd track last access time
-      // For MVP, just clear all clients periodically
-      if (this.clients.size > 10) {
-        logger.info('Clearing Plex client cache', { count: this.clients.size });
-        this.clients.clear();
-      }
-    }, 30 * 60 * 1000);
+        // In a production app, we'd track last access time
+        // For MVP, just clear all clients periodically
+        if (this.clients.size > 10) {
+          logger.info('Clearing Plex client cache', { count: this.clients.size });
+          this.clients.clear();
+        }
+      },
+      30 * 60 * 1000,
+    );
   }
 }
 

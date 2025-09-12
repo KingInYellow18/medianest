@@ -77,6 +77,9 @@ export const createRedisMock = () => {
     flushall: vi.fn().mockResolvedValue('OK'),
     select: vi.fn().mockResolvedValue('OK'),
     
+    // Clear method for cache service compatibility
+    clear: vi.fn().mockResolvedValue('OK'),
+    
     // Transaction operations
     multi: vi.fn().mockReturnThis(),
     exec: vi.fn().mockResolvedValue([]),
@@ -221,3 +224,18 @@ export const sessionMockHelpers = {
     mockRedisInstance.del.mockResolvedValue(1);
   },
 };
+
+/**
+ * Reset functions for test cleanup
+ */
+export function resetRedisMocks() {
+  mockRedisInstance.get.mockResolvedValue(null);
+  mockRedisInstance.set.mockResolvedValue('OK');
+  mockRedisInstance.del.mockResolvedValue(1);
+  mockRedisInstance.flushall.mockResolvedValue('OK');
+  mockRedisInstance.clear.mockResolvedValue('OK');
+  mockRedisInstance.hgetall.mockResolvedValue({});
+  mockRedisInstance.smembers.mockResolvedValue([]);
+  mockRedisInstance.keys.mockResolvedValue([]);
+  vi.clearAllMocks();
+}

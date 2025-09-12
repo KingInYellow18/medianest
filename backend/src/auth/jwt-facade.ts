@@ -1,9 +1,10 @@
-import * as jwt from 'jsonwebtoken';
 import * as crypto from 'crypto';
 
 import { AppError } from '@medianest/shared';
-import { logger } from '../utils/logger';
+import * as jwt from 'jsonwebtoken';
+
 import { configService } from '../config/config.service';
+import { logger } from '../utils/logger';
 
 export interface JWTPayload {
   userId: string;
@@ -76,7 +77,7 @@ export class JWTFacade {
   private validateConfiguration(): void {
     if (!this.jwtSecret || this.jwtSecret === 'dev-secret') {
       throw new Error(
-        'JWT_SECRET is required and cannot be the default dev value. Generate one with: openssl rand -base64 32'
+        'JWT_SECRET is required and cannot be the default dev value. Generate one with: openssl rand -base64 32',
       );
     }
   }
@@ -128,7 +129,7 @@ export class JWTFacade {
       allowRotation?: boolean;
       ipAddress?: string;
       userAgent?: string;
-    }
+    },
   ): JWTPayload {
     try {
       let decoded = this.verifyWithSecret(token, this.jwtSecret);
@@ -224,7 +225,7 @@ export class JWTFacade {
       throw new AppError(
         'REFRESH_TOKEN_VERIFICATION_FAILED',
         'Refresh token verification failed',
-        401
+        401,
       );
     }
   }
@@ -276,7 +277,7 @@ export class JWTFacade {
   rotateTokenIfNeeded(
     token: string,
     payload: JWTPayload,
-    options?: JWTOptions
+    options?: JWTOptions,
   ): TokenRotationInfo | null {
     if (!this.shouldRotateToken(token)) {
       return null;
@@ -345,7 +346,7 @@ export class JWTFacade {
    */
   private validateTokenSecurity(
     decoded: JWTPayload,
-    options?: { ipAddress?: string; userAgent?: string }
+    options?: { ipAddress?: string; userAgent?: string },
   ): void {
     if (!options) return;
 
@@ -395,14 +396,14 @@ export const jwtFacade = new JWTFacade();
 export function generateToken(
   payload: JWTPayload,
   rememberMe?: boolean,
-  options?: JWTOptions
+  options?: JWTOptions,
 ): string {
   return jwtFacade.generateToken(payload, rememberMe, options);
 }
 
 export function verifyToken(
   token: string,
-  options?: { allowRotation?: boolean; ipAddress?: string; userAgent?: string }
+  options?: { allowRotation?: boolean; ipAddress?: string; userAgent?: string },
 ): JWTPayload {
   return jwtFacade.verifyToken(token, options);
 }
@@ -430,7 +431,7 @@ export function shouldRotateToken(token: string): boolean {
 export function rotateTokenIfNeeded(
   token: string,
   payload: JWTPayload,
-  options?: JWTOptions
+  options?: JWTOptions,
 ): TokenRotationInfo | null {
   return jwtFacade.rotateTokenIfNeeded(token, payload, options);
 }

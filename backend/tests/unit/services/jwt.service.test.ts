@@ -6,38 +6,44 @@ import { config } from '../../../src/config';
 // Mock dependencies
 vi.mock('../../../src/config', () => ({
   config: {
-    jwt: {
-      secret: 'test-jwt-secret-key-32-bytes-long-for-testing',
-      issuer: 'medianest-test',
-      audience: 'medianest-test-users',
-    },
+    JWT_SECRET: 'test-jwt-secret-key-32-bytes-long-for-testing',
+    JWT_ISSUER: 'medianest-test',
+    JWT_AUDIENCE: 'medianest-test-users',
   },
 }));
 
-vi.mock('jsonwebtoken', () => ({
-  default: {
-    sign: vi.fn(),
-    verify: vi.fn(),
-    decode: vi.fn(),
-  },
-  sign: vi.fn(),
-  verify: vi.fn(),
-  decode: vi.fn(),
-  TokenExpiredError: class extends Error {
+vi.mock('jsonwebtoken', () => {
+  class TokenExpiredError extends Error {
     name = 'TokenExpiredError';
     expiredAt: Date;
     constructor(message: string, expiredAt: Date) {
       super(message);
       this.expiredAt = expiredAt;
     }
-  },
-  JsonWebTokenError: class extends Error {
+  }
+
+  class JsonWebTokenError extends Error {
     name = 'JsonWebTokenError';
     constructor(message: string) {
       super(message);
     }
-  },
-}));
+  }
+
+  return {
+    default: {
+      sign: vi.fn(),
+      verify: vi.fn(),
+      decode: vi.fn(),
+      TokenExpiredError,
+      JsonWebTokenError,
+    },
+    sign: vi.fn(),
+    verify: vi.fn(),
+    decode: vi.fn(),
+    TokenExpiredError,
+    JsonWebTokenError,
+  };
+});
 
 describe('JwtService', () => {
   let jwtService: JwtService;
@@ -45,6 +51,12 @@ describe('JwtService', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    
+    // Reset the config to test values before creating service
+    vi.mocked(config).JWT_SECRET = 'test-secret';
+    vi.mocked(config).JWT_ISSUER = 'medianest';
+    vi.mocked(config).JWT_AUDIENCE = 'medianest-users';
+    
     jwtService = new JwtService();
     
     mockPayload = {
@@ -67,16 +79,15 @@ describe('JwtService', () => {
 
     it('should throw error if JWT_SECRET is missing', () => {
       // Mock config without JWT secret
-      vi.mocked(config).jwt = undefined as any;
+      vi.mocked(config).JWT_SECRET = undefined as any;
       
       expect(() => new JwtService()).toThrow('JWT_SECRET is required for authentication');
     });
 
     it('should use default values for optional config', () => {
-      vi.mocked(config).jwt = {
-        secret: 'test-secret',
-        // Missing issuer and audience
-      };
+      vi.mocked(config).JWT_SECRET = 'test-secret';
+      vi.mocked(config).JWT_ISSUER = undefined as any;
+      vi.mocked(config).JWT_AUDIENCE = undefined as any;
       
       expect(() => new JwtService()).not.toThrow();
     });
@@ -91,11 +102,11 @@ describe('JwtService', () => {
 
       expect(jwt.sign).toHaveBeenCalledWith(
         mockPayload,
-        'test-jwt-secret-key-32-bytes-long-for-testing',
+        'test-secret',  // Updated to match mock config
         {
           expiresIn: '24h',
-          issuer: 'medianest-test',
-          audience: 'medianest-test-users',
+          issuer: 'medianest',  // Updated to match mock config
+          audience: 'medianest-users',  // Updated to match mock config
         }
       );
       expect(token).toBe(mockToken);
@@ -147,11 +158,11 @@ describe('JwtService', () => {
 
       expect(jwt.sign).toHaveBeenCalledWith(
         minimalPayload,
-        'test-jwt-secret-key-32-bytes-long-for-testing',
+        'test-secret',  // Updated to match mock config
         {
           expiresIn: '24h',
-          issuer: 'medianest-test',
-          audience: 'medianest-test-users',
+          issuer: 'medianest',  // Updated to match mock config
+          audience: 'medianest-users',  // Updated to match mock config
         }
       );
       expect(token).toBe(mockToken);
@@ -167,11 +178,11 @@ describe('JwtService', () => {
 
       expect(jwt.sign).toHaveBeenCalledWith(
         mockPayload,
-        'test-jwt-secret-key-32-bytes-long-for-testing',
+        'test-secret',  // Updated to match mock config
         {
           expiresIn: '90d',
-          issuer: 'medianest-test',
-          audience: 'medianest-test-users',
+          issuer: 'medianest',  // Updated to match mock config
+          audience: 'medianest-users',  // Updated to match mock config
         }
       );
       expect(token).toBe(mockToken);
@@ -204,10 +215,10 @@ describe('JwtService', () => {
 
       expect(jwt.verify).toHaveBeenCalledWith(
         mockToken,
-        'test-jwt-secret-key-32-bytes-long-for-testing',
+        'test-secret',  // Updated to match mock config
         {
-          issuer: 'medianest-test',
-          audience: 'medianest-test-users',
+          issuer: 'medianest',  // Updated to match mock config
+          audience: 'medianest-users',  // Updated to match mock config
         }
       );
       expect(result).toEqual(mockDecodedPayload);
@@ -309,11 +320,11 @@ describe('JwtService', () => {
           email: mockPayload.email,
           role: mockPayload.role,
         }),
-        'test-jwt-secret-key-32-bytes-long-for-testing',
+        'test-secret',  // Updated to match mock config
         {
           expiresIn: '24h',
-          issuer: 'medianest-test',
-          audience: 'medianest-test-users',
+          issuer: 'medianest',  // Updated to match mock config
+          audience: 'medianest-users',  // Updated to match mock config
         }
       );
       expect(result).toBe(newToken);

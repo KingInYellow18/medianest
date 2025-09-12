@@ -4,7 +4,7 @@ import { AuthenticationFacade, AuthenticatedUser } from '../../src/auth';
 import { UserRepository } from '../../src/repositories/user.repository';
 import { SessionTokenRepository } from '../../src/repositories/session-token.repository';
 import { DeviceSessionService } from '../../src/services/device-session.service';
-import { AuthenticationError } from '../../src/utils/errors';
+import { AuthenticationError } from '@medianest/shared';
 
 // Mock dependencies
 vi.mock('../../src/repositories/user.repository');

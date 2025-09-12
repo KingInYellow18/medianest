@@ -1,10 +1,11 @@
+import { AppError } from '@medianest/shared';
 import { Request, Response, NextFunction } from 'express';
+
 import { getRedis } from '../config/redis';
 import { userRepository } from '../repositories';
-import { logger } from '../utils/logger';
 import { AuthenticatedRequest } from '../types';
-import { AppError } from '@medianest/shared';
 import { CatchError } from '../types/common';
+import { logger } from '../utils/logger';
 
 /**
  * Optimized authentication middleware with Redis caching

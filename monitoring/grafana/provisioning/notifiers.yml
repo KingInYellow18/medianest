@@ -1,0 +1,299 @@
+# Grafana Notification Channels for MEDIANEST
+# Integrated with AlertManager for comprehensive alerting
+
+apiVersion: 1
+
+# Delete existing notification channels not in this file
+deleteNotifiers:
+  - name: "old-notifications"
+    orgId: 1
+
+# Notification channels
+notifiers:
+  # Slack Integration - Critical Alerts
+  - name: slack-critical
+    type: slack
+    uid: slack-critical
+    orgId: 1
+    isDefault: false
+    settings:
+      url: ${SLACK_WEBHOOK_URL}
+      channel: "#alerts-critical"
+      username: "Grafana-Critical"
+      title: "🔴 CRITICAL: {{ .RuleName }}"
+      text: |
+        {{ range .Alerts }}
+        **🚨 CRITICAL ALERT**
+        
+        **Panel:** {{ .PanelId }}
+        **Dashboard:** {{ .DashboardId }}
+        **Rule:** {{ .RuleName }}
+        **Message:** {{ .Message }}
+        **Value:** {{ .ValueString }}
+        
+        **Time:** {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}
+        {{ end }}
+      iconEmoji: ":fire:"
+      iconUrl: ""
+      mentionGroups: "@channel"
+      mentionUsers: ""
+      color: "#D63031"
+    secureSettings: {}
+
+  # Slack Integration - Security Alerts
+  - name: slack-security
+    type: slack
+    uid: slack-security
+    orgId: 1
+    isDefault: false
+    settings:
+      url: ${SLACK_WEBHOOK_URL}
+      channel: "#security-alerts"
+      username: "Grafana-Security"
+      title: "🔐 SECURITY: {{ .RuleName }}"
+      text: |
+        {{ range .Alerts }}
+        **🛡️ SECURITY EVENT**
+        
+        **Dashboard:** {{ .DashboardId }}
+        **Panel:** {{ .PanelId }}
+        **Rule:** {{ .RuleName }}
+        **Details:** {{ .Message }}
+        **Value:** {{ .ValueString }}
+        
+        **Detected:** {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}
+        {{ end }}
+      iconEmoji: ":shield:"
+      color: "#E17055"
+      mentionGroups: "@security-team"
+    secureSettings: {}
+
+  # Slack Integration - Application Alerts
+  - name: slack-application
+    type: slack
+    uid: slack-application
+    orgId: 1
+    isDefault: false
+    settings:
+      url: ${SLACK_WEBHOOK_URL}
+      channel: "#alerts-application"
+      username: "Grafana-App"
+      title: "⚡ APP: {{ .RuleName }}"
+      text: |
+        {{ range .Alerts }}
+        **Application Alert**
+        
+        **Service:** {{ .Tags.service }}
+        **Rule:** {{ .RuleName }}
+        **Message:** {{ .Message }}
+        **Current Value:** {{ .ValueString }}
+        
+        **Dashboard:** [View Dashboard]({{ .DashboardURL }})
+        **Time:** {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}
+        {{ end }}
+      iconEmoji: ":zap:"
+      color: "#FDCB6E"
+    secureSettings: {}
+
+  # Email Integration - Operations Team
+  - name: email-ops
+    type: email
+    uid: email-ops
+    orgId: 1
+    isDefault: false
+    settings:
+      addresses: "${OPS_EMAIL}"
+      subject: "Grafana Alert: {{ .RuleName }}"
+      body: |
+        Grafana Alert Notification
+        
+        {{ range .Alerts }}
+        Alert: {{ .RuleName }}
+        Dashboard: {{ .DashboardURL }}
+        Panel: {{ .PanelURL }}
+        Message: {{ .Message }}
+        Value: {{ .ValueString }}
+        
+        Time: {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}
+        {{ end }}
+        
+        ---
+        MEDIANEST Monitoring System
+    secureSettings: {}
+
+  # Email Integration - Security Team
+  - name: email-security
+    type: email
+    uid: email-security
+    orgId: 1
+    isDefault: false
+    settings:
+      addresses: "${SECURITY_EMAIL}"
+      subject: "🔐 SECURITY ALERT: {{ .RuleName }}"
+      body: |
+        SECURITY ALERT FROM GRAFANA
+        
+        {{ range .Alerts }}
+        Security Event: {{ .RuleName }}
+        Dashboard: {{ .DashboardURL }}
+        Panel: {{ .PanelURL }}
+        Details: {{ .Message }}
+        Metric Value: {{ .ValueString }}
+        
+        Detection Time: {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}
+        {{ end }}
+        
+        Please investigate immediately.
+        
+        ---
+        MEDIANEST Security Monitoring
+    secureSettings: {}
+
+  # Webhook Integration - Generic
+  - name: webhook-generic
+    type: webhook
+    uid: webhook-generic
+    orgId: 1
+    isDefault: true
+    settings:
+      url: "${WEBHOOK_URL:-http://localhost:5001/grafana-webhook}"
+      httpMethod: "POST"
+      username: ""
+      password: ""
+      title: "Grafana Alert: {{ .RuleName }}"
+      body: |
+        {
+          "alert_type": "grafana",
+          "timestamp": "{{ now | date "2006-01-02T15:04:05Z" }}",
+          "rule_name": "{{ .RuleName }}",
+          "dashboard_url": "{{ .DashboardURL }}",
+          "panel_url": "{{ .PanelURL }}",
+          "alerts": [
+            {{ range $i, $alert := .Alerts }}
+            {{ if $i }},{{ end }}
+            {
+              "rule_id": {{ .RuleId }},
+              "rule_name": "{{ .RuleName }}",
+              "dashboard_id": {{ .DashboardId }},
+              "panel_id": {{ .PanelId }},
+              "message": "{{ .Message }}",
+              "state": "{{ .State }}",
+              "value": "{{ .ValueString }}",
+              "started_at": "{{ .StartsAt.Format "2006-01-02T15:04:05Z" }}",
+              "tags": {
+                {{ range $key, $value := .Tags }}
+                "{{ $key }}": "{{ $value }}"{{ if not (last $key $.Tags) }},{{ end }}
+                {{ end }}
+              }
+            }
+            {{ end }}
+          ]
+        }
+    secureSettings: {}
+
+  # Webhook Integration - PagerDuty
+  - name: webhook-pagerduty
+    type: webhook
+    uid: webhook-pagerduty
+    orgId: 1
+    isDefault: false
+    settings:
+      url: "${PAGERDUTY_WEBHOOK_URL}"
+      httpMethod: "POST"
+      title: "MEDIANEST Alert: {{ .RuleName }}"
+      body: |
+        {
+          "routing_key": "${PAGERDUTY_ROUTING_KEY}",
+          "event_action": "trigger",
+          "payload": {
+            "summary": "{{ .RuleName }}",
+            "source": "grafana.medianest.local",
+            "severity": "{{ if eq .State "alerting" }}critical{{ else }}info{{ end }}",
+            "component": "grafana",
+            "group": "monitoring",
+            "class": "application",
+            "custom_details": {
+              {{ range $i, $alert := .Alerts }}
+              {{ if $i }},{{ end }}
+              "alert_{{ $i }}": {
+                "rule_name": "{{ .RuleName }}",
+                "dashboard_url": "{{ .DashboardURL }}",
+                "message": "{{ .Message }}",
+                "value": "{{ .ValueString }}",
+                "started_at": "{{ .StartsAt.Format "2006-01-02T15:04:05Z" }}"
+              }
+              {{ end }}
+            }
+          }
+        }
+    secureSettings:
+      httpHeaderName1: "Content-Type"
+      httpHeaderValue1: "application/json"
+
+  # Microsoft Teams Integration
+  - name: teams-ops
+    type: teams
+    uid: teams-ops
+    orgId: 1
+    isDefault: false
+    settings:
+      url: "${TEAMS_WEBHOOK_URL}"
+      title: "MEDIANEST Alert: {{ .RuleName }}"
+      sectionTitle: "Grafana Alert Details"
+      text: |
+        {{ range .Alerts }}
+        **Alert:** {{ .RuleName }}
+        **Dashboard:** [{{ .DashboardId }}]({{ .DashboardURL }})
+        **Message:** {{ .Message }}
+        **Value:** {{ .ValueString }}
+        **Time:** {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}
+        {{ end }}
+    secureSettings: {}
+
+  # Discord Integration
+  - name: discord-alerts
+    type: discord
+    uid: discord-alerts
+    orgId: 1
+    isDefault: false
+    settings:
+      url: "${DISCORD_WEBHOOK_URL}"
+      username: "MEDIANEST-Grafana"
+      message: |
+        {{ range .Alerts }}
+        **🚨 Grafana Alert**
+        
+        **Rule:** {{ .RuleName }}
+        **Dashboard:** {{ .DashboardURL }}
+        **Message:** {{ .Message }}
+        **Value:** {{ .ValueString }}
+        **Time:** {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}
+        {{ end }}
+      title: "MEDIANEST Alert: {{ .RuleName }}"
+      avatarUrl: ""
+      useDiscordUsername: false
+    secureSettings: {}
+
+  # Telegram Integration
+  - name: telegram-alerts
+    type: telegram
+    uid: telegram-alerts
+    orgId: 1
+    isDefault: false
+    settings:
+      bottoken: "${TELEGRAM_BOT_TOKEN}"
+      chatid: "${TELEGRAM_CHAT_ID}"
+      message: |
+        🚨 *MEDIANEST Alert*
+        
+        {{ range .Alerts }}
+        *Rule:* {{ .RuleName }}
+        *Dashboard:* [View]({{ .DashboardURL }})
+        *Message:* {{ .Message }}
+        *Value:* {{ .ValueString }}
+        *Time:* {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}
+        {{ end }}
+      parseMode: "Markdown"
+      disableWebPagePreview: false
+      protectContent: false
+    secureSettings: {}

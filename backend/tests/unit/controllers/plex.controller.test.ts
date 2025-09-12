@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
 import { Request, Response } from 'express';
 import { PlexController, plexController } from '../../../src/controllers/plex.controller';
 import { plexService } from '../../../src/services/plex.service';
-import { AppError } from '../../../src/utils/errors';
+import { AppError } from '@medianest/shared';
 import { logger } from '../../../src/utils/logger';
 
 // Mock dependencies

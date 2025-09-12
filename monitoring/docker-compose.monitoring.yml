@@ -1,0 +1,452 @@
+# MEDIANEST PLG (Prometheus, Loki, Grafana) Monitoring Stack
+# Complete observability solution with exporters and alerting
+
+version: '3.8'
+
+networks:
+  monitoring:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.31.0.0/16
+  medianest-backend:
+    external: true
+    name: medianest_medianest-backend
+  medianest-data:
+    external: true
+    name: medianest_medianest-data
+
+volumes:
+  prometheus_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/prometheus
+  grafana_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/grafana
+  loki_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/loki
+  alertmanager_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/alertmanager
+
+services:
+  # =================================
+  # METRICS COLLECTION - PROMETHEUS
+  # =================================
+  prometheus:
+    image: prom/prometheus:v2.47.2
+    container_name: medianest-prometheus
+    hostname: prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--storage.tsdb.retention.size=50GB'
+      - '--storage.tsdb.wal-compression'
+      - '--storage.tsdb.min-block-duration=2h'
+      - '--storage.tsdb.max-block-duration=25h'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+      - '--web.listen-address=0.0.0.0:9090'
+      - '--web.external-url=http://localhost:9090'
+      - '--log.level=info'
+    ports:
+      - "9090:9090"
+    volumes:
+      - prometheus_data:/prometheus
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+    networks:
+      - monitoring
+      - medianest-backend
+      - medianest-data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+    labels:
+      - "com.medianest.service=prometheus"
+      - "com.medianest.component=monitoring"
+
+  # =================================
+  # LOG AGGREGATION - LOKI
+  # =================================
+  loki:
+    image: grafana/loki:2.9.2
+    container_name: medianest-loki
+    hostname: loki
+    command:
+      - -config.file=/etc/loki/local-config.yaml
+      - -log.level=info
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki_data:/loki
+      - ./loki/loki-config.yml:/etc/loki/local-config.yaml:ro
+    networks:
+      - monitoring
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3100/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "com.medianest.service=loki"
+      - "com.medianest.component=logging"
+
+  # =================================
+  # LOG FORWARDING - PROMTAIL
+  # =================================
+  promtail:
+    image: grafana/promtail:2.9.2
+    container_name: medianest-promtail
+    hostname: promtail
+    command:
+      - -config.file=/etc/promtail/config.yml
+      - -log.level=info
+    ports:
+      - "9080:9080"
+    volumes:
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ../backend/logs:/app/logs:ro  # MEDIANEST application logs
+      - ./promtail/promtail-config.yml:/etc/promtail/config.yml:ro
+    networks:
+      - monitoring
+    depends_on:
+      - loki
+    restart: unless-stopped
+    labels:
+      - "com.medianest.service=promtail"
+      - "com.medianest.component=log-forwarding"
+
+  # =================================
+  # VISUALIZATION - GRAFANA
+  # =================================
+  grafana:
+    image: grafana/grafana:10.2.2
+    container_name: medianest-grafana
+    hostname: grafana
+    ports:
+      - "3001:3000"  # Avoid conflict with MEDIANEST frontend on 3000
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+      - ./grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    networks:
+      - monitoring
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin123}
+      - GF_SERVER_ROOT_URL=http://localhost:3001
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel,redis-datasource,postgres-datasource
+      - GF_FEATURE_TOGGLES_ENABLE=ngalert
+      - GF_UNIFIED_ALERTING_ENABLED=true
+      - GF_ALERTING_ENABLED=false  # Disable legacy alerting
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_SECURITY_COOKIE_SAMESITE=lax
+    depends_on:
+      - prometheus
+      - loki
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "com.medianest.service=grafana"
+      - "com.medianest.component=visualization"
+
+  # =================================
+  # ALERTING - ALERTMANAGER
+  # =================================
+  alertmanager:
+    image: prom/alertmanager:v0.26.0
+    container_name: medianest-alertmanager
+    hostname: alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://localhost:9093'
+      - '--web.listen-address=0.0.0.0:9093'
+      - '--log.level=info'
+    ports:
+      - "9093:9093"
+    volumes:
+      - alertmanager_data:/alertmanager
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    networks:
+      - monitoring
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9093/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "com.medianest.service=alertmanager"
+      - "com.medianest.component=alerting"
+
+  # =================================
+  # SYSTEM METRICS - NODE EXPORTER
+  # =================================
+  node-exporter:
+    image: prom/node-exporter:v1.6.1
+    container_name: medianest-node-exporter
+    hostname: node-exporter
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      - '--collector.cpu'
+      - '--collector.diskstats'
+      - '--collector.filesystem'
+      - '--collector.loadavg'
+      - '--collector.meminfo'
+      - '--collector.netdev'
+      - '--collector.stat'
+      - '--collector.time'
+      - '--collector.uname'
+      - '--collector.vmstat'
+      - '--no-collector.arp'
+      - '--no-collector.bcache'
+      - '--no-collector.bonding'
+      - '--no-collector.conntrack'
+      - '--no-collector.edac'
+      - '--no-collector.entropy'
+      - '--no-collector.filefd'
+      - '--no-collector.hwmon'
+      - '--no-collector.infiniband'
+      - '--no-collector.ipvs'
+      - '--no-collector.mdadm'
+      - '--no-collector.nfs'
+      - '--no-collector.nfsd'
+      - '--no-collector.sockstat'
+      - '--no-collector.textfile'
+      - '--no-collector.timex'
+      - '--no-collector.wifi'
+      - '--no-collector.xfs'
+      - '--no-collector.zfs'
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    networks:
+      - monitoring
+    restart: unless-stopped
+    labels:
+      - "com.medianest.service=node-exporter"
+      - "com.medianest.component=system-metrics"
+
+  # =================================
+  # CONTAINER METRICS - CADVISOR
+  # =================================
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.2
+    container_name: medianest-cadvisor
+    hostname: cadvisor
+    command:
+      - '--housekeeping_interval=10s'
+      - '--max_housekeeping_interval=15s'
+      - '--allow_dynamic_housekeeping=true'
+      - '--docker_only=true'
+      - '--store_container_labels=false'
+      - '--whitelisted_container_labels=com.medianest.service,com.medianest.component'
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - monitoring
+    restart: unless-stopped
+    privileged: true
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    labels:
+      - "com.medianest.service=cadvisor"
+      - "com.medianest.component=container-metrics"
+
+  # =================================
+  # DATABASE METRICS - POSTGRES EXPORTER
+  # =================================
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.15.0
+    container_name: medianest-postgres-exporter
+    hostname: postgres-exporter
+    ports:
+      - "9187:9187"
+    environment:
+      - DATA_SOURCE_NAME=postgresql://medianest:${POSTGRES_PASSWORD:-password}@postgres:5432/medianest?sslmode=disable
+      - PG_EXPORTER_EXTEND_QUERY_PATH=/etc/postgres_exporter/queries.yaml
+      - PG_EXPORTER_CONSTANT_LABELS=service=medianest-postgres
+    volumes:
+      - ./postgres-exporter/queries.yaml:/etc/postgres_exporter/queries.yaml:ro
+    networks:
+      - monitoring
+      - medianest-data
+    restart: unless-stopped
+    labels:
+      - "com.medianest.service=postgres-exporter"
+      - "com.medianest.component=database-metrics"
+
+  # =================================
+  # CACHE METRICS - REDIS EXPORTER
+  # =================================
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.55.0
+    container_name: medianest-redis-exporter
+    hostname: redis-exporter
+    command:
+      - '--redis.addr=redis://redis:6379'
+      - '--redis.password=${REDIS_PASSWORD:-}'
+      - '--namespace=medianest'
+      - '--include-system-metrics'
+      - '--check-keys=media:*,session:*,queue:*'
+    ports:
+      - "9121:9121"
+    environment:
+      - REDIS_ADDR=redis://redis:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+    networks:
+      - monitoring
+      - medianest-data
+    restart: unless-stopped
+    labels:
+      - "com.medianest.service=redis-exporter"
+      - "com.medianest.component=cache-metrics"
+
+  # =================================
+  # BLACKBOX MONITORING
+  # =================================
+  blackbox-exporter:
+    image: prom/blackbox-exporter:v0.24.0
+    container_name: medianest-blackbox-exporter
+    hostname: blackbox-exporter
+    ports:
+      - "9115:9115"
+    volumes:
+      - ./blackbox-exporter/blackbox.yml:/etc/blackbox_exporter/config.yml:ro
+    networks:
+      - monitoring
+      - medianest-backend
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/blackbox_exporter/config.yml'
+      - '--log.level=info'
+    labels:
+      - "com.medianest.service=blackbox-exporter"
+      - "com.medianest.component=endpoint-monitoring"
+
+  # =================================
+  # PERFORMANCE MONITORING
+  # =================================
+  pushgateway:
+    image: prom/pushgateway:v1.6.2
+    container_name: medianest-pushgateway
+    hostname: pushgateway
+    ports:
+      - "9091:9091"
+    networks:
+      - monitoring
+    restart: unless-stopped
+    command:
+      - '--web.listen-address=0.0.0.0:9091'
+      - '--web.telemetry-path=/metrics'
+      - '--persistence.file=/tmp/pushgateway.data'
+      - '--persistence.interval=5m'
+      - '--log.level=info'
+    labels:
+      - "com.medianest.service=pushgateway"
+      - "com.medianest.component=batch-metrics"
+
+# ==========================================
+# HEALTH CHECK AND INITIALIZATION
+# ==========================================
+
+  # Monitoring stack health checker
+  monitoring-health:
+    image: alpine:3.18
+    container_name: medianest-monitoring-health
+    command: |
+      sh -c "
+        echo 'Installing curl and jq for health checks...'
+        apk add --no-cache curl jq
+        echo 'Starting monitoring health checker...'
+        while true; do
+          echo '=== Monitoring Stack Health Check ==='
+          
+          # Check Prometheus
+          if curl -sf http://prometheus:9090/-/healthy > /dev/null; then
+            echo '✓ Prometheus: Healthy'
+          else
+            echo '✗ Prometheus: Unhealthy'
+          fi
+          
+          # Check Grafana
+          if curl -sf http://grafana:3000/api/health > /dev/null; then
+            echo '✓ Grafana: Healthy'
+          else
+            echo '✗ Grafana: Unhealthy'
+          fi
+          
+          # Check Loki
+          if curl -sf http://loki:3100/ready > /dev/null; then
+            echo '✓ Loki: Healthy'
+          else
+            echo '✗ Loki: Unhealthy'
+          fi
+          
+          # Check AlertManager
+          if curl -sf http://alertmanager:9093/-/healthy > /dev/null; then
+            echo '✓ AlertManager: Healthy'
+          else
+            echo '✗ AlertManager: Unhealthy'
+          fi
+          
+          echo '================================'
+          sleep 60
+        done
+      "
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+      - grafana
+      - loki
+      - alertmanager
+    restart: unless-stopped
+    labels:
+      - "com.medianest.service=monitoring-health"
+      - "com.medianest.component=health-check"

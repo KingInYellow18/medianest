@@ -3,19 +3,14 @@
  * Security-focused configuration parsing with comprehensive null safety
  */
 
-import { 
-  isString, 
-  isNumber, 
-  isValidInteger,
-  safeJsonParse 
-} from '../utils/type-guards';
+import { isString, isNumber, isValidInteger, safeJsonParse } from '../utils/type-guards';
 
-import { 
-  safeParseInt, 
-  safeParsePort, 
+import {
+  safeParseInt,
+  safeParsePort,
   safeParseBoolean,
   requireEnv,
-  safeGetEnv 
+  safeGetEnv,
 } from '../utils/safe-parsing';
 
 /**
@@ -27,7 +22,7 @@ export class SafeEnvironmentConfig {
    */
   static getDatabaseConfig() {
     const databaseUrl = requireEnv('DATABASE_URL');
-    
+
     // Validate URL format
     try {
       new URL(databaseUrl);
@@ -59,7 +54,7 @@ export class SafeEnvironmentConfig {
     const host = safeGetEnv('REDIS_HOST', 'localhost');
     const port = safeParsePort(process.env.REDIS_PORT, 6379);
     const password = safeGetEnv('REDIS_PASSWORD');
-    
+
     return {
       host,
       port,
@@ -84,13 +79,14 @@ export class SafeEnvironmentConfig {
     return {
       port: safeParsePort(process.env.PORT, 3000),
       host: safeGetEnv('HOST', '0.0.0.0'),
-      nodeEnv: process.env.NODE_ENV as 'development' | 'production' | 'test' || 'development',
+      nodeEnv: (process.env.NODE_ENV as 'development' | 'production' | 'test') || 'development',
       cors: {
         origin: this.parseCorsOrigins(process.env.CORS_ORIGINS),
         credentials: safeParseBoolean(process.env.CORS_CREDENTIALS, true),
       },
       rateLimit: {
-        windowMs: safeParseInt(process.env.RATE_LIMIT_WINDOW, 900000, { // 15 minutes
+        windowMs: safeParseInt(process.env.RATE_LIMIT_WINDOW, 900000, {
+          // 15 minutes
           min: 60000, // 1 minute minimum
           max: 3600000, // 1 hour maximum
           allowNegative: false,
@@ -117,7 +113,8 @@ export class SafeEnvironmentConfig {
         allowNegative: false,
       }),
       sessionSecret: requireEnv('SESSION_SECRET'),
-      sessionMaxAge: safeParseInt(process.env.SESSION_MAX_AGE, 86400000, { // 24 hours
+      sessionMaxAge: safeParseInt(process.env.SESSION_MAX_AGE, 86400000, {
+        // 24 hours
         min: 3600000, // 1 hour minimum
         max: 604800000, // 1 week maximum
         allowNegative: false,
@@ -127,7 +124,8 @@ export class SafeEnvironmentConfig {
         max: 20,
         allowNegative: false,
       }),
-      lockoutDuration: safeParseInt(process.env.LOCKOUT_DURATION, 1800000, { // 30 minutes
+      lockoutDuration: safeParseInt(process.env.LOCKOUT_DURATION, 1800000, {
+        // 30 minutes
         min: 300000, // 5 minutes minimum
         max: 86400000, // 24 hours maximum
         allowNegative: false,
@@ -141,14 +139,15 @@ export class SafeEnvironmentConfig {
   static getLoggingConfig() {
     const logLevel = safeGetEnv('LOG_LEVEL', 'info');
     const validLogLevels = ['error', 'warn', 'info', 'debug', 'verbose'];
-    
+
     return {
       level: validLogLevels.includes(logLevel) ? logLevel : 'info',
       format: safeGetEnv('LOG_FORMAT', 'json'),
       file: {
         enabled: safeParseBoolean(process.env.LOG_FILE_ENABLED, false),
         path: safeGetEnv('LOG_FILE_PATH', './logs/app.log'),
-        maxSize: safeParseInt(process.env.LOG_FILE_MAX_SIZE, 10485760, { // 10MB
+        maxSize: safeParseInt(process.env.LOG_FILE_MAX_SIZE, 10485760, {
+          // 10MB
           min: 1048576, // 1MB minimum
           max: 104857600, // 100MB maximum
           allowNegative: false,
@@ -225,7 +224,10 @@ export class SafeEnvironmentConfig {
       const parsed = safeJsonParse<string[]>(origins, []);
       return Array.isArray(parsed) ? parsed : [origins];
     } catch {
-      return origins.split(',').map(origin => origin.trim()).filter(Boolean);
+      return origins
+        .split(',')
+        .map((origin) => origin.trim())
+        .filter(Boolean);
     }
   }
 
@@ -302,7 +304,7 @@ export class SafeEnvironmentConfig {
 export function validateConfigMiddleware() {
   return (_req: any, res: any, next: any) => {
     const validation = SafeEnvironmentConfig.validateAll();
-    
+
     if (!validation.isValid) {
       console.error('Configuration validation failed:', validation.errors);
       return res.status(500).json({

@@ -42,7 +42,7 @@ export class RateLimitError extends AppError {
       'RATE_LIMIT_EXCEEDED',
       message || 'Too many requests',
       429,
-      retryAfter ? { retryAfter } : {}
+      retryAfter ? { retryAfter } : {},
     );
   }
 }

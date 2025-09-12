@@ -1,0 +1,37 @@
+[
+  {
+    "id": "cache-mock-1",
+    "content": "Fix test isolation - mocks are leaking state between tests causing wrong function calls to be tracked",
+    "status": "in_progress",
+    "priority": "critical",
+    "details": "Test 'should get cached value successfully' shows mockRedisClient.get called with 'non:existent' instead of expected 'test:key'"
+  },
+  {
+    "id": "cache-mock-2", 
+    "content": "Fix mock call expectations vs actual implementation - exists() returns 0 instead of expected 1",
+    "status": "in_progress",
+    "priority": "critical",
+    "details": "Delete operations fail because exists() calls are not hitting the right keys"
+  },
+  {
+    "id": "cache-mock-3",
+    "content": "Fix TTL test async/await issues - getting 'intermediate value is not iterable' error",
+    "status": "pending",
+    "priority": "high",
+    "details": "TTL test has async promise handling issues causing test failure"
+  },
+  {
+    "id": "cache-mock-4",
+    "content": "Fix getOrSet cache hit/miss logic - cached values not being properly retrieved",
+    "status": "pending", 
+    "priority": "high",
+    "details": "Cache hit test returns fresh value instead of cached value indicating cache miss"
+  },
+  {
+    "id": "cache-mock-5",
+    "content": "Complete mock function call tracking - safeJsonStringify/Parse calls not matching expected parameters",
+    "status": "pending",
+    "priority": "medium", 
+    "details": "Primitive values test shows wrong arguments being passed to stringify mock"
+  }
+]

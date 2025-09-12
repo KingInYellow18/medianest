@@ -1,8 +1,9 @@
-import { Request, Response, NextFunction } from 'express';
-import { getRedis } from '../config/redis';
-import { logger } from '../utils/logger';
 import { AppError } from '@medianest/shared';
+import { Request, Response, NextFunction } from 'express';
+
+import { getRedis } from '../config/redis';
 import { CatchError } from '../types/common';
+import { logger } from '../utils/logger';
 
 /**
  * Optimized Redis-based rate limiter using Lua scripts
@@ -88,7 +89,7 @@ class OptimizedRateLimiter {
   async checkLimit(
     key: string,
     windowMs: number,
-    maxRequests: number
+    maxRequests: number,
   ): Promise<{
     allowed: boolean;
     count: number;
@@ -106,7 +107,7 @@ class OptimizedRateLimiter {
         key,
         windowMs.toString(),
         maxRequests.toString(),
-        currentTime.toString()
+        currentTime.toString(),
       )) as number[];
 
       const [count, retryAfter, remaining] = result;
@@ -230,7 +231,7 @@ export const RateLimitPresets = {
 export async function checkBatchRateLimit(
   keys: string[],
   windowMs: number,
-  maxRequests: number
+  maxRequests: number,
 ): Promise<Map<string, boolean>> {
   const results = new Map<string, boolean>();
 

@@ -263,7 +263,7 @@ export const FrontendConfigSchema = BaseConfigSchema.merge(NextAuthConfigSchema)
         .optional(),
       NEXT_PUBLIC_APP_NAME: z.string().default('MediaNest'),
       NEXT_PUBLIC_APP_VERSION: z.string().default('1.0.0'),
-    })
+    }),
   )
   .merge(PlexConfigSchema.pick({ PLEX_CLIENT_ID: true, PLEX_CLIENT_SECRET: true }));
 
@@ -278,7 +278,7 @@ export const TestConfigSchema = RawBackendConfigSchema.merge(
     TEST_REDIS_URL: z.string().url('Invalid test Redis URL').optional(),
     TEST_PORT: z.coerce.number().int().min(1).max(65535).default(4001),
     TEST_TIMEOUT: z.coerce.number().int().min(1000).default(30000),
-  })
+  }),
 ).transform((data) => {
   // Apply the same transformations as BackendConfigSchema for testing
   const transformed = {

@@ -123,8 +123,8 @@ export function formatRelativeTime(date: Date | string): string {
     const count = Math.floor(Math.abs(diffInSeconds) / interval.seconds);
     if (count >= 1) {
       return rtf.format(
-        diffInSeconds < 0 ? -count : count, 
-        interval.label as Intl.RelativeTimeFormatUnit
+        diffInSeconds < 0 ? -count : count,
+        interval.label as Intl.RelativeTimeFormatUnit,
       );
     }
   }
@@ -177,7 +177,7 @@ export function formatPercentage(value: number, decimals?: number): string {
 export function formatCurrency(
   amount: number,
   currency: string = 'USD',
-  locale: string = 'en-US'
+  locale: string = 'en-US',
 ): string {
   return new Intl.NumberFormat(locale, {
     style: 'currency',

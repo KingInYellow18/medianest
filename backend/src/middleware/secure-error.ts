@@ -2,6 +2,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { ZodError } from 'zod';
 
+import { configService } from '../config/config.service';
 import {
   AppError,
   AuthenticationError,
@@ -10,7 +11,6 @@ import {
   ValidationError,
 } from '../utils/errors';
 import { logger } from '../utils/logger';
-import { configService } from '../config/config.service';
 
 /**
  * Secure error handler that prevents information leakage
@@ -19,7 +19,7 @@ export function secureErrorHandler(
   error: Error,
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void {
   // Log the full error for internal monitoring
   const errorId = require('crypto').randomUUID();
@@ -180,7 +180,7 @@ function sanitizeErrorMessage(message: string): string {
   // Remove JWT tokens
   message = message.replace(
     /eyJ[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*/g,
-    '[JWT_TOKEN]'
+    '[JWT_TOKEN]',
   );
 
   // Remove API keys and secrets

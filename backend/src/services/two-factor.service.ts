@@ -1,10 +1,11 @@
 // @ts-nocheck
 import crypto from 'crypto';
-import speakeasy from 'speakeasy';
-import qrcode from 'qrcode';
-import { UserRepository } from '../repositories/user.repository';
-import { RedisService } from './redis.service';
+
 import { AppError } from '@medianest/shared';
+import qrcode from 'qrcode';
+import speakeasy from 'speakeasy';
+
+import { UserRepository } from '../repositories/user.repository';
 import { logger } from '../utils/logger';
 import {
   generateSecureToken,
@@ -14,6 +15,8 @@ import {
   verifySensitiveData,
   logSecurityEvent,
 } from '../utils/security';
+
+import { RedisService } from './redis.service';
 // Email service removed - email-based 2FA disabled
 
 interface TwoFactorSetup {
@@ -59,7 +62,7 @@ export class TwoFactorService {
 
   constructor(
     userRepository: UserRepository,
-    redisService: RedisService /* emailService: EmailService - REMOVED */
+    redisService: RedisService /* emailService: EmailService - REMOVED */,
   ) {
     this.userRepository = userRepository;
     this.redisService = redisService;
@@ -104,7 +107,7 @@ export class TwoFactorService {
         userId,
         method: 'totp',
       },
-      'info'
+      'info',
     );
 
     return {
@@ -124,7 +127,7 @@ export class TwoFactorService {
     options: {
       ipAddress: string;
       userAgent: string;
-    }
+    },
   ): Promise<{ success: boolean; backupCodes?: string[] }> {
     const user = await this.userRepository.findById(userId);
     if (!user || !user.twoFactorSecret) {
@@ -148,7 +151,7 @@ export class TwoFactorService {
           ipAddress: options.ipAddress,
           reason: 'invalid_token',
         },
-        'warn'
+        'warn',
       );
 
       throw new AppError('Invalid authentication code', 400, 'INVALID_2FA_TOKEN');
@@ -172,7 +175,7 @@ export class TwoFactorService {
         ipAddress: options.ipAddress,
         userAgent: options.userAgent,
       },
-      'info'
+      'info',
     );
 
     return {
@@ -198,7 +201,7 @@ export class TwoFactorService {
     options: {
       ipAddress: string;
       userAgent: string;
-    }
+    },
   ): Promise<{ challengeId: string; method: string; expiresIn: number }> {
     const user = await this.userRepository.findById(userId);
     if (!user) {
@@ -261,7 +264,7 @@ export class TwoFactorService {
         method,
         ipAddress: options.ipAddress,
       },
-      'info'
+      'info',
     );
 
     return {
@@ -280,7 +283,7 @@ export class TwoFactorService {
     options?: {
       ipAddress?: string;
       userAgent?: string;
-    }
+    },
   ): Promise<TwoFactorVerification> {
     const challenge = await this.redisService.get2FAChallenge(challengeId);
     if (!challenge) {
@@ -304,7 +307,7 @@ export class TwoFactorService {
           method: challenge.method,
           attempts: challenge.attempts,
         },
-        'error'
+        'error',
       );
       throw new AppError('Maximum attempts exceeded', 400, 'MAX_ATTEMPTS_EXCEEDED');
     }
@@ -337,7 +340,7 @@ export class TwoFactorService {
           attempts: challenge.attempts,
           ipAddress: options?.ipAddress,
         },
-        'info'
+        'info',
       );
 
       return { success: true };
@@ -354,7 +357,7 @@ export class TwoFactorService {
           remainingAttempts: challenge.maxAttempts - challenge.attempts,
           ipAddress: options?.ipAddress,
         },
-        'warn'
+        'warn',
       );
 
       return {
@@ -390,7 +393,7 @@ export class TwoFactorService {
     options: {
       ipAddress: string;
       userAgent: string;
-    }
+    },
   ): Promise<{ success: boolean; remainingCodes: number }> {
     const user = await this.userRepository.findById(userId);
     if (!user || !user.twoFactorBackupCodes) {
@@ -414,7 +417,7 @@ export class TwoFactorService {
           userId,
           ipAddress: options.ipAddress,
         },
-        'warn'
+        'warn',
       );
 
       return { success: false, remainingCodes: user.twoFactorBackupCodes.length };
@@ -434,7 +437,7 @@ export class TwoFactorService {
         ipAddress: options.ipAddress,
         userAgent: options.userAgent,
       },
-      'info'
+      'info',
     );
 
     return {
@@ -451,7 +454,7 @@ export class TwoFactorService {
     options: {
       ipAddress: string;
       userAgent: string;
-    }
+    },
   ): Promise<{ success: boolean }> {
     await this.userRepository.update(userId, {
       twoFactorEnabled: false,
@@ -467,7 +470,7 @@ export class TwoFactorService {
         ipAddress: options.ipAddress,
         userAgent: options.userAgent,
       },
-      'info'
+      'info',
     );
 
     return { success: true };

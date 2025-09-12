@@ -1,0 +1,367 @@
+# MEDIANEST Prometheus Alert Rules
+# Comprehensive alerting for application and infrastructure
+
+groups:
+  # Application Health Alerts
+  - name: medianest.application
+    rules:
+      - alert: ApplicationDown
+        expr: up{job="medianest-backend"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          component: application
+          service: medianest-backend
+        annotations:
+          summary: "MEDIANEST Backend is down"
+          description: "The MEDIANEST backend application has been unreachable for more than 30 seconds."
+          runbook_url: "https://docs.medianest.io/runbooks/application-down"
+
+      - alert: HighErrorRate
+        expr: >
+          (
+            rate(http_requests_total{job="medianest-backend",status_code=~"5.."}[5m]) /
+            rate(http_requests_total{job="medianest-backend"}[5m])
+          ) > 0.01
+        for: 2m
+        labels:
+          severity: warning
+          component: application
+          service: medianest-backend
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} over the last 5 minutes (threshold: 1%)"
+          dashboard_url: "http://grafana:3001/d/medianest-app/application-metrics"
+
+      - alert: CriticalErrorRate
+        expr: >
+          (
+            rate(http_requests_total{job="medianest-backend",status_code=~"5.."}[5m]) /
+            rate(http_requests_total{job="medianest-backend"}[5m])
+          ) > 0.05
+        for: 1m
+        labels:
+          severity: critical
+          component: application
+          service: medianest-backend
+        annotations:
+          summary: "Critical error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} over the last 5 minutes (threshold: 5%)"
+          dashboard_url: "http://grafana:3001/d/medianest-app/application-metrics"
+
+  # Performance Alerts
+  - name: medianest.performance
+    rules:
+      - alert: HighResponseTime
+        expr: >
+          histogram_quantile(0.95,
+            rate(http_request_duration_seconds_bucket{job="medianest-backend"}[5m])
+          ) > 2
+        for: 3m
+        labels:
+          severity: warning
+          component: performance
+          service: medianest-backend
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is {{ $value }}s over the last 5 minutes (threshold: 2s)"
+          dashboard_url: "http://grafana:3001/d/medianest-perf/performance-metrics"
+
+      - alert: CriticalResponseTime
+        expr: >
+          histogram_quantile(0.95,
+            rate(http_request_duration_seconds_bucket{job="medianest-backend"}[5m])
+          ) > 5
+        for: 1m
+        labels:
+          severity: critical
+          component: performance
+          service: medianest-backend
+        annotations:
+          summary: "Critical response time detected"
+          description: "95th percentile response time is {{ $value }}s over the last 5 minutes (threshold: 5s)"
+
+      - alert: HighEventLoopLag
+        expr: nodejs_eventloop_lag_seconds{job="medianest-backend"} > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          component: performance
+          service: medianest-backend
+        annotations:
+          summary: "High Node.js event loop lag"
+          description: "Event loop lag is {{ $value }}s (threshold: 0.1s)"
+
+  # Database Alerts
+  - name: medianest.database
+    rules:
+      - alert: DatabaseDown
+        expr: up{job="postgres-exporter"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          component: database
+          service: postgresql
+        annotations:
+          summary: "PostgreSQL database is down"
+          description: "PostgreSQL database has been unreachable for more than 30 seconds."
+
+      - alert: HighDatabaseConnections
+        expr: database_connections_active{job="medianest-backend"} > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+          service: postgresql
+        annotations:
+          summary: "High database connection usage"
+          description: "Database connection count is {{ $value }} (threshold: 80)"
+
+      - alert: SlowDatabaseQueries
+        expr: >
+          histogram_quantile(0.95,
+            rate(database_query_duration_seconds_bucket{job="medianest-backend"}[5m])
+          ) > 1
+        for: 3m
+        labels:
+          severity: warning
+          component: database
+          service: postgresql
+        annotations:
+          summary: "Slow database queries detected"
+          description: "95th percentile database query time is {{ $value }}s (threshold: 1s)"
+
+  # Redis Alerts  
+  - name: medianest.redis
+    rules:
+      - alert: RedisDown
+        expr: up{job="redis-exporter"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          component: cache
+          service: redis
+        annotations:
+          summary: "Redis cache is down"
+          description: "Redis cache has been unreachable for more than 30 seconds."
+
+      - alert: HighRedisMemoryUsage
+        expr: redis_memory_used_bytes{job="redis-exporter"} / redis_memory_max_bytes{job="redis-exporter"} > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          component: cache
+          service: redis
+        annotations:
+          summary: "High Redis memory usage"
+          description: "Redis memory usage is {{ $value | humanizePercentage }} (threshold: 80%)"
+
+      - alert: RedisSlowOperations
+        expr: >
+          histogram_quantile(0.95,
+            rate(redis_operation_duration_seconds_bucket{job="medianest-backend"}[5m])
+          ) > 0.1
+        for: 3m
+        labels:
+          severity: warning
+          component: cache
+          service: redis
+        annotations:
+          summary: "Slow Redis operations detected"
+          description: "95th percentile Redis operation time is {{ $value }}s (threshold: 0.1s)"
+
+  # Infrastructure Alerts
+  - name: medianest.infrastructure
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+          service: system
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value }}% on instance {{ $labels.instance }} (threshold: 80%)"
+
+      - alert: CriticalCPUUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 95
+        for: 2m
+        labels:
+          severity: critical
+          component: infrastructure
+          service: system
+        annotations:
+          summary: "Critical CPU usage detected"
+          description: "CPU usage is {{ $value }}% on instance {{ $labels.instance }} (threshold: 95%)"
+
+      - alert: HighMemoryUsage
+        expr: >
+          (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+          service: system
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value }}% on instance {{ $labels.instance }} (threshold: 80%)"
+
+      - alert: CriticalMemoryUsage
+        expr: >
+          (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 95
+        for: 2m
+        labels:
+          severity: critical
+          component: infrastructure
+          service: system
+        annotations:
+          summary: "Critical memory usage detected"
+          description: "Memory usage is {{ $value }}% on instance {{ $labels.instance }} (threshold: 95%)"
+
+      - alert: LowDiskSpace
+        expr: >
+          (1 - (node_filesystem_avail_bytes{fstype!="tmpfs"} / node_filesystem_size_bytes{fstype!="tmpfs"})) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+          service: system
+        annotations:
+          summary: "Low disk space detected"
+          description: "Disk usage is {{ $value }}% on {{ $labels.device }} at {{ $labels.instance }} (threshold: 80%)"
+
+      - alert: CriticalDiskSpace
+        expr: >
+          (1 - (node_filesystem_avail_bytes{fstype!="tmpfs"} / node_filesystem_size_bytes{fstype!="tmpfs"})) * 100 > 95
+        for: 2m
+        labels:
+          severity: critical
+          component: infrastructure
+          service: system
+        annotations:
+          summary: "Critical disk space detected"
+          description: "Disk usage is {{ $value }}% on {{ $labels.device }} at {{ $labels.instance }} (threshold: 95%)"
+
+  # Business Logic Alerts
+  - name: medianest.business
+    rules:
+      - alert: MediaRequestBacklog
+        expr: queue_size{queue_name="media-processing"} > 100
+        for: 10m
+        labels:
+          severity: warning
+          component: business
+          service: media-processing
+        annotations:
+          summary: "High media request backlog"
+          description: "Media processing queue has {{ $value }} items (threshold: 100)"
+
+      - alert: CriticalMediaRequestBacklog  
+        expr: queue_size{queue_name="media-processing"} > 500
+        for: 5m
+        labels:
+          severity: critical
+          component: business
+          service: media-processing
+        annotations:
+          summary: "Critical media request backlog"
+          description: "Media processing queue has {{ $value }} items (threshold: 500)"
+
+      - alert: LowActiveUsers
+        expr: user_sessions_active < 1
+        for: 1h
+        labels:
+          severity: info
+          component: business
+          service: user-sessions
+        annotations:
+          summary: "No active user sessions"
+          description: "No active user sessions detected for over 1 hour"
+
+      - alert: ExternalServiceFailure
+        expr: >
+          rate(external_api_duration_seconds_count{status="error"}[5m]) /
+          rate(external_api_duration_seconds_count[5m]) > 0.1
+        for: 3m
+        labels:
+          severity: warning
+          component: integration
+          service: "{{ $labels.service }}"
+        annotations:
+          summary: "High external service error rate"
+          description: "External service {{ $labels.service }} error rate is {{ $value | humanizePercentage }} (threshold: 10%)"
+
+  # Container Alerts
+  - name: medianest.containers
+    rules:
+      - alert: ContainerDown
+        expr: up{job="cadvisor"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: containers
+          service: cadvisor
+        annotations:
+          summary: "Container monitoring is down"
+          description: "cAdvisor container monitoring has been unreachable for more than 1 minute."
+
+      - alert: HighContainerMemory
+        expr: >
+          (container_memory_usage_bytes{name!=""} / container_spec_memory_limit_bytes{name!=""}) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: containers
+          service: "{{ $labels.name }}"
+        annotations:
+          summary: "High container memory usage"
+          description: "Container {{ $labels.name }} memory usage is {{ $value }}% (threshold: 80%)"
+
+      - alert: ContainerCPUThrottling
+        expr: >
+          rate(container_cpu_cfs_throttled_seconds_total{name!=""}[5m]) > 0
+        for: 3m
+        labels:
+          severity: warning
+          component: containers
+          service: "{{ $labels.name }}"
+        annotations:
+          summary: "Container CPU throttling detected"
+          description: "Container {{ $labels.name }} is experiencing CPU throttling"
+
+  # Monitoring Stack Health
+  - name: medianest.monitoring
+    rules:
+      - alert: PrometheusDown
+        expr: up{job="prometheus"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: monitoring
+          service: prometheus
+        annotations:
+          summary: "Prometheus monitoring is down"
+          description: "Prometheus server is unreachable."
+
+      - alert: GrafanaDown
+        expr: up{job="grafana"} == 0
+        for: 2m
+        labels:
+          severity: warning
+          component: monitoring
+          service: grafana
+        annotations:
+          summary: "Grafana dashboard is down"
+          description: "Grafana dashboard server has been unreachable for more than 2 minutes."
+
+      - alert: PrometheusTargetMissing
+        expr: up == 0
+        for: 5m
+        labels:
+          severity: warning
+          component: monitoring
+          service: prometheus
+        annotations:
+          summary: "Prometheus target missing"
+          description: "{{ $labels.job }} target is down for more than 5 minutes."

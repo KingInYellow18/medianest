@@ -1,10 +1,11 @@
+import { AppError } from '@medianest/shared';
 import { Request, Response } from 'express';
-import { webhookSecurity } from '@/config/webhook-security';
-import { logger } from '@/utils/logger';
+
 import { redisClient } from '@/config/redis';
+import { webhookSecurity } from '@/config/webhook-security';
 import { plexService } from '@/services/plex.service';
 import { getSocketServer } from '@/socket/server';
-import { AppError } from '@medianest/shared';
+import { logger } from '@/utils/logger';
 
 interface WebhookPayload {
   event: string;
@@ -44,7 +45,7 @@ export class WebhookIntegrationService {
 
     // Process retry queue every minute
     setInterval(() => this.processRetryQueue(), 60000);
-    
+
     // Clean up old rate limit entries every hour
     setInterval(() => this.cleanupRateLimits(), 3600000);
   }
@@ -67,16 +68,17 @@ export class WebhookIntegrationService {
 
       // Get raw body for signature verification
       const rawBody = JSON.stringify(req.body);
-      const signature = req.headers['x-hub-signature-256'] as string || 
-                       req.headers['x-signature'] as string ||
-                       req.headers['signature'] as string;
+      const signature =
+        (req.headers['x-hub-signature-256'] as string) ||
+        (req.headers['x-signature'] as string) ||
+        (req.headers['signature'] as string);
 
       // Verify signature based on source
       if (!this.verifyWebhookSignature(rawBody, signature, source)) {
-        logger.error('Webhook signature verification failed', { 
-          source, 
+        logger.error('Webhook signature verification failed', {
+          source,
           clientIp,
-          hasSignature: !!signature 
+          hasSignature: !!signature,
         });
         res.status(401).json({ error: 'Invalid signature' });
         return;
@@ -84,7 +86,7 @@ export class WebhookIntegrationService {
 
       // Parse and validate payload
       const payload = this.parseWebhookPayload(req.body, source);
-      
+
       // Log webhook reception
       if (this.config.enableLogging) {
         logger.info('Webhook received', {
@@ -101,45 +103,48 @@ export class WebhookIntegrationService {
       await this.processWebhook(payload, webhookId);
 
       // Send success response
-      res.status(200).json({ 
-        success: true, 
+      res.status(200).json({
+        success: true,
         id: webhookId,
         processed: true,
-        processingTime: Date.now() - startTime
+        processingTime: Date.now() - startTime,
       });
-
-    } catch (error) {
+    } catch (error: unknown) {
       const processingTime = Date.now() - startTime;
-      
+
+      // Type guard for AppError with proper type checking
       if (error instanceof AppError) {
+        const appError = error as AppError;
         logger.error('Webhook processing error', {
           webhookId,
           source,
-          error: error.message,
-          code: error.code,
+          error: appError.message,
+          code: appError.code,
           processingTime,
         });
-        res.status(error.statusCode).json({ 
-          error: error.message, 
-          id: webhookId 
+        res.status(appError.statusCode).json({
+          error: appError.message,
+          id: webhookId,
         });
       } else {
+        // Handle unknown error types safely
+        const errorMessage = error instanceof Error ? error.message : String(error);
         logger.error('Unexpected webhook error', {
           webhookId,
           source,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: errorMessage,
           processingTime,
         });
-        res.status(500).json({ 
-          error: 'Internal server error', 
-          id: webhookId 
+        res.status(500).json({
+          error: 'Internal server error',
+          id: webhookId,
         });
       }
 
       // Add to retry queue if retryable
       if (this.isRetryableError(error)) {
-        const payload = this.parseWebhookPayload(req.body, source);
-        this.addToRetryQueue(webhookId, payload);
+        const retryPayload = this.parseWebhookPayload(req.body, source);
+        this.addToRetryQueue(webhookId, retryPayload);
       }
     }
   }
@@ -184,7 +189,7 @@ export class WebhookIntegrationService {
       logger.warn('Plex webhook secret not configured');
       return false;
     }
-    
+
     return webhookSecurity.verifySignature(payload, signature, plexSecret);
   }
 
@@ -225,13 +230,16 @@ export class WebhookIntegrationService {
       }
 
       // Cache successful processing
-      await redisClient.setex(`webhook:success:${webhookId}`, 3600, JSON.stringify({
-        processed: true,
-        timestamp: Date.now(),
-        source: payload.source,
-        event: payload.event,
-      }));
-
+      await redisClient.setex(
+        `webhook:success:${webhookId}`,
+        3600,
+        JSON.stringify({
+          processed: true,
+          timestamp: Date.now(),
+          source: payload.source,
+          event: payload.event,
+        }),
+      );
     } catch (error) {
       logger.error('Webhook processing failed', {
         webhookId,
@@ -256,7 +264,7 @@ export class WebhookIntegrationService {
           type: payload.data.media?.mediaType,
           requestedBy: payload.data.request?.requestedBy?.displayName,
         });
-        
+
         // Emit real-time notification
         io.emit('media:requested', {
           title: payload.data.media?.title,
@@ -272,7 +280,7 @@ export class WebhookIntegrationService {
           title: payload.data.media?.title,
           approvedBy: payload.data.request?.modifiedBy?.displayName,
         });
-        
+
         io.emit('media:approved', {
           title: payload.data.media?.title,
           requestId: payload.data.request?.id,
@@ -283,7 +291,7 @@ export class WebhookIntegrationService {
       case 'media.available':
         // Trigger Plex library refresh for the relevant section
         await this.triggerPlexRefresh(payload.data.media);
-        
+
         io.emit('media:available', {
           title: payload.data.media?.title,
           type: payload.data.media?.mediaType,
@@ -403,7 +411,7 @@ export class WebhookIntegrationService {
       // This is a simplified implementation
       // In reality, you'd need to determine which Plex library section to refresh
       // based on the media type and your library configuration
-      
+
       const mediaType = mediaData?.mediaType;
       let libraryKey: string | null = null;
 
@@ -429,10 +437,11 @@ export class WebhookIntegrationService {
           logger.info('Plex library refresh triggered', { libraryKey, mediaType });
         }
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       logger.error('Failed to trigger Plex refresh', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        mediaData: payload.data,
+        error: errorMessage,
+        mediaData: mediaData,
       });
     }
   }
@@ -464,7 +473,8 @@ export class WebhookIntegrationService {
    */
   private cleanupRateLimits(): void {
     const now = Date.now();
-    for (const [key, value] of this.rateLimitMap.entries()) {
+    const entries = Array.from(this.rateLimitMap.entries());
+    for (const [key, value] of entries) {
       if (now > value.resetTime) {
         this.rateLimitMap.delete(key);
       }
@@ -479,7 +489,7 @@ export class WebhookIntegrationService {
       // Don't retry client errors (4xx)
       return error.statusCode >= 500;
     }
-    
+
     // Retry on network errors, timeouts, etc.
     return true;
   }
@@ -506,23 +516,22 @@ export class WebhookIntegrationService {
   private async processRetryQueue(): Promise<void> {
     const now = Date.now();
     const toRetry = Array.from(this.retryQueue.values()).filter(
-      record => record.nextRetry <= now && record.attempts < this.config.retryAttempts
+      (record) => record.nextRetry <= now && record.attempts < this.config.retryAttempts,
     );
 
     for (const record of toRetry) {
       try {
         record.attempts++;
         record.lastAttempt = now;
-        
+
         await this.processWebhook(record.payload, record.id);
-        
+
         // Success - remove from retry queue
         this.retryQueue.delete(record.id);
-        logger.info('Webhook retry successful', { 
-          webhookId: record.id, 
-          attempts: record.attempts 
+        logger.info('Webhook retry successful', {
+          webhookId: record.id,
+          attempts: record.attempts,
         });
-        
       } catch (error) {
         if (record.attempts >= this.config.retryAttempts) {
           // Max attempts reached - remove from queue
@@ -534,7 +543,7 @@ export class WebhookIntegrationService {
           });
         } else {
           // Schedule next retry with exponential backoff
-          record.nextRetry = now + (this.config.retryDelay * Math.pow(2, record.attempts - 1));
+          record.nextRetry = now + this.config.retryDelay * Math.pow(2, record.attempts - 1);
           logger.warn('Webhook retry failed, will retry again', {
             webhookId: record.id,
             attempts: record.attempts,
@@ -564,7 +573,7 @@ export class WebhookIntegrationService {
     // This is a basic implementation - you might want to use Redis for persistence
     const keys = await redisClient.keys('webhook:success:*');
     const processed = keys.length;
-    
+
     return {
       processed,
       failed: 0, // Would need persistent storage to track

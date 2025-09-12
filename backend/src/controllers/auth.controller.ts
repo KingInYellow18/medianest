@@ -1,9 +1,9 @@
+import { AppError } from '@medianest/shared';
 import axios from 'axios';
 import type { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 
 import { config } from '@/config';
-import { AppError } from '@medianest/shared';
 import { userRepository } from '@/repositories/instances';
 import { encryptionService } from '@/services/encryption.service';
 import { jwtService } from '@/services/jwt.service';
@@ -75,27 +75,41 @@ export class AuthController {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       logger.error('Failed to generate Plex PIN', { error: errorMessage });
 
-      // Handle specific error cases
-      if (axios.isAxiosError(error)) {
+      // Check if this is an axios-like error (either real axios error or test mock)
+      const hasAxiosErrorProperties = (
+        axios.isAxiosError(error) || 
+        (error as any)?.isAxiosError === true ||
+        (error as any)?.response ||
+        (error as any)?.code
+      );
+      
+      if (hasAxiosErrorProperties) {
+        // Check for timeout errors
         if (
-          error.response?.status === 503 ||
-          ((error as any).code as any) === 'ECONNREFUSED' ||
-          ((error as any).code as any) === 'ENOTFOUND'
+          (error as any).code === 'ECONNABORTED' ||
+          (error as any).code === 'ETIMEDOUT'
+        ) {
+          return next(
+            new AppError(
+              'PLEX_TIMEOUT',
+              'Plex server connection timed out. Please try again.',
+              504,
+            ),
+          );
+        }
+        
+        // Check for connection errors
+        if (
+          (error as any).response?.status === 503 ||
+          (error as any).code === 'ECONNREFUSED' ||
+          (error as any).code === 'ENOTFOUND'
         ) {
           return next(
             new AppError(
               'PLEX_UNREACHABLE',
               'Cannot connect to Plex server. Please try again.',
-              503
-            )
-          );
-        }
-        if (
-          ((error as any).code as any) === 'ECONNABORTED' ||
-          ((error as any).code as any) === 'ETIMEDOUT'
-        ) {
-          return next(
-            new AppError('PLEX_TIMEOUT', 'Plex server connection timed out. Please try again.', 504)
+              503,
+            ),
           );
         }
       }
@@ -128,13 +142,32 @@ export class AuthController {
       }
 
       // Check PIN status with better error handling
-      const pinResponse = await axios.get(`https://plex.tv/pins/${pinId}.xml`, {
-        headers: {
-          'X-Plex-Client-Identifier': config.plex?.clientId || 'medianest',
-          Accept: 'application/json',
-        },
-        timeout: 10000,
-      });
+      let pinResponse;
+      try {
+        pinResponse = await axios.get(`https://plex.tv/pins/${pinId}.xml`, {
+          headers: {
+            'X-Plex-Client-Identifier': config.plex?.clientId || 'medianest',
+            Accept: 'application/json',
+          },
+          timeout: 10000,
+        });
+      } catch (pinError) {
+        // Handle PIN-specific errors first - check for axios-like error properties
+        const hasAxiosErrorProperties = (
+          axios.isAxiosError(pinError) || 
+          (pinError as any)?.isAxiosError === true ||
+          (pinError as any)?.response ||
+          (pinError as any)?.code
+        );
+        
+        if (hasAxiosErrorProperties) {
+          if ((pinError as any).response?.status === 404) {
+            return next(new AppError('INVALID_PIN', 'Invalid or expired PIN', 400));
+          }
+        }
+        // Re-throw to be handled by outer catch
+        throw pinError;
+      }
 
       // Parse auth token from response
       const pinResponseData = pinResponse.data as string;
@@ -145,8 +178,8 @@ export class AuthController {
           new AppError(
             'PIN_NOT_AUTHORIZED',
             'PIN has not been authorized yet. Please complete authorization on plex.tv/link',
-            400
-          )
+            400,
+          ),
         );
       }
 
@@ -165,7 +198,7 @@ export class AuthController {
       } catch (userError) {
         logger.error('Failed to get user info from Plex', { error: userError });
         return next(
-          new AppError('PLEX_ERROR', 'Failed to retrieve user information from Plex', 502)
+          new AppError('PLEX_ERROR', 'Failed to retrieve user information from Plex', 502),
         );
       }
 
@@ -276,25 +309,32 @@ export class AuthController {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       logger.error('Failed to verify Plex PIN', { error: errorMessage });
 
-      // Handle Axios errors
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status === 404) {
+      // Handle Axios errors using broader error detection
+      const hasAxiosErrorProperties = (
+        axios.isAxiosError(error) || 
+        (error as any)?.isAxiosError === true ||
+        (error as any)?.response ||
+        (error as any)?.code
+      );
+      
+      if (hasAxiosErrorProperties) {
+        if ((error as any).response?.status === 404) {
           return next(new AppError('INVALID_PIN', 'Invalid or expired PIN', 400));
         }
-        if (error.response?.status! >= 500) {
+        if ((error as any).response?.status! >= 500) {
           return next(
-            new AppError('PLEX_UNAVAILABLE', 'Plex service temporarily unavailable', 503)
+            new AppError('PLEX_UNAVAILABLE', 'Plex service temporarily unavailable', 503),
           );
         }
         if (
-          ((error as any).code as any) === 'ECONNREFUSED' ||
-          ((error as any).code as any) === 'ENOTFOUND'
+          (error as any).code === 'ECONNREFUSED' ||
+          (error as any).code === 'ENOTFOUND'
         ) {
           return next(new AppError('PLEX_UNREACHABLE', 'Cannot connect to Plex server', 503));
         }
         if (
-          ((error as any).code as any) === 'ECONNABORTED' ||
-          ((error as any).code as any) === 'ETIMEDOUT'
+          (error as any).code === 'ECONNABORTED' ||
+          (error as any).code === 'ETIMEDOUT'
         ) {
           return next(new AppError('PLEX_TIMEOUT', 'Plex server connection timed out', 504));
         }

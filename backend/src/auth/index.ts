@@ -1,12 +1,27 @@
 import { Request, Response } from 'express';
-import { UserRepository } from '../repositories/user.repository';
-import { SessionTokenRepository } from '../repositories/session-token.repository';
-import { DeviceSessionService } from '../services/device-session.service';
-import { UnknownRecord } from '../types/common';
-import { logger } from '../utils/logger';
-import { CatchError } from '../types/common';
 
-// JWT utilities
+import {
+  validateSessionToken,
+  registerAndAssessDevice,
+  updateSessionActivity,
+  SessionUpdateContext,
+} from '../middleware/auth/device-session-manager';
+import { handleTokenRotation, TokenRotationContext } from '../middleware/auth/token-rotator';
+import {
+  extractTokenOptional,
+  validateToken as validateTokenUtil,
+  TokenValidationContext,
+  TokenValidationResult,
+} from '../middleware/auth/token-validator';
+import {
+  validateUser as validateUserUtil,
+  validateUserOptional as validateUserOptionalUtil,
+  AuthenticatedUser,
+} from '../middleware/auth/user-validator';
+import { SessionTokenRepository } from '../repositories/session-token.repository';
+import { UserRepository } from '../repositories/user.repository';
+import { DeviceSessionService } from '../services/device-session.service';
+import { UnknownRecord, CatchError } from '../types/common';
 import {
   generateToken,
   verifyToken,
@@ -20,32 +35,17 @@ import {
   JWTOptions,
   TokenRotationInfo,
 } from '../utils/jwt';
+import { logger } from '../utils/logger';
+
+// JWT utilities
 
 // Token validation utilities
-import {
-  extractTokenOptional,
-  validateToken as validateTokenUtil,
-  TokenValidationContext,
-  TokenValidationResult,
-} from '../middleware/auth/token-validator';
 
 // User validation utilities
-import {
-  validateUser as validateUserUtil,
-  validateUserOptional as validateUserOptionalUtil,
-  AuthenticatedUser,
-} from '../middleware/auth/user-validator';
 
 // Device session utilities
-import {
-  validateSessionToken,
-  registerAndAssessDevice,
-  updateSessionActivity,
-  SessionUpdateContext,
-} from '../middleware/auth/device-session-manager';
 
 // Token rotation utilities
-import { handleTokenRotation, TokenRotationContext } from '../middleware/auth/token-rotator';
 
 /**
  * Authentication Facade - Single entry point for all authentication operations
@@ -59,7 +59,7 @@ export class AuthenticationFacade {
   constructor(
     userRepository: UserRepository,
     sessionTokenRepository: SessionTokenRepository,
-    deviceSessionService: DeviceSessionService
+    deviceSessionService: DeviceSessionService,
   ) {
     this.userRepository = userRepository;
     this.sessionTokenRepository = sessionTokenRepository;
@@ -99,7 +99,7 @@ export class AuthenticationFacade {
       const deviceRegistration = await registerAndAssessDevice(
         user.id,
         req,
-        this.deviceSessionService
+        this.deviceSessionService,
       );
 
       // Update session activity
@@ -199,7 +199,7 @@ export class AuthenticationFacade {
       allowRotation?: boolean;
       ipAddress?: string;
       userAgent?: string;
-    }
+    },
   ): JWTPayload {
     return verifyToken(token, options);
   }
@@ -251,7 +251,7 @@ export class AuthenticationFacade {
     res: Response,
     token: string,
     payload: JWTPayload,
-    userId: string
+    userId: string,
   ): Promise<void> {
     const rotationContext: TokenRotationContext = {
       ipAddress: req.ip,
@@ -266,7 +266,7 @@ export class AuthenticationFacade {
       userId,
       rotationContext,
       this.sessionTokenRepository,
-      res
+      res,
     );
   }
 
@@ -347,7 +347,7 @@ export class AuthenticationFacade {
   generateTokens(
     user: AuthenticatedUser,
     rememberMe: boolean = false,
-    options?: JWTOptions
+    options?: JWTOptions,
   ): {
     accessToken: string;
     refreshToken: string;
@@ -360,7 +360,7 @@ export class AuthenticationFacade {
         plexId: user.plexId,
       },
       rememberMe,
-      options
+      options,
     );
 
     const refreshToken = generateRefreshToken({
@@ -398,7 +398,7 @@ export class AuthenticationFacade {
   rotateTokenIfNeeded(
     token: string,
     payload: JWTPayload,
-    options?: JWTOptions
+    options?: JWTOptions,
   ): TokenRotationInfo | null {
     return rotateTokenIfNeeded(token, payload, options);
   }
@@ -408,7 +408,7 @@ export class AuthenticationFacade {
 export function createAuthenticationFacade(
   userRepository: UserRepository,
   sessionTokenRepository: SessionTokenRepository,
-  deviceSessionService: DeviceSessionService
+  deviceSessionService: DeviceSessionService,
 ): AuthenticationFacade {
   return new AuthenticationFacade(userRepository, sessionTokenRepository, deviceSessionService);
 }

@@ -1,4 +1,5 @@
 import { Request } from 'express';
+
 import { AuthenticationError } from '../../utils/errors';
 import { verifyToken, isTokenBlacklisted, getTokenMetadata } from '../../utils/jwt';
 import { logSecurityEvent } from '../../utils/security';
@@ -36,7 +37,7 @@ export function extractToken(req: Request): string {
 export function validateTokenBlacklist(
   _token: string,
   tokenMetadata: Record<string, unknown>,
-  context: TokenValidationContext
+  context: TokenValidationContext,
 ): void {
   if (tokenMetadata.tokenId && isTokenBlacklisted(tokenMetadata.tokenId as string)) {
     logSecurityEvent(
@@ -47,7 +48,7 @@ export function validateTokenBlacklist(
         ipAddress: context.ipAddress,
         userAgent: context.userAgent,
       },
-      'error'
+      'error',
     );
 
     throw new AuthenticationError('Token has been revoked');
@@ -59,7 +60,7 @@ export function validateTokenBlacklist(
  */
 export function validateToken(
   req: Request,
-  context: TokenValidationContext
+  context: TokenValidationContext,
 ): TokenValidationResult {
   const token = extractToken(req);
   const tokenMetadata = getTokenMetadata(token);

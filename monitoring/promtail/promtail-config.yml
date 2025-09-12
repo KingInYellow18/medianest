@@ -1,0 +1,228 @@
+# Promtail Configuration for MEDIANEST Log Collection
+
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # MEDIANEST Backend Application Logs
+  - job_name: medianest-backend
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: medianest-backend
+          service: medianest-backend
+          component: application
+          environment: ${ENVIRONMENT:-development}
+          __path__: /app/logs/*.log
+
+    pipeline_stages:
+      # Parse Winston JSON logs
+      - json:
+          expressions:
+            timestamp: timestamp
+            level: level
+            message: message
+            service: service
+            correlationId: correlationId
+            error: error
+            meta: meta
+
+      # Extract timestamp
+      - timestamp:
+          source: timestamp
+          format: RFC3339Nano
+
+      # Add structured labels
+      - labels:
+          level: level
+          service: service
+          correlationId: correlationId
+
+      # Drop debug logs in production
+      - drop:
+          source: level
+          expression: "debug"
+          drop_counter_reason: "debug_logs_dropped"
+
+      # Parse error stack traces
+      - regex:
+          source: error
+          expression: '(?P<error_type>\w+Error).*'
+      - labels:
+          error_type: error_type
+
+  # System Logs
+  - job_name: system-logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: system-logs
+          service: system
+          component: infrastructure
+          __path__: /var/log/syslog
+
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<timestamp>\w+\s+\d+\s+\d+:\d+:\d+)\s+(?P<hostname>\S+)\s+(?P<process>\S+):\s+(?P<message>.*)'
+      - timestamp:
+          source: timestamp
+          format: "Jan 2 15:04:05"
+      - labels:
+          hostname: hostname
+          process: process
+
+  # Docker Container Logs
+  - job_name: docker-containers
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: docker-containers
+          service: docker
+          component: containers
+          __path__: /var/lib/docker/containers/*/*log
+
+    pipeline_stages:
+      # Parse Docker JSON logs
+      - json:
+          expressions:
+            log: log
+            stream: stream
+            time: time
+
+      # Extract container metadata from filename
+      - regex:
+          source: filename
+          expression: '/var/lib/docker/containers/(?P<container_id>[^/]+)/[^/]+\.log'
+      
+      - labels:
+          container_id: container_id
+          stream: stream
+
+      # Parse container logs based on known formats
+      - match:
+          selector: '{service="docker"}'
+          stages:
+            # Try to parse as JSON (structured logs)
+            - json:
+                expressions:
+                  level: level
+                  message: message
+                  timestamp: timestamp
+            - labels:
+                level: level
+
+      # Add timestamp
+      - timestamp:
+          source: time
+          format: RFC3339Nano
+
+  # PostgreSQL Logs (if accessible)
+  - job_name: postgresql
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: postgresql
+          service: postgresql
+          component: database
+          __path__: /var/log/postgresql/*.log
+
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3} \w+)\s+\[(?P<pid>\d+)\]\s+(?P<level>\w+):\s+(?P<message>.*)'
+      - timestamp:
+          source: timestamp
+          format: "2006-01-02 15:04:05.000 MST"
+      - labels:
+          level: level
+          pid: pid
+
+  # Redis Logs (if accessible)  
+  - job_name: redis
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: redis
+          service: redis
+          component: cache
+          __path__: /var/log/redis/*.log
+
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<pid>\d+):(?P<role>\w+)\s+(?P<timestamp>\d{2} \w+ \d{4} \d{2}:\d{2}:\d{2}.\d{3})\s+(?P<level>\w+)\s+(?P<message>.*)'
+      - timestamp:
+          source: timestamp
+          format: "02 Jan 2006 15:04:05.000"
+      - labels:
+          level: level
+          pid: pid
+          role: role
+
+  # Nginx/Proxy Logs (if using reverse proxy)
+  - job_name: nginx-access
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: nginx-access
+          service: nginx
+          component: proxy
+          __path__: /var/log/nginx/access.log
+
+    pipeline_stages:
+      # Parse Nginx access log format
+      - regex:
+          expression: '^(?P<remote_addr>\S+) - (?P<remote_user>\S+) \[(?P<time_local>[^\]]+)\] "(?P<request>[^"]*)" (?P<status>\d+) (?P<bytes_sent>\d+) "(?P<http_referer>[^"]*)" "(?P<http_user_agent>[^"]*)"'
+      
+      - timestamp:
+          source: time_local
+          format: "02/Jan/2006:15:04:05 -0700"
+      
+      - labels:
+          method: request
+          status: status
+          remote_addr: remote_addr
+
+  # Custom Application Metrics Logs
+  - job_name: medianest-metrics
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: medianest-metrics
+          service: medianest-backend
+          component: metrics
+          __path__: /app/logs/metrics-*.log
+
+    pipeline_stages:
+      - json:
+          expressions:
+            timestamp: timestamp
+            metric_name: metric_name
+            metric_value: metric_value
+            metric_type: metric_type
+            labels: labels
+      
+      - timestamp:
+          source: timestamp
+          format: RFC3339Nano
+      
+      - labels:
+          metric_name: metric_name
+          metric_type: metric_type
+
+# Limit configuration to prevent resource exhaustion
+limits_config:
+  readline_rate: 10000
+  readline_burst: 20000

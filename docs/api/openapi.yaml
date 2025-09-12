@@ -537,6 +537,511 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  # Health Endpoints
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Simple health check
+      description: Basic health check endpoint for Docker containers
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
+                  timestamp:
+                    type: string
+                    format: date-time
+                  version:
+                    type: string
+                  uptime:
+                    type: number
+                  environment:
+                    type: string
+                  service:
+                    type: string
+
+  /health/metrics:
+    get:
+      tags:
+        - Health
+      summary: Detailed health metrics
+      description: Comprehensive system health metrics including database and Redis status
+      security: []
+      responses:
+        '200':
+          description: Detailed system metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  timestamp:
+                    type: string
+                    format: date-time
+                  uptime:
+                    type: object
+                    properties:
+                      seconds:
+                        type: number
+                      formatted:
+                        type: string
+                  memory:
+                    type: object
+                    properties:
+                      rss:
+                        type: string
+                      heapTotal:
+                        type: string
+                      heapUsed:
+                        type: string
+                  database:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                      responseTime:
+                        type: string
+                  redis:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                      responseTime:
+                        type: string
+                      keyCount:
+                        type: integer
+
+  /health/readiness:
+    get:
+      tags:
+        - Health
+      summary: Readiness probe
+      description: Kubernetes readiness probe checking database and Redis connectivity
+      security: []
+      responses:
+        '200':
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ready"
+                  timestamp:
+                    type: string
+                    format: date-time
+                  services:
+                    type: object
+                    properties:
+                      database:
+                        type: string
+                      redis:
+                        type: string
+        '503':
+          description: Service not ready
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "not ready"
+                  error:
+                    type: string
+
+  # Admin Endpoints
+  /admin/users:
+    get:
+      tags:
+        - Admin
+      summary: Get all users
+      description: Get paginated list of all users with filtering and sorting
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search in username/email
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [user, admin, all]
+          description: Filter by user role
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [createdAt, lastLoginAt, email, role]
+            default: createdAt
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      users:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/AdminUser'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/users/{userId}/role:
+    put:
+      tags:
+        - Admin
+      summary: Update user role
+      description: Update a user's role (admin only)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - role
+              properties:
+                role:
+                  type: string
+                  enum: [user, admin]
+      responses:
+        '200':
+          description: Role updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid role or cannot modify own role
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/users/{userId}:
+    delete:
+      tags:
+        - Admin
+      summary: Delete user
+      description: Delete a user account (admin only, cannot delete own account)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '400':
+          description: Cannot delete own account
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/stats:
+    get:
+      tags:
+        - Admin
+      summary: Get system statistics
+      description: Get comprehensive system statistics (admin only)
+      responses:
+        '200':
+          description: System statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/SystemStats'
+
+  /admin/services:
+    get:
+      tags:
+        - Admin
+      summary: Get service configurations
+      description: Get all external service configurations (admin only)
+      responses:
+        '200':
+          description: Service configurations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ServiceConfig'
+
+  # YouTube Endpoints
+  /youtube/download:
+    post:
+      tags:
+        - YouTube
+      summary: Create download job
+      description: Create a new YouTube download job (rate limited to 5 per hour)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - url
+              properties:
+                url:
+                  type: string
+                  format: uri
+                  description: YouTube video URL
+                quality:
+                  type: string
+                  enum: [144p, 240p, 360p, 480p, 720p, 1080p, 1440p, 2160p]
+                  default: 1080p
+                format:
+                  type: string
+                  enum: [mp4, webm, mkv]
+                  default: mp4
+            example:
+              url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+              quality: "1080p"
+              format: "mp4"
+      responses:
+        '201':
+          description: Download job created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/YouTubeDownload'
+        '429':
+          description: Rate limit exceeded
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: string
+            X-RateLimit-Remaining:
+              schema:
+                type: string
+            X-RateLimit-Reset:
+              schema:
+                type: string
+            Retry-After:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  limit:
+                    type: integer
+                  window:
+                    type: string
+                  retryAfter:
+                    type: integer
+        '409':
+          description: Video already downloading or queued
+
+  /youtube/downloads:
+    get:
+      tags:
+        - YouTube
+      summary: Get download history
+      description: Get user's YouTube download history with pagination
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [queued, downloading, completed, failed, cancelled]
+      responses:
+        '200':
+          description: Download history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  downloads:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/YouTubeDownload'
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+                  totalPages:
+                    type: integer
+
+  /youtube/downloads/{id}:
+    get:
+      tags:
+        - YouTube
+      summary: Get download details
+      description: Get specific download details and progress
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Download details
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/YouTubeDownload'
+                  - type: object
+                    properties:
+                      jobDetails:
+                        type: object
+                        properties:
+                          progress:
+                            type: number
+                          attemptsMade:
+                            type: integer
+                          processedOn:
+                            type: string
+                            format: date-time
+                          finishedOn:
+                            type: string
+                            format: date-time
+                          failedReason:
+                            type: string
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - YouTube
+      summary: Cancel download
+      description: Cancel or delete a download job
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Download cancelled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '400':
+          description: Cannot cancel completed download
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /youtube/metadata:
+    get:
+      tags:
+        - YouTube
+      summary: Get video metadata
+      description: Get YouTube video metadata without downloading
+      parameters:
+        - name: url
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uri
+          description: YouTube video URL
+      responses:
+        '200':
+          description: Video metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/YouTubeMetadata'
+        '400':
+          description: Invalid URL or video unavailable
+
   # Dashboard Endpoints
   /dashboard/stats:
     get:
@@ -1009,6 +1514,174 @@ components:
                 type: string
                 example: "An unexpected error occurred"
 
+    AdminUser:
+      allOf:
+        - $ref: '#/components/schemas/User'
+        - type: object
+          properties:
+            _count:
+              type: object
+              properties:
+                mediaRequests:
+                  type: integer
+                youtubeDownloads:
+                  type: integer
+
+    SystemStats:
+      type: object
+      properties:
+        users:
+          type: object
+          properties:
+            total:
+              type: integer
+            active:
+              type: integer
+        requests:
+          type: object
+          properties:
+            total:
+              type: integer
+            pending:
+              type: integer
+        downloads:
+          type: object
+          properties:
+            total:
+              type: integer
+            active:
+              type: integer
+
+    ServiceConfig:
+      type: object
+      properties:
+        id:
+          type: string
+        serviceName:
+          type: string
+        serviceUrl:
+          type: string
+        isActive:
+          type: boolean
+        lastChecked:
+          type: string
+          format: date-time
+        configuration:
+          type: object
+          description: Service configuration (sensitive values masked)
+
+    YouTubeDownload:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Download ID
+        videoId:
+          type: string
+          description: YouTube video ID
+        title:
+          type: string
+          description: Video title
+        channel:
+          type: string
+          description: Channel name
+        duration:
+          type: integer
+          description: Video duration in seconds
+        thumbnail:
+          type: string
+          description: Video thumbnail URL
+        status:
+          type: string
+          enum: [queued, downloading, completed, failed, cancelled]
+          description: Download status
+        progress:
+          type: number
+          minimum: 0
+          maximum: 100
+          description: Download progress percentage
+        quality:
+          type: string
+          description: Selected video quality
+        format:
+          type: string
+          description: Selected video format
+        filePaths:
+          type: array
+          items:
+            type: string
+          description: Paths to downloaded files
+        fileSize:
+          type: integer
+          description: Total file size in bytes
+        error:
+          type: string
+          nullable: true
+          description: Error message if failed
+        jobId:
+          type: string
+          description: Queue job ID
+        userId:
+          type: string
+          description: User who created the download
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    YouTubeMetadata:
+      type: object
+      properties:
+        id:
+          type: string
+          description: YouTube video ID
+        title:
+          type: string
+          description: Video title
+        channel:
+          type: string
+          description: Channel name
+        duration:
+          type: integer
+          description: Video duration in seconds
+        thumbnail:
+          type: string
+          description: Video thumbnail URL
+        description:
+          type: string
+          description: Video description
+        uploadDate:
+          type: string
+          format: date
+          description: Upload date
+        viewCount:
+          type: integer
+          description: View count
+        availableQualities:
+          type: array
+          items:
+            type: string
+          description: Available video qualities
+
+    Pagination:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: Total number of items
+        page:
+          type: integer
+          description: Current page number
+        pageSize:
+          type: integer
+          description: Items per page
+        totalPages:
+          type: integer
+          description: Total number of pages
+
 tags:
   - name: Authentication
     description: Authentication and session management
@@ -1018,3 +1691,9 @@ tags:
     description: Plex server integration
   - name: Dashboard
     description: Dashboard statistics and monitoring
+  - name: Admin
+    description: User and system administration (admin only)
+  - name: YouTube
+    description: YouTube video download management
+  - name: Health
+    description: System health and monitoring endpoints

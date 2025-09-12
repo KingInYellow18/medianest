@@ -71,7 +71,7 @@ export function deepTransformKeys(obj: any, transformer: (key: string) => string
  */
 export function removeNullUndefined<T extends Record<string, any>>(
   obj: T,
-  removeEmptyStrings = false
+  removeEmptyStrings = false,
 ): Partial<T> {
   if (!obj || typeof obj !== 'object') return obj;
 
@@ -128,7 +128,7 @@ export function deepRemoveNullUndefined(obj: any, removeEmptyStrings = false): a
  */
 export function pick<T extends Record<string, any>, K extends keyof T>(
   obj: T,
-  fields: K[]
+  fields: K[],
 ): Pick<T, K> {
   const result = {} as Pick<T, K>;
 
@@ -149,7 +149,7 @@ export function pick<T extends Record<string, any>, K extends keyof T>(
  */
 export function omit<T extends Record<string, any>, K extends keyof T>(
   obj: T,
-  fields: K[]
+  fields: K[],
 ): Omit<T, K> {
   const result = { ...obj };
 
@@ -168,7 +168,7 @@ export function omit<T extends Record<string, any>, K extends keyof T>(
  */
 export function arrayToObject<T, K extends string | number | symbol>(
   array: T[],
-  keySelector: (item: T, index: number) => K
+  keySelector: (item: T, index: number) => K,
 ): Record<K, T> {
   const result = {} as Record<K, T>;
 
@@ -188,7 +188,7 @@ export function arrayToObject<T, K extends string | number | symbol>(
  */
 export function groupBy<T, K extends string | number | symbol>(
   array: T[],
-  keySelector: (item: T) => K
+  keySelector: (item: T) => K,
 ): Record<K, T[]> {
   const result = {} as Record<K, T[]>;
 
@@ -291,7 +291,7 @@ export const StringCase = {
   camelCase: (str: string): string => {
     return str
       .replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) =>
-        index === 0 ? word.toLowerCase() : word.toUpperCase()
+        index === 0 ? word.toLowerCase() : word.toUpperCase(),
       )
       .replace(/\s+/g, '');
   },
@@ -319,7 +319,7 @@ export const StringCase = {
   titleCase: (str: string): string => {
     return str.replace(
       /\w\S*/g,
-      (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+      (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(),
     );
   },
 };
@@ -334,7 +334,7 @@ export const StringCase = {
 export function paginateArray<T>(
   items: T[],
   page: number,
-  limit: number
+  limit: number,
 ): {
   items: T[];
   total: number;
@@ -372,7 +372,7 @@ export function multiSort<T>(
     key: keyof T;
     direction: 'asc' | 'desc';
     type?: 'string' | 'number' | 'date';
-  }>
+  }>,
 ): T[] {
   return array.sort((a, b) => {
     for (const criterion of criteria) {

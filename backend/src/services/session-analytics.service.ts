@@ -1,6 +1,6 @@
 // @ts-nocheck
-import { logger } from '../utils/logger';
 import { CatchError } from '../types/common';
+import { logger } from '../utils/logger';
 
 interface SessionMetrics {
   totalSessions: number;
@@ -87,7 +87,7 @@ export class SessionAnalyticsService {
    */
   async detectAnomalies(
     userId: string,
-    currentSession: any
+    currentSession: any,
   ): Promise<
     Array<{
       type: string;

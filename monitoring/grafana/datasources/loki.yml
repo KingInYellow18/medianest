@@ -1,0 +1,34 @@
+# Grafana Datasource Configuration for Loki
+apiVersion: 1
+
+datasources:
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    isDefault: true
+    editable: true
+    jsonData:
+      # Maximum number of lines to display
+      maxLines: 1000
+      # Default query type
+      derivedFields:
+        # Extract correlation IDs as clickable links
+        - name: "Correlation ID"
+          label: "correlation_id"
+          url: "/explore?orgId=1&left=%5B%22now-1h%22,%22now%22,%22Loki%22,%7B%22expr%22:%22%7Bcorrelation_id%3D%5C%22$${__value.raw}%5C%22%7D%22%7D%5D"
+          datasourceUid: "${DS_LOKI}"
+          matcherRegex: "correlationId[\"':]([^\"',}\\s]+)"
+        # Extract request IDs as clickable links
+        - name: "Request ID"
+          label: "request_id"
+          url: "/explore?orgId=1&left=%5B%22now-1h%22,%22now%22,%22Loki%22,%7B%22expr%22:%22%7Brequest_id%3D%5C%22$${__value.raw}%5C%22%7D%22%7D%5D"
+          datasourceUid: "${DS_LOKI}"
+          matcherRegex: "requestId[\"':]([^\"',}\\s]+)"
+        # Extract user IDs as clickable links
+        - name: "User ID"
+          label: "user_id"
+          url: "/explore?orgId=1&left=%5B%22now-1h%22,%22now%22,%22Loki%22,%7B%22expr%22:%22%7Buser_id%3D%5C%22$${__value.raw}%5C%22%7D%22%7D%5D"
+          datasourceUid: "${DS_LOKI}"
+          matcherRegex: "userId[\"':]([^\"',}\\s]+)"
+    version: 1

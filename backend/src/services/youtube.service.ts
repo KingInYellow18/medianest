@@ -5,11 +5,12 @@ import {
   NotFoundError, // @ts-ignore
 } from '@medianest/shared';
 
-import { logger } from '@/utils/logger';
+import { CatchError } from '../types/common';
+
+import { getRedis } from '@/config/redis';
 import { YouTubeClient } from '@/integrations/youtube/youtube.client';
 import { YoutubeDownloadRepository } from '@/repositories/youtube-download.repository';
-import { getRedis } from '@/config/redis';
-import { CatchError } from '../types/common';
+import { logger } from '@/utils/logger';
 
 export interface VideoMetadata {
   id: string;
@@ -128,7 +129,7 @@ export class YouTubeService {
    */
   async selectOptimalQuality(
     formats: unknown[],
-    requestedQuality: string
+    requestedQuality: string,
   ): Promise<{ format: any; quality: string }> {
     if (!formats || formats.length === 0) {
       throw new BadRequestError('No formats available for this video');

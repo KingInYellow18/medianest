@@ -1,7 +1,7 @@
 import { getPrismaClient, disconnectPrisma } from '../db/prisma';
 import { createRepositories, Repositories } from '../repositories';
-import { logger } from '../utils/logger';
 import { CatchError } from '../types/common';
+import { logger } from '../utils/logger';
 
 let repositories: Repositories;
 

@@ -1,6 +1,6 @@
+import { AppError } from '@medianest/shared';
 import { PrismaClient } from '@prisma/client';
 
-import { AppError } from '@medianest/shared';
 import { CatchError } from '../types/common';
 
 export interface PaginationOptions {
@@ -52,7 +52,7 @@ export abstract class BaseRepository<T> {
     where: any = {},
     options: PaginationOptions = {},
     select?: any,
-    include?: any
+    include?: any,
   ): Promise<PaginatedResult<M>> {
     const { page, limit, skip, take } = this.getPaginationParams(options);
 

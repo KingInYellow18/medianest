@@ -1,11 +1,11 @@
-const globals = require("globals");
-const tsParser = require("@typescript-eslint/parser");
-const typescriptEslint = require("@typescript-eslint/eslint-plugin");
-const importPlugin = require("eslint-plugin-import");
-const prettier = require("eslint-plugin-prettier");
-const js = require("@eslint/js");
+import globals from "globals";
+import tsParser from "@typescript-eslint/parser";
+import typescriptEslint from "@typescript-eslint/eslint-plugin";
+import importPlugin from "eslint-plugin-import";
+import prettier from "eslint-plugin-prettier";
+import js from "@eslint/js";
 
-module.exports = [
+export default [
     // Ignore patterns for all configs
     {
         ignores: [
@@ -68,7 +68,7 @@ module.exports = [
             ecmaVersion: 2022,
             sourceType: "module",
             parserOptions: {
-                tsconfigRootDir: __dirname + "/backend",
+                tsconfigRootDir: import.meta.dirname + "/backend",
                 project: ["./tsconfig.json"],
             },
         },
@@ -133,7 +133,7 @@ module.exports = [
             ecmaVersion: 2022,
             sourceType: "module",
             parserOptions: {
-                tsconfigRootDir: __dirname + "/shared",
+                tsconfigRootDir: import.meta.dirname + "/shared",
                 project: ["./tsconfig.json"],
             },
         },
@@ -181,6 +181,72 @@ module.exports = [
                 typescript: {
                     alwaysTryTypes: true,
                     project: ["./shared/tsconfig.json"],
+                },
+            },
+        },
+    },
+    
+    // TypeScript configuration for root src files
+    {
+        files: ["src/**/*.ts", "src/**/*.tsx"],
+        languageOptions: {
+            globals: {
+                ...globals.node,
+                ...globals.es2022,
+            },
+            parser: tsParser,
+            ecmaVersion: 2022,
+            sourceType: "module",
+            parserOptions: {
+                tsconfigRootDir: import.meta.dirname,
+                project: ["./tsconfig.base.json"],
+            },
+        },
+        plugins: {
+            "@typescript-eslint": typescriptEslint,
+            import: importPlugin,
+            prettier,
+        },
+        rules: {
+            ...js.configs.recommended.rules,
+            ...typescriptEslint.configs.recommended.rules,
+            
+            // TypeScript rules
+            "@typescript-eslint/explicit-function-return-type": "off",
+            "@typescript-eslint/explicit-module-boundary-types": "off",
+            "@typescript-eslint/no-explicit-any": "warn",
+            "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+            "@typescript-eslint/no-non-null-assertion": "warn",
+            "@typescript-eslint/no-var-requires": "warn",
+            "no-undef": "off", // TypeScript handles this
+            
+            // Import rules
+            "import/order": [
+                "error",
+                {
+                    groups: ["builtin", "external", "internal", "parent", "sibling", "index"],
+                    "newlines-between": "always",
+                    alphabetize: { order: "asc", caseInsensitive: true },
+                },
+            ],
+            "import/no-duplicates": "error",
+            // Disable import/no-unresolved for root src files as they may have loose dependencies
+            "import/no-unresolved": "off",
+            
+            // General rules
+            "no-console": ["warn", { allow: ["warn", "error"] }],
+            "prefer-const": "error",
+            "no-debugger": "error",
+            "prettier/prettier": "error",
+        },
+        settings: {
+            "import/parsers": {
+                "@typescript-eslint/parser": [".ts", ".tsx"],
+            },
+            "import/resolver": {
+                typescript: {
+                    alwaysTryTypes: true,
+                    project: ["./tsconfig.base.json"],
                 },
             },
         },

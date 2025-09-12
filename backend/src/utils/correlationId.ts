@@ -1,7 +1,8 @@
+import { AsyncLocalStorage } from 'async_hooks';
+
 import { Request } from 'express';
 // @ts-ignore
 import { v4 as uuidv4 } from 'uuid';
-import { AsyncLocalStorage } from 'async_hooks';
 
 // AsyncLocalStorage for correlation ID context
 const correlationIdStorage = new AsyncLocalStorage<string>();

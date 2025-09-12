@@ -1,9 +1,10 @@
-import { Request, Response, NextFunction } from 'express';
-// @ts-ignore
 import { AppError } from '@medianest/shared';
-import { logger } from '../utils/logger';
-import { errorRecoveryManager } from '../utils/error-recovery';
+import { Request, Response, NextFunction } from 'express';
+
+// @ts-ignore
 import { healthMonitor } from '../services/health-monitor.service';
+import { errorRecoveryManager } from '../utils/error-recovery';
+import { logger } from '../utils/logger';
 
 export interface ErrorContext {
   correlationId?: string;
@@ -213,7 +214,7 @@ export function rateLimitErrorHandler() {
       const rateLimitError = new AppError(
         'RATE_LIMIT_EXCEEDED',
         'Too many requests, please try again later',
-        429
+        429,
       );
 
       logger.warn('Rate limit exceeded', {
@@ -292,7 +293,7 @@ export function authErrorHandler() {
       const authError = new AppError(
         'TOKEN_NOT_ACTIVE',
         'Authentication token not active yet',
-        401
+        401,
       );
       return next(authError);
     }

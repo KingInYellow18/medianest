@@ -57,7 +57,7 @@ export {
   CacheControl,
   CORS,
 } from './response.utils';
-export type { ApiResponse, PaginationMeta } from './response.utils';
+export type { ApiResponse, PaginationMeta } from '@medianest/shared';
 
 // Async utilities
 export {

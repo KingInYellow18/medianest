@@ -1,7 +1,9 @@
 import { EventEmitter } from 'events';
-import { logger } from './logger';
+
 import { CatchError } from '../types/common';
 import { toError } from '../types/error-types';
+
+import { logger } from './logger';
 
 export interface CircuitBreakerOptions {
   failureThreshold: number;
@@ -40,7 +42,10 @@ export class CircuitBreaker extends EventEmitter {
   private halfOpenCalls = 0;
   private monitoringTimer: NodeJS.Timeout | null = null;
 
-  constructor(private name: string, private options: CircuitBreakerOptions) {
+  constructor(
+    private name: string,
+    private options: CircuitBreakerOptions,
+  ) {
     super();
     this.startMonitoring();
 
@@ -65,7 +70,7 @@ export class CircuitBreaker extends EventEmitter {
       this.halfOpenCalls >= (this.options.halfOpenMaxCalls || 3)
     ) {
       const error = new Error(
-        `Circuit breaker is HALF_OPEN and max calls exceeded for ${this.name}`
+        `Circuit breaker is HALF_OPEN and max calls exceeded for ${this.name}`,
       );
       error.name = 'CircuitBreakerError';
       this.emit('callRejected', error);
@@ -137,7 +142,7 @@ export class CircuitBreaker extends EventEmitter {
 
     return this.options.expectedErrors.some(
       (expectedError) =>
-        (error.message as any)?.includes(expectedError) || error.name === expectedError
+        (error.message as any)?.includes(expectedError) || error.name === expectedError,
     );
   }
 

@@ -7,7 +7,7 @@ export * from './service';
 // ApiResponse is now the canonical version from Context7 (readonly properties)
 export type {
   Result,
-  ApiResponse,  // This is now the primary ApiResponse interface
+  ApiResponse, // This is now the primary ApiResponse interface
   PaginatedApiResponse,
   BaseUser,
   UserRole,

@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
-import { cacheService } from '@/services/cache.service';
-import { getPrismaClient } from '@/db/prisma';
+
 import { redisClient } from '@/config/redis';
+import { getPrismaClient } from '@/db/prisma';
+import { cacheService } from '@/services/cache.service';
 import { logger } from '@/utils/logger';
 
 export class HealthController {
@@ -131,6 +132,47 @@ export class HealthController {
     if (secs > 0) parts.push(`${secs}s`);
 
     return parts.join(' ') || '0s';
+  }
+
+  async getReadiness(_req: Request, res: Response) {
+    try {
+      // Check database health
+      const prisma = getPrismaClient();
+      await prisma.$queryRaw`SELECT 1`;
+      const databaseHealthy = true;
+
+      // Check Redis health
+      await redisClient.ping();
+      const redisHealthy = true;
+
+      if (databaseHealthy && redisHealthy) {
+        res.status(200).json({
+          status: 'ready',
+          timestamp: new Date().toISOString(),
+          services: {
+            database: 'healthy',
+            redis: 'healthy',
+          },
+        });
+      } else {
+        res.status(503).json({
+          status: 'not ready',
+          timestamp: new Date().toISOString(),
+          services: {
+            database: databaseHealthy ? 'healthy' : 'unhealthy',
+            redis: redisHealthy ? 'healthy' : 'unhealthy',
+          },
+        });
+      }
+    } catch (error: unknown) {
+      logger.error('Readiness check failed', { error });
+
+      res.status(503).json({
+        status: 'not ready',
+        timestamp: new Date().toISOString(),
+        error: 'Service health check failed',
+      });
+    }
   }
 
   private getEventLoopDelay(): string {

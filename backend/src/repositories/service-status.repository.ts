@@ -1,13 +1,15 @@
 // @ts-nocheck
-import { ServiceStatus, Prisma } from '@prisma/client';
-
-// @ts-ignore
 import {
   NotFoundError, // @ts-ignore
 } from '@medianest/shared';
+import { ServiceStatus, Prisma } from '@prisma/client';
+import { Decimal } from '@prisma/client/runtime/library';
+
+// @ts-ignore
+
+import { CatchError } from '../types/common';
 
 import { BaseRepository } from './base.repository';
-import { CatchError } from '../types/common';
 
 export interface ServiceStatusUpdate {
   status?: string;
@@ -16,11 +18,10 @@ export interface ServiceStatusUpdate {
   uptimePercentage?: number;
 }
 
-export class ServiceStatusRepository extends BaseRepository<
-  ServiceStatus,
-  any,
-  ServiceStatusUpdate
-> {
+export class ServiceStatusRepository extends BaseRepository<ServiceStatus> {
+  constructor(prisma: any) {
+    super(prisma);
+  }
   async findByName(serviceName: string): Promise<ServiceStatus | null> {
     try {
       return await this.prisma.serviceStatus.findUnique({
@@ -68,7 +69,7 @@ export class ServiceStatusRepository extends BaseRepository<
   async updateStatus(
     serviceName: string,
     status: string,
-    responseTimeMs?: number
+    responseTimeMs?: number,
   ): Promise<ServiceStatus> {
     return this.upsert(serviceName, {
       status,
