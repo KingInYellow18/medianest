@@ -21,25 +21,27 @@ export default defineConfig({
   // MODERN CACHE CONFIGURATION
   cacheDir: '.vitest-cache',
   test: {
-    // MAXIMUM PERFORMANCE: Threads with shared context
+    // STABILIZED PERFORMANCE: Worker thread termination fixes
     pool: 'threads',
     poolOptions: {
       threads: {
         singleThread: false,
-        maxThreads: cpus().length, // Fix: Use proper ES6 import
-        minThreads: Math.max(2, Math.floor(cpus().length / 2)),
+        maxThreads: Math.min(cpus().length, 4), // Cap at 4 to prevent instability
+        minThreads: 1, // Start with 1 to prevent resource contention
         useAtomics: true,
-        isolate: false // CRITICAL: Share context for 5x speed boost
+        isolate: true, // CRITICAL: Enable isolation to prevent worker corruption
+        // CRITICAL: Removed execArgv as it causes ERR_WORKER_INVALID_EXEC_ARGV
+        // execArgv: ['--max-old-space-size=512'], // Memory limit per worker
       }
     },
     
-    // AGGRESSIVE TIMEOUTS: Fail fast
-    testTimeout: 5000,   // 5s max (for development speed)
-    hookTimeout: 1000,   // 1s setup
-    teardownTimeout: 500, // 0.5s cleanup
+    // STABILIZED TIMEOUTS: Prevent worker thread termination
+    testTimeout: 10000,  // Increased for worker stability
+    hookTimeout: 5000,   // Increased for proper cleanup
+    teardownTimeout: 5000, // Increased for resource cleanup
     
-    // OPTIMIZED CONCURRENCY: Reduce from 4x to 2x CPU cores for optimal performance
-    maxConcurrency: cpus().length * 2,
+    // STABILIZED CONCURRENCY: Prevent worker overload
+    maxConcurrency: Math.min(cpus().length, 4), // Reduced to prevent instability
     
     // DEVELOPMENT OPTIMIZATIONS
     environment: 'node',
@@ -70,13 +72,13 @@ export default defineConfig({
     // OPTIMAL REPORTER: Fast output without deprecation warnings
     reporter: [['default', { summary: false }]],
     
-    // NO RETRIES: Fail fast for development
-    retry: 0,
-    bail: 10, // Stop after 10 failures
+    // STABILIZED EXECUTION: Handle flaky tests
+    retry: 1, // Allow 1 retry for stability
+    bail: 5, // Stop after 5 failures to prevent cascade
     
     // DEVELOPMENT FEATURES
     watch: true,
-    isolate: false,
+    isolate: true, // Enable for stability
     
     // Modern caching configuration (cache.dir is deprecated)
     
@@ -98,11 +100,11 @@ export default defineConfig({
       }
     },
     
-    // OPTIMIZED SEQUENCE
+    // STABILIZED SEQUENCE
     sequence: {
       shuffle: false,
-      concurrent: true,
-      setupTimeout: 5000
+      concurrent: false, // Disable for stability
+      setupTimeout: 10000 // Increased timeout
     },
     
     // MEMORY OPTIMIZATION

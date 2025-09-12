@@ -67,6 +67,8 @@ export class PerformanceOptimizationService {
   private config: OptimizationConfig;
   private optimizationHistory: Array<{ timestamp: Date; action: string; impact: string }> = [];
   private metricsBuffer: PerformanceMetrics[] = [];
+  private performanceMonitorInterval: NodeJS.Timeout | null = null;
+  private isShutdown = false;
 
   constructor(
     redis: Redis,
@@ -86,8 +88,19 @@ export class PerformanceOptimizationService {
    * Start continuous performance monitoring and optimization
    */
   private startPerformanceMonitoring(): void {
-    // Monitor performance every 30 seconds
-    setInterval(async () => {
+    // Clear any existing interval to prevent memory leaks
+    if (this.performanceMonitorInterval) {
+      clearInterval(this.performanceMonitorInterval);
+    }
+
+    // Monitor performance every 30 seconds with proper cleanup
+    this.performanceMonitorInterval = setInterval(async () => {
+      // Check if service is being shut down
+      if (this.isShutdown) {
+        this.stopPerformanceMonitoring();
+        return;
+      }
+
       try {
         const metrics = await this.collectPerformanceMetrics();
         this.metricsBuffer.push(metrics);
@@ -105,6 +118,11 @@ export class PerformanceOptimizationService {
         await this.storeMetricsInRedis(metrics);
       } catch (error) {
         logger.error('Performance monitoring error:', error);
+        // On critical errors, stop monitoring to prevent cascade failures
+        if (error.message.includes('ENOMEM') || error.message.includes('heap out of memory')) {
+          logger.error('Memory-related error detected, stopping performance monitoring');
+          this.stopPerformanceMonitoring();
+        }
       }
     }, 30000);
   }
@@ -605,6 +623,38 @@ export class PerformanceOptimizationService {
     }
 
     return recommendations;
+  }
+
+  /**
+   * Stop performance monitoring and cleanup resources
+   */
+  public stopPerformanceMonitoring(): void {
+    if (this.performanceMonitorInterval) {
+      clearInterval(this.performanceMonitorInterval);
+      this.performanceMonitorInterval = null;
+      logger.info('Performance monitoring stopped');
+    }
+  }
+
+  /**
+   * Graceful shutdown with resource cleanup
+   */
+  public async shutdown(): Promise<void> {
+    logger.info('Shutting down PerformanceOptimizationService...');
+    
+    this.isShutdown = true;
+    this.stopPerformanceMonitoring();
+    
+    // Clear memory buffers
+    this.metricsBuffer = [];
+    this.optimizationHistory = [];
+    
+    // Force garbage collection if available
+    if (global.gc) {
+      global.gc();
+    }
+    
+    logger.info('PerformanceOptimizationService shutdown complete');
   }
 
   /**

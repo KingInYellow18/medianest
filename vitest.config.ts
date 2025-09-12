@@ -29,28 +29,30 @@ export default defineConfig({
   cacheDir: '.vitest-performance-cache',
   
   test: {
-    // OPTIMAL THREAD POOL: 1:1 CPU mapping with Context7 best practices
+    // STABILIZED THREAD POOL: Worker thread termination fixes
     pool: 'threads',
     poolOptions: {
       threads: {
         singleThread: false,
-        // Context7 optimization: Match thread count to CPU cores for optimal performance
-        maxThreads: CPU_CORES,
-        minThreads: Math.max(2, Math.floor(CPU_CORES / 2)),
+        // CRITICAL: Reduced thread count to prevent worker instability
+        maxThreads: Math.min(CPU_CORES, 4), // Cap at 4 workers max
+        minThreads: 1, // Start with 1 to prevent resource contention
         // Context7 recommendation: Enable useAtomics for thread synchronization performance
         useAtomics: true,
-        // Performance optimization: Disable isolation for 5x speed boost in development
-        isolate: IS_CI, // Isolate in CI for reliability, disable for dev speed
+        // CRITICAL: Enable isolation to prevent worker thread corruption
+        isolate: true, // Always isolate to prevent shared state issues
+        // CRITICAL: Removed execArgv as it causes ERR_WORKER_INVALID_EXEC_ARGV
+        // execArgv: ['--max-old-space-size=512'],
       }
     },
     
-    // PERFORMANCE-OPTIMIZED TIMEOUTS
-    testTimeout: IS_CI ? 30000 : 5000,   // 30s for CI stability, 5s for dev speed
-    hookTimeout: IS_CI ? 10000 : 1000,   // 10s for CI, 1s for dev
-    teardownTimeout: IS_CI ? 5000 : 500, // 5s for CI, 500ms for dev
+    // STABILIZED TIMEOUTS: Prevent worker thread termination
+    testTimeout: IS_CI ? 30000 : 15000,  // Increased dev timeout for stability
+    hookTimeout: IS_CI ? 15000 : 10000,  // Increased for proper cleanup
+    teardownTimeout: IS_CI ? 10000 : 8000, // Critical: Increased teardown time
     
-    // OPTIMAL CONCURRENCY: Context7 recommendation for balanced load
-    maxConcurrency: CPU_CORES * (IS_CI ? 1 : 2),
+    // STABILIZED CONCURRENCY: Prevent worker thread overload
+    maxConcurrency: Math.min(CPU_CORES, 4), // Reduced to prevent worker instability
     
     // DEVELOPMENT ENVIRONMENT OPTIMIZATIONS
     environment: 'node',

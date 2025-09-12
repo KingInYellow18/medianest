@@ -1,38 +1,16 @@
 #!/bin/bash
-# MediaNest Production Secrets Generator
-# Generates cryptographically secure secrets for production deployment
-#
-# Usage: ./scripts/generate-secrets.sh [--overwrite] [--dry-run]
-#
-# Options:
-#   --overwrite    Overwrite existing secrets (DANGEROUS)
-#   --dry-run      Show what would be generated without creating files
-#   --help         Show this help message
-#
-# Version: 2.0.0
 
-set -e
+# MediaNest Secret Generation Utility
+# Generates secure secrets for different environments
+# Usage: ./scripts/generate-secrets.sh [environment] [--output-file]
 
-# Configuration
-SECRETS_DIR="secrets"
-REQUIRED_SECRETS=(
-    "postgres_password"
-    "redis_password" 
-    "jwt_secret"
-    "nextauth_secret"
-    "encryption_key"
-    "database_url"
-    "redis_url"
-)
+set -euo pipefail
 
-# Optional secrets (created only if requested)
-OPTIONAL_SECRETS=(
-    "plex_client_id"
-    "plex_client_secret"
-    "grafana_password"
-    "metrics_token"
-    "backup_encryption_key"
-)
+# Script configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+ENVIRONMENT="${1:-production}"
+OUTPUT_FILE="${2:-}"
 
 # Colors for output
 RED='\033[0;31m'
@@ -41,582 +19,336 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Default options
-OVERWRITE=false
-DRY_RUN=false
-
-# Logging functions
-log_info() { echo -e "${BLUE}ℹ️  $1${NC}"; }
-log_success() { echo -e "${GREEN}✅ $1${NC}"; }
-log_warn() { echo -e "${YELLOW}⚠️  $1${NC}"; }
-log_error() { echo -e "${RED}❌ $1${NC}"; }
-
-# Show usage
-show_usage() {
-    cat << EOF
-MediaNest Production Secrets Generator
-
-Usage: $0 [OPTIONS]
-
-This script generates cryptographically secure secrets for MediaNest production deployment.
-All secrets are generated using OpenSSL and appropriate randomization techniques.
-
-Options:
-  --overwrite    Overwrite existing secrets (DANGEROUS - will replace all existing secrets)
-  --dry-run      Show what would be generated without creating files
-  --help, -h     Show this help message
-
-Generated Secrets:
-  postgres_password      32-character strong database password
-  redis_password         32-character strong Redis password  
-  jwt_secret            64-character hex JWT signing secret
-  nextauth_secret       64-character hex NextAuth secret
-  encryption_key        64-character hex application encryption key
-  database_url          Complete PostgreSQL connection URL
-  redis_url            Complete Redis connection URL
-  
-Optional Secrets (created on request):
-  plex_client_id        Placeholder for Plex OAuth client ID
-  plex_client_secret    Placeholder for Plex OAuth client secret
-  grafana_password      16-character Grafana admin password
-  metrics_token         32-character metrics endpoint token
-  backup_encryption_key 64-character backup encryption key
-
-Security Features:
-  - Uses OpenSSL random number generator
-  - Removes problematic characters from passwords
-  - Sets secure file permissions (600)
-  - Validates secret strength
-  - Creates backup of existing secrets before overwrite
-
-Examples:
-  $0                    # Generate missing secrets only
-  $0 --dry-run         # Preview what would be generated
-  $0 --overwrite       # Replace all existing secrets (DANGEROUS)
-
-For more information, see README_DEPLOYMENT.md
-EOF
+# Helper functions
+log_info() {
+    echo -e "${BLUE}ℹ${NC} $1"
 }
 
-# Parse command line arguments
-parse_arguments() {
-    while [[ $# -gt 0 ]]; do
-        case $1 in
-            --overwrite)
-                OVERWRITE=true
-                shift
-                ;;
-            --dry-run)
-                DRY_RUN=true
-                shift
-                ;;
-            --help|-h)
-                show_usage
-                exit 0
-                ;;
-            *)
-                log_error "Unknown option: $1"
-                show_usage
-                exit 1
-                ;;
-        esac
-    done
+log_success() {
+    echo -e "${GREEN}✅${NC} $1"
 }
 
-# Check prerequisites
-check_prerequisites() {
-    log_info "Checking prerequisites..."
-    
-    # Check OpenSSL
-    if ! command -v openssl &> /dev/null; then
-        log_error "OpenSSL is required but not installed"
-        exit 1
-    fi
-    
-    # Check OpenSSL version (need 1.0+)
-    local openssl_version
-    openssl_version=$(openssl version | cut -d' ' -f2 | cut -d'.' -f1-2)
-    log_info "Using OpenSSL version: $(openssl version)"
-    
-    # Check if running from project root
-    if [[ ! -f "package.json" ]]; then
-        log_error "This script must be run from the MediaNest project root directory"
-        exit 1
-    fi
-    
-    log_success "Prerequisites check passed"
+log_warning() {
+    echo -e "${YELLOW}⚠${NC} $1"
 }
 
-# Generate secure password
-generate_password() {
-    local length=$1
-    local charset=${2:-'A-Za-z0-9'}
-    
-    # Generate password using OpenSSL, removing problematic characters
-    openssl rand -base64 $((length * 2)) | tr -cd "$charset" | cut -c1-$length
+log_error() {
+    echo -e "${RED}❌${NC} $1"
 }
 
-# Generate hex secret
+# Secret generation functions
+generate_base64_secret() {
+    local length="${1:-32}"
+    openssl rand -base64 "$length" | tr -d '\n'
+}
+
 generate_hex_secret() {
-    local length=$1
-    openssl rand -hex $length
+    local length="${1:-32}"
+    openssl rand -hex "$length"
 }
 
-# Validate secret strength
-validate_secret_strength() {
-    local secret=$1
-    local min_length=$2
-    local secret_type=$3
-    
-    if [[ ${#secret} -lt $min_length ]]; then
-        log_error "$secret_type is too short: ${#secret} characters (minimum: $min_length)"
-        return 1
-    fi
-    
-    # Check for sufficient entropy (basic check)
-    local unique_chars
-    unique_chars=$(echo "$secret" | fold -w1 | sort -u | wc -l)
-    
-    if [[ $unique_chars -lt 8 ]]; then
-        log_warn "$secret_type may have low entropy (only $unique_chars unique characters)"
-    fi
-    
-    return 0
+generate_alphanumeric_secret() {
+    local length="${1:-16}"
+    openssl rand -base64 "$((length * 2))" | tr -d '/+=' | cut -c1-"$length"
 }
 
-# Create secrets directory
-create_secrets_directory() {
-    if [[ "$DRY_RUN" == "true" ]]; then
-        log_info "[DRY RUN] Would create secrets directory: $SECRETS_DIR"
-        return
+generate_password() {
+    local length="${1:-16}"
+    openssl rand -base64 "$((length * 2))" | tr -d '/+' | head -c "$length"
+}
+
+# Generate environment-specific secrets
+generate_secrets() {
+    local env="$1"
+    local timestamp=$(date +%Y%m%d_%H%M%S)
+    
+    echo "🔐 MediaNest Secret Generator"
+    echo "=============================="
+    echo ""
+    log_info "Generating secrets for: $env environment"
+    log_info "Generation timestamp: $(date)"
+    echo ""
+    
+    case "$env" in
+        "development")
+            generate_development_secrets
+            ;;
+        "staging")
+            generate_staging_secrets
+            ;;
+        "production")
+            generate_production_secrets
+            ;;
+        *)
+            log_error "Invalid environment: $env"
+            echo "Usage: $0 [development|staging|production] [output-file]"
+            exit 1
+            ;;
+    esac
+    
+    echo ""
+    log_warning "SECURITY WARNINGS:"
+    echo "• Store these secrets securely and never commit them to version control"
+    echo "• Use different secrets for each environment"
+    echo "• Rotate secrets regularly (at least quarterly)"
+    echo "• Use a secret management service in production"
+    echo ""
+    
+    if [[ "$env" == "production" ]]; then
+        echo "🔒 PRODUCTION SECURITY REQUIREMENTS:"
+        echo "• All secrets MUST be at least 32 characters"
+        echo "• Use Docker secrets or equivalent secret management"
+        echo "• Enable SSL/HTTPS for all external communication"
+        echo "• Configure automated secret rotation"
+        echo "• Audit secret access regularly"
+        echo ""
+    fi
+}
+
+generate_development_secrets() {
+    echo "# Development Environment Secrets"
+    echo "# Safe for local development - NOT FOR PRODUCTION USE"
+    echo ""
+    echo "# Authentication Secrets"
+    echo "JWT_SECRET=dev_$(generate_alphanumeric_secret 32)_$(date +%s)"
+    echo "NEXTAUTH_SECRET=dev_$(generate_alphanumeric_secret 32)_$(date +%s)"
+    echo "ENCRYPTION_KEY=dev_$(generate_alphanumeric_secret 32)_$(date +%s)"
+    echo "SESSION_SECRET=dev_$(generate_alphanumeric_secret 32)_$(date +%s)"
+    echo ""
+    echo "# Database Credentials (Development)"
+    echo "POSTGRES_PASSWORD=$(generate_password 16)"
+    echo "REDIS_PASSWORD=  # Optional for development"
+    echo ""
+    echo "# Admin Bootstrap (Development)"
+    echo "ADMIN_PASSWORD=dev123"  # Weak password for development
+    echo ""
+    echo "# Plex Integration (Development)"
+    echo "PLEX_CLIENT_ID=MediaNest-Development"
+    echo "PLEX_CLIENT_SECRET=dev_$(generate_alphanumeric_secret 24)"
+    echo ""
+    echo "# Optional Service Keys (Development)"
+    echo "YOUTUBE_API_KEY=  # Add your development YouTube API key"
+    echo "TMDB_API_KEY=     # Add your development TMDB API key"
+}
+
+generate_staging_secrets() {
+    echo "# Staging Environment Secrets"
+    echo "# Production-like secrets for staging deployment"
+    echo ""
+    echo "# Authentication Secrets (UNIQUE FOR STAGING)"
+    echo "JWT_SECRET=$(generate_base64_secret 32)"
+    echo "NEXTAUTH_SECRET=$(generate_base64_secret 32)"
+    echo "ENCRYPTION_KEY=$(generate_base64_secret 32)"
+    echo "SESSION_SECRET=$(generate_base64_secret 32)"
+    echo ""
+    echo "# Database Credentials (Staging)"
+    echo "POSTGRES_PASSWORD=$(generate_password 24)"
+    echo "REDIS_PASSWORD=$(generate_password 24)"
+    echo ""
+    echo "# Security Tokens"
+    echo "METRICS_TOKEN=$(generate_base64_secret 24)"
+    echo ""
+    echo "# Admin Bootstrap (Staging)"
+    echo "ADMIN_PASSWORD=Staging_$(generate_password 12)_$(date +%m%d)"
+    echo ""
+    echo "# Plex Integration (Staging)"
+    echo "PLEX_CLIENT_ID=REPLACE_WITH_STAGING_CLIENT_ID"
+    echo "PLEX_CLIENT_SECRET=$(generate_base64_secret 24)"
+    echo ""
+    echo "# External Service Keys (Staging)"
+    echo "YOUTUBE_API_KEY=REPLACE_WITH_STAGING_YOUTUBE_KEY"
+    echo "TMDB_API_KEY=REPLACE_WITH_STAGING_TMDB_KEY"
+    echo ""
+    echo "# Email Configuration (Staging)"
+    echo "SMTP_PASSWORD=$(generate_password 16)"
+}
+
+generate_production_secrets() {
+    echo "# Production Environment Secrets"
+    echo "# HIGH SECURITY - Store in secure secret management system"
+    echo ""
+    echo "# Authentication Secrets (CRITICAL - UNIQUE FOR PRODUCTION)"
+    echo "JWT_SECRET=$(generate_base64_secret 48)"
+    echo "NEXTAUTH_SECRET=$(generate_base64_secret 48)"
+    echo "ENCRYPTION_KEY=$(generate_base64_secret 48)"
+    echo "SESSION_SECRET=$(generate_base64_secret 48)"
+    echo ""
+    echo "# Database Credentials (Production)"
+    echo "POSTGRES_PASSWORD=$(generate_password 32)"
+    echo "REDIS_PASSWORD=$(generate_password 32)"
+    echo ""
+    echo "# Security Tokens"
+    echo "METRICS_TOKEN=$(generate_base64_secret 32)"
+    echo ""
+    echo "# Admin Bootstrap (Production - CHANGE IMMEDIATELY AFTER FIRST LOGIN)"
+    echo "ADMIN_PASSWORD=Production_$(generate_password 16)_$(date +%Y%m)"
+    echo ""
+    echo "# Plex Integration (Production)"
+    echo "PLEX_CLIENT_ID=REPLACE_WITH_PRODUCTION_CLIENT_ID"
+    echo "PLEX_CLIENT_SECRET=$(generate_base64_secret 32)"
+    echo ""
+    echo "# External Service Keys (Production)"
+    echo "YOUTUBE_API_KEY=REPLACE_WITH_PRODUCTION_YOUTUBE_KEY"
+    echo "TMDB_API_KEY=REPLACE_WITH_PRODUCTION_TMDB_KEY"
+    echo ""
+    echo "# Email Configuration (Production)"
+    echo "SMTP_PASSWORD=REPLACE_WITH_PRODUCTION_SMTP_PASSWORD"
+    echo ""
+    echo "# Docker Secrets (Production)"
+    echo "# Store these in Docker secrets or equivalent secure storage:"
+    echo ""
+    echo "# docker secret create jwt_secret -"
+    echo "# docker secret create database_password -"
+    echo "# docker secret create redis_password -"
+    echo "# docker secret create encryption_key -"
+}
+
+# Save secrets to file if specified
+save_to_file() {
+    local env="$1"
+    local output_file="$2"
+    local timestamp=$(date +%Y%m%d_%H%M%S)
+    local filename="${output_file:-secrets_${env}_${timestamp}.env}"
+    
+    log_info "Saving secrets to: $filename"
+    
+    # Generate secrets to file
+    {
+        generate_secrets "$env" 2>/dev/null
+    } > "$filename"
+    
+    # Set restrictive permissions
+    chmod 600 "$filename"
+    
+    log_success "Secrets saved to: $filename"
+    log_warning "File permissions set to 600 (owner read/write only)"
+    
+    # Add to .gitignore if not already present
+    if [[ -f "$PROJECT_ROOT/.gitignore" ]] && ! grep -q "secrets_.*\.env" "$PROJECT_ROOT/.gitignore"; then
+        echo "secrets_*.env" >> "$PROJECT_ROOT/.gitignore"
+        log_info "Added secrets_*.env to .gitignore"
+    fi
+}
+
+# Validate OpenSSL availability
+validate_requirements() {
+    if ! command -v openssl >/dev/null 2>&1; then
+        log_error "OpenSSL is required but not installed"
+        echo "Install OpenSSL:"
+        echo "  Ubuntu/Debian: sudo apt-get install openssl"
+        echo "  macOS: brew install openssl"
+        echo "  Windows: Use WSL or install OpenSSL for Windows"
+        exit 1
     fi
     
-    if [[ ! -d "$SECRETS_DIR" ]]; then
-        mkdir -p "$SECRETS_DIR"
-        chmod 700 "$SECRETS_DIR"
-        log_success "Created secrets directory: $SECRETS_DIR"
+    # Check OpenSSL version
+    local openssl_version=$(openssl version)
+    log_info "Using: $openssl_version"
+}
+
+# Show usage information
+show_usage() {
+    echo "MediaNest Secret Generation Utility"
+    echo ""
+    echo "Usage:"
+    echo "  $0 [environment] [output-file]"
+    echo ""
+    echo "Environments:"
+    echo "  development  - Development secrets with weak security (default for local)"
+    echo "  staging      - Staging secrets with production-like security"
+    echo "  production   - Production secrets with maximum security"
+    echo ""
+    echo "Examples:"
+    echo "  $0 development                    # Generate development secrets to stdout"
+    echo "  $0 staging staging_secrets.env    # Generate staging secrets to file"
+    echo "  $0 production                     # Generate production secrets to stdout"
+    echo ""
+    echo "Security Notes:"
+    echo "  • Development secrets are prefixed and safe for local use"
+    echo "  • Staging and production secrets are cryptographically secure"
+    echo "  • All secrets are unique and generated with OpenSSL"
+    echo "  • Files are created with restrictive permissions (600)"
+}
+
+# Docker secrets helper
+generate_docker_secrets() {
+    local env="$1"
+    echo ""
+    echo "🐳 Docker Secrets Commands for $env:"
+    echo "=================================="
+    echo ""
+    
+    if [[ "$env" == "production" ]]; then
+        echo "# Create Docker secrets (run these commands in your Docker environment):"
+        echo "echo '$(generate_base64_secret 48)' | docker secret create jwt_secret -"
+        echo "echo '$(generate_base64_secret 48)' | docker secret create nextauth_secret -"  
+        echo "echo '$(generate_base64_secret 48)' | docker secret create encryption_key -"
+        echo "echo '$(generate_password 32)' | docker secret create database_password -"
+        echo "echo '$(generate_password 32)' | docker secret create redis_password -"
+        echo ""
+        echo "# Verify secrets were created:"
+        echo "docker secret ls"
+        echo ""
+        echo "# Use in docker-compose.yml:"
+        echo "secrets:"
+        echo "  jwt_secret:"
+        echo "    external: true"
+        echo "  database_password:"
+        echo "    external: true"
+        echo "  # ... etc"
     else
-        # Ensure correct permissions
-        chmod 700 "$SECRETS_DIR"
-        log_info "Using existing secrets directory: $SECRETS_DIR"
+        echo "Docker secrets are recommended for production only."
+        echo "For $env environment, use environment variables."
     fi
 }
 
-# Backup existing secrets
-backup_existing_secrets() {
-    if [[ "$DRY_RUN" == "true" ]]; then
-        if [[ -d "$SECRETS_DIR" ]] && [[ "$(ls -A $SECRETS_DIR 2>/dev/null)" ]]; then
-            log_info "[DRY RUN] Would backup existing secrets"
-        fi
-        return
-    fi
-    
-    if [[ -d "$SECRETS_DIR" ]] && [[ "$(ls -A $SECRETS_DIR 2>/dev/null)" ]]; then
-        local backup_dir="${SECRETS_DIR}-backup-$(date +%Y%m%d_%H%M%S)"
-        cp -r "$SECRETS_DIR" "$backup_dir"
-        chmod -R 600 "$backup_dir"/*
-        log_success "Existing secrets backed up to: $backup_dir"
-    fi
-}
-
-# Check if secret exists
-secret_exists() {
-    local secret_name=$1
-    [[ -f "$SECRETS_DIR/$secret_name" ]] && [[ -s "$SECRETS_DIR/$secret_name" ]]
-}
-
-# Generate individual secret
-generate_secret() {
-    local secret_name=$1
-    local secret_value=$2
-    local file_path="$SECRETS_DIR/$secret_name"
-    
-    if [[ "$DRY_RUN" == "true" ]]; then
-        log_info "[DRY RUN] Would generate: $secret_name"
-        echo "[DRY RUN] Content preview (first 16 chars): ${secret_value:0:16}..."
-        return
-    fi
-    
-    # Write secret to file
-    echo "$secret_value" > "$file_path"
-    chmod 600 "$file_path"
-    
-    log_success "Generated: $secret_name (${#secret_value} characters)"
-}
-
-# Generate database password
-generate_postgres_password() {
-    local secret_name="postgres_password"
-    
-    if secret_exists "$secret_name" && [[ "$OVERWRITE" == "false" ]]; then
-        log_info "Skipping $secret_name (already exists)"
-        return
-    fi
-    
-    log_info "Generating PostgreSQL password..."
-    local password
-    password=$(generate_password 32 'A-Za-z0-9!@#$%^&*()_+-=[]{}|;:,.<>?')
-    
-    if validate_secret_strength "$password" 20 "PostgreSQL password"; then
-        generate_secret "$secret_name" "$password"
-    else
-        log_error "Failed to generate secure PostgreSQL password"
-        return 1
-    fi
-}
-
-# Generate Redis password
-generate_redis_password() {
-    local secret_name="redis_password"
-    
-    if secret_exists "$secret_name" && [[ "$OVERWRITE" == "false" ]]; then
-        log_info "Skipping $secret_name (already exists)"
-        return
-    fi
-    
-    log_info "Generating Redis password..."
-    local password
-    password=$(generate_password 32 'A-Za-z0-9!@#$%^&*()_+-=[]{}|;:,.<>?')
-    
-    if validate_secret_strength "$password" 20 "Redis password"; then
-        generate_secret "$secret_name" "$password"
-    else
-        log_error "Failed to generate secure Redis password"
-        return 1
-    fi
-}
-
-# Generate JWT secret
-generate_jwt_secret() {
-    local secret_name="jwt_secret"
-    
-    if secret_exists "$secret_name" && [[ "$OVERWRITE" == "false" ]]; then
-        log_info "Skipping $secret_name (already exists)"
-        return
-    fi
-    
-    log_info "Generating JWT secret..."
-    local secret
-    secret=$(generate_hex_secret 32)
-    
-    if validate_secret_strength "$secret" 64 "JWT secret"; then
-        generate_secret "$secret_name" "$secret"
-    else
-        log_error "Failed to generate secure JWT secret"
-        return 1
-    fi
-}
-
-# Generate NextAuth secret
-generate_nextauth_secret() {
-    local secret_name="nextauth_secret"
-    
-    if secret_exists "$secret_name" && [[ "$OVERWRITE" == "false" ]]; then
-        log_info "Skipping $secret_name (already exists)"
-        return
-    fi
-    
-    log_info "Generating NextAuth secret..."
-    local secret
-    secret=$(generate_hex_secret 32)
-    
-    if validate_secret_strength "$secret" 64 "NextAuth secret"; then
-        generate_secret "$secret_name" "$secret"
-    else
-        log_error "Failed to generate secure NextAuth secret"
-        return 1
-    fi
-}
-
-# Generate encryption key
-generate_encryption_key() {
-    local secret_name="encryption_key"
-    
-    if secret_exists "$secret_name" && [[ "$OVERWRITE" == "false" ]]; then
-        log_info "Skipping $secret_name (already exists)"
-        return
-    fi
-    
-    log_info "Generating application encryption key..."
-    local key
-    key=$(generate_hex_secret 32)
-    
-    if validate_secret_strength "$key" 64 "Encryption key"; then
-        generate_secret "$secret_name" "$key"
-    else
-        log_error "Failed to generate secure encryption key"
-        return 1
-    fi
-}
-
-# Generate database URL
-generate_database_url() {
-    local secret_name="database_url"
-    
-    if secret_exists "$secret_name" && [[ "$OVERWRITE" == "false" ]]; then
-        log_info "Skipping $secret_name (already exists)"
-        return
-    fi
-    
-    log_info "Generating database URL..."
-    
-    # Get password from file or generate new one
-    local password_file="$SECRETS_DIR/postgres_password"
-    if [[ ! -f "$password_file" ]]; then
-        log_error "PostgreSQL password not found. Generate postgres_password first."
-        return 1
-    fi
-    
-    local password
-    password=$(cat "$password_file")
-    
-    # URL encode the password to handle special characters
-    local encoded_password
-    encoded_password=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$password', safe=''))" 2>/dev/null || echo "$password")
-    
-    local database_url="postgresql://medianest:${encoded_password}@postgres:5432/medianest?sslmode=prefer&connection_limit=20&pool_timeout=30"
-    
-    generate_secret "$secret_name" "$database_url"
-}
-
-# Generate Redis URL
-generate_redis_url() {
-    local secret_name="redis_url"
-    
-    if secret_exists "$secret_name" && [[ "$OVERWRITE" == "false" ]]; then
-        log_info "Skipping $secret_name (already exists)"
-        return
-    fi
-    
-    log_info "Generating Redis URL..."
-    
-    # Get password from file or generate new one
-    local password_file="$SECRETS_DIR/redis_password"
-    if [[ ! -f "$password_file" ]]; then
-        log_error "Redis password not found. Generate redis_password first."
-        return 1
-    fi
-    
-    local password
-    password=$(cat "$password_file")
-    
-    # URL encode the password to handle special characters
-    local encoded_password
-    encoded_password=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$password', safe=''))" 2>/dev/null || echo "$password")
-    
-    local redis_url="redis://:${encoded_password}@redis:6379"
-    
-    generate_secret "$secret_name" "$redis_url"
-}
-
-# Generate optional secrets
-generate_optional_secrets() {
-    local generate_optional=false
-    
-    if [[ "$DRY_RUN" == "false" ]]; then
-        read -p "Generate optional secrets (Grafana, metrics, etc.)? [y/N]: " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            generate_optional=true
-        fi
-    else
-        log_info "[DRY RUN] Optional secrets would be prompted for in real run"
-        return
-    fi
-    
-    if [[ "$generate_optional" == "true" ]]; then
-        # Generate Grafana password
-        if ! secret_exists "grafana_password" || [[ "$OVERWRITE" == "true" ]]; then
-            local grafana_password
-            grafana_password=$(generate_password 16 'A-Za-z0-9')
-            generate_secret "grafana_password" "$grafana_password"
-        fi
-        
-        # Generate metrics token
-        if ! secret_exists "metrics_token" || [[ "$OVERWRITE" == "true" ]]; then
-            local metrics_token
-            metrics_token=$(generate_hex_secret 16)
-            generate_secret "metrics_token" "$metrics_token"
-        fi
-        
-        # Generate backup encryption key
-        if ! secret_exists "backup_encryption_key" || [[ "$OVERWRITE" == "true" ]]; then
-            local backup_key
-            backup_key=$(generate_hex_secret 32)
-            generate_secret "backup_encryption_key" "$backup_key"
-        fi
-        
-        # Create placeholder files for Plex OAuth (user needs to fill these)
-        if ! secret_exists "plex_client_id" || [[ "$OVERWRITE" == "true" ]]; then
-            generate_secret "plex_client_id" "REPLACE_WITH_YOUR_PLEX_CLIENT_ID"
-        fi
-        
-        if ! secret_exists "plex_client_secret" || [[ "$OVERWRITE" == "true" ]]; then
-            generate_secret "plex_client_secret" "REPLACE_WITH_YOUR_PLEX_CLIENT_SECRET"
-        fi
-    fi
-}
-
-# Verify generated secrets
-verify_secrets() {
-    log_info "Verifying generated secrets..."
-    
-    local errors=0
-    
-    for secret in "${REQUIRED_SECRETS[@]}"; do
-        local file_path="$SECRETS_DIR/$secret"
-        
-        if [[ "$DRY_RUN" == "true" ]]; then
-            log_info "[DRY RUN] Would verify: $secret"
-            continue
-        fi
-        
-        if [[ ! -f "$file_path" ]]; then
-            log_error "Missing secret file: $secret"
-            ((errors++))
-            continue
-        fi
-        
-        if [[ ! -s "$file_path" ]]; then
-            log_error "Empty secret file: $secret"
-            ((errors++))
-            continue
-        fi
-        
-        # Check file permissions
-        local perms
-        perms=$(stat -c "%a" "$file_path")
-        if [[ "$perms" != "600" ]]; then
-            log_warn "Secret file $secret has permissions $perms, should be 600"
-            chmod 600 "$file_path"
-        fi
-        
-        # Basic content validation
-        local content
-        content=$(cat "$file_path")
-        
-        case "$secret" in
-            *_password)
-                if [[ ${#content} -lt 16 ]]; then
-                    log_error "Password $secret is too short: ${#content} characters"
-                    ((errors++))
-                fi
-                ;;
-            *_secret|*_key)
-                if [[ ${#content} -lt 32 ]]; then
-                    log_error "Secret $secret is too short: ${#content} characters"
-                    ((errors++))
-                fi
-                ;;
-            database_url)
-                if [[ ! "$content" =~ ^postgresql:// ]]; then
-                    log_error "Database URL format is invalid"
-                    ((errors++))
-                fi
-                ;;
-            redis_url)
-                if [[ ! "$content" =~ ^redis:// ]]; then
-                    log_error "Redis URL format is invalid"
-                    ((errors++))
-                fi
-                ;;
-        esac
-    done
-    
-    if [[ $errors -eq 0 ]]; then
-        log_success "All secrets verified successfully"
-    else
-        log_error "Found $errors error(s) in generated secrets"
-        return 1
-    fi
-}
-
-# Display summary
-display_summary() {
-    if [[ "$DRY_RUN" == "true" ]]; then
-        log_info "[DRY RUN] Summary of what would be generated:"
-    else
-        log_success "🎉 Secret generation completed successfully!"
-        echo
-        log_info "📁 Secrets location: $SECRETS_DIR/"
-        log_info "🔒 File permissions: 600 (owner read-only)"
-    fi
-    
-    echo
-    echo "Generated secrets:"
-    for secret in "${REQUIRED_SECRETS[@]}"; do
-        if [[ "$DRY_RUN" == "true" ]]; then
-            echo "  - $secret"
-        else
-            local file_path="$SECRETS_DIR/$secret"
-            if [[ -f "$file_path" ]]; then
-                local size
-                size=$(stat -c%s "$file_path")
-                echo "  ✅ $secret ($size bytes)"
-            else
-                echo "  ❌ $secret (missing)"
-            fi
-        fi
-    done
-    
-    if [[ "$DRY_RUN" == "false" ]]; then
-        echo
-        log_warn "🚨 IMPORTANT SECURITY NOTES:"
-        echo "   - Never commit these secrets to version control"
-        echo "   - Keep secrets directory permissions at 700"
-        echo "   - Keep secret files permissions at 600"
-        echo "   - Rotate secrets regularly in production"
-        echo "   - Use proper secrets management in production (AWS Secrets Manager, etc.)"
-        echo
-        log_info "📚 Next steps:"
-        echo "   1. Review and update .env.production with your domain and settings"
-        echo "   2. If using Plex, update plex_client_id and plex_client_secret files"
-        echo "   3. Run: ./scripts/deployment-automation.sh validate"
-        echo "   4. Run: ./scripts/deployment-automation.sh deploy"
-    fi
-}
-
-# Main execution
+# Main function
 main() {
-    echo "🔐 MediaNest Production Secrets Generator"
-    echo "========================================"
-    echo
+    local show_help=false
+    local generate_docker=false
     
     # Parse arguments
-    parse_arguments "$@"
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -h|--help)
+                show_help=true
+                shift
+                ;;
+            --docker)
+                generate_docker=true
+                shift
+                ;;
+            *)
+                break
+                ;;
+        esac
+    done
     
-    # Check prerequisites
-    check_prerequisites
-    
-    # Create secrets directory
-    create_secrets_directory
-    
-    # Backup existing secrets if overwriting
-    if [[ "$OVERWRITE" == "true" ]]; then
-        backup_existing_secrets
+    # Show help if requested
+    if [[ "$show_help" == true ]]; then
+        show_usage
+        exit 0
     fi
     
+    # Validate requirements
+    validate_requirements
+    
+    # Get environment and output file
+    local environment="${1:-production}"
+    local output_file="${2:-}"
+    
     # Generate secrets
-    log_info "Generating cryptographically secure secrets..."
-    echo
+    if [[ -n "$output_file" ]]; then
+        save_to_file "$environment" "$output_file"
+    else
+        generate_secrets "$environment"
+    fi
     
-    generate_postgres_password
-    generate_redis_password
-    generate_jwt_secret
-    generate_nextauth_secret
-    generate_encryption_key
-    generate_database_url
-    generate_redis_url
-    
-    # Generate optional secrets
-    generate_optional_secrets
-    
-    # Verify all secrets
-    verify_secrets
-    
-    # Display summary
-    display_summary
+    # Generate Docker secrets if requested
+    if [[ "$generate_docker" == true ]]; then
+        generate_docker_secrets "$environment"
+    fi
 }
 
-# Execute main function with all arguments
+# Run main function
 main "$@"

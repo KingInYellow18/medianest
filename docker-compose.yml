@@ -1,0 +1,91 @@
+# MediaNest Docker Compose Configuration
+# Main docker-compose file - use with environment-specific overrides
+# 
+# Usage:
+#   Development: docker-compose -f docker-compose.yml -f config/docker/docker-compose.dev.yml up
+#   Production:  docker-compose -f docker-compose.yml -f config/docker/docker-compose.prod.yml up
+#   Testing:     docker-compose -f docker-compose.yml -f config/docker/docker-compose.test.yml up
+#   Monitoring:  docker-compose -f docker-compose.yml -f monitoring/docker-compose.yml up
+
+version: '3.8'
+
+services:
+  # Backend API service
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: backend
+    container_name: medianest-backend
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=${PORT:-3000}
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - medianest-network
+
+  # Frontend application
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: frontend
+    container_name: medianest-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-3001}:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:3000}
+    depends_on:
+      - backend
+    networks:
+      - medianest-network
+
+  # PostgreSQL database
+  postgres:
+    image: postgres:15-alpine
+    container_name: medianest-postgres
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-medianest}
+      - POSTGRES_USER=${POSTGRES_USER:-medianest}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - medianest-network
+
+  # Redis cache
+  redis:
+    image: redis:7-alpine
+    container_name: medianest-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: redis-server --requirepass ${REDIS_PASSWORD:-medianest_redis}
+    volumes:
+      - redis_data:/data
+    networks:
+      - medianest-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  medianest-network:
+    driver: bridge

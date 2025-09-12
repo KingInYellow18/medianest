@@ -28,7 +28,7 @@ scrape_configs:
     static_configs:
       - targets: ['backend:4000']  # Backend runs on port 4000
     metrics_path: '/metrics'
-    scrape_interval: 5s
+    scrape_interval: 15s
     scrape_timeout: 10s
     honor_labels: true
     params:
@@ -174,15 +174,7 @@ scrape_configs:
       - target_label: component
         replacement: log-forwarding
 
-# Storage configuration for metrics retention
-storage:
-  tsdb:
-    path: /prometheus/data
-    retention.time: 30d  # 30-day retention as specified
-    retention.size: 50GB
-    wal-compression: true
-    min-block-duration: 2h
-    max-block-duration: 25h
+# Storage configuration handled via command-line arguments
 
 # Remote write configuration (optional for long-term storage)
 # remote_write:

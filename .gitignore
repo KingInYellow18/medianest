@@ -107,6 +107,9 @@ redis_data/
 logs/
 *.log
 
+# Monitoring data (Prometheus, Grafana, Loki runtime data)
+monitoring/data/
+
 # AI Development System Files (Claude, Swarm, etc.)
 .claude/
 .claude-flow/

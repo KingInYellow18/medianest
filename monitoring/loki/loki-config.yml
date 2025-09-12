@@ -67,6 +67,4 @@ compactor:
   retention_delete_delay: 2h
   retention_delete_worker_count: 150
 
-# Structured metadata for better querying
-structured_metadata:
-  enabled: true
+# Structured metadata not available in Loki v2.9.2

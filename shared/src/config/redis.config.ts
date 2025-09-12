@@ -181,8 +181,13 @@ export class RedisConfigManager {
           throw error;
         }
 
-        // Wait before retrying
-        await new Promise((resolve) => setTimeout(resolve, retryDelay));
+        // Wait before retrying with proper timeout handling
+        await new Promise((resolve) => {
+          const timeout = setTimeout(resolve, retryDelay);
+          // Store timeout reference for cleanup if needed
+          process.once('SIGTERM', () => clearTimeout(timeout));
+          process.once('SIGINT', () => clearTimeout(timeout));
+        });
       }
     }
   }
