@@ -1,0 +1,647 @@
+[2025-09-12T14:29:02] Code v0.2.136
+--------
+workdir: /home/kinginyellow/projects/medianest
+model: gpt-5
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: medium
+reasoning summaries: auto
+--------
+[2025-09-12T14:29:02] User instructions:
+Context: Repo root package.json: workspaces ["shared","backend","frontend"]. Rich scripts for build/test/perf/security; CI coverage threshold >=65%. Backend uses Express 4.21, Socket.IO, Prisma (@prisma/client 6.15), Zod, Winston, Redis (ioredis), Bull/BullMQ, Helmet, rate-limit, JWT; extensive middleware and route grouping. Frontend uses Next 14.2.x with Tailwind and Vitest. Shared exports utilities and config. Security & ops docs live under /docs; Prisma schema and DB scripts under backend/prisma and backend/src/config. Key entrypoints: backend/src/app.ts and backend/src/routes/v1/index.ts. Linting via ESLint + @typescript-eslint; Prettier formatting. Tests spread across backend/tests, frontend/src/**.test.tsx, and root tests/. Husky hooks present. Use these conventions while planning.
+
+Deliverable: A crisp, prioritized, step-by-step audit plan with phases, tasks, metrics, and acceptance criteria; list of reports/dashboards to generate; and a dependency map of required environments/services.
+
+Agent: Plan: Review the full codebase, dependencies, and config to audit for bugs, architectural violations, performance bottlenecks, security risks, and missed requirements. Deliver a step-by-step audit plan with prioritized actions, owners, tooling, and acceptance criteria. Context below summarizes repo structure, tech stack, and standards to guide you. Use read-only exploration; do not modify files.
+
+Repository overview
+- Monorepo (Node >=18, npm >=8) with workspaces: backend (Express API + Prisma + Playwright e2e), frontend (Next.js 14 + Vitest UI tests), shared (TS utilities/config). Additional root services/tools in src/, cross-package tests in tests/, docs in docs/ (MkDocs), scripts in scripts/.
+- Root scripts include many variants for testing, performance, security, and deployment. CI requires >=65% line coverage via `npm run test:ci`.
+- Commit/PR rules: Conventional Commits; Husky hooks enforce formatting/checks. Avoid console except warn/error; Prettier 2-space, single quotes, trailing commas, 100 char width. Import ordering enforced.
+- Security: use `.env.example`; never commit secrets; run `npm run db:migrate` before API; validate with `npm run db:check`. See ARCHITECTURE.md and SECURITY_HARDENING_COMPLETE.md.
+
+High-level directory structure (selected)
+- backend/: Express app with modular routes, middleware, services, repositories, Prisma, socket.io, security & performance middleware. Entry: `src/app.ts`, routes under `src/routes`, v1 router `src/routes/v1/index.ts`, config under `src/config`, utils under `src/utils`, db in `src/db`.
+- frontend/: Next.js app (`src/app` pages, minimal components); standard Next scripts. Tailwind, ESLint, Vitest.
+- shared/: TS utilities with export map; consumed by backend via file: link.
+- tests/: Cross‑package tests; vitest configs at root and variants (integration, performance, security); Playwright used from backend.
+- docs/: Authoritative documentation (MkDocs) with architecture, operations, security, etc.
+- scripts/: CI/dev scripts including performance analyzers, test sharding optimizers, security monitors, db health checks.
+
+Notable files to anchor exploration
+- package.json (root): workspaces, scripts, engine constraints, toolchain, coverage rules.
+- backend/src/app.ts: central Express app composition with security & perf middlewares, timeouts, logging, CORS, compression.
+- backend/src/routes/v1/index.ts: route grouping, auth gates, public vs protected routes.
+
+Goals for your output
+- Provide a comprehensive, phased plan to audit: (1) bugs and correctness, (2) architectural compliance with guidelines and docs, (3) runtime performance (API, DB, cache, frontend build), (4) security (config, deps, runtime, secrets, auth), (5) requirements traceability and gaps.
+- For each phase: detail scope, techniques/tools/commands, artifacts to produce (reports/dashboards), pass/fail gates, and owners/stakeholders.
+- Incorporate repo’s existing scripts/configs to avoid reinventing; propose targeted additions only where necessary.
+- Include quick-win checks (same day), short sprint (1–2 weeks), and deeper program (1–2 months) tracks with prioritization matrices.
+
+Assumptions and constraints
+- Planning only (read-only). Do not change files or configs. Assume Postgres + Redis available when tests run in CI; local env uses `.env` copied from example.
+- Prefer Vitest/Playwright/Prisma tooling already present; use mkdocs for doc artifacts.
+- Output should stand alone and be executable by a new team member.
+
+
+Desired output: Prioritized multi-phase audit plan with concrete steps, owners, commands, and exit criteria.
+
+Files to consider: package.json, backend, frontend, shared, backend/src/app.ts, backend/src/routes/v1/index.ts
+
+[Running in read-only mode - no modifications allowed]
+
+[2025-09-12T14:29:12] thinking
+
+**Creating an audit plan**
+
+I need to create a clear, prioritized audit plan that outlines phases, tasks, metrics, acceptance criteria, and a dependency map for required environments and services. This will focus on planning, without modifying any part of the repository. I’ll quickly explore the repo using tools like rg and ls to understand the structure and reference any necessary scripts. I should also look at the package.json and relevant documentation to guide my plan while keeping my messages concise before executing commands.
+**Exploring the repository**
+
+I’m planning to use commands like `ls -la` and `rg` to check the contents of package.json and see the script lines. I also want to look into the backend app file and the routes file, limiting to 250 lines. For package.json, I'll find the "scripts" block to display, and it’s fine to read through the file’s content if needed. Checking the presence and configuration of the backend/prisma/schema.prisma is optional, but it could be worthwhile. Alright, let’s proceed with the shell commands!
+[2025-09-12T14:29:17] codex
+**Exploring the repository**
+
+I’m planning to use commands like `ls -la` and `rg` to check the contents of package.json and see the script lines. I also want to look into the backend app file and the routes file, limiting to 250 lines. For package.json, I'll find the "scripts" block to display, and it’s fine to read through the file’s content if needed. Checking the presence and configuration of the backend/prisma/schema.prisma is optional, but it could be worthwhile. Alright, let’s proceed with the shell commands!
+[2025-09-12T14:29:17] codex
+
+I’ll quickly scan key files (package.json scripts, backend app/routes) to tailor the audit plan to your setup.
+[2025-09-12T14:29:17] exec bash -lc 'ls -la' in /home/kinginyellow/projects/medianest
+[2025-09-12T14:29:17] bash -lc 'ls -la' succeeded in 7ms:
+total 1912
+drwxrwxr-x  45 kinginyellow kinginyellow  12288 Sep 12 09:22 .
+drwxrwxr-x  16 kinginyellow kinginyellow   4096 Sep 10 22:57 ..
+-rw-rw-r--   1 kinginyellow kinginyellow   8160 Sep 11 11:53 agenthooks-recommended.md
+-rw-rw-r--   1 kinginyellow kinginyellow   2767 Sep 12 09:23 AGENTS.md
+-rw-rw-r--   1 kinginyellow kinginyellow  44196 Sep 11 11:00 ARCHITECTURE.md
+drwxrwxr-x  21 kinginyellow kinginyellow   4096 Sep 12 09:19 backend
+drwxrwxr-x   2 kinginyellow kinginyellow   4096 Sep  9 10:34 backups
+-rw-rw-r--   1 kinginyellow kinginyellow  24955 Sep 12 09:06 build.log
+-rw-rw-r--   1 kinginyellow kinginyellow    202 Sep 12 00:13 build-metrics.json
+-rw-rw-r--   1 kinginyellow kinginyellow   3351 Sep 11 17:54 build-output.log
+-rw-rw-r--   1 kinginyellow kinginyellow   2824 Sep 11 09:36 CHANGELOG.md
+drwxrwxr-x   6 kinginyellow kinginyellow   4096 Sep 10 12:31 .claude
+drwxrwxr-x   4 kinginyellow kinginyellow   4096 Sep  5 18:03 .claude-flow
+-rwxrwxr-x   1 kinginyellow kinginyellow   1038 Sep 11 09:21 claude-flow
+-rwxrwxr-x   1 kinginyellow kinginyellow    353 Sep  9 08:45 claude-flow.bat
+-rw-rw-r--   1 kinginyellow kinginyellow    487 Sep  9 08:45 claude-flow.config.json
+-rwxrwxr-x   1 kinginyellow kinginyellow    600 Sep  9 08:45 claude-flow.ps1
+-rw-rw-r--   1 kinginyellow kinginyellow  13928 Sep  9 11:01 CLAUDE.md
+-rw-rw-r--   1 kinginyellow kinginyellow   4872 Sep 11 09:36 CLEANUP_SUMMARY.md
+[2025-09-12T14:29:17] tokens used: 2285
+[2025-09-12T14:29:21] exec bash -lc "sed -n '1,220p' package.json" in /home/kinginyellow/projects/medianest
+[2025-09-12T14:29:21] bash -lc "sed -n '1,220p' package.json" succeeded in 6ms:
+{
+  "name": "medianest",
+  "version": "2.0.0",
+  "description": "Advanced Media Management Platform",
+  "type": "module",
+  "main": "src/index.js",
+  "workspaces": [
+    "shared",
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "build": "./scripts/build-stabilizer.sh",
+    "build:fast": "npm run build:backend && npm run build:frontend",
+    "build:optimized": "node scripts/build-performance-enhancer.js optimize && npm run build",
+    "build:clean": "npm run clean && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "build:docker": "docker build -f Dockerfile --target backend-production -t medianest-backend . && docker build -f Dockerfile --target frontend-production -t medianest-frontend .",
+    "build:docs": "./scripts/build-docs.sh",
+[2025-09-12T14:29:21] tokens used: 4432
+[2025-09-12T14:29:24] exec bash -lc "sed -n '220,520p' package.json" in /home/kinginyellow/projects/medianest
+[2025-09-12T14:29:24] bash -lc "sed -n '220,520p' package.json" succeeded in 6ms:
+    "jsdom": "^26.1.0",
+    "node-cron": "^3.0.3",
+    "rimraf": "^5.0.0",
+    "standard-version": "^9.5.0",
+    "supertest": "^7.0.0",
+    "ts-node": "^10.9.1",
+    "tsx": "^4.19.1",
+    "vite": "^7.1.5",
+    "vitest": "^3.2.4",
+    "webpack-bundle-analyzer": "^4.8.0",
+    "ws": "^8.18.0"
+  },
+  "optionalDependencies": {
+    "ffmpeg-static": "^5.1.0",
+    "fluent-ffmpeg": "^2.1.2",
+    "pm2": "^6.0.10",
+    "sharp": "^0.34.3"
+  },
+  "browserslist": {
+    "production": [
+[2025-09-12T14:29:24] tokens used: 4148
+[2025-09-12T14:29:28] exec bash -lc "sed -n '1,220p' backend/src/app.ts" in /home/kinginyellow/projects/medianest
+[2025-09-12T14:29:28] bash -lc "sed -n '1,220p' backend/src/app.ts" succeeded in 7ms:
+/**
+ * MediaNest Application Server - Main Express application setup
+ * 
+ * This module configures and initializes the complete MediaNest backend application including:
+ * - Express server with optimized middleware stack
+ * - Socket.IO server for real-time communication
+ * - Security headers and CORS configuration
+ * - Performance optimizations and compression
+ * - Request logging and error handling
+ * - API route mounting and 404 handling
+ * 
+ * @fileoverview Main application entry point with comprehensive middleware configuration
+ * @version 2.0.0
+ * @author MediaNest Team
+ * @since 1.0.0
+ */
+
+import { createServer } from 'http';
+
+import compression from 'compression';
+[2025-09-12T14:29:28] tokens used: 18448
+[2025-09-12T14:29:30] exec bash -lc "sed -n '220,520p' backend/src/app.ts" in /home/kinginyellow/projects/medianest
+[2025-09-12T14:29:30] bash -lc "sed -n '220,520p' backend/src/app.ts" succeeded in 6ms:
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Keep-Alive', 'timeout=5, max=1000');
+
+  // Context7 Pattern: Early exit for health checks
+  if (req.path === '/health' || req.path === '/ping') {
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Content-Type', 'application/json');
+  }
+
+  next();
+});
+
+/**
+ * Request Timeout Middleware
+ * @description Default 30-second timeout for all requests to prevent hanging connections
+ * @timeout 30 seconds (medium preset)
+ */
+app.use(timeoutPresets.medium as express.RequestHandler);
+
+/**
+[2025-09-12T14:29:30] tokens used: 2409
+[2025-09-12T14:29:32] exec bash -lc "sed -n '1,280p' backend/src/routes/v1/index.ts" in /home/kinginyellow/projects/medianest
+[2025-09-12T14:29:32] bash -lc "sed -n '1,280p' backend/src/routes/v1/index.ts" succeeded in 6ms:
+import { Router } from 'express';
+
+import { performanceRoutes } from '../performance';
+import { simpleHealthRouter } from '../simple-health';
+import systemRoutes from '../system';
+import testRoutes from '../test';
+
+import adminRoutes from './admin';
+import authRoutes from './auth';
+import { router as csrfRoutes } from './csrf';
+import dashboardRoutes from './dashboard';
+import { errorsRoutes } from './errors.routes';
+import healthRoutes from './health';
+import mediaRoutes from './media';
+import plexRoutes from './plex';
+import { resilienceRouter } from './resilience';
+import servicesRoutes from './services';
+import webhookRoutes from './webhooks';
+import youtubeRoutes from './youtube';
+
+[2025-09-12T14:29:32] tokens used: 1156
+
+[2025-09-12T14:29:35] thinking
+
+**Planning and analyzing scripts**
+
+I think we have enough information to put together a plan. It could be helpful to quickly take a look at the frontend package.json file to see the Next.js scripts that are there. Specifically, I want to analyze the "bundle" script to understand how it fits into our overall strategy. This should give us a clearer idea of our next steps!
+[2025-09-12T14:29:36] exec bash -lc "sed -n '1,200p' frontend/package.json" in /home/kinginyellow/projects/medianest
+[2025-09-12T14:29:36] bash -lc "sed -n '1,200p' frontend/package.json" succeeded in 7ms:
+{
+  "name": "@medianest/frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "start": "next start",
+    "dev": "next dev",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:ci": "vitest run --reporter=verbose",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "next": "^14.2.32",
+[2025-09-12T14:29:36] tokens used: 948
+
+[2025-09-12T14:29:39] thinking
+
+I need to look into the backend's package.json file to check for scripts, particularly for "test:e2e" and "prisma." This will help me determine if the necessary testing and database management scripts are included. It's essential to ensure everything is in place for smooth development. I'll make sure to check that thoroughly and keep an eye out for any necessary updates or adjustments to those scripts as needed.
+[2025-09-12T14:29:41] exec bash -lc "sed -n '1,220p' backend/package.json" in /home/kinginyellow/projects/medianest
+[2025-09-12T14:29:41] bash -lc "sed -n '1,220p' backend/package.json" succeeded in 6ms:
+{
+  "name": "@medianest/backend",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kinginyellow/medianest.git",
+    "directory": "backend"
+  },
+  "scripts": {
+    "dev": "nodemon",
+    "build": "tsc --build",
+    "start": "node dist/server.js",
+    "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --fix",
+    "type-check": "tsc --noEmit",
+    "clean": "rimraf dist",
+    "test": "vitest run",
+    "test:ci": "vitest run --reporter=verbose",
+[2025-09-12T14:29:41] tokens used: 625
+[2025-09-12T14:29:47] exec bash -lc "sed -n '1,200p' shared/package.json" in /home/kinginyellow/projects/medianest
+[2025-09-12T14:29:47] bash -lc "sed -n '1,200p' shared/package.json" succeeded in 5ms:
+{
+  "name": "@medianest/shared",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kinginyellow/medianest.git",
+    "directory": "shared"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.js"
+    },
+    "./client": {
+      "types": "./dist/client/index.d.ts",
+[2025-09-12T14:29:47] tokens used: 1916
+
+[2025-09-12T14:29:50] thinking
+
+**Investigating authentication approach**
+
+I'm thinking we should take a look at the `backend/src/middleware/auth` to understand the authentication method being used. It seems like a quick examination could provide valuable insights into how authentication is managed in the system. I want to ensure I grasp any key strategies or patterns present there, which will definitely help in understanding the overall security framework. Let's get started on that!
+[2025-09-12T14:29:52] exec bash -lc "sed -n '1,200p' backend/src/middleware/auth.ts" in /home/kinginyellow/projects/medianest
+[2025-09-12T14:29:52] bash -lc "sed -n '1,200p' backend/src/middleware/auth.ts" succeeded in 6ms:
+/**
+ * Authentication Middleware - JWT-based authentication and authorization
+ * 
+ * This module provides comprehensive authentication middleware for the MediaNest application:
+ * - JWT token validation and rotation
+ * - Role-based access control (RBAC)
+ * - Optional authentication for public endpoints
+ * - Session management and device tracking
+ * - Request logging for authenticated users
+ * 
+ * @fileoverview Express middleware for authentication and authorization
+ * @version 2.0.0
+ * @author MediaNest Team
+ * @since 1.0.0
+ */
+
+/// <reference path="../types/express.d.ts" />
+import { Request, Response, NextFunction } from 'express';
+
+import { AuthenticationFacade, AuthenticatedUser } from '../auth';
+[2025-09-12T14:29:52] tokens used: 1128
+
+[2025-09-12T14:30:01] thinking
+
+**Planning the testing strategy**
+
+I need to tailor our plan to use the repository's scripts for testing and configuration. The plan will be divided into phases, starting with quick wins on the same day, followed by sprints of one to two weeks, and finally a longer program over one to two months. I’ll include acceptance criteria and metrics like coverage and error rates, while generating various reports and dashboards. It's also essential to create a dependency map for our environments. I'll check the environment configuration for variable names to clarify dependencies.
+[2025-09-12T14:30:04] exec bash -lc "sed -n '1,200p' backend/src/config/env.ts" in /home/kinginyellow/projects/medianest
+[2025-09-12T14:30:04] bash -lc "sed -n '1,200p' backend/src/config/env.ts" succeeded in 6ms:
+/**
+ * Environment Configuration - Centralized application settings
+ * 
+ * This module provides a unified configuration object that reads from:
+ * - Environment variables
+ * - Docker secrets (in production)
+ * - Secure secret files
+ * - Default fallback values
+ * 
+ * Categories:
+ * - Application settings (NODE_ENV, PORT, etc.)
+ * - Database configuration (PostgreSQL, Redis)
+ * - Authentication settings (JWT, sessions, OAuth)
+ * - Security settings (encryption, rate limiting)
+ * - External services (Plex, TMDB, YouTube)
+ * - Feature flags and monitoring
+ * 
+ * @fileoverview Environment configuration with Docker secrets support
+ * @version 2.0.0
+ * @author MediaNest Team
+[2025-09-12T14:30:04] tokens used: 2000
+[2025-09-12T14:30:19] exec bash -lc "sed -n '200,500p' backend/src/config/env.ts" in /home/kinginyellow/projects/medianest
+[2025-09-12T14:30:19] bash -lc "sed -n '200,500p' backend/src/config/env.ts" succeeded in 6ms:
+    serverUrl: process.env.PLEX_SERVER_URL,
+    clientId: readSecret('plex_client_id', 'PLEX_CLIENT_ID', ''),
+    clientSecret: readSecret('plex_client_secret', 'PLEX_CLIENT_SECRET', ''),
+  },
+
+  /**
+   * NextAuth Configuration
+   * @section NextAuth.js authentication settings
+   */
+  // NextAuth
+  NEXTAUTH_SECRET: readSecret('nextauth_secret', 'NEXTAUTH_SECRET', ''),
+
+  /**
+   * Logging Configuration
+   * @section Application logging level and behavior
+   */
+  // Logging
+  LOG_LEVEL: process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'debug'),
+
+  /**
+[2025-09-12T14:30:19] tokens used: 1941
+
+[2025-09-12T14:30:24] thinking
+
+**Mapping dependencies**
+
+I’ve got a solid dependency map that includes Postgres, Redis, Plex, YouTube, TMDB, and NextAuth, with SMTP and possibly OpenTelemetry as optional. I'm also thinking about incorporating monitoring for the prom-client, which seems important. It might be a good idea to look at health checks for backend routes, specifically mentioning the /api/v1/health endpoint. Keeping track of all these elements will help ensure a smooth integration!
+[2025-09-12T14:30:26] exec bash -lc "sed -n '1,200p' backend/src/routes/v1/health.ts" in /home/kinginyellow/projects/medianest
+[2025-09-12T14:30:26] bash -lc "sed -n '1,200p' backend/src/routes/v1/health.ts" succeeded in 5ms:
+// @ts-nocheck
+import { Router } from 'express';
+
+import { healthController } from '@/controllers/health.controller';
+import { authenticate } from '@/middleware/auth';
+import { authorize } from '@/middleware/rbac';
+import { asyncHandler } from '@/utils/async-handler';
+
+const router = Router();
+
+// Basic health check - no auth required
+router.get('/', asyncHandler(healthController.getHealth));
+
+// Metrics endpoint - admin only
+router.get(
+  '/metrics',
+  authenticate,
+  authorize(['ADMIN']),
+  asyncHandler(healthController.getMetrics),
+);
+[2025-09-12T14:30:26] tokens used: 870
+
+[2025-09-12T14:30:56] thinking
+
+**Planning for Tasks and Metrics**
+
+I'm working on a planning document that will feature clear commands and roles for owners, ensuring brevity while being comprehensive. I’ll include phases along with tasks and gates, plus specific acceptance metrics.
+
+For correctness, I’ll set criteria like unit/integration tests passing with a coverage of 65% and flaky tests under 1% failure. 
+
+For architecture, I’ll include requirements on linting, import order, file naming, and utility usage. 
+
+Performance metrics will cover key API endpoints and acceptable thresholds for DB CPU and build times.
+**Prioritizing Security and Traceability**
+
+I'm creating a prioritized track focused on security and traceability. For security, I'll ensure there are no critical or high vulnerabilities, that secret scanning shows no incidents, and verify the consistency of JWT configuration, rate limits, and CSP in Helmet. 
+
+For traceability, I'll map requirements from documentation to endpoints and make sure tests cover them, referencing tooling commands from package.json. 
+
+I'll also include a "Reports/Dashboards" list and a "Dependency Map" featuring Node, Postgres, Redis, and Docker. Finally, I'll outline the "Next Steps" without using the update_plan tool since it's not necessary here.
+**Drafting Explicit Commands**
+
+I'm planning to include explicit command paths while noting that we've used read-only exploration. It's essential that I clearly outline the responsibilities of owners as well. 
+
+I'll also add a Quick-win checklist to help everyone stay on track and prioritize tasks effectively. 
+
+This way, the document remains organized, actionable, and focused on achieving our goals. Alright, let's get started on writing this all down neatly!
+[2025-09-12T14:31:04] codex
+**Prioritizing Security and Traceability**
+
+I'm creating a prioritized track focused on security and traceability. For security, I'll ensure there are no critical or high vulnerabilities, that secret scanning shows no incidents, and verify the consistency of JWT configuration, rate limits, and CSP in Helmet. 
+
+For traceability, I'll map requirements from documentation to endpoints and make sure tests cover them, referencing tooling commands from package.json. 
+
+I'll also include a "Reports/Dashboards" list and a "Dependency Map" featuring Node, Postgres, Redis, and Docker. Finally, I'll outline the "Next Steps" without using the update_plan tool since it's not necessary here.
+[2025-09-12T14:31:04] codex
+**Drafting Explicit Commands**
+
+I'm planning to include explicit command paths while noting that we've used read-only exploration. It's essential that I clearly outline the responsibilities of owners as well. 
+
+I'll also add a Quick-win checklist to help everyone stay on track and prioritize tasks effectively. 
+
+This way, the document remains organized, actionable, and focused on achieving our goals. Alright, let's get started on writing this all down neatly!
+[2025-09-12T14:31:04] codex
+
+**Scope & Approach**
+- Bugs/Correctness, Architecture compliance, Runtime performance (API/DB/cache/build), Security (config/deps/runtime/secrets/auth), and Requirements traceability.
+- Read-only audit leveraging existing scripts: Vitest/Playwright/Prisma/MkDocs, plus root scripts in `package.json`. Key anchors: `backend/src/app.ts`, `backend/src/routes/v1/index.ts`, `backend/src/config/env.ts`, CI coverage gate ≥ 65%.
+
+**Phase 0 — Kickoff & Baseline (same day)**
+- Owners: Tech Lead (coordination), Backend Lead, Frontend Lead, DevOps, QA, Security.
+- Tasks:
+  - Env sanity: confirm Node ≥ 18, npm ≥ 8, `.env` from `.env.example`, Postgres/Redis reachable.
+  - Repo hygiene: lint/typecheck/build dry run.
+  - Test baseline: run fast + coverage; enumerate failures and flaky tests.
+  - Data plane sanity: DB migrations dry-run and health checks.
+  - Security quick scan: deps audit, secrets hygiene, JWT/CORS/Helmet/rate-limit basic checks.
+- Commands:
+  - `npm ci && npm run typecheck && npm run build:verify`
+  - `npm run test:ci` (coverage gate), `npm run test:backend`, `npm run test:frontend`, `npm run test:shared`
+  - `npm run db:migrate && npm run db:check`
+  - `npm audit --production || true && npm run security:scan`
+- Metrics:
+  - Tests pass rate, line coverage (≥65%), type errors = 0, lint errors = 0, build success.
+  - DB migration success, health check OK.
+  - High/Critical vulnerabilities count.
+- Acceptance criteria:
+  - All commands complete without errors (except known, documented flakiness).
+  - Coverage ≥ 65% (CI gate) and report generated.
+  - No High/Critical dep vulns, or approved exception list recorded.
+  - DB migration/health pass in local and CI envs.
+
+**Phase 1 — Correctness & Bugs (Week 1)**
+- Scope: Unit/integration correctness across workspaces; error handling; middleware order; route protections; input validation (Zod); Prisma schema drift.
+- Tasks:
+  - Map routes to tests; identify untested critical endpoints (health/auth/media/services/dashboard).
+  - Exercise error paths: invalid/missing auth, payload size, invalid JSON, timeouts.
+  - Validate middleware order: CORS → helmet → compression → parsers → timeouts → logging → routes → 404 → error handler.
+  - Prisma: `prisma validate`, migration status, drift checks; representative queries; check indexes for hot paths.
+  - Socket.IO: handshake CORS, auth; degradation behavior on disconnect.
+- Commands:
+  - `npm run test:integration`, `npm run test:backend`, `npm run test:frontend`, `npm run test:shared`
+  - `cd backend && npx prisma validate && npx prisma migrate status`
+- Artifacts:
+  - Gaps list with file-level pointers, severity, fix proposals.
+  - “Unhandled/untested error paths” checklist per route group.
+- Metrics:
+  - Missing test coverage on critical endpoints reduced to 0.
+  - Prisma drift = 0, migration chain consistent.
+- Acceptance criteria:
+  - All critical endpoints have positive + negative-path tests.
+  - Error handler consistent JSON shape; no unhandled promise rejections.
+
+**Phase 2 — Architecture Compliance (Week 1)**
+- Scope: Conformance to repo guidelines, layering, shared module usage, naming, import ordering, logging policy.
+- Tasks:
+  - Enforce file naming/location conventions; import ordering (eslint rules).
+  - Ensure shared utilities are used (avoid duplicate logic).
+  - Route grouping aligns to `src/routes/v1/index.ts` intent (public vs protected).
+  - Logging: only `warn`/`error` at app surface; structured logs via Winston with correlation IDs.
+- Commands:
+  - `npm run lint`, `npm run format` (read-only dry run outputs), review eslint/prettier config.
+- Artifacts:
+  - Architecture compliance report with non-conformances + remediation checklist.
+- Metrics:
+  - Lint errors = 0, naming violations = 0.
+- Acceptance criteria:
+  - No violations of guidelines; clear ownership for any required refactors.
+
+**Phase 3 — Performance (API/DB/Redis/Build) (Week 1–2)**
+- Scope: Express p50/p95/p99 latency, throughput, error rate; DB query times; Redis hit rate; queue latency; frontend bundle/build time.
+- Tasks:
+  - API profiling: health/auth/media/services. Verify `timeoutPresets`, compression cost/benefit, logging overhead skip for health.
+  - DB: profile hot queries via Prisma logging; check indexes; connection pool sizing (DATABASE_POOL_SIZE).
+  - Redis: measure latencies; cache hit rate; Bull/BullMQ job queue depth and processing times.
+  - Build: backend TSC build time; Next build time and bundle size; image/route chunking, tree-shaking.
+- Commands:
+  - `npm run test:performance:suite` and `npm run test:performance:e2e`
+  - `npm run perf:build` (includes `analyze:performance` and optimized build)
+  - Frontend bundle analysis: ensure a script exists. Note: root `analyze:bundle` calls `cd frontend && npm run analyze:bundle` but frontend lacks that script — create ticket to add Next bundle analyzer; for audit, run `NEXT_DEBUG_BUNDLE_ANALYZER=1` alternative or add temporary script locally.
+  - Load: `npm run load-test:light|medium|heavy`
+- Artifacts:
+  - Performance report JSON under `test-results/` and build metrics (`build-metrics.json`).
+  - DB query plan notes + index proposals.
+- Metrics/targets:
+  - API p95 < 250 ms for core endpoints at 50 rps; error rate < 1%.
+  - DB p95 query < 50 ms; connection saturation < 70%.
+  - Redis p95 < 10 ms; queue p95 processing < SLA (define per job).
+  - Frontend: main bundle < 250KB gz, route chunks load < 200ms on CI hardware; Next build ≤ 4 min.
+- Acceptance criteria:
+  - Baseline dashboards populated; regression thresholds defined in CI (`ci:performance`).
+
+**Phase 4 — Security (Week 1–2)**
+- Scope: Config, dependencies, runtime mitigations, secrets, auth, rate limits, CSP.
+- Tasks:
+  - Dependencies: `npm audit`; assess transitive criticals; pin or suppress with justification.
+  - Secrets: ensure `.env.*.example` complete; validate `backend/src/config/env.ts` required prod secrets; Docker secrets path usage; no secrets in repo.
+  - HTTP security: Helmet policies (consider CSP/report-only), CORS origin set to `env.FRONTEND_URL` only, cookies `httpOnly, secure, sameSite`, rate limits per route class.
+  - Auth: JWT issuer/audience/expiry; rotation logic via `AuthenticationFacade` verified; CSRF coverage for cookie flows.
+  - RBAC: verify `authorize` middleware on admin/metrics; ensure no public leaks.
+  - E2E security tests (Playwright) for auth flows; request smuggling/blocking edge tests.
+- Commands:
+  - `npm run security:scan`, `cd backend && npm run security:test`
+  - `npm run test:security` (root script wrapper) and `vitest run --config vitest.security.config.ts`
+- Artifacts:
+  - Security findings report with CVSS/severity, fix-by dates, owners.
+- Metrics:
+  - 0 Critical/High in production deps; CSP coverage enabled (or documented exception).
+  - AuthZ gaps = 0; rate limit policies enforced on public/abuse-prone endpoints.
+- Acceptance criteria:
+  - Signed-off security resolution report; CI job `ci:full` passes.
+
+**Phase 5 — Requirements Traceability (Week 2)**
+- Scope: Map documented requirements (docs/ARCHITECTURE.md, SECURITY_HARDENING_COMPLETE.md, README) to code/routes/tests.
+- Tasks:
+  - Create matrix: requirement → code module(s)/route(s) → test(s) → owner.
+  - Identify missing tests/specs or dead features.
+- Artifacts:
+  - Traceability matrix in MkDocs under `docs/audits/requirements-traceability.md`.
+- Metrics:
+  - 100% of priority-1/2 requirements mapped to tests.
+- Acceptance criteria:
+  - Gaps documented with issues created and owners assigned.
+
+**Phase 6 — Reporting & Dashboards (ongoing)**
+- Reports to generate:
+  - Test coverage: `npm run test:ci` and `npm run test:ci:coverage` → `test-results/coverage-results.json`; publish HTML coverage under `coverage-reports/`.
+  - Performance: `npm run test:performance:report` → `test-results/performance-results.json`; nightly `nightly-performance-YYYYMMDD.json`.
+  - Build metrics: `npm run build:metrics` → `build-metrics.json` (track times/sizes).
+  - Security: `npm run security:scan` → `security-reports/security-*.json`; dependency diff report per release.
+  - DB health/migrations: outputs from `npm run db:check` and `backend/db:validate` compiled into `reports/db-health.md`.
+  - E2E: Playwright reports (optionally Allure) from `backend`.
+- Dashboards:
+  - Local dev dashboard: `npm run monitoring:dashboard` (scripts/monitoring-dashboard-server.js) to visualize tests/perf/security trends.
+  - CI dashboards: publish coverage/perf/security artifacts; GitHub Checks summaries.
+  - API/Infra (Prod/Staging): Prometheus/Grafana panels using `prom-client`:
+    - API latency p50/p95/p99, error rate, RPS.
+    - DB connection pool usage, slow query count, transaction latency.
+    - Redis latency, cache hit ratio.
+    - Bull/BullMQ queue depth, processing latency, failure rate.
+  - Frontend: Lighthouse/Web Vitals dashboard per route; bundle analyzer HTML artifact.
+- Documentation:
+  - MkDocs section `docs/audits/` with master report, phase summaries, and traceability matrix.
+
+**Prioritization & Tracks**
+- Quick wins (same day):
+  - Fix any failing fast tests; ensure coverage ≥ 65%.
+  - Resolve mismatched script: root `analyze:bundle` calls a missing `frontend/analyze:bundle`; add ticket to implement Next bundle analyzer script or adjust root script.
+  - Verify CORS origin, Helmet defaults, and rate-limit set for public endpoints.
+  - Confirm `db:migrate` and `db:check` pass in CI.
+- Short sprint (1–2 weeks):
+  - Close correctness gaps on critical endpoints; add negative-path tests.
+  - Establish performance baselines; add CI perf job (`ci:performance`) with thresholds.
+  - Enable CSP (report-only first) and finalize secret handling in prod via Docker secrets.
+  - Complete requirements traceability matrix; open issues for gaps.
+- Program (1–2 months):
+  - Systematic performance tuning (indexes, caching, queue backpressure).
+  - Expand security testing suite (fuzzing, SSRF/file upload hardening if present).
+  - Observability program (OTel optional packages, traces for hot paths).
+  - Flaky-test reduction < 0.5%, trend dashboards, SLOs formalized.
+
+**Acceptance Criteria Summary by Phase**
+- P0: Build/typecheck pass; coverage ≥ 65%; no High/Critical vulns; DB health OK.
+- P1: 0 untested critical endpoints; consistent error handling; Prisma drift 0.
+- P2: Lint/style/naming clean; shared utilities adopted; route groupings compliant.
+- P3: API p95 < 250 ms at 50 rps; DB/Redis/queue targets met; Next build ≤ 4 min; main bundle < 250KB gz.
+- P4: 0 High/Critical vulns; CSP configured or exception approved; AuthZ gaps = 0; rate limits enforced.
+- P5: 100% priority requirements mapped to tests; gaps ticketed.
+
+**Dependency Map (Envs/Services)**
+- Core:
+  - Node ≥ 18, npm ≥ 8.
+  - Postgres (env: `DATABASE_URL`, pool/timeouts).
+  - Redis (env: `REDIS_URL` or `REDIS_HOST/PORT/PASSWORD`).
+- Auth/Security:
+  - JWT (`JWT_SECRET`, `JWT_ISSUER`, `JWT_AUDIENCE`, `JWT_EXPIRES_IN`).
+  - Session (`SESSION_SECRET`, cookie settings).
+  - CSRF endpoints available; RBAC (`authorize`) configured for admin paths.
+- External (optional/feature-dependent):
+  - SMTP (`SMTP_*`), Email sender.
+  - Plex (`PLEX_CLIENT_ID/SECRET`, `PLEX_SERVER_URL`).
+  - YouTube (`YOUTUBE_API_KEY`), TMDB (`TMDB_API_KEY`).
+  - NextAuth (`NEXTAUTH_SECRET`) if used by frontend.
+  - OTel (optional deps) + collector/endpoint if enabled.
+- Frontend:
+  - Next.js 14 app; Tailwind; Vitest.
+- Testing/CI:
+  - Playwright browsers (backend); Docker if using `backend/test:setup`.
+  - k6 for load-testing.
+  - MkDocs to publish docs.
+- Secrets:
+  - Prefer Docker secrets in prod (`DOCKER_SECRETS_PATH`, `USE_DOCKER_SECRETS`).
+  - No secrets committed; `.env.*.example` complete.
+
+**Owners & Stakeholders**
+- Backend Lead: API/middleware/auth/DB/Redis/queues; Playwright tests.
+- Frontend Lead: Next build/bundle/perf/tests; accessibility/Lighthouse.
+- DevOps/SRE: CI pipelines, environments, monitoring, dashboards, Docker/compose.
+- Security: dep audits, secret policies, CSP/headers/threat modeling.
+- QA: test planning, flakiness tracking, e2e coverage.
+
+**Execution Checklist (concise)**
+- Correctness: `npm run test:ci && npm run test:integration`
+- Architecture: `npm run lint && npm run format` (dry output), manual spot checks per guidelines.
+- Performance: `npm run test:performance:all && npm run perf:build && npm run load-test:medium`
+- Security: `npm audit && npm run security:scan && cd backend && npm run security:test`
+- DB/Infra: `npm run db:migrate && npm run db:check && cd backend && npm run db:validate`
+- Reporting: `npm run test:ci:coverage && npm run test:performance:report && npm run build:metrics && npm run monitoring:dashboard`
+- Docs: Publish under `docs/audits/` via `npm run docs:build` and CI.
+
+Would you like me to turn this into a MkDocs audit section with stub pages and a set of CI jobs that publish the artifacts noted above?
+[2025-09-12T14:32:34] tokens used: 16693

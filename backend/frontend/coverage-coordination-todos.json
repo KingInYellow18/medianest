@@ -1,0 +1,72 @@
+[
+  {
+    "id": "coord-1",
+    "content": "Initialize coverage coordination and baseline assessment",
+    "status": "completed",
+    "priority": "high",
+    "agent": "coordinator"
+  },
+  {
+    "id": "coord-2", 
+    "content": "Fix ErrorBoundary test failures (48 failing tests)",
+    "status": "in_progress",
+    "priority": "critical",
+    "agent": "test-specialist"
+  },
+  {
+    "id": "coord-3",
+    "content": "Fix OptimizedServiceCard test failures",
+    "status": "in_progress", 
+    "priority": "high",
+    "agent": "component-test"
+  },
+  {
+    "id": "coord-4",
+    "content": "Add tests for OptimizedAppContext.tsx",
+    "status": "pending",
+    "priority": "high",
+    "agent": "integration"
+  },
+  {
+    "id": "coord-5",
+    "content": "Improve error handling test coverage",
+    "status": "pending",
+    "priority": "medium",
+    "agent": "test-specialist"
+  },
+  {
+    "id": "coord-6",
+    "content": "Add component interaction tests",
+    "status": "pending",
+    "priority": "medium",
+    "agent": "component-test"
+  },
+  {
+    "id": "coord-7",
+    "content": "Run continuous coverage monitoring",
+    "status": "in_progress",
+    "priority": "medium",
+    "agent": "coordinator"
+  },
+  {
+    "id": "coord-8",
+    "content": "Generate final coverage report when 80% achieved",
+    "status": "pending",
+    "priority": "high",
+    "agent": "coordinator"
+  },
+  {
+    "id": "coord-9",
+    "content": "Document coverage gaps and recommendations",
+    "status": "pending", 
+    "priority": "low",
+    "agent": "coordinator"
+  },
+  {
+    "id": "coord-10",
+    "content": "Store final results in swarm memory",
+    "status": "pending",
+    "priority": "high",
+    "agent": "coordinator"
+  }
+]
