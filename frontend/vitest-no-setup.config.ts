@@ -28,7 +28,7 @@ export default defineConfig({
     teardownTimeout: 3000,
     
     // Simple reporter
-    reporter: 'default',
+    reporters: ['default'],
     
     // Coverage disabled for speed
     coverage: {
