@@ -1,0 +1,572 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`OptimizedAppContext Snapshot Tests > Error Boundary Integration Snapshots > should match snapshot when provider is missing > app-context-missing-provider-error 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    data-testid="context-error"
+  >
+    Error: 
+    useApp must be used within an AppProvider
+  </div>
+</div>
+`;
+
+exports[`OptimizedAppContext Snapshot Tests > Individual Hook Snapshots > should match snapshot of UI component only > app-context-session-component-only 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    data-testid="session-display"
+  >
+    <div
+      data-testid="session-id"
+    >
+      isolated-session
+    </div>
+    <div
+      data-testid="session-auth"
+    >
+      Authenticated
+    </div>
+    <div
+      data-testid="session-expires"
+    >
+      2025-01-12T20:00:00.000Z
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedAppContext Snapshot Tests > Individual Hook Snapshots > should match snapshot of UI component only > app-context-ui-component-only 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    data-testid="ui-display"
+  >
+    <div
+      data-testid="ui-theme"
+    >
+      dark
+    </div>
+    <div
+      data-testid="ui-sidebar"
+    >
+      Open
+    </div>
+    <div
+      data-testid="ui-notifications-count"
+    >
+      1
+    </div>
+    <div
+      data-testid="ui-notifications"
+    >
+      <div
+        class="notification"
+        data-type="info"
+      >
+        <span
+          class="message"
+        >
+          Test notification
+        </span>
+        <span
+          class="timestamp"
+        >
+          2025-01-12T12:00:00.000Z
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedAppContext Snapshot Tests > Individual Hook Snapshots > should match snapshot of UI component only > app-context-user-component-only 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    data-testid="user-display"
+  >
+    <div
+      data-testid="user-id"
+    >
+      isolated-user
+    </div>
+    <div
+      data-testid="user-email"
+    >
+      isolated@test.com
+    </div>
+    <div
+      data-testid="user-name"
+    >
+      Isolated User
+    </div>
+    <div
+      data-testid="user-role"
+    >
+      user
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedAppContext Snapshot Tests > Initial State Snapshots > should match snapshot with partially filled initial state > app-context-custom-initial-state 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    data-testid="complete-app"
+  >
+    <div
+      data-testid="user-display"
+    >
+      <div
+        data-testid="user-id"
+      >
+        user-123
+      </div>
+      <div
+        data-testid="user-email"
+      >
+        test@example.com
+      </div>
+      <div
+        data-testid="user-name"
+      >
+        Test User
+      </div>
+      <div
+        data-testid="user-role"
+      >
+        admin
+      </div>
+    </div>
+    <div
+      data-testid="session-display"
+    >
+      <div
+        data-testid="session-id"
+      >
+        session-456
+      </div>
+      <div
+        data-testid="session-auth"
+      >
+        Authenticated
+      </div>
+      <div
+        data-testid="session-expires"
+      >
+        2025-01-12T18:00:00.000Z
+      </div>
+    </div>
+    <div
+      data-testid="ui-display"
+    >
+      <div
+        data-testid="ui-theme"
+      >
+        dark
+      </div>
+      <div
+        data-testid="ui-sidebar"
+      >
+        Open
+      </div>
+      <div
+        data-testid="ui-notifications-count"
+      >
+        0
+      </div>
+      <div
+        data-testid="ui-notifications"
+      />
+    </div>
+    <div
+      data-testid="actions-display"
+    >
+      <div
+        data-testid="is-authenticated"
+      >
+        Authenticated
+      </div>
+      <div
+        data-testid="has-notifications"
+      >
+        No Notifications
+      </div>
+      <div
+        class="action-buttons"
+      >
+        <button
+          data-testid="toggle-sidebar-btn"
+        >
+          Toggle Sidebar
+        </button>
+        <button
+          data-testid="add-notification-btn"
+        >
+          Add Notification
+        </button>
+        <button
+          data-testid="clear-notifications-btn"
+        >
+          Clear Notifications
+        </button>
+        <button
+          data-testid="logout-btn"
+        >
+          Logout
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedAppContext Snapshot Tests > Initial State Snapshots > should match snapshot with partially filled initial state > app-context-default-state 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    data-testid="complete-app"
+  >
+    <div
+      data-testid="user-display"
+    >
+      <div
+        data-testid="user-id"
+      >
+        No ID
+      </div>
+      <div
+        data-testid="user-email"
+      >
+        No Email
+      </div>
+      <div
+        data-testid="user-name"
+      >
+        No Name
+      </div>
+      <div
+        data-testid="user-role"
+      >
+        No Role
+      </div>
+    </div>
+    <div
+      data-testid="session-display"
+    >
+      <div
+        data-testid="session-id"
+      >
+        No Session ID
+      </div>
+      <div
+        data-testid="session-auth"
+      >
+        Not Authenticated
+      </div>
+      <div
+        data-testid="session-expires"
+      >
+        No Expiry
+      </div>
+    </div>
+    <div
+      data-testid="ui-display"
+    >
+      <div
+        data-testid="ui-theme"
+      >
+        system
+      </div>
+      <div
+        data-testid="ui-sidebar"
+      >
+        Closed
+      </div>
+      <div
+        data-testid="ui-notifications-count"
+      >
+        0
+      </div>
+      <div
+        data-testid="ui-notifications"
+      />
+    </div>
+    <div
+      data-testid="actions-display"
+    >
+      <div
+        data-testid="is-authenticated"
+      >
+        Not Authenticated
+      </div>
+      <div
+        data-testid="has-notifications"
+      >
+        No Notifications
+      </div>
+      <div
+        class="action-buttons"
+      >
+        <button
+          data-testid="toggle-sidebar-btn"
+        >
+          Toggle Sidebar
+        </button>
+        <button
+          data-testid="add-notification-btn"
+        >
+          Add Notification
+        </button>
+        <button
+          data-testid="clear-notifications-btn"
+        >
+          Clear Notifications
+        </button>
+        <button
+          data-testid="logout-btn"
+        >
+          Logout
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedAppContext Snapshot Tests > Interactive Action Snapshots > should match snapshot after clearing notifications > app-context-after-sidebar-toggle 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    data-testid="complete-app"
+  >
+    <div
+      data-testid="user-display"
+    >
+      <div
+        data-testid="user-id"
+      >
+        No ID
+      </div>
+      <div
+        data-testid="user-email"
+      >
+        No Email
+      </div>
+      <div
+        data-testid="user-name"
+      >
+        No Name
+      </div>
+      <div
+        data-testid="user-role"
+      >
+        No Role
+      </div>
+    </div>
+    <div
+      data-testid="session-display"
+    >
+      <div
+        data-testid="session-id"
+      >
+        No Session ID
+      </div>
+      <div
+        data-testid="session-auth"
+      >
+        Not Authenticated
+      </div>
+      <div
+        data-testid="session-expires"
+      >
+        No Expiry
+      </div>
+    </div>
+    <div
+      data-testid="ui-display"
+    >
+      <div
+        data-testid="ui-theme"
+      >
+        system
+      </div>
+      <div
+        data-testid="ui-sidebar"
+      >
+        Open
+      </div>
+      <div
+        data-testid="ui-notifications-count"
+      >
+        0
+      </div>
+      <div
+        data-testid="ui-notifications"
+      />
+    </div>
+    <div
+      data-testid="actions-display"
+    >
+      <div
+        data-testid="is-authenticated"
+      >
+        Not Authenticated
+      </div>
+      <div
+        data-testid="has-notifications"
+      >
+        No Notifications
+      </div>
+      <div
+        class="action-buttons"
+      >
+        <button
+          data-testid="toggle-sidebar-btn"
+        >
+          Toggle Sidebar
+        </button>
+        <button
+          data-testid="add-notification-btn"
+        >
+          Add Notification
+        </button>
+        <button
+          data-testid="clear-notifications-btn"
+        >
+          Clear Notifications
+        </button>
+        <button
+          data-testid="logout-btn"
+        >
+          Logout
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedAppContext Snapshot Tests > Session State Snapshots > should match snapshot with no session > app-context-no-session 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    data-testid="complete-app"
+  >
+    <div
+      data-testid="user-display"
+    >
+      <div
+        data-testid="user-id"
+      >
+        No ID
+      </div>
+      <div
+        data-testid="user-email"
+      >
+        No Email
+      </div>
+      <div
+        data-testid="user-name"
+      >
+        No Name
+      </div>
+      <div
+        data-testid="user-role"
+      >
+        No Role
+      </div>
+    </div>
+    <div
+      data-testid="session-display"
+    >
+      <div
+        data-testid="session-id"
+      >
+        No Session ID
+      </div>
+      <div
+        data-testid="session-auth"
+      >
+        Not Authenticated
+      </div>
+      <div
+        data-testid="session-expires"
+      >
+        No Expiry
+      </div>
+    </div>
+    <div
+      data-testid="ui-display"
+    >
+      <div
+        data-testid="ui-theme"
+      >
+        system
+      </div>
+      <div
+        data-testid="ui-sidebar"
+      >
+        Closed
+      </div>
+      <div
+        data-testid="ui-notifications-count"
+      >
+        0
+      </div>
+      <div
+        data-testid="ui-notifications"
+      />
+    </div>
+    <div
+      data-testid="actions-display"
+    >
+      <div
+        data-testid="is-authenticated"
+      >
+        Not Authenticated
+      </div>
+      <div
+        data-testid="has-notifications"
+      >
+        No Notifications
+      </div>
+      <div
+        class="action-buttons"
+      >
+        <button
+          data-testid="toggle-sidebar-btn"
+        >
+          Toggle Sidebar
+        </button>
+        <button
+          data-testid="add-notification-btn"
+        >
+          Add Notification
+        </button>
+        <button
+          data-testid="clear-notifications-btn"
+        >
+          Clear Notifications
+        </button>
+        <button
+          data-testid="logout-btn"
+        >
+          Logout
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;

@@ -1,0 +1,686 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`useOptimizedState Hook Snapshot Tests > Combined State Scenarios Snapshots > should match snapshot with complex interactions > combined-state-initial 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    data-testid="combined-state-component"
+  >
+    <div
+      class="counter-section"
+    >
+      <h3>
+        Counter State
+      </h3>
+      <div
+        data-testid="counter-value"
+      >
+        0
+      </div>
+      <button>
+        Increment
+      </button>
+    </div>
+    <div
+      class="text-section"
+    >
+      <h3>
+        Debounced Text
+      </h3>
+      <div
+        data-testid="immediate-text"
+      />
+      <div
+        data-testid="debounced-text"
+      />
+      <input
+        placeholder="Type here..."
+        value=""
+      />
+    </div>
+    <div
+      class="async-section"
+    >
+      <h3>
+        Async Data
+      </h3>
+      <div
+        data-testid="combined-async-data"
+      >
+        No data
+      </div>
+      <button>
+        Load Data
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`useOptimizedState Hook Snapshot Tests > Edge Cases and Error Conditions Snapshots > should match snapshot with very large delay > debounced-state-large-delay 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    data-testid="debounced-state-component"
+  >
+    <div
+      data-testid="immediate-value"
+    >
+      initial
+    </div>
+    <div
+      data-testid="debounced-value"
+    >
+      initial
+    </div>
+    <div
+      class="debounced-controls"
+    >
+      <input
+        data-testid="debounced-input"
+        placeholder="Type to test debouncing"
+        value="initial"
+      />
+      <button
+        data-testid="set-quick-btn"
+      >
+        Quick Change
+      </button>
+      <button
+        data-testid="set-long-text-btn"
+      >
+        Set Long Text
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`useOptimizedState Hook Snapshot Tests > Edge Cases and Error Conditions Snapshots > should match snapshot with zero delay debounced state > debounced-state-empty-string 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    data-testid="debounced-state-component"
+  >
+    <div
+      data-testid="immediate-value"
+    >
+      initial
+    </div>
+    <div
+      data-testid="debounced-value"
+    >
+      initial
+    </div>
+    <div
+      class="debounced-controls"
+    >
+      <input
+        data-testid="debounced-input"
+        placeholder="Type to test debouncing"
+        value="initial"
+      />
+      <button
+        data-testid="set-quick-btn"
+      >
+        Quick Change
+      </button>
+      <button
+        data-testid="set-long-text-btn"
+      >
+        Set Long Text
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`useOptimizedState Hook Snapshot Tests > Edge Cases and Error Conditions Snapshots > should match snapshot with zero delay debounced state > optimized-state-null-initial 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    data-testid="state-component"
+  >
+    <div
+      data-testid="state-value"
+    >
+      null
+    </div>
+    <div
+      data-testid="state-version"
+    >
+      0
+    </div>
+    <div
+      class="state-controls"
+    >
+      <button
+        data-testid="increment-btn"
+      >
+        Increment
+      </button>
+      <button
+        data-testid="set-object-btn"
+      >
+        Set Object
+      </button>
+      <button
+        data-testid="reset-btn"
+      >
+        Reset
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`useOptimizedState Hook Snapshot Tests > Edge Cases and Error Conditions Snapshots > should match snapshot with zero delay debounced state > optimized-state-undefined-initial 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    data-testid="state-component"
+  >
+    <div
+      data-testid="state-value"
+    />
+    <div
+      data-testid="state-version"
+    >
+      0
+    </div>
+    <div
+      class="state-controls"
+    >
+      <button
+        data-testid="increment-btn"
+      >
+        Increment
+      </button>
+      <button
+        data-testid="set-object-btn"
+      >
+        Set Object
+      </button>
+      <button
+        data-testid="reset-btn"
+      >
+        Reset
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`useOptimizedState Hook Snapshot Tests > Performance Optimization Snapshots > should match snapshot with state id optimization > optimized-state-rapid-updates 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    data-testid="state-component"
+  >
+    <div
+      data-testid="state-value"
+    >
+      10
+    </div>
+    <div
+      data-testid="state-version"
+    >
+      10
+    </div>
+    <div
+      class="state-controls"
+    >
+      <button
+        data-testid="increment-btn"
+      >
+        Increment
+      </button>
+      <button
+        data-testid="set-object-btn"
+      >
+        Set Object
+      </button>
+      <button
+        data-testid="reset-btn"
+      >
+        Reset
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`useOptimizedState Hook Snapshot Tests > Performance Optimization Snapshots > should match snapshot with state id optimization > optimized-state-with-id 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    data-testid="state-with-id"
+  >
+    <div
+      data-testid="state-id-value"
+    >
+      84
+    </div>
+    <button>
+      Double
+    </button>
+  </div>
+</div>
+`;
+
+exports[`useOptimizedState Hook Snapshot Tests > useAsyncState Snapshots > should match snapshot after reset from error > async-state-after-reset 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    data-testid="async-state-component"
+  >
+    <div
+      data-testid="async-data"
+    >
+      No data
+    </div>
+    <div
+      data-testid="async-loading"
+    >
+      Not loading
+    </div>
+    <div
+      data-testid="async-error"
+    >
+      No error
+    </div>
+    <div
+      class="async-controls"
+    >
+      <button
+        data-testid="execute-btn"
+      >
+        Execute
+      </button>
+      <button
+        data-testid="execute-failing-btn"
+      >
+        Execute Failing
+      </button>
+      <button
+        data-testid="reset-async-btn"
+      >
+        Reset
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`useOptimizedState Hook Snapshot Tests > useAsyncState Snapshots > should match snapshot with error state > async-state-initial 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    data-testid="async-state-component"
+  >
+    <div
+      data-testid="async-data"
+    >
+      No data
+    </div>
+    <div
+      data-testid="async-loading"
+    >
+      Not loading
+    </div>
+    <div
+      data-testid="async-error"
+    >
+      No error
+    </div>
+    <div
+      class="async-controls"
+    >
+      <button
+        data-testid="execute-btn"
+      >
+        Execute
+      </button>
+      <button
+        data-testid="execute-failing-btn"
+      >
+        Execute Failing
+      </button>
+      <button
+        data-testid="reset-async-btn"
+      >
+        Reset
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`useOptimizedState Hook Snapshot Tests > useDebouncedState Snapshots > should match snapshot with custom delay > debounced-state-custom-delay 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    data-testid="debounced-state-component"
+  >
+    <div
+      data-testid="immediate-value"
+    >
+      initial
+    </div>
+    <div
+      data-testid="debounced-value"
+    >
+      initial
+    </div>
+    <div
+      class="debounced-controls"
+    >
+      <input
+        data-testid="debounced-input"
+        placeholder="Type to test debouncing"
+        value="initial"
+      />
+      <button
+        data-testid="set-quick-btn"
+      >
+        Quick Change
+      </button>
+      <button
+        data-testid="set-long-text-btn"
+      >
+        Set Long Text
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`useOptimizedState Hook Snapshot Tests > useDebouncedState Snapshots > should match snapshot with custom delay > debounced-state-long-text 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    data-testid="debounced-state-component"
+  >
+    <div
+      data-testid="immediate-value"
+    >
+      This is a very long text value that tests how debounced state handles longer strings
+    </div>
+    <div
+      data-testid="debounced-value"
+    >
+      initial
+    </div>
+    <div
+      class="debounced-controls"
+    >
+      <input
+        data-testid="debounced-input"
+        placeholder="Type to test debouncing"
+        value="This is a very long text value that tests how debounced state handles longer strings"
+      />
+      <button
+        data-testid="set-quick-btn"
+      >
+        Quick Change
+      </button>
+      <button
+        data-testid="set-long-text-btn"
+      >
+        Set Long Text
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`useOptimizedState Hook Snapshot Tests > useDebouncedState Snapshots > should match snapshot with rapid changes > debounced-state-initial 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    data-testid="debounced-state-component"
+  >
+    <div
+      data-testid="immediate-value"
+    >
+      initial
+    </div>
+    <div
+      data-testid="debounced-value"
+    >
+      initial
+    </div>
+    <div
+      class="debounced-controls"
+    >
+      <input
+        data-testid="debounced-input"
+        placeholder="Type to test debouncing"
+        value="initial"
+      />
+      <button
+        data-testid="set-quick-btn"
+      >
+        Quick Change
+      </button>
+      <button
+        data-testid="set-long-text-btn"
+      >
+        Set Long Text
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`useOptimizedState Hook Snapshot Tests > useOptimizedState Snapshots > should match snapshot after reset > optimized-state-after-increment 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    data-testid="state-component"
+  >
+    <div
+      data-testid="state-value"
+    >
+      6
+    </div>
+    <div
+      data-testid="state-version"
+    >
+      1
+    </div>
+    <div
+      class="state-controls"
+    >
+      <button
+        data-testid="increment-btn"
+      >
+        Increment
+      </button>
+      <button
+        data-testid="set-object-btn"
+      >
+        Set Object
+      </button>
+      <button
+        data-testid="reset-btn"
+      >
+        Reset
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`useOptimizedState Hook Snapshot Tests > useOptimizedState Snapshots > should match snapshot with initial array value > optimized-state-initial-array 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    data-testid="state-component"
+  >
+    <div
+      data-testid="state-value"
+    >
+      [1,2,3,"four",{"five":5}]
+    </div>
+    <div
+      data-testid="state-version"
+    >
+      0
+    </div>
+    <div
+      class="state-controls"
+    >
+      <button
+        data-testid="increment-btn"
+      >
+        Increment
+      </button>
+      <button
+        data-testid="set-object-btn"
+      >
+        Set Object
+      </button>
+      <button
+        data-testid="reset-btn"
+      >
+        Reset
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`useOptimizedState Hook Snapshot Tests > useOptimizedState Snapshots > should match snapshot with initial array value > optimized-state-initial-number 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    data-testid="state-component"
+  >
+    <div
+      data-testid="state-value"
+    >
+      0
+    </div>
+    <div
+      data-testid="state-version"
+    >
+      0
+    </div>
+    <div
+      class="state-controls"
+    >
+      <button
+        data-testid="increment-btn"
+      >
+        Increment
+      </button>
+      <button
+        data-testid="set-object-btn"
+      >
+        Set Object
+      </button>
+      <button
+        data-testid="reset-btn"
+      >
+        Reset
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`useOptimizedState Hook Snapshot Tests > useOptimizedState Snapshots > should match snapshot with initial array value > optimized-state-initial-object 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    data-testid="state-component"
+  >
+    <div
+      data-testid="state-value"
+    >
+      {"name":"Test Object","value":42,"nested":{"deep":true}}
+    </div>
+    <div
+      data-testid="state-version"
+    >
+      0
+    </div>
+    <div
+      class="state-controls"
+    >
+      <button
+        data-testid="increment-btn"
+      >
+        Increment
+      </button>
+      <button
+        data-testid="set-object-btn"
+      >
+        Set Object
+      </button>
+      <button
+        data-testid="reset-btn"
+      >
+        Reset
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`useOptimizedState Hook Snapshot Tests > useOptimizedState Snapshots > should match snapshot with initial array value > optimized-state-initial-string 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    data-testid="state-component"
+  >
+    <div
+      data-testid="state-value"
+    >
+      "initial string"
+    </div>
+    <div
+      data-testid="state-version"
+    >
+      0
+    </div>
+    <div
+      class="state-controls"
+    >
+      <button
+        data-testid="increment-btn"
+      >
+        Increment
+      </button>
+      <button
+        data-testid="set-object-btn"
+      >
+        Set Object
+      </button>
+      <button
+        data-testid="reset-btn"
+      >
+        Reset
+      </button>
+    </div>
+  </div>
+</div>
+`;
