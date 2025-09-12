@@ -1,0 +1,477 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ErrorBoundary Snapshot Tests > Accessibility State Snapshots > should match snapshot with proper ARIA attributes in error state > error-boundary-accessibility-error 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-live="assertive"
+    class="error-boundary"
+    role="alert"
+  >
+    <h2>
+      Something went wrong
+    </h2>
+    <details>
+      <summary>
+        Error Details
+      </summary>
+      <pre>
+        Accessibility error test
+      </pre>
+      <pre>
+        
+    in MockComponent
+      </pre>
+    </details>
+    <button
+      aria-label="Retry rendering component"
+      type="button"
+    >
+      Try again
+    </button>
+  </div>
+</div>
+`;
+
+exports[`ErrorBoundary Snapshot Tests > Custom Fallback Snapshots > should match snapshot with rich custom fallback with error details > error-boundary-custom-fallback 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    class="custom-error-fallback"
+  >
+    <h2>
+      Oops! Something went wrong
+    </h2>
+    <div
+      class="error-message"
+    >
+      <strong>
+        Error:
+      </strong>
+       
+      Custom fallback error
+    </div>
+    <div
+      class="error-actions"
+    >
+      <button
+        class="btn-primary"
+      >
+        Report Issue
+      </button>
+      <button
+        class="btn-secondary"
+      >
+        Go Home
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ErrorBoundary Snapshot Tests > Custom Fallback Snapshots > should match snapshot with rich custom fallback with error details > error-boundary-minimal-fallback 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    class="minimal-error"
+  >
+    ⚠️ Error occurred
+  </div>
+</div>
+`;
+
+exports[`ErrorBoundary Snapshot Tests > Custom Fallback Snapshots > should match snapshot with rich custom fallback with error details > error-boundary-rich-fallback 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    class="rich-error-fallback"
+  >
+    <div
+      class="error-header"
+    >
+      <svg
+        fill="currentColor"
+        height="24"
+        viewBox="0 0 24 24"
+        width="24"
+      >
+        <path
+          d="M12 2L2 7v10c0 5.55 3.84 9.95 9 11 5.16-1.05 9-5.45 9-11V7l-10-5z"
+        />
+      </svg>
+      <h2>
+        Application Error
+      </h2>
+    </div>
+    <div
+      class="error-content"
+    >
+      <div
+        class="error-summary"
+      >
+        <h3>
+          What happened?
+        </h3>
+        <p>
+          Rich fallback error with details
+        </p>
+      </div>
+      <details
+        class="error-details"
+      >
+        <summary>
+          Technical Details
+        </summary>
+        <pre
+          class="error-stack"
+        >
+          Component Stack: 
+          
+    in MockComponent
+        </pre>
+      </details>
+      <div
+        class="error-actions"
+      >
+        <button
+          class="btn-retry"
+        >
+          Try Again
+        </button>
+        <button
+          class="btn-report"
+        >
+          Report Bug
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ErrorBoundary Snapshot Tests > Edge Case Snapshots > should match snapshot with mixed content types > error-boundary-boolean-children 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <span>
+    Mixed content
+  </span>
+</div>
+`;
+
+exports[`ErrorBoundary Snapshot Tests > Edge Case Snapshots > should match snapshot with mixed content types > error-boundary-mixed-content 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  Text content
+  123
+  <div>
+    Element content
+  </div>
+  Array
+  content
+</div>
+`;
+
+exports[`ErrorBoundary Snapshot Tests > Edge Case Snapshots > should match snapshot with mixed content types > error-boundary-null-children 1`] = `
+<div
+  data-testid="test-wrapper"
+/>
+`;
+
+exports[`ErrorBoundary Snapshot Tests > Edge Case Snapshots > should match snapshot with mixed content types > error-boundary-undefined-children 1`] = `
+<div
+  data-testid="test-wrapper"
+/>
+`;
+
+exports[`ErrorBoundary Snapshot Tests > HOC Snapshots > should match snapshot of HOC with simulated error state > error-boundary-hoc-error 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-live="assertive"
+    class="error-boundary"
+    role="alert"
+  >
+    <h2>
+      Something went wrong
+    </h2>
+    <details>
+      <summary>
+        Error Details
+      </summary>
+      <pre>
+        HOC wrapped component error
+      </pre>
+      <pre>
+        
+    in MockComponent
+      </pre>
+    </details>
+    <button
+      aria-label="Retry rendering component"
+      type="button"
+    >
+      Try again
+    </button>
+  </div>
+</div>
+`;
+
+exports[`ErrorBoundary Snapshot Tests > HOC Snapshots > should match snapshot of HOC with simulated error state > error-boundary-hoc-normal 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    class="test-component"
+  >
+    <h1>
+      HOC Test Component
+    </h1>
+    <p>
+      This component is wrapped with error boundary.
+    </p>
+  </div>
+</div>
+`;
+
+exports[`ErrorBoundary Snapshot Tests > Normal State Snapshots > should match snapshot with empty children > error-boundary-normal-complex-nested 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    class="app-container"
+  >
+    <nav>
+      <ul>
+        <li>
+          <a
+            href="#home"
+          >
+            Home
+          </a>
+        </li>
+        <li>
+          <a
+            href="#about"
+          >
+            About
+          </a>
+        </li>
+      </ul>
+    </nav>
+    <section>
+      <h1>
+        Main Content
+      </h1>
+      <p>
+        This is a complex nested structure for testing.
+      </p>
+    </section>
+  </div>
+</div>
+`;
+
+exports[`ErrorBoundary Snapshot Tests > Normal State Snapshots > should match snapshot with empty children > error-boundary-normal-empty 1`] = `
+<div
+  data-testid="test-wrapper"
+/>
+`;
+
+exports[`ErrorBoundary Snapshot Tests > Normal State Snapshots > should match snapshot with empty children > error-boundary-normal-multiple-children 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <header>
+    Header content
+  </header>
+  <main>
+    Main content
+  </main>
+  <footer>
+    Footer content
+  </footer>
+</div>
+`;
+
+exports[`ErrorBoundary Snapshot Tests > Normal State Snapshots > should match snapshot with empty children > error-boundary-normal-single-child 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    data-testid="child"
+  >
+    Normal content
+  </div>
+</div>
+`;
+
+exports[`ErrorBoundary Snapshot Tests > Real Error Boundary Integration Snapshots > should match snapshot with error boundary and custom props > error-boundary-real-safe-content 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    data-testid="safe-content"
+  >
+    <h1>
+      This content is safe
+    </h1>
+    <p>
+      No errors will be thrown here.
+    </p>
+  </div>
+</div>
+`;
+
+exports[`ErrorBoundary Snapshot Tests > Real Error Boundary Integration Snapshots > should match snapshot with error boundary and custom props > error-boundary-real-with-props 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    class="integration-content"
+  >
+    <span>
+      Integration test content
+    </span>
+  </div>
+</div>
+`;
+
+exports[`ErrorBoundary Snapshot Tests > Simulated Error State Snapshots > should match snapshot with empty error message > error-boundary-error-basic 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-live="assertive"
+    class="error-boundary"
+    role="alert"
+  >
+    <h2>
+      Something went wrong
+    </h2>
+    <details>
+      <summary>
+        Error Details
+      </summary>
+      <pre>
+        Basic error for snapshot testing
+      </pre>
+      <pre>
+        
+    in MockComponent
+      </pre>
+    </details>
+    <button
+      aria-label="Retry rendering component"
+      type="button"
+    >
+      Try again
+    </button>
+  </div>
+</div>
+`;
+
+exports[`ErrorBoundary Snapshot Tests > Simulated Error State Snapshots > should match snapshot with empty error message > error-boundary-error-empty-message 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-live="assertive"
+    class="error-boundary"
+    role="alert"
+  >
+    <h2>
+      Something went wrong
+    </h2>
+    <details>
+      <summary>
+        Error Details
+      </summary>
+      <pre />
+      <pre>
+        
+    in MockComponent
+      </pre>
+    </details>
+    <button
+      aria-label="Retry rendering component"
+      type="button"
+    >
+      Try again
+    </button>
+  </div>
+</div>
+`;
+
+exports[`ErrorBoundary Snapshot Tests > Simulated Error State Snapshots > should match snapshot with empty error message > error-boundary-error-long-message 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-live="assertive"
+    class="error-boundary"
+    role="alert"
+  >
+    <h2>
+      Something went wrong
+    </h2>
+    <details>
+      <summary>
+        Error Details
+      </summary>
+      <pre>
+        This is a very long error message that should test how the error boundary handles text overflow and wrapping. This is a very long error message that should test how the error boundary handles text overflow and wrapping. This is a very long error message that should test how the error boundary handles text overflow and wrapping. This is a very long error message that should test how the error boundary handles text overflow and wrapping. This is a very long error message that should test how the error boundary handles text overflow and wrapping. This is a very long error message that should test how the error boundary handles text overflow and wrapping. This is a very long error message that should test how the error boundary handles text overflow and wrapping. This is a very long error message that should test how the error boundary handles text overflow and wrapping. This is a very long error message that should test how the error boundary handles text overflow and wrapping. This is a very long error message that should test how the error boundary handles text overflow and wrapping. 
+      </pre>
+      <pre>
+        
+    in MockComponent
+      </pre>
+    </details>
+    <button
+      aria-label="Retry rendering component"
+      type="button"
+    >
+      Try again
+    </button>
+  </div>
+</div>
+`;
+
+exports[`ErrorBoundary Snapshot Tests > Simulated Error State Snapshots > should match snapshot with empty error message > error-boundary-error-special-chars 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-live="assertive"
+    class="error-boundary"
+    role="alert"
+  >
+    <h2>
+      Something went wrong
+    </h2>
+    <details>
+      <summary>
+        Error Details
+      </summary>
+      <pre>
+        Error with &lt;script&gt;alert("xss")&lt;/script&gt; & special chars 日本語
+      </pre>
+      <pre>
+        
+    in MockComponent
+      </pre>
+    </details>
+    <button
+      aria-label="Retry rendering component"
+      type="button"
+    >
+      Try again
+    </button>
+  </div>
+</div>
+`;

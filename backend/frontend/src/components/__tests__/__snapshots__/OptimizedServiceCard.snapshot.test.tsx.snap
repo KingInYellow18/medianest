@@ -1,0 +1,2918 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`OptimizedServiceCard Snapshot Tests > Accessibility State Snapshots > should match snapshot with minimal accessibility > service-card-accessibility-complete 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-32"
+    aria-labelledby="service-name-test-service-32"
+    class="service-card status-error"
+    data-testid="service-card-test-service-32"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-32"
+      >
+        Test Service
+      </h3>
+      <span
+        aria-label="Service status: error"
+        class="status-badge"
+        style="background-color: rgb(239, 68, 68); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        error
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-32"
+    >
+      <div
+        aria-label="Service metrics"
+        class="service-metrics"
+        role="group"
+      >
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Uptime:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="uptime"
+          >
+            85
+            %
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Errors:
+          </span>
+          <span
+            aria-label="5 errors recorded"
+            class="metric-value"
+            data-testid="error-count"
+          >
+            5
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Last checked:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="last-checked"
+          >
+            2h ago
+          </span>
+        </div>
+      </div>
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Activate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+        >
+          Activate
+        </button>
+        <button
+          aria-label="Retry service connection"
+          class="action-btn retry-btn"
+          data-testid="retry-btn"
+        >
+          Retry
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Accessibility State Snapshots > should match snapshot with minimal accessibility > service-card-accessibility-minimal 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-33"
+    aria-labelledby="service-name-test-service-33"
+    class="service-card status-maintenance"
+    data-testid="service-card-test-service-33"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-33"
+      >
+        Test Service
+      </h3>
+      <span
+        aria-label="Service status: maintenance"
+        class="status-badge"
+        style="background-color: rgb(245, 158, 11); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        maintenance
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-33"
+    >
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Activate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+          disabled=""
+        >
+          Activate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Basic Service Card Snapshots > should match snapshot with maintenance service - minimal props > service-card-active-minimal 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-1"
+    aria-labelledby="service-name-test-service-1"
+    class="service-card status-active"
+    data-testid="service-card-test-service-1"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-1"
+      >
+        Test Service
+      </h3>
+      <span
+        aria-label="Service status: active"
+        class="status-badge"
+        style="background-color: rgb(16, 185, 129); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        active
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-1"
+    >
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Deactivate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+          disabled=""
+        >
+          Deactivate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Basic Service Card Snapshots > should match snapshot with maintenance service - minimal props > service-card-error-minimal 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-3"
+    aria-labelledby="service-name-test-service-3"
+    class="service-card status-error"
+    data-testid="service-card-test-service-3"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-3"
+      >
+        Test Service
+      </h3>
+      <span
+        aria-label="Service status: error"
+        class="status-badge"
+        style="background-color: rgb(239, 68, 68); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        error
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-3"
+    >
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Activate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+          disabled=""
+        >
+          Activate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Basic Service Card Snapshots > should match snapshot with maintenance service - minimal props > service-card-inactive-minimal 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-2"
+    aria-labelledby="service-name-test-service-2"
+    class="service-card status-inactive"
+    data-testid="service-card-test-service-2"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-2"
+      >
+        Test Service
+      </h3>
+      <span
+        aria-label="Service status: inactive"
+        class="status-badge"
+        style="background-color: rgb(107, 114, 128); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        inactive
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-2"
+    >
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Activate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+          disabled=""
+        >
+          Activate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Basic Service Card Snapshots > should match snapshot with maintenance service - minimal props > service-card-maintenance-minimal 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-4"
+    aria-labelledby="service-name-test-service-4"
+    class="service-card status-maintenance"
+    data-testid="service-card-test-service-4"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-4"
+      >
+        Test Service
+      </h3>
+      <span
+        aria-label="Service status: maintenance"
+        class="status-badge"
+        style="background-color: rgb(245, 158, 11); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        maintenance
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-4"
+    >
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Activate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+          disabled=""
+        >
+          Activate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Lazy Service Card HOC Snapshots > should match snapshot with complex lazy service card > lazy-service-card-complex 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-28"
+    aria-labelledby="service-name-test-service-28"
+    class="service-card status-error"
+    data-testid="service-card-test-service-28"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-28"
+      >
+        Test Service
+      </h3>
+      <span
+        aria-label="Service status: error"
+        class="status-badge"
+        style="background-color: rgb(239, 68, 68); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        error
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-28"
+    >
+      <div
+        aria-label="Service metrics"
+        class="service-metrics"
+        role="group"
+      >
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Uptime:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="uptime"
+          >
+            85
+            %
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Errors:
+          </span>
+          <span
+            aria-label="5 errors recorded"
+            class="metric-value"
+            data-testid="error-count"
+          >
+            5
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Last checked:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="last-checked"
+          >
+            2h ago
+          </span>
+        </div>
+      </div>
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Activate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+        >
+          Activate
+        </button>
+        <button
+          aria-label="Retry service connection"
+          class="action-btn retry-btn"
+          data-testid="retry-btn"
+        >
+          Retry
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Lazy Service Card HOC Snapshots > should match snapshot with complex lazy service card > lazy-service-card-loaded 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-27"
+    aria-labelledby="service-name-test-service-27"
+    class="service-card status-active"
+    data-testid="service-card-test-service-27"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-27"
+      >
+        Test Service
+      </h3>
+      <span
+        aria-label="Service status: active"
+        class="status-badge"
+        style="background-color: rgb(16, 185, 129); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        active
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-27"
+    >
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Deactivate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+          disabled=""
+        >
+          Deactivate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Lazy Service Card HOC Snapshots > should match snapshot with complex lazy service card > lazy-service-card-loading 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-label="Loading service information"
+    class="service-card skeleton"
+    data-testid="service-card-skeleton"
+  >
+    <div
+      class="skeleton-header"
+    >
+      <div
+        class="skeleton-title"
+      />
+      <div
+        class="skeleton-badge"
+      />
+    </div>
+    <div
+      class="skeleton-body"
+    >
+      <div
+        class="skeleton-metrics"
+      />
+      <div
+        class="skeleton-actions"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Responsive Design Snapshots > should match snapshot with desktop viewport > service-card-desktop 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-31"
+    aria-labelledby="service-name-test-service-31"
+    class="service-card status-active desktop-optimized"
+    data-testid="service-card-test-service-31"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-31"
+      >
+        Desktop Optimized Service
+      </h3>
+      <span
+        aria-label="Service status: active"
+        class="status-badge"
+        style="background-color: rgb(16, 185, 129); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        active
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-31"
+    >
+      <div
+        aria-label="Service metrics"
+        class="service-metrics"
+        role="group"
+      >
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Uptime:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="uptime"
+          >
+            99.5
+            %
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Response:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="response-time"
+          >
+            150
+            ms
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Errors:
+          </span>
+          <span
+            aria-label="2 errors recorded"
+            class="metric-value"
+            data-testid="error-count"
+          >
+            2
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Last checked:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="last-checked"
+          >
+            2h ago
+          </span>
+        </div>
+      </div>
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Deactivate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+        >
+          Deactivate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Responsive Design Snapshots > should match snapshot with desktop viewport > service-card-mobile 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-29"
+    aria-labelledby="service-name-test-service-29"
+    class="service-card status-active"
+    data-testid="service-card-test-service-29"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-29"
+      >
+        Test Service
+      </h3>
+      <span
+        aria-label="Service status: active"
+        class="status-badge"
+        style="background-color: rgb(16, 185, 129); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        active
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-29"
+    >
+      <div
+        aria-label="Service metrics"
+        class="service-metrics"
+        role="group"
+      >
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Uptime:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="uptime"
+          >
+            99.5
+            %
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Response:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="response-time"
+          >
+            150
+            ms
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Errors:
+          </span>
+          <span
+            aria-label="2 errors recorded"
+            class="metric-value"
+            data-testid="error-count"
+          >
+            2
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Last checked:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="last-checked"
+          >
+            2h ago
+          </span>
+        </div>
+      </div>
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Deactivate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+        >
+          Deactivate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Responsive Design Snapshots > should match snapshot with desktop viewport > service-card-tablet 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-30"
+    aria-labelledby="service-name-test-service-30"
+    class="service-card status-error"
+    data-testid="service-card-test-service-30"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-30"
+      >
+        Test Service
+      </h3>
+      <span
+        aria-label="Service status: error"
+        class="status-badge"
+        style="background-color: rgb(239, 68, 68); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        error
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-30"
+    >
+      <div
+        aria-label="Service metrics"
+        class="service-metrics"
+        role="group"
+      >
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Uptime:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="uptime"
+          >
+            85
+            %
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Errors:
+          </span>
+          <span
+            aria-label="5 errors recorded"
+            class="metric-value"
+            data-testid="error-count"
+          >
+            5
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Last checked:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="last-checked"
+          >
+            2h ago
+          </span>
+        </div>
+      </div>
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Activate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+          disabled=""
+        >
+          Activate
+        </button>
+        <button
+          aria-label="Retry service connection"
+          class="action-btn retry-btn"
+          data-testid="retry-btn"
+        >
+          Retry
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Service Card Edge Cases Snapshots > should match snapshot with extreme values > service-card-extreme-values 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-20"
+    aria-labelledby="service-name-test-service-20"
+    class="service-card status-error"
+    data-testid="service-card-test-service-20"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-20"
+      >
+        Extreme Values Service
+      </h3>
+      <span
+        aria-label="Service status: error"
+        class="status-badge"
+        style="background-color: rgb(239, 68, 68); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        error
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-20"
+    >
+      <div
+        aria-label="Service metrics"
+        class="service-metrics"
+        role="group"
+      >
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Uptime:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="uptime"
+          >
+            100
+            %
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Response:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="response-time"
+          >
+            999999
+            ms
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Errors:
+          </span>
+          <span
+            aria-label="999999 errors recorded"
+            class="metric-value"
+            data-testid="error-count"
+          >
+            999999
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Last checked:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="last-checked"
+          >
+            2h ago
+          </span>
+        </div>
+      </div>
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Activate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+          disabled=""
+        >
+          Activate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Service Card Edge Cases Snapshots > should match snapshot with extreme values > service-card-long-name 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-17"
+    aria-labelledby="service-name-test-service-17"
+    class="service-card status-active"
+    data-testid="service-card-test-service-17"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-17"
+      >
+        This is an extremely long service name that might cause layout issues and text overflow problems in the user interface
+      </h3>
+      <span
+        aria-label="Service status: active"
+        class="status-badge"
+        style="background-color: rgb(16, 185, 129); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        active
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-17"
+    >
+      <div
+        aria-label="Service metrics"
+        class="service-metrics"
+        role="group"
+      >
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Uptime:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="uptime"
+          >
+            99.5
+            %
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Response:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="response-time"
+          >
+            150
+            ms
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Errors:
+          </span>
+          <span
+            aria-label="2 errors recorded"
+            class="metric-value"
+            data-testid="error-count"
+          >
+            2
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Last checked:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="last-checked"
+          >
+            2h ago
+          </span>
+        </div>
+      </div>
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Deactivate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+          disabled=""
+        >
+          Deactivate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Service Card Edge Cases Snapshots > should match snapshot with extreme values > service-card-special-chars 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-18"
+    aria-labelledby="service-name-test-service-18"
+    class="service-card status-active"
+    data-testid="service-card-test-service-18"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-18"
+      >
+        Service &lt;&gt;&"'\` 🚀 API 日本語 العربية
+      </h3>
+      <span
+        aria-label="Service status: active"
+        class="status-badge"
+        style="background-color: rgb(16, 185, 129); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        active
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-18"
+    >
+      <div
+        aria-label="Service metrics"
+        class="service-metrics"
+        role="group"
+      >
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Uptime:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="uptime"
+          >
+            99.5
+            %
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Response:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="response-time"
+          >
+            150
+            ms
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Errors:
+          </span>
+          <span
+            aria-label="2 errors recorded"
+            class="metric-value"
+            data-testid="error-count"
+          >
+            2
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Last checked:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="last-checked"
+          >
+            2h ago
+          </span>
+        </div>
+      </div>
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Deactivate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+          disabled=""
+        >
+          Deactivate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Service Card Edge Cases Snapshots > should match snapshot with extreme values > service-card-zero-values 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-19"
+    aria-labelledby="service-name-test-service-19"
+    class="service-card status-inactive"
+    data-testid="service-card-test-service-19"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-19"
+      >
+        Test Service
+      </h3>
+      <span
+        aria-label="Service status: inactive"
+        class="status-badge"
+        style="background-color: rgb(107, 114, 128); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        inactive
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-19"
+    >
+      <div
+        aria-label="Service metrics"
+        class="service-metrics"
+        role="group"
+      >
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Uptime:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="uptime"
+          >
+            0
+            %
+          </span>
+        </div>
+        0
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Errors:
+          </span>
+          <span
+            aria-label="0 errors recorded"
+            class="metric-value"
+            data-testid="error-count"
+          >
+            0
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Last checked:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="last-checked"
+          >
+            2h ago
+          </span>
+        </div>
+      </div>
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Activate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+          disabled=""
+        >
+          Activate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Service Card Edge Cases Snapshots > should match snapshot with undefined response time > service-card-undefined-response-time 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-21"
+    aria-labelledby="service-name-test-service-21"
+    class="service-card status-maintenance"
+    data-testid="service-card-test-service-21"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-21"
+      >
+        Test Service
+      </h3>
+      <span
+        aria-label="Service status: maintenance"
+        class="status-badge"
+        style="background-color: rgb(245, 158, 11); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        maintenance
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-21"
+    >
+      <div
+        aria-label="Service metrics"
+        class="service-metrics"
+        role="group"
+      >
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Uptime:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="uptime"
+          >
+            99.5
+            %
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Errors:
+          </span>
+          <span
+            aria-label="2 errors recorded"
+            class="metric-value"
+            data-testid="error-count"
+          >
+            2
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Last checked:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="last-checked"
+          >
+            2h ago
+          </span>
+        </div>
+      </div>
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Activate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+          disabled=""
+        >
+          Activate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Service Card Time Format Snapshots > should match snapshot with days ago timestamp > service-card-days-ago 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-25"
+    aria-labelledby="service-name-test-service-25"
+    class="service-card status-active"
+    data-testid="service-card-test-service-25"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-25"
+      >
+        Test Service
+      </h3>
+      <span
+        aria-label="Service status: active"
+        class="status-badge"
+        style="background-color: rgb(16, 185, 129); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        active
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-25"
+    >
+      <div
+        aria-label="Service metrics"
+        class="service-metrics"
+        role="group"
+      >
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Uptime:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="uptime"
+          >
+            99.5
+            %
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Response:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="response-time"
+          >
+            150
+            ms
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Errors:
+          </span>
+          <span
+            aria-label="2 errors recorded"
+            class="metric-value"
+            data-testid="error-count"
+          >
+            2
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Last checked:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="last-checked"
+          >
+            2d ago
+          </span>
+        </div>
+      </div>
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Deactivate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+          disabled=""
+        >
+          Deactivate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Service Card Time Format Snapshots > should match snapshot with days ago timestamp > service-card-hours-ago 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-24"
+    aria-labelledby="service-name-test-service-24"
+    class="service-card status-active"
+    data-testid="service-card-test-service-24"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-24"
+      >
+        Test Service
+      </h3>
+      <span
+        aria-label="Service status: active"
+        class="status-badge"
+        style="background-color: rgb(16, 185, 129); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        active
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-24"
+    >
+      <div
+        aria-label="Service metrics"
+        class="service-metrics"
+        role="group"
+      >
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Uptime:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="uptime"
+          >
+            99.5
+            %
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Response:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="response-time"
+          >
+            150
+            ms
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Errors:
+          </span>
+          <span
+            aria-label="2 errors recorded"
+            class="metric-value"
+            data-testid="error-count"
+          >
+            2
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Last checked:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="last-checked"
+          >
+            4h ago
+          </span>
+        </div>
+      </div>
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Deactivate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+          disabled=""
+        >
+          Deactivate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Service Card Time Format Snapshots > should match snapshot with days ago timestamp > service-card-just-now 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-22"
+    aria-labelledby="service-name-test-service-22"
+    class="service-card status-active"
+    data-testid="service-card-test-service-22"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-22"
+      >
+        Test Service
+      </h3>
+      <span
+        aria-label="Service status: active"
+        class="status-badge"
+        style="background-color: rgb(16, 185, 129); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        active
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-22"
+    >
+      <div
+        aria-label="Service metrics"
+        class="service-metrics"
+        role="group"
+      >
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Uptime:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="uptime"
+          >
+            99.5
+            %
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Response:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="response-time"
+          >
+            150
+            ms
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Errors:
+          </span>
+          <span
+            aria-label="2 errors recorded"
+            class="metric-value"
+            data-testid="error-count"
+          >
+            2
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Last checked:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="last-checked"
+          >
+            Just now
+          </span>
+        </div>
+      </div>
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Deactivate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+          disabled=""
+        >
+          Deactivate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Service Card Time Format Snapshots > should match snapshot with days ago timestamp > service-card-minutes-ago 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-23"
+    aria-labelledby="service-name-test-service-23"
+    class="service-card status-active"
+    data-testid="service-card-test-service-23"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-23"
+      >
+        Test Service
+      </h3>
+      <span
+        aria-label="Service status: active"
+        class="status-badge"
+        style="background-color: rgb(16, 185, 129); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        active
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-23"
+    >
+      <div
+        aria-label="Service metrics"
+        class="service-metrics"
+        role="group"
+      >
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Uptime:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="uptime"
+          >
+            99.5
+            %
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Response:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="response-time"
+          >
+            150
+            ms
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Errors:
+          </span>
+          <span
+            aria-label="2 errors recorded"
+            class="metric-value"
+            data-testid="error-count"
+          >
+            2
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Last checked:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="last-checked"
+          >
+            15m ago
+          </span>
+        </div>
+      </div>
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Deactivate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+          disabled=""
+        >
+          Deactivate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Service Card with Actions Snapshots > should match snapshot with disabled actions > service-card-disabled-actions 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-12"
+    aria-labelledby="service-name-test-service-12"
+    class="service-card status-active"
+    data-testid="service-card-test-service-12"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-12"
+      >
+        Test Service
+      </h3>
+      <span
+        aria-label="Service status: active"
+        class="status-badge"
+        style="background-color: rgb(16, 185, 129); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        active
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-12"
+    >
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Deactivate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+          disabled=""
+        >
+          Deactivate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Service Card with Actions Snapshots > should match snapshot with disabled actions > service-card-with-both-actions 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-11"
+    aria-labelledby="service-name-test-service-11"
+    class="service-card status-error"
+    data-testid="service-card-test-service-11"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-11"
+      >
+        Test Service
+      </h3>
+      <span
+        aria-label="Service status: error"
+        class="status-badge"
+        style="background-color: rgb(239, 68, 68); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        error
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-11"
+    >
+      <div
+        aria-label="Service metrics"
+        class="service-metrics"
+        role="group"
+      >
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Uptime:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="uptime"
+          >
+            85
+            %
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Errors:
+          </span>
+          <span
+            aria-label="5 errors recorded"
+            class="metric-value"
+            data-testid="error-count"
+          >
+            5
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Last checked:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="last-checked"
+          >
+            2h ago
+          </span>
+        </div>
+      </div>
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Activate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+        >
+          Activate
+        </button>
+        <button
+          aria-label="Retry service connection"
+          class="action-btn retry-btn"
+          data-testid="retry-btn"
+        >
+          Retry
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Service Card with Actions Snapshots > should match snapshot with disabled actions > service-card-with-retry-action 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-10"
+    aria-labelledby="service-name-test-service-10"
+    class="service-card status-error"
+    data-testid="service-card-test-service-10"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-10"
+      >
+        Test Service
+      </h3>
+      <span
+        aria-label="Service status: error"
+        class="status-badge"
+        style="background-color: rgb(239, 68, 68); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        error
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-10"
+    >
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Activate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+          disabled=""
+        >
+          Activate
+        </button>
+        <button
+          aria-label="Retry service connection"
+          class="action-btn retry-btn"
+          data-testid="retry-btn"
+        >
+          Retry
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Service Card with Actions Snapshots > should match snapshot with disabled actions > service-card-with-toggle-action 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-9"
+    aria-labelledby="service-name-test-service-9"
+    class="service-card status-active"
+    data-testid="service-card-test-service-9"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-9"
+      >
+        Test Service
+      </h3>
+      <span
+        aria-label="Service status: active"
+        class="status-badge"
+        style="background-color: rgb(16, 185, 129); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        active
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-9"
+    >
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Deactivate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+        >
+          Deactivate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Service Card with Custom Styling Snapshots > should match snapshot with low priority optimization > service-card-custom-classname 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-13"
+    aria-labelledby="service-name-test-service-13"
+    class="service-card status-active custom-service-card highlight-border"
+    data-testid="service-card-test-service-13"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-13"
+      >
+        Test Service
+      </h3>
+      <span
+        aria-label="Service status: active"
+        class="status-badge"
+        style="background-color: rgb(16, 185, 129); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        active
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-13"
+    >
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Deactivate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+          disabled=""
+        >
+          Deactivate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Service Card with Custom Styling Snapshots > should match snapshot with low priority optimization > service-card-high-priority 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-14"
+    aria-labelledby="service-name-test-service-14"
+    class="service-card status-active priority-high priority-service"
+    data-testid="service-card-test-service-14"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-14"
+      >
+        Test Service
+      </h3>
+      <span
+        aria-label="Service status: active"
+        class="status-badge"
+        style="background-color: rgb(16, 185, 129); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        active
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-14"
+    >
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Deactivate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+          disabled=""
+        >
+          Deactivate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Service Card with Custom Styling Snapshots > should match snapshot with low priority optimization > service-card-low-priority 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-16"
+    aria-labelledby="service-name-test-service-16"
+    class="service-card status-inactive priority-low"
+    data-testid="service-card-test-service-16"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-16"
+      >
+        Test Service
+      </h3>
+      <span
+        aria-label="Service status: inactive"
+        class="status-badge"
+        style="background-color: rgb(107, 114, 128); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        inactive
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-16"
+    >
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Activate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+          disabled=""
+        >
+          Activate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Service Card with Custom Styling Snapshots > should match snapshot with low priority optimization > service-card-medium-priority 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-15"
+    aria-labelledby="service-name-test-service-15"
+    class="service-card status-maintenance priority-medium"
+    data-testid="service-card-test-service-15"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-15"
+      >
+        Test Service
+      </h3>
+      <span
+        aria-label="Service status: maintenance"
+        class="status-badge"
+        style="background-color: rgb(245, 158, 11); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        maintenance
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-15"
+    >
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Activate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+          disabled=""
+        >
+          Activate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Service Card with Details Snapshots > should match snapshot with high-performance service metrics > service-card-active-with-details 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-5"
+    aria-labelledby="service-name-test-service-5"
+    class="service-card status-active"
+    data-testid="service-card-test-service-5"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-5"
+      >
+        Production API Service
+      </h3>
+      <span
+        aria-label="Service status: active"
+        class="status-badge"
+        style="background-color: rgb(16, 185, 129); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        active
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-5"
+    >
+      <div
+        aria-label="Service metrics"
+        class="service-metrics"
+        role="group"
+      >
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Uptime:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="uptime"
+          >
+            99.87
+            %
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Response:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="response-time"
+          >
+            45
+            ms
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Errors:
+          </span>
+          <span
+            aria-label="1 errors recorded"
+            class="metric-value"
+            data-testid="error-count"
+          >
+            1
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Last checked:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="last-checked"
+          >
+            1m ago
+          </span>
+        </div>
+      </div>
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Deactivate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+          disabled=""
+        >
+          Deactivate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Service Card with Details Snapshots > should match snapshot with high-performance service metrics > service-card-error-with-details 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-6"
+    aria-labelledby="service-name-test-service-6"
+    class="service-card status-error"
+    data-testid="service-card-test-service-6"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-6"
+      >
+        Test Service
+      </h3>
+      <span
+        aria-label="Service status: error"
+        class="status-badge"
+        style="background-color: rgb(239, 68, 68); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        error
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-6"
+    >
+      <div
+        aria-label="Service metrics"
+        class="service-metrics"
+        role="group"
+      >
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Uptime:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="uptime"
+          >
+            85
+            %
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Errors:
+          </span>
+          <span
+            aria-label="5 errors recorded"
+            class="metric-value"
+            data-testid="error-count"
+          >
+            5
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Last checked:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="last-checked"
+          >
+            2h ago
+          </span>
+        </div>
+      </div>
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Activate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+          disabled=""
+        >
+          Activate
+        </button>
+        <button
+          aria-label="Retry service connection"
+          class="action-btn retry-btn"
+          data-testid="retry-btn"
+        >
+          Retry
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Service Card with Details Snapshots > should match snapshot with high-performance service metrics > service-card-high-performance 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-8"
+    aria-labelledby="service-name-test-service-8"
+    class="service-card status-active"
+    data-testid="service-card-test-service-8"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-8"
+      >
+        High Performance Cache
+      </h3>
+      <span
+        aria-label="Service status: active"
+        class="status-badge"
+        style="background-color: rgb(16, 185, 129); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        active
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-8"
+    >
+      <div
+        aria-label="Service metrics"
+        class="service-metrics"
+        role="group"
+      >
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Uptime:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="uptime"
+          >
+            100
+            %
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Response:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="response-time"
+          >
+            2
+            ms
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Errors:
+          </span>
+          <span
+            aria-label="0 errors recorded"
+            class="metric-value"
+            data-testid="error-count"
+          >
+            0
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Last checked:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="last-checked"
+          >
+            Just now
+          </span>
+        </div>
+      </div>
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Deactivate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+          disabled=""
+        >
+          Deactivate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`OptimizedServiceCard Snapshot Tests > Service Card with Details Snapshots > should match snapshot with high-performance service metrics > service-card-inactive-with-details 1`] = `
+<div
+  data-testid="test-wrapper"
+>
+  <div
+    aria-describedby="service-status-test-service-7"
+    aria-labelledby="service-name-test-service-7"
+    class="service-card status-inactive"
+    data-testid="service-card-test-service-7"
+    role="article"
+    tabindex="0"
+  >
+    <div
+      class="card-header"
+    >
+      <h3
+        class="service-name"
+        id="service-name-test-service-7"
+      >
+        Test Service
+      </h3>
+      <span
+        aria-label="Service status: inactive"
+        class="status-badge"
+        style="background-color: rgb(107, 114, 128); color: white; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;"
+      >
+        inactive
+      </span>
+    </div>
+    <div
+      class="card-body"
+      id="service-status-test-service-7"
+    >
+      <div
+        aria-label="Service metrics"
+        class="service-metrics"
+        role="group"
+      >
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Uptime:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="uptime"
+          >
+            0
+            %
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Errors:
+          </span>
+          <span
+            aria-label="0 errors recorded"
+            class="metric-value"
+            data-testid="error-count"
+          >
+            0
+          </span>
+        </div>
+        <div
+          class="metric"
+        >
+          <span
+            class="metric-label"
+          >
+            Last checked:
+          </span>
+          <span
+            class="metric-value"
+            data-testid="last-checked"
+          >
+            2h ago
+          </span>
+        </div>
+      </div>
+      <div
+        aria-label="Service actions"
+        class="service-actions"
+        role="group"
+      >
+        <button
+          aria-label="Activate service"
+          class="action-btn toggle-btn"
+          data-testid="toggle-status-btn"
+          disabled=""
+        >
+          Activate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
