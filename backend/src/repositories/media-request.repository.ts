@@ -1,7 +1,9 @@
 import {
   NotFoundError, // @ts-ignore
 } from '@medianest/shared';
-import { MediaRequest, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+
+type MediaRequest = Prisma.MediaRequestGetPayload<{}>;
 
 // @ts-ignore
 

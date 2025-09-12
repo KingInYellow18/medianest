@@ -1,7 +1,9 @@
 import {
   NotFoundError, // @ts-ignore
 } from '@medianest/shared';
-import { ServiceConfig } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+
+type ServiceConfig = Prisma.ServiceConfigGetPayload<{}>;
 
 import { encryptionService } from '../services/encryption.service';
 // @ts-ignore

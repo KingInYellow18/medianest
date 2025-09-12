@@ -106,7 +106,7 @@ export class AdminController {
       });
 
       // Decrypt sensitive data for admin view
-      const decryptedServices = services.map((service) => ({
+      const decryptedServices = services.map((service: any) => ({
         ...service,
         // Note: In production, you might want to mask these values
         // or implement a separate endpoint for updating credentials

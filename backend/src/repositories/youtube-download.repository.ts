@@ -1,7 +1,9 @@
 import {
   NotFoundError, // @ts-ignore
 } from '@medianest/shared';
-import { YoutubeDownload, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+
+type YoutubeDownload = Prisma.YoutubeDownloadGetPayload<{}>;
 
 // @ts-ignore
 

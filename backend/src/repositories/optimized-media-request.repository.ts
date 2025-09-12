@@ -1,4 +1,6 @@
-import { MediaRequest, Prisma, PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
+
+type MediaRequest = Prisma.MediaRequestGetPayload<{}>;
 
 import { getRedis } from '../config/redis';
 import { CatchError } from '../types/common';

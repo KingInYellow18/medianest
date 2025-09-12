@@ -57,7 +57,7 @@ export function getPrismaClient(): PrismaClient {
 function setupPrismaEventListeners(prismaClient: PrismaClient): void {
   // Development query logging
   if (process.env.NODE_ENV === 'development') {
-    (prismaClient.$on as any)('query', (e: Prisma.QueryEvent) => {
+    (prismaClient.$on as any)('query', (e: any) => {
       logger.debug('Prisma Query', {
         query: e.query,
         params: e.params,
@@ -67,7 +67,7 @@ function setupPrismaEventListeners(prismaClient: PrismaClient): void {
   }
 
   // Slow query monitoring (production critical)
-  (prismaClient.$on as any)('query', (e: Prisma.QueryEvent) => {
+  (prismaClient.$on as any)('query', (e: any) => {
     if (e.duration > 1000) {
       logger.warn('Slow query detected - performance issue', {
         query: e.query,
@@ -78,7 +78,7 @@ function setupPrismaEventListeners(prismaClient: PrismaClient): void {
   });
 
   // Error logging (production critical)
-  (prismaClient.$on as any)('error', (e: Prisma.LogEvent) => {
+  (prismaClient.$on as any)('error', (e: any) => {
     logger.error('Prisma database error', {
       message: e.message,
       target: e.target,

@@ -1,4 +1,6 @@
-import { User as PrismaUser } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+
+type PrismaUser = Prisma.UserGetPayload<{}>;
 
 /**
  * Extended User interface with additional authentication fields

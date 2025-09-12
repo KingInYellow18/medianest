@@ -3,7 +3,9 @@ import crypto from 'crypto';
 import {
   NotFoundError, // @ts-ignore
 } from '@medianest/shared';
-import { SessionToken } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+
+type SessionToken = Prisma.SessionTokenGetPayload<{}>;
 
 // @ts-ignore
 

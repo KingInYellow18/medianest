@@ -1,4 +1,6 @@
-import { User, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+
+type User = Prisma.UserGetPayload<{}>;
 import bcrypt from 'bcrypt';
 
 import { encryptionService } from '../services/encryption.service';

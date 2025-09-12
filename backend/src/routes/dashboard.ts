@@ -53,7 +53,7 @@ router.get('/status', async (req: Request, res: Response) => {
     });
 
     sendSuccess(res, {
-      services: serviceStatuses.map((service) => ({
+      services: serviceStatuses.map((service: any) => ({
         name: service.serviceName,
         status: service.status,
         responseTime: service.responseTimeMs,
@@ -65,11 +65,11 @@ router.get('/status', async (req: Request, res: Response) => {
         youtubeDownloads: recentDownloads,
       },
       statistics: {
-        mediaRequests: requestStats.reduce((acc, stat) => {
+        mediaRequests: requestStats.reduce((acc: any, stat: any) => {
           acc[stat.status] = stat._count.status;
           return acc;
         }, {} as any),
-        youtubeDownloads: downloadStats.reduce((acc, stat) => {
+        youtubeDownloads: downloadStats.reduce((acc: any, stat: any) => {
           acc[stat.status] = stat._count.status;
           return acc;
         }, {} as any),
