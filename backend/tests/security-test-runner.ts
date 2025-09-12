@@ -2,7 +2,7 @@
 
 /**
  * Comprehensive Security Test Runner
- * 
+ *
  * This script orchestrates the execution of all security tests with proper
  * reporting, metrics collection, and validation.
  */
@@ -103,17 +103,17 @@ class SecurityTestRunner {
 
   private async setupTestEnvironment(): Promise<void> {
     console.log('📋 Setting up test environment...');
-    
+
     try {
       // Ensure test database is clean
       execSync('npm run db:reset:test', { stdio: 'pipe' });
-      
+
       // Start test services
       execSync('npm run test:services:start', { stdio: 'pipe' });
-      
+
       // Wait for services to be ready
       await this.waitForServices();
-      
+
       console.log('✅ Test environment ready\n');
     } catch (error) {
       console.error('❌ Failed to setup test environment:', error);
@@ -130,7 +130,7 @@ class SecurityTestRunner {
         execSync('curl -f http://localhost:3001/api/health', { stdio: 'pipe' });
         return;
       } catch {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         retries++;
       }
     }
@@ -143,10 +143,10 @@ class SecurityTestRunner {
 
     for (const suite of this.testSuites) {
       console.log(`📍 Running: ${suite.name}`);
-      
+
       const result = await this.runTestSuite(suite);
       this.results.push(result);
-      
+
       this.displaySuiteResult(result);
 
       // Fail fast on critical security failures
@@ -160,18 +160,19 @@ class SecurityTestRunner {
     }
   }
 
-  private async runTestSuite(suite: { name: string; pattern: string; critical: boolean }): Promise<TestResult> {
+  private async runTestSuite(suite: {
+    name: string;
+    pattern: string;
+    critical: boolean;
+  }): Promise<TestResult> {
     const startTime = Date.now();
 
     try {
-      const output = execSync(
-        `npx vitest run ${suite.pattern} --reporter=json --coverage`,
-        { 
-          encoding: 'utf-8',
-          stdio: 'pipe',
-          timeout: 300000, // 5 minutes per suite
-        }
-      );
+      const output = execSync(`npx vitest run ${suite.pattern} --reporter=json --coverage`, {
+        encoding: 'utf-8',
+        stdio: 'pipe',
+        timeout: 300000, // 5 minutes per suite
+      });
 
       const testOutput = JSON.parse(output);
       const duration = Date.now() - startTime;
@@ -187,19 +188,21 @@ class SecurityTestRunner {
       };
     } catch (error: any) {
       const duration = Date.now() - startTime;
-      
+
       return {
         suite: suite.name,
         passed: 0,
         failed: 1,
         skipped: 0,
         duration,
-        securityIssues: [{
-          type: 'CRITICAL',
-          description: `Test suite execution failed: ${error.message}`,
-          file: suite.pattern,
-          remediation: 'Check test configuration and dependencies',
-        }],
+        securityIssues: [
+          {
+            type: 'CRITICAL',
+            description: `Test suite execution failed: ${error.message}`,
+            file: suite.pattern,
+            remediation: 'Check test configuration and dependencies',
+          },
+        ],
       };
     }
   }
@@ -304,16 +307,18 @@ class SecurityTestRunner {
   private displaySuiteResult(result: TestResult): void {
     const status = result.failed === 0 ? '✅' : '❌';
     const duration = (result.duration / 1000).toFixed(2);
-    
-    console.log(`   ${status} ${result.passed} passed, ${result.failed} failed, ${result.skipped} skipped (${duration}s)`);
-    
+
+    console.log(
+      `   ${status} ${result.passed} passed, ${result.failed} failed, ${result.skipped} skipped (${duration}s)`,
+    );
+
     if (result.coverage) {
       console.log(`   📊 Coverage: ${result.coverage.toFixed(1)}%`);
     }
 
     if (result.securityIssues.length > 0) {
       console.log(`   🚨 Security issues found: ${result.securityIssues.length}`);
-      result.securityIssues.forEach(issue => {
+      result.securityIssues.forEach((issue) => {
         console.log(`      ${issue.type}: ${issue.description}`);
       });
     }
@@ -327,10 +332,10 @@ class SecurityTestRunner {
     const totalFailed = this.results.reduce((sum, r) => sum + r.failed, 0);
     const totalDuration = Date.now() - this.startTime;
 
-    const allIssues = this.results.flatMap(r => r.securityIssues);
-    const criticalIssues = allIssues.filter(i => i.type === 'CRITICAL');
-    const highIssues = allIssues.filter(i => i.type === 'HIGH');
-    
+    const allIssues = this.results.flatMap((r) => r.securityIssues);
+    const criticalIssues = allIssues.filter((i) => i.type === 'CRITICAL');
+    const highIssues = allIssues.filter((i) => i.type === 'HIGH');
+
     const report = {
       summary: {
         timestamp: new Date().toISOString(),
@@ -338,7 +343,7 @@ class SecurityTestRunner {
         totalPassed,
         totalFailed,
         duration: totalDuration,
-        successRate: (totalPassed / totalTests * 100).toFixed(2),
+        successRate: ((totalPassed / totalTests) * 100).toFixed(2),
       },
       securityBaseline: {
         criticalIssues: criticalIssues.length,
@@ -362,17 +367,17 @@ class SecurityTestRunner {
     console.log(`Success Rate: ${report.summary.successRate}%`);
     console.log(`Duration: ${(totalDuration / 1000).toFixed(2)}s`);
     console.log(`Overall Risk: ${report.securityBaseline.overallRisk}`);
-    
+
     if (criticalIssues.length > 0) {
       console.log(`\n🚨 CRITICAL ISSUES: ${criticalIssues.length}`);
-      criticalIssues.forEach(issue => {
+      criticalIssues.forEach((issue) => {
         console.log(`   - ${issue.description} (${issue.file})`);
       });
     }
 
     if (highIssues.length > 0) {
       console.log(`\n⚠️  HIGH PRIORITY ISSUES: ${highIssues.length}`);
-      highIssues.forEach(issue => {
+      highIssues.forEach((issue) => {
         console.log(`   - ${issue.description} (${issue.file})`);
       });
     }
@@ -381,9 +386,9 @@ class SecurityTestRunner {
   }
 
   private calculateRiskLevel(issues: SecurityIssue[]): string {
-    const critical = issues.filter(i => i.type === 'CRITICAL').length;
-    const high = issues.filter(i => i.type === 'HIGH').length;
-    const medium = issues.filter(i => i.type === 'MEDIUM').length;
+    const critical = issues.filter((i) => i.type === 'CRITICAL').length;
+    const high = issues.filter((i) => i.type === 'HIGH').length;
+    const medium = issues.filter((i) => i.type === 'MEDIUM').length;
 
     if (critical > 0) return 'CRITICAL';
     if (high > 2) return 'HIGH';
@@ -395,7 +400,7 @@ class SecurityTestRunner {
   private generateRecommendations(issues: SecurityIssue[]): string[] {
     const recommendations = new Set<string>();
 
-    issues.forEach(issue => {
+    issues.forEach((issue) => {
       if (issue.remediation) {
         recommendations.add(issue.remediation);
       }
@@ -415,26 +420,37 @@ class SecurityTestRunner {
   private async validateSecurityBaseline(): Promise<void> {
     console.log('\n🔍 Validating security baseline...');
 
-    const criticalIssues = this.results.flatMap(r => r.securityIssues).filter(i => i.type === 'CRITICAL');
+    const criticalIssues = this.results
+      .flatMap((r) => r.securityIssues)
+      .filter((i) => i.type === 'CRITICAL');
     const totalFailed = this.results.reduce((sum, r) => sum + r.failed, 0);
 
     // Security baseline requirements
     const baselineRequirements = [
       { name: 'No critical security issues', passed: criticalIssues.length === 0 },
-      { name: 'Authentication tests pass', passed: this.getSuiteResult('Authentication Security').failed === 0 },
-      { name: 'Authorization tests pass', passed: this.getSuiteResult('Authorization & RBAC').failed === 0 },
-      { name: 'Attack prevention tests pass', passed: this.getSuiteResult('Attack Prevention').failed === 0 },
-      { name: 'Overall test success rate > 95%', passed: (this.getSuccessRate()) > 95 },
+      {
+        name: 'Authentication tests pass',
+        passed: this.getSuiteResult('Authentication Security').failed === 0,
+      },
+      {
+        name: 'Authorization tests pass',
+        passed: this.getSuiteResult('Authorization & RBAC').failed === 0,
+      },
+      {
+        name: 'Attack prevention tests pass',
+        passed: this.getSuiteResult('Attack Prevention').failed === 0,
+      },
+      { name: 'Overall test success rate > 95%', passed: this.getSuccessRate() > 95 },
     ];
 
     console.log('Security Baseline Validation:');
-    baselineRequirements.forEach(req => {
+    baselineRequirements.forEach((req) => {
       const status = req.passed ? '✅' : '❌';
       console.log(`   ${status} ${req.name}`);
     });
 
-    const baselinePassed = baselineRequirements.every(req => req.passed);
-    
+    const baselinePassed = baselineRequirements.every((req) => req.passed);
+
     if (baselinePassed) {
       console.log('\n🎉 Security baseline validation PASSED');
     } else {
@@ -445,15 +461,22 @@ class SecurityTestRunner {
   }
 
   private getSuiteResult(suiteName: string): TestResult {
-    return this.results.find(r => r.suite === suiteName) || { 
-      suite: suiteName, passed: 0, failed: 1, skipped: 0, duration: 0, securityIssues: [] 
-    };
+    return (
+      this.results.find((r) => r.suite === suiteName) || {
+        suite: suiteName,
+        passed: 0,
+        failed: 1,
+        skipped: 0,
+        duration: 0,
+        securityIssues: [],
+      }
+    );
   }
 
   private getSuccessRate(): number {
     const totalTests = this.results.reduce((sum, r) => sum + r.passed + r.failed, 0);
     const totalPassed = this.results.reduce((sum, r) => sum + r.passed, 0);
-    return totalTests > 0 ? (totalPassed / totalTests * 100) : 0;
+    return totalTests > 0 ? (totalPassed / totalTests) * 100 : 0;
   }
 
   private async cleanup(): Promise<void> {
@@ -471,7 +494,7 @@ class SecurityTestRunner {
 // Run security tests if called directly
 if (require.main === module) {
   const runner = new SecurityTestRunner();
-  runner.run().catch(error => {
+  runner.run().catch((error) => {
     console.error('❌ Security test runner failed:', error);
     process.exit(1);
   });

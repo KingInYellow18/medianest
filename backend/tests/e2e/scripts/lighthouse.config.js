@@ -24,30 +24,30 @@ module.exports = {
     assert: {
       assertions: {
         // Performance thresholds
-        'categories:performance': ['error', {minScore: 0.7}],
-        'categories:accessibility': ['error', {minScore: 0.9}],
-        'categories:best-practices': ['error', {minScore: 0.8}],
-        'categories:seo': ['error', {minScore: 0.7}],
+        'categories:performance': ['error', { minScore: 0.7 }],
+        'categories:accessibility': ['error', { minScore: 0.9 }],
+        'categories:best-practices': ['error', { minScore: 0.8 }],
+        'categories:seo': ['error', { minScore: 0.7 }],
         'categories:pwa': 'off',
-        
+
         // Core Web Vitals
-        'first-contentful-paint': ['error', {maxNumericValue: 2000}],
-        'largest-contentful-paint': ['error', {maxNumericValue: 4000}],
-        'cumulative-layout-shift': ['error', {maxNumericValue: 0.1}],
-        'speed-index': ['error', {maxNumericValue: 4000}],
-        'interactive': ['error', {maxNumericValue: 5000}],
-        
+        'first-contentful-paint': ['error', { maxNumericValue: 2000 }],
+        'largest-contentful-paint': ['error', { maxNumericValue: 4000 }],
+        'cumulative-layout-shift': ['error', { maxNumericValue: 0.1 }],
+        'speed-index': ['error', { maxNumericValue: 4000 }],
+        interactive: ['error', { maxNumericValue: 5000 }],
+
         // Resource efficiency
-        'total-byte-weight': ['warn', {maxNumericValue: 1024000}], // 1MB
-        'unused-css-rules': ['warn', {maxNumericValue: 20000}],
-        'unused-javascript': ['warn', {maxNumericValue: 40000}],
+        'total-byte-weight': ['warn', { maxNumericValue: 1024000 }], // 1MB
+        'unused-css-rules': ['warn', { maxNumericValue: 20000 }],
+        'unused-javascript': ['warn', { maxNumericValue: 40000 }],
         'modern-image-formats': 'warn',
         'uses-webp-images': 'warn',
-        
+
         // Security
         'is-on-https': 'off', // Disabled for local testing
-        'uses-http2': 'off',   // Disabled for local testing
-        
+        'uses-http2': 'off', // Disabled for local testing
+
         // Best practices
         'uses-responsive-images': 'warn',
         'offscreen-images': 'warn',

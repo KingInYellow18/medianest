@@ -1,9 +1,9 @@
 /**
  * MediaNest E2E Test Suite - Media Request Workflows
- * 
+ *
  * Comprehensive end-to-end testing for all media request workflows in MediaNest.
  * This test suite covers the complete user journey from search to request fulfillment.
- * 
+ *
  * Test Coverage:
  * - Search and Browse Media
  * - Request Creation and Validation
@@ -14,7 +14,7 @@
  * - Visual Regression Testing
  * - Responsive Behavior Testing
  * - Performance and Load Testing
- * 
+ *
  * Usage:
  *   npm run test tests/e2e/media-request.spec.ts
  *   npm run test:e2e
@@ -31,7 +31,7 @@ import {
   PerformanceTestHelper,
   DataValidationHelper,
   ScenarioBuilder,
-  viewports
+  viewports,
 } from './utils/e2e-helpers';
 
 describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
@@ -58,7 +58,7 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
       const completeWorkflow = new ScenarioBuilder()
         .step('userAuthentication', async () => {
           console.log('🔐 Testing user authentication...');
-          
+
           const authResponse = await request(app)
             .get('/api/v1/auth/me')
             .set('Authorization', `Bearer ${users.user.token}`)
@@ -69,15 +69,15 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
             data: expect.objectContaining({
               id: users.user.id,
               plexUsername: users.user.plexUsername,
-              role: 'user'
-            })
+              role: 'user',
+            }),
           });
 
           return { authenticated: true };
         })
         .step('searchMedia', async () => {
           console.log('🔍 Testing media search...');
-          
+
           return request(app)
             .get('/api/v1/media/search')
             .query({ query: 'action movie', mediaType: 'movie', page: 1 })
@@ -86,7 +86,7 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
         })
         .step('viewMediaDetails', async (context) => {
           console.log('📋 Testing media details view...');
-          
+
           const searchResults = context.searchMedia.body.data;
           expect(searchResults.length).toBeGreaterThan(0);
 
@@ -100,7 +100,7 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
         })
         .step('createRequest', async (context) => {
           console.log('📝 Testing request creation...');
-          
+
           const selectedMovie = context.searchMedia.body.data[0];
 
           return request(app)
@@ -109,16 +109,16 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
               mediaType: 'movie',
               tmdbId: selectedMovie.id,
               quality: 'HD',
-              notes: 'E2E test request'
+              notes: 'E2E test request',
             })
             .set('Authorization', `Bearer ${users.user.token}`)
             .expect(201);
         })
         .step('verifyRequestInHistory', async (context) => {
           console.log('📚 Testing request history...');
-          
+
           const createdRequest = context.createRequest.body.data;
-          
+
           const historyResponse = await request(app)
             .get('/api/v1/media/requests')
             .set('Authorization', `Bearer ${users.user.token}`)
@@ -128,7 +128,7 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
 
           const userRequests = historyResponse.body.data.requests;
           const foundRequest = userRequests.find((req: any) => req.id === createdRequest.id);
-          
+
           expect(foundRequest).toBeDefined();
           expect(foundRequest.media.tmdbId).toBe(context.searchMedia.body.data[0].id);
 
@@ -136,7 +136,7 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
         })
         .step('adminApproval', async (context) => {
           console.log('👨‍💼 Testing admin approval workflow...');
-          
+
           const requestId = context.verifyRequestInHistory.requestId;
 
           // Admin views all requests
@@ -154,7 +154,7 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
             .put(`/api/v1/admin/requests/${requestId}/approve`)
             .send({
               notes: 'Approved via E2E test workflow',
-              priority: 'normal'
+              priority: 'normal',
             })
             .set('Authorization', `Bearer ${users.admin.token}`)
             .expect(200);
@@ -165,7 +165,7 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
         })
         .step('userSeesStatusUpdate', async (context) => {
           console.log('🔄 Testing status update visibility...');
-          
+
           const requestId = context.verifyRequestInHistory.requestId;
 
           const statusResponse = await request(app)
@@ -180,7 +180,7 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
         });
 
       const result = await completeWorkflow.execute();
-      
+
       expect(result.userAuthentication.authenticated).toBe(true);
       expect(result.adminApproval.approved).toBe(true);
       expect(result.userSeesStatusUpdate.workflowComplete).toBe(true);
@@ -197,13 +197,13 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
 
       // Create additional users for isolation testing
       const user2 = await createAdditionalTestUser(context);
-      
+
       // Both users create requests
       const user1RequestResponse = await request(app)
         .post('/api/v1/media/request')
         .send({
           mediaType: 'movie',
-          tmdbId: 100001
+          tmdbId: 100001,
         })
         .set('Authorization', `Bearer ${context.users.user.token}`)
         .expect(201);
@@ -213,7 +213,7 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
         .send({
           mediaType: 'tv',
           tmdbId: 200001,
-          seasons: [1]
+          seasons: [1],
         })
         .set('Authorization', `Bearer ${user2.token}`)
         .expect(201);
@@ -228,7 +228,7 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
               .set('Authorization', `Bearer ${context.users.user.token}`)
               .expect(403);
             return response.body.success === false;
-          }
+          },
         },
         {
           name: 'User 2 cannot see User 1 requests',
@@ -238,7 +238,7 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
               .set('Authorization', `Bearer ${user2.token}`)
               .expect(403);
             return response.body.success === false;
-          }
+          },
         },
         {
           name: 'User request lists are isolated',
@@ -258,8 +258,8 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
 
             const overlap = user1RequestIds.filter((id: number) => user2RequestIds.includes(id));
             return overlap.length === 0;
-          }
-        }
+          },
+        },
       ];
 
       for (const test of isolationTests) {
@@ -286,7 +286,7 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
           .query({
             query: 'popular',
             pageSize,
-            page: 1
+            page: 1,
           })
           .set('Authorization', `Bearer ${users.user.token}`)
           .set('User-Agent', viewport.userAgent || '')
@@ -299,12 +299,12 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
       Object.entries(results).forEach(([viewportName, response]) => {
         expect(response.body.success).toBe(true);
         expect(DataValidationHelper.validateMediaSearchResponse(response)).toBe(true);
-        
+
         const pageSize = response.body.meta.pageSize || response.body.data.length;
         if (viewportName === 'mobile') {
           expect(pageSize).toBeLessThanOrEqual(10);
         }
-        
+
         console.log(`  ✅ ${viewportName}: ${pageSize} items per page`);
       });
 
@@ -319,35 +319,38 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
       const testEndpoints = [
         {
           name: 'media-search',
-          test: () => request(app)
-            .get('/api/v1/media/search')
-            .query({ query: 'test', page: 1 })
-            .set('Authorization', `Bearer ${users.user.token}`)
-            .expect(200)
+          test: () =>
+            request(app)
+              .get('/api/v1/media/search')
+              .query({ query: 'test', page: 1 })
+              .set('Authorization', `Bearer ${users.user.token}`)
+              .expect(200),
         },
         {
           name: 'user-requests',
-          test: () => request(app)
-            .get('/api/v1/media/requests')
-            .query({ pageSize: 10 })
-            .set('Authorization', `Bearer ${users.user.token}`)
-            .expect(200)
+          test: () =>
+            request(app)
+              .get('/api/v1/media/requests')
+              .query({ pageSize: 10 })
+              .set('Authorization', `Bearer ${users.user.token}`)
+              .expect(200),
         },
         {
           name: 'admin-dashboard',
-          test: () => request(app)
-            .get('/api/v1/admin/dashboard/stats')
-            .set('Authorization', `Bearer ${users.admin.token}`)
-            .expect(200)
-        }
+          test: () =>
+            request(app)
+              .get('/api/v1/admin/dashboard/stats')
+              .set('Authorization', `Bearer ${users.admin.token}`)
+              .expect(200),
+        },
       ];
 
       for (const endpoint of testEndpoints) {
         const response = await endpoint.test();
-        
+
         const visualResult = await VisualRegression.compareResponse(response, {
           name: endpoint.name,
-          threshold: 0.90
+          threshold: 0.9,
         });
 
         expect(visualResult.match).toBe(true);
@@ -371,11 +374,11 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
             .get('/api/v1/media/search')
             .query({ query: `test${i}`, page: 1 })
             .set('Authorization', `Bearer ${users.user.token}`)
-            .expect(200)
+            .expect(200),
         );
 
         const results = await Promise.all(concurrentSearches);
-        
+
         results.forEach((result) => {
           expect(result.body.success).toBe(true);
           expect(DataValidationHelper.validateMediaSearchResponse(result)).toBe(true);
@@ -385,10 +388,10 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
       };
 
       const loadResult = await PerformanceTestHelper.measureResponseTime(searchLoad);
-      
+
       expect(loadResult.duration).toBeLessThan(5000); // 5 seconds for 10 concurrent requests
       expect(loadResult.response).toBe(10); // All requests completed
-      
+
       console.log(`  ✅ 10 concurrent searches completed in ${loadResult.duration}ms`);
 
       // Test request creation performance
@@ -397,14 +400,14 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
           .post('/api/v1/media/request')
           .send({
             mediaType: 'movie',
-            tmdbId: Math.floor(Math.random() * 100000)
+            tmdbId: Math.floor(Math.random() * 100000),
           })
           .set('Authorization', `Bearer ${users.user.token}`)
           .expect(201);
       };
 
       const createResult = await PerformanceTestHelper.measureResponseTime(requestCreationTest);
-      
+
       expect(createResult.duration).toBeLessThan(2000); // 2 seconds max
       expect(DataValidationHelper.validateRequestResponse(createResult.response)).toBe(true);
 
@@ -427,9 +430,11 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
       };
 
       const paginationResult = await PerformanceTestHelper.measureResponseTime(largePaginationTest);
-      
+
       expect(paginationResult.duration).toBeLessThan(3000);
-      expect(DataValidationHelper.validateRequestListResponse(paginationResult.response)).toBe(true);
+      expect(DataValidationHelper.validateRequestListResponse(paginationResult.response)).toBe(
+        true,
+      );
 
       console.log(`  ✅ Large pagination completed in ${paginationResult.duration}ms`);
 
@@ -443,7 +448,7 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
       };
 
       const adminResult = await PerformanceTestHelper.measureResponseTime(adminPerformanceTest);
-      
+
       expect(adminResult.duration).toBeLessThan(4000);
       expect(DataValidationHelper.validateRequestListResponse(adminResult.response)).toBe(true);
 
@@ -467,7 +472,7 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
               .set('Authorization', 'Bearer invalid-token')
               .expect(401);
             return response.body.success === false;
-          }
+          },
         },
         {
           name: 'Malformed request data',
@@ -476,12 +481,12 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
               .post('/api/v1/media/request')
               .send({
                 mediaType: 'invalid-type',
-                tmdbId: 'not-a-number'
+                tmdbId: 'not-a-number',
               })
               .set('Authorization', `Bearer ${users.user.token}`)
               .expect(400);
             return response.body.success === false;
-          }
+          },
         },
         {
           name: 'Non-existent resource',
@@ -491,7 +496,7 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
               .set('Authorization', `Bearer ${users.user.token}`)
               .expect(404);
             return response.body.success === false;
-          }
+          },
         },
         {
           name: 'Insufficient privileges',
@@ -501,8 +506,8 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
               .set('Authorization', `Bearer ${users.user.token}`)
               .expect(403);
             return response.body.success === false;
-          }
-        }
+          },
+        },
       ];
 
       for (const scenario of errorScenarios) {
@@ -525,11 +530,9 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
         {
           name: 'Database connectivity',
           test: async () => {
-            const response = await request(app)
-              .get('/api/v1/health')
-              .expect(200);
+            const response = await request(app).get('/api/v1/health').expect(200);
             return response.body.status === 'healthy';
-          }
+          },
         },
         {
           name: 'Authentication system',
@@ -539,7 +542,7 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
               .set('Authorization', `Bearer ${users.user.token}`)
               .expect(200);
             return response.body.success === true;
-          }
+          },
         },
         {
           name: 'Admin functionality',
@@ -549,7 +552,7 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
               .set('Authorization', `Bearer ${users.admin.token}`)
               .expect(200);
             return response.body.success === true;
-          }
+          },
         },
         {
           name: 'Media search integration',
@@ -560,12 +563,12 @@ describe('MediaNest E2E Test Suite - Media Request Workflows', () => {
               .set('Authorization', `Bearer ${users.user.token}`)
               .expect(200);
             return response.body.success === true;
-          }
-        }
+          },
+        },
       ];
 
       let passedChecks = 0;
-      
+
       for (const check of healthChecks) {
         try {
           const passed = await check.test();

@@ -1,6 +1,6 @@
 /**
  * STANDARDIZED CONFIG MOCK - Complete Environment Configuration
- * 
+ *
  * This mock provides a comprehensive configuration setup that matches
  * the actual config service structure and ensures all environment variables
  * are properly mocked for test execution.
@@ -12,38 +12,38 @@ import { vi } from 'vitest';
 export function setupTestEnvironment() {
   // Core environment
   process.env.NODE_ENV = 'test';
-  
+
   // JWT Configuration - consistent across all tests
   process.env.JWT_SECRET = 'test-jwt-secret-key-32-bytes-long';
   process.env.JWT_ISSUER = 'medianest-test';
   process.env.JWT_AUDIENCE = 'medianest-test-users';
   process.env.JWT_SECRET_ROTATION = undefined;
-  
+
   // Database Configuration - consistent test values
   process.env.DATABASE_URL = 'postgresql://test:test@localhost:5433/medianest_test';
   process.env.DATABASE_POOL_SIZE = '2';
   process.env.DATABASE_TIMEOUT = '3000';
-  
+
   // Redis Configuration - consistent test values
   process.env.REDIS_URL = 'redis://localhost:6380/15';
   process.env.REDIS_TEST_DB = '15';
-  
+
   // Plex Configuration - consistent test values
   process.env.PLEX_CLIENT_ID = 'test-plex-client-id';
   process.env.PLEX_CLIENT_SECRET = 'test-plex-client-secret';
-  
+
   // Application Configuration
   process.env.FRONTEND_URL = 'http://localhost:3000';
   process.env.BACKEND_URL = 'http://localhost:4000';
   process.env.LOG_LEVEL = 'silent';
-  
+
   // Encryption Configuration
   process.env.ENCRYPTION_KEY = 'test-encryption-key-32-bytes-long';
-  
+
   // Server Configuration
   process.env.PORT = '4000';
   process.env.HOST = 'localhost';
-  
+
   // Version
   process.env.npm_package_version = '1.0.0';
 }

@@ -1,4 +1,3 @@
-
 const path = require('path');
 const webpack = require('webpack');
 
@@ -9,22 +8,22 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'server.js',
-    clean: true
+    clean: true,
   },
   resolve: {
     extensions: ['.ts', '.js'],
     alias: {
-      '@': path.resolve(__dirname, 'src')
-    }
+      '@': path.resolve(__dirname, 'src'),
+    },
   },
   module: {
     rules: [
       {
         test: /.ts$/,
         use: 'ts-loader',
-        exclude: /node_modules/
-      }
-    ]
+        exclude: /node_modules/,
+      },
+    ],
   },
   optimization: {
     minimize: true,
@@ -34,21 +33,21 @@ module.exports = {
     providedExports: true,
     // Aggressive tree shaking
     concatenateModules: true,
-    mangleExports: true
+    mangleExports: true,
   },
   externals: {
     // Mark large dependencies as external
-    'express': 'commonjs express',
-    'bcryptjs': 'commonjs bcryptjs',
-    'jsonwebtoken': 'commonjs jsonwebtoken'
+    express: 'commonjs express',
+    bcryptjs: 'commonjs bcryptjs',
+    jsonwebtoken: 'commonjs jsonwebtoken',
   },
   plugins: [
     new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify('production')
+      'process.env.NODE_ENV': JSON.stringify('production'),
     }),
     new webpack.IgnorePlugin({
       // Ignore optional dependencies
-      resourceRegExp: /^\.(md|txt|LICENSE)$/
-    })
-  ]
+      resourceRegExp: /^\.(md|txt|LICENSE)$/,
+    }),
+  ],
 };

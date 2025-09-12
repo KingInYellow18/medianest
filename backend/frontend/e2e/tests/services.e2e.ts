@@ -13,7 +13,7 @@ test.describe('Services Management', () => {
   test.beforeEach(async ({ page }) => {
     servicesPage = new ServicesPage(page);
     dashboardPage = new DashboardPage(page);
-    
+
     // Start from dashboard and navigate to services
     await dashboardPage.goto();
     await dashboardPage.goToServices();
@@ -21,16 +21,16 @@ test.describe('Services Management', () => {
 
   test('should display services list correctly', async ({ page }) => {
     await servicesPage.expectServicesPageLoaded();
-    
+
     // Verify page elements
     await expect(servicesPage.servicesList).toBeVisible();
     await expect(servicesPage.addServiceButton).toBeVisible();
     await expect(servicesPage.searchInput).toBeVisible();
-    
+
     // Get all service cards
     const serviceCards = await servicesPage.getServiceCards();
     expect(serviceCards.length).toBeGreaterThan(0);
-    
+
     // Verify first service card has required elements
     const firstCard = serviceCards[0];
     await expect(firstCard.getByTestId('service-name')).toBeVisible();
@@ -42,25 +42,25 @@ test.describe('Services Management', () => {
     // Find an active service
     const activeService = servicesPage.getServiceCard('test-service-1');
     await expect(activeService).toBeVisible();
-    
+
     // Verify initial status
     await servicesPage.verifyServiceDetails('test-service-1', {
-      status: 'active'
+      status: 'active',
     });
-    
+
     // Toggle status
     const newStatus = await servicesPage.toggleServiceStatus('test-service-1');
     expect(newStatus).toBe('inactive');
-    
+
     // Verify status changed
     await servicesPage.verifyServiceDetails('test-service-1', {
-      status: 'inactive'
+      status: 'inactive',
     });
-    
+
     // Toggle back
     await servicesPage.toggleServiceStatus('test-service-1');
     await servicesPage.verifyServiceDetails('test-service-1', {
-      status: 'active'
+      status: 'active',
     });
   });
 
@@ -76,46 +76,46 @@ test.describe('Services Management', () => {
         responseTime: 0,
         errorCount: 5,
       };
-      
+
       const services = JSON.parse(localStorage.getItem('test-services') || '[]');
       services.push(errorService);
       localStorage.setItem('test-services', JSON.stringify(services));
     });
-    
+
     await page.reload();
-    
+
     // Find the error service
     const errorService = servicesPage.getServiceCard('error-service');
     await expect(errorService).toBeVisible();
-    
+
     // Verify retry button is visible
     const retryButton = errorService.getByTestId('retry-btn');
     await expect(retryButton).toBeVisible();
-    
+
     // Mock successful retry API response
-    await page.route('**/api/services/*/retry', route => {
+    await page.route('**/api/services/*/retry', (route) => {
       route.fulfill({
         status: 200,
-        body: JSON.stringify({ 
-          success: true, 
+        body: JSON.stringify({
+          success: true,
           status: 'active',
-          message: 'Service retried successfully'
+          message: 'Service retried successfully',
         }),
       });
     });
-    
+
     // Perform retry
     await servicesPage.retryService('error-service');
-    
+
     // Verify status changed after retry
     await servicesPage.verifyServiceDetails('error-service', {
-      status: 'active'
+      status: 'active',
     });
   });
 
   test('should add new service', async ({ page }) => {
     // Mock API response for adding service
-    await page.route('**/api/services', route => {
+    await page.route('**/api/services', (route) => {
       if (route.request().method() === 'POST') {
         route.fulfill({
           status: 201,
@@ -132,7 +132,7 @@ test.describe('Services Management', () => {
         route.continue();
       }
     });
-    
+
     // Add new service
     await servicesPage.addService({
       name: 'New Test Service',
@@ -140,37 +140,37 @@ test.describe('Services Management', () => {
       type: 'web',
       description: 'A test service for E2E testing',
     });
-    
+
     // Verify service was added
     const newService = servicesPage.getServiceCard('new-test-service');
     await expect(newService).toBeVisible();
-    
+
     await servicesPage.verifyServiceDetails('new-test-service', {
       name: 'New Test Service',
-      status: 'active'
+      status: 'active',
     });
   });
 
   test('should search and filter services', async ({ page }) => {
     // Test search functionality
     await servicesPage.searchServices('Test Media');
-    
+
     // Verify search results
     const visibleServices = await servicesPage.getServiceCards();
     expect(visibleServices.length).toBeGreaterThan(0);
-    
+
     // Each visible service should contain search term
     for (const service of visibleServices) {
       const serviceName = await service.getByTestId('service-name').textContent();
       expect(serviceName?.toLowerCase()).toContain('test media');
     }
-    
+
     // Clear search
     await servicesPage.searchServices('');
-    
+
     // Test filtering by status
     await servicesPage.filterByStatus('active');
-    
+
     // Verify only active services are shown
     const activeServices = await servicesPage.getServiceCards();
     for (const service of activeServices) {
@@ -183,7 +183,7 @@ test.describe('Services Management', () => {
     // Sort by name
     await servicesPage.sortServices('name');
     await servicesPage.verifySortOrder('name');
-    
+
     // Sort by status
     await servicesPage.sortServices('status');
     await servicesPage.verifySortOrder('status');
@@ -191,7 +191,7 @@ test.describe('Services Management', () => {
 
   test('should refresh services list', async ({ page }) => {
     // Mock API response for refresh
-    await page.route('**/api/services', route => {
+    await page.route('**/api/services', (route) => {
       route.fulfill({
         status: 200,
         body: JSON.stringify([
@@ -203,14 +203,14 @@ test.describe('Services Management', () => {
             uptime: 1.0,
             responseTime: 50,
             errorCount: 0,
-          }
+          },
         ]),
       });
     });
-    
+
     // Refresh services
     await servicesPage.refreshServices();
-    
+
     // Verify refresh completed
     const refreshedService = servicesPage.getServiceCard('refreshed-service');
     await expect(refreshedService).toBeVisible();
@@ -218,26 +218,26 @@ test.describe('Services Management', () => {
 
   test('should handle bulk operations', async ({ page }) => {
     // Mock bulk operation API
-    await page.route('**/api/services/bulk', route => {
+    await page.route('**/api/services/bulk', (route) => {
       route.fulfill({
         status: 200,
-        body: JSON.stringify({ 
-          success: true, 
+        body: JSON.stringify({
+          success: true,
           affectedServices: ['test-service-1', 'test-service-2'],
-          message: 'Bulk operation completed'
+          message: 'Bulk operation completed',
         }),
       });
     });
-    
+
     // Select multiple services
     await servicesPage.selectMultipleServices(['test-service-1', 'test-service-2']);
-    
+
     // Verify bulk actions are available
     await expect(page.getByTestId('bulk-actions')).toBeVisible();
-    
+
     // Perform bulk stop operation
     await servicesPage.performBulkAction('stop');
-    
+
     // Verify operation completed
     await expect(page.getByTestId('bulk-success-message')).toBeVisible();
   });
@@ -254,26 +254,26 @@ test.describe('Services Management', () => {
         responseTime: 200,
         errorCount: 3,
       };
-      
+
       const services = JSON.parse(localStorage.getItem('test-services') || '[]');
       services.push(deleteService);
       localStorage.setItem('test-services', JSON.stringify(services));
     });
-    
+
     await page.reload();
-    
+
     // Mock delete API response
-    await page.route('**/api/services/delete-test-service', route => {
+    await page.route('**/api/services/delete-test-service', (route) => {
       if (route.request().method() === 'DELETE') {
         route.fulfill({ status: 204 });
       } else {
         route.continue();
       }
     });
-    
+
     // Delete service
     await servicesPage.deleteService('delete-test-service');
-    
+
     // Verify service was removed
     const deletedService = servicesPage.getServiceCard('delete-test-service');
     await expect(deletedService).toBeHidden();
@@ -284,32 +284,32 @@ test.describe('Services Management', () => {
     await servicesPage.verifyServiceDetails('test-service-1', {
       uptime: '99%',
       responseTime: '120ms',
-      errorCount: '0'
+      errorCount: '0',
     });
-    
+
     // Check last checked time format
     const serviceCard = servicesPage.getServiceCard('test-service-1');
     const lastChecked = serviceCard.getByTestId('last-checked');
     await expect(lastChecked).toBeVisible();
-    
+
     const lastCheckedText = await lastChecked.textContent();
     expect(lastCheckedText).toMatch(/(Just now|\d+[mhd] ago)/);
   });
 
   test('should handle empty state', async ({ page }) => {
     // Mock empty services response
-    await page.route('**/api/services', route => {
+    await page.route('**/api/services', (route) => {
       route.fulfill({
         status: 200,
         body: JSON.stringify([]),
       });
     });
-    
+
     await page.reload();
-    
+
     // Verify empty state is shown
     await servicesPage.expectEmptyState();
-    
+
     // Verify add service button is still available
     await expect(servicesPage.addServiceButton).toBeVisible();
   });
@@ -317,16 +317,16 @@ test.describe('Services Management', () => {
   test('should be responsive', async ({ page }) => {
     // Test mobile view
     await page.setViewportSize({ width: 375, height: 667 });
-    
+
     // Services should stack vertically on mobile
     await expect(servicesPage.servicesList).toBeVisible();
-    
+
     // Test tablet view
     await page.setViewportSize({ width: 768, height: 1024 });
-    
+
     // Test desktop view
     await page.setViewportSize({ width: 1280, height: 720 });
-    
+
     // All controls should be visible on desktop
     await expect(servicesPage.addServiceButton).toBeVisible();
     await expect(servicesPage.searchInput).toBeVisible();
@@ -350,27 +350,29 @@ test.describe('Services Management', () => {
                   serviceId: 'test-service-1',
                   status: 'error',
                   responseTime: 0,
-                  errorCount: 1
-                })
+                  errorCount: 1,
+                }),
               });
             }, 2000);
           }
-        }
+        },
       };
-      
+
       // Replace WebSocket constructor
-      (window as any).WebSocket = function() { return mockWS; };
+      (window as any).WebSocket = function () {
+        return mockWS;
+      };
     });
-    
+
     await page.reload();
-    
+
     // Wait for real-time update
     await page.waitForTimeout(3000);
-    
+
     // Verify status was updated
     await servicesPage.verifyServiceDetails('test-service-1', {
       status: 'error',
-      errorCount: '1'
+      errorCount: '1',
     });
   });
 });

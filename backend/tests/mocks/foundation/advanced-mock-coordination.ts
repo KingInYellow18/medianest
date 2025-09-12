@@ -1,32 +1,32 @@
 /**
  * ADVANCED MOCK COORDINATION STRATEGIES
- * 
+ *
  * Enterprise-scale test suite optimization with intelligent mock management:
  * - Intelligent Mock Warming: Pre-load mocks based on test execution patterns
  * - Cross-Service Mock Sharing: Optimize mock reuse between related services
  * - Dynamic Mock Adaptation: Real-time mock optimization during test execution
  * - Predictive Mock Caching: ML-based mock preparation
  * - Emergency Mock Recovery: Automatic mock restoration on failures
- * 
+ *
  * TARGET CAPACITY: 1,199+ tests with 4x performance optimization
  */
 
 import { vi, type MockedFunction } from 'vitest';
-import { 
-  enterpriseMockRegistry, 
-  getEnterpriseMock, 
+import {
+  enterpriseMockRegistry,
+  getEnterpriseMock,
   registerEnterpriseMock,
-  type ScalingConfig, 
-  type PerformanceMetrics 
+  type ScalingConfig,
+  type PerformanceMetrics,
 } from './enterprise-mock-registry';
-import { 
+import {
   createEnterpriseServiceMock,
   EnterpriseEncryptionServiceMock,
   EnterpriseRedisServiceMock,
   EnterpriseJwtServiceMock,
   EnterpriseDeviceSessionServiceMock,
   EnterprisePlexServiceMock,
-  EnterpriseDatabaseMock
+  EnterpriseDatabaseMock,
 } from './enterprise-service-mocks';
 
 // =============================================================================
@@ -45,7 +45,12 @@ interface WarmingPattern {
 export class IntelligentMockWarmer {
   private static instance: IntelligentMockWarmer;
   private warmingPatterns = new Map<string, WarmingPattern>();
-  private warmingHistory: Array<{ timestamp: number; service: string; category: string; duration: number }> = [];
+  private warmingHistory: Array<{
+    timestamp: number;
+    service: string;
+    category: string;
+    duration: number;
+  }> = [];
   private preloadedMocks = new Map<string, any>();
   private warmingQueue: Array<{ service: string; priority: number; category: string }> = [];
 
@@ -59,13 +64,15 @@ export class IntelligentMockWarmer {
   /**
    * Analyze test execution patterns and create warming strategies
    */
-  analyzeExecutionPatterns(testHistory: Array<{
-    testName: string;
-    services: string[];
-    duration: number;
-    timestamp: number;
-    category: string;
-  }>): void {
+  analyzeExecutionPatterns(
+    testHistory: Array<{
+      testName: string;
+      services: string[];
+      duration: number;
+      timestamp: number;
+      category: string;
+    }>,
+  ): void {
     console.log('🔥 Analyzing test execution patterns for intelligent warming...');
 
     // Group tests by category and frequency
@@ -73,7 +80,7 @@ export class IntelligentMockWarmer {
     const serviceFrequency = new Map<string, number>();
     const serviceDependencies = new Map<string, Set<string>>();
 
-    testHistory.forEach(test => {
+    testHistory.forEach((test) => {
       // Track category patterns
       if (!categoryPatterns.has(test.category)) {
         categoryPatterns.set(test.category, []);
@@ -81,11 +88,11 @@ export class IntelligentMockWarmer {
       categoryPatterns.get(test.category)!.push(...test.services);
 
       // Track service frequency
-      test.services.forEach(service => {
+      test.services.forEach((service) => {
         serviceFrequency.set(service, (serviceFrequency.get(service) || 0) + 1);
 
         // Track dependencies (services used together)
-        test.services.forEach(otherService => {
+        test.services.forEach((otherService) => {
           if (service !== otherService) {
             if (!serviceDependencies.has(service)) {
               serviceDependencies.set(service, new Set());
@@ -99,16 +106,18 @@ export class IntelligentMockWarmer {
     // Create warming patterns
     categoryPatterns.forEach((services, category) => {
       const uniqueServices = [...new Set(services)];
-      const avgFrequency = uniqueServices.reduce((sum, service) => sum + (serviceFrequency.get(service) || 0), 0) / uniqueServices.length;
-      
+      const avgFrequency =
+        uniqueServices.reduce((sum, service) => sum + (serviceFrequency.get(service) || 0), 0) /
+        uniqueServices.length;
+
       const pattern: WarmingPattern = {
         serviceNames: uniqueServices,
         frequency: avgFrequency,
         lastUsed: Date.now(),
         predictedNext: this.predictNextUsage(testHistory, category),
         testCategories: [category],
-        dependencies: uniqueServices.flatMap(service => 
-          Array.from(serviceDependencies.get(service) || [])
+        dependencies: uniqueServices.flatMap((service) =>
+          Array.from(serviceDependencies.get(service) || []),
         ),
       };
 
@@ -126,16 +135,16 @@ export class IntelligentMockWarmer {
     const startTime = performance.now();
 
     // Sort patterns by frequency and predicted usage
-    const sortedPatterns = Array.from(this.warmingPatterns.entries())
-      .sort(([, a], [, b]) => {
-        const scoreA = a.frequency * (1 / Math.max(1, a.predictedNext - Date.now()));
-        const scoreB = b.frequency * (1 / Math.max(1, b.predictedNext - Date.now()));
-        return scoreB - scoreA;
-      });
+    const sortedPatterns = Array.from(this.warmingPatterns.entries()).sort(([, a], [, b]) => {
+      const scoreA = a.frequency * (1 / Math.max(1, a.predictedNext - Date.now()));
+      const scoreB = b.frequency * (1 / Math.max(1, b.predictedNext - Date.now()));
+      return scoreB - scoreA;
+    });
 
     const warmingPromises: Promise<void>[] = [];
 
-    for (const [category, pattern] of sortedPatterns.slice(0, 10)) { // Top 10 patterns
+    for (const [category, pattern] of sortedPatterns.slice(0, 10)) {
+      // Top 10 patterns
       const promise = this.warmMockSet(pattern.serviceNames, category, 'high');
       warmingPromises.push(promise);
     }
@@ -149,18 +158,22 @@ export class IntelligentMockWarmer {
   /**
    * Warm specific mock set with dependency resolution
    */
-  private async warmMockSet(services: string[], category: string, priority: 'high' | 'medium' | 'low'): Promise<void> {
+  private async warmMockSet(
+    services: string[],
+    category: string,
+    priority: 'high' | 'medium' | 'low',
+  ): Promise<void> {
     const warmingPromises = services.map(async (service) => {
       const key = `${category}-${service}`;
-      
+
       if (!this.preloadedMocks.has(key)) {
         const startTime = performance.now();
-        
+
         try {
           // Create enterprise mock with realistic behavior
           const mock = await this.createWarmMock(service);
           this.preloadedMocks.set(key, mock);
-          
+
           const duration = performance.now() - startTime;
           this.warmingHistory.push({
             timestamp: Date.now(),
@@ -168,7 +181,6 @@ export class IntelligentMockWarmer {
             category,
             duration,
           });
-          
         } catch (error) {
           console.warn(`⚠️ Failed to warm ${service}:`, error);
         }
@@ -189,7 +201,7 @@ export class IntelligentMockWarmer {
 
   private predictNextUsage(testHistory: Array<any>, category: string): number {
     // Simple prediction based on historical patterns
-    const categoryTests = testHistory.filter(test => test.category === category);
+    const categoryTests = testHistory.filter((test) => test.category === category);
     if (categoryTests.length < 2) return Date.now() + 3600000; // 1 hour from now
 
     const intervals = [];
@@ -283,7 +295,7 @@ export class CrossServiceMockSharing {
     }
 
     const groupKey = `group-${primaryService}`;
-    
+
     // Check if group already exists
     if (this.sharedMockPool.has(groupKey)) {
       relationship.lastAccess = Date.now();
@@ -297,16 +309,22 @@ export class CrossServiceMockSharing {
     mockGroup[primaryService] = this.createCoordinatedMock(primaryService, 'primary');
 
     // Create dependent service mocks with shared state
-    relationship.dependentServices.forEach(service => {
-      mockGroup[service] = this.createCoordinatedMock(service, 'dependent', relationship.sharedState);
+    relationship.dependentServices.forEach((service) => {
+      mockGroup[service] = this.createCoordinatedMock(
+        service,
+        'dependent',
+        relationship.sharedState,
+      );
     });
 
     // Store in pool for reuse
     this.sharedMockPool.set(groupKey, mockGroup);
     relationship.lastAccess = Date.now();
 
-    console.log(`🔗 Created shared mock group for ${primaryService} with ${relationship.dependentServices.length} dependents`);
-    
+    console.log(
+      `🔗 Created shared mock group for ${primaryService} with ${relationship.dependentServices.length} dependents`,
+    );
+
     return mockGroup;
   }
 
@@ -318,53 +336,60 @@ export class CrossServiceMockSharing {
 
     this.serviceRelationships.forEach((relationship, primaryService) => {
       const groupKey = `group-${primaryService}`;
-      
+
       if (relationship.optimizationLevel === 'high') {
         // Pre-create high-priority groups
         this.createSharedMockGroup(primaryService);
       }
-      
+
       // Track access patterns for further optimization
       this.accessPatterns.set(primaryService, (this.accessPatterns.get(primaryService) || 0) + 1);
     });
   }
 
-  private createCoordinatedMock(service: string, role: 'primary' | 'dependent', sharedState?: Map<string, any>): any {
+  private createCoordinatedMock(
+    service: string,
+    role: 'primary' | 'dependent',
+    sharedState?: Map<string, any>,
+  ): any {
     // Create service-specific optimized mock
     switch (service) {
       case 'deviceSessionService':
-        return new EnterpriseDeviceSessionServiceMock({ behavior: 'realistic', isolation: role === 'primary' });
-        
+        return new EnterpriseDeviceSessionServiceMock({
+          behavior: 'realistic',
+          isolation: role === 'primary',
+        });
+
       case 'redisService':
-        return new EnterpriseRedisServiceMock({ 
-          behavior: 'realistic', 
-          sharedState: sharedState?.get('redis') || new Map() 
+        return new EnterpriseRedisServiceMock({
+          behavior: 'realistic',
+          sharedState: sharedState?.get('redis') || new Map(),
         });
-        
+
       case 'jwtService':
-        return new EnterpriseJwtServiceMock({ 
+        return new EnterpriseJwtServiceMock({
           behavior: 'realistic',
-          sharedTokens: sharedState?.get('tokens') || []
+          sharedTokens: sharedState?.get('tokens') || [],
         });
-        
+
       case 'encryptionService':
-        return new EnterpriseEncryptionServiceMock({ 
+        return new EnterpriseEncryptionServiceMock({
           behavior: 'realistic',
-          keyCache: sharedState?.get('encKeys') || new Map()
+          keyCache: sharedState?.get('encKeys') || new Map(),
         });
-        
+
       case 'plexService':
-        return new EnterprisePlexServiceMock({ 
+        return new EnterprisePlexServiceMock({
           behavior: 'realistic',
-          connectionPool: sharedState?.get('plexConnections') || []
+          connectionPool: sharedState?.get('plexConnections') || [],
         });
-        
+
       case 'database':
-        return new EnterpriseDatabaseMock({ 
+        return new EnterpriseDatabaseMock({
           behavior: 'realistic',
-          transactionIsolation: role === 'primary'
+          transactionIsolation: role === 'primary',
         });
-        
+
       default:
         return createEnterpriseServiceMock(service, { behavior: 'realistic' });
     }
@@ -384,9 +409,9 @@ export class CrossServiceMockSharing {
   cleanupSharedMocks(): void {
     this.sharedMockPool.clear();
     this.accessPatterns.clear();
-    
+
     // Reset last access times
-    this.serviceRelationships.forEach(relationship => {
+    this.serviceRelationships.forEach((relationship) => {
       relationship.lastAccess = Date.now();
       relationship.sharedState.clear();
     });
@@ -426,12 +451,15 @@ export class DynamicMockAdapter {
   /**
    * Monitor mock performance and adapt in real-time
    */
-  monitorAndAdapt(serviceName: string, executionMetrics: {
-    duration: number;
-    memoryDelta: number;
-    errorOccurred: boolean;
-    concurrentRequests: number;
-  }): void {
+  monitorAndAdapt(
+    serviceName: string,
+    executionMetrics: {
+      duration: number;
+      memoryDelta: number;
+      errorOccurred: boolean;
+      concurrentRequests: number;
+    },
+  ): void {
     // Update metrics
     let metrics = this.adaptationMetrics.get(serviceName);
     if (!metrics) {
@@ -446,10 +474,13 @@ export class DynamicMockAdapter {
     }
 
     // Update running averages
-    metrics.executionTime = (metrics.executionTime * 0.9) + (executionMetrics.duration * 0.1);
+    metrics.executionTime = metrics.executionTime * 0.9 + executionMetrics.duration * 0.1;
     metrics.memoryUsage = Math.max(metrics.memoryUsage, executionMetrics.memoryDelta / 1024 / 1024); // MB
-    metrics.errorRate = (metrics.errorRate * 0.95) + (executionMetrics.errorOccurred ? 0.05 : 0);
-    metrics.concurrentAccess = Math.max(metrics.concurrentAccess, executionMetrics.concurrentRequests);
+    metrics.errorRate = metrics.errorRate * 0.95 + (executionMetrics.errorOccurred ? 0.05 : 0);
+    metrics.concurrentAccess = Math.max(
+      metrics.concurrentAccess,
+      executionMetrics.concurrentRequests,
+    );
 
     // Check if adaptation is needed
     this.evaluateAdaptationNeed(serviceName, metrics);
@@ -483,14 +514,18 @@ export class DynamicMockAdapter {
     }
   }
 
-  private async applyAdaptations(serviceName: string, adaptations: string[], metrics: AdaptationMetrics): Promise<void> {
+  private async applyAdaptations(
+    serviceName: string,
+    adaptations: string[],
+    metrics: AdaptationMetrics,
+  ): Promise<void> {
     this.activeAdaptations.add(serviceName);
     console.log(`⚡ Applying dynamic adaptations for ${serviceName}: ${adaptations.join(', ')}`);
 
     try {
       for (const adaptation of adaptations) {
         const impact = await this.executeAdaptation(serviceName, adaptation);
-        
+
         metrics.adaptationHistory.push({
           timestamp: Date.now(),
           change: adaptation,
@@ -509,15 +544,15 @@ export class DynamicMockAdapter {
       case 'optimize-execution':
         await this.optimizeExecution(serviceName);
         break;
-        
+
       case 'reduce-memory':
         await this.reduceMemoryUsage(serviceName);
         break;
-        
+
       case 'improve-stability':
         await this.improveStability(serviceName);
         break;
-        
+
       case 'scale-concurrency':
         await this.scaleConcurrency(serviceName);
         break;
@@ -529,49 +564,69 @@ export class DynamicMockAdapter {
   private async optimizeExecution(serviceName: string): Promise<void> {
     // Switch to faster mock implementation or reduce function call overhead
     const optimizedConfig = { behavior: 'fast', poolSize: 15, cacheResults: true };
-    await registerEnterpriseMock(serviceName, {
-      create: (config: any) => createEnterpriseServiceMock(serviceName, { ...config, ...optimizedConfig }),
-      reset: () => {},
-      validate: () => ({ valid: true, errors: [], warnings: [] }),
-      getName: () => serviceName,
-      getType: () => 'optimized',
-    }, { priority: 'high' });
+    await registerEnterpriseMock(
+      serviceName,
+      {
+        create: (config: any) =>
+          createEnterpriseServiceMock(serviceName, { ...config, ...optimizedConfig }),
+        reset: () => {},
+        validate: () => ({ valid: true, errors: [], warnings: [] }),
+        getName: () => serviceName,
+        getType: () => 'optimized',
+      },
+      { priority: 'high' },
+    );
   }
 
   private async reduceMemoryUsage(serviceName: string): Promise<void> {
     // Implement memory-efficient mock variant
     const memoryEfficientConfig = { behavior: 'minimal', poolSize: 5, lazyLoading: true };
-    await registerEnterpriseMock(serviceName, {
-      create: (config: any) => createEnterpriseServiceMock(serviceName, { ...config, ...memoryEfficientConfig }),
-      reset: () => {},
-      validate: () => ({ valid: true, errors: [], warnings: [] }),
-      getName: () => serviceName,
-      getType: () => 'memory-efficient',
-    }, { priority: 'medium' });
+    await registerEnterpriseMock(
+      serviceName,
+      {
+        create: (config: any) =>
+          createEnterpriseServiceMock(serviceName, { ...config, ...memoryEfficientConfig }),
+        reset: () => {},
+        validate: () => ({ valid: true, errors: [], warnings: [] }),
+        getName: () => serviceName,
+        getType: () => 'memory-efficient',
+      },
+      { priority: 'medium' },
+    );
   }
 
   private async improveStability(serviceName: string): Promise<void> {
     // Use more stable mock implementation with better error handling
     const stableConfig = { behavior: 'stable', errorHandling: 'graceful', retryLogic: true };
-    await registerEnterpriseMock(serviceName, {
-      create: (config: any) => createEnterpriseServiceMock(serviceName, { ...config, ...stableConfig }),
-      reset: () => {},
-      validate: () => ({ valid: true, errors: [], warnings: [] }),
-      getName: () => serviceName,
-      getType: () => 'stable',
-    }, { priority: 'high' });
+    await registerEnterpriseMock(
+      serviceName,
+      {
+        create: (config: any) =>
+          createEnterpriseServiceMock(serviceName, { ...config, ...stableConfig }),
+        reset: () => {},
+        validate: () => ({ valid: true, errors: [], warnings: [] }),
+        getName: () => serviceName,
+        getType: () => 'stable',
+      },
+      { priority: 'high' },
+    );
   }
 
   private async scaleConcurrency(serviceName: string): Promise<void> {
     // Increase pool size and add concurrency optimizations
     const scaledConfig = { behavior: 'concurrent', poolSize: 25, threadSafe: true };
-    await registerEnterpriseMock(serviceName, {
-      create: (config: any) => createEnterpriseServiceMock(serviceName, { ...config, ...scaledConfig }),
-      reset: () => {},
-      validate: () => ({ valid: true, errors: [], warnings: [] }),
-      getName: () => serviceName,
-      getType: () => 'scaled',
-    }, { priority: 'high' });
+    await registerEnterpriseMock(
+      serviceName,
+      {
+        create: (config: any) =>
+          createEnterpriseServiceMock(serviceName, { ...config, ...scaledConfig }),
+        reset: () => {},
+        validate: () => ({ valid: true, errors: [], warnings: [] }),
+        getName: () => serviceName,
+        getType: () => 'scaled',
+      },
+      { priority: 'high' },
+    );
   }
 
   /**
@@ -617,16 +672,18 @@ export class PredictiveMockCache {
   /**
    * Build prediction models from historical usage data
    */
-  buildPredictionModels(historicalData: Array<{
-    service: string;
-    timestamp: number;
-    usage: number;
-  }>): void {
+  buildPredictionModels(
+    historicalData: Array<{
+      service: string;
+      timestamp: number;
+      usage: number;
+    }>,
+  ): void {
     console.log('🔮 Building ML prediction models for mock caching...');
 
     // Group data by service
     const serviceData = new Map<string, Array<{ timestamp: number; usage: number }>>();
-    historicalData.forEach(entry => {
+    historicalData.forEach((entry) => {
       if (!serviceData.has(entry.service)) {
         serviceData.set(entry.service, []);
       }
@@ -639,9 +696,12 @@ export class PredictiveMockCache {
 
       const model = this.createPredictionModel(serviceName, data);
       this.predictionModels.set(serviceName, model);
-      
+
       // Store usage history
-      this.usageHistory.set(serviceName, data.map(d => d.usage));
+      this.usageHistory.set(
+        serviceName,
+        data.map((d) => d.usage),
+      );
     });
 
     console.log(`✅ Built prediction models for ${this.predictionModels.size} services`);
@@ -652,14 +712,14 @@ export class PredictiveMockCache {
    */
   async predictAndCache(): Promise<void> {
     console.log('🚀 Predicting usage and pre-caching mocks...');
-    
+
     const currentTime = Date.now();
     const predictions: Array<{ service: string; confidence: number; urgency: number }> = [];
 
     // Generate predictions
     this.predictionModels.forEach((model, serviceName) => {
       const urgency = Math.max(0, model.nextPredictedUsage - currentTime) / (60 * 1000); // minutes until predicted usage
-      
+
       predictions.push({
         service: serviceName,
         confidence: model.confidence,
@@ -679,27 +739,32 @@ export class PredictiveMockCache {
       if (!this.cachedPredictions.has(prediction.service)) {
         const mock = await this.createPredictiveMock(prediction.service);
         this.cachedPredictions.set(prediction.service, mock);
-        console.log(`📦 Pre-cached mock for ${prediction.service} (confidence: ${Math.round(prediction.confidence * 100)}%)`);
+        console.log(
+          `📦 Pre-cached mock for ${prediction.service} (confidence: ${Math.round(prediction.confidence * 100)}%)`,
+        );
       }
     });
 
     await Promise.all(cachingPromises);
   }
 
-  private createPredictionModel(serviceName: string, data: Array<{ timestamp: number; usage: number }>): PredictionModel {
+  private createPredictionModel(
+    serviceName: string,
+    data: Array<{ timestamp: number; usage: number }>,
+  ): PredictionModel {
     // Simple trend and seasonality analysis
-    const usageValues = data.map(d => d.usage);
-    const timeValues = data.map(d => d.timestamp);
-    
+    const usageValues = data.map((d) => d.usage);
+    const timeValues = data.map((d) => d.timestamp);
+
     // Calculate trend using linear regression
     const trend = this.calculateTrend(timeValues, usageValues);
-    
+
     // Calculate seasonality (simple periodic pattern detection)
     const seasonality = this.detectSeasonality(usageValues);
-    
+
     // Calculate confidence based on data consistency
     const confidence = this.calculateConfidence(usageValues);
-    
+
     // Predict next usage time
     const nextPredictedUsage = this.predictNextUsage(timeValues, usageValues, trend);
 
@@ -715,74 +780,75 @@ export class PredictiveMockCache {
 
   private calculateTrend(timeValues: number[], usageValues: number[]): number {
     if (timeValues.length < 2) return 0;
-    
+
     // Simple linear regression slope
     const n = timeValues.length;
     const sumTime = timeValues.reduce((a, b) => a + b, 0);
     const sumUsage = usageValues.reduce((a, b) => a + b, 0);
     const sumTimeUsage = timeValues.reduce((sum, time, i) => sum + time * usageValues[i], 0);
     const sumTimeSquared = timeValues.reduce((sum, time) => sum + time * time, 0);
-    
+
     const denominator = n * sumTimeSquared - sumTime * sumTime;
     if (denominator === 0) return 0;
-    
+
     return (n * sumTimeUsage - sumTime * sumUsage) / denominator;
   }
 
   private detectSeasonality(usageValues: number[]): number {
     // Simple autocorrelation for detecting periodic patterns
     if (usageValues.length < 7) return 0;
-    
+
     const correlations: number[] = [];
     const maxLag = Math.min(24, Math.floor(usageValues.length / 2)); // Check up to 24 periods
-    
+
     for (let lag = 1; lag <= maxLag; lag++) {
       let correlation = 0;
       let count = 0;
-      
+
       for (let i = lag; i < usageValues.length; i++) {
         correlation += usageValues[i] * usageValues[i - lag];
         count++;
       }
-      
+
       correlations.push(count > 0 ? correlation / count : 0);
     }
-    
+
     return Math.max(...correlations);
   }
 
   private calculateConfidence(usageValues: number[]): number {
     if (usageValues.length < 3) return 0.5;
-    
+
     // Calculate coefficient of variation (lower is more confident)
     const mean = usageValues.reduce((a, b) => a + b, 0) / usageValues.length;
-    const variance = usageValues.reduce((sum, value) => sum + Math.pow(value - mean, 2), 0) / usageValues.length;
+    const variance =
+      usageValues.reduce((sum, value) => sum + Math.pow(value - mean, 2), 0) / usageValues.length;
     const stdDev = Math.sqrt(variance);
-    
+
     const coefficientOfVariation = mean > 0 ? stdDev / mean : 1;
-    
+
     // Invert and normalize to 0-1 scale
     return Math.max(0.1, Math.min(1, 1 - coefficientOfVariation));
   }
 
   private predictNextUsage(timeValues: number[], usageValues: number[], trend: number): number {
     if (timeValues.length === 0) return Date.now() + 3600000; // 1 hour from now
-    
+
     const lastTime = timeValues[timeValues.length - 1];
     const avgInterval = this.calculateAverageInterval(timeValues);
-    
+
     // Predict based on trend and average interval
-    return lastTime + avgInterval + (trend * avgInterval);
+    return lastTime + avgInterval + trend * avgInterval;
   }
 
   private calculateAverageInterval(timeValues: number[]): number {
     if (timeValues.length < 2) return 3600000; // 1 hour default
-    
+
     const intervals = [];
     for (let i = 1; i < timeValues.length; i++) {
       intervals.push(timeValues[i] - timeValues[i - 1]);
     }
-    
+
     return intervals.reduce((a, b) => a + b, 0) / intervals.length;
   }
 
@@ -800,13 +866,13 @@ export class PredictiveMockCache {
    */
   getCachedMock(serviceName: string): any {
     const cached = this.cachedPredictions.get(serviceName);
-    
+
     if (cached) {
       // Track cache hit
       const currentHits = this.cacheHitRate.get(serviceName) || 0;
       this.cacheHitRate.set(serviceName, currentHits + 1);
     }
-    
+
     return cached;
   }
 
@@ -816,7 +882,7 @@ export class PredictiveMockCache {
   getCacheMetrics(): Record<string, any> {
     const totalPredictions = this.cachedPredictions.size;
     const totalHits = Array.from(this.cacheHitRate.values()).reduce((a, b) => a + b, 0);
-    
+
     return {
       totalCachedMocks: totalPredictions,
       totalCacheHits: totalHits,
@@ -830,18 +896,18 @@ export class PredictiveMockCache {
     // Calculate how accurate our predictions were
     let correctPredictions = 0;
     let totalPredictions = 0;
-    
+
     this.predictionModels.forEach((model, serviceName) => {
       totalPredictions++;
       const actualUsage = this.cacheHitRate.get(serviceName) || 0;
       const expectedUsage = model.confidence * 10; // Normalize to similar scale
-      
+
       // Consider prediction correct if within 30% of expected
       if (Math.abs(actualUsage - expectedUsage) / Math.max(1, expectedUsage) <= 0.3) {
         correctPredictions++;
       }
     });
-    
+
     return totalPredictions > 0 ? correctPredictions / totalPredictions : 0;
   }
 }
@@ -861,9 +927,19 @@ interface RecoverySnapshot {
 export class EmergencyMockRecovery {
   private static instance: EmergencyMockRecovery;
   private recoverySnapshots = new Map<string, RecoverySnapshot>();
-  private failureHistory: Array<{ timestamp: number; service: string; error: string; recovered: boolean }> = [];
+  private failureHistory: Array<{
+    timestamp: number;
+    service: string;
+    error: string;
+    recovered: boolean;
+  }> = [];
   private recoveryStrategies = new Map<string, (service: string, error: any) => Promise<any>>();
-  private criticalServices = new Set(['database', 'redisService', 'jwtService', 'deviceSessionService']);
+  private criticalServices = new Set([
+    'database',
+    'redisService',
+    'jwtService',
+    'deviceSessionService',
+  ]);
 
   static getInstance(): EmergencyMockRecovery {
     if (!this.instance) {
@@ -904,7 +980,7 @@ export class EmergencyMockRecovery {
    */
   async handleMockFailure(serviceName: string, error: any): Promise<any> {
     console.error(`🚨 Mock failure detected for ${serviceName}:`, error);
-    
+
     this.failureHistory.push({
       timestamp: Date.now(),
       service: serviceName,
@@ -935,7 +1011,6 @@ export class EmergencyMockRecovery {
       }
 
       throw new Error(`All recovery strategies failed for ${serviceName}`);
-      
     } catch (recoveryError) {
       console.error(`❌ Failed to recover ${serviceName}:`, recoveryError);
       throw recoveryError;
@@ -945,37 +1020,37 @@ export class EmergencyMockRecovery {
   private initializeRecoveryStrategies(): void {
     // Database recovery
     this.recoveryStrategies.set('database', async (service, error) => {
-      return new EnterpriseDatabaseMock({ 
-        behavior: 'stable', 
+      return new EnterpriseDatabaseMock({
+        behavior: 'stable',
         emergencyMode: true,
-        transactionIsolation: false 
+        transactionIsolation: false,
       });
     });
 
     // Redis recovery
     this.recoveryStrategies.set('redisService', async (service, error) => {
-      return new EnterpriseRedisServiceMock({ 
-        behavior: 'minimal', 
+      return new EnterpriseRedisServiceMock({
+        behavior: 'minimal',
         emergencyMode: true,
-        inMemoryFallback: true 
+        inMemoryFallback: true,
       });
     });
 
     // JWT recovery
     this.recoveryStrategies.set('jwtService', async (service, error) => {
-      return new EnterpriseJwtServiceMock({ 
-        behavior: 'stable', 
+      return new EnterpriseJwtServiceMock({
+        behavior: 'stable',
         emergencyMode: true,
-        bypassValidation: true 
+        bypassValidation: true,
       });
     });
 
     // DeviceSession recovery
     this.recoveryStrategies.set('deviceSessionService', async (service, error) => {
-      return new EnterpriseDeviceSessionServiceMock({ 
-        behavior: 'minimal', 
+      return new EnterpriseDeviceSessionServiceMock({
+        behavior: 'minimal',
         emergencyMode: true,
-        sessionPersistence: false 
+        sessionPersistence: false,
       });
     });
 
@@ -994,30 +1069,31 @@ export class EmergencyMockRecovery {
     // Restore from snapshot
     const recovered = await createEnterpriseServiceMock(serviceName, snapshot.configuration);
     this.restoreMockState(recovered, snapshot.mockState);
-    
+
     return recovered;
   }
 
   private async recreateFromTemplate(serviceName: string): Promise<any> {
-    const recoveryStrategy = this.recoveryStrategies.get(serviceName) || this.recoveryStrategies.get('generic')!;
+    const recoveryStrategy =
+      this.recoveryStrategies.get(serviceName) || this.recoveryStrategies.get('generic')!;
     return await recoveryStrategy(serviceName, null);
   }
 
   private async fallbackToMinimalMock(serviceName: string): Promise<any> {
-    return createEnterpriseServiceMock(serviceName, { 
-      behavior: 'minimal', 
+    return createEnterpriseServiceMock(serviceName, {
+      behavior: 'minimal',
       emergencyMode: true,
-      reducedFunctionality: true 
+      reducedFunctionality: true,
     });
   }
 
   private async createEmergencyStub(serviceName: string): Promise<any> {
     // Create basic stub with essential functions only
     const stub = vi.fn().mockReturnValue({});
-    
+
     // Add common method stubs based on service type
     const commonMethods = this.getCommonMethodsForService(serviceName);
-    commonMethods.forEach(method => {
+    commonMethods.forEach((method) => {
       stub[method] = vi.fn().mockResolvedValue({});
     });
 
@@ -1027,7 +1103,7 @@ export class EmergencyMockRecovery {
   private serializeMockState(mock: any): any {
     // Extract serializable state from mock
     const state: any = {};
-    
+
     try {
       // Common patterns for different mock types
       if (mock.cache) state.cache = Array.from(mock.cache.entries());
@@ -1097,14 +1173,15 @@ export class EmergencyMockRecovery {
     issues: Array<{ service: string; issue: string; severity: 'low' | 'medium' | 'high' }>;
     recoveryRecommendations: string[];
   }> {
-    const issues: Array<{ service: string; issue: string; severity: 'low' | 'medium' | 'high' }> = [];
+    const issues: Array<{ service: string; issue: string; severity: 'low' | 'medium' | 'high' }> =
+      [];
     const recommendations: string[] = [];
 
     // Check critical services
     for (const serviceName of this.criticalServices) {
       try {
         const mock = getEnterpriseMock(serviceName);
-        
+
         // Basic functionality test
         if (typeof mock?.validate === 'function') {
           const validation = mock.validate();
@@ -1129,7 +1206,8 @@ export class EmergencyMockRecovery {
     // Check snapshot freshness
     this.recoverySnapshots.forEach((snapshot, serviceName) => {
       const age = Date.now() - snapshot.timestamp;
-      if (age > 24 * 60 * 60 * 1000) { // 24 hours
+      if (age > 24 * 60 * 60 * 1000) {
+        // 24 hours
         issues.push({
           service: serviceName,
           issue: 'Recovery snapshot is stale',
@@ -1140,7 +1218,7 @@ export class EmergencyMockRecovery {
     });
 
     return {
-      healthy: issues.filter(i => i.severity === 'high').length === 0,
+      healthy: issues.filter((i) => i.severity === 'high').length === 0,
       issues,
       recoveryRecommendations: recommendations,
     };
@@ -1151,7 +1229,7 @@ export class EmergencyMockRecovery {
    */
   getRecoveryMetrics(): Record<string, any> {
     const totalFailures = this.failureHistory.length;
-    const successfulRecoveries = this.failureHistory.filter(f => f.recovered).length;
+    const successfulRecoveries = this.failureHistory.filter((f) => f.recovered).length;
     const recoveryRate = totalFailures > 0 ? successfulRecoveries / totalFailures : 1;
 
     return {
@@ -1165,7 +1243,7 @@ export class EmergencyMockRecovery {
         Array.from(this.recoverySnapshots.entries()).map(([service, snapshot]) => [
           service,
           Date.now() - snapshot.timestamp,
-        ])
+        ]),
       ),
     };
   }
@@ -1277,12 +1355,12 @@ export class AdvancedMockCoordinator {
 
   private async initializePredictiveCache(testHistory: any[]): Promise<void> {
     if (testHistory.length > 0) {
-      const usageData = testHistory.map(test => ({
+      const usageData = testHistory.map((test) => ({
         service: test.services?.[0] || 'unknown',
         timestamp: test.timestamp,
         usage: test.duration || 1,
       }));
-      
+
       this.cache.buildPredictionModels(usageData);
       await this.cache.predictAndCache();
     }
@@ -1295,16 +1373,19 @@ export class AdvancedMockCoordinator {
   /**
    * Get optimized mock with all coordination strategies
    */
-  async getOptimizedMock(serviceName: string, options?: {
-    category?: string;
-    testId?: string;
-    executionMetrics?: {
-      duration: number;
-      memoryDelta: number;
-      errorOccurred: boolean;
-      concurrentRequests: number;
-    };
-  }): Promise<any> {
+  async getOptimizedMock(
+    serviceName: string,
+    options?: {
+      category?: string;
+      testId?: string;
+      executionMetrics?: {
+        duration: number;
+        memoryDelta: number;
+        errorOccurred: boolean;
+        concurrentRequests: number;
+      };
+    },
+  ): Promise<any> {
     const category = options?.category || 'default';
     const testId = options?.testId;
 
@@ -1341,10 +1422,9 @@ export class AdvancedMockCoordinator {
       }
 
       return mock;
-
     } catch (error) {
       console.warn(`⚠️ Mock optimization failed for ${serviceName}, attempting recovery...`);
-      
+
       // Emergency recovery
       return await this.recovery.handleMockFailure(serviceName, error);
     }
@@ -1383,7 +1463,7 @@ export class AdvancedMockCoordinator {
    */
   async cleanup(): Promise<void> {
     console.log('🧹 Cleaning up advanced coordination systems...');
-    
+
     this.warmer.clearWarmingCache();
     this.sharing.cleanupSharedMocks();
     // Adapter is stateless, no cleanup needed
@@ -1420,11 +1500,14 @@ export async function setupAdvancedMockCoordination(testHistory?: any[]): Promis
 /**
  * Get enterprise-optimized mock with all strategies
  */
-export async function getAdvancedMock(serviceName: string, options?: {
-  category?: string;
-  testId?: string;
-  trackMetrics?: boolean;
-}): Promise<any> {
+export async function getAdvancedMock(
+  serviceName: string,
+  options?: {
+    category?: string;
+    testId?: string;
+    trackMetrics?: boolean;
+  },
+): Promise<any> {
   return await advancedMockCoordinator.getOptimizedMock(serviceName, options);
 }
 

@@ -8,7 +8,7 @@ import { test, expect, type Page } from '@playwright/test';
 // Helper function to setup component for visual testing
 async function setupComponent(page: Page, component: string, props: object = {}) {
   const propsString = JSON.stringify(props);
-  
+
   await page.setContent(`
     <!DOCTYPE html>
     <html>
@@ -154,7 +154,7 @@ async function setupComponent(page: Page, component: string, props: object = {})
       </body>
     </html>
   `);
-  
+
   // Wait for component to render
   await page.waitForTimeout(100);
 }
@@ -169,12 +169,12 @@ test.describe('Visual Regression Tests', () => {
         uptime: 0.995,
         responseTime: 45,
         errorCount: 2,
-        showDetails: true
+        showDetails: true,
       });
-      
+
       await expect(page.locator('.test-container')).toHaveScreenshot('service-card-active.png');
     });
-    
+
     test('should match visual snapshot - error service', async ({ page }) => {
       await setupComponent(page, 'ServiceCard', {
         id: 'test-2',
@@ -182,12 +182,12 @@ test.describe('Visual Regression Tests', () => {
         status: 'error',
         uptime: 0.85,
         errorCount: 15,
-        showDetails: true
+        showDetails: true,
       });
-      
+
       await expect(page.locator('.test-container')).toHaveScreenshot('service-card-error.png');
     });
-    
+
     test('should match visual snapshot - maintenance service', async ({ page }) => {
       await setupComponent(page, 'ServiceCard', {
         id: 'test-3',
@@ -196,10 +196,12 @@ test.describe('Visual Regression Tests', () => {
         uptime: 1.0,
         responseTime: 0,
         errorCount: 0,
-        showDetails: true
+        showDetails: true,
       });
-      
-      await expect(page.locator('.test-container')).toHaveScreenshot('service-card-maintenance.png');
+
+      await expect(page.locator('.test-container')).toHaveScreenshot(
+        'service-card-maintenance.png',
+      );
     });
 
     test('should match visual snapshot - long service name', async ({ page }) => {
@@ -210,9 +212,9 @@ test.describe('Visual Regression Tests', () => {
         uptime: 0.99,
         responseTime: 120,
         errorCount: 0,
-        showDetails: true
+        showDetails: true,
       });
-      
+
       await expect(page.locator('.test-container')).toHaveScreenshot('service-card-long-name.png');
     });
   });
@@ -220,18 +222,21 @@ test.describe('Visual Regression Tests', () => {
   test.describe('ErrorBoundary Visual Tests', () => {
     test('should match visual snapshot - basic error', async ({ page }) => {
       await setupComponent(page, 'ErrorBoundary', {
-        message: 'Component failed to render'
+        message: 'Component failed to render',
       });
-      
+
       await expect(page.locator('.test-container')).toHaveScreenshot('error-boundary-basic.png');
     });
-    
+
     test('should match visual snapshot - long error message', async ({ page }) => {
       await setupComponent(page, 'ErrorBoundary', {
-        message: 'This is a very long error message that tests how the error boundary handles text wrapping and overflow in different viewport sizes and browser configurations.'
+        message:
+          'This is a very long error message that tests how the error boundary handles text wrapping and overflow in different viewport sizes and browser configurations.',
       });
-      
-      await expect(page.locator('.test-container')).toHaveScreenshot('error-boundary-long-message.png');
+
+      await expect(page.locator('.test-container')).toHaveScreenshot(
+        'error-boundary-long-message.png',
+      );
     });
   });
 
@@ -239,13 +244,13 @@ test.describe('Visual Regression Tests', () => {
     const viewports = [
       { name: 'mobile', width: 375, height: 667 },
       { name: 'tablet', width: 768, height: 1024 },
-      { name: 'desktop', width: 1440, height: 900 }
+      { name: 'desktop', width: 1440, height: 900 },
     ];
 
     for (const viewport of viewports) {
       test(`should match visual snapshot on ${viewport.name}`, async ({ page }) => {
         await page.setViewportSize({ width: viewport.width, height: viewport.height });
-        
+
         await setupComponent(page, 'ServiceCard', {
           id: 'responsive-test',
           name: 'Responsive Test Service',
@@ -253,10 +258,12 @@ test.describe('Visual Regression Tests', () => {
           uptime: 0.98,
           responseTime: 75,
           errorCount: 3,
-          showDetails: true
+          showDetails: true,
         });
-        
-        await expect(page.locator('.test-container')).toHaveScreenshot(`service-card-${viewport.name}.png`);
+
+        await expect(page.locator('.test-container')).toHaveScreenshot(
+          `service-card-${viewport.name}.png`,
+        );
       });
     }
   });
@@ -270,10 +277,12 @@ test.describe('Visual Regression Tests', () => {
         uptime: 0.999,
         responseTime: 25,
         errorCount: 1,
-        showDetails: true
+        showDetails: true,
       });
-      
-      await expect(page.locator('.test-container')).toHaveScreenshot(`service-card-${browserName}.png`);
+
+      await expect(page.locator('.test-container')).toHaveScreenshot(
+        `service-card-${browserName}.png`,
+      );
     });
   });
 
@@ -296,9 +305,9 @@ test.describe('Visual Regression Tests', () => {
             border-color: #dc2626;
             color: #fca5a5;
           }
-        `
+        `,
       });
-      
+
       await setupComponent(page, 'ServiceCard', {
         id: 'dark-mode-test',
         name: 'Dark Mode Service',
@@ -306,9 +315,9 @@ test.describe('Visual Regression Tests', () => {
         uptime: 0.95,
         responseTime: 100,
         errorCount: 5,
-        showDetails: true
+        showDetails: true,
       });
-      
+
       await expect(page.locator('.test-container')).toHaveScreenshot('service-card-dark-mode.png');
     });
   });
@@ -335,19 +344,21 @@ test.describe('Visual Regression Tests', () => {
             border: 3px solid #ff0000;
             color: #000000;
           }
-        `
+        `,
       });
-      
+
       await setupComponent(page, 'ServiceCard', {
         id: 'high-contrast-test',
         name: 'High Contrast Service',
         status: 'error',
         uptime: 0.75,
         errorCount: 10,
-        showDetails: true
+        showDetails: true,
       });
-      
-      await expect(page.locator('.test-container')).toHaveScreenshot('service-card-high-contrast.png');
+
+      await expect(page.locator('.test-container')).toHaveScreenshot(
+        'service-card-high-contrast.png',
+      );
     });
   });
 });

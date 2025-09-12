@@ -1,1 +1,34 @@
-{"uuid":"e0a79f7b-35bc-42f8-942b-7d413849ac9f","name":"should load large libraries efficiently","historyId":"70af1ce1955a4d141b1b69fabf7d2193:96797789f4669ba5e9de53cebde9126b","status":"skipped","statusDetails":{},"stage":"finished","steps":[],"attachments":[],"parameters":[{"name":"Project","value":"Mobile Chrome"}],"labels":[{"name":"language","value":"javascript"},{"name":"framework","value":"playwright"},{"name":"package","value":"plex-integration-journey.spec.ts"},{"name":"titlePath","value":" > Mobile Chrome > plex-integration-journey.spec.ts > Plex Integration User Journey > Performance and Load Testing"},{"name":"host","value":"kubuntudev"},{"name":"thread","value":"pid-38931-worker-0"},{"name":"parentSuite","value":"Mobile Chrome"},{"name":"subSuite","value":"Plex Integration User Journey > Performance and Load Testing"}],"links":[],"start":1757602649447,"testCaseId":"70af1ce1955a4d141b1b69fabf7d2193","fullName":"plex-integration-journey.spec.ts:573:9","titlePath":["plex-integration-journey.spec.ts","Plex Integration User Journey","Performance and Load Testing"],"stop":1757602649447}
+{
+  "uuid": "e0a79f7b-35bc-42f8-942b-7d413849ac9f",
+  "name": "should load large libraries efficiently",
+  "historyId": "70af1ce1955a4d141b1b69fabf7d2193:96797789f4669ba5e9de53cebde9126b",
+  "status": "skipped",
+  "statusDetails": {},
+  "stage": "finished",
+  "steps": [],
+  "attachments": [],
+  "parameters": [{ "name": "Project", "value": "Mobile Chrome" }],
+  "labels": [
+    { "name": "language", "value": "javascript" },
+    { "name": "framework", "value": "playwright" },
+    { "name": "package", "value": "plex-integration-journey.spec.ts" },
+    {
+      "name": "titlePath",
+      "value": " > Mobile Chrome > plex-integration-journey.spec.ts > Plex Integration User Journey > Performance and Load Testing"
+    },
+    { "name": "host", "value": "kubuntudev" },
+    { "name": "thread", "value": "pid-38931-worker-0" },
+    { "name": "parentSuite", "value": "Mobile Chrome" },
+    { "name": "subSuite", "value": "Plex Integration User Journey > Performance and Load Testing" }
+  ],
+  "links": [],
+  "start": 1757602649447,
+  "testCaseId": "70af1ce1955a4d141b1b69fabf7d2193",
+  "fullName": "plex-integration-journey.spec.ts:573:9",
+  "titlePath": [
+    "plex-integration-journey.spec.ts",
+    "Plex Integration User Journey",
+    "Performance and Load Testing"
+  ],
+  "stop": 1757602649447
+}

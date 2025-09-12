@@ -1,8 +1,8 @@
 /**
  * COMPREHENSIVE PRISMA REPOSITORY ALIGNMENT - Emergency API Repair
- * 
+ *
  * MISSION CRITICAL: Complete repository mock alignment with actual Prisma client interfaces
- * 
+ *
  * FIXES IMPLEMENTED:
  * 1. Complete API alignment with actual repository implementations
  * 2. All 350+ missing Prisma operations from Phase G infrastructure
@@ -13,20 +13,20 @@
  */
 
 import { vi, type MockedFunction } from 'vitest';
-import { 
-  AlignedRepositoryMockFactory, 
+import {
+  AlignedRepositoryMockFactory,
   createAlignedPrismaClientMock,
-  resetAlignedMocks 
+  resetAlignedMocks,
 } from './prisma-repository-api-alignment-fix';
-import { 
+import {
   generateCompleteOperations,
   applyEmergencyOperationsToModel,
-  createMissingModel
+  createMissingModel,
 } from './emergency-prisma-operations-repair';
 import {
   getAlignedServiceMocks,
   createAlignedEncryptionMock,
-  resetServiceMocks
+  resetServiceMocks,
 } from '../services/comprehensive-service-mock-alignment';
 
 // =============================================================================
@@ -49,15 +49,15 @@ export interface ComprehensivePrismaInterface {
   serviceMetric: PrismaModelInterface;
   serviceIncident: PrismaModelInterface;
   verificationToken: PrismaModelInterface;
-  
+
   // PHASE G: Missing models implementation
   media: PrismaModelInterface;
   auditLog: PrismaModelInterface;
   uploadedFile: PrismaModelInterface;
-  
+
   // PHASE G: Device session model (referenced in tests)
   deviceSession: PrismaModelInterface;
-  
+
   // Prisma client operations
   $transaction: MockedFunction<any>;
   $connect: MockedFunction<any>;
@@ -80,7 +80,7 @@ export interface PrismaModelInterface {
   update: MockedFunction<any>;
   delete: MockedFunction<any>;
   count: MockedFunction<any>;
-  
+
   // PHASE G: Advanced operations (350+ missing operations)
   createMany: MockedFunction<any>;
   createManyAndReturn: MockedFunction<any>;
@@ -110,15 +110,28 @@ class EnhancedMockDataStore {
 
   private initializeCollections(): void {
     const collections = [
-      'User', 'MediaRequest', 'Session', 'SessionToken', 
-      'ServiceConfig', 'YoutubeDownload', 'ServiceStatus', 
-      'RateLimit', 'Account', 'ErrorLog', 'Notification',
-      'ServiceMetric', 'ServiceIncident', 'VerificationToken',
+      'User',
+      'MediaRequest',
+      'Session',
+      'SessionToken',
+      'ServiceConfig',
+      'YoutubeDownload',
+      'ServiceStatus',
+      'RateLimit',
+      'Account',
+      'ErrorLog',
+      'Notification',
+      'ServiceMetric',
+      'ServiceIncident',
+      'VerificationToken',
       // PHASE G: Missing models
-      'Media', 'AuditLog', 'UploadedFile', 'DeviceSession'
+      'Media',
+      'AuditLog',
+      'UploadedFile',
+      'DeviceSession',
     ];
 
-    collections.forEach(collection => {
+    collections.forEach((collection) => {
       this.data.set(collection, new Map());
     });
   }
@@ -204,7 +217,7 @@ class EnhancedMockDataStore {
 
     // Apply where filter with enhanced Prisma operator support
     if (options.where) {
-      items = items.filter(item => this.matchesWhere(item, options.where));
+      items = items.filter((item) => this.matchesWhere(item, options.where));
     }
 
     // Apply orderBy
@@ -222,12 +235,12 @@ class EnhancedMockDataStore {
 
     // Apply select
     if (options.select) {
-      items = items.map(item => this.applySelect(item, options.select));
+      items = items.map((item) => this.applySelect(item, options.select));
     }
 
     // Apply include (relationships)
     if (options.include) {
-      items = items.map(item => this.applyIncludes(collection, item, options.include));
+      items = items.map((item) => this.applyIncludes(collection, item, options.include));
     }
 
     return items;
@@ -241,13 +254,13 @@ class EnhancedMockDataStore {
   findUnique(collection: string, options: any = {}): any {
     if (!options.where) return null;
 
-    const items = this.findMany(collection, { 
-      where: options.where, 
+    const items = this.findMany(collection, {
+      where: options.where,
       take: 2,
       select: options.select,
-      include: options.include 
+      include: options.include,
     });
-    
+
     if (items.length === 0) return null;
     if (items.length > 1) {
       throw new Error('Unique constraint violation: multiple records found');
@@ -275,10 +288,10 @@ class EnhancedMockDataStore {
   private matchesWhere(item: any, where: any): boolean {
     for (const [key, value] of Object.entries(where)) {
       if (key === 'AND') {
-        return (value as any[]).every(condition => this.matchesWhere(item, condition));
+        return (value as any[]).every((condition) => this.matchesWhere(item, condition));
       }
       if (key === 'OR') {
-        return (value as any[]).some(condition => this.matchesWhere(item, condition));
+        return (value as any[]).some((condition) => this.matchesWhere(item, condition));
       }
       if (key === 'NOT') {
         return !this.matchesWhere(item, value);
@@ -287,14 +300,13 @@ class EnhancedMockDataStore {
       // Handle Prisma query operators
       if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
         const itemValue = item[key];
-        
+
         // String operators
         if ('contains' in value) {
           if (typeof itemValue !== 'string') return false;
-          const searchValue = value.mode === 'insensitive' ? 
-            itemValue.toLowerCase() : itemValue;
-          const contains = value.mode === 'insensitive' ? 
-            value.contains.toLowerCase() : value.contains;
+          const searchValue = value.mode === 'insensitive' ? itemValue.toLowerCase() : itemValue;
+          const contains =
+            value.mode === 'insensitive' ? value.contains.toLowerCase() : value.contains;
           return searchValue.includes(contains);
         }
 
@@ -305,7 +317,7 @@ class EnhancedMockDataStore {
         if ('endsWith' in value) {
           return typeof itemValue === 'string' && itemValue.endsWith(value.endsWith);
         }
-        
+
         // Comparison operators
         if ('gte' in value) return itemValue >= value.gte;
         if ('lte' in value) return itemValue <= value.lte;
@@ -313,12 +325,12 @@ class EnhancedMockDataStore {
         if ('lt' in value) return itemValue < value.lt;
         if ('equals' in value) return itemValue === value.equals;
         if ('not' in value) return itemValue !== value.not;
-        
+
         // Array operators
         if ('in' in value) {
           return Array.isArray(value.in) && value.in.includes(itemValue);
         }
-        
+
         if ('notIn' in value) {
           return Array.isArray(value.notIn) && !value.notIn.includes(itemValue);
         }
@@ -327,7 +339,7 @@ class EnhancedMockDataStore {
         if ('isNull' in value) {
           return value.isNull ? itemValue === null : itemValue !== null;
         }
-        
+
         // Handle nested object conditions (relationships)
         if (!itemValue) return false;
         return this.matchesWhere(itemValue, value);
@@ -383,7 +395,7 @@ class EnhancedMockDataStore {
     const relations = this.relationships.get(collection) || {};
 
     for (const [relation, includeOptions] of Object.entries(include)) {
-      if (includeOptions === true || (typeof includeOptions === 'object')) {
+      if (includeOptions === true || typeof includeOptions === 'object') {
         const relationConfig = relations[relation];
         if (relationConfig) {
           result[relation] = this.loadRelation(item, relationConfig, includeOptions);
@@ -396,16 +408,16 @@ class EnhancedMockDataStore {
 
   private loadRelation(item: any, relationConfig: any, options: any): any {
     const { model, field, multiple } = relationConfig;
-    
+
     if (multiple) {
       return this.findMany(model, {
         where: { [field]: item.id },
-        ...(typeof options === 'object' ? options : {})
+        ...(typeof options === 'object' ? options : {}),
       });
     } else {
       return this.findUnique(model, {
         where: { id: item[field] },
-        ...(typeof options === 'object' ? options : {})
+        ...(typeof options === 'object' ? options : {}),
       });
     }
   }
@@ -452,7 +464,7 @@ export class ComprehensivePrismaMock {
         this.connected = true;
         return Promise.resolve();
       }),
-      
+
       $disconnect: vi.fn().mockImplementation(() => {
         this.connected = false;
         return Promise.resolve();
@@ -489,19 +501,19 @@ export class ComprehensivePrismaMock {
   // Enhanced User model with all Phase G operations
   private createEnhancedUserModel(): PrismaModelInterface {
     const baseOperations = generateCompleteOperations(this.store, 'User', 'User', null);
-    
+
     // Enhanced user-specific operations with proper encryption handling
     return {
       ...baseOperations,
-      
+
       create: vi.fn().mockImplementation(({ data, include, select }) => {
         const user = this.createUserInstance(data);
         this.store.setItem('User', user.id, user);
-        
+
         let result = user;
         if (select) result = this.applySelect(user, select);
         if (include) result = this.store.findUnique('User', { where: { id: user.id }, include });
-        
+
         return Promise.resolve(result);
       }),
 
@@ -510,14 +522,14 @@ export class ComprehensivePrismaMock {
         if (!existing) {
           throw new Error('User not found');
         }
-        
+
         const updated = { ...existing, ...data, updatedAt: new Date() };
         this.store.setItem('User', existing.id, updated);
-        
+
         let result = updated;
         if (select) result = this.applySelect(updated, select);
         if (include) result = this.store.findUnique('User', { where: { id: updated.id }, include });
-        
+
         return Promise.resolve(result);
       }),
     };
@@ -663,7 +675,7 @@ export function createComprehensiveAlignedMocks() {
   const prismaClient = createComprehensivePrismaClientMock();
   const serviceMocks = getAlignedServiceMocks();
   const encryptionMock = createAlignedEncryptionMock();
-  
+
   return {
     database: prismaClient,
     services: serviceMocks,

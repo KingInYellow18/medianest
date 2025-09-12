@@ -1,6 +1,6 @@
 /**
  * Test Data Factory for E2E Tests
- * 
+ *
  * Provides consistent test data generation for various entities
  * used throughout the E2E test suite
  */
@@ -83,7 +83,7 @@ export class TestDataFactory {
   static createUser(overrides: Partial<TestUser> = {}): TestUser {
     const userId = this.userCounter++;
     const isAdmin = overrides.role === 'admin' || (userId === 1 && !overrides.role);
-    
+
     return {
       id: `user-${userId}`,
       plexId: `plex-${userId}`,
@@ -91,40 +91,47 @@ export class TestDataFactory {
       email: `${isAdmin ? 'admin' : 'user'}${userId}@example.com`,
       thumb: `https://plex.tv/users/user${userId}/avatar.png`,
       role: isAdmin ? 'admin' : 'user',
-      createdAt: new Date(Date.now() - (userId * 24 * 60 * 60 * 1000)).toISOString(),
-      lastLoginAt: new Date(Date.now() - (Math.random() * 7 * 24 * 60 * 60 * 1000)).toISOString(),
+      createdAt: new Date(Date.now() - userId * 24 * 60 * 60 * 1000).toISOString(),
+      lastLoginAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
       _count: {
         mediaRequests: Math.floor(Math.random() * 50) + (isAdmin ? 20 : 5),
-        youtubeDownloads: Math.floor(Math.random() * 30) + (isAdmin ? 10 : 2)
+        youtubeDownloads: Math.floor(Math.random() * 30) + (isAdmin ? 10 : 2),
       },
-      ...overrides
+      ...overrides,
     };
   }
 
   /**
    * Create multiple test users
    */
-  static createUsers(count: number, options: {
-    adminCount?: number;
-    userOverrides?: Partial<TestUser>[];
-  } = {}): TestUser[] {
+  static createUsers(
+    count: number,
+    options: {
+      adminCount?: number;
+      userOverrides?: Partial<TestUser>[];
+    } = {},
+  ): TestUser[] {
     const { adminCount = 1, userOverrides = [] } = options;
     const users: TestUser[] = [];
 
     // Create admins first
     for (let i = 0; i < adminCount; i++) {
-      users.push(this.createUser({
-        role: 'admin',
-        ...userOverrides[i]
-      }));
+      users.push(
+        this.createUser({
+          role: 'admin',
+          ...userOverrides[i],
+        }),
+      );
     }
 
     // Create regular users
     for (let i = adminCount; i < count; i++) {
-      users.push(this.createUser({
-        role: 'user',
-        ...userOverrides[i]
-      }));
+      users.push(
+        this.createUser({
+          role: 'user',
+          ...userOverrides[i],
+        }),
+      );
     }
 
     return users;
@@ -140,15 +147,9 @@ export class TestDataFactory {
       'Epic Music Compilation',
       'Funny Cat Moments',
       'Tech Review 2024',
-      'Travel Vlog Adventures'
+      'Travel Vlog Adventures',
     ];
-    const channels = [
-      'TechChannel',
-      'MusicMaster',
-      'FunnyPets',
-      'TravelBuddy',
-      'EduContent'
-    ];
+    const channels = ['TechChannel', 'MusicMaster', 'FunnyPets', 'TravelBuddy', 'EduContent'];
 
     return {
       id: videoId,
@@ -157,10 +158,15 @@ export class TestDataFactory {
       duration: `${Math.floor(Math.random() * 10) + 1}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`,
       thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
       description: 'This is a test video description with some sample content.',
-      uploadDate: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      uploadDate: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split('T')[0],
       viewCount: Math.floor(Math.random() * 10000000),
-      availableQualities: ['144p', '240p', '360p', '480p', '720p', '1080p'].slice(0, Math.floor(Math.random() * 4) + 3),
-      ...overrides
+      availableQualities: ['144p', '240p', '360p', '480p', '720p', '1080p'].slice(
+        0,
+        Math.floor(Math.random() * 4) + 3,
+      ),
+      ...overrides,
     };
   }
 
@@ -169,17 +175,28 @@ export class TestDataFactory {
    */
   static createDownload(overrides: Partial<TestDownload> = {}): TestDownload {
     const downloadId = this.downloadCounter++;
-    const statuses: TestDownload['status'][] = ['queued', 'downloading', 'completed', 'failed', 'cancelled'];
+    const statuses: TestDownload['status'][] = [
+      'queued',
+      'downloading',
+      'completed',
+      'failed',
+      'cancelled',
+    ];
     const status = overrides.status || statuses[Math.floor(Math.random() * statuses.length)];
-    const progress = status === 'completed' ? 100 : 
-                    status === 'downloading' ? Math.floor(Math.random() * 99) + 1 :
-                    status === 'failed' ? Math.floor(Math.random() * 80) :
-                    0;
+    const progress =
+      status === 'completed'
+        ? 100
+        : status === 'downloading'
+          ? Math.floor(Math.random() * 99) + 1
+          : status === 'failed'
+            ? Math.floor(Math.random() * 80)
+            : 0;
 
-    const createdAt = new Date(Date.now() - (downloadId * 60 * 60 * 1000)).toISOString();
-    const completedAt = status === 'completed' ? 
-      new Date(new Date(createdAt).getTime() + (Math.random() * 30 * 60 * 1000)).toISOString() : 
-      null;
+    const createdAt = new Date(Date.now() - downloadId * 60 * 60 * 1000).toISOString();
+    const completedAt =
+      status === 'completed'
+        ? new Date(new Date(createdAt).getTime() + Math.random() * 30 * 60 * 1000).toISOString()
+        : null;
 
     return {
       id: `download-${downloadId}`,
@@ -194,37 +211,42 @@ export class TestDataFactory {
       error: status === 'failed' ? 'Network timeout' : null,
       createdAt,
       completedAt,
-      ...overrides
+      ...overrides,
     };
   }
 
   /**
    * Create multiple downloads
    */
-  static createDownloads(count: number, statusDistribution: {
-    completed?: number;
-    downloading?: number;
-    failed?: number;
-    queued?: number;
-    cancelled?: number;
-  } = {}): TestDownload[] {
+  static createDownloads(
+    count: number,
+    statusDistribution: {
+      completed?: number;
+      downloading?: number;
+      failed?: number;
+      queued?: number;
+      cancelled?: number;
+    } = {},
+  ): TestDownload[] {
     const downloads: TestDownload[] = [];
     const {
       completed = Math.floor(count * 0.6),
       downloading = Math.floor(count * 0.2),
       failed = Math.floor(count * 0.1),
       queued = Math.floor(count * 0.05),
-      cancelled = count - completed - downloading - failed - queued
+      cancelled = count - completed - downloading - failed - queued,
     } = statusDistribution;
 
     // Create downloads with specific statuses
     const statusCounts = { completed, downloading, failed, queued, cancelled };
-    
+
     Object.entries(statusCounts).forEach(([status, statusCount]) => {
       for (let i = 0; i < statusCount; i++) {
-        downloads.push(this.createDownload({ 
-          status: status as TestDownload['status'] 
-        }));
+        downloads.push(
+          this.createDownload({
+            status: status as TestDownload['status'],
+          }),
+        );
       }
     });
 
@@ -246,9 +268,11 @@ export class TestDataFactory {
       baseUrl: `https://${serviceName}.example.com`,
       status: isHealthy ? 'healthy' : 'unhealthy',
       lastChecked: new Date(Date.now() - Math.random() * 10 * 60 * 1000).toISOString(),
-      responseTime: isHealthy ? Math.floor(Math.random() * 500) + 50 : Math.floor(Math.random() * 5000) + 1000,
+      responseTime: isHealthy
+        ? Math.floor(Math.random() * 500) + 50
+        : Math.floor(Math.random() * 5000) + 1000,
       ...(isHealthy ? {} : { error: 'Connection timeout' }),
-      ...overrides
+      ...overrides,
     };
   }
 
@@ -263,17 +287,17 @@ export class TestDataFactory {
     return {
       users: {
         total: totalUsers,
-        active: Math.floor(totalUsers * (0.4 + Math.random() * 0.4)) // 40-80% active
+        active: Math.floor(totalUsers * (0.4 + Math.random() * 0.4)), // 40-80% active
       },
       requests: {
         total: totalRequests,
-        pending: Math.floor(totalRequests * (0.05 + Math.random() * 0.15)) // 5-20% pending
+        pending: Math.floor(totalRequests * (0.05 + Math.random() * 0.15)), // 5-20% pending
       },
       downloads: {
         total: totalDownloads,
-        active: Math.floor(totalDownloads * (0.01 + Math.random() * 0.09)) // 1-10% active
+        active: Math.floor(totalDownloads * (0.01 + Math.random() * 0.09)), // 1-10% active
       },
-      ...overrides
+      ...overrides,
     };
   }
 
@@ -289,7 +313,7 @@ export class TestDataFactory {
       'https://youtu.be/jNQXAC9IVRw',
       'https://www.youtube.com/watch?v=9bZkp7q19f0&t=1m30s',
       'https://www.youtube.com/watch?v=kJQP7kiw5Fk&list=PLRqwX-V7Uu6ZiZxtDDRCi6uhfTH4FilpH',
-      'https://youtu.be/ScMzIvxBSi4?t=120'
+      'https://youtu.be/ScMzIvxBSi4?t=120',
     ];
 
     const invalidUrls = [
@@ -298,12 +322,12 @@ export class TestDataFactory {
       'https://www.youtube.com/watch?v=invalidID123456789',
       'https://vimeo.com/123456789',
       'https://www.dailymotion.com/video/x123456',
-      'ftp://example.com/file.mp4'
+      'ftp://example.com/file.mp4',
     ];
 
     return {
       valid: validUrls.slice(0, Math.min(count, validUrls.length)),
-      invalid: invalidUrls.slice(0, Math.min(count, invalidUrls.length))
+      invalid: invalidUrls.slice(0, Math.min(count, invalidUrls.length)),
     };
   }
 
@@ -316,9 +340,9 @@ export class TestDataFactory {
         id: user.id,
         plexUsername: user.plexUsername,
         email: user.email,
-        role: user.role
+        role: user.role,
       },
-      expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
+      expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours
     };
   }
 
@@ -339,7 +363,7 @@ export class TestDataFactory {
       'service_config_updated',
       'broadcast_sent',
       'download_cancelled',
-      'user_created'
+      'user_created',
     ];
 
     return Array.from({ length: count }, (_, i) => ({
@@ -350,9 +374,9 @@ export class TestDataFactory {
       details: {
         previousValue: 'user',
         newValue: 'admin',
-        reason: 'Administrative action'
+        reason: 'Administrative action',
       },
-      timestamp: new Date(Date.now() - i * 60 * 60 * 1000).toISOString()
+      timestamp: new Date(Date.now() - i * 60 * 60 * 1000).toISOString(),
     }));
   }
 
@@ -382,36 +406,36 @@ export class TestDataFactory {
         userCount: 5,
         downloadCount: 10,
         serviceCount: 3,
-        adminCount: 1
+        adminCount: 1,
       },
       large: {
         userCount: 100,
         downloadCount: 500,
         serviceCount: 8,
-        adminCount: 3
+        adminCount: 3,
       },
       admin: {
         userCount: 10,
         downloadCount: 50,
         serviceCount: 5,
-        adminCount: 2
+        adminCount: 2,
       },
       performance: {
         userCount: 1000,
         downloadCount: 10000,
         serviceCount: 10,
-        adminCount: 5
-      }
+        adminCount: 5,
+      },
     };
 
     const config = scenarios[name];
-    
+
     return {
       users: this.createUsers(config.userCount, { adminCount: config.adminCount }),
       downloads: this.createDownloads(config.downloadCount),
       services: Array.from({ length: config.serviceCount }, () => this.createService()),
       systemStats: this.createSystemStats(),
-      youtubeUrls: this.createYouTubeUrls()
+      youtubeUrls: this.createYouTubeUrls(),
     };
   }
 }

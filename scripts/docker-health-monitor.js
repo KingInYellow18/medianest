@@ -30,8 +30,8 @@ class DockerHealthMonitor {
         reject(new Error(`Command timeout: ${command}`));
       }, timeout);
 
-      child.stdout.on('data', (data) => stdout += data.toString());
-      child.stderr.on('data', (data) => stderr += data.toString());
+      child.stdout.on('data', (data) => (stdout += data.toString()));
+      child.stderr.on('data', (data) => (stderr += data.toString()));
 
       child.on('close', (code) => {
         clearTimeout(timer);
@@ -48,11 +48,11 @@ class DockerHealthMonitor {
     try {
       const systemInfo = await this.executeCommand('docker system df');
       const buildCacheInfo = await this.executeCommand('docker builder ls');
-      
+
       return {
         systemDf: systemInfo.stdout,
         buildCache: buildCacheInfo.stdout,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
     } catch (error) {
       return { error: error.message, timestamp: Date.now() };
@@ -61,15 +61,18 @@ class DockerHealthMonitor {
 
   async analyzeImageSizes() {
     try {
-      const images = await this.executeCommand('docker images --format "table {{.Repository}}:{{.Tag}}\t{{.Size}}\t{{.CreatedAt}}" | grep medianest');
-      const imageData = images.stdout.split('\n')
-        .filter(line => line.trim())
-        .map(line => {
+      const images = await this.executeCommand(
+        'docker images --format "table {{.Repository}}:{{.Tag}}\t{{.Size}}\t{{.CreatedAt}}" | grep medianest',
+      );
+      const imageData = images.stdout
+        .split('\n')
+        .filter((line) => line.trim())
+        .map((line) => {
           const parts = line.split('\t');
           return {
             name: parts[0],
             size: parts[1],
-            created: parts[2]
+            created: parts[2],
           };
         });
 
@@ -83,26 +86,27 @@ class DockerHealthMonitor {
     const startTime = Date.now();
     const healthChecks = [];
 
-    console.log(`Monitoring container health for ${duration/1000}s using ${composeFile}`);
+    console.log(`Monitoring container health for ${duration / 1000}s using ${composeFile}`);
 
     while (Date.now() - startTime < duration) {
       try {
         const result = await this.executeCommand(
-          `docker-compose -f ${composeFile} ps --format json`
+          `docker-compose -f ${composeFile} ps --format json`,
         );
 
-        const containers = result.stdout.split('\n')
-          .filter(line => line.trim())
-          .map(line => JSON.parse(line));
+        const containers = result.stdout
+          .split('\n')
+          .filter((line) => line.trim())
+          .map((line) => JSON.parse(line));
 
         const healthCheck = {
           timestamp: Date.now(),
-          containers: containers.map(container => ({
+          containers: containers.map((container) => ({
             name: container.Name,
             state: container.State,
             health: container.Health || 'unknown',
-            ports: container.Ports
-          }))
+            ports: container.Ports,
+          })),
         };
 
         healthChecks.push(healthCheck);
@@ -121,16 +125,19 @@ class DockerHealthMonitor {
     try {
       // Get BuildKit cache information
       const cacheInfo = await this.executeCommand('docker system df -v');
-      const builderInfo = await this.executeCommand('docker builder ls').catch(() => ({ stdout: '' }));
-      
+      const builderInfo = await this.executeCommand('docker builder ls').catch(() => ({
+        stdout: '',
+      }));
+
       // Parse cache usage
-      const cacheLines = cacheInfo.stdout.split('\n')
-        .filter(line => line.includes('build cache') || line.includes('Build Cache'));
+      const cacheLines = cacheInfo.stdout
+        .split('\n')
+        .filter((line) => line.includes('build cache') || line.includes('Build Cache'));
 
       let totalCacheSize = 0;
       let reclaimableSize = 0;
 
-      cacheLines.forEach(line => {
+      cacheLines.forEach((line) => {
         const sizeMatch = line.match(/(\d+(?:\.\d+)?)\s*([KMGT]?B)/g);
         if (sizeMatch && sizeMatch.length >= 2) {
           totalCacheSize += this.parseSize(sizeMatch[0]);
@@ -143,7 +150,7 @@ class DockerHealthMonitor {
         reclaimableSize,
         efficiency: totalCacheSize > 0 ? (totalCacheSize - reclaimableSize) / totalCacheSize : 0,
         builders: builderInfo.stdout,
-        rawOutput: cacheInfo.stdout
+        rawOutput: cacheInfo.stdout,
       };
     } catch (error) {
       return { error: error.message };
@@ -158,11 +165,16 @@ class DockerHealthMonitor {
     const unit = match[2];
 
     switch (unit) {
-      case 'KB': return value * 1024;
-      case 'MB': return value * 1024 * 1024;
-      case 'GB': return value * 1024 * 1024 * 1024;
-      case 'TB': return value * 1024 * 1024 * 1024 * 1024;
-      default: return value;
+      case 'KB':
+        return value * 1024;
+      case 'MB':
+        return value * 1024 * 1024;
+      case 'GB':
+        return value * 1024 * 1024 * 1024;
+      case 'TB':
+        return value * 1024 * 1024 * 1024 * 1024;
+      default:
+        return value;
     }
   }
 
@@ -175,7 +187,7 @@ class DockerHealthMonitor {
       process.env.DOCKER_BUILDKIT = '1';
       process.env.BUILDKIT_PROGRESS = 'plain';
 
-      const buildCommand = service 
+      const buildCommand = service
         ? `docker-compose -f ${composeFile} build ${service}`
         : `docker-compose -f ${composeFile} build`;
 
@@ -190,14 +202,13 @@ class DockerHealthMonitor {
         buildTime,
         success: true,
         cacheAnalysis,
-        outputLines: buildOutput.split('\n').length
+        outputLines: buildOutput.split('\n').length,
       };
-
     } catch (error) {
       return {
         buildTime: Date.now() - startTime,
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -208,7 +219,7 @@ class DockerHealthMonitor {
     let cacheMisses = 0;
     let totalSteps = 0;
 
-    lines.forEach(line => {
+    lines.forEach((line) => {
       if (line.includes('CACHED')) {
         cacheHits++;
         totalSteps++;
@@ -225,7 +236,7 @@ class DockerHealthMonitor {
       cacheMisses,
       totalSteps,
       hitRate: totalSteps > 0 ? cacheHits / totalSteps : 0,
-      parallelSteps: (output.match(/=> \[stage-\d+/g) || []).length
+      parallelSteps: (output.match(/=> \[stage-\d+/g) || []).length,
     };
   }
 
@@ -235,7 +246,7 @@ class DockerHealthMonitor {
       'docker container prune -f',
       'docker image prune -f',
       'docker network prune -f',
-      'docker volume prune -f'
+      'docker volume prune -f',
     ];
 
     const results = [];
@@ -261,16 +272,21 @@ class DockerHealthMonitor {
       system: systemInfo,
       images: imageSizes,
       cache: cacheInfo,
-      recommendations: []
+      recommendations: [],
     };
 
     // Generate recommendations
     if (cacheInfo.efficiency < 0.85) {
-      report.recommendations.push('Build cache efficiency below 85%. Consider optimizing Dockerfile layer order.');
+      report.recommendations.push(
+        'Build cache efficiency below 85%. Consider optimizing Dockerfile layer order.',
+      );
     }
 
-    if (cacheInfo.reclaimableSize > 1024 * 1024 * 1024) { // 1GB
-      report.recommendations.push('Large amount of reclaimable cache. Consider running docker builder prune.');
+    if (cacheInfo.reclaimableSize > 1024 * 1024 * 1024) {
+      // 1GB
+      report.recommendations.push(
+        'Large amount of reclaimable cache. Consider running docker builder prune.',
+      );
     }
 
     const totalImageSize = imageSizes.reduce((sum, img) => {
@@ -278,15 +294,18 @@ class DockerHealthMonitor {
       return sum + size;
     }, 0);
 
-    if (totalImageSize > 1024 * 1024 * 1024) { // 1GB
-      report.recommendations.push('Total image size exceeds 1GB. Consider optimizing image builds.');
+    if (totalImageSize > 1024 * 1024 * 1024) {
+      // 1GB
+      report.recommendations.push(
+        'Total image size exceeds 1GB. Consider optimizing image builds.',
+      );
     }
 
     return report;
   }
 
   sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
 

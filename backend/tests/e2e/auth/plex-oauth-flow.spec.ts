@@ -75,7 +75,7 @@ test.describe('Plex OAuth Flow', () => {
     // Verify error message is displayed
     await expect(page.locator('[data-testid="auth-error-message"]')).toBeVisible();
     await expect(page.locator('[data-testid="auth-error-message"]')).toContainText(
-      'Cannot connect to Plex server'
+      'Cannot connect to Plex server',
     );
   });
 
@@ -99,7 +99,7 @@ test.describe('Plex OAuth Flow', () => {
     // Verify error message
     await expect(page.locator('[data-testid="pin-error-message"]')).toBeVisible();
     await expect(page.locator('[data-testid="pin-error-message"]')).toContainText(
-      'PIN has not been authorized'
+      'PIN has not been authorized',
     );
   });
 
@@ -196,7 +196,7 @@ test.describe('Plex OAuth Flow', () => {
 
     await expect(page.locator('[data-testid="rate-limit-error"]')).toBeVisible();
     await expect(page.locator('[data-testid="rate-limit-error"]')).toContainText(
-      'Too many attempts'
+      'Too many attempts',
     );
   });
 });

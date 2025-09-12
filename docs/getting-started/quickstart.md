@@ -18,6 +18,7 @@ git --version
 ```
 
 If any are missing:
+
 - **Node.js 20.x**: Download from [nodejs.org](https://nodejs.org/)
 - **Docker**: Download from [docker.com](https://www.docker.com/get-started)
 - **Git**: Download from [git-scm.com](https://git-scm.com/)
@@ -36,7 +37,7 @@ npm install
 
 # This automatically:
 # - Installs frontend dependencies
-# - Installs backend dependencies  
+# - Installs backend dependencies
 # - Sets up Git hooks
 # - Installs shared package dependencies
 ```
@@ -146,6 +147,7 @@ ps aux | grep node
 ## Common Quick Fixes
 
 ### Port Already in Use
+
 ```bash
 # Kill processes using ports
 sudo lsof -ti:3000 | xargs kill -9
@@ -156,6 +158,7 @@ npm run dev
 ```
 
 ### Database Connection Issues
+
 ```bash
 # Restart Docker services
 docker compose -f docker-compose.dev.yml down
@@ -167,6 +170,7 @@ npm run db:migrate
 ```
 
 ### Permission Issues (Linux/macOS)
+
 ```bash
 # Fix file permissions
 sudo chown -R $USER:$USER .
@@ -174,6 +178,7 @@ chmod +x scripts/*.sh
 ```
 
 ### Windows WSL2 Issues
+
 ```bash
 # Update .env to use WSL2 network
 echo "DATABASE_URL=postgresql://postgres:password@localhost:5432/medianest" >> .env
@@ -237,14 +242,14 @@ Recommended learning path:
 
 ## Troubleshooting Quick Reference
 
-| Issue | Quick Fix |
-|-------|-----------|
-| "Port 3000 in use" | `sudo lsof -ti:3000 \| xargs kill -9` |
-| "Database not found" | `npm run db:migrate` |
+| Issue                     | Quick Fix                                                |
+| ------------------------- | -------------------------------------------------------- |
+| "Port 3000 in use"        | `sudo lsof -ti:3000 \| xargs kill -9`                    |
+| "Database not found"      | `npm run db:migrate`                                     |
 | "Redis connection failed" | `docker compose -f docker-compose.dev.yml restart redis` |
-| "Permission denied" | `sudo chown -R $USER:$USER .` |
-| "TypeScript errors" | `npm run type-check` |
-| "Tests failing" | `npm install && npm test` |
+| "Permission denied"       | `sudo chown -R $USER:$USER .`                            |
+| "TypeScript errors"       | `npm run type-check`                                     |
+| "Tests failing"           | `npm install && npm test`                                |
 
 ## Development Tools
 
@@ -254,7 +259,7 @@ Recommended learning path:
 {
   "recommendations": [
     "bradlc.vscode-tailwindcss",
-    "esbenp.prettier-vscode", 
+    "esbenp.prettier-vscode",
     "ms-vscode.vscode-typescript-next",
     "prisma.prisma",
     "ms-vscode.vscode-json"
@@ -289,12 +294,14 @@ docker compose -f docker-compose.dev.yml down -v  # Clean shutdown
 🎉 **Congratulations!** You now have MediaNest running locally.
 
 ### Next recommended reading:
+
 - [Development Setup Guide](./development-setup.md) - Detailed development environment
-- [Development Workflow](../developers/workflow.md) - How to contribute effectively  
+- [Development Workflow](../developers/workflow.md) - How to contribute effectively
 - [API Documentation](../api/) - Understanding the API structure
 - [Troubleshooting Guide](../troubleshooting/common-issues.md) - When things go wrong
 
 ### Start contributing:
+
 1. Pick a [good first issue](https://github.com/your-repo/medianest/labels/good%20first%20issue)
 2. Read the [Contributing Guidelines](../developers/contributing.md)
 3. Make your first pull request!

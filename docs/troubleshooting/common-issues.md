@@ -20,12 +20,14 @@ This guide covers the most common issues you might encounter while developing, d
 ### Node.js Version Problems
 
 **Problem**: TypeScript compilation errors, dependency installation failures
+
 ```
 Error: The engine "node" is incompatible with this module
 npm ERR! peer dep missing: typescript@>=4.5.0
 ```
 
 **Solution**:
+
 ```bash
 # Check Node.js version
 node --version
@@ -46,12 +48,14 @@ npm install
 ### Port Already in Use
 
 **Problem**: Cannot start development servers
+
 ```
 Error: listen EADDRINUSE: address already in use :::3000
 Error: listen EADDRINUSE: address already in use :::4000
 ```
 
 **Solution**:
+
 ```bash
 # Find and kill processes using ports
 sudo lsof -ti:3000 | xargs kill -9
@@ -71,6 +75,7 @@ echo "BACKEND_PORT=4001" >> .env
 **Problem**: Changes not reflected automatically, need manual refresh
 
 **Solution**:
+
 ```bash
 # For Next.js (frontend)
 # 1. Clear .next directory
@@ -101,6 +106,7 @@ npm run dev
 **Problem**: Configuration not working, services failing to connect
 
 **Solution**:
+
 ```bash
 # 1. Verify .env file exists and has correct format
 ls -la .env
@@ -124,12 +130,14 @@ npm run dev
 ### Database Connection Failures
 
 **Problem**: Cannot connect to PostgreSQL database
+
 ```
 Error: connect ECONNREFUSED 127.0.0.1:5432
 PrismaClientInitializationError: Can't reach database server
 ```
 
 **Solution**:
+
 ```bash
 # 1. Check if PostgreSQL is running
 docker compose -f docker-compose.dev.yml ps postgres
@@ -157,11 +165,13 @@ npm run db:migrate
 ### Migration Failures
 
 **Problem**: Prisma migrations fail or get stuck
+
 ```
 Error: P3018: A migration failed to apply. New migrations cannot be applied before the error is recovered from.
 ```
 
 **Solution**:
+
 ```bash
 # 1. Check migration status
 cd backend
@@ -187,12 +197,14 @@ npm run db:migrate
 ### Prisma Client Out of Sync
 
 **Problem**: TypeScript errors about missing Prisma types
+
 ```
 Type 'User' does not exist
 Property 'findUnique' does not exist on type 'UserDelegate'
 ```
 
 **Solution**:
+
 ```bash
 # 1. Regenerate Prisma client
 cd backend
@@ -218,6 +230,7 @@ npm run dev
 **Problem**: "Login with Plex" button doesn't work, PIN flow fails
 
 **Solution**:
+
 ```bash
 # 1. Verify Plex OAuth configuration
 echo $PLEX_CLIENT_ID
@@ -243,6 +256,7 @@ curl -X POST https://plex.tv/pins.xml \
 **Problem**: Users getting logged out frequently, "Unauthorized" errors
 
 **Solution**:
+
 ```bash
 # 1. Check JWT secret configuration
 echo $NEXTAUTH_SECRET
@@ -266,6 +280,7 @@ DEBUG="nextauth:*" npm run dev
 **Problem**: Users cannot access resources they should have access to
 
 **Solution**:
+
 ```bash
 # 1. Check user roles in database
 # Connect to database and verify user role:
@@ -287,11 +302,13 @@ curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
 ### CORS Errors
 
 **Problem**: Frontend cannot connect to backend API
+
 ```
 Access to fetch at 'http://localhost:4000/api/health' from origin 'http://localhost:3000' has been blocked by CORS policy
 ```
 
 **Solution**:
+
 ```bash
 # 1. Check CORS configuration in backend
 # File: backend/src/app.ts
@@ -313,6 +330,7 @@ CORS_ORIGIN=https://your-domain.com
 **Problem**: 404 errors when calling API endpoints
 
 **Solution**:
+
 ```bash
 # 1. Verify API endpoint registration
 # Check backend/src/routes/index.ts
@@ -335,6 +353,7 @@ grep -r "router.get\|router.post" backend/src/routes/
 **Problem**: API calls taking too long to respond
 
 **Solution**:
+
 ```bash
 # 1. Check database query performance
 # Enable Prisma query logging
@@ -362,12 +381,14 @@ npm run dev:profile
 ### Next.js Build Failures
 
 **Problem**: Frontend fails to build or start
+
 ```
 Error: Cannot find module 'next/dynamic'
 TypeError: Cannot read property 'pathname' of undefined
 ```
 
 **Solution**:
+
 ```bash
 # 1. Clear Next.js cache
 rm -rf frontend/.next
@@ -393,6 +414,7 @@ npm run type-check
 **Problem**: Real-time updates not working, WebSocket connection fails
 
 **Solution**:
+
 ```bash
 # 1. Check WebSocket server configuration
 # Verify backend/src/socket/index.ts
@@ -415,12 +437,14 @@ npm list socket.io socket.io-client
 ### React Hydration Errors
 
 **Problem**: Hydration mismatches between server and client
+
 ```
 Warning: Text content did not match. Server: "..." Client: "..."
 Error: Hydration failed because the initial UI does not match what was rendered on the server
 ```
 
 **Solution**:
+
 ```bash
 # 1. Check for dynamic content that differs between server/client
 # Look for Date(), Math.random(), etc.
@@ -447,11 +471,13 @@ npm run dev
 ### Container Build Failures
 
 **Problem**: Docker images fail to build
+
 ```
 Error: failed to solve: process "/bin/sh -c npm install" did not complete successfully
 ```
 
 **Solution**:
+
 ```bash
 # 1. Check Dockerfile syntax
 docker build -f Dockerfile --no-cache .
@@ -477,6 +503,7 @@ echo "node_modules\n.git\n.next" >> .dockerignore
 **Problem**: Containers exit immediately or fail health checks
 
 **Solution**:
+
 ```bash
 # 1. Check container logs
 docker compose -f docker-compose.dev.yml logs postgres
@@ -503,6 +530,7 @@ docker stats
 **Problem**: Data not persisting, file permission errors
 
 **Solution**:
+
 ```bash
 # 1. Check volume configuration
 docker compose -f docker-compose.dev.yml config | grep -A 5 "volumes"
@@ -531,6 +559,7 @@ docker volume prune
 **Problem**: Application consuming too much RAM
 
 **Solution**:
+
 ```bash
 # 1. Monitor memory usage
 npm run dev:memory
@@ -557,6 +586,7 @@ npm run analyze
 **Problem**: Frontend pages loading slowly
 
 **Solution**:
+
 ```bash
 # 1. Analyze bundle size
 cd frontend
@@ -583,6 +613,7 @@ npx bundle-analyzer
 **Problem**: Slow database queries, high CPU usage
 
 **Solution**:
+
 ```bash
 # 1. Enable query logging
 DEBUG="prisma:query" npm run dev
@@ -616,6 +647,7 @@ const user = await prisma.user.findUnique({
 **Problem**: Cannot connect to Plex server, timeout errors
 
 **Solution**:
+
 ```bash
 # 1. Test direct connection to Plex
 curl -I http://your-plex-server:32400/web
@@ -641,6 +673,7 @@ telnet your-plex-server 32400
 **Problem**: Media search not working, request submission fails
 
 **Solution**:
+
 ```bash
 # 1. Test Overseerr API directly
 curl -H "X-Api-Key: YOUR_API_KEY" \
@@ -665,6 +698,7 @@ curl -I http://your-overseerr:5055
 **Problem**: Service monitoring not working, WebSocket connection fails
 
 **Solution**:
+
 ```bash
 # 1. Test Uptime Kuma connectivity
 curl http://your-uptime-kuma:3001
@@ -690,6 +724,7 @@ curl http://your-uptime-kuma:3001
 **Problem**: Build process fails in production environment
 
 **Solution**:
+
 ```bash
 # 1. Check Node.js version in production
 node --version
@@ -717,6 +752,7 @@ npm run start:prod
 **Problem**: Production containers failing or behaving differently
 
 **Solution**:
+
 ```bash
 # 1. Compare development and production configurations
 diff docker-compose.dev.yml docker-compose.yml
@@ -742,6 +778,7 @@ docker inspect container_name | grep -A 10 "Resources"
 **Problem**: HTTPS not working, certificate errors
 
 **Solution**:
+
 ```bash
 # 1. Check certificate validity
 openssl x509 -in /path/to/cert.pem -text -noout
@@ -769,6 +806,7 @@ openssl s_client -connect your-domain.com:443 -showcerts
 **Problem**: Tests failing due to database state or connection issues
 
 **Solution**:
+
 ```bash
 # 1. Ensure test database is isolated
 # Check DATABASE_URL in test environment
@@ -801,6 +839,7 @@ test('async operation', async () => {
 **Problem**: Tests passing/failing inconsistently
 
 **Solution**:
+
 ```bash
 # 1. Identify timing issues
 # Add proper waits in tests
@@ -829,6 +868,7 @@ npm test -- --runInBand --repeat=10
 **Problem**: Playwright tests failing or timing out
 
 **Solution**:
+
 ```bash
 # 1. Check browser installation
 npx playwright install
@@ -907,6 +947,7 @@ sudo tail -f /var/log/nginx/error.log
 - **Development Guide**: [Development Setup](../getting-started/development-setup.md)
 
 When reporting issues:
+
 1. Search existing issues first
 2. Use appropriate issue templates
 3. Include reproduction steps

@@ -1,9 +1,9 @@
 /**
  * MOCK INTERFACE VALIDATOR - ELIMINATES INTERFACE MISMATCHES
- * 
+ *
  * This system validates that mock implementations perfectly match actual service
  * interfaces, preventing runtime failures from missing methods or mismatched signatures.
- * 
+ *
  * FEATURES:
  * - Static interface validation at mock registration time
  * - Runtime interface conformance checking
@@ -72,7 +72,7 @@ export class MockInterfaceValidator {
    */
   extractServiceInterface(serviceClass: any, serviceName: string): ServiceInterface {
     const cacheKey = `interface:${serviceName}`;
-    
+
     if (this.interfaceCache.has(cacheKey)) {
       return this.interfaceCache.get(cacheKey)!;
     }
@@ -125,7 +125,7 @@ export class MockInterfaceValidator {
     mockInstance: any,
     actualService: any,
     mockName: string,
-    serviceName: string
+    serviceName: string,
   ): InterfaceValidationResult {
     const validationKey = `${mockName}:${serviceName}`;
     const startTime = performance.now();
@@ -133,7 +133,8 @@ export class MockInterfaceValidator {
     // Check cache first
     if (this.validationCache.has(validationKey)) {
       const cached = this.validationCache.get(validationKey)!;
-      if (Date.now() - cached.metadata.validationTime < 60000) { // 1 minute cache
+      if (Date.now() - cached.metadata.validationTime < 60000) {
+        // 1 minute cache
         return cached;
       }
     }
@@ -160,14 +161,14 @@ export class MockInterfaceValidator {
         // Validate method signatures
         const mockSignature = mockInterface.methods.get(methodName)!;
         const signatureMatch = this.compareMethodSignatures(expectedSignature, mockSignature);
-        
+
         if (!signatureMatch.matches) {
           signatureMismatches.push({
             method: methodName,
             expected: this.formatMethodSignature(expectedSignature),
             actual: this.formatMethodSignature(mockSignature),
           });
-          
+
           if (signatureMatch.severity === 'error') {
             errors.push(`Method signature mismatch for ${methodName}: ${signatureMatch.reason}`);
           } else {
@@ -211,7 +212,7 @@ export class MockInterfaceValidator {
 
     // Cache result
     this.validationCache.set(validationKey, result);
-    
+
     // Store validation history
     const history = this.validationHistory.get(validationKey) || [];
     history.push(result);
@@ -224,10 +225,14 @@ export class MockInterfaceValidator {
   /**
    * Auto-generate properly aligned mock from service interface
    */
-  generateAlignedMock<T>(actualService: any, serviceName: string, config?: {
-    behavior?: 'realistic' | 'minimal' | 'error';
-    customMethods?: Record<string, any>;
-  }): T {
+  generateAlignedMock<T>(
+    actualService: any,
+    serviceName: string,
+    config?: {
+      behavior?: 'realistic' | 'minimal' | 'error';
+      customMethods?: Record<string, any>;
+    },
+  ): T {
     const serviceInterface = this.extractServiceInterface(actualService, serviceName);
     const mock: any = {};
 
@@ -255,7 +260,8 @@ export class MockInterfaceValidator {
       }
     };
 
-    mock.validate = () => this.validateMockInterface(mock, actualService, `generated-${serviceName}`, serviceName);
+    mock.validate = () =>
+      this.validateMockInterface(mock, actualService, `generated-${serviceName}`, serviceName);
 
     return mock as T;
   }
@@ -265,26 +271,29 @@ export class MockInterfaceValidator {
    */
   enableRuntimeValidation(mockInstance: any, actualService: any, serviceName: string): any {
     const validator = this;
-    
+
     return new Proxy(mockInstance, {
       get(target: any, property: string | symbol) {
         const value = target[property];
-        
+
         if (typeof property === 'string' && typeof value === 'function') {
           return function (...args: any[]) {
             // Validate method exists in actual service
             const actualInterface = validator.extractServiceInterface(actualService, serviceName);
-            
+
             if (!actualInterface.methods.has(property)) {
-              logger.warn(`Mock method '${property}' not found in actual service '${serviceName}'`, {
-                availableMethods: Array.from(actualInterface.methods.keys()),
-              });
+              logger.warn(
+                `Mock method '${property}' not found in actual service '${serviceName}'`,
+                {
+                  availableMethods: Array.from(actualInterface.methods.keys()),
+                },
+              );
             }
-            
+
             return value.apply(this, args);
           };
         }
-        
+
         return value;
       },
     });
@@ -309,21 +318,26 @@ export class MockInterfaceValidator {
     mostCommonErrors: string[];
     validationHistory: Record<string, InterfaceValidationResult[]>;
   } {
-    const totalValidations = Array.from(this.validationHistory.values())
-      .reduce((total, history) => total + history.length, 0);
-    
+    const totalValidations = Array.from(this.validationHistory.values()).reduce(
+      (total, history) => total + history.length,
+      0,
+    );
+
     const failedValidations = Array.from(this.validationHistory.values())
       .flat()
-      .filter(result => !result.valid).length;
+      .filter((result) => !result.valid).length;
 
     const allErrors = Array.from(this.validationHistory.values())
       .flat()
-      .flatMap(result => result.errors);
+      .flatMap((result) => result.errors);
 
-    const errorCounts = allErrors.reduce((counts, error) => {
-      counts[error] = (counts[error] || 0) + 1;
-      return counts;
-    }, {} as Record<string, number>);
+    const errorCounts = allErrors.reduce(
+      (counts, error) => {
+        counts[error] = (counts[error] || 0) + 1;
+        return counts;
+      },
+      {} as Record<string, number>,
+    );
 
     const mostCommonErrors = Object.entries(errorCounts)
       .sort(([, a], [, b]) => b - a)
@@ -345,10 +359,10 @@ export class MockInterfaceValidator {
     const properties = new Map<string, string>();
 
     const propertyNames = Object.getOwnPropertyNames(mockInstance);
-    
+
     for (const propName of propertyNames) {
       const value = mockInstance[propName];
-      
+
       if (typeof value === 'function') {
         methods.set(propName, this.extractMethodSignature(value, propName));
       } else {
@@ -366,16 +380,16 @@ export class MockInterfaceValidator {
   private extractMethodSignature(method: Function, methodName: string): InterfaceSignature {
     const methodStr = method.toString();
     const isAsync = methodStr.includes('async ') || methodStr.includes('Promise');
-    
+
     // Extract parameters (simplified - in production, use a proper parser)
     const paramMatch = methodStr.match(/\(([^)]*)\)/);
     const paramString = paramMatch?.[1] || '';
-    
+
     const parameters = paramString
       .split(',')
-      .map(param => param.trim())
-      .filter(param => param.length > 0)
-      .map(param => {
+      .map((param) => param.trim())
+      .filter((param) => param.length > 0)
+      .map((param) => {
         const [name, type] = param.includes(':') ? param.split(':') : [param, 'any'];
         return {
           name: name.trim().replace(/[?=].*$/, ''),
@@ -394,8 +408,8 @@ export class MockInterfaceValidator {
   }
 
   private compareMethodSignatures(
-    expected: InterfaceSignature, 
-    actual: InterfaceSignature
+    expected: InterfaceSignature,
+    actual: InterfaceSignature,
   ): { matches: boolean; reason: string; severity: 'error' | 'warning' } {
     // Check async mismatch
     if (expected.isAsync !== actual.isAsync) {
@@ -420,21 +434,32 @@ export class MockInterfaceValidator {
 
   private formatMethodSignature(signature: InterfaceSignature): string {
     const params = signature.parameters
-      .map(p => `${p.name}${p.optional ? '?' : ''}: ${p.type}`)
+      .map((p) => `${p.name}${p.optional ? '?' : ''}: ${p.type}`)
       .join(', ');
-    
+
     const asyncPrefix = signature.isAsync ? 'async ' : '';
     return `${asyncPrefix}${signature.name}(${params}): ${signature.returnType}`;
   }
 
   private isTestHelperMethod(methodName: string): boolean {
-    const testHelpers = ['reset', 'validate', 'mockClear', 'mockReset', 'mockRestore', 'mockImplementation'];
-    return testHelpers.includes(methodName) || methodName.startsWith('mock') || methodName.startsWith('test');
+    const testHelpers = [
+      'reset',
+      'validate',
+      'mockClear',
+      'mockReset',
+      'mockRestore',
+      'mockImplementation',
+    ];
+    return (
+      testHelpers.includes(methodName) ||
+      methodName.startsWith('mock') ||
+      methodName.startsWith('test')
+    );
   }
 
   private generateMockMethod(signature: InterfaceSignature, behavior: string): any {
     const vi = require('vitest').vi;
-    
+
     if (signature.isAsync) {
       switch (behavior) {
         case 'realistic':
@@ -465,11 +490,11 @@ export class MockInterfaceValidator {
   private generateRealisticReturnValue(signature: InterfaceSignature): any {
     // Generate realistic return values based on method name patterns
     const methodName = signature.name.toLowerCase();
-    
+
     if (methodName.includes('count') || methodName.includes('size')) {
       return Math.floor(Math.random() * 100);
     }
-    
+
     if (methodName.includes('info') || methodName.includes('status')) {
       return {
         status: 'ok',
@@ -477,15 +502,15 @@ export class MockInterfaceValidator {
         data: {},
       };
     }
-    
+
     if (methodName.includes('list') || methodName.includes('all')) {
       return [];
     }
-    
+
     if (methodName.includes('exists') || methodName.includes('is') || methodName.includes('has')) {
       return Math.random() > 0.5;
     }
-    
+
     return null;
   }
 

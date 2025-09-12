@@ -1,9 +1,9 @@
 /**
  * ASYNC MOCK PATTERNS - PROMISE-BASED SERVICE MOCKING
- * 
+ *
  * This system provides comprehensive async mock patterns for Promise-based services,
  * ensuring proper async/await behavior and eliminating timing-related test failures.
- * 
+ *
  * FEATURES:
  * - Promise-based mock implementations with proper async patterns
  * - Timing control for async operations
@@ -71,7 +71,7 @@ export class AsyncMockPatterns {
   createCacheServiceMock(config: AsyncMockConfig = {}): any {
     const finalConfig = { ...this.defaultConfig, ...config };
     const mockName = 'CacheService';
-    
+
     this.initializeMetrics(mockName);
 
     return {
@@ -81,9 +81,11 @@ export class AsyncMockPatterns {
         'get',
         async (key: string) => {
           // Simulate cache miss 30% of the time
-          return Math.random() > 0.3 ? { key, value: `cached-${key}`, timestamp: Date.now() } : null;
+          return Math.random() > 0.3
+            ? { key, value: `cached-${key}`, timestamp: Date.now() }
+            : null;
         },
-        finalConfig
+        finalConfig,
       ),
 
       set: this.createAsyncMethod<void>(
@@ -93,7 +95,7 @@ export class AsyncMockPatterns {
           // Simulate successful set operation
           logger.debug(`Cache set: ${key}`, { ttl });
         },
-        finalConfig
+        finalConfig,
       ),
 
       del: this.createAsyncMethod<void>(
@@ -104,7 +106,7 @@ export class AsyncMockPatterns {
           const keyCount = Array.isArray(keys) ? keys.length : 1;
           logger.debug(`Cache delete: ${keyCount} keys`);
         },
-        finalConfig
+        finalConfig,
       ),
 
       // Advanced operations
@@ -117,7 +119,7 @@ export class AsyncMockPatterns {
           logger.debug(`Cache getOrSet: ${key}`, { result, ttl });
           return result;
         },
-        finalConfig
+        finalConfig,
       ),
 
       invalidatePattern: this.createAsyncMethod<void>(
@@ -128,7 +130,7 @@ export class AsyncMockPatterns {
           const affectedKeys = Math.floor(Math.random() * 10);
           logger.debug(`Cache invalidatePattern: ${pattern}`, { affectedKeys });
         },
-        finalConfig
+        finalConfig,
       ),
 
       // Utility operations
@@ -136,18 +138,25 @@ export class AsyncMockPatterns {
         mockName,
         'exists',
         async (key: string) => Math.random() > 0.5,
-        finalConfig
+        finalConfig,
       ),
 
       ttl: this.createAsyncMethod<number>(
         mockName,
         'ttl',
         async (key: string) => Math.floor(Math.random() * 3600), // Random TTL up to 1 hour
-        finalConfig
+        finalConfig,
       ),
 
       // Info method with complete interface matching
-      getInfo: this.createAsyncMethod<{ keys: number; memory: string; connected: boolean; uptime: number; keyCount: number; memoryUsage: string }>(
+      getInfo: this.createAsyncMethod<{
+        keys: number;
+        memory: string;
+        connected: boolean;
+        uptime: number;
+        keyCount: number;
+        memoryUsage: string;
+      }>(
         mockName,
         'getInfo',
         async () => ({
@@ -158,7 +167,7 @@ export class AsyncMockPatterns {
           keyCount: Math.floor(Math.random() * 1000),
           memoryUsage: `${Math.floor(Math.random() * 100)}MB`,
         }),
-        finalConfig
+        finalConfig,
       ),
 
       clear: this.createAsyncMethod<void>(
@@ -167,7 +176,7 @@ export class AsyncMockPatterns {
         async () => {
           logger.debug('Cache cleared');
         },
-        finalConfig
+        finalConfig,
       ),
 
       // Test helper methods
@@ -182,11 +191,16 @@ export class AsyncMockPatterns {
   createEncryptionServiceMock(config: AsyncMockConfig = {}): any {
     const finalConfig = { ...this.defaultConfig, ...config };
     const mockName = 'EncryptionService';
-    
+
     this.initializeMetrics(mockName);
 
     return {
-      encrypt: this.createAsyncMethod<{ encrypted: string; iv: string; authTag: string; salt: string }>(
+      encrypt: this.createAsyncMethod<{
+        encrypted: string;
+        iv: string;
+        authTag: string;
+        salt: string;
+      }>(
         mockName,
         'encrypt',
         async (text: string) => ({
@@ -195,7 +209,7 @@ export class AsyncMockPatterns {
           authTag: 'mock-authtag-' + Math.random().toString(36).substring(7),
           salt: 'mock-salt-' + Math.random().toString(36).substring(7),
         }),
-        finalConfig
+        finalConfig,
       ),
 
       decrypt: this.createAsyncMethod<string>(
@@ -204,7 +218,7 @@ export class AsyncMockPatterns {
         async (data: { encrypted: string; iv: string; authTag: string; salt: string }) => {
           return Buffer.from(data.encrypted, 'base64').toString('utf8');
         },
-        finalConfig
+        finalConfig,
       ),
 
       encryptForStorage: this.createAsyncMethod<string>(
@@ -213,7 +227,7 @@ export class AsyncMockPatterns {
         async (text: string) => {
           return `encrypted:${Buffer.from(text).toString('base64')}:iv:authTag:salt`;
         },
-        finalConfig
+        finalConfig,
       ),
 
       decryptFromStorage: this.createAsyncMethod<string>(
@@ -223,7 +237,7 @@ export class AsyncMockPatterns {
           const parts = storedData.split(':');
           return Buffer.from(parts[1] || '', 'base64').toString('utf8');
         },
-        finalConfig
+        finalConfig,
       ),
 
       isEncrypted: vi.fn((data: string) => {
@@ -242,7 +256,7 @@ export class AsyncMockPatterns {
   createJWTServiceMock(config: AsyncMockConfig = {}): any {
     const finalConfig = { ...this.defaultConfig, ...config };
     const mockName = 'JWTService';
-    
+
     this.initializeMetrics(mockName);
 
     const mockTokens = new Map<string, any>();
@@ -256,7 +270,7 @@ export class AsyncMockPatterns {
           mockTokens.set(token, { payload, rememberMe, options, createdAt: Date.now() });
           return token;
         },
-        finalConfig
+        finalConfig,
       ),
 
       verifyToken: this.createAsyncMethod<any>(
@@ -269,7 +283,7 @@ export class AsyncMockPatterns {
           }
           return tokenData.payload;
         },
-        finalConfig
+        finalConfig,
       ),
 
       generateRefreshToken: this.createAsyncMethod<string>(
@@ -278,7 +292,7 @@ export class AsyncMockPatterns {
         async (payload?: any) => {
           return `mock-refresh-${Date.now()}-${Math.random().toString(36).substring(7)}`;
         },
-        finalConfig
+        finalConfig,
       ),
 
       verifyRefreshToken: this.createAsyncMethod<{ userId: string; sessionId: string }>(
@@ -290,7 +304,7 @@ export class AsyncMockPatterns {
             sessionId: 'mock-session-id',
           };
         },
-        finalConfig
+        finalConfig,
       ),
 
       getTokenMetadata: this.createAsyncMethod<any>(
@@ -306,7 +320,7 @@ export class AsyncMockPatterns {
             tokenId: 'mock-token-id',
           };
         },
-        finalConfig
+        finalConfig,
       ),
 
       isTokenExpired: vi.fn((token: string) => false),
@@ -325,7 +339,7 @@ export class AsyncMockPatterns {
             expiresAt: new Date(Date.now() + 900000),
           };
         },
-        finalConfig
+        finalConfig,
       ),
 
       // Test helpers
@@ -343,7 +357,7 @@ export class AsyncMockPatterns {
   createRedisServiceMock(config: AsyncMockConfig = {}): any {
     const finalConfig = { ...this.defaultConfig, ...config };
     const mockName = 'RedisService';
-    
+
     this.initializeMetrics(mockName);
 
     const mockStorage = new Map<string, any>();
@@ -356,7 +370,7 @@ export class AsyncMockPatterns {
         async () => {
           logger.debug('Redis mock connected');
         },
-        finalConfig
+        finalConfig,
       ),
 
       disconnect: this.createAsyncMethod<void>(
@@ -365,15 +379,10 @@ export class AsyncMockPatterns {
         async () => {
           logger.debug('Redis mock disconnected');
         },
-        finalConfig
+        finalConfig,
       ),
 
-      ping: this.createAsyncMethod<boolean>(
-        mockName,
-        'ping',
-        async () => true,
-        finalConfig
-      ),
+      ping: this.createAsyncMethod<boolean>(mockName, 'ping', async () => true, finalConfig),
 
       isHealthy: vi.fn(() => true),
 
@@ -381,7 +390,7 @@ export class AsyncMockPatterns {
         mockName,
         'getInfo',
         async () => 'redis_version:6.0.0\nused_memory_human:1.2MB',
-        finalConfig
+        finalConfig,
       ),
 
       // OAuth state methods
@@ -391,7 +400,7 @@ export class AsyncMockPatterns {
         async (state: string, data: any, ttl?: number) => {
           mockStorage.set(`oauth:${state}`, { data, ttl, createdAt: Date.now() });
         },
-        finalConfig
+        finalConfig,
       ),
 
       getOAuthState: this.createAsyncMethod<any>(
@@ -401,7 +410,7 @@ export class AsyncMockPatterns {
           const stored = mockStorage.get(`oauth:${state}`);
           return stored?.data || null;
         },
-        finalConfig
+        finalConfig,
       ),
 
       deleteOAuthState: this.createAsyncMethod<boolean>(
@@ -410,7 +419,7 @@ export class AsyncMockPatterns {
         async (state: string) => {
           return mockStorage.delete(`oauth:${state}`);
         },
-        finalConfig
+        finalConfig,
       ),
 
       // Session methods
@@ -420,7 +429,7 @@ export class AsyncMockPatterns {
         async (sessionId: string, data: any, ttl?: number) => {
           mockStorage.set(`session:${sessionId}`, { data, ttl, createdAt: Date.now() });
         },
-        finalConfig
+        finalConfig,
       ),
 
       getSession: this.createAsyncMethod<any>(
@@ -430,7 +439,7 @@ export class AsyncMockPatterns {
           const stored = mockStorage.get(`session:${sessionId}`);
           return stored?.data || null;
         },
-        finalConfig
+        finalConfig,
       ),
 
       deleteSession: this.createAsyncMethod<boolean>(
@@ -439,7 +448,7 @@ export class AsyncMockPatterns {
         async (sessionId: string) => {
           return mockStorage.delete(`session:${sessionId}`);
         },
-        finalConfig
+        finalConfig,
       ),
 
       // Cache methods
@@ -449,7 +458,7 @@ export class AsyncMockPatterns {
         async (key: string, value: any, ttl?: number) => {
           mockStorage.set(`cache:${key}`, { value, ttl, createdAt: Date.now() });
         },
-        finalConfig
+        finalConfig,
       ),
 
       getCache: this.createAsyncMethod<any>(
@@ -459,7 +468,7 @@ export class AsyncMockPatterns {
           const stored = mockStorage.get(`cache:${key}`);
           return stored?.value || null;
         },
-        finalConfig
+        finalConfig,
       ),
 
       deleteCache: this.createAsyncMethod<boolean>(
@@ -468,7 +477,7 @@ export class AsyncMockPatterns {
         async (key: string) => {
           return mockStorage.delete(`cache:${key}`);
         },
-        finalConfig
+        finalConfig,
       ),
 
       // Memory stats
@@ -481,7 +490,7 @@ export class AsyncMockPatterns {
           memoryUsagePercent: 5.2,
           keyCount: mockStorage.size,
         }),
-        finalConfig
+        finalConfig,
       ),
 
       // Test helpers
@@ -499,7 +508,7 @@ export class AsyncMockPatterns {
   createAuthSecurityServiceMock(config: AsyncMockConfig = {}): any {
     const finalConfig = { ...this.defaultConfig, ...config };
     const mockName = 'AuthSecurityService';
-    
+
     this.initializeMetrics(mockName);
 
     const mockBlacklist = new Set<string>();
@@ -507,7 +516,11 @@ export class AsyncMockPatterns {
 
     return {
       hashIP: vi.fn((ipAddress: string) => {
-        return require('crypto').createHash('sha256').update(ipAddress).digest('hex').substring(0, 16);
+        return require('crypto')
+          .createHash('sha256')
+          .update(ipAddress)
+          .digest('hex')
+          .substring(0, 16);
       }),
 
       blacklistToken: this.createAsyncMethod<void>(
@@ -518,7 +531,7 @@ export class AsyncMockPatterns {
           mockBlacklist.add(tokenHash);
           logger.debug(`Token blacklisted: ${userId}`, { reason });
         },
-        finalConfig
+        finalConfig,
       ),
 
       isTokenBlacklisted: this.createAsyncMethod<boolean>(
@@ -528,7 +541,7 @@ export class AsyncMockPatterns {
           const tokenHash = require('crypto').createHash('sha256').update(token).digest('hex');
           return mockBlacklist.has(tokenHash);
         },
-        finalConfig
+        finalConfig,
       ),
 
       invalidateUserSessions: this.createAsyncMethod<void>(
@@ -537,7 +550,7 @@ export class AsyncMockPatterns {
         async (userId: string, reason?: string) => {
           logger.debug(`User sessions invalidated: ${userId}`, { reason });
         },
-        finalConfig
+        finalConfig,
       ),
 
       logSecurityEvent: this.createAsyncMethod<void>(
@@ -548,17 +561,23 @@ export class AsyncMockPatterns {
           userLogs.push({ ...event, timestamp: new Date() });
           mockSecurityLogs.set(event.userId, userLogs);
         },
-        finalConfig
+        finalConfig,
       ),
 
       validateIPAddress: vi.fn((tokenIP?: string, requestIP?: string) => {
         return !tokenIP || tokenIP === requestIP;
       }),
 
-      generateSecureCacheKey: vi.fn((userId: string, sessionId: string, ipAddress: string, type: string) => {
-        const ipHash = require('crypto').createHash('sha256').update(ipAddress).digest('hex').substring(0, 16);
-        return `${type}:auth:v3:${userId}:${sessionId}:${ipHash}:${Date.now()}`;
-      }),
+      generateSecureCacheKey: vi.fn(
+        (userId: string, sessionId: string, ipAddress: string, type: string) => {
+          const ipHash = require('crypto')
+            .createHash('sha256')
+            .update(ipAddress)
+            .digest('hex')
+            .substring(0, 16);
+          return `${type}:auth:v3:${userId}:${sessionId}:${ipHash}:${Date.now()}`;
+        },
+      ),
 
       detectSuspiciousActivity: this.createAsyncMethod<any>(
         mockName,
@@ -570,7 +589,7 @@ export class AsyncMockPatterns {
             reasons: [],
           };
         },
-        finalConfig
+        finalConfig,
       ),
 
       secureLogout: this.createAsyncMethod<void>(
@@ -580,7 +599,7 @@ export class AsyncMockPatterns {
           await this.createAuthSecurityServiceMock().blacklistToken(token, userId, 'user_logout');
           logger.debug(`Secure logout completed: ${userId}`);
         },
-        finalConfig
+        finalConfig,
       ),
 
       securityWrapper: vi.fn((handler: Function) => {
@@ -611,7 +630,7 @@ export class AsyncMockPatterns {
     serviceName: string,
     methodName: string,
     implementation: (...args: any[]) => Promise<T>,
-    config: AsyncMockConfig
+    config: AsyncMockConfig,
   ): any {
     const mockFn = vi.fn().mockImplementation(async (...args: any[]) => {
       const operationId = `${serviceName}.${methodName}-${Date.now()}-${Math.random()}`;
@@ -630,10 +649,10 @@ export class AsyncMockPatterns {
 
         // Execute implementation
         const result = await implementation(...args);
-        
+
         // Track metrics
         this.trackOperation(serviceName, methodName, true, performance.now() - startTime);
-        
+
         return result;
       } catch (error) {
         // Track failed operation
@@ -649,25 +668,30 @@ export class AsyncMockPatterns {
    * Simple delay utility for simulating async operations
    */
   private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
    * Track operation metrics
    */
-  private trackOperation(serviceName: string, methodName: string, success: boolean, duration: number): void {
+  private trackOperation(
+    serviceName: string,
+    methodName: string,
+    success: boolean,
+    duration: number,
+  ): void {
     const metrics = this.operationMetrics.get(serviceName) || this.createDefaultMetrics();
-    
+
     metrics.totalOperations++;
     if (success) {
       metrics.successfulOperations++;
     } else {
       metrics.failedOperations++;
     }
-    
+
     // Update average response time
     metrics.averageResponseTime = (metrics.averageResponseTime + duration) / 2;
-    
+
     this.operationMetrics.set(serviceName, metrics);
   }
 

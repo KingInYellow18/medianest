@@ -184,7 +184,7 @@ export type EnvironmentConfig = DevelopmentConfig | TestConfig | ProductionConfi
  */
 export function validateEnvironment(env: Record<string, string | undefined>): EnvironmentConfig {
   const nodeEnv = env.NODE_ENV;
-  
+
   let schema: z.ZodSchema;
   switch (nodeEnv) {
     case 'development':
@@ -197,18 +197,22 @@ export function validateEnvironment(env: Record<string, string | undefined>): En
       schema = productionSchema;
       break;
     default:
-      throw new Error(`Invalid NODE_ENV: ${nodeEnv}. Must be one of: development, test, production`);
+      throw new Error(
+        `Invalid NODE_ENV: ${nodeEnv}. Must be one of: development, test, production`,
+      );
   }
 
   try {
     return schema.parse(env);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const formattedErrors = error.errors.map(err => {
-        const path = err.path.join('.');
-        return `${path}: ${err.message}`;
-      }).join('\n');
-      
+      const formattedErrors = error.errors
+        .map((err) => {
+          const path = err.path.join('.');
+          return `${path}: ${err.message}`;
+        })
+        .join('\n');
+
       throw new Error(`Environment validation failed:\n${formattedErrors}`);
     }
     throw error;
@@ -223,12 +227,7 @@ export function validateProductionSecrets(env: Record<string, string | undefined
     return; // Only validate in production
   }
 
-  const requiredSecrets = [
-    'DATABASE_URL',
-    'REDIS_URL',
-    'JWT_SECRET',
-    'SESSION_SECRET',
-  ];
+  const requiredSecrets = ['DATABASE_URL', 'REDIS_URL', 'JWT_SECRET', 'SESSION_SECRET'];
 
   // Check for email API key if not using mock provider
   if (env.EMAIL_PROVIDER && env.EMAIL_PROVIDER !== 'mock') {
@@ -240,12 +239,12 @@ export function validateProductionSecrets(env: Record<string, string | undefined
     requiredSecrets.push('AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_S3_BUCKET');
   }
 
-  const missingSecrets = requiredSecrets.filter(secret => !env[secret]);
-  
+  const missingSecrets = requiredSecrets.filter((secret) => !env[secret]);
+
   if (missingSecrets.length > 0) {
     throw new Error(
       `Missing required production secrets: ${missingSecrets.join(', ')}\n` +
-      'These must be provided via environment variables or secure secret management system.'
+        'These must be provided via environment variables or secure secret management system.',
     );
   }
 }
@@ -285,10 +284,10 @@ export class EnvironmentLoader {
     try {
       // Validate basic environment structure
       this.config = validateEnvironment(env);
-      
+
       // Additional production secret validation
       validateProductionSecrets(env);
-      
+
       console.log(`✅ Environment validated successfully (${this.config.NODE_ENV})`);
       return this.config;
     } catch (error) {

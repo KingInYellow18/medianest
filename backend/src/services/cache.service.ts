@@ -132,10 +132,7 @@ export class CacheService {
    * Ping Redis to check connectivity
    */
   async ping(): Promise<boolean> {
-    const [response, error] = await handleAsync(
-      () => redisClient.ping(),
-      'Cache ping error',
-    );
+    const [response, error] = await handleAsync(() => redisClient.ping(), 'Cache ping error');
 
     if (error) return false;
     return response === 'PONG';
@@ -147,16 +144,11 @@ export class CacheService {
   async mget(keys: string[]): Promise<(any | null)[]> {
     if (keys.length === 0) return [];
 
-    const [values, error] = await handleAsync(
-      () => redisClient.mget(keys),
-      'Cache mget error',
-    );
+    const [values, error] = await handleAsync(() => redisClient.mget(keys), 'Cache mget error');
 
     if (error || !values) return [];
 
-    return values.map((value) => 
-      value !== null ? safeJsonParse(value, null) : null
-    );
+    return values.map((value) => (value !== null ? safeJsonParse(value, null) : null));
   }
 
   /**
@@ -171,13 +163,13 @@ export class CacheService {
     try {
       // Set each key-value pair individually with TTL
       await Promise.all(
-        entries.map(([key, value]) => 
+        entries.map(([key, value]) =>
           safeAsyncTry(
             () => redisClient.setex(key, ttlSeconds, safeJsonStringify(value)),
             undefined,
             `Cache set error for key: ${key}`,
-          )
-        )
+          ),
+        ),
       );
     } catch (error) {
       // Gracefully handle any errors

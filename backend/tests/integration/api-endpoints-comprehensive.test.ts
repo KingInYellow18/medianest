@@ -1,6 +1,6 @@
 /**
  * COMPREHENSIVE API ENDPOINT INTEGRATION TESTS
- * 
+ *
  * Full integration testing of all MediaNest API endpoints
  * Tests complete request/response cycles with real dependencies
  */
@@ -23,28 +23,26 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
     const userLogin = await request
       .post('/api/auth/login')
       .send({ username: 'testuser', password: 'testpass123' });
-    
+
     authToken = userLogin.body?.token || 'mock-user-token';
 
     const adminLogin = await request
       .post('/api/auth/login')
       .send({ username: 'admin', password: 'adminpass123' });
-    
+
     adminToken = adminLogin.body?.token || 'mock-admin-token';
   });
 
   describe('Authentication Endpoints Integration', () => {
     test('POST /api/auth/login - should authenticate valid user', async () => {
-      const response = await request
-        .post('/api/auth/login')
-        .send({
-          username: 'validuser',
-          password: 'validpass123'
-        });
+      const response = await request.post('/api/auth/login').send({
+        username: 'validuser',
+        password: 'validpass123',
+      });
 
       expect([200, 201]).toContain(response.status);
       expect(response.body).toHaveProperty('success');
-      
+
       if (response.body.success) {
         expect(response.body).toHaveProperty('token');
         expect(response.body).toHaveProperty('user');
@@ -53,12 +51,10 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
     });
 
     test('POST /api/auth/login - should reject invalid credentials', async () => {
-      const response = await request
-        .post('/api/auth/login')
-        .send({
-          username: 'invaliduser',
-          password: 'wrongpassword'
-        });
+      const response = await request.post('/api/auth/login').send({
+        username: 'invaliduser',
+        password: 'wrongpassword',
+      });
 
       expect(response.status).toBe(401);
       expect(response.body).toHaveProperty('success', false);
@@ -73,7 +69,7 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
 
       // Should either refresh token or require re-authentication
       expect([200, 401]).toContain(response.status);
-      
+
       if (response.status === 200) {
         expect(response.body).toHaveProperty('token');
       }
@@ -85,7 +81,7 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
         .set('Authorization', `Bearer ${authToken}`);
 
       expect([200, 401]).toContain(response.status);
-      
+
       if (response.status === 200) {
         expect(response.body).toHaveProperty('success', true);
       }
@@ -97,7 +93,7 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
         .set('Authorization', `Bearer ${authToken}`);
 
       expect([200, 401]).toContain(response.status);
-      
+
       if (response.status === 200) {
         expect(response.body).toHaveProperty('valid', true);
         expect(response.body).toHaveProperty('user');
@@ -107,17 +103,15 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
 
   describe('Media Management Endpoints Integration', () => {
     test('GET /api/media/search - should search media content', async () => {
-      const response = await request
-        .get('/api/media/search')
-        .query({
-          q: 'action movie',
-          type: 'movie',
-          page: 1,
-          limit: 20
-        });
+      const response = await request.get('/api/media/search').query({
+        q: 'action movie',
+        type: 'movie',
+        page: 1,
+        limit: 20,
+      });
 
       expect([200, 404]).toContain(response.status);
-      
+
       if (response.status === 200) {
         expect(response.body).toHaveProperty('results');
         expect(Array.isArray(response.body.results)).toBe(true);
@@ -134,11 +128,11 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
           type: 'movie',
           year: 2024,
           imdbId: 'tt1234567',
-          description: 'Integration test movie request'
+          description: 'Integration test movie request',
         });
 
       expect([200, 201, 401, 403]).toContain(response.status);
-      
+
       if ([200, 201].includes(response.status)) {
         expect(response.body).toHaveProperty('success', true);
         expect(response.body.data).toHaveProperty('id');
@@ -150,14 +144,14 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
       const response = await request
         .get('/api/media/requests')
         .set('Authorization', `Bearer ${authToken}`)
-        .query({ 
+        .query({
           status: 'pending',
           page: 1,
-          limit: 10
+          limit: 10,
         });
 
       expect([200, 401]).toContain(response.status);
-      
+
       if (response.status === 200) {
         expect(response.body).toHaveProperty('requests');
         expect(Array.isArray(response.body.requests)).toBe(true);
@@ -173,19 +167,19 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
         .send({
           title: 'Status Update Test',
           type: 'movie',
-          imdbId: 'tt7654321'
+          imdbId: 'tt7654321',
         });
 
       if ([200, 201].includes(createResponse.status)) {
         const requestId = createResponse.body.data?.id || 'test-id';
-        
+
         const response = await request
           .put(`/api/media/requests/${requestId}/status`)
           .set('Authorization', `Bearer ${adminToken}`)
           .send({ status: 'approved' });
 
         expect([200, 401, 403, 404]).toContain(response.status);
-        
+
         if (response.status === 200) {
           expect(response.body.data.status).toBe('approved');
         }
@@ -193,16 +187,14 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
     });
 
     test('GET /api/media/popular - should get popular media', async () => {
-      const response = await request
-        .get('/api/media/popular')
-        .query({ 
-          timeframe: '7d',
-          type: 'all',
-          limit: 20
-        });
+      const response = await request.get('/api/media/popular').query({
+        timeframe: '7d',
+        type: 'all',
+        limit: 20,
+      });
 
       expect([200, 404]).toContain(response.status);
-      
+
       if (response.status === 200) {
         expect(response.body).toHaveProperty('results');
         expect(Array.isArray(response.body.results)).toBe(true);
@@ -218,7 +210,7 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
         .query({ timeframe: '30d' });
 
       expect([200, 401]).toContain(response.status);
-      
+
       if (response.status === 200) {
         expect(response.body).toHaveProperty('data');
         expect(response.body.data).toHaveProperty('stats');
@@ -230,13 +222,13 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
       const response = await request
         .get('/api/dashboard/stats')
         .set('Authorization', `Bearer ${authToken}`)
-        .query({ 
+        .query({
           period: 'week',
-          metrics: 'requests,downloads,usage'
+          metrics: 'requests,downloads,usage',
         });
 
       expect([200, 401]).toContain(response.status);
-      
+
       if (response.status === 200) {
         expect(response.body).toHaveProperty('stats');
         expect(typeof response.body.stats).toBe('object');
@@ -250,7 +242,7 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
         .query({ limit: 50 });
 
       expect([200, 401]).toContain(response.status);
-      
+
       if (response.status === 200) {
         expect(response.body).toHaveProperty('activities');
         expect(Array.isArray(response.body.activities)).toBe(true);
@@ -263,14 +255,14 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
       const response = await request
         .get('/api/admin/users')
         .set('Authorization', `Bearer ${adminToken}`)
-        .query({ 
-          page: 1, 
+        .query({
+          page: 1,
           limit: 20,
-          role: 'all'
+          role: 'all',
         });
 
       expect([200, 401, 403]).toContain(response.status);
-      
+
       if (response.status === 200) {
         expect(response.body).toHaveProperty('users');
         expect(Array.isArray(response.body.users)).toBe(true);
@@ -285,7 +277,7 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
         .send({ role: 'moderator' });
 
       expect([200, 400, 401, 403, 404]).toContain(response.status);
-      
+
       if (response.status === 200) {
         expect(response.body).toHaveProperty('success', true);
         expect(response.body.data.role).toBe('moderator');
@@ -298,7 +290,7 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect([200, 401, 403]).toContain(response.status);
-      
+
       if (response.status === 200) {
         expect(response.body).toHaveProperty('system');
         expect(response.body.system).toHaveProperty('status');
@@ -310,13 +302,13 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
       const response = await request
         .post('/api/admin/system/maintenance')
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ 
-          enabled: true, 
-          message: 'Scheduled maintenance' 
+        .send({
+          enabled: true,
+          message: 'Scheduled maintenance',
         });
 
       expect([200, 401, 403]).toContain(response.status);
-      
+
       if (response.status === 200) {
         expect(response.body).toHaveProperty('maintenance');
       }
@@ -329,11 +321,11 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
         .query({
           level: 'error',
           limit: 100,
-          from: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+          from: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
         });
 
       expect([200, 401, 403]).toContain(response.status);
-      
+
       if (response.status === 200) {
         expect(response.body).toHaveProperty('logs');
         expect(Array.isArray(response.body.logs)).toBe(true);
@@ -348,19 +340,17 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
         .set('Authorization', `Bearer ${authToken}`);
 
       expect([200, 302, 401]).toContain(response.status);
-      
+
       if ([200, 302].includes(response.status)) {
         expect(response.body || response.headers.location).toBeDefined();
       }
     });
 
     test('GET /api/plex/callback - should handle Plex callback', async () => {
-      const response = await request
-        .get('/api/plex/callback')
-        .query({
-          code: 'test-auth-code',
-          state: 'test-csrf-token'
-        });
+      const response = await request.get('/api/plex/callback').query({
+        code: 'test-auth-code',
+        state: 'test-csrf-token',
+      });
 
       expect([200, 400, 401]).toContain(response.status);
     });
@@ -371,7 +361,7 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
         .set('Authorization', `Bearer ${authToken}`);
 
       expect([200, 401, 503]).toContain(response.status);
-      
+
       if (response.status === 200) {
         expect(response.body).toHaveProperty('servers');
         expect(Array.isArray(response.body.servers)).toBe(true);
@@ -385,7 +375,7 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
         .query({ serverId: 'test-server-id' });
 
       expect([200, 400, 401, 503]).toContain(response.status);
-      
+
       if (response.status === 200) {
         expect(response.body).toHaveProperty('libraries');
         expect(Array.isArray(response.body.libraries)).toBe(true);
@@ -398,11 +388,11 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .send({
           serverId: 'test-server-id',
-          libraryIds: ['1', '2', '3']
+          libraryIds: ['1', '2', '3'],
         });
 
       expect([200, 202, 400, 401, 503]).toContain(response.status);
-      
+
       if ([200, 202].includes(response.status)) {
         expect(response.body).toHaveProperty('syncId');
       }
@@ -411,16 +401,14 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
 
   describe('YouTube Integration Endpoints', () => {
     test('GET /api/youtube/search - should search YouTube content', async () => {
-      const response = await request
-        .get('/api/youtube/search')
-        .query({
-          q: 'movie trailer',
-          maxResults: 25,
-          type: 'video'
-        });
+      const response = await request.get('/api/youtube/search').query({
+        q: 'movie trailer',
+        maxResults: 25,
+        type: 'video',
+      });
 
       expect([200, 400, 503]).toContain(response.status);
-      
+
       if (response.status === 200) {
         expect(response.body).toHaveProperty('results');
         expect(Array.isArray(response.body.results)).toBe(true);
@@ -435,11 +423,11 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
         .send({
           url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
           quality: '720p',
-          format: 'mp4'
+          format: 'mp4',
         });
 
       expect([200, 202, 400, 401]).toContain(response.status);
-      
+
       if ([200, 202].includes(response.status)) {
         expect(response.body).toHaveProperty('downloadId');
       }
@@ -451,7 +439,7 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
         .set('Authorization', `Bearer ${authToken}`);
 
       expect([200, 404, 401]).toContain(response.status);
-      
+
       if (response.status === 200) {
         expect(response.body).toHaveProperty('status');
         expect(response.body).toHaveProperty('progress');
@@ -466,7 +454,7 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
       expect([200, 503]).toContain(response.status);
       expect(response.body).toHaveProperty('status');
       expect(response.body).toHaveProperty('timestamp');
-      
+
       if (response.status === 200) {
         expect(response.body.status).toBe('healthy');
       }
@@ -478,7 +466,7 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect([200, 401, 503]).toContain(response.status);
-      
+
       if (response.status === 200) {
         expect(response.body).toHaveProperty('services');
         expect(response.body).toHaveProperty('database');
@@ -499,7 +487,7 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
   describe('File Upload and Management Endpoints', () => {
     test('POST /api/upload - should handle file uploads', async () => {
       const testFile = Buffer.from('test file content', 'utf8');
-      
+
       const response = await request
         .post('/api/upload')
         .set('Authorization', `Bearer ${authToken}`)
@@ -507,7 +495,7 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
         .field('type', 'document');
 
       expect([200, 201, 400, 401, 413, 415]).toContain(response.status);
-      
+
       if ([200, 201].includes(response.status)) {
         expect(response.body).toHaveProperty('fileId');
         expect(response.body).toHaveProperty('url');
@@ -533,15 +521,13 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
 
   describe('WebSocket Endpoints Integration', () => {
     test('GET /socket.io/ - should establish WebSocket connection', async () => {
-      const response = await request
-        .get('/socket.io/')
-        .query({ 
-          EIO: '4', 
-          transport: 'polling' 
-        });
+      const response = await request.get('/socket.io/').query({
+        EIO: '4',
+        transport: 'polling',
+      });
 
       expect([200, 400]).toContain(response.status);
-      
+
       if (response.status === 200) {
         expect(response.text).toContain('0{');
       }
@@ -554,11 +540,11 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
         .send({
           type: 'notification',
           message: 'Test broadcast message',
-          recipients: 'all'
+          recipients: 'all',
         });
 
       expect([200, 401, 403]).toContain(response.status);
-      
+
       if (response.status === 200) {
         expect(response.body).toHaveProperty('sent');
         expect(response.body).toHaveProperty('recipients');
@@ -569,7 +555,7 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
   describe('Error Handling Integration', () => {
     test('should handle 404 for non-existent endpoints', async () => {
       const response = await request.get('/api/non-existent-endpoint');
-      
+
       expect(response.status).toBe(404);
       expect(response.body).toHaveProperty('success', false);
       expect(response.body).toHaveProperty('message');
@@ -587,8 +573,7 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
     });
 
     test('should handle missing authorization headers', async () => {
-      const response = await request
-        .get('/api/dashboard');
+      const response = await request.get('/api/dashboard');
 
       expect(response.status).toBe(401);
       expect(response.body).toHaveProperty('success', false);
@@ -596,13 +581,13 @@ describe('Comprehensive API Endpoint Integration Tests', () => {
 
     test('should handle rate limiting', async () => {
       // Make rapid requests to trigger rate limiting
-      const rapidRequests = Array(100).fill(null).map(() =>
-        request.get('/api/health')
-      );
+      const rapidRequests = Array(100)
+        .fill(null)
+        .map(() => request.get('/api/health'));
 
       const responses = await Promise.all(rapidRequests);
-      const rateLimitedResponses = responses.filter(r => r.status === 429);
-      
+      const rateLimitedResponses = responses.filter((r) => r.status === 429);
+
       // Should have some rate limited responses
       expect(rateLimitedResponses.length).toBeGreaterThan(0);
     });

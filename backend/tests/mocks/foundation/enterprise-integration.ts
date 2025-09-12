@@ -1,9 +1,9 @@
 /**
  * ENTERPRISE MOCK INTEGRATION - 1,199 TEST CAPACITY ORCHESTRATION
- * 
+ *
  * Central orchestration layer that integrates all enterprise mock components
  * to handle 1,199+ test capacity with zero state bleeding and perfect isolation.
- * 
+ *
  * INTEGRATION COMPONENTS:
  * - Enterprise Mock Registry for concurrent access
  * - Enterprise Service Mocks with StatelessMock patterns
@@ -13,15 +13,15 @@
  */
 
 import { vi, beforeEach, afterEach } from 'vitest';
-import { 
-  EnterpriseMockRegistry, 
+import {
+  EnterpriseMockRegistry,
   enterpriseMockRegistry,
   configureEnterpriseScale,
   registerEnterpriseMock,
   getEnterpriseMock,
   resetEnterpriseMocks,
   getEnterprisePerformanceReport,
-  enableLegacyCompatibility
+  enableLegacyCompatibility,
 } from './enterprise-mock-registry';
 
 import {
@@ -36,16 +36,16 @@ import {
   EnterpriseJwtServiceMock,
   EnterpriseDeviceSessionServiceMock,
   EnterprisePlexServiceMock,
-  EnterpriseDatabaseMock
+  EnterpriseDatabaseMock,
 } from './enterprise-service-mocks';
 
-import { 
+import {
   UnifiedMockRegistry,
   mockRegistry,
   StatelessMock,
   MockIsolation,
   type MockConfig,
-  type ValidationResult 
+  type ValidationResult,
 } from './unified-mock-registry';
 
 // =============================================================================
@@ -142,10 +142,10 @@ export class EnterpriseIntegrationController {
    */
   async cleanupTestSession(sessionId?: string): Promise<void> {
     const targetSessionId = sessionId || this.testSessionId;
-    
+
     if (targetSessionId) {
       await resetEnterpriseMocks([targetSessionId]);
-      
+
       // Force garbage collection if available
       if (global.gc) {
         global.gc();
@@ -160,7 +160,9 @@ export class EnterpriseIntegrationController {
    */
   getServiceMock<T>(serviceName: string, config?: MockConfig): T {
     if (!this.initialized) {
-      throw new Error('Enterprise mock system not initialized. Call initializeEnterpriseSystem() first.');
+      throw new Error(
+        'Enterprise mock system not initialized. Call initializeEnterpriseSystem() first.',
+      );
     }
 
     return getEnterpriseMock<T>(serviceName, config, this.testSessionId || undefined);
@@ -174,7 +176,10 @@ export class EnterpriseIntegrationController {
     const mocks: Record<string, any> = {};
 
     for (const serviceName of requiredServices) {
-      mocks[serviceName] = this.getServiceMock(serviceName, { behavior: 'realistic', isolation: true });
+      mocks[serviceName] = this.getServiceMock(serviceName, {
+        behavior: 'realistic',
+        isolation: true,
+      });
     }
 
     return mocks;
@@ -183,10 +188,12 @@ export class EnterpriseIntegrationController {
   /**
    * Bulk operations for parallel test execution
    */
-  async setupParallelTestEnvironments(testConfigs: Array<{
-    testId: string;
-    requiredServices: string[];
-  }>): Promise<Record<string, Record<string, any>>> {
+  async setupParallelTestEnvironments(
+    testConfigs: Array<{
+      testId: string;
+      requiredServices: string[];
+    }>,
+  ): Promise<Record<string, Record<string, any>>> {
     const environments: Record<string, Record<string, any>> = {};
 
     // Process in parallel
@@ -195,7 +202,11 @@ export class EnterpriseIntegrationController {
       const mocks: Record<string, any> = {};
 
       for (const serviceName of config.requiredServices) {
-        mocks[serviceName] = getEnterpriseMock(serviceName, { behavior: 'realistic', isolation: true }, sessionId);
+        mocks[serviceName] = getEnterpriseMock(
+          serviceName,
+          { behavior: 'realistic', isolation: true },
+          sessionId,
+        );
       }
 
       environments[config.testId] = mocks;
@@ -214,7 +225,7 @@ export class EnterpriseIntegrationController {
     }
 
     const report = getEnterprisePerformanceReport();
-    
+
     return {
       ...report,
       systemStatus: this.getSystemStatus(),
@@ -247,8 +258,9 @@ export class EnterpriseIntegrationController {
 
     // Check performance metrics
     const performance = this.getPerformanceReport();
-    
-    if (performance.memoryUsageMB > 2048) { // 2GB threshold
+
+    if (performance.memoryUsageMB > 2048) {
+      // 2GB threshold
       issues.push(`High memory usage: ${performance.memoryUsageMB}MB`);
       recommendations.push('Consider reducing instance pool size or enabling garbage collection');
     }
@@ -289,7 +301,7 @@ export class EnterpriseIntegrationController {
   private async preWarmSessionMocks(sessionId: string): Promise<void> {
     // Pre-warm critical high-usage mocks
     const criticalMocks = ['database', 'redisService', 'jwtService'];
-    
+
     const preWarmPromises = criticalMocks.map(async (serviceName) => {
       // Create and immediately return to pool
       const instance = getEnterpriseMock(serviceName, { behavior: 'realistic' }, sessionId);
@@ -324,15 +336,16 @@ export class EnterpriseIntegrationController {
 
   private enablePerformanceMonitoring(): void {
     this.performanceMonitoring = true;
-    
+
     // Set up periodic performance checks
     setInterval(() => {
       const report = getEnterprisePerformanceReport();
-      
-      if (report.memoryUsageMB > 3072) { // 3GB warning threshold
+
+      if (report.memoryUsageMB > 3072) {
+        // 3GB warning threshold
         console.warn(`⚠️ High memory usage: ${report.memoryUsageMB}MB`);
       }
-      
+
       if (report.registryUtilization > 95) {
         console.warn(`⚠️ Registry near capacity: ${report.registryUtilization}%`);
       }
@@ -365,7 +378,9 @@ export class EnterpriseIntegrationController {
     }
 
     if (performance.activeInstances > performance.totalRegisteredMocks * 5) {
-      recommendations.push('High instance-to-factory ratio - consider instance pooling optimization');
+      recommendations.push(
+        'High instance-to-factory ratio - consider instance pooling optimization',
+      );
     }
 
     return recommendations;
@@ -381,11 +396,11 @@ export class EnterpriseIntegrationController {
  */
 export async function enterpriseBeforeEach(): Promise<void> {
   const controller = EnterpriseIntegrationController.getInstance();
-  
+
   if (!controller['initialized']) {
     await controller.initializeEnterpriseSystem();
   }
-  
+
   await controller.createTestSession();
 }
 
@@ -430,7 +445,7 @@ export async function quickEnterpriseSetup(options?: {
   maxTests?: number;
 }): Promise<Record<string, any>> {
   const controller = EnterpriseIntegrationController.getInstance();
-  
+
   await controller.initializeEnterpriseSystem({
     maxTests: options?.maxTests || 1199,
     enableMonitoring: options?.enableMonitoring ?? true,
@@ -439,10 +454,10 @@ export async function quickEnterpriseSetup(options?: {
 
   const defaultServices = options?.services || [
     'database',
-    'redisService', 
+    'redisService',
     'jwtService',
     'encryptionService',
-    'deviceSessionService'
+    'deviceSessionService',
   ];
 
   return await controller.setupTestEnvironment(defaultServices);

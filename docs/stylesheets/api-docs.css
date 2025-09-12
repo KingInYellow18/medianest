@@ -528,34 +528,34 @@
 }
 
 /* Dark Mode Adjustments */
-[data-md-color-scheme="slate"] .api-endpoint {
+[data-md-color-scheme='slate'] .api-endpoint {
   background: var(--md-code-bg-color);
   border-color: var(--md-default-fg-color--lightest);
 }
 
-[data-md-color-scheme="slate"] .parameter-list {
+[data-md-color-scheme='slate'] .parameter-list {
   background: rgba(103, 58, 183, 0.1);
   border-color: rgba(103, 58, 183, 0.2);
 }
 
-[data-md-color-scheme="slate"] .parameter-type {
+[data-md-color-scheme='slate'] .parameter-type {
   background: var(--mn-purple-900);
   color: var(--mn-purple-300);
 }
 
-[data-md-color-scheme="slate"] .response-header {
+[data-md-color-scheme='slate'] .response-header {
   background: var(--md-code-bg-color);
 }
 
-[data-md-color-scheme="slate"] .response-header:hover {
+[data-md-color-scheme='slate'] .response-header:hover {
   background: rgba(103, 58, 183, 0.1);
 }
 
-[data-md-color-scheme="slate"] .schema-definition {
+[data-md-color-scheme='slate'] .schema-definition {
   background: var(--md-code-bg-color);
 }
 
-[data-md-color-scheme="slate"] .schema-property-type {
+[data-md-color-scheme='slate'] .schema-property-type {
   background: var(--mn-purple-900);
   color: var(--mn-purple-300);
 }
@@ -567,46 +567,46 @@
     align-items: flex-start;
     gap: 0.75rem;
   }
-  
+
   .api-method {
     order: 2;
   }
-  
+
   .api-path {
     order: 1;
     margin: 0;
     font-size: 0.8rem;
   }
-  
+
   .api-status {
     order: 3;
     align-self: flex-start;
   }
-  
+
   .parameter-item {
     flex-direction: column;
     gap: 0.5rem;
   }
-  
+
   .parameter-name {
     min-width: auto;
   }
-  
+
   .response-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
   }
-  
+
   .example-tabs {
     flex-wrap: wrap;
   }
-  
+
   .example-tab {
     padding: 0.5rem 1rem;
     font-size: 0.85rem;
   }
-  
+
   .api-explorer-body {
     padding: 1rem;
   }
@@ -616,19 +616,19 @@
   .api-endpoint-body {
     padding: 1rem;
   }
-  
+
   .parameter-list {
     padding: 0.75rem;
   }
-  
+
   .parameter-item {
     padding: 0.5rem 0;
   }
-  
+
   .response-body {
     padding: 0.75rem;
   }
-  
+
   .try-it-button {
     padding: 0.5rem 1.5rem;
     width: 100%;
@@ -644,20 +644,20 @@
     break-inside: avoid;
     page-break-inside: avoid;
   }
-  
+
   .api-endpoint-header {
     background: #f8f9fa !important;
     color: black !important;
   }
-  
+
   .try-it-button {
     display: none !important;
   }
-  
+
   .api-explorer {
     display: none !important;
   }
-  
+
   .response-body {
     background: #f8f9fa !important;
   }

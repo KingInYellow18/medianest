@@ -1,6 +1,6 @@
 /**
  * Redis Test Helper
- * 
+ *
  * Provides utilities for Redis testing including:
  * - Session management testing
  * - Cache testing and validation
@@ -52,7 +52,13 @@ export class RedisTestHelper {
       const rateLimitKeys = await this.redis.keys('rate_limit:*');
       const notificationKeys = await this.redis.keys('notification:*');
 
-      const allKeys = [...keys, ...sessionKeys, ...cacheKeys, ...rateLimitKeys, ...notificationKeys];
+      const allKeys = [
+        ...keys,
+        ...sessionKeys,
+        ...cacheKeys,
+        ...rateLimitKeys,
+        ...notificationKeys,
+      ];
 
       if (allKeys.length > 0) {
         await this.redis.del(...allKeys);
@@ -78,7 +84,7 @@ export class RedisTestHelper {
       role: sessionData.role || 'user',
       loginTime: sessionData.loginTime || new Date().toISOString(),
       lastActivity: sessionData.lastActivity || new Date().toISOString(),
-      metadata: sessionData.metadata || {}
+      metadata: sessionData.metadata || {},
     };
 
     const ttl = 3600; // 1 hour default
@@ -97,7 +103,7 @@ export class RedisTestHelper {
 
     const sessionKey = `session:${userId}`;
     const sessionData = await this.redis.get(sessionKey);
-    
+
     if (!sessionData) {
       return null;
     }
@@ -119,10 +125,10 @@ export class RedisTestHelper {
     }
 
     sessionData.lastActivity = new Date().toISOString();
-    
+
     const sessionKey = `session:${userId}`;
     const ttl = await this.redis.ttl(sessionKey);
-    
+
     await this.redis.setex(sessionKey, Math.max(ttl, 3600), JSON.stringify(sessionData));
   }
 
@@ -169,7 +175,7 @@ export class RedisTestHelper {
     }
 
     // Wait a bit to test TTL if applicable
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // Get cache entries
     for (const entry of entries) {
@@ -186,7 +192,7 @@ export class RedisTestHelper {
     }
 
     // Calculate hit rate
-    const hits = getResults.filter(result => result !== null).length;
+    const hits = getResults.filter((result) => result !== null).length;
     const hitRate = entries.length > 0 ? (hits / entries.length) * 100 : 0;
 
     return { setResults, getResults, hitRate };
@@ -195,7 +201,11 @@ export class RedisTestHelper {
   /**
    * Test cache TTL behavior
    */
-  async testCacheTTL(key: string, value: any, ttlSeconds: number): Promise<{
+  async testCacheTTL(
+    key: string,
+    value: any,
+    ttlSeconds: number,
+  ): Promise<{
     initialSet: boolean;
     initialGet: any | null;
     afterExpiry: any | null;
@@ -217,7 +227,7 @@ export class RedisTestHelper {
     const actualTTL = await this.redis.ttl(key);
 
     // Wait for expiry (add small buffer for timing)
-    await new Promise(resolve => setTimeout(resolve, (ttlSeconds * 1000) + 100));
+    await new Promise((resolve) => setTimeout(resolve, ttlSeconds * 1000 + 100));
 
     // Check if expired
     const expiredValue = await this.redis.get(key);
@@ -227,7 +237,7 @@ export class RedisTestHelper {
       initialSet,
       initialGet,
       afterExpiry,
-      actualTTL
+      actualTTL,
     };
   }
 
@@ -241,9 +251,9 @@ export class RedisTestHelper {
 
     const subscriberKey = `subscriber-${channel}-${Date.now()}`;
     const subscriber = new Redis(this.redis.options);
-    
+
     await subscriber.subscribe(channel);
-    
+
     subscriber.on('message', (receivedChannel, message) => {
       if (receivedChannel === channel) {
         try {
@@ -256,7 +266,7 @@ export class RedisTestHelper {
     });
 
     this.subscribers.set(subscriberKey, subscriber);
-    
+
     if (!this.messageHandlers.has(channel)) {
       this.messageHandlers.set(channel, []);
     }
@@ -280,7 +290,10 @@ export class RedisTestHelper {
   /**
    * Test pub/sub functionality
    */
-  async testPubSub(channel: string, messages: any[]): Promise<{
+  async testPubSub(
+    channel: string,
+    messages: any[],
+  ): Promise<{
     publishedCount: number;
     receivedMessages: any[];
     subsciberCount: number;
@@ -298,7 +311,7 @@ export class RedisTestHelper {
     });
 
     // Wait for subscription to be ready
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // Publish messages
     for (const message of messages) {
@@ -307,7 +320,7 @@ export class RedisTestHelper {
     }
 
     // Wait for messages to be received
-    await new Promise(resolve => setTimeout(resolve, 200));
+    await new Promise((resolve) => setTimeout(resolve, 200));
 
     // Get subscriber count
     const subscriberCount = await this.redis.pubsub('numsub', channel);
@@ -318,14 +331,19 @@ export class RedisTestHelper {
     return {
       publishedCount,
       receivedMessages,
-      subsciberCount: subscriberCount[1] as number
+      subsciberCount: subscriberCount[1] as number,
     };
   }
 
   /**
    * Test rate limiting functionality
    */
-  async testRateLimit(key: string, limit: number, windowSeconds: number, attempts: number): Promise<{
+  async testRateLimit(
+    key: string,
+    limit: number,
+    windowSeconds: number,
+    attempts: number,
+  ): Promise<{
     allowed: number;
     denied: number;
     finalCount: number;
@@ -341,7 +359,7 @@ export class RedisTestHelper {
     for (let i = 0; i < attempts; i++) {
       // Simulate rate limiting logic
       const current = await this.redis.incr(key);
-      
+
       if (current === 1) {
         // First request, set expiry
         await this.redis.expire(key, windowSeconds);
@@ -361,7 +379,7 @@ export class RedisTestHelper {
       allowed,
       denied,
       finalCount: parseInt(finalCount || '0'),
-      ttl
+      ttl,
     };
   }
 
@@ -382,28 +400,22 @@ export class RedisTestHelper {
 
     const testData = Array.from({ length: operationCount }, (_, i) => ({
       key: `perf-test-${i}`,
-      value: { id: i, data: `test-data-${i}`, timestamp: Date.now() }
+      value: { id: i, data: `test-data-${i}`, timestamp: Date.now() },
     }));
 
     // Test SET operations
     const setStart = Date.now();
-    await Promise.all(
-      testData.map(item => this.redis.set(item.key, JSON.stringify(item.value)))
-    );
+    await Promise.all(testData.map((item) => this.redis.set(item.key, JSON.stringify(item.value))));
     const setTime = Date.now() - setStart;
 
     // Test GET operations
     const getStart = Date.now();
-    await Promise.all(
-      testData.map(item => this.redis.get(item.key))
-    );
+    await Promise.all(testData.map((item) => this.redis.get(item.key)));
     const getTime = Date.now() - getStart;
 
     // Test DELETE operations
     const deleteStart = Date.now();
-    await Promise.all(
-      testData.map(item => this.redis.del(item.key))
-    );
+    await Promise.all(testData.map((item) => this.redis.del(item.key)));
     const deleteTime = Date.now() - deleteStart;
 
     return {
@@ -412,7 +424,7 @@ export class RedisTestHelper {
       deleteTime,
       avgSetTime: setTime / operationCount,
       avgGetTime: getTime / operationCount,
-      avgDeleteTime: deleteTime / operationCount
+      avgDeleteTime: deleteTime / operationCount,
     };
   }
 
@@ -422,7 +434,7 @@ export class RedisTestHelper {
   async simulateConnectionError(): Promise<void> {
     console.log('💥 Simulating Redis connection error...');
     this.isConnectionBroken = true;
-    
+
     // Disconnect Redis client
     this.redis.disconnect();
   }
@@ -433,7 +445,7 @@ export class RedisTestHelper {
   async restoreConnection(): Promise<void> {
     console.log('🔄 Restoring Redis connection...');
     this.isConnectionBroken = false;
-    
+
     // Reconnect Redis client
     await this.redis.connect();
     console.log('✅ Redis connection restored');
@@ -454,7 +466,7 @@ export class RedisTestHelper {
       const start = Date.now();
       await this.redis.ping();
       const responseTime = Date.now() - start;
-      
+
       return { connected: true, responseTime };
     } catch (error) {
       return { connected: false, responseTime: -1 };
@@ -503,7 +515,7 @@ export class RedisTestHelper {
       totalKeys,
       keyspaceHits,
       keyspaceMisses,
-      hitRate
+      hitRate,
     };
   }
 
@@ -523,7 +535,7 @@ export class RedisTestHelper {
    */
   async cleanup(): Promise<void> {
     console.log('🧹 Cleaning up Redis test helper...');
-    
+
     try {
       // Cleanup all subscribers
       for (const [key, subscriber] of this.subscribers.entries()) {
@@ -535,12 +547,12 @@ export class RedisTestHelper {
       if (!this.isConnectionBroken) {
         await this.clearTestData();
       }
-      
+
       // Don't disconnect the main Redis client as it might be shared
     } catch (error) {
       console.error('❌ Error during Redis cleanup:', error);
     }
-    
+
     console.log('✅ Redis test helper cleanup complete');
   }
 }

@@ -122,25 +122,21 @@ Every optimization directly references React.dev performance documentation:
 ### File Changes Made
 
 1. **`src/components/dashboard/ServiceCard.tsx`**
-
    - Applied React.memo with custom comparison
    - Memoized status variants, service icons, and formatted dates
    - Stabilized click handlers with useCallback
 
 2. **`src/components/dashboard/ConnectionStatus.tsx`**
-
    - Wrapped with React.memo for prop-based re-rendering
    - Memoized CSS class computation and animation config
    - Optimized boolean state derivations
 
 3. **`src/components/plex/MediaGrid.tsx`**
-
    - Applied React.memo with deep comparison for filters
    - Memoized expensive array flattening operations
    - Cached skeleton array and empty state content
 
 4. **`src/hooks/useWebSocket.ts`**
-
    - Memoized initial state objects and return values
    - Stabilized callback functions with useCallback
    - Optimized hook result object creation

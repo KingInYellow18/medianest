@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
  * GitIgnore Manager - Automatic branch-specific .gitignore switching
- * 
+ *
  * This script manages branch-specific .gitignore files for MediaNest project
  * It combines the base .gitignore with branch-specific rules
- * 
+ *
  * Usage:
  *   node scripts/gitignore-manager.js [branch-name]
- *   
+ *
  * If no branch-name is provided, it uses the current git branch
  */
 
@@ -27,9 +27,9 @@ class GitIgnoreManager {
    */
   getCurrentBranch() {
     try {
-      return execSync('git branch --show-current', { 
+      return execSync('git branch --show-current', {
         cwd: this.projectRoot,
-        encoding: 'utf-8' 
+        encoding: 'utf-8',
       }).trim();
     } catch (error) {
       console.error('Error getting current branch:', error.message);
@@ -97,7 +97,7 @@ class GitIgnoreManager {
 
     // Combine base and branch-specific rules
     let combinedContent = baseContent;
-    
+
     if (branchContent) {
       combinedContent += `\\n\\n# ===================================\\n`;
       combinedContent += `# BRANCH-SPECIFIC RULES FOR: ${branch.toUpperCase()}\\n`;
@@ -122,13 +122,14 @@ class GitIgnoreManager {
    * List available branch-specific gitignore files
    */
   listBranchRules() {
-    const gitignoreFiles = fs.readdirSync(this.projectRoot)
-      .filter(file => file.startsWith('.gitignore.'))
-      .map(file => file.replace('.gitignore.', ''));
+    const gitignoreFiles = fs
+      .readdirSync(this.projectRoot)
+      .filter((file) => file.startsWith('.gitignore.'))
+      .map((file) => file.replace('.gitignore.', ''));
 
     if (gitignoreFiles.length > 0) {
       console.log('📂 Available branch-specific rules:');
-      gitignoreFiles.forEach(branch => {
+      gitignoreFiles.forEach((branch) => {
         const filePath = this.getBranchGitIgnorePath(branch);
         const stats = fs.statSync(filePath);
         console.log(`   • ${branch} (${stats.size} bytes)`);
@@ -146,12 +147,12 @@ class GitIgnoreManager {
   showStatus() {
     const currentBranch = this.getCurrentBranch();
     const branchRules = this.listBranchRules();
-    
+
     console.log('\\n📊 GitIgnore Manager Status:');
     console.log(`   Current branch: ${currentBranch || 'unknown'}`);
     console.log(`   Available branch rules: ${branchRules.length}`);
     console.log(`   Git info/exclude exists: ${fs.existsSync(this.gitInfoExclude) ? '✅' : '❌'}`);
-    
+
     if (currentBranch && branchRules.includes(currentBranch)) {
       console.log(`   Branch-specific rules: ✅ Available for ${currentBranch}`);
     } else if (currentBranch) {
@@ -166,7 +167,7 @@ class GitIgnoreManager {
     console.log('🚀 MediaNest GitIgnore Manager\\n');
 
     const branch = targetBranch || this.getCurrentBranch();
-    
+
     if (!branch) {
       console.error('❌ Could not determine target branch');
       process.exit(1);
@@ -178,7 +179,7 @@ class GitIgnoreManager {
 
     // Apply rules for the target branch
     const success = this.applyBranchRules(branch);
-    
+
     if (success) {
       console.log('\\n🎉 GitIgnore rules updated successfully!');
       process.exit(0);
@@ -193,18 +194,18 @@ class GitIgnoreManager {
 if (require.main === module) {
   const manager = new GitIgnoreManager();
   const targetBranch = process.argv[2];
-  
+
   // Handle special commands
   if (targetBranch === '--status' || targetBranch === '-s') {
     manager.showStatus();
     process.exit(0);
   }
-  
+
   if (targetBranch === '--list' || targetBranch === '-l') {
     manager.listBranchRules();
     process.exit(0);
   }
-  
+
   if (targetBranch === '--help' || targetBranch === '-h') {
     console.log(`
 🚀 MediaNest GitIgnore Manager

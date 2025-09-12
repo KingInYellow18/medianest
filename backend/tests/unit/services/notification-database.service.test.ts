@@ -215,7 +215,7 @@ describe('NotificationDatabaseService', () => {
       mockDatabase.notification.update.mockRejectedValue(new Error('Record not found'));
 
       await expect(service.markNotificationAsRead('nonexistent', 'user-123')).rejects.toThrow(
-        'Record not found'
+        'Record not found',
       );
     });
   });
@@ -240,7 +240,7 @@ describe('NotificationDatabaseService', () => {
       mockDatabase.notification.updateMany = vi.fn().mockRejectedValue(new Error('Database error'));
 
       await expect(service.markAllNotificationsAsRead('user-123')).rejects.toThrow(
-        'Database error'
+        'Database error',
       );
     });
   });
@@ -269,7 +269,7 @@ describe('NotificationDatabaseService', () => {
       mockDatabase.notification.delete.mockRejectedValue(new Error('Record not found'));
 
       await expect(service.deleteNotification('nonexistent', 'user-123')).rejects.toThrow(
-        'Record not found'
+        'Record not found',
       );
     });
   });
@@ -391,7 +391,7 @@ describe('NotificationDatabaseService', () => {
       mockDatabase.$transaction.mockRejectedValue(new Error('Transaction failed'));
 
       await expect(service.createBulkNotifications(notifications)).rejects.toThrow(
-        'Transaction failed'
+        'Transaction failed',
       );
     });
   });
@@ -425,7 +425,7 @@ describe('NotificationDatabaseService', () => {
       mockDatabase.notification.findMany.mockRejectedValue(new Error('Database error'));
 
       await expect(service.getNotificationsByType('user-123', 'REQUEST_APPROVED')).rejects.toThrow(
-        'Database error'
+        'Database error',
       );
     });
   });

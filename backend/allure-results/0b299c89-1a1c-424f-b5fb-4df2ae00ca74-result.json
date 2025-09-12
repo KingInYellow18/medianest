@@ -1,1 +1,30 @@
-{"uuid":"0b299c89-1a1c-424f-b5fb-4df2ae00ca74","name":"should display system statistics with time period selection","historyId":"21579e76415e01b1dcbad2189da628e9:84e28e814b821ed013329cc8dbc467e0","status":"skipped","statusDetails":{},"stage":"finished","steps":[],"attachments":[],"parameters":[{"name":"Project","value":"webkit"}],"labels":[{"name":"language","value":"javascript"},{"name":"framework","value":"playwright"},{"name":"package","value":"admin-dashboard-journey.spec.ts"},{"name":"titlePath","value":" > webkit > admin-dashboard-journey.spec.ts > Admin Dashboard User Journey"},{"name":"host","value":"kubuntudev"},{"name":"thread","value":"pid-38931-worker-0"},{"name":"parentSuite","value":"webkit"},{"name":"subSuite","value":"Admin Dashboard User Journey"}],"links":[],"start":1757602649415,"testCaseId":"21579e76415e01b1dcbad2189da628e9","fullName":"admin-dashboard-journey.spec.ts:568:7","titlePath":["admin-dashboard-journey.spec.ts","Admin Dashboard User Journey"],"stop":1757602649415}
+{
+  "uuid": "0b299c89-1a1c-424f-b5fb-4df2ae00ca74",
+  "name": "should display system statistics with time period selection",
+  "historyId": "21579e76415e01b1dcbad2189da628e9:84e28e814b821ed013329cc8dbc467e0",
+  "status": "skipped",
+  "statusDetails": {},
+  "stage": "finished",
+  "steps": [],
+  "attachments": [],
+  "parameters": [{ "name": "Project", "value": "webkit" }],
+  "labels": [
+    { "name": "language", "value": "javascript" },
+    { "name": "framework", "value": "playwright" },
+    { "name": "package", "value": "admin-dashboard-journey.spec.ts" },
+    {
+      "name": "titlePath",
+      "value": " > webkit > admin-dashboard-journey.spec.ts > Admin Dashboard User Journey"
+    },
+    { "name": "host", "value": "kubuntudev" },
+    { "name": "thread", "value": "pid-38931-worker-0" },
+    { "name": "parentSuite", "value": "webkit" },
+    { "name": "subSuite", "value": "Admin Dashboard User Journey" }
+  ],
+  "links": [],
+  "start": 1757602649415,
+  "testCaseId": "21579e76415e01b1dcbad2189da628e9",
+  "fullName": "admin-dashboard-journey.spec.ts:568:7",
+  "titlePath": ["admin-dashboard-journey.spec.ts", "Admin Dashboard User Journey"],
+  "stop": 1757602649415
+}

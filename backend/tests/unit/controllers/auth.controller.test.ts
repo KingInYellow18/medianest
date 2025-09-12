@@ -61,7 +61,7 @@ describe('AuthController', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     controller = new AuthController();
-    
+
     mockRequest = {
       body: {},
       user: undefined,
@@ -104,7 +104,7 @@ describe('AuthController', () => {
             'X-Plex-Device-Name': 'MediaNest',
           }),
           timeout: 10000,
-        })
+        }),
       );
 
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -139,7 +139,7 @@ describe('AuthController', () => {
           headers: expect.objectContaining({
             'X-Plex-Device-Name': 'CustomClient',
           }),
-        })
+        }),
       );
     });
 
@@ -149,10 +149,8 @@ describe('AuthController', () => {
 
       await controller.generatePin(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockNext).toHaveBeenCalledWith(
-        expect.any(AppError)
-      );
-      
+      expect(mockNext).toHaveBeenCalledWith(expect.any(AppError));
+
       const calledError = mockNext.mock.calls[0][0];
       expect(calledError.code).toBe('PLEX_ERROR');
       expect(calledError.message).toBe('Invalid response from Plex');
@@ -169,10 +167,8 @@ describe('AuthController', () => {
 
       await controller.generatePin(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockNext).toHaveBeenCalledWith(
-        expect.any(AppError)
-      );
-      
+      expect(mockNext).toHaveBeenCalledWith(expect.any(AppError));
+
       const calledError = mockNext.mock.calls[0][0];
       expect(calledError.code).toBe('PLEX_UNREACHABLE');
       expect(calledError.message).toBe('Cannot connect to Plex server. Please try again.');
@@ -189,10 +185,8 @@ describe('AuthController', () => {
 
       await controller.generatePin(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockNext).toHaveBeenCalledWith(
-        expect.any(AppError)
-      );
-      
+      expect(mockNext).toHaveBeenCalledWith(expect.any(AppError));
+
       const calledError = mockNext.mock.calls[0][0];
       expect(calledError.code).toBe('PLEX_TIMEOUT');
       expect(calledError.message).toBe('Plex server connection timed out. Please try again.');
@@ -215,7 +209,7 @@ describe('AuthController', () => {
 
       expect(logger.warn).toHaveBeenCalledWith(
         'Invalid input for generatePin, using defaults',
-        expect.any(Object)
+        expect.any(Object),
       );
       expect(mockResponse.json).toHaveBeenCalled();
     });
@@ -251,7 +245,7 @@ describe('AuthController', () => {
       mockAxios.get
         .mockResolvedValueOnce({ data: mockPinResponse })
         .mockResolvedValueOnce({ data: mockUserResponse });
-      
+
       (userRepository.findByPlexId as Mock).mockResolvedValue(null);
       (userRepository.isFirstUser as Mock).mockResolvedValue(false);
       (userRepository.create as Mock).mockResolvedValue(mockUser);
@@ -266,7 +260,7 @@ describe('AuthController', () => {
           headers: expect.objectContaining({
             'X-Plex-Client-Identifier': 'test-client-id',
           }),
-        })
+        }),
       );
 
       expect(userRepository.create).toHaveBeenCalledWith({
@@ -284,7 +278,7 @@ describe('AuthController', () => {
           httpOnly: true,
           sameSite: 'lax',
           maxAge: 24 * 60 * 60 * 1000,
-        })
+        }),
       );
 
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -339,7 +333,7 @@ describe('AuthController', () => {
       mockAxios.get
         .mockResolvedValueOnce({ data: mockPinResponse })
         .mockResolvedValueOnce({ data: mockUserResponse });
-      
+
       (userRepository.findByPlexId as Mock).mockResolvedValue(existingUser);
       (userRepository.update as Mock).mockResolvedValue(updatedUser);
       (encryptionService.encryptForStorage as Mock).mockReturnValue('encrypted-token');
@@ -360,7 +354,7 @@ describe('AuthController', () => {
         'remember-token',
         expect.objectContaining({
           maxAge: 90 * 24 * 60 * 60 * 1000,
-        })
+        }),
       );
     });
 
@@ -377,13 +371,13 @@ describe('AuthController', () => {
 
       await controller.verifyPin(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockNext).toHaveBeenCalledWith(
-        expect.any(AppError)
-      );
-      
+      expect(mockNext).toHaveBeenCalledWith(expect.any(AppError));
+
       const calledError = mockNext.mock.calls[0][0];
       expect(calledError.code).toBe('PIN_NOT_AUTHORIZED');
-      expect(calledError.message).toBe('PIN has not been authorized yet. Please complete authorization on plex.tv/link');
+      expect(calledError.message).toBe(
+        'PIN has not been authorized yet. Please complete authorization on plex.tv/link',
+      );
       expect(calledError.statusCode).toBe(400);
     });
 
@@ -399,10 +393,8 @@ describe('AuthController', () => {
 
       await controller.verifyPin(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockNext).toHaveBeenCalledWith(
-        expect.any(AppError)
-      );
-      
+      expect(mockNext).toHaveBeenCalledWith(expect.any(AppError));
+
       const calledError = mockNext.mock.calls[0][0];
       expect(calledError.code).toBe('INVALID_PIN');
       expect(calledError.message).toBe('Invalid or expired PIN');
@@ -414,10 +406,8 @@ describe('AuthController', () => {
 
       await controller.verifyPin(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockNext).toHaveBeenCalledWith(
-        expect.any(AppError)
-      );
-      
+      expect(mockNext).toHaveBeenCalledWith(expect.any(AppError));
+
       const calledError = mockNext.mock.calls[0][0];
       expect(calledError.code).toBe('VALIDATION_ERROR');
       expect(calledError.message).toBe('Invalid request data');
@@ -445,15 +435,13 @@ describe('AuthController', () => {
       mockAxios.get
         .mockResolvedValueOnce({ data: mockPinResponse })
         .mockResolvedValueOnce({ data: mockUserResponse });
-      
+
       (userRepository.findByPlexId as Mock).mockRejectedValue(new Error('Database error'));
 
       await controller.verifyPin(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockNext).toHaveBeenCalledWith(
-        expect.any(AppError)
-      );
-      
+      expect(mockNext).toHaveBeenCalledWith(expect.any(AppError));
+
       const calledError = mockNext.mock.calls[0][0];
       expect(calledError.code).toBe('DATABASE_ERROR');
       expect(calledError.message).toBe('Failed to save user information');
@@ -489,7 +477,7 @@ describe('AuthController', () => {
       mockAxios.get
         .mockResolvedValueOnce({ data: mockPinResponse })
         .mockResolvedValueOnce({ data: mockUserResponse });
-      
+
       (userRepository.findByPlexId as Mock).mockResolvedValue(null);
       (userRepository.isFirstUser as Mock).mockResolvedValue(false);
       (userRepository.create as Mock).mockResolvedValue(mockUser);
@@ -500,10 +488,8 @@ describe('AuthController', () => {
 
       await controller.verifyPin(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockNext).toHaveBeenCalledWith(
-        expect.any(AppError)
-      );
-      
+      expect(mockNext).toHaveBeenCalledWith(expect.any(AppError));
+
       const calledError = mockNext.mock.calls[0][0];
       expect(calledError.code).toBe('TOKEN_ERROR');
       expect(calledError.message).toBe('Failed to generate authentication tokens');
@@ -539,7 +525,7 @@ describe('AuthController', () => {
       mockAxios.get
         .mockResolvedValueOnce({ data: mockPinResponse })
         .mockResolvedValueOnce({ data: mockUserResponse });
-      
+
       (userRepository.findByPlexId as Mock).mockResolvedValue(null);
       (userRepository.isFirstUser as Mock).mockResolvedValue(true);
       (userRepository.create as Mock).mockResolvedValue(mockUser);
@@ -599,7 +585,7 @@ describe('AuthController', () => {
       mockRequest.user = undefined;
 
       await expect(
-        controller.getSession(mockRequest as Request, mockResponse as Response)
+        controller.getSession(mockRequest as Request, mockResponse as Response),
       ).rejects.toThrow(AppError);
     });
 

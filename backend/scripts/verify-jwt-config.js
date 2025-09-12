@@ -32,32 +32,31 @@ try {
   const testPayload = {
     userId: 'test-user-123',
     role: 'user',
-    exp: Math.floor(Date.now() / 1000) + (60 * 60) // 1 hour
+    exp: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour
   };
 
   const token = jwt.sign(testPayload, jwtSecret, {
     issuer: process.env.JWT_ISSUER || 'medianest-test',
-    audience: process.env.JWT_AUDIENCE || 'medianest-test-users'
+    audience: process.env.JWT_AUDIENCE || 'medianest-test-users',
   });
 
   console.log('✅ JWT token generated successfully');
   console.log(`Token length: ${token.length} characters`);
-  
+
   // Test token verification
   console.log('\n🔍 Testing JWT Token Verification...');
   const decoded = jwt.verify(token, jwtSecret, {
     issuer: process.env.JWT_ISSUER || 'medianest-test',
-    audience: process.env.JWT_AUDIENCE || 'medianest-test-users'
+    audience: process.env.JWT_AUDIENCE || 'medianest-test-users',
   });
-  
+
   console.log('✅ JWT token verified successfully');
   console.log('Decoded payload:', {
     userId: decoded.userId,
     role: decoded.role,
     iss: decoded.iss,
-    aud: decoded.aud
+    aud: decoded.aud,
   });
-
 } catch (error) {
   console.error('❌ JWT test failed:', error.message);
   process.exit(1);

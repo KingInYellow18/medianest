@@ -160,7 +160,7 @@ describe('Memory Usage and Leak Detection Tests', () => {
     operation: string,
     operationFunction: () => Promise<any>,
     iterations: number = 50,
-    forceGC: boolean = true
+    forceGC: boolean = true,
   ): Promise<MemoryAnalysis> => {
     const operationSnapshots: MemorySnapshot[] = [];
 
@@ -203,7 +203,7 @@ describe('Memory Usage and Leak Detection Tests', () => {
           request(app)
             .post('/api/v1/auth/login')
             .send({ email: testUser.email, password: 'password123' }),
-        60
+        60,
       );
 
       expect(analysis.leakDetected).toBe(false);
@@ -222,7 +222,7 @@ describe('Memory Usage and Leak Detection Tests', () => {
       const analysis = await runMemoryTest(
         'auth-refresh',
         () => request(app).post('/api/v1/auth/refresh').set('Authorization', `Bearer ${userToken}`),
-        40
+        40,
       );
 
       expect(analysis.leakDetected).toBe(false);
@@ -237,7 +237,7 @@ describe('Memory Usage and Leak Detection Tests', () => {
         'dashboard-stats',
         () =>
           request(app).get('/api/v1/dashboard/stats').set('Authorization', `Bearer ${userToken}`),
-        50
+        50,
       );
 
       expect(analysis.leakDetected).toBe(false);
@@ -256,7 +256,7 @@ describe('Memory Usage and Leak Detection Tests', () => {
             .get('/api/v1/media/search')
             .query({ q: searchQueries[queryIndex++ % searchQueries.length], limit: 20 })
             .set('Authorization', `Bearer ${userToken}`),
-        40
+        40,
       );
 
       expect(analysis.leakDetected).toBe(false);
@@ -279,7 +279,7 @@ describe('Memory Usage and Leak Detection Tests', () => {
               type: 'movie',
               tmdbId: 500000 + requestCounter,
             }),
-        30
+        30,
       );
 
       expect(analysis.leakDetected).toBe(false);
@@ -314,7 +314,7 @@ describe('Memory Usage and Leak Detection Tests', () => {
             await prisma.$disconnect();
           }
         },
-        30
+        30,
       );
 
       expect(analysis.leakDetected).toBe(false);
@@ -328,7 +328,7 @@ describe('Memory Usage and Leak Detection Tests', () => {
       const analysis = await runMemoryTest(
         'database-pooling',
         () => prisma.user.findMany({ take: 10 }),
-        50
+        50,
       );
 
       await prisma.$disconnect();
@@ -352,7 +352,7 @@ describe('Memory Usage and Leak Detection Tests', () => {
             .set('Authorization', `Bearer ${userToken}`)
             .attach('file', testBuffer, `memory-test-${uploadCounter++}.bin`)
             .field('category', 'memory-test'),
-        25
+        25,
       );
 
       expect(analysis.leakDetected).toBe(false);
@@ -373,7 +373,7 @@ describe('Memory Usage and Leak Detection Tests', () => {
         const promises = Array(concurrentOperations)
           .fill(null)
           .map((_, index) =>
-            request(app).get('/api/v1/dashboard/stats').set('Authorization', `Bearer ${userToken}`)
+            request(app).get('/api/v1/dashboard/stats').set('Authorization', `Bearer ${userToken}`),
           );
 
         await Promise.allSettled(promises);
@@ -387,7 +387,7 @@ describe('Memory Usage and Leak Detection Tests', () => {
       }
 
       const concurrentSnapshots = memorySnapshots.filter((s) =>
-        s.operation.includes('concurrent-load')
+        s.operation.includes('concurrent-load'),
       );
       const analysis = analyzeMemoryUsage('concurrent-load', concurrentSnapshots);
 
@@ -465,10 +465,10 @@ describe('Memory Usage and Leak Detection Tests', () => {
             (memoryAnalyses.reduce((sum, a) => sum + a.memoryGrowth, 0) /
               memoryAnalyses.length /
               (1024 * 1024)) *
-              100
+              100,
           ) / 100,
         avgGCEfficiency: Math.round(
-          memoryAnalyses.reduce((sum, a) => sum + a.gcEfficiency, 0) / memoryAnalyses.length
+          memoryAnalyses.reduce((sum, a) => sum + a.gcEfficiency, 0) / memoryAnalyses.length,
         ),
         totalSnapshots: memorySnapshots.length,
         currentMemoryMB: Math.round(process.memoryUsage().heapUsed / (1024 * 1024)),

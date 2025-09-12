@@ -18,7 +18,7 @@ export class LoginPage {
 
   constructor(page: Page) {
     this.page = page;
-    
+
     // Form elements
     this.usernameInput = page.getByTestId('username-input');
     this.passwordInput = page.getByTestId('password-input');
@@ -26,12 +26,12 @@ export class LoginPage {
     this.loginButton = page.getByTestId('login-button');
     this.plexOAuthButton = page.getByTestId('plex-oauth-button');
     this.loginForm = page.getByTestId('login-form');
-    
+
     // Error messages
     this.errorMessage = page.getByTestId('error-message');
     this.usernameError = page.getByTestId('username-error');
     this.passwordError = page.getByTestId('password-error');
-    
+
     // Plex OAuth elements
     this.plexPinDialog = page.getByTestId('plex-pin-dialog');
     this.plexPinCode = page.getByTestId('plex-pin-code');
@@ -52,11 +52,11 @@ export class LoginPage {
   async login(username: string, password: string, rememberMe = false) {
     await this.usernameInput.fill(username);
     await this.passwordInput.fill(password);
-    
+
     if (rememberMe) {
       await this.rememberMeCheckbox.check();
     }
-    
+
     await this.loginButton.click();
   }
 
@@ -121,7 +121,7 @@ export class LoginPage {
    * Get the error message text
    */
   async getErrorMessage(): Promise<string> {
-    return await this.errorMessage.textContent() || '';
+    return (await this.errorMessage.textContent()) || '';
   }
 
   /**
@@ -144,7 +144,7 @@ export class LoginPage {
    * Get the displayed Plex PIN code
    */
   async getPlexPin(): Promise<string> {
-    return await this.plexPinCode.textContent() || '';
+    return (await this.plexPinCode.textContent()) || '';
   }
 
   /**
@@ -185,7 +185,7 @@ export class LoginPage {
    */
   async getCsrfToken(): Promise<string> {
     const csrfInput = this.page.locator('input[name="_csrf"]');
-    return await csrfInput.getAttribute('value') || '';
+    return (await csrfInput.getAttribute('value')) || '';
   }
 
   /**
@@ -206,10 +206,10 @@ export class LoginPage {
     const checks = {
       usernameLabel: await this.page.locator('label[for="username"]').isVisible(),
       passwordLabel: await this.page.locator('label[for="password"]').isVisible(),
-      usernameRequired: await this.usernameInput.getAttribute('aria-required') === 'true',
-      passwordRequired: await this.passwordInput.getAttribute('aria-required') === 'true',
+      usernameRequired: (await this.usernameInput.getAttribute('aria-required')) === 'true',
+      passwordRequired: (await this.passwordInput.getAttribute('aria-required')) === 'true',
     };
-    
+
     return checks;
   }
 

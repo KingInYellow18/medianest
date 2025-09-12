@@ -125,7 +125,7 @@ class RedisServiceFacade {
     private connectionManager: RedisConnectionManager,
     private cacheService: RedisCacheService,
     private sessionService: RedisSessionService,
-    private monitoringService: RedisMonitoringService
+    private monitoringService: RedisMonitoringService,
   ) {}
 
   // Facade methods delegate to specialized services

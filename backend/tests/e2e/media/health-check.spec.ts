@@ -204,7 +204,7 @@ describe('Integration Health Check', () => {
       .expect(200);
 
     const requestInAdminList = adminListResponse.body.data.requests.find(
-      (r: any) => r.id === requestId
+      (r: any) => r.id === requestId,
     );
     expect(requestInAdminList).toBeDefined();
     expect(requestInAdminList.notes).toBe(requestData.notes);
@@ -230,7 +230,7 @@ describe('Integration Health Check', () => {
       ValidationHelper.validateDataConsistency(originalData, updatedResponse.body.data, [
         'status',
         'updatedAt',
-      ])
+      ]),
     ).toBe(true);
 
     console.log('  ✅ Request creation consistency verified');
@@ -323,7 +323,7 @@ describe('Integration Health Check', () => {
             request(app)
               .get('/api/v1/media/requests')
               .set('Authorization', `Bearer ${users.user.token}`)
-              .expect(200)
+              .expect(200),
           );
 
           const start = Date.now();

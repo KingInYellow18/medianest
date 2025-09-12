@@ -2,7 +2,7 @@ import { Page, Locator } from '@playwright/test';
 
 export abstract class BasePage {
   protected readonly page: Page;
-  
+
   constructor(page: Page) {
     this.page = page;
   }
@@ -102,9 +102,9 @@ export abstract class BasePage {
    * Take screenshot
    */
   async takeScreenshot(name: string): Promise<Buffer> {
-    return await this.page.screenshot({ 
-      fullPage: true, 
-      path: `tests/e2e/screenshots/${name}-${Date.now()}.png` 
+    return await this.page.screenshot({
+      fullPage: true,
+      path: `tests/e2e/screenshots/${name}-${Date.now()}.png`,
     });
   }
 
@@ -148,14 +148,14 @@ export abstract class BasePage {
    * Accept dialog (alert, confirm, prompt)
    */
   async acceptDialog(): Promise<void> {
-    this.page.on('dialog', dialog => dialog.accept());
+    this.page.on('dialog', (dialog) => dialog.accept());
   }
 
   /**
    * Dismiss dialog (alert, confirm, prompt)
    */
   async dismissDialog(): Promise<void> {
-    this.page.on('dialog', dialog => dialog.dismiss());
+    this.page.on('dialog', (dialog) => dialog.dismiss());
   }
 
   /**
@@ -212,7 +212,7 @@ export abstract class BasePage {
     await this.page.waitForFunction(
       (searchText) => document.body.textContent?.includes(searchText),
       text,
-      { timeout }
+      { timeout },
     );
   }
 

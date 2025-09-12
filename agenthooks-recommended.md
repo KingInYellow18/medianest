@@ -7,14 +7,16 @@ After ultrathinking the claude-flow hook architecture and execution model, this 
 ## Key Architectural Insights
 
 ### **Claude Code vs Agent Execution Model**
+
 1. **Claude Code** spawns agents via `Task` tool
-2. **Agents run in isolated contexts** (separate processes)  
+2. **Agents run in isolated contexts** (separate processes)
 3. **Agent hooks execute within agent's limited environment**
 4. **Session management is handled by Claude Code**, not individual agents
 
 ### **What This Means for Hooks:**
+
 - ❌ **Session hooks in agents = redundant** (Claude Code manages sessions)
-- ❌ **Agent-spawning hooks = impossible** (only Claude Code can spawn agents)  
+- ❌ **Agent-spawning hooks = impossible** (only Claude Code can spawn agents)
 - ❌ **Task initialization hooks = redundant** (Claude Code already did this)
 - ✅ **Agent-specific validation = useful** (environment checks, context)
 - ✅ **Simple logging = valuable** (debugging and workflow visibility)
@@ -22,16 +24,17 @@ After ultrathinking the claude-flow hook architecture and execution model, this 
 ## Realistic Hook Strategy
 
 ### **Universal Template (All 256 Agents)**
+
 ```yaml
 hooks:
   pre: |
     # Simple, fast logging with timestamp
     echo "🚀 $AGENT_NAME: $TASK ($(date '+%H:%M:%S'))"
-    
+
   post: |
     # Completion logging with helpful context
     echo "✅ $AGENT_NAME completed ($(date '+%H:%M:%S'))"
-    
+
     # Show actual work done (valuable for debugging)
     if command -v git >/dev/null 2>&1; then
       git status --short 2>/dev/null | head -3 || echo "No file changes detected"
@@ -39,21 +42,23 @@ hooks:
 ```
 
 **Why This Works:**
+
 - ⚡ **Fast**: < 0.5 second overhead
-- 🔍 **Informative**: Shows what agent actually accomplished  
+- 🔍 **Informative**: Shows what agent actually accomplished
 - 🛡️ **Safe**: No external dependencies or blocking calls
 - 📊 **Useful**: Provides workflow visibility without interference
 
 ## Domain-Specific Hook Enhancements (Optional)
 
 ### **Database Agents** (PostgreSQL, Redis, Migrations)
+
 ```yaml
 hooks:
   pre: |
     echo "🗄️ $AGENT_NAME: $TASK"
     # Quick environment context (no blocking)
     [ -f "backend/.env" ] && echo "✓ Backend config detected" || echo "ℹ️ No backend/.env"
-    
+
   post: |
     echo "✅ Database operation completed"
     # Helpful hints based on task type
@@ -65,6 +70,7 @@ hooks:
 ```
 
 ### **Testing Agents** (Jest, Vitest, Cypress)
+
 ```yaml
 hooks:
   pre: |
@@ -77,7 +83,7 @@ hooks:
     else
       echo "ℹ️ No specific test framework config found"
     fi
-    
+
   post: |
     echo "📊 Testing work completed"
     # Suggest test validation (don't auto-run)
@@ -88,13 +94,14 @@ hooks:
 ```
 
 ### **Docker/Deployment Agents**
+
 ```yaml
 hooks:
   pre: |
     echo "🐳 $AGENT_NAME: $TASK"
     # Soft Docker availability check
     command -v docker >/dev/null 2>&1 && echo "✓ Docker available" || echo "ℹ️ Docker not found"
-    
+
   post: |
     echo "🚀 Container/deployment work completed"
     # Show container status if Docker available and relevant
@@ -106,12 +113,13 @@ hooks:
 ```
 
 ### **Frontend/React Agents**
+
 ```yaml
 hooks:
   pre: |
     echo "⚛️ $AGENT_NAME: $TASK"
     [ -f "frontend/package.json" ] && echo "✓ Frontend structure detected" || echo "ℹ️ No frontend directory"
-    
+
   post: |
     echo "🎨 Frontend work completed"
     if [[ "$TASK" == *"component"* ]] || [[ "$TASK" == *"typescript"* ]]; then
@@ -123,6 +131,7 @@ hooks:
 ## Neural Training Reality Check
 
 ### **What "Neural Training" Actually Is:**
+
 After analyzing the claude-flow codebase references, "neural training" is **NOT machine learning**. It's:
 
 ```javascript
@@ -130,7 +139,7 @@ After analyzing the claude-flow codebase references, "neural training" is **NOT 
 {
   agent_execution_log: {
     agent_name: "database-architect",
-    task_description: "create user table", 
+    task_description: "create user table",
     execution_time: 45.2,
     files_modified: ["migrations/001_users.sql"],
     success: true,
@@ -146,6 +155,7 @@ After analyzing the claude-flow codebase references, "neural training" is **NOT 
 ```
 
 ### **Marketing vs Reality:**
+
 - **Marketing**: "AI-powered neural pattern training"
 - **Reality**: Analytics database with usage statistics
 - **Value**: Useful for tracking agent usage patterns
@@ -154,6 +164,7 @@ After analyzing the claude-flow codebase references, "neural training" is **NOT 
 ## Redundancy Analysis: What Claude Code Already Handles
 
 ### **❌ Redundant in Agent Hooks:**
+
 1. **Session Management** - Claude Code manages sessions completely
 2. **Task Initialization** - Claude Code already initialized the task when spawning agent
 3. **Agent Spawning** - Only Claude Code can spawn agents via Task tool
@@ -161,6 +172,7 @@ After analyzing the claude-flow codebase references, "neural training" is **NOT 
 5. **MCP Coordination** - Claude Code manages MCP tool access, not agents
 
 ### **✅ Valuable in Agent Hooks:**
+
 1. **Agent-specific environment validation** (database connectivity, Docker availability)
 2. **Domain context** (test framework detection, project structure awareness)
 3. **Helpful suggestions** (next steps, validation commands)
@@ -170,11 +182,12 @@ After analyzing the claude-flow codebase references, "neural training" is **NOT 
 ## Simplified, Non-Redundant Hook Recommendations
 
 ### **Core Template (All Agents)**
+
 ```yaml
 hooks:
   pre: |
     echo "🚀 $AGENT_NAME: $TASK"
-    
+
   post: |
     echo "✅ $AGENT_NAME completed"
     # Valuable: Show what actually changed
@@ -182,13 +195,14 @@ hooks:
 ```
 
 ### **Database Agent Enhancement**
+
 ```yaml
 hooks:
   pre: |
     echo "🗄️ Database agent: $TASK"
     # Useful: Quick environment context
     [ -f "backend/.env" ] && echo "✓ Config found" || echo "ℹ️ No backend/.env"
-    
+
   post: |
     echo "✅ Database work completed"
     # Valuable: Context-aware suggestions
@@ -198,13 +212,14 @@ hooks:
 ```
 
 ### **Testing Agent Enhancement**
+
 ```yaml
 hooks:
   pre: |
     echo "🧪 Testing agent: $TASK"
     # Useful: Framework detection
     [ -f "vitest.config.ts" ] && echo "✓ Vitest config" || echo "ℹ️ No test config"
-    
+
   post: |
     echo "📊 Testing completed"
     # Valuable: Suggest validation
@@ -214,27 +229,34 @@ hooks:
 ## Final Ultrathinking Conclusions
 
 ### **1. Most Claude-Flow Hooks Are Redundant**
+
 Claude Code **already handles**:
+
 - Session management
-- Agent coordination  
+- Agent coordination
 - Task initialization
 - Performance tracking
 - MCP tool access
 
 ### **2. "Neural Training" Is Just Analytics**
+
 Not actual AI/ML - just usage statistics and pattern storage.
 
 ### **3. Keep Agent Hooks Simple and Domain-Specific**
+
 Focus on:
+
 - Agent-specific environment checks
 - Domain validation (database, Docker, testing)
 - Helpful suggestions and context
 - File change visibility
 
 ### **4. Avoid Architectural Anti-Patterns**
+
 Don't make agents try to:
+
 - Manage their own sessions
-- Spawn other agents  
+- Spawn other agents
 - Initialize their own tasks
 - Handle coordination (Claude Code's job)
 

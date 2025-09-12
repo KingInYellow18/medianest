@@ -23,7 +23,7 @@ graph TB
     subgraph "Application Layer"
         EXPRESS[Express.js Server]
         SOCKET[Socket.IO Server]
-        
+
         subgraph "API Routes"
             AUTH_API[Authentication API]
             MEDIA_API[Media API]
@@ -67,7 +67,7 @@ graph TB
     subgraph "Data Layer"
         POSTGRES[(PostgreSQL)]
         REDIS[(Redis Cache)]
-        
+
         subgraph "Database Models"
             USERS_TBL[Users]
             MEDIA_REQ_TBL[Media Requests]
@@ -141,7 +141,7 @@ graph TB
     MEDIA_SVC --> POSTGRES
     PLEX_SVC --> POSTGRES
     NOTIF_SVC --> POSTGRES
-    
+
     CACHE_SVC --> REDIS
     AUTH_SVC --> REDIS
     RATE_LIMIT_MW --> REDIS
@@ -195,7 +195,7 @@ C4Context
 
     Rel(user, medianest, "Uses", "Web browser, Mobile app")
     Rel(admin, medianest, "Administers", "Admin dashboard")
-    
+
     Rel(medianest, plex, "Integrates with", "REST API, OAuth")
     Rel(medianest, overseerr, "Submits requests to", "REST API")
     Rel(medianest, tmdb, "Fetches metadata from", "REST API")
@@ -218,7 +218,7 @@ C4Container
         Container(api, "API Application", "Express.js, TypeScript", "Provides REST API endpoints and business logic")
         Container(socketio, "WebSocket Server", "Socket.IO", "Handles real-time communication and notifications")
         Container(nginx, "Reverse Proxy", "Nginx", "SSL termination, load balancing, static content")
-        
+
         ContainerDb(postgres, "Primary Database", "PostgreSQL", "Stores user data, media requests, system configuration")
         ContainerDb(redis, "Cache & Sessions", "Redis", "Caches data, manages sessions, handles rate limiting")
     }
@@ -233,19 +233,19 @@ C4Container
     Rel(user, nginx, "Uses", "HTTPS")
     Rel(nginx, webapp, "Serves", "Static content")
     Rel(nginx, api, "Proxies to", "HTTP")
-    
+
     Rel(webapp, api, "Makes API calls to", "REST/HTTP")
     Rel(webapp, socketio, "Connects to", "WebSocket")
-    
+
     Rel(api, postgres, "Reads/Writes", "SQL/TCP")
     Rel(api, redis, "Caches data", "Redis Protocol")
     Rel(socketio, redis, "Pub/Sub", "Redis Protocol")
-    
+
     Rel(api, plex, "Integrates", "REST API")
     Rel(api, overseerr, "Submits requests", "REST API")
     Rel(api, tmdb, "Fetches metadata", "REST API")
     Rel(api, youtube, "Downloads content", "API")
-    
+
     Rel(api, monitoring, "Sends metrics", "HTTP")
 
     UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")
@@ -262,14 +262,14 @@ C4Component
 
     Container_Boundary(api, "API Application") {
         Component(router, "API Router", "Express Router", "Routes requests to appropriate controllers")
-        
+
         Component(auth_ctrl, "Auth Controller", "Express Controller", "Handles authentication and authorization")
         Component(media_ctrl, "Media Controller", "Express Controller", "Manages media requests and searches")
         Component(plex_ctrl, "Plex Controller", "Express Controller", "Handles Plex server integration")
         Component(dashboard_ctrl, "Dashboard Controller", "Express Controller", "Provides system overview and statistics")
         Component(admin_ctrl, "Admin Controller", "Express Controller", "Administrative functions")
         Component(youtube_ctrl, "YouTube Controller", "Express Controller", "YouTube download management")
-        
+
         Component(auth_svc, "Authentication Service", "Service Class", "JWT token management, OAuth integration")
         Component(media_svc, "Media Service", "Service Class", "Media request business logic")
         Component(plex_svc, "Plex Service", "Service Class", "Plex API integration")
@@ -277,12 +277,12 @@ C4Component
         Component(notif_svc, "Notification Service", "Service Class", "Real-time notifications")
         Component(health_svc, "Health Service", "Service Class", "System health monitoring")
         Component(youtube_svc, "YouTube Service", "Service Class", "YouTube integration")
-        
+
         Component(user_repo, "User Repository", "Repository Class", "User data access")
         Component(media_repo, "Media Repository", "Repository Class", "Media request data access")
         Component(youtube_repo, "YouTube Repository", "Repository Class", "YouTube download data access")
         Component(service_repo, "Service Repository", "Repository Class", "Service status data access")
-        
+
         Component(middleware, "Middleware Stack", "Express Middleware", "Authentication, validation, security, rate limiting")
     }
 
@@ -295,7 +295,7 @@ C4Component
 
     Rel(webapp, router, "Makes API calls", "REST/HTTP")
     Rel(socketio, notif_svc, "Sends notifications", "Function calls")
-    
+
     Rel(router, middleware, "Processes through", "Middleware chain")
     Rel(middleware, auth_ctrl, "Routes to")
     Rel(middleware, media_ctrl, "Routes to")
@@ -303,27 +303,27 @@ C4Component
     Rel(middleware, dashboard_ctrl, "Routes to")
     Rel(middleware, admin_ctrl, "Routes to")
     Rel(middleware, youtube_ctrl, "Routes to")
-    
+
     Rel(auth_ctrl, auth_svc, "Uses")
     Rel(media_ctrl, media_svc, "Uses")
     Rel(plex_ctrl, plex_svc, "Uses")
     Rel(dashboard_ctrl, cache_svc, "Uses")
     Rel(admin_ctrl, health_svc, "Uses")
     Rel(youtube_ctrl, youtube_svc, "Uses")
-    
+
     Rel(auth_svc, user_repo, "Uses")
     Rel(media_svc, media_repo, "Uses")
     Rel(youtube_svc, youtube_repo, "Uses")
     Rel(health_svc, service_repo, "Uses")
-    
+
     Rel(user_repo, postgres, "Reads/Writes", "SQL")
     Rel(media_repo, postgres, "Reads/Writes", "SQL")
     Rel(youtube_repo, postgres, "Reads/Writes", "SQL")
     Rel(service_repo, postgres, "Reads/Writes", "SQL")
-    
+
     Rel(cache_svc, redis, "Caches", "Redis Protocol")
     Rel(auth_svc, redis, "Stores sessions", "Redis Protocol")
-    
+
     Rel(plex_svc, plex, "Integrates", "REST API")
     Rel(media_svc, overseerr, "Submits requests", "REST API")
     Rel(media_svc, tmdb, "Fetches metadata", "REST API")
@@ -335,32 +335,37 @@ C4Component
 ## Core Components
 
 ### 1. Express.js Application Server
+
 - **Framework**: Express.js 4.21+ with TypeScript
 - **Architecture**: RESTful API with versioned endpoints
 - **Performance**: Optimized with compression, caching, and connection pooling
 - **Security**: Helmet, CORS, rate limiting, and authentication middleware
 
 ### 2. Authentication & Authorization
+
 - **Primary**: JWT-based authentication with token rotation
 - **OAuth**: Plex OAuth integration for seamless user experience
-- **Security Features**: 
+- **Security Features**:
   - Multi-device session management
   - Token blacklisting and rotation
   - Rate limiting per user and endpoint
   - Device fingerprinting
 
 ### 3. Data Persistence Layer
+
 - **Database**: PostgreSQL 15+ with Prisma ORM
 - **Cache**: Redis 7+ for session management and performance optimization
 - **Connection Management**: Optimized connection pooling and query optimization
 - **Backup Strategy**: Automated daily backups with disaster recovery procedures
 
 ### 4. Real-time Communication
+
 - **WebSocket**: Socket.IO for real-time notifications and status updates
 - **Namespaces**: Organized by feature (media requests, downloads, admin)
 - **Authentication**: Socket-level authentication with JWT validation
 
 ### 5. External Integrations
+
 - **Plex Media Server**: Direct API integration for library management
 - **Overseerr**: Media request management and automation
 - **The Movie Database (TMDB)**: Metadata enrichment for media content
@@ -370,6 +375,7 @@ C4Component
 ## Technology Stack
 
 ### Backend Core
+
 - **Runtime**: Node.js 20+
 - **Language**: TypeScript 5.6+
 - **Framework**: Express.js 4.21
@@ -378,12 +384,14 @@ C4Component
 - **Testing**: Vitest with comprehensive test suites
 
 ### Infrastructure
+
 - **Containerization**: Docker with multi-stage builds
 - **Orchestration**: Docker Compose with environment-specific configurations
 - **Reverse Proxy**: Nginx with SSL termination and load balancing
 - **Process Management**: PM2 for production process management
 
 ### Monitoring & Observability
+
 - **Metrics**: Prometheus with custom business metrics
 - **Tracing**: OpenTelemetry for distributed tracing
 - **Logging**: Structured logging with correlation IDs
@@ -393,12 +401,14 @@ C4Component
 ## Performance Characteristics
 
 ### Response Time Optimization
+
 - **API Routes**: Optimized by frequency of use
 - **Caching Strategy**: Multi-tier caching (Redis, HTTP headers, application-level)
 - **Database**: Optimized indexes and query patterns
 - **Connection Pooling**: Configured for high concurrency
 
 ### Scalability Features
+
 - **Horizontal Scaling**: Stateless application design
 - **Load Balancing**: Nginx-based load balancing
 - **Resource Management**: Memory and CPU optimization
@@ -475,6 +485,7 @@ graph TB
 ### Security Implementation Details
 
 #### Authentication & Authorization
+
 - **JWT Security**: Secure token generation and validation with RS256
 - **Session Management**: Device-specific session handling with fingerprinting
 - **OAuth Integration**: Plex OAuth 2.0 with PKCE flow
@@ -482,6 +493,7 @@ graph TB
 - **Multi-Device Support**: Session management across multiple devices
 
 #### API Security
+
 - **CORS Policy**: Strict origin validation for production environments
 - **Security Headers**: Comprehensive security headers via Helmet.js
   - Content Security Policy (CSP)
@@ -492,14 +504,15 @@ graph TB
 - **SQL Injection Prevention**: Parameterized queries via Prisma ORM
 
 #### Data Security
+
 - **Encryption at Rest**: AES-256 database encryption
 - **Encryption in Transit**: TLS 1.3 for all communications
 - **Secret Management**: Environment variables with rotation capabilities
 - **Password Hashing**: bcryptjs with configurable salt rounds
 - **Token Security**: JWT with short expiration and refresh token rotation
 
-
 ### Data Protection
+
 - **Encryption**: At-rest and in-transit encryption
 - **Secret Management**: Environment-based secret management
 - **Database Security**: Connection encryption and access controls

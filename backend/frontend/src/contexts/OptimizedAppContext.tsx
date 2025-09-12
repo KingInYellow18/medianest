@@ -37,7 +37,9 @@ interface AppActions {
   readonly setSession: (session: Partial<AppState['session']>) => void;
   readonly setTheme: (theme: ThemeMode) => void;
   readonly toggleSidebar: () => void;
-  readonly addNotification: (notification: Omit<AppState['ui']['notifications'][0], 'id' | 'timestamp'>) => void;
+  readonly addNotification: (
+    notification: Omit<AppState['ui']['notifications'][0], 'id' | 'timestamp'>,
+  ) => void;
   readonly removeNotification: (id: string) => void;
   readonly clearNotifications: () => void;
   readonly logout: () => void;
@@ -81,100 +83,99 @@ interface AppProviderProps {
 }
 
 // Context7 Pattern - Optimized provider with memoized context value
-export const AppProvider: React.FC<AppProviderProps> = ({ 
-  children, 
-  initialState = {} 
-}) => {
+export const AppProvider: React.FC<AppProviderProps> = ({ children, initialState = {} }) => {
   const [state, setState, meta] = useOptimizedState<AppState>({
     ...DEFAULT_STATE,
     ...initialState,
   });
 
   // Context7 Pattern - Memoized action creators
-  const actions = useMemo((): AppActions => ({
-    setUser: (user) => {
-      setState(prev => ({
-        ...prev,
-        user: { ...prev.user, ...user }
-      }));
-    },
+  const actions = useMemo(
+    (): AppActions => ({
+      setUser: (user) => {
+        setState((prev) => ({
+          ...prev,
+          user: { ...prev.user, ...user },
+        }));
+      },
 
-    setSession: (session) => {
-      setState(prev => ({
-        ...prev,
-        session: { ...prev.session, ...session }
-      }));
-    },
+      setSession: (session) => {
+        setState((prev) => ({
+          ...prev,
+          session: { ...prev.session, ...session },
+        }));
+      },
 
-    setTheme: (theme) => {
-      setState(prev => ({
-        ...prev,
-        ui: { ...prev.ui, theme }
-      }));
-    },
+      setTheme: (theme) => {
+        setState((prev) => ({
+          ...prev,
+          ui: { ...prev.ui, theme },
+        }));
+      },
 
-    toggleSidebar: () => {
-      setState(prev => ({
-        ...prev,
-        ui: { ...prev.ui, sidebarOpen: !prev.ui.sidebarOpen }
-      }));
-    },
+      toggleSidebar: () => {
+        setState((prev) => ({
+          ...prev,
+          ui: { ...prev.ui, sidebarOpen: !prev.ui.sidebarOpen },
+        }));
+      },
 
-    addNotification: (notification) => {
-      const newNotification = {
-        ...notification,
-        id: `notification-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        timestamp: new Date(),
-      };
+      addNotification: (notification) => {
+        const newNotification = {
+          ...notification,
+          id: `notification-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          timestamp: new Date(),
+        };
 
-      setState(prev => ({
-        ...prev,
-        ui: {
-          ...prev.ui,
-          notifications: [...prev.ui.notifications, newNotification]
-        }
-      }));
-    },
+        setState((prev) => ({
+          ...prev,
+          ui: {
+            ...prev.ui,
+            notifications: [...prev.ui.notifications, newNotification],
+          },
+        }));
+      },
 
-    removeNotification: (id) => {
-      setState(prev => ({
-        ...prev,
-        ui: {
-          ...prev.ui,
-          notifications: prev.ui.notifications.filter(n => n.id !== id)
-        }
-      }));
-    },
+      removeNotification: (id) => {
+        setState((prev) => ({
+          ...prev,
+          ui: {
+            ...prev.ui,
+            notifications: prev.ui.notifications.filter((n) => n.id !== id),
+          },
+        }));
+      },
 
-    clearNotifications: () => {
-      setState(prev => ({
-        ...prev,
-        ui: { ...prev.ui, notifications: [] }
-      }));
-    },
+      clearNotifications: () => {
+        setState((prev) => ({
+          ...prev,
+          ui: { ...prev.ui, notifications: [] },
+        }));
+      },
 
-    logout: () => {
-      setState(prev => ({
-        ...prev,
-        user: DEFAULT_STATE.user,
-        session: DEFAULT_STATE.session,
-        ui: { ...prev.ui, notifications: [] }
-      }));
-    },
-  }), [setState]);
+      logout: () => {
+        setState((prev) => ({
+          ...prev,
+          user: DEFAULT_STATE.user,
+          session: DEFAULT_STATE.session,
+          ui: { ...prev.ui, notifications: [] },
+        }));
+      },
+    }),
+    [setState],
+  );
 
   // Context7 Pattern - Memoized context value to prevent unnecessary re-renders
-  const contextValue = useMemo((): AppContextType => ({
-    state,
-    actions,
-    meta,
-  }), [state, actions, meta]);
-
-  return (
-    <AppContext.Provider value={contextValue}>
-      {children}
-    </AppContext.Provider>
+  const contextValue = useMemo(
+    (): AppContextType => ({
+      state,
+      actions,
+      meta,
+    }),
+    [state, actions, meta],
   );
+
+  return <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>;
 };
 
 // Context7 Pattern - Type-safe context hook

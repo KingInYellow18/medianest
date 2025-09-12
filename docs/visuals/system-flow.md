@@ -11,31 +11,31 @@ graph TD
     A[User Access Request] --> B{Already Authenticated?}
     B -->|Yes| C[Check Session Validity]
     B -->|No| D[Redirect to Login]
-    
+
     C --> E{Session Valid?}
     E -->|Yes| F[Access Granted]
     E -->|No| G[Clear Invalid Session]
-    
+
     D --> H[Plex OAuth Login]
     G --> H
-    
+
     H --> I{Plex Authentication}
     I -->|Success| J[Exchange Code for Token]
     I -->|Failure| K[Display Error Message]
-    
+
     J --> L[Validate User Role]
     L --> M{User Authorized?}
     M -->|Yes| N[Create Session Token]
     M -->|No| O[Access Denied]
-    
+
     N --> P[Set Secure Cookies]
     P --> F
-    
+
     K --> Q[Return to Login]
     O --> Q
-    
+
     F --> R[Dashboard Access]
-    
+
     style A fill:#e1f5fe
     style F fill:#c8e6c9
     style R fill:#c8e6c9
@@ -53,32 +53,32 @@ graph TB
     B --> C{Valid Request?}
     C -->|No| D[Return Validation Error]
     C -->|Yes| E[Check Rate Limits]
-    
+
     E --> F{Within Limits?}
     F -->|No| G[Rate Limit Exceeded]
     F -->|Yes| H[Save to Database]
-    
+
     H --> I[Send to Overseerr]
     I --> J{Overseerr Available?}
     J -->|No| K[Queue for Retry]
     J -->|Yes| L[Process in Overseerr]
-    
+
     L --> M{Media Found?}
     M -->|No| N[Manual Review Required]
     M -->|Yes| O[Download Media]
-    
+
     O --> P[Media Downloaded]
     P --> Q[Update Plex Library]
     Q --> R[Send Notification]
-    
+
     K --> S[Retry Background Job]
     S --> I
-    
+
     N --> T[Admin Notification]
     T --> U[Manual Processing]
-    
+
     R --> V[Request Complete]
-    
+
     style A fill:#e1f5fe
     style V fill:#c8e6c9
     style D fill:#ffcdd2
@@ -97,26 +97,26 @@ graph LR
     B --> C{Valid YouTube URL?}
     C -->|No| D[Invalid URL Error]
     C -->|Yes| E[Extract Playlist Info]
-    
+
     E --> F[Create Download Record]
     F --> G[Queue Download Job]
     G --> H[Background Processing]
-    
+
     H --> I[Download Videos]
     I --> J{Download Success?}
     J -->|No| K[Retry Logic]
     J -->|Yes| L[Process Media Files]
-    
+
     L --> M[Create Plex Collection]
     M --> N[Update Collection Metadata]
     N --> O[Refresh Plex Library]
-    
+
     O --> P[Send Completion Notification]
-    
+
     K --> Q{Max Retries?}
     Q -->|No| I
     Q -->|Yes| R[Mark as Failed]
-    
+
     style A fill:#e1f5fe
     style P fill:#c8e6c9
     style D fill:#ffcdd2
@@ -133,22 +133,22 @@ sequenceDiagram
     participant WS as WebSocket Server
     participant DB as Database
     participant BG as Background Jobs
-    
+
     C->>WS: Connect with Auth Token
     WS->>WS: Validate Token
     WS->>C: Connection Established
-    
+
     C->>WS: Subscribe to Notifications
     WS->>WS: Register Client
-    
+
     BG->>DB: Update Download Status
     DB->>WS: Trigger Status Change
     WS->>C: Send Status Update
-    
+
     BG->>DB: Complete Download
     DB->>WS: Trigger Completion
     WS->>C: Send Completion Notification
-    
+
     C->>WS: Acknowledge Receipt
     WS->>DB: Mark as Read
 ```
@@ -163,25 +163,25 @@ graph TD
     B --> C{Admin Authorized?}
     C -->|No| D[Access Denied]
     C -->|Yes| E[Gather System Metrics]
-    
+
     E --> F[Service Status Check]
     E --> G[User Activity Stats]
     E --> H[Media Request Stats]
     E --> I[System Performance]
-    
+
     F --> J[Combine Dashboard Data]
     G --> J
     H --> J
     I --> J
-    
+
     J --> K[Apply Data Filters]
     K --> L[Format for Display]
     L --> M[Send to Client]
-    
+
     M --> N[Real-time Updates]
     N --> O[WebSocket Push]
     O --> P[Dashboard Auto-refresh]
-    
+
     style A fill:#e1f5fe
     style D fill:#ffcdd2
     style P fill:#c8e6c9
@@ -200,24 +200,24 @@ graph TB
         D --> E[Check Redis Cache]
         E --> F[Check File System]
     end
-    
+
     F --> G[Aggregate Results]
     G --> H{All Services OK?}
-    
+
     H -->|Yes| I[Update Status: Healthy]
     H -->|No| J[Identify Failed Services]
-    
+
     J --> K[Log Incident]
     K --> L[Send Alert]
     L --> M[Update Dashboard]
-    
+
     I --> N[Store Metrics]
     M --> N
-    
+
     N --> O[Calculate Uptime]
     O --> P[Update Performance Metrics]
     P --> Q[Schedule Next Check]
-    
+
     style I fill:#c8e6c9
     style J fill:#ffcdd2
     style L fill:#ff9800
@@ -232,29 +232,29 @@ graph LR
     A[System Error Occurs] --> B[Capture Error Context]
     B --> C[Generate Correlation ID]
     C --> D[Log to Database]
-    
+
     D --> E{Critical Error?}
     E -->|Yes| F[Immediate Alert]
     E -->|No| G[Standard Logging]
-    
+
     F --> H[Admin Notification]
     G --> I[Error Analytics]
-    
+
     H --> J[Incident Response]
     I --> K[Pattern Detection]
-    
+
     J --> L{Auto-recoverable?}
     L -->|Yes| M[Automatic Recovery]
     L -->|No| N[Manual Intervention]
-    
+
     M --> O[Verify Recovery]
     O --> P{Recovery Success?}
     P -->|Yes| Q[Log Resolution]
     P -->|No| N
-    
+
     N --> R[Escalation Process]
     Q --> S[Update Metrics]
-    
+
     style F fill:#ff5722
     style M fill:#4caf50
     style Q fill:#c8e6c9
@@ -268,24 +268,24 @@ Protect APIs with intelligent rate limiting and user management:
 graph TD
     A[API Request Received] --> B[Extract User Identity]
     B --> C[Check Rate Limit Cache]
-    
+
     C --> D{Limit Exceeded?}
     D -->|Yes| E[Return 429 Too Many Requests]
     D -->|No| F[Increment Request Counter]
-    
+
     F --> G[Process API Request]
     G --> H{Request Success?}
     H -->|Yes| I[Return Response]
     H -->|No| J[Handle API Error]
-    
+
     J --> K[Log Error Details]
     K --> L[Return Error Response]
-    
+
     I --> M[Update Request Metrics]
     L --> M
-    
+
     M --> N[Cleanup Expired Limits]
-    
+
     style E fill:#ffcdd2
     style I fill:#c8e6c9
     style J fill:#ff9800

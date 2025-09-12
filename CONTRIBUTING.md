@@ -406,7 +406,6 @@ When adding features, update:
    ```
 
 2. **Update Documentation**
-
    - Add/update relevant docs
    - Add JSDoc comments
    - Update API documentation if needed
@@ -456,13 +455,11 @@ Fixes #(issue number)
 ### Review Process
 
 1. **Automated Checks**
-
    - CI/CD pipeline runs tests
    - Linting and type checking
    - Code coverage analysis
 
 2. **Code Review**
-
    - At least one maintainer review required
    - Address feedback constructively
    - Update PR based on comments
@@ -497,7 +494,6 @@ We follow [Semantic Versioning](https://semver.org/):
    ```
 
 2. **Create Release PR**
-
    - Title: `Release v1.2.0`
    - Include changelog in description
    - Tag maintainers for review

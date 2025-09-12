@@ -34,7 +34,7 @@ class TypeScriptHardeningTool {
       errorHandlingFixed: 0,
       strictModeEnabled: false,
       criticalIssues: [],
-      recommendations: []
+      recommendations: [],
     };
   }
 
@@ -47,16 +47,16 @@ class TypeScriptHardeningTool {
     try {
       // Step 1: Scan for type safety violations
       await this.scanProject();
-      
+
       // Step 2: Fix critical business logic paths
       await this.fixCriticalPaths();
-      
+
       // Step 3: Implement strict mode gradually
       await this.enableStrictMode();
-      
+
       // Step 4: Generate report
       await this.generateReport();
-      
+
       console.log('✅ TYPESCRIPT HARDENING: Complete! Check the generated report.');
     } catch (error) {
       console.error('❌ TYPESCRIPT HARDENING: Failed', error);
@@ -77,7 +77,9 @@ class TypeScriptHardeningTool {
       this.scanFile(file);
     }
 
-    console.log(`📊 Scanned ${this.report.filesScanned} files, found ${this.report.anyUsageFound} 'any' usages\n`);
+    console.log(
+      `📊 Scanned ${this.report.filesScanned} files, found ${this.report.anyUsageFound} 'any' usages\n`,
+    );
   }
 
   /**
@@ -85,14 +87,14 @@ class TypeScriptHardeningTool {
    */
   private findTypeScriptFiles(dir: string): string[] {
     const files: string[] = [];
-    
+
     try {
       const entries = readdirSync(dir);
-      
+
       for (const entry of entries) {
         const fullPath = join(dir, entry);
         const stat = statSync(fullPath);
-        
+
         if (stat.isDirectory() && !entry.includes('node_modules') && !entry.includes('dist')) {
           files.push(...this.findTypeScriptFiles(fullPath));
         } else if (entry.endsWith('.ts') && !entry.endsWith('.d.ts')) {
@@ -118,12 +120,16 @@ class TypeScriptHardeningTool {
       const anyMatches = content.match(/:\s*any\b|any\[\]|\bany\s*=/g);
       if (anyMatches) {
         this.report.anyUsageFound += anyMatches.length;
-        
+
         // Flag critical files
-        if (filePath.includes('/auth/') || 
-            filePath.includes('/services/') || 
-            filePath.includes('/middleware/')) {
-          this.report.criticalIssues.push(`${filePath}: ${anyMatches.length} 'any' usages in critical path`);
+        if (
+          filePath.includes('/auth/') ||
+          filePath.includes('/services/') ||
+          filePath.includes('/middleware/')
+        ) {
+          this.report.criticalIssues.push(
+            `${filePath}: ${anyMatches.length} 'any' usages in critical path`,
+          );
         }
       }
 
@@ -132,7 +138,6 @@ class TypeScriptHardeningTool {
       if (errorMatches) {
         this.report.criticalIssues.push(`${filePath}: Untyped error handling found`);
       }
-
     } catch (error) {
       console.warn(`⚠️  Could not scan ${filePath}:`, error);
     }
@@ -149,15 +154,15 @@ class TypeScriptHardeningTool {
         // Fix catch (error: any) patterns
         pattern: /catch\s*\(\s*error\s*:\s*any\s*\)/g,
         replacement: 'catch (error: unknown)',
-        description: 'Fixed untyped error handling'
-      }
+        description: 'Fixed untyped error handling',
+      },
     ];
 
     const criticalDirs = [
       'backend/src/auth',
       'backend/src/services',
       'backend/src/middleware',
-      'backend/src/routes'
+      'backend/src/routes',
     ];
 
     for (const dir of criticalDirs) {
@@ -177,15 +182,18 @@ class TypeScriptHardeningTool {
   /**
    * Fix patterns in a file
    */
-  private fixFilePatterns(filePath: string, patterns: Array<{pattern: RegExp, replacement: string, description: string}>): boolean {
+  private fixFilePatterns(
+    filePath: string,
+    patterns: Array<{ pattern: RegExp; replacement: string; description: string }>,
+  ): boolean {
     try {
       let content = readFileSync(filePath, 'utf8');
       let modified = false;
 
-      for (const {pattern, replacement, description} of patterns) {
+      for (const { pattern, replacement, description } of patterns) {
         const originalContent = content;
         content = content.replace(pattern, replacement);
-        
+
         if (content !== originalContent) {
           modified = true;
           console.log(`  📝 ${filePath}: ${description}`);
@@ -225,7 +233,7 @@ class TypeScriptHardeningTool {
    */
   private async generateReport(): Promise<void> {
     const reportPath = join(this.projectRoot, 'docs/TYPESCRIPT_HARDENING_REPORT.md');
-    
+
     const report = `# TYPESCRIPT HARDENING REPORT
 
 ## Executive Summary
@@ -238,11 +246,11 @@ class TypeScriptHardeningTool {
 
 ## Critical Issues Identified
 
-${this.report.criticalIssues.map(issue => `- ${issue}`).join('\n')}
+${this.report.criticalIssues.map((issue) => `- ${issue}`).join('\n')}
 
 ## Recommendations
 
-${this.report.recommendations.map(rec => `- ${rec}`).join('\n')}
+${this.report.recommendations.map((rec) => `- ${rec}`).join('\n')}
 
 ## Type Safety Improvements Made
 

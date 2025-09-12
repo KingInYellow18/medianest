@@ -34,9 +34,9 @@ class DevWorkflowManager {
   log(message, level = 'INFO') {
     const timestamp = new Date().toISOString();
     const logEntry = `${timestamp} [${level}] ${message}\n`;
-    
+
     console.log(`[${level}] ${message}`);
-    
+
     try {
       fs.appendFileSync(this.logFile, logEntry);
     } catch (error) {
@@ -69,21 +69,21 @@ class DevWorkflowManager {
    */
   checkNodeVersion() {
     this.log('Checking Node.js and npm versions...');
-    
+
     const nodeVersion = this.execCommand('node --version').trim();
     const npmVersion = this.execCommand('npm --version').trim();
-    
+
     this.log(`Node.js version: ${nodeVersion}`);
     this.log(`npm version: ${npmVersion}`);
-    
+
     // Check if Node.js version meets requirements
     const requiredNodeVersion = '20.0.0';
     const currentNodeVersion = nodeVersion.replace('v', '');
-    
+
     if (!this.isVersionGreaterOrEqual(currentNodeVersion, requiredNodeVersion)) {
       throw new Error(`Node.js ${requiredNodeVersion} or higher required. Current: ${nodeVersion}`);
     }
-    
+
     return { node: nodeVersion, npm: npmVersion };
   }
 
@@ -93,15 +93,15 @@ class DevWorkflowManager {
   isVersionGreaterOrEqual(current, required) {
     const currentParts = current.split('.').map(Number);
     const requiredParts = required.split('.').map(Number);
-    
+
     for (let i = 0; i < Math.max(currentParts.length, requiredParts.length); i++) {
       const currentPart = currentParts[i] || 0;
       const requiredPart = requiredParts[i] || 0;
-      
+
       if (currentPart > requiredPart) return true;
       if (currentPart < requiredPart) return false;
     }
-    
+
     return true;
   }
 
@@ -110,12 +110,12 @@ class DevWorkflowManager {
    */
   async installDependencies() {
     this.log('Installing dependencies for all workspaces...');
-    
+
     const startTime = performance.now();
-    
+
     try {
       this.execCommand('npm install', { stdio: 'inherit' });
-      
+
       const duration = Math.round(performance.now() - startTime);
       this.log(`Dependencies installed successfully in ${duration}ms`);
     } catch (error) {
@@ -129,20 +129,20 @@ class DevWorkflowManager {
    */
   async updateDependencies() {
     this.log('Updating dependencies to latest compatible versions...');
-    
+
     const startTime = performance.now();
-    
+
     try {
       // Update root dependencies
       this.log('Updating root dependencies...');
       this.execCommand('npm update', { stdio: 'inherit' });
-      
+
       // Update workspace dependencies
       for (const workspace of this.workspaces) {
         this.log(`Updating ${workspace} dependencies...`);
         this.execCommand(`npm update --workspace=${workspace}`, { stdio: 'inherit' });
       }
-      
+
       const duration = Math.round(performance.now() - startTime);
       this.log(`Dependencies updated successfully in ${duration}ms`);
     } catch (error) {
@@ -156,21 +156,21 @@ class DevWorkflowManager {
    */
   async auditDependencies() {
     this.log('Auditing dependencies for security vulnerabilities...');
-    
+
     try {
       const auditResult = this.execCommand('npm audit --json');
       const audit = JSON.parse(auditResult);
-      
+
       this.log(`Security audit completed:`);
       this.log(`  Total vulnerabilities: ${audit.metadata?.vulnerabilities?.total || 0}`);
       this.log(`  High vulnerabilities: ${audit.metadata?.vulnerabilities?.high || 0}`);
       this.log(`  Critical vulnerabilities: ${audit.metadata?.vulnerabilities?.critical || 0}`);
-      
+
       if (audit.metadata?.vulnerabilities?.total > 0) {
         this.log('Running automatic fix for vulnerabilities...');
         this.execCommand('npm audit fix', { stdio: 'inherit' });
       }
-      
+
       return audit;
     } catch (error) {
       this.log(`Security audit failed: ${error.message}`, 'ERROR');
@@ -183,7 +183,7 @@ class DevWorkflowManager {
    */
   async clean() {
     this.log('Cleaning build artifacts and dependencies...');
-    
+
     try {
       this.execCommand('npm run clean', { stdio: 'inherit' });
       this.log('Clean completed successfully');
@@ -198,12 +198,12 @@ class DevWorkflowManager {
    */
   async typeCheck() {
     this.log('Running TypeScript type checking...');
-    
+
     const startTime = performance.now();
-    
+
     try {
       this.execCommand('npm run type-check', { stdio: 'inherit' });
-      
+
       const duration = Math.round(performance.now() - startTime);
       this.log(`Type checking completed successfully in ${duration}ms`);
     } catch (error) {
@@ -217,12 +217,12 @@ class DevWorkflowManager {
    */
   async lint() {
     this.log('Running linting...');
-    
+
     const startTime = performance.now();
-    
+
     try {
       this.execCommand('npm run lint', { stdio: 'inherit' });
-      
+
       const duration = Math.round(performance.now() - startTime);
       this.log(`Linting completed successfully in ${duration}ms`);
     } catch (error) {
@@ -236,12 +236,12 @@ class DevWorkflowManager {
    */
   async test() {
     this.log('Running tests...');
-    
+
     const startTime = performance.now();
-    
+
     try {
       this.execCommand('npm test', { stdio: 'inherit' });
-      
+
       const duration = Math.round(performance.now() - startTime);
       this.log(`Tests completed successfully in ${duration}ms`);
     } catch (error) {
@@ -255,12 +255,12 @@ class DevWorkflowManager {
    */
   async build() {
     this.log('Building all workspaces...');
-    
+
     const startTime = performance.now();
-    
+
     try {
       this.execCommand('npm run build', { stdio: 'inherit' });
-      
+
       const duration = Math.round(performance.now() - startTime);
       this.log(`Build completed successfully in ${duration}ms`);
     } catch (error) {
@@ -274,19 +274,19 @@ class DevWorkflowManager {
    */
   async setup() {
     this.log('Setting up development environment...');
-    
+
     try {
       this.checkNodeVersion();
       await this.installDependencies();
       await this.auditDependencies();
-      
+
       // Generate Prisma client
       this.log('Generating Prisma client...');
       this.execCommand('npm run db:generate', { stdio: 'inherit' });
-      
+
       // Run type checking to ensure everything is working
       await this.typeCheck();
-      
+
       this.log('Development environment setup completed successfully');
     } catch (error) {
       this.log(`Development environment setup failed: ${error.message}`, 'ERROR');
@@ -299,15 +299,15 @@ class DevWorkflowManager {
    */
   async ciCheck() {
     this.log('Running full CI/CD pipeline check...');
-    
+
     const startTime = performance.now();
-    
+
     try {
       await this.typeCheck();
       await this.lint();
       await this.test();
       await this.build();
-      
+
       const duration = Math.round(performance.now() - startTime);
       this.log(`CI/CD pipeline check completed successfully in ${duration}ms`);
     } catch (error) {
@@ -321,48 +321,50 @@ class DevWorkflowManager {
    */
   checkDependencyConsistency() {
     this.log('Checking dependency consistency across workspaces...');
-    
+
     const rootPackage = JSON.parse(
-      fs.readFileSync(path.join(this.projectRoot, 'package.json'), 'utf8')
+      fs.readFileSync(path.join(this.projectRoot, 'package.json'), 'utf8'),
     );
-    
+
     const issues = [];
-    
+
     for (const workspace of this.workspaces) {
       const workspacePackagePath = path.join(this.projectRoot, workspace, 'package.json');
-      
+
       if (!fs.existsSync(workspacePackagePath)) {
         this.log(`Workspace package.json not found: ${workspacePackagePath}`, 'WARN');
         continue;
       }
-      
+
       const workspacePackage = JSON.parse(fs.readFileSync(workspacePackagePath, 'utf8'));
-      
+
       // Check for version mismatches
       const allDeps = {
         ...rootPackage.dependencies,
         ...rootPackage.devDependencies,
       };
-      
+
       const workspaceDeps = {
         ...workspacePackage.dependencies,
         ...workspacePackage.devDependencies,
       };
-      
+
       for (const [dep, version] of Object.entries(workspaceDeps)) {
         if (version !== '*' && allDeps[dep] && allDeps[dep] !== version) {
-          issues.push(`${workspace}: ${dep} version mismatch (workspace: ${version}, root: ${allDeps[dep]})`);
+          issues.push(
+            `${workspace}: ${dep} version mismatch (workspace: ${version}, root: ${allDeps[dep]})`,
+          );
         }
       }
     }
-    
+
     if (issues.length > 0) {
       this.log('Dependency consistency issues found:', 'WARN');
-      issues.forEach(issue => this.log(`  ${issue}`, 'WARN'));
+      issues.forEach((issue) => this.log(`  ${issue}`, 'WARN'));
     } else {
       this.log('All workspace dependencies are consistent');
     }
-    
+
     return issues;
   }
 }
@@ -371,7 +373,7 @@ class DevWorkflowManager {
 async function main() {
   const workflow = new DevWorkflowManager();
   const command = process.argv[2];
-  
+
   try {
     switch (command) {
       case 'setup':

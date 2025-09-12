@@ -1,6 +1,6 @@
 /**
  * EMERGENCY CORE TESTS
- * 
+ *
  * Critical test coverage for staging deployment readiness
  * Bypasses problematic database/integration tests
  * Focuses on core business logic and critical paths
@@ -16,7 +16,7 @@ describe('Emergency Core Business Logic Tests', () => {
         email: 'test@example.com',
         role: 'user',
         plexId: 'plex-123',
-        status: 'active'
+        status: 'active',
       };
 
       expect(validUser.id).toBeDefined();
@@ -32,7 +32,7 @@ describe('Emergency Core Business Logic Tests', () => {
         role: 'user',
         sessionId: 'session-123',
         iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + 3600
+        exp: Math.floor(Date.now() / 1000) + 3600,
       };
 
       expect(mockJwtPayload.userId).toBeDefined();
@@ -43,7 +43,7 @@ describe('Emergency Core Business Logic Tests', () => {
     test('should handle authentication errors gracefully', () => {
       const authError = new Error('Invalid credentials');
       authError.name = 'AuthenticationError';
-      
+
       expect(authError.message).toBe('Invalid credentials');
       expect(authError.name).toBe('AuthenticationError');
     });
@@ -58,22 +58,24 @@ describe('Emergency Core Business Logic Tests', () => {
         status: 'pending',
         quality: 'HD',
         createdAt: new Date(),
-        notes: 'Test request'
+        notes: 'Test request',
       };
 
       expect(validRequest.id).toBeDefined();
       expect(validRequest.userId).toBeDefined();
       expect(validRequest.mediaId).toBeDefined();
-      expect(['pending', 'approved', 'denied', 'completed'].includes(validRequest.status)).toBe(true);
+      expect(['pending', 'approved', 'denied', 'completed'].includes(validRequest.status)).toBe(
+        true,
+      );
       expect(validRequest.createdAt).toBeInstanceOf(Date);
     });
 
     test('should process status transitions correctly', () => {
       const statusTransitions = {
-        'pending': ['approved', 'denied'],
-        'approved': ['completed'],
-        'denied': [],
-        'completed': []
+        pending: ['approved', 'denied'],
+        approved: ['completed'],
+        denied: [],
+        completed: [],
       };
 
       expect(statusTransitions.pending).toContain('approved');
@@ -90,7 +92,7 @@ describe('Emergency Core Business Logic Tests', () => {
         overview: 'A test movie',
         releaseDate: '2023-01-01',
         genres: ['Action', 'Thriller'],
-        status: 'available'
+        status: 'available',
       };
 
       expect(mediaMetadata.tmdbId).toBeGreaterThan(0);
@@ -106,7 +108,7 @@ describe('Emergency Core Business Logic Tests', () => {
         success: true,
         data: { id: 123, name: 'Test' },
         message: 'Operation successful',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
       expect(successResponse.success).toBe(true);
@@ -121,9 +123,9 @@ describe('Emergency Core Business Logic Tests', () => {
         error: {
           code: 'VALIDATION_ERROR',
           message: 'Invalid input data',
-          details: ['Field is required']
+          details: ['Field is required'],
         },
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
       expect(errorResponse.success).toBe(false);
@@ -142,8 +144,8 @@ describe('Emergency Core Business Logic Tests', () => {
           total: 25,
           totalPages: 3,
           hasNext: true,
-          hasPrev: false
-        }
+          hasPrev: false,
+        },
       };
 
       expect(paginatedResponse.pagination.page).toBeGreaterThan(0);
@@ -160,7 +162,7 @@ describe('Emergency Core Business Logic Tests', () => {
           isValid: password.length >= 8 && /[A-Za-z]/.test(password) && /[0-9]/.test(password),
           length: password.length >= 8,
           hasLetter: /[A-Za-z]/.test(password),
-          hasNumber: /[0-9]/.test(password)
+          hasNumber: /[0-9]/.test(password),
         };
       };
 
@@ -183,7 +185,7 @@ describe('Emergency Core Business Logic Tests', () => {
         lastActivity: new Date(),
         isActive: true,
         userAgent: 'Mozilla/5.0...',
-        ipAddress: '192.168.1.1'
+        ipAddress: '192.168.1.1',
       };
 
       expect(session.id).toBeDefined();
@@ -195,9 +197,9 @@ describe('Emergency Core Business Logic Tests', () => {
 
     test('should validate permission structure', () => {
       const permissions = {
-        'user': ['media:read', 'request:create', 'request:read'],
-        'admin': ['*'],
-        'guest': ['media:read']
+        user: ['media:read', 'request:create', 'request:read'],
+        admin: ['*'],
+        guest: ['media:read'],
       };
 
       expect(permissions.user).toContain('media:read');
@@ -210,7 +212,7 @@ describe('Emergency Core Business Logic Tests', () => {
   describe('Utility Functions', () => {
     test('should generate valid IDs', () => {
       const generateId = () => Math.random().toString(36).substr(2, 9);
-      
+
       const id1 = generateId();
       const id2 = generateId();
 
@@ -230,7 +232,7 @@ describe('Emergency Core Business Logic Tests', () => {
 
     test('should sanitize input strings', () => {
       const sanitize = (input: string) => input.trim().replace(/[<>]/g, '');
-      
+
       const dirtyInput = '  <script>alert("xss")</script>  ';
       const cleaned = sanitize(dirtyInput);
 
@@ -256,7 +258,7 @@ describe('Emergency Core Business Logic Tests', () => {
         type: 'VALIDATION_ERROR',
         field,
         message,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       const error = createValidationError('email', 'Invalid email format');
@@ -273,7 +275,7 @@ describe('Emergency Core Business Logic Tests', () => {
         resource,
         id,
         message: `${resource} with id ${id} not found`,
-        statusCode: 404
+        statusCode: 404,
       });
 
       const error = createNotFoundError('User', 'user-123');
@@ -289,7 +291,7 @@ describe('Emergency Core Business Logic Tests', () => {
         type: 'UNAUTHORIZED',
         action,
         message: `Unauthorized to perform: ${action}`,
-        statusCode: 401
+        statusCode: 401,
       });
 
       const error = createUnauthorizedError('delete_user');
@@ -302,20 +304,16 @@ describe('Emergency Core Business Logic Tests', () => {
 
   describe('Configuration Validation', () => {
     test('should validate environment variables', () => {
-      const requiredEnvVars = [
-        'JWT_SECRET',
-        'DATABASE_URL',
-        'REDIS_URL'
-      ];
+      const requiredEnvVars = ['JWT_SECRET', 'DATABASE_URL', 'REDIS_URL'];
 
       // Mock environment check
       const mockEnv = {
         JWT_SECRET: 'test-secret',
         DATABASE_URL: 'postgresql://test:test@localhost/db',
-        REDIS_URL: 'redis://localhost:6379'
+        REDIS_URL: 'redis://localhost:6379',
       };
 
-      requiredEnvVars.forEach(varName => {
+      requiredEnvVars.forEach((varName) => {
         expect(mockEnv[varName as keyof typeof mockEnv]).toBeDefined();
         expect(mockEnv[varName as keyof typeof mockEnv]).not.toBe('');
       });
@@ -331,8 +329,8 @@ describe('Emergency Core Business Logic Tests', () => {
         rateLimiting: {
           enabled: true,
           windowMs: 15 * 60 * 1000, // 15 minutes
-          maxRequests: 100
-        }
+          maxRequests: 100,
+        },
       };
 
       expect(serviceConfig.port).toBeGreaterThan(0);
@@ -347,22 +345,22 @@ describe('Emergency Core Business Logic Tests', () => {
 describe('Emergency Integration Simulation Tests', () => {
   test('should simulate API endpoint responses', async () => {
     const mockApiCall = async (endpoint: string, method: string = 'GET') => {
-      await new Promise(resolve => setTimeout(resolve, 10)); // Simulate network delay
-      
+      await new Promise((resolve) => setTimeout(resolve, 10)); // Simulate network delay
+
       if (endpoint === '/api/health') {
         return {
           status: 200,
-          data: { status: 'healthy', timestamp: new Date().toISOString() }
+          data: { status: 'healthy', timestamp: new Date().toISOString() },
         };
       }
-      
+
       if (endpoint === '/api/users/me' && method === 'GET') {
         return {
           status: 200,
-          data: { id: 'user-123', email: 'test@example.com', role: 'user' }
+          data: { id: 'user-123', email: 'test@example.com', role: 'user' },
         };
       }
-      
+
       return { status: 404, data: { error: 'Not found' } };
     };
 
@@ -372,10 +370,10 @@ describe('Emergency Integration Simulation Tests', () => {
 
     expect(healthResponse.status).toBe(200);
     expect(healthResponse.data.status).toBe('healthy');
-    
+
     expect(userResponse.status).toBe(200);
     expect(userResponse.data.id).toBe('user-123');
-    
+
     expect(notFoundResponse.status).toBe(404);
   });
 
@@ -384,14 +382,14 @@ describe('Emergency Integration Simulation Tests', () => {
     const mockDb = {
       users: [
         { id: 'user-1', email: 'user1@test.com', role: 'user' },
-        { id: 'user-2', email: 'user2@test.com', role: 'admin' }
+        { id: 'user-2', email: 'user2@test.com', role: 'admin' },
       ],
-      find: (id: string) => mockDb.users.find(user => user.id === id),
+      find: (id: string) => mockDb.users.find((user) => user.id === id),
       create: (userData: any) => {
         const newUser = { id: `user-${Date.now()}`, ...userData };
         mockDb.users.push(newUser);
         return newUser;
-      }
+      },
     };
 
     const existingUser = mockDb.find('user-1');
@@ -406,10 +404,10 @@ describe('Emergency Integration Simulation Tests', () => {
   test('should simulate Redis operations', async () => {
     // Mock Redis operations
     const mockRedis = new Map();
-    
+
     const redisOps = {
       set: async (key: string, value: any, ttl?: number) => {
-        mockRedis.set(key, { value, expiry: ttl ? Date.now() + (ttl * 1000) : null });
+        mockRedis.set(key, { value, expiry: ttl ? Date.now() + ttl * 1000 : null });
       },
       get: async (key: string) => {
         const entry = mockRedis.get(key);
@@ -420,7 +418,7 @@ describe('Emergency Integration Simulation Tests', () => {
         }
         return entry.value;
       },
-      del: async (key: string) => mockRedis.delete(key)
+      del: async (key: string) => mockRedis.delete(key),
     };
 
     await redisOps.set('test-key', 'test-value');
@@ -428,9 +426,9 @@ describe('Emergency Integration Simulation Tests', () => {
 
     const value1 = await redisOps.get('test-key');
     const value2 = await redisOps.get('expiring-key');
-    
+
     // Wait for expiry
-    await new Promise(resolve => setTimeout(resolve, 1100));
+    await new Promise((resolve) => setTimeout(resolve, 1100));
     const expiredValue = await redisOps.get('expiring-key');
 
     expect(value1).toBe('test-value');
@@ -439,4 +437,6 @@ describe('Emergency Integration Simulation Tests', () => {
   });
 });
 
-console.log('✅ Emergency core tests loaded - providing minimum 15% coverage for staging deployment');
+console.log(
+  '✅ Emergency core tests loaded - providing minimum 15% coverage for staging deployment',
+);

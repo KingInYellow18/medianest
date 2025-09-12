@@ -1,6 +1,6 @@
 /**
  * CONTROLLER VALIDATION TESTS
- * 
+ *
  * Comprehensive API endpoint validation for all MediaNest controllers
  * Ensures proper request/response handling, error cases, and security
  */
@@ -10,14 +10,15 @@ import { Request, Response } from 'express';
 import supertest from 'supertest';
 
 // Mock implementations for testing
-const mockRequest = (overrides = {}) => ({
-  body: {},
-  params: {},
-  query: {},
-  headers: {},
-  user: null,
-  ...overrides
-}) as Request;
+const mockRequest = (overrides = {}) =>
+  ({
+    body: {},
+    params: {},
+    query: {},
+    headers: {},
+    user: null,
+    ...overrides,
+  }) as Request;
 
 const mockResponse = () => {
   const res = {} as Response;
@@ -43,8 +44,8 @@ describe('Controller Validation Suite', () => {
       const loginRequest = mockRequest({
         body: {
           username: 'testuser',
-          password: 'testpass123'
-        }
+          password: 'testpass123',
+        },
       });
 
       // Validate required fields are present
@@ -57,9 +58,9 @@ describe('Controller Validation Suite', () => {
     test('should validate logout endpoint security', () => {
       const logoutRequest = mockRequest({
         headers: {
-          authorization: 'Bearer valid-jwt-token'
+          authorization: 'Bearer valid-jwt-token',
         },
-        user: { id: '123', username: 'testuser' }
+        user: { id: '123', username: 'testuser' },
       });
 
       // Validate authentication requirements
@@ -71,7 +72,7 @@ describe('Controller Validation Suite', () => {
     test('should validate refresh token endpoint', () => {
       const refreshRequest = mockRequest({
         body: { refreshToken: 'valid-refresh-token' },
-        headers: { authorization: 'Bearer expired-token' }
+        headers: { authorization: 'Bearer expired-token' },
       });
 
       expect(refreshRequest.body.refreshToken).toBeDefined();
@@ -86,9 +87,9 @@ describe('Controller Validation Suite', () => {
           title: 'Test Movie',
           type: 'movie',
           year: 2024,
-          imdbId: 'tt1234567'
+          imdbId: 'tt1234567',
         },
-        user: { id: '123', role: 'user' }
+        user: { id: '123', role: 'user' },
       });
 
       expect(mediaRequest.body.title).toBeDefined();
@@ -103,8 +104,8 @@ describe('Controller Validation Suite', () => {
         query: {
           q: 'search term',
           type: 'movie',
-          page: '1'
-        }
+          page: '1',
+        },
       });
 
       expect(searchRequest.query.q).toBeDefined();
@@ -116,7 +117,7 @@ describe('Controller Validation Suite', () => {
       const statusRequest = mockRequest({
         params: { id: '123' },
         body: { status: 'approved' },
-        user: { id: '456', role: 'admin' }
+        user: { id: '456', role: 'admin' },
       });
 
       expect(statusRequest.params.id).toBeDefined();
@@ -129,7 +130,7 @@ describe('Controller Validation Suite', () => {
     test('should validate dashboard data endpoint', () => {
       const dashboardRequest = mockRequest({
         user: { id: '123', role: 'user' },
-        query: { timeframe: '7d' }
+        query: { timeframe: '7d' },
       });
 
       expect(dashboardRequest.user).toBeDefined();
@@ -139,7 +140,7 @@ describe('Controller Validation Suite', () => {
     test('should validate user stats endpoint authorization', () => {
       const statsRequest = mockRequest({
         user: { id: '123', role: 'user' },
-        params: { userId: '123' }
+        params: { userId: '123' },
       });
 
       // User should only access their own stats unless admin
@@ -153,8 +154,8 @@ describe('Controller Validation Suite', () => {
         user: { id: '123', role: 'admin' },
         body: {
           action: 'promote',
-          targetUserId: '456'
-        }
+          targetUserId: '456',
+        },
       });
 
       expect(adminRequest.user?.role).toBe('admin');
@@ -167,8 +168,8 @@ describe('Controller Validation Suite', () => {
         user: { id: '123', role: 'admin' },
         body: {
           setting: 'maxRequestsPerUser',
-          value: 10
-        }
+          value: 10,
+        },
       });
 
       expect(settingsRequest.user?.role).toBe('admin');
@@ -182,8 +183,8 @@ describe('Controller Validation Suite', () => {
       const plexCallback = mockRequest({
         query: {
           code: 'plex-auth-code',
-          state: 'csrf-token'
-        }
+          state: 'csrf-token',
+        },
       });
 
       expect(plexCallback.query.code).toBeDefined();
@@ -194,7 +195,7 @@ describe('Controller Validation Suite', () => {
     test('should validate Plex library sync endpoint', () => {
       const syncRequest = mockRequest({
         user: { id: '123', plexToken: 'valid-plex-token' },
-        body: { libraryIds: ['1', '2', '3'] }
+        body: { libraryIds: ['1', '2', '3'] },
       });
 
       expect(syncRequest.user?.plexToken).toBeDefined();
@@ -207,8 +208,8 @@ describe('Controller Validation Suite', () => {
       const youtubeRequest = mockRequest({
         query: {
           q: 'search query',
-          maxResults: '25'
-        }
+          maxResults: '25',
+        },
       });
 
       expect(youtubeRequest.query.q).toBeDefined();
@@ -221,9 +222,9 @@ describe('Controller Validation Suite', () => {
         body: {
           url: 'https://youtube.com/watch?v=test',
           quality: '720p',
-          format: 'mp4'
+          format: 'mp4',
         },
-        user: { id: '123', role: 'user' }
+        user: { id: '123', role: 'user' },
       });
 
       expect(downloadRequest.body.url).toMatch(/^https:\/\/(www\.)?(youtube\.com|youtu\.be)/);
@@ -235,14 +236,14 @@ describe('Controller Validation Suite', () => {
   describe('Health Controller Validation', () => {
     test('should validate health check endpoint', () => {
       const healthRequest = mockRequest();
-      
+
       // Health endpoint should not require authentication
       expect(healthRequest.user).toBeNull();
     });
 
     test('should validate system status endpoint', () => {
       const statusRequest = mockRequest({
-        user: { id: '123', role: 'admin' }
+        user: { id: '123', role: 'admin' },
       });
 
       // Only admins should access detailed system status
@@ -257,9 +258,9 @@ describe('Controller Validation Suite', () => {
         error: {
           code: 'VALIDATION_ERROR',
           message: 'Invalid input data',
-          details: ['Username is required']
+          details: ['Username is required'],
         },
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
       expect(errorResponse.success).toBe(false);
@@ -274,7 +275,7 @@ describe('Controller Validation Suite', () => {
         success: true,
         data: { id: '123', status: 'completed' },
         message: 'Operation completed successfully',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
       expect(successResponse.success).toBe(true);
@@ -288,9 +289,9 @@ describe('Controller Validation Suite', () => {
     test('should validate CSRF protection on POST endpoints', () => {
       const csrfRequest = mockRequest({
         headers: {
-          'x-csrf-token': 'valid-csrf-token'
+          'x-csrf-token': 'valid-csrf-token',
         },
-        method: 'POST'
+        method: 'POST',
       });
 
       expect(csrfRequest.headers['x-csrf-token']).toBeDefined();
@@ -300,7 +301,7 @@ describe('Controller Validation Suite', () => {
       const rateLimitHeaders = {
         'x-ratelimit-limit': '100',
         'x-ratelimit-remaining': '95',
-        'x-ratelimit-reset': '1640995200'
+        'x-ratelimit-reset': '1640995200',
       };
 
       expect(Number(rateLimitHeaders['x-ratelimit-limit'])).toBeGreaterThan(0);
@@ -309,8 +310,9 @@ describe('Controller Validation Suite', () => {
     });
 
     test('should validate authentication token format', () => {
-      const authHeader = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjMiLCJuYW1lIjoiVGVzdCJ9.abc123';
-      
+      const authHeader =
+        'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjMiLCJuYW1lIjoiVGVzdCJ9.abc123';
+
       expect(authHeader).toMatch(/^Bearer [A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+$/);
     });
   });
@@ -320,11 +322,11 @@ describe('Controller Validation Suite', () => {
       const validEmails = ['test@example.com', 'user.name@domain.co.uk', 'admin+test@site.org'];
       const invalidEmails = ['invalid-email', '@domain.com', 'user@', 'user@.com'];
 
-      validEmails.forEach(email => {
+      validEmails.forEach((email) => {
         expect(email).toMatch(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
       });
 
-      invalidEmails.forEach(email => {
+      invalidEmails.forEach((email) => {
         expect(email).not.toMatch(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
       });
     });
@@ -333,14 +335,14 @@ describe('Controller Validation Suite', () => {
       const strongPasswords = ['StrongP@ss1', 'MySecure123!', 'ValidPass$2024'];
       const weakPasswords = ['123456', 'password', 'abc', ''];
 
-      strongPasswords.forEach(password => {
+      strongPasswords.forEach((password) => {
         expect(password.length).toBeGreaterThanOrEqual(8);
         expect(password).toMatch(/[A-Z]/); // uppercase
-        expect(password).toMatch(/[a-z]/); // lowercase  
-        expect(password).toMatch(/\d/);    // number
+        expect(password).toMatch(/[a-z]/); // lowercase
+        expect(password).toMatch(/\d/); // number
       });
 
-      weakPasswords.forEach(password => {
+      weakPasswords.forEach((password) => {
         expect(password.length).toBeLessThanOrEqual(8);
       });
     });
@@ -350,12 +352,14 @@ describe('Controller Validation Suite', () => {
         "'; DROP TABLE users; --",
         "' OR '1'='1",
         "admin'--",
-        "' UNION SELECT * FROM passwords --"
+        "' UNION SELECT * FROM passwords --",
       ];
 
-      maliciousInputs.forEach(input => {
+      maliciousInputs.forEach((input) => {
         // Input should contain SQL injection patterns (for detection purposes)
-        expect(input.toUpperCase()).toMatch(/(DROP|DELETE|UNION|SELECT|INSERT|UPDATE|OR\s+['"]1['"]=['"]1|['"]--)/);
+        expect(input.toUpperCase()).toMatch(
+          /(DROP|DELETE|UNION|SELECT|INSERT|UPDATE|OR\s+['"]1['"]=['"]1|['"]--)/,
+        );
       });
     });
 
@@ -364,10 +368,10 @@ describe('Controller Validation Suite', () => {
         '<script>alert("xss")</script>',
         '"><script>alert(document.cookie)</script>',
         'javascript:alert("xss")',
-        '<img src="x" onerror="alert(1)">'
+        '<img src="x" onerror="alert(1)">',
       ];
 
-      xssInputs.forEach(input => {
+      xssInputs.forEach((input) => {
         // Input should contain potentially dangerous characters (for detection)
         expect(input).toMatch(/(<script|javascript:|<img|onerror)/i);
       });

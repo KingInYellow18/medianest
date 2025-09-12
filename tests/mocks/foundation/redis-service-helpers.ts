@@ -1,6 +1,6 @@
 /**
  * REDIS SERVICE-SPECIFIC HELPERS
- * 
+ *
  * High-level helpers that match the MediaNest RedisService interface patterns.
  * These provide realistic behavior simulation for:
  * - OAuth state management
@@ -79,7 +79,11 @@ export class RedisServiceHelpers {
   /**
    * Mock OAuth state storage
    */
-  async mockOAuthState(state: string, data: OAuthStateData, ttlSeconds: number = 600): Promise<void> {
+  async mockOAuthState(
+    state: string,
+    data: OAuthStateData,
+    ttlSeconds: number = 600,
+  ): Promise<void> {
     const key = `oauth:state:${state}`;
     const serializedData = JSON.stringify({
       ...data,
@@ -94,7 +98,7 @@ export class RedisServiceHelpers {
   async mockGetOAuthState(state: string): Promise<OAuthStateData | null> {
     const key = `oauth:state:${state}`;
     const data = await this.redisMock.get(key);
-    
+
     if (!data) return null;
 
     const parsed = JSON.parse(data);
@@ -123,7 +127,11 @@ export class RedisServiceHelpers {
   /**
    * Mock 2FA challenge storage
    */
-  async mock2FAChallenge(challengeId: string, data: TwoFactorChallengeData, ttlSeconds: number = 300): Promise<void> {
+  async mock2FAChallenge(
+    challengeId: string,
+    data: TwoFactorChallengeData,
+    ttlSeconds: number = 300,
+  ): Promise<void> {
     const key = `2fa:challenge:${challengeId}`;
     const serializedData = JSON.stringify({
       ...data,
@@ -139,7 +147,7 @@ export class RedisServiceHelpers {
   async mockGet2FAChallenge(challengeId: string): Promise<TwoFactorChallengeData | null> {
     const key = `2fa:challenge:${challengeId}`;
     const data = await this.redisMock.get(key);
-    
+
     if (!data) return null;
 
     const parsed = JSON.parse(data);
@@ -172,7 +180,11 @@ export class RedisServiceHelpers {
   /**
    * Mock password reset token storage
    */
-  async mockPasswordResetToken(tokenId: string, data: PasswordResetTokenData, ttlSeconds: number = 900): Promise<void> {
+  async mockPasswordResetToken(
+    tokenId: string,
+    data: PasswordResetTokenData,
+    ttlSeconds: number = 900,
+  ): Promise<void> {
     const key = `pwd:reset:${tokenId}`;
     const serializedData = JSON.stringify({
       ...data,
@@ -188,7 +200,7 @@ export class RedisServiceHelpers {
   async mockGetPasswordResetToken(tokenId: string): Promise<PasswordResetTokenData | null> {
     const key = `pwd:reset:${tokenId}`;
     const data = await this.redisMock.get(key);
-    
+
     if (!data) return null;
 
     const parsed = JSON.parse(data);
@@ -221,7 +233,11 @@ export class RedisServiceHelpers {
   /**
    * Mock session storage
    */
-  async mockSession(sessionId: string, data: SessionData, ttlSeconds: number = 86400): Promise<void> {
+  async mockSession(
+    sessionId: string,
+    data: SessionData,
+    ttlSeconds: number = 86400,
+  ): Promise<void> {
     const sessionKey = `session:${sessionId}`;
     const userSessionsKey = `user:sessions:${data.userId}`;
 
@@ -244,7 +260,7 @@ export class RedisServiceHelpers {
   async mockGetSession(sessionId: string): Promise<SessionData | null> {
     const key = `session:${sessionId}`;
     const data = await this.redisMock.get(key);
-    
+
     if (!data) return null;
 
     const parsed = JSON.parse(data);
@@ -302,21 +318,21 @@ export class RedisServiceHelpers {
   async mockRateLimit(
     key: string,
     windowSeconds: number = 60,
-    maxAttempts: number = 5
+    maxAttempts: number = 5,
   ): Promise<{ count: number; remaining: number; resetTime: Date }> {
     const rateLimitKey = `rate:limit:${key}`;
-    
+
     // Get current count
     const current = await this.redisMock.get(rateLimitKey);
     let count = current ? parseInt(current) : 0;
-    
+
     // Increment
     count += 1;
     await this.redisMock.setex(rateLimitKey, windowSeconds, count.toString());
-    
+
     const remaining = Math.max(0, maxAttempts - count);
     const resetTime = new Date(TimeSimulator.now() + windowSeconds * 1000);
-    
+
     return { count, remaining, resetTime };
   }
 
@@ -325,17 +341,17 @@ export class RedisServiceHelpers {
    */
   async mockGetRateLimit(
     key: string,
-    maxAttempts: number = 5
+    maxAttempts: number = 5,
   ): Promise<{ count: number; remaining: number; resetTime: Date | null }> {
     const rateLimitKey = `rate:limit:${key}`;
-    
+
     const current = await this.redisMock.get(rateLimitKey);
     const count = current ? parseInt(current) : 0;
     const ttl = await this.redisMock.ttl(rateLimitKey);
-    
+
     const remaining = Math.max(0, maxAttempts - count);
     const resetTime = ttl > 0 ? new Date(TimeSimulator.now() + ttl * 1000) : null;
-    
+
     return { count, remaining, resetTime };
   }
 
@@ -350,7 +366,12 @@ export class RedisServiceHelpers {
    * Mock rate limit OK scenario
    */
   mockRateLimitOk(): void {
-    this.redisMock.eval.mockResolvedValue([1, 100, 99, Math.floor(TimeSimulator.nowSeconds()) + 60]);
+    this.redisMock.eval.mockResolvedValue([
+      1,
+      100,
+      99,
+      Math.floor(TimeSimulator.nowSeconds()) + 60,
+    ]);
   }
 
   /**
@@ -369,8 +390,8 @@ export class RedisServiceHelpers {
    */
   mockCacheHit(key: string, value: any): void {
     const cacheKey = `cache:${key}`;
-    this.redisMock.get.mockImplementation((k: string) => 
-      k === cacheKey ? Promise.resolve(JSON.stringify(value)) : Promise.resolve(null)
+    this.redisMock.get.mockImplementation((k: string) =>
+      k === cacheKey ? Promise.resolve(JSON.stringify(value)) : Promise.resolve(null),
     );
   }
 

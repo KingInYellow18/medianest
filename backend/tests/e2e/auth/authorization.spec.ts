@@ -118,7 +118,7 @@ test.describe('Authorization Tests', () => {
       await AuthTestFactory.setupAuthenticatedSession(
         page,
         scenario.role as 'user' | 'admin',
-        API_BASE_URL
+        API_BASE_URL,
       );
 
       // Test allowed paths

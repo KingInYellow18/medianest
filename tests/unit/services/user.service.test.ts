@@ -1,6 +1,6 @@
 /**
  * USER SERVICE UNIT TESTS
- * 
+ *
  * Comprehensive tests for UserService covering:
  * - User CRUD operations
  * - Authentication workflows
@@ -42,7 +42,7 @@ describe('UserService', () => {
     it('should return user when found', async () => {
       const userId = 'test-user-id';
       const mockUser = createMockUser({ id: userId });
-      
+
       mockUserRepository.findById.mockResolvedValue(mockUser);
 
       const result = await userService.findById(userId);
@@ -68,7 +68,7 @@ describe('UserService', () => {
     it('should return user when found by email', async () => {
       const email = 'test@medianest.com';
       const mockUser = createMockUser({ email });
-      
+
       mockUserRepository.findByEmail.mockResolvedValue(mockUser);
 
       const result = await userService.findByEmail(email);
@@ -98,12 +98,12 @@ describe('UserService', () => {
         plexId: 'new-plex-id',
         plexUsername: 'newuser',
       };
-      
+
       const createdUser = createMockUser({
         id: 'new-user-id',
         ...userData,
       });
-      
+
       mockUserRepository.findByEmail.mockResolvedValue(null);
       mockUserRepository.findByPlexId.mockResolvedValue(null);
       mockUserRepository.create.mockResolvedValue(createdUser);
@@ -121,7 +121,7 @@ describe('UserService', () => {
         plexId: 'new-plex-id',
         plexUsername: 'newuser',
       };
-      
+
       mockUserRepository.findByEmail.mockResolvedValue(createMockUser());
 
       await expect(userService.create(userData)).rejects.toThrow(ValidationError);
@@ -134,7 +134,7 @@ describe('UserService', () => {
         plexId: 'existing-plex-id',
         plexUsername: 'newuser',
       };
-      
+
       mockUserRepository.findByEmail.mockResolvedValue(null);
       mockUserRepository.findByPlexId.mockResolvedValue(createMockUser());
 
@@ -158,10 +158,10 @@ describe('UserService', () => {
         name: 'Updated Name',
         email: 'updated@medianest.com',
       };
-      
+
       const existingUser = createMockUser({ id: userId });
       const updatedUser = createMockUser({ id: userId, ...updates });
-      
+
       mockUserRepository.findById.mockResolvedValue(existingUser);
       mockUserRepository.findByEmail.mockResolvedValue(null);
       mockUserRepository.update.mockResolvedValue(updatedUser);
@@ -181,7 +181,7 @@ describe('UserService', () => {
     it('should throw error when updating to existing email', async () => {
       const userId = 'test-user-id';
       const updates = { email: 'existing@medianest.com' };
-      
+
       mockUserRepository.findById.mockResolvedValue(createMockUser({ id: userId }));
       mockUserRepository.findByEmail.mockResolvedValue(createMockUser({ id: 'different-id' }));
 
@@ -192,9 +192,9 @@ describe('UserService', () => {
       const userId = 'test-user-id';
       const currentEmail = 'current@medianest.com';
       const updates = { email: currentEmail };
-      
+
       const existingUser = createMockUser({ id: userId, email: currentEmail });
-      
+
       mockUserRepository.findById.mockResolvedValue(existingUser);
       mockUserRepository.findByEmail.mockResolvedValue(existingUser);
       mockUserRepository.update.mockResolvedValue(existingUser);
@@ -209,7 +209,7 @@ describe('UserService', () => {
     it('should delete user successfully', async () => {
       const userId = 'test-user-id';
       const existingUser = createMockUser({ id: userId });
-      
+
       mockUserRepository.findById.mockResolvedValue(existingUser);
       mockUserRepository.delete.mockResolvedValue(existingUser);
 
@@ -228,11 +228,8 @@ describe('UserService', () => {
 
   describe('list', () => {
     it('should return paginated list of users', async () => {
-      const users = [
-        createMockUser({ id: 'user-1' }),
-        createMockUser({ id: 'user-2' }),
-      ];
-      
+      const users = [createMockUser({ id: 'user-1' }), createMockUser({ id: 'user-2' })];
+
       mockUserRepository.findMany.mockResolvedValue(users);
       mockUserRepository.count.mockResolvedValue(2);
 
@@ -250,7 +247,7 @@ describe('UserService', () => {
     it('should apply filters when provided', async () => {
       const filters = { role: 'USER', status: 'active' };
       const users = [createMockUser()];
-      
+
       mockUserRepository.findMany.mockResolvedValue(users);
       mockUserRepository.count.mockResolvedValue(1);
 
@@ -259,14 +256,14 @@ describe('UserService', () => {
       expect(mockUserRepository.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: filters,
-        })
+        }),
       );
     });
 
     it('should handle search query', async () => {
       const searchQuery = 'john';
       const users = [createMockUser({ name: 'John Doe' })];
-      
+
       mockUserRepository.findMany.mockResolvedValue(users);
       mockUserRepository.count.mockResolvedValue(1);
 
@@ -281,7 +278,7 @@ describe('UserService', () => {
               { plexUsername: { contains: searchQuery, mode: 'insensitive' } },
             ],
           },
-        })
+        }),
       );
     });
   });
@@ -290,11 +287,11 @@ describe('UserService', () => {
     it('should update user last login timestamp', async () => {
       const userId = 'test-user-id';
       const existingUser = createMockUser({ id: userId });
-      const updatedUser = createMockUser({ 
-        id: userId, 
+      const updatedUser = createMockUser({
+        id: userId,
         lastLoginAt: new Date(),
       });
-      
+
       mockUserRepository.findById.mockResolvedValue(existingUser);
       mockUserRepository.update.mockResolvedValue(updatedUser);
 
@@ -305,7 +302,7 @@ describe('UserService', () => {
         userId,
         expect.objectContaining({
           lastLoginAt: expect.any(Date),
-        })
+        }),
       );
     });
 
@@ -320,7 +317,7 @@ describe('UserService', () => {
     it('should return true for active user', async () => {
       const userId = 'test-user-id';
       const activeUser = createMockUser({ id: userId, status: 'active' });
-      
+
       mockUserRepository.findById.mockResolvedValue(activeUser);
 
       const result = await userService.validateUser(userId);
@@ -331,7 +328,7 @@ describe('UserService', () => {
     it('should return false for inactive user', async () => {
       const userId = 'test-user-id';
       const inactiveUser = createMockUser({ id: userId, status: 'inactive' });
-      
+
       mockUserRepository.findById.mockResolvedValue(inactiveUser);
 
       const result = await userService.validateUser(userId);

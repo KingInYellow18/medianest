@@ -19,13 +19,13 @@ class TypeScriptFixer {
    */
   async fix() {
     console.log('🔧 Starting TypeScript compliance fixes...\n');
-    
+
     // Fix backend issues
     await this.fixBackendTypes();
-    
-    // Fix frontend issues  
+
+    // Fix frontend issues
     await this.fixFrontendTypes();
-    
+
     console.log(`\n✅ Applied ${this.fixes.length} TypeScript fixes`);
     console.log(`📁 Processed ${this.processed} files`);
   }
@@ -35,16 +35,16 @@ class TypeScriptFixer {
    */
   async fixBackendTypes() {
     console.log('🔨 Fixing backend TypeScript issues...');
-    
+
     // Fix middleware return types
     await this.fixMiddlewareReturnTypes();
-    
+
     // Fix request object extensions
     await this.fixRequestExtensions();
-    
+
     // Fix error handling types
     await this.fixErrorHandling();
-    
+
     // Fix service types
     await this.fixServiceTypes();
   }
@@ -54,13 +54,13 @@ class TypeScriptFixer {
    */
   async fixFrontendTypes() {
     console.log('🔨 Fixing frontend TypeScript issues...');
-    
+
     // Fix import type issues
     await this.fixImportTypes();
-    
+
     // Fix missing component stubs
     await this.fixMissingComponents();
-    
+
     // Fix verbatim module syntax issues
     await this.fixVerbatimModuleSyntax();
   }
@@ -71,26 +71,23 @@ class TypeScriptFixer {
   async fixMiddlewareReturnTypes() {
     const middlewareFiles = [
       'backend/src/middleware/enhanced-rate-limit.ts',
-      'backend/src/middleware/performance.ts', 
-      'backend/src/middleware/resilience.middleware.ts'
+      'backend/src/middleware/performance.ts',
+      'backend/src/middleware/resilience.middleware.ts',
     ];
 
     for (const file of middlewareFiles) {
       if (fs.existsSync(file)) {
         let content = fs.readFileSync(file, 'utf8');
-        
+
         // Fix response.json/end return types
-        content = content.replace(
-          /return res\.(json|send|end)\(/g,
-          'res.$1(; return;'
-        );
-        
+        content = content.replace(/return res\.(json|send|end)\(/g, 'res.$1(; return;');
+
         // Fix void return issues
         content = content.replace(
           /: void \{[\s\S]*?return res\./g,
-          (match) => match.replace('return res.', 'res.') + ' return;'
+          (match) => match.replace('return res.', 'res.') + ' return;',
         );
-        
+
         fs.writeFileSync(file, content);
         this.fixes.push(`Fixed middleware return types in ${file}`);
       }
@@ -122,11 +119,8 @@ declare global {
 export {};
 `;
 
-    fs.writeFileSync(
-      path.join(typesDir, 'express-extensions.d.ts'), 
-      expressExtensions.trim()
-    );
-    
+    fs.writeFileSync(path.join(typesDir, 'express-extensions.d.ts'), expressExtensions.trim());
+
     this.fixes.push('Created Express Request type extensions');
   }
 
@@ -137,18 +131,12 @@ export {};
     const errorHandlerPath = 'backend/src/utils/error-handler.ts';
     if (fs.existsSync(errorHandlerPath)) {
       let content = fs.readFileSync(errorHandlerPath, 'utf8');
-      
+
       // Fix unknown error types
-      content = content.replace(
-        /catch \(error: unknown\)/g,
-        'catch (error: any)'
-      );
-      
-      content = content.replace(
-        /error is Error/g,
-        'error instanceof Error'
-      );
-      
+      content = content.replace(/catch \(error: unknown\)/g, 'catch (error: any)');
+
+      content = content.replace(/error is Error/g, 'error instanceof Error');
+
       fs.writeFileSync(errorHandlerPath, content);
       this.fixes.push('Fixed error handling types');
     }
@@ -161,13 +149,10 @@ export {};
     const plexServicePath = 'backend/src/services/plex.service.ts';
     if (fs.existsSync(plexServicePath)) {
       let content = fs.readFileSync(plexServicePath, 'utf8');
-      
+
       // Fix Result type access
-      content = content.replace(
-        /client\.(\w+)\(/g,
-        'client.success ? client.data.$1(' 
-      );
-      
+      content = content.replace(/client\.(\w+)\(/g, 'client.success ? client.data.$1(');
+
       fs.writeFileSync(plexServicePath, content);
       this.fixes.push('Fixed Plex service Result type access');
     }
@@ -180,7 +165,7 @@ export {};
     const frontendFiles = [
       'frontend/src/types/context7-react-patterns.ts',
       'frontend/src/components/dashboard/*.tsx',
-      'frontend/src/components/dynamic/*.tsx'
+      'frontend/src/components/dynamic/*.tsx',
     ];
 
     // Fix verbatim module syntax imports
@@ -189,21 +174,18 @@ export {};
       for (const file of files) {
         if (fs.existsSync(file)) {
           let content = fs.readFileSync(file, 'utf8');
-          
+
           // Fix type-only imports
-          content = content.replace(
-            /import \{ ([^}]+) \} from 'react'/g,
-            (match, imports) => {
-              const typeImports = ['ReactNode', 'ComponentProps', 'ElementType', 'ForwardedRef'];
-              const hasTypeImports = typeImports.some(t => imports.includes(t));
-              
-              if (hasTypeImports) {
-                return `import type { ${imports} } from 'react'`;
-              }
-              return match;
+          content = content.replace(/import \{ ([^}]+) \} from 'react'/g, (match, imports) => {
+            const typeImports = ['ReactNode', 'ComponentProps', 'ElementType', 'ForwardedRef'];
+            const hasTypeImports = typeImports.some((t) => imports.includes(t));
+
+            if (hasTypeImports) {
+              return `import type { ${imports} } from 'react'`;
             }
-          );
-          
+            return match;
+          });
+
           fs.writeFileSync(file, content);
           this.fixes.push(`Fixed import types in ${file}`);
         }
@@ -228,7 +210,7 @@ export {};
       'frontend/src/components/ui/Modal.tsx',
       'frontend/src/components/settings/SettingsPanel.tsx',
       'frontend/src/components/admin/UserManagement.tsx',
-      'frontend/src/components/realtime/RealtimeStatus.tsx'
+      'frontend/src/components/realtime/RealtimeStatus.tsx',
     ];
 
     for (const componentPath of missingComponents) {
@@ -280,10 +262,11 @@ export default ${componentName};
     if (pattern.includes('*')) {
       const basePath = pattern.split('*')[0];
       if (!fs.existsSync(basePath)) return [];
-      
-      return fs.readdirSync(basePath)
-        .filter(f => f.endsWith('.tsx') || f.endsWith('.ts'))
-        .map(f => path.join(basePath, f));
+
+      return fs
+        .readdirSync(basePath)
+        .filter((f) => f.endsWith('.tsx') || f.endsWith('.ts'))
+        .map((f) => path.join(basePath, f));
     }
     return [pattern];
   }

@@ -1,9 +1,9 @@
 /**
  * MediaNest API Integration Tests
- * 
+ *
  * Comprehensive integration testing for MediaNest API endpoints covering:
  * - End-to-end API workflow testing
- * - Authentication flow validation  
+ * - Authentication flow validation
  * - Database integration testing
  * - Error handling and edge case validation
  * - Cross-service communication testing
@@ -29,7 +29,7 @@ describe('MediaNest API Integration Tests', () => {
   let dbHelper: DatabaseTestHelper;
   let redisHelper: RedisTestHelper;
   let authHelper: AuthTestHelper;
-  
+
   // Test context
   let testTokens: Record<string, string>;
   let testUserIds: Record<string, string>;
@@ -40,27 +40,28 @@ describe('MediaNest API Integration Tests', () => {
     prisma = new PrismaClient({
       datasources: {
         db: {
-          url: process.env.TEST_DATABASE_URL || 'postgresql://test:test@localhost:5433/medianest_test'
-        }
-      }
+          url:
+            process.env.TEST_DATABASE_URL || 'postgresql://test:test@localhost:5433/medianest_test',
+        },
+      },
     });
-    
+
     redis = new Redis(process.env.TEST_REDIS_URL || 'redis://localhost:6380');
-    
+
     // Initialize test helpers
     dbHelper = new DatabaseTestHelper(prisma);
     redisHelper = new RedisTestHelper(redis);
     authHelper = new AuthTestHelper();
-    
+
     // Setup test data
     await dbHelper.setupTestDatabase();
     await redisHelper.clearTestData();
-    
+
     // Create test users and tokens
     const authService = new AuthService();
     testTokens = {};
     testUserIds = {};
-    
+
     for (const userData of testUsers) {
       const user = await dbHelper.createTestUser(userData);
       testUserIds[userData.role] = user.id;
@@ -87,17 +88,15 @@ describe('MediaNest API Integration Tests', () => {
   describe('Authentication Integration', () => {
     test('should complete full authentication workflow', async () => {
       // Test Plex OAuth PIN generation
-      const pinResponse = await request(app)
-        .post('/api/v1/auth/plex/pin')
-        .expect(200);
+      const pinResponse = await request(app).post('/api/v1/auth/plex/pin').expect(200);
 
       expect(pinResponse.body).toMatchObject({
         success: true,
         data: expect.objectContaining({
           id: expect.any(String),
           code: expect.any(String),
-          expires: expect.any(String)
-        })
+          expires: expect.any(String),
+        }),
       });
 
       const { id: pinId, code } = pinResponse.body.data;
@@ -115,9 +114,9 @@ describe('MediaNest API Integration Tests', () => {
           user: expect.objectContaining({
             id: expect.any(String),
             plexId: expect.any(String),
-            role: expect.any(String)
-          })
-        })
+            role: expect.any(String),
+          }),
+        }),
       });
 
       // Verify token works for authenticated requests
@@ -202,9 +201,7 @@ describe('MediaNest API Integration Tests', () => {
         .expect(401);
 
       // Missing token
-      await request(app)
-        .get('/api/v1/auth/me')
-        .expect(401);
+      await request(app).get('/api/v1/auth/me').expect(401);
 
       // Expired token (simulate by using revoked token)
       const expiredToken = await authHelper.createExpiredToken(testUserIds.user);
@@ -225,7 +222,7 @@ describe('MediaNest API Integration Tests', () => {
         tmdbId: 12345,
         title: 'Test Movie',
         quality: 'HD',
-        notes: 'Integration test request'
+        notes: 'Integration test request',
       };
 
       const createResponse = await request(app)
@@ -247,15 +244,15 @@ describe('MediaNest API Integration Tests', () => {
         userId: testUserIds.user,
         media: expect.objectContaining({
           tmdbId: mediaRequestData.tmdbId,
-          title: mediaRequestData.title
+          title: mediaRequestData.title,
         }),
-        status: 'pending'
+        status: 'pending',
       });
 
       // Verify database constraints
       const dbRequest = await prisma.mediaRequest.findUnique({
         where: { id: requestId },
-        include: { user: true, media: true }
+        include: { user: true, media: true },
       });
 
       expect(dbRequest).toBeTruthy();
@@ -278,8 +275,8 @@ describe('MediaNest API Integration Tests', () => {
         success: false,
         error: expect.objectContaining({
           code: 'DATABASE_ERROR',
-          message: expect.any(String)
-        })
+          message: expect.any(String),
+        }),
       });
 
       // Restore connection
@@ -303,7 +300,7 @@ describe('MediaNest API Integration Tests', () => {
         .send({
           mediaType: 'movie',
           tmdbId: 67890,
-          title: 'Concurrent Test Movie'
+          title: 'Concurrent Test Movie',
         })
         .expect(201);
 
@@ -316,17 +313,17 @@ describe('MediaNest API Integration Tests', () => {
           .put(`/api/v1/media/requests/${requestId}`)
           .set('Authorization', `Bearer ${userToken}`)
           .send({ notes: 'Updated by user' }),
-        
+
         // Admin approves request
         request(app)
           .put(`/api/v1/admin/requests/${requestId}/approve`)
           .set('Authorization', `Bearer ${adminToken}`)
           .send({ notes: 'Approved by admin' }),
-        
+
         // User tries to cancel (should fail if approved)
         request(app)
           .put(`/api/v1/media/requests/${requestId}/cancel`)
-          .set('Authorization', `Bearer ${userToken}`)
+          .set('Authorization', `Bearer ${userToken}`),
       ];
 
       const results = await Promise.all(operations);
@@ -338,17 +335,17 @@ describe('MediaNest API Integration Tests', () => {
         .expect(200);
 
       const finalRequest = finalResponse.body.data;
-      
+
       // Should be approved (admin action takes precedence)
       expect(finalRequest.status).toBe('approved');
       expect(finalRequest.approvedBy).toBe(testUserIds.admin);
-      
+
       // Verify database consistency
       const dbRequest = await prisma.mediaRequest.findUnique({
         where: { id: requestId },
-        include: { 
-          statusHistory: { orderBy: { createdAt: 'desc' } }
-        }
+        include: {
+          statusHistory: { orderBy: { createdAt: 'desc' } },
+        },
       });
 
       expect(dbRequest!.statusHistory.length).toBeGreaterThan(0);
@@ -386,22 +383,20 @@ describe('MediaNest API Integration Tests', () => {
 
     test('should handle rate limiting with Redis', async () => {
       const testKey = 'test-rate-limit';
-      
+
       // Make requests up to the limit
       const requests = Array.from({ length: 10 }, () =>
-        request(app)
-          .post('/api/v1/auth/plex/pin')
-          .set('X-Forwarded-For', '192.168.1.100')
+        request(app).post('/api/v1/auth/plex/pin').set('X-Forwarded-For', '192.168.1.100'),
       );
 
       const responses = await Promise.all(requests);
-      
+
       // First requests should succeed
-      expect(responses.slice(0, 5).every(r => r.status === 200)).toBe(true);
-      
+      expect(responses.slice(0, 5).every((r) => r.status === 200)).toBe(true);
+
       // Later requests should be rate limited
       const rateLimitedResponses = responses.slice(5);
-      expect(rateLimitedResponses.some(r => r.status === 429)).toBe(true);
+      expect(rateLimitedResponses.some((r) => r.status === 429)).toBe(true);
 
       // Verify rate limit data in Redis
       const rateLimitKey = 'rate_limit:192.168.1.100:auth_pin';
@@ -494,7 +489,7 @@ describe('MediaNest API Integration Tests', () => {
           mediaType: 'movie',
           tmdbId: selectedMovie.id,
           title: selectedMovie.title,
-          quality: 'HD'
+          quality: 'HD',
         })
         .expect(201);
 
@@ -550,7 +545,7 @@ describe('MediaNest API Integration Tests', () => {
         id: expect.any(Number),
         title: expect.any(String),
         overview: expect.any(String),
-        poster_path: expect.any(String)
+        poster_path: expect.any(String),
       });
 
       // Test media details endpoint
@@ -564,7 +559,7 @@ describe('MediaNest API Integration Tests', () => {
         id: movieId,
         title: expect.any(String),
         genres: expect.any(Array),
-        runtime: expect.any(Number)
+        runtime: expect.any(Number),
       });
     });
 
@@ -595,12 +590,12 @@ describe('MediaNest API Integration Tests', () => {
         success: false,
         error: expect.objectContaining({
           code: 'SERVICE_UNAVAILABLE',
-          message: expect.stringMatching(/circuit breaker/i)
-        })
+          message: expect.stringMatching(/circuit breaker/i),
+        }),
       });
 
       // Wait for circuit breaker recovery (simulate time passage)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Service should recover
       const recoveryResponse = await request(app)
@@ -623,20 +618,20 @@ describe('MediaNest API Integration Tests', () => {
           endpoint: '/api/v1/media/request',
           method: 'post',
           data: { mediaType: 'invalid' },
-          expectedError: 'VALIDATION_ERROR'
+          expectedError: 'VALIDATION_ERROR',
         },
         {
           endpoint: '/api/v1/media/request',
           method: 'post',
           data: { mediaType: 'movie', tmdbId: 'not-a-number' },
-          expectedError: 'VALIDATION_ERROR'
+          expectedError: 'VALIDATION_ERROR',
         },
         {
           endpoint: '/api/v1/media/requests/invalid-id',
           method: 'get',
           data: {},
-          expectedError: 'INVALID_ID'
-        }
+          expectedError: 'INVALID_ID',
+        },
       ];
 
       for (const test of validationTests) {
@@ -649,8 +644,8 @@ describe('MediaNest API Integration Tests', () => {
         expect(response.body).toMatchObject({
           success: false,
           error: expect.objectContaining({
-            code: test.expectedError
-          })
+            code: test.expectedError,
+          }),
         });
       }
     });
@@ -668,8 +663,8 @@ describe('MediaNest API Integration Tests', () => {
         success: false,
         error: expect.objectContaining({
           code: 'NOT_FOUND',
-          message: expect.stringMatching(/request not found/i)
-        })
+          message: expect.stringMatching(/request not found/i),
+        }),
       });
 
       // Test non-existent media details
@@ -681,8 +676,8 @@ describe('MediaNest API Integration Tests', () => {
       expect(mediaNotFoundResponse.body).toMatchObject({
         success: false,
         error: expect.objectContaining({
-          code: 'MEDIA_NOT_FOUND'
-        })
+          code: 'MEDIA_NOT_FOUND',
+        }),
       });
     });
 
@@ -697,7 +692,7 @@ describe('MediaNest API Integration Tests', () => {
         .send({
           mediaType: 'movie',
           tmdbId: 12345,
-          title: 'Admin Movie Request'
+          title: 'Admin Movie Request',
         })
         .expect(201);
 
@@ -713,8 +708,8 @@ describe('MediaNest API Integration Tests', () => {
         success: false,
         error: expect.objectContaining({
           code: 'FORBIDDEN',
-          message: expect.stringMatching(/access denied/i)
-        })
+          message: expect.stringMatching(/access denied/i),
+        }),
       });
     });
   });
@@ -730,7 +725,7 @@ describe('MediaNest API Integration Tests', () => {
         request(app)
           .get('/api/v1/media/search')
           .query({ query: `concurrent-test-${i}`, page: 1 })
-          .set('Authorization', `Bearer ${userToken}`)
+          .set('Authorization', `Bearer ${userToken}`),
       );
 
       const responses = await Promise.all(promises);
@@ -738,7 +733,7 @@ describe('MediaNest API Integration Tests', () => {
       const duration = endTime - startTime;
 
       // All requests should succeed
-      responses.forEach(response => {
+      responses.forEach((response) => {
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
       });

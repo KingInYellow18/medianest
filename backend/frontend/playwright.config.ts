@@ -9,10 +9,10 @@ export default defineConfig({
   // Test directory and matching patterns
   testDir: './e2e/tests',
   testMatch: /.*\.e2e\.(test|spec)\.(js|ts|mjs)/,
-  
+
   // Global test timeout
   timeout: 30000,
-  
+
   // Expect configuration
   expect: {
     timeout: 10000,
@@ -22,13 +22,13 @@ export default defineConfig({
       animations: 'disabled',
     },
   },
-  
+
   // Test execution settings
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 4 : undefined,
-  
+
   // Reporting configuration
   reporter: [
     ['html', { open: 'never', outputFolder: 'playwright-report' }],
@@ -36,42 +36,42 @@ export default defineConfig({
     ['junit', { outputFile: 'e2e/results/junit.xml' }],
     ['line'],
   ],
-  
+
   // Global test configuration
   use: {
     // Base URL for MediaNest frontend
     baseURL: process.env.BASE_URL || 'http://localhost:5173',
-    
+
     // Tracing and debugging
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-    
+
     // Timeouts
     actionTimeout: 15000,
     navigationTimeout: 30000,
-    
+
     // Browser settings
     viewport: { width: 1280, height: 720 },
     ignoreHTTPSErrors: true,
     acceptDownloads: true,
-    
+
     // Headers and authentication
     extraHTTPHeaders: {
       'Accept-Language': 'en-US',
     },
-    
+
     // Permissions for MediaNest features
     permissions: ['geolocation', 'notifications', 'camera', 'microphone'],
-    
+
     // Locale and timezone
     colorScheme: 'light',
     locale: 'en-US',
     timezoneId: 'America/New_York',
-    
+
     // Authentication state
     storageState: 'e2e/fixtures/auth.json',
-    
+
     // Browser launch options
     launchOptions: {
       slowMo: process.env.SLOW_MO ? 1000 : 0,
@@ -82,7 +82,7 @@ export default defineConfig({
       ],
     },
   },
-  
+
   // Test projects for different browsers and scenarios
   projects: [
     // Setup project for authentication
@@ -94,11 +94,11 @@ export default defineConfig({
         channel: 'chrome',
       },
     },
-    
+
     // Desktop browsers
     {
       name: 'chromium',
-      use: { 
+      use: {
         ...devices['Desktop Chrome'],
         channel: 'chrome',
       },
@@ -114,7 +114,7 @@ export default defineConfig({
       use: { ...devices['Desktop Safari'] },
       dependencies: ['setup'],
     },
-    
+
     // Mobile devices for MediaNest responsive testing
     {
       name: 'mobile-chrome',
@@ -131,7 +131,7 @@ export default defineConfig({
       use: { ...devices['iPad Pro'] },
       dependencies: ['setup'],
     },
-    
+
     // API testing project
     {
       name: 'api-testing',
@@ -139,13 +139,13 @@ export default defineConfig({
       use: {
         baseURL: process.env.API_URL || 'http://localhost:3001',
         extraHTTPHeaders: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${process.env.API_TOKEN || 'test-token'}`,
+          Accept: 'application/json',
+          Authorization: `Bearer ${process.env.API_TOKEN || 'test-token'}`,
         },
       },
     },
   ],
-  
+
   // Web server configuration for development
   webServer: [
     {
@@ -159,11 +159,11 @@ export default defineConfig({
       },
     },
   ],
-  
+
   // Global setup and teardown
   globalSetup: './e2e/global-setup.ts',
   globalTeardown: './e2e/global-teardown.ts',
-  
+
   // Output directories
   outputDir: 'e2e/results',
 });

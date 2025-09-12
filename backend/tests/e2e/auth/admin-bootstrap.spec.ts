@@ -83,7 +83,7 @@ test.describe('Admin Bootstrap', () => {
       } else {
         await expect(page.locator('[data-testid="password-error"]')).toBeVisible();
         await expect(page.locator('[data-testid="password-error"]')).toContainText(
-          scenario.expectedError
+          scenario.expectedError,
         );
       }
     }

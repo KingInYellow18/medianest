@@ -26,17 +26,17 @@ let isolatedMocks: IsolatedErrorUtilsMocks;
 describe('Error Utilities', () => {
   beforeEach(async () => {
     // CRITICAL: Complete test isolation for each test
-    
+
     // 1. Create completely fresh isolated mocks - no shared state
     isolatedMocks = new IsolatedErrorUtilsMocks();
-    
+
     // 2. AGGRESSIVE mock clearing to prevent cross-test contamination
     vi.clearAllMocks();
     vi.resetAllMocks();
     vi.restoreAllMocks();
-    
+
     // 3. Allow a small delay for mock setup to complete
-    await new Promise(resolve => setTimeout(resolve, 1));
+    await new Promise((resolve) => setTimeout(resolve, 1));
   });
 
   afterEach(() => {
@@ -160,7 +160,7 @@ describe('Error Utilities', () => {
     it('should return error on rejected promise', async () => {
       const testError = new Error('Test error');
       const failingPromise = Promise.reject(testError);
-      
+
       // Properly handle the rejection to prevent winston stream errors
       failingPromise.catch(() => {});
       const originalHandler = process.listeners('unhandledRejection');
@@ -168,7 +168,7 @@ describe('Error Utilities', () => {
       process.on('unhandledRejection', () => {
         // Silently ignore for this test
       });
-      
+
       try {
         const [result, error] = await handleAsyncError(failingPromise);
 
@@ -178,7 +178,7 @@ describe('Error Utilities', () => {
       } finally {
         // Restore original handlers
         process.removeAllListeners('unhandledRejection');
-        originalHandler.forEach(handler => {
+        originalHandler.forEach((handler) => {
           process.on('unhandledRejection', handler);
         });
       }
@@ -187,14 +187,14 @@ describe('Error Utilities', () => {
     it('should handle AppError rejection', async () => {
       const appError = new AppError('TEST_ERROR', 'Test app error', 400);
       const failingPromise = Promise.reject(appError);
-      
+
       // Suppress unhandled rejection warnings for this test
       const originalHandler = process.listeners('unhandledRejection');
       process.removeAllListeners('unhandledRejection');
       process.on('unhandledRejection', () => {
         // Silently ignore for this test
       });
-      
+
       try {
         const [result, error] = await handleAsyncError(failingPromise);
 
@@ -204,7 +204,7 @@ describe('Error Utilities', () => {
       } finally {
         // Restore original handlers
         process.removeAllListeners('unhandledRejection');
-        originalHandler.forEach(handler => {
+        originalHandler.forEach((handler) => {
           process.on('unhandledRejection', handler);
         });
       }
@@ -212,14 +212,14 @@ describe('Error Utilities', () => {
 
     it('should handle string error rejection', async () => {
       const failingPromise = Promise.reject('String error');
-      
+
       // Suppress unhandled rejection warnings for this test
       const originalHandler = process.listeners('unhandledRejection');
       process.removeAllListeners('unhandledRejection');
       process.on('unhandledRejection', () => {
         // Silently ignore for this test
       });
-      
+
       try {
         const [result, error] = await handleAsyncError(failingPromise);
 
@@ -228,7 +228,7 @@ describe('Error Utilities', () => {
       } finally {
         // Restore original handlers
         process.removeAllListeners('unhandledRejection');
-        originalHandler.forEach(handler => {
+        originalHandler.forEach((handler) => {
           process.on('unhandledRejection', handler);
         });
       }
@@ -236,14 +236,14 @@ describe('Error Utilities', () => {
 
     it('should handle null error rejection', async () => {
       const failingPromise = Promise.reject(null);
-      
+
       // Suppress unhandled rejection warnings for this test
       const originalHandler = process.listeners('unhandledRejection');
       process.removeAllListeners('unhandledRejection');
       process.on('unhandledRejection', () => {
         // Silently ignore for this test
       });
-      
+
       try {
         const [result, error] = await handleAsyncError(failingPromise);
 
@@ -252,7 +252,7 @@ describe('Error Utilities', () => {
       } finally {
         // Restore original handlers
         process.removeAllListeners('unhandledRejection');
-        originalHandler.forEach(handler => {
+        originalHandler.forEach((handler) => {
           process.on('unhandledRejection', handler);
         });
       }
@@ -434,7 +434,7 @@ describe('Error Utilities', () => {
         'DATABASE_CONNECTION_ERROR',
       ];
 
-      businessErrors.forEach(code => {
+      businessErrors.forEach((code) => {
         const error = new AppError(code, 'Business logic error');
         expect(error.code).toBe(code);
         expect(error.statusCode).toBe(500); // Default
@@ -444,7 +444,10 @@ describe('Error Utilities', () => {
 
   describe('error inheritance and polymorphism', () => {
     class CustomAppError extends AppError {
-      constructor(message: string, public readonly source: string) {
+      constructor(
+        message: string,
+        public readonly source: string,
+      ) {
         super('CUSTOM_ERROR', message, 400);
       }
     }
@@ -521,8 +524,8 @@ describe('Error Utilities', () => {
 
     it('should work with Promise chains', async () => {
       const chainedOperation = simulateAsyncOperation(false)
-        .then(result => ({ ...result, processed: true }))
-        .then(result => ({ ...result, final: true }));
+        .then((result) => ({ ...result, processed: true }))
+        .then((result) => ({ ...result, final: true }));
 
       const [result, error] = await handleAsyncError(chainedOperation);
 
@@ -536,10 +539,9 @@ describe('Error Utilities', () => {
     });
 
     it('should catch errors in Promise chains', async () => {
-      const chainedOperation = simulateAsyncOperation(false)
-        .then(() => {
-          throw new AppError('CHAIN_ERROR', 'Error in chain', 400);
-        });
+      const chainedOperation = simulateAsyncOperation(false).then(() => {
+        throw new AppError('CHAIN_ERROR', 'Error in chain', 400);
+      });
 
       const [result, error] = await handleAsyncError(chainedOperation);
 

@@ -1,6 +1,6 @@
 /**
  * MEMORY MANAGER FOR PHASE 4A TEST ENVIRONMENT STABILITY
- * 
+ *
  * Manages test findings and coordination between hive mind components
  */
 
@@ -20,7 +20,7 @@ class MemoryManager {
     patterns: [],
     risks: [],
     stabilityScore: 0,
-    recommendations: []
+    recommendations: [],
   };
 
   recordInconsistency(description: string) {
@@ -48,8 +48,11 @@ class MemoryManager {
     const inconsistencyPenalty = this.findings.inconsistencies.length * 10;
     const riskPenalty = this.findings.risks.length * 15;
     const fixBonus = this.findings.fixes.length * 5;
-    
-    this.findings.stabilityScore = Math.max(0, baseScore - inconsistencyPenalty - riskPenalty + fixBonus);
+
+    this.findings.stabilityScore = Math.max(
+      0,
+      baseScore - inconsistencyPenalty - riskPenalty + fixBonus,
+    );
     return this.findings.stabilityScore;
   }
 
@@ -60,7 +63,7 @@ class MemoryManager {
 
   storeInHiveMemory(key: string) {
     const memoryKey = `hive/${key}`;
-    
+
     // Phase 4A findings summary
     const summary = {
       phase: '4A',
@@ -68,17 +71,18 @@ class MemoryManager {
       timestamp: new Date().toISOString(),
       findings: this.getFindings(),
       status: this.findings.stabilityScore > 70 ? 'STABLE' : 'NEEDS_WORK',
-      criticalIssues: this.findings.inconsistencies.filter(i => 
-        i.includes('state leakage') || 
-        i.includes('mock collision') || 
-        i.includes('environment conflict')
-      )
+      criticalIssues: this.findings.inconsistencies.filter(
+        (i) =>
+          i.includes('state leakage') ||
+          i.includes('mock collision') ||
+          i.includes('environment conflict'),
+      ),
     };
 
     // Store findings (in real implementation, this would use actual memory system)
     console.log(`📝 Storing Phase 4A findings in memory key: ${memoryKey}`);
     console.log(JSON.stringify(summary, null, 2));
-    
+
     return summary;
   }
 }
@@ -91,8 +95,12 @@ testMemoryManager.recordInconsistency('Redis mock state leakage between cache se
 testMemoryManager.recordInconsistency('Environment variable conflicts in setup files');
 testMemoryManager.recordInconsistency('Database connection mock inconsistencies');
 
-testMemoryManager.recordPattern('Most tests use vi.mock() directly in files rather than centralized setup');
-testMemoryManager.recordPattern('Setup files have different approaches to environment variable loading');
+testMemoryManager.recordPattern(
+  'Most tests use vi.mock() directly in files rather than centralized setup',
+);
+testMemoryManager.recordPattern(
+  'Setup files have different approaches to environment variable loading',
+);
 testMemoryManager.recordPattern('Redis mocking implemented differently in each test file');
 
 testMemoryManager.recordRisk('Test isolation failures causing flaky tests');

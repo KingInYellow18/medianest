@@ -322,7 +322,7 @@ describe('JWTFacade', () => {
       });
 
       expect(() => jwtFacade.verifyRefreshToken('access-token')).toThrow(
-        'Invalid refresh token type'
+        'Invalid refresh token type',
       );
     });
   });

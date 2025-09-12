@@ -69,25 +69,27 @@ MediaNest uses Docker Compose to orchestrate multiple services in a unified stac
 
 ### Service Breakdown
 
-| Service | Purpose | Port | Health Check |
-|---------|---------|------|--------------|
-| **nginx** | Reverse proxy, SSL termination, static files | 80, 443 | HTTP 200 |
-| **frontend** | Next.js React application | 3000 (internal) | `/health` |
-| **backend** | Express.js API server | 4000 (internal) | `/health` |
-| **postgres** | Primary database | 5432 (internal) | `pg_isready` |
-| **redis** | Cache, sessions, job queue | 6379 (internal) | `PING` |
+| Service      | Purpose                                      | Port            | Health Check |
+| ------------ | -------------------------------------------- | --------------- | ------------ |
+| **nginx**    | Reverse proxy, SSL termination, static files | 80, 443         | HTTP 200     |
+| **frontend** | Next.js React application                    | 3000 (internal) | `/health`    |
+| **backend**  | Express.js API server                        | 4000 (internal) | `/health`    |
+| **postgres** | Primary database                             | 5432 (internal) | `pg_isready` |
+| **redis**    | Cache, sessions, job queue                   | 6379 (internal) | `PING`       |
 
 ## Prerequisites
 
 ### System Requirements
 
 **Minimum Hardware:**
+
 - CPU: 2 cores (4 cores recommended)
 - RAM: 4GB (8GB recommended)
 - Storage: 20GB free space (SSD recommended)
 - Network: Stable internet connection
 
 **Software Requirements:**
+
 ```bash
 # Verify required software versions
 docker --version          # Required: 24.0+
@@ -116,7 +118,7 @@ docker compose version    # Required: v2.20+
 
 # Available options:
 # --domain DOMAIN          Your domain name (required)
-# --email EMAIL           Email for SSL certificates (required)  
+# --email EMAIL           Email for SSL certificates (required)
 # --ssl-method METHOD     'letsencrypt' or 'selfsigned'
 # --backup-existing       Backup existing installation
 # --skip-ssl             Skip SSL certificate setup
@@ -170,13 +172,14 @@ nano .env.production
 ```
 
 **Essential Environment Variables:**
+
 ```bash
 # Domain Configuration
 DOMAIN_NAME=your-domain.com
 FRONTEND_URL=https://your-domain.com
 NEXTAUTH_URL=https://your-domain.com
 
-# SSL Configuration  
+# SSL Configuration
 CERTBOT_EMAIL=your-email@domain.com
 
 # Application Settings
@@ -193,6 +196,7 @@ BACKUP_PATH=/opt/medianest/backups
 #### Step 4: SSL Certificate Setup
 
 **Let's Encrypt (Recommended):**
+
 ```bash
 # Generate SSL certificate
 sudo certbot certonly \
@@ -208,6 +212,7 @@ sudo chown $USER:$USER data/certbot/ssl/*
 ```
 
 **Self-Signed (Development/Testing):**
+
 ```bash
 # Generate self-signed certificate
 openssl req -x509 -newkey rsa:4096 \
@@ -289,12 +294,14 @@ config/docker/
 ### Environment Configuration
 
 **Production (.env.production):**
+
 - Full SSL/HTTPS configuration
 - Optimized for performance and security
 - Comprehensive monitoring and logging
 - Automated backups and health checks
 
 **Development (.env):**
+
 - HTTP-only for local development
 - Debug logging enabled
 - Hot reload and development tools
@@ -303,6 +310,7 @@ config/docker/
 ### Secrets Management
 
 **Production Secrets (Docker Secrets):**
+
 ```yaml
 secrets:
   postgres_password:
@@ -316,6 +324,7 @@ secrets:
 ```
 
 **Security Best Practices:**
+
 - All secrets stored in separate files with 600 permissions
 - No secrets in environment variables or compose files
 - Automatic secret generation with cryptographically secure methods
@@ -374,9 +383,10 @@ docker compose -f config/docker/docker-compose.prod.yml exec backend npm run db:
 ### Built-in Health Checks
 
 **Container Health Checks:**
+
 ```yaml
 healthcheck:
-  test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+  test: ['CMD', 'curl', '-f', 'http://localhost:4000/health']
   interval: 30s
   timeout: 10s
   retries: 3
@@ -384,6 +394,7 @@ healthcheck:
 ```
 
 **Service Health Verification:**
+
 ```bash
 # Check all service health
 ./deployment/scripts/health-check.sh
@@ -461,8 +472,8 @@ docker compose -f config/docker/docker-compose.prod.yml exec -T postgres \
 # Security configurations in compose files
 security_opt:
   - no-new-privileges:true
-user: 1000:1000  # Non-root user
-read_only: true  # Read-only root filesystem
+user: 1000:1000 # Non-root user
+read_only: true # Read-only root filesystem
 tmpfs:
   - /tmp
   - /var/tmp
@@ -474,7 +485,7 @@ tmpfs:
 # Internal network isolation
 networks:
   internal:
-    internal: true  # No external access
+    internal: true # No external access
   external:
     # Only for services needing internet access
 ```

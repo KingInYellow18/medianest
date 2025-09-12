@@ -1,13 +1,13 @@
 /**
  * COMPREHENSIVE SERVICE MOCKS FOUNDATION
- * 
+ *
  * Fixes Group A quick wins - 25-30 tests failing due to missing service mocks.
- * 
+ *
  * ROOT CAUSE ANALYSIS:
  * - Services not properly mocked causing actual implementations to run
  * - Expected mock values but received actual encrypted data, API calls, etc.
  * - Variable initialization order issues with vi.mock() hoisting
- * 
+ *
  * SOLUTION: Complete service mock registry with proper initialization order
  */
 
@@ -60,33 +60,33 @@ export const createRedisServiceMock = () => ({
 
 export const createJwtServiceMock = () => ({
   generateToken: vi.fn().mockReturnValue('mock-jwt-token'),
-  verifyToken: vi.fn().mockReturnValue({ 
-    userId: 'mock-user-id', 
+  verifyToken: vi.fn().mockReturnValue({
+    userId: 'mock-user-id',
     email: 'mock@example.com',
     role: 'USER',
     sessionId: 'mock-session-id',
     iat: Math.floor(Date.now() / 1000),
-    exp: Math.floor(Date.now() / 1000) + 3600
+    exp: Math.floor(Date.now() / 1000) + 3600,
   }),
   refreshToken: vi.fn().mockReturnValue('mock-refreshed-token'),
-  decodeToken: vi.fn().mockReturnValue({ 
-    userId: 'mock-user-id', 
+  decodeToken: vi.fn().mockReturnValue({
+    userId: 'mock-user-id',
     email: 'mock@example.com',
     role: 'USER',
-    sessionId: 'mock-session-id'
+    sessionId: 'mock-session-id',
   }),
   validateTokenStructure: vi.fn().mockReturnValue(true),
-  getTokenPayload: vi.fn().mockReturnValue({ 
-    userId: 'mock-user-id', 
+  getTokenPayload: vi.fn().mockReturnValue({
+    userId: 'mock-user-id',
     email: 'mock@example.com',
     role: 'USER',
-    sessionId: 'mock-session-id'
+    sessionId: 'mock-session-id',
   }),
   isTokenExpired: vi.fn().mockReturnValue(false),
   getTokenExpirationTime: vi.fn().mockReturnValue(Date.now() + 3600000),
   revokeToken: vi.fn().mockResolvedValue(true),
   validateRefreshToken: vi.fn().mockReturnValue(true),
-  
+
   // CRITICAL MISSING EXPORTS - Fix JWT facade mock failures
   generateRefreshToken: vi.fn().mockReturnValue('mock-refresh-token'),
   verifyRefreshToken: vi.fn().mockReturnValue({
@@ -105,7 +105,7 @@ export const createJwtServiceMock = () => ({
   rotateTokenIfNeeded: vi.fn().mockReturnValue(null),
   blacklistToken: vi.fn().mockImplementation(() => undefined),
   isTokenBlacklisted: vi.fn().mockReturnValue(false),
-  
+
   // Enhanced compatibility exports
   getTokenExpiry: vi.fn().mockReturnValue(new Date(Date.now() + 3600000)),
   getTokenIssuedAt: vi.fn().mockReturnValue(new Date(Date.now() - 60000)),
@@ -376,7 +376,7 @@ export class ServiceMockRegistry {
 
   private resetMockObject(obj: any): void {
     if (!obj) return;
-    
+
     Object.values(obj).forEach((value: any) => {
       if (typeof value === 'function' && value.mockReset) {
         value.mockReset();
@@ -454,29 +454,29 @@ export {
 
 /**
  * USAGE PATTERNS FOR FIXING GROUP A QUICK WINS:
- * 
+ *
  * 1. COMPLETE SERVICE MOCK (Recommended):
  * ```typescript
  * import { getServiceMock } from '@/tests/mocks/services/comprehensive-service-mocks';
- * 
+ *
  * vi.mock('@/services/encryption.service', () => ({
  *   encryptionService: getServiceMock('encryptionService')
  * }));
  * ```
- * 
+ *
  * 2. EXTERNAL LIBRARY MOCK:
  * ```typescript
  * vi.mock('axios', () => getServiceMock('axios'));
  * vi.mock('jsonwebtoken', () => getServiceMock('jsonwebtoken'));
  * ```
- * 
+ *
  * 3. REDIS MOCK:
  * ```typescript
  * vi.mock('@/services/redis.service', () => ({
  *   redisService: getServiceMock('redisService')
  * }));
  * ```
- * 
+ *
  * 4. MULTIPLE SERVICES:
  * ```typescript
  * vi.mock('@/services/encryption.service', () => ({

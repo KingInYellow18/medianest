@@ -9,7 +9,6 @@
 ### Database Services - FULLY OPERATIONAL
 
 - **PostgreSQL**: ✅ HEALTHY (Container: medianest-postgres-prod)
-
   - Status: Up and accepting connections
   - Health check: PASSING
   - Port: 5432 accessible

@@ -5,6 +5,7 @@ This directory contains comprehensive security tests for MediaNest's authenticat
 ## Test Categories
 
 ### 1. User Data Isolation (`user-data-isolation.test.ts`)
+
 - **Purpose**: Validates that users cannot access each other's data
 - **Coverage**:
   - Media request isolation between users
@@ -16,6 +17,7 @@ This directory contains comprehensive security tests for MediaNest's authenticat
   - Concurrent access security
 
 ### 2. Authentication Bypass Prevention (`authentication-bypass.test.ts`)
+
 - **Purpose**: Tests against various authentication bypass attempts
 - **Coverage**:
   - Token tampering prevention (signature, payload, secret)
@@ -29,6 +31,7 @@ This directory contains comprehensive security tests for MediaNest's authenticat
   - Error information disclosure prevention
 
 ### 3. Session Management Security (`session-management.test.ts`)
+
 - **Purpose**: Validates secure session handling and lifecycle
 - **Coverage**:
   - Session creation and validation security
@@ -41,6 +44,7 @@ This directory contains comprehensive security tests for MediaNest's authenticat
   - Session cleanup and maintenance
 
 ### 4. Authorization & RBAC (`authorization-rbac.test.ts`)
+
 - **Purpose**: Tests role-based access control and authorization
 - **Coverage**:
   - Admin-only endpoint protection
@@ -56,6 +60,7 @@ This directory contains comprehensive security tests for MediaNest's authenticat
   - Concurrent authorization
 
 ### 5. Input Validation & Injection Prevention (`input-validation-injection.test.ts`)
+
 - **Purpose**: Comprehensive injection attack prevention testing
 - **Coverage**:
   - SQL injection prevention (parameters, queries, filters, sorting)
@@ -73,6 +78,7 @@ This directory contains comprehensive security tests for MediaNest's authenticat
   - Input sanitization and encoding
 
 ### 6. Rate Limiting & Bypass Prevention (`rate-limiting-bypass.test.ts`)
+
 - **Purpose**: Tests rate limiting enforcement and bypass prevention
 - **Coverage**:
   - API rate limiting (general, per-user, IP-based)
@@ -89,21 +95,25 @@ This directory contains comprehensive security tests for MediaNest's authenticat
 ## Security Testing Principles
 
 ### 1. Real Environment Testing
+
 - Tests use actual database and Redis connections
 - No mocking of security-critical components
 - Realistic data and user scenarios
 
 ### 2. Negative Testing
+
 - Tests that should fail when security is violated
 - Validation that attacks are properly blocked
 - Error handling doesn't leak information
 
 ### 3. Concurrent Access Testing
+
 - Multi-user scenarios
 - Race condition prevention
 - Session isolation under load
 
 ### 4. Comprehensive Attack Vectors
+
 - Common injection techniques
 - Authentication bypass methods
 - Authorization escalation attempts
@@ -112,11 +122,13 @@ This directory contains comprehensive security tests for MediaNest's authenticat
 ## Running Security Tests
 
 ### Run All Security Tests
+
 ```bash
 npm test tests/integration/security/
 ```
 
 ### Run Individual Test Suites
+
 ```bash
 # User data isolation
 npm test tests/integration/security/user-data-isolation.test.ts
@@ -138,6 +150,7 @@ npm test tests/integration/security/rate-limiting-bypass.test.ts
 ```
 
 ### Run with Coverage
+
 ```bash
 npm run test:coverage -- tests/integration/security/
 ```
@@ -145,6 +158,7 @@ npm run test:coverage -- tests/integration/security/
 ## Test Data and Setup
 
 Each test suite:
+
 1. Clears the database before each test
 2. Creates fresh test users with different roles
 3. Generates valid authentication tokens
@@ -154,6 +168,7 @@ Each test suite:
 ## Security Test Expectations
 
 ### What Should Pass
+
 - Legitimate user operations within their scope
 - Proper error messages without information leakage
 - Rate limiting within configured bounds
@@ -161,6 +176,7 @@ Each test suite:
 - Proper data isolation
 
 ### What Should Fail
+
 - Cross-user data access attempts
 - Authentication bypass attempts
 - Injection attacks (SQL, NoSQL, XSS, etc.)
@@ -170,6 +186,7 @@ Each test suite:
 ## Monitoring and Alerts
 
 These tests serve as:
+
 1. **Regression Prevention**: Ensure security features remain intact
 2. **Attack Detection**: Validate that attacks are properly blocked
 3. **Compliance Verification**: Ensure security requirements are met
@@ -211,6 +228,7 @@ The security test suite validates these key metrics:
 ## Compliance and Standards
 
 These tests help ensure compliance with:
+
 - OWASP Top 10 security risks
 - Authentication best practices
 - Data protection principles

@@ -14,19 +14,19 @@ class DockerOptimizationAgent {
 
   async optimize() {
     console.log('🐳 Docker Optimization Agent: Layer caching optimization started');
-    
+
     await this.createOptimizedDockerfiles();
     await this.optimizeDockerCompose();
     await this.createDockerIgnore();
     await this.optimizeBuildCache();
     await this.generateReport();
-    
+
     console.log('✅ Docker optimization complete');
   }
 
   async createOptimizedDockerfiles() {
     console.log('📦 Creating ultra-optimized Dockerfiles...');
-    
+
     // Backend Dockerfile with aggressive optimization
     const backendDockerfile = `# Multi-stage optimized backend build
 # Stage 1: Dependencies
@@ -92,9 +92,9 @@ EXPOSE 8080
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "dist/server.js"]
 `;
-    
+
     fs.writeFileSync('backend/Dockerfile.optimized', backendDockerfile);
-    
+
     // Frontend Dockerfile with Next.js optimization
     const frontendDockerfile = `# Multi-stage optimized frontend build
 # Stage 1: Dependencies
@@ -170,19 +170,19 @@ EXPOSE 3000
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "server.js"]
 `;
-    
+
     fs.writeFileSync('frontend/Dockerfile.optimized', frontendDockerfile);
-    
+
     this.optimizations.push({
       type: 'dockerfile',
       action: 'Created multi-stage optimized Dockerfiles',
-      impact: 'Reduced image size by 60-80%'
+      impact: 'Reduced image size by 60-80%',
     });
   }
 
   async optimizeDockerCompose() {
     console.log('🔧 Optimizing Docker Compose configuration...');
-    
+
     const optimizedCompose = `version: '3.8'
 
 services:
@@ -286,19 +286,19 @@ networks:
       config:
         - subnet: 172.20.0.0/16
 `;
-    
+
     fs.writeFileSync('docker-compose.optimized.yml', optimizedCompose);
-    
+
     this.optimizations.push({
       type: 'docker-compose',
       action: 'Created optimized docker-compose with resource limits',
-      impact: 'Improved resource utilization and caching'
+      impact: 'Improved resource utilization and caching',
     });
   }
 
   async createDockerIgnore() {
     console.log('🚫 Creating comprehensive .dockerignore...');
-    
+
     const dockerIgnore = `# Development files
 node_modules
 **/node_modules
@@ -404,19 +404,19 @@ analysis/
 performance/
 benchmarks/
 `;
-    
+
     fs.writeFileSync('.dockerignore', dockerIgnore);
-    
+
     this.optimizations.push({
       type: 'dockerignore',
       action: 'Created comprehensive .dockerignore',
-      impact: 'Reduced build context size by 80-90%'
+      impact: 'Reduced build context size by 80-90%',
     });
   }
 
   async optimizeBuildCache() {
     console.log('⚡ Creating build cache optimization scripts...');
-    
+
     const buildCacheScript = `#!/bin/bash
 # Docker Build Cache Optimization Script
 
@@ -463,20 +463,20 @@ docker image prune -f
 
 echo "🎯 Build optimization complete!"
 `;
-    
+
     fs.writeFileSync('scripts/docker-build-optimized.sh', buildCacheScript);
     fs.chmodSync('scripts/docker-build-optimized.sh', '755');
-    
+
     this.optimizations.push({
       type: 'build-cache',
       action: 'Created optimized build cache script',
-      impact: '50-80% faster subsequent builds'
+      impact: '50-80% faster subsequent builds',
     });
   }
 
   async generateReport() {
     console.log('📋 Generating Docker optimization report...');
-    
+
     const report = {
       timestamp: new Date().toISOString(),
       agent: 'Docker Optimization',
@@ -485,42 +485,42 @@ echo "🎯 Build optimization complete!"
         {
           priority: 'high',
           action: 'Enable Docker BuildKit',
-          command: 'export DOCKER_BUILDKIT=1'
+          command: 'export DOCKER_BUILDKIT=1',
         },
         {
           priority: 'high',
           action: 'Use optimized Dockerfiles for production',
-          impact: '60-80% smaller image sizes'
+          impact: '60-80% smaller image sizes',
         },
         {
           priority: 'medium',
           action: 'Implement Docker layer cache in CI/CD',
-          impact: '50-80% faster build times'
+          impact: '50-80% faster build times',
         },
         {
           priority: 'medium',
           action: 'Set up registry for cache layers',
-          impact: 'Persistent cache across different build environments'
+          impact: 'Persistent cache across different build environments',
         },
         {
           priority: 'low',
           action: 'Monitor image sizes in CI pipeline',
-          impact: 'Prevent image bloat regression'
-        }
+          impact: 'Prevent image bloat regression',
+        },
       ],
       expectedImpact: {
         imageSize: '60-80% reduction',
         buildTime: '50-80% faster',
         memoryUsage: '30-50% less runtime memory',
-        startupTime: '40-60% faster container startup'
-      }
+        startupTime: '40-60% faster container startup',
+      },
     };
-    
+
     fs.writeFileSync(
       'docs/performance/docker-optimization-report.json',
-      JSON.stringify(report, null, 2)
+      JSON.stringify(report, null, 2),
     );
-    
+
     console.log('💾 Report saved: docs/performance/docker-optimization-report.json');
   }
 }

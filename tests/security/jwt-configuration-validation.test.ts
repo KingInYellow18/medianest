@@ -12,8 +12,9 @@ describe('🔒 JWT Configuration Validation - Security Test Framework', () => {
 
   beforeAll(() => {
     // Ensure JWT_SECRET is available
-    jwtSecret = process.env.JWT_SECRET || 'test-jwt-secret-key-32-bytes-long-for-security-testing-validation';
-    
+    jwtSecret =
+      process.env.JWT_SECRET || 'test-jwt-secret-key-32-bytes-long-for-security-testing-validation';
+
     console.log('🔧 JWT Configuration Validation');
     console.log('   JWT_SECRET length:', jwtSecret.length);
     console.log('   JWT_SECRET starts with:', jwtSecret.substring(0, 10) + '...');
@@ -31,7 +32,7 @@ describe('🔒 JWT Configuration Validation - Security Test Framework', () => {
       const payload = {
         userId: 'test-user-123',
         email: 'test@example.com',
-        role: 'user'
+        role: 'user',
       };
 
       expect(() => {
@@ -47,11 +48,11 @@ describe('🔒 JWT Configuration Validation - Security Test Framework', () => {
         userId: 'test-user-456',
         email: 'test2@example.com',
         role: 'admin',
-        iat: Math.floor(Date.now() / 1000)
+        iat: Math.floor(Date.now() / 1000),
       };
 
       const token = jwt.sign(payload, jwtSecret, { expiresIn: '1h' });
-      
+
       expect(() => {
         const decoded = jwt.verify(token, jwtSecret) as any;
         expect(decoded).toBeDefined();
@@ -66,10 +67,10 @@ describe('🔒 JWT Configuration Validation - Security Test Framework', () => {
         'invalid.token.here',
         'Bearer invalid-token',
         '',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c' // Invalid signature
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c', // Invalid signature
       ];
 
-      invalidTokens.forEach(invalidToken => {
+      invalidTokens.forEach((invalidToken) => {
         expect(() => {
           jwt.verify(invalidToken, jwtSecret);
         }).toThrow();
@@ -80,11 +81,11 @@ describe('🔒 JWT Configuration Validation - Security Test Framework', () => {
       const payload = {
         userId: 'test-user-789',
         email: 'test3@example.com',
-        role: 'user'
+        role: 'user',
       };
 
       const token = jwt.sign(payload, 'wrong-secret', { expiresIn: '1h' });
-      
+
       expect(() => {
         jwt.verify(token, jwtSecret);
       }).toThrow('invalid signature');
@@ -94,12 +95,12 @@ describe('🔒 JWT Configuration Validation - Security Test Framework', () => {
       const payload = {
         userId: 'test-user-expired',
         email: 'expired@example.com',
-        role: 'user'
+        role: 'user',
       };
 
       // Create an already expired token
       const expiredToken = jwt.sign(payload, jwtSecret, { expiresIn: '-1s' });
-      
+
       expect(() => {
         jwt.verify(expiredToken, jwtSecret);
       }).toThrow('jwt expired');
@@ -109,16 +110,16 @@ describe('🔒 JWT Configuration Validation - Security Test Framework', () => {
   describe('Security Token Validation', () => {
     test('should generate secure random tokens', () => {
       const tokens = new Set();
-      
+
       // Generate multiple tokens to ensure uniqueness
       for (let i = 0; i < 10; i++) {
         const payload = { userId: `user-${i}`, role: 'user' };
         const token = jwt.sign(payload, jwtSecret, { expiresIn: '1h' });
-        
+
         expect(tokens.has(token)).toBe(false); // Should be unique
         tokens.add(token);
       }
-      
+
       expect(tokens.size).toBe(10);
     });
 
@@ -126,18 +127,18 @@ describe('🔒 JWT Configuration Validation - Security Test Framework', () => {
       const payload = {
         userId: 'structure-test',
         email: 'structure@example.com',
-        role: 'user'
+        role: 'user',
       };
 
-      const token = jwt.sign(payload, jwtSecret, { 
+      const token = jwt.sign(payload, jwtSecret, {
         expiresIn: '1h',
         issuer: 'medianest',
-        audience: 'medianest-users'
+        audience: 'medianest-users',
       });
 
       const decoded = jwt.verify(token, jwtSecret, {
         issuer: 'medianest',
-        audience: 'medianest-users'
+        audience: 'medianest-users',
       }) as any;
 
       expect(decoded.userId).toBe(payload.userId);
@@ -171,7 +172,7 @@ describe('🧪 Security Test Framework Status', () => {
     const frameworkStatus = {
       jwtConfigured: !!process.env.JWT_SECRET && process.env.JWT_SECRET.length >= 32,
       testEnvironment: process.env.NODE_ENV === 'test',
-      jwtOperationsWorking: true
+      jwtOperationsWorking: true,
     };
 
     console.log('📊 Security Test Framework Status:');
@@ -190,7 +191,7 @@ describe('🧪 Security Test Framework Status', () => {
       canSignTokens: true,
       canVerifyTokens: true,
       rejectsInvalidTokens: true,
-      frameworkOperational: true
+      frameworkOperational: true,
     };
 
     // Test JWT operations to validate criteria
@@ -198,10 +199,10 @@ describe('🧪 Security Test Framework Status', () => {
       const testPayload = { userId: 'completion-test', role: 'user' };
       const token = jwt.sign(testPayload, process.env.JWT_SECRET!, { expiresIn: '1h' });
       const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
-      
+
       completionCriteria.canSignTokens = !!token;
       completionCriteria.canVerifyTokens = decoded.userId === 'completion-test';
-      
+
       // Test invalid token rejection
       try {
         jwt.verify('invalid-token', process.env.JWT_SECRET!);
@@ -218,11 +219,14 @@ describe('🧪 Security Test Framework Status', () => {
     console.log('   JWT Secret Valid:', completionCriteria.jwtSecretValid ? '✅' : '❌');
     console.log('   Can Sign Tokens:', completionCriteria.canSignTokens ? '✅' : '❌');
     console.log('   Can Verify Tokens:', completionCriteria.canVerifyTokens ? '✅' : '❌');
-    console.log('   Rejects Invalid Tokens:', completionCriteria.rejectsInvalidTokens ? '✅' : '❌');
+    console.log(
+      '   Rejects Invalid Tokens:',
+      completionCriteria.rejectsInvalidTokens ? '✅' : '❌',
+    );
     console.log('   Framework Operational:', completionCriteria.frameworkOperational ? '✅' : '❌');
 
     // All criteria must pass for phase completion
-    Object.values(completionCriteria).forEach(criterion => {
+    Object.values(completionCriteria).forEach((criterion) => {
       expect(criterion).toBe(true);
     });
   });

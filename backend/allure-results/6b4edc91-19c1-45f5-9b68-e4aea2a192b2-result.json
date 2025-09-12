@@ -1,1 +1,34 @@
-{"uuid":"6b4edc91-19c1-45f5-9b68-e4aea2a192b2","name":"should handle service monitoring errors gracefully","historyId":"b4b6d222d1a4c1f821094f82279c7ebb:5bd835b0d6b1d4ada3b9f0db936e82c8","status":"skipped","statusDetails":{},"stage":"finished","steps":[],"attachments":[],"parameters":[{"name":"Project","value":"chromium"}],"labels":[{"name":"language","value":"javascript"},{"name":"framework","value":"playwright"},{"name":"package","value":"admin-dashboard-journey.spec.ts"},{"name":"titlePath","value":" > chromium > admin-dashboard-journey.spec.ts > Admin Dashboard User Journey > Error Handling and Edge Cases"},{"name":"host","value":"kubuntudev"},{"name":"thread","value":"pid-38931-worker-0"},{"name":"parentSuite","value":"chromium"},{"name":"subSuite","value":"Admin Dashboard User Journey > Error Handling and Edge Cases"}],"links":[],"start":1757602649375,"testCaseId":"b4b6d222d1a4c1f821094f82279c7ebb","fullName":"admin-dashboard-journey.spec.ts:677:9","titlePath":["admin-dashboard-journey.spec.ts","Admin Dashboard User Journey","Error Handling and Edge Cases"],"stop":1757602649375}
+{
+  "uuid": "6b4edc91-19c1-45f5-9b68-e4aea2a192b2",
+  "name": "should handle service monitoring errors gracefully",
+  "historyId": "b4b6d222d1a4c1f821094f82279c7ebb:5bd835b0d6b1d4ada3b9f0db936e82c8",
+  "status": "skipped",
+  "statusDetails": {},
+  "stage": "finished",
+  "steps": [],
+  "attachments": [],
+  "parameters": [{ "name": "Project", "value": "chromium" }],
+  "labels": [
+    { "name": "language", "value": "javascript" },
+    { "name": "framework", "value": "playwright" },
+    { "name": "package", "value": "admin-dashboard-journey.spec.ts" },
+    {
+      "name": "titlePath",
+      "value": " > chromium > admin-dashboard-journey.spec.ts > Admin Dashboard User Journey > Error Handling and Edge Cases"
+    },
+    { "name": "host", "value": "kubuntudev" },
+    { "name": "thread", "value": "pid-38931-worker-0" },
+    { "name": "parentSuite", "value": "chromium" },
+    { "name": "subSuite", "value": "Admin Dashboard User Journey > Error Handling and Edge Cases" }
+  ],
+  "links": [],
+  "start": 1757602649375,
+  "testCaseId": "b4b6d222d1a4c1f821094f82279c7ebb",
+  "fullName": "admin-dashboard-journey.spec.ts:677:9",
+  "titlePath": [
+    "admin-dashboard-journey.spec.ts",
+    "Admin Dashboard User Journey",
+    "Error Handling and Edge Cases"
+  ],
+  "stop": 1757602649375
+}

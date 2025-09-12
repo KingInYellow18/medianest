@@ -25,12 +25,14 @@ This is the **complete, assumption-free deployment guide** for MediaNest. Follow
 ### System Requirements
 
 **Minimum Hardware Requirements:**
+
 - **CPU:** 2 cores (4 cores recommended)
 - **RAM:** 4GB (8GB recommended for production)
 - **Storage:** 50GB free space (SSD recommended)
 - **Network:** Stable internet connection with ports 80/443 accessible
 
 **Operating System Support:**
+
 - Ubuntu 20.04 LTS or 22.04 LTS (recommended)
 - CentOS 8+ / RHEL 8+
 - Debian 11+
@@ -52,6 +54,7 @@ git --version            # Required: 2.30+
 ### Network Requirements
 
 **Firewall Configuration:**
+
 ```bash
 # Incoming ports that MUST be open:
 80/tcp     # HTTP (redirects to HTTPS)
@@ -64,6 +67,7 @@ git --version            # Required: 2.30+
 ```
 
 **DNS Requirements:**
+
 - Domain name pointing to your server IP
 - Ability to modify DNS records for SSL certificate validation
 
@@ -74,6 +78,7 @@ git --version            # Required: 2.30+
 **Complete ALL items before proceeding:**
 
 ### System Preparation
+
 - [ ] Server provisioned with minimum hardware requirements
 - [ ] Operating system updated: `sudo apt update && sudo apt upgrade -y`
 - [ ] Firewall configured (UFW or iptables)
@@ -81,11 +86,13 @@ git --version            # Required: 2.30+
 - [ ] Domain name configured and DNS propagated
 
 ### User Setup
+
 - [ ] Non-root user created: `sudo adduser medianest`
 - [ ] User added to sudo group: `sudo usermod -aG sudo medianest`
 - [ ] User added to docker group (will be done during Docker installation)
 
 ### Security Hardening
+
 - [ ] SSH password authentication disabled (key-only)
 - [ ] Fail2ban installed and configured
 - [ ] Automatic security updates enabled
@@ -126,6 +133,7 @@ exit
 ```
 
 **Verification Commands:**
+
 ```bash
 # After logging back in, verify installation:
 docker --version
@@ -418,6 +426,7 @@ docker compose -f config/docker/docker-compose.prod.yml ps
 ```
 
 **Expected output - ALL services should show "Up" status:**
+
 ```
 NAME                   IMAGE                    COMMAND                  STATUS              PORTS
 medianest-nginx        nginx:alpine            "/docker-entrypoint.…"   Up 30 seconds       0.0.0.0:80->80/tcp, 0.0.0.0:443->443/tcp
@@ -608,11 +617,13 @@ docker compose -f config/docker/docker-compose.prod.yml exec frontend ping -c 1 
 #### Issue 1: Services Won't Start
 
 **Symptoms:**
+
 - Containers exit immediately
 - "Connection refused" errors
 - Services stuck in "Starting" state
 
 **Diagnosis:**
+
 ```bash
 # Check container logs
 docker compose -f config/docker/docker-compose.prod.yml logs backend frontend postgres redis
@@ -624,6 +635,7 @@ docker system df  # Docker space usage
 ```
 
 **Solutions:**
+
 ```bash
 # Clean up Docker resources
 docker system prune -f
@@ -637,11 +649,13 @@ docker compose -f config/docker/docker-compose.prod.yml up -d --force-recreate
 #### Issue 2: Database Connection Failures
 
 **Symptoms:**
+
 - "database connection failed" errors
 - Backend health checks failing
 - Migration errors
 
 **Diagnosis:**
+
 ```bash
 # Check PostgreSQL container
 docker compose -f config/docker/docker-compose.prod.yml logs postgres
@@ -651,6 +665,7 @@ docker compose -f config/docker/docker-compose.prod.yml exec postgres psql -U me
 ```
 
 **Solutions:**
+
 ```bash
 # Verify database credentials
 cat secrets/database_url
@@ -665,11 +680,13 @@ docker compose -f config/docker/docker-compose.prod.yml up -d postgres
 #### Issue 3: SSL Certificate Problems
 
 **Symptoms:**
+
 - "SSL certificate error" in browser
 - Certificate warnings
 - HTTPS not working
 
 **Diagnosis:**
+
 ```bash
 # Check certificate files
 ls -la data/certbot/ssl/
@@ -680,6 +697,7 @@ docker compose -f config/docker/docker-compose.prod.yml exec nginx nginx -t
 ```
 
 **Solutions:**
+
 ```bash
 # Regenerate certificate
 sudo certbot delete --cert-name your-domain.com
@@ -696,11 +714,13 @@ docker compose -f config/docker/docker-compose.prod.yml restart nginx
 #### Issue 4: High Memory Usage
 
 **Symptoms:**
+
 - System running out of memory
 - Containers being killed (OOMKilled)
 - Poor performance
 
 **Diagnosis:**
+
 ```bash
 # Check memory usage
 free -h
@@ -716,6 +736,7 @@ setInterval(() => {
 ```
 
 **Solutions:**
+
 ```bash
 # Restart services to clear memory
 docker compose -f config/docker/docker-compose.prod.yml restart backend frontend
@@ -965,7 +986,7 @@ docker compose -f config/docker/docker-compose.prod.yml ps
 ### Emergency Contacts
 
 - **Server Provider:** Your hosting provider support
-- **Domain Provider:** Your DNS provider support  
+- **Domain Provider:** Your DNS provider support
 - **SSL Provider:** Let's Encrypt community forum
 - **Application Support:** MediaNest GitHub issues
 
@@ -984,15 +1005,17 @@ docker compose -f config/docker/docker-compose.prod.yml ps
 **Before considering deployment complete, verify ALL items:**
 
 ### Technical Validation
+
 - [ ] All containers are running and healthy
-- [ ] Database migrations completed successfully  
+- [ ] Database migrations completed successfully
 - [ ] SSL certificate is valid and HTTPS works
 - [ ] Health endpoints return 200 OK
 - [ ] Authentication system is working
 - [ ] File uploads are functioning
 - [ ] All external integrations are connected
 
-### Security Validation  
+### Security Validation
+
 - [ ] All secrets are properly generated and secured
 - [ ] Firewall is configured and active
 - [ ] Security headers are present in responses
@@ -1001,6 +1024,7 @@ docker compose -f config/docker/docker-compose.prod.yml ps
 - [ ] Fail2ban is configured and running
 
 ### Operational Validation
+
 - [ ] Automated backups are scheduled and working
 - [ ] Log rotation is configured
 - [ ] Health monitoring is in place
@@ -1009,6 +1033,7 @@ docker compose -f config/docker/docker-compose.prod.yml ps
 - [ ] DNS is properly configured
 
 ### Performance Validation
+
 - [ ] Response times are under 2 seconds
 - [ ] Memory usage is stable and reasonable
 - [ ] Disk space usage is monitored
@@ -1020,8 +1045,9 @@ docker compose -f config/docker/docker-compose.prod.yml ps
 Your MediaNest instance should now be fully operational at: `https://your-domain.com`
 
 **Default Access:**
+
 - **Main Application:** https://your-domain.com
-- **API Health:** https://your-domain.com/api/health  
+- **API Health:** https://your-domain.com/api/health
 - **API Status:** https://your-domain.com/api/status
 
 For ongoing maintenance, refer to the monitoring and maintenance sections above.
@@ -1066,18 +1092,21 @@ medianest-stack/
 ### Container Features
 
 **Security:**
+
 - All containers run as non-root users (1000:1000)
 - Docker secrets for sensitive data
 - Minimal Alpine-based images
 - Security scanning and updates
 
 **Reliability:**
+
 - Health checks for all services
 - Automatic restart policies
 - Graceful shutdown handling
 - Resource limits and monitoring
 
 **Performance:**
+
 - Multi-stage Docker builds
 - Optimized image layers
 - Connection pooling
@@ -1085,12 +1114,12 @@ medianest-stack/
 
 ### Deployment Options
 
-| Method | Use Case | Complexity | Features |
-|--------|----------|------------|----------|
-| **Automated Script** | Production | Low | SSL, monitoring, backups |
-| **Manual Compose** | Development/Testing | Medium | Full control, customization |
-| **Hybrid** | Staging/Custom | Medium | Partial automation |
+| Method               | Use Case            | Complexity | Features                    |
+| -------------------- | ------------------- | ---------- | --------------------------- |
+| **Automated Script** | Production          | Low        | SSL, monitoring, backups    |
+| **Manual Compose**   | Development/Testing | Medium     | Full control, customization |
+| **Hybrid**           | Staging/Custom      | Medium     | Partial automation          |
 
 ---
 
-*This deployment guide is designed to be comprehensive and assumption-free. If you encounter any issues not covered in this guide, please check the troubleshooting section or create an issue on the MediaNest GitHub repository.*
+_This deployment guide is designed to be comprehensive and assumption-free. If you encounter any issues not covered in this guide, please check the troubleshooting section or create an issue on the MediaNest GitHub repository._

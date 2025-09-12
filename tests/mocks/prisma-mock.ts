@@ -1,6 +1,6 @@
 /**
  * COMPREHENSIVE PRISMA MOCKING INFRASTRUCTURE
- * 
+ *
  * Fixes Prisma client mocking failures and provides consistent database mocking.
  * Addresses transaction handling, connection issues, and query mocking.
  */
@@ -31,45 +31,45 @@ export const createPrismaMock = () => {
   const prismaMock = {
     // User model
     user: createModelMock(),
-    
+
     // Media request model
     mediaRequest: createModelMock(),
-    
+
     // Session token model
     sessionToken: createModelMock(),
-    
+
     // Service status model
     serviceStatus: createModelMock(),
-    
+
     // Service config model
     serviceConfig: createModelMock(),
-    
+
     // Device session model (if exists)
     deviceSession: createModelMock(),
-    
+
     // Connection management
     $connect: vi.fn().mockResolvedValue(undefined),
     $disconnect: vi.fn().mockResolvedValue(undefined),
-    
+
     // Transaction support
     $transaction: vi.fn(),
-    
+
     // Raw queries
     $queryRaw: vi.fn(),
     $queryRawUnsafe: vi.fn(),
     $executeRaw: vi.fn(),
     $executeRawUnsafe: vi.fn(),
-    
+
     // Metrics and monitoring
     $metrics: {
       json: vi.fn().mockResolvedValue({}),
       prometheus: vi.fn().mockResolvedValue(''),
     },
-    
+
     // Event handling
     $on: vi.fn(),
     $use: vi.fn(),
-    
+
     // Extensions
     $extends: vi.fn().mockReturnThis(),
   };
@@ -80,12 +80,12 @@ export const createPrismaMock = () => {
     if (typeof operations === 'function') {
       return await operations(prismaMock);
     }
-    
+
     // If operations is an array of promises (batch transaction)
     if (Array.isArray(operations)) {
       return Promise.all(operations);
     }
-    
+
     // Single operation
     return operations;
   });
@@ -132,13 +132,17 @@ export function setupPrismaMocks() {
 export const userMockHelpers = {
   mockFindUserById: (id: string, userData?: any) => {
     mockPrismaInstance.user.findUnique.mockImplementation(({ where }: any) =>
-      where?.id === id ? Promise.resolve(userData || createTestUser({ id })) : Promise.resolve(null)
+      where?.id === id
+        ? Promise.resolve(userData || createTestUser({ id }))
+        : Promise.resolve(null),
     );
   },
 
   mockFindUserByEmail: (email: string, userData?: any) => {
     mockPrismaInstance.user.findFirst.mockImplementation(({ where }: any) =>
-      where?.email === email ? Promise.resolve(userData || createTestUser({ email })) : Promise.resolve(null)
+      where?.email === email
+        ? Promise.resolve(userData || createTestUser({ email }))
+        : Promise.resolve(null),
     );
   },
 
@@ -152,7 +156,9 @@ export const userMockHelpers = {
 
   mockUpdateUser: (id: string, updates: any) => {
     mockPrismaInstance.user.update.mockImplementation(({ where, data }: any) =>
-      where?.id === id ? Promise.resolve({ ...createTestUser({ id }), ...data }) : Promise.reject(new Error('User not found'))
+      where?.id === id
+        ? Promise.resolve({ ...createTestUser({ id }), ...data })
+        : Promise.reject(new Error('User not found')),
     );
   },
 
@@ -168,7 +174,9 @@ export const userMockHelpers = {
 export const mediaRequestMockHelpers = {
   mockFindMediaRequest: (id: string, requestData?: any) => {
     mockPrismaInstance.mediaRequest.findUnique.mockImplementation(({ where }: any) =>
-      where?.id === id ? Promise.resolve(requestData || createTestMediaRequest({ id })) : Promise.resolve(null)
+      where?.id === id
+        ? Promise.resolve(requestData || createTestMediaRequest({ id }))
+        : Promise.resolve(null),
     );
   },
 
@@ -182,13 +190,15 @@ export const mediaRequestMockHelpers = {
 
   mockFindUserMediaRequests: (userId: string, requests: any[] = []) => {
     mockPrismaInstance.mediaRequest.findMany.mockImplementation(({ where }: any) =>
-      where?.userId === userId ? Promise.resolve(requests) : Promise.resolve([])
+      where?.userId === userId ? Promise.resolve(requests) : Promise.resolve([]),
     );
   },
 
   mockUpdateMediaRequest: (id: string, updates: any) => {
     mockPrismaInstance.mediaRequest.update.mockImplementation(({ where, data }: any) =>
-      where?.id === id ? Promise.resolve({ ...createTestMediaRequest({ id }), ...data }) : Promise.reject(new Error('Request not found'))
+      where?.id === id
+        ? Promise.resolve({ ...createTestMediaRequest({ id }), ...data })
+        : Promise.reject(new Error('Request not found')),
     );
   },
 };
@@ -210,13 +220,17 @@ export const sessionTokenMockHelpers = {
 
   mockFindSessionToken: (token: string, tokenData?: any) => {
     mockPrismaInstance.sessionToken.findUnique.mockImplementation(({ where }: any) =>
-      where?.token === token ? Promise.resolve(tokenData || { id: 'token-id', token, userId: 'test-user-id' }) : Promise.resolve(null)
+      where?.token === token
+        ? Promise.resolve(tokenData || { id: 'token-id', token, userId: 'test-user-id' })
+        : Promise.resolve(null),
     );
   },
 
   mockDeleteSessionToken: (id: string) => {
     mockPrismaInstance.sessionToken.delete.mockImplementation(({ where }: any) =>
-      where?.id === id ? Promise.resolve({ id, deleted: true }) : Promise.reject(new Error('Token not found'))
+      where?.id === id
+        ? Promise.resolve({ id, deleted: true })
+        : Promise.reject(new Error('Token not found')),
     );
   },
 };

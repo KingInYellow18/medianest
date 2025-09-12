@@ -226,7 +226,7 @@ describe('Error Handling and Edge Cases', () => {
         request(app)
           .get('/api/v1/media/requests')
           .set('Authorization', 'Bearer invalid-token')
-          .expect(401)
+          .expect(401),
       ),
       // Malformed requests
       ...Array.from({ length: 5 }, () =>
@@ -234,7 +234,7 @@ describe('Error Handling and Edge Cases', () => {
           .post('/api/v1/media/request')
           .send({ invalid: 'data' })
           .set('Authorization', `Bearer ${users.user.token}`)
-          .expect(400)
+          .expect(400),
       ),
       // Valid requests mixed in
       ...Array.from({ length: 3 }, (_, i) =>
@@ -243,7 +243,7 @@ describe('Error Handling and Edge Cases', () => {
           .send(MediaTestFactory.createMovieRequestData({ tmdbId: 100000 + i }))
           .set('Authorization', `Bearer ${users.user.token}`)
           .then((res) => ({ status: res.status, body: res.body }))
-          .catch((err) => ({ status: err.status || 500, body: err.response?.body }))
+          .catch((err) => ({ status: err.status || 500, body: err.response?.body })),
       ),
     ];
 
@@ -251,17 +251,20 @@ describe('Error Handling and Edge Cases', () => {
       concurrentErrorTests.map((p) =>
         p
           .then((res) => ({ status: res.status, success: true }))
-          .catch((err) => ({ status: err.status || 500, success: false }))
-      )
+          .catch((err) => ({ status: err.status || 500, success: false })),
+      ),
     );
 
     // Verify all requests were handled (no crashes)
     expect(results.length).toBe(13);
 
-    const statusCounts = results.reduce((acc, result) => {
-      acc[result.status] = (acc[result.status] || 0) + 1;
-      return acc;
-    }, {} as Record<number, number>);
+    const statusCounts = results.reduce(
+      (acc, result) => {
+        acc[result.status] = (acc[result.status] || 0) + 1;
+        return acc;
+      },
+      {} as Record<number, number>,
+    );
 
     console.log(`  📊 Status code distribution:`, statusCounts);
 
@@ -307,7 +310,7 @@ describe('Error Handling and Edge Cases', () => {
               .query({ query: `recovery-test-${i}` })
               .set('Authorization', `Bearer ${users.user.token}`)
               .then((res) => ({ status: res.status, success: true }))
-              .catch((err) => ({ status: err.status || 500, success: false }))
+              .catch((err) => ({ status: err.status || 500, success: false })),
           );
 
           const results = await Promise.all(requests);

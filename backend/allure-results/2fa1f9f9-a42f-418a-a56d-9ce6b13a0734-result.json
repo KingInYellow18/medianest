@@ -1,1 +1,30 @@
-{"uuid":"2fa1f9f9-a42f-418a-a56d-9ce6b13a0734","name":"should create media request successfully","historyId":"2b6070eb7f04ea1a5097ea6ecf364d45:5bd835b0d6b1d4ada3b9f0db936e82c8","status":"skipped","statusDetails":{},"stage":"finished","steps":[],"attachments":[],"parameters":[{"name":"Project","value":"chromium"}],"labels":[{"name":"language","value":"javascript"},{"name":"framework","value":"playwright"},{"name":"package","value":"media-request-journey.spec.ts"},{"name":"titlePath","value":" > chromium > media-request-journey.spec.ts > Media Request User Journey"},{"name":"host","value":"kubuntudev"},{"name":"thread","value":"pid-38931-worker-0"},{"name":"parentSuite","value":"chromium"},{"name":"subSuite","value":"Media Request User Journey"}],"links":[],"start":1757602649381,"testCaseId":"2b6070eb7f04ea1a5097ea6ecf364d45","fullName":"media-request-journey.spec.ts:197:7","titlePath":["media-request-journey.spec.ts","Media Request User Journey"],"stop":1757602649381}
+{
+  "uuid": "2fa1f9f9-a42f-418a-a56d-9ce6b13a0734",
+  "name": "should create media request successfully",
+  "historyId": "2b6070eb7f04ea1a5097ea6ecf364d45:5bd835b0d6b1d4ada3b9f0db936e82c8",
+  "status": "skipped",
+  "statusDetails": {},
+  "stage": "finished",
+  "steps": [],
+  "attachments": [],
+  "parameters": [{ "name": "Project", "value": "chromium" }],
+  "labels": [
+    { "name": "language", "value": "javascript" },
+    { "name": "framework", "value": "playwright" },
+    { "name": "package", "value": "media-request-journey.spec.ts" },
+    {
+      "name": "titlePath",
+      "value": " > chromium > media-request-journey.spec.ts > Media Request User Journey"
+    },
+    { "name": "host", "value": "kubuntudev" },
+    { "name": "thread", "value": "pid-38931-worker-0" },
+    { "name": "parentSuite", "value": "chromium" },
+    { "name": "subSuite", "value": "Media Request User Journey" }
+  ],
+  "links": [],
+  "start": 1757602649381,
+  "testCaseId": "2b6070eb7f04ea1a5097ea6ecf364d45",
+  "fullName": "media-request-journey.spec.ts:197:7",
+  "titlePath": ["media-request-journey.spec.ts", "Media Request User Journey"],
+  "stop": 1757602649381
+}

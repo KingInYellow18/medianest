@@ -6,34 +6,40 @@
 **Phase:** 0 (Week 1 - Day 2)
 
 ## Objective
+
 **Status:** ✅ Complete
 
 Create Dockerfile for production builds, set up docker-compose.yml for local development, configure PostgreSQL and Redis containers with proper initialization, establish volume mounts for persistence, and ensure the entire stack runs smoothly.
 
 ## Background
+
 Containerization ensures consistent environments across development, testing, and production. Docker Compose orchestrates our multi-service application for easy local development.
 
 ## Detailed Requirements
 
 ### 1. Production Dockerfile
+
 - Multi-stage build for optimization
 - Security best practices (non-root user)
 - Minimal final image size
 - Health check configuration
 
 ### 2. Docker Compose Configuration
+
 - All services properly networked
 - Environment variable management
 - Volume persistence for data
 - Development-friendly settings
 
 ### 3. Database Initialization
+
 - PostgreSQL with extensions
 - Redis configuration
 - Initialization scripts
 - Proper networking
 
 ### 4. Volume Management
+
 - Database persistence
 - YouTube downloads directory
 - Redis data persistence
@@ -42,6 +48,7 @@ Containerization ensures consistent environments across development, testing, an
 ## Technical Implementation Details
 
 ### Production Dockerfile (Dockerfile)
+
 ```dockerfile
 # Build stage for shared package
 FROM node:20-alpine AS shared-builder
@@ -120,6 +127,7 @@ EXPOSE 3000 4000
 ```
 
 ### Development Dockerfile (Dockerfile.dev)
+
 ```dockerfile
 FROM node:20-alpine
 RUN apk add --no-cache git curl
@@ -146,6 +154,7 @@ EXPOSE 3000 4000
 ```
 
 ### Docker Compose Configuration (docker-compose.yml)
+
 ```yaml
 version: '3.8'
 
@@ -156,17 +165,17 @@ services:
     container_name: medianest-postgres
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - '5432:5432'
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-medianest}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-medianest}
       POSTGRES_DB: ${POSTGRES_DB:-medianest}
-      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+      POSTGRES_INITDB_ARGS: '--encoding=UTF-8'
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-medianest}"]
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-medianest}']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -177,7 +186,7 @@ services:
     container_name: medianest-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - '6379:6379'
     command: >
       redis-server
       --appendonly yes
@@ -189,7 +198,7 @@ services:
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -202,8 +211,8 @@ services:
     container_name: medianest-app
     restart: unless-stopped
     ports:
-      - "3000:3000"  # Next.js
-      - "4000:4000"  # Express
+      - '3000:3000' # Next.js
+      - '4000:4000' # Express
     environment:
       NODE_ENV: development
       DATABASE_URL: postgresql://${POSTGRES_USER:-medianest}:${POSTGRES_PASSWORD:-medianest}@postgres:5432/${POSTGRES_DB:-medianest}?schema=public
@@ -238,8 +247,8 @@ services:
     container_name: medianest-nginx
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+      - '80:80'
+      - '443:443'
     volumes:
       - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./docker/nginx/certs:/etc/nginx/certs:ro
@@ -264,6 +273,7 @@ networks:
 ```
 
 ### PostgreSQL Initialization Script (docker/postgres/init.sql)
+
 ```sql
 -- Enable required extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -286,6 +296,7 @@ ALTER DATABASE medianest SET timezone TO 'UTC';
 ```
 
 ### Nginx Configuration (docker/nginx/nginx.conf)
+
 ```nginx
 events {
     worker_connections 1024;
@@ -348,6 +359,7 @@ http {
 ```
 
 ### Environment File Template (.env.example)
+
 ```bash
 # Database
 POSTGRES_USER=medianest
@@ -384,6 +396,7 @@ UPLOAD_PATH=/app/uploads
 ```
 
 ### Docker Ignore (.dockerignore)
+
 ```
 # Dependencies
 node_modules
@@ -426,6 +439,7 @@ Dockerfile*
 ```
 
 ## Acceptance Criteria
+
 1. ✅ `docker-compose up` starts all services
 2. ✅ Application accessible at http://localhost:3000
 3. ✅ API accessible at http://localhost:4000
@@ -436,6 +450,7 @@ Dockerfile*
 8. ✅ Hot reload works in development
 
 ## Testing Requirements
+
 1. Run `docker-compose up` and verify all services start
 2. Check health endpoints through Docker
 3. Create data and verify persistence after restart
@@ -443,6 +458,7 @@ Dockerfile*
 5. Verify logs are accessible
 
 ## Commands
+
 ```bash
 # Start all services
 docker-compose up
@@ -473,12 +489,14 @@ docker-compose exec redis redis-cli
 ```
 
 ## Common Issues & Solutions
+
 1. **Port conflicts**: Change ports in docker-compose.yml
 2. **Permission errors**: Check user/group in Dockerfile
 3. **Database connection fails**: Wait for health checks
 4. **Slow performance on Mac**: Use delegated mounts
 
 ## Security Considerations
+
 - Never commit .env files
 - Use secrets management in production
 - Run containers as non-root user
@@ -486,16 +504,19 @@ docker-compose exec redis redis-cli
 - Use specific image versions
 
 ## Next Steps
+
 - Set up CI/CD pipeline
 - Configure GitHub Actions
 - Add monitoring setup
 
 ## Completion Notes
+
 - Completed on: July 4, 2025
 - All acceptance criteria met
 - Ready for production use
 
 ## References
+
 - [Docker Best Practices](https://docs.docker.com/develop/dev-best-practices/)
 - [Docker Compose Documentation](https://docs.docker.com/compose/)
 - [PostgreSQL Docker Image](https://hub.docker.com/_/postgres)

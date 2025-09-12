@@ -304,7 +304,7 @@ test.describe('Plex Integration User Journey', () => {
     // Verify server info
     await expect(page.locator('[data-testid="server-info"]')).toBeVisible();
     await expect(page.locator('[data-testid="server-name"]')).toContainText(
-      'MediaNest Plex Server'
+      'MediaNest Plex Server',
     );
     await expect(page.locator('[data-testid="server-status"]')).toContainText('Online');
     await expect(page.locator('[data-testid="server-version"]')).toContainText('1.32.5.7349');
@@ -384,7 +384,7 @@ test.describe('Plex Integration User Journey', () => {
     await expect(page.locator('[data-testid="detail-rating"]')).toContainText('8.8');
     await expect(page.locator('[data-testid="detail-duration"]')).toContainText('2h 28m');
     await expect(page.locator('[data-testid="detail-summary"]')).toContainText(
-      'A thief who steals corporate secrets'
+      'A thief who steals corporate secrets',
     );
 
     // Verify genres
@@ -421,15 +421,15 @@ test.describe('Plex Integration User Journey', () => {
     // Check Breaking Bad details
     const breakingBadItem = tvItems.first();
     await expect(breakingBadItem.locator('[data-testid="media-title"]')).toContainText(
-      'Breaking Bad'
+      'Breaking Bad',
     );
     await expect(breakingBadItem.locator('[data-testid="media-year"]')).toContainText('2008');
     await expect(breakingBadItem.locator('[data-testid="media-rating"]')).toContainText('9.5');
     await expect(breakingBadItem.locator('[data-testid="season-count"]')).toContainText(
-      '5 seasons'
+      '5 seasons',
     );
     await expect(breakingBadItem.locator('[data-testid="episode-count"]')).toContainText(
-      '62 episodes'
+      '62 episodes',
     );
   });
 
@@ -451,7 +451,7 @@ test.describe('Plex Integration User Journey', () => {
     // Check second recent item (The Dark Knight)
     const secondRecent = recentItems.nth(1);
     await expect(secondRecent.locator('[data-testid="media-title"]')).toContainText(
-      'The Dark Knight'
+      'The Dark Knight',
     );
     await expect(secondRecent.locator('[data-testid="added-date"]')).toContainText('2 days ago');
   });
@@ -526,7 +526,7 @@ test.describe('Plex Integration User Journey', () => {
     // Verify error handling
     await expect(page.locator('[data-testid="server-error"]')).toBeVisible();
     await expect(page.locator('[data-testid="server-error"]')).toContainText(
-      'Plex server unreachable'
+      'Plex server unreachable',
     );
     await expect(page.locator('[data-testid="retry-connection"]')).toBeVisible();
 
@@ -564,7 +564,7 @@ test.describe('Plex Integration User Journey', () => {
     // Verify error handling
     await expect(page.locator('[data-testid="library-error"]')).toBeVisible();
     await expect(page.locator('[data-testid="library-error"]')).toContainText(
-      'Library scan in progress'
+      'Library scan in progress',
     );
     await expect(page.locator('[data-testid="refresh-library"]')).toBeVisible();
   });

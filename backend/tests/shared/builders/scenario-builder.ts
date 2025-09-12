@@ -19,7 +19,7 @@ export class ScenarioBuilder {
   step<T = any>(
     name: string,
     fn: StepFunction<T>,
-    options: { timeout?: number; retries?: number; required?: boolean } = {}
+    options: { timeout?: number; retries?: number; required?: boolean } = {},
   ): this {
     this.steps.push({
       name,
@@ -184,7 +184,7 @@ export class ScenarioBuilder {
         async (context) => {
           throw new Error('Intentional test error');
         },
-        { required: false }
+        { required: false },
       )
       .step('validateErrorResponse', async (context) => {
         const errorResult = context.triggerError;

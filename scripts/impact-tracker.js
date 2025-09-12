@@ -2,7 +2,7 @@
 /**
  * 📊 IMPACT ANALYSIS REAL-TIME TRACKER
  * Continuous monitoring and measurement during cleanup operations
- * 
+ *
  * Coordination: TECH_DEBT_ELIMINATION_2025_09_09
  * Agent: Impact Analysis Agent
  */
@@ -25,17 +25,14 @@ class ImpactTracker {
     this.startTime = Date.now();
     this.logFile = path.join(__dirname, '..', 'logs', 'impact-tracking.log');
     this.reportFile = path.join(__dirname, '..', 'analysis', 'REAL_TIME_IMPACT_REPORT.md');
-    
+
     // Ensure directories exist
     this.ensureDirectories();
   }
 
   ensureDirectories() {
-    const dirs = [
-      path.dirname(this.logFile),
-      path.dirname(this.reportFile)
-    ];
-    dirs.forEach(dir => {
+    const dirs = [path.dirname(this.logFile), path.dirname(this.reportFile)];
+    dirs.forEach((dir) => {
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
       }
@@ -54,7 +51,7 @@ class ImpactTracker {
       test_pass_rate: 0.63,
       test_failures: 67,
       dependencies: 972,
-      security_vulns: 0
+      security_vulns: 0,
     };
   }
 
@@ -63,7 +60,7 @@ class ImpactTracker {
     const measurement = {
       timestamp,
       operation,
-      metrics: await this.gatherMetrics()
+      metrics: await this.gatherMetrics(),
     };
 
     this.measurements.push(measurement);
@@ -77,27 +74,27 @@ class ImpactTracker {
     try {
       // File counts
       const { stdout: fileCount } = await execAsync(
-        'find . -name "node_modules" -prune -o -type f -print | wc -l'
+        'find . -name "node_modules" -prune -o -type f -print | wc -l',
       );
-      
+
       const { stdout: codeFileCount } = await execAsync(`
         find . -name "node_modules" -prune -o -name ".git" -prune -o -name "site" -prune -o -name "coverage" -prune -o -name "test-results" -prune -o -name "logs" -prune -o -type f \\( -name "*.js" -o -name "*.ts" -o -name "*.jsx" -o -name "*.tsx" -o -name "*.py" -o -name "*.json" -o -name "*.md" -o -name "*.yml" -o -name "*.yaml" \\) -print | wc -l
       `);
 
       // Documentation files
       const { stdout: docCount } = await execAsync(
-        'find . -name "node_modules" -prune -o -name "*.md" -type f -print | wc -l'
+        'find . -name "node_modules" -prune -o -name "*.md" -type f -print | wc -l',
       );
 
       // Project size
-      const { stdout: projectSize } = await execAsync(
-        'du -s . --exclude=node_modules | cut -f1'
-      );
+      const { stdout: projectSize } = await execAsync('du -s . --exclude=node_modules | cut -f1');
 
-      // Dependencies  
+      // Dependencies
       let dependencyCount = 0;
       try {
-        const { stdout: deps } = await execAsync("npm list --depth=0 2>/dev/null | grep -c '^[├└]' || echo '0'");
+        const { stdout: deps } = await execAsync(
+          "npm list --depth=0 2>/dev/null | grep -c '^[├└]' || echo '0'",
+        );
         dependencyCount = parseInt(deps.trim()) || 0;
       } catch (e) {
         dependencyCount = this.baseline.dependencies;
@@ -120,7 +117,7 @@ class ImpactTracker {
         project_size_kb: parseInt(projectSize.trim()),
         project_size_gb: parseFloat((parseInt(projectSize.trim()) / 1024 / 1024).toFixed(2)),
         dependencies: dependencyCount,
-        security_vulns: securityVulns
+        security_vulns: securityVulns,
       };
     } catch (error) {
       console.error('Error gathering metrics:', error);
@@ -140,11 +137,21 @@ class ImpactTracker {
       docs_removed: this.baseline.documentation_files - latest.documentation_files,
       size_reduced_gb: this.baseline.code_size_gb - latest.project_size_gb,
       dependencies_removed: this.baseline.dependencies - latest.dependencies,
-      
+
       // Percentage improvements
-      file_reduction_percent: ((this.baseline.total_files - latest.total_files) / this.baseline.total_files * 100).toFixed(1),
-      size_reduction_percent: ((this.baseline.code_size_gb - latest.project_size_gb) / this.baseline.code_size_gb * 100).toFixed(1),
-      doc_reduction_percent: ((this.baseline.documentation_files - latest.documentation_files) / this.baseline.documentation_files * 100).toFixed(1)
+      file_reduction_percent: (
+        ((this.baseline.total_files - latest.total_files) / this.baseline.total_files) *
+        100
+      ).toFixed(1),
+      size_reduction_percent: (
+        ((this.baseline.code_size_gb - latest.project_size_gb) / this.baseline.code_size_gb) *
+        100
+      ).toFixed(1),
+      doc_reduction_percent: (
+        ((this.baseline.documentation_files - latest.documentation_files) /
+          this.baseline.documentation_files) *
+        100
+      ).toFixed(1),
     };
 
     return impact;
@@ -193,9 +200,9 @@ class ImpactTracker {
 ## 🎯 TARGET PROGRESS
 
 ### 🏆 Cleanup Goals Progress
-- **File Reduction Target (70%):** ${(parseFloat(impact.file_reduction_percent) / 70 * 100).toFixed(1)}% complete
-- **Size Reduction Target (70%):** ${(parseFloat(impact.size_reduction_percent) / 70 * 100).toFixed(1)}% complete  
-- **Documentation Target (80%):** ${(parseFloat(impact.doc_reduction_percent) / 80 * 100).toFixed(1)}% complete
+- **File Reduction Target (70%):** ${((parseFloat(impact.file_reduction_percent) / 70) * 100).toFixed(1)}% complete
+- **Size Reduction Target (70%):** ${((parseFloat(impact.size_reduction_percent) / 70) * 100).toFixed(1)}% complete  
+- **Documentation Target (80%):** ${((parseFloat(impact.doc_reduction_percent) / 80) * 100).toFixed(1)}% complete
 
 ### 📈 Performance Indicators
 ${this.measurements.length > 1 ? this.generateTrendAnalysis() : 'Insufficient data for trend analysis'}
@@ -205,9 +212,13 @@ ${this.measurements.length > 1 ? this.generateTrendAnalysis() : 'Insufficient da
 ## 🚀 LIVE METRICS FEED
 
 ### Recent Measurements (Last 10)
-${this.measurements.slice(-10).map(m => 
-  `- **${new Date(m.timestamp).toLocaleTimeString()}** (${m.operation}): ${m.metrics ? m.metrics.total_files + ' files' : 'Error'}`
-).join('\n')}
+${this.measurements
+  .slice(-10)
+  .map(
+    (m) =>
+      `- **${new Date(m.timestamp).toLocaleTimeString()}** (${m.operation}): ${m.metrics ? m.metrics.total_files + ' files' : 'Error'}`,
+  )
+  .join('\n')}
 
 ---
 
@@ -218,15 +229,18 @@ ${this.measurements.slice(-10).map(m =>
 
   generateTrendAnalysis() {
     if (this.measurements.length < 2) return 'Insufficient data for trend analysis';
-    
-    const recent = this.measurements.slice(-5);
-    const fileChanges = recent.map((m, i) => {
-      if (i === 0) return 0;
-      return recent[i-1].metrics?.total_files - m.metrics?.total_files || 0;
-    }).slice(1);
 
-    const avgFilesPerMeasurement = fileChanges.reduce((sum, change) => sum + change, 0) / fileChanges.length;
-    
+    const recent = this.measurements.slice(-5);
+    const fileChanges = recent
+      .map((m, i) => {
+        if (i === 0) return 0;
+        return recent[i - 1].metrics?.total_files - m.metrics?.total_files || 0;
+      })
+      .slice(1);
+
+    const avgFilesPerMeasurement =
+      fileChanges.reduce((sum, change) => sum + change, 0) / fileChanges.length;
+
     return `
 **Cleanup Velocity:**
 - Average files removed per measurement: ${avgFilesPerMeasurement.toFixed(0)}
@@ -237,27 +251,32 @@ ${this.measurements.slice(-10).map(m =>
   estimateCompletionTime(velocity) {
     const impact = this.calculateImpact();
     if (!impact || velocity <= 0) return 'Unable to estimate';
-    
-    const filesRemaining = (this.baseline.total_files * 0.7) - parseInt(impact.files_removed);
+
+    const filesRemaining = this.baseline.total_files * 0.7 - parseInt(impact.files_removed);
     const measurementsNeeded = Math.ceil(filesRemaining / velocity);
     const minutesRemaining = measurementsNeeded * 5; // Assuming 5-minute measurement intervals
-    
+
     return `~${Math.ceil(minutesRemaining / 60)}h ${minutesRemaining % 60}m`;
   }
 
   async startContinuousTracking(intervalMinutes = 5) {
     console.log('🚀 Starting continuous impact tracking...');
     await this.takeMeasurement('tracking_start');
-    
-    setInterval(async () => {
-      try {
-        await this.takeMeasurement('periodic_check');
-        const impact = this.calculateImpact();
-        console.log(`📊 Impact Update: ${impact?.files_removed || 0} files removed (${impact?.file_reduction_percent || 0}% progress)`);
-      } catch (error) {
-        console.error('Error in continuous tracking:', error);
-      }
-    }, intervalMinutes * 60 * 1000);
+
+    setInterval(
+      async () => {
+        try {
+          await this.takeMeasurement('periodic_check');
+          const impact = this.calculateImpact();
+          console.log(
+            `📊 Impact Update: ${impact?.files_removed || 0} files removed (${impact?.file_reduction_percent || 0}% progress)`,
+          );
+        } catch (error) {
+          console.error('Error in continuous tracking:', error);
+        }
+      },
+      intervalMinutes * 60 * 1000,
+    );
   }
 
   async measureOperation(operationName, operationFn) {
@@ -278,7 +297,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       tracker.startContinuousTracking(parseInt(process.argv[3]) || 5);
       break;
     case 'measure':
-      tracker.takeMeasurement(process.argv[3] || 'manual_check').then(measurement => {
+      tracker.takeMeasurement(process.argv[3] || 'manual_check').then((measurement) => {
         console.log('Measurement taken:', measurement);
         process.exit(0);
       });

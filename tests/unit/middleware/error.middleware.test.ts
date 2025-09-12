@@ -1,6 +1,6 @@
 /**
  * ERROR MIDDLEWARE UNIT TESTS
- * 
+ *
  * Comprehensive tests for error middleware covering:
  * - Error handling and formatting
  * - Different error types
@@ -31,7 +31,7 @@ describe('Error Middleware', () => {
       },
       user: { id: 'test-user-id' },
     };
-    
+
     mockResponse = createMockResponse();
     mockNext = createMockNext();
   });
@@ -200,7 +200,7 @@ describe('Error Middleware', () => {
           error: expect.objectContaining({
             stack: expect.any(String),
           }),
-        })
+        }),
       );
 
       process.env.NODE_ENV = originalEnv;
@@ -230,7 +230,7 @@ describe('Error Middleware', () => {
           error: expect.objectContaining({
             message: 'Internal server error',
           }),
-        })
+        }),
       );
     });
 

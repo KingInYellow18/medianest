@@ -41,7 +41,7 @@ describe('HealthController', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     controller = new HealthController();
-    
+
     mockRequest = {};
     mockResponse = {
       status: vi.fn().mockReturnThis(),
@@ -91,7 +91,7 @@ describe('HealthController', () => {
       expect(mockResponse.json).toHaveBeenCalledWith(
         expect.objectContaining({
           version: '2.1.0',
-        })
+        }),
       );
 
       // Restore original value
@@ -111,7 +111,7 @@ describe('HealthController', () => {
       expect(mockResponse.json).toHaveBeenCalledWith(
         expect.objectContaining({
           version: '1.0.0',
-        })
+        }),
       );
 
       // Restore original value if it existed
@@ -129,7 +129,7 @@ describe('HealthController', () => {
       expect(mockResponse.json).toHaveBeenCalledWith(
         expect.objectContaining({
           environment: 'production',
-        })
+        }),
       );
 
       // Restore original value
@@ -154,7 +154,7 @@ describe('HealthController', () => {
         expect.objectContaining({
           status: 'ok',
           warning: 'Health check completed with warnings',
-        })
+        }),
       );
     });
 
@@ -172,7 +172,10 @@ describe('HealthController', () => {
       await controller.getHealth(mockRequest as Request, mockResponse as Response);
 
       expect(logger.error).toHaveBeenCalledWith('Health check failed', expect.any(Object));
-      expect(logger.error).toHaveBeenCalledWith('Secondary health check failure', expect.any(Object));
+      expect(logger.error).toHaveBeenCalledWith(
+        'Secondary health check failure',
+        expect.any(Object),
+      );
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.send).toHaveBeenCalledWith('OK');
     });
@@ -264,7 +267,7 @@ describe('HealthController', () => {
               responseTime: expect.any(Number),
             },
           }),
-        })
+        }),
       );
     });
 
@@ -291,7 +294,7 @@ describe('HealthController', () => {
               responseTime: null,
             },
           }),
-        })
+        }),
       );
     });
 
@@ -318,7 +321,7 @@ describe('HealthController', () => {
               responseTime: null,
             },
           }),
-        })
+        }),
       );
 
       expect(logger.error).toHaveBeenCalledWith('Database health check failed', expect.any(Object));
@@ -341,14 +344,14 @@ describe('HealthController', () => {
           heapTotal: expect.any(Number),
           heapUsed: expect.any(Number),
           external: expect.any(Number),
-        })
+        }),
       );
 
       expect(metrics.cpu).toEqual(
         expect.objectContaining({
           user: expect.any(Number),
           system: expect.any(Number),
-        })
+        }),
       );
 
       expect(metrics.uptime).toBe(86400);
@@ -372,7 +375,7 @@ describe('HealthController', () => {
               responseTime: null,
             },
           }),
-        })
+        }),
       );
     });
 
@@ -382,12 +385,12 @@ describe('HealthController', () => {
 
       // Mock database with delay
       mockPrisma.$queryRaw.mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve([{ result: 1 }]), dbDelay))
+        () => new Promise((resolve) => setTimeout(() => resolve([{ result: 1 }]), dbDelay)),
       );
 
       // Mock Redis with delay
       (redisClient.ping as Mock).mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve('PONG'), redisDelay))
+        () => new Promise((resolve) => setTimeout(() => resolve('PONG'), redisDelay)),
       );
 
       await controller.getMetrics(mockRequest as Request, mockResponse as Response);

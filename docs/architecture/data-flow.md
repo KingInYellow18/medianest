@@ -184,18 +184,18 @@ flowchart TD
     YOUTUBE_REPO --> POSTGRES
     SERVICE_REPO --> POSTGRES
     ERROR_REPO --> POSTGRES
-    
+
     CACHE_SVC --> REDIS
     AUTH_SVC --> REDIS
     RATE_LIMIT --> REDIS
-    
+
     YOUTUBE_SVC --> FILES
 
     %% Real-time Communication
     NOTIF_SVC --> NOTIFICATION_QUEUE
     NOTIFICATION_QUEUE --> SOCKET_SERVER
     SOCKET_SERVER --> WEB
-    
+
     BG_JOBS --> YOUTUBE_SVC
     BG_JOBS --> MEDIA_SVC
 
@@ -451,19 +451,19 @@ flowchart TD
 
     %% User Flow
     YT_FORM --> YT_ENDPOINT
-    
+
     %% API Gateway
     YT_ENDPOINT --> AUTH_CHECK
     AUTH_CHECK --> RATE_LIMIT_CHECK
     RATE_LIMIT_CHECK --> INPUT_VALIDATION
     INPUT_VALIDATION --> YT_SERVICE
-    
+
     %% Business Logic
     YT_SERVICE --> URL_PROCESSOR
     URL_PROCESSOR --> METADATA_EXTRACTOR
     METADATA_EXTRACTOR --> DUPLICATE_CHECKER
     DUPLICATE_CHECKER --> QUEUE_MANAGER
-    
+
     %% Background Processing
     QUEUE_MANAGER --> JOB_SCHEDULER
     JOB_SCHEDULER --> DOWNLOAD_WORKER
@@ -471,27 +471,27 @@ flowchart TD
     YT_DLP_ENGINE --> PROGRESS_TRACKER
     YT_DLP_ENGINE --> QUALITY_SELECTOR
     YT_DLP_ENGINE --> SUBTITLE_PROCESSOR
-    
+
     %% File Processing
     SUBTITLE_PROCESSOR --> TEMP_STORAGE
     TEMP_STORAGE --> FILE_PROCESSOR
     FILE_PROCESSOR --> FORMAT_CONVERTER
     FORMAT_CONVERTER --> FILE_MOVER
     FILE_MOVER --> CLEANUP_SERVICE
-    
+
     %% Plex Integration
     FILE_MOVER --> COLLECTION_MANAGER
     COLLECTION_MANAGER --> METADATA_UPDATER
     METADATA_UPDATER --> LIBRARY_SCANNER
     LIBRARY_SCANNER --> THUMBNAIL_GENERATOR
-    
+
     %% Data Management
     YT_SERVICE --> DOWNLOAD_REPO
     PROGRESS_TRACKER --> PROGRESS_CACHE
     METADATA_EXTRACTOR --> METADATA_CACHE
     DOWNLOAD_WORKER --> ERROR_LOGGER
     YT_SERVICE --> AUDIT_LOGGER
-    
+
     %% Notifications
     PROGRESS_TRACKER --> NOTIF_ENGINE
     THUMBNAIL_GENERATOR --> NOTIF_ENGINE
@@ -499,19 +499,19 @@ flowchart TD
     NOTIF_ENGINE --> WEBSOCKET_NOTIF
     NOTIF_ENGINE --> EMAIL_NOTIF
     NOTIF_ENGINE --> WEBHOOK_NOTIF
-    
+
     %% UI Updates
     WEBSOCKET_NOTIF --> PROGRESS_UI
     WEBSOCKET_NOTIF --> COMPLETION_UI
     WEBSOCKET_NOTIF --> ERROR_UI
-    
+
     %% Storage
     DOWNLOAD_REPO --> POSTGRES_DB
     PROGRESS_CACHE --> REDIS_CACHE
     METADATA_CACHE --> REDIS_CACHE
     TEMP_STORAGE --> FILE_STORAGE
     FILE_MOVER --> FILE_STORAGE
-    
+
     %% Monitoring
     DOWNLOAD_WORKER --> PERF_MONITOR
     ERROR_LOGGER --> ERROR_TRACKER
@@ -1042,24 +1042,24 @@ flowchart LR
     WEB_APP -->|Commands| CMD_API
     MOBILE_APP -->|Commands| CMD_API
     API_CLIENTS -->|Commands| CMD_API
-    
+
     CMD_API --> CMD_HANDLERS
     CMD_HANDLERS --> DOMAIN_MODELS
     DOMAIN_MODELS --> EVENT_SOURCING
     EVENT_SOURCING --> WRITE_DB
-    
+
     %% Event Flow
     EVENT_SOURCING --> EVENT_BUS
     EVENT_BUS --> EVENT_PROJECTOR
     EVENT_PROJECTOR --> read_MODELS
     read_MODELS --> MATERIALIZED_VIEWS
     MATERIALIZED_VIEWS --> READ_DB
-    
+
     %% Query Flow
     WEB_APP -->|Queries| QUERY_API
     MOBILE_APP -->|Queries| QUERY_API
     API_CLIENTS -->|Queries| QUERY_API
-    
+
     QUERY_API --> QUERY_HANDLERS
     QUERY_HANDLERS --> READ_DB
 
@@ -1098,7 +1098,7 @@ sequenceDiagram
         MS->>DB: Update status = 'failed'
         MS->>NS: Notify user of failure
     end
-    
+
     Note over MS,NS: Plex Integration (Eventual)
     OS->>PS: Media downloaded
     PS->>OS: Confirm addition
@@ -1122,11 +1122,11 @@ sequenceDiagram
     AS->>DB: INSERT session token
     AS->>DB: UPDATE rate limits
     AS->>DB: COMMIT TRANSACTION
-    
+
     Note over AS,SS: Cache updates after DB commit
     AS->>RC: Cache user session
     AS->>RC: Cache rate limit data
     AS->>SS: Update user socket rooms
-    
+
     Note over AS,SS: All operations must succeed together
 ```

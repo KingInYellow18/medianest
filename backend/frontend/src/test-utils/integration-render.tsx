@@ -18,12 +18,12 @@ interface IntegrationProviderProps {
   userRole?: 'admin' | 'user';
 }
 
-export const IntegrationProvider = ({ 
+export const IntegrationProvider = ({
   children,
   initialAppState = {},
   enableWebSocket = false,
   mockAuthentication = false,
-  userRole = 'user'
+  userRole = 'user',
 }: IntegrationProviderProps) => {
   // Set up authenticated user if requested
   React.useEffect(() => {
@@ -38,19 +38,21 @@ export const IntegrationProvider = ({
   }, [mockAuthentication, userRole]);
 
   // Default authenticated state for integration tests
-  const defaultAuthState = mockAuthentication ? {
-    user: {
-      id: userRole === 'admin' ? 'admin-456' : 'user-123',
-      email: userRole === 'admin' ? 'admin@medianest.com' : 'test@medianest.com',
-      name: userRole === 'admin' ? 'Admin User' : 'Test User',
-      role: userRole,
-    },
-    session: {
-      id: 'session-123',
-      isAuthenticated: true,
-      expiresAt: new Date(Date.now() + 3600000), // 1 hour from now
-    },
-  } : {};
+  const defaultAuthState = mockAuthentication
+    ? {
+        user: {
+          id: userRole === 'admin' ? 'admin-456' : 'user-123',
+          email: userRole === 'admin' ? 'admin@medianest.com' : 'test@medianest.com',
+          name: userRole === 'admin' ? 'Admin User' : 'Test User',
+          role: userRole,
+        },
+        session: {
+          id: 'session-123',
+          isAuthenticated: true,
+          expiresAt: new Date(Date.now() + 3600000), // 1 hour from now
+        },
+      }
+    : {};
 
   const mergedInitialState = {
     ...defaultAuthState,
@@ -58,10 +60,8 @@ export const IntegrationProvider = ({
   };
 
   return (
-    <div data-testid="integration-test-wrapper">
-      <AppProvider initialState={mergedInitialState}>
-        {children}
-      </AppProvider>
+    <div data-testid='integration-test-wrapper'>
+      <AppProvider initialState={mergedInitialState}>{children}</AppProvider>
     </div>
   );
 };
@@ -74,7 +74,7 @@ export const renderIntegration = (
     enableWebSocket?: boolean;
     mockAuthentication?: boolean;
     userRole?: 'admin' | 'user';
-  } = {}
+  } = {},
 ) => {
   const {
     initialAppState,
@@ -107,7 +107,7 @@ export const renderIntegration = (
 export const renderWithAuth = (
   ui: ReactElement,
   userRole: 'admin' | 'user' = 'user',
-  options: RenderOptions = {}
+  options: RenderOptions = {},
 ) => {
   return renderIntegration(ui, {
     mockAuthentication: true,
@@ -116,10 +116,7 @@ export const renderWithAuth = (
   });
 };
 
-export const renderWithoutAuth = (
-  ui: ReactElement,
-  options: RenderOptions = {}
-) => {
+export const renderWithoutAuth = (ui: ReactElement, options: RenderOptions = {}) => {
   return renderIntegration(ui, {
     mockAuthentication: false,
     ...options,
@@ -129,7 +126,7 @@ export const renderWithoutAuth = (
 export const renderWithWebSocket = (
   ui: ReactElement,
   authenticated = true,
-  options: RenderOptions = {}
+  options: RenderOptions = {},
 ) => {
   return renderIntegration(ui, {
     enableWebSocket: true,
@@ -149,7 +146,7 @@ export const createMockApiError = (
   message = 'API Error',
   code = 'API_ERROR',
   status = 500,
-  delay = 200
+  delay = 200,
 ) => {
   return new Promise<never>((_, reject) => {
     setTimeout(() => {
@@ -166,18 +163,18 @@ export const createMockApiError = (
 // Integration test assertion helpers
 export const waitForApiCall = async (expectedUrl: string, timeout = 5000) => {
   const startTime = Date.now();
-  
+
   return new Promise<void>((resolve, reject) => {
     const checkInterval = setInterval(() => {
       const mockState = mswUtils.getMockState();
-      
+
       // This is a simplified check - in a real implementation,
       // you'd want to track actual API calls made through your HTTP client
       if (Date.now() - startTime > timeout) {
         clearInterval(checkInterval);
         reject(new Error(`API call to ${expectedUrl} not made within ${timeout}ms`));
       }
-      
+
       // For now, just resolve after a short delay to simulate the check
       if (Date.now() - startTime > 100) {
         clearInterval(checkInterval);
@@ -189,14 +186,14 @@ export const waitForApiCall = async (expectedUrl: string, timeout = 5000) => {
 
 export const waitForWebSocketConnection = async (timeout = 3000) => {
   const startTime = Date.now();
-  
+
   return new Promise<void>((resolve, reject) => {
     const checkInterval = setInterval(() => {
       if (Date.now() - startTime > timeout) {
         clearInterval(checkInterval);
         reject(new Error(`WebSocket connection not established within ${timeout}ms`));
       }
-      
+
       // In a real implementation, check if WebSocket is connected
       // For now, simulate connection after short delay
       if (Date.now() - startTime > 500) {
@@ -224,12 +221,12 @@ export const expectSuccessState = (container: HTMLElement) => {
 export const simulateLogin = async (
   user: ReturnType<typeof userEvent.setup>,
   email = 'test@medianest.com',
-  password = 'password123'
+  password = 'password123',
 ) => {
   const emailInput = document.querySelector('input[type="email"], input[name="email"]');
   const passwordInput = document.querySelector('input[type="password"], input[name="password"]');
   const submitButton = document.querySelector('button[type="submit"], button:contains("Login")');
-  
+
   if (emailInput && passwordInput && submitButton) {
     await user.type(emailInput as HTMLElement, email);
     await user.type(passwordInput as HTMLElement, password);
@@ -239,9 +236,9 @@ export const simulateLogin = async (
 
 export const simulateLogout = async (user: ReturnType<typeof userEvent.setup>) => {
   const logoutButton = document.querySelector(
-    'button:contains("Logout"), button:contains("Sign out"), [data-testid="logout-button"]'
+    'button:contains("Logout"), button:contains("Sign out"), [data-testid="logout-button"]',
   );
-  
+
   if (logoutButton) {
     await user.click(logoutButton as HTMLElement);
   }
@@ -250,7 +247,7 @@ export const simulateLogout = async (user: ReturnType<typeof userEvent.setup>) =
 // Service management test helpers
 export const simulateServiceTest = async (
   user: ReturnType<typeof userEvent.setup>,
-  serviceId: string
+  serviceId: string,
 ) => {
   const testButton = document.querySelector(`[data-testid="test-service-${serviceId}"]`);
   if (testButton) {

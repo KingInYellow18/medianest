@@ -52,11 +52,14 @@ let isolatedMocks: IsolatedValidationMocks;
 
 // Mock dependencies with proper isolation
 vi.mock('@/utils/logger', () => ({
-  logger: new Proxy({}, {
-    get: (target, prop) => {
-      return isolatedMocks?.logger?.[prop] || vi.fn();
-    }
-  }),
+  logger: new Proxy(
+    {},
+    {
+      get: (target, prop) => {
+        return isolatedMocks?.logger?.[prop] || vi.fn();
+      },
+    },
+  ),
 }));
 
 describe('Validation Middleware', () => {
@@ -66,15 +69,15 @@ describe('Validation Middleware', () => {
 
   beforeEach(async () => {
     // CRITICAL: Complete test isolation for each test
-    
+
     // 1. Create completely fresh isolated mocks - no shared state
     isolatedMocks = new IsolatedValidationMocks();
-    
+
     // 2. AGGRESSIVE mock clearing to prevent cross-test contamination
     vi.clearAllMocks();
     vi.resetAllMocks();
     vi.restoreAllMocks();
-    
+
     // 3. Set up fresh request/response mocks
     mockRequest = {
       body: {},
@@ -86,9 +89,9 @@ describe('Validation Middleware', () => {
       json: vi.fn().mockReturnThis(),
     };
     mockNext = vi.fn();
-    
+
     // 4. Allow a small delay for mock setup to complete
-    await new Promise(resolve => setTimeout(resolve, 1));
+    await new Promise((resolve) => setTimeout(resolve, 1));
   });
 
   afterEach(() => {
@@ -168,7 +171,7 @@ describe('Validation Middleware', () => {
               message: 'Required',
             }),
           ]),
-        })
+        }),
       );
     });
 
@@ -201,10 +204,12 @@ describe('Validation Middleware', () => {
 
     it('should handle array validation', async () => {
       const schema = z.object({
-        items: z.array(z.object({
-          id: z.string(),
-          quantity: z.number().min(1),
-        })),
+        items: z.array(
+          z.object({
+            id: z.string(),
+            quantity: z.number().min(1),
+          }),
+        ),
       });
 
       mockRequest.body = {
@@ -261,8 +266,15 @@ describe('Validation Middleware', () => {
 
     it('should handle boolean query parameters', async () => {
       const schema = z.object({
-        active: z.string().transform(val => val === 'true').pipe(z.boolean()),
-        includeDeleted: z.string().transform(val => val === 'true').pipe(z.boolean()).optional(),
+        active: z
+          .string()
+          .transform((val) => val === 'true')
+          .pipe(z.boolean()),
+        includeDeleted: z
+          .string()
+          .transform((val) => val === 'true')
+          .pipe(z.boolean())
+          .optional(),
       });
 
       mockRequest.query = {
@@ -447,7 +459,7 @@ describe('Validation Middleware', () => {
             field: 'age',
             message: expect.stringContaining('greater than or equal to 0'),
           }),
-        ])
+        ]),
       );
     });
 
@@ -488,8 +500,11 @@ describe('Validation Middleware', () => {
     it('should transform and coerce data types', async () => {
       const schema = z.object({
         age: z.string().transform(Number).pipe(z.number()),
-        active: z.string().transform(val => val === 'true').pipe(z.boolean()),
-        tags: z.string().transform(val => val.split(',')),
+        active: z
+          .string()
+          .transform((val) => val === 'true')
+          .pipe(z.boolean()),
+        tags: z.string().transform((val) => val.split(',')),
       });
 
       mockRequest.query = {
@@ -511,7 +526,7 @@ describe('Validation Middleware', () => {
 
     it('should handle transformation errors', async () => {
       const schema = z.object({
-        date: z.string().transform(val => {
+        date: z.string().transform((val) => {
           const date = new Date(val);
           if (isNaN(date.getTime())) {
             throw new Error('Invalid date');

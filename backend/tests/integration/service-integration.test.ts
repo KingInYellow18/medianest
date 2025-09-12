@@ -1,6 +1,6 @@
 /**
  * MediaNest Service Integration Tests
- * 
+ *
  * Tests integration between different services and components:
  * - Docker container orchestration
  * - Database connectivity and transactions
@@ -33,7 +33,7 @@ describe('MediaNest Service Integration Tests', () => {
   let redisHelper: RedisTestHelper;
   let fileHelper: FileTestHelper;
   let wsHelper: WebSocketTestHelper;
-  
+
   // Service containers
   let containers: { [key: string]: any } = {};
   let services: { [key: string]: ChildProcess } = {};
@@ -51,66 +51,66 @@ describe('MediaNest Service Integration Tests', () => {
         env: [
           'POSTGRES_DB=medianest_test',
           'POSTGRES_USER=medianest',
-          'POSTGRES_PASSWORD=medianest_password'
-        ]
+          'POSTGRES_PASSWORD=medianest_password',
+        ],
       },
       redis: {
         image: 'redis:7-alpine',
         name: 'medianest-test-redis',
         ports: { '6379/tcp': 6380 },
-        env: []
-      }
-    }
+        env: [],
+      },
+    },
   };
 
   beforeAll(async () => {
     console.log('🚀 Setting up service integration test environment...');
-    
+
     // Initialize Docker client
     docker = new Docker();
-    
+
     // Start test containers
     await startTestContainers();
-    
+
     // Wait for services to be ready
     await waitForServices();
-    
+
     // Initialize database and Redis connections
     prisma = new PrismaClient({
-      datasources: { db: { url: TEST_CONFIG.dbUrl } }
+      datasources: { db: { url: TEST_CONFIG.dbUrl } },
     });
     redis = new Redis(TEST_CONFIG.redisUrl);
-    
+
     // Initialize test helpers
     dbHelper = new DatabaseTestHelper(prisma);
     redisHelper = new RedisTestHelper(redis);
     fileHelper = new FileTestHelper(TEST_CONFIG.uploadDir);
     wsHelper = new WebSocketTestHelper(TEST_CONFIG.baseUrl);
-    
+
     // Setup test environment
     await dbHelper.setupTestDatabase();
     await redisHelper.clearTestData();
     await fileHelper.setupTestDirectories();
-    
+
     console.log('✅ Service integration test environment ready');
   });
 
   afterAll(async () => {
     console.log('🧹 Cleaning up service integration test environment...');
-    
+
     // Cleanup helpers
     await dbHelper?.cleanup();
     await redisHelper?.cleanup();
     await fileHelper?.cleanup();
     await wsHelper?.cleanup();
-    
+
     // Disconnect from services
     await prisma?.$disconnect();
     await redis?.quit();
-    
+
     // Stop and remove test containers
     await stopTestContainers();
-    
+
     console.log('✅ Service integration test environment cleaned');
   });
 
@@ -122,7 +122,7 @@ describe('MediaNest Service Integration Tests', () => {
 
   async function startTestContainers() {
     console.log('Starting test containers...');
-    
+
     for (const [name, config] of Object.entries(TEST_CONFIG.containers)) {
       try {
         // Check if container already exists
@@ -152,8 +152,8 @@ describe('MediaNest Service Integration Tests', () => {
             PortBindings: Object.keys(config.ports).reduce((acc, containerPort) => {
               acc[containerPort] = [{ HostPort: config.ports[containerPort].toString() }];
               return acc;
-            }, {} as any)
-          }
+            }, {} as any),
+          },
         });
 
         await container.start();
@@ -179,14 +179,14 @@ describe('MediaNest Service Integration Tests', () => {
 
   async function waitForServices() {
     console.log('⏳ Waiting for services to be ready...');
-    
+
     // Wait for PostgreSQL
     let pgReady = false;
     let pgRetries = 30;
     while (!pgReady && pgRetries > 0) {
       try {
         const testPrisma = new PrismaClient({
-          datasources: { db: { url: TEST_CONFIG.dbUrl } }
+          datasources: { db: { url: TEST_CONFIG.dbUrl } },
         });
         await testPrisma.$queryRaw`SELECT 1`;
         await testPrisma.$disconnect();
@@ -194,10 +194,10 @@ describe('MediaNest Service Integration Tests', () => {
         console.log('🐘 PostgreSQL ready');
       } catch (error) {
         pgRetries--;
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }
-    
+
     if (!pgReady) {
       throw new Error('PostgreSQL failed to start');
     }
@@ -214,10 +214,10 @@ describe('MediaNest Service Integration Tests', () => {
         console.log('🔴 Redis ready');
       } catch (error) {
         redisRetries--;
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }
-    
+
     if (!redisReady) {
       throw new Error('Redis failed to start');
     }
@@ -236,32 +236,32 @@ describe('MediaNest Service Integration Tests', () => {
       // Test container networking
       const postgresInfo = await containers.postgres.inspect();
       const redisInfo = await containers.redis.inspect();
-      
+
       expect(postgresInfo.NetworkSettings.Ports['5432/tcp']).toBeTruthy();
       expect(redisInfo.NetworkSettings.Ports['6379/tcp']).toBeTruthy();
-      
+
       console.log('✅ Container networking configured correctly');
     });
 
     test('should handle container restart scenarios', async () => {
       // Test PostgreSQL restart
       await containers.postgres.restart();
-      
+
       // Wait for service to be ready again
       await waitForServices();
-      
+
       // Verify database connection works after restart
       await prisma.$queryRaw`SELECT 1`;
-      
+
       console.log('✅ PostgreSQL restart handling works correctly');
 
       // Test Redis restart
       await containers.redis.restart();
       await waitForServices();
-      
+
       // Verify Redis connection works after restart
       await redis.ping();
-      
+
       console.log('✅ Redis restart handling works correctly');
     });
 
@@ -273,8 +273,8 @@ describe('MediaNest Service Integration Tests', () => {
           plexUsername: 'restarttest',
           email: 'restart@test.com',
           role: 'user',
-          status: 'active'
-        }
+          status: 'active',
+        },
       });
 
       const testKey = 'restart-test-key';
@@ -288,15 +288,15 @@ describe('MediaNest Service Integration Tests', () => {
       // Recreate connections
       await prisma.$disconnect();
       await redis.quit();
-      
+
       prisma = new PrismaClient({
-        datasources: { db: { url: TEST_CONFIG.dbUrl } }
+        datasources: { db: { url: TEST_CONFIG.dbUrl } },
       });
       redis = new Redis(TEST_CONFIG.redisUrl);
 
       // Verify data persistence
       const persistedUser = await prisma.user.findUnique({
-        where: { plexId: 'restart-test-user' }
+        where: { plexId: 'restart-test-user' },
       });
       expect(persistedUser).toBeTruthy();
       expect(persistedUser!.plexUsername).toBe('restarttest');
@@ -317,8 +317,8 @@ describe('MediaNest Service Integration Tests', () => {
             plexUsername: 'txtest',
             email: 'tx@test.com',
             role: 'user',
-            status: 'active'
-          }
+            status: 'active',
+          },
         });
 
         // Create media record
@@ -328,8 +328,8 @@ describe('MediaNest Service Integration Tests', () => {
             mediaType: 'movie',
             title: 'Transaction Test Movie',
             overview: 'Test movie for transaction',
-            status: 'available'
-          }
+            status: 'available',
+          },
         });
 
         // Create media request
@@ -338,8 +338,8 @@ describe('MediaNest Service Integration Tests', () => {
             userId: user.id,
             mediaId: media.id,
             status: 'pending',
-            quality: 'HD'
-          }
+            quality: 'HD',
+          },
         });
 
         return { user, media, request };
@@ -353,7 +353,7 @@ describe('MediaNest Service Integration Tests', () => {
       // Verify relationships
       const requestWithRelations = await prisma.mediaRequest.findUnique({
         where: { id: transactionTest.request.id },
-        include: { user: true, media: true }
+        include: { user: true, media: true },
       });
 
       expect(requestWithRelations!.user.id).toBe(transactionTest.user.id);
@@ -370,13 +370,13 @@ describe('MediaNest Service Integration Tests', () => {
             plexUsername: `concurrent${i}`,
             email: `concurrent${i}@test.com`,
             role: 'user',
-            status: 'active'
-          }
-        })
+            status: 'active',
+          },
+        }),
       );
 
       const results = await Promise.all(concurrentOps);
-      
+
       expect(results).toHaveLength(10);
       results.forEach((user, index) => {
         expect(user.plexUsername).toBe(`concurrent${index}`);
@@ -393,8 +393,8 @@ describe('MediaNest Service Integration Tests', () => {
           plexUsername: 'integritytest',
           email: 'integrity@test.com',
           role: 'user',
-          status: 'active'
-        }
+          status: 'active',
+        },
       });
 
       const media = await prisma.media.create({
@@ -403,8 +403,8 @@ describe('MediaNest Service Integration Tests', () => {
           mediaType: 'movie',
           title: 'Integrity Test Movie',
           overview: 'Test movie for integrity',
-          status: 'available'
-        }
+          status: 'available',
+        },
       });
 
       const request = await prisma.mediaRequest.create({
@@ -412,14 +412,12 @@ describe('MediaNest Service Integration Tests', () => {
           userId: user.id,
           mediaId: media.id,
           status: 'pending',
-          quality: 'HD'
-        }
+          quality: 'HD',
+        },
       });
 
       // Try to delete referenced user (should fail)
-      await expect(
-        prisma.user.delete({ where: { id: user.id } })
-      ).rejects.toThrow();
+      await expect(prisma.user.delete({ where: { id: user.id } })).rejects.toThrow();
 
       // Delete request first, then user should work
       await prisma.mediaRequest.delete({ where: { id: request.id } });
@@ -427,7 +425,7 @@ describe('MediaNest Service Integration Tests', () => {
 
       // Verify deletion
       const deletedUser = await prisma.user.findUnique({
-        where: { id: user.id }
+        where: { id: user.id },
       });
       expect(deletedUser).toBeNull();
 
@@ -442,7 +440,7 @@ describe('MediaNest Service Integration Tests', () => {
         userId,
         role: 'user',
         loginTime: new Date().toISOString(),
-        lastActivity: new Date().toISOString()
+        lastActivity: new Date().toISOString(),
       };
 
       // Create session
@@ -452,15 +450,15 @@ describe('MediaNest Service Integration Tests', () => {
       // Verify session exists
       const storedSession = await redis.get(sessionKey);
       expect(storedSession).toBeTruthy();
-      
+
       const parsedSession = JSON.parse(storedSession!);
       expect(parsedSession.userId).toBe(userId);
       expect(parsedSession.role).toBe('user');
 
       // Test session expiration
       await redis.expire(sessionKey, 1);
-      await new Promise(resolve => setTimeout(resolve, 1100));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1100));
+
       const expiredSession = await redis.get(sessionKey);
       expect(expiredSession).toBeNull();
 
@@ -477,13 +475,13 @@ describe('MediaNest Service Integration Tests', () => {
       // Verify cache hit
       const cachedResult = await redis.get(cacheKey);
       expect(cachedResult).toBeTruthy();
-      
+
       const parsedResult = JSON.parse(cachedResult!);
       expect(parsedResult.message).toBe('cached data');
 
       // Wait for expiration
-      await new Promise(resolve => setTimeout(resolve, 2100));
-      
+      await new Promise((resolve) => setTimeout(resolve, 2100));
+
       const expiredResult = await redis.get(cacheKey);
       expect(expiredResult).toBeNull();
 
@@ -495,7 +493,7 @@ describe('MediaNest Service Integration Tests', () => {
       const subscriber = new Redis(TEST_CONFIG.redisUrl);
 
       const messages: any[] = [];
-      
+
       // Subscribe to test channel
       await subscriber.subscribe('test-channel');
       subscriber.on('message', (channel, message) => {
@@ -505,12 +503,12 @@ describe('MediaNest Service Integration Tests', () => {
       // Publish test messages
       const testMessage1 = { type: 'test', data: 'message 1' };
       const testMessage2 = { type: 'test', data: 'message 2' };
-      
+
       await publisher.publish('test-channel', JSON.stringify(testMessage1));
       await publisher.publish('test-channel', JSON.stringify(testMessage2));
 
       // Wait for messages to be received
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       expect(messages).toHaveLength(2);
       expect(messages[0].message.data).toBe('message 1');
@@ -538,7 +536,7 @@ describe('MediaNest Service Integration Tests', () => {
         size: testContent.length,
         mimetype: 'text/plain',
         path: testFilePath,
-        userId: 'upload-test-user'
+        userId: 'upload-test-user',
       };
 
       // Store metadata in database
@@ -549,8 +547,8 @@ describe('MediaNest Service Integration Tests', () => {
           size: fileMetadata.size,
           mimetype: fileMetadata.mimetype,
           path: fileMetadata.path,
-          userId: fileMetadata.userId
-        }
+          userId: fileMetadata.userId,
+        },
       });
 
       // Verify file exists and metadata is correct
@@ -575,7 +573,7 @@ describe('MediaNest Service Integration Tests', () => {
       const buffer = await fs.readFile(testFilePath);
       const chunks = [];
       const chunkSize = 10;
-      
+
       for (let i = 0; i < buffer.length; i += chunkSize) {
         chunks.push(buffer.slice(i, i + chunkSize));
       }
@@ -590,7 +588,7 @@ describe('MediaNest Service Integration Tests', () => {
       // Create large test file (1MB)
       const largeFilePath = path.join(TEST_CONFIG.uploadDir, 'large-test.txt');
       const largeContent = 'A'.repeat(1024 * 1024); // 1MB of 'A's
-      
+
       const startTime = Date.now();
       await fs.writeFile(largeFilePath, largeContent);
       const writeTime = Date.now() - startTime;
@@ -608,17 +606,19 @@ describe('MediaNest Service Integration Tests', () => {
       expect(writeTime).toBeLessThan(5000); // Should complete within 5 seconds
       expect(readTime).toBeLessThan(5000);
 
-      console.log(`✅ Large file operations completed (write: ${writeTime}ms, read: ${readTime}ms)`);
+      console.log(
+        `✅ Large file operations completed (write: ${writeTime}ms, read: ${readTime}ms)`,
+      );
     });
   });
 
   describe('WebSocket Real-time Communication', () => {
     test('should establish WebSocket connections correctly', async () => {
       const wsUrl = `ws://localhost:3001/ws`;
-      
+
       // Create WebSocket connection
       const ws = new WebSocket(wsUrl);
-      
+
       await new Promise((resolve, reject) => {
         ws.on('open', resolve);
         ws.on('error', reject);
@@ -639,7 +639,7 @@ describe('MediaNest Service Integration Tests', () => {
 
       expect(receivedMessage).toMatchObject({
         type: 'echo',
-        data: testMessage
+        data: testMessage,
       });
 
       ws.close();
@@ -649,12 +649,12 @@ describe('MediaNest Service Integration Tests', () => {
     test('should broadcast messages to multiple clients', async () => {
       const wsUrl = `ws://localhost:3001/ws`;
       const clients: WebSocket[] = [];
-      
+
       // Create multiple WebSocket connections
       for (let i = 0; i < 3; i++) {
         const ws = new WebSocket(wsUrl);
         clients.push(ws);
-        
+
         await new Promise((resolve, reject) => {
           ws.on('open', resolve);
           ws.on('error', reject);
@@ -664,46 +664,47 @@ describe('MediaNest Service Integration Tests', () => {
 
       // Test broadcast message
       const broadcastMessage = { type: 'broadcast', data: 'message to all' };
-      
+
       // Send broadcast from first client
       clients[0].send(JSON.stringify(broadcastMessage));
 
       // Verify all clients receive the message
       const receivedMessages = await Promise.all(
-        clients.slice(1).map(client => 
-          new Promise((resolve, reject) => {
-            client.on('message', (data) => {
-              resolve(JSON.parse(data.toString()));
-            });
-            setTimeout(() => reject(new Error('Broadcast receive timeout')), 2000);
-          })
-        )
+        clients.slice(1).map(
+          (client) =>
+            new Promise((resolve, reject) => {
+              client.on('message', (data) => {
+                resolve(JSON.parse(data.toString()));
+              });
+              setTimeout(() => reject(new Error('Broadcast receive timeout')), 2000);
+            }),
+        ),
       );
 
-      receivedMessages.forEach(message => {
+      receivedMessages.forEach((message) => {
         expect(message).toMatchObject({
           type: 'broadcast',
-          data: 'message to all'
+          data: 'message to all',
         });
       });
 
       // Cleanup connections
-      clients.forEach(client => client.close());
+      clients.forEach((client) => client.close());
       console.log('✅ WebSocket broadcasting working correctly');
     });
 
     test('should handle WebSocket authentication', async () => {
       const wsUrl = `ws://localhost:3001/ws`;
-      
+
       // Test connection without auth (should fail or have limited access)
       const unauthWs = new WebSocket(wsUrl);
-      
+
       await new Promise((resolve) => {
         unauthWs.on('open', () => {
           // Send message requiring authentication
           unauthWs.send(JSON.stringify({ type: 'auth-required', data: 'test' }));
         });
-        
+
         unauthWs.on('message', (data) => {
           const message = JSON.parse(data.toString());
           expect(message.type).toBe('auth-error');
@@ -716,7 +717,7 @@ describe('MediaNest Service Integration Tests', () => {
       // Test connection with auth
       const authToken = 'test-auth-token';
       const authWs = new WebSocket(`${wsUrl}?token=${authToken}`);
-      
+
       await new Promise((resolve, reject) => {
         authWs.on('open', resolve);
         authWs.on('error', reject);
@@ -725,7 +726,7 @@ describe('MediaNest Service Integration Tests', () => {
 
       // Send authenticated message
       authWs.send(JSON.stringify({ type: 'auth-required', data: 'authenticated test' }));
-      
+
       const authResponse = await new Promise((resolve) => {
         authWs.on('message', (data) => {
           resolve(JSON.parse(data.toString()));
@@ -734,7 +735,7 @@ describe('MediaNest Service Integration Tests', () => {
 
       expect(authResponse).toMatchObject({
         type: 'auth-success',
-        data: expect.any(Object)
+        data: expect.any(Object),
       });
 
       authWs.close();
@@ -746,29 +747,28 @@ describe('MediaNest Service Integration Tests', () => {
     test('should integrate with TMDB API correctly', async () => {
       // Test movie search
       const searchQuery = 'The Matrix';
-      const tmdbResponse = await axios.get(
-        `https://api.themoviedb.org/3/search/movie`,
-        {
+      const tmdbResponse = await axios
+        .get(`https://api.themoviedb.org/3/search/movie`, {
           params: {
             api_key: process.env.TMDB_API_KEY || 'test-api-key',
-            query: searchQuery
+            query: searchQuery,
           },
-          timeout: 5000
-        }
-      ).catch(() => null); // Handle API key issues in test environment
+          timeout: 5000,
+        })
+        .catch(() => null); // Handle API key issues in test environment
 
       if (tmdbResponse) {
         expect(tmdbResponse.status).toBe(200);
         expect(tmdbResponse.data.results).toBeTruthy();
         expect(tmdbResponse.data.results.length).toBeGreaterThan(0);
-        
+
         const firstResult = tmdbResponse.data.results[0];
         expect(firstResult).toMatchObject({
           id: expect.any(Number),
           title: expect.any(String),
-          overview: expect.any(String)
+          overview: expect.any(String),
         });
-        
+
         console.log('✅ TMDB API integration working correctly');
       } else {
         console.log('⚠️  TMDB API test skipped (no API key configured)');
@@ -779,7 +779,7 @@ describe('MediaNest Service Integration Tests', () => {
       // Test with invalid API endpoint
       try {
         await axios.get('https://api.invalid-service.com/test', {
-          timeout: 2000
+          timeout: 2000,
         });
       } catch (error) {
         expect(error).toBeTruthy();
@@ -804,11 +804,11 @@ describe('MediaNest Service Integration Tests', () => {
           await axios.get('https://httpstat.us/500', { timeout: 1000 });
         } catch (error) {
           failureCount++;
-          
+
           if (failureCount >= maxFailures) {
             circuitOpen = true;
           }
-          
+
           expect(error).toBeTruthy();
         }
       }
@@ -828,8 +828,8 @@ describe('MediaNest Service Integration Tests', () => {
           plexUsername: 'e2eworkflow',
           email: 'e2e@workflow.test',
           role: 'user',
-          status: 'active'
-        }
+          status: 'active',
+        },
       });
 
       // 2. Create session in Redis
@@ -837,7 +837,7 @@ describe('MediaNest Service Integration Tests', () => {
       const sessionData = {
         userId: user.id,
         role: user.role,
-        loginTime: new Date().toISOString()
+        loginTime: new Date().toISOString(),
       };
       await redis.setex(sessionKey, 3600, JSON.stringify(sessionData));
 
@@ -848,8 +848,8 @@ describe('MediaNest Service Integration Tests', () => {
           mediaType: 'movie',
           title: 'E2E Workflow Movie',
           overview: 'Test movie for E2E workflow',
-          status: 'available'
-        }
+          status: 'available',
+        },
       });
 
       const request = await prisma.mediaRequest.create({
@@ -857,8 +857,8 @@ describe('MediaNest Service Integration Tests', () => {
           userId: user.id,
           mediaId: media.id,
           status: 'pending',
-          quality: 'HD'
-        }
+          quality: 'HD',
+        },
       });
 
       // 4. Publish notification via Redis pub/sub
@@ -867,18 +867,15 @@ describe('MediaNest Service Integration Tests', () => {
         type: 'media_request_created',
         userId: user.id,
         requestId: request.id,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
-      
-      await notificationPublisher.publish(
-        'notifications',
-        JSON.stringify(notificationMessage)
-      );
+
+      await notificationPublisher.publish('notifications', JSON.stringify(notificationMessage));
 
       // 5. Verify workflow completion
       const finalRequest = await prisma.mediaRequest.findUnique({
         where: { id: request.id },
-        include: { user: true, media: true }
+        include: { user: true, media: true },
       });
 
       expect(finalRequest).toBeTruthy();
@@ -887,7 +884,7 @@ describe('MediaNest Service Integration Tests', () => {
 
       // Cleanup
       await notificationPublisher.quit();
-      
+
       console.log('✅ Complete E2E workflow working correctly');
     });
 

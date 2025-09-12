@@ -34,14 +34,14 @@ describe('EncryptionService', () => {
     it('should throw error if encryption key is missing', () => {
       delete process.env.ENCRYPTION_KEY;
       expect(() => new EncryptionService()).toThrow(
-        'Encryption key must be at least 32 characters'
+        'Encryption key must be at least 32 characters',
       );
     });
 
     it('should throw error if encryption key is too short', () => {
       process.env.ENCRYPTION_KEY = 'short-key';
       expect(() => new EncryptionService()).toThrow(
-        'Encryption key must be at least 32 characters'
+        'Encryption key must be at least 32 characters',
       );
     });
 
@@ -192,21 +192,21 @@ describe('EncryptionService', () => {
     it('should throw error with invalid format - too few parts', () => {
       const invalidData = 'part1:part2:part3';
       expect(() => encryptionService.decryptFromStorage(invalidData)).toThrow(
-        'Invalid encrypted data format'
+        'Invalid encrypted data format',
       );
     });
 
     it('should throw error with invalid format - too many parts', () => {
       const invalidData = 'part1:part2:part3:part4:part5';
       expect(() => encryptionService.decryptFromStorage(invalidData)).toThrow(
-        'Failed to decrypt data'
+        'Failed to decrypt data',
       );
     });
 
     it('should throw error with empty parts', () => {
       const invalidData = 'part1::part3:part4';
       expect(() => encryptionService.decryptFromStorage(invalidData)).toThrow(
-        'Invalid encrypted data format'
+        'Invalid encrypted data format',
       );
     });
   });

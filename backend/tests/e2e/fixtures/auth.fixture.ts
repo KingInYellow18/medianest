@@ -28,16 +28,16 @@ export const test = base.extend<{
   authenticatedUser: async ({ page }, use) => {
     const loginPage = new LoginPage(page);
     await loginPage.navigate();
-    
+
     // Login with regular user
     const user = testUsers.regularUser;
     await loginPage.loginAndWaitForDashboard(user.email, user.password);
-    
+
     // Verify authentication
     await expect(page).toHaveURL(/\/dashboard/);
-    
+
     await use(user);
-    
+
     // Cleanup - logout
     const dashboardPage = new DashboardPage(page);
     await dashboardPage.logout().catch(() => {
@@ -49,20 +49,20 @@ export const test = base.extend<{
   adminUser: async ({ page }, use) => {
     const loginPage = new LoginPage(page);
     await loginPage.navigate();
-    
+
     // Login with admin user
     const user = testUsers.adminUser;
     await loginPage.loginAndWaitForDashboard(user.email, user.password);
-    
+
     // Verify authentication and admin access
     await expect(page).toHaveURL(/\/dashboard/);
-    
+
     // Verify admin privileges by checking admin panel access
     await page.goto('/admin');
     await expect(page).toHaveURL(/\/admin/);
-    
+
     await use(user);
-    
+
     // Cleanup - logout
     const dashboardPage = new DashboardPage(page);
     await dashboardPage.logout().catch(() => {
@@ -73,7 +73,7 @@ export const test = base.extend<{
   // Regular user fixture without auto-login
   regularUser: async ({}, use) => {
     await use(testUsers.regularUser);
-  }
+  },
 });
 
 // Authentication helpers
@@ -84,7 +84,7 @@ export class AuthFixture {
   static async loginAs(page: any, userType: 'admin' | 'regular' | 'editor'): Promise<any> {
     const loginPage = new LoginPage(page);
     await loginPage.navigate();
-    
+
     let user;
     switch (userType) {
       case 'admin':
@@ -98,7 +98,7 @@ export class AuthFixture {
         user = testUsers.regularUser;
         break;
     }
-    
+
     await loginPage.loginAndWaitForDashboard(user.email, user.password);
     return user;
   }
@@ -117,7 +117,7 @@ export class AuthFixture {
         name: userData.name,
         email: userData.email,
         password: userData.password,
-        role: userData.role || 'user'
+        role: userData.role || 'user',
       });
 
       if (!response.success) {
@@ -150,7 +150,7 @@ export class AuthFixture {
     try {
       const response = await apiHelpers.post('/api/auth/login', {
         email,
-        password
+        password,
       });
 
       if (!response.success) {
@@ -168,14 +168,16 @@ export class AuthFixture {
    * Set authentication cookie in browser
    */
   static async setAuthCookie(page: any, token: string): Promise<void> {
-    await page.context().addCookies([{
-      name: 'auth-token',
-      value: token,
-      domain: 'localhost',
-      path: '/',
-      httpOnly: true,
-      secure: false
-    }]);
+    await page.context().addCookies([
+      {
+        name: 'auth-token',
+        value: token,
+        domain: 'localhost',
+        path: '/',
+        httpOnly: true,
+        secure: false,
+      },
+    ]);
   }
 
   /**
@@ -184,7 +186,7 @@ export class AuthFixture {
   static async loginViaAPIAndSetCookie(page: any, email: string, password: string): Promise<void> {
     const token = await this.loginViaAPI(email, password);
     await this.setAuthCookie(page, token);
-    
+
     // Navigate to dashboard to verify authentication
     await page.goto('/dashboard');
     await expect(page).toHaveURL(/\/dashboard/);
@@ -195,9 +197,13 @@ export class AuthFixture {
    */
   static async logoutViaAPI(token: string): Promise<void> {
     try {
-      await apiHelpers.post('/api/auth/logout', {}, {
-        'Authorization': `Bearer ${token}`
-      });
+      await apiHelpers.post(
+        '/api/auth/logout',
+        {},
+        {
+          Authorization: `Bearer ${token}`,
+        },
+      );
     } catch (error) {
       console.error('API logout failed:', error);
       // Don't throw, as this is cleanup
@@ -219,7 +225,7 @@ export class AuthFixture {
       // Navigate to a protected route
       await page.goto('/dashboard');
       await page.waitForLoadState('networkidle');
-      
+
       // If we're on dashboard, user is authenticated
       return page.url().includes('/dashboard');
     } catch {
@@ -233,7 +239,7 @@ export class AuthFixture {
   static async getCurrentUser(token: string): Promise<any> {
     try {
       const response = await apiHelpers.get('/api/auth/me', {
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       });
 
       if (!response.success) {
@@ -254,7 +260,7 @@ export class AuthFixture {
     const testUser = {
       name: `Test User ${Date.now()}`,
       email: `testuser${Date.now()}@example.com`,
-      password: 'TestPassword123!'
+      password: 'TestPassword123!',
     };
 
     // Create user
@@ -263,7 +269,7 @@ export class AuthFixture {
     // Set permissions via API (if your app supports this)
     try {
       await apiHelpers.post(`/api/users/${user.id}/permissions`, {
-        permissions
+        permissions,
       });
     } catch (error) {
       console.warn('Failed to set user permissions:', error);
@@ -275,20 +281,26 @@ export class AuthFixture {
   /**
    * Wait for authentication state to change
    */
-  static async waitForAuthStateChange(page: any, expectedState: 'authenticated' | 'unauthenticated', timeout = 10000): Promise<void> {
+  static async waitForAuthStateChange(
+    page: any,
+    expectedState: 'authenticated' | 'unauthenticated',
+    timeout = 10000,
+  ): Promise<void> {
     const startTime = Date.now();
-    
+
     while (Date.now() - startTime < timeout) {
       const isAuth = await this.isAuthenticated(page);
-      
-      if ((expectedState === 'authenticated' && isAuth) || 
-          (expectedState === 'unauthenticated' && !isAuth)) {
+
+      if (
+        (expectedState === 'authenticated' && isAuth) ||
+        (expectedState === 'unauthenticated' && !isAuth)
+      ) {
         return;
       }
-      
+
       await page.waitForTimeout(500);
     }
-    
+
     throw new Error(`Authentication state did not change to ${expectedState} within ${timeout}ms`);
   }
 }

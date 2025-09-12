@@ -147,7 +147,7 @@ describe('AuthMiddleware', () => {
     authMiddleware = new AuthMiddleware(
       mockUserRepository,
       mockSessionTokenRepository,
-      mockDeviceSessionService
+      mockDeviceSessionService,
     );
 
     mockRequest = {
@@ -345,7 +345,7 @@ describe('AuthMiddleware', () => {
       expect(mockNext).toHaveBeenCalledWith(
         expect.objectContaining({
           message: 'Required role: admin',
-        })
+        }),
       );
     });
 
@@ -358,7 +358,7 @@ describe('AuthMiddleware', () => {
       expect(mockNext).toHaveBeenCalledWith(
         expect.objectContaining({
           message: 'Authentication required',
-        })
+        }),
       );
     });
   });
@@ -392,7 +392,7 @@ describe('AuthMiddleware', () => {
       expect(mockNext).toHaveBeenCalledWith(
         expect.objectContaining({
           message: 'Access denied: admin:delete',
-        })
+        }),
       );
     });
 
@@ -403,7 +403,7 @@ describe('AuthMiddleware', () => {
       expect(mockNext).toHaveBeenCalledWith(
         expect.objectContaining({
           message: 'Authentication required',
-        })
+        }),
       );
     });
   });

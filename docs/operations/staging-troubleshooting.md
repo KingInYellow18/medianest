@@ -5,8 +5,8 @@
 This troubleshooting guide addresses common issues encountered during MediaNest staging deployment and operation. All solutions have been tested and validated with the critical fixes applied to the staging environment.
 
 !!! success "Critical Fixes Applied"
-    This guide includes solutions for issues resolved by our critical fixes:
-    
+This guide includes solutions for issues resolved by our critical fixes:
+
     - ✅ Backend service startup (secrets_validator_1 fix)
     - ✅ Docker build improvements
     - ✅ JWT/Cache service stabilization
@@ -56,11 +56,13 @@ echo -e "\n✅ Quick diagnostics complete"
 ### Backend Service Won't Start
 
 **Symptoms:**
+
 - Container exits immediately after start
 - Error: "secrets_validator_1 failed"
 - Application crashes during initialization
 
 **Diagnosis:**
+
 ```bash
 # Check container exit code
 docker-compose -f docker-compose.staging.yml ps backend
@@ -125,11 +127,13 @@ docker-compose -f docker-compose.staging.yml up -d
 ### Frontend Service Issues
 
 **Symptoms:**
+
 - Frontend not accessible on port 3001
 - Build failures during container startup
 - Static assets not loading
 
 **Diagnosis:**
+
 ```bash
 # Check frontend container status
 docker-compose -f docker-compose.staging.yml logs frontend
@@ -172,11 +176,13 @@ docker-compose -f docker-compose.staging.yml restart frontend
 ### PostgreSQL Connection Failures
 
 **Symptoms:**
+
 - "Connection refused" errors
 - "Password authentication failed"
 - "Database does not exist"
 
 **Diagnosis:**
+
 ```bash
 # Check PostgreSQL container status
 docker-compose -f docker-compose.staging.yml logs postgres
@@ -226,11 +232,13 @@ docker-compose -f docker-compose.staging.yml restart backend
 ### Database Performance Issues
 
 **Symptoms:**
+
 - Slow query responses
 - High CPU usage on database container
 - Connection timeouts
 
 **Diagnosis:**
+
 ```bash
 # Check slow queries
 docker-compose exec postgres psql -U medianest_user -d medianest_staging \
@@ -286,11 +294,13 @@ postgres:
 ### Redis Service Issues
 
 **Symptoms:**
+
 - Cache misses and performance degradation
 - Session data loss
 - Redis connection timeouts
 
 **Diagnosis:**
+
 ```bash
 # Check Redis container status
 docker-compose -f docker-compose.staging.yml logs redis
@@ -342,11 +352,13 @@ docker-compose exec redis redis-cli CONFIG SET appendonly yes
 ### High Memory Usage
 
 **Symptoms:**
+
 - Containers consuming excessive memory
 - Out of memory errors
 - System becoming unresponsive
 
 **Diagnosis:**
+
 ```bash
 # Monitor container memory usage
 docker stats --format "table {{.Name}}\t{{.MemUsage}}\t{{.MemPerc}}"
@@ -402,11 +414,13 @@ services:
 ### CPU Performance Issues
 
 **Symptoms:**
+
 - High CPU usage
 - Slow response times
 - Request timeouts
 
 **Diagnosis:**
+
 ```bash
 # Monitor CPU usage
 docker stats --format "table {{.Name}}\t{{.CPUPerc}}"
@@ -454,11 +468,13 @@ docker-compose exec backend npm run optimize:cache
 ### API Endpoint Not Accessible
 
 **Symptoms:**
+
 - HTTP 502/503 errors
 - Connection refused
 - Timeouts
 
 **Diagnosis:**
+
 ```bash
 # Test API endpoint
 curl -v http://localhost:3000/api/health
@@ -503,11 +519,13 @@ docker-compose restart nginx
 ### Plex Integration Issues
 
 **Symptoms:**
+
 - Plex connection timeouts
 - Authentication failures
 - Library sync issues
 
 **Diagnosis:**
+
 ```bash
 # Test Plex connectivity
 curl -v "http://your-plex-server:32400/identity?X-Plex-Token=your-token"
@@ -551,11 +569,13 @@ sudo ufw status | grep 32400
 ### HTTPS Certificate Issues
 
 **Symptoms:**
+
 - SSL certificate errors
 - "Not secure" warnings
 - Certificate expiration
 
 **Diagnosis:**
+
 ```bash
 # Check certificate validity
 openssl x509 -in staging.medianest.com.crt -text -noout
@@ -589,13 +609,13 @@ docker-compose -f docker-compose.staging.yml restart nginx
 server {
     listen 443 ssl;
     server_name staging.medianest.com;
-    
+
     ssl_certificate /etc/ssl/certs/staging.crt;
     ssl_certificate_key /etc/ssl/private/staging.key;
-    
+
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers HIGH:!aNULL:!MD5;
-    
+
     location / {
         proxy_pass http://backend:3000;
         proxy_set_header Host $host;
@@ -609,11 +629,13 @@ server {
 ### Container Build Failures
 
 **Symptoms:**
+
 - Docker build errors
 - Image build timeouts
 - Dependency installation failures
 
 **Diagnosis:**
+
 ```bash
 # Check Docker daemon status
 sudo systemctl status docker
@@ -660,11 +682,13 @@ docker-compose -f docker-compose.staging.yml build
 ### Volume and Data Issues
 
 **Symptoms:**
+
 - Data not persisting
 - Volume mount failures
 - Permission denied errors
 
 **Diagnosis:**
+
 ```bash
 # Check volume status
 docker volume ls
@@ -708,6 +732,7 @@ docker run --rm -v medianest_postgres_data:/target -v /backup:/source alpine \
 ### Application Logs
 
 **Key Log Locations:**
+
 - Backend: `docker-compose logs backend`
 - Database: `docker-compose logs postgres`
 - Cache: `docker-compose logs redis`
@@ -716,18 +741,21 @@ docker run --rm -v medianest_postgres_data:/target -v /backup:/source alpine \
 ### Common Error Patterns
 
 #### 1. JWT Token Issues
+
 ```
 Pattern: "JsonWebTokenError" or "TokenExpiredError"
 Solution: Check JWT_SECRET and token generation
 ```
 
 #### 2. Database Connection Pool
+
 ```
 Pattern: "connection pool exhausted" or "too many clients"
 Solution: Optimize connection pool settings
 ```
 
 #### 3. Memory Leaks
+
 ```
 Pattern: "JavaScript heap out of memory"
 Solution: Memory leak fixes are applied, restart if needed
@@ -807,12 +835,12 @@ echo "✅ Rollback completed"
 
 ### Escalation Matrix
 
-| Severity | Response Time | Contact |
-|----------|---------------|---------|
-| **Critical** (Service Down) | 15 minutes | On-call engineer |
-| **High** (Performance Issues) | 2 hours | DevOps team |
-| **Medium** (Minor Issues) | 8 hours | Development team |
-| **Low** (Questions) | 24 hours | Support team |
+| Severity                      | Response Time | Contact          |
+| ----------------------------- | ------------- | ---------------- |
+| **Critical** (Service Down)   | 15 minutes    | On-call engineer |
+| **High** (Performance Issues) | 2 hours       | DevOps team      |
+| **Medium** (Minor Issues)     | 8 hours       | Development team |
+| **Low** (Questions)           | 24 hours      | Support team     |
 
 ### Support Channels
 
@@ -846,6 +874,7 @@ echo "✅ Rollback completed"
 ---
 
 **Related Documentation:**
+
 - [Staging Deployment Guide](staging-deployment.md) - Complete deployment instructions
 - [Staging Prerequisites](staging-prerequisites.md) - Infrastructure requirements
 - [Operations Monitoring](monitoring-stack.md) - Performance monitoring setup

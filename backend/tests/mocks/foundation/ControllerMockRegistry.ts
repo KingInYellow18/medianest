@@ -14,7 +14,7 @@ export interface ControllerServiceMocks {
     generateRefreshToken: (payload?: { userId: string; sessionId?: string }) => string;
     shouldRotateToken: (token: string) => boolean;
   };
-  
+
   encryptionService: {
     encrypt: (text: string) => any;
     decrypt: (data: any) => string;
@@ -22,7 +22,7 @@ export interface ControllerServiceMocks {
     decryptFromStorage: (storedData: string) => string;
     isEncrypted: (data: string) => boolean;
   };
-  
+
   userRepository: {
     findByPlexId: (plexId: string) => Promise<any>;
     create: (userData: any) => Promise<any>;
@@ -35,7 +35,7 @@ export interface ControllerServiceMocks {
     findMany: (options: any) => Promise<any[]>;
     count: (options?: any) => Promise<number>;
   };
-  
+
   // Service mocks for dashboard controller
   statusService: {
     getServiceStatus: (serviceName: string) => Promise<any>;
@@ -43,7 +43,7 @@ export interface ControllerServiceMocks {
     getDashboardStats: () => Promise<any>;
     checkServiceHealth: (serviceName: string) => Promise<boolean>;
   };
-  
+
   // Service mocks for media controller
   mediaService: {
     searchMedia: (query: string, options?: any) => Promise<any>;
@@ -54,7 +54,7 @@ export interface ControllerServiceMocks {
     getAllRequests: () => Promise<any[]>;
     getMediaDetails: (mediaId: string) => Promise<any>;
   };
-  
+
   // Service mocks for plex controller
   plexService: {
     getServerInfo: (token: string) => Promise<any>;
@@ -65,7 +65,7 @@ export interface ControllerServiceMocks {
     getCollections: (token: string) => Promise<any[]>;
     getCollectionDetails: (token: string, collectionId: string) => Promise<any>;
   };
-  
+
   // Cache service for performance monitoring
   cacheService: {
     get: (key: string) => Promise<any>;
@@ -74,7 +74,7 @@ export interface ControllerServiceMocks {
     clear: () => Promise<void>;
     getInfo: () => Promise<any>;
   };
-  
+
   // Notification service
   notificationService: {
     getUserNotifications: (userId: string) => Promise<any[]>;
@@ -82,7 +82,7 @@ export interface ControllerServiceMocks {
     createNotification: (data: any) => Promise<any>;
     deleteNotification: (notificationId: string) => Promise<void>;
   };
-  
+
   logger: {
     info: (...args: any[]) => void;
     warn: (...args: any[]) => void;
@@ -94,7 +94,7 @@ export interface ControllerServiceMocks {
     level: string;
     silent: boolean;
   };
-  
+
   axios: {
     get: (url: string, config?: any) => Promise<any>;
     post: (url: string, data?: any, config?: any) => Promise<any>;
@@ -106,29 +106,38 @@ export interface ControllerServiceMocks {
 
 export class ControllerMockRegistry extends StatelessMock<ControllerServiceMocks> {
   private mockInstances: Map<string, any> = new Map();
-  
+
   createFreshInstance(): ControllerServiceMocks {
     return {
       jwtService: {
         generateAccessToken: vi.fn().mockReturnValue('mock-access-token'),
         generateRememberToken: vi.fn().mockReturnValue('mock-remember-token'),
-        verifyToken: vi.fn().mockReturnValue({ userId: 'test-user', email: 'test@example.com', role: 'user' }),
-        decodeToken: vi.fn().mockReturnValue({ userId: 'test-user', email: 'test@example.com', role: 'user' }),
+        verifyToken: vi
+          .fn()
+          .mockReturnValue({ userId: 'test-user', email: 'test@example.com', role: 'user' }),
+        decodeToken: vi
+          .fn()
+          .mockReturnValue({ userId: 'test-user', email: 'test@example.com', role: 'user' }),
         refreshToken: vi.fn().mockReturnValue('mock-refreshed-token'),
         isTokenExpired: vi.fn().mockReturnValue(false),
         getTokenExpirationTime: vi.fn().mockReturnValue(Date.now() + 86400000), // 24 hours
         generateRefreshToken: vi.fn().mockReturnValue('mock-refresh-token'),
         shouldRotateToken: vi.fn().mockReturnValue(false),
       },
-      
+
       encryptionService: {
-        encrypt: vi.fn().mockReturnValue({ encrypted: 'mock-encrypted', iv: 'mock-iv', authTag: 'mock-tag', salt: 'mock-salt' }),
+        encrypt: vi.fn().mockReturnValue({
+          encrypted: 'mock-encrypted',
+          iv: 'mock-iv',
+          authTag: 'mock-tag',
+          salt: 'mock-salt',
+        }),
         decrypt: vi.fn().mockReturnValue('decrypted-text'),
         encryptForStorage: vi.fn().mockReturnValue('mock-encrypted-storage-string'),
         decryptFromStorage: vi.fn().mockReturnValue('decrypted-storage-text'),
         isEncrypted: vi.fn().mockReturnValue(true),
       },
-      
+
       userRepository: {
         findByPlexId: vi.fn().mockResolvedValue(null), // Default: user not found
         create: vi.fn().mockResolvedValue({ id: 'new-user-id', email: 'test@example.com' }),
@@ -141,7 +150,7 @@ export class ControllerMockRegistry extends StatelessMock<ControllerServiceMocks
         findMany: vi.fn().mockResolvedValue([]),
         count: vi.fn().mockResolvedValue(0),
       },
-      
+
       statusService: {
         getServiceStatus: vi.fn().mockResolvedValue({ status: 'healthy', uptime: 12345 }),
         getAllServiceStatuses: vi.fn().mockResolvedValue({
@@ -157,7 +166,7 @@ export class ControllerMockRegistry extends StatelessMock<ControllerServiceMocks
         }),
         checkServiceHealth: vi.fn().mockResolvedValue(true),
       },
-      
+
       mediaService: {
         searchMedia: vi.fn().mockResolvedValue([{ id: '1', title: 'Test Movie' }]),
         requestMedia: vi.fn().mockResolvedValue({ id: 'request-1', status: 'pending' }),
@@ -167,7 +176,7 @@ export class ControllerMockRegistry extends StatelessMock<ControllerServiceMocks
         getAllRequests: vi.fn().mockResolvedValue([]),
         getMediaDetails: vi.fn().mockResolvedValue({ id: 'media-1', title: 'Test Movie' }),
       },
-      
+
       plexService: {
         getServerInfo: vi.fn().mockResolvedValue({ name: 'Test Server', version: '1.0.0' }),
         getLibraries: vi.fn().mockResolvedValue([{ id: '1', title: 'Movies' }]),
@@ -175,9 +184,11 @@ export class ControllerMockRegistry extends StatelessMock<ControllerServiceMocks
         search: vi.fn().mockResolvedValue([{ id: '1', title: 'Test Movie' }]),
         getRecentlyAdded: vi.fn().mockResolvedValue([{ id: '1', title: 'New Movie' }]),
         getCollections: vi.fn().mockResolvedValue([{ id: '1', title: 'Action Movies' }]),
-        getCollectionDetails: vi.fn().mockResolvedValue({ id: '1', title: 'Action Movies', items: [] }),
+        getCollectionDetails: vi
+          .fn()
+          .mockResolvedValue({ id: '1', title: 'Action Movies', items: [] }),
       },
-      
+
       cacheService: {
         get: vi.fn().mockResolvedValue(null),
         set: vi.fn().mockResolvedValue(undefined),
@@ -185,14 +196,14 @@ export class ControllerMockRegistry extends StatelessMock<ControllerServiceMocks
         clear: vi.fn().mockResolvedValue(undefined),
         getInfo: vi.fn().mockResolvedValue({ hitRate: 0.85, keyCount: 100 }),
       },
-      
+
       notificationService: {
         getUserNotifications: vi.fn().mockResolvedValue([]),
         markAsRead: vi.fn().mockResolvedValue(undefined),
         createNotification: vi.fn().mockResolvedValue({ id: 'notification-1' }),
         deleteNotification: vi.fn().mockResolvedValue(undefined),
       },
-      
+
       logger: {
         info: vi.fn(),
         warn: vi.fn(),
@@ -204,7 +215,7 @@ export class ControllerMockRegistry extends StatelessMock<ControllerServiceMocks
         level: 'info',
         silent: false,
       },
-      
+
       axios: {
         get: vi.fn().mockResolvedValue({ data: {} }),
         post: vi.fn().mockResolvedValue({ data: {} }),
@@ -214,40 +225,85 @@ export class ControllerMockRegistry extends StatelessMock<ControllerServiceMocks
       },
     };
   }
-  
+
   resetToInitialState(): void {
     // Clear all mock instances and their call history
     this.mockInstances.clear();
   }
-  
+
   validateInterface(): boolean {
     const instance = this.createFreshInstance();
-    
+
     // Validate JWT service interface
-    const jwtMethods = ['generateAccessToken', 'generateRememberToken', 'verifyToken', 'decodeToken', 'refreshToken', 'isTokenExpired', 'getTokenExpirationTime', 'generateRefreshToken', 'shouldRotateToken'];
+    const jwtMethods = [
+      'generateAccessToken',
+      'generateRememberToken',
+      'verifyToken',
+      'decodeToken',
+      'refreshToken',
+      'isTokenExpired',
+      'getTokenExpirationTime',
+      'generateRefreshToken',
+      'shouldRotateToken',
+    ];
     for (const method of jwtMethods) {
       if (typeof instance.jwtService[method as keyof typeof instance.jwtService] !== 'function') {
         return false;
       }
     }
-    
+
     // Validate encryption service interface
-    const encryptionMethods = ['encrypt', 'decrypt', 'encryptForStorage', 'decryptFromStorage', 'isEncrypted'];
+    const encryptionMethods = [
+      'encrypt',
+      'decrypt',
+      'encryptForStorage',
+      'decryptFromStorage',
+      'isEncrypted',
+    ];
     for (const method of encryptionMethods) {
-      if (typeof instance.encryptionService[method as keyof typeof instance.encryptionService] !== 'function') {
+      if (
+        typeof instance.encryptionService[method as keyof typeof instance.encryptionService] !==
+        'function'
+      ) {
         return false;
       }
     }
-    
+
     // Validate service interfaces for all controllers
     const serviceInterfaces = {
-      statusService: ['getServiceStatus', 'getAllServiceStatuses', 'getDashboardStats', 'checkServiceHealth'],
-      mediaService: ['searchMedia', 'requestMedia', 'getUserRequests', 'getRequestDetails', 'deleteRequest', 'getAllRequests', 'getMediaDetails'],
-      plexService: ['getServerInfo', 'getLibraries', 'getLibraryItems', 'search', 'getRecentlyAdded', 'getCollections', 'getCollectionDetails'],
+      statusService: [
+        'getServiceStatus',
+        'getAllServiceStatuses',
+        'getDashboardStats',
+        'checkServiceHealth',
+      ],
+      mediaService: [
+        'searchMedia',
+        'requestMedia',
+        'getUserRequests',
+        'getRequestDetails',
+        'deleteRequest',
+        'getAllRequests',
+        'getMediaDetails',
+      ],
+      plexService: [
+        'getServerInfo',
+        'getLibraries',
+        'getLibraryItems',
+        'search',
+        'getRecentlyAdded',
+        'getCollections',
+        'getCollectionDetails',
+      ],
       cacheService: ['get', 'set', 'del', 'clear', 'getInfo'],
-      notificationService: ['getUserNotifications', 'markAsRead', 'createNotification', 'deleteNotification'],
+      notificationService: [
+        'getUserNotifications',
+        'markAsRead',
+        'createNotification',
+        'deleteNotification',
+      ],
     };
-    
+
     for (const [serviceName, methods] of Object.entries(serviceInterfaces)) {
       const service = instance[serviceName as keyof typeof instance] as any;
       for (const method of methods) {
@@ -256,22 +312,22 @@ export class ControllerMockRegistry extends StatelessMock<ControllerServiceMocks
         }
       }
     }
-    
+
     return true;
   }
-  
+
   // Setup method for controller tests
   setupForController(controllerName: string): ControllerServiceMocks {
     const mockInstance = this.createFreshInstance();
     this.mockInstances.set(controllerName, mockInstance);
     return mockInstance;
   }
-  
+
   // Get configured mocks for a controller
   getMocksForController(controllerName: string): ControllerServiceMocks | null {
     return this.mockInstances.get(controllerName) || null;
   }
-  
+
   // Clear mocks for a specific controller
   clearControllerMocks(controllerName: string): void {
     const mocks = this.mockInstances.get(controllerName);

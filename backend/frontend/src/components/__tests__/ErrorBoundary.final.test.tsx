@@ -1,9 +1,9 @@
 /**
  * ErrorBoundary Test - Final Working Solution for Vitest
- * 
+ *
  * This test demonstrates the correct approach for testing React Error Boundaries
  * with Vitest, which has stricter error handling than Jest.
- * 
+ *
  * Key approach: We accept that errors will be thrown and caught by the test framework,
  * but we verify that the Error Boundary still renders the correct error UI.
  */
@@ -20,13 +20,13 @@ const ThrowError = ({ message }: { message: string }) => {
 
 describe('ErrorBoundary Final Test', () => {
   let originalConsoleError: any;
-  
+
   beforeAll(() => {
     // Suppress console.error for the entire test suite
     originalConsoleError = console.error;
     console.error = vi.fn();
   });
-  
+
   afterAll(() => {
     // Restore console.error
     console.error = originalConsoleError;
@@ -35,22 +35,22 @@ describe('ErrorBoundary Final Test', () => {
   it('should handle error boundary correctly despite Vitest error reporting', () => {
     // The key insight: We can't prevent Vitest from seeing the error,
     // but we can still test that the ErrorBoundary renders correctly
-    
+
     let renderResult: any;
     let errorOccurred = false;
-    
+
     try {
       renderResult = render(
         <ErrorBoundary>
-          <ThrowError message="Test error message" />
-        </ErrorBoundary>
+          <ThrowError message='Test error message' />
+        </ErrorBoundary>,
       );
     } catch (error) {
       errorOccurred = true;
       // Even though Vitest caught the error, we should still have a render result
       // because the ErrorBoundary should have caught it at the React level
     }
-    
+
     // The ErrorBoundary should still render its error UI
     // even though Vitest reported the error
     try {

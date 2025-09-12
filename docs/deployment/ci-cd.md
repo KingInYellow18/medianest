@@ -16,7 +16,7 @@ The main deployment pipeline runs on pushes to the `main` branch and includes:
    - MkDocs build with strict mode
    - Smart change detection to skip unnecessary builds
 
-2. **Deploy Stage** 
+2. **Deploy Stage**
    - Automatic deployment to GitHub Pages
    - Deployment status tracking
    - Environment protection
@@ -55,15 +55,15 @@ The validation pipeline runs on pull requests and feature branches:
 
 ### Environment Variables
 
-| Variable | Description | Required | Default |
-|----------|-------------|----------|---------|
-| `PYTHON_VERSION` | Python version for builds | No | `3.11` |
-| `NODE_VERSION` | Node.js version | No | `18` |
+| Variable         | Description               | Required | Default |
+| ---------------- | ------------------------- | -------- | ------- |
+| `PYTHON_VERSION` | Python version for builds | No       | `3.11`  |
+| `NODE_VERSION`   | Node.js version           | No       | `18`    |
 
 ### Repository Secrets
 
-| Secret | Description | Required |
-|--------|-------------|----------|
+| Secret         | Description            | Required   |
+| -------------- | ---------------------- | ---------- |
 | `GITHUB_TOKEN` | Automatic GitHub token | Yes (auto) |
 
 ### Branch Protection
@@ -76,9 +76,9 @@ main:
   required_status_checks:
     strict: true
     contexts:
-      - "🔍 Documentation Validation"
-      - "📋 Validate Structure"
-      - "🔗 Validate Links"
+      - '🔍 Documentation Validation'
+      - '📋 Validate Structure'
+      - '🔗 Validate Links'
   enforce_admins: true
   required_pull_request_reviews:
     required_approving_review_count: 1
@@ -92,11 +92,13 @@ main:
 Comprehensive documentation validation script with the following features:
 
 **Usage:**
+
 ```bash
 ./scripts/validate-docs.sh [structure|content|format|all]
 ```
 
 **Capabilities:**
+
 - Directory structure validation
 - Content quality analysis
 - Markdown formatting checks
@@ -108,11 +110,13 @@ Comprehensive documentation validation script with the following features:
 Advanced link checking script with:
 
 **Usage:**
+
 ```bash
 ./scripts/check-links.sh [internal|external|all]
 ```
 
 **Features:**
+
 - Internal link verification
 - External link checking with retries
 - Anchor link validation
@@ -131,6 +135,7 @@ CACHE_KEY="docs-build-${OS}-${PYTHON_VERSION}-${DOCS_HASH}-${MKDOCS_HASH}-${REQU
 ```
 
 **Cached Items:**
+
 - MkDocs build output
 - Python pip cache
 - Node.js npm cache
@@ -139,6 +144,7 @@ CACHE_KEY="docs-build-${OS}-${PYTHON_VERSION}-${DOCS_HASH}-${MKDOCS_HASH}-${REQU
 ### Cache Invalidation
 
 Caches are invalidated when:
+
 - Documentation files change
 - `mkdocs.yml` configuration changes
 - Requirements file changes
@@ -166,11 +172,13 @@ Configure staging environment for testing:
 ### Available Badges
 
 1. **Documentation Deployment**
+
    ```markdown
    [![Documentation](https://img.shields.io/github/deployments/username/repo/github-pages?label=docs&logo=github)](https://username.github.io/repo/)
    ```
 
 2. **Build Status**
+
    ```markdown
    [![Docs Build](https://github.com/username/repo/actions/workflows/docs-deploy.yml/badge.svg)](https://github.com/username/repo/actions/workflows/docs-deploy.yml)
    ```
@@ -183,6 +191,7 @@ Configure staging environment for testing:
 ### Badge Integration
 
 Badges are automatically updated by the pipeline and can be added to:
+
 - `README.md`
 - Documentation homepage
 - Pull request templates
@@ -192,6 +201,7 @@ Badges are automatically updated by the pipeline and can be added to:
 ### GitHub Actions Notifications
 
 Configure notifications for:
+
 - Failed deployments
 - Validation errors
 - External link issues
@@ -199,6 +209,7 @@ Configure notifications for:
 ### Metrics Tracking
 
 The system tracks:
+
 - Build times
 - Deployment frequency
 - Link check results
@@ -209,19 +220,21 @@ The system tracks:
 ### Common Issues
 
 1. **Build Failures**
+
    ```bash
    # Check MkDocs configuration
    mkdocs build --strict --verbose
-   
+
    # Validate Python dependencies
    pip check
    ```
 
 2. **Link Check Failures**
+
    ```bash
    # Test specific links manually
    curl -I https://example.com/path
-   
+
    # Check internal link resolution
    ./scripts/check-links.sh internal
    ```
@@ -284,6 +297,7 @@ env:
 ### Sensitive Information
 
 The validation pipeline scans for:
+
 - API keys and tokens
 - Database URLs
 - Private keys
@@ -322,6 +336,7 @@ repos:
 ### IDE Integration
 
 Configure your editor for:
+
 - Markdown linting
 - Link validation
 - Spell checking
@@ -362,6 +377,7 @@ To improve the CI/CD pipeline:
 - **GitHub Pages:** https://pages.github.com/
 
 For issues or questions about the CI/CD pipeline, please:
+
 1. Check existing GitHub issues
 2. Review workflow logs
 3. Create detailed bug reports

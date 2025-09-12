@@ -81,16 +81,16 @@ export class RegressionPreventionMonitor {
       current: null,
       status: 'pass',
       details: '',
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     try {
       const buildStart = Date.now();
-      
+
       // Run fast build to check for regressions
       execSync('npm run build:fast', {
         stdio: 'pipe',
-        timeout: 180000 // 3 minutes max
+        timeout: 180000, // 3 minutes max
       });
 
       const buildTime = Date.now() - buildStart;
@@ -99,13 +99,14 @@ export class RegressionPreventionMonitor {
       test.current = {
         buildTime,
         artifacts: buildArtifacts,
-        success: true
+        success: true,
       };
 
       // Check for regressions
       if (baseline.buildMetrics) {
-        const timeRegression = buildTime > (baseline.buildMetrics.buildTime * 1.5);
-        const artifactRegression = buildArtifacts.missing.length > baseline.buildMetrics.artifacts.missing.length;
+        const timeRegression = buildTime > baseline.buildMetrics.buildTime * 1.5;
+        const artifactRegression =
+          buildArtifacts.missing.length > baseline.buildMetrics.artifacts.missing.length;
 
         if (timeRegression || artifactRegression) {
           test.status = 'fail';
@@ -116,7 +117,6 @@ export class RegressionPreventionMonitor {
       if (test.status === 'pass') {
         test.details = `Build completed in ${buildTime}ms with ${buildArtifacts.present.length} artifacts`;
       }
-
     } catch (error) {
       test.status = 'fail';
       test.details = `Build failed: ${error.message}`;
@@ -137,7 +137,7 @@ export class RegressionPreventionMonitor {
       current: null,
       status: 'pass',
       details: '',
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     try {
@@ -148,13 +148,14 @@ export class RegressionPreventionMonitor {
         errors: result.errors.length,
         warnings: result.warnings.length,
         totalFiles: result.totalFiles,
-        validationTime: result.validationTime
+        validationTime: result.validationTime,
       };
 
       // Check for regressions
       if (baseline.typeScriptMetrics) {
         const errorRegression = result.errors.length > baseline.typeScriptMetrics.errors;
-        const newFileErrors = result.totalFiles > 0 && result.errors.length > 0 && !baseline.typeScriptMetrics.errors;
+        const newFileErrors =
+          result.totalFiles > 0 && result.errors.length > 0 && !baseline.typeScriptMetrics.errors;
 
         if (errorRegression || newFileErrors) {
           test.status = 'fail';
@@ -168,7 +169,6 @@ export class RegressionPreventionMonitor {
       if (test.status === 'pass') {
         test.details = `TypeScript validation passed: ${result.errors.length} errors, ${result.warnings.length} warnings`;
       }
-
     } catch (error) {
       test.status = 'fail';
       test.details = `TypeScript validation failed: ${error.message}`;
@@ -189,7 +189,7 @@ export class RegressionPreventionMonitor {
       current: null,
       status: 'pass',
       details: '',
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     try {
@@ -202,13 +202,13 @@ export class RegressionPreventionMonitor {
         failed: testResults.failed,
         skipped: testResults.skipped,
         testTime,
-        coverage: testResults.coverage
+        coverage: testResults.coverage,
       };
 
       // Check for regressions
       if (baseline.testMetrics) {
         const failureRegression = testResults.failed > baseline.testMetrics.failed;
-        const coverageRegression = testResults.coverage < (baseline.testMetrics.coverage * 0.95);
+        const coverageRegression = testResults.coverage < baseline.testMetrics.coverage * 0.95;
 
         if (failureRegression) {
           test.status = 'fail';
@@ -222,7 +222,6 @@ export class RegressionPreventionMonitor {
       if (test.status === 'pass') {
         test.details = `Tests passed: ${testResults.passed}/${testResults.passed + testResults.failed} (${testResults.coverage}% coverage)`;
       }
-
     } catch (error) {
       test.status = 'fail';
       test.details = `Test suite failed: ${error.message}`;
@@ -243,7 +242,7 @@ export class RegressionPreventionMonitor {
       current: null,
       status: 'pass',
       details: '',
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     try {
@@ -252,9 +251,11 @@ export class RegressionPreventionMonitor {
 
       // Check for regressions
       if (baseline.performanceMetrics) {
-        const buildTimeRegression = metrics.buildTime > (baseline.performanceMetrics.buildTime * 1.3);
-        const startupRegression = metrics.startupTime > (baseline.performanceMetrics.startupTime * 1.3);
-        const memoryRegression = metrics.memoryUsage > (baseline.performanceMetrics.memoryUsage * 1.2);
+        const buildTimeRegression = metrics.buildTime > baseline.performanceMetrics.buildTime * 1.3;
+        const startupRegression =
+          metrics.startupTime > baseline.performanceMetrics.startupTime * 1.3;
+        const memoryRegression =
+          metrics.memoryUsage > baseline.performanceMetrics.memoryUsage * 1.2;
 
         if (buildTimeRegression || startupRegression || memoryRegression) {
           test.status = 'warning';
@@ -265,7 +266,6 @@ export class RegressionPreventionMonitor {
       if (test.status === 'pass') {
         test.details = `Performance stable: Build ${metrics.buildTime}ms, Startup ${metrics.startupTime}ms`;
       }
-
     } catch (error) {
       test.status = 'fail';
       test.details = `Performance monitoring failed: ${error.message}`;
@@ -286,7 +286,7 @@ export class RegressionPreventionMonitor {
       current: null,
       status: 'pass',
       details: '',
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     try {
@@ -295,7 +295,8 @@ export class RegressionPreventionMonitor {
 
       // Check for regressions
       if (baseline.securityMetrics) {
-        const newVulnerabilities = securityResults.vulnerabilities > baseline.securityMetrics.vulnerabilities;
+        const newVulnerabilities =
+          securityResults.vulnerabilities > baseline.securityMetrics.vulnerabilities;
         const higherSeverity = securityResults.highSeverity > baseline.securityMetrics.highSeverity;
 
         if (newVulnerabilities || higherSeverity) {
@@ -307,7 +308,6 @@ export class RegressionPreventionMonitor {
       if (test.status === 'pass') {
         test.details = `Security scan clean: ${securityResults.vulnerabilities} known issues`;
       }
-
     } catch (error) {
       test.status = 'fail';
       test.details = `Security scan failed: ${error.message}`;
@@ -328,7 +328,7 @@ export class RegressionPreventionMonitor {
       current: null,
       status: 'pass',
       details: '',
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     try {
@@ -338,7 +338,8 @@ export class RegressionPreventionMonitor {
       // Check for regressions
       if (baseline.dependencyMetrics) {
         const newConflicts = dependencyResults.conflicts > baseline.dependencyMetrics.conflicts;
-        const outdatedIncrease = dependencyResults.outdated > (baseline.dependencyMetrics.outdated * 1.1);
+        const outdatedIncrease =
+          dependencyResults.outdated > baseline.dependencyMetrics.outdated * 1.1;
 
         if (newConflicts) {
           test.status = 'fail';
@@ -352,7 +353,6 @@ export class RegressionPreventionMonitor {
       if (test.status === 'pass') {
         test.details = `Dependencies stable: ${dependencyResults.conflicts} conflicts, ${dependencyResults.outdated} outdated`;
       }
-
     } catch (error) {
       test.status = 'fail';
       test.details = `Dependency check failed: ${error.message}`;
@@ -375,7 +375,7 @@ export class RegressionPreventionMonitor {
       testMetrics: await this.getCurrentTestMetrics(),
       performanceMetrics: await this.measurePerformanceMetrics(),
       securityMetrics: await this.runSecurityScan(),
-      dependencyMetrics: await this.checkDependencies()
+      dependencyMetrics: await this.checkDependencies(),
     };
 
     fs.writeFileSync(this.baselineFile, JSON.stringify(baseline, null, 2));
@@ -394,7 +394,7 @@ export class RegressionPreventionMonitor {
       'backend/dist/server.js',
       'backend/dist/app.js',
       'frontend/.next/BUILD_ID',
-      'shared/dist/index.js'
+      'shared/dist/index.js',
     ];
 
     const present = [];
@@ -416,7 +416,7 @@ export class RegressionPreventionMonitor {
       const output = execSync('npm run test', {
         encoding: 'utf8',
         stdio: 'pipe',
-        timeout: 120000
+        timeout: 120000,
       });
 
       // Parse test results (simplified)
@@ -424,21 +424,21 @@ export class RegressionPreventionMonitor {
         passed: 10, // Placeholder - would parse actual output
         failed: 0,
         skipped: 0,
-        coverage: 85
+        coverage: 85,
       };
     } catch (error) {
       return {
         passed: 0,
         failed: 10,
         skipped: 0,
-        coverage: 0
+        coverage: 0,
       };
     }
   }
 
   private async measurePerformanceMetrics() {
     const start = Date.now();
-    
+
     try {
       execSync('npm run build:fast', { stdio: 'pipe', timeout: 180000 });
       const buildTime = Date.now() - start;
@@ -446,13 +446,13 @@ export class RegressionPreventionMonitor {
       return {
         buildTime,
         startupTime: 5000, // Placeholder
-        memoryUsage: 256 // Placeholder MB
+        memoryUsage: 256, // Placeholder MB
       };
     } catch {
       return {
         buildTime: 999999,
         startupTime: 999999,
-        memoryUsage: 9999
+        memoryUsage: 9999,
       };
     }
   }
@@ -464,7 +464,7 @@ export class RegressionPreventionMonitor {
         vulnerabilities: 0,
         highSeverity: 0,
         mediumSeverity: 0,
-        lowSeverity: 0
+        lowSeverity: 0,
       };
     } catch (error) {
       // npm audit exits with non-zero for vulnerabilities
@@ -472,7 +472,7 @@ export class RegressionPreventionMonitor {
         vulnerabilities: 5, // Would parse actual output
         highSeverity: 0,
         mediumSeverity: 2,
-        lowSeverity: 3
+        lowSeverity: 3,
       };
     }
   }
@@ -483,13 +483,13 @@ export class RegressionPreventionMonitor {
       return {
         conflicts: 0,
         outdated: 5, // Would parse actual output
-        missing: 0
+        missing: 0,
       };
     } catch {
       return {
         conflicts: 1,
         outdated: 10,
-        missing: 0
+        missing: 0,
       };
     }
   }
@@ -498,7 +498,7 @@ export class RegressionPreventionMonitor {
     const buildArtifacts = this.checkBuildArtifacts();
     return {
       buildTime: 60000, // Placeholder
-      artifacts: buildArtifacts
+      artifacts: buildArtifacts,
     };
   }
 
@@ -508,7 +508,7 @@ export class RegressionPreventionMonitor {
     return {
       errors: result.errors.length,
       warnings: result.warnings.length,
-      totalFiles: result.totalFiles
+      totalFiles: result.totalFiles,
     };
   }
 
@@ -521,13 +521,13 @@ export class RegressionPreventionMonitor {
       timestamp: new Date().toISOString(),
       summary: {
         total: tests.length,
-        passed: tests.filter(t => t.status === 'pass').length,
-        failed: tests.filter(t => t.status === 'fail').length,
-        warnings: tests.filter(t => t.status === 'warning').length,
-        skipped: tests.filter(t => t.status === 'skipped').length
+        passed: tests.filter((t) => t.status === 'pass').length,
+        failed: tests.filter((t) => t.status === 'fail').length,
+        warnings: tests.filter((t) => t.status === 'warning').length,
+        skipped: tests.filter((t) => t.status === 'skipped').length,
       },
       tests,
-      recommendations: this.generateRecommendations(tests)
+      recommendations: this.generateRecommendations(tests),
     };
 
     fs.writeFileSync(this.reportFile, JSON.stringify(report, null, 2));
@@ -536,8 +536,8 @@ export class RegressionPreventionMonitor {
 
   private generateRecommendations(tests: RegressionTest[]): string[] {
     const recommendations = [];
-    const failedTests = tests.filter(t => t.status === 'fail');
-    const warningTests = tests.filter(t => t.status === 'warning');
+    const failedTests = tests.filter((t) => t.status === 'fail');
+    const warningTests = tests.filter((t) => t.status === 'warning');
 
     if (failedTests.length > 0) {
       recommendations.push('🚨 Critical: Address failed regression tests before deployment');
@@ -547,11 +547,11 @@ export class RegressionPreventionMonitor {
       recommendations.push('⚠️ Warning: Monitor performance and test degradation');
     }
 
-    if (tests.some(t => t.id === 'security-regression' && t.status !== 'pass')) {
+    if (tests.some((t) => t.id === 'security-regression' && t.status !== 'pass')) {
       recommendations.push('🔒 Security: Run comprehensive security audit');
     }
 
-    if (tests.every(t => t.status === 'pass')) {
+    if (tests.every((t) => t.status === 'pass')) {
       recommendations.push('✅ All regression tests passed - ready for deployment');
     }
 
@@ -562,15 +562,15 @@ export class RegressionPreventionMonitor {
     try {
       const summary = {
         timestamp: new Date().toISOString(),
-        passed: tests.filter(t => t.status === 'pass').length,
-        failed: tests.filter(t => t.status === 'fail').length,
-        warnings: tests.filter(t => t.status === 'warning').length,
-        recommendations: this.generateRecommendations(tests)
+        passed: tests.filter((t) => t.status === 'pass').length,
+        failed: tests.filter((t) => t.status === 'fail').length,
+        warnings: tests.filter((t) => t.status === 'warning').length,
+        recommendations: this.generateRecommendations(tests),
       };
 
       execSync(
         `npx claude-flow@alpha hooks memory-store --key "${this.memoryKey}/latest" --value '${JSON.stringify(summary)}' --ttl 3600`,
-        { stdio: 'ignore' }
+        { stdio: 'ignore' },
       );
     } catch {
       // Memory storage is optional
@@ -578,25 +578,25 @@ export class RegressionPreventionMonitor {
   }
 
   private async checkCriticalRegressions(tests: RegressionTest[]): Promise<void> {
-    const criticalFailures = tests.filter(t => 
-      t.status === 'fail' && ['build-regression', 'security-regression'].includes(t.id)
+    const criticalFailures = tests.filter(
+      (t) => t.status === 'fail' && ['build-regression', 'security-regression'].includes(t.id),
     );
 
     if (criticalFailures.length > 0) {
       console.error('\n🚨 CRITICAL REGRESSION ALERT 🚨');
       console.error('The following critical systems have regressed:');
-      
-      criticalFailures.forEach(test => {
+
+      criticalFailures.forEach((test) => {
         console.error(`- ${test.name}: ${test.details}`);
       });
 
       console.error('\n🛑 DEPLOYMENT BLOCKED - Fix regressions before proceeding');
-      
+
       // Store alert in memory
       try {
         execSync(
           `npx claude-flow@alpha hooks memory-store --key "${this.memoryKey}/alert" --value "CRITICAL_REGRESSION" --ttl 1800`,
-          { stdio: 'ignore' }
+          { stdio: 'ignore' },
         );
       } catch {
         // Optional
@@ -608,21 +608,21 @@ export class RegressionPreventionMonitor {
 // CLI interface
 if (require.main === module) {
   const monitor = new RegressionPreventionMonitor();
-  
+
   async function main() {
     const command = process.argv[2];
-    
+
     switch (command) {
       case 'monitor':
         const tests = await monitor.runRegressionMonitoring();
-        const success = tests.every(t => t.status !== 'fail');
+        const success = tests.every((t) => t.status !== 'fail');
         process.exit(success ? 0 : 1);
         break;
-        
+
       case 'baseline':
         await monitor.createBaseline();
         break;
-        
+
       default:
         console.log('Usage: regression-prevention-monitor.ts <command>');
         console.log('Commands:');
@@ -631,8 +631,8 @@ if (require.main === module) {
         process.exit(1);
     }
   }
-  
-  main().catch(error => {
+
+  main().catch((error) => {
     console.error('Regression monitoring failed:', error);
     process.exit(1);
   });

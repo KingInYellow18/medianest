@@ -309,7 +309,7 @@ describe('Webhook API Integration Tests', () => {
           request(app)
             .post('/api/v1/webhooks/overseerr')
             .set('X-Overseerr-Signature', `sha256=${signature}`)
-            .send(payload)
+            .send(payload),
         );
 
       const responses = await Promise.all(requests);
@@ -508,7 +508,7 @@ describe('Webhook API Integration Tests', () => {
           request(app)
             .post('/api/v1/webhooks/overseerr')
             .set('X-Overseerr-Signature', `sha256=${signature}`)
-            .send(payload)
+            .send(payload),
         );
 
       const responses = await Promise.all(requests);
@@ -532,7 +532,7 @@ describe('Webhook API Integration Tests', () => {
       vi.doMock('../../src/services/overseerr.service', () => ({
         overseerrService: {
           handleWebhook: vi.fn().mockImplementation(
-            () => new Promise((resolve) => setTimeout(resolve, 10000)) // 10 second delay
+            () => new Promise((resolve) => setTimeout(resolve, 10000)), // 10 second delay
           ),
         },
       }));

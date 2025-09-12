@@ -1,6 +1,6 @@
 /**
  * Error Utility Functions - Shared error handling for frontend and backend
- * 
+ *
  * This module provides comprehensive error handling utilities for the MediaNest application:
  * - Error serialization for API responses
  * - Error parsing from API responses
@@ -8,7 +8,7 @@
  * - User-friendly error message mapping
  * - Retry logic determination
  * - Error detail extraction for debugging
- * 
+ *
  * @fileoverview Shared error utilities for consistent error handling across the application
  * @version 2.0.0
  * @author MediaNest Team
@@ -39,24 +39,24 @@ export interface SerializedError {
 
 /**
  * Serialize Error for API Response
- * 
+ *
  * @function serializeError
  * @description Converts an Error or AppError instance into a serializable format for API responses
  * @param {AppError | Error} error - The error to serialize
  * @returns {SerializedError} Serialized error object safe for JSON transmission
- * 
+ *
  * @example
  * // Serialize an AppError
  * const apiError = new AppError('VALIDATION_ERROR', 'Invalid input', 400);
  * const serialized = serializeError(apiError);
  * res.status(400).json({ error: serialized });
- * 
+ *
  * @example
  * // Serialize a generic Error
  * const genericError = new Error('Something went wrong');
  * const serialized = serializeError(genericError);
  * // Results in: { message: 'Something went wrong', code: 'UNKNOWN_ERROR', statusCode: 500 }
- * 
+ *
  * @security Ensures sensitive error details are properly handled
  * @version 2.0.0
  */
@@ -79,12 +79,12 @@ export function serializeError(error: AppError | Error): SerializedError {
 
 /**
  * Parse Error from API Response
- * 
+ *
  * @function parseApiError
  * @description Converts an API error response back into an AppError instance
  * @param {any} response - The API response containing error information
  * @returns {AppError} AppError instance reconstructed from the response
- * 
+ *
  * @example
  * // Parse an API error response
  * const response = await fetch('/api/endpoint');
@@ -93,7 +93,7 @@ export function serializeError(error: AppError | Error): SerializedError {
  *   const error = parseApiError(errorData);
  *   throw error;
  * }
- * 
+ *
  * @example
  * // Handle axios error response
  * try {
@@ -102,7 +102,7 @@ export function serializeError(error: AppError | Error): SerializedError {
  *   const error = parseApiError(axiosError.response?.data);
  *   console.error('API Error:', error.message);
  * }
- * 
+ *
  * @version 2.0.0
  */
 export function parseApiError(response: any): AppError {
@@ -139,13 +139,13 @@ export interface ErrorLogEntry {
 
 /**
  * Log Error with Context
- * 
+ *
  * @function logError
  * @description Logs an error with contextual information for debugging and monitoring
  * @param {Error | AppError} error - The error to log
  * @param {any} [context] - Additional context information
  * @returns {ErrorLogEntry} Complete error log entry with metadata
- * 
+ *
  * @example
  * // Log an error with context
  * try {
@@ -157,7 +157,7 @@ export interface ErrorLogEntry {
  *     attempt: 3
  *   });
  * }
- * 
+ *
  * @example
  * // Frontend error logging
  * window.addEventListener('error', (event) => {
@@ -167,7 +167,7 @@ export interface ErrorLogEntry {
  *     colno: event.colno
  *   });
  * });
- * 
+ *
  * @todo Integrate with Sentry, LogRocket, or other error tracking services
  * @security Automatically captures browser metadata for security analysis
  * @version 2.0.0
@@ -215,7 +215,7 @@ export function logError(error: Error | AppError, context?: any): ErrorLogEntry 
  * User-Friendly Error Messages
  * @const {Record<string, string>} USER_FRIENDLY_MESSAGES
  * @description Mapping of error codes to user-friendly messages
- * 
+ *
  * Categories:
  * - Network errors: Connection and timeout issues
  * - Authentication errors: Login and permission issues
@@ -223,12 +223,12 @@ export function logError(error: Error | AppError, context?: any): ErrorLogEntry 
  * - Rate limiting: Request throttling messages
  * - Service errors: Service availability issues
  * - Generic errors: Fallback messages
- * 
+ *
  * @example
  * // Get user-friendly message for error code
  * const message = USER_FRIENDLY_MESSAGES['AUTHENTICATION_ERROR'];
  * // Result: 'Please sign in to continue.'
- * 
+ *
  * @version 2.0.0
  */
 export const USER_FRIENDLY_MESSAGES: Record<string, string> = {
@@ -266,24 +266,24 @@ export const USER_FRIENDLY_MESSAGES: Record<string, string> = {
 
 /**
  * Get User-Friendly Error Message
- * 
+ *
  * @function getUserFriendlyMessage
  * @description Converts technical error messages into user-friendly text
  * @param {Error | AppError} error - The error to get a friendly message for
  * @returns {string} User-friendly error message
- * 
+ *
  * @example
  * // Convert AppError to friendly message
  * const error = new AppError('RATE_LIMIT_EXCEEDED', 'Rate limit exceeded', 429);
  * const message = getUserFriendlyMessage(error);
  * // Result: 'Too many requests. Please wait a moment and try again.'
- * 
+ *
  * @example
  * // Convert generic Error to friendly message
  * const error = new Error('Network timeout occurred');
  * const message = getUserFriendlyMessage(error);
  * // Result: 'The request took too long. Please try again.'
- * 
+ *
  * @fallback Returns generic error message if no specific mapping exists
  * @version 2.0.0
  */
@@ -306,12 +306,12 @@ export function getUserFriendlyMessage(error: Error | AppError): string {
 
 /**
  * Check if Error is Retryable
- * 
+ *
  * @function isRetryableError
  * @description Determines if an error represents a transient condition that may succeed on retry
  * @param {Error | AppError} error - The error to analyze
  * @returns {boolean} True if the error is likely to succeed on retry
- * 
+ *
  * @example
  * // Check if API error is retryable
  * try {
@@ -324,7 +324,7 @@ export function getUserFriendlyMessage(error: Error | AppError): string {
  *   }
  *   throw error; // Don't retry
  * }
- * 
+ *
  * @example
  * // Exponential backoff with retry check
  * async function callWithRetry(fn, maxRetries = 3) {
@@ -339,12 +339,12 @@ export function getUserFriendlyMessage(error: Error | AppError): string {
  *     }
  *   }
  * }
- * 
+ *
  * @criteria
  * - HTTP status codes: 408, 429, 500, 502, 503, 504
  * - Network errors: Connection timeouts, DNS failures
  * - Temporary service unavailability
- * 
+ *
  * @version 2.0.0
  */
 export function isRetryableError(error: Error | AppError): boolean {
@@ -361,12 +361,12 @@ export function isRetryableError(error: Error | AppError): boolean {
 
 /**
  * Extract Error Details for Debugging
- * 
+ *
  * @function extractErrorDetails
  * @description Extracts comprehensive error information for debugging and logging
  * @param {Error | AppError} error - The error to extract details from
  * @returns {Record<string, any>} Detailed error information object
- * 
+ *
  * @example
  * // Extract details from an AppError
  * const error = new AppError('VALIDATION_ERROR', 'Invalid input', 400, { field: 'email' });
@@ -380,20 +380,20 @@ export function isRetryableError(error: Error | AppError): boolean {
  * //   details: { field: 'email' },
  * //   stack: '...'
  * // }
- * 
+ *
  * @example
  * // Extract details with error cause chain
  * const cause = new Error('Database connection failed');
  * const error = new AppError('SERVICE_UNAVAILABLE', 'Service unavailable', 503, null, { cause });
  * const details = extractErrorDetails(error);
  * // Includes nested cause details
- * 
+ *
  * @features
  * - Extracts standard Error properties (message, name, stack)
  * - Includes AppError-specific properties (code, statusCode, details)
  * - Recursively extracts error cause chain
  * - Safe for JSON serialization
- * 
+ *
  * @version 2.0.0
  */
 export function extractErrorDetails(error: Error | AppError): Record<string, any> {

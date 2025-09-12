@@ -2,11 +2,11 @@ import React from 'react';
 
 /**
  * Media Uploader Component Props
- * 
+ *
  * @interface MediaUploaderProps
  * @description Props interface for the MediaUploader component (placeholder)
  * @extends {Record<string, any>}
- * 
+ *
  * @future Will include:
  * - acceptedTypes: string[] - Allowed file types
  * - maxFileSize: number - Maximum file size in bytes
@@ -21,12 +21,12 @@ export interface MediaUploaderProps {
 
 /**
  * Media Uploader Component
- * 
+ *
  * @component MediaUploader
  * @description Component for uploading media files to the MediaNest platform (currently under development)
  * @param {MediaUploaderProps} props - Component props
  * @returns {JSX.Element} Upload interface component
- * 
+ *
  * @example
  * // Basic usage (when implemented)
  * <MediaUploader
@@ -35,7 +35,7 @@ export interface MediaUploaderProps {
  *   onUpload={handleUpload}
  *   multiple={true}
  * />
- * 
+ *
  * @future Features to implement:
  * - Drag and drop interface
  * - File type validation
@@ -45,7 +45,7 @@ export interface MediaUploaderProps {
  * - Resume interrupted uploads
  * - Metadata extraction
  * - Duplicate detection
- * 
+ *
  * @status Under Development
  * @version 2.0.0
  * @author MediaNest Team

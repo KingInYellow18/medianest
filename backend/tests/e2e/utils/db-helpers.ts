@@ -120,21 +120,21 @@ export class DatabaseHelpers {
     isActive?: boolean;
   }): Promise<any> {
     const hashedPassword = await this.hashPassword(userData.password);
-    
+
     const sql = `
       INSERT INTO users (name, email, password, role, is_active, created_at, updated_at)
       VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
       RETURNING *
     `;
-    
+
     const result = await this.queryOne(sql, [
       userData.name,
       userData.email,
       hashedPassword,
       userData.role || 'user',
-      userData.isActive !== false
+      userData.isActive !== false,
     ]);
-    
+
     return result;
   }
 
@@ -161,14 +161,14 @@ export class DatabaseHelpers {
     const fields = Object.keys(updates);
     const values = Object.values(updates);
     const setClause = fields.map((field, index) => `${field} = $${index + 2}`).join(', ');
-    
+
     const sql = `
       UPDATE users 
       SET ${setClause}, updated_at = NOW()
       WHERE id = $1
       RETURNING *
     `;
-    
+
     return await this.queryOne(sql, [id, ...values]);
   }
 
@@ -217,7 +217,7 @@ export class DatabaseHelpers {
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
       RETURNING *
     `;
-    
+
     return await this.queryOne(sql, [
       requestData.title,
       requestData.description,
@@ -226,7 +226,7 @@ export class DatabaseHelpers {
       requestData.status || 'pending',
       requestData.dueDate,
       requestData.userId,
-      JSON.stringify(requestData.metadata || {})
+      JSON.stringify(requestData.metadata || {}),
     ]);
   }
 
@@ -253,14 +253,14 @@ export class DatabaseHelpers {
     const fields = Object.keys(updates);
     const values = Object.values(updates);
     const setClause = fields.map((field, index) => `${field} = $${index + 2}`).join(', ');
-    
+
     const sql = `
       UPDATE media_requests 
       SET ${setClause}, updated_at = NOW()
       WHERE id = $1
       RETURNING *
     `;
-    
+
     return await this.queryOne(sql, [id, ...values]);
   }
 
@@ -291,7 +291,7 @@ export class DatabaseHelpers {
    */
   async seedTestUsers(): Promise<any[]> {
     const createdUsers = [];
-    
+
     for (const user of allTestUsers) {
       try {
         // Check if user already exists
@@ -300,7 +300,7 @@ export class DatabaseHelpers {
           createdUsers.push(existingUser);
           continue;
         }
-        
+
         const createdUser = await this.createUser(user);
         createdUsers.push(createdUser);
         console.log(`Created test user: ${user.email}`);
@@ -308,7 +308,7 @@ export class DatabaseHelpers {
         console.error(`Failed to create user ${user.email}:`, error);
       }
     }
-    
+
     return createdUsers;
   }
 
@@ -317,7 +317,7 @@ export class DatabaseHelpers {
    */
   async seedTestMediaRequests(userId?: string): Promise<any[]> {
     const createdRequests = [];
-    
+
     // Use first test user if no userId provided
     if (!userId) {
       const user = await this.getUserByEmail(testUsers.regularUser.email);
@@ -326,15 +326,15 @@ export class DatabaseHelpers {
       }
       userId = user.id;
     }
-    
+
     for (const request of Object.values(testMediaRequests)) {
       try {
         const requestData = {
           ...request,
           userId,
-          metadata: request.metadata || {}
+          metadata: request.metadata || {},
         };
-        
+
         const createdRequest = await this.createMediaRequest(requestData);
         createdRequests.push(createdRequest);
         console.log(`Created test request: ${request.title}`);
@@ -342,7 +342,7 @@ export class DatabaseHelpers {
         console.error(`Failed to create request ${request.title}:`, error);
       }
     }
-    
+
     return createdRequests;
   }
 
@@ -352,9 +352,11 @@ export class DatabaseHelpers {
   async cleanTestData(): Promise<void> {
     try {
       // Delete in order to respect foreign key constraints
-      await this.query('DELETE FROM media_requests WHERE user_id IN (SELECT id FROM users WHERE email LIKE \'%@medianest.test\')');
-      await this.query('DELETE FROM users WHERE email LIKE \'%@medianest.test\'');
-      
+      await this.query(
+        "DELETE FROM media_requests WHERE user_id IN (SELECT id FROM users WHERE email LIKE '%@medianest.test')",
+      );
+      await this.query("DELETE FROM users WHERE email LIKE '%@medianest.test'");
+
       console.log('Test data cleaned successfully');
     } catch (error) {
       console.error('Failed to clean test data:', error);
@@ -374,9 +376,9 @@ export class DatabaseHelpers {
         AND tablename NOT LIKE 'pg_%'
         AND tablename != 'migrations'
       `);
-      
+
       const tables = tablesResult.rows.map((row: any) => row.tablename);
-      
+
       if (tables.length > 0) {
         // Truncate all tables with cascade
         await this.query(`TRUNCATE TABLE ${tables.join(', ')} RESTART IDENTITY CASCADE`);
@@ -423,7 +425,7 @@ export class DatabaseHelpers {
         AND table_name = $1
       )
     `;
-    
+
     const result = await this.queryOne(sql, [tableName]);
     return result.exists;
   }
@@ -443,13 +445,13 @@ export class DatabaseHelpers {
   async executeInTransaction(queries: { sql: string; params?: any[] }[]): Promise<any[]> {
     const client = await this.beginTransaction();
     const results = [];
-    
+
     try {
       for (const { sql, params = [] } of queries) {
         const result = await client.query(sql, params);
         results.push(result);
       }
-      
+
       await this.commitTransaction(client);
       return results;
     } catch (error) {
@@ -466,10 +468,10 @@ export class DatabaseHelpers {
     params: any[] = [],
     condition: (result: any) => boolean,
     timeout = 30000,
-    interval = 1000
+    interval = 1000,
   ): Promise<boolean> {
     const startTime = Date.now();
-    
+
     while (Date.now() - startTime < timeout) {
       try {
         const result = await this.queryOne(checkQuery, params);
@@ -479,10 +481,10 @@ export class DatabaseHelpers {
       } catch (error) {
         // Continue waiting if query fails
       }
-      
-      await new Promise(resolve => setTimeout(resolve, interval));
+
+      await new Promise((resolve) => setTimeout(resolve, interval));
     }
-    
+
     return false;
   }
 
@@ -492,11 +494,11 @@ export class DatabaseHelpers {
   async getDatabaseStats(): Promise<any> {
     const userCount = await this.getTableRowCount('users');
     const requestCount = await this.getTableRowCount('media_requests');
-    
+
     return {
       users: userCount,
       mediaRequests: requestCount,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 }

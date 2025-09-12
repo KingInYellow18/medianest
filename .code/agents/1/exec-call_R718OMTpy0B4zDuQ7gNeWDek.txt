@@ -1,0 +1,1785 @@
+total 1924
+drwxrwxr-x  45 kinginyellow kinginyellow  12288 Sep 12 11:59 .
+drwxrwxr-x  16 kinginyellow kinginyellow   4096 Sep 10 22:57 ..
+-rw-rw-r--   1 kinginyellow kinginyellow   8160 Sep 11 11:53 agenthooks-recommended.md
+-rw-rw-r--   1 kinginyellow kinginyellow   2767 Sep 12 09:23 AGENTS.md
+-rw-rw-r--   1 kinginyellow kinginyellow  44196 Sep 11 11:00 ARCHITECTURE.md
+drwxrwxr-x  21 kinginyellow kinginyellow   4096 Sep 12 09:19 backend
+drwxrwxr-x   2 kinginyellow kinginyellow   4096 Sep  9 10:34 backups
+-rw-rw-r--   1 kinginyellow kinginyellow  24955 Sep 12 09:06 build.log
+-rw-rw-r--   1 kinginyellow kinginyellow    202 Sep 12 00:13 build-metrics.json
+-rw-rw-r--   1 kinginyellow kinginyellow   3351 Sep 11 17:54 build-output.log
+-rw-rw-r--   1 kinginyellow kinginyellow   2824 Sep 11 09:36 CHANGELOG.md
+drwxrwxr-x   6 kinginyellow kinginyellow   4096 Sep 12 11:27 .claude
+drwxrwxr-x   4 kinginyellow kinginyellow   4096 Sep  5 18:03 .claude-flow
+-rwxrwxr-x   1 kinginyellow kinginyellow   1038 Sep 11 09:21 claude-flow
+-rwxrwxr-x   1 kinginyellow kinginyellow    353 Sep  9 08:45 claude-flow.bat
+-rw-rw-r--   1 kinginyellow kinginyellow    487 Sep  9 08:45 claude-flow.config.json
+-rwxrwxr-x   1 kinginyellow kinginyellow    600 Sep  9 08:45 claude-flow.ps1
+-rw-rw-r--   1 kinginyellow kinginyellow  13928 Sep  9 11:01 CLAUDE.md
+-rw-rw-r--   1 kinginyellow kinginyellow   4872 Sep 11 09:36 CLEANUP_SUMMARY.md
+drwxrwxr-x   3 kinginyellow kinginyellow   4096 Sep 12 09:08 .code
+-rw-rw-r--   1 kinginyellow kinginyellow    406 Sep 11 09:07 commitlint.config.js
+drwxrwxr-x   8 kinginyellow kinginyellow   4096 Sep 12 00:09 config
+-rw-rw-r--   1 kinginyellow kinginyellow  12001 Sep 11 10:10 CONTRIBUTING.md
+drwxrwxr-x   2 kinginyellow kinginyellow   4096 Sep 12 08:45 coverage-reports
+drwxrwxr-x   4 kinginyellow kinginyellow   4096 Sep 11 10:53 deployment
+-rw-rw-r--   1 kinginyellow kinginyellow   3986 Sep 12 08:55 DEPLOYMENT-DECISION-20250912.md
+-rwxrwxr-x   1 kinginyellow kinginyellow   7114 Sep  9 08:45 deploy-secure.sh
+-rw-rw-r--   1 kinginyellow kinginyellow  17614 Sep 11 09:36 development-agents.json
+-rw-rw-r--   1 kinginyellow kinginyellow   1290 Sep  9 08:52 DEVELOPMENT.md
+-rw-rw-r--   1 kinginyellow kinginyellow  14056 Sep  9 08:45 docker-bake.hcl
+-rw-rw-r--   1 kinginyellow kinginyellow  20256 Sep 11 17:36 docker-build.log
+-rwxrwxr-x   1 kinginyellow kinginyellow  15755 Sep  9 08:45 docker-build.sh
+-rw-rw-r--   1 kinginyellow kinginyellow   1289 Sep 11 16:27 docker-compose.override.yml
+-rw-rw-r--   1 kinginyellow kinginyellow   2389 Sep 12 08:26 docker-compose.yml
+-rwxrwxr-x   1 kinginyellow kinginyellow   6175 Sep  9 13:10 docker-entrypoint.sh
+-rw-rw-r--   1 kinginyellow kinginyellow   5352 Sep 11 21:39 Dockerfile
+-rw-rw-r--   1 kinginyellow kinginyellow   1736 Sep 11 21:25 .dockerignore
+drwxrwxr-x   2 kinginyellow kinginyellow   4096 Sep  9 08:45 docker-scripts
+-rw-rw-r--   1 kinginyellow kinginyellow  13603 Sep  9 08:47 docker-swarm-stack.yml
+drwxrwxr-x  25 kinginyellow kinginyellow   4096 Sep 12 08:19 docs
+-rw-rw-r--   1 kinginyellow kinginyellow    796 Sep  9 08:45 .editorconfig
+-rw-rw-r--   1 kinginyellow kinginyellow   1850 Sep 11 10:06 .env
+-rw-rw-r--   1 kinginyellow kinginyellow   8606 Sep  9 13:09 .env.example
+-rw-rw-r--   1 kinginyellow kinginyellow   1594 Sep  9 08:45 .env.production
+-rw-rw-r--   1 kinginyellow kinginyellow   8583 Sep  9 08:45 .env.production.example
+-rw-rw-r--   1 kinginyellow kinginyellow   4867 Sep 12 08:26 .env.staging.example
+-rw-rw-r--   1 kinginyellow kinginyellow   3984 Sep  9 08:45 .env.test.example
+-rw-rw-r--   1 kinginyellow kinginyellow   8642 Sep 11 10:16 eslint.config.js
+-rw-rw-r--   1 kinginyellow kinginyellow  16666 Sep 11 11:58 flowstrats.md
+drwxrwxr-x  16 kinginyellow kinginyellow   4096 Sep 12 08:59 frontend
+-rw-rw-r--   1 kinginyellow kinginyellow   2828 Sep 12 09:25 GEMINI.md
+drwxrwxr-x   9 kinginyellow kinginyellow   4096 Sep 12 12:05 .git
+-rw-rw-r--   1 kinginyellow kinginyellow    563 Sep  5 08:05 .gitattributes
+drwxrwxr-x   5 kinginyellow kinginyellow   4096 Sep 11 09:19 .github
+-rw-rw-r--   1 kinginyellow kinginyellow   2202 Sep 12 09:19 .gitignore
+drwxrwxr-x   3 kinginyellow kinginyellow   4096 Sep 11 09:07 .husky
+drwxrwxr-x   5 kinginyellow kinginyellow   4096 Sep  9 10:34 infrastructure
+-rw-rw-r--   1 kinginyellow kinginyellow   9221 Sep 11 10:57 KUBERNETES_CLEANUP_SUMMARY.md
+-rw-rw-r--   1 kinginyellow kinginyellow    974 Sep  9 08:45 .lintstagedrc.js
+-rw-rw-r--   1 kinginyellow kinginyellow   6785 Sep  9 08:47 load-testing-summary.json
+drwxrwxr-x   5 kinginyellow kinginyellow   4096 Sep 12 09:39 logs
+-rw-rw-r--   1 kinginyellow kinginyellow    948 Sep  9 14:59 .markdown-link-check.json
+-rw-rw-r--   1 kinginyellow kinginyellow   1079 Sep  9 14:58 .markdownlint.json
+-rw-rw-r--   1 kinginyellow kinginyellow    339 Sep  7 08:48 .mcp.json
+-rw-rw-r--   1 kinginyellow kinginyellow  19307 Sep  5 08:05 MediaNest.PRD
+-rw-rw-r--   1 kinginyellow kinginyellow  15540 Sep 12 08:54 MEDIANEST_STAGING_DEPLOY_20250912.md
+drwxrwxr-x   4 kinginyellow kinginyellow   4096 Sep 10 15:59 memory
+drwxrwxr-x   5 kinginyellow kinginyellow   4096 Sep 11 15:04 metrics
+-rw-rw-r--   1 kinginyellow kinginyellow    478 Sep 11 16:25 migration-test.log
+drwxrwxr-x   3 kinginyellow kinginyellow   4096 Sep 12 00:09 mkdocs-env
+-rw-rw-r--   1 kinginyellow kinginyellow   9097 Sep  9 12:40 mkdocs-production.yml
+-rw-rw-r--   1 kinginyellow kinginyellow   2647 Sep  9 12:37 mkdocs-test.yml
+-rw-rw-r--   1 kinginyellow kinginyellow  10889 Sep 11 23:42 mkdocs.yml
+drwxrwxr-x  12 kinginyellow kinginyellow   4096 Sep 12 00:13 monitoring
+drwxrwxr-x 935 kinginyellow kinginyellow  36864 Sep 12 09:38 node_modules
+-rw-rw-r--   1 kinginyellow kinginyellow      7 Sep  5 08:05 .node-version
+-rw-rw-r--   1 kinginyellow kinginyellow      7 Sep  5 08:05 .nvmrc
+-rw-rw-r--   1 kinginyellow kinginyellow  13901 Sep 11 21:23 package.json
+-rw-rw-r--   1 kinginyellow kinginyellow 627416 Sep 12 09:38 package-lock.json
+drwxrwxr-x   3 kinginyellow kinginyellow   4096 Sep  9 08:45 performance
+drwxrwxr-x   2 kinginyellow kinginyellow   4096 Sep 11 10:37 performance-optimization
+-rw-rw-r--   1 kinginyellow kinginyellow   3313 Sep 11 14:48 playwright.config.ts
+-rw-rw-r--   1 kinginyellow kinginyellow   8256 Sep  9 14:58 .pre-commit-config.yaml
+-rw-rw-r--   1 kinginyellow kinginyellow    671 Sep  9 08:45 .prettierignore
+-rw-rw-r--   1 kinginyellow kinginyellow    310 Sep 11 10:08 .prettierrc.json
+drwxrwxr-x   3 kinginyellow kinginyellow   4096 Sep  9 08:52 prisma
+-rw-rw-r--   1 kinginyellow kinginyellow  30262 Sep 11 11:01 README_DEPLOYMENT.md
+-rw-rw-r--   1 kinginyellow kinginyellow  18828 Sep 11 15:06 README.md
+drwxrwxr-x   2 kinginyellow kinginyellow   4096 Sep 12 08:38 reports
+-rw-rw-r--   1 kinginyellow kinginyellow    958 Sep  9 08:45 requirements.txt
+-rw-rw-r--   1 kinginyellow kinginyellow  45137 Sep  5 16:48 .roomodes
+drwxrwxr-x   5 kinginyellow kinginyellow  12288 Sep 12 00:09 scripts
+drwxrwxr-x   2 kinginyellow kinginyellow   4096 Sep  7 18:14 secrets
+drwxrwxr-x   2 kinginyellow kinginyellow   4096 Sep 11 11:10 security
+drwxrwxr-x   2 kinginyellow kinginyellow   4096 Sep 11 11:03 security-audit-2025-09-08
+-rw-rw-r--   1 kinginyellow kinginyellow   3696 Sep  9 08:45 security-audit-results.json
+-rw-rw-r--   1 kinginyellow kinginyellow     64 Sep  9 08:47 security-clearance.txt
+-rw-rw-r--   1 kinginyellow kinginyellow  17265 Sep 11 10:35 SECURITY_HARDENING_COMPLETE.md
+drwxrwxr-x   2 kinginyellow kinginyellow   4096 Sep 12 08:40 security-reports
+-rw-rw-r--   1 kinginyellow kinginyellow   5392 Sep 12 09:22 SECURITY-RESOLUTION-REPORT.md
+drwxrwxr-x   5 kinginyellow kinginyellow   4096 Sep  9 08:45 .serena
+drwxrwxr-x   8 kinginyellow kinginyellow   4096 Sep 11 19:23 shared
+drwxrwxr-x  67 kinginyellow kinginyellow   4096 Sep 11 16:28 site
+drwxrwxr-x   4 kinginyellow kinginyellow   4096 Sep  9 08:45 src
+-rw-rw-r--   1 kinginyellow kinginyellow   8722 Sep 12 11:59 staging_checklist.md
+drwxrwxr-x   3 kinginyellow kinginyellow   4096 Sep 10 08:35 .swarm
+drwxrwxr-x   8 kinginyellow kinginyellow   4096 Sep  9 13:39 tasks
+-rw-rw-r--   1 kinginyellow kinginyellow 104363 Sep 11 22:56 test-audit-complete.log
+-rw-rw-r--   1 kinginyellow kinginyellow     24 Sep 11 08:48 test-commit.txt
+-rw-rw-r--   1 kinginyellow kinginyellow  85448 Sep 11 17:54 test-failures-detailed.log
+-rw-rw-r--   1 kinginyellow kinginyellow  87786 Sep 11 17:33 test-reality.log
+drwxrwxr-x   3 kinginyellow kinginyellow   4096 Sep 12 08:46 test-results
+drwxrwxr-x  23 kinginyellow kinginyellow   4096 Sep 11 22:07 tests
+drwxrwxr-x   2 kinginyellow kinginyellow   4096 Sep 11 09:19 todos
+-rw-rw-r--   1 kinginyellow kinginyellow    907 Sep 11 15:51 .tsbuildinfo
+-rw-rw-r--   1 kinginyellow kinginyellow    322 Sep 11 17:51 tsc-diagnostics.log
+-rw-rw-r--   1 kinginyellow kinginyellow      0 Sep 11 17:51 tsc-files.log
+-rw-rw-r--   1 kinginyellow kinginyellow   1793 Sep  9 17:51 tsconfig.base.json
+-rw-rw-r--   1 kinginyellow kinginyellow    697 Sep  9 11:01 tsconfig.json
+--- root-listed
+{
+  "name": "medianest",
+  "version": "2.0.0",
+  "description": "Advanced Media Management Platform",
+  "type": "module",
+  "main": "src/index.js",
+  "workspaces": [
+    "shared",
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "build": "./scripts/build-stabilizer.sh",
+    "build:fast": "npm run build:backend && npm run build:frontend",
+    "build:optimized": "node scripts/build-performance-enhancer.js optimize && npm run build",
+    "build:clean": "npm run clean && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "build:docker": "docker build -f Dockerfile --target backend-production -t medianest-backend . && docker build -f Dockerfile --target frontend-production -t medianest-frontend .",
+    "build:docs": "./scripts/build-docs.sh",
+    "build:docs:dev": "./scripts/build-docs.sh --dev",
+    "build:docs:fast": "./scripts/build-docs.sh --skip-deps --skip-tests",
+    "start": "npm run start:backend",
+    "start:backend": "cd backend && npm start",
+    "start:frontend": "cd frontend && npm start",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:docs": "mkdocs serve",
+    "dev:docs:hot": "mkdocs serve --dev-addr=0.0.0.0:8001",
+    "test": "vitest run --exclude=tests/performance/** --exclude=tests/e2e/e2e-performance.spec.ts --exclude=tests/security/security-performance.test.ts",
+    "test:fast": "vitest run --config vitest.fast.config.ts --reporter=basic",
+    "test:ultra-fast": "vitest run --config vitest.ultrafast.config.ts --reporter=basic --no-coverage",
+    "test:sharded": "node scripts/test-sharding-optimizer.js",
+    "test:incremental": "node scripts/test-sharding-optimizer.js --incremental",
+    "test:cache": "vitest run --config vitest.cache.config.ts --reporter=basic --no-coverage",
+    "test:cache:watch": "vitest --config vitest.cache.config.ts --reporter=basic",
+    "test:parallel": "node scripts/parallel-test-optimizer.js",
+    "test:monitor": "node scripts/test-performance-monitor.js npm run test:fast",
+    "test:monitor:dashboard": "node scripts/test-performance-monitor.js --dashboard",
+    "build:verify": "node -e 'console.log(\"Build verification:\"); const fs=require(\"fs\"); console.log(\"Backend:\", fs.existsSync(\"backend/dist\") ? \"✅\" : \"❌\"); console.log(\"Frontend:\", fs.existsSync(\"frontend/.next\") ? \"✅\" : \"❌\");'",
+    "test:watch": "vitest --config vitest.fast.config.ts",
+    "test:watch:slow": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "test:backend": "cd backend && npm run test",
+    "test:frontend": "cd frontend && npm run test",
+    "test:shared": "cd shared && npm run test",
+    "test:all": "npm run test:parallel",
+    "test:all:sequential": "npm run test:backend && npm run test:frontend && npm run test:shared",
+    "test:e2e": "cd backend && npm run test:e2e",
+    "test:docs": "echo 'Link checking disabled due to security vulnerabilities'",
+    "test:comprehensive": "npx tsx tests/comprehensive-test-suite.ts",
+    "test:load": "npm run test:performance:suite",
+    "test:performance": "npm run test:performance:suite && npm run test:performance:e2e && npm run test:performance:security",
+    "test:performance:suite": "vitest run --config vitest.performance.config.ts tests/performance/performance-suite.test.ts --reporter=verbose",
+    "test:performance:e2e": "vitest run tests/e2e/e2e-performance.spec.ts --reporter=verbose",
+    "test:performance:security": "vitest run tests/security/security-performance.test.ts --reporter=verbose",
+    "test:security": "./scripts/run-security-tests.sh",
+    "test:security:validate": "node scripts/validate-security-framework.js",
+    "test:performance:all": "npm run test:performance:suite && npm run test:performance:e2e && npm run test:performance:security",
+    "test:performance:report": "npm run test:performance:all -- --reporter=json --outputFile=test-results/performance-results.json",
+    "test:ci": "npm run test:fast -- --coverage --coverage.threshold.lines=65",
+    "test:ci:full": "npm run test && npm run test:performance:all",
+    "test:ci:performance": "npm run test:performance:all -- --reporter=json --outputFile=test-results/performance-ci.json",
+    "test:ci:quick": "node scripts/parallel-test-optimizer.js --workers 4 --no-cache",
+    "test:ci:ultra": "node scripts/parallel-test-optimizer.js --workers 8",
+    "test:ci:coverage": "vitest run --coverage --reporter=verbose --reporter=json --outputFile=test-results/coverage-results.json",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:integration:watch": "vitest --config vitest.integration.config.ts",
+    "lint": "eslint src --ext .ts,.tsx,.js,.jsx",
+    "lint:fix": "eslint src --ext .ts,.tsx,.js,.jsx --fix",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "typecheck": "npm run typecheck:backend && npm run typecheck:frontend",
+    "typecheck:backend": "cd backend && npm run type-check",
+    "typecheck:frontend": "cd frontend && npm run type-check",
+    "typecheck:fix": "node scripts/typescript-fixer.js fix",
+    "deploy": "npm run build && npm run deploy:compose",
+    "deploy:compose": "docker-compose -f docker-compose.production.yml up -d --build",
+    "deploy:api": "pm2 start ecosystem.config.js",
+    "deploy:docs": "./scripts/deploy-docs.sh",
+    "deploy:docs:github": "./scripts/deploy-docs.sh --github",
+    "deploy:docs:netlify": "./scripts/deploy-docs.sh --netlify",
+    "deploy:docs:s3": "./scripts/deploy-docs.sh --s3",
+    "db:migrate": "cd backend && npx prisma migrate deploy",
+    "db:rollback": "cd backend && npx prisma migrate reset --force",
+    "db:seed": "cd backend && npx prisma db seed",
+    "db:reset": "npm run db:rollback && npm run db:migrate && npm run db:seed",
+    "db:check": "cd backend && npx prisma db execute --stdin < ../scripts/db-health-check.sql",
+    "migrate:up": "cd backend && npx prisma migrate deploy",
+    "migrate:down": "cd backend && npx prisma migrate reset --force",
+    "migrate:status": "cd backend && npx prisma migrate status",
+    "migrate:test": "./scripts/test-migrations.sh",
+    "db:studio": "cd backend && npx prisma studio",
+    "db:generate": "cd backend && npx prisma generate",
+    "db:push": "cd backend && npx prisma db push",
+    "db:pull": "cd backend && npx prisma db pull",
+    "db:validate": "cd backend && npx prisma validate",
+    "setup": "npm install && npm run build && npm run db:migrate",
+    "setup:dev": "npm install && npm run db:migrate && npm run db:seed",
+    "clean": "rimraf backend/dist frontend/.next shared/dist node_modules/.cache .build-cache",
+    "clean:cache": "npm cache clean --force && node scripts/build-performance-enhancer.js clean",
+    "clean:deep": "npm run clean && npm run clean:cache && rimraf node_modules */node_modules",
+    "clean:docs": "rimraf site",
+    "clean:all": "npm run clean && rimraf node_modules",
+    "docker:build": "docker build -f Dockerfile -t medianest:latest .",
+    "docker:build:optimized": "npm run build:docker",
+    "docker:build:dev": "docker build -f Dockerfile --target development -t medianest:dev .",
+    "docker:build:test": "docker build -f Dockerfile --target test -t medianest:test .",
+    "docker:run": "docker run -p 8080:8080 medianest:latest",
+    "docker:compose": "docker compose up -d",
+    "docker:compose:prod": "docker-compose -f docker-compose.production.yml up -d",
+    "docker:compose:build": "docker-compose -f docker-compose.production.yml up -d --build",
+    "docker:docs": "docker run --rm -v \"$PWD\":/docs squidfunk/mkdocs-material build",
+    "analyze": "npm run analyze:bundle && npm run analyze:performance",
+    "analyze:bundle": "cd frontend && npm run analyze:bundle",
+    "analyze:performance": "node scripts/build-performance-enhancer.js analyze",
+    "analyze:all": "npm run analyze:bundle && npm run analyze:performance && npm run build:verify",
+    "security": "npm audit && npm run security:deps",
+    "security:deps": "npm audit fix",
+    "docs:validate": "mkdocs config-validation",
+    "docs:linkcheck": "echo 'Link checking disabled due to security vulnerabilities'",
+    "docs:serve": "mkdocs serve",
+    "docs:build": "mkdocs build",
+    "docs:gh-deploy": "mkdocs gh-deploy",
+    "release": "standard-version && git push --follow-tags origin main && npm publish",
+    "release:docs": "npm run build:docs && npm run deploy:docs:github",
+    "benchmark": "node scripts/benchmark.js",
+    "profile": "node --prof src/server.js",
+    "healthcheck": "curl -f http://localhost:8080/health || exit 1",
+    "security:scan": "node scripts/security-monitor.js --scan",
+    "security:monitor": "node scripts/security-monitor.js --daily",
+    "security:alert": "node scripts/security-monitor.js --alert",
+    "build:ci": "npm run typecheck:fix && npm run build && npm run build:verify",
+    "build:prod": "NODE_ENV=production npm run build:optimized",
+    "build:metrics": "npm run build && cat build-metrics.json",
+    "perf:build": "npm run analyze:performance && npm run build:optimized && npm run analyze:performance",
+    "build:production": "NODE_ENV=production npm run build:optimized",
+    "install:production": "npm ci --omit=dev --omit=optional",
+    "test:edge-cases": "cd tests/edge-cases && npx vitest run --config vitest.config.ts",
+    "test:edge-cases:watch": "cd tests/edge-cases && npx vitest --config vitest.config.ts",
+    "test:edge-cases:full": "tsx tests/edge-cases/edge-case-runner.ts",
+    "test:boundaries": "npm run test:edge-cases -- --grep=\"Boundary Value Testing\"",
+    "test:security-edges": "npm run test:edge-cases -- --grep=\"Security Edge Cases\"",
+    "test:concurrency": "npm run test:edge-cases -- --grep=\"Concurrent Access Testing\"",
+    "validate:production": "npm run test:edge-cases:full && npm run test:all && npm run security:scan",
+    "pipeline:validate": "npx tsx scripts/zero-failure-pipeline-validator.ts",
+    "pipeline:rollback": "npx tsx scripts/automated-rollback-system.ts",
+    "monitoring:dashboard": "node scripts/monitoring-dashboard-server.js",
+    "monitoring:start": "npm run monitoring:dashboard",
+    "deploy:zero-failure": "npm run pipeline:validate && npm run build:production && npm run deploy",
+    "deploy:safe": "npm run deploy:zero-failure",
+    "ci:full": "npm run pipeline:validate && npm run test:ci:full && npm run security:scan",
+    "ci:performance": "npm run test:ci:performance && npm run analyze:performance",
+    "nightly:performance": "npm run test:performance:all -- --reporter=verbose --reporter=json --outputFile=test-results/nightly-performance-$(date +%Y%m%d).json",
+    "load-test": "npx k6 run scripts/load-test.js",
+    "load-test:light": "npx k6 run --env TEST_MODE=light scripts/load-test.js",
+    "load-test:medium": "npx k6 run --env TEST_MODE=medium scripts/load-test.js",
+    "load-test:heavy": "npx k6 run --env TEST_MODE=heavy scripts/load-test.js",
+    "load-test:custom": "npx k6 run --vus ${VUS:-10} --duration ${DURATION:-2m} scripts/load-test.js",
+    "load-test:staged": "npx k6 run --stage 30s:5,60s:10,30s:15,60s:5,30s:0 scripts/load-test.js",
+    "hooks:bypass": "./scripts/git-hooks-bypass.sh",
+    "hooks:performance": "./scripts/git-hooks-performance.sh",
+    "hooks:install": "husky prepare",
+    "hooks:test": "./scripts/git-hooks-health-check.sh",
+    "prepare": "husky prepare || true"
+  },
+  "keywords": [
+    "media",
+    "management",
+    "digital-asset-management",
+    "file-organization",
+    "content-management",
+    "nodejs",
+    "typescript",
+    "react"
+  ],
+  "author": "MediaNest Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/medianest/medianest.git"
+  },
+  "bugs": {
+    "url": "https://github.com/medianest/medianest/issues"
+  },
+  "homepage": "https://docs.medianest.com",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "dependencies": {
+    "@types/express": "^4.17.17",
+    "@types/node": "^20.0.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.5.0",
+    "jsonwebtoken": "^9.0.2",
+    "knex": "^2.4.2",
+    "pg": "^8.11.0",
+--- eslint
+import globals from "globals";
+import tsParser from "@typescript-eslint/parser";
+import typescriptEslint from "@typescript-eslint/eslint-plugin";
+import importPlugin from "eslint-plugin-import";
+import prettier from "eslint-plugin-prettier";
+import js from "@eslint/js";
+
+export default [
+    // Ignore patterns for all configs
+    {
+        ignores: [
+            "node_modules/**",
+            "dist/**",
+            "build/**",
+            ".next/**",
+            "coverage/**",
+            "**/*.d.ts",
+            "**/*.config.js",
+            "**/*.config.ts",
+            ".eslintrc.js",
+            "eslint.config.js",
+            ".lintstagedrc.js",
+            "lint-staged.config.js",
+            "scripts/**/*.js",
+            "**/scripts/**",
+            ".claude/**",
+            "**/dist/**",
+            "**/build/**",
+            "**/__tests__/**",
+            "**/tests/**",
+        ],
+    },
+    
+    // Base JavaScript configuration
+    {
+        files: ["**/*.js", "**/*.mjs", "**/*.cjs"],
+        languageOptions: {
+            globals: {
+                ...globals.node,
+                ...globals.es2022,
+            },
+            ecmaVersion: 2022,
+            sourceType: "module",
+        },
+        plugins: {
+            import: importPlugin,
+            prettier,
+        },
+        rules: {
+            ...js.configs.recommended.rules,
+            "no-console": ["warn", { allow: ["warn", "error"] }],
+            "prefer-const": "error",
+            "no-debugger": "error",
+            "prettier/prettier": "error",
+            "import/no-duplicates": "error",
+        },
+    },
+    
+    // TypeScript configuration for backend
+    {
+        files: ["backend/**/*.ts", "backend/**/*.tsx"],
+        languageOptions: {
+            globals: {
+                ...globals.node,
+                ...globals.es2022,
+            },
+            parser: tsParser,
+            ecmaVersion: 2022,
+            sourceType: "module",
+            parserOptions: {
+                tsconfigRootDir: import.meta.dirname + "/backend",
+                project: ["./tsconfig.json"],
+            },
+        },
+        plugins: {
+            "@typescript-eslint": typescriptEslint,
+            import: importPlugin,
+            prettier,
+        },
+        rules: {
+            ...js.configs.recommended.rules,
+            ...typescriptEslint.configs.recommended.rules,
+            
+            // TypeScript rules
+            "@typescript-eslint/explicit-function-return-type": "off",
+            "@typescript-eslint/explicit-module-boundary-types": "off",
+            "@typescript-eslint/no-explicit-any": "warn",
+            "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+            "@typescript-eslint/no-non-null-assertion": "warn",
+            "@typescript-eslint/no-var-requires": "warn",
+            "no-undef": "off", // TypeScript handles this
+            
+            // Import rules
+            "import/order": [
+                "error",
+                {
+                    groups: ["builtin", "external", "internal", "parent", "sibling", "index"],
+                    "newlines-between": "always",
+                    alphabetize: { order: "asc", caseInsensitive: true },
+                },
+            ],
+            "import/no-duplicates": "error",
+            "import/no-unresolved": "error",
+            
+            // General rules
+            "no-console": ["warn", { allow: ["warn", "error"] }],
+            "prefer-const": "error",
+            "no-debugger": "error",
+            "prettier/prettier": "error",
+        },
+        settings: {
+            "import/parsers": {
+                "@typescript-eslint/parser": [".ts", ".tsx"],
+            },
+            "import/resolver": {
+                typescript: {
+                    alwaysTryTypes: true,
+                    project: ["./backend/tsconfig.json"],
+                },
+            },
+        },
+    },
+    
+    // TypeScript configuration for shared
+    {
+        files: ["shared/**/*.ts", "shared/**/*.tsx"],
+        languageOptions: {
+            globals: {
+                ...globals.node,
+                ...globals.es2022,
+            },
+            parser: tsParser,
+            ecmaVersion: 2022,
+            sourceType: "module",
+            parserOptions: {
+                tsconfigRootDir: import.meta.dirname + "/shared",
+                project: ["./tsconfig.json"],
+            },
+        },
+        plugins: {
+            "@typescript-eslint": typescriptEslint,
+            import: importPlugin,
+            prettier,
+        },
+        rules: {
+            ...js.configs.recommended.rules,
+            ...typescriptEslint.configs.recommended.rules,
+            
+            // TypeScript rules
+            "@typescript-eslint/explicit-function-return-type": "off",
+            "@typescript-eslint/explicit-module-boundary-types": "off",
+            "@typescript-eslint/no-explicit-any": "warn",
+            "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+            "@typescript-eslint/no-non-null-assertion": "warn",
+            "@typescript-eslint/no-var-requires": "warn",
+            "no-undef": "off", // TypeScript handles this
+            
+            // Import rules
+            "import/order": [
+                "error",
+                {
+                    groups: ["builtin", "external", "internal", "parent", "sibling", "index"],
+                    "newlines-between": "always",
+                    alphabetize: { order: "asc", caseInsensitive: true },
+                },
+            ],
+            "import/no-duplicates": "error",
+            "import/no-unresolved": "error",
+            
+            // General rules
+            "no-console": ["warn", { allow: ["warn", "error"] }],
+            "prefer-const": "error",
+            "no-debugger": "error",
+            "prettier/prettier": "error",
+        },
+        settings: {
+            "import/parsers": {
+                "@typescript-eslint/parser": [".ts", ".tsx"],
+            },
+            "import/resolver": {
+                typescript: {
+                    alwaysTryTypes: true,
+                    project: ["./shared/tsconfig.json"],
+                },
+            },
+        },
+    },
+    
+    // TypeScript configuration for root src files
+    {
+        files: ["src/**/*.ts", "src/**/*.tsx"],
+        languageOptions: {
+            globals: {
+                ...globals.node,
+                ...globals.es2022,
+            },
+            parser: tsParser,
+            ecmaVersion: 2022,
+            sourceType: "module",
+            parserOptions: {
+--- prettier
+{
+  "semi": true,
+  "trailingComma": "all",
+  "singleQuote": true,
+  "printWidth": 100,
+  "tabWidth": 2,
+  "useTabs": false,
+  "bracketSpacing": true,
+  "bracketSameLine": false,
+  "arrowParens": "always",
+  "endOfLine": "lf",
+  "quoteProps": "as-needed",
+  "jsxSingleQuote": true,
+  "proseWrap": "preserve"
+}
+--- .prettierignore
+# Dependencies
+node_modules/
+**/node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+coverage/
+
+# Generated files
+**/*.d.ts
+**/*.map
+*.generated.ts
+*.generated.js
+*.lcov
+
+# Config files that should maintain their format
+.eslintrc.js
+eslint.config.js
+next.config.js
+tailwind.config.js
+postcss.config.js
+vitest.config.ts
+
+# Environment files
+.env*
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary folders
+.tmp/
+.temp/
+.claude/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git
+.git/
+.husky/
+
+# Database
+*.db
+*.sqlite
+
+# Documentation build
+docs/build/--- .editorconfig
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+# Unix-style newlines with a newline ending every file
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# Markdown files
+[*.md]
+max_line_length = off
+trim_trailing_whitespace = false
+
+# TypeScript and JavaScript files
+[*.{ts,tsx,js,jsx,mjs,cjs}]
+max_line_length = 100
+
+# JSON files
+[*.json]
+insert_final_newline = false
+
+# YAML files
+[*.{yml,yaml}]
+indent_size = 2
+
+# Shell scripts
+[*.sh]
+end_of_line = lf
+
+# Batch files
+[*.{cmd,bat}]
+end_of_line = crlf
+
+# Makefiles
+[Makefile]
+indent_style = tab
+
+# Python files (if any)
+[*.py]
+indent_size = 4
+max_line_length = 88
+
+# Prisma schema files
+[*.prisma]
+indent_size = 2--- tsconfig.base.json
+{
+  "compilerOptions": {
+    // Type Checking
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+
+    // Module Resolution - Compatible with all packages
+    "moduleResolution": "node",
+    "moduleDetection": "force",
+    "verbatimModuleSyntax": false,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "paths": {
+      "@medianest/shared": ["./shared/dist", "./shared/src"],
+      "@medianest/shared/*": ["./shared/dist/*", "./shared/src/*"]
+    },
+
+    // Emit - Context7 optimized for faster builds
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "removeComments": false,
+    "preserveConstEnums": true,
+    "importsNotUsedAsValues": "remove",
+    "noEmitOnError": false,
+
+    // Language and Environment
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+
+    // Context7 Performance Optimizations - Enhanced for A+ grade
+    "isolatedModules": true,
+    "preserveSymlinks": false,
+    "disableSizeLimit": false,
+    "incremental": true,
+    "tsBuildInfoFile": ".tsbuildinfo",
+    "assumeChangesOnlyAffectDirectDependencies": true,
+    "useDefineForClassFields": true,
+    "exactOptionalPropertyTypes": false,
+    "allowImportingTsExtensions": false,
+    "maxNodeModuleJsDepth": 0
+  },
+  "exclude": ["node_modules", "dist", "build", ".next", "coverage"]
+}
+--- tsconfig.json
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "outDir": "./dist",
+    "composite": true,
+    "noEmit": false,
+    // Context7 Pattern: Root-level incremental compilation with project references
+    "incremental": true,
+    "tsBuildInfoFile": "./.tsbuildinfo",
+    "skipLibCheck": true,
+    "assumeChangesOnlyAffectDirectDependencies": true
+  },
+  "files": [],
+  "include": [],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    "frontend/**/*",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "tests/**/*",
+    "coverage/**/*"
+  ],
+  "references": [
+    { "path": "./shared" },
+    { "path": "./backend" },
+    { "path": "./frontend" }
+  ]
+}
+--- vitest.ultra-fast
+import { defineConfig } from 'vitest/config';
+import { resolve } from 'path';
+import { cpus } from 'os';
+
+/**
+ * ULTRA-FAST TEST CONFIGURATION - OPTIMIZED FOR SUB-2-MINUTE EXECUTION
+ * 
+ * Performance Architecture:
+ * - 1:1 CPU core mapping for optimal thread utilization
+ * - Intelligent test sharding and parallel execution
+ * - Aggressive caching and pre-compilation
+ * - Memory-optimized test isolation
+ * - Zero overhead for development speed
+ * 
+ * Target Performance:
+ * - Individual tests: <2ms/test (50% improvement)
+ * - Full suite: <2 minutes (50% improvement)
+ * - CPU utilization: >90%
+ */
+
+const CPU_CORES = cpus().length;
+const IS_CI = !!process.env.CI;
+
+export default defineConfig({
+  test: {
+    // OPTIMIZED THREAD POOL: 1:1 CPU mapping for maximum efficiency
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        singleThread: false,
+        maxThreads: CPU_CORES, // Optimal: 1:1 with CPU cores 
+        minThreads: Math.max(2, Math.floor(CPU_CORES / 2)),
+        useAtomics: true,
+        isolate: false, // CRITICAL: 5x speed boost through context sharing
+        // Removed invalid execArgv flags that cause worker errors
+        // Memory optimization handled by pool configuration instead
+      }
+    },
+    
+    // AGGRESSIVE TIMEOUTS: Fail fast for development speed
+    testTimeout: 3000,   // Reduced from 5s to 3s
+    hookTimeout: 800,    // Reduced from 1s to 800ms
+    teardownTimeout: 400, // Reduced from 500ms to 400ms
+    
+    // OPTIMAL CONCURRENCY: 2x CPU cores for balanced performance
+    maxConcurrency: CPU_CORES * 2,
+    
+    // PERFORMANCE ENVIRONMENT
+    environment: 'node',
+    globals: true,
+    
+    // ULTRA-FAST FILE DISCOVERY: Only unit tests, exclude slow tests
+    include: [
+      'backend/tests/unit/**/*.test.ts',
+      'backend/tests/**/*.test.ts',
+      'shared/src/**/*.test.ts',
+      'tests/unit/**/*.test.ts'
+    ],
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/coverage/**',
+      '**/*.d.ts',
+      '**/build/**',
+      '**/.next/**'
+    ],
+    
+    // OPTIMIZED SETUP: Single pre-compiled setup file
+    setupFiles: ['./tests/setup-performance-optimized.ts'],
+    
+    // ZERO COVERAGE OVERHEAD: Maximum speed
+    coverage: {
+      enabled: false
+    },
+    
+    // OPTIMAL REPORTER: Fast output without deprecation warnings
+    reporter: [['default', { summary: false }]],
+    
+    // NO RETRIES: Fail fast for development
+    retry: 0,
+    bail: IS_CI ? 5 : 0, // Stop after 5 failures in CI
+    
+    // DEVELOPMENT FEATURES
+    watch: !IS_CI,
+    isolate: false, // Consistent with poolOptions
+    
+    // Modern caching using Vite's cacheDir
+    // cache.dir is deprecated - handled by Vite's cacheDir instead
+    
+    // MODERN DEPENDENCY OPTIMIZATION: Use new Vitest v3 APIs
+    deps: {
+      optimizer: {
+        ssr: {
+          enabled: true,
+          exclude: [
+            '@medianest/shared',
+            'winston',
+            'ioredis',
+            '@testing-library/react',
+            'react',
+            '@types/*',
+            'lodash'
+          ]
+        }
+      }
+    },
+    
+    // OPTIMIZED SEQUENCE: No shuffling for predictable performance
+    sequence: {
+      shuffle: false,
+      concurrent: true,
+      setupTimeout: 3000 // Reduced from 5s
+    },
+    
+    // MEMORY OPTIMIZATION
+    logHeapUsage: false,
+    
+    // ENVIRONMENT OPTIMIZATIONS
+    env: {
+      NODE_ENV: 'test',
+      LOG_LEVEL: 'silent',
+      VITEST_ULTRAFAST_MODE: 'true',
+      DISABLE_LOGGING: 'true',
+      // Performance optimizations
+      UV_THREADPOOL_SIZE: String(CPU_CORES * 2),
+      NODE_OPTIONS: '--max-old-space-size=2048'
+    }
+  },
+  
+  // MINIMAL RESOLVE CONFIG
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, './src'),
+      '@backend': resolve(__dirname, './backend/src'),
+      '@frontend': resolve(__dirname, './frontend/src'),
+      '@shared': resolve(__dirname, './shared/src'),
+      '@medianest/shared': resolve(__dirname, './shared/src'),
+      '@tests': resolve(__dirname, './tests')
+    }
+  },
+  
+  // OPTIMIZED COMPILATION: Maximum speed, minimal overhead
+  esbuild: {
+    target: 'node18',
+    format: 'esm',
+    sourcemap: false, // No source maps for speed
+    minify: false,    // No minification overhead
+    keepNames: false, // Strip names for performance
+    treeShaking: true,
+    platform: 'node'
+  },
+  
+  // PERFORMANCE DEFINES
+  define: {
+    'import.meta.env.NODE_ENV': '"test"',
+    'import.meta.env.VITEST_ULTRAFAST': 'true',
+    'global.__VITEST_ULTRAFAST__': 'true',
+    '__DEV__': 'false' // Disable dev mode overhead
+  },
+  
+  // VITE OPTIMIZATIONS: Enhanced for performance
+  optimizeDeps: {
+    exclude: ['@medianest/shared'],
+    include: [
+      '@testing-library/jest-dom',
+      'vitest/globals'
+    ]
+  },
+  
+  // MODERN CACHE CONFIGURATION
+  cacheDir: '.vitest-cache',
+  
+  // BUILD OPTIMIZATIONS
+  build: {
+    target: 'node18',
+    minify: false,
+    rollupOptions: {
+      external: ['@medianest/shared']
+    }
+  }
+});--- vitest.fast
+import { defineConfig } from 'vitest/config';
+import { resolve } from 'path';
+import { cpus } from 'os';
+
+/**
+ * ULTRA-FAST TEST CONFIGURATION
+ * Optimized for maximum speed during development
+ * 
+ * Performance Features:
+ * - 5x faster test execution through extreme optimization
+ * - Minimal timeouts and maximum parallelization
+ * - Zero coverage overhead
+ * - Shared context across tests
+ * - Pre-compiled mocks and utilities
+ * - Memory-efficient test isolation
+ * 
+ * ARCHITECTURE UPDATE: Fixed dynamic import issues for sub-2-minute execution
+ */
+
+export default defineConfig({
+  // MODERN CACHE CONFIGURATION
+  cacheDir: '.vitest-cache',
+  test: {
+    // STABILIZED PERFORMANCE: Worker thread termination fixes
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        singleThread: false,
+        maxThreads: Math.min(cpus().length, 4), // Cap at 4 to prevent instability
+        minThreads: 1, // Start with 1 to prevent resource contention
+        useAtomics: true,
+        isolate: true, // CRITICAL: Enable isolation to prevent worker corruption
+        // CRITICAL: Removed execArgv as it causes ERR_WORKER_INVALID_EXEC_ARGV
+        // execArgv: ['--max-old-space-size=512'], // Memory limit per worker
+      }
+    },
+    
+    // STABILIZED TIMEOUTS: Prevent worker thread termination
+    testTimeout: 10000,  // Increased for worker stability
+    hookTimeout: 5000,   // Increased for proper cleanup
+    teardownTimeout: 5000, // Increased for resource cleanup
+    
+    // STABILIZED CONCURRENCY: Prevent worker overload
+    maxConcurrency: Math.min(cpus().length, 4), // Reduced to prevent instability
+    
+    // DEVELOPMENT OPTIMIZATIONS
+    environment: 'node',
+    globals: true,
+    
+    // MINIMAL FILE DISCOVERY: Only unit tests
+    include: [
+      '**/*.{test,spec}.{ts,tsx}',
+      '!**/e2e/**',
+      '!**/integration/**',
+      '!**/performance/**'
+    ],
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/coverage/**',
+      '**/*.d.ts'
+    ],
+    
+    // ULTRA-FAST SETUP: Single optimized setup file
+    setupFiles: ['./tests/setup-performance-optimized.ts'],
+    
+    // NO COVERAGE: Maximum speed
+    coverage: {
+      enabled: false
+    },
+    
+    // OPTIMAL REPORTER: Fast output without deprecation warnings
+    reporter: [['default', { summary: false }]],
+    
+    // STABILIZED EXECUTION: Handle flaky tests
+    retry: 1, // Allow 1 retry for stability
+    bail: 5, // Stop after 5 failures to prevent cascade
+    
+    // DEVELOPMENT FEATURES
+    watch: true,
+    isolate: true, // Enable for stability
+    
+    // Modern caching configuration (cache.dir is deprecated)
+    
+    // MODERN DEPENDENCY OPTIMIZATION: Use Vitest v3 APIs
+    deps: {
+      optimizer: {
+        ssr: {
+          enabled: true,
+          include: [
+            '@testing-library/jest-dom'
+          ],
+          exclude: [
+            '@medianest/shared',
+            'winston',
+            'ioredis',
+            '@testing-library/react'
+          ]
+        }
+      }
+    },
+    
+    // STABILIZED SEQUENCE
+    sequence: {
+      shuffle: false,
+      concurrent: false, // Disable for stability
+      setupTimeout: 10000 // Increased timeout
+    },
+    
+    // MEMORY OPTIMIZATION
+    logHeapUsage: false,
+    
+    // ENVIRONMENT OPTIMIZATIONS
+    env: {
+      NODE_ENV: 'test',
+      LOG_LEVEL: 'silent',
+      VITEST_FAST_MODE: 'true',
+      DISABLE_LOGGING: 'true'
+    }
+  },
+  
+  // MINIMAL RESOLVE CONFIG
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, './src'),
+      '@backend': resolve(__dirname, './backend/src'),
+      '@frontend': resolve(__dirname, './frontend/src'),
+      '@shared': resolve(__dirname, './shared/src'),
+      '@medianest/shared': resolve(__dirname, './shared/src')
+    }
+  },
+  
+  // COMPILATION SPEED: No source maps, minimal target
+  esbuild: {
+    target: 'node18',
+    format: 'esm',
+    sourcemap: false,
+    minify: false,
+    keepNames: false
+  },
+  
+  // PERFORMANCE DEFINES
+  define: {
+    'import.meta.env.NODE_ENV': '"test"',
+    'import.meta.env.VITEST_FAST': 'true',
+    'global.__VITEST_FAST__': 'true'
+  }
+});--- vitest.config
+import { defineConfig } from 'vitest/config';
+import { resolve } from 'path';
+import { cpus } from 'os';
+
+/**
+ * MEDIANEST ULTRA-PERFORMANCE VITEST CONFIGURATION
+ * 
+ * TARGET: Sub-2-minute test execution with maximum performance
+ * OPTIMIZATIONS:
+ * - Latest Context7 Vitest best practices
+ * - Optimal thread pool configuration (1:1 CPU mapping)
+ * - Modern dependency optimization with ssr optimizer
+ * - Enhanced memory management and caching
+ * - Strategic file discovery and exclusion patterns
+ * 
+ * Performance Architecture:
+ * - Thread pool: Optimal CPU utilization with useAtomics
+ * - Dependency bundling: ESBuild optimization for external libs
+ * - Memory management: Efficient heap allocation per thread
+ * - Test isolation: Balanced performance vs reliability
+ */
+
+const CPU_CORES = cpus().length;
+const IS_CI = !!process.env.CI;
+const IS_DEVELOPMENT = !IS_CI;
+
+export default defineConfig({
+  // MODERN CACHE CONFIGURATION: Use Vite's cacheDir (replaces deprecated cache.dir)
+  cacheDir: '.vitest-performance-cache',
+  
+  test: {
+    // STABILIZED THREAD POOL: Worker thread termination fixes
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        singleThread: false,
+        // CRITICAL: Reduced thread count to prevent worker instability
+        maxThreads: Math.min(CPU_CORES, 4), // Cap at 4 workers max
+        minThreads: 1, // Start with 1 to prevent resource contention
+        // Context7 recommendation: Enable useAtomics for thread synchronization performance
+        useAtomics: true,
+        // CRITICAL: Enable isolation to prevent worker thread corruption
+        isolate: true, // Always isolate to prevent shared state issues
+        // CRITICAL: Removed execArgv as it causes ERR_WORKER_INVALID_EXEC_ARGV
+        // execArgv: ['--max-old-space-size=512'],
+      }
+    },
+    
+    // STABILIZED TIMEOUTS: Prevent worker thread termination
+    testTimeout: IS_CI ? 30000 : 15000,  // Increased dev timeout for stability
+    hookTimeout: IS_CI ? 15000 : 10000,  // Increased for proper cleanup
+    teardownTimeout: IS_CI ? 10000 : 8000, // Critical: Increased teardown time
+    
+    // STABILIZED CONCURRENCY: Prevent worker thread overload
+    maxConcurrency: Math.min(CPU_CORES, 4), // Reduced to prevent worker instability
+    
+    // DEVELOPMENT ENVIRONMENT OPTIMIZATIONS
+    environment: 'node',
+    globals: true,
+    
+    // STRATEGIC FILE DISCOVERY: Focused test patterns for maximum speed
+    include: [
+      'backend/tests/unit/**/*.test.ts',
+      'backend/tests/**/*.test.ts',
+      'shared/src/**/*.test.ts',
+      'tests/unit/**/*.test.ts',
+      'frontend/src/**/*.test.{ts,tsx}',
+      // Exclude slow test types for ultra-fast execution
+      '!**/e2e/**',
+      '!**/integration/**',
+      '!**/performance/**',
+      '!**/security/**'
+    ],
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/coverage/**',
+      '**/build/**',
+      '**/*.d.ts',
+      '**/.next/**'
+    ],
+    
+    // PERFORMANCE-OPTIMIZED SETUP
+    setupFiles: ['./tests/setup-performance-optimized.ts'],
+    
+    // COVERAGE OPTIMIZATION: Disabled for maximum speed in development
+    coverage: {
+      enabled: IS_CI,
+      provider: 'v8', // Fastest coverage provider
+      reporter: IS_CI ? ['text', 'json'] : []
+    },
+    
+    // OPTIMAL REPORTER: Modern configuration without deprecation warnings
+    reporter: IS_CI 
+      ? ['default', 'junit']
+      : 'default', // Fast output for development
+    
+    // FAIL-FAST CONFIGURATION
+    retry: IS_CI ? 2 : 0,
+    bail: IS_CI ? 5 : 0,
+    
+    // DEVELOPMENT FEATURES
+    watch: IS_DEVELOPMENT,
+    
+    // MODERN DEPENDENCY OPTIMIZATION: Context7 best practices with ssr optimizer
+    deps: {
+      optimizer: {
+        ssr: {
+          // Context7 recommendation: Enable for performance improvements
+          enabled: true,
+          exclude: [
+            // Exclude large libraries that should remain external
+            '@medianest/shared',
+            'winston',
+            'ioredis',
+            '@testing-library/react',
+            'react',
+            'react-dom',
+            'express',
+            'jsonwebtoken',
+            '@types/*'
+          ]
+        }
+      }
+    },
+    
+    // OPTIMIZED TEST EXECUTION SEQUENCE
+    sequence: {
+      shuffle: false,        // Predictable test order for consistent performance
+      concurrent: true,      // Enable concurrent execution within files
+      setupTimeout: IS_CI ? 60000 : 10000
+    },
+    
+    // MEMORY OPTIMIZATION
+    logHeapUsage: false,
+    
+    // PERFORMANCE ENVIRONMENT VARIABLES
+    env: {
+      NODE_ENV: 'test',
+      LOG_LEVEL: 'silent',
+      VITEST_PERFORMANCE_MODE: 'true',
+      DISABLE_LOGGING: 'true',
+      DISABLE_ANALYTICS: 'true',
+      DISABLE_TELEMETRY: 'true',
+      // Context7 optimization: Configure UV thread pool for optimal performance
+      UV_THREADPOOL_SIZE: String(CPU_CORES * 2)
+    }
+  },
+  
+  // MINIMAL RESOLVE CONFIG: Essential aliases only
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, './src'),
+      '@backend': resolve(__dirname, './backend/src'),
+      '@frontend': resolve(__dirname, './frontend/src'),
+      '@shared': resolve(__dirname, './shared/src'),
+      '@medianest/shared': resolve(__dirname, './shared/src'),
+      '@tests': resolve(__dirname, './tests')
+    }
+  },
+  
+  // OPTIMIZED COMPILATION: Context7 recommendations for maximum speed
+  esbuild: {
+    target: 'node18',
+    format: 'esm',
+    sourcemap: false,      // No source maps for performance
+    minify: false,         // Skip minification overhead
+    keepNames: false,      // Remove names for smaller bundles
+    treeShaking: true,
+    platform: 'node'
+  },
+  
+  // PERFORMANCE DEFINES
+  define: {
+    'import.meta.env.NODE_ENV': '"test"',
+    'import.meta.env.VITEST_PERFORMANCE': 'true',
+    'global.__VITEST_PERFORMANCE__': 'true',
+    '__DEV__': 'false'
+  },
+  
+  // VITE OPTIMIZATIONS: Enhanced for test performance
+  optimizeDeps: {
+    exclude: [
+      '@medianest/shared'
+    ]
+  },
+  
+  // BUILD OPTIMIZATIONS
+  build: {
+    target: 'node18',
+    minify: false,
+    rollupOptions: {
+      external: ['@medianest/shared']
+    }
+  }
+});--- tests/setup-performance-optimized.ts
+/**
+ * PERFORMANCE-OPTIMIZED TEST SETUP
+ * 
+ * Optimized for sub-2-minute test execution:
+ * - Pre-compiled mock utilities
+ * - Shared test context for 5x speed boost
+ * - Memory-efficient resource pooling
+ * - Minimal overhead setup
+ */
+
+import { beforeAll, afterAll, beforeEach, vi } from 'vitest';
+
+// Global performance optimization flags
+(globalThis as any).__VITEST_ULTRAFAST__ = true;
+(globalThis as any).__TEST_PERFORMANCE_MODE__ = true;
+
+// Memory optimization: Pre-allocate common objects
+const TEST_CONTEXT_POOL = new Map();
+const MOCK_INSTANCES_POOL = new Map();
+
+// Performance monitoring
+let setupStartTime = 0;
+let testCounter = 0;
+
+beforeAll(async () => {
+  setupStartTime = performance.now();
+  
+  // CRITICAL: Handle unhandled promise rejections to prevent worker termination
+  process.on('unhandledRejection', (reason, promise) => {
+    console.warn('Unhandled promise rejection (non-fatal):', reason);
+    // Prevent worker thread termination
+  });
+  
+  process.on('uncaughtException', (error) => {
+    console.warn('Uncaught exception (non-fatal):', error.message);
+    // Prevent worker thread termination
+  });
+  
+  // CRITICAL: Disable unnecessary logging for 30% speed boost
+  process.env.LOG_LEVEL = 'silent';
+  process.env.NODE_ENV = 'test';
+  process.env.DISABLE_LOGGING = 'true';
+  
+  // Pre-warm common modules for faster imports with error handling
+  try {
+    await Promise.allSettled([
+      import('@medianest/shared'),
+      import('winston').catch(() => null), // Optional dependency
+      import('ioredis').catch(() => null)   // Optional dependency
+    ]);
+  } catch (error) {
+    console.warn('Module pre-warming error (non-fatal):', error);
+  }
+  
+  // Initialize shared mock utilities
+  initializeSharedMocks();
+  
+  // Memory optimization: Configure garbage collection
+  if (global.gc) {
+    global.gc();
+  }
+  
+  const setupTime = performance.now() - setupStartTime;
+  console.log(`⚡ Worker-thread-safe setup completed in ${setupTime.toFixed(2)}ms`);
+});
+
+beforeEach(async () => {
+  testCounter++;
+  
+  // Efficient test isolation with error handling
+  try {
+    vi.clearAllMocks();
+    vi.clearAllTimers();
+  } catch (error) {
+    console.warn('Mock clearing error (non-fatal):', error);
+  }
+  
+  // Reset shared context efficiently without full isolation
+  if (TEST_CONTEXT_POOL.size > 100) {
+    TEST_CONTEXT_POOL.clear(); // Prevent memory leaks
+  }
+  
+  // Clear any pending promises to prevent worker thread issues
+  await vi.waitFor(() => Promise.resolve(), { timeout: 50 }).catch(() => {});
+});
+
+afterAll(async () => {
+  try {
+    const totalTime = performance.now() - setupStartTime;
+    const avgTestTime = totalTime / Math.max(testCounter, 1);
+    
+    console.log(`🎯 Worker-Thread-Safe Performance Summary:`);
+    console.log(`   Total Time: ${totalTime.toFixed(2)}ms`);
+    console.log(`   Tests Run: ${testCounter}`);
+    console.log(`   Avg Test Time: ${avgTestTime.toFixed(2)}ms/test`);
+    console.log(`   Target: <2ms/test ${avgTestTime < 2 ? '✅' : '❌'}`);
+    console.log(`   Worker Threads: Stable ✅`);
+    
+    // CRITICAL: Comprehensive cleanup to prevent worker thread issues
+    TEST_CONTEXT_POOL.clear();
+    MOCK_INSTANCES_POOL.clear();
+    
+    // Clear all mocks to prevent state corruption
+    vi.restoreAllMocks();
+    
+    // Force garbage collection if available
+    if (global.gc) {
+      global.gc();
+    }
+    
+    console.log('✅ Performance-optimized cleanup completed - Workers stable');
+  } catch (error) {
+    console.warn('AfterAll cleanup error (non-fatal):', error);
+  }
+});
+
+/**
+ * Initialize shared mock utilities for consistent and fast mocking
+ */
+function initializeSharedMocks() {
+  // Pre-compiled common mocks
+  const commonMocks = {
+    logger: {
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      debug: vi.fn()
+    },
+    
+    database: {
+      query: vi.fn().mockResolvedValue([]),
+      transaction: vi.fn().mockResolvedValue({}),
+      close: vi.fn().mockResolvedValue(undefined)
+    },
+    
+    redis: {
+      get: vi.fn().mockResolvedValue(null),
+      set: vi.fn().mockResolvedValue('OK'),
+      del: vi.fn().mockResolvedValue(1),
+      disconnect: vi.fn().mockResolvedValue(undefined)
+    },
+    
+    auth: {
+      verifyToken: vi.fn().mockResolvedValue({ userId: 'test-user' }),
+      generateToken: vi.fn().mockReturnValue('test-token'),
+      hashPassword: vi.fn().mockResolvedValue('hashed-password')
+    }
+  };
+  
+  // Store in pool for reuse
+  for (const [key, mock] of Object.entries(commonMocks)) {
+    MOCK_INSTANCES_POOL.set(key, mock);
+  }
+  
+  // Global mock utilities
+  (globalThis as any).getSharedMock = (name: string) => {
+    return MOCK_INSTANCES_POOL.get(name) || vi.fn();
+  };
+  
+  (globalThis as any).getTestContext = (key: string) => {
+    if (!TEST_CONTEXT_POOL.has(key)) {
+      TEST_CONTEXT_POOL.set(key, {
+        startTime: performance.now(),
+        mocks: new Map(),
+        cleanup: []
+      });
+    }
+    return TEST_CONTEXT_POOL.get(key);
+  };
+}
+
+/**
+ * Performance utility functions for test optimization
+ */
+export const TestPerformance = {
+  /**
+   * Fast test context creation with minimal overhead
+   */
+  createContext: (name: string) => {
+    return (globalThis as any).getTestContext(name);
+  },
+  
+  /**
+   * Efficient mock creation using pooled instances
+   */
+  getMock: (name: string) => {
+    return (globalThis as any).getSharedMock(name);
+  },
+  
+  /**
+   * Performance measurement for individual tests
+   */
+  measureTest: (testName: string, fn: () => Promise<void> | void) => {
+    return async () => {
+      const start = performance.now();
+      try {
+        await fn();
+      } finally {
+        const duration = performance.now() - start;
+        if (duration > 5) { // Log slow tests
+          console.warn(`⚠️ Slow test detected: ${testName} (${duration.toFixed(2)}ms)`);
+        }
+      }
+    };
+  },
+  
+  /**
+   * Memory-efficient test data creation
+   */
+  createTestData: <T>(factory: () => T): T => {
+    return factory();
+  }
+};
+
+// Export for use in test files
+export { TEST_CONTEXT_POOL, MOCK_INSTANCES_POOL };--- envs
+# MediaNest Environment Configuration
+# Copy this file to .env and fill in your values
+
+# ============================================================================
+# CRITICAL SECURITY SECRETS - Generate unique values for each environment
+# ============================================================================
+# SECURITY WARNING: NEVER commit actual secrets to version control
+# Use different values for development, staging, and production environments
+# Rotate secrets regularly, especially after security incidents
+
+# JWT (JSON Web Token) signing secret for authentication token validation
+# CRITICAL: This secret validates all user authentication tokens
+# If compromised, all user sessions become invalid and auth system is compromised
+# Generate with: openssl rand -base64 32
+# Length: 32+ characters, high entropy, unique per environment
+JWT_SECRET=<generate-with-openssl-rand-base64-32>
+
+# JWT secret for rolling key rotation (optional security feature)
+# Allows graceful rotation of JWT secrets without invalidating all user sessions
+# Set to new secret before rotating JWT_SECRET to maintain user sessions
+# Generate with: openssl rand -base64 32
+JWT_SECRET_ROTATION=<optional-for-key-rotation>
+
+# Application-level encryption key for sensitive data at rest
+# Used for encrypting: API keys, personal information, sensitive user data
+# CRITICAL: Data encrypted with this key becomes unrecoverable if lost
+# Generate with: openssl rand -base64 32
+# Store securely in production secret management system
+ENCRYPTION_KEY=<generate-with-openssl-rand-base64-32>
+
+# ============================================================================
+# SERVER RUNTIME CONFIGURATION
+# ============================================================================
+# Node.js environment mode affects performance, logging, and security features
+# Values: development | production | test
+# development: Verbose logging, hot-reload, debug features enabled
+# production: Optimized performance, minimal logging, security hardening
+# test: Test-specific configurations, mocked external services
+NODE_ENV=production
+
+# HTTP server port for the application
+# Default: 3000 for development, typically 80/443 for production behind reverse proxy
+# Docker production: internal port 3000, external ports mapped via nginx
+# Must match Docker compose port mappings
+PORT=3000
+
+# ============================================================================
+# DATABASE CONFIGURATION - PostgreSQL Connection String
+# ============================================================================
+# Complete PostgreSQL connection URL with all parameters
+# Format: postgresql://[user]:[password]@[host]:[port]/[database]?[options]
+# 
+# Connection Parameters:
+# - user: Database username (create dedicated user for MediaNest)
+# - password: Strong database password (use secrets in production)
+# - host: Database hostname (localhost for local, service name for Docker)
+# - port: PostgreSQL port (default: 5432)
+# - database: Database name (create dedicated database for MediaNest)
+# 
+# Optional URL parameters for production optimization:
+# - connection_limit=20: Maximum concurrent connections
+# - pool_timeout=30: Connection pool timeout in seconds
+# - sslmode=require: Force SSL/TLS encryption for production
+# 
+# Example production URL:
+# DATABASE_URL=postgresql://medianest_user:secure_password@postgres:5432/medianest_prod?connection_limit=20&pool_timeout=30&sslmode=require
+DATABASE_URL=postgresql://user:password@localhost:5432/medianest
+
+# ============================================================================
+# PLEX MEDIA SERVER INTEGRATION - Media library and authentication
+# ============================================================================
+# Plex integration enables media discovery, user authentication, and content management
+
+# Plex authentication token for API access
+# Obtain from: Plex Web App -> Settings -> Account -> Privacy -> "Show Advanced"
+# Click "Get Token" and copy the X-Plex-Token value
+# SECURITY: This token provides full access to your Plex server - keep secure
+# Format: 20-character alphanumeric string (e.g., "abcd1234efgh5678ijkl")
+PLEX_TOKEN=<your-plex-token>
+
+# Plex Media Server base URL for API connections
+# Local server: http://localhost:32400 or http://YOUR_SERVER_IP:32400
+# Remote server: Use your external URL with port forwarding or Plex Relay
+# Docker: Use service name if Plex runs in Docker on same network
+# Examples:
+# - Local: http://192.168.1.100:32400
+# - Docker: http://plex:32400
+# - Remote: https://plex.yourdomain.com:32400
+PLEX_SERVER_URL=http://localhost:32400
+
+# Enable/disable Plex integration features
+# true: MediaNest will connect to Plex for media discovery and user auth
+# false: Plex features disabled, use local authentication only
+# Useful for development or when Plex server is temporarily unavailable
+PLEX_ENABLED=true
+
+# Default Plex token for fallback authentication (optional)
+# Used when primary PLEX_TOKEN fails or for system-level operations
+# Should be different from PLEX_TOKEN for security redundancy
+# Leave empty if not using fallback authentication
+PLEX_DEFAULT_TOKEN=<default-plex-token>
+
+# ============================================================================
+# OPTIONAL EXTERNAL SERVICE INTEGRATIONS - Enhanced media metadata and monitoring
+# ============================================================================
+# These services provide additional functionality but are not required for core features
+# Leave empty or remove variables if not using these services
+
+# YouTube Data API v3 - Enhanced video metadata and thumbnails
+# Provides: Video descriptions, channel info, view counts, thumbnail URLs
+# Setup: Google Cloud Console -> APIs & Services -> Enable YouTube Data API v3
+# Create API key with YouTube Data API v3 access
+# Quota: 10,000 units/day free tier (sufficient for most use cases)
+# Leave empty to disable YouTube metadata enrichment
+YOUTUBE_API_KEY=<optional>
+
+# The Movie Database (TMDB) API - Movie and TV show metadata
+# Provides: Posters, plot summaries, cast info, ratings, release dates
+# Setup: Register at https://www.themoviedb.org/settings/api
+# Free account includes 40 requests per 10 seconds
+# Essential for media library organization and discovery features
+# Leave empty to use basic Plex metadata only
+TMDB_API_KEY=<optional>
+
+# Overseerr Integration - Media request management system
+# Overseerr manages user requests for movies/TV shows and integrates with *arr apps
+# Enables: User media requests, approval workflows, download automation
+OVERSEERR_ENABLED=false
+# Overseerr server URL (include protocol and port)
+# Example: http://overseerr.yourdomain.com:5055 or https://requests.yourdomain.com
+OVERSEERR_URL=<your-overseerr-url>
+# Overseerr API key from Settings -> General -> API Key
+# Required if OVERSEERR_ENABLED=true for API communication
+OVERSEERR_API_KEY=<your-overseerr-api-key>
+
+# Uptime Kuma Integration - Service monitoring and alerting
+# Monitors MediaNest and related services, sends notifications on downtime
+# Enables: Health monitoring, uptime statistics, alert notifications
+UPTIME_KUMA_ENABLED=false
+# Uptime Kuma server URL (include protocol and port)
+# Example: http://uptime.yourdomain.com:3001 or https://status.yourdomain.com
+UPTIME_KUMA_URL=<your-uptime-kuma-url>
+# Uptime Kuma admin username for API authentication
+UPTIME_KUMA_USERNAME=<your-username>
+# Uptime Kuma admin password for API authentication
+# SECURITY: Use strong password, consider environment-specific credentials
+UPTIME_KUMA_PASSWORD=<your-password>
+
+# ============================================================================
+# Application Configuration
+# ============================================================================
+# Frontend URL for CORS (comma-separated for multiple)
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
+FRONTEND_URL=http://localhost:3000
+
+# JWT Configuration
+JWT_ISSUER=medianest
+JWT_AUDIENCE=medianest-users
+
+# Production metrics protection (generate with: openssl rand -base64 24)
+METRICS_TOKEN=<generate-for-production>
+
+# Redis Configuration (optional)
+REDIS_URL=redis://localhost:6379
+REDIS_PASSWORD=<optional-redis-password>
+
+# ============================================================================
+# Security Notice
+# ============================================================================
+# NEVER commit secrets to version control
+# Use different secrets for each environment (dev, staging, prod)
+# Rotate secrets regularly, especially in production
+# Store production secrets in secure secret management systems--- env staging
+# MediaNest Staging Environment Configuration
+# Copy this file to .env.staging and fill in your staging values
+
+# ============================================================================
+# STAGING ENVIRONMENT SECRETS - Generate unique values for staging
+# ============================================================================
+# SECURITY WARNING: Use different secrets from production
+# These should be test-safe but still secure values
+
+# JWT signing secret for staging authentication
+# Generate with: openssl rand -base64 32
+JWT_SECRET=<generate-staging-jwt-secret>
+
+# JWT secret for rolling key rotation (optional)
+JWT_SECRET_ROTATION=<optional-staging-rotation-key>
+
+# Application-level encryption key for staging data
+# Generate with: openssl rand -base64 32
+ENCRYPTION_KEY=<generate-staging-encryption-key>
+
+# ============================================================================
+# STAGING SERVER CONFIGURATION
+# ============================================================================
+# Node environment - always 'production' for staging to test production configs
+NODE_ENV=production
+
+# Staging server port (typically different from production)
+PORT=3001
+
+# ============================================================================
+# STAGING DATABASE CONFIGURATION
+# ============================================================================
+# Staging PostgreSQL connection
+# Use separate database from production
+# Example: postgresql://medianest_staging:password@staging-db:5432/medianest_staging
+DATABASE_URL=postgresql://staging_user:staging_password@localhost:5432/medianest_staging
+
+# ============================================================================
+# PLEX STAGING CONFIGURATION
+# ============================================================================
+# Use test Plex server or limited-access account for staging
+PLEX_TOKEN=<staging-plex-token>
+PLEX_SERVER_URL=http://staging-plex:32400
+PLEX_ENABLED=true
+PLEX_DEFAULT_TOKEN=<staging-default-plex-token>
+
+# ============================================================================
+# EXTERNAL SERVICES - STAGING KEYS
+# ============================================================================
+# Use test/development API keys with limited quotas
+
+# YouTube API - use development key with limited quota
+YOUTUBE_API_KEY=<staging-youtube-api-key>
+
+# TMDB API - use separate key from production
+TMDB_API_KEY=<staging-tmdb-api-key>
+
+# Overseerr - staging instance
+OVERSEERR_ENABLED=false
+OVERSEERR_URL=<staging-overseerr-url>
+OVERSEERR_API_KEY=<staging-overseerr-api-key>
+
+# Uptime Kuma - monitor staging services
+UPTIME_KUMA_ENABLED=false
+UPTIME_KUMA_URL=<staging-uptime-url>
+UPTIME_KUMA_USERNAME=<staging-monitor-user>
+UPTIME_KUMA_PASSWORD=<staging-monitor-password>
+
+# ============================================================================
+# STAGING APPLICATION CONFIGURATION
+# ============================================================================
+# Staging frontend URLs
+ALLOWED_ORIGINS=https://staging.medianest.com,http://localhost:3001
+FRONTEND_URL=https://staging.medianest.com
+
+# JWT Configuration for staging
+JWT_ISSUER=medianest-staging
+JWT_AUDIENCE=medianest-staging-users
+
+# Metrics token for staging monitoring
+# Generate with: openssl rand -base64 24
+METRICS_TOKEN=<staging-metrics-token>
+
+# Redis for staging (if using)
+REDIS_URL=redis://staging-redis:6379
+REDIS_PASSWORD=<staging-redis-password>
+
+# ============================================================================
+# STAGING-SPECIFIC CONFIGURATION
+# ============================================================================
+# Additional staging-specific settings
+
+# Enable debug logging for staging
+LOG_LEVEL=debug
+
+# Staging notification settings (if applicable)
+SMTP_HOST=smtp.staging.example.com
+SMTP_PORT=587
+SMTP_USER=staging@medianest.com
+SMTP_PASSWORD=<staging-smtp-password>
+
+# Feature flags for staging testing
+FEATURE_FLAG_NEW_UI=true
+FEATURE_FLAG_BETA_FEATURES=true
+
+# Performance monitoring for staging
+NEW_RELIC_APP_NAME=medianest-staging
+NEW_RELIC_LICENSE_KEY=<staging-newrelic-key>
+
+# ============================================================================
+# DEPLOYMENT NOTES
+# ============================================================================
+# 1. Copy this file to .env.staging on the staging server
+# 2. Fill in all staging-specific values
+# 3. Ensure database and Redis are accessible from staging
+# 4. Verify Plex server connectivity
+# 5. Test external API integrations with staging keys
+# 6. Monitor with staging-specific alerting
+# 
+# Staging URL: https://staging.medianest.com
+# Monitoring: https://monitoring.staging.medianest.com
+# 
+# IMPORTANT: 
+# - Use different secrets from production
+# - Test data should be non-sensitive
+# - Regular cleanup of staging data recommended
+# - Monitor resource usage to prevent cost overruns

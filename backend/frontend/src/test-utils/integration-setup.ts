@@ -19,18 +19,18 @@ beforeAll(() => {
 beforeEach(() => {
   mswServer.resetHandlers();
   mswUtils.resetMockState();
-  
+
   // Mock console methods to reduce noise in integration tests
   vi.spyOn(console, 'error').mockImplementation(() => {});
   vi.spyOn(console, 'warn').mockImplementation(() => {});
   vi.spyOn(console, 'log').mockImplementation(() => {});
-  
+
   // Setup fake timers for more predictable async behavior (only for specific tests)
   // vi.useFakeTimers(); // Commented out as it's causing timeouts in integration tests
-  
+
   // Mock window.fetch if needed (MSW should handle most cases)
   global.fetch = vi.fn();
-  
+
   // Mock localStorage and sessionStorage
   const localStorageMock = {
     getItem: vi.fn(),
@@ -44,7 +44,7 @@ beforeEach(() => {
   Object.defineProperty(window, 'sessionStorage', {
     value: localStorageMock,
   });
-  
+
   // Mock window.location
   delete (window as any).location;
   window.location = {
@@ -61,7 +61,7 @@ beforeEach(() => {
     replace: vi.fn(),
     reload: vi.fn(),
   } as any;
-  
+
   // Mock WebSocket for real-time features
   Object.defineProperty(global, 'WebSocket', {
     writable: true,
@@ -80,23 +80,23 @@ beforeEach(() => {
       OPEN: 1,
       CLOSING: 2,
       CLOSED: 3,
-    }))
+    })),
   });
-  
+
   // Mock IntersectionObserver for components that might use it
   global.IntersectionObserver = vi.fn().mockImplementation(() => ({
     observe: vi.fn(),
     unobserve: vi.fn(),
     disconnect: vi.fn(),
   }));
-  
+
   // Mock ResizeObserver
   global.ResizeObserver = vi.fn().mockImplementation(() => ({
     observe: vi.fn(),
     unobserve: vi.fn(),
     disconnect: vi.fn(),
   }));
-  
+
   // Mock matchMedia for responsive design tests
   Object.defineProperty(window, 'matchMedia', {
     writable: true,

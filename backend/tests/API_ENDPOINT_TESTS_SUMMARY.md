@@ -17,7 +17,6 @@
 ### API Endpoint Tests Created ✅
 
 1. **Authentication Endpoints** (`backend/tests/integration/auth.endpoints.test.ts`)
-
    - POST /api/v1/auth/plex/pin - Generate Plex PIN
    - GET /api/v1/auth/plex/pin/:pinId/check - Check PIN authorization
    - GET /api/v1/auth/me - Get current user
@@ -26,7 +25,6 @@
    - Rate limiting tests for PIN generation
 
 2. **Media Endpoints** (`backend/tests/integration/media.endpoints.test.ts`)
-
    - GET /api/v1/media/search - Search for media
    - GET /api/v1/media/movie/:id - Get movie details
    - GET /api/v1/media/tv/:id - Get TV show details
@@ -37,7 +35,6 @@
    - Rate limiting tests for media requests
 
 3. **Service Status Endpoints** (`backend/tests/integration/services.endpoints.test.ts`)
-
    - GET /api/v1/dashboard/status - Get all service statuses
    - GET /api/v1/dashboard/status/:service - Get specific service status
    - GET /api/v1/dashboard/uptime-kuma/monitors - Get Uptime Kuma monitors

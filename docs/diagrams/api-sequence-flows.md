@@ -13,12 +13,12 @@ sequenceDiagram
     participant Plex as Plex Server
 
     Note over C,Plex: User Authentication Process
-    
+
     C->>API: POST /api/v1/auth/login
     API->>Auth: validateCredentials()
     Auth->>DB: findUser(email)
     DB-->>Auth: User data
-    
+
     alt Plex OAuth Login
         Auth->>Plex: validateToken(plexToken)
         Plex-->>Auth: User profile
@@ -26,18 +26,18 @@ sequenceDiagram
     else Manual Login
         Auth->>Auth: verifyPassword(hash)
     end
-    
+
     Auth->>JWT: generateTokens()
     JWT-->>Auth: { accessToken, refreshToken }
-    
+
     Auth->>Redis: storeSession(userId, tokens)
     Auth->>DB: logLoginActivity()
-    
+
     Auth-->>API: Authentication result
     API-->>C: 200 OK + Set-Cookie + JWT
 
     Note over C,Plex: Protected Request Flow
-    
+
     C->>API: GET /api/v1/dashboard (with JWT)
     API->>Auth: verifyToken(jwt)
     Auth->>Redis: checkTokenBlacklist()
@@ -67,36 +67,36 @@ sequenceDiagram
 
     C->>API: POST /api/v1/media/request
     Note over C,API: Request: { title, mediaType, tmdbId }
-    
+
     API->>Validator: validateRequestSchema()
     Validator-->>API: Validation result
-    
+
     alt Validation Failed
         API-->>C: 400 Bad Request
     else Validation Passed
         API->>MediaSvc: createMediaRequest()
-        
+
         MediaSvc->>TMDB: getMediaDetails(tmdbId)
         TMDB-->>MediaSvc: Media metadata
-        
+
         MediaSvc->>DB: checkExistingRequest()
         DB-->>MediaSvc: Request status
-        
+
         alt Already Requested
             MediaSvc-->>API: Duplicate request error
             API-->>C: 409 Conflict
         else New Request
             MediaSvc->>DB: saveMediaRequest()
             DB-->>MediaSvc: Request ID
-            
+
             MediaSvc->>Overseerr: createRequest(mediaData)
             Overseerr-->>MediaSvc: Overseerr request ID
-            
+
             MediaSvc->>DB: updateOverseerrId()
-            
+
             MediaSvc->>Notify: sendNotification(adminUsers)
             Notify->>WS: emit('newRequest', requestData)
-            
+
             MediaSvc-->>API: Request created
             API-->>C: 201 Created + Request details
         end
@@ -120,44 +120,44 @@ sequenceDiagram
 
     C->>API: POST /api/v1/youtube/download
     Note over C,API: Request: { url, quality, addToPlex }
-    
+
     API->>Validator: validateYouTubeUrl()
     Validator-->>API: URL validation result
-    
+
     alt Invalid URL
         API-->>C: 400 Bad Request
     else Valid URL
         API->>YTSvc: analyzeVideo(url)
         YTSvc->>YTSvc: extractVideoInfo()
         YTSvc-->>API: Video metadata
-        
+
         API->>DB: createDownloadRecord()
         DB-->>API: Download ID
-        
+
         API->>Queue: addDownloadJob(downloadId)
         Queue-->>API: Job queued
-        
+
         API-->>C: 202 Accepted + Download ID
-        
+
         Note over Queue,FS: Background Processing
-        
+
         Queue->>Worker: Process download job
         Worker->>DB: updateStatus('downloading')
         Worker->>WS: emit('downloadProgress', { downloadId, status })
-        
+
         Worker->>Worker: downloadVideo()
         Worker->>WS: emit('downloadProgress', { downloadId, progress })
-        
+
         Worker->>FS: saveVideoFile()
         FS-->>Worker: File path
-        
+
         alt Add to Plex
             Worker->>Plex: createCollection()
             Plex-->>Worker: Collection ID
             Worker->>Plex: addToLibrary(filePath)
             Worker->>Plex: triggerScan()
         end
-        
+
         Worker->>DB: updateStatus('completed')
         Worker->>WS: emit('downloadComplete', downloadData)
     end
@@ -179,37 +179,37 @@ sequenceDiagram
     Admin->>API: GET /api/v1/admin/dashboard
     API->>Auth: checkAdminRole()
     Auth-->>API: Admin authorized
-    
+
     API->>AdminSvc: getDashboardData()
-    
+
     par Concurrent Data Fetching
         AdminSvc->>DB: getUserStatistics()
         and AdminSvc->>DB: getMediaRequestStats()
         and AdminSvc->>Cache: getSystemMetrics()
         and AdminSvc->>Monitor: getServiceHealth()
     end
-    
+
     DB-->>AdminSvc: User stats
     DB-->>AdminSvc: Request stats
     Cache-->>AdminSvc: Cached metrics
     Monitor-->>AdminSvc: Health status
-    
+
     AdminSvc->>AdminSvc: aggregateData()
     AdminSvc-->>API: Dashboard data
     API-->>Admin: 200 OK + Dashboard JSON
 
     Note over Admin,External: Service Management Flow
-    
+
     Admin->>API: PUT /api/v1/admin/services/plex
     Note over Admin,API: Update service config
-    
+
     API->>Auth: checkAdminRole()
     API->>AdminSvc: updateServiceConfig()
-    
+
     AdminSvc->>DB: saveServiceConfig()
     AdminSvc->>Cache: invalidateServiceCache()
     AdminSvc->>External: testConnection()
-    
+
     alt Connection Successful
         External-->>AdminSvc: Health check OK
         AdminSvc->>DB: updateServiceStatus('healthy')
@@ -237,29 +237,29 @@ sequenceDiagram
 
     C->>API: Any API Request
     API->>API: Process request
-    
+
     alt Request Succeeds
         API-->>C: Success response
     else Error Occurs
         API->>MW: Error thrown/passed
-        
+
         MW->>Logger: logError(error, context)
         Logger->>Logger: structuredLog()
-        
+
         MW->>DB: saveErrorLog(correlationId)
-        
+
         alt Critical Error
             MW->>Sentry: captureException()
             MW->>Monitor: triggerAlert()
         end
-        
+
         MW->>MW: sanitizeErrorResponse()
         MW-->>C: Error response (safe)
     end
 
     Note over MW,Monitor: Error Response Examples
     Note over MW: 400: Validation errors
-    Note over MW: 401: Authentication errors  
+    Note over MW: 401: Authentication errors
     Note over MW: 403: Authorization errors
     Note over MW: 404: Resource not found
     Note over MW: 429: Rate limit exceeded
@@ -278,12 +278,12 @@ sequenceDiagram
 
     C->>API: API Request
     API->>RateLimit: checkRateLimit()
-    
+
     RateLimit->>Redis: getRateLimitData(userId, endpoint)
     Redis-->>RateLimit: Current request count
-    
+
     RateLimit->>RateLimit: calculateRateLimit()
-    
+
     alt Under Rate Limit
         RateLimit->>Redis: incrementRequestCount()
         RateLimit-->>API: Allow request
@@ -296,7 +296,7 @@ sequenceDiagram
         Note over C: Headers: X-Rate-Limit-Remaining: 0
         Note over C: Headers: Retry-After: 60
     end
-    
+
     Note over RateLimit,Redis: Rate Limit Windows
     Note over RateLimit: General API: 100 req/hour
     Note over RateLimit: Auth endpoints: 10 req/hour
@@ -318,31 +318,31 @@ sequenceDiagram
     C->>WS: Connect with JWT
     WS->>Auth: authenticateSocket(token)
     Auth-->>WS: User context
-    
+
     WS->>Room: joinUserRoom(userId)
     Room-->>WS: Room joined
-    
+
     WS-->>C: Connection established
-    
+
     Note over C,DB: Real-time Events
-    
+
     Event->>DB: Media request status change
     DB-->>Event: Updated record
-    
+
     Event->>WS: emit('mediaRequestUpdate', data)
     WS->>Room: broadcastToUser(userId, event)
     Room->>C: Event delivered
-    
+
     par Other Real-time Events
         Event->>WS: emit('downloadProgress')
         and Event->>WS: emit('serviceStatus')
         and Event->>WS: emit('systemAlert')
         and Event->>WS: emit('newNotification')
     end
-    
+
     WS->>Room: broadcastToRooms()
     Room->>C: Multiple events delivered
-    
+
     C->>WS: disconnect
     WS->>Room: leaveAllRooms(socketId)
     WS->>WS: cleanup(socketId)

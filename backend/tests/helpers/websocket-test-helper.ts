@@ -1,6 +1,6 @@
 /**
  * WebSocket Test Helper
- * 
+ *
  * Provides utilities for WebSocket testing including:
  * - Connection management
  * - Message broadcasting and receiving
@@ -49,24 +49,24 @@ export class WebSocketTestHelper extends EventEmitter {
       token?: string;
       userId?: string;
       headers?: Record<string, string>;
-    } = {}
+    } = {},
   ): Promise<string> {
     const connectionId = `conn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
+
     let url = `${this.baseUrl.replace('http', 'ws')}${path}`;
-    
+
     // Add query parameters
     const queryParams = new URLSearchParams();
     if (options.token) queryParams.set('token', options.token);
     if (options.userId) queryParams.set('userId', options.userId);
-    
+
     if (queryParams.toString()) {
       url += `?${queryParams.toString()}`;
     }
 
     return new Promise((resolve, reject) => {
       const ws = new WebSocket(url, {
-        headers: options.headers
+        headers: options.headers,
       });
 
       ws.on('open', () => {
@@ -77,7 +77,7 @@ export class WebSocketTestHelper extends EventEmitter {
           connected: true,
           authenticated: false,
           lastActivity: new Date(),
-          messageCount: 0
+          messageCount: 0,
         });
 
         console.log(`✅ WebSocket connection ${connectionId} established`);
@@ -150,10 +150,7 @@ export class WebSocketTestHelper extends EventEmitter {
   /**
    * Send message to specific connection
    */
-  async sendMessage(
-    connectionId: string, 
-    message: WebSocketMessage
-  ): Promise<boolean> {
+  async sendMessage(connectionId: string, message: WebSocketMessage): Promise<boolean> {
     const ws = this.connections.get(connectionId);
     if (!ws || ws.readyState !== WebSocket.OPEN) {
       return false;
@@ -162,7 +159,7 @@ export class WebSocketTestHelper extends EventEmitter {
     const messageWithTimestamp: WebSocketMessage = {
       ...message,
       timestamp: new Date().toISOString(),
-      id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     };
 
     ws.send(JSON.stringify(messageWithTimestamp));
@@ -197,7 +194,7 @@ export class WebSocketTestHelper extends EventEmitter {
   async waitForMessage(
     connectionId: string,
     messageType: string,
-    timeout: number = 5000
+    timeout: number = 5000,
   ): Promise<WebSocketMessage> {
     return new Promise((resolve, reject) => {
       const handler = (message: WebSocketMessage) => {
@@ -224,24 +221,24 @@ export class WebSocketTestHelper extends EventEmitter {
   async waitForMessages(
     connectionId: string,
     messageTypes: string[],
-    timeout: number = 5000
+    timeout: number = 5000,
   ): Promise<WebSocketMessage[]> {
     const messages: WebSocketMessage[] = [];
     const handlers: Function[] = [];
 
     return new Promise((resolve, reject) => {
-      messageTypes.forEach(messageType => {
+      messageTypes.forEach((messageType) => {
         const handler = (message: WebSocketMessage) => {
           if (message.type === messageType) {
             messages.push(message);
-            
+
             // Remove this specific handler
             const index = messageTypes.indexOf(messageType);
             if (index > -1) {
               messageTypes.splice(index, 1);
               this.removeMessageHandler(connectionId, messageType, handler);
             }
-            
+
             // Check if all messages received
             if (messages.length === messageTypes.length) {
               resolve(messages);
@@ -261,7 +258,7 @@ export class WebSocketTestHelper extends EventEmitter {
             this.removeMessageHandler(connectionId, messageType, handler);
           }
         });
-        
+
         if (messages.length === 0) {
           reject(new Error(`Timeout waiting for messages: ${messageTypes.join(', ')}`));
         } else {
@@ -276,7 +273,7 @@ export class WebSocketTestHelper extends EventEmitter {
    */
   async testAuthentication(
     connectionId: string,
-    authData: { token?: string; credentials?: any }
+    authData: { token?: string; credentials?: any },
   ): Promise<{
     success: boolean;
     user?: any;
@@ -289,7 +286,7 @@ export class WebSocketTestHelper extends EventEmitter {
       // Send auth message
       await this.sendMessage(connectionId, {
         type: 'authenticate',
-        data: authData
+        data: authData,
       });
 
       // Wait for auth response
@@ -305,20 +302,20 @@ export class WebSocketTestHelper extends EventEmitter {
         return {
           success: true,
           user: response.data.user,
-          responseTime
+          responseTime,
         };
       } else {
         return {
           success: false,
           error: response.data?.error || 'Authentication failed',
-          responseTime
+          responseTime,
         };
       }
     } catch (error) {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Authentication timeout',
-        responseTime: Date.now() - startTime
+        responseTime: Date.now() - startTime,
       };
     }
   }
@@ -330,10 +327,15 @@ export class WebSocketTestHelper extends EventEmitter {
     sourceConnectionId: string,
     targetConnectionIds: string[],
     event: WebSocketMessage,
-    expectedType: string
+    expectedType: string,
   ): Promise<{
     sent: boolean;
-    received: Array<{ connectionId: string; success: boolean; message?: WebSocketMessage; error?: string; }>;
+    received: Array<{
+      connectionId: string;
+      success: boolean;
+      message?: WebSocketMessage;
+      error?: string;
+    }>;
     propagationTime: number;
   }> {
     const startTime = Date.now();
@@ -345,13 +347,13 @@ export class WebSocketTestHelper extends EventEmitter {
         return {
           connectionId,
           success: true,
-          message
+          message,
         };
       } catch (error) {
         return {
           connectionId,
           success: false,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : 'Unknown error',
         };
       }
     });
@@ -366,7 +368,7 @@ export class WebSocketTestHelper extends EventEmitter {
     return {
       sent,
       received,
-      propagationTime
+      propagationTime,
     };
   }
 
@@ -376,7 +378,7 @@ export class WebSocketTestHelper extends EventEmitter {
   async testConnectionStability(
     connectionId: string,
     messageCount: number = 100,
-    intervalMs: number = 10
+    intervalMs: number = 10,
   ): Promise<{
     messagesSent: number;
     messagesReceived: number;
@@ -394,7 +396,7 @@ export class WebSocketTestHelper extends EventEmitter {
     const messageHandler = (message: WebSocketMessage) => {
       if (message.type === 'ping_response') {
         messagesReceived++;
-        
+
         const sentTime = message.data?.sentTime;
         if (sentTime) {
           totalResponseTime += Date.now() - sentTime;
@@ -409,7 +411,7 @@ export class WebSocketTestHelper extends EventEmitter {
       try {
         const sent = await this.sendMessage(connectionId, {
           type: 'ping',
-          data: { index: i, sentTime: Date.now() }
+          data: { index: i, sentTime: Date.now() },
         });
 
         if (sent) {
@@ -419,7 +421,7 @@ export class WebSocketTestHelper extends EventEmitter {
         }
 
         if (intervalMs > 0) {
-          await new Promise(resolve => setTimeout(resolve, intervalMs));
+          await new Promise((resolve) => setTimeout(resolve, intervalMs));
         }
       } catch (error) {
         errors++;
@@ -427,7 +429,7 @@ export class WebSocketTestHelper extends EventEmitter {
     }
 
     // Wait for remaining responses
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     this.removeMessageHandler(connectionId, 'ping_response', messageHandler);
 
@@ -440,7 +442,7 @@ export class WebSocketTestHelper extends EventEmitter {
       messagesReceived,
       errors,
       avgResponseTime,
-      connectionStable
+      connectionStable,
     };
   }
 
@@ -450,7 +452,7 @@ export class WebSocketTestHelper extends EventEmitter {
   async testConcurrentConnections(
     connectionCount: number,
     path: string = '/ws',
-    options: { token?: string } = {}
+    options: { token?: string } = {},
   ): Promise<{
     successfulConnections: number;
     failedConnections: number;
@@ -459,34 +461,40 @@ export class WebSocketTestHelper extends EventEmitter {
     errors: string[];
   }> {
     const startTime = Date.now();
-    const connectionPromises: Promise<{ success: boolean; connectionId?: string; error?: string }>[] = [];
+    const connectionPromises: Promise<{
+      success: boolean;
+      connectionId?: string;
+      error?: string;
+    }>[] = [];
     const errors: string[] = [];
 
     // Create connections concurrently
     for (let i = 0; i < connectionCount; i++) {
       const promise = this.createConnection(path, {
         ...options,
-        userId: `test-user-${i}`
-      }).then(connectionId => ({
-        success: true,
-        connectionId
-      })).catch(error => ({
-        success: false,
-        error: error.message
-      }));
+        userId: `test-user-${i}`,
+      })
+        .then((connectionId) => ({
+          success: true,
+          connectionId,
+        }))
+        .catch((error) => ({
+          success: false,
+          error: error.message,
+        }));
 
       connectionPromises.push(promise);
     }
 
     const results = await Promise.all(connectionPromises);
 
-    const successfulConnections = results.filter(r => r.success).length;
-    const failedConnections = results.filter(r => !r.success).length;
+    const successfulConnections = results.filter((r) => r.success).length;
+    const failedConnections = results.filter((r) => !r.success).length;
     const connectionIds = results
-      .filter(r => r.success && r.connectionId)
-      .map(r => r.connectionId!);
+      .filter((r) => r.success && r.connectionId)
+      .map((r) => r.connectionId!);
 
-    results.forEach(result => {
+    results.forEach((result) => {
       if (!result.success && result.error) {
         errors.push(result.error);
       }
@@ -500,7 +508,7 @@ export class WebSocketTestHelper extends EventEmitter {
       failedConnections,
       connectionIds,
       avgConnectionTime,
-      errors
+      errors,
     };
   }
 
@@ -510,7 +518,7 @@ export class WebSocketTestHelper extends EventEmitter {
   private handleMessage(connectionId: string, data: string): void {
     try {
       const message: WebSocketMessage = JSON.parse(data);
-      
+
       // Update connection info
       const info = this.connectionInfo.get(connectionId);
       if (info) {
@@ -525,14 +533,13 @@ export class WebSocketTestHelper extends EventEmitter {
 
       // Call registered handlers
       const handlers = this.messageHandlers.get(`${connectionId}:${message.type}`) || [];
-      handlers.forEach(handler => {
+      handlers.forEach((handler) => {
         try {
           handler(message);
         } catch (error) {
           console.error('Message handler error:', error);
         }
       });
-
     } catch (error) {
       console.error(`Error parsing WebSocket message from ${connectionId}:`, error);
     }
@@ -577,16 +584,16 @@ export class WebSocketTestHelper extends EventEmitter {
     avgMessagesPerConnection: number;
   } {
     const connections = Array.from(this.connectionInfo.values());
-    const activeConnections = connections.filter(c => c.connected).length;
-    const authenticatedConnections = connections.filter(c => c.authenticated).length;
+    const activeConnections = connections.filter((c) => c.connected).length;
+    const authenticatedConnections = connections.filter((c) => c.authenticated).length;
     const totalMessages = connections.reduce((sum, c) => sum + c.messageCount, 0);
-    
+
     return {
       totalConnections: connections.length,
       activeConnections,
       authenticatedConnections,
       totalMessages,
-      avgMessagesPerConnection: connections.length > 0 ? totalMessages / connections.length : 0
+      avgMessagesPerConnection: connections.length > 0 ? totalMessages / connections.length : 0,
     };
   }
 
@@ -617,7 +624,7 @@ export class WebSocketTestHelper extends EventEmitter {
     try {
       await this.sendMessage(connectionId, {
         type: 'ping',
-        data: { timestamp: startTime }
+        data: { timestamp: startTime },
       });
 
       const response = await this.waitForMessage(connectionId, 'pong', 3000);
@@ -625,13 +632,13 @@ export class WebSocketTestHelper extends EventEmitter {
 
       return {
         success: true,
-        responseTime
+        responseTime,
       };
     } catch (error) {
       return {
         success: false,
         responseTime: Date.now() - startTime,
-        error: error instanceof Error ? error.message : 'Ping failed'
+        error: error instanceof Error ? error.message : 'Ping failed',
       };
     }
   }
@@ -641,14 +648,15 @@ export class WebSocketTestHelper extends EventEmitter {
    */
   private cleanupConnectionHandlers(connectionId: string): void {
     // Remove all message handlers for this connection
-    const keysToDelete = Array.from(this.messageHandlers.keys())
-      .filter(key => key.startsWith(`${connectionId}:`));
-    
-    keysToDelete.forEach(key => this.messageHandlers.delete(key));
-    
+    const keysToDelete = Array.from(this.messageHandlers.keys()).filter((key) =>
+      key.startsWith(`${connectionId}:`),
+    );
+
+    keysToDelete.forEach((key) => this.messageHandlers.delete(key));
+
     // Remove event listeners for this connection
     this.removeAllListeners(`message:${connectionId}`);
-    this.eventNames().forEach(eventName => {
+    this.eventNames().forEach((eventName) => {
       if (typeof eventName === 'string' && eventName.includes(connectionId)) {
         this.removeAllListeners(eventName);
       }
@@ -662,21 +670,21 @@ export class WebSocketTestHelper extends EventEmitter {
     if (this.isCleanedUp) {
       return; // Prevent double cleanup
     }
-    
+
     console.log('🧹 Cleaning up WebSocket test helper...');
-    
+
     this.isCleanedUp = true;
-    
+
     // Clear all active timeouts to prevent leaks
-    this.activeTimeouts.forEach(timeout => clearTimeout(timeout));
+    this.activeTimeouts.forEach((timeout) => clearTimeout(timeout));
     this.activeTimeouts.clear();
-    
+
     // Close all WebSocket connections with timeout
     const closePromises = Array.from(this.connections.keys()).map(async (connectionId) => {
       try {
         await Promise.race([
           this.closeConnection(connectionId),
-          new Promise(resolve => setTimeout(resolve, 1000)) // 1s max wait
+          new Promise((resolve) => setTimeout(resolve, 1000)), // 1s max wait
         ]);
       } catch (error) {
         console.warn(`Failed to close connection ${connectionId}:`, error);
@@ -684,7 +692,7 @@ export class WebSocketTestHelper extends EventEmitter {
     });
 
     await Promise.all(closePromises);
-    
+
     // Force close any remaining connections
     this.connections.forEach((ws, connectionId) => {
       try {
@@ -694,20 +702,20 @@ export class WebSocketTestHelper extends EventEmitter {
         console.warn(`Failed to terminate connection ${connectionId}:`, error);
       }
     });
-    
+
     // Clear all data structures
     this.connections.clear();
     this.connectionInfo.clear();
     this.messageHandlers.clear();
-    
+
     // Remove all event listeners
     this.removeAllListeners();
-    
+
     // Force garbage collection if available
     if (global.gc) {
       global.gc();
     }
-    
+
     console.log('✅ WebSocket test helper cleanup complete');
   }
 
@@ -730,7 +738,7 @@ export class WebSocketTestHelper extends EventEmitter {
         console.warn(`Failed to terminate ${connectionId}:`, error);
       }
     });
-    
+
     this.connections.clear();
     this.connectionInfo.clear();
   }

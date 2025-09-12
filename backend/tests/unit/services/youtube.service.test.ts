@@ -99,7 +99,7 @@ describe('YoutubeService', () => {
       expect(mockCacheService.set).toHaveBeenCalledWith(
         `youtube_info:${videoId}`,
         apiResponse.data,
-        1800 // 30 minutes
+        1800, // 30 minutes
       );
       expect(result).toEqual(apiResponse.data);
     });
@@ -111,7 +111,7 @@ describe('YoutubeService', () => {
       mockedAxios.get.mockRejectedValue(new Error('API Error'));
 
       await expect(service.getVideoInfo(videoId)).rejects.toThrow(
-        'Failed to fetch video information'
+        'Failed to fetch video information',
       );
     });
 
@@ -131,7 +131,7 @@ describe('YoutubeService', () => {
       });
 
       await expect(service.getVideoInfo(videoId)).rejects.toThrow(
-        'Rate limit exceeded. Please try again later.'
+        'Rate limit exceeded. Please try again later.',
       );
     });
   });
@@ -178,7 +178,7 @@ describe('YoutubeService', () => {
       };
 
       await expect(service.createDownloadRequest(requestData)).rejects.toThrow(
-        'Invalid YouTube URL'
+        'Invalid YouTube URL',
       );
     });
 
@@ -292,7 +292,7 @@ describe('YoutubeService', () => {
       const invalidProgress = 150;
 
       await expect(service.updateDownloadProgress(downloadId, invalidProgress)).rejects.toThrow(
-        'Progress must be between 0 and 100'
+        'Progress must be between 0 and 100',
       );
     });
 
@@ -301,7 +301,7 @@ describe('YoutubeService', () => {
       const invalidProgress = -10;
 
       await expect(service.updateDownloadProgress(downloadId, invalidProgress)).rejects.toThrow(
-        'Progress must be between 0 and 100'
+        'Progress must be between 0 and 100',
       );
     });
   });
@@ -330,7 +330,7 @@ describe('YoutubeService', () => {
       mockDatabase.youtubeDownload.delete.mockRejectedValue(new Error('Record not found'));
 
       await expect(service.deleteDownload('download-123', 'wrong-user')).rejects.toThrow(
-        'Record not found'
+        'Record not found',
       );
     });
   });
@@ -397,7 +397,7 @@ describe('YoutubeService', () => {
       mockDatabase.youtubeDownload.update.mockRejectedValue(new Error('Record not found'));
 
       await expect(service.cancelDownload('download-123', 'wrong-user')).rejects.toThrow(
-        'Record not found'
+        'Record not found',
       );
     });
   });
@@ -421,7 +421,7 @@ describe('YoutubeService', () => {
       expect(mockCacheService.set).toHaveBeenCalledWith(
         `youtube_formats:${videoId}`,
         mockFormats,
-        3600 // 1 hour
+        3600, // 1 hour
       );
     });
 

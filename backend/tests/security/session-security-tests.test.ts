@@ -244,8 +244,8 @@ describe('Session Hijacking Prevention Test Suite', () => {
       // All sessions should be valid (unless there's a concurrent limit)
       const responses = await Promise.all(
         sessions.map((token) =>
-          request.get('/api/v1/dashboard/stats').set('Authorization', `Bearer ${token}`)
-        )
+          request.get('/api/v1/dashboard/stats').set('Authorization', `Bearer ${token}`),
+        ),
       );
 
       responses.forEach((response) => {

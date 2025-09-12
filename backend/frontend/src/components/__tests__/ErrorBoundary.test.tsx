@@ -45,12 +45,12 @@ describe('ErrorBoundary Component', () => {
 
   describe('Render Tests', () => {
     it('should render children when no error occurs', () => {
-      const TestComponent = () => <div data-testid="child">Child content</div>;
+      const TestComponent = () => <div data-testid='child'>Child content</div>;
 
       render(
         <ErrorBoundary>
           <TestComponent />
-        </ErrorBoundary>
+        </ErrorBoundary>,
       );
 
       expect(screen.getByTestId('child')).toBeInTheDocument();
@@ -60,10 +60,10 @@ describe('ErrorBoundary Component', () => {
     it('should render multiple children correctly', () => {
       render(
         <ErrorBoundary>
-          <div data-testid="child-1">First child</div>
-          <div data-testid="child-2">Second child</div>
-          <span data-testid="child-3">Third child</span>
-        </ErrorBoundary>
+          <div data-testid='child-1'>First child</div>
+          <div data-testid='child-2'>Second child</div>
+          <span data-testid='child-3'>Third child</span>
+        </ErrorBoundary>,
       );
 
       expect(screen.getByTestId('child-1')).toBeInTheDocument();
@@ -80,8 +80,8 @@ describe('ErrorBoundary Component', () => {
     it('should catch and display error when child component throws', () => {
       render(
         <ErrorBoundary>
-          <ThrowError message="Test error message" />
-        </ErrorBoundary>
+          <ThrowError message='Test error message' />
+        </ErrorBoundary>,
       );
 
       expect(screen.getByRole('alert')).toBeInTheDocument();
@@ -92,44 +92,44 @@ describe('ErrorBoundary Component', () => {
     it('should display component stack in error details', () => {
       render(
         <ErrorBoundary>
-          <ThrowError message="Stack trace test" />
-        </ErrorBoundary>
+          <ThrowError message='Stack trace test' />
+        </ErrorBoundary>,
       );
 
       const detailsElement = screen.getByText('Error Details');
       expect(detailsElement).toBeInTheDocument();
-      
+
       fireEvent.click(detailsElement);
       expect(screen.getByText('Stack trace test')).toBeVisible();
     });
 
     it('should call onError callback when error occurs', () => {
       const onErrorSpy = vi.fn();
-      
+
       render(
         <ErrorBoundary onError={onErrorSpy}>
-          <ThrowError message="Callback test error" />
-        </ErrorBoundary>
+          <ThrowError message='Callback test error' />
+        </ErrorBoundary>,
       );
 
       expect(onErrorSpy).toHaveBeenCalledTimes(1);
       expect(onErrorSpy).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: 'Callback test error'
+          message: 'Callback test error',
         }),
         expect.objectContaining({
-          componentStack: expect.any(String)
-        })
+          componentStack: expect.any(String),
+        }),
       );
     });
 
     it('should not call onError callback when no error occurs', () => {
       const onErrorSpy = vi.fn();
-      
+
       render(
         <ErrorBoundary onError={onErrorSpy}>
           <div>No error here</div>
-        </ErrorBoundary>
+        </ErrorBoundary>,
       );
 
       expect(onErrorSpy).not.toHaveBeenCalled();
@@ -137,18 +137,18 @@ describe('ErrorBoundary Component', () => {
 
     it('should handle multiple errors correctly', () => {
       const onErrorSpy = vi.fn();
-      
+
       const { rerender } = render(
         <ErrorBoundary onError={onErrorSpy}>
           <div>No error initially</div>
-        </ErrorBoundary>
+        </ErrorBoundary>,
       );
 
       // First error
       rerender(
         <ErrorBoundary onError={onErrorSpy}>
-          <ThrowError message="First error" />
-        </ErrorBoundary>
+          <ThrowError message='First error' />
+        </ErrorBoundary>,
       );
 
       expect(onErrorSpy).toHaveBeenCalledTimes(1);
@@ -159,15 +159,13 @@ describe('ErrorBoundary Component', () => {
   describe('Custom Fallback Tests', () => {
     it('should render custom fallback when provided', () => {
       const customFallback = (error: Error) => (
-        <div data-testid="custom-fallback">
-          Custom error: {error.message}
-        </div>
+        <div data-testid='custom-fallback'>Custom error: {error.message}</div>
       );
 
       render(
         <ErrorBoundary fallback={customFallback}>
-          <ThrowError message="Custom fallback test" />
-        </ErrorBoundary>
+          <ThrowError message='Custom fallback test' />
+        </ErrorBoundary>,
       );
 
       expect(screen.getByTestId('custom-fallback')).toBeInTheDocument();
@@ -177,9 +175,9 @@ describe('ErrorBoundary Component', () => {
 
     it('should pass error info to custom fallback', () => {
       const customFallback = (error: Error, errorInfo: any) => (
-        <div data-testid="custom-fallback">
-          <div data-testid="error-message">{error.message}</div>
-          <div data-testid="component-stack">
+        <div data-testid='custom-fallback'>
+          <div data-testid='error-message'>{error.message}</div>
+          <div data-testid='component-stack'>
             {errorInfo.componentStack ? 'Has stack' : 'No stack'}
           </div>
         </div>
@@ -188,8 +186,8 @@ describe('ErrorBoundary Component', () => {
       expect(() => {
         render(
           <ErrorBoundary fallback={customFallback}>
-            <ThrowError message="Fallback info test" />
-          </ErrorBoundary>
+            <ThrowError message='Fallback info test' />
+          </ErrorBoundary>,
         );
       }).not.toThrow();
 
@@ -205,8 +203,8 @@ describe('ErrorBoundary Component', () => {
       expect(() => {
         render(
           <ErrorBoundary fallback={faultyFallback}>
-            <ThrowError message="Original error" />
-          </ErrorBoundary>
+            <ThrowError message='Original error' />
+          </ErrorBoundary>,
         );
       }).not.toThrow();
 
@@ -220,8 +218,8 @@ describe('ErrorBoundary Component', () => {
       expect(() => {
         render(
           <ErrorBoundary>
-            <ThrowError message="Retry test error" />
-          </ErrorBoundary>
+            <ThrowError message='Retry test error' />
+          </ErrorBoundary>,
         );
       }).not.toThrow();
 
@@ -236,14 +234,14 @@ describe('ErrorBoundary Component', () => {
         if (shouldThrowError) {
           throw new Error('Retry functionality test');
         }
-        return <div data-testid="success">Component rendered successfully</div>;
+        return <div data-testid='success'>Component rendered successfully</div>;
       };
 
       expect(() => {
         render(
           <ErrorBoundary>
             <TestComponent />
-          </ErrorBoundary>
+          </ErrorBoundary>,
         );
       }).not.toThrow();
 
@@ -273,7 +271,7 @@ describe('ErrorBoundary Component', () => {
       const { unmount } = render(
         <ErrorBoundary>
           <TestComponent />
-        </ErrorBoundary>
+        </ErrorBoundary>,
       );
 
       const retryButton = screen.getByRole('button', { name: /try again/i });
@@ -294,8 +292,8 @@ describe('ErrorBoundary Component', () => {
       expect(() => {
         render(
           <ErrorBoundary>
-            <ThrowError message="Accessibility test" />
-          </ErrorBoundary>
+            <ThrowError message='Accessibility test' />
+          </ErrorBoundary>,
         );
       }).not.toThrow();
 
@@ -308,8 +306,8 @@ describe('ErrorBoundary Component', () => {
       expect(() => {
         render(
           <ErrorBoundary>
-            <ThrowError message="Button accessibility test" />
-          </ErrorBoundary>
+            <ThrowError message='Button accessibility test' />
+          </ErrorBoundary>,
         );
       }).not.toThrow();
 
@@ -322,13 +320,13 @@ describe('ErrorBoundary Component', () => {
       expect(() => {
         render(
           <ErrorBoundary>
-            <ThrowError message="Keyboard test" />
-          </ErrorBoundary>
+            <ThrowError message='Keyboard test' />
+          </ErrorBoundary>,
         );
       }).not.toThrow();
 
       const retryButton = screen.getByRole('button', { name: /try again/i });
-      
+
       retryButton.focus();
       expect(document.activeElement).toBe(retryButton);
     });
@@ -337,14 +335,14 @@ describe('ErrorBoundary Component', () => {
       expect(() => {
         render(
           <ErrorBoundary>
-            <ThrowError message="Screen reader test" />
-          </ErrorBoundary>
+            <ThrowError message='Screen reader test' />
+          </ErrorBoundary>,
         );
       }).not.toThrow();
 
       const summary = screen.getByText('Error Details');
       expect(summary.closest('details')).toBeInTheDocument();
-      
+
       // Details should be expandable
       fireEvent.click(summary);
       expect(summary.closest('details')).toHaveAttribute('open');
@@ -354,21 +352,21 @@ describe('ErrorBoundary Component', () => {
   describe('Edge Cases and Error Conditions', () => {
     it('should handle null children gracefully', () => {
       render(<ErrorBoundary>{null}</ErrorBoundary>);
-      
+
       // Should render without errors
       expect(document.body).toBeTruthy();
     });
 
     it('should handle undefined children gracefully', () => {
       render(<ErrorBoundary>{undefined}</ErrorBoundary>);
-      
+
       // Should render without errors
       expect(document.body).toBeTruthy();
     });
 
     it('should handle empty children gracefully', () => {
       render(<ErrorBoundary></ErrorBoundary>);
-      
+
       // Should render without errors
       expect(document.body).toBeTruthy();
     });
@@ -378,22 +376,30 @@ describe('ErrorBoundary Component', () => {
         <ErrorBoundary>
           {true}
           {false}
-        </ErrorBoundary>
+        </ErrorBoundary>,
       );
-      
+
       // Should render without errors
       expect(document.body).toBeTruthy();
     });
 
     it('should handle complex nested components', () => {
       const DeepChild = () => <div>Deep child</div>;
-      const MiddleChild = () => <div><DeepChild /></div>;
-      const TopChild = () => <div><MiddleChild /></div>;
+      const MiddleChild = () => (
+        <div>
+          <DeepChild />
+        </div>
+      );
+      const TopChild = () => (
+        <div>
+          <MiddleChild />
+        </div>
+      );
 
       render(
         <ErrorBoundary>
           <TopChild />
-        </ErrorBoundary>
+        </ErrorBoundary>,
       );
 
       expect(screen.getByText('Deep child')).toBeInTheDocument();
@@ -403,14 +409,22 @@ describe('ErrorBoundary Component', () => {
       const DeepErrorChild = () => {
         throw new Error('Deep nested error');
       };
-      const MiddleChild = () => <div><DeepErrorChild /></div>;
-      const TopChild = () => <div><MiddleChild /></div>;
+      const MiddleChild = () => (
+        <div>
+          <DeepErrorChild />
+        </div>
+      );
+      const TopChild = () => (
+        <div>
+          <MiddleChild />
+        </div>
+      );
 
       expect(() => {
         render(
           <ErrorBoundary>
             <TopChild />
-          </ErrorBoundary>
+          </ErrorBoundary>,
         );
       }).not.toThrow();
 
@@ -420,12 +434,12 @@ describe('ErrorBoundary Component', () => {
 
     it('should handle error with special characters in message', () => {
       const specialMessage = 'Error with <script>alert("xss")</script> & special chars';
-      
+
       expect(() => {
         render(
           <ErrorBoundary>
             <ThrowError message={specialMessage} />
-          </ErrorBoundary>
+          </ErrorBoundary>,
         );
       }).not.toThrow();
 
@@ -434,12 +448,12 @@ describe('ErrorBoundary Component', () => {
 
     it('should handle very long error messages', () => {
       const longMessage = 'A'.repeat(1000) + ' very long error message ' + 'B'.repeat(1000);
-      
+
       expect(() => {
         render(
           <ErrorBoundary>
             <ThrowError message={longMessage} />
-          </ErrorBoundary>
+          </ErrorBoundary>,
         );
       }).not.toThrow();
 
@@ -457,7 +471,7 @@ describe('ErrorBoundary Component', () => {
         render(
           <ErrorBoundary>
             <EmptyErrorComponent />
-          </ErrorBoundary>
+          </ErrorBoundary>,
         );
       }).not.toThrow();
 
@@ -470,47 +484,44 @@ describe('ErrorBoundary Component', () => {
     it('should log errors in development mode', () => {
       const originalEnv = process.env.NODE_ENV;
       process.env.NODE_ENV = 'development';
-      
+
       // Don't suppress console methods for this test - we want to check them
       // But temporarily restore them so we can spy on actual calls
       consoleSpy.mockRestore();
       consoleGroupSpy.mockRestore();
       consoleGroupEndSpy.mockRestore();
-      
+
       // Set up fresh spies
       const devConsoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const devConsoleGroupSpy = vi.spyOn(console, 'group').mockImplementation(() => {});
       const devConsoleGroupEndSpy = vi.spyOn(console, 'groupEnd').mockImplementation(() => {});
-      
+
       try {
         expect(() => {
           render(
             <ErrorBoundary>
-              <ThrowError message="Development logging test" />
-            </ErrorBoundary>
+              <ThrowError message='Development logging test' />
+            </ErrorBoundary>,
           );
         }).not.toThrow();
 
         expect(devConsoleGroupSpy).toHaveBeenCalledWith('=🚨 ErrorBoundary caught an error:');
         expect(devConsoleSpy).toHaveBeenCalledWith(
           'Error:',
-          expect.objectContaining({ message: 'Development logging test' })
+          expect.objectContaining({ message: 'Development logging test' }),
         );
-        expect(devConsoleSpy).toHaveBeenCalledWith(
-          'Component Stack:',
-          expect.any(String)
-        );
+        expect(devConsoleSpy).toHaveBeenCalledWith('Component Stack:', expect.any(String));
         expect(devConsoleGroupEndSpy).toHaveBeenCalled();
       } finally {
         devConsoleSpy.mockRestore();
         devConsoleGroupSpy.mockRestore();
         devConsoleGroupEndSpy.mockRestore();
-        
+
         // Restore original spies
         consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
         consoleGroupSpy = vi.spyOn(console, 'group').mockImplementation(() => {});
         consoleGroupEndSpy = vi.spyOn(console, 'groupEnd').mockImplementation(() => {});
-        
+
         process.env.NODE_ENV = originalEnv;
       }
     });
@@ -518,23 +529,23 @@ describe('ErrorBoundary Component', () => {
     it('should not log errors in production mode', () => {
       const originalEnv = process.env.NODE_ENV;
       process.env.NODE_ENV = 'production';
-      
+
       // Don't suppress console methods for this test - we want to check they're NOT called
       consoleSpy.mockRestore();
       consoleGroupSpy.mockRestore();
       consoleGroupEndSpy.mockRestore();
-      
+
       // Set up fresh spies
       const prodConsoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const prodConsoleGroupSpy = vi.spyOn(console, 'group').mockImplementation(() => {});
       const prodConsoleGroupEndSpy = vi.spyOn(console, 'groupEnd').mockImplementation(() => {});
-      
+
       try {
         expect(() => {
           render(
             <ErrorBoundary>
-              <ThrowError message="Production logging test" />
-            </ErrorBoundary>
+              <ThrowError message='Production logging test' />
+            </ErrorBoundary>,
           );
         }).not.toThrow();
 
@@ -544,12 +555,12 @@ describe('ErrorBoundary Component', () => {
         prodConsoleSpy.mockRestore();
         prodConsoleGroupSpy.mockRestore();
         prodConsoleGroupEndSpy.mockRestore();
-        
+
         // Restore original spies
         consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
         consoleGroupSpy = vi.spyOn(console, 'group').mockImplementation(() => {});
         consoleGroupEndSpy = vi.spyOn(console, 'groupEnd').mockImplementation(() => {});
-        
+
         process.env.NODE_ENV = originalEnv;
       }
     });
@@ -559,12 +570,12 @@ describe('ErrorBoundary Component', () => {
 describe('withErrorBoundary HOC', () => {
   it('should wrap component with error boundary', () => {
     const TestComponent = ({ name }: { name: string }) => (
-      <div data-testid="wrapped-component">Hello {name}</div>
+      <div data-testid='wrapped-component'>Hello {name}</div>
     );
 
     const WrappedComponent = withErrorBoundary(TestComponent);
 
-    render(<WrappedComponent name="World" />);
+    render(<WrappedComponent name='World' />);
 
     expect(screen.getByTestId('wrapped-component')).toBeInTheDocument();
     expect(screen.getByText('Hello World')).toBeVisible();
@@ -590,14 +601,14 @@ describe('withErrorBoundary HOC', () => {
   it('should pass through error boundary props', () => {
     const onErrorSpy = vi.fn();
     const customFallback = () => <div>Custom fallback</div>;
-    
+
     const TestComponent = () => {
       throw new Error('HOC error test');
     };
 
     const WrappedComponent = withErrorBoundary(TestComponent, {
       onError: onErrorSpy,
-      fallback: customFallback
+      fallback: customFallback,
     });
 
     expect(() => {
@@ -630,7 +641,7 @@ describe('withErrorBoundary HOC', () => {
     }
 
     const TestComponent = ({ title, onClick }: TestProps) => (
-      <button data-testid="test-button" onClick={onClick}>
+      <button data-testid='test-button' onClick={onClick}>
         {title}
       </button>
     );
@@ -638,12 +649,7 @@ describe('withErrorBoundary HOC', () => {
     const WrappedComponent = withErrorBoundary(TestComponent);
     const handleClick = vi.fn();
 
-    render(
-      <WrappedComponent 
-        title="Click Me" 
-        onClick={handleClick} 
-      />
-    );
+    render(<WrappedComponent title='Click Me' onClick={handleClick} />);
 
     const button = screen.getByTestId('test-button');
     expect(button).toHaveTextContent('Click Me');

@@ -527,13 +527,11 @@ sequenceDiagram
 #### Remember Me Functionality
 
 1. **Token Generation**
-
    - Generate secure random token on login
    - Hash token before storing in database
    - Set HTTP-only cookie with 90-day expiry
 
 2. **Token Validation**
-
    - Check remember token if session expired
    - Validate token hash and expiry
    - Regenerate session with fresh expiry
@@ -547,13 +545,11 @@ sequenceDiagram
 ### 7.2 Security Layers
 
 1. **Network Security**
-
    - SSL/TLS encryption (Let's Encrypt)
    - Nginx rate limiting
    - CORS configuration
 
 2. **Application Security**
-
    - JWT token validation
    - CSRF protection
    - Input sanitization
@@ -570,7 +566,6 @@ sequenceDiagram
 #### User Roles
 
 1. **Admin Role**
-
    - Full system access
    - Service configuration management
    - User management capabilities
@@ -827,6 +822,7 @@ volumes:
 #### Deployment Scripts
 
 MediaNest includes automated deployment scripts:
+
 - `./deployment/scripts/deploy-compose.sh` - Production deployment
 - `./deployment/scripts/backup.sh` - Database backup automation
 - `./deployment/scripts/restore.sh` - Disaster recovery
@@ -964,7 +960,6 @@ ENCRYPTION_KEY=<generated-32-byte-key>
 External service configurations are managed through the admin UI after initial deployment:
 
 1. **Initial Setup**
-
    - Admin logs in with bootstrap credentials
    - Navigates to Admin → Service Configuration
    - Configures each service URL and API key
@@ -1325,7 +1320,6 @@ See `/docs/api/overview.md` and related API documentation files for detailed API
 ### F. Current Implementation Gaps
 
 1. **YouTube Download Feature** (Phase 4)
-
    - ✅ Database schema ready
    - ✅ API routes registered
    - ✅ Queue configuration exists
@@ -1335,13 +1329,11 @@ See `/docs/api/overview.md` and related API documentation files for detailed API
    - ❌ yt-dlp integration
 
 2. **Admin UI** (Phase 5)
-
    - API endpoints exist
    - Missing: Frontend admin components
    - Missing: Service configuration UI
 
 3. **Advanced Monitoring**
-
    - Basic metrics collection implemented
    - Missing: Prometheus integration
    - Missing: Grafana dashboards

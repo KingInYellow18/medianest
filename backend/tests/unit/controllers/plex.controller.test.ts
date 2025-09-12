@@ -35,7 +35,7 @@ describe('PlexController', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     controller = new PlexController();
-    
+
     mockRequest = {
       query: {},
       params: {},
@@ -78,7 +78,7 @@ describe('PlexController', () => {
       (plexService.getServerInfo as Mock).mockRejectedValue(new Error('Service error'));
 
       await expect(
-        controller.getServerInfo(mockRequest as Request, mockResponse as Response)
+        controller.getServerInfo(mockRequest as Request, mockResponse as Response),
       ).rejects.toThrow(AppError);
 
       expect(logger.error).toHaveBeenCalledWith('Failed to get server info', expect.any(Object));
@@ -89,7 +89,7 @@ describe('PlexController', () => {
       (plexService.getServerInfo as Mock).mockRejectedValue(appError);
 
       await expect(
-        controller.getServerInfo(mockRequest as Request, mockResponse as Response)
+        controller.getServerInfo(mockRequest as Request, mockResponse as Response),
       ).rejects.toThrow(appError);
     });
   });
@@ -145,7 +145,7 @@ describe('PlexController', () => {
       (plexService.getLibraries as Mock).mockRejectedValue(new Error('Service error'));
 
       await expect(
-        controller.getLibraries(mockRequest as Request, mockResponse as Response)
+        controller.getLibraries(mockRequest as Request, mockResponse as Response),
       ).rejects.toThrow(AppError);
 
       expect(logger.error).toHaveBeenCalledWith('Failed to get libraries', expect.any(Object));
@@ -184,9 +184,7 @@ describe('PlexController', () => {
 
     it('should get library items with custom pagination', async () => {
       const mockResult = {
-        items: [
-          { key: '3', title: 'Movie 3', year: 2021 },
-        ],
+        items: [{ key: '3', title: 'Movie 3', year: 2021 }],
         totalSize: 50,
       };
 
@@ -216,7 +214,7 @@ describe('PlexController', () => {
       (plexService.getLibraryItems as Mock).mockRejectedValue(new Error('Service error'));
 
       await expect(
-        controller.getLibraryItems(mockRequest as Request, mockResponse as Response)
+        controller.getLibraryItems(mockRequest as Request, mockResponse as Response),
       ).rejects.toThrow(AppError);
     });
   });
@@ -248,7 +246,7 @@ describe('PlexController', () => {
       mockRequest.query = {};
 
       await expect(
-        controller.search(mockRequest as Request, mockResponse as Response)
+        controller.search(mockRequest as Request, mockResponse as Response),
       ).rejects.toThrow(AppError);
 
       expect(plexService.search).not.toHaveBeenCalled();
@@ -258,7 +256,7 @@ describe('PlexController', () => {
       mockRequest.query = { query: 123 };
 
       await expect(
-        controller.search(mockRequest as Request, mockResponse as Response)
+        controller.search(mockRequest as Request, mockResponse as Response),
       ).rejects.toThrow(AppError);
     });
 
@@ -283,7 +281,7 @@ describe('PlexController', () => {
       (plexService.search as Mock).mockRejectedValue(new Error('Service error'));
 
       await expect(
-        controller.search(mockRequest as Request, mockResponse as Response)
+        controller.search(mockRequest as Request, mockResponse as Response),
       ).rejects.toThrow(AppError);
 
       expect(logger.error).toHaveBeenCalledWith('Search failed', expect.any(Object));
@@ -329,13 +327,10 @@ describe('PlexController', () => {
       (plexService.getRecentlyAdded as Mock).mockRejectedValue(new Error('Service error'));
 
       await expect(
-        controller.getRecentlyAdded(mockRequest as Request, mockResponse as Response)
+        controller.getRecentlyAdded(mockRequest as Request, mockResponse as Response),
       ).rejects.toThrow(AppError);
 
-      expect(logger.error).toHaveBeenCalledWith(
-        'Failed to get recently added',
-        expect.any(Object)
-      );
+      expect(logger.error).toHaveBeenCalledWith('Failed to get recently added', expect.any(Object));
     });
   });
 
@@ -365,9 +360,7 @@ describe('PlexController', () => {
     });
 
     it('should get collections with search and sort parameters', async () => {
-      const mockCollections = [
-        { key: '1', title: 'Marvel Movies', childCount: 25 },
-      ];
+      const mockCollections = [{ key: '1', title: 'Marvel Movies', childCount: 25 }];
 
       mockRequest.params = { libraryKey: '1' };
       mockRequest.query = { search: 'marvel', sort: 'titleSort' };
@@ -386,7 +379,7 @@ describe('PlexController', () => {
       (plexService.getCollections as Mock).mockRejectedValue(new Error('Service error'));
 
       await expect(
-        controller.getCollections(mockRequest as Request, mockResponse as Response)
+        controller.getCollections(mockRequest as Request, mockResponse as Response),
       ).rejects.toThrow(AppError);
 
       expect(logger.error).toHaveBeenCalledWith('Failed to get collections', expect.any(Object));
@@ -423,12 +416,12 @@ describe('PlexController', () => {
       (plexService.getCollectionDetails as Mock).mockRejectedValue(new Error('Service error'));
 
       await expect(
-        controller.getCollectionDetails(mockRequest as Request, mockResponse as Response)
+        controller.getCollectionDetails(mockRequest as Request, mockResponse as Response),
       ).rejects.toThrow(AppError);
 
       expect(logger.error).toHaveBeenCalledWith(
         'Failed to get collection details',
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 
@@ -438,7 +431,7 @@ describe('PlexController', () => {
       (plexService.getCollectionDetails as Mock).mockRejectedValue(appError);
 
       await expect(
-        controller.getCollectionDetails(mockRequest as Request, mockResponse as Response)
+        controller.getCollectionDetails(mockRequest as Request, mockResponse as Response),
       ).rejects.toThrow(appError);
     });
   });

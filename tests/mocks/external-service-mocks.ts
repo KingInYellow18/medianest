@@ -1,6 +1,6 @@
 /**
  * EXTERNAL SERVICE MOCKING INFRASTRUCTURE
- * 
+ *
  * Comprehensive mocks for all external APIs and services:
  * - Plex Media Server API
  * - TMDB (The Movie Database) API
@@ -18,19 +18,21 @@ import { vi } from 'vitest';
 export function setupPlexMocks() {
   const mockPlexAPI = {
     // Authentication
-    generatePin: vi.fn().mockImplementation(() => Promise.resolve({
-      id: 'test-pin-123',
-      code: '1234',
-      expiresAt: new Date(Date.now() + 900000), // 15 minutes
-      clientIdentifier: 'test-client',
-      location: {
-        code: '1234',
-        expires_in: 900,
+    generatePin: vi.fn().mockImplementation(() =>
+      Promise.resolve({
         id: 'test-pin-123',
-        trusted: false,
-        qr: 'data:image/png;base64,mock-qr-code',
-      }
-    })),
+        code: '1234',
+        expiresAt: new Date(Date.now() + 900000), // 15 minutes
+        clientIdentifier: 'test-client',
+        location: {
+          code: '1234',
+          expires_in: 900,
+          id: 'test-pin-123',
+          trusted: false,
+          qr: 'data:image/png;base64,mock-qr-code',
+        },
+      }),
+    ),
 
     checkPinStatus: vi.fn().mockImplementation((pinId) => {
       // Default: not authorized yet
@@ -43,7 +45,7 @@ export function setupPlexMocks() {
           user: null,
         });
       }
-      
+
       // Success case
       return Promise.resolve({
         id: pinId,
@@ -133,7 +135,7 @@ export function setupPlexMocks() {
           },
         ]);
       }
-      
+
       if (sectionKey.includes('show')) {
         return Promise.resolve([
           {
@@ -155,7 +157,7 @@ export function setupPlexMocks() {
           },
         ]);
       }
-      
+
       return Promise.resolve([]);
     }),
 
@@ -173,7 +175,7 @@ export function setupPlexMocks() {
           },
         ]);
       }
-      
+
       if (query.toLowerCase().includes('show')) {
         return Promise.resolve([
           {
@@ -186,7 +188,7 @@ export function setupPlexMocks() {
           },
         ]);
       }
-      
+
       return Promise.resolve([]);
     }),
 
@@ -233,7 +235,7 @@ export function setupPlexMocks() {
           year: 2023,
         },
         {
-          key: '/library/metadata/2', 
+          key: '/library/metadata/2',
           title: 'Movie 2',
           type: 'movie',
           year: 2022,
@@ -243,32 +245,38 @@ export function setupPlexMocks() {
 
     // Playback and sessions
     getSessions: vi.fn().mockResolvedValue([]),
-    
+
     // Media info
-    getMediaInfo: vi.fn().mockImplementation((key) => Promise.resolve({
-      key,
-      title: 'Test Media',
-      type: 'movie',
-      media: [{
-        id: 1,
-        duration: 7200000,
-        bitrate: 10000,
-        container: 'mkv',
-        videoCodec: 'h264',
-        audioCodec: 'ac3',
-        videoResolution: '1080',
-        videoFrameRate: '24p',
-        audioChannels: 6,
-        parts: [{
-          id: 1,
-          key: `/library/parts/1/file.mkv`,
-          duration: 7200000,
-          file: '/path/to/test/movie.mkv',
-          size: 8589934592, // 8GB
-          container: 'mkv',
-        }],
-      }],
-    })),
+    getMediaInfo: vi.fn().mockImplementation((key) =>
+      Promise.resolve({
+        key,
+        title: 'Test Media',
+        type: 'movie',
+        media: [
+          {
+            id: 1,
+            duration: 7200000,
+            bitrate: 10000,
+            container: 'mkv',
+            videoCodec: 'h264',
+            audioCodec: 'ac3',
+            videoResolution: '1080',
+            videoFrameRate: '24p',
+            audioChannels: 6,
+            parts: [
+              {
+                id: 1,
+                key: `/library/parts/1/file.mkv`,
+                duration: 7200000,
+                file: '/path/to/test/movie.mkv',
+                size: 8589934592, // 8GB
+                container: 'mkv',
+              },
+            ],
+          },
+        ],
+      }),
+    ),
   };
 
   // Setup the mock
@@ -281,7 +289,7 @@ export function setupPlexMocks() {
     resetMocks: () => {
       vi.clearAllMocks();
       // Reset to default implementations
-      Object.keys(mockPlexAPI).forEach(key => {
+      Object.keys(mockPlexAPI).forEach((key) => {
         if (typeof (mockPlexAPI as any)[key]?.mockReset === 'function') {
           (mockPlexAPI as any)[key].mockReset();
         }
@@ -296,220 +304,230 @@ export function setupPlexMocks() {
 export function setupTMDBMocks() {
   const mockTMDBAPI = {
     // Search
-    searchMovie: vi.fn().mockImplementation((query) => Promise.resolve({
-      page: 1,
-      results: [
-        {
-          adult: false,
-          backdrop_path: '/backdrop.jpg',
-          genre_ids: [28, 12, 878],
-          id: 123456,
-          original_language: 'en',
-          original_title: query,
-          overview: 'A test movie from TMDB search',
-          popularity: 1234.567,
-          poster_path: '/poster.jpg',
-          release_date: '2023-01-01',
-          title: query,
-          video: false,
-          vote_average: 8.5,
-          vote_count: 12345,
-        },
-      ],
-      total_pages: 1,
-      total_results: 1,
-    })),
+    searchMovie: vi.fn().mockImplementation((query) =>
+      Promise.resolve({
+        page: 1,
+        results: [
+          {
+            adult: false,
+            backdrop_path: '/backdrop.jpg',
+            genre_ids: [28, 12, 878],
+            id: 123456,
+            original_language: 'en',
+            original_title: query,
+            overview: 'A test movie from TMDB search',
+            popularity: 1234.567,
+            poster_path: '/poster.jpg',
+            release_date: '2023-01-01',
+            title: query,
+            video: false,
+            vote_average: 8.5,
+            vote_count: 12345,
+          },
+        ],
+        total_pages: 1,
+        total_results: 1,
+      }),
+    ),
 
-    searchTv: vi.fn().mockImplementation((query) => Promise.resolve({
-      page: 1,
-      results: [
-        {
-          adult: false,
-          backdrop_path: '/tv-backdrop.jpg',
-          genre_ids: [10765, 18],
-          id: 789012,
-          origin_country: ['US'],
-          original_language: 'en',
-          original_name: query,
-          overview: 'A test TV show from TMDB search',
-          popularity: 987.654,
-          poster_path: '/tv-poster.jpg',
-          first_air_date: '2023-01-01',
-          name: query,
-          vote_average: 9.0,
-          vote_count: 54321,
-        },
-      ],
-      total_pages: 1,
-      total_results: 1,
-    })),
+    searchTv: vi.fn().mockImplementation((query) =>
+      Promise.resolve({
+        page: 1,
+        results: [
+          {
+            adult: false,
+            backdrop_path: '/tv-backdrop.jpg',
+            genre_ids: [10765, 18],
+            id: 789012,
+            origin_country: ['US'],
+            original_language: 'en',
+            original_name: query,
+            overview: 'A test TV show from TMDB search',
+            popularity: 987.654,
+            poster_path: '/tv-poster.jpg',
+            first_air_date: '2023-01-01',
+            name: query,
+            vote_average: 9.0,
+            vote_count: 54321,
+          },
+        ],
+        total_pages: 1,
+        total_results: 1,
+      }),
+    ),
 
-    searchMulti: vi.fn().mockImplementation((query) => Promise.resolve({
-      page: 1,
-      results: [
-        {
-          adult: false,
-          backdrop_path: '/multi-backdrop.jpg',
-          id: 111111,
-          title: query,
-          original_language: 'en',
-          original_title: query,
-          overview: 'Multi-search result',
-          poster_path: '/multi-poster.jpg',
-          media_type: 'movie',
-          genre_ids: [28],
-          popularity: 100.0,
-          release_date: '2023-01-01',
-          video: false,
-          vote_average: 7.5,
-          vote_count: 1000,
-        },
-      ],
-      total_pages: 1,
-      total_results: 1,
-    })),
+    searchMulti: vi.fn().mockImplementation((query) =>
+      Promise.resolve({
+        page: 1,
+        results: [
+          {
+            adult: false,
+            backdrop_path: '/multi-backdrop.jpg',
+            id: 111111,
+            title: query,
+            original_language: 'en',
+            original_title: query,
+            overview: 'Multi-search result',
+            poster_path: '/multi-poster.jpg',
+            media_type: 'movie',
+            genre_ids: [28],
+            popularity: 100.0,
+            release_date: '2023-01-01',
+            video: false,
+            vote_average: 7.5,
+            vote_count: 1000,
+          },
+        ],
+        total_pages: 1,
+        total_results: 1,
+      }),
+    ),
 
     // Details
-    getMovieDetails: vi.fn().mockImplementation((id) => Promise.resolve({
-      adult: false,
-      backdrop_path: '/movie-backdrop.jpg',
-      budget: 100000000,
-      genres: [
-        { id: 28, name: 'Action' },
-        { id: 12, name: 'Adventure' },
-      ],
-      homepage: 'https://example.com/movie',
-      id,
-      imdb_id: 'tt1234567',
-      original_language: 'en',
-      original_title: 'Test Movie',
-      overview: 'Detailed overview of test movie',
-      popularity: 1234.567,
-      poster_path: '/detailed-poster.jpg',
-      production_companies: [
-        {
-          id: 1,
-          logo_path: '/company-logo.png',
-          name: 'Test Studios',
-          origin_country: 'US',
-        },
-      ],
-      production_countries: [
-        {
-          iso_3166_1: 'US',
-          name: 'United States of America',
-        },
-      ],
-      release_date: '2023-01-01',
-      revenue: 500000000,
-      runtime: 120,
-      spoken_languages: [
-        {
-          english_name: 'English',
-          iso_639_1: 'en',
-          name: 'English',
-        },
-      ],
-      status: 'Released',
-      tagline: 'The ultimate test',
-      title: 'Test Movie',
-      video: false,
-      vote_average: 8.5,
-      vote_count: 12345,
-    })),
+    getMovieDetails: vi.fn().mockImplementation((id) =>
+      Promise.resolve({
+        adult: false,
+        backdrop_path: '/movie-backdrop.jpg',
+        budget: 100000000,
+        genres: [
+          { id: 28, name: 'Action' },
+          { id: 12, name: 'Adventure' },
+        ],
+        homepage: 'https://example.com/movie',
+        id,
+        imdb_id: 'tt1234567',
+        original_language: 'en',
+        original_title: 'Test Movie',
+        overview: 'Detailed overview of test movie',
+        popularity: 1234.567,
+        poster_path: '/detailed-poster.jpg',
+        production_companies: [
+          {
+            id: 1,
+            logo_path: '/company-logo.png',
+            name: 'Test Studios',
+            origin_country: 'US',
+          },
+        ],
+        production_countries: [
+          {
+            iso_3166_1: 'US',
+            name: 'United States of America',
+          },
+        ],
+        release_date: '2023-01-01',
+        revenue: 500000000,
+        runtime: 120,
+        spoken_languages: [
+          {
+            english_name: 'English',
+            iso_639_1: 'en',
+            name: 'English',
+          },
+        ],
+        status: 'Released',
+        tagline: 'The ultimate test',
+        title: 'Test Movie',
+        video: false,
+        vote_average: 8.5,
+        vote_count: 12345,
+      }),
+    ),
 
-    getTvDetails: vi.fn().mockImplementation((id) => Promise.resolve({
-      adult: false,
-      backdrop_path: '/tv-backdrop.jpg',
-      created_by: [
-        {
+    getTvDetails: vi.fn().mockImplementation((id) =>
+      Promise.resolve({
+        adult: false,
+        backdrop_path: '/tv-backdrop.jpg',
+        created_by: [
+          {
+            id: 1,
+            credit_id: 'creator-credit-id',
+            name: 'Test Creator',
+            gender: 2,
+            profile_path: '/creator.jpg',
+          },
+        ],
+        episode_run_time: [45],
+        first_air_date: '2023-01-01',
+        genres: [
+          { id: 10765, name: 'Sci-Fi & Fantasy' },
+          { id: 18, name: 'Drama' },
+        ],
+        homepage: 'https://example.com/tvshow',
+        id,
+        in_production: true,
+        languages: ['en'],
+        last_air_date: '2023-12-31',
+        last_episode_to_air: {
           id: 1,
-          credit_id: 'creator-credit-id',
-          name: 'Test Creator',
-          gender: 2,
-          profile_path: '/creator.jpg',
-        },
-      ],
-      episode_run_time: [45],
-      first_air_date: '2023-01-01',
-      genres: [
-        { id: 10765, name: 'Sci-Fi & Fantasy' },
-        { id: 18, name: 'Drama' },
-      ],
-      homepage: 'https://example.com/tvshow',
-      id,
-      in_production: true,
-      languages: ['en'],
-      last_air_date: '2023-12-31',
-      last_episode_to_air: {
-        id: 1,
-        name: 'Test Episode',
-        overview: 'The latest test episode',
-        vote_average: 9.0,
-        vote_count: 100,
-        air_date: '2023-12-31',
-        episode_number: 10,
-        production_code: '',
-        runtime: 45,
-        season_number: 1,
-        show_id: id,
-        still_path: '/episode-still.jpg',
-      },
-      name: 'Test TV Show',
-      networks: [
-        {
-          id: 1,
-          logo_path: '/network-logo.png',
-          name: 'Test Network',
-          origin_country: 'US',
-        },
-      ],
-      number_of_episodes: 20,
-      number_of_seasons: 2,
-      origin_country: ['US'],
-      original_language: 'en',
-      original_name: 'Test TV Show',
-      overview: 'Detailed overview of test TV show',
-      popularity: 987.654,
-      poster_path: '/tv-detailed-poster.jpg',
-      production_companies: [
-        {
-          id: 1,
-          logo_path: '/tv-company-logo.png',
-          name: 'Test TV Studios',
-          origin_country: 'US',
-        },
-      ],
-      production_countries: [
-        {
-          iso_3166_1: 'US',
-          name: 'United States of America',
-        },
-      ],
-      seasons: [
-        {
-          air_date: '2023-01-01',
-          episode_count: 10,
-          id: 1,
-          name: 'Season 1',
-          overview: 'First season',
-          poster_path: '/season1-poster.jpg',
+          name: 'Test Episode',
+          overview: 'The latest test episode',
+          vote_average: 9.0,
+          vote_count: 100,
+          air_date: '2023-12-31',
+          episode_number: 10,
+          production_code: '',
+          runtime: 45,
           season_number: 1,
+          show_id: id,
+          still_path: '/episode-still.jpg',
         },
-      ],
-      spoken_languages: [
-        {
-          english_name: 'English',
-          iso_639_1: 'en',
-          name: 'English',
-        },
-      ],
-      status: 'Returning Series',
-      tagline: 'The ultimate test series',
-      type: 'Scripted',
-      vote_average: 9.0,
-      vote_count: 54321,
-    })),
+        name: 'Test TV Show',
+        networks: [
+          {
+            id: 1,
+            logo_path: '/network-logo.png',
+            name: 'Test Network',
+            origin_country: 'US',
+          },
+        ],
+        number_of_episodes: 20,
+        number_of_seasons: 2,
+        origin_country: ['US'],
+        original_language: 'en',
+        original_name: 'Test TV Show',
+        overview: 'Detailed overview of test TV show',
+        popularity: 987.654,
+        poster_path: '/tv-detailed-poster.jpg',
+        production_companies: [
+          {
+            id: 1,
+            logo_path: '/tv-company-logo.png',
+            name: 'Test TV Studios',
+            origin_country: 'US',
+          },
+        ],
+        production_countries: [
+          {
+            iso_3166_1: 'US',
+            name: 'United States of America',
+          },
+        ],
+        seasons: [
+          {
+            air_date: '2023-01-01',
+            episode_count: 10,
+            id: 1,
+            name: 'Season 1',
+            overview: 'First season',
+            poster_path: '/season1-poster.jpg',
+            season_number: 1,
+          },
+        ],
+        spoken_languages: [
+          {
+            english_name: 'English',
+            iso_639_1: 'en',
+            name: 'English',
+          },
+        ],
+        status: 'Returning Series',
+        tagline: 'The ultimate test series',
+        type: 'Scripted',
+        vote_average: 9.0,
+        vote_count: 54321,
+      }),
+    ),
 
     // Trending
     getTrending: vi.fn().mockResolvedValue({
@@ -549,7 +567,7 @@ export function setupTMDBMocks() {
     mockTMDBAPI,
     resetMocks: () => {
       vi.clearAllMocks();
-      Object.keys(mockTMDBAPI).forEach(key => {
+      Object.keys(mockTMDBAPI).forEach((key) => {
         if (typeof (mockTMDBAPI as any)[key]?.mockReset === 'function') {
           (mockTMDBAPI as any)[key].mockReset();
         }
@@ -665,7 +683,7 @@ export function setupYouTubeMocks() {
     mockYouTubeAPI,
     resetMocks: () => {
       vi.clearAllMocks();
-      Object.keys(mockYouTubeAPI).forEach(key => {
+      Object.keys(mockYouTubeAPI).forEach((key) => {
         if (typeof (mockYouTubeAPI as any)[key]?.mockReset === 'function') {
           (mockYouTubeAPI as any)[key].mockReset();
         }
@@ -680,12 +698,14 @@ export function setupYouTubeMocks() {
 export function setupEmailMocks() {
   const mockEmailAPI = {
     // SMTP
-    sendEmail: vi.fn().mockImplementation((options) => Promise.resolve({
-      messageId: `test-message-${Date.now()}`,
-      accepted: [options.to],
-      rejected: [],
-      response: '250 Message queued',
-    })),
+    sendEmail: vi.fn().mockImplementation((options) =>
+      Promise.resolve({
+        messageId: `test-message-${Date.now()}`,
+        accepted: [options.to],
+        rejected: [],
+        response: '250 Message queued',
+      }),
+    ),
 
     // Template-based emails
     sendWelcomeEmail: vi.fn().mockResolvedValue({
@@ -716,12 +736,14 @@ export function setupEmailMocks() {
 
     // Nodemailer transporter
     transporter: {
-      sendMail: vi.fn().mockImplementation((mailOptions) => Promise.resolve({
-        messageId: `nodemailer-${Date.now()}`,
-        accepted: [mailOptions.to],
-        rejected: [],
-        response: '250 Message queued',
-      })),
+      sendMail: vi.fn().mockImplementation((mailOptions) =>
+        Promise.resolve({
+          messageId: `nodemailer-${Date.now()}`,
+          accepted: [mailOptions.to],
+          rejected: [],
+          response: '250 Message queued',
+        }),
+      ),
       verify: vi.fn().mockResolvedValue(true),
     },
   };
@@ -745,7 +767,7 @@ export function setupEmailMocks() {
     mockEmailAPI,
     resetMocks: () => {
       vi.clearAllMocks();
-      Object.keys(mockEmailAPI).forEach(key => {
+      Object.keys(mockEmailAPI).forEach((key) => {
         if (typeof (mockEmailAPI as any)[key]?.mockReset === 'function') {
           (mockEmailAPI as any)[key].mockReset();
         }
@@ -761,26 +783,30 @@ export function setupStorageMocks() {
   const mockStorageAPI = {
     // S3
     s3: {
-      upload: vi.fn().mockImplementation((params) => Promise.resolve({
-        Location: `https://test-bucket.s3.amazonaws.com/${params.Key}`,
-        Bucket: params.Bucket,
-        Key: params.Key,
-        ETag: '"mock-etag-12345"',
-      })),
-      
-      getObject: vi.fn().mockImplementation((params) => Promise.resolve({
-        Body: Buffer.from('mock-file-content'),
-        ContentType: 'application/octet-stream',
-        ContentLength: 17,
-        ETag: '"mock-etag-12345"',
-        LastModified: new Date(),
-      })),
-      
+      upload: vi.fn().mockImplementation((params) =>
+        Promise.resolve({
+          Location: `https://test-bucket.s3.amazonaws.com/${params.Key}`,
+          Bucket: params.Bucket,
+          Key: params.Key,
+          ETag: '"mock-etag-12345"',
+        }),
+      ),
+
+      getObject: vi.fn().mockImplementation((params) =>
+        Promise.resolve({
+          Body: Buffer.from('mock-file-content'),
+          ContentType: 'application/octet-stream',
+          ContentLength: 17,
+          ETag: '"mock-etag-12345"',
+          LastModified: new Date(),
+        }),
+      ),
+
       deleteObject: vi.fn().mockResolvedValue({
         DeleteMarker: false,
         RequestCharged: false,
       }),
-      
+
       listObjects: vi.fn().mockResolvedValue({
         Contents: [
           {
@@ -818,7 +844,7 @@ export function setupStorageMocks() {
         };
         next();
       }),
-      
+
       array: vi.fn().mockReturnValue((req, res, next) => {
         req.files = [
           {
@@ -873,10 +899,10 @@ export function setupStorageMocks() {
     mockStorageAPI,
     resetMocks: () => {
       vi.clearAllMocks();
-      Object.keys(mockStorageAPI).forEach(key => {
+      Object.keys(mockStorageAPI).forEach((key) => {
         const mock = (mockStorageAPI as any)[key];
         if (mock && typeof mock === 'object') {
-          Object.keys(mock).forEach(subKey => {
+          Object.keys(mock).forEach((subKey) => {
             if (typeof mock[subKey]?.mockReset === 'function') {
               mock[subKey].mockReset();
             }
@@ -933,7 +959,7 @@ export function setupWebhookMocks() {
     mockWebhookAPI,
     resetMocks: () => {
       vi.clearAllMocks();
-      Object.keys(mockWebhookAPI).forEach(key => {
+      Object.keys(mockWebhookAPI).forEach((key) => {
         if (typeof (mockWebhookAPI as any)[key]?.mockReset === 'function') {
           (mockWebhookAPI as any)[key].mockReset();
         }

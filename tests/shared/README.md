@@ -21,11 +21,11 @@ describe('My Feature', () => {
 // Option 2: Quick one-liner setups
 it('should authenticate user', async () => {
   const { user, token, cleanup } = await quick.auth();
-  
+
   // Test auth functionality
   expect(user).toBeTruthy();
   expect(token).toBeTruthy();
-  
+
   cleanup(); // Optional - auto-cleanup in afterEach
 });
 ```
@@ -56,7 +56,7 @@ const user = await TestUserFactory.createTestUser();
 
 // User with specific properties
 const admin = await TestUserFactory.createTestAdmin({
-  email: 'admin@test.com'
+  email: 'admin@test.com',
 });
 
 // Batch creation for performance tests
@@ -95,7 +95,7 @@ const media = TestMediaFactory.createTestMedia();
 // Media request
 const request = TestMediaFactory.createMediaRequest({
   userId: user.id,
-  mediaId: media.id
+  mediaId: media.id,
 });
 
 // Complete workflow
@@ -119,7 +119,7 @@ const mediaScenario = await TestScenarioFactory.createMediaRequestScenario();
 const perfScenario = await TestScenarioFactory.createPerformanceScenario({
   userCount: 1000,
   mediaCount: 500,
-  requestCount: 2000
+  requestCount: 2000,
 });
 ```
 
@@ -143,7 +143,7 @@ await DatabaseTestUtils.clearTestData();
 await DatabaseTestUtils.seedTestData({
   users: [user1, user2],
   media: [media1, media2],
-  requests: [request1, request2]
+  requests: [request1, request2],
 });
 ```
 
@@ -184,14 +184,14 @@ const metrics = await DatabaseTestUtils.measureDatabasePerformance(
   async (client) => {
     return await client.user.findMany();
   },
-  100 // iterations
+  100, // iterations
 );
 
 // Test concurrent operations
 const concurrencyResult = await DatabaseTestUtils.testConcurrentOperations([
   (client) => client.user.create({ data: user1 }),
   (client) => client.user.create({ data: user2 }),
-  (client) => client.media.create({ data: media1 })
+  (client) => client.media.create({ data: media1 }),
 ]);
 ```
 
@@ -258,7 +258,7 @@ const mockEnv = MockInfrastructure.createIsolatedMockEnvironment();
 // Verify mock calls
 const results = mockEnv.verify({
   'jwtService.verifyToken': 3,
-  'userRepository.findById': 1
+  'userRepository.findById': 1,
 });
 
 // Cleanup
@@ -270,13 +270,13 @@ mockEnv.cleanup();
 ### Pre-configured Test Suites
 
 ```typescript
-import { 
+import {
   minimalTestSetup,
   integrationTestSetup,
   isolatedTestSetup,
   performanceTestSetup,
   unitTestSetup,
-  e2eTestSetup
+  e2eTestSetup,
 } from './tests/shared';
 
 // Minimal setup (no database, basic mocks)
@@ -313,7 +313,7 @@ const customSuite = TestSetupUtils.createTestSuite({
   beforeAll: {
     suiteName: 'Custom Test Suite',
     database: true,
-    seedData: myFixtures
+    seedData: myFixtures,
   },
   beforeEach: {
     isolatedDatabase: true,
@@ -321,13 +321,13 @@ const customSuite = TestSetupUtils.createTestSuite({
     mockType: 'auth',
     customSetup: async (context) => {
       // Custom setup logic
-    }
+    },
   },
   afterEach: {
     customCleanup: async (context) => {
       // Custom cleanup logic
-    }
-  }
+    },
+  },
 });
 ```
 
@@ -339,22 +339,19 @@ import { TestUtils } from './tests/shared';
 // Wait for condition
 await TestUtils.waitFor(
   () => someAsyncCondition(),
-  5000 // timeout
+  5000, // timeout
 );
 
 // Measure performance
-const { result, duration, memory } = await TestUtils.measurePerformance(
-  async () => {
-    // Operation to measure
-  },
-  'operation-name'
-);
+const { result, duration, memory } = await TestUtils.measurePerformance(async () => {
+  // Operation to measure
+}, 'operation-name');
 
 // Create test data in batches
 const users = await TestUtils.createTestDataBatch(
   () => TestUserFactory.createTestUser(),
   1000, // count
-  100   // batch size
+  100, // batch size
 );
 ```
 
@@ -362,13 +359,13 @@ const users = await TestUtils.createTestDataBatch(
 
 ### Before vs After Migration
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|------------|
-| Setup Time | 2.3s | 0.8s | 65% faster |
-| Lines of Code | 127/file | 32/file | 75% reduction |
-| Memory Usage | 45MB | 18MB | 60% less |
-| Execution Time | 8.2s | 3.1s | 2.6x faster |
-| Maintenance | High | Low | 80% reduction |
+| Metric         | Before   | After   | Improvement   |
+| -------------- | -------- | ------- | ------------- |
+| Setup Time     | 2.3s     | 0.8s    | 65% faster    |
+| Lines of Code  | 127/file | 32/file | 75% reduction |
+| Memory Usage   | 45MB     | 18MB    | 60% less      |
+| Execution Time | 8.2s     | 3.1s    | 2.6x faster   |
+| Maintenance    | High     | Low     | 80% reduction |
 
 ### Key Improvements
 
@@ -426,7 +423,7 @@ describe('Auth Tests - Before', () => {
 describe('Auth Tests - After', () => {
   const testSuite = integrationTestSetup();
   testSuite.setupSuite();
-  
+
   it('should authenticate', async () => {
     const { user, token } = await quick.auth();
     // Test logic here
@@ -528,6 +525,7 @@ const allMocks = MockInfrastructure.setupAllMocks(); // Overkill for auth tests
 ### Common Issues
 
 1. **Database Connection Issues**
+
    ```typescript
    // Check database health
    const health = await DatabaseTestUtils.healthCheck();
@@ -535,13 +533,15 @@ const allMocks = MockInfrastructure.setupAllMocks(); // Overkill for auth tests
    ```
 
 2. **Mock Not Working**
+
    ```typescript
    // Verify mock setup
    const mockEnv = MockInfrastructure.createIsolatedMockEnvironment();
-   const verification = mockEnv.verify({ 'mockName': 1 });
+   const verification = mockEnv.verify({ mockName: 1 });
    ```
 
 3. **Memory Leaks**
+
    ```typescript
    // Clear caches regularly
    clearAllFactoryCaches();
@@ -551,10 +551,7 @@ const allMocks = MockInfrastructure.setupAllMocks(); // Overkill for auth tests
 4. **Performance Issues**
    ```typescript
    // Use performance monitoring
-   const metrics = await TestUtils.measurePerformance(
-     () => yourOperation(),
-     'operation-name'
-   );
+   const metrics = await TestUtils.measurePerformance(() => yourOperation(), 'operation-name');
    ```
 
 ### Debug Mode

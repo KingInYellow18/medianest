@@ -1,10 +1,6 @@
 {
   "compilerOptions": {
-    "lib": [
-      "ES2022",
-      "DOM",
-      "DOM.Iterable"
-    ],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -25,30 +21,13 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@medianest/shared": [
-        "../shared/dist"
-      ],
-      "@medianest/shared/*": [
-        "../shared/dist/*"
-      ]
+      "@/*": ["./src/*"],
+      "@medianest/shared": ["../shared/dist"],
+      "@medianest/shared/*": ["../shared/dist/*"]
     },
     "target": "ES2022"
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "tailwind.config.ts",
-    "tests/setup.ts"
-  ],
-  "references": [
-    { "path": "../shared" }
-  ]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules", "tailwind.config.ts", "tests/setup.ts"],
+  "references": [{ "path": "../shared" }]
 }

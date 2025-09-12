@@ -2,7 +2,7 @@
 
 /**
  * ZERO TRUST AUTHENTICATION SECURITY VALIDATION SCRIPT
- * 
+ *
  * Validates that all authentication bypass security fixes are properly implemented
  */
 
@@ -17,7 +17,7 @@ const filesToCheck = [
   'src/middleware/auth-cache.ts',
   'src/middleware/auth-security-fixes.ts',
   'src/middleware/auth-validator.ts',
-  'src/auth/index.ts'
+  'src/auth/index.ts',
 ];
 
 // Security patterns to verify
@@ -25,43 +25,43 @@ const securityPatterns = [
   {
     pattern: /ZERO TRUST.*User-specific authentication cache/,
     description: 'User-specific cache isolation',
-    file: 'src/auth/middleware.ts'
+    file: 'src/auth/middleware.ts',
   },
   {
     pattern: /IP-specific cache key/,
     description: 'IP address validation in cache',
-    file: 'src/auth/middleware.ts'
+    file: 'src/auth/middleware.ts',
   },
   {
     pattern: /Cache poisoning attempt detected/,
     description: 'Cache poisoning detection',
-    file: 'src/auth/middleware.ts'
+    file: 'src/auth/middleware.ts',
   },
   {
     pattern: /blacklistToken/,
     description: 'Token blacklisting functionality',
-    file: 'src/middleware/auth-security-fixes.ts'
+    file: 'src/middleware/auth-security-fixes.ts',
   },
   {
     pattern: /invalidateUserSessions/,
     description: 'User session invalidation',
-    file: 'src/middleware/auth-security-fixes.ts'
+    file: 'src/middleware/auth-security-fixes.ts',
   },
   {
     pattern: /logSecurityEvent/,
     description: 'Security audit logging',
-    file: 'src/middleware/auth-security-fixes.ts'
+    file: 'src/middleware/auth-security-fixes.ts',
   },
   {
     pattern: /validateAuthentication/,
     description: 'Comprehensive auth validation',
-    file: 'src/middleware/auth-validator.ts'
+    file: 'src/middleware/auth-validator.ts',
   },
   {
     pattern: /detectSuspiciousActivity/,
     description: 'Suspicious activity detection',
-    file: 'src/middleware/auth-security-fixes.ts'
-  }
+    file: 'src/middleware/auth-security-fixes.ts',
+  },
 ];
 
 let validationsPassed = 0;
@@ -74,10 +74,10 @@ console.log('📋 VALIDATING SECURITY IMPLEMENTATIONS:\n');
 for (const check of securityPatterns) {
   totalValidations++;
   const filePath = path.join(__dirname, '..', check.file);
-  
+
   try {
     const fileContent = fs.readFileSync(filePath, 'utf8');
-    
+
     if (check.pattern.test(fileContent)) {
       console.log(`✅ ${check.description}`);
       validationsPassed++;
@@ -97,7 +97,7 @@ console.log('\n🔍 SECURITY IMPLEMENTATION ANALYSIS:');
 try {
   const authCacheFile = path.join(__dirname, '..', 'src/middleware/auth-cache.ts');
   const authCacheContent = fs.readFileSync(authCacheFile, 'utf8');
-  
+
   if (authCacheContent.includes('USER_CACHE_TTL = 120')) {
     console.log('✅ Cache TTL reduced to 2 minutes (security improvement)');
     validationsPassed++;
@@ -115,7 +115,7 @@ try {
 try {
   const authCacheFile = path.join(__dirname, '..', 'src/middleware/auth-cache.ts');
   const authCacheContent = fs.readFileSync(authCacheFile, 'utf8');
-  
+
   if (authCacheContent.includes("CACHE_VERSION = 'v3'")) {
     console.log('✅ Cache version incremented for security fixes');
     validationsPassed++;
@@ -148,7 +148,7 @@ if (criticalIssues.length > 0) {
 if (successRate >= 90) {
   console.log('🟢 SECURITY STATUS: SECURE');
   console.log('Authentication bypass vulnerability has been successfully mitigated.\n');
-  
+
   console.log('🔐 ZERO TRUST IMPLEMENTATION COMPLETE:');
   console.log('• User-session-IP cache isolation ✅');
   console.log('• JWT token blacklisting ✅');
@@ -156,7 +156,7 @@ if (successRate >= 90) {
   console.log('• Comprehensive audit logging ✅');
   console.log('• Suspicious activity detection ✅');
   console.log('• Cache poisoning prevention ✅\n');
-  
+
   process.exit(0);
 } else if (successRate >= 70) {
   console.log('🟡 SECURITY STATUS: NEEDS ATTENTION');

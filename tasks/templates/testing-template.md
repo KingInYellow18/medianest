@@ -54,17 +54,14 @@ task-YYYYMMDD-HHmm-testing-description
 ### Test Scenarios to Cover:
 
 1. **Happy Path Tests**
-
    - [ ] Scenario 1
    - [ ] Scenario 2
 
 2. **Edge Case Tests**
-
    - [ ] Edge case 1
    - [ ] Edge case 2
 
 3. **Error Handling Tests**
-
    - [ ] Error scenario 1
    - [ ] Error scenario 2
 

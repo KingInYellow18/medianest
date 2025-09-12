@@ -7,7 +7,7 @@
     "agent": "coordinator"
   },
   {
-    "id": "coord-2", 
+    "id": "coord-2",
     "content": "Fix ErrorBoundary test failures (48 failing tests)",
     "status": "in_progress",
     "priority": "critical",
@@ -16,7 +16,7 @@
   {
     "id": "coord-3",
     "content": "Fix OptimizedServiceCard test failures",
-    "status": "in_progress", 
+    "status": "in_progress",
     "priority": "high",
     "agent": "component-test"
   },
@@ -58,7 +58,7 @@
   {
     "id": "coord-9",
     "content": "Document coverage gaps and recommendations",
-    "status": "pending", 
+    "status": "pending",
     "priority": "low",
     "agent": "coordinator"
   },

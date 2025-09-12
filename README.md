@@ -21,14 +21,14 @@ A unified web portal for managing Plex media server and related services. Built 
 
 ### System Requirements
 
-| Component | Requirement | Status | Notes |
-|-----------|-------------|--------|-------|
-| **Node.js** | 20.x+ | ✅ Required | LTS version recommended |
-| **Docker** | Latest | ✅ Required | Docker Compose v2+ |
-| **PostgreSQL** | 15.x+ | ✅ Required | Local or containerized |
-| **Redis** | 7.x+ | 🔶 Optional | For caching and sessions |
-| **Memory** | 4GB+ | ✅ Required | For development |
-| **Disk** | 10GB+ | ✅ Required | For dependencies and builds |
+| Component      | Requirement | Status      | Notes                       |
+| -------------- | ----------- | ----------- | --------------------------- |
+| **Node.js**    | 20.x+       | ✅ Required | LTS version recommended     |
+| **Docker**     | Latest      | ✅ Required | Docker Compose v2+          |
+| **PostgreSQL** | 15.x+       | ✅ Required | Local or containerized      |
+| **Redis**      | 7.x+        | 🔶 Optional | For caching and sessions    |
+| **Memory**     | 4GB+        | ✅ Required | For development             |
+| **Disk**       | 10GB+       | ✅ Required | For dependencies and builds |
 
 ### Development Setup
 
@@ -60,29 +60,32 @@ A unified web portal for managing Plex media server and related services. Built 
    ```
 
 5. **Start development servers**
+
    ```bash
    # Start all services (frontend + backend)
    npm run dev
-   
+
    # Or start individually:
    npm run dev:backend   # Backend API (port 3001)
    npm run dev:frontend  # Frontend app (port 3000)
    ```
 
 6. **Run tests (5.38s execution)**
+
    ```bash
    # Ultra-fast test execution (recommended for development)
    npm run test:ultra-fast
-   
+
    # Full test suite with coverage
    npm run test:coverage
    ```
 
 7. **Verify installation**
+
    ```bash
    # Check build status
    npm run build:verify
-   
+
    # Run health checks
    curl http://localhost:3001/api/health
    ```
@@ -156,60 +159,62 @@ medianest/
 
 ### 🏗️ Development Commands
 
-| Command | Purpose | Status | Notes |
-|---------|---------|--------|---------|
-| `npm run dev` | Start both frontend and backend | ✅ Working | Full development environment |
-| `npm run dev:backend` | Start backend API only | ✅ Working | Port 3001 |
-| `npm run dev:frontend` | Start frontend app only | 🔶 Partial | May have Socket.io issues |
+| Command                | Purpose                         | Status     | Notes                        |
+| ---------------------- | ------------------------------- | ---------- | ---------------------------- |
+| `npm run dev`          | Start both frontend and backend | ✅ Working | Full development environment |
+| `npm run dev:backend`  | Start backend API only          | ✅ Working | Port 3001                    |
+| `npm run dev:frontend` | Start frontend app only         | 🔶 Partial | May have Socket.io issues    |
 
 ### 🔨 Build Commands
 
-| Command | Purpose | Status | Notes |
-|---------|---------|--------|---------|
-| `npm run build` | Build both frontend and backend | 🔶 Issues | Uses build stabilizer |
-| `npm run build:fast` | Quick build without optimizations | ✅ Working | Development builds |
-| `npm run build:verify` | Verify build outputs | ✅ Working | Post-build validation |
+| Command                | Purpose                           | Status     | Notes                 |
+| ---------------------- | --------------------------------- | ---------- | --------------------- |
+| `npm run build`        | Build both frontend and backend   | 🔶 Issues  | Uses build stabilizer |
+| `npm run build:fast`   | Quick build without optimizations | ✅ Working | Development builds    |
+| `npm run build:verify` | Verify build outputs              | ✅ Working | Post-build validation |
 
 ### 🧪 Testing Commands
 
-| Command | Purpose | Status | Notes |
-|---------|---------|--------|---------|
-| `npm test` | Run all tests | ❌ Failing | 28/30 integration tests failing |
-| `npm run test:fast` | Run fast test suite | 🔶 Partial | Limited coverage |
-| `npm run test:coverage` | Generate coverage report | 🔶 Partial | ~65% coverage |
-| `npm run test:e2e` | End-to-end tests | ❌ Issues | Playwright configuration problems |
+| Command                 | Purpose                  | Status     | Notes                             |
+| ----------------------- | ------------------------ | ---------- | --------------------------------- |
+| `npm test`              | Run all tests            | ❌ Failing | 28/30 integration tests failing   |
+| `npm run test:fast`     | Run fast test suite      | 🔶 Partial | Limited coverage                  |
+| `npm run test:coverage` | Generate coverage report | 🔶 Partial | ~65% coverage                     |
+| `npm run test:e2e`      | End-to-end tests         | ❌ Issues  | Playwright configuration problems |
 
 ### 🗄️ Database Commands
 
-| Command | Purpose | Status | Notes |
-|---------|---------|--------|---------|
-| `cd backend && npx prisma generate` | Generate Prisma client | ✅ Working | Required after schema changes |
-| `cd backend && npx prisma migrate deploy` | Apply database migrations | ✅ Working | Production migrations |
-| `cd backend && npx prisma studio` | Open database GUI | ✅ Working | Visual database browser |
-| `npm run db:check` | Database health check | ✅ Working | Connection validation |
+| Command                                   | Purpose                   | Status     | Notes                         |
+| ----------------------------------------- | ------------------------- | ---------- | ----------------------------- |
+| `cd backend && npx prisma generate`       | Generate Prisma client    | ✅ Working | Required after schema changes |
+| `cd backend && npx prisma migrate deploy` | Apply database migrations | ✅ Working | Production migrations         |
+| `cd backend && npx prisma studio`         | Open database GUI         | ✅ Working | Visual database browser       |
+| `npm run db:check`                        | Database health check     | ✅ Working | Connection validation         |
 
 ### 🐳 Docker Commands
 
-| Command | Purpose | Status | Notes |
-|---------|---------|--------|---------|
-| `npm run docker:build` | Build Docker images | ✅ Working | Multi-stage builds |
-| `npm run docker:compose` | Start all services | ✅ Working | Full stack deployment |
-| `npm run docker:logs` | View container logs | ✅ Working | Debugging support |
-| `docker compose down` | Stop all services | ✅ Working | Clean shutdown |
+| Command                  | Purpose             | Status     | Notes                 |
+| ------------------------ | ------------------- | ---------- | --------------------- |
+| `npm run docker:build`   | Build Docker images | ✅ Working | Multi-stage builds    |
+| `npm run docker:compose` | Start all services  | ✅ Working | Full stack deployment |
+| `npm run docker:logs`    | View container logs | ✅ Working | Debugging support     |
+| `docker compose down`    | Stop all services   | ✅ Working | Clean shutdown        |
 
 ## 🧪 Testing Framework
 
 ### Performance Metrics
+
 - **⚡ Ultra-Fast Execution**: 5.38 seconds (96% improvement over 120s target)
 - **📊 Comprehensive Coverage**: 112+ test files across all modules
 - **🚀 Production Ready**: All critical business paths tested
 
 ### Test Commands
+
 ```bash
 # Development (recommended - 5.38s execution)
 npm run test:ultra-fast
 
-# Full test suite with coverage validation  
+# Full test suite with coverage validation
 npm run test:coverage
 
 # Watch mode for TDD
@@ -220,15 +225,17 @@ npm run test:ci:coverage
 ```
 
 ### Test Architecture
-| Test Type | Count | Coverage | Status |
-|-----------|--------|----------|---------|
-| **Backend Controllers** | 6 files | 100% implemented | ✅ Stable |
-| **Backend Services** | 8 files | 100% implemented | ✅ Stable |
-| **Backend Middleware** | 2 files | 100% implemented | ✅ Stable |
-| **Frontend Components** | 15 files | 94% implemented | ✅ Ready |
-| **E2E Workflows** | 21 files | Complete | ✅ Available |
+
+| Test Type               | Count    | Coverage         | Status       |
+| ----------------------- | -------- | ---------------- | ------------ |
+| **Backend Controllers** | 6 files  | 100% implemented | ✅ Stable    |
+| **Backend Services**    | 8 files  | 100% implemented | ✅ Stable    |
+| **Backend Middleware**  | 2 files  | 100% implemented | ✅ Stable    |
+| **Frontend Components** | 15 files | 94% implemented  | ✅ Ready     |
+| **E2E Workflows**       | 21 files | Complete         | ✅ Available |
 
 ### Coverage Targets
+
 - **Backend**: 85%+ coverage (critical business logic)
 - **Frontend**: 75%+ coverage (UI interactions)
 - **Overall Project**: 80%+ coverage target
@@ -434,6 +441,7 @@ A: Check the GitHub repository for our roadmap and upcoming features. We regular
 ### Development Workflow
 
 1. **Fork & Clone**
+
    ```bash
    git clone https://github.com/your-username/medianest.git
    cd medianest
@@ -441,6 +449,7 @@ A: Check the GitHub repository for our roadmap and upcoming features. We regular
    ```
 
 2. **Development Setup**
+
    ```bash
    npm install
    npm run setup:dev
@@ -452,6 +461,7 @@ A: Check the GitHub repository for our roadmap and upcoming features. We regular
    - Update documentation as needed
 
 4. **Validation**
+
    ```bash
    npm run lint:fix
    npm run type-check
@@ -474,6 +484,7 @@ A: Check the GitHub repository for our roadmap and upcoming features. We regular
 ### Documentation
 
 When contributing, also update:
+
 - Component READMEs in respective directories
 - API documentation in `docs/api/`
 - Architecture decisions in `docs/architecture/`
@@ -483,6 +494,7 @@ When contributing, also update:
 ### Common Issues
 
 #### Build Issues
+
 ```bash
 # TypeScript compilation errors
 npm run type-check          # Check all TypeScript errors
@@ -491,6 +503,7 @@ npm run clean && npm install # Clean install
 ```
 
 #### Database Issues
+
 ```bash
 # Database connection problems
 npm run db:check            # Test database connectivity
@@ -498,6 +511,7 @@ cd backend && npx prisma migrate reset # Reset database (dev only)
 ```
 
 #### Docker Issues
+
 ```bash
 # Container problems
 docker compose down --volumes  # Clean shutdown with volumes
@@ -506,6 +520,7 @@ npm run docker:build          # Rebuild images
 ```
 
 #### Test Failures
+
 ```bash
 # Current test status: 28/30 integration tests failing
 npm run test:fast             # Run working tests only
@@ -521,19 +536,19 @@ npm run test -- --verbose     # Detailed test output
 
 ### Development Status
 
-| Component | Status | Issues | Notes |
-|-----------|--------|--------|---------|
-| Frontend | 🔶 Partial | Socket.io connection issues | React 19 compatibility |
-| Backend | 🔶 Partial | TypeScript compilation errors | 80+ TS errors |
-| Database | ✅ Working | None | Prisma ORM stable |
-| Tests | ❌ Failing | Integration test failures | 28/30 tests failing |
-| Docker | ✅ Working | None | Production deployment ready |
-| Documentation | ✅ Good | Minor updates needed | Comprehensive MkDocs site |
+| Component     | Status     | Issues                        | Notes                       |
+| ------------- | ---------- | ----------------------------- | --------------------------- |
+| Frontend      | 🔶 Partial | Socket.io connection issues   | React 19 compatibility      |
+| Backend       | 🔶 Partial | TypeScript compilation errors | 80+ TS errors               |
+| Database      | ✅ Working | None                          | Prisma ORM stable           |
+| Tests         | ❌ Failing | Integration test failures     | 28/30 tests failing         |
+| Docker        | ✅ Working | None                          | Production deployment ready |
+| Documentation | ✅ Good    | Minor updates needed          | Comprehensive MkDocs site   |
 
 ## 📦 Related Projects
 
 - **[Backend Documentation](backend/README.md)** - Express.js API server details
-- **[Frontend Documentation](frontend/README.md)** - Next.js application details  
+- **[Frontend Documentation](frontend/README.md)** - Next.js application details
 - **[Testing Framework](tests/README.md)** - Testing infrastructure and guides
 - **[Infrastructure Guide](infrastructure/README.md)** - Deployment and DevOps
 

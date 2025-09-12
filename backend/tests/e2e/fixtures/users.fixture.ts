@@ -33,8 +33,8 @@ export const testUsers: Record<string, TestUser> = {
       'requests:update',
       'requests:delete',
       'admin:access',
-      'system:settings'
-    ]
+      'system:settings',
+    ],
   },
 
   // Regular user with standard permissions
@@ -44,12 +44,7 @@ export const testUsers: Record<string, TestUser> = {
     password: 'UserPassword123!',
     role: 'user',
     isActive: true,
-    permissions: [
-      'requests:create',
-      'requests:read',
-      'requests:update',
-      'requests:delete:own'
-    ]
+    permissions: ['requests:create', 'requests:read', 'requests:update', 'requests:delete:own'],
   },
 
   // Editor user with elevated permissions
@@ -64,8 +59,8 @@ export const testUsers: Record<string, TestUser> = {
       'requests:read',
       'requests:update',
       'requests:delete',
-      'users:read'
-    ]
+      'users:read',
+    ],
   },
 
   // Inactive user for testing access restrictions
@@ -75,7 +70,7 @@ export const testUsers: Record<string, TestUser> = {
     password: 'InactivePassword123!',
     role: 'user',
     isActive: false,
-    permissions: []
+    permissions: [],
   },
 
   // Test user for deletion tests
@@ -85,13 +80,8 @@ export const testUsers: Record<string, TestUser> = {
     password: 'DeletePassword123!',
     role: 'user',
     isActive: true,
-    permissions: [
-      'requests:create',
-      'requests:read',
-      'requests:update',
-      'requests:delete:own'
-    ]
-  }
+    permissions: ['requests:create', 'requests:read', 'requests:update', 'requests:delete:own'],
+  },
 };
 
 // Dynamic user creation helpers
@@ -103,20 +93,15 @@ export class TestUserFactory {
    */
   static createUser(overrides: Partial<TestUser> = {}): TestUser {
     this.userCounter++;
-    
+
     return {
       name: `Test User ${this.userCounter}`,
       email: `testuser${this.userCounter}@medianest.test`,
       password: `TestPassword${this.userCounter}!`,
       role: 'user',
       isActive: true,
-      permissions: [
-        'requests:create',
-        'requests:read',
-        'requests:update',
-        'requests:delete:own'
-      ],
-      ...overrides
+      permissions: ['requests:create', 'requests:read', 'requests:update', 'requests:delete:own'],
+      ...overrides,
     };
   }
 
@@ -136,9 +121,9 @@ export class TestUserFactory {
         'requests:update',
         'requests:delete',
         'admin:access',
-        'system:settings'
+        'system:settings',
       ],
-      ...overrides
+      ...overrides,
     });
   }
 
@@ -153,19 +138,22 @@ export class TestUserFactory {
         'requests:read',
         'requests:update',
         'requests:delete',
-        'users:read'
+        'users:read',
       ],
-      ...overrides
+      ...overrides,
     });
   }
 
   /**
    * Create user with specific permissions
    */
-  static createUserWithPermissions(permissions: string[], overrides: Partial<TestUser> = {}): TestUser {
+  static createUserWithPermissions(
+    permissions: string[],
+    overrides: Partial<TestUser> = {},
+  ): TestUser {
     return this.createUser({
       permissions,
-      ...overrides
+      ...overrides,
     });
   }
 
@@ -174,11 +162,11 @@ export class TestUserFactory {
    */
   static createBatch(count: number, template: Partial<TestUser> = {}): TestUser[] {
     const users: TestUser[] = [];
-    
+
     for (let i = 0; i < count; i++) {
       users.push(this.createUser(template));
     }
-    
+
     return users;
   }
 
@@ -194,16 +182,16 @@ export class TestUserFactory {
 export const userCredentials = {
   admin: {
     email: testUsers.adminUser.email,
-    password: testUsers.adminUser.password
+    password: testUsers.adminUser.password,
   },
   user: {
     email: testUsers.regularUser.email,
-    password: testUsers.regularUser.password
+    password: testUsers.regularUser.password,
   },
   editor: {
     email: testUsers.editorUser.email,
-    password: testUsers.editorUser.password
-  }
+    password: testUsers.editorUser.password,
+  },
 };
 
 // Role-based permission sets
@@ -218,21 +206,10 @@ export const rolePermissions = {
     'requests:update',
     'requests:delete',
     'admin:access',
-    'system:settings'
+    'system:settings',
   ],
-  editor: [
-    'requests:create',
-    'requests:read',
-    'requests:update',
-    'requests:delete',
-    'users:read'
-  ],
-  user: [
-    'requests:create',
-    'requests:read',
-    'requests:update',
-    'requests:delete:own'
-  ]
+  editor: ['requests:create', 'requests:read', 'requests:update', 'requests:delete', 'users:read'],
+  user: ['requests:create', 'requests:read', 'requests:update', 'requests:delete:own'],
 };
 
 // Common user scenarios for testing
@@ -242,14 +219,14 @@ export const userScenarios = {
     ...testUsers.regularUser,
     email: 'limited@medianest.test',
     name: 'Limited User',
-    maxRequests: 5
+    maxRequests: 5,
   },
-  
+
   unlimitedUser: {
     ...testUsers.adminUser,
     email: 'unlimited@medianest.test',
     name: 'Unlimited User',
-    maxRequests: -1 // No limit
+    maxRequests: -1, // No limit
   },
 
   // Users for testing different authentication flows
@@ -259,14 +236,14 @@ export const userScenarios = {
     password: 'NewPassword123!',
     role: 'user' as const,
     isActive: true,
-    needsPasswordChange: true
+    needsPasswordChange: true,
   },
 
   expiredPasswordUser: {
     ...testUsers.regularUser,
     email: 'expired@medianest.test',
     name: 'Expired Password User',
-    passwordExpired: true
+    passwordExpired: true,
   },
 
   // Users for testing social login
@@ -276,7 +253,7 @@ export const userScenarios = {
     password: '', // No password for social users
     role: 'user' as const,
     authProvider: 'google',
-    socialId: 'google_123456789'
+    socialId: 'google_123456789',
   },
 
   facebookUser: {
@@ -285,14 +262,14 @@ export const userScenarios = {
     password: '', // No password for social users
     role: 'user' as const,
     authProvider: 'facebook',
-    socialId: 'fb_987654321'
-  }
+    socialId: 'fb_987654321',
+  },
 };
 
 // Export all test users as array for batch operations
 export const allTestUsers = Object.values(testUsers);
 
 // Export specific user lists by role
-export const adminUsers = allTestUsers.filter(user => user.role === 'admin');
-export const regularUsers = allTestUsers.filter(user => user.role === 'user');
-export const editorUsers = allTestUsers.filter(user => user.role === 'editor');
+export const adminUsers = allTestUsers.filter((user) => user.role === 'admin');
+export const regularUsers = allTestUsers.filter((user) => user.role === 'user');
+export const editorUsers = allTestUsers.filter((user) => user.role === 'editor');

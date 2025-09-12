@@ -3,7 +3,7 @@ import { prisma } from '@/db/prisma';
 
 /**
  * E2E Authentication Test Helpers
- * 
+ *
  * Utility functions to support E2E authentication testing
  */
 
@@ -51,7 +51,7 @@ export class AuthTestHelpers {
    */
   async setupMockPlexApi(): Promise<void> {
     // Mock PIN generation
-    await this.page.route('https://plex.tv/pins.xml', async route => {
+    await this.page.route('https://plex.tv/pins.xml', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/xml',
@@ -59,24 +59,24 @@ export class AuthTestHelpers {
           <pin>
             <id>e2e-pin-123</id>
             <code>TEST</code>
-          </pin>`
+          </pin>`,
       });
     });
 
     // Mock PIN verification - authorized
-    await this.page.route('https://plex.tv/pins/e2e-pin-123.xml', async route => {
+    await this.page.route('https://plex.tv/pins/e2e-pin-123.xml', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/xml',
         body: `<?xml version="1.0" encoding="UTF-8"?>
           <pin>
             <authToken>mock-plex-token-12345</authToken>
-          </pin>`
+          </pin>`,
       });
     });
 
     // Mock user account info
-    await this.page.route('https://plex.tv/users/account.xml', async route => {
+    await this.page.route('https://plex.tv/users/account.xml', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/xml',
@@ -85,7 +85,7 @@ export class AuthTestHelpers {
             <id>e2e-test-123</id>
             <username>e2etestuser</username>
             <email>e2e@test.local</email>
-          </user>`
+          </user>`,
       });
     });
   }
@@ -94,7 +94,7 @@ export class AuthTestHelpers {
    * Set up mock Plex API for unauthorized PIN scenario
    */
   async setupMockPlexApiUnauthorized(): Promise<void> {
-    await this.page.route('https://plex.tv/pins.xml', async route => {
+    await this.page.route('https://plex.tv/pins.xml', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/xml',
@@ -102,19 +102,19 @@ export class AuthTestHelpers {
           <pin>
             <id>e2e-pin-unauthorized</id>
             <code>UNAU</code>
-          </pin>`
+          </pin>`,
       });
     });
 
     // Mock unauthorized PIN (no auth token)
-    await this.page.route('https://plex.tv/pins/e2e-pin-unauthorized.xml', async route => {
+    await this.page.route('https://plex.tv/pins/e2e-pin-unauthorized.xml', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/xml',
         body: `<?xml version="1.0" encoding="UTF-8"?>
           <pin>
             <id>e2e-pin-unauthorized</id>
-          </pin>`
+          </pin>`,
       });
     });
   }
@@ -123,11 +123,11 @@ export class AuthTestHelpers {
    * Set up mock Plex API for network failure scenarios
    */
   async setupMockPlexApiFailure(): Promise<void> {
-    await this.page.route('https://plex.tv/pins.xml', async route => {
+    await this.page.route('https://plex.tv/pins.xml', async (route) => {
       await route.abort('failed');
     });
 
-    await this.page.route('https://plex.tv/pins/*/xml', async route => {
+    await this.page.route('https://plex.tv/pins/*/xml', async (route) => {
       await route.abort('failed');
     });
   }
@@ -137,7 +137,7 @@ export class AuthTestHelpers {
    */
   async createTestUser(userType: keyof typeof TEST_USERS): Promise<void> {
     const userData = TEST_USERS[userType];
-    
+
     await prisma.user.upsert({
       where: { plexId: userData.plexId },
       update: userData,
@@ -159,7 +159,7 @@ export class AuthTestHelpers {
 
     // Create JWT-like token for testing
     const mockToken = `mock-jwt-${userType}-${Date.now()}`;
-    
+
     // Set authentication cookies
     await this.page.context().addCookies([
       {
@@ -173,7 +173,7 @@ export class AuthTestHelpers {
     ]);
 
     // Mock session verification endpoint
-    await this.page.route(`${this.apiBaseUrl}/auth/session`, async route => {
+    await this.page.route(`${this.apiBaseUrl}/auth/session`, async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -208,14 +208,14 @@ export class AuthTestHelpers {
     ]);
 
     // Mock expired token response
-    await this.page.route(`${this.apiBaseUrl}/auth/session`, async route => {
+    await this.page.route(`${this.apiBaseUrl}/auth/session`, async (route) => {
       await route.fulfill({
         status: 401,
         contentType: 'application/json',
         body: JSON.stringify({
           success: false,
-          error: { message: 'Token expired', code: 'TOKEN_EXPIRED' }
-        })
+          error: { message: 'Token expired', code: 'TOKEN_EXPIRED' },
+        }),
       });
     });
   }
@@ -224,18 +224,18 @@ export class AuthTestHelpers {
    * Mock rate-limited authentication response
    */
   async setupRateLimitedAuth(): Promise<void> {
-    await this.page.route(`${this.apiBaseUrl}/auth/plex/verify`, async route => {
+    await this.page.route(`${this.apiBaseUrl}/auth/plex/verify`, async (route) => {
       await route.fulfill({
         status: 429,
         contentType: 'application/json',
         body: JSON.stringify({
           success: false,
-          error: { 
-            message: 'Too many authentication attempts', 
+          error: {
+            message: 'Too many authentication attempts',
             code: 'RATE_LIMITED',
-            retryAfter: 60
-          }
-        })
+            retryAfter: 60,
+          },
+        }),
       });
     });
   }
@@ -327,16 +327,16 @@ export class AuthTestHelpers {
    */
   async setupAdminApiMocks(userRole: 'admin' | 'user'): Promise<void> {
     const isAdmin = userRole === 'admin';
-    
-    await this.page.route(`${this.apiBaseUrl}/admin/**`, async route => {
+
+    await this.page.route(`${this.apiBaseUrl}/admin/**`, async (route) => {
       if (isAdmin) {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
           body: JSON.stringify({
             success: true,
-            data: { message: 'Admin access granted' }
-          })
+            data: { message: 'Admin access granted' },
+          }),
         });
       } else {
         await route.fulfill({
@@ -344,8 +344,8 @@ export class AuthTestHelpers {
           contentType: 'application/json',
           body: JSON.stringify({
             success: false,
-            error: { message: 'Insufficient permissions', code: 'FORBIDDEN' }
-          })
+            error: { message: 'Insufficient permissions', code: 'FORBIDDEN' },
+          }),
         });
       }
     });
@@ -356,8 +356,8 @@ export class AuthTestHelpers {
    */
   async setupNetworkRetryScenario(): Promise<void> {
     let attempts = 0;
-    
-    await this.page.route('https://plex.tv/pins/e2e-pin-123.xml', async route => {
+
+    await this.page.route('https://plex.tv/pins/e2e-pin-123.xml', async (route) => {
       attempts++;
       if (attempts === 1) {
         await route.abort('failed');
@@ -365,7 +365,7 @@ export class AuthTestHelpers {
         await route.fulfill({
           status: 200,
           contentType: 'application/xml',
-          body: `<pin><authToken>retry-success-token</authToken></pin>`
+          body: `<pin><authToken>retry-success-token</authToken></pin>`,
         });
       }
     });
@@ -375,14 +375,14 @@ export class AuthTestHelpers {
    * Clean up test user data
    */
   async cleanupTestUsers(): Promise<void> {
-    const plexIds = Object.values(TEST_USERS).map(user => user.plexId);
-    
+    const plexIds = Object.values(TEST_USERS).map((user) => user.plexId);
+
     await prisma.user.deleteMany({
       where: {
         plexId: {
-          in: plexIds
-        }
-      }
+          in: plexIds,
+        },
+      },
     });
   }
 }

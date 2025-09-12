@@ -1,6 +1,6 @@
 /**
  * MediaNest Third-Party Integration Tests
- * 
+ *
  * Comprehensive integration testing for external services:
  * - TMDB API integration and caching
  * - Plex API integration and OAuth flow
@@ -31,34 +31,34 @@ const MOCK_RESPONSES = {
         {
           id: 603,
           title: 'The Matrix',
-          overview: 'A computer hacker learns from mysterious rebels about the true nature of his reality.',
+          overview:
+            'A computer hacker learns from mysterious rebels about the true nature of his reality.',
           release_date: '1999-03-30',
           poster_path: '/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg',
           backdrop_path: '/fNG7i7RqMErkcqhohV2a6cV1Ehy.jpg',
           genre_ids: [28, 878],
           vote_average: 8.2,
-          vote_count: 15420
-        }
+          vote_count: 15420,
+        },
       ],
       total_pages: 1,
-      total_results: 1
+      total_results: 1,
     },
     movieDetails: {
       id: 603,
       title: 'The Matrix',
-      overview: 'A computer hacker learns from mysterious rebels about the true nature of his reality.',
+      overview:
+        'A computer hacker learns from mysterious rebels about the true nature of his reality.',
       release_date: '1999-03-30',
       runtime: 136,
       genres: [
         { id: 28, name: 'Action' },
-        { id: 878, name: 'Science Fiction' }
+        { id: 878, name: 'Science Fiction' },
       ],
-      production_companies: [
-        { id: 79, name: 'Village Roadshow Pictures' }
-      ],
+      production_companies: [{ id: 79, name: 'Village Roadshow Pictures' }],
       vote_average: 8.2,
-      vote_count: 15420
-    }
+      vote_count: 15420,
+    },
   },
   plex: {
     pinCreation: `<?xml version="1.0" encoding="UTF-8"?>
@@ -82,8 +82,8 @@ const MOCK_RESPONSES = {
         <email>test@example.com</email>
         <title>Test User</title>
         <thumb>https://plex.tv/users/avatar/test.jpg</thumb>
-      </user>`
-  }
+      </user>`,
+  },
 };
 
 describe('Third-Party Integration Tests', () => {
@@ -101,32 +101,35 @@ describe('Third-Party Integration Tests', () => {
     app = await createApp({ env: 'test' });
     prisma = new PrismaClient({
       datasources: {
-        db: { url: process.env.TEST_DATABASE_URL || 'postgresql://test:test@localhost:5433/medianest_test' }
-      }
+        db: {
+          url:
+            process.env.TEST_DATABASE_URL || 'postgresql://test:test@localhost:5433/medianest_test',
+        },
+      },
     });
-    
+
     redis = new Redis(process.env.TEST_REDIS_URL || 'redis://localhost:6380');
-    
+
     // Initialize helpers
     dbHelper = new DatabaseTestHelper(prisma);
     redisHelper = new RedisTestHelper(redis);
-    
+
     // Setup test environment
     await dbHelper.setupTestDatabase();
     await redisHelper.clearTestData();
-    
+
     // Create test users and tokens
     const userInfo = await dbHelper.createTestUser(testUsers[0]);
     const adminInfo = await dbHelper.createTestUser(testUsers[1]);
-    
+
     // Generate tokens (simplified for testing)
     userToken = 'test-user-token';
     adminToken = 'test-admin-token';
-    
+
     // Create TMDB axios instance
     tmdbAxios = axios.create({
       baseURL: 'https://api.themoviedb.org/3',
-      timeout: 5000
+      timeout: 5000,
     });
 
     console.log('✅ Third-party integration test environment ready');
@@ -155,14 +158,14 @@ describe('Third-Party Integration Tests', () => {
         .reply(200, MOCK_RESPONSES.tmdb.searchMovie);
 
       const searchQuery = 'The Matrix';
-      
+
       // First request should hit TMDB API
       const firstResponse = await request(app)
         .get('/api/v1/media/search')
-        .query({ 
-          query: searchQuery, 
+        .query({
+          query: searchQuery,
           mediaType: 'movie',
-          page: 1
+          page: 1,
         })
         .set('Authorization', `Bearer ${userToken}`)
         .expect(200);
@@ -173,10 +176,10 @@ describe('Third-Party Integration Tests', () => {
           results: expect.arrayContaining([
             expect.objectContaining({
               id: 603,
-              title: 'The Matrix'
-            })
-          ])
-        })
+              title: 'The Matrix',
+            }),
+          ]),
+        }),
       });
 
       // Verify cache miss header
@@ -185,10 +188,10 @@ describe('Third-Party Integration Tests', () => {
       // Second identical request should hit cache
       const secondResponse = await request(app)
         .get('/api/v1/media/search')
-        .query({ 
-          query: searchQuery, 
+        .query({
+          query: searchQuery,
           mediaType: 'movie',
-          page: 1
+          page: 1,
         })
         .set('Authorization', `Bearer ${userToken}`)
         .expect(200);
@@ -224,17 +227,17 @@ describe('Third-Party Integration Tests', () => {
               id: 6384,
               name: 'Keanu Reeves',
               character: 'Neo',
-              profile_path: '/4D0PpNI0kmP58hgrwGC3wCjxhnm.jpg'
-            }
+              profile_path: '/4D0PpNI0kmP58hgrwGC3wCjxhnm.jpg',
+            },
           ],
           crew: [
             {
               id: 905,
               name: 'Lana Wachowski',
               job: 'Director',
-              department: 'Directing'
-            }
-          ]
+              department: 'Directing',
+            },
+          ],
         });
 
       const detailsResponse = await request(app)
@@ -248,36 +251,35 @@ describe('Third-Party Integration Tests', () => {
           id: 603,
           title: 'The Matrix',
           runtime: 136,
-          genres: expect.arrayContaining([
-            expect.objectContaining({ name: 'Action' })
-          ]),
+          genres: expect.arrayContaining([expect.objectContaining({ name: 'Action' })]),
           cast: expect.arrayContaining([
             expect.objectContaining({
               name: 'Keanu Reeves',
-              character: 'Neo'
-            })
+              character: 'Neo',
+            }),
           ]),
           crew: expect.arrayContaining([
             expect.objectContaining({
               name: 'Lana Wachowski',
-              job: 'Director'
-            })
-          ])
-        })
+              job: 'Director',
+            }),
+          ]),
+        }),
       });
     });
 
     test('should handle TMDB API rate limiting gracefully', async () => {
       // Mock rate limit response
-      nock('https://api.themoviedb.org/3')
-        .get('/search/movie')
-        .query(true)
-        .reply(429, {
+      nock('https://api.themoviedb.org/3').get('/search/movie').query(true).reply(
+        429,
+        {
           status_message: 'Your request count (41) is over the allowed limit of 40.',
-          status_code: 25
-        }, {
-          'Retry-After': '1'
-        });
+          status_code: 25,
+        },
+        {
+          'Retry-After': '1',
+        },
+      );
 
       const rateLimitResponse = await request(app)
         .get('/api/v1/media/search')
@@ -289,8 +291,8 @@ describe('Third-Party Integration Tests', () => {
         success: false,
         error: expect.objectContaining({
           code: 'RATE_LIMITED',
-          message: expect.stringMatching(/rate limit/i)
-        })
+          message: expect.stringMatching(/rate limit/i),
+        }),
       });
 
       // Should include retry-after information
@@ -314,8 +316,8 @@ describe('Third-Party Integration Tests', () => {
         success: false,
         error: expect.objectContaining({
           code: 'SERVICE_UNAVAILABLE',
-          message: expect.stringMatching(/temporarily unavailable/i)
-        })
+          message: expect.stringMatching(/temporarily unavailable/i),
+        }),
       });
     });
 
@@ -332,13 +334,13 @@ describe('Third-Party Integration Tests', () => {
         request(app)
           .get('/api/v1/media/search')
           .query({ query: 'circuit-breaker-test', mediaType: 'movie' })
-          .set('Authorization', `Bearer ${userToken}`)
+          .set('Authorization', `Bearer ${userToken}`),
       );
 
       const failureResponses = await Promise.all(failurePromises);
-      
+
       // All should return service error
-      failureResponses.forEach(response => {
+      failureResponses.forEach((response) => {
         expect(response.status).toBeGreaterThanOrEqual(500);
       });
 
@@ -353,8 +355,8 @@ describe('Third-Party Integration Tests', () => {
         success: false,
         error: expect.objectContaining({
           code: 'CIRCUIT_BREAKER_OPEN',
-          message: expect.stringMatching(/circuit breaker/i)
-        })
+          message: expect.stringMatching(/circuit breaker/i),
+        }),
       });
     });
 
@@ -370,8 +372,8 @@ describe('Third-Party Integration Tests', () => {
               id: 'invalid-id', // Should be number
               title: null, // Should be string
               // missing other required fields
-            }
-          ]
+            },
+          ],
         });
 
       const malformedResponse = await request(app)
@@ -384,8 +386,8 @@ describe('Third-Party Integration Tests', () => {
         success: false,
         error: expect.objectContaining({
           code: 'INVALID_EXTERNAL_RESPONSE',
-          message: expect.stringMatching(/invalid.*response/i)
-        })
+          message: expect.stringMatching(/invalid.*response/i),
+        }),
       });
     });
   });
@@ -399,9 +401,7 @@ describe('Third-Party Integration Tests', () => {
         .reply(200, MOCK_RESPONSES.plex.pinCreation);
 
       // Step 1: Create PIN
-      const pinResponse = await request(app)
-        .post('/api/v1/auth/plex/pin')
-        .expect(200);
+      const pinResponse = await request(app).post('/api/v1/auth/plex/pin').expect(200);
 
       expect(pinResponse.body).toMatchObject({
         success: true,
@@ -409,8 +409,8 @@ describe('Third-Party Integration Tests', () => {
           id: 'test-pin-123',
           code: 'ABCD',
           expires: expect.any(String),
-          url: expect.stringContaining('plex.tv')
-        })
+          url: expect.stringContaining('plex.tv'),
+        }),
       });
 
       const pinId = pinResponse.body.data.id;
@@ -440,14 +440,14 @@ describe('Third-Party Integration Tests', () => {
           user: expect.objectContaining({
             plexId: 'test-user-123',
             plexUsername: 'testuser',
-            email: 'test@example.com'
-          })
-        })
+            email: 'test@example.com',
+          }),
+        }),
       });
 
       // Verify user was created in database
       const dbUser = await prisma.user.findUnique({
-        where: { plexId: 'test-user-123' }
+        where: { plexId: 'test-user-123' },
       });
 
       expect(dbUser).toBeTruthy();
@@ -462,9 +462,7 @@ describe('Third-Party Integration Tests', () => {
         .query(true)
         .reply(200, MOCK_RESPONSES.plex.pinCreation);
 
-      const pinResponse = await request(app)
-        .post('/api/v1/auth/plex/pin')
-        .expect(200);
+      const pinResponse = await request(app).post('/api/v1/auth/plex/pin').expect(200);
 
       const pinId = pinResponse.body.data.id;
 
@@ -472,11 +470,14 @@ describe('Third-Party Integration Tests', () => {
       nock('https://plex.tv')
         .get(`/pins/${pinId}.xml`)
         .query(true)
-        .reply(200, `<?xml version="1.0" encoding="UTF-8"?>
+        .reply(
+          200,
+          `<?xml version="1.0" encoding="UTF-8"?>
           <pin>
             <id>${pinId}</id>
             <code>ABCD</code>
-          </pin>`);
+          </pin>`,
+        );
 
       const unauthorizedResponse = await request(app)
         .post('/api/v1/auth/plex/verify')
@@ -487,17 +488,14 @@ describe('Third-Party Integration Tests', () => {
         success: false,
         error: expect.objectContaining({
           code: 'PIN_NOT_AUTHORIZED',
-          message: expect.stringMatching(/not.*authorized/i)
-        })
+          message: expect.stringMatching(/not.*authorized/i),
+        }),
       });
     });
 
     test('should handle PIN expiration', async () => {
       // Mock expired PIN
-      nock('https://plex.tv')
-        .get('/pins/expired-pin-123.xml')
-        .query(true)
-        .reply(404, 'Not Found');
+      nock('https://plex.tv').get('/pins/expired-pin-123.xml').query(true).reply(404, 'Not Found');
 
       const expiredResponse = await request(app)
         .post('/api/v1/auth/plex/verify')
@@ -508,8 +506,8 @@ describe('Third-Party Integration Tests', () => {
         success: false,
         error: expect.objectContaining({
           code: 'PIN_EXPIRED',
-          message: expect.stringMatching(/expired.*not found/i)
-        })
+          message: expect.stringMatching(/expired.*not found/i),
+        }),
       });
     });
 
@@ -521,7 +519,7 @@ describe('Third-Party Integration Tests', () => {
         email: 'connectivity@test.com',
         role: 'user',
         status: 'active',
-        plexToken: 'test-plex-token-connectivity'
+        plexToken: 'test-plex-token-connectivity',
       });
 
       // Mock successful Plex server validation
@@ -540,17 +538,14 @@ describe('Third-Party Integration Tests', () => {
         data: expect.objectContaining({
           connected: true,
           serverAccessible: true,
-          userValid: true
-        })
+          userValid: true,
+        }),
       });
     });
 
     test('should handle Plex API authentication errors', async () => {
       // Mock authentication failure
-      nock('https://plex.tv')
-        .get('/users/account.xml')
-        .query(true)
-        .reply(401, 'Unauthorized');
+      nock('https://plex.tv').get('/users/account.xml').query(true).reply(401, 'Unauthorized');
 
       const authErrorResponse = await request(app)
         .get('/api/v1/auth/plex/validate')
@@ -561,8 +556,8 @@ describe('Third-Party Integration Tests', () => {
         success: false,
         error: expect.objectContaining({
           code: 'PLEX_AUTH_FAILED',
-          message: expect.stringMatching(/plex.*authentication.*failed/i)
-        })
+          message: expect.stringMatching(/plex.*authentication.*failed/i),
+        }),
       });
     });
   });
@@ -570,14 +565,14 @@ describe('Third-Party Integration Tests', () => {
   describe('CDN Integration', () => {
     test('should validate CDN asset delivery', async () => {
       const cdnBaseUrl = process.env.CDN_BASE_URL || 'https://cdn.example.com';
-      
+
       // Mock CDN response for poster image
       nock(cdnBaseUrl)
         .get('/posters/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg')
         .reply(200, 'fake-image-data', {
           'Content-Type': 'image/jpeg',
           'Cache-Control': 'public, max-age=31536000',
-          'ETag': '"test-etag"'
+          ETag: '"test-etag"',
         });
 
       const cdnResponse = await request(app)
@@ -592,17 +587,15 @@ describe('Third-Party Integration Tests', () => {
 
     test('should handle CDN failures with fallback', async () => {
       const cdnBaseUrl = process.env.CDN_BASE_URL || 'https://cdn.example.com';
-      
+
       // Mock CDN failure
-      nock(cdnBaseUrl)
-        .get('/posters/unavailable-poster.jpg')
-        .reply(404, 'Not Found');
+      nock(cdnBaseUrl).get('/posters/unavailable-poster.jpg').reply(404, 'Not Found');
 
       // Mock fallback CDN
       nock('https://image.tmdb.org')
         .get('/t/p/w500/unavailable-poster.jpg')
         .reply(200, 'fallback-image-data', {
-          'Content-Type': 'image/jpeg'
+          'Content-Type': 'image/jpeg',
         });
 
       const fallbackResponse = await request(app)
@@ -617,14 +610,12 @@ describe('Third-Party Integration Tests', () => {
     test('should implement CDN response caching', async () => {
       const cdnBaseUrl = process.env.CDN_BASE_URL || 'https://cdn.example.com';
       const imageUrl = '/posters/cached-image.jpg';
-      
+
       // Mock CDN response
-      nock(cdnBaseUrl)
-        .get(imageUrl)
-        .reply(200, 'cached-image-data', {
-          'Content-Type': 'image/jpeg',
-          'ETag': '"cached-etag"'
-        });
+      nock(cdnBaseUrl).get(imageUrl).reply(200, 'cached-image-data', {
+        'Content-Type': 'image/jpeg',
+        ETag: '"cached-etag"',
+      });
 
       // First request should hit CDN
       const firstResponse = await request(app)
@@ -648,7 +639,7 @@ describe('Third-Party Integration Tests', () => {
   describe('Monitoring Service Integration', () => {
     test('should report system health to monitoring service', async () => {
       const monitoringUrl = process.env.MONITORING_WEBHOOK_URL || 'https://monitoring.example.com';
-      
+
       // Mock monitoring service webhook
       let receivedHealthData: any = null;
       nock(monitoringUrl)
@@ -668,8 +659,8 @@ describe('Third-Party Integration Tests', () => {
         success: true,
         data: expect.objectContaining({
           reported: true,
-          monitoringService: 'connected'
-        })
+          monitoringService: 'connected',
+        }),
       });
 
       // Verify monitoring service received correct data
@@ -680,18 +671,16 @@ describe('Third-Party Integration Tests', () => {
         metrics: expect.objectContaining({
           database: expect.objectContaining({ status: 'connected' }),
           redis: expect.objectContaining({ status: 'connected' }),
-          external_apis: expect.any(Object)
-        })
+          external_apis: expect.any(Object),
+        }),
       });
     });
 
     test('should handle monitoring service unavailability', async () => {
       const monitoringUrl = process.env.MONITORING_WEBHOOK_URL || 'https://monitoring.example.com';
-      
+
       // Mock monitoring service failure
-      nock(monitoringUrl)
-        .post('/webhook/health')
-        .reply(503, 'Service Unavailable');
+      nock(monitoringUrl).post('/webhook/health').reply(503, 'Service Unavailable');
 
       const failedReportResponse = await request(app)
         .post('/api/v1/admin/health/report')
@@ -703,14 +692,14 @@ describe('Third-Party Integration Tests', () => {
         data: expect.objectContaining({
           reported: false,
           monitoringService: 'unavailable',
-          error: expect.stringMatching(/monitoring.*unavailable/i)
-        })
+          error: expect.stringMatching(/monitoring.*unavailable/i),
+        }),
       });
     });
 
     test('should send alerts for critical system issues', async () => {
       const alertUrl = process.env.ALERT_WEBHOOK_URL || 'https://alerts.example.com';
-      
+
       let receivedAlert: any = null;
       nock(alertUrl)
         .post('/webhook/alert')
@@ -727,14 +716,14 @@ describe('Third-Party Integration Tests', () => {
         .expect(200);
 
       // Wait for alert to be sent
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       expect(receivedAlert).toMatchObject({
         service: 'medianest',
         level: 'critical',
         message: expect.stringMatching(/database.*connection/i),
         timestamp: expect.any(String),
-        details: expect.any(Object)
+        details: expect.any(Object),
       });
     });
   });
@@ -749,7 +738,7 @@ describe('Third-Party Integration Tests', () => {
         .reply(200, MOCK_RESPONSES.tmdb.searchMovie, {
           'X-RateLimit-Limit': '1000',
           'X-RateLimit-Remaining': '997',
-          'X-RateLimit-Reset': Math.floor(Date.now() / 1000) + 3600
+          'X-RateLimit-Reset': Math.floor(Date.now() / 1000) + 3600,
         });
 
       // Make multiple requests
@@ -757,13 +746,13 @@ describe('Third-Party Integration Tests', () => {
         request(app)
           .get('/api/v1/media/search')
           .query({ query: 'quota-test', mediaType: 'movie' })
-          .set('Authorization', `Bearer ${userToken}`)
+          .set('Authorization', `Bearer ${userToken}`),
       );
 
       const responses = await Promise.all(requests);
 
       // All should succeed
-      responses.forEach(response => {
+      responses.forEach((response) => {
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
       });
@@ -781,15 +770,15 @@ describe('Third-Party Integration Tests', () => {
           resetTime: expect.any(String),
           usage: expect.objectContaining({
             requests: expect.any(Number),
-            period: expect.any(String)
-          })
-        })
+            period: expect.any(String),
+          }),
+        }),
       });
     });
 
     test('should implement progressive backoff for rate limits', async () => {
       let requestCount = 0;
-      
+
       // Mock progressive rate limit responses
       nock('https://api.themoviedb.org/3')
         .get('/search/movie')
@@ -800,10 +789,14 @@ describe('Third-Party Integration Tests', () => {
           if (requestCount <= 2) {
             return [200, MOCK_RESPONSES.tmdb.searchMovie];
           } else {
-            return [429, { 
-              status_message: 'Request rate limit exceeded',
-              status_code: 25 
-            }, { 'Retry-After': '2' }];
+            return [
+              429,
+              {
+                status_message: 'Request rate limit exceeded',
+                status_code: 25,
+              },
+              { 'Retry-After': '2' },
+            ];
           }
         });
 
@@ -831,15 +824,15 @@ describe('Third-Party Integration Tests', () => {
         success: false,
         error: expect.objectContaining({
           code: 'RATE_LIMITED',
-          retryAfter: expect.any(Number)
-        })
+          retryAfter: expect.any(Number),
+        }),
       });
 
       // Verify backoff is implemented in Redis
       const backoffKey = 'api_backoff:tmdb';
       const backoffData = await redis.get(backoffKey);
       expect(backoffData).toBeTruthy();
-      
+
       const backoffInfo = JSON.parse(backoffData!);
       expect(backoffInfo.retryAfter).toBeGreaterThan(0);
     });
@@ -849,16 +842,16 @@ describe('Third-Party Integration Tests', () => {
       // Mock responses for different API keys
       nock('https://api.themoviedb.org/3')
         .get('/search/movie')
-        .query(obj => obj.api_key === 'key1')
+        .query((obj) => obj.api_key === 'key1')
         .reply(200, MOCK_RESPONSES.tmdb.searchMovie, {
-          'X-RateLimit-Remaining': '10'
+          'X-RateLimit-Remaining': '10',
         });
 
       nock('https://api.themoviedb.org/3')
         .get('/search/movie')
-        .query(obj => obj.api_key === 'key2')
+        .query((obj) => obj.api_key === 'key2')
         .reply(200, MOCK_RESPONSES.tmdb.searchMovie, {
-          'X-RateLimit-Remaining': '15'
+          'X-RateLimit-Remaining': '15',
         });
 
       // Make requests that should use key rotation
@@ -876,7 +869,7 @@ describe('Third-Party Integration Tests', () => {
   describe('Service Recovery and Resilience', () => {
     test('should recover gracefully from temporary service outages', async () => {
       let requestCount = 0;
-      
+
       // Mock service recovery scenario
       nock('https://api.themoviedb.org/3')
         .get('/search/movie')
@@ -901,7 +894,7 @@ describe('Third-Party Integration Tests', () => {
         .expect(503);
 
       // Wait for potential recovery backoff
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Second request should succeed (service recovered)
       const recoveredResponse = await request(app)
@@ -934,15 +927,13 @@ describe('Third-Party Integration Tests', () => {
       expect(degradedResponse.body.warnings).toContainEqual(
         expect.objectContaining({
           code: 'EXTERNAL_SERVICE_UNAVAILABLE',
-          message: expect.stringMatching(/external.*service.*unavailable/i)
-        })
+          message: expect.stringMatching(/external.*service.*unavailable/i),
+        }),
       );
     });
 
     test('should validate service dependencies on startup', async () => {
-      const startupResponse = await request(app)
-        .get('/api/v1/health/startup')
-        .expect(200);
+      const startupResponse = await request(app).get('/api/v1/health/startup').expect(200);
 
       expect(startupResponse.body).toMatchObject({
         success: true,
@@ -950,19 +941,19 @@ describe('Third-Party Integration Tests', () => {
           services: expect.objectContaining({
             database: expect.objectContaining({
               status: 'connected',
-              responseTime: expect.any(Number)
+              responseTime: expect.any(Number),
             }),
             redis: expect.objectContaining({
               status: 'connected',
-              responseTime: expect.any(Number)
+              responseTime: expect.any(Number),
             }),
             tmdb: expect.objectContaining({
               status: expect.stringMatching(/connected|available/),
-              responseTime: expect.any(Number)
-            })
+              responseTime: expect.any(Number),
+            }),
           }),
-          readiness: true
-        })
+          readiness: true,
+        }),
       });
     });
   });

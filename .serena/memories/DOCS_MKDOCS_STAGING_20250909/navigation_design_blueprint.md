@@ -1,4 +1,5 @@
 # MediaNest Documentation Navigation Design Blueprint
+
 ## Information Architecture Implementation Plan
 
 ### OPTIMAL DIRECTORY STRUCTURE
@@ -113,17 +114,18 @@ docs/
 ### NAVIGATION HIERARCHY DESIGN
 
 #### PRIMARY NAVIGATION (Main Menu)
+
 ```yaml
 nav:
   - Home: index.md
-  
-  - Getting Started:           # 🚀 Onboarding pathway
+
+  - Getting Started: # 🚀 Onboarding pathway
       - getting-started/index.md
       - Quick Start: getting-started/quickstart.md
-      - System Requirements: getting-started/requirements.md  
+      - System Requirements: getting-started/requirements.md
       - First Time Setup: getting-started/first-setup.md
 
-  - Installation:              # ⚙️ Deployment pathway
+  - Installation: # ⚙️ Deployment pathway
       - installation/index.md
       - Docker Installation: installation/docker.md
       - Manual Installation: installation/manual.md
@@ -131,7 +133,7 @@ nav:
       - Environment Variables: installation/environment.md
       - Database Setup: installation/database.md
 
-  - User Guides:               # 👤 Feature usage pathway
+  - User Guides: # 👤 Feature usage pathway
       - user-guides/index.md
       - Media Management: user-guides/media-management.md
       - File Organization: user-guides/file-organization.md
@@ -141,7 +143,7 @@ nav:
       - Sharing and Permissions: user-guides/sharing.md
       - Backup and Sync: user-guides/backup-sync.md
 
-  - API Reference:             # 🔌 Integration pathway
+  - API Reference: # 🔌 Integration pathway
       - api/index.md
       - Authentication: api/authentication.md
       - Media API: api/media.md
@@ -154,7 +156,7 @@ nav:
       - Rate Limiting: api/rate-limiting.md
       - Error Handling: api/errors.md
 
-  - Developer Docs:            # 🛠️ Development pathway
+  - Developer Docs: # 🛠️ Development pathway
       - developers/index.md
       - Architecture Overview: developers/architecture.md
       - Contributing: developers/contributing.md
@@ -165,7 +167,7 @@ nav:
       - Database Schema: developers/database-schema.md
       - Plugin Development: developers/plugins.md
 
-  - Troubleshooting:           # 🔧 Problem resolution pathway
+  - Troubleshooting: # 🔧 Problem resolution pathway
       - troubleshooting/index.md
       - Common Issues: troubleshooting/common-issues.md
       - Performance Issues: troubleshooting/performance.md
@@ -174,7 +176,7 @@ nav:
       - Authentication Problems: troubleshooting/authentication.md
       - Logs and Debugging: troubleshooting/debugging.md
 
-  - Reference:                 # 📖 Technical reference pathway
+  - Reference: # 📖 Technical reference pathway
       - reference/index.md
       - CLI Commands: reference/cli.md
       - Configuration Reference: reference/config-reference.md
@@ -187,37 +189,45 @@ nav:
 ### USER EXPERIENCE DESIGN
 
 #### LANDING PAGE OPTIMIZATION (index.md)
+
 ```markdown
 # Welcome to MediaNest Documentation
 
 ## What would you like to do?
 
 ### 🚀 Get Started Quickly
+
 **New to MediaNest?** Start here for guided setup in 5 minutes.
 [Quick Start Guide →](getting-started/quickstart.md)
 
-### ⚙️ Install MediaNest  
+### ⚙️ Install MediaNest
+
 **Ready to deploy?** Choose your installation method.
 [Installation Guide →](installation/index.md)
 
 ### 👤 Learn the Features
+
 **Want to explore capabilities?** Discover what MediaNest can do.
 [User Guides →](user-guides/index.md)
 
 ### 🔌 Integrate with API
+
 **Building integrations?** Complete API documentation.
 [API Reference →](api/index.md)
 
 ### 🛠️ Contribute Code
+
 **Want to contribute?** Developer resources and guidelines.
 [Developer Docs →](developers/index.md)
 
 ### 🔧 Solve Problems
+
 **Having issues?** Find solutions and debugging help.
 [Troubleshooting →](troubleshooting/index.md)
 ```
 
 #### BREADCRUMB NAVIGATION
+
 ```html
 <nav aria-label="Breadcrumb">
   <ol class="breadcrumb">
@@ -229,10 +239,12 @@ nav:
 ```
 
 #### CONTEXTUAL NAVIGATION
+
 ```markdown
 ## What's Next?
 
 After setting up media management, you might want to:
+
 - [Configure file organization](file-organization.md)
 - [Set up automated metadata](metadata.md)
 - [Create your first collection](collections.md)
@@ -246,6 +258,7 @@ After setting up media management, you might want to:
 ### RESPONSIVE DESIGN PATTERNS
 
 #### MOBILE NAVIGATION
+
 ```css
 /* Mobile-first navigation */
 @media (max-width: 768px) {
@@ -253,11 +266,11 @@ After setting up media management, you might want to:
     font-size: 1.1rem;
     padding: 0.5rem;
   }
-  
+
   .md-nav__list {
     padding: 0.25rem;
   }
-  
+
   .md-nav__item {
     margin: 0.125rem 0;
   }
@@ -265,6 +278,7 @@ After setting up media management, you might want to:
 ```
 
 #### PROGRESSIVE DISCLOSURE
+
 - Section overviews with expandable subsections
 - "Show more" patterns for comprehensive content
 - Collapsible code examples and technical details
@@ -272,11 +286,12 @@ After setting up media management, you might want to:
 ### SEARCH OPTIMIZATION
 
 #### CONTENT TAGGING
+
 ```yaml
 # Front matter for content pages
 ---
-title: "Media Management Guide"
-description: "Complete guide to managing media libraries in MediaNest"
+title: 'Media Management Guide'
+description: 'Complete guide to managing media libraries in MediaNest'
 tags:
   - user-guide
   - media
@@ -288,6 +303,7 @@ platform: all
 ```
 
 #### SEARCH CONFIGURATION
+
 ```yaml
 # Enhanced search in mkdocs.yml
 plugins:
@@ -302,6 +318,7 @@ plugins:
 ### ACCESSIBILITY IMPLEMENTATION
 
 #### SEMANTIC STRUCTURE
+
 ```html
 <main role="main" aria-label="Main content">
   <article>
@@ -319,6 +336,7 @@ plugins:
 ```
 
 #### KEYBOARD NAVIGATION
+
 - Tab order optimized for logical flow
 - Skip links for screen readers
 - Focus indicators on all interactive elements
@@ -326,23 +344,26 @@ plugins:
 ### CONTENT RELATIONSHIP MAPPING
 
 #### CROSS-REFERENCE SYSTEM
+
 ```markdown
 <!-- Automatic cross-references -->
+
 [!ref API Reference](../api/media.md#upload-media)
 [!ref Troubleshooting](../troubleshooting/media-processing.md)
 [!ref Developer Guide](../developers/architecture.md#media-pipeline)
 ```
 
 #### CONTENT DEPENDENCIES
+
 ```mermaid
 graph TD
     A[Getting Started] --> B[Installation]
     B --> C[User Guides]
     C --> D[Advanced Features]
-    
+
     E[API Reference] --> F[Developer Docs]
     F --> G[Contributing]
-    
+
     H[Troubleshooting] --> I[Common Issues]
     H --> J[Performance]
     H --> K[Debugging]
@@ -351,11 +372,13 @@ graph TD
 ### PERFORMANCE OPTIMIZATION
 
 #### CONTENT LOADING STRATEGY
+
 - Lazy loading for images and heavy content
 - Prefetching for likely next pages
 - Optimized bundle sizes with tree shaking
 
 #### CACHING STRATEGY
+
 - CDN distribution for static assets
 - Service worker for offline documentation
 - Incremental build optimization
@@ -363,6 +386,7 @@ graph TD
 ### QUALITY ASSURANCE FRAMEWORK
 
 #### CONTENT VALIDATION
+
 ```yaml
 # Automated content checks
 validation:
@@ -379,6 +403,7 @@ validation:
 ```
 
 #### USER TESTING METRICS
+
 - Task completion rates for common workflows
 - Time to find information benchmarks
 - User satisfaction surveys

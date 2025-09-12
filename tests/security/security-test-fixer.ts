@@ -2,7 +2,7 @@
 
 /**
  * CRITICAL SECURITY TEST REPAIR UTILITY
- * 
+ *
  * This script fixes all identified security test configuration issues
  * and validates that comprehensive security testing is functional.
  */
@@ -45,14 +45,14 @@ class SecurityTestRepairer {
 
   private async fixTestDependencies(): Promise<void> {
     console.log('📦 Fixing test dependencies...');
-    
+
     const requiredPackages = [
       '@types/supertest@^6.0.2',
       'supertest@^7.0.0',
       'vitest@^2.1.9',
       '@vitest/coverage-v8@^2.1.9',
       '@types/jsonwebtoken@^9.0.2',
-      'ioredis@^5.3.2'
+      'ioredis@^5.3.2',
     ];
 
     try {
@@ -60,7 +60,7 @@ class SecurityTestRepairer {
       console.log('   Installing missing security test dependencies...');
       execSync(`npm install --save-dev ${requiredPackages.join(' ')}`, {
         cwd: this.rootDir,
-        stdio: 'pipe'
+        stdio: 'pipe',
       });
 
       console.log('✅ Test dependencies fixed');
@@ -343,7 +343,7 @@ describe('🔒 FIXED SECURITY TEST SUITE - MediaNest', () => {
     // Write fixed comprehensive security test
     fs.writeFileSync(
       path.join(this.rootDir, 'tests/security/comprehensive-security-test-suite-fixed.test.ts'),
-      fixedSecurityTest
+      fixedSecurityTest,
     );
 
     console.log('✅ Security test files repaired');
@@ -356,7 +356,7 @@ describe('🔒 FIXED SECURITY TEST SUITE - MediaNest', () => {
       // Run the fixed security test
       execSync('npx vitest run tests/security/comprehensive-security-test-suite-fixed.test.ts', {
         cwd: this.rootDir,
-        stdio: 'pipe'
+        stdio: 'pipe',
       });
 
       console.log('✅ Security tests validated successfully');
@@ -437,14 +437,17 @@ npx vitest tests/security/comprehensive-security-test-suite-fixed.test.ts
 // Execute repair if run directly
 if (require.main === module) {
   const repairer = new SecurityTestRepairer();
-  repairer.repairAllSecurityTests().then(() => {
-    console.log('\n🎉 SECURITY TEST REPAIR COMPLETED SUCCESSFULLY!');
-    console.log('📁 Check tests/security/REPAIR_REPORT.md for details');
-    console.log('🧪 Run: npm test -- tests/security/ to validate security tests');
-  }).catch((error) => {
-    console.error('\n❌ SECURITY TEST REPAIR FAILED:', error);
-    process.exit(1);
-  });
+  repairer
+    .repairAllSecurityTests()
+    .then(() => {
+      console.log('\n🎉 SECURITY TEST REPAIR COMPLETED SUCCESSFULLY!');
+      console.log('📁 Check tests/security/REPAIR_REPORT.md for details');
+      console.log('🧪 Run: npm test -- tests/security/ to validate security tests');
+    })
+    .catch((error) => {
+      console.error('\n❌ SECURITY TEST REPAIR FAILED:', error);
+      process.exit(1);
+    });
 }
 
 export { SecurityTestRepairer };

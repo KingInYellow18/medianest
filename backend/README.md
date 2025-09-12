@@ -11,12 +11,12 @@ The MediaNest Backend is an Express.js TypeScript API server that provides unifi
 
 ## 🚨 Current Development Status
 
-| Issue Type | Count | Status | Priority |
-|------------|-------|--------|----------|
-| **TypeScript Errors** | 80+ | 🔶 In Progress | High |
-| **Database Schema** | ID mismatches | 🔶 Fixing | High |
-| **Test Failures** | 28/30 | 🔶 Investigating | Medium |
-| **Plex Integration** | Config missing | 🔶 Implementation | Low |
+| Issue Type            | Count          | Status            | Priority |
+| --------------------- | -------------- | ----------------- | -------- |
+| **TypeScript Errors** | 80+            | 🔶 In Progress    | High     |
+| **Database Schema**   | ID mismatches  | 🔶 Fixing         | High     |
+| **Test Failures**     | 28/30          | 🔶 Investigating  | Medium   |
+| **Plex Integration**  | Config missing | 🔶 Implementation | Low      |
 
 > **Active Development**: These issues are being actively addressed. The backend core functionality works but may have stability issues.
 
@@ -389,17 +389,20 @@ USER 1000:1000  # Non-root security
 ### Health Checks & Monitoring
 
 **Built-in Health Endpoints:**
+
 - `GET /health` - Basic container health (for Docker health checks)
 - `GET /api/health` - Detailed application health with dependencies
 - `GET /api/status` - Service status and metrics
 
 **Docker Health Check:**
+
 ```dockerfile
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
   CMD curl -f http://localhost:4000/health || exit 1
 ```
 
 **Monitoring Integration:**
+
 - Prometheus metrics endpoint: `/metrics`
 - Structured JSON logging for centralized log aggregation
 - Real-time WebSocket status updates

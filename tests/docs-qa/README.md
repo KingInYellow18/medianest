@@ -56,12 +56,14 @@ python3 tests/docs-qa/performance_monitor.py
 The comprehensive dashboard provides:
 
 ### Visual Metrics
+
 - Overall quality score (0-100)
 - Individual module scores
 - Quality gate status
 - Issue distribution and trends
 
 ### Quality Gates
+
 - **Overall Score**: ≥85/100
 - **Link Success Rate**: ≥95%
 - **Formatting Quality**: ≥90/100
@@ -72,6 +74,7 @@ The comprehensive dashboard provides:
 - **Total Issues**: <50
 
 ### Outputs
+
 - `quality_dashboard.html`: Interactive web dashboard
 - `comprehensive_qa_report.json`: Detailed JSON report
 - Individual module reports in JSON format
@@ -109,6 +112,7 @@ self.quality_gates = {
 ### 🔗 Link Validation (`comprehensive_link_checker.py`)
 
 **Features:**
+
 - Internal and external link validation
 - Anchor checking in markdown files
 - Broken link detection and reporting
@@ -116,6 +120,7 @@ self.quality_gates = {
 - Caching for external links to improve speed
 
 **Checks:**
+
 - File existence for internal links
 - HTTP status codes for external links
 - Anchor existence in target files
@@ -123,6 +128,7 @@ self.quality_gates = {
 - Response time monitoring
 
 **Output:**
+
 ```json
 {
   "summary": {
@@ -139,6 +145,7 @@ self.quality_gates = {
 ### 📋 Formatting Validation (`formatting_validator.py`)
 
 **Features:**
+
 - Markdown syntax validation
 - Style consistency checking
 - MkDocs configuration validation
@@ -146,6 +153,7 @@ self.quality_gates = {
 - Frontmatter validation
 
 **Checks:**
+
 - Heading hierarchy (H1 → H2 → H3)
 - List marker consistency
 - Code fence style consistency
@@ -156,6 +164,7 @@ self.quality_gates = {
 - YAML frontmatter structure
 
 **Output:**
+
 ```json
 {
   "summary": {
@@ -173,6 +182,7 @@ self.quality_gates = {
 ### ♿ Accessibility Testing (`accessibility_tester.py`)
 
 **Features:**
+
 - WCAG 2.1 compliance testing
 - Screen reader compatibility
 - Color contrast validation
@@ -180,6 +190,7 @@ self.quality_gates = {
 - Semantic markup validation
 
 **Checks:**
+
 - Alt text for images
 - Heading hierarchy and structure
 - Link purpose and context
@@ -190,6 +201,7 @@ self.quality_gates = {
 - Interactive element accessibility
 
 **Output:**
+
 ```json
 {
   "summary": {
@@ -209,6 +221,7 @@ self.quality_gates = {
 ### 📱 Mobile Responsiveness (`mobile_responsiveness_tester.py`)
 
 **Features:**
+
 - Multi-device testing
 - Touch target validation
 - Viewport configuration checking
@@ -216,6 +229,7 @@ self.quality_gates = {
 - Navigation usability assessment
 
 **Device Configurations:**
+
 - Mobile Small (320x568)
 - Mobile Medium (375x667)
 - Mobile Large (414x896)
@@ -224,6 +238,7 @@ self.quality_gates = {
 - Desktop Small (1280x720)
 
 **Checks:**
+
 - Viewport meta tag configuration
 - Touch target sizes (≥44px)
 - Content overflow and horizontal scrolling
@@ -233,6 +248,7 @@ self.quality_gates = {
 - Image scaling and responsiveness
 
 **Output:**
+
 ```json
 {
   "summary": {
@@ -251,6 +267,7 @@ self.quality_gates = {
 ### ⚡ Performance Monitoring (`performance_monitor.py`)
 
 **Features:**
+
 - Build performance analysis
 - Page load time monitoring
 - Resource optimization checking
@@ -258,6 +275,7 @@ self.quality_gates = {
 - Search performance testing
 
 **Metrics:**
+
 - Build time and resource usage
 - First Contentful Paint (FCP)
 - Largest Contentful Paint (LCP)
@@ -268,6 +286,7 @@ self.quality_gates = {
 - Compression and caching analysis
 
 **Output:**
+
 ```json
 {
   "summary": {
@@ -296,21 +315,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Python
         uses: actions/setup-python@v3
         with:
           python-version: '3.9'
-      
+
       - name: Install dependencies
         run: |
           pip install mkdocs-material
           ./tests/docs-qa/run_qa.sh --install-deps
-      
+
       - name: Run Documentation QA
         run: |
           ./tests/docs-qa/run_qa.sh --ci
-      
+
       - name: Upload QA Report
         uses: actions/upload-artifact@v3
         with:
@@ -398,22 +417,23 @@ Overall Score = (
 
 Quality gates must ALL pass for deployment approval:
 
-| Gate | Threshold | Description |
-|------|-----------|-------------|
-| Overall Score | ≥85 | Combined quality score |
-| Link Success | ≥95% | Valid links percentage |
-| Formatting | ≥90 | Markdown quality score |
-| Accessibility | ≥85 | WCAG compliance score |
-| Mobile | ≥80 | Mobile friendliness |
-| Performance | ≥75 | Page speed and optimization |
-| Critical Issues | 0 | No critical issues allowed |
-| Total Issues | <50 | Keep issue count manageable |
+| Gate            | Threshold | Description                 |
+| --------------- | --------- | --------------------------- |
+| Overall Score   | ≥85       | Combined quality score      |
+| Link Success    | ≥95%      | Valid links percentage      |
+| Formatting      | ≥90       | Markdown quality score      |
+| Accessibility   | ≥85       | WCAG compliance score       |
+| Mobile          | ≥80       | Mobile friendliness         |
+| Performance     | ≥75       | Page speed and optimization |
+| Critical Issues | 0         | No critical issues allowed  |
+| Total Issues    | <50       | Keep issue count manageable |
 
 ## 🔍 Troubleshooting
 
 ### Common Issues
 
 **MkDocs server won't start:**
+
 ```bash
 # Check if port is in use
 lsof -i :8000
@@ -423,6 +443,7 @@ mkdocs serve --dev-addr=localhost:8001
 ```
 
 **Chrome/Selenium issues:**
+
 ```bash
 # Install Chrome on Ubuntu
 wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
@@ -434,6 +455,7 @@ pip install webdriver-manager
 ```
 
 **Python dependency errors:**
+
 ```bash
 # Create virtual environment
 python3 -m venv venv
@@ -444,11 +466,13 @@ pip install -r tests/docs-qa/requirements.txt
 ### Performance Issues
 
 **Large documentation sets:**
+
 - Use `--skip` to exclude heavy modules
 - Run individual modules separately
 - Implement parallel processing for link checking
 
 **Network timeouts:**
+
 - Increase timeout values in configuration
 - Skip external link checking for offline testing
 - Use cached results when available

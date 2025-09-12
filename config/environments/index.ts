@@ -34,11 +34,7 @@ export {
   initializeSecrets,
   SECRET_DEFINITIONS,
 } from './secret-manager';
-export type {
-  SecretConfig,
-  SecretMetadata,
-  SecretProvider,
-} from './secret-manager';
+export type { SecretConfig, SecretMetadata, SecretProvider } from './secret-manager';
 
 /**
  * Quick setup function for applications
@@ -124,7 +120,7 @@ export const isEnvironment = {
  */
 export function getEnvValue<T>(
   values: Record<string, T>,
-  environment: string = process.env.NODE_ENV || 'development'
+  environment: string = process.env.NODE_ENV || 'development',
 ): T {
   return values[environment] || values['development'];
 }
@@ -136,10 +132,10 @@ export async function createEnvironmentFiles(targetEnvironment?: string): Promis
   const { writeFileSync, existsSync } = await import('fs');
   const { join } = await import('path');
   const { createSampleLocalEnv } = await import('./env-loader');
-  
+
   const environment = targetEnvironment || process.env.NODE_ENV || 'development';
   const configPath = './config/environments';
-  
+
   // Create .env.local if it doesn't exist
   const localEnvPath = join(configPath, '.env.local');
   if (!existsSync(localEnvPath)) {
@@ -149,13 +145,13 @@ export async function createEnvironmentFiles(targetEnvironment?: string): Promis
   } else {
     console.log(`ℹ️ ${localEnvPath} already exists`);
   }
-  
+
   // Add .env.local to .gitignore if not present
   const gitignorePath = './.gitignore';
   if (existsSync(gitignorePath)) {
     const { readFileSync } = await import('fs');
     const gitignoreContent = readFileSync(gitignorePath, 'utf8');
-    
+
     if (!gitignoreContent.includes('.env.local')) {
       const updatedContent = gitignoreContent + '\n# Local environment overrides\n.env.local\n';
       writeFileSync(gitignorePath, updatedContent);
@@ -165,4 +161,4 @@ export async function createEnvironmentFiles(targetEnvironment?: string): Promis
 }
 
 // Re-export main types for convenience
-export type Environment = typeof ENV_CONSTANTS.ENVIRONMENTS[number];
+export type Environment = (typeof ENV_CONSTANTS.ENVIRONMENTS)[number];

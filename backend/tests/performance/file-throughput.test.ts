@@ -130,7 +130,7 @@ describe('File Upload/Download Throughput Tests', () => {
     fileSize: string,
     operationFunction: () => Promise<any>,
     targetThroughputMBps: number,
-    iterations: number = 5
+    iterations: number = 5,
   ): Promise<ThroughputBenchmark> => {
     const throughputs: number[] = [];
     const durations: number[] = [];
@@ -212,7 +212,7 @@ describe('File Upload/Download Throughput Tests', () => {
             .attach('file', testFiles.small, 'performance-test-small.bin')
             .field('category', 'performance-test'),
         5, // 5MB/s target
-        8
+        8,
       );
 
       expect(result.avgThroughput).toBeGreaterThan(5 * 1024 * 1024);
@@ -231,7 +231,7 @@ describe('File Upload/Download Throughput Tests', () => {
             .attach('file', testFiles.medium, 'performance-test-medium.bin')
             .field('category', 'performance-test'),
         10, // 10MB/s target
-        6
+        6,
       );
 
       expect(result.avgThroughput).toBeGreaterThan(10 * 1024 * 1024);
@@ -249,7 +249,7 @@ describe('File Upload/Download Throughput Tests', () => {
             .attach('file', testFiles.large, 'performance-test-large.bin')
             .field('category', 'performance-test'),
         20, // 20MB/s target
-        5
+        5,
       );
 
       expect(result.avgThroughput).toBeGreaterThan(20 * 1024 * 1024);
@@ -267,7 +267,7 @@ describe('File Upload/Download Throughput Tests', () => {
             .attach('file', testFiles.xlarge, 'performance-test-xlarge.bin')
             .field('category', 'performance-test'),
         30, // 30MB/s target
-        3
+        3,
       );
 
       expect(result.avgThroughput).toBeGreaterThan(30 * 1024 * 1024);
@@ -285,7 +285,7 @@ describe('File Upload/Download Throughput Tests', () => {
             .attach('file', testFiles.xxlarge, 'performance-test-xxlarge.bin')
             .field('category', 'performance-test'),
         40, // 40MB/s target
-        3
+        3,
       );
 
       expect(result.avgThroughput).toBeGreaterThan(40 * 1024 * 1024);
@@ -318,7 +318,7 @@ describe('File Upload/Download Throughput Tests', () => {
             .get('/api/v1/files/download-test-small.bin')
             .set('Authorization', `Bearer ${userToken}`),
         10, // 10MB/s target
-        8
+        8,
       );
 
       expect(result.avgThroughput).toBeGreaterThan(10 * 1024 * 1024);
@@ -334,7 +334,7 @@ describe('File Upload/Download Throughput Tests', () => {
             .get('/api/v1/files/download-test-medium.bin')
             .set('Authorization', `Bearer ${userToken}`),
         25, // 25MB/s target
-        6
+        6,
       );
 
       expect(result.avgThroughput).toBeGreaterThan(25 * 1024 * 1024);
@@ -350,7 +350,7 @@ describe('File Upload/Download Throughput Tests', () => {
             .get('/api/v1/files/download-test-large.bin')
             .set('Authorization', `Bearer ${userToken}`),
         50, // 50MB/s target
-        5
+        5,
       );
 
       expect(result.avgThroughput).toBeGreaterThan(50 * 1024 * 1024);
@@ -373,7 +373,7 @@ describe('File Upload/Download Throughput Tests', () => {
             .attach('image', imageBuffer, 'test-image.jpg')
             .field('operations', JSON.stringify(['resize', 'optimize'])),
         5, // 5MB/s target (processing is slower)
-        4
+        4,
       );
 
       expect(result.avgThroughput).toBeGreaterThan(5 * 1024 * 1024);
@@ -392,7 +392,7 @@ describe('File Upload/Download Throughput Tests', () => {
             .post('/api/v1/files/upload')
             .set('Authorization', `Bearer ${userToken}`)
             .attach('file', testFiles.medium, `concurrent-test-${index}.bin`)
-            .field('category', 'concurrent-test')
+            .field('category', 'concurrent-test'),
         );
 
       const results = await Promise.allSettled(uploadPromises);
@@ -505,7 +505,7 @@ describe('File Upload/Download Throughput Tests', () => {
             (performanceMetrics.reduce((sum, m) => sum + m.throughput, 0) /
               performanceMetrics.length /
               (1024 * 1024)) *
-              100
+              100,
           ) / 100,
         uploadOperations: performanceMetrics.filter((m) => m.operation === 'upload').length,
         downloadOperations: performanceMetrics.filter((m) => m.operation === 'download').length,
@@ -516,7 +516,7 @@ describe('File Upload/Download Throughput Tests', () => {
         operationsBySize: {
           small: performanceMetrics.filter((m) => m.fileSize < 50 * 1024).length,
           medium: performanceMetrics.filter(
-            (m) => m.fileSize >= 50 * 1024 && m.fileSize < 500 * 1024
+            (m) => m.fileSize >= 50 * 1024 && m.fileSize < 500 * 1024,
           ).length,
           large: performanceMetrics.filter((m) => m.fileSize >= 500 * 1024).length,
         },

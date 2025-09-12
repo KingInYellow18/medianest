@@ -1,1 +1,30 @@
-{"uuid":"ffaadc89-9470-4d31-9a41-aa3837d51e65","name":"should send broadcast messages","historyId":"e42586f07b5d6def02fd87197b971567:f0494070a4792d94c64308aac1604abb","status":"skipped","statusDetails":{},"stage":"finished","steps":[],"attachments":[],"parameters":[{"name":"Project","value":"Mobile Safari"}],"labels":[{"name":"language","value":"javascript"},{"name":"framework","value":"playwright"},{"name":"package","value":"admin-dashboard-journey.spec.ts"},{"name":"titlePath","value":" > Mobile Safari > admin-dashboard-journey.spec.ts > Admin Dashboard User Journey"},{"name":"host","value":"kubuntudev"},{"name":"thread","value":"pid-38931-worker-0"},{"name":"parentSuite","value":"Mobile Safari"},{"name":"subSuite","value":"Admin Dashboard User Journey"}],"links":[],"start":1757602649454,"testCaseId":"e42586f07b5d6def02fd87197b971567","fullName":"admin-dashboard-journey.spec.ts:653:7","titlePath":["admin-dashboard-journey.spec.ts","Admin Dashboard User Journey"],"stop":1757602649454}
+{
+  "uuid": "ffaadc89-9470-4d31-9a41-aa3837d51e65",
+  "name": "should send broadcast messages",
+  "historyId": "e42586f07b5d6def02fd87197b971567:f0494070a4792d94c64308aac1604abb",
+  "status": "skipped",
+  "statusDetails": {},
+  "stage": "finished",
+  "steps": [],
+  "attachments": [],
+  "parameters": [{ "name": "Project", "value": "Mobile Safari" }],
+  "labels": [
+    { "name": "language", "value": "javascript" },
+    { "name": "framework", "value": "playwright" },
+    { "name": "package", "value": "admin-dashboard-journey.spec.ts" },
+    {
+      "name": "titlePath",
+      "value": " > Mobile Safari > admin-dashboard-journey.spec.ts > Admin Dashboard User Journey"
+    },
+    { "name": "host", "value": "kubuntudev" },
+    { "name": "thread", "value": "pid-38931-worker-0" },
+    { "name": "parentSuite", "value": "Mobile Safari" },
+    { "name": "subSuite", "value": "Admin Dashboard User Journey" }
+  ],
+  "links": [],
+  "start": 1757602649454,
+  "testCaseId": "e42586f07b5d6def02fd87197b971567",
+  "fullName": "admin-dashboard-journey.spec.ts:653:7",
+  "titlePath": ["admin-dashboard-journey.spec.ts", "Admin Dashboard User Journey"],
+  "stop": 1757602649454
+}

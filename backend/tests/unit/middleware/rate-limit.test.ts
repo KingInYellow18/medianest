@@ -50,19 +50,25 @@ let isolatedMocks: IsolatedRateLimitMocks;
 
 // Mock dependencies with proper isolation
 vi.mock('@/services/redis.service', () => ({
-  redisService: new Proxy({}, {
-    get: (target, prop) => {
-      return isolatedMocks?.redisService?.[prop] || vi.fn();
-    }
-  }),
+  redisService: new Proxy(
+    {},
+    {
+      get: (target, prop) => {
+        return isolatedMocks?.redisService?.[prop] || vi.fn();
+      },
+    },
+  ),
 }));
 
 vi.mock('@/utils/logger', () => ({
-  logger: new Proxy({}, {
-    get: (target, prop) => {
-      return isolatedMocks?.logger?.[prop] || vi.fn();
-    }
-  }),
+  logger: new Proxy(
+    {},
+    {
+      get: (target, prop) => {
+        return isolatedMocks?.logger?.[prop] || vi.fn();
+      },
+    },
+  ),
 }));
 
 describe('Rate Limit Middleware', () => {
@@ -72,15 +78,15 @@ describe('Rate Limit Middleware', () => {
 
   beforeEach(async () => {
     // CRITICAL: Complete test isolation for each test
-    
+
     // 1. Create completely fresh isolated mocks - no shared state
     isolatedMocks = new IsolatedRateLimitMocks();
-    
+
     // 2. AGGRESSIVE mock clearing to prevent cross-test contamination
     vi.clearAllMocks();
     vi.resetAllMocks();
     vi.restoreAllMocks();
-    
+
     // 3. Set up fresh request/response mocks
     mockRequest = {
       ip: '192.168.1.1',
@@ -95,9 +101,9 @@ describe('Rate Limit Middleware', () => {
       set: vi.fn(),
     };
     mockNext = vi.fn();
-    
+
     // 4. Allow a small delay for mock setup to complete
-    await new Promise(resolve => setTimeout(resolve, 1));
+    await new Promise((resolve) => setTimeout(resolve, 1));
   });
 
   afterEach(() => {
@@ -160,7 +166,7 @@ describe('Rate Limit Middleware', () => {
       expect(mockNext).toHaveBeenCalled();
       expect(mockRedisService.expire).toHaveBeenCalledWith(
         expect.stringContaining('rate_limit:'),
-        60
+        60,
       );
     });
 
@@ -175,9 +181,7 @@ describe('Rate Limit Middleware', () => {
 
       await rateLimiter(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockRedisService.get).toHaveBeenCalledWith(
-        expect.stringContaining('192.168.1.1')
-      );
+      expect(mockRedisService.get).toHaveBeenCalledWith(expect.stringContaining('192.168.1.1'));
     });
   });
 
@@ -194,9 +198,7 @@ describe('Rate Limit Middleware', () => {
 
       await rateLimiter(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockRedisService.get).toHaveBeenCalledWith(
-        expect.stringContaining('user:user-123')
-      );
+      expect(mockRedisService.get).toHaveBeenCalledWith(expect.stringContaining('user:user-123'));
     });
 
     it('should handle custom key generator errors', async () => {
@@ -279,7 +281,7 @@ describe('Rate Limit Middleware', () => {
       expect(mockResponse.json).toHaveBeenCalledWith(
         expect.objectContaining({
           message: customMessage,
-        })
+        }),
       );
     });
 
@@ -402,7 +404,7 @@ describe('Rate Limit Middleware', () => {
 
       expect(mockRedisService.expire).toHaveBeenCalledWith(
         expect.stringContaining('rate_limit:'),
-        1
+        1,
       );
     });
 
@@ -420,7 +422,7 @@ describe('Rate Limit Middleware', () => {
 
       expect(mockRedisService.expire).toHaveBeenCalledWith(
         expect.stringContaining('rate_limit:'),
-        3600
+        3600,
       );
     });
   });
@@ -439,7 +441,7 @@ describe('Rate Limit Middleware', () => {
       await rateLimiter(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockRedisService.get).toHaveBeenCalledWith(
-        expect.stringContaining('192.168.1.1:/api/test')
+        expect.stringContaining('192.168.1.1:/api/test'),
       );
     });
 
@@ -460,9 +462,7 @@ describe('Rate Limit Middleware', () => {
 
       await rateLimiter(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockRedisService.get).toHaveBeenCalledWith(
-        expect.stringContaining('user:user-123')
-      );
+      expect(mockRedisService.get).toHaveBeenCalledWith(expect.stringContaining('user:user-123'));
     });
   });
 

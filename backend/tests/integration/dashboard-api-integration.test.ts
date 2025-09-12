@@ -386,7 +386,7 @@ describe('Dashboard API Integration Tests', () => {
             .fn()
             .mockImplementation(
               () =>
-                new Promise((_, reject) => setTimeout(() => reject(new Error('ETIMEDOUT')), 100))
+                new Promise((_, reject) => setTimeout(() => reject(new Error('ETIMEDOUT')), 100)),
             ),
         },
       }));
@@ -615,7 +615,7 @@ describe('Dashboard API Integration Tests', () => {
       const requests = Array(15)
         .fill(null)
         .map(() =>
-          request(app).get('/api/v1/dashboard/stats').set('Authorization', `Bearer ${accessToken}`)
+          request(app).get('/api/v1/dashboard/stats').set('Authorization', `Bearer ${accessToken}`),
         );
 
       const responses = await Promise.all(requests);
@@ -712,7 +712,7 @@ describe('Dashboard API Integration Tests', () => {
             .fn()
             .mockImplementation(
               () =>
-                new Promise((_, reject) => setTimeout(() => reject(new Error('ETIMEDOUT')), 100))
+                new Promise((_, reject) => setTimeout(() => reject(new Error('ETIMEDOUT')), 100)),
             ),
         },
       }));

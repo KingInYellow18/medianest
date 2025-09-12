@@ -1,1 +1,34 @@
-{"uuid":"43432e65-4474-4261-b547-2ff4c8e68954","name":"should handle large user datasets efficiently","historyId":"6f42d5a3e50b9a11d24ebf393c035e56:84e28e814b821ed013329cc8dbc467e0","status":"skipped","statusDetails":{},"stage":"finished","steps":[],"attachments":[],"parameters":[{"name":"Project","value":"webkit"}],"labels":[{"name":"language","value":"javascript"},{"name":"framework","value":"playwright"},{"name":"package","value":"admin-dashboard-journey.spec.ts"},{"name":"titlePath","value":" > webkit > admin-dashboard-journey.spec.ts > Admin Dashboard User Journey > Performance and Load Testing"},{"name":"host","value":"kubuntudev"},{"name":"thread","value":"pid-38931-worker-0"},{"name":"parentSuite","value":"webkit"},{"name":"subSuite","value":"Admin Dashboard User Journey > Performance and Load Testing"}],"links":[],"start":1757602649417,"testCaseId":"6f42d5a3e50b9a11d24ebf393c035e56","fullName":"admin-dashboard-journey.spec.ts:722:9","titlePath":["admin-dashboard-journey.spec.ts","Admin Dashboard User Journey","Performance and Load Testing"],"stop":1757602649417}
+{
+  "uuid": "43432e65-4474-4261-b547-2ff4c8e68954",
+  "name": "should handle large user datasets efficiently",
+  "historyId": "6f42d5a3e50b9a11d24ebf393c035e56:84e28e814b821ed013329cc8dbc467e0",
+  "status": "skipped",
+  "statusDetails": {},
+  "stage": "finished",
+  "steps": [],
+  "attachments": [],
+  "parameters": [{ "name": "Project", "value": "webkit" }],
+  "labels": [
+    { "name": "language", "value": "javascript" },
+    { "name": "framework", "value": "playwright" },
+    { "name": "package", "value": "admin-dashboard-journey.spec.ts" },
+    {
+      "name": "titlePath",
+      "value": " > webkit > admin-dashboard-journey.spec.ts > Admin Dashboard User Journey > Performance and Load Testing"
+    },
+    { "name": "host", "value": "kubuntudev" },
+    { "name": "thread", "value": "pid-38931-worker-0" },
+    { "name": "parentSuite", "value": "webkit" },
+    { "name": "subSuite", "value": "Admin Dashboard User Journey > Performance and Load Testing" }
+  ],
+  "links": [],
+  "start": 1757602649417,
+  "testCaseId": "6f42d5a3e50b9a11d24ebf393c035e56",
+  "fullName": "admin-dashboard-journey.spec.ts:722:9",
+  "titlePath": [
+    "admin-dashboard-journey.spec.ts",
+    "Admin Dashboard User Journey",
+    "Performance and Load Testing"
+  ],
+  "stop": 1757602649417
+}

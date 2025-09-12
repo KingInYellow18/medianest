@@ -145,7 +145,7 @@ describe('Health and Monitoring API Integration Tests', () => {
       // User role (not admin)
       const { accessToken: userToken } = await authHelper.createUserWithTokens(
         'user@test.com',
-        'USER'
+        'USER',
       );
       await request(app)
         .get('/api/v1/health/metrics')
@@ -355,7 +355,7 @@ describe('Health and Monitoring API Integration Tests', () => {
       // User role
       const { accessToken: userToken } = await authHelper.createUserWithTokens(
         'user@test.com',
-        'USER'
+        'USER',
       );
       await request(app)
         .get('/api/v1/csrf/stats')
@@ -405,7 +405,7 @@ describe('Health and Monitoring API Integration Tests', () => {
       expect(response.body.data.summary.offline).toBeGreaterThanOrEqual(2);
 
       const offlineServices = response.body.data.services.filter(
-        (s: any) => s.status === 'offline'
+        (s: any) => s.status === 'offline',
       );
       expect(offlineServices.length).toBeGreaterThanOrEqual(2);
     });
@@ -418,7 +418,7 @@ describe('Health and Monitoring API Integration Tests', () => {
             .fn()
             .mockImplementation(
               () =>
-                new Promise((_, reject) => setTimeout(() => reject(new Error('ETIMEDOUT')), 100))
+                new Promise((_, reject) => setTimeout(() => reject(new Error('ETIMEDOUT')), 100)),
             ),
         },
       }));
@@ -476,7 +476,7 @@ describe('Health and Monitoring API Integration Tests', () => {
       const requests = Array(10)
         .fill(null)
         .map(() =>
-          request(app).get('/api/v1/health/metrics').set('Authorization', `Bearer ${accessToken}`)
+          request(app).get('/api/v1/health/metrics').set('Authorization', `Bearer ${accessToken}`),
         );
 
       const responses = await Promise.all(requests);

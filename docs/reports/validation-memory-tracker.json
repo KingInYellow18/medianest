@@ -45,7 +45,7 @@
         "priority": "CRITICAL"
       },
       "frontend_tests": {
-        "frequency": "HIGH", 
+        "frequency": "HIGH",
         "impact": "worker_thread_crashes",
         "root_cause": "vitest_configuration_issues",
         "priority": "HIGH"

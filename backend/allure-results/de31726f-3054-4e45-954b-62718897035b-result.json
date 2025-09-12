@@ -1,1 +1,30 @@
-{"uuid":"de31726f-3054-4e45-954b-62718897035b","name":"should delete users with protection for own account","historyId":"d80ca6668c7ea2d780e8e83975233266:b444eb0fbe6390c71e68b51dd25701fc","status":"skipped","statusDetails":{},"stage":"finished","steps":[],"attachments":[],"parameters":[{"name":"Project","value":"firefox"}],"labels":[{"name":"language","value":"javascript"},{"name":"framework","value":"playwright"},{"name":"package","value":"admin-dashboard-journey.spec.ts"},{"name":"titlePath","value":" > firefox > admin-dashboard-journey.spec.ts > Admin Dashboard User Journey"},{"name":"host","value":"kubuntudev"},{"name":"thread","value":"pid-38931-worker-0"},{"name":"parentSuite","value":"firefox"},{"name":"subSuite","value":"Admin Dashboard User Journey"}],"links":[],"start":1757602649396,"testCaseId":"d80ca6668c7ea2d780e8e83975233266","fullName":"admin-dashboard-journey.spec.ts:496:7","titlePath":["admin-dashboard-journey.spec.ts","Admin Dashboard User Journey"],"stop":1757602649396}
+{
+  "uuid": "de31726f-3054-4e45-954b-62718897035b",
+  "name": "should delete users with protection for own account",
+  "historyId": "d80ca6668c7ea2d780e8e83975233266:b444eb0fbe6390c71e68b51dd25701fc",
+  "status": "skipped",
+  "statusDetails": {},
+  "stage": "finished",
+  "steps": [],
+  "attachments": [],
+  "parameters": [{ "name": "Project", "value": "firefox" }],
+  "labels": [
+    { "name": "language", "value": "javascript" },
+    { "name": "framework", "value": "playwright" },
+    { "name": "package", "value": "admin-dashboard-journey.spec.ts" },
+    {
+      "name": "titlePath",
+      "value": " > firefox > admin-dashboard-journey.spec.ts > Admin Dashboard User Journey"
+    },
+    { "name": "host", "value": "kubuntudev" },
+    { "name": "thread", "value": "pid-38931-worker-0" },
+    { "name": "parentSuite", "value": "firefox" },
+    { "name": "subSuite", "value": "Admin Dashboard User Journey" }
+  ],
+  "links": [],
+  "start": 1757602649396,
+  "testCaseId": "d80ca6668c7ea2d780e8e83975233266",
+  "fullName": "admin-dashboard-journey.spec.ts:496:7",
+  "titlePath": ["admin-dashboard-journey.spec.ts", "Admin Dashboard User Journey"],
+  "stop": 1757602649396
+}

@@ -88,17 +88,17 @@ C4Container
         Container(spa, "Single Page Application", "React, Next.js, TypeScript", "Provides media management interface and real-time updates")
         Container(mobile_app, "Mobile Application", "React Native, TypeScript", "Mobile access to MediaNest features")
         Container(api_gateway, "API Gateway", "Kong/Istio Service Mesh", "API routing, authentication, rate limiting, and security")
-        
+
         Container(web_server, "Web Server", "Nginx", "Serves static content, SSL termination, load balancing")
         Container(api_server, "API Application", "Express.js, Node.js, TypeScript", "Handles business logic, integrations, and data processing")
         Container(websocket_server, "WebSocket Server", "Socket.IO", "Real-time communication and notifications")
         Container(background_workers, "Background Workers", "Node.js, Bull Queue", "Asynchronous job processing for downloads and integrations")
-        
+
         ContainerDb(primary_db, "Primary Database", "PostgreSQL 15", "Stores user data, media requests, system configuration")
         ContainerDb(cache_db, "Cache Database", "Redis 7", "Session storage, caching, pub/sub messaging")
         ContainerDb(search_db, "Search Database", "Elasticsearch", "Full-text search for media content")
         ContainerDb(time_series_db, "Metrics Database", "InfluxDB", "Performance metrics and monitoring data")
-        
+
         Container(file_storage, "File Storage", "MinIO/S3", "Stores downloaded media files, thumbnails, logs")
         Container(backup_service, "Backup Service", "PostgreSQL Backup, Redis AOF", "Automated database backups and point-in-time recovery")
     }
@@ -180,7 +180,7 @@ C4Component
 
     Container_Boundary(api_application, "API Application") {
         Component(api_gateway_internal, "Internal API Gateway", "Express Gateway", "Request routing and middleware orchestration")
-        
+
         Component(auth_controller, "Authentication Controller", "Express Controller", "Handles login, logout, token management")
         Component(media_controller, "Media Controller", "Express Controller", "Media request lifecycle management")
         Component(plex_controller, "Plex Controller", "Express Controller", "Plex server integration endpoints")
@@ -225,7 +225,7 @@ C4Component
     ContainerDb(postgres, "PostgreSQL", "Primary database")
     ContainerDb(redis, "Redis", "Cache and sessions")
     ContainerDb(elasticsearch, "Elasticsearch", "Search index")
-    
+
     System_Ext(plex_server, "Plex Media Server", "Media server")
     System_Ext(overseerr, "Overseerr", "Request automation")
     System_Ext(tmdb, "TMDB API", "Metadata service")
@@ -324,7 +324,7 @@ C4Component
 
     Container_Boundary(auth_service_detail, "Authentication Service") {
         Component(auth_facade, "AuthenticationFacade", "Service Facade", "Main authentication orchestration")
-        
+
         Component(jwt_service, "JWTService", "Token Service", "JWT token generation, validation, and rotation")
         Component(oauth_service, "OAuthService", "OAuth Provider", "Plex OAuth integration and token exchange")
         Component(session_service, "SessionService", "Session Manager", "User session lifecycle management")
@@ -332,17 +332,17 @@ C4Component
         Component(device_service, "DeviceService", "Device Manager", "Device registration and fingerprinting")
         Component(rate_limiter, "RateLimiterService", "Rate Limiter", "Authentication attempt rate limiting")
         Component(audit_logger, "AuditLogger", "Security Auditor", "Authentication event logging")
-        
+
         Component(token_validator, "TokenValidator", "Validator", "JWT signature and expiration validation")
         Component(credential_validator, "CredentialValidator", "Validator", "User credential validation")
         Component(device_fingerprinter, "DeviceFingerprinter", "Security Component", "Browser/device fingerprinting")
         Component(session_analyzer, "SessionAnalyzer", "Analytics", "Session behavior analysis")
-        
+
         Component(auth_repository, "AuthRepository", "Data Access", "Authentication data operations")
         Component(session_repository, "SessionRepository", "Data Access", "Session data persistence")
         Component(device_repository, "DeviceRepository", "Data Access", "Device registration data")
         Component(rate_limit_repository, "RateLimitRepository", "Data Access", "Rate limiting data")
-        
+
         Component(auth_cache, "AuthCache", "Cache Layer", "Authentication data caching")
         Component(session_cache, "SessionCache", "Cache Layer", "Active session caching")
         Component(token_blacklist, "TokenBlacklist", "Security Cache", "Revoked token management")
@@ -350,7 +350,7 @@ C4Component
 
     ContainerDb(postgres_users, "User Database", "PostgreSQL", "User accounts and credentials")
     ContainerDb(redis_auth, "Auth Cache", "Redis", "Sessions and temporary auth data")
-    
+
     System_Ext(plex_oauth, "Plex OAuth Provider", "External OAuth service")
     Container(notification_service, "Notification Service", "Internal service", "User notifications")
     Container(audit_service, "Audit Service", "Internal service", "System audit logging")
@@ -437,18 +437,18 @@ C4Deployment
             Container(nginx_pod1, "NGINX Pod 1", "Static serving", "Web server instance")
             Container(nginx_pod2, "NGINX Pod 2", "Static serving", "Web server instance")
         }
-        
+
         Deployment_Node(api_tier, "API Tier Pods", "Node.js containers") {
             Container(api_pod1, "API Pod 1", "Express.js application", "Business logic instance")
             Container(api_pod2, "API Pod 2", "Express.js application", "Business logic instance")
             Container(api_pod3, "API Pod 3", "Express.js application", "Business logic instance")
         }
-        
+
         Deployment_Node(worker_tier, "Worker Tier Pods", "Background processing") {
             Container(worker_pod1, "Worker Pod 1", "Download processor", "Background job worker")
             Container(worker_pod2, "Worker Pod 2", "Media processor", "Background job worker")
         }
-        
+
         Deployment_Node(websocket_tier, "WebSocket Tier", "Real-time communication") {
             Container(ws_pod1, "WebSocket Pod 1", "Socket.IO server", "Real-time notifications")
             Container(ws_pod2, "WebSocket Pod 2", "Socket.IO server", "Real-time notifications")
@@ -461,13 +461,13 @@ C4Deployment
             ContainerDb(postgres_replica1, "PostgreSQL Replica 1", "Read operations", "Read replica")
             ContainerDb(postgres_replica2, "PostgreSQL Replica 2", "Read operations", "Read replica")
         }
-        
+
         Deployment_Node(redis_cluster, "Redis Cluster", "ElastiCache/MemoryStore") {
             ContainerDb(redis_master, "Redis Master", "Write operations", "Cache master")
             ContainerDb(redis_slave1, "Redis Slave 1", "Read operations", "Cache replica")
             ContainerDb(redis_slave2, "Redis Slave 2", "Read operations", "Cache replica")
         }
-        
+
         Deployment_Node(search_cluster, "Elasticsearch Cluster", "Managed search service") {
             ContainerDb(es_master, "ES Master Node", "Cluster coordination", "Search master")
             ContainerDb(es_data1, "ES Data Node 1", "Data storage/search", "Search node")
@@ -498,34 +498,34 @@ C4Deployment
     %% User traffic flow
     Rel(web_browser, edge_cache, "HTTPS requests", "443")
     Rel(mobile_app, edge_cache, "HTTPS requests", "443")
-    
+
     %% CDN to load balancer
     Rel(edge_cache, ssl_termination, "HTTPS", "443")
     Rel(ddos_protection, traffic_router, "Filtered traffic", "80/443")
-    
+
     %% Load balancer to Kubernetes
     Rel(traffic_router, nginx_pod1, "HTTP", "80")
     Rel(traffic_router, nginx_pod2, "HTTP", "80")
     Rel(ssl_termination, api_pod1, "HTTP", "8080")
     Rel(ssl_termination, api_pod2, "HTTP", "8080")
     Rel(ssl_termination, api_pod3, "HTTP", "8080")
-    
+
     %% WebSocket connections
     Rel(web_browser, ws_pod1, "WebSocket", "3000")
     Rel(mobile_app, ws_pod2, "WebSocket", "3000")
-    
+
     %% API to databases
     Rel(api_pod1, postgres_primary, "SQL", "5432")
     Rel(api_pod2, postgres_replica1, "SQL", "5432")
     Rel(api_pod3, postgres_replica2, "SQL", "5432")
-    
+
     Rel(api_pod1, redis_master, "Redis", "6379")
     Rel(api_pod2, redis_slave1, "Redis", "6379")
     Rel(api_pod3, redis_slave2, "Redis", "6379")
-    
+
     Rel(api_pod1, es_data1, "HTTP", "9200")
     Rel(api_pod2, es_data2, "HTTP", "9200")
-    
+
     %% Workers to external services
     Rel(worker_pod1, file_storage, "S3 API", "HTTPS")
     Rel(worker_pod2, file_storage, "S3 API", "HTTPS")
@@ -533,19 +533,19 @@ C4Deployment
     Rel(api_pod2, overseerr, "REST API", "5055")
     Rel(api_pod3, tmdb_api, "REST API", "HTTPS")
     Rel(worker_pod1, youtube_api, "API", "HTTPS")
-    
+
     %% Monitoring connections
     Rel(api_pod1, prometheus, "Metrics", "9090")
     Rel(api_pod2, prometheus, "Metrics", "9090")
     Rel(api_pod3, prometheus, "Metrics", "9090")
     Rel(prometheus, grafana, "PromQL", "3000")
-    
+
     %% Database replication
     Rel(postgres_primary, postgres_replica1, "Streaming replication", "5432")
     Rel(postgres_primary, postgres_replica2, "Streaming replication", "5432")
     Rel(redis_master, redis_slave1, "Replication", "6379")
     Rel(redis_master, redis_slave2, "Replication", "6379")
-    
+
     %% Backup flows
     Rel(postgres_primary, backup_storage, "Automated backups", "HTTPS")
     Rel(file_storage, backup_storage, "Cross-region replication", "HTTPS")

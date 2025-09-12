@@ -40,7 +40,7 @@ class AutomatedRollbackSystem {
   constructor(deploymentId?: string, environment: string = 'production') {
     this.deploymentId = deploymentId || `deploy-${Date.now()}`;
     this.environment = environment;
-    
+
     console.log('⚡ Automated Rollback System v2.0');
     console.log('🎯 Target Recovery Time: <60 seconds');
     console.log('='.repeat(50));
@@ -53,10 +53,10 @@ class AutomatedRollbackSystem {
       }, timeout);
 
       try {
-        const result = execSync(command, { 
-          encoding: 'utf8', 
+        const result = execSync(command, {
+          encoding: 'utf8',
           timeout,
-          stdio: 'pipe'
+          stdio: 'pipe',
         });
         clearTimeout(timeoutHandle);
         resolve(result);
@@ -86,7 +86,7 @@ class AutomatedRollbackSystem {
         'http://localhost:3000/api/health',
         'http://localhost:4000/api/health',
         'http://localhost:3000/health',
-        'http://localhost:4000/health'
+        'http://localhost:4000/health',
       ];
 
       for (const endpoint of healthEndpoints) {
@@ -101,7 +101,10 @@ class AutomatedRollbackSystem {
 
       // Container health checks
       try {
-        const containerStatus = await this.executeCommand('docker ps --format "table {{.Names}}\\t{{.Status}}"', 10000);
+        const containerStatus = await this.executeCommand(
+          'docker ps --format "table {{.Names}}\\t{{.Status}}"',
+          10000,
+        );
         if (containerStatus.includes('unhealthy') || containerStatus.includes('Restarting')) {
           checks.push('Container health: ❌ UNHEALTHY CONTAINERS DETECTED');
           failureDetected = true;
@@ -115,7 +118,10 @@ class AutomatedRollbackSystem {
 
       // Database connectivity
       try {
-        await this.executeCommand('cd backend && npm run db:check 2>/dev/null || echo "DB_CHECK_FAILED"', 15000);
+        await this.executeCommand(
+          'cd backend && npm run db:check 2>/dev/null || echo "DB_CHECK_FAILED"',
+          15000,
+        );
         checks.push('Database connectivity: ✅');
       } catch (error) {
         checks.push('Database connectivity: ❌ CONNECTION FAILED');
@@ -124,9 +130,12 @@ class AutomatedRollbackSystem {
 
       // Application logs check
       try {
-        const recentErrors = await this.executeCommand('docker logs --tail=20 medianest_app_prod 2>&1 | grep -i "error\\|exception\\|failed" | wc -l', 10000);
+        const recentErrors = await this.executeCommand(
+          'docker logs --tail=20 medianest_app_prod 2>&1 | grep -i "error\\|exception\\|failed" | wc -l',
+          10000,
+        );
         const errorCount = parseInt(recentErrors.trim());
-        
+
         if (errorCount > 10) {
           checks.push(`Recent errors: ❌ ${errorCount} errors detected`);
           failureDetected = true;
@@ -141,7 +150,7 @@ class AutomatedRollbackSystem {
       this.metrics.detectionTime = detectionTime;
 
       this.logProgress(`🔍 Failure Detection Results:`, detectionTime);
-      checks.forEach(check => console.log(`   ${check}`));
+      checks.forEach((check) => console.log(`   ${check}`));
 
       if (failureDetected) {
         this.logProgress('🚨 DEPLOYMENT FAILURE DETECTED - INITIATING ROLLBACK');
@@ -150,7 +159,6 @@ class AutomatedRollbackSystem {
         this.logProgress('✅ No deployment failures detected');
         return false;
       }
-
     } catch (error) {
       this.logProgress(`💥 Failure detection error: ${error}`);
       return true; // Assume failure if detection fails
@@ -166,7 +174,10 @@ class AutomatedRollbackSystem {
       // Step 1: Stop current deployment (5 seconds max)
       this.logProgress('🛑 Step 1: Stopping current deployment...');
       try {
-        await this.executeCommand('docker-compose -f docker-compose.production.yml down --timeout 5', 10000);
+        await this.executeCommand(
+          'docker-compose -f docker-compose.production.yml down --timeout 5',
+          10000,
+        );
       } catch (error) {
         this.logProgress('⚠️ Graceful shutdown failed, forcing stop...');
         await this.executeCommand('docker kill $(docker ps -q) || true', 5000);
@@ -174,14 +185,14 @@ class AutomatedRollbackSystem {
 
       // Step 2: Restore previous stable deployment (10 seconds max)
       this.logProgress('🔄 Step 2: Restoring previous stable deployment...');
-      
+
       const backupDir = './backups/stable-deployment';
       if (fs.existsSync(backupDir)) {
         // Restore previous docker-compose configuration
         if (fs.existsSync(`${backupDir}/docker-compose.yml`)) {
           fs.copyFileSync(`${backupDir}/docker-compose.yml`, './docker-compose.production.yml');
         }
-        
+
         // Restore environment configuration
         if (fs.existsSync(`${backupDir}/.env.production`)) {
           fs.copyFileSync(`${backupDir}/.env.production`, './.env.production');
@@ -190,15 +201,24 @@ class AutomatedRollbackSystem {
 
       // Step 3: Start previous stable deployment (15 seconds max)
       this.logProgress('🚀 Step 3: Starting previous stable deployment...');
-      await this.executeCommand('docker-compose -f docker-compose.production.yml up -d --wait', 20000);
+      await this.executeCommand(
+        'docker-compose -f docker-compose.production.yml up -d --wait',
+        20000,
+      );
 
       // Step 4: Database rollback if needed (15 seconds max)
       this.logProgress('🗄️ Step 4: Database rollback validation...');
       try {
         // Check if database rollback is needed
-        const migrationStatus = await this.executeCommand('cd backend && npx prisma migrate status 2>/dev/null || echo "MIGRATION_CHECK_FAILED"', 10000);
-        
-        if (migrationStatus.includes('MIGRATION_CHECK_FAILED') || migrationStatus.includes('pending')) {
+        const migrationStatus = await this.executeCommand(
+          'cd backend && npx prisma migrate status 2>/dev/null || echo "MIGRATION_CHECK_FAILED"',
+          10000,
+        );
+
+        if (
+          migrationStatus.includes('MIGRATION_CHECK_FAILED') ||
+          migrationStatus.includes('pending')
+        ) {
           this.logProgress('🔄 Rolling back database migrations...');
           await this.executeCommand('cd backend && npx prisma migrate reset --force', 15000);
         }
@@ -217,10 +237,9 @@ class AutomatedRollbackSystem {
 
       const rollbackTime = performance.now() - startTime;
       this.metrics.rollbackTime = rollbackTime;
-      
+
       this.logProgress(`✅ ROLLBACK EXECUTION COMPLETED`, rollbackTime);
       return true;
-
     } catch (error) {
       const rollbackTime = performance.now() - startTime;
       this.metrics.rollbackTime = rollbackTime;
@@ -239,12 +258,12 @@ class AutomatedRollbackSystem {
 
       // Wait for services to stabilize (10 seconds max)
       this.logProgress('⏳ Waiting for services to stabilize...');
-      await new Promise(resolve => setTimeout(resolve, 10000));
+      await new Promise((resolve) => setTimeout(resolve, 10000));
 
       // Health endpoint validation
       const healthEndpoints = [
         'http://localhost:3000/api/health',
-        'http://localhost:4000/api/health'
+        'http://localhost:4000/api/health',
       ];
 
       for (const endpoint of healthEndpoints) {
@@ -259,10 +278,13 @@ class AutomatedRollbackSystem {
 
       // Container status validation
       try {
-        const containerStatus = await this.executeCommand('docker ps --format "table {{.Names}}\\t{{.Status}}"', 10000);
-        const unhealthyContainers = containerStatus.split('\n').filter(line => 
-          line.includes('unhealthy') || line.includes('Restarting')
-        ).length;
+        const containerStatus = await this.executeCommand(
+          'docker ps --format "table {{.Names}}\\t{{.Status}}"',
+          10000,
+        );
+        const unhealthyContainers = containerStatus
+          .split('\n')
+          .filter((line) => line.includes('unhealthy') || line.includes('Restarting')).length;
 
         if (unhealthyContainers === 0) {
           validationResults.push('Container status: ✅ ALL HEALTHY');
@@ -286,9 +308,12 @@ class AutomatedRollbackSystem {
 
       // Performance validation
       try {
-        const responseTime = await this.executeCommand('curl -o /dev/null -s -w "%{time_total}" http://localhost:3000/api/health', 10000);
+        const responseTime = await this.executeCommand(
+          'curl -o /dev/null -s -w "%{time_total}" http://localhost:3000/api/health',
+          10000,
+        );
         const responseTimeMs = parseFloat(responseTime) * 1000;
-        
+
         if (responseTimeMs < 1000) {
           validationResults.push(`Response time: ✅ ${responseTimeMs.toFixed(0)}ms`);
         } else {
@@ -302,13 +327,12 @@ class AutomatedRollbackSystem {
 
       const validationTime = performance.now() - startTime;
       this.metrics.validationTime = validationTime;
-      
+
       this.logProgress(`🔍 Rollback Validation Results:`, validationTime);
-      validationResults.forEach(result => console.log(`   ${result}`));
+      validationResults.forEach((result) => console.log(`   ${result}`));
       this.logProgress(`📊 Validation Score: ${validationScore}/100`);
 
       return validationScore >= 75; // Minimum 75% for successful rollback
-
     } catch (error) {
       const validationTime = performance.now() - startTime;
       this.metrics.validationTime = validationTime;
@@ -331,7 +355,7 @@ class AutomatedRollbackSystem {
         validationTime: this.metrics.validationTime || 0,
         totalRecoveryTime: totalRecoveryTime,
         recoveryTimeTarget: 60000, // 60 seconds
-        recoveryTimeAchieved: totalRecoveryTime < 60000
+        recoveryTimeAchieved: totalRecoveryTime < 60000,
       },
       success: this.metrics.success || false,
       actions: [
@@ -339,19 +363,19 @@ class AutomatedRollbackSystem {
         'Emergency rollback executed',
         'Previous stable state restored',
         'System health validated',
-        'Incident report generated'
+        'Incident report generated',
       ],
       recommendations: [
         'Investigate root cause of deployment failure',
         'Review and improve deployment validation',
         'Update deployment procedures based on findings',
-        'Schedule post-incident review meeting'
-      ]
+        'Schedule post-incident review meeting',
+      ],
     };
 
     const reportPath = `./rollback-incident-${this.deploymentId}.json`;
     fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
-    
+
     console.log('\n' + '='.repeat(50));
     console.log('📋 AUTOMATED ROLLBACK INCIDENT REPORT');
     console.log('='.repeat(50));
@@ -360,8 +384,10 @@ class AutomatedRollbackSystem {
     console.log(`⚡ Rollback Time: ${(report.metrics.rollbackTime / 1000).toFixed(2)}s`);
     console.log(`🔍 Validation Time: ${(report.metrics.validationTime / 1000).toFixed(2)}s`);
     console.log(`🎯 Total Recovery: ${(totalRecoveryTime / 1000).toFixed(2)}s`);
-    
-    const status = report.metrics.recoveryTimeAchieved ? '✅ TARGET ACHIEVED' : '⚠️ TARGET EXCEEDED';
+
+    const status = report.metrics.recoveryTimeAchieved
+      ? '✅ TARGET ACHIEVED'
+      : '⚠️ TARGET EXCEEDED';
     console.log(`📊 Recovery Target: ${status} (<60s)`);
     console.log(`📄 Report saved: ${reportPath}`);
   }
@@ -369,10 +395,10 @@ class AutomatedRollbackSystem {
   async executeEmergencyRollback(): Promise<void> {
     try {
       console.log('🚨 EMERGENCY ROLLBACK SEQUENCE INITIATED');
-      
+
       // Step 1: Detect failure
       const failureDetected = await this.detectFailure();
-      
+
       if (!failureDetected) {
         console.log('✅ No failure detected - rollback not needed');
         return;
@@ -380,7 +406,7 @@ class AutomatedRollbackSystem {
 
       // Step 2: Execute rollback
       const rollbackSuccess = await this.executeRollback();
-      
+
       if (!rollbackSuccess) {
         console.log('💥 ROLLBACK FAILED - MANUAL INTERVENTION REQUIRED');
         process.exit(1);
@@ -388,7 +414,7 @@ class AutomatedRollbackSystem {
 
       // Step 3: Validate rollback
       const validationSuccess = await this.validateRollback();
-      
+
       this.metrics.success = validationSuccess;
 
       if (validationSuccess) {
@@ -401,7 +427,6 @@ class AutomatedRollbackSystem {
       await this.generateIncidentReport();
 
       process.exit(validationSuccess ? 0 : 1);
-
     } catch (error) {
       console.error('💥 Emergency rollback system failure:', error);
       process.exit(1);
@@ -413,7 +438,7 @@ class AutomatedRollbackSystem {
 if (require.main === module) {
   const deploymentId = process.argv[2];
   const environment = process.argv[3] || 'production';
-  
+
   const rollbackSystem = new AutomatedRollbackSystem(deploymentId, environment);
   rollbackSystem.executeEmergencyRollback();
 }

@@ -28,17 +28,16 @@ async function globalTeardown(config: FullConfig): Promise<void> {
     await dbHelpers.disconnect();
 
     console.log('✅ Global teardown completed successfully!');
-
   } catch (error) {
     console.error('❌ Global teardown failed:', error);
-    
+
     // Try to cleanup critical resources even if other steps failed
     try {
       await dbHelpers.disconnect();
     } catch (cleanupError) {
       console.error('Failed to cleanup database connection:', cleanupError);
     }
-    
+
     // Don't throw the error to avoid masking test results
     console.warn('⚠️ Some teardown steps failed, but continuing...');
   }
@@ -61,7 +60,6 @@ async function cleanupTestData(): Promise<void> {
     console.log('  📊 Database stats after cleanup:', statsAfter);
 
     console.log('  ✅ Test data cleanup completed');
-
   } catch (error) {
     console.error('  ❌ Failed to clean test data:', error);
     throw error;
@@ -73,7 +71,7 @@ async function cleanupTestData(): Promise<void> {
  */
 async function generateTestReport(): Promise<void> {
   const fs = require('fs').promises;
-  
+
   try {
     const testConfig = getTestConfig('e2e');
     const report = {
@@ -85,8 +83,8 @@ async function generateTestReport(): Promise<void> {
       cleanup: {
         testDataCleaned: true,
         screenshotsCleaned: false,
-        downloadsCleaned: false
-      }
+        downloadsCleaned: false,
+      },
     };
 
     // Write report
@@ -94,7 +92,6 @@ async function generateTestReport(): Promise<void> {
     await fs.writeFile(reportPath, JSON.stringify(report, null, 2));
 
     console.log('  ✅ Test report generated:', reportPath);
-
   } catch (error) {
     console.warn('  ⚠️ Failed to generate test report:', error);
   }
@@ -112,19 +109,19 @@ async function cleanupTestFiles(): Promise<void> {
       {
         name: 'Screenshots',
         path: 'tests/e2e/screenshots',
-        keepLatest: 5
+        keepLatest: 5,
       },
       {
         name: 'Downloads',
         path: 'tests/e2e/downloads',
-        keepLatest: 0 // Clean all downloads
-      }
+        keepLatest: 0, // Clean all downloads
+      },
     ];
 
     for (const task of cleanupTasks) {
       try {
         const files = await fs.readdir(task.path).catch(() => []);
-        
+
         if (files.length > task.keepLatest) {
           // Sort files by modification time
           const fileStats = await Promise.all(
@@ -132,7 +129,7 @@ async function cleanupTestFiles(): Promise<void> {
               const filePath = path.join(task.path, file);
               const stat = await fs.stat(filePath);
               return { file, path: filePath, mtime: stat.mtime };
-            })
+            }),
           );
 
           // Sort by modification time (oldest first)
@@ -140,19 +137,17 @@ async function cleanupTestFiles(): Promise<void> {
 
           // Remove oldest files
           const filesToRemove = fileStats.slice(0, fileStats.length - task.keepLatest);
-          
+
           for (const fileToRemove of filesToRemove) {
             await fs.unlink(fileToRemove.path);
           }
 
           console.log(`  ✅ Cleaned ${filesToRemove.length} ${task.name.toLowerCase()} files`);
         }
-
       } catch (error) {
         console.warn(`  ⚠️ Failed to clean ${task.name.toLowerCase()}:`, error);
       }
     }
-
   } catch (error) {
     console.warn('  ⚠️ Failed to cleanup test files:', error);
   }

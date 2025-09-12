@@ -6,19 +6,23 @@
 **Phase:** 1 (Week 2)
 
 ## Objective
+
 Create a first-run detection system that allows initial admin setup with temporary credentials (admin/admin), forces password change on first login, and establishes the admin role assignment system.
 
 ## Background
+
 On fresh installation, there needs to be a way to bootstrap the first admin user before Plex OAuth is configured. This temporary access allows the admin to set up service configurations.
 
 ## Detailed Requirements
 
 ### 1. First-Run Detection
+
 - Check if any users exist in database
 - If no users, enable bootstrap mode
 - Show admin setup screen instead of normal login
 
 ### 2. Bootstrap Login Flow
+
 - **Route:** `/auth/admin-setup`
 - **Credentials:** admin/admin (hardcoded for first run only)
 - **Process:**
@@ -30,16 +34,18 @@ On fresh installation, there needs to be a way to bootstrap the first admin user
   6. Disable bootstrap mode
 
 ### 3. Admin User Creation
+
 - Create user with role='admin'
 - Generate secure user ID
 - Store hashed password (bcrypt)
 - Set flag requiring Plex link on next login
 
 ### 4. Role Management System
+
 ```typescript
 enum UserRole {
   ADMIN = 'admin',
-  USER = 'user'
+  USER = 'user',
 }
 
 // Middleware for role checking
@@ -56,6 +62,7 @@ export const requireAdmin = (handler) => {
 ## Technical Implementation Details
 
 ### Database Changes
+
 ```sql
 -- Add to users table
 ALTER TABLE users ADD COLUMN password_hash VARCHAR(255);
@@ -64,6 +71,7 @@ ALTER TABLE users ADD COLUMN is_bootstrap_user BOOLEAN DEFAULT false;
 ```
 
 ### First-Run Detection Service
+
 ```typescript
 // services/firstRunService.ts
 export class FirstRunService {
@@ -71,10 +79,10 @@ export class FirstRunService {
     const userCount = await prisma.user.count();
     return userCount === 0;
   }
-  
+
   async createBootstrapAdmin(newPassword: string): Promise<User> {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    
+
     return await prisma.user.create({
       data: {
         id: generateUUID(),
@@ -84,14 +92,15 @@ export class FirstRunService {
         role: 'admin',
         password_hash: hashedPassword,
         is_bootstrap_user: true,
-        status: 'active'
-      }
+        status: 'active',
+      },
     });
   }
 }
 ```
 
 ### UI Components Required
+
 1. **First Run Detection Component**
    - Check on app load
    - Redirect to setup if needed
@@ -108,6 +117,7 @@ export class FirstRunService {
    - First user invitation
 
 ## Acceptance Criteria
+
 1. ✅ First run correctly detected when no users exist
 2. ✅ Admin/admin login works only on first run
 3. ✅ Password change is mandatory after bootstrap login
@@ -118,6 +128,7 @@ export class FirstRunService {
 8. ✅ Clear instructions displayed during setup
 
 ## Testing Requirements
+
 1. **Unit Tests:**
    - First run detection logic
    - Password hashing and validation
@@ -129,6 +140,7 @@ export class FirstRunService {
    - Bootstrap mode disabling
 
 ## Security Considerations
+
 - Bootstrap mode only available when database is empty
 - admin/admin credentials hardcoded but only work once
 - Force strong password on change (min 12 chars, complexity)
@@ -136,12 +148,14 @@ export class FirstRunService {
 - Session invalidation after password change
 
 ## Error Handling
+
 - Database connection issues: Clear error message
 - Weak password: Show requirements
 - Bootstrap already complete: Redirect to normal login
 - Failed password change: Roll back user creation
 
 ## UI/UX Flow
+
 ```
 1. User visits app for first time
 2. System detects no users
@@ -154,6 +168,7 @@ export class FirstRunService {
 ```
 
 ## File Structure
+
 ```
 app/
 ├── (auth)/
@@ -170,24 +185,29 @@ middleware/
 ```
 
 ## Dependencies
+
 - `bcryptjs` - Password hashing
 - `zod` - Password validation schema
 
 ## References
+
 - Security best practices for default credentials
 - OWASP guidelines for password policies
 
 ## Status
+
 - [ ] Not Started
 - [ ] In Progress
 - [x] Completed
 - [ ] Blocked
 
 ## Completion Review
+
 **Date:** July 4, 2025
 **Reviewer:** Claude Code
 
 ### Acceptance Criteria Review:
+
 1. ✅ **First run correctly detected when no users exist** - `isFirstRun()` function in auth.config.ts
 2. ✅ **Admin/admin login works only on first run** - CredentialsProvider only added when userCount === 0
 3. ✅ **Password change is mandatory after bootstrap login** - `requiresPasswordChange: true` flag set
@@ -198,6 +218,7 @@ middleware/
 8. ✅ **Clear instructions displayed during setup** - Sign-in page shows admin setup option
 
 ### Implementation Details:
+
 - First-run detection via Prisma user count check
 - Dynamic NextAuth provider configuration
 - Admin bootstrap credentials provider with hardcoded validation
@@ -207,6 +228,7 @@ middleware/
 - Session includes role for authorization checks
 
 ### Notes:
+
 - Password hashing handled by bcryptjs
 - Admin user created with email `admin@medianest.local`
 - Password change endpoint validates and updates user

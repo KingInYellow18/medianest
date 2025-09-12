@@ -6,33 +6,39 @@
 **Phase:** 0 (Week 1 - Day 3)
 
 ## Objective
+
 **Status:** ✅ Complete
 
 Configure GitHub Actions for automated testing, set up branch protection rules, configure automated dependency updates with Dependabot, establish code coverage reporting, and create PR templates and contributing guidelines.
 
 ## Background
+
 A robust CI/CD pipeline ensures code quality, prevents regressions, and automates repetitive tasks. This setup will catch issues early and maintain high code standards throughout development.
 
 ## Detailed Requirements
 
 ### 1. GitHub Actions Workflows
+
 - Main CI workflow for tests and linting
 - Docker build verification
 - Dependency security scanning
 - Code coverage reporting
 
 ### 2. Branch Protection
+
 - Require PR reviews
 - Require status checks
 - Prevent force pushes
 - Enforce linear history
 
 ### 3. Automated Updates
+
 - Dependabot for npm packages
 - Security vulnerability alerts
 - Automated PR creation
 
 ### 4. Documentation
+
 - PR template
 - Issue templates
 - Contributing guidelines
@@ -41,6 +47,7 @@ A robust CI/CD pipeline ensures code quality, prevents regressions, and automate
 ## Technical Implementation Details
 
 ### Main CI Workflow (.github/workflows/ci.yml)
+
 ```yaml
 name: CI
 
@@ -245,6 +252,7 @@ jobs:
 ```
 
 ### PR Check Workflow (.github/workflows/pr-check.yml)
+
 ```yaml
 name: PR Check
 
@@ -292,73 +300,77 @@ jobs:
 ```
 
 ### Dependabot Configuration (.github/dependabot.yml)
+
 ```yaml
 version: 2
 updates:
   # Root package.json
-  - package-ecosystem: "npm"
-    directory: "/"
+  - package-ecosystem: 'npm'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "03:00"
+      interval: 'weekly'
+      day: 'monday'
+      time: '03:00'
     open-pull-requests-limit: 5
     groups:
       development-dependencies:
         patterns:
-          - "@types/*"
-          - "eslint*"
-          - "prettier*"
-          - "*test*"
+          - '@types/*'
+          - 'eslint*'
+          - 'prettier*'
+          - '*test*'
 
   # Frontend dependencies
-  - package-ecosystem: "npm"
-    directory: "/frontend"
+  - package-ecosystem: 'npm'
+    directory: '/frontend'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "03:00"
+      interval: 'weekly'
+      day: 'monday'
+      time: '03:00'
     open-pull-requests-limit: 5
     groups:
       next-ecosystem:
         patterns:
-          - "next"
-          - "@next/*"
-          - "react"
-          - "react-dom"
+          - 'next'
+          - '@next/*'
+          - 'react'
+          - 'react-dom'
 
   # Backend dependencies
-  - package-ecosystem: "npm"
-    directory: "/backend"
+  - package-ecosystem: 'npm'
+    directory: '/backend'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "03:00"
+      interval: 'weekly'
+      day: 'monday'
+      time: '03:00'
     open-pull-requests-limit: 5
 
   # Docker dependencies
-  - package-ecosystem: "docker"
-    directory: "/"
+  - package-ecosystem: 'docker'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "03:00"
+      interval: 'weekly'
+      day: 'monday'
+      time: '03:00'
 
   # GitHub Actions
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: 'github-actions'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "03:00"
+      interval: 'weekly'
+      day: 'monday'
+      time: '03:00'
 ```
 
 ### PR Template (.github/pull_request_template.md)
+
 ```markdown
 ## Description
+
 Brief description of the changes in this PR.
 
 ## Type of Change
+
 - [ ] Bug fix (non-breaking change which fixes an issue)
 - [ ] New feature (non-breaking change which adds functionality)
 - [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
@@ -367,15 +379,18 @@ Brief description of the changes in this PR.
 - [ ] Code refactoring
 
 ## Related Issue
+
 Fixes #(issue number)
 
 ## How Has This Been Tested?
+
 - [ ] Unit tests
 - [ ] Integration tests
 - [ ] Manual testing
 - [ ] E2E tests
 
 ## Checklist
+
 - [ ] My code follows the style guidelines of this project
 - [ ] I have performed a self-review of my own code
 - [ ] I have commented my code, particularly in hard-to-understand areas
@@ -386,15 +401,18 @@ Fixes #(issue number)
 - [ ] Any dependent changes have been merged and published
 
 ## Screenshots (if appropriate)
+
 Add screenshots here if UI changes are involved.
 
 ## Additional Notes
+
 Any additional information that reviewers should know.
 ```
 
 ### Issue Templates
 
 #### Bug Report (.github/ISSUE_TEMPLATE/bug_report.md)
+
 ```markdown
 ---
 name: Bug report
@@ -405,31 +423,39 @@ assignees: ''
 ---
 
 ## Bug Description
+
 A clear and concise description of what the bug is.
 
 ## To Reproduce
+
 Steps to reproduce the behavior:
+
 1. Go to '...'
 2. Click on '....'
 3. Scroll down to '....'
 4. See error
 
 ## Expected Behavior
+
 A clear and concise description of what you expected to happen.
 
 ## Screenshots
+
 If applicable, add screenshots to help explain your problem.
 
 ## Environment
+
 - OS: [e.g. macOS, Windows, Linux]
 - Browser: [e.g. Chrome, Firefox, Safari]
 - Version: [e.g. 1.0.0]
 
 ## Additional Context
+
 Add any other context about the problem here.
 ```
 
 #### Feature Request (.github/ISSUE_TEMPLATE/feature_request.md)
+
 ```markdown
 ---
 name: Feature request
@@ -440,40 +466,49 @@ assignees: ''
 ---
 
 ## Is your feature request related to a problem? Please describe.
+
 A clear and concise description of what the problem is.
 
 ## Describe the solution you'd like
+
 A clear and concise description of what you want to happen.
 
 ## Describe alternatives you've considered
+
 A clear and concise description of any alternative solutions or features you've considered.
 
 ## Additional context
+
 Add any other context or screenshots about the feature request here.
 ```
 
 ### Contributing Guidelines (CONTRIBUTING.md)
+
 ```markdown
 # Contributing to MediaNest
 
-First off, thank you for considering contributing to MediaNest! 
+First off, thank you for considering contributing to MediaNest!
 
 ## Code of Conduct
+
 This project and everyone participating in it is governed by our Code of Conduct. By participating, you are expected to uphold this code.
 
 ## How Can I Contribute?
 
 ### Reporting Bugs
+
 - Use the bug report template
 - Include as much detail as possible
 - Include steps to reproduce
 
 ### Suggesting Features
+
 - Use the feature request template
 - Explain the problem it solves
 - Consider the project scope
 
 ### Pull Requests
+
 1. Fork the repo and create your branch from `develop`
 2. If you've added code that should be tested, add tests
 3. Ensure the test suite passes
@@ -481,6 +516,7 @@ This project and everyone participating in it is governed by our Code of Conduct
 5. Issue that pull request!
 
 ## Development Process
+
 1. Clone the repository
 2. Install dependencies: `npm install`
 3. Start development: `npm run dev`
@@ -491,21 +527,25 @@ This project and everyone participating in it is governed by our Code of Conduct
 8. Push and create a PR
 
 ## Style Guide
+
 - Follow the ESLint configuration
 - Use Prettier for formatting
 - Write meaningful commit messages
 - Add JSDoc comments for public APIs
 
 ## Testing
+
 - Write tests for new features
 - Maintain test coverage above 70%
 - Run `npm test` before committing
 
 ## Questions?
+
 Feel free to open an issue with your question!
 ```
 
 ### Branch Protection Settings (via GitHub UI)
+
 ```
 Main Branch Protection:
 - Require pull request reviews (1 approval)
@@ -530,6 +570,7 @@ Develop Branch Protection:
 ```
 
 ## Acceptance Criteria
+
 1. ✅ CI workflow runs on all PRs
 2. ✅ Tests run automatically
 3. ✅ Linting enforced
@@ -540,6 +581,7 @@ Develop Branch Protection:
 8. ✅ Code coverage reported
 
 ## Testing Requirements
+
 1. Create a test PR and verify workflows run
 2. Check that failing tests block merge
 3. Verify Dependabot configuration
@@ -547,6 +589,7 @@ Develop Branch Protection:
 5. Confirm branch protection works
 
 ## Setup Commands
+
 ```bash
 # Create workflow directories
 mkdir -p .github/workflows
@@ -564,22 +607,26 @@ echo "![CI](https://github.com/your-username/medianest/workflows/CI/badge.svg)" 
 ```
 
 ## Common Issues & Solutions
+
 1. **Workflows not running**: Check file permissions and YAML syntax
 2. **Service containers failing**: Ensure health checks are correct
 3. **Coverage not uploading**: Verify Codecov token is set
 4. **Dependabot not working**: Check configuration syntax
 
 ## Next Steps
+
 - Complete Phase 0 documentation
 - Begin Phase 1 implementation
 - Set up monitoring for CI/CD
 
 ## Completion Notes
+
 - Completed on: July 4, 2025
 - All acceptance criteria met
 - Ready for production use
 
 ## References
+
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
 - [Dependabot Configuration](https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file)
 - [Branch Protection Rules](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/defining-the-mergeability-of-pull-requests/about-protected-branches)

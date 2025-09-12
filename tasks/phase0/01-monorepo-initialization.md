@@ -8,15 +8,19 @@
 **Phase:** 0 (Week 1 - Day 1)
 
 ## Objective
+
 Initialize the MediaNest monorepo with proper directory structure, configure Node.js environment, set up TypeScript for both frontend and backend, and establish shared configuration files.
 
 ## Background
+
 A well-organized monorepo structure is essential for maintaining code quality and developer experience. This task establishes the foundation for all future development.
 
 ## Detailed Requirements
 
 ### 1. Directory Structure Creation
+
 Create the complete project structure as defined in the architecture:
+
 ```
 medianest/
 ├── frontend/          # Next.js 14 application
@@ -30,16 +34,19 @@ medianest/
 ```
 
 ### 2. Root Package.json Configuration
+
 - Set up workspaces for monorepo management
 - Configure scripts for running frontend/backend
 - Add common development dependencies
 
 ### 3. Node.js Environment Setup
+
 - Ensure Node.js 20.x LTS is used
 - Create .nvmrc file
 - Set up .node-version for other version managers
 
 ### 4. Git Configuration
+
 - Initialize git repository (already done)
 - Create comprehensive .gitignore
 - Set up .gitattributes for line endings
@@ -47,16 +54,13 @@ medianest/
 ## Technical Implementation Details
 
 ### Root package.json
+
 ```json
 {
   "name": "medianest",
   "version": "1.0.0",
   "private": true,
-  "workspaces": [
-    "frontend",
-    "backend",
-    "shared"
-  ],
+  "workspaces": ["frontend", "backend", "shared"],
   "scripts": {
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:frontend": "npm run dev --workspace=frontend",
@@ -86,6 +90,7 @@ medianest/
 ```
 
 ### Frontend package.json
+
 ```json
 {
   "name": "@medianest/frontend",
@@ -102,6 +107,7 @@ medianest/
 ```
 
 ### Backend package.json
+
 ```json
 {
   "name": "@medianest/backend",
@@ -118,6 +124,7 @@ medianest/
 ```
 
 ### Shared package.json
+
 ```json
 {
   "name": "@medianest/shared",
@@ -133,6 +140,7 @@ medianest/
 ```
 
 ### .gitignore
+
 ```gitignore
 # Dependencies
 node_modules/
@@ -183,11 +191,13 @@ Thumbs.db
 ```
 
 ### .nvmrc
+
 ```
 20.11.0
 ```
 
 ### Directory Creation Script
+
 ```bash
 #!/bin/bash
 # scripts/init-structure.sh
@@ -212,6 +222,7 @@ echo "Directory structure created successfully!"
 ```
 
 ## Acceptance Criteria
+
 1. ✅ All directories created according to structure
 2. ✅ Workspace configuration working (npm install works)
 3. ✅ Node.js version locked to 20.x
@@ -221,12 +232,14 @@ echo "Directory structure created successfully!"
 7. ✅ Clean script removes all build artifacts
 
 ## Testing Requirements
+
 - Verify `npm install` installs all workspace dependencies
 - Confirm `npm run dev` would start both services (once configured)
 - Check that git ignores appropriate files
 - Ensure Node.js version is enforced
 
 ## Commands to Execute
+
 ```bash
 # 1. Create directory structure
 bash scripts/init-structure.sh
@@ -243,16 +256,20 @@ npm install
 ```
 
 ## Dependencies
+
 - Node.js 20.x LTS
 - npm 10.x or higher
 - Git
 
 ## Next Steps
+
 After this task:
+
 1. Configure TypeScript (task 02)
 2. Set up ESLint and Prettier (task 03)
 3. Initialize Next.js and Express (task 04)
 
 ## References
+
 - [npm Workspaces Documentation](https://docs.npmjs.com/cli/v10/using-npm/workspaces)
 - [Node.js Best Practices](https://github.com/goldbergyoni/nodebestpractices)

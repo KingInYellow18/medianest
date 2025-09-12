@@ -1,6 +1,6 @@
 /**
  * AUTH API INTEGRATION TESTS
- * 
+ *
  * Comprehensive integration tests for authentication endpoints covering:
  * - Complete authentication workflows
  * - End-to-end token management
@@ -57,10 +57,7 @@ describe('Auth API Integration Tests', () => {
       const bcrypt = await import('bcrypt');
       vi.mocked(bcrypt.compare).mockResolvedValue(true);
 
-      const response = await request(app)
-        .post('/api/auth/login')
-        .send(loginData)
-        .expect(200);
+      const response = await request(app).post('/api/auth/login').send(loginData).expect(200);
 
       expect(response.body).toMatchObject({
         success: true,
@@ -93,10 +90,7 @@ describe('Auth API Integration Tests', () => {
       // Mock user not found
       userMockHelpers.mockUserNotFound();
 
-      const response = await request(app)
-        .post('/api/auth/login')
-        .send(loginData)
-        .expect(401);
+      const response = await request(app).post('/api/auth/login').send(loginData).expect(401);
 
       expect(response.body).toMatchObject({
         success: false,
@@ -120,10 +114,7 @@ describe('Auth API Integration Tests', () => {
 
       userMockHelpers.mockFindUserByEmail(loginData.email, inactiveUser);
 
-      const response = await request(app)
-        .post('/api/auth/login')
-        .send(loginData)
-        .expect(403);
+      const response = await request(app).post('/api/auth/login').send(loginData).expect(403);
 
       expect(response.body).toMatchObject({
         success: false,
@@ -145,10 +136,7 @@ describe('Auth API Integration Tests', () => {
       ];
 
       for (const invalidData of invalidRequests) {
-        const response = await request(app)
-          .post('/api/auth/login')
-          .send(invalidData)
-          .expect(400);
+        const response = await request(app).post('/api/auth/login').send(invalidData).expect(400);
 
         expect(response.body).toMatchObject({
           success: false,
@@ -172,10 +160,7 @@ describe('Auth API Integration Tests', () => {
       const bcrypt = await import('bcrypt');
       vi.mocked(bcrypt.compare).mockResolvedValue(true);
 
-      const response = await request(app)
-        .post('/api/auth/login')
-        .send(loginData)
-        .expect(200);
+      const response = await request(app).post('/api/auth/login').send(loginData).expect(200);
 
       // Should receive tokens with longer expiry (verified in JWT generation logic)
       expect(response.body.data.tokens.accessToken).toBeDefined();
@@ -195,16 +180,14 @@ describe('Auth API Integration Tests', () => {
       userMockHelpers.mockUserNotFound();
 
       // Make multiple rapid requests
-      const promises = Array(6).fill(0).map(() =>
-        request(app)
-          .post('/api/auth/login')
-          .send(loginData)
-      );
+      const promises = Array(6)
+        .fill(0)
+        .map(() => request(app).post('/api/auth/login').send(loginData));
 
       const responses = await Promise.all(promises);
 
       // At least one should be rate limited
-      const rateLimitedResponse = responses.find(r => r.status === 429);
+      const rateLimitedResponse = responses.find((r) => r.status === 429);
       expect(rateLimitedResponse).toBeDefined();
 
       if (rateLimitedResponse) {
@@ -236,9 +219,7 @@ describe('Auth API Integration Tests', () => {
     });
 
     it('should return 401 for missing token', async () => {
-      const response = await request(app)
-        .post('/api/auth/logout')
-        .expect(401);
+      const response = await request(app).post('/api/auth/logout').expect(401);
 
       expect(response.body).toMatchObject({
         success: false,
@@ -308,10 +289,7 @@ describe('Auth API Integration Tests', () => {
     });
 
     it('should return 400 for missing refresh token', async () => {
-      const response = await request(app)
-        .post('/api/auth/refresh')
-        .send({})
-        .expect(400);
+      const response = await request(app).post('/api/auth/refresh').send({}).expect(400);
 
       expect(response.body).toMatchObject({
         success: false,
@@ -351,9 +329,7 @@ describe('Auth API Integration Tests', () => {
     });
 
     it('should return 401 for unauthenticated request', async () => {
-      const response = await request(app)
-        .get('/api/auth/profile')
-        .expect(401);
+      const response = await request(app).get('/api/auth/profile').expect(401);
 
       expect(response.body).toMatchObject({
         success: false,
@@ -420,10 +396,7 @@ describe('Auth API Integration Tests', () => {
     });
 
     it('should return 400 for missing token', async () => {
-      const response = await request(app)
-        .post('/api/auth/validate-token')
-        .send({})
-        .expect(400);
+      const response = await request(app).post('/api/auth/validate-token').send({}).expect(400);
 
       expect(response.body).toMatchObject({
         success: false,
@@ -438,7 +411,7 @@ describe('Auth API Integration Tests', () => {
     it('should change password successfully', async () => {
       const user = createMockUser();
       const token = jwtTestHelpers.createValidToken({ userId: user.id });
-      
+
       const passwordData = {
         currentPassword: 'OldPassword123!',
         newPassword: 'NewPassword123!',
@@ -474,7 +447,7 @@ describe('Auth API Integration Tests', () => {
     it('should return 400 for incorrect current password', async () => {
       const user = createMockUser();
       const token = jwtTestHelpers.createValidToken({ userId: user.id });
-      
+
       const passwordData = {
         currentPassword: 'WrongPassword123!',
         newPassword: 'NewPassword123!',
@@ -504,7 +477,7 @@ describe('Auth API Integration Tests', () => {
     it('should return 400 for password confirmation mismatch', async () => {
       const user = createMockUser();
       const token = jwtTestHelpers.createValidToken({ userId: user.id });
-      
+
       const passwordData = {
         currentPassword: 'OldPassword123!',
         newPassword: 'NewPassword123!',
@@ -548,9 +521,7 @@ describe('Auth API Integration Tests', () => {
 
   describe('Security Headers and CORS', () => {
     it('should include security headers in responses', async () => {
-      const response = await request(app)
-        .get('/api/auth/profile')
-        .expect(401);
+      const response = await request(app).get('/api/auth/profile').expect(401);
 
       // Check for common security headers
       expect(response.headers).toHaveProperty('x-content-type-options', 'nosniff');
@@ -589,10 +560,8 @@ describe('Auth API Integration Tests', () => {
     it('should handle database connection errors', async () => {
       // Mock database connection failure
       const { errorMockHelpers } = await import('../../mocks/prisma-mock');
-      
-      userMockHelpers.mockFindUserByEmail.mockRejectedValue(
-        errorMockHelpers.mockConnectionError()
-      );
+
+      userMockHelpers.mockFindUserByEmail.mockRejectedValue(errorMockHelpers.mockConnectionError());
 
       const response = await request(app)
         .post('/api/auth/login')

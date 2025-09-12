@@ -33,7 +33,7 @@ class DatabaseValidator {
     component: string,
     status: 'PASS' | 'WARN' | 'FAIL',
     message: string,
-    details?: any
+    details?: any,
   ) {
     this.results.push({ component, status, message, details });
 
@@ -89,10 +89,10 @@ class DatabaseValidator {
             WHERE table_name = $1 AND table_schema = 'public'
             ORDER BY ordinal_position
           `,
-            table
+            table,
           );
           return { table, columns: result };
-        })
+        }),
       );
 
       let passedTables = 0;
@@ -121,13 +121,13 @@ class DatabaseValidator {
         this.addResult(
           'SCHEMA_INTEGRITY',
           'PASS',
-          `All ${totalTables} tables validated successfully`
+          `All ${totalTables} tables validated successfully`,
         );
       } else {
         this.addResult(
           'SCHEMA_INTEGRITY',
           'WARN',
-          `${passedTables}/${totalTables} tables validated successfully`
+          `${passedTables}/${totalTables} tables validated successfully`,
         );
       }
     } catch (error) {
@@ -176,7 +176,7 @@ class DatabaseValidator {
           (fk) =>
             fk.table_name === expected.table &&
             fk.column_name === expected.column &&
-            fk.foreign_table_name === expected.foreign_table
+            fk.foreign_table_name === expected.foreign_table,
         );
 
         if (found) {
@@ -184,13 +184,13 @@ class DatabaseValidator {
           this.addResult(
             'FOREIGN_KEYS',
             'PASS',
-            `${expected.table}.${expected.column} → ${expected.foreign_table} validated`
+            `${expected.table}.${expected.column} → ${expected.foreign_table} validated`,
           );
         } else {
           this.addResult(
             'FOREIGN_KEYS',
             'FAIL',
-            `Missing foreign key: ${expected.table}.${expected.column} → ${expected.foreign_table}`
+            `Missing foreign key: ${expected.table}.${expected.column} → ${expected.foreign_table}`,
           );
         }
       });
@@ -201,7 +201,7 @@ class DatabaseValidator {
         this.addResult(
           'FOREIGN_KEY_INTEGRITY',
           'WARN',
-          `${validForeignKeys}/${expectedForeignKeys.length} foreign keys validated`
+          `${validForeignKeys}/${expectedForeignKeys.length} foreign keys validated`,
         );
       }
     } catch (error) {
@@ -253,7 +253,7 @@ class DatabaseValidator {
           totalIndexes: indexes.length,
           foundCritical: foundCriticalIndexes,
           expectedCritical: criticalIndexes.length,
-        }
+        },
       );
     } catch (error) {
       this.addResult('INDEX_VALIDATION', 'FAIL', 'Index validation failed', { error });
@@ -284,7 +284,7 @@ class DatabaseValidator {
           {
             appliedAt: latestMigration.applied_at,
             checksum: latestMigration.checksum,
-          }
+          },
         );
       } else {
         this.addResult('MIGRATIONS', 'WARN', 'No migration history found');
@@ -306,14 +306,14 @@ class DatabaseValidator {
         healthCheck.status === 'healthy'
           ? 'PASS'
           : healthCheck.status === 'warning'
-          ? 'WARN'
-          : 'FAIL',
+            ? 'WARN'
+            : 'FAIL',
         `Database health: ${healthCheck.status}`,
         {
           connectionTime: `${healthCheck.connectionTime}ms`,
           recommendations: healthCheck.recommendations,
           metrics: healthCheck.metrics,
-        }
+        },
       );
     } catch (error) {
       this.addResult('HEALTH_CHECK', 'FAIL', 'Database health check failed', { error });

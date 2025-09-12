@@ -3,7 +3,7 @@
 /**
  * 📱 REDIS PERFORMANCE BENCHMARK FOR MEDIANEST
  * =============================================
- * 
+ *
  * Comprehensive Redis cache performance testing and optimization analysis
  * Focuses on session storage, caching patterns, and memory efficiency
  * Target: >95% cache hit ratio, <5ms average response time, efficient memory usage
@@ -50,11 +50,11 @@ class RedisPerformanceBenchmark {
    */
   async runCompleteBenchmark() {
     console.log('📱 Redis Performance Benchmark Starting for MediaNest');
-    console.log('=' .repeat(60));
+    console.log('='.repeat(60));
 
     try {
       await this.initializeRedisConnection();
-      
+
       // Execute all benchmark components in parallel where possible
       await this.analyzeRedisConfiguration();
       await this.analyzeMemoryUsage();
@@ -67,7 +67,6 @@ class RedisPerformanceBenchmark {
 
       console.log('\n🎉 Redis Performance Benchmark Completed Successfully!');
       return this.results;
-
     } catch (error) {
       console.error('💥 Benchmark failed:', error);
       throw error;
@@ -81,7 +80,7 @@ class RedisPerformanceBenchmark {
    */
   async analyzeRedisConfiguration() {
     console.log('\n⚙️ Analyzing Redis Configuration...');
-    
+
     const configInfo = await this.client.configGet('*');
     const memoryInfo = await this.client.info('memory');
     const serverInfo = await this.client.info('server');
@@ -96,7 +95,7 @@ class RedisPerformanceBenchmark {
     // Parse info sections
     const parseInfo = (infoString) => {
       const info = {};
-      infoString.split('\r\n').forEach(line => {
+      infoString.split('\r\n').forEach((line) => {
         if (line.includes(':')) {
           const [key, value] = line.split(':');
           info[key] = value;
@@ -136,7 +135,7 @@ class RedisPerformanceBenchmark {
 
     const memoryInfo = await this.client.info('memory');
     const memory = {};
-    memoryInfo.split('\r\n').forEach(line => {
+    memoryInfo.split('\r\n').forEach((line) => {
       if (line.includes(':')) {
         const [key, value] = line.split(':');
         memory[key] = value;
@@ -144,13 +143,7 @@ class RedisPerformanceBenchmark {
     });
 
     // Get key distribution
-    const keyPatterns = [
-      'session:*',
-      'cache:*', 
-      'token:*',
-      'rate_limit:*',
-      'user:*',
-    ];
+    const keyPatterns = ['session:*', 'cache:*', 'token:*', 'rate_limit:*', 'user:*'];
 
     const keyDistribution = {};
     let totalKeys = 0;
@@ -206,12 +199,14 @@ class RedisPerformanceBenchmark {
 
     this.results.memoryAnalysis = memoryAnalysis;
 
-    console.log(`   💾 Memory Usage: ${memory.used_memory_human} / ${memoryAnalysis.maxMemoryHuman}`);
+    console.log(
+      `   💾 Memory Usage: ${memory.used_memory_human} / ${memoryAnalysis.maxMemoryHuman}`,
+    );
     console.log(`   📊 Usage Percentage: ${(memoryUsage * 100).toFixed(2)}%`);
     console.log(`   🔑 Total Keys: ${totalKeys}`);
     console.log(`   ♻️  Evicted Keys: ${memoryAnalysis.evictedKeys}`);
     console.log(`   ⏰ Expired Keys: ${memoryAnalysis.expiredKeys}`);
-    
+
     // Display key distribution
     Object.entries(keyDistribution).forEach(([pattern, count]) => {
       if (count > 0) {
@@ -229,13 +224,23 @@ class RedisPerformanceBenchmark {
     const operations = [
       { name: 'SET', operation: async (key, value) => await this.client.set(key, value) },
       { name: 'GET', operation: async (key) => await this.client.get(key) },
-      { name: 'HSET', operation: async (key, field, value) => await this.client.hSet(key, field, value) },
+      {
+        name: 'HSET',
+        operation: async (key, field, value) => await this.client.hSet(key, field, value),
+      },
       { name: 'HGET', operation: async (key, field) => await this.client.hGet(key, field) },
       { name: 'LPUSH', operation: async (key, value) => await this.client.lPush(key, value) },
       { name: 'LPOP', operation: async (key) => await this.client.lPop(key) },
       { name: 'SADD', operation: async (key, member) => await this.client.sAdd(key, member) },
-      { name: 'SISMEMBER', operation: async (key, member) => await this.client.sIsMember(key, member) },
-      { name: 'ZADD', operation: async (key, score, member) => await this.client.zAdd(key, { score, value: member }) },
+      {
+        name: 'SISMEMBER',
+        operation: async (key, member) => await this.client.sIsMember(key, member),
+      },
+      {
+        name: 'ZADD',
+        operation: async (key, score, member) =>
+          await this.client.zAdd(key, { score, value: member }),
+      },
       { name: 'ZRANGE', operation: async (key) => await this.client.zRange(key, 0, 9) },
     ];
 
@@ -244,7 +249,7 @@ class RedisPerformanceBenchmark {
 
     for (const op of operations) {
       console.log(`   Testing ${op.name}...`);
-      
+
       const times = [];
       const errors = [];
 
@@ -252,9 +257,9 @@ class RedisPerformanceBenchmark {
         const key = `${this.config.benchmark.keyPrefix}${op.name.toLowerCase()}_${i}`;
         const value = `value_${i}`;
         const field = `field_${i}`;
-        
+
         const startTime = performance.now();
-        
+
         try {
           switch (op.name) {
             case 'SET':
@@ -267,7 +272,10 @@ class RedisPerformanceBenchmark {
               await op.operation(key, field, value);
               break;
             case 'HGET':
-              await op.operation(`${this.config.benchmark.keyPrefix}hset_${i % 100}`, `field_${i % 100}`);
+              await op.operation(
+                `${this.config.benchmark.keyPrefix}hset_${i % 100}`,
+                `field_${i % 100}`,
+              );
               break;
             case 'LPUSH':
               await op.operation(key, value);
@@ -279,7 +287,10 @@ class RedisPerformanceBenchmark {
               await op.operation(key, value);
               break;
             case 'SISMEMBER':
-              await op.operation(`${this.config.benchmark.keyPrefix}sadd_${i % 100}`, `value_${i % 100}`);
+              await op.operation(
+                `${this.config.benchmark.keyPrefix}sadd_${i % 100}`,
+                `value_${i % 100}`,
+              );
               break;
             case 'ZADD':
               await op.operation(key, i, value);
@@ -288,10 +299,9 @@ class RedisPerformanceBenchmark {
               await op.operation(`${this.config.benchmark.keyPrefix}zadd_${i % 100}`);
               break;
           }
-          
+
           const endTime = performance.now();
           times.push(endTime - startTime);
-          
         } catch (error) {
           errors.push(error.message);
         }
@@ -301,7 +311,7 @@ class RedisPerformanceBenchmark {
       const minTime = times.length > 0 ? Math.min(...times) : 0;
       const maxTime = times.length > 0 ? Math.max(...times) : 0;
       const opsPerSecond = avgTime > 0 ? Math.round(1000 / avgTime) : 0;
-      
+
       // Calculate percentiles
       const sortedTimes = times.sort((a, b) => a - b);
       const p95 = sortedTimes.length > 0 ? sortedTimes[Math.floor(sortedTimes.length * 0.95)] : 0;
@@ -358,7 +368,7 @@ class RedisPerformanceBenchmark {
       await this.client.hSet(`session:${sessionId}`, sessionData);
       await this.client.expire(`session:${sessionId}`, 86400); // 24 hours
       const createTime = performance.now() - startTime;
-      
+
       sessionTimes.create.push(createTime);
       sessions.push(sessionId);
     }
@@ -418,10 +428,18 @@ class RedisPerformanceBenchmark {
     this.results.sessionStorageTest = sessionStorageResults;
 
     console.log(`   📊 Session Operations (${sessionCount} sessions):`);
-    console.log(`     CREATE: ${sessionStorageResults.create.avg}ms avg, ${sessionStorageResults.create.opsPerSecond} ops/sec`);
-    console.log(`     READ:   ${sessionStorageResults.read.avg}ms avg, ${sessionStorageResults.read.opsPerSecond} ops/sec`);
-    console.log(`     UPDATE: ${sessionStorageResults.update.avg}ms avg, ${sessionStorageResults.update.opsPerSecond} ops/sec`);
-    console.log(`     DELETE: ${sessionStorageResults.delete.avg}ms avg, ${sessionStorageResults.delete.opsPerSecond} ops/sec`);
+    console.log(
+      `     CREATE: ${sessionStorageResults.create.avg}ms avg, ${sessionStorageResults.create.opsPerSecond} ops/sec`,
+    );
+    console.log(
+      `     READ:   ${sessionStorageResults.read.avg}ms avg, ${sessionStorageResults.read.opsPerSecond} ops/sec`,
+    );
+    console.log(
+      `     UPDATE: ${sessionStorageResults.update.avg}ms avg, ${sessionStorageResults.update.opsPerSecond} ops/sec`,
+    );
+    console.log(
+      `     DELETE: ${sessionStorageResults.delete.avg}ms avg, ${sessionStorageResults.delete.opsPerSecond} ops/sec`,
+    );
   }
 
   /**
@@ -439,7 +457,7 @@ class RedisPerformanceBenchmark {
         size: 'medium',
       },
       {
-        name: 'Media Metadata Cache', 
+        name: 'Media Metadata Cache',
         pattern: 'cache:media:*',
         ttl: 7200, // 2 hours
         size: 'large',
@@ -497,7 +515,8 @@ class RedisPerformanceBenchmark {
       }
 
       // Get cache entries (simulate cache hits and misses)
-      for (let i = 0; i < testCount * 2; i++) { // Test more gets than sets
+      for (let i = 0; i < testCount * 2; i++) {
+        // Test more gets than sets
         const key = `${test.pattern.replace('*', i % testCount)}`;
         const startTime = performance.now();
         const result = await this.client.get(key);
@@ -527,7 +546,9 @@ class RedisPerformanceBenchmark {
         totalMisses: operations.miss,
       };
 
-      console.log(`     ${test.name}: SET ${avgSetTime.toFixed(2)}ms, GET ${avgGetTime.toFixed(2)}ms, Hit Ratio ${(hitRatio * 100).toFixed(2)}%`);
+      console.log(
+        `     ${test.name}: SET ${avgSetTime.toFixed(2)}ms, GET ${avgGetTime.toFixed(2)}ms, Hit Ratio ${(hitRatio * 100).toFixed(2)}%`,
+      );
 
       // Cleanup test data
       for (let i = 0; i < testCount; i++) {
@@ -549,7 +570,9 @@ class RedisPerformanceBenchmark {
     const operationsPerClient = this.config.benchmark.operationsPerClient;
     const testDuration = this.config.benchmark.testDuration;
 
-    console.log(`   🏋️  Stress test: ${concurrentClients} concurrent clients, ${operationsPerClient} ops each`);
+    console.log(
+      `   🏋️  Stress test: ${concurrentClients} concurrent clients, ${operationsPerClient} ops each`,
+    );
 
     const stressTestPromises = Array.from({ length: concurrentClients }, async (_, clientId) => {
       // Create a separate connection for each client
@@ -557,7 +580,7 @@ class RedisPerformanceBenchmark {
         url: this.config.redis.url,
         password: this.config.redis.password,
       });
-      
+
       await client.connect();
 
       const clientResults = {
@@ -598,14 +621,12 @@ class RedisPerformanceBenchmark {
             const opTime = performance.now() - opStartTime;
             clientResults.operationTimes.push(opTime);
             clientResults.operations++;
-
           } catch (error) {
             clientResults.errors++;
           }
         }
 
         clientResults.totalTime = performance.now() - startTime;
-
       } finally {
         await client.disconnect();
       }
@@ -618,15 +639,17 @@ class RedisPerformanceBenchmark {
     // Aggregate results
     const totalOperations = allResults.reduce((sum, result) => sum + result.operations, 0);
     const totalErrors = allResults.reduce((sum, result) => sum + result.errors, 0);
-    const allOperationTimes = allResults.flatMap(result => result.operationTimes);
-    
-    const avgOperationTime = allOperationTimes.length > 0 ? 
-      allOperationTimes.reduce((a, b) => a + b, 0) / allOperationTimes.length : 0;
-    
+    const allOperationTimes = allResults.flatMap((result) => result.operationTimes);
+
+    const avgOperationTime =
+      allOperationTimes.length > 0
+        ? allOperationTimes.reduce((a, b) => a + b, 0) / allOperationTimes.length
+        : 0;
+
     const sortedTimes = allOperationTimes.sort((a, b) => a - b);
     const p95Time = sortedTimes.length > 0 ? sortedTimes[Math.floor(sortedTimes.length * 0.95)] : 0;
     const p99Time = sortedTimes.length > 0 ? sortedTimes[Math.floor(sortedTimes.length * 0.99)] : 0;
-    
+
     const opsPerSecond = Math.round((totalOperations / testDuration) * 1000);
     const errorRate = (totalErrors / (totalOperations + totalErrors)) * 100;
 
@@ -640,12 +663,17 @@ class RedisPerformanceBenchmark {
       p99OperationTime: Math.round(p99Time * 100) / 100,
       operationsPerSecond: opsPerSecond,
       errorRate: Math.round(errorRate * 100) / 100,
-      clientResults: allResults.map(result => ({
+      clientResults: allResults.map((result) => ({
         clientId: result.clientId,
         operations: result.operations,
         errors: result.errors,
-        avgTime: result.operationTimes.length > 0 ? 
-          Math.round((result.operationTimes.reduce((a, b) => a + b, 0) / result.operationTimes.length) * 100) / 100 : 0,
+        avgTime:
+          result.operationTimes.length > 0
+            ? Math.round(
+                (result.operationTimes.reduce((a, b) => a + b, 0) / result.operationTimes.length) *
+                  100,
+              ) / 100
+            : 0,
       })),
     };
 
@@ -665,13 +693,13 @@ class RedisPerformanceBenchmark {
         url: this.config.redis.url,
         password: this.config.redis.password,
       });
-      
+
       await client.connect();
-      
+
       try {
         const keys = await client.keys(`stress:${result.clientId}:*`);
         const hashKeys = await client.keys(`hash_stress:${result.clientId}:*`);
-        
+
         if (keys.length > 0) {
           await client.del(keys);
         }
@@ -713,15 +741,17 @@ class RedisPerformanceBenchmark {
         category: 'Eviction Policy',
         priority: 'MEDIUM',
         issue: `High number of evicted keys: ${this.results.memoryAnalysis.evictedKeys}`,
-        recommendation: 'Review TTL settings and consider increasing memory or optimizing data size',
+        recommendation:
+          'Review TTL settings and consider increasing memory or optimizing data size',
         details: 'Frequent evictions can impact cache hit ratio',
         impact: 'Reduced cache effectiveness and increased database load',
       });
     }
 
     // Performance recommendations based on operation benchmarks
-    const avgOperationTime = Object.values(this.results.operationBenchmarks)
-      .reduce((sum, op) => sum + op.avgTime, 0) / Object.keys(this.results.operationBenchmarks).length;
+    const avgOperationTime =
+      Object.values(this.results.operationBenchmarks).reduce((sum, op) => sum + op.avgTime, 0) /
+      Object.keys(this.results.operationBenchmarks).length;
 
     if (avgOperationTime > 5) {
       recommendations.push({
@@ -770,8 +800,11 @@ class RedisPerformanceBenchmark {
     }
 
     // Cache pattern recommendations
-    const avgHitRatio = Object.values(this.results.cachePatternAnalysis)
-      .reduce((sum, pattern) => sum + pattern.hitRatio, 0) / Object.keys(this.results.cachePatternAnalysis).length;
+    const avgHitRatio =
+      Object.values(this.results.cachePatternAnalysis).reduce(
+        (sum, pattern) => sum + pattern.hitRatio,
+        0,
+      ) / Object.keys(this.results.cachePatternAnalysis).length;
 
     if (avgHitRatio < 85) {
       recommendations.push({
@@ -800,19 +833,19 @@ class RedisPerformanceBenchmark {
 
     // Display recommendations
     console.log('\n📋 REDIS PERFORMANCE RECOMMENDATIONS');
-    console.log('=' .repeat(50));
+    console.log('='.repeat(50));
 
-    const priorityOrder = { 'HIGH': 1, 'MEDIUM': 2, 'LOW': 3, 'INFO': 4 };
+    const priorityOrder = { HIGH: 1, MEDIUM: 2, LOW: 3, INFO: 4 };
     const sortedRecommendations = recommendations.sort(
-      (a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]
+      (a, b) => priorityOrder[a.priority] - priorityOrder[b.priority],
     );
 
     sortedRecommendations.forEach((rec, index) => {
       const priorityIcon = {
-        'HIGH': '🔴',
-        'MEDIUM': '🟡',
-        'LOW': '🟢',
-        'INFO': '💡'
+        HIGH: '🔴',
+        MEDIUM: '🟡',
+        LOW: '🟢',
+        INFO: '💡',
       }[rec.priority];
 
       console.log(`\n${index + 1}. ${priorityIcon} ${rec.category} - ${rec.priority} Priority`);
@@ -827,7 +860,12 @@ class RedisPerformanceBenchmark {
    * 📝 Generate Benchmark Report
    */
   async generateBenchmarkReport() {
-    const reportPath = path.join(__dirname, '..', 'docs', 'redis-performance-benchmark-report.json');
+    const reportPath = path.join(
+      __dirname,
+      '..',
+      'docs',
+      'redis-performance-benchmark-report.json',
+    );
 
     // Create executive summary
     const summary = {
@@ -844,18 +882,35 @@ class RedisPerformanceBenchmark {
         totalKeys: this.results.memoryAnalysis.totalKeys,
       },
       performanceGrades: {
-        memory: this.results.memoryAnalysis.memoryUsage < 0.8 ? 'A' : 
-                this.results.memoryAnalysis.memoryUsage < 0.9 ? 'B' : 'C',
-        operations: this.calculateAverageOperationTime() < 2 ? 'A' :
-                   this.calculateAverageOperationTime() < 5 ? 'B' : 'C',
-        reliability: this.results.stressTest.errorRate < 0.5 ? 'A' :
-                    this.results.stressTest.errorRate < 1 ? 'B' : 'C',
-        caching: this.calculateAverageCacheHitRatio() > 90 ? 'A' :
-                this.calculateAverageCacheHitRatio() > 80 ? 'B' : 'C',
+        memory:
+          this.results.memoryAnalysis.memoryUsage < 0.8
+            ? 'A'
+            : this.results.memoryAnalysis.memoryUsage < 0.9
+              ? 'B'
+              : 'C',
+        operations:
+          this.calculateAverageOperationTime() < 2
+            ? 'A'
+            : this.calculateAverageOperationTime() < 5
+              ? 'B'
+              : 'C',
+        reliability:
+          this.results.stressTest.errorRate < 0.5
+            ? 'A'
+            : this.results.stressTest.errorRate < 1
+              ? 'B'
+              : 'C',
+        caching:
+          this.calculateAverageCacheHitRatio() > 90
+            ? 'A'
+            : this.calculateAverageCacheHitRatio() > 80
+              ? 'B'
+              : 'C',
       },
-      highPriorityIssues: this.results.recommendations.filter(r => r.priority === 'HIGH').length,
-      mediumPriorityIssues: this.results.recommendations.filter(r => r.priority === 'MEDIUM').length,
-      lowPriorityIssues: this.results.recommendations.filter(r => r.priority === 'LOW').length,
+      highPriorityIssues: this.results.recommendations.filter((r) => r.priority === 'HIGH').length,
+      mediumPriorityIssues: this.results.recommendations.filter((r) => r.priority === 'MEDIUM')
+        .length,
+      lowPriorityIssues: this.results.recommendations.filter((r) => r.priority === 'LOW').length,
     };
 
     const fullReport = {
@@ -870,10 +925,18 @@ class RedisPerformanceBenchmark {
     console.log(`\n💾 Redis benchmark report saved: ${reportPath}`);
     console.log(`📊 Overall Performance Status: ${summary.overallStatus}`);
     console.log(`🎯 Performance Summary:`);
-    console.log(`   • Memory Usage: ${(summary.keyMetrics.memoryUsage * 100).toFixed(2)}% (Grade: ${summary.performanceGrades.memory})`);
-    console.log(`   • Average Operation Time: ${summary.keyMetrics.avgOperationTime}ms (Grade: ${summary.performanceGrades.operations})`);
-    console.log(`   • Cache Hit Ratio: ${summary.keyMetrics.cacheHitRatio.toFixed(2)}% (Grade: ${summary.performanceGrades.caching})`);
-    console.log(`   • Stress Test: ${summary.keyMetrics.stressTestOpsPerSecond} ops/sec, ${summary.keyMetrics.stressTestErrorRate}% errors (Grade: ${summary.performanceGrades.reliability})`);
+    console.log(
+      `   • Memory Usage: ${(summary.keyMetrics.memoryUsage * 100).toFixed(2)}% (Grade: ${summary.performanceGrades.memory})`,
+    );
+    console.log(
+      `   • Average Operation Time: ${summary.keyMetrics.avgOperationTime}ms (Grade: ${summary.performanceGrades.operations})`,
+    );
+    console.log(
+      `   • Cache Hit Ratio: ${summary.keyMetrics.cacheHitRatio.toFixed(2)}% (Grade: ${summary.performanceGrades.caching})`,
+    );
+    console.log(
+      `   • Stress Test: ${summary.keyMetrics.stressTestOpsPerSecond} ops/sec, ${summary.keyMetrics.stressTestErrorRate}% errors (Grade: ${summary.performanceGrades.reliability})`,
+    );
     console.log(`   • High Priority Issues: ${summary.highPriorityIssues}`);
   }
 
@@ -881,11 +944,15 @@ class RedisPerformanceBenchmark {
    * 📊 Calculate Overall Performance Status
    */
   calculateOverallPerformanceStatus() {
-    const highPriorityIssues = this.results.recommendations.filter(r => r.priority === 'HIGH').length;
-    const mediumPriorityIssues = this.results.recommendations.filter(r => r.priority === 'MEDIUM').length;
+    const highPriorityIssues = this.results.recommendations.filter(
+      (r) => r.priority === 'HIGH',
+    ).length;
+    const mediumPriorityIssues = this.results.recommendations.filter(
+      (r) => r.priority === 'MEDIUM',
+    ).length;
 
     if (highPriorityIssues > 0) return 'CRITICAL';
-    if (mediumPriorityIssues > 2) return 'WARNING';  
+    if (mediumPriorityIssues > 2) return 'WARNING';
     if (mediumPriorityIssues > 0) return 'GOOD';
     return 'EXCELLENT';
   }
@@ -896,7 +963,7 @@ class RedisPerformanceBenchmark {
   calculateAverageOperationTime() {
     const operations = Object.values(this.results.operationBenchmarks);
     if (operations.length === 0) return 0;
-    
+
     const totalAvgTime = operations.reduce((sum, op) => sum + op.avgTime, 0);
     return Math.round((totalAvgTime / operations.length) * 100) / 100;
   }
@@ -907,7 +974,7 @@ class RedisPerformanceBenchmark {
   calculateAverageCacheHitRatio() {
     const patterns = Object.values(this.results.cachePatternAnalysis);
     if (patterns.length === 0) return 0;
-    
+
     const totalHitRatio = patterns.reduce((sum, pattern) => sum + pattern.hitRatio, 0);
     return totalHitRatio / patterns.length;
   }
@@ -973,20 +1040,23 @@ if (require.main === module) {
 
   const benchmark = new RedisPerformanceBenchmark(config);
 
-  benchmark.runCompleteBenchmark()
-    .then(results => {
+  benchmark
+    .runCompleteBenchmark()
+    .then((results) => {
       console.log('\n🎉 Redis Performance Benchmark Completed Successfully!');
-      
-      const highPriorityIssues = results.recommendations.filter(r => r.priority === 'HIGH').length;
+
+      const highPriorityIssues = results.recommendations.filter(
+        (r) => r.priority === 'HIGH',
+      ).length;
       console.log(`\n📊 Summary: ${highPriorityIssues} high priority issues found`);
-      
+
       // Store results in memory for production validation
       console.log('\n💾 Storing results in memory: MEDIANEST_PROD_VALIDATION/redis_performance');
-      
+
       // Exit with error code if critical issues found
       process.exit(highPriorityIssues > 0 ? 1 : 0);
     })
-    .catch(error => {
+    .catch((error) => {
       console.error('\n💥 Redis Performance Benchmark Failed:', error);
       process.exit(1);
     });

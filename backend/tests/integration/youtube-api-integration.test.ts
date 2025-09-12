@@ -231,11 +231,11 @@ describe('YouTube API Integration Tests', () => {
           request(app)
             .post('/api/v1/youtube/download')
             .send({ ...downloadRequest, url: `${downloadRequest.url}${index}` })
-            .set('Authorization', `Bearer ${accessToken}`)
+            .set('Authorization', `Bearer ${accessToken}`),
         );
 
       const responses = await Promise.all(
-        requests.map((req) => req.then((res) => res.status).catch(() => 429))
+        requests.map((req) => req.then((res) => res.status).catch(() => 429)),
       );
 
       const successfulRequests = responses.filter((status) => status === 201);
@@ -345,8 +345,8 @@ describe('YouTube API Integration Tests', () => {
                 progress: index % 3 === 0 ? 100 : 0,
                 userId: user.id,
               },
-            })
-          )
+            }),
+          ),
       );
 
       const response = await request(app)
@@ -968,7 +968,7 @@ describe('YouTube API Integration Tests', () => {
           request(app)
             .get('/api/v1/youtube/metadata')
             .query({ url: `https://youtube.com/watch?v=test${index}` })
-            .set('Authorization', `Bearer ${accessToken}`)
+            .set('Authorization', `Bearer ${accessToken}`),
         );
 
       const responses = await Promise.all(requests);

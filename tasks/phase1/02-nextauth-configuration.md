@@ -6,20 +6,23 @@
 **Phase:** 1 (Week 2)
 
 ## Objective
+
 Set up NextAuth.js with a custom Plex OAuth provider, implement session management with JWT strategy, create auth context for React components, and establish secure cookie handling.
 
 ## Background
+
 NextAuth.js will handle session management, but we need a custom provider for Plex's PIN-based OAuth flow. This differs from standard OAuth providers and requires special implementation.
 
 ## Detailed Requirements
 
 ### 1. Custom Plex Provider Implementation
+
 ```typescript
 // lib/auth/plexProvider.ts
 export const PlexProvider = {
-  id: "plex",
-  name: "Plex",
-  type: "oauth",
+  id: 'plex',
+  name: 'Plex',
+  type: 'oauth',
   authorization: {
     // Custom implementation for PIN flow
   },
@@ -28,11 +31,12 @@ export const PlexProvider = {
   },
   userinfo: {
     // Plex user data fetching
-  }
-}
+  },
+};
 ```
 
 ### 2. NextAuth Configuration
+
 - **Location:** `app/api/auth/[...nextauth]/route.ts`
 - **Features:**
   - JWT strategy (not database sessions)
@@ -41,6 +45,7 @@ export const PlexProvider = {
   - Secure cookie configuration
 
 ### 3. Auth Context Implementation
+
 ```typescript
 // contexts/AuthContext.tsx
 - useSession hook wrapper
@@ -50,6 +55,7 @@ export const PlexProvider = {
 ```
 
 ### 4. Middleware Configuration
+
 - Protected route handling
 - Role-based redirects
 - Session validation
@@ -57,12 +63,13 @@ export const PlexProvider = {
 ## Technical Implementation Details
 
 ### NextAuth Configuration Structure
+
 ```typescript
 // app/api/auth/[...nextauth]/route.ts
 export const authOptions: NextAuthOptions = {
   providers: [PlexProvider],
   session: {
-    strategy: "jwt",
+    strategy: 'jwt',
     maxAge: 24 * 60 * 60, // 24 hours default
   },
   callbacks: {
@@ -74,7 +81,7 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       // Populate session with user data
-    }
+    },
   },
   pages: {
     signIn: '/auth/login',
@@ -87,14 +94,15 @@ export const authOptions: NextAuthOptions = {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production'
-      }
-    }
-  }
-}
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
+  },
+};
 ```
 
 ### Custom Hooks Required
+
 ```typescript
 // hooks/useAuth.ts
 - useRequireAuth() - Redirect if not authenticated
@@ -103,12 +111,14 @@ export const authOptions: NextAuthOptions = {
 ```
 
 ### Environment Variables
+
 ```bash
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=<generate-32-char-secret>
 ```
 
 ## Acceptance Criteria
+
 1. ✅ NextAuth configured with custom Plex provider
 2. ✅ JWT tokens include user ID, role, and Plex ID
 3. ✅ Session persists across page refreshes
@@ -119,6 +129,7 @@ NEXTAUTH_SECRET=<generate-32-char-secret>
 8. ✅ Logout clears all sessions and cookies
 
 ## Testing Requirements
+
 1. **Unit Tests:**
    - JWT callback logic
    - Session callback transformations
@@ -130,18 +141,21 @@ NEXTAUTH_SECRET=<generate-32-char-secret>
    - Role-based access control
 
 ## Error Handling
+
 - Invalid session: Redirect to login
 - Expired token: Attempt refresh, then re-auth
 - Plex API errors: Show user-friendly messages
 - Network errors: Retry with exponential backoff
 
 ## Security Considerations
+
 - NEXTAUTH_SECRET must be cryptographically secure
 - Cookies must be httpOnly and secure in production
 - CSRF protection enabled by default
 - No sensitive data in JWT payload
 
 ## File Structure
+
 ```
 app/
 ├── api/
@@ -166,26 +180,31 @@ hooks/
 ```
 
 ## Dependencies
+
 - `next-auth` - Authentication framework
 - `@auth/prisma-adapter` - Database adapter
 - Types from `@types/next-auth`
 
 ## References
+
 - [NextAuth.js Documentation](https://next-auth.js.org/)
 - [Custom Provider Guide](https://next-auth.js.org/configuration/providers/custom-provider)
 - [JWT Strategy](https://next-auth.js.org/configuration/options#session)
 
 ## Status
+
 - [ ] Not Started
 - [ ] In Progress
 - [x] Completed
 - [ ] Blocked
 
 ## Completion Review
+
 **Date:** July 4, 2025
 **Reviewer:** Claude Code
 
 ### Acceptance Criteria Review:
+
 1. ✅ **NextAuth configured with custom Plex provider** - Custom PlexProvider implemented in `lib/auth/plex-provider.ts`
 2. ✅ **JWT tokens include user ID, role, and Plex ID** - JWT callback properly configured with all required fields
 3. ✅ **Session persists across page refreshes** - JWT strategy with 30-day maxAge configured
@@ -196,6 +215,7 @@ hooks/
 8. ✅ **Logout clears all sessions and cookies** - NextAuth handles session cleanup
 
 ### Implementation Details:
+
 - Dynamic auth configuration with `getAuthOptions()` for conditional admin bootstrap
 - Custom Plex OAuth provider with PIN-based authentication
 - JWT strategy with proper session and JWT callbacks
@@ -204,6 +224,7 @@ hooks/
 - Secure HTTP-only cookies with proper sameSite settings
 
 ### Notes:
+
 - Session duration set to 30 days instead of 90 as per architecture recommendations
 - All cookies are httpOnly and secure in production
 - CSRF protection enabled by NextAuth.js by default

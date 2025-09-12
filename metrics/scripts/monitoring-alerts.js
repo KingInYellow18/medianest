@@ -15,29 +15,29 @@ class TechnicalDebtMonitor {
     this.metricsDir = path.join(this.projectRoot, 'metrics');
     this.dataDir = path.join(this.metricsDir, 'data');
     this.alertsDir = path.join(this.metricsDir, 'alerts');
-    
+
     // Alert thresholds
     this.thresholds = {
       security: {
         criticalVulnerabilities: 0,
         highVulnerabilities: 5,
-        securityScore: 85
+        securityScore: 85,
       },
       build: {
         typeScriptErrors: 10,
         testCoverageMin: 70,
-        buildFailureAlert: true
+        buildFailureAlert: true,
       },
       performance: {
         bundleSizeMaxKB: 500,
         lighthouseScoreMin: 85,
-        apiResponseMaxMs: 100
+        apiResponseMaxMs: 100,
       },
       codeQuality: {
         technicalDebtMaxHours: 80,
         codeSmellsMax: 100,
-        cyclomaticComplexityMax: 10
-      }
+        cyclomaticComplexityMax: 10,
+      },
     };
 
     // Alert channels (can be extended)
@@ -46,22 +46,25 @@ class TechnicalDebtMonitor {
       file: true,
       email: false, // Configure SMTP settings
       slack: false, // Configure webhook URL
-      github: false // Configure GitHub issues API
+      github: false, // Configure GitHub issues API
     };
   }
 
   async startMonitoring() {
     console.log('🔍 Starting Technical Debt Monitor...');
     await this.initializeAlerts();
-    
+
     // Initial assessment
     await this.checkMetrics();
-    
+
     // Set up periodic monitoring (every 15 minutes)
-    setInterval(() => {
-      this.checkMetrics().catch(console.error);
-    }, 15 * 60 * 1000);
-    
+    setInterval(
+      () => {
+        this.checkMetrics().catch(console.error);
+      },
+      15 * 60 * 1000,
+    );
+
     console.log('✅ Technical Debt Monitor is running');
     console.log('📊 Monitoring security, build, performance, and code quality metrics');
     console.log('⏰ Checking every 15 minutes for regressions');
@@ -69,28 +72,35 @@ class TechnicalDebtMonitor {
 
   async initializeAlerts() {
     await fs.mkdir(this.alertsDir, { recursive: true });
-    
+
     // Initialize alert history
     const alertHistoryPath = path.join(this.alertsDir, 'alert-history.json');
     try {
       await fs.access(alertHistoryPath);
     } catch {
-      await fs.writeFile(alertHistoryPath, JSON.stringify({
-        alerts: [],
-        lastCheck: new Date().toISOString()
-      }, null, 2));
+      await fs.writeFile(
+        alertHistoryPath,
+        JSON.stringify(
+          {
+            alerts: [],
+            lastCheck: new Date().toISOString(),
+          },
+          null,
+          2,
+        ),
+      );
     }
   }
 
   async checkMetrics() {
     const timestamp = new Date().toISOString();
     console.log(`🔍 [${timestamp}] Running metrics check...`);
-    
+
     try {
       // Load current metrics
       const currentMetricsPath = path.join(this.dataDir, 'current-metrics.json');
       const currentMetrics = await this.readJsonFile(currentMetricsPath);
-      
+
       if (!currentMetrics || !currentMetrics.security) {
         console.log('⚠️ No current metrics found, collecting fresh data...');
         await this.collectFreshMetrics();
@@ -99,22 +109,21 @@ class TechnicalDebtMonitor {
 
       // Check all metric categories
       const alerts = [];
-      
-      alerts.push(...await this.checkSecurityMetrics(currentMetrics.security));
-      alerts.push(...await this.checkBuildMetrics(currentMetrics.build));
-      alerts.push(...await this.checkPerformanceMetrics(currentMetrics.performance));
-      alerts.push(...await this.checkCodeQualityMetrics(currentMetrics.codeQuality));
-      
+
+      alerts.push(...(await this.checkSecurityMetrics(currentMetrics.security)));
+      alerts.push(...(await this.checkBuildMetrics(currentMetrics.build)));
+      alerts.push(...(await this.checkPerformanceMetrics(currentMetrics.performance)));
+      alerts.push(...(await this.checkCodeQualityMetrics(currentMetrics.codeQuality)));
+
       // Process alerts
       if (alerts.length > 0) {
         await this.processAlerts(alerts);
       } else {
         console.log('✅ All metrics within acceptable thresholds');
       }
-      
+
       // Update monitoring status
       await this.updateMonitoringStatus(currentMetrics, alerts);
-      
     } catch (error) {
       console.error('❌ Metrics check failed:', error.message);
       await this.sendAlert({
@@ -122,14 +131,14 @@ class TechnicalDebtMonitor {
         category: 'monitoring',
         message: 'Metrics monitoring system failure',
         details: { error: error.message },
-        timestamp: timestamp
+        timestamp: timestamp,
       });
     }
   }
 
   async checkSecurityMetrics(security) {
     const alerts = [];
-    
+
     if (security.criticalVulnerabilities > this.thresholds.security.criticalVulnerabilities) {
       alerts.push({
         level: 'critical',
@@ -138,10 +147,10 @@ class TechnicalDebtMonitor {
         threshold: this.thresholds.security.criticalVulnerabilities,
         actual: security.criticalVulnerabilities,
         impact: 'Immediate security breach risk',
-        recommendation: 'Stop all deployment activities and fix vulnerabilities immediately'
+        recommendation: 'Stop all deployment activities and fix vulnerabilities immediately',
       });
     }
-    
+
     if (security.highVulnerabilities > this.thresholds.security.highVulnerabilities) {
       alerts.push({
         level: 'high',
@@ -150,10 +159,10 @@ class TechnicalDebtMonitor {
         threshold: this.thresholds.security.highVulnerabilities,
         actual: security.highVulnerabilities,
         impact: 'Elevated security risk',
-        recommendation: 'Schedule immediate security review and remediation'
+        recommendation: 'Schedule immediate security review and remediation',
       });
     }
-    
+
     if (security.securityScore < this.thresholds.security.securityScore) {
       alerts.push({
         level: 'high',
@@ -162,17 +171,20 @@ class TechnicalDebtMonitor {
         threshold: this.thresholds.security.securityScore,
         actual: security.securityScore,
         impact: 'Overall security posture degraded',
-        recommendation: 'Comprehensive security audit required'
+        recommendation: 'Comprehensive security audit required',
       });
     }
-    
+
     return alerts;
   }
 
   async checkBuildMetrics(build) {
     const alerts = [];
-    
-    if (build.typeScriptErrors && build.typeScriptErrors.count > this.thresholds.build.typeScriptErrors) {
+
+    if (
+      build.typeScriptErrors &&
+      build.typeScriptErrors.count > this.thresholds.build.typeScriptErrors
+    ) {
       alerts.push({
         level: 'high',
         category: 'build',
@@ -180,10 +192,10 @@ class TechnicalDebtMonitor {
         threshold: this.thresholds.build.typeScriptErrors,
         actual: build.typeScriptErrors.count,
         impact: 'Build instability and potential runtime errors',
-        recommendation: 'Allocate developer time to fix TypeScript errors'
+        recommendation: 'Allocate developer time to fix TypeScript errors',
       });
     }
-    
+
     if (!build.buildSuccess) {
       alerts.push({
         level: 'critical',
@@ -192,10 +204,10 @@ class TechnicalDebtMonitor {
         threshold: 'Build must succeed',
         actual: 'Build failing',
         impact: 'Development and deployment blocked',
-        recommendation: 'Immediate investigation of build failures required'
+        recommendation: 'Immediate investigation of build failures required',
       });
     }
-    
+
     if (build.testCoverage < this.thresholds.build.testCoverageMin) {
       alerts.push({
         level: 'medium',
@@ -204,17 +216,20 @@ class TechnicalDebtMonitor {
         threshold: this.thresholds.build.testCoverageMin,
         actual: build.testCoverage,
         impact: 'Increased risk of production bugs',
-        recommendation: 'Implement comprehensive test suite'
+        recommendation: 'Implement comprehensive test suite',
       });
     }
-    
+
     return alerts;
   }
 
   async checkPerformanceMetrics(performance) {
     const alerts = [];
-    
-    if (performance.bundleSize && performance.bundleSize.totalKB > this.thresholds.performance.bundleSizeMaxKB) {
+
+    if (
+      performance.bundleSize &&
+      performance.bundleSize.totalKB > this.thresholds.performance.bundleSizeMaxKB
+    ) {
       alerts.push({
         level: 'medium',
         category: 'performance',
@@ -222,11 +237,14 @@ class TechnicalDebtMonitor {
         threshold: this.thresholds.performance.bundleSizeMaxKB,
         actual: performance.bundleSize.totalKB,
         impact: 'Poor user experience due to slow loading',
-        recommendation: 'Implement code splitting and bundle optimization'
+        recommendation: 'Implement code splitting and bundle optimization',
       });
     }
-    
-    if (performance.lighthouse && performance.lighthouse < this.thresholds.performance.lighthouseScoreMin) {
+
+    if (
+      performance.lighthouse &&
+      performance.lighthouse < this.thresholds.performance.lighthouseScoreMin
+    ) {
       alerts.push({
         level: 'medium',
         category: 'performance',
@@ -234,16 +252,16 @@ class TechnicalDebtMonitor {
         threshold: this.thresholds.performance.lighthouseScoreMin,
         actual: performance.lighthouse,
         impact: 'Poor user experience and SEO impact',
-        recommendation: 'Performance optimization required'
+        recommendation: 'Performance optimization required',
       });
     }
-    
+
     return alerts;
   }
 
   async checkCodeQualityMetrics(codeQuality) {
     const alerts = [];
-    
+
     if (codeQuality.technicalDebtHours > this.thresholds.codeQuality.technicalDebtMaxHours) {
       alerts.push({
         level: 'medium',
@@ -252,10 +270,10 @@ class TechnicalDebtMonitor {
         threshold: this.thresholds.codeQuality.technicalDebtMaxHours,
         actual: codeQuality.technicalDebtHours,
         impact: 'Decreased development velocity',
-        recommendation: 'Schedule technical debt reduction sprints'
+        recommendation: 'Schedule technical debt reduction sprints',
       });
     }
-    
+
     if (codeQuality.codeSmells > this.thresholds.codeQuality.codeSmellsMax) {
       alerts.push({
         level: 'low',
@@ -264,32 +282,32 @@ class TechnicalDebtMonitor {
         threshold: this.thresholds.codeQuality.codeSmellsMax,
         actual: codeQuality.codeSmells,
         impact: 'Code maintainability concerns',
-        recommendation: 'Refactoring and code cleanup needed'
+        recommendation: 'Refactoring and code cleanup needed',
       });
     }
-    
+
     return alerts;
   }
 
   async processAlerts(alerts) {
     console.log(`🚨 Processing ${alerts.length} alerts...`);
-    
+
     const timestamp = new Date().toISOString();
-    const processedAlerts = alerts.map(alert => ({
+    const processedAlerts = alerts.map((alert) => ({
       ...alert,
       id: this.generateAlertId(alert),
       timestamp,
-      acknowledged: false
+      acknowledged: false,
     }));
-    
+
     // Send alerts through configured channels
     for (const alert of processedAlerts) {
       await this.sendAlert(alert);
     }
-    
+
     // Save to alert history
     await this.saveAlertHistory(processedAlerts);
-    
+
     // Generate alert summary
     await this.generateAlertSummary(processedAlerts);
   }
@@ -298,11 +316,11 @@ class TechnicalDebtMonitor {
     if (this.alertChannels.console) {
       this.sendConsoleAlert(alert);
     }
-    
+
     if (this.alertChannels.file) {
       await this.sendFileAlert(alert);
     }
-    
+
     // Additional channels can be implemented
     // if (this.alertChannels.email) await this.sendEmailAlert(alert);
     // if (this.alertChannels.slack) await this.sendSlackAlert(alert);
@@ -314,9 +332,9 @@ class TechnicalDebtMonitor {
       critical: '🔴',
       high: '🟠',
       medium: '🟡',
-      low: '🔵'
+      low: '🔵',
     };
-    
+
     const icon = icons[alert.level] || '⚪';
     console.log(`\n${icon} ${alert.level.toUpperCase()} ALERT - ${alert.category}`);
     console.log(`   Message: ${alert.message}`);
@@ -329,7 +347,7 @@ class TechnicalDebtMonitor {
   async sendFileAlert(alert) {
     const alertsLogPath = path.join(this.alertsDir, 'alerts.log');
     const logEntry = `[${alert.timestamp}] ${alert.level.toUpperCase()} ${alert.category}: ${alert.message}\n`;
-    
+
     try {
       await fs.appendFile(alertsLogPath, logEntry);
     } catch (error) {
@@ -339,20 +357,20 @@ class TechnicalDebtMonitor {
 
   async saveAlertHistory(alerts) {
     const historyPath = path.join(this.alertsDir, 'alert-history.json');
-    
+
     try {
       const history = await this.readJsonFile(historyPath);
-      
+
       if (!history.alerts) history.alerts = [];
-      
+
       history.alerts.push(...alerts);
       history.lastCheck = new Date().toISOString();
-      
+
       // Keep only last 1000 alerts
       if (history.alerts.length > 1000) {
         history.alerts = history.alerts.slice(-1000);
       }
-      
+
       await fs.writeFile(historyPath, JSON.stringify(history, null, 2));
     } catch (error) {
       console.error('Failed to save alert history:', error.message);
@@ -361,57 +379,57 @@ class TechnicalDebtMonitor {
 
   async generateAlertSummary(alerts) {
     const summaryPath = path.join(this.alertsDir, 'alert-summary.json');
-    
+
     const summary = {
       timestamp: new Date().toISOString(),
       totalAlerts: alerts.length,
       byLevel: this.groupBy(alerts, 'level'),
       byCategory: this.groupBy(alerts, 'category'),
-      criticalAlerts: alerts.filter(a => a.level === 'critical'),
-      highAlerts: alerts.filter(a => a.level === 'high'),
-      recommendations: [...new Set(alerts.map(a => a.recommendation).filter(Boolean))]
+      criticalAlerts: alerts.filter((a) => a.level === 'critical'),
+      highAlerts: alerts.filter((a) => a.level === 'high'),
+      recommendations: [...new Set(alerts.map((a) => a.recommendation).filter(Boolean))],
     };
-    
+
     await fs.writeFile(summaryPath, JSON.stringify(summary, null, 2));
   }
 
   async updateMonitoringStatus(metrics, alerts) {
     const statusPath = path.join(this.metricsDir, 'monitoring-status.json');
-    
+
     const status = {
       lastCheck: new Date().toISOString(),
       systemHealth: this.calculateSystemHealth(metrics, alerts),
       alerts: {
         active: alerts.length,
-        critical: alerts.filter(a => a.level === 'critical').length,
-        high: alerts.filter(a => a.level === 'high').length
+        critical: alerts.filter((a) => a.level === 'critical').length,
+        high: alerts.filter((a) => a.level === 'high').length,
       },
       metrics: {
         security: metrics.security?.securityScore || 0,
         build: metrics.build?.buildSuccess ? 100 : 0,
         performance: metrics.performance?.lighthouse || 0,
-        codeQuality: Math.max(0, 100 - (metrics.codeQuality?.technicalDebtHours || 0))
+        codeQuality: Math.max(0, 100 - (metrics.codeQuality?.technicalDebtHours || 0)),
       },
-      nextCheck: new Date(Date.now() + 15 * 60 * 1000).toISOString()
+      nextCheck: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
     };
-    
+
     await fs.writeFile(statusPath, JSON.stringify(status, null, 2));
   }
 
   calculateSystemHealth(metrics, alerts) {
-    const criticalAlerts = alerts.filter(a => a.level === 'critical').length;
-    const highAlerts = alerts.filter(a => a.level === 'high').length;
-    
+    const criticalAlerts = alerts.filter((a) => a.level === 'critical').length;
+    const highAlerts = alerts.filter((a) => a.level === 'high').length;
+
     if (criticalAlerts > 0) return 'CRITICAL';
     if (highAlerts > 3) return 'DEGRADED';
     if (alerts.length > 5) return 'WARNING';
-    
+
     return 'HEALTHY';
   }
 
   async collectFreshMetrics() {
     console.log('🔄 Collecting fresh metrics...');
-    
+
     try {
       const MetricsCollector = require('./metrics-collector.js');
       const collector = new MetricsCollector();
@@ -456,67 +474,70 @@ class RegressionDetector {
 
   async detectRegressions() {
     console.log('🔍 Detecting technical debt regressions...');
-    
+
     const historyDir = path.join(this.monitor.dataDir, 'history');
-    
+
     try {
       const historyFiles = await fs.readdir(historyDir);
       const recentFiles = historyFiles
-        .filter(f => f.startsWith('metrics-'))
+        .filter((f) => f.startsWith('metrics-'))
         .sort()
         .slice(-7); // Last 7 days
-        
+
       if (recentFiles.length < 2) {
         console.log('⚠️ Insufficient history for regression analysis');
         return [];
       }
-      
+
       const regressions = [];
-      
+
       // Compare latest with previous
-      const latest = await this.monitor.readJsonFile(path.join(historyDir, recentFiles[recentFiles.length - 1]));
-      const previous = await this.monitor.readJsonFile(path.join(historyDir, recentFiles[recentFiles.length - 2]));
-      
+      const latest = await this.monitor.readJsonFile(
+        path.join(historyDir, recentFiles[recentFiles.length - 1]),
+      );
+      const previous = await this.monitor.readJsonFile(
+        path.join(historyDir, recentFiles[recentFiles.length - 2]),
+      );
+
       // Detect security regressions
       if (latest.security && previous.security) {
         if (latest.security.securityScore < previous.security.securityScore - 5) {
           regressions.push({
             type: 'security_regression',
             message: `Security score decreased from ${previous.security.securityScore} to ${latest.security.securityScore}`,
-            severity: 'high'
+            severity: 'high',
           });
         }
       }
-      
+
       // Detect build regressions
       if (latest.build && previous.build) {
         if (latest.build.typeScriptErrors?.count > previous.build.typeScriptErrors?.count) {
           regressions.push({
             type: 'build_regression',
             message: `TypeScript errors increased from ${previous.build.typeScriptErrors?.count || 0} to ${latest.build.typeScriptErrors?.count}`,
-            severity: 'medium'
+            severity: 'medium',
           });
         }
       }
-      
+
       // Detect performance regressions
       if (latest.performance && previous.performance) {
         if (latest.performance.lighthouse < previous.performance.lighthouse - 10) {
           regressions.push({
             type: 'performance_regression',
             message: `Lighthouse score decreased from ${previous.performance.lighthouse} to ${latest.performance.lighthouse}`,
-            severity: 'medium'
+            severity: 'medium',
           });
         }
       }
-      
+
       if (regressions.length > 0) {
         console.log(`⚠️ Detected ${regressions.length} regressions`);
         await this.reportRegressions(regressions);
       }
-      
+
       return regressions;
-      
     } catch (error) {
       console.error('Failed to detect regressions:', error.message);
       return [];
@@ -525,7 +546,7 @@ class RegressionDetector {
 
   async reportRegressions(regressions) {
     const reportPath = path.join(this.monitor.alertsDir, 'regression-report.json');
-    
+
     const report = {
       timestamp: new Date().toISOString(),
       regressions,
@@ -533,19 +554,19 @@ class RegressionDetector {
       recommendations: [
         'Review recent code changes',
         'Run comprehensive test suite',
-        'Consider reverting problematic changes'
-      ]
+        'Consider reverting problematic changes',
+      ],
     };
-    
+
     await fs.writeFile(reportPath, JSON.stringify(report, null, 2));
-    
+
     // Send regression alerts
     for (const regression of regressions) {
       await this.monitor.sendAlert({
         level: regression.severity,
         category: 'regression',
         message: regression.message,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
   }
@@ -555,10 +576,10 @@ class RegressionDetector {
 async function main() {
   const monitor = new TechnicalDebtMonitor();
   const detector = new RegressionDetector(monitor);
-  
+
   // Check for regressions first
   await detector.detectRegressions();
-  
+
   // Start continuous monitoring
   await monitor.startMonitoring();
 }

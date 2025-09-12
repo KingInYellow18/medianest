@@ -1,0 +1,98 @@
+Of course. Here is the comprehensive Staging Deployment Readiness Checklist for the MediaNest project, formatted as requested.
+
+# MediaNest Staging Deployment Readiness Checklist
+
+This checklist provides a step-by-step guide to ensure that a release is ready for the staging environment. It is divided into phases, from local developer checks to post-deployment verification.
+
+---
+
+## Phase 1: Pre-flight Checks (Developer Local)
+
+*Run these checks on your feature branch before creating a Pull Request.*
+
+| Item | Command(s) | Pass/Fail Criteria | Owner |
+| :--- | :--- | :--- | :--- |
+| **1. Code Formatting & Linting** | `npm run format && npm run lint` | Commands must pass with zero errors. | `frontend`, `backend`, `shared` |
+| **2. Fast Unit & Integration Tests** | `npm run test:ultra-fast` | All tests must pass. | `frontend`, `backend`, `shared` |
+| **3. Type Safety** | `npm run typecheck` | TypeScript compiler must report zero errors. | `frontend`, `backend`, `shared` |
+| **4. Environment Sync** | Compare `.env.example` with `.env.staging.example`. | Ensure any new keys are present in the staging example file. | `devops`, `backend` |
+
+---
+
+## Phase 2: CI Gates (Automated Pipeline)
+
+*These checks run automatically when a Pull Request is opened or updated. The PR should be blocked from merging if any of these fail.*
+
+| Item | Command(s) | Pass/Fail Criteria & Rationale | Artifact(s) | Owner | CI Job / Cache Key |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **1. Full Build** | `npm run build` | Build must complete successfully. | N/A | `frontend`, `backend` | **Job:** `build-all` <br> **Cache:** `node-modules-{{ hashFiles('package-lock.json') }}` |
+| **2. Comprehensive Testing** | `npm run test:ci` | All tests must pass. | `./coverage-reports/` | `frontend`, `backend`, `shared` | **Job:** `test-ci` <br> **Cache:** `node-modules-{{ hashFiles('package-lock.json') }}` |
+| **3. Code Coverage** | `npm run test:coverage` | **Threshold:** `lines >= 65%`. <br> *Rationale: Ensures a baseline of test coverage to catch regressions.* | `./coverage-reports/lcov.info` | `frontend`, `backend`, `shared` | **Job:** `test-coverage` <br> **Cache:** `vitest-cache` |
+| **4. Security Scan (SAST)** | `npm run security:scan` | Zero critical or high vulnerabilities found. | `security-audit-results.json` | `devops`, `backend` | **Job:** `security-scan` <br> **Cache:** `trivy-cache` |
+| **5. Docs Build** | `npm run docs:build` | `mkdocs` build must complete successfully. | `./site/` | `devops` | **Job:** `build-docs` <br> **Cache:** `pip-cache` |
+
+---
+
+## Phase 3: Release Candidate Artifacts
+
+*Once the PR is merged, a release branch/tag triggers this phase to build the final, deployable assets.*
+
+| Item | Command(s) | Pass/Fail Criteria & Rationale | Artifact(s) | Owner | CI Job / Cache Key |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **1. Build Production Containers** | `docker build -f Dockerfile -t medianest-frontend:$(git rev-parse --short HEAD) --target frontend-production .` <br> `docker build -f Dockerfile -t medianest-backend:$(git rev-parse --short HEAD) --target backend-production .` | Docker builds must complete successfully. <br> *Rationale: Validates the production build stages and dependencies.* | Docker Image Tags pushed to registry. | `devops` | **Job:** `build-push-containers` <br> **Cache:** `docker-layer-cache` |
+| **2. Publish Docs** | `npm run docs:deploy` | Script completes successfully and docs are live. | Published MkDocs site. | `devops` | **Job:** `deploy-docs` |
+
+---
+
+## Phase 4: Staging Infrastructure Readiness
+
+*Executed via the deployment pipeline before deploying the new container images.*
+
+| Item | Command(s) | Pass/Fail Criteria & Rationale | Artifact(s) | Owner |
+| :--- | :--- | :--- | :--- | :--- |
+| **1. Pull Latest Images** | `docker compose -f docker-compose.yml -f config/docker/docker-compose.prod.yml pull` | Images for the new tag are pulled successfully. | N/A | `devops` |
+| **2. Database Migration** | `docker compose -f docker-compose.yml -f config/docker/docker-compose.prod.yml run --rm backend npx prisma migrate deploy` | Migration command exits with code 0. <br> *Rationale: Ensures the database schema is compatible with the new code.* | Log output from the migration command. | `devops`, `backend` |
+| **3. Configuration Check** | `echo "Verify staging secrets and .env file from vault/store"` | All required environment variables for staging are populated. | Screenshot or log of env var check. | `devops` |
+
+---
+
+## Phase 5: Staging Deployment & Verification
+
+*Deploy the application and run immediate post-deployment tests against the live staging environment.*
+
+| Item | Command(s) | Pass/Fail Criteria & Rationale | Artifact(s) | Owner |
+| :--- | :--- | :--- | :--- | :--- |
+| **1. Deploy Services** | `docker compose -f docker-compose.yml -f config/docker/docker-compose.prod.yml up -d --no-deps backend frontend` | All services start and are healthy (`docker compose ps`). | `docker compose ps` output. | `devops` |
+| **2. API Smoke Test** | `curl -s -o /dev/null -w "%{http_code}" http://staging.medianest.com/api/health` | HTTP status code is `200`. <br> *Rationale: A basic check to see if the API is responsive.* | Log of the `curl` command. | `backend` |
+| **3. Frontend Smoke Test** | `curl -s -o /dev/null -w "%{http_code}" http://staging.medianest.com/` | HTTP status code is `200`. <br> *Rationale: A basic check to see if the frontend is serving pages.* | Log of the `curl` command. | `frontend` |
+| **4. End-to-End Tests** | `npm run test:e2e -- --host=http://staging.medianest.com` | All Playwright tests must pass. <br> *Rationale: Verifies critical user paths against the live environment.* | Playwright test report (`./playwright-report/`). | `devops`, `backend` |
+
+---
+
+## Phase 6: Observability & Rollback Verification
+
+*Final checks to ensure the deployment is stable and can be rolled back if necessary.*
+
+| Item | Command(s) | Pass/Fail Criteria & Rationale | Artifact(s) | Owner |
+| :--- | :--- | :--- | :--- | :--- |
+| **1. Monitoring Stack** | `docker compose -f monitoring/docker-compose.yml ps` | Prometheus, Grafana, and Loki containers are running. | `docker compose ps` output. | `devops` |
+| **2. Log & Metric Flow** | `echo "Verify logs in Grafana/Loki and metrics in Grafana/Prometheus"` | New logs and metrics from the deployed services are appearing within 5 minutes. | Screenshot from Grafana showing new logs/metrics. | `devops` |
+| **3. Rollback Plan** | `echo "Deploy previous git tag: $(git describe --tags --abbrev=0 HEAD^)"` | The previous version is successfully redeployed and passes smoke tests. <br> *Rationale: Confirms the rollback procedure is viable in an emergency.* | Log of rollback deployment and subsequent smoke test. | `devops` |
+
+---
+
+## Gap Analysis & Recommendations
+
+Based on the repository structure, here are some suggested improvements to strengthen the deployment process:
+
+1.  **Gap:** No dedicated E2E test script for external environments. The command `npm run test:e2e -- --host=` is an assumption.
+    *   **Recommendation:** Add a dedicated script to `package.json`, such as `"test:e2e:staging": "playwright test --config=backend/playwright.config.ts --grep @staging"`, and use tags (`@staging`) to select tests appropriate for a deployed environment.
+
+2.  **Gap:** Performance testing (`load-test.js`) is not integrated into the pre-deployment process.
+    *   **Recommendation:** Add an optional, manually-triggered CI job to run the k6 load test against the staging environment: `"test:load:staging": "k6 run scripts/load-test.js"`. This would provide performance benchmarks before a production release.
+
+3.  **Gap:** No explicit database backup step before running migrations on staging.
+    *   **Recommendation:** Add a command to the "Staging Infra Readiness" phase: `docker compose exec -T db pg_dumpall -U <user> > ./backups/staging-backup-$(date +%F).sql`. This creates a simple, recoverable backup.
+
+4.  **Gap:** Smoke tests are manual `curl` commands.
+    *   **Recommendation:** Create a small test file (`tests/smoke.spec.ts`) with a `@smoke` tag that can be run with Playwright or Vitest's HTTP client for a more robust and maintainable check. Add a script `"test:smoke": "vitest run --tags @smoke"`.

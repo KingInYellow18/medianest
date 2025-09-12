@@ -50,11 +50,13 @@ docs/
 ## 🌐 Accessing Documentation
 
 ### 🔴 Live Documentation Site
+
 The documentation is automatically built and deployed using MkDocs Material:
 
 **🌍 Live Site**: [https://kinginyellow.github.io/medianest/](https://kinginyellow.github.io/medianest/)
 
 ### 💻 Local Development
+
 To build and serve documentation locally:
 
 ```bash
@@ -80,7 +82,7 @@ mkdocs build
 
 - **Clear and Concise**: Write for developers at all levels
 - **Code Examples**: Include working code samples
-- **Visual Aids**: Add diagrams and screenshots where helpful  
+- **Visual Aids**: Add diagrams and screenshots where helpful
 - **Update Frequently**: Keep documentation in sync with code changes
 - **Link Cross-References**: Connect related documentation sections
 
@@ -94,7 +96,7 @@ mkdocs build
 
 ### Example Documentation Structure
 
-```markdown
+````markdown
 # Page Title
 
 Brief description of what this document covers.
@@ -106,11 +108,14 @@ List any requirements or setup needed.
 ## Quick Start
 
 ### Step 1: Setup
+
 ```bash
 command examples
 ```
+````
 
 ### Step 2: Configuration
+
 Configuration details with examples.
 
 ## Advanced Topics
@@ -118,16 +123,17 @@ Configuration details with examples.
 Detailed information for advanced users.
 
 !!! note "Important Note"
-    Use admonitions for important information.
+Use admonitions for important information.
 
 !!! warning "Warning"
-    Highlight potential issues or risks.
+Highlight potential issues or risks.
 
 ## Related Documentation
 
 - [Related Topic 1](../other-topic/)
 - [Related Topic 2](../../another-topic/)
-```
+
+````
 
 ## 🔧 MkDocs Configuration
 
@@ -154,34 +160,36 @@ mkdocs build
 
 # Deploy to GitHub Pages
 mkdocs gh-deploy
-```
+````
 
 ## 📊 Documentation Metrics
 
-| Metric | Value | Status |
-|--------|--------|--------|
-| **Total Pages** | 25+ | ✅ Comprehensive |
-| **API Documentation** | 15+ endpoints | ✅ Complete |
-| **Architecture Docs** | 8 diagrams | ✅ Current |
-| **Setup Guides** | 3 levels | ✅ Detailed |
-| **Last Update** | Current | ✅ Active |
+| Metric                | Value         | Status           |
+| --------------------- | ------------- | ---------------- |
+| **Total Pages**       | 25+           | ✅ Comprehensive |
+| **API Documentation** | 15+ endpoints | ✅ Complete      |
+| **Architecture Docs** | 8 diagrams    | ✅ Current       |
+| **Setup Guides**      | 3 levels      | ✅ Detailed      |
+| **Last Update**       | Current       | ✅ Active        |
 
 ## 🤝 Contributing to Documentation
 
 ### Adding New Documentation
 
 1. **Create Markdown File**
+
    ```bash
    # Create new documentation file
    touch docs/new-section/new-topic.md
    ```
 
 2. **Update Navigation**
+
    ```yaml
    # Add to mkdocs.yml nav section
    nav:
      - New Section:
-       - New Topic: new-section/new-topic.md
+         - New Topic: new-section/new-topic.md
    ```
 
 3. **Write Content**
@@ -205,6 +213,7 @@ mkdocs gh-deploy
 ## 🔗 Quick Links
 
 ### Essential Documentation
+
 - **[Getting Started](getting-started/)** - Setup and installation guides
 - **[API Reference](api/)** - Complete API documentation
 - **[Architecture](architecture/)** - System design and patterns
@@ -212,17 +221,20 @@ mkdocs gh-deploy
 - **[Operations](operations/)** - Staging deployment and operations
 
 #### Staging Deployment
+
 - **[Staging Deployment Guide](operations/staging-deployment.md)** - Complete staging setup
 - **[Staging Prerequisites](operations/staging-prerequisites.md)** - Infrastructure requirements
 - **[Staging Troubleshooting](operations/staging-troubleshooting.md)** - Common issues and solutions
 - **[Critical Fixes Applied](operations/critical-fixes-applied.md)** - Resolved deployment issues
 
 ### Development Resources
+
 - **[Contributing Guidelines](developers/contributing.md)** - How to contribute
 - **[Development Workflow](developers/workflow.md)** - Development processes
 - **[Standards](standards/)** - Coding and documentation standards
 
 ### Visual Resources
+
 - **[Database Schema](visuals/database-schema.md)** - Database design
 - **[System Architecture](visuals/deployment-architecture.md)** - Infrastructure design
 - **[Process Flows](visuals/system-flow.md)** - Workflow diagrams

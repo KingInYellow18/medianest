@@ -53,13 +53,11 @@ Multiple frontend test files exist but contain no actual test cases, causing tes
 ## Testing Strategy
 
 1. **Critical Components** (implement basic tests):
-
    - DownloadQueue: Basic rendering and empty state
    - DashboardLayout: Layout structure and loading states
    - useServiceStatus: Hook initialization and state
 
 2. **Future Implementation** (skip with TODOs):
-
    - PlexSearch/PlexBrowser: Complex search functionality
    - Media-related hooks: Integration-heavy features
    - Socket utilities: Real-time functionality

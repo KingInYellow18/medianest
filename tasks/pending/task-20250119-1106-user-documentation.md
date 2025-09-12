@@ -128,21 +128,18 @@ Good documentation is essential for user adoption. Since this is for family and 
 ## User-Friendly Writing Guidelines
 
 1. **Language**
-
    - Use simple, clear language
    - Avoid technical jargon
    - Define any necessary terms
    - Use active voice
 
 2. **Structure**
-
    - Short paragraphs
    - Numbered steps
    - Lots of headings
    - Visual breaks
 
 3. **Visuals**
-
    - Screenshots for each step
    - Highlight important buttons
    - Use arrows and annotations
@@ -165,13 +162,11 @@ Want to watch something that's not in our library? Here's how to request it:
    ![Request Media Button](images/request-button.png)
 
 2. **Search for what you want**
-
    - Type the movie or show name
    - Wait a moment for results to appear
    - You'll see posters and descriptions
 
 3. **Click "Request" on your choice**
-
    - The button will change to "Requested"
    - You'll get a confirmation message
 

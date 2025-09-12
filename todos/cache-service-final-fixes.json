@@ -7,7 +7,7 @@
     "details": "Test 'should get cached value successfully' shows mockRedisClient.get called with 'non:existent' instead of expected 'test:key'"
   },
   {
-    "id": "cache-mock-2", 
+    "id": "cache-mock-2",
     "content": "Fix mock call expectations vs actual implementation - exists() returns 0 instead of expected 1",
     "status": "in_progress",
     "priority": "critical",
@@ -23,7 +23,7 @@
   {
     "id": "cache-mock-4",
     "content": "Fix getOrSet cache hit/miss logic - cached values not being properly retrieved",
-    "status": "pending", 
+    "status": "pending",
     "priority": "high",
     "details": "Cache hit test returns fresh value instead of cached value indicating cache miss"
   },
@@ -31,7 +31,7 @@
     "id": "cache-mock-5",
     "content": "Complete mock function call tracking - safeJsonStringify/Parse calls not matching expected parameters",
     "status": "pending",
-    "priority": "medium", 
+    "priority": "medium",
     "details": "Primitive values test shows wrong arguments being passed to stringify mock"
   }
 ]

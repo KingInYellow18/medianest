@@ -6,26 +6,26 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, fireEvent, act } from '../../test-utils/render';
-import { 
-  AppProvider, 
-  useApp, 
-  useAppUser, 
-  useAppSession, 
-  useAppUI, 
+import {
+  AppProvider,
+  useApp,
+  useAppUser,
+  useAppSession,
+  useAppUI,
   useAppActions,
   useIsAuthenticated,
-  useHasNotifications
+  useHasNotifications,
 } from '../OptimizedAppContext';
 
 // Test components for different context states
 const UserDisplay = () => {
   const user = useAppUser();
   return (
-    <div data-testid="user-display">
-      <div data-testid="user-id">{user.id || 'No ID'}</div>
-      <div data-testid="user-email">{user.email || 'No Email'}</div>
-      <div data-testid="user-name">{user.name || 'No Name'}</div>
-      <div data-testid="user-role">{user.role || 'No Role'}</div>
+    <div data-testid='user-display'>
+      <div data-testid='user-id'>{user.id || 'No ID'}</div>
+      <div data-testid='user-email'>{user.email || 'No Email'}</div>
+      <div data-testid='user-name'>{user.name || 'No Name'}</div>
+      <div data-testid='user-role'>{user.role || 'No Role'}</div>
     </div>
   );
 };
@@ -33,10 +33,12 @@ const UserDisplay = () => {
 const SessionDisplay = () => {
   const session = useAppSession();
   return (
-    <div data-testid="session-display">
-      <div data-testid="session-id">{session.id || 'No Session ID'}</div>
-      <div data-testid="session-auth">{session.isAuthenticated ? 'Authenticated' : 'Not Authenticated'}</div>
-      <div data-testid="session-expires">
+    <div data-testid='session-display'>
+      <div data-testid='session-id'>{session.id || 'No Session ID'}</div>
+      <div data-testid='session-auth'>
+        {session.isAuthenticated ? 'Authenticated' : 'Not Authenticated'}
+      </div>
+      <div data-testid='session-expires'>
         {session.expiresAt ? session.expiresAt.toISOString() : 'No Expiry'}
       </div>
     </div>
@@ -46,15 +48,15 @@ const SessionDisplay = () => {
 const UIDisplay = () => {
   const ui = useAppUI();
   return (
-    <div data-testid="ui-display">
-      <div data-testid="ui-theme">{ui.theme}</div>
-      <div data-testid="ui-sidebar">{ui.sidebarOpen ? 'Open' : 'Closed'}</div>
-      <div data-testid="ui-notifications-count">{ui.notifications.length}</div>
-      <div data-testid="ui-notifications">
+    <div data-testid='ui-display'>
+      <div data-testid='ui-theme'>{ui.theme}</div>
+      <div data-testid='ui-sidebar'>{ui.sidebarOpen ? 'Open' : 'Closed'}</div>
+      <div data-testid='ui-notifications-count'>{ui.notifications.length}</div>
+      <div data-testid='ui-notifications'>
         {ui.notifications.map((notification) => (
-          <div key={notification.id} className="notification" data-type={notification.type}>
-            <span className="message">{notification.message}</span>
-            <span className="timestamp">{notification.timestamp.toISOString()}</span>
+          <div key={notification.id} className='notification' data-type={notification.type}>
+            <span className='message'>{notification.message}</span>
+            <span className='timestamp'>{notification.timestamp.toISOString()}</span>
           </div>
         ))}
       </div>
@@ -66,37 +68,34 @@ const ActionsDisplay = () => {
   const actions = useAppActions();
   const isAuthenticated = useIsAuthenticated();
   const hasNotifications = useHasNotifications();
-  
+
   return (
-    <div data-testid="actions-display">
-      <div data-testid="is-authenticated">{isAuthenticated ? 'Authenticated' : 'Not Authenticated'}</div>
-      <div data-testid="has-notifications">{hasNotifications ? 'Has Notifications' : 'No Notifications'}</div>
-      <div className="action-buttons">
-        <button 
-          data-testid="toggle-sidebar-btn" 
-          onClick={actions.toggleSidebar}
-        >
+    <div data-testid='actions-display'>
+      <div data-testid='is-authenticated'>
+        {isAuthenticated ? 'Authenticated' : 'Not Authenticated'}
+      </div>
+      <div data-testid='has-notifications'>
+        {hasNotifications ? 'Has Notifications' : 'No Notifications'}
+      </div>
+      <div className='action-buttons'>
+        <button data-testid='toggle-sidebar-btn' onClick={actions.toggleSidebar}>
           Toggle Sidebar
         </button>
-        <button 
-          data-testid="add-notification-btn" 
-          onClick={() => actions.addNotification({
-            message: 'Test notification',
-            type: 'info'
-          })}
+        <button
+          data-testid='add-notification-btn'
+          onClick={() =>
+            actions.addNotification({
+              message: 'Test notification',
+              type: 'info',
+            })
+          }
         >
           Add Notification
         </button>
-        <button 
-          data-testid="clear-notifications-btn" 
-          onClick={actions.clearNotifications}
-        >
+        <button data-testid='clear-notifications-btn' onClick={actions.clearNotifications}>
           Clear Notifications
         </button>
-        <button 
-          data-testid="logout-btn" 
-          onClick={actions.logout}
-        >
+        <button data-testid='logout-btn' onClick={actions.logout}>
           Logout
         </button>
       </div>
@@ -105,7 +104,7 @@ const ActionsDisplay = () => {
 };
 
 const CompleteAppDisplay = () => (
-  <div data-testid="complete-app">
+  <div data-testid='complete-app'>
     <UserDisplay />
     <SessionDisplay />
     <UIDisplay />
@@ -128,9 +127,9 @@ describe('OptimizedAppContext Snapshot Tests', () => {
       const { container } = render(
         <AppProvider>
           <CompleteAppDisplay />
-        </AppProvider>
+        </AppProvider>,
       );
-      
+
       expect(container.firstChild).toMatchSnapshot('app-context-default-state');
     });
 
@@ -153,13 +152,13 @@ describe('OptimizedAppContext Snapshot Tests', () => {
           notifications: [],
         },
       };
-      
+
       const { container } = render(
         <AppProvider initialState={initialState}>
           <CompleteAppDisplay />
-        </AppProvider>
+        </AppProvider>,
       );
-      
+
       expect(container.firstChild).toMatchSnapshot('app-context-custom-initial-state');
     });
 
@@ -174,13 +173,13 @@ describe('OptimizedAppContext Snapshot Tests', () => {
           sidebarOpen: false,
         },
       };
-      
+
       const { container } = render(
         <AppProvider initialState={partialState}>
           <CompleteAppDisplay />
-        </AppProvider>
+        </AppProvider>,
       );
-      
+
       expect(container.firstChild).toMatchSnapshot('app-context-partial-initial-state');
     });
   });
@@ -190,7 +189,7 @@ describe('OptimizedAppContext Snapshot Tests', () => {
       const { container, getByTestId } = render(
         <AppProvider>
           <CompleteAppDisplay />
-        </AppProvider>
+        </AppProvider>,
       );
 
       const actions = useAppActions();
@@ -207,7 +206,7 @@ describe('OptimizedAppContext Snapshot Tests', () => {
           expiresAt: new Date('2025-01-12T20:00:00Z'),
         });
       });
-      
+
       expect(container.firstChild).toMatchSnapshot('app-context-admin-user');
     });
 
@@ -215,7 +214,7 @@ describe('OptimizedAppContext Snapshot Tests', () => {
       const { container } = render(
         <AppProvider>
           <CompleteAppDisplay />
-        </AppProvider>
+        </AppProvider>,
       );
 
       const actions = useAppActions();
@@ -232,7 +231,7 @@ describe('OptimizedAppContext Snapshot Tests', () => {
           expiresAt: new Date('2025-01-12T16:00:00Z'),
         });
       });
-      
+
       expect(container.firstChild).toMatchSnapshot('app-context-regular-user');
     });
 
@@ -240,7 +239,7 @@ describe('OptimizedAppContext Snapshot Tests', () => {
       const { container } = render(
         <AppProvider>
           <CompleteAppDisplay />
-        </AppProvider>
+        </AppProvider>,
       );
 
       const actions = useAppActions();
@@ -252,7 +251,7 @@ describe('OptimizedAppContext Snapshot Tests', () => {
           role: 'user',
         });
       });
-      
+
       expect(container.firstChild).toMatchSnapshot('app-context-long-user-data');
     });
   });
@@ -262,7 +261,7 @@ describe('OptimizedAppContext Snapshot Tests', () => {
       const { container } = render(
         <AppProvider>
           <CompleteAppDisplay />
-        </AppProvider>
+        </AppProvider>,
       );
 
       const actions = useAppActions();
@@ -273,7 +272,7 @@ describe('OptimizedAppContext Snapshot Tests', () => {
           expiresAt: new Date('2025-01-12T15:30:00Z'),
         });
       });
-      
+
       expect(container.firstChild).toMatchSnapshot('app-context-active-session');
     });
 
@@ -281,7 +280,7 @@ describe('OptimizedAppContext Snapshot Tests', () => {
       const { container } = render(
         <AppProvider>
           <CompleteAppDisplay />
-        </AppProvider>
+        </AppProvider>,
       );
 
       const actions = useAppActions();
@@ -292,7 +291,7 @@ describe('OptimizedAppContext Snapshot Tests', () => {
           expiresAt: new Date('2025-01-12T10:00:00Z'), // Past time
         });
       });
-      
+
       expect(container.firstChild).toMatchSnapshot('app-context-expired-session');
     });
 
@@ -300,9 +299,9 @@ describe('OptimizedAppContext Snapshot Tests', () => {
       const { container } = render(
         <AppProvider>
           <CompleteAppDisplay />
-        </AppProvider>
+        </AppProvider>,
       );
-      
+
       expect(container.firstChild).toMatchSnapshot('app-context-no-session');
     });
   });
@@ -312,7 +311,7 @@ describe('OptimizedAppContext Snapshot Tests', () => {
       const { container } = render(
         <AppProvider>
           <CompleteAppDisplay />
-        </AppProvider>
+        </AppProvider>,
       );
 
       const actions = useAppActions();
@@ -320,7 +319,7 @@ describe('OptimizedAppContext Snapshot Tests', () => {
         actions.setTheme('dark');
         actions.toggleSidebar();
       });
-      
+
       expect(container.firstChild).toMatchSnapshot('app-context-dark-theme-sidebar-open');
     });
 
@@ -328,14 +327,14 @@ describe('OptimizedAppContext Snapshot Tests', () => {
       const { container } = render(
         <AppProvider>
           <CompleteAppDisplay />
-        </AppProvider>
+        </AppProvider>,
       );
 
       const actions = useAppActions();
       act(() => {
         actions.setTheme('light');
       });
-      
+
       expect(container.firstChild).toMatchSnapshot('app-context-light-theme-sidebar-closed');
     });
 
@@ -343,14 +342,14 @@ describe('OptimizedAppContext Snapshot Tests', () => {
       const { container } = render(
         <AppProvider>
           <CompleteAppDisplay />
-        </AppProvider>
+        </AppProvider>,
       );
 
       const actions = useAppActions();
       act(() => {
         actions.setTheme('system');
       });
-      
+
       expect(container.firstChild).toMatchSnapshot('app-context-system-theme');
     });
   });
@@ -360,17 +359,17 @@ describe('OptimizedAppContext Snapshot Tests', () => {
       const { container } = render(
         <AppProvider>
           <CompleteAppDisplay />
-        </AppProvider>
+        </AppProvider>,
       );
 
       const actions = useAppActions();
       act(() => {
         actions.addNotification({
           message: 'Welcome to the application!',
-          type: 'success'
+          type: 'success',
         });
       });
-      
+
       expect(container.firstChild).toMatchSnapshot('app-context-single-notification');
     });
 
@@ -378,29 +377,29 @@ describe('OptimizedAppContext Snapshot Tests', () => {
       const { container } = render(
         <AppProvider>
           <CompleteAppDisplay />
-        </AppProvider>
+        </AppProvider>,
       );
 
       const actions = useAppActions();
       act(() => {
         actions.addNotification({
           message: 'Information: System updated',
-          type: 'info'
+          type: 'info',
         });
         actions.addNotification({
           message: 'Success: Data saved successfully',
-          type: 'success'
+          type: 'success',
         });
         actions.addNotification({
           message: 'Warning: Storage almost full',
-          type: 'warning'
+          type: 'warning',
         });
         actions.addNotification({
           message: 'Error: Connection failed',
-          type: 'error'
+          type: 'error',
         });
       });
-      
+
       expect(container.firstChild).toMatchSnapshot('app-context-multiple-notifications');
     });
 
@@ -408,17 +407,18 @@ describe('OptimizedAppContext Snapshot Tests', () => {
       const { container } = render(
         <AppProvider>
           <CompleteAppDisplay />
-        </AppProvider>
+        </AppProvider>,
       );
 
       const actions = useAppActions();
       act(() => {
         actions.addNotification({
-          message: 'This is a very long notification message that contains a lot of information and might cause layout issues in the user interface. It includes multiple sentences and technical details that need to be displayed properly to the user without breaking the layout or causing overflow issues.',
-          type: 'info'
+          message:
+            'This is a very long notification message that contains a lot of information and might cause layout issues in the user interface. It includes multiple sentences and technical details that need to be displayed properly to the user without breaking the layout or causing overflow issues.',
+          type: 'info',
         });
       });
-      
+
       expect(container.firstChild).toMatchSnapshot('app-context-long-notification');
     });
 
@@ -426,17 +426,17 @@ describe('OptimizedAppContext Snapshot Tests', () => {
       const { container } = render(
         <AppProvider>
           <CompleteAppDisplay />
-        </AppProvider>
+        </AppProvider>,
       );
 
       const actions = useAppActions();
       act(() => {
         actions.addNotification({
           message: 'Special chars: <script>alert("xss")</script> & 🚀 日本語 العربية',
-          type: 'warning'
+          type: 'warning',
         });
       });
-      
+
       expect(container.firstChild).toMatchSnapshot('app-context-special-chars-notification');
     });
   });
@@ -446,7 +446,7 @@ describe('OptimizedAppContext Snapshot Tests', () => {
       const { container } = render(
         <AppProvider>
           <CompleteAppDisplay />
-        </AppProvider>
+        </AppProvider>,
       );
 
       const actions = useAppActions();
@@ -473,14 +473,14 @@ describe('OptimizedAppContext Snapshot Tests', () => {
         // Add notifications
         actions.addNotification({
           message: 'System initialized successfully',
-          type: 'success'
+          type: 'success',
         });
         actions.addNotification({
           message: 'New features available',
-          type: 'info'
+          type: 'info',
         });
       });
-      
+
       expect(container.firstChild).toMatchSnapshot('app-context-complete-state');
     });
 
@@ -488,7 +488,7 @@ describe('OptimizedAppContext Snapshot Tests', () => {
       const { container } = render(
         <AppProvider>
           <CompleteAppDisplay />
-        </AppProvider>
+        </AppProvider>,
       );
 
       const actions = useAppActions();
@@ -507,14 +507,14 @@ describe('OptimizedAppContext Snapshot Tests', () => {
         });
         actions.addNotification({
           message: 'You are logged in',
-          type: 'info'
+          type: 'info',
         });
         actions.toggleSidebar();
 
         // Then logout
         actions.logout();
       });
-      
+
       expect(container.firstChild).toMatchSnapshot('app-context-after-logout');
     });
   });
@@ -524,14 +524,14 @@ describe('OptimizedAppContext Snapshot Tests', () => {
       const { container, getByTestId } = render(
         <AppProvider>
           <CompleteAppDisplay />
-        </AppProvider>
+        </AppProvider>,
       );
 
       const toggleButton = getByTestId('toggle-sidebar-btn');
       act(() => {
         fireEvent.click(toggleButton);
       });
-      
+
       expect(container.firstChild).toMatchSnapshot('app-context-after-sidebar-toggle');
     });
 
@@ -539,14 +539,14 @@ describe('OptimizedAppContext Snapshot Tests', () => {
       const { container, getByTestId } = render(
         <AppProvider>
           <CompleteAppDisplay />
-        </AppProvider>
+        </AppProvider>,
       );
 
       const addButton = getByTestId('add-notification-btn');
       act(() => {
         fireEvent.click(addButton);
       });
-      
+
       expect(container.firstChild).toMatchSnapshot('app-context-after-add-notification');
     });
 
@@ -554,18 +554,18 @@ describe('OptimizedAppContext Snapshot Tests', () => {
       const { container, getByTestId } = render(
         <AppProvider>
           <CompleteAppDisplay />
-        </AppProvider>
+        </AppProvider>,
       );
 
       const addButton = getByTestId('add-notification-btn');
       const clearButton = getByTestId('clear-notifications-btn');
-      
+
       act(() => {
         fireEvent.click(addButton);
         fireEvent.click(addButton);
         fireEvent.click(clearButton);
       });
-      
+
       expect(container.firstChild).toMatchSnapshot('app-context-after-clear-notifications');
     });
   });
@@ -573,57 +573,63 @@ describe('OptimizedAppContext Snapshot Tests', () => {
   describe('Individual Hook Snapshots', () => {
     it('should match snapshot of user data component only', () => {
       const { container } = render(
-        <AppProvider initialState={{
-          user: {
-            id: 'isolated-user' as any,
-            email: 'isolated@test.com',
-            name: 'Isolated User',
-            role: 'user',
-          }
-        }}>
+        <AppProvider
+          initialState={{
+            user: {
+              id: 'isolated-user' as any,
+              email: 'isolated@test.com',
+              name: 'Isolated User',
+              role: 'user',
+            },
+          }}
+        >
           <UserDisplay />
-        </AppProvider>
+        </AppProvider>,
       );
-      
+
       expect(container.firstChild).toMatchSnapshot('app-context-user-component-only');
     });
 
     it('should match snapshot of session component only', () => {
       const { container } = render(
-        <AppProvider initialState={{
-          session: {
-            id: 'isolated-session' as any,
-            isAuthenticated: true,
-            expiresAt: new Date('2025-01-12T20:00:00Z'),
-          }
-        }}>
+        <AppProvider
+          initialState={{
+            session: {
+              id: 'isolated-session' as any,
+              isAuthenticated: true,
+              expiresAt: new Date('2025-01-12T20:00:00Z'),
+            },
+          }}
+        >
           <SessionDisplay />
-        </AppProvider>
+        </AppProvider>,
       );
-      
+
       expect(container.firstChild).toMatchSnapshot('app-context-session-component-only');
     });
 
     it('should match snapshot of UI component only', () => {
       const { container } = render(
-        <AppProvider initialState={{
-          ui: {
-            theme: 'dark' as const,
-            sidebarOpen: true,
-            notifications: [
-              {
-                id: 'test-1',
-                message: 'Test notification',
-                type: 'info' as const,
-                timestamp: new Date('2025-01-12T12:00:00Z'),
-              }
-            ],
-          }
-        }}>
+        <AppProvider
+          initialState={{
+            ui: {
+              theme: 'dark' as const,
+              sidebarOpen: true,
+              notifications: [
+                {
+                  id: 'test-1',
+                  message: 'Test notification',
+                  type: 'info' as const,
+                  timestamp: new Date('2025-01-12T12:00:00Z'),
+                },
+              ],
+            },
+          }}
+        >
           <UIDisplay />
-        </AppProvider>
+        </AppProvider>,
       );
-      
+
       expect(container.firstChild).toMatchSnapshot('app-context-ui-component-only');
     });
   });
@@ -636,16 +642,12 @@ describe('OptimizedAppContext Snapshot Tests', () => {
           const { state } = useApp();
           return <div>Should not render</div>;
         } catch (error) {
-          return (
-            <div data-testid="context-error">
-              Error: {(error as Error).message}
-            </div>
-          );
+          return <div data-testid='context-error'>Error: {(error as Error).message}</div>;
         }
       };
 
       const { container } = render(<OrphanComponent />);
-      
+
       expect(container.firstChild).toMatchSnapshot('app-context-missing-provider-error');
     });
   });

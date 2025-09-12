@@ -1,6 +1,6 @@
 /**
  * EMERGENCY MOCK OPERATIONS GENERATOR - Phase D Critical Stabilization
- * 
+ *
  * Generates missing Prisma operations for all models to restore 72% baseline
  * Critical missing operations: createMany, updateMany, findFirstOrThrow, findUniqueOrThrow, groupBy
  */
@@ -20,29 +20,31 @@ export interface ModelOperationsConfig {
  */
 export function generateMissingOperations(store: any, config: ModelOperationsConfig) {
   const { modelName, collectionName, typeInterface, idField, uniqueFields = [] } = config;
-  
+
   return {
     // CRITICAL: createMany operation (missing across ALL models)
     createMany: vi.fn().mockImplementation(({ data, skipDuplicates = false }) => {
       const items = Array.isArray(data) ? data : [data];
       const created = [];
-      
+
       for (const itemData of items) {
         try {
           const item = createModelInstance(itemData, config);
-          
+
           // Check for duplicates if not skipping
           if (!skipDuplicates && uniqueFields.length > 0) {
             for (const field of uniqueFields) {
               if (itemData[field]) {
-                const existing = store.findUnique(collectionName, { where: { [field]: itemData[field] } });
+                const existing = store.findUnique(collectionName, {
+                  where: { [field]: itemData[field] },
+                });
                 if (existing) {
                   throw new Error(`Unique constraint failed on ${field}: ${itemData[field]}`);
                 }
               }
             }
           }
-          
+
           store.setItem(collectionName, item[idField], item);
           created.push(item);
         } catch (error) {
@@ -51,7 +53,7 @@ export function generateMissingOperations(store: any, config: ModelOperationsCon
           }
         }
       }
-      
+
       return Promise.resolve({ count: created.length });
     }),
 
@@ -77,7 +79,7 @@ export function generateMissingOperations(store: any, config: ModelOperationsCon
       return Promise.resolve(item);
     }),
 
-    // CRITICAL: findUniqueOrThrow operation  
+    // CRITICAL: findUniqueOrThrow operation
     findUniqueOrThrow: vi.fn().mockImplementation(({ where, include }) => {
       const item = store.findUnique(collectionName, { where, include });
       if (!item) {
@@ -87,77 +89,90 @@ export function generateMissingOperations(store: any, config: ModelOperationsCon
     }),
 
     // CRITICAL: groupBy operation (missing across ALL models)
-    groupBy: vi.fn().mockImplementation(({ by, where, having, orderBy, take, skip, _count, _avg, _sum, _min, _max }) => {
-      const items = store.findMany(collectionName, { where });
-      const groups = new Map();
-      
-      items.forEach((item: any) => {
-        const groupKey = Array.isArray(by) ? 
-          by.map(field => item[field]).join('|') : 
-          item[by];
-        
-        if (!groups.has(groupKey)) {
-          groups.set(groupKey, { 
-            items: [], 
-            [by]: Array.isArray(by) ? 
-              by.reduce((acc, field) => ({ ...acc, [field]: item[field] }), {}) : 
-              item[by] 
+    groupBy: vi
+      .fn()
+      .mockImplementation(
+        ({ by, where, having, orderBy, take, skip, _count, _avg, _sum, _min, _max }) => {
+          const items = store.findMany(collectionName, { where });
+          const groups = new Map();
+
+          items.forEach((item: any) => {
+            const groupKey = Array.isArray(by)
+              ? by.map((field) => item[field]).join('|')
+              : item[by];
+
+            if (!groups.has(groupKey)) {
+              groups.set(groupKey, {
+                items: [],
+                [by]: Array.isArray(by)
+                  ? by.reduce((acc, field) => ({ ...acc, [field]: item[field] }), {})
+                  : item[by],
+              });
+            }
+
+            groups.get(groupKey).items.push(item);
           });
-        }
-        
-        groups.get(groupKey).items.push(item);
-      });
-      
-      let result = Array.from(groups.values()).map(group => {
-        const item = { ...group };
-        delete item.items;
-        
-        if (_count) {
-          item._count = typeof _count === 'object' ? 
-            Object.keys(_count).reduce((acc, key) => ({ ...acc, [key]: group.items.length }), {}) :
-            group.items.length;
-        }
-        
-        if (_avg && group.items.length > 0) {
-          item._avg = {};
-          if (typeof _avg === 'object') {
-            Object.keys(_avg).forEach(field => {
-              const values = group.items.map(i => i[field]).filter(v => typeof v === 'number');
-              item._avg[field] = values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : null;
-            });
-          }
-        }
-        
-        return item;
-      });
-      
-      // Apply pagination
-      if (skip) result = result.slice(skip);
-      if (take) result = result.slice(0, take);
-      
-      return Promise.resolve(result);
-    }),
+
+          let result = Array.from(groups.values()).map((group) => {
+            const item = { ...group };
+            delete item.items;
+
+            if (_count) {
+              item._count =
+                typeof _count === 'object'
+                  ? Object.keys(_count).reduce(
+                      (acc, key) => ({ ...acc, [key]: group.items.length }),
+                      {},
+                    )
+                  : group.items.length;
+            }
+
+            if (_avg && group.items.length > 0) {
+              item._avg = {};
+              if (typeof _avg === 'object') {
+                Object.keys(_avg).forEach((field) => {
+                  const values = group.items
+                    .map((i) => i[field])
+                    .filter((v) => typeof v === 'number');
+                  item._avg[field] =
+                    values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : null;
+                });
+              }
+            }
+
+            return item;
+          });
+
+          // Apply pagination
+          if (skip) result = result.slice(skip);
+          if (take) result = result.slice(0, take);
+
+          return Promise.resolve(result);
+        },
+      ),
 
     // ADVANCED: createManyAndReturn operation
     createManyAndReturn: vi.fn().mockImplementation(({ data, skipDuplicates = false }) => {
       const items = Array.isArray(data) ? data : [data];
       const created = [];
-      
+
       for (const itemData of items) {
         try {
           const item = createModelInstance(itemData, config);
-          
+
           if (!skipDuplicates && uniqueFields.length > 0) {
             for (const field of uniqueFields) {
               if (itemData[field]) {
-                const existing = store.findUnique(collectionName, { where: { [field]: itemData[field] } });
+                const existing = store.findUnique(collectionName, {
+                  where: { [field]: itemData[field] },
+                });
                 if (existing) {
                   throw new Error(`Unique constraint failed on ${field}: ${itemData[field]}`);
                 }
               }
             }
           }
-          
+
           store.setItem(collectionName, item[idField], item);
           created.push(item);
         } catch (error) {
@@ -166,7 +181,7 @@ export function generateMissingOperations(store: any, config: ModelOperationsCon
           }
         }
       }
-      
+
       return Promise.resolve(created);
     }),
   };
@@ -177,7 +192,7 @@ export function generateMissingOperations(store: any, config: ModelOperationsCon
  */
 export function generateMissingBasicOperations(store: any, config: ModelOperationsConfig) {
   const { modelName, collectionName, typeInterface, idField } = config;
-  
+
   return {
     // Add findFirst if missing
     findFirst: vi.fn().mockImplementation(({ where, include, orderBy }) => {
@@ -185,7 +200,7 @@ export function generateMissingBasicOperations(store: any, config: ModelOperatio
       return Promise.resolve(item);
     }),
 
-    // Add findUnique if missing  
+    // Add findUnique if missing
     findUnique: vi.fn().mockImplementation(({ where, include }) => {
       const item = store.findUnique(collectionName, { where, include });
       return Promise.resolve(item);
@@ -197,14 +212,16 @@ export function generateMissingBasicOperations(store: any, config: ModelOperatio
       if (!existing) {
         throw new Error(`${modelName} not found`);
       }
-      
+
       const updated = { ...existing, ...data };
       if (data.status && existing.status !== data.status) {
         updated.updatedAt = new Date();
       }
-      
+
       store.setItem(collectionName, existing[idField], updated);
-      return Promise.resolve(include ? store.applyIncludes(collectionName, updated, include) : updated);
+      return Promise.resolve(
+        include ? store.applyIncludes(collectionName, updated, include) : updated,
+      );
     }),
 
     // Add delete if missing
@@ -213,7 +230,7 @@ export function generateMissingBasicOperations(store: any, config: ModelOperatio
       if (!item) {
         throw new Error(`${modelName} not found`);
       }
-      
+
       store.deleteItem(collectionName, item[idField]);
       return Promise.resolve(item);
     }),
@@ -246,7 +263,7 @@ function createModelInstance(data: any, config: ModelOperationsConfig): any {
   const { modelName, idField } = config;
   const timestamp = Date.now();
   const random = Math.random().toString(36).substr(2, 9);
-  
+
   const baseInstance = {
     [idField]: data[idField] || `${modelName.toLowerCase()}-${timestamp}-${random}`,
     createdAt: data.createdAt || new Date(),
@@ -269,7 +286,7 @@ function createModelInstance(data: any, config: ModelOperationsConfig): any {
         name: data.name || null,
         lastLoginAt: data.lastLoginAt || null,
       };
-      
+
     case 'MediaRequest':
       return {
         ...baseInstance,
@@ -278,13 +295,13 @@ function createModelInstance(data: any, config: ModelOperationsConfig): any {
         overseerrId: data.overseerrId || null,
         completedAt: data.completedAt || null,
       };
-      
+
     case 'Session':
       return {
         ...baseInstance,
         expires: data.expires || new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
       };
-      
+
     case 'ServiceStatus':
       return {
         ...baseInstance,
@@ -292,9 +309,11 @@ function createModelInstance(data: any, config: ModelOperationsConfig): any {
         status: data.status || null,
         responseTimeMs: data.responseTimeMs || null,
         lastCheckAt: data.lastCheckAt || new Date(),
-        uptimePercentage: data.uptimePercentage ? { toNumber: () => parseFloat(data.uptimePercentage) } : null,
+        uptimePercentage: data.uptimePercentage
+          ? { toNumber: () => parseFloat(data.uptimePercentage) }
+          : null,
       };
-      
+
     default:
       return baseInstance;
   }
@@ -306,7 +325,7 @@ function createModelInstance(data: any, config: ModelOperationsConfig): any {
 export const MODEL_CONFIGS: ModelOperationsConfig[] = [
   {
     modelName: 'User',
-    collectionName: 'User', 
+    collectionName: 'User',
     typeInterface: 'MockUser',
     idField: 'id',
     uniqueFields: ['email', 'plexId'],
@@ -314,7 +333,7 @@ export const MODEL_CONFIGS: ModelOperationsConfig[] = [
   {
     modelName: 'MediaRequest',
     collectionName: 'MediaRequest',
-    typeInterface: 'MockMediaRequest', 
+    typeInterface: 'MockMediaRequest',
     idField: 'id',
     uniqueFields: [],
   },

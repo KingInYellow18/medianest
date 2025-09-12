@@ -1,1 +1,30 @@
-{"uuid":"88589c72-f33e-4f30-95d0-52ec1efd1c87","name":"should retry failed download","historyId":"7d37f2e1039c4d40c4cc3d58c986ef14:84e28e814b821ed013329cc8dbc467e0","status":"skipped","statusDetails":{},"stage":"finished","steps":[],"attachments":[],"parameters":[{"name":"Project","value":"webkit"}],"labels":[{"name":"language","value":"javascript"},{"name":"framework","value":"playwright"},{"name":"package","value":"youtube-download-journey.spec.ts"},{"name":"titlePath","value":" > webkit > youtube-download-journey.spec.ts > YouTube Download User Journey"},{"name":"host","value":"kubuntudev"},{"name":"thread","value":"pid-38931-worker-0"},{"name":"parentSuite","value":"webkit"},{"name":"subSuite","value":"YouTube Download User Journey"}],"links":[],"start":1757602649430,"testCaseId":"7d37f2e1039c4d40c4cc3d58c986ef14","fullName":"youtube-download-journey.spec.ts:497:7","titlePath":["youtube-download-journey.spec.ts","YouTube Download User Journey"],"stop":1757602649430}
+{
+  "uuid": "88589c72-f33e-4f30-95d0-52ec1efd1c87",
+  "name": "should retry failed download",
+  "historyId": "7d37f2e1039c4d40c4cc3d58c986ef14:84e28e814b821ed013329cc8dbc467e0",
+  "status": "skipped",
+  "statusDetails": {},
+  "stage": "finished",
+  "steps": [],
+  "attachments": [],
+  "parameters": [{ "name": "Project", "value": "webkit" }],
+  "labels": [
+    { "name": "language", "value": "javascript" },
+    { "name": "framework", "value": "playwright" },
+    { "name": "package", "value": "youtube-download-journey.spec.ts" },
+    {
+      "name": "titlePath",
+      "value": " > webkit > youtube-download-journey.spec.ts > YouTube Download User Journey"
+    },
+    { "name": "host", "value": "kubuntudev" },
+    { "name": "thread", "value": "pid-38931-worker-0" },
+    { "name": "parentSuite", "value": "webkit" },
+    { "name": "subSuite", "value": "YouTube Download User Journey" }
+  ],
+  "links": [],
+  "start": 1757602649430,
+  "testCaseId": "7d37f2e1039c4d40c4cc3d58c986ef14",
+  "fullName": "youtube-download-journey.spec.ts:497:7",
+  "titlePath": ["youtube-download-journey.spec.ts", "YouTube Download User Journey"],
+  "stop": 1757602649430
+}

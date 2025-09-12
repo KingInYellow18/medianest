@@ -196,7 +196,6 @@ Design and plan a comprehensive admin control system that allows administrators 
 2. **Visibility Model**: Per-monitor control vs category-based grouping
    - Decision: Per-monitor control for maximum flexibility
 3. **Default Visibility**: New monitors default to public vs admin-only
-
    - Decision: Default to admin-only for security (admin must explicitly make public)
 
 4. **Real-time Updates**: How to handle visibility changes for connected users

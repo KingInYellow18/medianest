@@ -127,7 +127,7 @@ describe('WebSocket Connection Performance Tests', () => {
   const createWebSocketClient = async (
     userId: string,
     token: string,
-    connectionId: string
+    connectionId: string,
   ): Promise<any> => {
     const port = httpServer.address()?.port;
     const socket = new SocketIOClient(`http://localhost:${port}`, {
@@ -162,7 +162,7 @@ describe('WebSocket Connection Performance Tests', () => {
     operation: 'connect' | 'disconnect' | 'message' | 'broadcast',
     operationFunction: () => Promise<any>,
     connectionId: string,
-    messageSize: number = 0
+    messageSize: number = 0,
   ): Promise<WebSocketMetric> => {
     const memoryBefore = process.memoryUsage();
     const startTime = performance.now();
@@ -204,12 +204,12 @@ describe('WebSocket Connection Performance Tests', () => {
   const analyzeWebSocketPerformance = (
     operation: string,
     metrics: WebSocketMetric[],
-    target: number = 100
+    target: number = 100,
   ): WebSocketBenchmark => {
     const durations = metrics.map((m) => m.duration).sort((a, b) => a - b);
     const successfulMetrics = metrics.filter((m) => m.success);
     const totalMessages = metrics.filter(
-      (m) => m.operation === 'message' || m.operation === 'broadcast'
+      (m) => m.operation === 'message' || m.operation === 'broadcast',
     ).length;
 
     const benchmark: WebSocketBenchmark = {
@@ -226,7 +226,7 @@ describe('WebSocket Connection Performance Tests', () => {
               (totalMessages /
                 (Math.max(...metrics.map((m) => m.timestamp)) -
                   Math.min(...metrics.map((m) => m.timestamp)))) *
-                1000
+                1000,
             )
           : 0,
       memoryEfficiency:
@@ -234,7 +234,7 @@ describe('WebSocket Connection Performance Tests', () => {
           (metrics.reduce((sum, m) => sum + m.memoryUsage.heapUsed, 0) /
             metrics.length /
             (1024 * 1024)) *
-            100
+            100,
         ) / 100,
       passed: false,
     };
@@ -255,7 +255,7 @@ describe('WebSocket Connection Performance Tests', () => {
       const metric = await measureWebSocketOperation(
         'connect',
         () => createWebSocketClient(testUsers[0].id, userTokens[0], 'single-connection'),
-        'single-connection'
+        'single-connection',
       );
 
       connectionMetrics.push(metric);
@@ -280,7 +280,7 @@ describe('WebSocket Connection Performance Tests', () => {
         const promise = measureWebSocketOperation(
           'connect',
           () => createWebSocketClient(testUsers[i].id, userTokens[i], connectionId),
-          connectionId
+          connectionId,
         );
         connectionPromises.push(promise);
       }
@@ -291,7 +291,7 @@ describe('WebSocket Connection Performance Tests', () => {
       const benchmark = analyzeWebSocketPerformance(
         'concurrent-connections-10',
         connectionMetrics,
-        200
+        200,
       );
 
       expect(benchmark.avgOperationTime).toBeLessThan(200);
@@ -324,7 +324,7 @@ describe('WebSocket Connection Performance Tests', () => {
             'connect',
             () =>
               createWebSocketClient(testUsers[userIndex].id, userTokens[userIndex], connectionId),
-            connectionId
+            connectionId,
           );
           batchPromises.push(promise);
         }
@@ -333,7 +333,7 @@ describe('WebSocket Connection Performance Tests', () => {
         const successfulMetrics = batchMetrics
           .filter(
             (result): result is PromiseFulfilledResult<WebSocketMetric> =>
-              result.status === 'fulfilled'
+              result.status === 'fulfilled',
           )
           .map((result) => result.value);
 
@@ -379,7 +379,7 @@ describe('WebSocket Connection Performance Tests', () => {
               setTimeout(resolve, 1000);
             }),
           connectionId,
-          JSON.stringify(testMessage).length
+          JSON.stringify(testMessage).length,
         );
         messageMetrics.push(metric);
 
@@ -410,7 +410,7 @@ describe('WebSocket Connection Performance Tests', () => {
           const socket = await createWebSocketClient(
             testUsers[userIndex].id,
             userTokens[userIndex],
-            connectionId
+            connectionId,
           );
           connections.push({ id: connectionId, socket });
         } catch (error) {
@@ -442,7 +442,7 @@ describe('WebSocket Connection Performance Tests', () => {
               setTimeout(resolve, 100);
             }),
           `broadcast-${i}`,
-          JSON.stringify(broadcastMessage).length
+          JSON.stringify(broadcastMessage).length,
         );
         broadcastMetrics.push(metric);
       }
@@ -497,7 +497,7 @@ describe('WebSocket Connection Performance Tests', () => {
               resolve(); // Don't wait for ack for high frequency
             }),
           connectionId,
-          50 // Approximate message size
+          50, // Approximate message size
         );
         messageMetrics.push(metric);
       }, 1000 / messagesPerSecond);
@@ -539,7 +539,7 @@ describe('WebSocket Connection Performance Tests', () => {
           const socket = await createWebSocketClient(
             testUsers[userIndex].id,
             userTokens[userIndex],
-            connectionId
+            connectionId,
           );
           connections.push({ id: connectionId, socket });
         } catch (error) {
@@ -558,7 +558,7 @@ describe('WebSocket Connection Performance Tests', () => {
               // Timeout fallback
               setTimeout(resolve, 1000);
             }),
-          conn.id
+          conn.id,
         );
         cleanupMetrics.push(metric);
         activeConnections.delete(conn.id);
@@ -587,7 +587,7 @@ describe('WebSocket Connection Performance Tests', () => {
             'connect',
             () =>
               createWebSocketClient(testUsers[userIndex].id, userTokens[userIndex], connectionId),
-            connectionId
+            connectionId,
           );
           connectPromises.push(promise);
         }
@@ -596,7 +596,7 @@ describe('WebSocket Connection Performance Tests', () => {
         const successfulConnects = connectMetrics
           .filter(
             (result): result is PromiseFulfilledResult<WebSocketMetric> =>
-              result.status === 'fulfilled'
+              result.status === 'fulfilled',
           )
           .map((result) => result.value);
 
@@ -620,7 +620,7 @@ describe('WebSocket Connection Performance Tests', () => {
                   socket.disconnect();
                   setTimeout(resolve, 500); // Timeout fallback
                 }),
-              connectionId
+              connectionId,
             );
             disconnectPromises.push(promise);
           }
@@ -630,7 +630,7 @@ describe('WebSocket Connection Performance Tests', () => {
         const successfulDisconnects = disconnectMetrics
           .filter(
             (result): result is PromiseFulfilledResult<WebSocketMetric> =>
-              result.status === 'fulfilled'
+              result.status === 'fulfilled',
           )
           .map((result) => result.value);
 
@@ -667,7 +667,7 @@ describe('WebSocket Connection Performance Tests', () => {
         totalBenchmarks: wsBenchmarks.length,
         passedBenchmarks: wsBenchmarks.filter((b) => b.passed).length,
         avgOperationTime: Math.round(
-          wsBenchmarks.reduce((sum, b) => sum + b.avgOperationTime, 0) / wsBenchmarks.length
+          wsBenchmarks.reduce((sum, b) => sum + b.avgOperationTime, 0) / wsBenchmarks.length,
         ),
         avgSuccessRate:
           wsBenchmarks.reduce((sum, b) => sum + b.successRate, 0) / wsBenchmarks.length,
@@ -675,12 +675,12 @@ describe('WebSocket Connection Performance Tests', () => {
           wsBenchmarks
             .filter((b) => b.throughputMPS > 0)
             .reduce((sum, b) => sum + b.throughputMPS, 0) /
-            wsBenchmarks.filter((b) => b.throughputMPS > 0).length
+            wsBenchmarks.filter((b) => b.throughputMPS > 0).length,
         ),
         avgMemoryEfficiency:
           Math.round(
             (wsBenchmarks.reduce((sum, b) => sum + b.memoryEfficiency, 0) / wsBenchmarks.length) *
-              100
+              100,
           ) / 100,
         totalMetrics: wsMetrics.length,
         operationBreakdown: {

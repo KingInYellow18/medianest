@@ -2,7 +2,7 @@
 
 /**
  * Coverage Validation Agent - Comprehensive Coverage Analysis
- * 
+ *
  * Mission: Measure actual coverage once tests execute and validate 80%+ achievement
  * Strategy: Multi-phase coverage measurement with detailed gap analysis
  */
@@ -71,13 +71,13 @@ class CoverageValidator {
 
     // Backend coverage measurement
     const backendCoverage = await this.measureModuleCoverage('backend');
-    
-    // Frontend coverage measurement  
+
+    // Frontend coverage measurement
     const frontendCoverage = await this.measureModuleCoverage('frontend');
-    
+
     // Shared module coverage
     const sharedCoverage = await this.measureModuleCoverage('shared');
-    
+
     // Overall project coverage
     const overallCoverage = await this.measureOverallCoverage();
 
@@ -90,7 +90,7 @@ class CoverageValidator {
       shared: sharedCoverage,
       criticalPaths: await this.analyzeCriticalPaths(),
       gaps: await this.identifyCoverageGaps(),
-      recommendations: this.generateRecommendations()
+      recommendations: this.generateRecommendations(),
     };
 
     await this.generateReports(report);
@@ -99,18 +99,20 @@ class CoverageValidator {
   /**
    * Measure coverage for specific module
    */
-  private async measureModuleCoverage(module: 'backend' | 'frontend' | 'shared'): Promise<CoverageMetrics> {
+  private async measureModuleCoverage(
+    module: 'backend' | 'frontend' | 'shared',
+  ): Promise<CoverageMetrics> {
     console.log(`📊 Measuring ${module} coverage...`);
-    
+
     try {
       // Use appropriate config for each module
       const config = this.getConfigForModule(module);
       const command = `npx vitest --config ${config} --coverage --run --reporter=json`;
-      
-      const result = execSync(command, { 
+
+      const result = execSync(command, {
         encoding: 'utf8',
         cwd: this.projectRoot,
-        timeout: 120000 // 2 minute timeout
+        timeout: 120000, // 2 minute timeout
       });
 
       return this.parseCoverageOutput(result, module);
@@ -123,11 +125,11 @@ class CoverageValidator {
   private getConfigForModule(module: string): string {
     const configs = {
       backend: 'vitest.config.ts',
-      frontend: 'vitest.config.ts', 
+      frontend: 'vitest.config.ts',
       shared: 'vitest.config.ts',
-      overall: 'vitest.config.ts'
+      overall: 'vitest.config.ts',
     };
-    
+
     return configs[module] || 'vitest.config.ts';
   }
 
@@ -135,8 +137,10 @@ class CoverageValidator {
     try {
       // Parse vitest JSON output for coverage metrics
       const lines = output.split('\n');
-      const jsonLine = lines.find(line => line.includes('"coverage"') || line.includes('"statements"'));
-      
+      const jsonLine = lines.find(
+        (line) => line.includes('"coverage"') || line.includes('"statements"'),
+      );
+
       if (jsonLine) {
         const coverageData = JSON.parse(jsonLine);
         return {
@@ -145,7 +149,7 @@ class CoverageValidator {
           functions: coverageData.functions?.percentage || 0,
           lines: coverageData.lines?.percentage || 0,
           threshold: this.getThresholdForModule(module),
-          status: this.determineStatus(coverageData.statements?.percentage || 0, module)
+          status: this.determineStatus(coverageData.statements?.percentage || 0, module),
         };
       }
     } catch (error) {
@@ -160,15 +164,15 @@ class CoverageValidator {
       backend: 80,
       frontend: 75,
       shared: 85,
-      overall: 80
+      overall: 80,
     };
-    
+
     return thresholds[module] || 80;
   }
 
   private determineStatus(coverage: number, module: string): 'pass' | 'fail' | 'warning' {
     const threshold = this.getThresholdForModule(module);
-    
+
     if (coverage >= threshold) return 'pass';
     if (coverage >= threshold - 10) return 'warning';
     return 'fail';
@@ -181,7 +185,7 @@ class CoverageValidator {
       functions: 0,
       lines: 0,
       threshold: 80,
-      status
+      status,
     };
   }
 
@@ -190,13 +194,13 @@ class CoverageValidator {
    */
   private async measureOverallCoverage(): Promise<CoverageMetrics> {
     console.log('🎯 Measuring overall project coverage...');
-    
+
     try {
       const command = 'npx vitest --coverage --run --reporter=json';
       const result = execSync(command, {
         encoding: 'utf8',
         cwd: this.projectRoot,
-        timeout: 180000 // 3 minute timeout for full suite
+        timeout: 180000, // 3 minute timeout for full suite
       });
 
       return this.parseCoverageOutput(result, 'overall');
@@ -211,50 +215,50 @@ class CoverageValidator {
    */
   private async analyzeCriticalPaths(): Promise<CriticalPathCoverage[]> {
     console.log('🔍 Analyzing critical business path coverage...');
-    
+
     const criticalPaths = [
       {
         path: 'Authentication Flow',
         files: [
           'backend/src/controllers/auth.controller.ts',
           'backend/src/services/jwt.service.ts',
-          'backend/src/middleware/auth.middleware.ts'
-        ]
+          'backend/src/middleware/auth.middleware.ts',
+        ],
       },
       {
         path: 'Plex Integration',
         files: [
           'backend/src/controllers/plex.controller.ts',
-          'backend/src/services/plex.service.ts'
-        ]
+          'backend/src/services/plex.service.ts',
+        ],
       },
       {
         path: 'Media Management',
         files: [
           'backend/src/controllers/media.controller.ts',
-          'backend/src/services/media.service.ts'
-        ]
+          'backend/src/services/media.service.ts',
+        ],
       },
       {
         path: 'Admin Dashboard',
         files: [
           'backend/src/controllers/admin.controller.ts',
-          'backend/src/controllers/dashboard.controller.ts'
-        ]
-      }
+          'backend/src/controllers/dashboard.controller.ts',
+        ],
+      },
     ];
 
-    return criticalPaths.map(path => ({
+    return criticalPaths.map((path) => ({
       ...path,
       coverage: this.calculatePathCoverage(path.files),
-      status: this.getPathStatus(this.calculatePathCoverage(path.files))
+      status: this.getPathStatus(this.calculatePathCoverage(path.files)),
     }));
   }
 
   private calculatePathCoverage(files: string[]): number {
     // Simplified calculation - in real implementation would analyze actual coverage
     // For now, estimate based on test file existence
-    const testFiles = files.filter(file => {
+    const testFiles = files.filter((file) => {
       const testFile = file.replace('src/', 'tests/unit/').replace('.ts', '.test.ts');
       return existsSync(join(this.projectRoot, testFile));
     });
@@ -273,9 +277,9 @@ class CoverageValidator {
    */
   private async identifyCoverageGaps(): Promise<CoverageGap[]> {
     console.log('🔍 Identifying coverage gaps...');
-    
+
     const gaps: CoverageGap[] = [];
-    
+
     // Check for missing test files
     const sourceFiles = this.findSourceFiles();
     for (const file of sourceFiles) {
@@ -285,7 +289,7 @@ class CoverageValidator {
           file,
           type: 'missing_tests',
           coverage: 0,
-          priority: this.getPriorityForFile(file)
+          priority: this.getPriorityForFile(file),
         });
       }
     }
@@ -295,7 +299,8 @@ class CoverageValidator {
 
   private findSourceFiles(): string[] {
     try {
-      const command = 'find backend/src frontend/src shared/src -name "*.ts" -not -name "*.d.ts" -not -name "*.test.ts"';
+      const command =
+        'find backend/src frontend/src shared/src -name "*.ts" -not -name "*.d.ts" -not -name "*.test.ts"';
       const result = execSync(command, { encoding: 'utf8', cwd: this.projectRoot });
       return result.trim().split('\n').filter(Boolean);
     } catch {
@@ -304,9 +309,7 @@ class CoverageValidator {
   }
 
   private getTestFileForSource(sourceFile: string): string {
-    return sourceFile
-      .replace('src/', 'tests/unit/')
-      .replace('.ts', '.test.ts');
+    return sourceFile.replace('src/', 'tests/unit/').replace('.ts', '.test.ts');
   }
 
   private getPriorityForFile(file: string): 'critical' | 'high' | 'medium' | 'low' {
@@ -328,7 +331,7 @@ class CoverageValidator {
       'Add integration tests for external API dependencies',
       'Establish coverage monitoring in CI/CD pipeline',
       'Create coverage dashboard for real-time tracking',
-      'Set up automated coverage quality gates'
+      'Set up automated coverage quality gates',
     ];
   }
 
@@ -337,19 +340,22 @@ class CoverageValidator {
    */
   private async generateReports(report: CoverageReport): Promise<void> {
     console.log('📋 Generating coverage reports...');
-    
+
     // JSON report for automation
     const jsonReport = join(this.reportDir, `coverage-report-${Date.now()}.json`);
     writeFileSync(jsonReport, JSON.stringify(report, null, 2));
-    
+
     // Markdown report for humans
     const markdownReport = this.generateMarkdownReport(report);
-    const mdReport = join(this.reportDir, `coverage-validation-${new Date().toISOString().split('T')[0]}.md`);
+    const mdReport = join(
+      this.reportDir,
+      `coverage-validation-${new Date().toISOString().split('T')[0]}.md`,
+    );
     writeFileSync(mdReport, markdownReport);
-    
+
     // Console summary
     this.printSummary(report);
-    
+
     console.log(`\n📁 Reports generated:`);
     console.log(`   JSON: ${jsonReport}`);
     console.log(`   Markdown: ${mdReport}`);
@@ -371,19 +377,17 @@ class CoverageValidator {
 
 ## 🎯 Critical Path Coverage
 
-${report.criticalPaths.map(path => 
-  `- **${path.path}**: ${path.coverage}% ${this.getPathEmoji(path.status)}`
-).join('\n')}
+${report.criticalPaths
+  .map((path) => `- **${path.path}**: ${path.coverage}% ${this.getPathEmoji(path.status)}`)
+  .join('\n')}
 
 ## ⚠️ Coverage Gaps (${report.gaps.length})
 
-${report.gaps.map(gap => 
-  `- **${gap.file}**: ${gap.type} (${gap.priority} priority)`
-).join('\n')}
+${report.gaps.map((gap) => `- **${gap.file}**: ${gap.type} (${gap.priority} priority)`).join('\n')}
 
 ## 💡 Recommendations
 
-${report.recommendations.map(rec => `- ${rec}`).join('\n')}
+${report.recommendations.map((rec) => `- ${rec}`).join('\n')}
 
 ## 🚀 Next Actions
 
@@ -406,21 +410,29 @@ ${report.recommendations.map(rec => `- ${rec}`).join('\n')}
   private printSummary(report: CoverageReport): void {
     console.log('\n📊 COVERAGE VALIDATION SUMMARY');
     console.log('================================');
-    console.log(`Overall Coverage: ${report.overall.statements}% ${this.getStatusEmoji(report.overall.status)}`);
-    console.log(`Backend Coverage: ${report.backend.statements}% ${this.getStatusEmoji(report.backend.status)}`);
-    console.log(`Frontend Coverage: ${report.frontend.statements}% ${this.getStatusEmoji(report.frontend.status)}`);
+    console.log(
+      `Overall Coverage: ${report.overall.statements}% ${this.getStatusEmoji(report.overall.status)}`,
+    );
+    console.log(
+      `Backend Coverage: ${report.backend.statements}% ${this.getStatusEmoji(report.backend.status)}`,
+    );
+    console.log(
+      `Frontend Coverage: ${report.frontend.statements}% ${this.getStatusEmoji(report.frontend.status)}`,
+    );
     console.log(`Coverage Gaps: ${report.gaps.length}`);
-    console.log(`Critical Paths: ${report.criticalPaths.filter(p => p.status === 'covered').length}/${report.criticalPaths.length} covered`);
+    console.log(
+      `Critical Paths: ${report.criticalPaths.filter((p) => p.status === 'covered').length}/${report.criticalPaths.length} covered`,
+    );
   }
 }
 
 // CLI execution
 async function main() {
   console.log('🔍 Coverage Validation Agent - Starting Analysis...\n');
-  
+
   const validator = new CoverageValidator();
   await validator.measureCoverage();
-  
+
   console.log('\n✅ Coverage validation complete!');
 }
 

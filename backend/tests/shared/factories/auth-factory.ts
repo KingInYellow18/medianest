@@ -153,7 +153,7 @@ export class AuthTestFactory {
   static async setupAuthenticatedSession(
     page: Page,
     userType: 'admin' | 'user' = 'user',
-    apiBaseUrl: string = ''
+    apiBaseUrl: string = '',
   ) {
     const userData = this.TEST_USERS[userType];
     const mockToken = this.createMockAuthToken();
@@ -183,7 +183,7 @@ export class AuthTestFactory {
               username: userData.username,
               email: userData.email,
               role: userData.role,
-            })
+            }),
           ),
         });
       });

@@ -133,10 +133,10 @@ Get MediaNest up and running in minutes with our streamlined setup process:
     # Clone the repository
     git clone https://github.com/kinginyellow/medianest.git
     cd medianest
-    
+
     # Start with Docker Compose
     docker-compose up -d
-    
+
     # Access the application
     open http://localhost:3000
     ```
@@ -145,16 +145,16 @@ Get MediaNest up and running in minutes with our streamlined setup process:
 
     ```bash
     # Prerequisites: Node.js 18+, PostgreSQL 14+
-    
+
     # Install dependencies
     npm install
-    
+
     # Configure environment
     cp .env.example .env
-    
+
     # Run database migrations
     npm run db:migrate
-    
+
     # Start the application
     npm run dev
     ```
@@ -164,10 +164,10 @@ Get MediaNest up and running in minutes with our streamlined setup process:
     ```bash
     # Build production image
     docker build -t medianest:latest .
-    
+
     # Deploy with production configuration
     docker-compose -f docker-compose.prod.yml up -d
-    
+
     # Verify deployment
     curl http://localhost:3000/api/health
     ```
@@ -183,31 +183,31 @@ graph TB
         B[Mobile App]
         C[Third-party Apps]
     end
-    
+
     subgraph "API Gateway"
         D[Load Balancer]
         E[Rate Limiter]
         F[Authentication]
     end
-    
+
     subgraph "Application Layer"
         G[MediaNest Core API]
         H[Background Jobs]
         I[WebSocket Server]
     end
-    
+
     subgraph "Integration Layer"
         J[Plex API Client]
         K[External APIs]
         L[File System Monitor]
     end
-    
+
     subgraph "Data Layer"
         M[(PostgreSQL)]
         N[(Redis Cache)]
         O[File Storage]
     end
-    
+
     A --> D
     B --> D
     C --> D
@@ -222,7 +222,7 @@ graph TB
     G --> M
     G --> N
     G --> O
-    
+
     style G fill:#673ab7,stroke:#4527a0,color:#fff
     style M fill:#336791,stroke:#2a5782,color:#fff
     style J fill:#e5a00d,stroke:#b8860b,color:#fff
@@ -249,7 +249,7 @@ graph TB
 ### 📈 Performance & Reliability
 
 - **High Availability**: Load balancing, failover support, and health monitoring
-- **Performance Optimized**: Database indexing, caching layers, and query optimization  
+- **Performance Optimized**: Database indexing, caching layers, and query optimization
 - **Monitoring**: Comprehensive logging, metrics collection, and alerting
 - **Backup & Recovery**: Automated backups, point-in-time recovery, and disaster planning
 

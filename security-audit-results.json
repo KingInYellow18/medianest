@@ -13,9 +13,7 @@
           "title": "esbuild enables any website to send any requests to the development server and read the response",
           "url": "https://github.com/advisories/GHSA-67mh-4wv8-2f99",
           "severity": "moderate",
-          "cwe": [
-            "CWE-346"
-          ],
+          "cwe": ["CWE-346"],
           "cvss": {
             "score": 5.3,
             "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:N/A:N"
@@ -23,13 +21,9 @@
           "range": "<=0.24.2"
         }
       ],
-      "effects": [
-        "vite"
-      ],
+      "effects": ["vite"],
       "range": "<=0.24.2",
-      "nodes": [
-        "node_modules/vite/node_modules/esbuild"
-      ],
+      "nodes": ["node_modules/vite/node_modules/esbuild"],
       "fixAvailable": {
         "name": "vite",
         "version": "7.1.5",
@@ -40,17 +34,10 @@
       "name": "fengari",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "tmp"
-      ],
-      "effects": [
-        "fengari-interop",
-        "ioredis-mock"
-      ],
+      "via": ["tmp"],
+      "effects": ["fengari-interop", "ioredis-mock"],
       "range": "*",
-      "nodes": [
-        "node_modules/fengari"
-      ],
+      "nodes": ["node_modules/fengari"],
       "fixAvailable": {
         "name": "ioredis-mock",
         "version": "4.7.0",
@@ -61,29 +48,20 @@
       "name": "fengari-interop",
       "severity": "low",
       "isDirect": false,
-      "via": [
-        "fengari"
-      ],
+      "via": ["fengari"],
       "effects": [],
       "range": "*",
-      "nodes": [
-        "node_modules/fengari-interop"
-      ],
+      "nodes": ["node_modules/fengari-interop"],
       "fixAvailable": true
     },
     "ioredis-mock": {
       "name": "ioredis-mock",
       "severity": "low",
       "isDirect": true,
-      "via": [
-        "fengari",
-        "fengari-interop"
-      ],
+      "via": ["fengari", "fengari-interop"],
       "effects": [],
       "range": ">=4.8.0",
-      "nodes": [
-        "node_modules/ioredis-mock"
-      ],
+      "nodes": ["node_modules/ioredis-mock"],
       "fixAvailable": {
         "name": "ioredis-mock",
         "version": "4.7.0",
@@ -102,9 +80,7 @@
           "title": "tmp allows arbitrary temporary file / directory write via symbolic link `dir` parameter",
           "url": "https://github.com/advisories/GHSA-52f5-9888-hmc6",
           "severity": "low",
-          "cwe": [
-            "CWE-59"
-          ],
+          "cwe": ["CWE-59"],
           "cvss": {
             "score": 2.5,
             "vectorString": "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:N/I:L/A:N"
@@ -112,13 +88,9 @@
           "range": "<=0.2.3"
         }
       ],
-      "effects": [
-        "fengari"
-      ],
+      "effects": ["fengari"],
       "range": "<=0.2.3",
-      "nodes": [
-        "node_modules/fengari/node_modules/tmp"
-      ],
+      "nodes": ["node_modules/fengari/node_modules/tmp"],
       "fixAvailable": {
         "name": "ioredis-mock",
         "version": "4.7.0",
@@ -129,14 +101,10 @@
       "name": "vite",
       "severity": "moderate",
       "isDirect": true,
-      "via": [
-        "esbuild"
-      ],
+      "via": ["esbuild"],
       "effects": [],
       "range": "0.11.0 - 6.1.6",
-      "nodes": [
-        "node_modules/vite"
-      ],
+      "nodes": ["node_modules/vite"],
       "fixAvailable": {
         "name": "vite",
         "version": "7.1.5",

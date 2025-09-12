@@ -19,7 +19,7 @@ describe('ErrorBoundary Fixed Test', () => {
       // Temporarily override the global error handler
       const originalOnError = window.onerror;
       const originalOnUnhandledRejection = window.onunhandledrejection;
-      
+
       window.onerror = (message, source, lineno, colno, error) => {
         if (error && error.message === 'Test error message') {
           // This is our expected error, resolve the promise
@@ -29,23 +29,23 @@ describe('ErrorBoundary Fixed Test', () => {
         // For other errors, use the original handler
         return originalOnError ? originalOnError(message, source, lineno, colno, error) : false;
       };
-      
+
       // Suppress console.error temporarily
       const originalConsoleError = console.error;
       console.error = vi.fn();
-      
+
       try {
         render(
           <ErrorBoundary>
-            <ThrowError message="Test error message" />
-          </ErrorBoundary>
+            <ThrowError message='Test error message' />
+          </ErrorBoundary>,
         );
-        
+
         // Check that the ErrorBoundary rendered correctly
         expect(screen.getByRole('alert')).toBeInTheDocument();
         expect(screen.getByText('Something went wrong')).toBeVisible();
         expect(screen.getByText('Test error message')).toBeInTheDocument();
-        
+
         resolve();
       } catch (error) {
         reject(error);
@@ -56,7 +56,7 @@ describe('ErrorBoundary Fixed Test', () => {
         console.error = originalConsoleError;
       }
     });
-    
+
     await errorPromise;
   });
 });

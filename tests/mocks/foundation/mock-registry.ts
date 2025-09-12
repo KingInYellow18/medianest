@@ -1,9 +1,9 @@
 /**
  * UNIFIED MOCK REGISTRY FOUNDATION
- * 
+ *
  * Centralized registry for all mock instances with factory patterns,
  * lifecycle management, and validation systems.
- * 
+ *
  * Features:
  * - Factory Pattern for consistent mock creation
  * - Registry Pattern for centralized management
@@ -76,13 +76,18 @@ export class MockRegistry {
   /**
    * Register a mock factory with collision handling
    */
-  register<T>(name: string, factory: MockFactory<T>, validator?: (instance: T) => ValidationResult, options?: {
-    overwrite?: boolean;
-    namespace?: string;
-    isolate?: boolean;
-  }): void {
+  register<T>(
+    name: string,
+    factory: MockFactory<T>,
+    validator?: (instance: T) => ValidationResult,
+    options?: {
+      overwrite?: boolean;
+      namespace?: string;
+      isolate?: boolean;
+    },
+  ): void {
     const actualName = options?.namespace ? `${options.namespace}:${name}` : name;
-    
+
     if (this.factories.has(actualName)) {
       if (options?.overwrite) {
         console.warn(`⚠️ Overwriting existing mock factory '${actualName}'`);
@@ -99,7 +104,7 @@ export class MockRegistry {
         console.warn(`Mock factory '${actualName}' already exists, replacing...`);
       }
     }
-    
+
     this.factories.set(actualName, factory);
     if (validator) {
       this.validators.set(actualName, validator);
@@ -111,23 +116,23 @@ export class MockRegistry {
    */
   get<T>(name: string, config?: MockConfig, namespace?: string): T {
     const actualName = namespace ? `${namespace}:${name}` : name;
-    
+
     if (!this.instances.has(actualName)) {
       let factory = this.factories.get(actualName);
-      
+
       // Try to find isolated instance if direct name fails
       if (!factory && !namespace) {
         const isolatedFactories = Array.from(this.factories.keys())
-          .filter(key => key.startsWith(`${name}:`))
+          .filter((key) => key.startsWith(`${name}:`))
           .sort();
-        
+
         if (isolatedFactories.length > 0) {
           const latestIsolated = isolatedFactories[isolatedFactories.length - 1];
           factory = this.factories.get(latestIsolated);
           console.log(`🔍 Using isolated mock instance '${latestIsolated}' for '${name}'`);
         }
       }
-      
+
       if (!factory) {
         throw new Error(`Mock factory '${actualName}' not registered`);
       }
@@ -206,9 +211,9 @@ export class MockRegistry {
     for (const [name, instance] of this.instances) {
       const result = this.validateInstance(name, instance);
       if (!result.isValid) {
-        errors.push(...result.errors.map(err => `[${name}] ${err}`));
+        errors.push(...result.errors.map((err) => `[${name}] ${err}`));
       }
-      warnings.push(...result.warnings.map(warn => `[${name}] ${warn}`));
+      warnings.push(...result.warnings.map((warn) => `[${name}] ${warn}`));
       if (result.metrics) {
         metrics[name] = result.metrics;
       }
@@ -259,7 +264,7 @@ export class MockRegistry {
       for (const callback of this.lifecycleCallbacks) {
         callback.beforeEach?.();
       }
-      
+
       // Reset all mocks for test isolation
       this.reset();
     });
@@ -269,7 +274,7 @@ export class MockRegistry {
       for (const callback of this.lifecycleCallbacks) {
         callback.afterEach?.();
       }
-      
+
       // Validate all mocks after test
       const validation = this.validate();
       if (!validation.isValid) {
@@ -364,13 +369,13 @@ export class MockIsolation {
    */
   static createIsolatedMock<T>(factory: () => T): T {
     const instance = factory();
-    
+
     // Wrap all methods to ensure isolation
     return new Proxy(instance as any, {
       get(target, prop) {
         const value = target[prop];
         if (typeof value === 'function') {
-          return function(...args: any[]) {
+          return function (...args: any[]) {
             // Clear any shared state before method execution
             MockIsolation.clearSharedState(target);
             return value.apply(target, args);
@@ -390,7 +395,7 @@ export class MockIsolation {
       if (mock._clearState) {
         mock._clearState();
       }
-      
+
       // Reset all mock functions
       for (const key of Object.keys(mock)) {
         const value = mock[key];
@@ -450,14 +455,14 @@ export function registerMock<T>(
     overwrite?: boolean;
     namespace?: string;
     isolate?: boolean;
-  }
+  },
 ): void {
   // EMERGENCY FIX: Default to safe isolation
   const safeOptions = {
     isolate: true,
-    ...options
+    ...options,
   };
-  
+
   mockRegistry.register(name, factory, validator, safeOptions);
 }
 

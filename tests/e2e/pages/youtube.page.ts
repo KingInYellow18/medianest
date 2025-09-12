@@ -3,7 +3,7 @@ import { BasePage } from './base.page';
 
 /**
  * YouTube Download Page Object Model
- * 
+ *
  * Encapsulates interactions with the YouTube download interface
  */
 export class YouTubePage extends BasePage {
@@ -26,7 +26,7 @@ export class YouTubePage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    
+
     this.urlInput = page.locator('[data-testid="youtube-url-input"]');
     this.submitButton = page.locator('[data-testid="submit-download"]');
     this.qualitySelector = page.locator('[data-testid="quality-selector"]');
@@ -51,10 +51,13 @@ export class YouTubePage extends BasePage {
   /**
    * Submit a YouTube URL for download
    */
-  async submitDownload(url: string, options?: {
-    quality?: string;
-    format?: string;
-  }): Promise<void> {
+  async submitDownload(
+    url: string,
+    options?: {
+      quality?: string;
+      format?: string;
+    },
+  ): Promise<void> {
     await this.urlInput.fill(url);
 
     if (options?.quality) {
@@ -92,7 +95,7 @@ export class YouTubePage extends BasePage {
     if (metadata.duration) {
       await expect(this.videoDuration).toContainText(metadata.duration);
     }
-    
+
     await expect(this.videoThumbnail).toBeVisible();
   }
 
@@ -125,7 +128,7 @@ export class YouTubePage extends BasePage {
   async cancelDownload(downloadId: string): Promise<void> {
     const cancelButton = this.page.locator(`[data-testid="cancel-download-${downloadId}"]`);
     await cancelButton.click();
-    
+
     const confirmButton = this.page.locator('[data-testid="confirm-cancel"]');
     await confirmButton.click();
   }
@@ -161,7 +164,7 @@ export class YouTubePage extends BasePage {
    */
   async getQualityOptions(): Promise<string[]> {
     const options = await this.qualitySelector.locator('option').allTextContents();
-    return options.filter(option => option.trim() !== '');
+    return options.filter((option) => option.trim() !== '');
   }
 
   /**
@@ -169,7 +172,7 @@ export class YouTubePage extends BasePage {
    */
   async getFormatOptions(): Promise<string[]> {
     const options = await this.formatSelector.locator('option').allTextContents();
-    return options.filter(option => option.trim() !== '');
+    return options.filter((option) => option.trim() !== '');
   }
 }
 
@@ -186,7 +189,7 @@ export class YouTubeHistoryPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    
+
     this.historyTable = page.locator('[data-testid="download-history-table"]');
     this.historyItems = page.locator('[data-testid="history-item"]');
     this.statusFilter = page.locator('[data-testid="status-filter"]');
@@ -216,13 +219,16 @@ export class YouTubeHistoryPage extends BasePage {
   /**
    * Verify history item details
    */
-  async verifyHistoryItem(index: number, details: {
-    title?: string;
-    status?: string;
-    quality?: string;
-  }): Promise<void> {
+  async verifyHistoryItem(
+    index: number,
+    details: {
+      title?: string;
+      status?: string;
+      quality?: string;
+    },
+  ): Promise<void> {
     const item = this.historyItems.nth(index);
-    
+
     if (details.title) {
       await expect(item.locator('[data-testid="item-title"]')).toContainText(details.title);
     }

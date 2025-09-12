@@ -76,19 +76,15 @@ export class AuthController {
       logger.error('Failed to generate Plex PIN', { error: errorMessage });
 
       // Check if this is an axios-like error (either real axios error or test mock)
-      const hasAxiosErrorProperties = (
-        axios.isAxiosError(error) || 
+      const hasAxiosErrorProperties =
+        axios.isAxiosError(error) ||
         (error as any)?.isAxiosError === true ||
         (error as any)?.response ||
-        (error as any)?.code
-      );
-      
+        (error as any)?.code;
+
       if (hasAxiosErrorProperties) {
         // Check for timeout errors
-        if (
-          (error as any).code === 'ECONNABORTED' ||
-          (error as any).code === 'ETIMEDOUT'
-        ) {
+        if ((error as any).code === 'ECONNABORTED' || (error as any).code === 'ETIMEDOUT') {
           return next(
             new AppError(
               'PLEX_TIMEOUT',
@@ -97,7 +93,7 @@ export class AuthController {
             ),
           );
         }
-        
+
         // Check for connection errors
         if (
           (error as any).response?.status === 503 ||
@@ -153,13 +149,12 @@ export class AuthController {
         });
       } catch (pinError) {
         // Handle PIN-specific errors first - check for axios-like error properties
-        const hasAxiosErrorProperties = (
-          axios.isAxiosError(pinError) || 
+        const hasAxiosErrorProperties =
+          axios.isAxiosError(pinError) ||
           (pinError as any)?.isAxiosError === true ||
           (pinError as any)?.response ||
-          (pinError as any)?.code
-        );
-        
+          (pinError as any)?.code;
+
         if (hasAxiosErrorProperties) {
           if ((pinError as any).response?.status === 404) {
             return next(new AppError('INVALID_PIN', 'Invalid or expired PIN', 400));
@@ -310,13 +305,12 @@ export class AuthController {
       logger.error('Failed to verify Plex PIN', { error: errorMessage });
 
       // Handle Axios errors using broader error detection
-      const hasAxiosErrorProperties = (
-        axios.isAxiosError(error) || 
+      const hasAxiosErrorProperties =
+        axios.isAxiosError(error) ||
         (error as any)?.isAxiosError === true ||
         (error as any)?.response ||
-        (error as any)?.code
-      );
-      
+        (error as any)?.code;
+
       if (hasAxiosErrorProperties) {
         if ((error as any).response?.status === 404) {
           return next(new AppError('INVALID_PIN', 'Invalid or expired PIN', 400));
@@ -326,16 +320,10 @@ export class AuthController {
             new AppError('PLEX_UNAVAILABLE', 'Plex service temporarily unavailable', 503),
           );
         }
-        if (
-          (error as any).code === 'ECONNREFUSED' ||
-          (error as any).code === 'ENOTFOUND'
-        ) {
+        if ((error as any).code === 'ECONNREFUSED' || (error as any).code === 'ENOTFOUND') {
           return next(new AppError('PLEX_UNREACHABLE', 'Cannot connect to Plex server', 503));
         }
-        if (
-          (error as any).code === 'ECONNABORTED' ||
-          (error as any).code === 'ETIMEDOUT'
-        ) {
+        if ((error as any).code === 'ECONNABORTED' || (error as any).code === 'ETIMEDOUT') {
           return next(new AppError('PLEX_TIMEOUT', 'Plex server connection timed out', 504));
         }
       }

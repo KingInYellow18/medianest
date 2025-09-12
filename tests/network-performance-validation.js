@@ -22,7 +22,7 @@ class NetworkPerformanceValidator {
       duration: config.duration || 60, // seconds
       intervals: config.intervals || 1000, // ms
       outputDir: config.outputDir || './performance/network-reports',
-      ...config
+      ...config,
     };
     this.results = {
       throughput: {},
@@ -30,7 +30,7 @@ class NetworkPerformanceValidator {
       network: {},
       proxy: {},
       container: {},
-      bandwidth: {}
+      bandwidth: {},
     };
   }
 
@@ -52,14 +52,14 @@ class NetworkPerformanceValidator {
       { name: 'Backend API Health', url: `${this.config.apiUrl}/api/health` },
       { name: 'Authentication Endpoint', url: `${this.config.apiUrl}/api/v1/auth/health` },
       { name: 'Media API Endpoint', url: `${this.config.apiUrl}/api/v1/media` },
-      { name: 'Static Asset Request', url: `${this.config.baseUrl}/_next/static/test.js` }
+      { name: 'Static Asset Request', url: `${this.config.baseUrl}/_next/static/test.js` },
     ];
 
     for (const test of tests) {
       console.log(`\n🔍 Testing: ${test.name}`);
       const result = await this.measureThroughput(test.url);
       this.results.throughput[test.name] = result;
-      
+
       console.log(`   ⏱️  Average Latency: ${result.avgLatency.toFixed(2)}ms`);
       console.log(`   📈 Requests/sec: ${result.rps.toFixed(2)}`);
       console.log(`   ✅ Success Rate: ${result.successRate.toFixed(2)}%`);
@@ -77,30 +77,31 @@ class NetworkPerformanceValidator {
       latencies: [],
       bytesTransferred: 0,
       startTime: performance.now(),
-      errors: []
+      errors: [],
     };
 
     return new Promise((resolve) => {
-      const endTime = Date.now() + (duration * 1000);
+      const endTime = Date.now() + duration * 1000;
       let activeRequests = 0;
 
       const makeRequest = () => {
         if (Date.now() > endTime && activeRequests === 0) {
           const endTime = performance.now();
           const totalTime = (endTime - results.startTime) / 1000;
-          
+
           resolve({
             totalRequests: results.requests,
             successfulRequests: results.successes,
             failedRequests: results.errors.length,
-            avgLatency: results.latencies.reduce((a, b) => a + b, 0) / results.latencies.length || 0,
+            avgLatency:
+              results.latencies.reduce((a, b) => a + b, 0) / results.latencies.length || 0,
             minLatency: Math.min(...results.latencies) || 0,
             maxLatency: Math.max(...results.latencies) || 0,
             rps: results.successes / totalTime,
             successRate: (results.successes / results.requests) * 100,
             bytesTransferred: results.bytesTransferred,
             duration: totalTime,
-            errors: results.errors.slice(0, 5) // Keep first 5 errors
+            errors: results.errors.slice(0, 5), // Keep first 5 errors
           });
           return;
         }
@@ -117,18 +118,18 @@ class NetworkPerformanceValidator {
               data += chunk;
               results.bytesTransferred += chunk.length;
             });
-            
+
             res.on('end', () => {
               const requestEnd = performance.now();
               const latency = requestEnd - requestStart;
               results.latencies.push(latency);
-              
+
               if (res.statusCode >= 200 && res.statusCode < 300) {
                 results.successes++;
               } else {
                 results.errors.push(`HTTP ${res.statusCode}: ${url}`);
               }
-              
+
               activeRequests--;
               setImmediate(makeRequest);
             });
@@ -163,8 +164,12 @@ class NetworkPerformanceValidator {
 
     const apis = [
       { name: 'Plex Discovery', url: 'https://plex.tv/api/servers.xml', timeout: 5000 },
-      { name: 'CDN Asset Test', url: 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js', timeout: 3000 },
-      { name: 'DNS Resolution Test', host: 'google.com', timeout: 2000 }
+      {
+        name: 'CDN Asset Test',
+        url: 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js',
+        timeout: 3000,
+      },
+      { name: 'DNS Resolution Test', host: 'google.com', timeout: 2000 },
     ];
 
     for (const api of apis) {
@@ -195,21 +200,21 @@ class NetworkPerformanceValidator {
     return new Promise((resolve, reject) => {
       const startTime = performance.now();
       const protocol = url.startsWith('https') ? https : http;
-      
+
       const request = protocol.get(url, (res) => {
         const endTime = performance.now();
         let contentLength = 0;
-        
+
         res.on('data', (chunk) => {
           contentLength += chunk.length;
         });
-        
+
         res.on('end', () => {
           resolve({
             responseTime: endTime - startTime,
             status: res.statusCode,
             contentLength,
-            headers: res.headers
+            headers: res.headers,
           });
         });
       });
@@ -237,12 +242,12 @@ class NetworkPerformanceValidator {
         const startTime = performance.now();
         const result = await lookup(hostname);
         const endTime = performance.now();
-        
+
         clearTimeout(timer);
         resolve({
           resolutionTime: endTime - startTime,
           address: result.address,
-          family: result.family
+          family: result.family,
         });
       } catch (error) {
         clearTimeout(timer);
@@ -260,14 +265,14 @@ class NetworkPerformanceValidator {
       { name: 'Next.js Static Assets', path: '/_next/static/' },
       { name: 'Public Assets', path: '/public/' },
       { name: 'Image Assets', path: '/_next/image/' },
-      { name: 'Font Assets', path: '/fonts/' }
+      { name: 'Font Assets', path: '/fonts/' },
     ];
 
     for (const test of cdnTests) {
       console.log(`\n🔍 Testing: ${test.name}`);
       const result = await this.measureCDNPerformance(`${this.config.baseUrl}${test.path}test`);
       this.results.network[test.name] = result;
-      
+
       if (result.error) {
         console.log(`   ❌ Error: ${result.error}`);
       } else {
@@ -284,20 +289,20 @@ class NetworkPerformanceValidator {
     try {
       const startTime = performance.now();
       const protocol = url.startsWith('https') ? https : http;
-      
+
       return new Promise((resolve, reject) => {
         const request = protocol.get(url, (res) => {
           const firstByteTime = performance.now() - startTime;
-          
+
           resolve({
             firstByteTime,
             statusCode: res.statusCode,
             cacheStatus: res.headers['x-cache'] || res.headers['cf-cache-status'],
             contentEncoding: res.headers['content-encoding'],
             server: res.headers['server'],
-            headers: res.headers
+            headers: res.headers,
           });
-          
+
           res.resume(); // Consume the response
         });
 
@@ -325,14 +330,14 @@ class NetworkPerformanceValidator {
       { name: 'Backend Service', host: 'localhost', port: 3001 },
       { name: 'PostgreSQL', host: 'localhost', port: 5432 },
       { name: 'Redis', host: 'localhost', port: 6379 },
-      { name: 'Nginx Proxy', host: 'localhost', port: 80 }
+      { name: 'Nginx Proxy', host: 'localhost', port: 80 },
     ];
 
     for (const target of targets) {
       console.log(`\n🔍 Testing: ${target.name} (${target.host}:${target.port})`);
       const result = await this.measureTCPLatency(target.host, target.port);
       this.results.network[`${target.name}_latency`] = result;
-      
+
       if (result.error) {
         console.log(`   ❌ Connection Error: ${result.error}`);
       } else {
@@ -360,7 +365,7 @@ class NetworkPerformanceValidator {
         socket.destroy();
         resolve({
           connectionTime: endTime - startTime,
-          connected: true
+          connected: true,
         });
       });
 
@@ -380,7 +385,7 @@ class NetworkPerformanceValidator {
       { name: 'Direct Backend', url: `${this.config.apiUrl}/api/health` },
       { name: 'Via Nginx Proxy', url: `http://localhost/api/health` },
       { name: 'SSL Termination', url: `https://localhost/api/health` },
-      { name: 'Load Balancing', url: `http://localhost/api/v1/media` }
+      { name: 'Load Balancing', url: `http://localhost/api/v1/media` },
     ];
 
     for (const test of proxyTests) {
@@ -388,7 +393,7 @@ class NetworkPerformanceValidator {
       try {
         const result = await this.measureProxyPerformance(test.url);
         this.results.proxy[test.name] = result;
-        
+
         console.log(`   ⏱️  Response Time: ${result.responseTime.toFixed(2)}ms`);
         console.log(`   📊 Headers Added: ${result.proxyHeaders}`);
         console.log(`   🔒 SSL: ${result.ssl ? 'Yes' : 'No'}`);
@@ -405,28 +410,28 @@ class NetworkPerformanceValidator {
   async measureProxyPerformance(url) {
     const startTime = performance.now();
     const protocol = url.startsWith('https') ? https : http;
-    
+
     return new Promise((resolve, reject) => {
       const request = protocol.get(url, (res) => {
         const endTime = performance.now();
         let proxyHeaders = 0;
-        
+
         // Count proxy-related headers
-        Object.keys(res.headers).forEach(header => {
+        Object.keys(res.headers).forEach((header) => {
           if (header.includes('x-') || header.includes('proxy') || header.includes('forwarded')) {
             proxyHeaders++;
           }
         });
-        
+
         resolve({
           responseTime: endTime - startTime,
           statusCode: res.statusCode,
           proxyHeaders,
           ssl: url.startsWith('https'),
           server: res.headers['server'],
-          headers: res.headers
+          headers: res.headers,
         });
-        
+
         res.resume(); // Consume response
       });
 
@@ -449,12 +454,12 @@ class NetworkPerformanceValidator {
       { name: 'Inter-service Communication', from: 'frontend', to: 'backend' },
       { name: 'Database Connection Pool', from: 'backend', to: 'postgres' },
       { name: 'Cache Performance', from: 'backend', to: 'redis' },
-      { name: 'Service Discovery', test: 'dns' }
+      { name: 'Service Discovery', test: 'dns' },
     ];
 
     for (const test of containerTests) {
       console.log(`\n🔍 Testing: ${test.name}`);
-      
+
       if (test.test === 'dns') {
         const result = await this.testServiceDiscovery();
         this.results.container[test.name] = result;
@@ -477,13 +482,13 @@ class NetworkPerformanceValidator {
         results[service] = {
           resolutionTime: result.resolutionTime,
           resolved: true,
-          address: result.address
+          address: result.address,
         };
         console.log(`   🔍 ${service}: ${result.resolutionTime.toFixed(2)}ms -> ${result.address}`);
       } catch (error) {
         results[service] = {
           resolved: false,
-          error: error.message
+          error: error.message,
         };
         console.log(`   ❌ ${service}: ${error.message}`);
       }
@@ -500,7 +505,7 @@ class NetworkPerformanceValidator {
       backend: 3001,
       postgres: 5432,
       redis: 6379,
-      nginx: 80
+      nginx: 80,
     };
 
     const toPort = portMap[to];
@@ -509,8 +514,10 @@ class NetworkPerformanceValidator {
     }
 
     const result = await this.measureTCPLatency('localhost', toPort);
-    console.log(`   🔗 ${from} -> ${to}: ${result.connectionTime ? result.connectionTime.toFixed(2) + 'ms' : result.error}`);
-    
+    console.log(
+      `   🔗 ${from} -> ${to}: ${result.connectionTime ? result.connectionTime.toFixed(2) + 'ms' : result.error}`,
+    );
+
     return result;
   }
 
@@ -523,19 +530,19 @@ class NetworkPerformanceValidator {
       { name: 'Small Request (1KB)', size: 1024 },
       { name: 'Medium Request (100KB)', size: 102400 },
       { name: 'Large Request (1MB)', size: 1048576 },
-      { name: 'Concurrent Load Test', concurrent: true }
+      { name: 'Concurrent Load Test', concurrent: true },
     ];
 
     for (const test of bandwidthTests) {
       console.log(`\n🔍 Testing: ${test.name}`);
-      
+
       if (test.concurrent) {
         const result = await this.measureConcurrentBandwidth();
         this.results.bandwidth[test.name] = result;
       } else {
         const result = await this.measureBandwidthForSize(test.size);
         this.results.bandwidth[test.name] = result;
-        
+
         console.log(`   ⏱️  Transfer Time: ${result.transferTime.toFixed(2)}ms`);
         console.log(`   📊 Throughput: ${result.throughputMbps.toFixed(2)} Mbps`);
         console.log(`   📦 Bytes Transferred: ${result.bytesTransferred}`);
@@ -549,53 +556,53 @@ class NetworkPerformanceValidator {
     // Create test payload
     const payload = 'x'.repeat(size);
     const url = `${this.config.apiUrl}/api/health`;
-    
+
     const startTime = performance.now();
-    
+
     try {
       const result = await new Promise((resolve, reject) => {
         const protocol = url.startsWith('https') ? https : http;
         const postData = JSON.stringify({ data: payload });
-        
+
         const options = {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Content-Length': Buffer.byteLength(postData)
-          }
+            'Content-Length': Buffer.byteLength(postData),
+          },
         };
-        
+
         const request = protocol.request(url, options, (res) => {
           let responseData = '';
           res.on('data', (chunk) => {
             responseData += chunk;
           });
-          
+
           res.on('end', () => {
             const endTime = performance.now();
             resolve({
               transferTime: endTime - startTime,
               bytesTransferred: Buffer.byteLength(postData) + responseData.length,
-              statusCode: res.statusCode
+              statusCode: res.statusCode,
             });
           });
         });
-        
+
         request.setTimeout(30000, () => {
           request.destroy();
           reject(new Error('Request timeout'));
         });
-        
+
         request.on('error', reject);
         request.write(postData);
         request.end();
       });
-      
+
       const throughputMbps = (result.bytesTransferred * 8) / (result.transferTime * 1000); // Convert to Mbps
-      
+
       return {
         ...result,
-        throughputMbps
+        throughputMbps,
       };
     } catch (error) {
       return { error: error.message };
@@ -606,31 +613,33 @@ class NetworkPerformanceValidator {
     const concurrentRequests = 10;
     const requestSize = 10240; // 10KB per request
     const startTime = performance.now();
-    
-    const promises = Array(concurrentRequests).fill().map(async () => {
-      return this.measureBandwidthForSize(requestSize);
-    });
-    
+
+    const promises = Array(concurrentRequests)
+      .fill()
+      .map(async () => {
+        return this.measureBandwidthForSize(requestSize);
+      });
+
     try {
       const results = await Promise.all(promises);
       const endTime = performance.now();
-      
-      const successfulResults = results.filter(r => !r.error);
+
+      const successfulResults = results.filter((r) => !r.error);
       const totalBytes = successfulResults.reduce((sum, r) => sum + r.bytesTransferred, 0);
       const totalTime = endTime - startTime;
       const totalThroughputMbps = (totalBytes * 8) / (totalTime * 1000);
-      
+
       console.log(`   🚀 Concurrent Requests: ${concurrentRequests}`);
       console.log(`   ✅ Successful: ${successfulResults.length}`);
       console.log(`   📊 Total Throughput: ${totalThroughputMbps.toFixed(2)} Mbps`);
       console.log(`   📦 Total Bytes: ${totalBytes}`);
-      
+
       return {
         concurrentRequests,
         successfulRequests: successfulResults.length,
         totalThroughputMbps,
         totalBytes,
-        totalTime
+        totalTime,
       };
     } catch (error) {
       return { error: error.message };
@@ -644,16 +653,16 @@ class NetworkPerformanceValidator {
       timestamp: new Date().toISOString(),
       config: this.config,
       results: this.results,
-      summary: this.generateSummary()
+      summary: this.generateSummary(),
     };
 
     await fs.writeFile(reportPath, JSON.stringify(report, null, 2));
-    
+
     console.log('\n📊 PERFORMANCE SUMMARY');
     console.log('======================');
     console.log(report.summary.overview);
     console.log(`\n📁 Full report saved to: ${reportPath}`);
-    
+
     return report;
   }
 
@@ -661,7 +670,7 @@ class NetworkPerformanceValidator {
     const summary = {
       overview: '',
       recommendations: [],
-      alerts: []
+      alerts: [],
     };
 
     // Analyze results and generate insights
@@ -688,7 +697,7 @@ Proxy Performance: ${this.assessProxyPerformance()}`;
 
   calculateAverageLatency() {
     const latencies = [];
-    Object.values(this.results.throughput).forEach(result => {
+    Object.values(this.results.throughput).forEach((result) => {
       if (result.avgLatency) latencies.push(result.avgLatency);
     });
     return latencies.length ? latencies.reduce((a, b) => a + b, 0) / latencies.length : 0;
@@ -719,7 +728,7 @@ Proxy Performance: ${this.assessProxyPerformance()}`;
 
   assessProxyPerformance() {
     const proxyResults = Object.values(this.results.proxy);
-    const workingProxies = proxyResults.filter(r => !r.error).length;
+    const workingProxies = proxyResults.filter((r) => !r.error).length;
     return workingProxies === proxyResults.length ? 'OPTIMAL' : 'DEGRADED';
   }
 }
@@ -731,7 +740,7 @@ async function main() {
       baseUrl: process.env.BASE_URL || 'http://localhost:3000',
       apiUrl: process.env.API_URL || 'http://localhost:3001',
       concurrency: parseInt(process.env.CONCURRENCY) || 10,
-      duration: parseInt(process.env.DURATION) || 30
+      duration: parseInt(process.env.DURATION) || 30,
     });
 
     await validator.init();
@@ -747,7 +756,7 @@ async function main() {
 
     // Generate final report
     const report = await validator.generateReport();
-    
+
     // Store in memory for coordination
     const memoryStore = {
       timestamp: new Date().toISOString(),
@@ -758,8 +767,8 @@ async function main() {
         avg_latency: validator.calculateAverageLatency(),
         throughput_issues: validator.identifyThroughputIssues().length,
         network_problems: validator.identifyNetworkProblems().length,
-        proxy_status: validator.assessProxyPerformance()
-      }
+        proxy_status: validator.assessProxyPerformance(),
+      },
     };
 
     console.log('\n✅ Network Performance Validation Complete');

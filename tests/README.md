@@ -12,17 +12,18 @@ The MediaNest Testing Framework provides comprehensive testing infrastructure in
 
 ## 📉 Test Status Dashboard
 
-| Test Type | Total | Passing | Failing | Status |
-|-----------|--------|---------|---------|--------|
-| **Unit Tests** | 45 | 38 | 7 | 🔶 Improving |
-| **Integration** | 30 | 2 | 28 | ❌ Active Work |
-| **E2E Tests** | 15 | 8 | 7 | 🔶 Config Issues |
-| **Performance** | 8 | 8 | 0 | ✅ Working |
-| **Security** | 12 | 10 | 2 | 🔶 Good |
+| Test Type       | Total | Passing | Failing | Status           |
+| --------------- | ----- | ------- | ------- | ---------------- |
+| **Unit Tests**  | 45    | 38      | 7       | 🔶 Improving     |
+| **Integration** | 30    | 2       | 28      | ❌ Active Work   |
+| **E2E Tests**   | 15    | 8       | 7       | 🔶 Config Issues |
+| **Performance** | 8     | 8       | 0       | ✅ Working       |
+| **Security**    | 12    | 10      | 2       | 🔶 Good          |
 
 ### Current Issues
+
 - **Integration Tests**: Database schema conflicts causing failures
-- **TypeScript**: Build issues affecting test compilation  
+- **TypeScript**: Build issues affecting test compilation
 - **E2E Setup**: Playwright configuration needs refinement
 - **Test Data**: Database seeding consistency issues
 
@@ -564,7 +565,7 @@ beforeEach(() => {
      async () => {
        // Test implementation
      },
-     { timeout: 10000 }
+     { timeout: 10000 },
    );
    ```
 

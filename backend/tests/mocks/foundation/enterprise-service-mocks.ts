@@ -1,10 +1,10 @@
 /**
  * ENTERPRISE SERVICE MOCK FACTORY - SCALED FOR 1,199 TESTS
- * 
+ *
  * Applies proven StatelessMock patterns from DeviceSessionService (100% pass rate)
  * to create enterprise-grade service mocks that prevent state bleeding and ensure
  * perfect test isolation at scale.
- * 
+ *
  * PROVEN PATTERNS:
  * - StatelessMock inheritance for zero cross-test contamination
  * - Isolation barriers for concurrent test execution
@@ -48,19 +48,29 @@ export class EnterpriseEncryptionServiceMock extends EnterpriseStatelessMock<any
 
   validateInterface(): ValidationResult {
     const requiredMethods = [
-      'encryptForStorage', 'decryptFromStorage', 'hashPassword', 'verifyPassword',
-      'generateSalt', 'encryptData', 'decryptData', 'generateSecureToken',
-      'generateApiKey', 'validateApiKey'
+      'encryptForStorage',
+      'decryptFromStorage',
+      'hashPassword',
+      'verifyPassword',
+      'generateSalt',
+      'encryptData',
+      'decryptData',
+      'generateSecureToken',
+      'generateApiKey',
+      'validateApiKey',
     ];
 
     const instance = this.getInstance();
-    const missingMethods = requiredMethods.filter(method => !(method in instance));
+    const missingMethods = requiredMethods.filter((method) => !(method in instance));
 
     return {
       valid: missingMethods.length === 0,
-      errors: missingMethods.map(method => `Missing method: ${method}`),
+      errors: missingMethods.map((method) => `Missing method: ${method}`),
       warnings: [],
-      metadata: { requiredMethods: requiredMethods.length, implementedMethods: Object.keys(instance).length },
+      metadata: {
+        requiredMethods: requiredMethods.length,
+        implementedMethods: Object.keys(instance).length,
+      },
     };
   }
 }
@@ -113,20 +123,46 @@ export class EnterpriseRedisServiceMock extends EnterpriseStatelessMock<any> {
 
   validateInterface(): ValidationResult {
     const requiredMethods = [
-      'set', 'get', 'del', 'exists', 'setex', 'expire', 'ttl',
-      'hset', 'hget', 'hdel', 'hgetall', 'lpush', 'rpop', 'llen',
-      'ping', 'disconnect', 'isConnected', 'mget', 'mset', 'incr', 'decr',
-      'sadd', 'smembers', 'srem', 'zadd', 'zrange', 'zrem'
+      'set',
+      'get',
+      'del',
+      'exists',
+      'setex',
+      'expire',
+      'ttl',
+      'hset',
+      'hget',
+      'hdel',
+      'hgetall',
+      'lpush',
+      'rpop',
+      'llen',
+      'ping',
+      'disconnect',
+      'isConnected',
+      'mget',
+      'mset',
+      'incr',
+      'decr',
+      'sadd',
+      'smembers',
+      'srem',
+      'zadd',
+      'zrange',
+      'zrem',
     ];
 
     const instance = this.getInstance();
-    const missingMethods = requiredMethods.filter(method => !(method in instance));
+    const missingMethods = requiredMethods.filter((method) => !(method in instance));
 
     return {
       valid: missingMethods.length === 0,
-      errors: missingMethods.map(method => `Missing Redis method: ${method}`),
+      errors: missingMethods.map((method) => `Missing Redis method: ${method}`),
       warnings: [],
-      metadata: { requiredMethods: requiredMethods.length, implementedMethods: Object.keys(instance).length },
+      metadata: {
+        requiredMethods: requiredMethods.length,
+        implementedMethods: Object.keys(instance).length,
+      },
     };
   }
 }
@@ -166,20 +202,33 @@ export class EnterpriseJwtServiceMock extends EnterpriseStatelessMock<any> {
 
   validateInterface(): ValidationResult {
     const requiredMethods = [
-      'generateToken', 'verifyToken', 'refreshToken', 'decodeToken',
-      'validateTokenStructure', 'getTokenPayload', 'isTokenExpired',
-      'getTokenExpirationTime', 'revokeToken', 'validateRefreshToken',
-      'blacklistToken', 'isTokenBlacklisted', 'generateRefreshToken', 'getTokenType'
+      'generateToken',
+      'verifyToken',
+      'refreshToken',
+      'decodeToken',
+      'validateTokenStructure',
+      'getTokenPayload',
+      'isTokenExpired',
+      'getTokenExpirationTime',
+      'revokeToken',
+      'validateRefreshToken',
+      'blacklistToken',
+      'isTokenBlacklisted',
+      'generateRefreshToken',
+      'getTokenType',
     ];
 
     const instance = this.getInstance();
-    const missingMethods = requiredMethods.filter(method => !(method in instance));
+    const missingMethods = requiredMethods.filter((method) => !(method in instance));
 
     return {
       valid: missingMethods.length === 0,
-      errors: missingMethods.map(method => `Missing JWT method: ${method}`),
+      errors: missingMethods.map((method) => `Missing JWT method: ${method}`),
       warnings: [],
-      metadata: { requiredMethods: requiredMethods.length, implementedMethods: Object.keys(instance).length },
+      metadata: {
+        requiredMethods: requiredMethods.length,
+        implementedMethods: Object.keys(instance).length,
+      },
     };
   }
 }
@@ -230,21 +279,34 @@ export class EnterpriseDeviceSessionServiceMock extends EnterpriseStatelessMock<
 
   validateInterface(): ValidationResult {
     const requiredMethods = [
-      'createSession', 'getSession', 'updateSession', 'terminateSession',
-      'getUserSessions', 'validateSession', 'cleanupExpiredSessions',
-      'getActiveSessionCount', 'terminateAllUserSessions', 'refreshSession',
-      'getSessionById', 'isSessionActive', 'updateSessionActivity',
-      'revokeAllUserSessions', 'getSessionStats'
+      'createSession',
+      'getSession',
+      'updateSession',
+      'terminateSession',
+      'getUserSessions',
+      'validateSession',
+      'cleanupExpiredSessions',
+      'getActiveSessionCount',
+      'terminateAllUserSessions',
+      'refreshSession',
+      'getSessionById',
+      'isSessionActive',
+      'updateSessionActivity',
+      'revokeAllUserSessions',
+      'getSessionStats',
     ];
 
     const instance = this.getInstance();
-    const missingMethods = requiredMethods.filter(method => !(method in instance));
+    const missingMethods = requiredMethods.filter((method) => !(method in instance));
 
     return {
       valid: missingMethods.length === 0,
-      errors: missingMethods.map(method => `Missing DeviceSession method: ${method}`),
+      errors: missingMethods.map((method) => `Missing DeviceSession method: ${method}`),
       warnings: [],
-      metadata: { requiredMethods: requiredMethods.length, implementedMethods: Object.keys(instance).length },
+      metadata: {
+        requiredMethods: requiredMethods.length,
+        implementedMethods: Object.keys(instance).length,
+      },
     };
   }
 }
@@ -290,21 +352,39 @@ export class EnterprisePlexServiceMock extends EnterpriseStatelessMock<any> {
 
   validateInterface(): ValidationResult {
     const requiredMethods = [
-      'authenticate', 'getLibraries', 'getLibraryContent', 'search', 'getMetadata',
-      'getServers', 'testConnection', 'refreshLibrary', 'getRecentlyAdded',
-      'getOnDeck', 'getPlaylists', 'createPlaylist', 'deletePlaylist',
-      'addToPlaylist', 'removeFromPlaylist', 'getSections', 'getSection',
-      'getServerInfo', 'getTranscodeStatus', 'getMediaInfo'
+      'authenticate',
+      'getLibraries',
+      'getLibraryContent',
+      'search',
+      'getMetadata',
+      'getServers',
+      'testConnection',
+      'refreshLibrary',
+      'getRecentlyAdded',
+      'getOnDeck',
+      'getPlaylists',
+      'createPlaylist',
+      'deletePlaylist',
+      'addToPlaylist',
+      'removeFromPlaylist',
+      'getSections',
+      'getSection',
+      'getServerInfo',
+      'getTranscodeStatus',
+      'getMediaInfo',
     ];
 
     const instance = this.getInstance();
-    const missingMethods = requiredMethods.filter(method => !(method in instance));
+    const missingMethods = requiredMethods.filter((method) => !(method in instance));
 
     return {
       valid: missingMethods.length === 0,
-      errors: missingMethods.map(method => `Missing Plex method: ${method}`),
+      errors: missingMethods.map((method) => `Missing Plex method: ${method}`),
       warnings: [],
-      metadata: { requiredMethods: requiredMethods.length, implementedMethods: Object.keys(instance).length },
+      metadata: {
+        requiredMethods: requiredMethods.length,
+        implementedMethods: Object.keys(instance).length,
+      },
     };
   }
 }
@@ -349,9 +429,19 @@ export class EnterpriseDatabaseMock extends EnterpriseStatelessMock<any> {
   resetToInitialState(): void {
     if (this.instance) {
       // Reset all entity mocks
-      const entities = ['user', 'session', 'deviceSession', 'apiKey', 'auditLog', 'notification', 'webhook', 'plexServer', 'mediaItem'];
-      
-      entities.forEach(entity => {
+      const entities = [
+        'user',
+        'session',
+        'deviceSession',
+        'apiKey',
+        'auditLog',
+        'notification',
+        'webhook',
+        'plexServer',
+        'mediaItem',
+      ];
+
+      entities.forEach((entity) => {
         if (this.instance[entity]) {
           Object.values(this.instance[entity]).forEach((fn: any) => {
             if (fn.mockReset) fn.mockReset();
@@ -360,7 +450,7 @@ export class EnterpriseDatabaseMock extends EnterpriseStatelessMock<any> {
       });
 
       // Reset utility methods
-      ['$transaction', '$connect', '$disconnect', '$executeRaw', '$queryRaw'].forEach(method => {
+      ['$transaction', '$connect', '$disconnect', '$executeRaw', '$queryRaw'].forEach((method) => {
         if (this.instance[method] && this.instance[method].mockReset) {
           this.instance[method].mockReset();
         }
@@ -369,19 +459,40 @@ export class EnterpriseDatabaseMock extends EnterpriseStatelessMock<any> {
   }
 
   validateInterface(): ValidationResult {
-    const requiredEntities = ['user', 'session', 'deviceSession', 'apiKey', 'auditLog', 'notification', 'webhook', 'plexServer', 'mediaItem'];
+    const requiredEntities = [
+      'user',
+      'session',
+      'deviceSession',
+      'apiKey',
+      'auditLog',
+      'notification',
+      'webhook',
+      'plexServer',
+      'mediaItem',
+    ];
     const requiredMethods = ['$transaction', '$connect', '$disconnect', '$executeRaw', '$queryRaw'];
-    const entityMethods = ['create', 'findMany', 'findUnique', 'findFirst', 'update', 'delete', 'deleteMany', 'count', 'upsert', 'updateMany'];
+    const entityMethods = [
+      'create',
+      'findMany',
+      'findUnique',
+      'findFirst',
+      'update',
+      'delete',
+      'deleteMany',
+      'count',
+      'upsert',
+      'updateMany',
+    ];
 
     const instance = this.getInstance();
     const errors: string[] = [];
 
     // Check entities
-    requiredEntities.forEach(entity => {
+    requiredEntities.forEach((entity) => {
       if (!(entity in instance)) {
         errors.push(`Missing entity: ${entity}`);
       } else {
-        entityMethods.forEach(method => {
+        entityMethods.forEach((method) => {
           if (!(method in instance[entity])) {
             errors.push(`Missing method ${method} in entity ${entity}`);
           }
@@ -390,7 +501,7 @@ export class EnterpriseDatabaseMock extends EnterpriseStatelessMock<any> {
     });
 
     // Check utility methods
-    requiredMethods.forEach(method => {
+    requiredMethods.forEach((method) => {
       if (!(method in instance)) {
         errors.push(`Missing utility method: ${method}`);
       }
@@ -400,11 +511,11 @@ export class EnterpriseDatabaseMock extends EnterpriseStatelessMock<any> {
       valid: errors.length === 0,
       errors,
       warnings: [],
-      metadata: { 
-        requiredEntities: requiredEntities.length, 
+      metadata: {
+        requiredEntities: requiredEntities.length,
         requiredMethods: requiredMethods.length,
         entityMethods: entityMethods.length,
-        totalExpected: requiredEntities.length * entityMethods.length + requiredMethods.length
+        totalExpected: requiredEntities.length * entityMethods.length + requiredMethods.length,
       },
     };
   }
@@ -426,9 +537,11 @@ export class EnterpriseServiceMockFactory {
 
   static createMock<T>(serviceName: string, config?: MockConfig): EnterpriseStatelessMock<T> {
     const MockClass = this.mockClasses.get(serviceName);
-    
+
     if (!MockClass) {
-      throw new Error(`Unknown service mock: ${serviceName}. Available: ${Array.from(this.mockClasses.keys()).join(', ')}`);
+      throw new Error(
+        `Unknown service mock: ${serviceName}. Available: ${Array.from(this.mockClasses.keys()).join(', ')}`,
+      );
     }
 
     return new MockClass(config) as EnterpriseStatelessMock<T>;
@@ -447,14 +560,14 @@ export class EnterpriseServiceMockFactory {
       try {
         const mockInstance = new MockClass({ behavior: 'realistic' });
         const validation = mockInstance.validate();
-        
+
         metadata[serviceName] = validation.metadata;
-        
+
         if (!validation.valid) {
           errors.push(`Service ${serviceName}: ${validation.errors.join(', ')}`);
         }
-        
-        warnings.push(...validation.warnings.map(w => `Service ${serviceName}: ${w}`));
+
+        warnings.push(...validation.warnings.map((w) => `Service ${serviceName}: ${w}`));
       } catch (error) {
         errors.push(`Service ${serviceName}: Factory creation failed - ${error.message}`);
       }
@@ -500,11 +613,14 @@ export function validateEnterpriseServiceMocks(): ValidationResult {
  */
 export function setupEnterpriseServiceMocks(services: string[]): Record<string, any> {
   const mocks: Record<string, any> = {};
-  
+
   for (const service of services) {
-    mocks[service] = createEnterpriseServiceMock(service, { behavior: 'realistic', isolation: true });
+    mocks[service] = createEnterpriseServiceMock(service, {
+      behavior: 'realistic',
+      isolation: true,
+    });
   }
-  
+
   return mocks;
 }
 

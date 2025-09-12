@@ -26,7 +26,7 @@ export class DashboardPage extends BasePage {
     sidebar: '[data-testid="sidebar"]',
     mainContent: '[data-testid="main-content"]',
     notificationsButton: '[data-testid="notifications-button"]',
-    notificationsBadge: '[data-testid="notifications-badge"]'
+    notificationsBadge: '[data-testid="notifications-badge"]',
   };
 
   constructor(page: Page) {
@@ -71,7 +71,7 @@ export class DashboardPage extends BasePage {
   async logout(): Promise<void> {
     await this.clickUserMenu();
     await this.clickElement(this.selectors.logoutButton);
-    
+
     // Wait for redirect to login page
     await expect(this.page).toHaveURL(/\/login/);
   }
@@ -131,19 +131,19 @@ export class DashboardPage extends BasePage {
   async getRequestItems(): Promise<any[]> {
     const items = await this.page.locator(this.selectors.requestItem).all();
     const requestData = [];
-    
+
     for (const item of items) {
       const title = await item.locator('[data-testid="request-title"]').textContent();
       const status = await item.locator('[data-testid="request-status"]').textContent();
       const date = await item.locator('[data-testid="request-date"]').textContent();
-      
+
       requestData.push({
         title: title?.trim(),
         status: status?.trim(),
-        date: date?.trim()
+        date: date?.trim(),
       });
     }
-    
+
     return requestData;
   }
 
@@ -258,11 +258,11 @@ export class DashboardPage extends BasePage {
   async getDashboardStats(): Promise<{ pending: number; completed: number; total: number }> {
     const pending = await this.getPendingRequestsCount();
     const completed = await this.getCompletedRequestsCount();
-    
+
     return {
       pending,
       completed,
-      total: pending + completed
+      total: pending + completed,
     };
   }
 

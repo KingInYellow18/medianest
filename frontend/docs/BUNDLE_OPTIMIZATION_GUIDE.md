@@ -151,7 +151,6 @@ npm run bundle:compare    # Compare before/after
 ### Phase 2: Component Optimization
 
 1. **Heavy Components** → Dynamic imports
-
    - PlexLibraryBrowser (~200KB)
    - YouTubeDownloader (~150KB)
    - MediaViewer (~180KB)

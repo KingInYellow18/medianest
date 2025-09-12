@@ -19,7 +19,7 @@ export interface EnvLoadOptions {
 
 /**
  * Load environment configuration with proper precedence
- * 
+ *
  * Loading order (higher priority first):
  * 1. Process environment variables
  * 2. .env.local (local overrides, never committed)
@@ -32,7 +32,7 @@ export async function loadEnvironment(options: EnvLoadOptions = {}): Promise<Env
     override = true,
     debug = false,
     secretsEnabled = true,
-    configPath = './config/environments'
+    configPath = './config/environments',
   } = options;
 
   if (debug) {
@@ -48,7 +48,7 @@ export async function loadEnvironment(options: EnvLoadOptions = {}): Promise<Env
 
   // Load environment files
   const loadedFiles: string[] = [];
-  
+
   for (const envFile of envFiles) {
     if (existsSync(envFile)) {
       const result = config({
@@ -56,7 +56,7 @@ export async function loadEnvironment(options: EnvLoadOptions = {}): Promise<Env
         override,
         debug,
       });
-      
+
       if (result.error) {
         console.warn(`⚠️ Failed to load ${envFile}:`, result.error.message);
       } else {
@@ -106,7 +106,10 @@ export async function loadEnvironment(options: EnvLoadOptions = {}): Promise<Env
 /**
  * Get environment file paths for a specific environment
  */
-export function getEnvironmentFiles(environment: string, configPath: string = './config/environments'): string[] {
+export function getEnvironmentFiles(
+  environment: string,
+  configPath: string = './config/environments',
+): string[] {
   return [
     join(configPath, '.env'),
     join(configPath, `.env.${environment}`),
@@ -117,7 +120,10 @@ export function getEnvironmentFiles(environment: string, configPath: string = '.
 /**
  * Check which environment files exist
  */
-export function checkEnvironmentFiles(environment: string, configPath: string = './config/environments'): {
+export function checkEnvironmentFiles(
+  environment: string,
+  configPath: string = './config/environments',
+): {
   files: Array<{ path: string; exists: boolean; readable?: boolean }>;
   missing: string[];
   available: string[];
@@ -132,7 +138,7 @@ export function checkEnvironmentFiles(environment: string, configPath: string = 
   for (const file of files) {
     const exists = existsSync(file);
     let readable = false;
-    
+
     if (exists) {
       try {
         // Try to read the file to check accessibility
@@ -144,7 +150,7 @@ export function checkEnvironmentFiles(environment: string, configPath: string = 
     }
 
     result.files.push({ path: file, exists, readable });
-    
+
     if (exists && readable) {
       result.available.push(file);
     } else {
@@ -158,7 +164,10 @@ export function checkEnvironmentFiles(environment: string, configPath: string = 
 /**
  * Create a sample .env.local file for development
  */
-export function createSampleLocalEnv(environment: string = 'development', configPath: string = './config/environments'): string {
+export function createSampleLocalEnv(
+  environment: string = 'development',
+  configPath: string = './config/environments',
+): string {
   const sampleContent = `# Local Environment Overrides for ${environment}
 # This file is for local development only and should never be committed
 # Copy from .env.template and customize as needed
@@ -200,27 +209,27 @@ export function createSampleLocalEnv(environment: string = 'development', config
  */
 export function displayEnvironmentInfo(config?: EnvironmentConfig): void {
   const env = config || EnvironmentLoader.getInstance().getConfig();
-  
+
   console.log('\n📄 Environment Configuration');
-  console.log('=' .repeat(50));
+  console.log('='.repeat(50));
   console.log(`Environment: ${env.NODE_ENV}`);
   console.log(`App: ${env.APP_NAME} v${env.APP_VERSION}`);
   console.log('');
-  
+
   console.log('🔌 Server Configuration');
   console.log(`Backend: ${env.MEDIANEST_BACKEND_HOST}:${env.MEDIANEST_BACKEND_PORT}`);
   console.log(`Frontend: ${env.MEDIANEST_FRONTEND_HOST}:${env.MEDIANEST_FRONTEND_PORT}`);
   console.log(`API Prefix: ${env.BACKEND_API_PREFIX}`);
   console.log(`CORS Origin: ${env.CORS_ORIGIN}`);
   console.log('');
-  
+
   console.log('📊 Database & Cache');
   console.log(`Database: ${env.DATABASE_URL ? '✅ Configured' : '❌ Not configured'}`);
   console.log(`Redis: ${env.REDIS_URL ? '✅ Configured' : '❌ Not configured'}`);
   console.log(`DB SSL: ${env.DB_SSL ? 'Enabled' : 'Disabled'}`);
   console.log(`DB Pool: ${env.DB_POOL_MIN}-${env.DB_POOL_MAX} connections`);
   console.log('');
-  
+
   console.log('🔒 Security');
   console.log(`JWT Expiry: ${env.JWT_EXPIRE_IN}`);
   console.log(`Session Secure: ${env.SESSION_SECURE}`);
@@ -228,19 +237,19 @@ export function displayEnvironmentInfo(config?: EnvironmentConfig): void {
   console.log(`Rate Limiting: ${env.SECURITY_RATE_LIMIT_ENABLED ? 'Enabled' : 'Disabled'}`);
   console.log(`BCrypt Rounds: ${env.BCRYPT_ROUNDS}`);
   console.log('');
-  
+
   console.log('📝 Logging & Monitoring');
   console.log(`Log Level: ${env.LOG_LEVEL}`);
   console.log(`Log Format: ${env.LOG_FORMAT}`);
   console.log(`Metrics: ${env.METRICS_ENABLED ? 'Enabled' : 'Disabled'}`);
   console.log(`APM: ${env.APM_ENABLED ? 'Enabled' : 'Disabled'}`);
   console.log('');
-  
+
   console.log('📧 External Services');
   console.log(`Email Provider: ${env.EMAIL_PROVIDER}`);
   console.log(`Storage Provider: ${env.STORAGE_PROVIDER}`);
   console.log('');
-  
+
   if (env.NODE_ENV === 'development') {
     console.log('🛠️ Development Tools');
     console.log(`Debug: ${env.DEBUG_ENABLED ? 'Enabled' : 'Disabled'}`);
@@ -248,8 +257,8 @@ export function displayEnvironmentInfo(config?: EnvironmentConfig): void {
     console.log(`Auto Restart: ${env.AUTO_RESTART ? 'Enabled' : 'Disabled'}`);
     console.log('');
   }
-  
-  console.log('=' .repeat(50));
+
+  console.log('='.repeat(50));
   console.log('');
 }
 
@@ -265,10 +274,10 @@ export async function validateEnvironmentSetup(environment: string): Promise<{
   const errors: string[] = [];
   const warnings: string[] = [];
   const recommendations: string[] = [];
-  
+
   // Check file availability
   const fileCheck = checkEnvironmentFiles(environment);
-  
+
   if (fileCheck.available.length === 0) {
     errors.push('No readable environment files found');
     recommendations.push(`Create .env.${environment} file from .env.template`);
@@ -276,7 +285,7 @@ export async function validateEnvironmentSetup(environment: string): Promise<{
 
   // Check for .env.local in non-production environments
   if (environment !== 'production') {
-    const localEnvExists = fileCheck.files.find(f => f.path.includes('.env.local'))?.exists;
+    const localEnvExists = fileCheck.files.find((f) => f.path.includes('.env.local'))?.exists;
     if (!localEnvExists) {
       recommendations.push('Consider creating .env.local for local overrides');
     }
@@ -289,12 +298,12 @@ export async function validateEnvironmentSetup(environment: string): Promise<{
       recommendations.push('Verify SSL/HTTPS configuration');
       recommendations.push('Enable monitoring and APM');
       break;
-      
+
     case 'test':
       recommendations.push('Use separate test database and Redis instances');
       recommendations.push('Configure faster bcrypt rounds for testing');
       break;
-      
+
     case 'development':
       recommendations.push('Enable development tools for better debugging');
       recommendations.push('Consider using local database and Redis');

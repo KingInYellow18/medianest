@@ -39,14 +39,12 @@ Several frontend test files are importing components that don't exist, causing m
 ## Files to Modify/Create
 
 - **Create**: `frontend/src/components/youtube/DownloadCard.tsx`
-
   - Display download progress, status, and metadata
   - Action buttons for cancel, retry, delete
   - Status indicators with icons and colors
   - Error display and file information
 
 - **Fix Imports**: Update incorrect shared package imports
-
   - Replace `@medianest/shared/config` with actual exports
   - Use `@medianest/shared` for constants and types
   - Verify all shared imports are available
@@ -58,13 +56,11 @@ Several frontend test files are importing components that don't exist, causing m
 ## Testing Strategy
 
 1. **Component Testing**:
-
    - Unit tests for DownloadCard component
    - Test all props and interaction handlers
    - Verify accessibility and responsive behavior
 
 2. **Integration Testing**:
-
    - Test DownloadCard within DownloadQueue context
    - Verify proper event handling
    - Check WebSocket integration for progress updates

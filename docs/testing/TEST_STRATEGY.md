@@ -61,16 +61,19 @@ describe('JWT Service', () => {
 ```
 
 #### Unit Tests (70% of test effort)
+
 - **Framework**: Vitest with V8 coverage
 - **Scope**: Individual functions, classes, and components
 - **Coverage Target**: 85%
 
 #### Integration Tests (20% of test effort)
+
 - **Framework**: Vitest with Supertest
 - **Scope**: API endpoints, service interactions, database operations
 - **Coverage Target**: 75%
 
 #### End-to-End Tests (10% of test effort)
+
 - **Framework**: Playwright
 - **Scope**: Complete user workflows across the application
 - **Coverage Target**: Critical user paths
@@ -78,25 +81,27 @@ describe('JWT Service', () => {
 ## Test Coverage Goals
 
 ### Current State
+
 - **Backend Coverage**: 18.7% (41 test files for 219 source files)
 - **Frontend Coverage**: 0% (No test files for 16 source files)
 - **Overall Coverage**: 14.7%
 
 ### Target State
+
 - **Backend Coverage**: 80%
 - **Frontend Coverage**: 75%
 - **Overall Coverage**: 78%
 
 ### Coverage by Component
 
-| Component | Current | Target | Priority |
-|-----------|---------|---------|----------|
-| Controllers | 0% | 85% | P0 |
-| Services | 5% | 90% | P0 |
-| Middleware | 40% | 80% | P1 |
-| Components (React) | 0% | 75% | P1 |
-| Utilities | 30% | 70% | P2 |
-| Configuration | 10% | 60% | P3 |
+| Component          | Current | Target | Priority |
+| ------------------ | ------- | ------ | -------- |
+| Controllers        | 0%      | 85%    | P0       |
+| Services           | 5%      | 90%    | P0       |
+| Middleware         | 40%     | 80%    | P1       |
+| Components (React) | 0%      | 75%    | P1       |
+| Utilities          | 30%     | 70%    | P2       |
+| Configuration      | 10%     | 60%    | P3       |
 
 ## Testing Framework Architecture
 
@@ -113,14 +118,15 @@ export default defineConfig({
         lines: 80,
         functions: 80,
         branches: 75,
-        statements: 80
-      }
-    }
-  }
+        statements: 80,
+      },
+    },
+  },
 });
 ```
 
 **Components**:
+
 - **Vitest**: Primary test runner and assertion library
 - **Supertest**: HTTP endpoint testing
 - **Prisma**: Database testing with transactions
@@ -141,6 +147,7 @@ test('renders media search form', () => {
 ```
 
 **Components**:
+
 - **Vitest**: Test runner and assertions
 - **React Testing Library**: Component testing utilities
 - **JSDOM**: DOM simulation environment
@@ -156,14 +163,15 @@ export default {
   retries: 2,
   use: {
     headless: true,
-    viewport: { width: 1280, height: 720 }
-  }
+    viewport: { width: 1280, height: 720 },
+  },
 };
 ```
 
 ## Test Categories and Scenarios
 
 ### 1. Authentication & Authorization Tests
+
 - JWT token generation and validation
 - Session management and rotation
 - Role-based access control (RBAC)
@@ -172,6 +180,7 @@ export default {
 - Multi-device session handling
 
 ### 2. Media Management Tests
+
 - Media search functionality
 - Request creation and tracking
 - Plex integration workflows
@@ -179,6 +188,7 @@ export default {
 - External API interactions
 
 ### 3. Security Tests
+
 - Input validation and sanitization
 - XSS prevention
 - SQL injection prevention
@@ -187,6 +197,7 @@ export default {
 - Authentication bypass prevention
 
 ### 4. Performance Tests
+
 - API response time benchmarks (<2s complex, <500ms simple)
 - Concurrent request handling (50+ simultaneous)
 - Memory usage validation
@@ -194,6 +205,7 @@ export default {
 - Cache effectiveness
 
 ### 5. Integration Tests
+
 - Database transactions and rollbacks
 - External service interactions
 - Webhook processing
@@ -221,6 +233,7 @@ npm run test:e2e           # Critical path validation
 ### Test Environment Management
 
 #### Test Database Strategy
+
 ```typescript
 // Isolated test database
 beforeEach(async () => {
@@ -229,14 +242,12 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
-  await prisma.$transaction([
-    prisma.mediaRequest.deleteMany(),
-    prisma.user.deleteMany()
-  ]);
+  await prisma.$transaction([prisma.mediaRequest.deleteMany(), prisma.user.deleteMany()]);
 });
 ```
 
 #### Mock Strategy
+
 - **External APIs**: MSW handlers for Plex, YouTube, TMDB
 - **Services**: Dependency injection for testability
 - **Time**: Controlled clock for date/time testing
@@ -252,15 +263,15 @@ describe('Media Request Service', () => {
     // Arrange
     const user = await createTestUser({ role: 'user' });
     const mediaData = { tmdbId: 12345, mediaType: 'movie' };
-    
+
     // Act
     const request = await mediaRequestService.create(user.id, mediaData);
-    
+
     // Assert
     expect(request).toMatchObject({
       userId: user.id,
       tmdbId: mediaData.tmdbId,
-      status: 'pending'
+      status: 'pending',
     });
   });
 });
@@ -274,11 +285,9 @@ it('should handle database connection failures gracefully', async () => {
   vi.spyOn(prisma, 'user').mockImplementation(() => {
     throw new Error('Database connection lost');
   });
-  
+
   // Act & Assert
-  await expect(userService.findById(1))
-    .rejects
-    .toThrow('Service temporarily unavailable');
+  await expect(userService.findById(1)).rejects.toThrow('Service temporarily unavailable');
 });
 ```
 
@@ -288,7 +297,7 @@ it('should handle database connection failures gracefully', async () => {
 it('should prevent XSS in user input', () => {
   const maliciousInput = '<script>alert("xss")</script>';
   const sanitized = sanitizeInput(maliciousInput);
-  
+
   expect(sanitized).not.toContain('<script>');
   expect(sanitized).not.toContain('javascript:');
 });
@@ -311,19 +320,19 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run unit tests
         run: npm run test:coverage
-      
+
       - name: Run integration tests
         run: npm run test:integration
-      
+
       - name: Run E2E tests
         run: npm run test:e2e
-      
+
       - name: Upload coverage
         uses: codecov/codecov-action@v3
 ```
@@ -338,18 +347,21 @@ jobs:
 ## Metrics and Reporting
 
 ### Coverage Metrics
+
 - Line coverage
-- Branch coverage  
+- Branch coverage
 - Function coverage
 - Statement coverage
 
 ### Performance Metrics
+
 - Test execution time
 - Memory usage during tests
 - Database query performance
 - API response times
 
 ### Quality Metrics
+
 - Test success rate
 - Flaky test percentage
 - Code review coverage
@@ -358,12 +370,14 @@ jobs:
 ## Test Maintenance
 
 ### Regular Activities
+
 - **Weekly**: Review flaky tests and fix
 - **Monthly**: Analyze coverage gaps and address
 - **Quarterly**: Update dependencies and tools
 - **Release**: Full regression test execution
 
 ### Test Data Management
+
 - Seed data factories for consistent test data
 - Database migration testing
 - Test data cleanup automation
@@ -372,12 +386,14 @@ jobs:
 ## Tools and Technologies
 
 ### Development Tools
+
 - **VS Code**: Primary IDE with testing extensions
 - **Vitest Extension**: Integrated test running
 - **Coverage Gutters**: Visual coverage indicators
 - **GitLens**: Test history and blame information
 
 ### Monitoring and Analysis
+
 - **Codecov**: Coverage tracking and trends
 - **SonarQube**: Code quality and test analysis
 - **GitHub Actions**: CI/CD automation

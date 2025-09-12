@@ -80,13 +80,13 @@ describe('AsyncHandler Utility', () => {
       await wrappedFunction(
         isolatedMocks.mockRequest as Request,
         isolatedMocks.mockResponse as Response,
-        isolatedMocks.mockNext
+        isolatedMocks.mockNext,
       );
 
       expect(asyncFunction).toHaveBeenCalledWith(
         isolatedMocks.mockRequest,
         isolatedMocks.mockResponse,
-        isolatedMocks.mockNext
+        isolatedMocks.mockNext,
       );
       expect(isolatedMocks.mockNext).not.toHaveBeenCalled();
     });
@@ -99,14 +99,14 @@ describe('AsyncHandler Utility', () => {
       const result = await wrappedFunction(
         isolatedMocks.mockRequest as Request,
         isolatedMocks.mockResponse as Response,
-        isolatedMocks.mockNext
+        isolatedMocks.mockNext,
       );
 
       expect(result).toBe(returnValue);
       expect(asyncFunction).toHaveBeenCalledWith(
         isolatedMocks.mockRequest,
         isolatedMocks.mockResponse,
-        isolatedMocks.mockNext
+        isolatedMocks.mockNext,
       );
     });
 
@@ -119,7 +119,7 @@ describe('AsyncHandler Utility', () => {
       await wrappedFunction(
         isolatedMocks.mockRequest as Request,
         isolatedMocks.mockResponse as Response,
-        isolatedMocks.mockNext
+        isolatedMocks.mockNext,
       );
 
       expect(asyncFunction).toHaveBeenCalled();
@@ -136,7 +136,7 @@ describe('AsyncHandler Utility', () => {
       await wrappedFunction(
         isolatedMocks.mockRequest as Request,
         isolatedMocks.mockResponse as Response,
-        isolatedMocks.mockNext
+        isolatedMocks.mockNext,
       );
 
       expect(asyncFunction).toHaveBeenCalled();
@@ -155,7 +155,7 @@ describe('AsyncHandler Utility', () => {
       await wrappedFunction(
         isolatedMocks.mockRequest as Request,
         isolatedMocks.mockResponse as Response,
-        isolatedMocks.mockNext
+        isolatedMocks.mockNext,
       );
 
       expect(isolatedMocks.mockRequest.params.id).toBe('456');
@@ -172,7 +172,7 @@ describe('AsyncHandler Utility', () => {
       await wrappedFunction(
         isolatedMocks.mockRequest as Request,
         isolatedMocks.mockResponse as Response,
-        isolatedMocks.mockNext
+        isolatedMocks.mockNext,
       );
 
       expect(isolatedMocks.mockResponse.locals).toEqual({ customData: 'test' });
@@ -188,7 +188,7 @@ describe('AsyncHandler Utility', () => {
       await wrappedFunction(
         isolatedMocks.mockRequest as Request,
         isolatedMocks.mockResponse as Response,
-        isolatedMocks.mockNext
+        isolatedMocks.mockNext,
       );
 
       expect(asyncFunction).toHaveBeenCalled();
@@ -214,7 +214,7 @@ describe('AsyncHandler Utility', () => {
         await wrappedFunction(
           isolatedMocks.mockRequest as Request,
           isolatedMocks.mockResponse as Response,
-          isolatedMocks.mockNext
+          isolatedMocks.mockNext,
         );
 
         expect(isolatedMocks.mockNext).toHaveBeenCalledWith(error);
@@ -235,7 +235,7 @@ describe('AsyncHandler Utility', () => {
       await wrappedFunction(
         isolatedMocks.mockRequest as Request,
         isolatedMocks.mockResponse as Response,
-        isolatedMocks.mockNext
+        isolatedMocks.mockNext,
       );
 
       expect(isolatedMocks.mockNext).toHaveBeenCalledWith(error);
@@ -249,7 +249,7 @@ describe('AsyncHandler Utility', () => {
       await wrappedFunction(
         isolatedMocks.mockRequest as Request,
         isolatedMocks.mockResponse as Response,
-        isolatedMocks.mockNext
+        isolatedMocks.mockNext,
       );
 
       expect(isolatedMocks.mockNext).toHaveBeenCalledWith(error);
@@ -266,7 +266,7 @@ describe('AsyncHandler Utility', () => {
       await wrappedFunction(
         isolatedMocks.mockRequest as Request,
         isolatedMocks.mockResponse as Response,
-        isolatedMocks.mockNext
+        isolatedMocks.mockNext,
       );
 
       expect(isolatedMocks.mockNext).toHaveBeenCalledWith(error);
@@ -288,7 +288,7 @@ describe('AsyncHandler Utility', () => {
       await wrappedMethod(
         isolatedMocks.mockRequest as Request,
         isolatedMocks.mockResponse as Response,
-        isolatedMocks.mockNext
+        isolatedMocks.mockNext,
       );
 
       expect(mockController.getUser).toHaveBeenCalled();
@@ -315,7 +315,7 @@ describe('AsyncHandler Utility', () => {
       await wrappedMethod(
         isolatedMocks.mockRequest as Request,
         isolatedMocks.mockResponse as Response,
-        isolatedMocks.mockNext
+        isolatedMocks.mockNext,
       );
 
       expect(isolatedMocks.mockResponse.json).toHaveBeenCalledWith({
@@ -335,7 +335,7 @@ describe('AsyncHandler Utility', () => {
       await wrappedMiddleware(
         isolatedMocks.mockRequest as Request,
         isolatedMocks.mockResponse as Response,
-        isolatedMocks.mockNext
+        isolatedMocks.mockNext,
       );
 
       expect(isolatedMocks.mockRequest.user).toEqual({ id: 'middleware-user' });
@@ -352,7 +352,7 @@ describe('AsyncHandler Utility', () => {
       await wrappedMiddleware(
         isolatedMocks.mockRequest as Request,
         isolatedMocks.mockResponse as Response,
-        isolatedMocks.mockNext
+        isolatedMocks.mockNext,
       );
 
       expect(isolatedMocks.mockNext).toHaveBeenCalledWith(error);
@@ -368,7 +368,7 @@ describe('AsyncHandler Utility', () => {
       await wrappedMiddleware(
         isolatedMocks.mockRequest as Request,
         isolatedMocks.mockResponse as Response,
-        isolatedMocks.mockNext
+        isolatedMocks.mockNext,
       );
 
       // The function should complete without throwing errors
@@ -386,7 +386,7 @@ describe('AsyncHandler Utility', () => {
       await wrappedFunction(
         isolatedMocks.mockRequest as Request,
         isolatedMocks.mockResponse as Response,
-        isolatedMocks.mockNext
+        isolatedMocks.mockNext,
       );
       const endTime = Date.now();
 
@@ -406,7 +406,7 @@ describe('AsyncHandler Utility', () => {
       const result = await wrappedFunction(
         isolatedMocks.mockRequest as Request,
         isolatedMocks.mockResponse as Response,
-        isolatedMocks.mockNext
+        isolatedMocks.mockNext,
       );
       const endTime = Date.now();
 
@@ -429,17 +429,17 @@ describe('AsyncHandler Utility', () => {
         wrappedFunction(
           isolatedMocks.mockRequest as Request,
           isolatedMocks.mockResponse as Response,
-          isolatedMocks.mockNext
+          isolatedMocks.mockNext,
         ),
         wrappedFunction(
           isolatedMocks.mockRequest as Request,
           isolatedMocks.mockResponse as Response,
-          isolatedMocks.mockNext
+          isolatedMocks.mockNext,
         ),
         wrappedFunction(
           isolatedMocks.mockRequest as Request,
           isolatedMocks.mockResponse as Response,
-          isolatedMocks.mockNext
+          isolatedMocks.mockNext,
         ),
       ];
 
@@ -458,7 +458,7 @@ describe('AsyncHandler Utility', () => {
       await wrappedFunction(
         isolatedMocks.mockRequest as Request,
         isolatedMocks.mockResponse as Response,
-        isolatedMocks.mockNext
+        isolatedMocks.mockNext,
       );
 
       expect(asyncFunction).toHaveBeenCalled();
@@ -476,7 +476,7 @@ describe('AsyncHandler Utility', () => {
       await wrappedFunction(
         isolatedMocks.mockRequest as Request,
         isolatedMocks.mockResponse as Response,
-        isolatedMocks.mockNext
+        isolatedMocks.mockNext,
       );
 
       expect(isolatedMocks.mockResponse.json).toHaveBeenCalledWith({ delayed: true });
@@ -492,7 +492,7 @@ describe('AsyncHandler Utility', () => {
       await wrappedFunction(
         isolatedMocks.mockRequest as Request,
         isolatedMocks.mockResponse as Response,
-        isolatedMocks.mockNext
+        isolatedMocks.mockNext,
       );
 
       expect(isolatedMocks.mockResponse.json).toHaveBeenCalledWith({ context: 'test-context' });
@@ -505,7 +505,7 @@ describe('AsyncHandler Utility', () => {
       await wrappedFunction(
         isolatedMocks.mockRequest as Request,
         isolatedMocks.mockResponse as Response,
-        isolatedMocks.mockNext
+        isolatedMocks.mockNext,
       );
 
       expect(emptyFunction).toHaveBeenCalled();
@@ -532,13 +532,13 @@ describe('AsyncHandler Utility', () => {
       await wrappedFunction(
         customRequest,
         isolatedMocks.mockResponse as Response,
-        isolatedMocks.mockNext
+        isolatedMocks.mockNext,
       );
 
       expect(typedFunction).toHaveBeenCalledWith(
         customRequest,
         isolatedMocks.mockResponse,
-        isolatedMocks.mockNext
+        isolatedMocks.mockNext,
       );
       expect(isolatedMocks.mockResponse.json).toHaveBeenCalledWith({ custom: 'test' });
     });
@@ -557,22 +557,22 @@ describe('AsyncHandler Utility', () => {
       await wrappedString(
         isolatedMocks.mockRequest as Request,
         isolatedMocks.mockResponse as Response,
-        isolatedMocks.mockNext
+        isolatedMocks.mockNext,
       );
       await wrappedNumber(
         isolatedMocks.mockRequest as Request,
         isolatedMocks.mockResponse as Response,
-        isolatedMocks.mockNext
+        isolatedMocks.mockNext,
       );
       await wrappedObject(
         isolatedMocks.mockRequest as Request,
         isolatedMocks.mockResponse as Response,
-        isolatedMocks.mockNext
+        isolatedMocks.mockNext,
       );
       await wrappedVoid(
         isolatedMocks.mockRequest as Request,
         isolatedMocks.mockResponse as Response,
-        isolatedMocks.mockNext
+        isolatedMocks.mockNext,
       );
 
       expect(stringFunction).toHaveBeenCalled();

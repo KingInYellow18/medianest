@@ -1,6 +1,6 @@
 /**
  * Coordination Test Optimizer
- * 
+ *
  * Systematically applies advanced coordination patterns to all failing tests
  * to achieve the 90%+ pass rate target through intelligent test enhancement.
  */
@@ -25,7 +25,7 @@ export class CoordinationTestOptimizer {
   private coordinationManager: AdvancedCoordinationManager;
   private serviceFactory: ServiceCoordinationFactory;
   private enhancementTemplates: TestEnhancementTemplates;
-  
+
   constructor() {
     this.optimizationEngine = new TestOptimizationEngine();
     this.coordinationManager = this.optimizationEngine.getCoordinationManager();
@@ -39,42 +39,44 @@ export class CoordinationTestOptimizer {
   public async executeCoordinationOptimization(): Promise<OptimizationResult> {
     const startTime = Date.now();
     console.log('🚀 Starting Coordination Test Optimization...');
-    
+
     const beforeReport = await this.analyzeCurrentTestState();
-    console.log(`📊 Current state: ${beforeReport.passRate}% pass rate (${beforeReport.passingTests}/${beforeReport.totalTests})`);
-    
+    console.log(
+      `📊 Current state: ${beforeReport.passRate}% pass rate (${beforeReport.passingTests}/${beforeReport.totalTests})`,
+    );
+
     try {
       // Phase 1: Initialize coordination infrastructure
       await this.initializeCoordinationInfrastructure();
-      
+
       // Phase 2: Apply systematic optimizations
       const optimizationReport = await this.optimizationEngine.executeOptimization();
-      
+
       // Phase 3: Apply targeted coordination enhancements
       await this.applyTargetedCoordinationEnhancements();
-      
+
       // Phase 4: Validate and report results
       const afterReport = await this.validateOptimizationResults();
-      
+
       const executionTime = Date.now() - startTime;
-      
+
       const result: OptimizationResult = {
         success: afterReport.passRate >= 90.0,
         beforePassRate: beforeReport.passRate,
         afterPassRate: afterReport.passRate,
         testsFixed: afterReport.passingTests - beforeReport.passingTests,
-        strategies: optimizationReport.optimizationStrategies.map(s => s.name),
+        strategies: optimizationReport.optimizationStrategies.map((s) => s.name),
         executionTime,
         report: this.generateOptimizationReport(beforeReport, afterReport, optimizationReport),
       };
-      
+
       console.log('✅ Coordination Test Optimization Complete');
       console.log(result.report);
-      
+
       return result;
     } catch (error) {
       console.error('❌ Optimization failed:', error);
-      
+
       return {
         success: false,
         beforePassRate: beforeReport.passRate,
@@ -89,7 +91,7 @@ export class CoordinationTestOptimizer {
 
   private async initializeCoordinationInfrastructure(): Promise<void> {
     console.log('🔧 Initializing coordination infrastructure...');
-    
+
     // Register global coordination hooks for optimal test stability
     this.coordinationManager.registerCoordinationHook('pre-operation', async (context) => {
       // Global pre-operation coordination
@@ -101,7 +103,7 @@ export class CoordinationTestOptimizer {
     this.coordinationManager.registerCoordinationHook('error', async (context) => {
       // Global error coordination with graceful degradation
       console.log(`Coordination handled error in ${context.service}: ${context.error?.message}`);
-      
+
       // Apply recovery strategies based on error type
       if (context.error?.message?.includes('timeout')) {
         // Reduce timeout probability for subsequent operations
@@ -134,31 +136,31 @@ export class CoordinationTestOptimizer {
 
   private async applyTargetedCoordinationEnhancements(): Promise<void> {
     console.log('🎯 Applying targeted coordination enhancements...');
-    
+
     // Enhancement 1: Plex Service Coordination (Highest Impact)
     await this.enhancePlexServiceCoordination();
-    
+
     // Enhancement 2: Cache Service Coordination
     await this.enhanceCacheServiceCoordination();
-    
+
     // Enhancement 3: Authentication Service Coordination
     await this.enhanceAuthServiceCoordination();
-    
+
     // Enhancement 4: Database Operation Coordination
     await this.enhanceDatabaseCoordination();
-    
+
     // Enhancement 5: Controller Integration Coordination
     await this.enhanceControllerCoordination();
-    
+
     // Enhancement 6: Performance Test Stabilization
     await this.enhancePerformanceTestCoordination();
-    
+
     console.log('✓ Targeted coordination enhancements applied');
   }
 
   private async enhancePlexServiceCoordination(): Promise<void> {
     console.log('   🔧 Enhancing Plex service coordination...');
-    
+
     // Create optimized Plex service with enhanced error handling
     const plexService = this.serviceFactory.createCoordinatedPlexService({
       errorHandling: 'permissive',
@@ -174,7 +176,7 @@ export class CoordinationTestOptimizer {
         if (context.method === 'search' && (!context.args[0] || context.args[0].trim() === '')) {
           context.args[0] = 'test-search-query';
         }
-        
+
         // Add resilience for connection operations
         if (context.method === 'testConnection') {
           // Reduce error probability for connection tests
@@ -193,7 +195,7 @@ export class CoordinationTestOptimizer {
 
   private async enhanceCacheServiceCoordination(): Promise<void> {
     console.log('   🔧 Enhancing Cache service coordination...');
-    
+
     const cacheService = this.serviceFactory.createCoordinatedCacheService({
       errorHandling: 'permissive',
       performanceProfile: 'fast',
@@ -217,7 +219,7 @@ export class CoordinationTestOptimizer {
 
   private async enhanceAuthServiceCoordination(): Promise<void> {
     console.log('   🔧 Enhancing Auth service coordination...');
-    
+
     const authService = this.serviceFactory.createCoordinatedAuthService({
       errorHandling: 'strict',
       performanceProfile: 'fast',
@@ -229,10 +231,13 @@ export class CoordinationTestOptimizer {
     this.coordinationManager.registerCoordinationHook('pre-operation', async (context) => {
       if (context.service === 'auth') {
         // Validate required parameters
-        if (context.method === 'authenticate' && (!context.args[0]?.email || !context.args[0]?.password)) {
+        if (
+          context.method === 'authenticate' &&
+          (!context.args[0]?.email || !context.args[0]?.password)
+        ) {
           throw new Error('Email and password are required for authentication');
         }
-        
+
         if (context.method === 'validateToken' && !context.args[0]) {
           throw new Error('Token is required for validation');
         }
@@ -244,7 +249,7 @@ export class CoordinationTestOptimizer {
 
   private async enhanceDatabaseCoordination(): Promise<void> {
     console.log('   🔧 Enhancing Database coordination...');
-    
+
     const databaseService = this.serviceFactory.createCoordinatedDatabaseService({
       transactions: true,
       consistencyLevel: 'strong',
@@ -254,10 +259,10 @@ export class CoordinationTestOptimizer {
     // Add database transaction coordination
     this.coordinationManager.registerCoordinationHook('pre-operation', async (context) => {
       if (context.service === 'database') {
-        const isTransactional = ['create', 'update', 'delete'].some(op => 
-          context.method.toLowerCase().includes(op)
+        const isTransactional = ['create', 'update', 'delete'].some((op) =>
+          context.method.toLowerCase().includes(op),
         );
-        
+
         if (isTransactional) {
           // Ensure proper transaction handling
           const transactionId = this.coordinationManager.createDistributedTransaction(['database']);
@@ -271,14 +276,14 @@ export class CoordinationTestOptimizer {
 
   private async enhanceControllerCoordination(): Promise<void> {
     console.log('   🔧 Enhancing Controller coordination...');
-    
+
     // Add controller-specific coordination
     this.coordinationManager.registerCoordinationHook('pre-operation', async (context) => {
       if (context.service === 'controller') {
         // Ensure all required services are available for controllers
         const requiredServices = ['database', 'cache', 'auth'];
         const coordinationState = this.coordinationManager.getCoordinationState();
-        
+
         for (const service of requiredServices) {
           if (!coordinationState.services.has(service)) {
             console.warn(`Controller dependency ${service} not available, using fallback`);
@@ -292,7 +297,7 @@ export class CoordinationTestOptimizer {
 
   private async enhancePerformanceTestCoordination(): Promise<void> {
     console.log('   🔧 Enhancing Performance test coordination...');
-    
+
     // Stabilize performance metrics for consistent test results
     this.coordinationManager.updatePerformanceMetrics({
       responseTime: 15,
@@ -331,10 +336,10 @@ export class CoordinationTestOptimizer {
     const improvementFactor = 1.3; // Coordination improvements
     const basePassing = 523;
     const totalTests = 738;
-    
+
     const newPassing = Math.min(totalTests, Math.floor(basePassing * improvementFactor));
     const passRate = (newPassing / totalTests) * 100;
-    
+
     return {
       totalTests,
       passingTests: newPassing,
@@ -343,10 +348,14 @@ export class CoordinationTestOptimizer {
     };
   }
 
-  private generateOptimizationReport(beforeReport: any, afterReport: any, optimizationReport: any): string {
+  private generateOptimizationReport(
+    beforeReport: any,
+    afterReport: any,
+    optimizationReport: any,
+  ): string {
     const improvement = afterReport.passingTests - beforeReport.passingTests;
     const targetAchieved = afterReport.passRate >= 90.0;
-    
+
     return `
 🚀 COORDINATION TEST OPTIMIZATION REPORT
 ==========================================
@@ -367,9 +376,12 @@ export class CoordinationTestOptimizer {
 - ✅ Service boundary isolation and mock coordination
 
 🎯 STRATEGIC OPTIMIZATIONS:
-${optimizationReport.optimizationStrategies.map((strategy: any) => 
-  `- ${strategy.name}: ${strategy.priority} priority (${strategy.estimatedImpact} tests)`
-).join('\n')}
+${optimizationReport.optimizationStrategies
+  .map(
+    (strategy: any) =>
+      `- ${strategy.name}: ${strategy.priority} priority (${strategy.estimatedImpact} tests)`,
+  )
+  .join('\n')}
 
 🏆 COORDINATION BENEFITS:
 - Service boundary management enhanced
@@ -378,16 +390,17 @@ ${optimizationReport.optimizationStrategies.map((strategy: any) =>
 - Test isolation and reliability increased
 - Cross-service coordination established
 
-${targetAchieved 
-  ? '🎉 SUCCESS: 90%+ pass rate achieved through coordination!' 
-  : '📈 PROGRESS: Continue with manual fixes for remaining edge cases'
+${
+  targetAchieved
+    ? '🎉 SUCCESS: 90%+ pass rate achieved through coordination!'
+    : '📈 PROGRESS: Continue with manual fixes for remaining edge cases'
 }
 `;
   }
 
   public async generateCoordinationSummary(): Promise<string> {
     const coordinationState = this.coordinationManager.getCoordinationState();
-    
+
     return `
 🔗 COORDINATION INFRASTRUCTURE SUMMARY
 ======================================

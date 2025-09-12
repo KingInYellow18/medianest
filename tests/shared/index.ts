@@ -1,6 +1,6 @@
 /**
  * SHARED TEST INFRASTRUCTURE - MAIN ENTRY POINT
- * 
+ *
  * Central exports for all shared test utilities, factories, and setup patterns.
  * Provides a single import point for the entire test infrastructure.
  */
@@ -19,7 +19,7 @@ export {
   createMediaRequest,
   createTestSession,
   clearAllFactoryCaches,
-  resetAllFactoryCounters
+  resetAllFactoryCounters,
 } from './test-factories';
 
 // Database Utilities
@@ -30,7 +30,7 @@ export {
   getTestDatabaseClient,
   clearTestData,
   withTransaction,
-  seedTestData
+  seedTestData,
 } from './database-utils';
 
 // Mock Infrastructure
@@ -46,7 +46,7 @@ export {
   createPlexMocks,
   resetAllMocks,
   setupAllMocks,
-  MockRegistry
+  MockRegistry,
 } from './mock-infrastructure';
 
 // Setup Utilities
@@ -64,15 +64,12 @@ export {
   isolatedTestSetup,
   performanceTestSetup,
   unitTestSetup,
-  e2eTestSetup
+  e2eTestSetup,
 } from './setup-utils';
 
 // Migration Utilities
 export * from './migration-guide';
-export {
-  TestMigrationUtils,
-  migrationCommands
-} from './migration-guide';
+export { TestMigrationUtils, migrationCommands } from './migration-guide';
 
 /**
  * Convenience factory for complete test environments
@@ -81,21 +78,23 @@ export class TestEnvironmentFactory {
   /**
    * Create a complete test environment with all infrastructure
    */
-  static async createCompleteEnvironment(options: CompleteEnvironmentOptions = {}): Promise<CompleteTestEnvironment> {
+  static async createCompleteEnvironment(
+    options: CompleteEnvironmentOptions = {},
+  ): Promise<CompleteTestEnvironment> {
     console.log('🏗️ Creating complete test environment...');
 
     // Setup database
     const databaseClient = await DatabaseTestUtils.setupTestDatabase();
-    
+
     // Setup mocks
     const mocks = MockInfrastructure.setupAllMocks();
-    
+
     // Create test users
     const users = await TestScenarioFactory.createAuthScenario(options.userOverrides);
-    
+
     // Create test workspace
     const workspace = await DatabaseTestUtils.createTestWorkspace();
-    
+
     console.log('✅ Complete test environment ready');
 
     return {
@@ -107,7 +106,7 @@ export class TestEnvironmentFactory {
         await workspace.cleanup();
         MockInfrastructure.resetAllMocks();
         clearAllFactoryCaches();
-      }
+      },
     };
   }
 
@@ -126,7 +125,7 @@ export class TestEnvironmentFactory {
       cleanup() {
         MockInfrastructure.resetAllMocks();
         clearAllFactoryCaches();
-      }
+      },
     };
   }
 }
@@ -141,12 +140,12 @@ export class QuickTestSetup {
   static async authTest(): Promise<AuthTestSetup> {
     const mocks = AuthMocks.createAuthMocks();
     const scenario = await TestScenarioFactory.createAuthScenario();
-    
+
     return {
       user: scenario.user,
       token: scenario.token,
       mocks: mocks.auth,
-      cleanup: () => MockInfrastructure.resetAllMocks()
+      cleanup: () => MockInfrastructure.resetAllMocks(),
     };
   }
 
@@ -156,14 +155,14 @@ export class QuickTestSetup {
   static async databaseTest(): Promise<DatabaseTestSetup> {
     const client = await DatabaseTestUtils.setupTestDatabase();
     const workspace = await DatabaseTestUtils.createTestWorkspace();
-    
+
     return {
       client,
       workspace,
       cleanup: async () => {
         await workspace.cleanup();
         await DatabaseTestUtils.cleanup();
-      }
+      },
     };
   }
 
@@ -174,7 +173,7 @@ export class QuickTestSetup {
     const database = await this.databaseTest();
     const auth = await this.authTest();
     const apiMocks = ExternalAPIMocks.createPlexMocks();
-    
+
     return {
       ...database,
       ...auth,
@@ -183,23 +182,25 @@ export class QuickTestSetup {
         await database.cleanup();
         auth.cleanup();
         MockInfrastructure.resetAllMocks();
-      }
+      },
     };
   }
 
   /**
    * One-liner setup for performance tests
    */
-  static async performanceTest(dataSize: PerformanceTestSize = 'small'): Promise<PerformanceTestSetup> {
+  static async performanceTest(
+    dataSize: PerformanceTestSize = 'small',
+  ): Promise<PerformanceTestSetup> {
     const counts = {
       small: { userCount: 10, mediaCount: 5, requestCount: 20 },
       medium: { userCount: 100, mediaCount: 50, requestCount: 200 },
-      large: { userCount: 1000, mediaCount: 500, requestCount: 2000 }
+      large: { userCount: 1000, mediaCount: 500, requestCount: 2000 },
     };
-    
+
     const client = await DatabaseTestUtils.setupTestDatabase();
     const scenario = await TestScenarioFactory.createPerformanceScenario(counts[dataSize]);
-    
+
     return {
       client,
       scenario,
@@ -207,7 +208,7 @@ export class QuickTestSetup {
       cleanup: async () => {
         await clearTestData();
         clearAllFactoryCaches();
-      }
+      },
     };
   }
 }
@@ -221,12 +222,12 @@ export class TestHealthCheck {
    */
   static async verifyInfrastructure(): Promise<HealthCheckResult> {
     console.log('🔍 Running test infrastructure health check...');
-    
+
     const results: HealthCheckResult = {
       database: { status: 'unknown', message: '' },
       factories: { status: 'unknown', message: '' },
       mocks: { status: 'unknown', message: '' },
-      overall: 'unknown'
+      overall: 'unknown',
     };
 
     try {
@@ -235,7 +236,7 @@ export class TestHealthCheck {
       results.database = {
         status: dbHealth.status === 'healthy' ? 'healthy' : 'unhealthy',
         message: dbHealth.error || `Response time: ${dbHealth.responseTime}ms`,
-        details: dbHealth.statistics
+        details: dbHealth.statistics,
       };
 
       // Factory check
@@ -243,16 +244,16 @@ export class TestHealthCheck {
         const user = await TestUserFactory.createTestUser();
         const token = TestJWTFactory.createUserToken(user);
         const media = TestMediaFactory.createTestMedia();
-        
+
         results.factories = {
           status: 'healthy',
           message: 'All factories working correctly',
-          details: { user: !!user.id, token: !!token, media: !!media.id }
+          details: { user: !!user.id, token: !!token, media: !!media.id },
         };
       } catch (error) {
         results.factories = {
           status: 'unhealthy',
-          message: `Factory error: ${error.message}`
+          message: `Factory error: ${error.message}`,
         };
       }
 
@@ -260,27 +261,26 @@ export class TestHealthCheck {
       try {
         const mocks = MockInfrastructure.setupAllMocks();
         MockInfrastructure.resetAllMocks();
-        
+
         results.mocks = {
           status: 'healthy',
-          message: 'Mock infrastructure working correctly'
+          message: 'Mock infrastructure working correctly',
         };
       } catch (error) {
         results.mocks = {
           status: 'unhealthy',
-          message: `Mock error: ${error.message}`
+          message: `Mock error: ${error.message}`,
         };
       }
 
       // Overall status
-      const allHealthy = Object.values(results).slice(0, -1).every(
-        (check: any) => check.status === 'healthy'
-      );
+      const allHealthy = Object.values(results)
+        .slice(0, -1)
+        .every((check: any) => check.status === 'healthy');
       results.overall = allHealthy ? 'healthy' : 'unhealthy';
 
       console.log(`${allHealthy ? '✅' : '❌'} Health check ${allHealthy ? 'passed' : 'failed'}`);
       return results;
-
     } catch (error) {
       console.error('💥 Health check failed:', error);
       results.overall = 'error';
@@ -293,11 +293,11 @@ export class TestHealthCheck {
    */
   static async generateHealthReport(): Promise<string> {
     const health = await this.verifyInfrastructure();
-    
+
     let report = '# Test Infrastructure Health Report\n\n';
     report += `Generated: ${new Date().toISOString()}\n`;
     report += `Overall Status: **${health.overall.toUpperCase()}**\n\n`;
-    
+
     report += `## Database\n`;
     report += `- Status: ${health.database.status}\n`;
     report += `- Message: ${health.database.message}\n`;
@@ -305,7 +305,7 @@ export class TestHealthCheck {
       report += `- Details: ${JSON.stringify(health.database.details, null, 2)}\n`;
     }
     report += '\n';
-    
+
     report += `## Factories\n`;
     report += `- Status: ${health.factories.status}\n`;
     report += `- Message: ${health.factories.message}\n`;
@@ -313,11 +313,11 @@ export class TestHealthCheck {
       report += `- Details: ${JSON.stringify(health.factories.details, null, 2)}\n`;
     }
     report += '\n';
-    
+
     report += `## Mocks\n`;
     report += `- Status: ${health.mocks.status}\n`;
     report += `- Message: ${health.mocks.message}\n`;
-    
+
     return report;
   }
 }
@@ -388,7 +388,7 @@ export const migrate = {
   analyze: TestMigrationUtils.analyzeTestFiles,
   file: TestMigrationUtils.migrateTestFile,
   batch: TestMigrationUtils.batchMigrate,
-  report: TestMigrationUtils.generateMigrationReport
+  report: TestMigrationUtils.generateMigrationReport,
 };
 
 /**
@@ -396,7 +396,7 @@ export const migrate = {
  */
 export const health = {
   check: TestHealthCheck.verifyInfrastructure,
-  report: TestHealthCheck.generateHealthReport
+  report: TestHealthCheck.generateHealthReport,
 };
 
 /**
@@ -406,7 +406,7 @@ export const quick = {
   auth: QuickTestSetup.authTest,
   database: QuickTestSetup.databaseTest,
   api: QuickTestSetup.apiTest,
-  performance: QuickTestSetup.performanceTest
+  performance: QuickTestSetup.performanceTest,
 };
 
 // Default export for convenience
@@ -416,5 +416,5 @@ export default {
   TestHealthCheck,
   migrate,
   health,
-  quick
+  quick,
 };

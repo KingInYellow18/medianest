@@ -1,6 +1,6 @@
 /**
  * MIGRATION GUIDE AND UTILITIES
- * 
+ *
  * Tools and examples for migrating existing test files to use the new shared infrastructure.
  * Provides automated migration scripts and backwards compatibility layers.
  */
@@ -26,7 +26,7 @@ export class TestMigrationUtils {
       duplicatePatterns: new Map(),
       migrationCandidates: [],
       complexityScores: new Map(),
-      recommendations: []
+      recommendations: [],
     };
 
     console.log(`🔍 Analyzing ${testFiles.length} test files...`);
@@ -35,9 +35,9 @@ export class TestMigrationUtils {
       try {
         const content = await fs.readFile(file, 'utf-8');
         const fileAnalysis = this.analyzeTestFile(file, content);
-        
+
         // Track duplicate patterns
-        fileAnalysis.patterns.forEach(pattern => {
+        fileAnalysis.patterns.forEach((pattern) => {
           const existing = analysis.duplicatePatterns.get(pattern) || [];
           existing.push(file);
           analysis.duplicatePatterns.set(pattern, existing);
@@ -52,10 +52,9 @@ export class TestMigrationUtils {
             file,
             benefit: fileAnalysis.migrationBenefit,
             patterns: fileAnalysis.patterns,
-            recommendations: fileAnalysis.recommendations
+            recommendations: fileAnalysis.recommendations,
           });
         }
-
       } catch (error) {
         console.warn(`⚠️ Could not analyze ${file}:`, error.message);
       }
@@ -64,7 +63,9 @@ export class TestMigrationUtils {
     // Generate recommendations
     analysis.recommendations = this.generateRecommendations(analysis);
 
-    console.log(`✅ Analysis complete: ${analysis.migrationCandidates.length} migration candidates found`);
+    console.log(
+      `✅ Analysis complete: ${analysis.migrationCandidates.length} migration candidates found`,
+    );
     return analysis;
   }
 
@@ -81,33 +82,33 @@ export class TestMigrationUtils {
       {
         pattern: 'user creation',
         regex: /createTestUser|createUser|new.*User|user.*create/gi,
-        weight: 0.2
+        weight: 0.2,
       },
       {
         pattern: 'JWT creation',
         regex: /jwt\.sign|generateToken|createToken|sign\(/gi,
-        weight: 0.15
+        weight: 0.15,
       },
       {
         pattern: 'database setup',
         regex: /beforeEach.*prisma|beforeAll.*database|setupDatabase/gi,
-        weight: 0.25
+        weight: 0.25,
       },
       {
         pattern: 'mock setup',
         regex: /vi\.mock|jest\.mock|mockImplementation|mockReturnValue/gi,
-        weight: 0.1
+        weight: 0.1,
       },
       {
         pattern: 'beforeEach/afterEach',
         regex: /(beforeEach|afterEach)\(/gi,
-        weight: 0.1
+        weight: 0.1,
       },
       {
         pattern: 'test data cleanup',
         regex: /clearTestData|deleteMany|cleanup|teardown/gi,
-        weight: 0.15
-      }
+        weight: 0.15,
+      },
     ];
 
     for (const check of checks) {
@@ -115,7 +116,7 @@ export class TestMigrationUtils {
       if (matches && matches.length > 0) {
         patterns.push(check.pattern);
         complexityScore += matches.length * check.weight;
-        
+
         if (matches.length > 3) {
           recommendations.push(`Consider using shared ${check.pattern} utilities`);
         }
@@ -129,7 +130,7 @@ export class TestMigrationUtils {
       patterns,
       complexityScore,
       migrationBenefit,
-      recommendations
+      recommendations,
     };
   }
 
@@ -143,11 +144,11 @@ export class TestMigrationUtils {
     analysis.duplicatePatterns.forEach((files, pattern) => {
       if (files.length > 5) {
         recommendations.push(
-          `High Priority: "${pattern}" pattern found in ${files.length} files - use shared ${pattern} utilities`
+          `High Priority: "${pattern}" pattern found in ${files.length} files - use shared ${pattern} utilities`,
         );
       } else if (files.length > 2) {
         recommendations.push(
-          `Medium Priority: "${pattern}" pattern found in ${files.length} files - consider consolidation`
+          `Medium Priority: "${pattern}" pattern found in ${files.length} files - consider consolidation`,
         );
       }
     });
@@ -160,8 +161,9 @@ export class TestMigrationUtils {
 
     if (highComplexityFiles.length > 0) {
       recommendations.push(
-        `High complexity files requiring immediate migration: ${highComplexityFiles.map(([file]) => 
-          path.basename(file)).join(', ')}`
+        `High complexity files requiring immediate migration: ${highComplexityFiles
+          .map(([file]) => path.basename(file))
+          .join(', ')}`,
       );
     }
 
@@ -172,11 +174,11 @@ export class TestMigrationUtils {
    * Migrate a specific test file to use shared infrastructure
    */
   static async migrateTestFile(
-    filePath: string, 
-    options: MigrationOptions = {}
+    filePath: string,
+    options: MigrationOptions = {},
   ): Promise<MigrationResult> {
     console.log(`🔄 Migrating ${filePath}...`);
-    
+
     try {
       // Create backup
       if (options.createBackup !== false) {
@@ -185,7 +187,7 @@ export class TestMigrationUtils {
 
       // Read original file
       const originalContent = await fs.readFile(filePath, 'utf-8');
-      
+
       // Apply migrations
       let migratedContent = originalContent;
       const appliedMigrations: string[] = [];
@@ -229,7 +231,9 @@ export class TestMigrationUtils {
       const hasChanges = appliedMigrations.length > 0;
       if (hasChanges) {
         await fs.writeFile(filePath, migratedContent, 'utf-8');
-        console.log(`  ✅ Applied ${appliedMigrations.length} migrations: ${appliedMigrations.join(', ')}`);
+        console.log(
+          `  ✅ Applied ${appliedMigrations.length} migrations: ${appliedMigrations.join(', ')}`,
+        );
       } else {
         console.log(`  ℹ️ No migrations needed`);
       }
@@ -240,7 +244,7 @@ export class TestMigrationUtils {
         timestamp: new Date(),
         migrations: appliedMigrations,
         success: true,
-        linesChanged: hasChanges ? this.countLineChanges(originalContent, migratedContent) : 0
+        linesChanged: hasChanges ? this.countLineChanges(originalContent, migratedContent) : 0,
       };
       this.migrationLog.push(logEntry);
 
@@ -248,23 +252,22 @@ export class TestMigrationUtils {
         success: true,
         appliedMigrations,
         linesChanged: logEntry.linesChanged,
-        backupPath: options.createBackup !== false ? await this.getBackupPath(filePath) : undefined
+        backupPath: options.createBackup !== false ? await this.getBackupPath(filePath) : undefined,
       };
-
     } catch (error) {
       const logEntry: MigrationLogEntry = {
         file: filePath,
         timestamp: new Date(),
         migrations: [],
         success: false,
-        error: error.message
+        error: error.message,
       };
       this.migrationLog.push(logEntry);
 
       console.error(`  ❌ Migration failed:`, error.message);
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -281,7 +284,8 @@ export class TestMigrationUtils {
       const importMatch = content.match(/^import.*from.*['"][^'"]*['"];?$/gm);
       if (importMatch) {
         const lastImport = importMatch[importMatch.length - 1];
-        const importLine = "import { TestUserFactory, createTestUser } from '../shared/test-factories';";
+        const importLine =
+          "import { TestUserFactory, createTestUser } from '../shared/test-factories';";
         newContent = newContent.replace(lastImport, `${lastImport}\n${importLine}`);
         changed = true;
       }
@@ -291,16 +295,16 @@ export class TestMigrationUtils {
     const replacements = [
       {
         from: /const\s+(\w+)\s*=\s*await\s+prisma\.user\.create\s*\(\s*\{[^}]+\}\s*\)/g,
-        to: 'const $1 = await createTestUser()'
+        to: 'const $1 = await createTestUser()',
       },
       {
         from: /createTestUser\s*\([^)]*\)/g,
-        to: 'TestUserFactory.createTestUser()'
+        to: 'TestUserFactory.createTestUser()',
       },
       {
         from: /new User\(\{[^}]+\}\)/g,
-        to: 'await TestUserFactory.createTestUser()'
-      }
+        to: 'await TestUserFactory.createTestUser()',
+      },
     ];
 
     for (const replacement of replacements) {
@@ -326,13 +330,9 @@ export class TestMigrationUtils {
       if (importMatch) {
         newContent = newContent.replace(
           importMatch[0],
-          importMatch[0].replace(
-            'test-factories',
-            'test-factories'
-          ).replace(
-            /{([^}]+)}/,
-            '{ $1, TestJWTFactory, createTestJWT }'
-          )
+          importMatch[0]
+            .replace('test-factories', 'test-factories')
+            .replace(/{([^}]+)}/, '{ $1, TestJWTFactory, createTestJWT }'),
         );
         changed = true;
       }
@@ -342,16 +342,16 @@ export class TestMigrationUtils {
     const replacements = [
       {
         from: /jwt\.sign\s*\([^)]+\)/g,
-        to: 'TestJWTFactory.createTestJWT()'
+        to: 'TestJWTFactory.createTestJWT()',
       },
       {
         from: /generateToken\s*\([^)]*\)/g,
-        to: 'TestJWTFactory.createTestJWT()'
+        to: 'TestJWTFactory.createTestJWT()',
       },
       {
         from: /createTestJWT\s*\([^)]*\)/g,
-        to: 'TestJWTFactory.createTestJWT()'
-      }
+        to: 'TestJWTFactory.createTestJWT()',
+      },
     ];
 
     for (const replacement of replacements) {
@@ -377,7 +377,7 @@ export class TestMigrationUtils {
       if (importMatch) {
         newContent = newContent.replace(
           importMatch[0],
-          `${importMatch[0]}\nimport { DatabaseTestUtils, setupTestDatabase, clearTestData } from '../shared/database-utils';`
+          `${importMatch[0]}\nimport { DatabaseTestUtils, setupTestDatabase, clearTestData } from '../shared/database-utils';`,
         );
         changed = true;
       }
@@ -387,16 +387,16 @@ export class TestMigrationUtils {
     const replacements = [
       {
         from: /beforeAll\s*\(\s*async\s*\(\s*\)\s*=>\s*\{[\s\S]*?prisma[\s\S]*?\}\s*\)/g,
-        to: 'beforeAll(async () => { await setupTestDatabase(); })'
+        to: 'beforeAll(async () => { await setupTestDatabase(); })',
       },
       {
         from: /afterAll\s*\(\s*async\s*\(\s*\)\s*=>\s*\{[\s\S]*?disconnect[\s\S]*?\}\s*\)/g,
-        to: 'afterAll(async () => { await DatabaseTestUtils.cleanup(); })'
+        to: 'afterAll(async () => { await DatabaseTestUtils.cleanup(); })',
       },
       {
         from: /afterEach\s*\(\s*async\s*\(\s*\)\s*=>\s*\{[\s\S]*?deleteMany[\s\S]*?\}\s*\)/g,
-        to: 'afterEach(async () => { await clearTestData(); })'
-      }
+        to: 'afterEach(async () => { await clearTestData(); })',
+      },
     ];
 
     for (const replacement of replacements) {
@@ -422,7 +422,7 @@ export class TestMigrationUtils {
       if (importMatch) {
         newContent = newContent.replace(
           importMatch[0],
-          `${importMatch[0]}\nimport { MockInfrastructure, setupAllMocks, resetAllMocks } from '../shared/mock-infrastructure';`
+          `${importMatch[0]}\nimport { MockInfrastructure, setupAllMocks, resetAllMocks } from '../shared/mock-infrastructure';`,
         );
         changed = true;
       }
@@ -434,7 +434,7 @@ export class TestMigrationUtils {
       if (beforeEachMatch) {
         newContent = newContent.replace(
           beforeEachMatch[0],
-          `${beforeEachMatch[0]}\n    setupAllMocks();`
+          `${beforeEachMatch[0]}\n    setupAllMocks();`,
         );
         changed = true;
       }
@@ -451,19 +451,19 @@ export class TestMigrationUtils {
     let newContent = content;
 
     // Check if file has complex setup/teardown that can be simplified
-    const hasComplexSetup = /beforeEach[\s\S]{100,}/.test(content) || 
-                           /afterEach[\s\S]{100,}/.test(content);
+    const hasComplexSetup =
+      /beforeEach[\s\S]{100,}/.test(content) || /afterEach[\s\S]{100,}/.test(content);
 
     if (hasComplexSetup && !content.includes('TestSetupPresets')) {
       // Add import
       newContent = `import { integrationTestSetup } from '../shared/setup-utils';\n${newContent}`;
-      
+
       // Add setup call
       const describeMatch = newContent.match(/describe\s*\(\s*['"][^'"]*['"],\s*\(\s*\)\s*=>\s*\{/);
       if (describeMatch) {
         newContent = newContent.replace(
           describeMatch[0],
-          `${describeMatch[0]}\n  const testSuite = integrationTestSetup();\n  testSuite.setupSuite();`
+          `${describeMatch[0]}\n  const testSuite = integrationTestSetup();\n  testSuite.setupSuite();`,
         );
         changed = true;
       }
@@ -478,14 +478,14 @@ export class TestMigrationUtils {
   private static async createBackup(filePath: string): Promise<string> {
     const backupDir = path.join(process.cwd(), this.BACKUP_DIR);
     await fs.mkdir(backupDir, { recursive: true });
-    
+
     const fileName = path.basename(filePath);
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const backupPath = path.join(backupDir, `${fileName}.${timestamp}.backup`);
-    
+
     const originalContent = await fs.readFile(filePath, 'utf-8');
     await fs.writeFile(backupPath, originalContent, 'utf-8');
-    
+
     return backupPath;
   }
 
@@ -497,10 +497,10 @@ export class TestMigrationUtils {
     const backupDir = path.join(process.cwd(), this.BACKUP_DIR);
     const backups = await fs.readdir(backupDir);
     const latestBackup = backups
-      .filter(f => f.startsWith(fileName))
+      .filter((f) => f.startsWith(fileName))
       .sort()
       .pop();
-    
+
     return latestBackup ? path.join(backupDir, latestBackup) : '';
   }
 
@@ -510,16 +510,16 @@ export class TestMigrationUtils {
   private static countLineChanges(original: string, migrated: string): number {
     const originalLines = original.split('\n');
     const migratedLines = migrated.split('\n');
-    
+
     let changes = Math.abs(originalLines.length - migratedLines.length);
     const minLength = Math.min(originalLines.length, migratedLines.length);
-    
+
     for (let i = 0; i < minLength; i++) {
       if (originalLines[i] !== migratedLines[i]) {
         changes++;
       }
     }
-    
+
     return changes;
   }
 
@@ -528,34 +528,34 @@ export class TestMigrationUtils {
    */
   static async batchMigrate(
     pattern: string = '**/*.test.ts',
-    options: MigrationOptions = {}
+    options: MigrationOptions = {},
   ): Promise<BatchMigrationResult> {
     const testFiles = await glob(pattern, { cwd: process.cwd() });
     console.log(`🚀 Starting batch migration of ${testFiles.length} files...`);
-    
+
     const results: MigrationResult[] = [];
     let successful = 0;
     let failed = 0;
-    
+
     for (const file of testFiles) {
       const result = await this.migrateTestFile(file, options);
       results.push({ ...result, file });
-      
+
       if (result.success) {
         successful++;
       } else {
         failed++;
       }
     }
-    
+
     const summary: BatchMigrationResult = {
       totalFiles: testFiles.length,
       successful,
       failed,
       results,
-      migrationLog: this.migrationLog.slice(-testFiles.length) // Last N entries
+      migrationLog: this.migrationLog.slice(-testFiles.length), // Last N entries
     };
-    
+
     console.log(`✅ Batch migration complete: ${successful} successful, ${failed} failed`);
     return summary;
   }
@@ -566,12 +566,12 @@ export class TestMigrationUtils {
   static async generateMigrationReport(outputPath?: string): Promise<string> {
     const analysis = await this.analyzeTestFiles();
     const report = this.formatMigrationReport(analysis);
-    
+
     if (outputPath) {
       await fs.writeFile(outputPath, report, 'utf-8');
       console.log(`📊 Migration report written to ${outputPath}`);
     }
-    
+
     return report;
   }
 
@@ -585,27 +585,27 @@ export class TestMigrationUtils {
     report += `- Total files analyzed: ${analysis.totalFiles}\n`;
     report += `- Migration candidates: ${analysis.migrationCandidates.length}\n`;
     report += `- Duplicate patterns identified: ${analysis.duplicatePatterns.size}\n\n`;
-    
+
     report += `## High Priority Migration Candidates\n`;
     analysis.migrationCandidates
       .sort((a, b) => b.benefit - a.benefit)
       .slice(0, 20)
-      .forEach(candidate => {
+      .forEach((candidate) => {
         report += `- **${path.basename(candidate.file)}** (benefit: ${(candidate.benefit * 100).toFixed(1)}%)\n`;
         report += `  - Patterns: ${candidate.patterns.join(', ')}\n`;
-        candidate.recommendations.forEach(rec => {
+        candidate.recommendations.forEach((rec) => {
           report += `  - ${rec}\n`;
         });
         report += '\n';
       });
-    
+
     report += `## Duplicate Patterns\n`;
     Array.from(analysis.duplicatePatterns.entries())
       .sort(([, a], [, b]) => b.length - a.length)
       .forEach(([pattern, files]) => {
         if (files.length > 2) {
           report += `- **${pattern}**: ${files.length} files\n`;
-          files.slice(0, 5).forEach(file => {
+          files.slice(0, 5).forEach((file) => {
             report += `  - ${path.basename(file)}\n`;
           });
           if (files.length > 5) {
@@ -614,18 +614,18 @@ export class TestMigrationUtils {
           report += '\n';
         }
       });
-    
+
     report += `## Recommendations\n`;
-    analysis.recommendations.forEach(rec => {
+    analysis.recommendations.forEach((rec) => {
       report += `- ${rec}\n`;
     });
-    
+
     if (this.migrationLog.length > 0) {
       report += `\n## Migration Log\n`;
       this.migrationLog
         .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
         .slice(0, 20)
-        .forEach(entry => {
+        .forEach((entry) => {
           report += `- **${path.basename(entry.file)}** (${entry.timestamp.toISOString()})\n`;
           if (entry.success) {
             report += `  - ✅ Success: ${entry.migrations.join(', ')}\n`;
@@ -638,7 +638,7 @@ export class TestMigrationUtils {
           report += '\n';
         });
     }
-    
+
     return report;
   }
 }
@@ -708,5 +708,5 @@ export const migrationCommands = {
   analyze: TestMigrationUtils.analyzeTestFiles,
   migrate: TestMigrationUtils.migrateTestFile,
   batchMigrate: TestMigrationUtils.batchMigrate,
-  report: TestMigrationUtils.generateMigrationReport
+  report: TestMigrationUtils.generateMigrationReport,
 };

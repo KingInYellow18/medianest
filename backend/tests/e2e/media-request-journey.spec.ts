@@ -220,7 +220,7 @@ test.describe('Media Request User Journey', () => {
     // Verify success notification
     await expect(page.locator('[data-testid="success-notification"]')).toBeVisible();
     await expect(page.locator('[data-testid="success-notification"]')).toContainText(
-      'Request created successfully'
+      'Request created successfully',
     );
 
     // Verify modal closes
@@ -305,7 +305,7 @@ test.describe('Media Request User Journey', () => {
     await expect(requestItem.locator('[data-testid="request-status"]')).toContainText('Approved');
     await expect(requestItem.locator('[data-testid="status-badge"]')).toHaveClass(/approved/);
     await expect(requestItem.locator('[data-testid="admin-note"]')).toContainText(
-      'Approved by admin'
+      'Approved by admin',
     );
   });
 
@@ -333,7 +333,7 @@ test.describe('Media Request User Journey', () => {
 
     // Verify success notification
     await expect(page.locator('[data-testid="success-notification"]')).toContainText(
-      'Request cancelled successfully'
+      'Request cancelled successfully',
     );
   });
 
@@ -428,7 +428,7 @@ test.describe('Media Request User Journey', () => {
 
       // Verify success
       await expect(page.locator('[data-testid="success-notification"]')).toContainText(
-        'Request approved successfully'
+        'Request approved successfully',
       );
     });
 
@@ -460,7 +460,7 @@ test.describe('Media Request User Journey', () => {
 
       // Verify success
       await expect(page.locator('[data-testid="success-notification"]')).toContainText(
-        'Request rejected'
+        'Request rejected',
       );
     });
   });
@@ -484,7 +484,7 @@ test.describe('Media Request User Journey', () => {
       // Verify error handling
       await expect(page.locator('[data-testid="error-notification"]')).toBeVisible();
       await expect(page.locator('[data-testid="error-notification"]')).toContainText(
-        'Search failed'
+        'Search failed',
       );
       await expect(page.locator('[data-testid="retry-search"]')).toBeVisible();
     });
@@ -516,7 +516,7 @@ test.describe('Media Request User Journey', () => {
       // Verify error handling
       await expect(page.locator('[data-testid="error-notification"]')).toBeVisible();
       await expect(page.locator('[data-testid="error-notification"]')).toContainText(
-        'already requested'
+        'already requested',
       );
     });
   });

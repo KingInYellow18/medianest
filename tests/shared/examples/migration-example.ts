@@ -1,6 +1,6 @@
 /**
  * MIGRATION EXAMPLE: BEFORE AND AFTER
- * 
+ *
  * Demonstrates how to migrate an existing test file to use shared infrastructure.
  * Shows the before/after comparison and performance improvements.
  */
@@ -156,7 +156,7 @@ describe('Media Request API - AFTER Migration', () => {
 
   it('should create media request', async () => {
     // Quick setup replaces 30+ lines of user/token creation
-    const { user, admin, media, request, userToken, adminToken } = 
+    const { user, admin, media, request, userToken, adminToken } =
       await TestScenarioFactory.createMediaRequestScenario();
 
     // Test implementation using standardized test data
@@ -173,7 +173,7 @@ describe('Media Request API - AFTER Migration', () => {
   it('should handle media request workflow', async () => {
     // Even simpler one-liner setup
     const apiTest = await quick.api();
-    
+
     // Test with pre-configured environment
     expect(apiTest.user).toBeTruthy();
     expect(apiTest.client).toBeTruthy();
@@ -186,18 +186,15 @@ describe('Media Request API - AFTER Migration', () => {
   // Performance test example
   it('should handle bulk operations efficiently', async () => {
     const perfTest = await quick.performance('medium'); // 100 users, 50 media, 200 requests
-    
-    const { result, duration, memory } = await perfTest.measurePerformance(
-      async () => {
-        // Perform bulk operations with pre-seeded data
-        return perfTest.scenario.requests.length;
-      },
-      'bulk-operation-test'
-    );
+
+    const { result, duration, memory } = await perfTest.measurePerformance(async () => {
+      // Perform bulk operations with pre-seeded data
+      return perfTest.scenario.requests.length;
+    }, 'bulk-operation-test');
 
     expect(result).toBe(200);
     expect(duration).toBeLessThan(5000); // Should complete in under 5 seconds
-    
+
     await perfTest.cleanup();
   });
 });
@@ -213,22 +210,22 @@ export const performanceComparison = {
       linesOfCode: 127,
       memoryUsage: '45MB',
       testExecutionTime: '8.2s',
-      maintenanceEffort: 'High - duplicate patterns across files'
+      maintenanceEffort: 'High - duplicate patterns across files',
     },
     after: {
       setupTime: '0.8s',
       linesOfCode: 32,
       memoryUsage: '18MB',
       testExecutionTime: '3.1s',
-      maintenanceEffort: 'Low - centralized patterns'
+      maintenanceEffort: 'Low - centralized patterns',
     },
     improvements: {
       setupTimeReduction: '65%',
       codeReduction: '75%',
       memoryReduction: '60%',
       executionSpeedup: '2.6x',
-      maintenanceReduction: '80%'
-    }
+      maintenanceReduction: '80%',
+    },
   },
   benefits: [
     'Eliminated 95+ lines of duplicate setup code per test file',
@@ -240,7 +237,7 @@ export const performanceComparison = {
     'Comprehensive error handling',
     'Memory leak prevention',
     'Parallel test execution support',
-    'Migration tools for existing codebases'
+    'Migration tools for existing codebases',
   ],
   migrationSteps: [
     '1. Run analysis: TestMigrationUtils.analyzeTestFiles()',
@@ -250,8 +247,8 @@ export const performanceComparison = {
     '5. Verify tests still pass with new infrastructure',
     '6. Remove duplicate helper files and utilities',
     '7. Update documentation and team practices',
-    '8. Monitor performance improvements'
-  ]
+    '8. Monitor performance improvements',
+  ],
 };
 
 // ==========================================
@@ -260,30 +257,33 @@ export const performanceComparison = {
 
 export async function migrateExistingCodebase() {
   console.log('🚀 Starting codebase migration to shared test infrastructure...');
-  
+
   // Step 1: Analyze existing test files
   console.log('\n📊 Analyzing existing test files...');
   const analysis = await TestMigrationUtils.analyzeTestFiles();
-  
-  console.log(`Found ${analysis.migrationCandidates.length} files that would benefit from migration`);
+
+  console.log(
+    `Found ${analysis.migrationCandidates.length} files that would benefit from migration`,
+  );
   console.log(`Identified ${analysis.duplicatePatterns.size} duplicate patterns`);
-  
+
   // Step 2: Generate detailed report
   console.log('\n📋 Generating migration report...');
   const report = await TestMigrationUtils.generateMigrationReport('migration-report.md');
   console.log('Report saved to migration-report.md');
-  
+
   // Step 3: Migrate high-benefit files first
   console.log('\n🔄 Migrating high-priority files...');
   const highPriorityFiles = analysis.migrationCandidates
-    .filter(candidate => candidate.benefit > 0.7)
-    .map(candidate => candidate.file);
-  
+    .filter((candidate) => candidate.benefit > 0.7)
+    .map((candidate) => candidate.file);
+
   if (highPriorityFiles.length > 0) {
-    for (const file of highPriorityFiles.slice(0, 5)) { // Start with top 5
+    for (const file of highPriorityFiles.slice(0, 5)) {
+      // Start with top 5
       console.log(`  Migrating ${file}...`);
       const result = await TestMigrationUtils.migrateTestFile(file);
-      
+
       if (result.success) {
         console.log(`    ✅ Applied ${result.appliedMigrations?.length || 0} migrations`);
       } else {
@@ -291,11 +291,11 @@ export async function migrateExistingCodebase() {
       }
     }
   }
-  
+
   // Step 4: Run health check
   console.log('\n🔍 Running post-migration health check...');
   const health = await TestHealthCheck.verifyInfrastructure();
-  
+
   if (health.overall === 'healthy') {
     console.log('✅ All systems healthy after migration');
   } else {
@@ -303,7 +303,7 @@ export async function migrateExistingCodebase() {
     const healthReport = await TestHealthCheck.generateHealthReport();
     console.log(healthReport);
   }
-  
+
   console.log('\n🎉 Migration process complete!');
   console.log('\nNext steps:');
   console.log('1. Review migrated files and test functionality');

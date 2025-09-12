@@ -32,21 +32,21 @@ const CONFIG = {
     email: process.env.SMTP_CONFIG,
     github: process.env.GITHUB_TOKEN,
   },
-  
+
   // Failure thresholds
   thresholds: {
     criticalFailures: 3, // Trigger immediate rollback
     maxRetries: 2,
     rollbackTimeout: 300, // 5 minutes
   },
-  
+
   // Rollback strategies
   rollback: {
     enabled: process.env.AUTO_ROLLBACK !== 'false',
     strategies: ['blue_green', 'previous_commit', 'health_check'],
     preserveData: true,
   },
-  
+
   // Monitoring
   monitoring: {
     enabled: true,
@@ -77,11 +77,21 @@ class Logger {
     console.log(`${timestamp} ${prefix} ${message}`, ...args);
   }
 
-  static info(message, ...args) { this.log('blue', message, ...args); }
-  static success(message, ...args) { this.log('green', message, ...args); }
-  static warning(message, ...args) { this.log('yellow', message, ...args); }
-  static error(message, ...args) { this.log('red', message, ...args); }
-  static critical(message, ...args) { this.log('magenta', message, ...args); }
+  static info(message, ...args) {
+    this.log('blue', message, ...args);
+  }
+  static success(message, ...args) {
+    this.log('green', message, ...args);
+  }
+  static warning(message, ...args) {
+    this.log('yellow', message, ...args);
+  }
+  static error(message, ...args) {
+    this.log('red', message, ...args);
+  }
+  static critical(message, ...args) {
+    this.log('magenta', message, ...args);
+  }
 }
 
 // ========================================================================
@@ -96,24 +106,24 @@ class FailureAnalyzer {
       { pattern: /FAIL.*\.test\.(js|ts|tsx)/, category: 'unit_test', severity: 'medium' },
       { pattern: /AssertionError/, category: 'assertion', severity: 'medium' },
       { pattern: /Coverage threshold.*not met/, category: 'coverage', severity: 'high' },
-      
+
       // Build failures
       { pattern: /Build failed/, category: 'build', severity: 'critical' },
       { pattern: /Module not found/, category: 'dependency', severity: 'high' },
       { pattern: /TypeScript error/, category: 'typescript', severity: 'medium' },
       { pattern: /Syntax error/, category: 'syntax', severity: 'high' },
-      
+
       // Infrastructure failures
       { pattern: /Database connection failed/, category: 'database', severity: 'critical' },
       { pattern: /Redis connection.*failed/, category: 'cache', severity: 'high' },
       { pattern: /Port.*already in use/, category: 'port_conflict', severity: 'medium' },
       { pattern: /Docker.*failed/, category: 'docker', severity: 'high' },
-      
+
       // Security failures
       { pattern: /Security vulnerability/, category: 'security', severity: 'critical' },
       { pattern: /High severity.*vulnerabilities/, category: 'security', severity: 'critical' },
       { pattern: /Authentication.*failed/, category: 'auth', severity: 'high' },
-      
+
       // Performance failures
       { pattern: /Timeout.*exceeded/, category: 'timeout', severity: 'high' },
       { pattern: /Memory limit.*exceeded/, category: 'memory', severity: 'critical' },
@@ -158,10 +168,10 @@ class FailureAnalyzer {
   extractContext(logText, matchIndex, contextLines = 3) {
     const lines = logText.split('\n');
     const matchLine = logText.substring(0, matchIndex).split('\n').length - 1;
-    
+
     const startLine = Math.max(0, matchLine - contextLines);
     const endLine = Math.min(lines.length - 1, matchLine + contextLines);
-    
+
     return lines.slice(startLine, endLine + 1).join('\n');
   }
 
@@ -169,7 +179,7 @@ class FailureAnalyzer {
     const categories = {};
     const severities = {};
 
-    failures.forEach(failure => {
+    failures.forEach((failure) => {
       categories[failure.category] = (categories[failure.category] || 0) + 1;
       severities[failure.severity] = (severities[failure.severity] || 0) + 1;
     });
@@ -186,7 +196,7 @@ class FailureAnalyzer {
   generateRecommendations(failures, context) {
     const recommendations = [];
 
-    failures.forEach(failure => {
+    failures.forEach((failure) => {
       switch (failure.category) {
         case 'test_execution':
           recommendations.push('Review test configuration and dependencies');
@@ -219,8 +229,8 @@ class FailureAnalyzer {
   }
 
   shouldTriggerRollback(failures) {
-    const criticalFailures = failures.filter(f => f.severity === 'critical').length;
-    const highFailures = failures.filter(f => f.severity === 'high').length;
+    const criticalFailures = failures.filter((f) => f.severity === 'critical').length;
+    const highFailures = failures.filter((f) => f.severity === 'high').length;
 
     // Critical failure threshold
     if (criticalFailures >= CONFIG.thresholds.criticalFailures) {
@@ -228,12 +238,14 @@ class FailureAnalyzer {
     }
 
     // Security failures always trigger rollback
-    if (failures.some(f => f.category === 'security' && f.severity === 'critical')) {
+    if (failures.some((f) => f.category === 'security' && f.severity === 'critical')) {
       return { required: true, reason: 'Critical security failure detected' };
     }
 
     // Database/infrastructure failures
-    if (failures.some(f => ['database', 'docker'].includes(f.category) && f.severity === 'critical')) {
+    if (
+      failures.some((f) => ['database', 'docker'].includes(f.category) && f.severity === 'critical')
+    ) {
       return { required: true, reason: 'Critical infrastructure failure' };
     }
 
@@ -242,7 +254,9 @@ class FailureAnalyzer {
 
   recordFailure(analysis) {
     this.failureHistory.push({
-      id: createHash('md5').update(`${analysis.timestamp}-${JSON.stringify(analysis.summary)}`).digest('hex'),
+      id: createHash('md5')
+        .update(`${analysis.timestamp}-${JSON.stringify(analysis.summary)}`)
+        .digest('hex'),
       ...analysis,
     });
 
@@ -308,9 +322,8 @@ class NotificationManager {
 
   formatFailureMessage(analysis, context) {
     const { summary, rollbackRequired } = analysis;
-    const severity = summary.criticalCount > 0 ? '🚨 CRITICAL' : 
-                    summary.highCount > 0 ? '⚠️ HIGH' : 
-                    '⚡ MEDIUM';
+    const severity =
+      summary.criticalCount > 0 ? '🚨 CRITICAL' : summary.highCount > 0 ? '⚠️ HIGH' : '⚡ MEDIUM';
 
     const message = {
       title: `${severity} CI/CD Pipeline Failure`,
@@ -358,7 +371,7 @@ class NotificationManager {
 
   getEnabledChannels() {
     const channels = [];
-    
+
     if (this.config.channels.slack) channels.push('slack');
     if (this.config.channels.discord) channels.push('discord');
     if (this.config.channels.email) channels.push('email');
@@ -417,11 +430,11 @@ class NotificationManager {
         },
         {
           title: 'Top Failures',
-          text: message.failures.map(f => `• ${f.category}: ${f.message}`).join('\n'),
+          text: message.failures.map((f) => `• ${f.category}: ${f.message}`).join('\n'),
         },
         {
           title: 'Recommendations',
-          text: message.recommendations.map(r => `• ${r}`).join('\n'),
+          text: message.recommendations.map((r) => `• ${r}`).join('\n'),
         },
       ],
     };
@@ -441,11 +454,17 @@ class NotificationManager {
         { name: 'Pipeline', value: message.details.pipeline, inline: true },
         {
           name: 'Top Failures',
-          value: message.failures.slice(0, 3).map(f => `• ${f.category}: ${f.message.substring(0, 100)}`).join('\n'),
+          value: message.failures
+            .slice(0, 3)
+            .map((f) => `• ${f.category}: ${f.message.substring(0, 100)}`)
+            .join('\n'),
         },
         {
           name: 'Recommendations',
-          value: message.recommendations.slice(0, 3).map(r => `• ${r}`).join('\n'),
+          value: message.recommendations
+            .slice(0, 3)
+            .map((r) => `• ${r}`)
+            .join('\n'),
         },
       ],
       timestamp: new Date().toISOString(),
@@ -468,14 +487,14 @@ Pipeline Details:
 - Timestamp: ${message.details.timestamp}
 
 Failures Detected:
-${message.failures.map(f => `- ${f.category}: ${f.message}`).join('\n')}
+${message.failures.map((f) => `- ${f.category}: ${f.message}`).join('\n')}
 
 Recommendations:
-${message.recommendations.map(r => `- ${r}`).join('\n')}
+${message.recommendations.map((r) => `- ${r}`).join('\n')}
 
 ${message.rollback.required ? 'ROLLBACK REQUIRED: ' + message.rollback.reason : 'No rollback required'}
 
-Actions: ${message.actions.map(a => a.url).join(', ')}
+Actions: ${message.actions.map((a) => a.url).join(', ')}
     `;
 
     Logger.info('Would send email notification:', emailBody);
@@ -495,14 +514,15 @@ ${message.summary}
 - **Timestamp:** ${message.details.timestamp}
 
 ### Failures Detected
-${message.failures.map(f => `- **${f.category}:** ${f.message}`).join('\n')}
+${message.failures.map((f) => `- **${f.category}:** ${f.message}`).join('\n')}
 
 ### Recommendations
-${message.recommendations.map(r => `- ${r}`).join('\n')}
+${message.recommendations.map((r) => `- ${r}`).join('\n')}
 
-${message.rollback.required ? 
-  `### ⚠️ Rollback Required\n${message.rollback.reason}` : 
-  '### ✅ No Rollback Required'
+${
+  message.rollback.required
+    ? `### ⚠️ Rollback Required\n${message.rollback.reason}`
+    : '### ✅ No Rollback Required'
 }
     `;
 
@@ -534,7 +554,7 @@ class RollbackManager {
     try {
       const rollbackPlan = await this.createRollbackPlan(analysis, strategy);
       const result = await this.executeRollbackPlan(rollbackPlan);
-      
+
       if (result.success) {
         Logger.success('Rollback completed successfully');
         await this.validateRollback();
@@ -598,8 +618,8 @@ class RollbackManager {
         Logger.success(`Step ${index + 1} completed: ${step.action}`);
       } catch (error) {
         Logger.error(`Step ${index + 1} failed: ${step.action}`, error);
-        return { 
-          success: false, 
+        return {
+          success: false,
           error: `Rollback failed at step ${index + 1}: ${error.message}`,
           completedSteps: index,
         };
@@ -637,63 +657,63 @@ class RollbackManager {
   async switchTraffic(target) {
     Logger.info(`Switching traffic to ${target}`);
     // Simulate traffic switching
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     Logger.info('Traffic switching completed');
   }
 
   async validateHealth(timeout) {
     Logger.info(`Validating system health (timeout: ${timeout}s)`);
     // Simulate health validation
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    await new Promise((resolve) => setTimeout(resolve, 3000));
     Logger.info('Health validation completed');
   }
 
   async cleanupFailedDeployment() {
     Logger.info('Cleaning up failed deployment');
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     Logger.info('Failed deployment cleanup completed');
   }
 
   async identifyLastStableCommit() {
     Logger.info('Identifying last stable commit');
     // Would use git commands to find last stable commit
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     Logger.info('Last stable commit identified');
   }
 
   async deployPreviousCommit() {
     Logger.info('Deploying previous commit');
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    await new Promise((resolve) => setTimeout(resolve, 5000));
     Logger.info('Previous commit deployment completed');
   }
 
   async validateDeployment() {
     Logger.info('Validating deployment');
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     Logger.info('Deployment validation completed');
   }
 
   async stopUnhealthyServices() {
     Logger.info('Stopping unhealthy services');
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     Logger.info('Unhealthy services stopped');
   }
 
   async restartFromBackup() {
     Logger.info('Restarting from backup');
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    await new Promise((resolve) => setTimeout(resolve, 3000));
     Logger.info('System restarted from backup');
   }
 
   async verifySystemHealth() {
     Logger.info('Verifying system health');
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     Logger.info('System health verified');
   }
 
   async validateRollback() {
     Logger.info('Validating rollback success...');
-    
+
     // Health checks
     const healthChecks = [
       this.checkApiHealth(),
@@ -702,7 +722,7 @@ class RollbackManager {
     ];
 
     const results = await Promise.allSettled(healthChecks);
-    const failures = results.filter(r => r.status === 'rejected');
+    const failures = results.filter((r) => r.status === 'rejected');
 
     if (failures.length === 0) {
       Logger.success('Rollback validation passed - all systems healthy');
@@ -715,19 +735,19 @@ class RollbackManager {
 
   async checkApiHealth() {
     // Simulate API health check
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     return { service: 'api', status: 'healthy' };
   }
 
   async checkDatabaseHealth() {
     // Simulate database health check
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
     return { service: 'database', status: 'healthy' };
   }
 
   async checkCacheHealth() {
     // Simulate cache health check
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise((resolve) => setTimeout(resolve, 300));
     return { service: 'cache', status: 'healthy' };
   }
 }
@@ -759,15 +779,18 @@ class FailureHandler {
       if (analysis.rollbackRequired.required) {
         Logger.critical(`Rollback required: ${analysis.rollbackRequired.reason}`);
         const rollbackResult = await this.rollbackManager.executeRollback(analysis);
-        
+
         if (!rollbackResult.success) {
           Logger.error('Rollback failed - manual intervention required');
           // Send additional critical alert
-          await this.notificationManager.sendFailureNotification({
-            ...analysis,
-            rollbackFailed: true,
-            rollbackError: rollbackResult.error,
-          }, context);
+          await this.notificationManager.sendFailureNotification(
+            {
+              ...analysis,
+              rollbackFailed: true,
+              rollbackError: rollbackResult.error,
+            },
+            context,
+          );
         }
       }
 
@@ -777,7 +800,6 @@ class FailureHandler {
 
       Logger.info('Failure handling completed');
       return analysis;
-
     } catch (error) {
       Logger.error('Failure handling failed:', error);
       throw error;
@@ -804,10 +826,10 @@ class FailureHandler {
   saveFailureReport(report) {
     const reportsDir = join(PROJECT_ROOT, 'failure-reports');
     mkdirSync(reportsDir, { recursive: true });
-    
+
     const reportPath = join(reportsDir, `failure-report-${report.id}.json`);
     writeFileSync(reportPath, JSON.stringify(report, null, 2));
-    
+
     Logger.success(`Failure report saved: ${reportPath}`);
   }
 }
@@ -890,7 +912,7 @@ async function main() {
     }
 
     const handler = new FailureHandler(CONFIG);
-    
+
     // Get failure logs
     let logs = '';
     if (options.logFile && existsSync(options.logFile)) {
@@ -912,7 +934,6 @@ Database connection failed: Connection timeout
     }
 
     await handler.handleFailure(logs, options.context);
-
   } catch (error) {
     Logger.error('Fatal error:', error);
     process.exit(1);

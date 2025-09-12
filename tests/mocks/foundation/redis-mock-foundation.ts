@@ -1,6 +1,6 @@
 /**
  * REDIS MOCK FOUNDATION
- * 
+ *
  * Complete Redis mock implementation with:
  * - Full interface coverage matching ioredis/Redis client
  * - Realistic TTL support with time simulation
@@ -8,7 +8,7 @@
  * - Error simulation patterns
  * - Service-specific method support (OAuth, 2FA, sessions, cache)
  * - Progressive validation system
- * 
+ *
  * This foundation ensures 100% Redis mock operations success rate.
  */
 
@@ -220,7 +220,7 @@ export class RedisStateManager {
    * Get all keys matching pattern
    */
   getKeys(pattern: string = '*'): string[] {
-    const keys = Array.from(this.state.data.keys()).filter(key => {
+    const keys = Array.from(this.state.data.keys()).filter((key) => {
       // Remove expired keys
       const item = this.state.data.get(key);
       if (item && this.isExpired(item)) {
@@ -233,12 +233,10 @@ export class RedisStateManager {
     if (pattern === '*') return keys;
 
     // Convert glob pattern to regex
-    const regexPattern = pattern
-      .replace(/\*/g, '.*')
-      .replace(/\?/g, '.');
+    const regexPattern = pattern.replace(/\*/g, '.*').replace(/\?/g, '.');
     const regex = new RegExp(`^${regexPattern}$`);
 
-    return keys.filter(key => regex.test(key));
+    return keys.filter((key) => regex.test(key));
   }
 
   /**
@@ -851,7 +849,7 @@ export class RedisMockFoundation extends StatelessMock<any> {
       emit: vi.fn().mockImplementation((event: string, ...args: any[]) => {
         const handlers = this.eventHandlers.get(event);
         if (handlers) {
-          handlers.forEach(handler => handler(...args));
+          handlers.forEach((handler) => handler(...args));
         }
         return true;
       }),
@@ -929,20 +927,72 @@ export class RedisMockFoundation extends StatelessMock<any> {
   validateInterface(): boolean {
     const instance = this.getInstance();
     const requiredMethods = [
-      'connect', 'disconnect', 'quit', 'ping',
-      'get', 'set', 'setex', 'del', 'exists', 'expire', 'ttl',
-      'keys', 'type', 'flushdb', 'flushall', 'dbsize', 'select',
-      'info', 'incr', 'incrby', 'decr', 'decrby', 'append', 'strlen',
-      'hget', 'hset', 'hgetall', 'hdel', 'hexists', 'hkeys', 'hvals', 'hlen',
-      'sadd', 'srem', 'smembers', 'sismember', 'scard',
-      'lpush', 'rpush', 'lpop', 'rpop', 'llen', 'lrange',
-      'zadd', 'zrem', 'zrange', 'zcard', 'zscore',
-      'multi', 'exec', 'discard', 'watch', 'unwatch', 'pipeline',
-      'eval', 'evalsha', 'script',
-      'on', 'off', 'once', 'emit', 'removeListener', 'removeAllListeners',
+      'connect',
+      'disconnect',
+      'quit',
+      'ping',
+      'get',
+      'set',
+      'setex',
+      'del',
+      'exists',
+      'expire',
+      'ttl',
+      'keys',
+      'type',
+      'flushdb',
+      'flushall',
+      'dbsize',
+      'select',
+      'info',
+      'incr',
+      'incrby',
+      'decr',
+      'decrby',
+      'append',
+      'strlen',
+      'hget',
+      'hset',
+      'hgetall',
+      'hdel',
+      'hexists',
+      'hkeys',
+      'hvals',
+      'hlen',
+      'sadd',
+      'srem',
+      'smembers',
+      'sismember',
+      'scard',
+      'lpush',
+      'rpush',
+      'lpop',
+      'rpop',
+      'llen',
+      'lrange',
+      'zadd',
+      'zrem',
+      'zrange',
+      'zcard',
+      'zscore',
+      'multi',
+      'exec',
+      'discard',
+      'watch',
+      'unwatch',
+      'pipeline',
+      'eval',
+      'evalsha',
+      'script',
+      'on',
+      'off',
+      'once',
+      'emit',
+      'removeListener',
+      'removeAllListeners',
     ];
 
-    return requiredMethods.every(method => {
+    return requiredMethods.every((method) => {
       return typeof instance[method] === 'function';
     });
   }
@@ -971,7 +1021,7 @@ export class RedisMockFoundation extends StatelessMock<any> {
   private emit(event: string, ...args: any[]): boolean {
     const handlers = this.eventHandlers.get(event);
     if (handlers) {
-      handlers.forEach(handler => handler(...args));
+      handlers.forEach((handler) => handler(...args));
       return true;
     }
     return false;
@@ -1041,7 +1091,8 @@ registerMock('redis', redisMockFactory, (instance) => {
     errors,
     warnings,
     metrics: {
-      methodCount: Object.keys(instance).filter(key => typeof instance[key] === 'function').length,
+      methodCount: Object.keys(instance).filter((key) => typeof instance[key] === 'function')
+        .length,
       hasStateManagement: !!instance._getState,
       hasCleanup: !!instance._clearState,
     },
@@ -1081,7 +1132,7 @@ export function resetRedisMock(): void {
 export function validateRedisMock(): ValidationResult {
   const { getMock } = require('./mock-registry');
   const instance = getMock('redis');
-  return redisMockFactory.validate(instance) ? 
-    { isValid: true, errors: [], warnings: [] } :
-    { isValid: false, errors: ['Redis mock validation failed'], warnings: [] };
+  return redisMockFactory.validate(instance)
+    ? { isValid: true, errors: [], warnings: [] }
+    : { isValid: false, errors: ['Redis mock validation failed'], warnings: [] };
 }

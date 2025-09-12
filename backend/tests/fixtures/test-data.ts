@@ -5,7 +5,7 @@ export const testUsers = [
     username: 'testuser1',
     email: 'test1@example.com',
     role: 'user' as const,
-    status: 'active' as const
+    status: 'active' as const,
   },
   {
     id: 'admin-1',
@@ -13,9 +13,9 @@ export const testUsers = [
     username: 'admin',
     email: 'admin@example.com',
     role: 'admin' as const,
-    status: 'active' as const
-  }
-]
+    status: 'active' as const,
+  },
+];
 
 export const testMediaRequests = [
   {
@@ -24,7 +24,7 @@ export const testMediaRequests = [
     title: 'The Matrix',
     mediaType: 'movie',
     tmdbId: '603',
-    status: 'pending'
+    status: 'pending',
   },
   {
     id: 'request-2',
@@ -32,9 +32,9 @@ export const testMediaRequests = [
     title: 'Breaking Bad',
     mediaType: 'tv',
     tmdbId: '1396',
-    status: 'approved'
-  }
-]
+    status: 'approved',
+  },
+];
 
 export const testYoutubeDownloads = [
   {
@@ -42,6 +42,6 @@ export const testYoutubeDownloads = [
     userId: 'user-1',
     playlistUrl: 'https://www.youtube.com/playlist?list=TEST123',
     playlistTitle: 'Test Playlist',
-    status: 'queued'
-  }
-]
+    status: 'queued',
+  },
+];

@@ -4,7 +4,7 @@ import { databaseCleanup } from '../helpers/database-cleanup';
 
 /**
  * Comprehensive E2E Authentication Tests for MediaNest
- * 
+ *
  * This test suite covers the complete authentication flow including:
  * - Plex OAuth Flow with PIN generation
  * - Admin Bootstrap process
@@ -36,7 +36,7 @@ const TEST_USERS = {
 // Helper functions
 async function setupMockAuth(page: Page) {
   // Mock Plex API responses for consistent testing
-  await page.route('https://plex.tv/pins.xml', async route => {
+  await page.route('https://plex.tv/pins.xml', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/xml',
@@ -44,22 +44,22 @@ async function setupMockAuth(page: Page) {
         <pin>
           <id>e2e-pin-123</id>
           <code>TEST</code>
-        </pin>`
+        </pin>`,
     });
   });
 
-  await page.route('https://plex.tv/pins/e2e-pin-123.xml', async route => {
+  await page.route('https://plex.tv/pins/e2e-pin-123.xml', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/xml',
       body: `<?xml version="1.0" encoding="UTF-8"?>
         <pin>
           <authToken>mock-plex-token-12345</authToken>
-        </pin>`
+        </pin>`,
     });
   });
 
-  await page.route('https://plex.tv/users/account.xml', async route => {
+  await page.route('https://plex.tv/users/account.xml', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/xml',
@@ -68,14 +68,14 @@ async function setupMockAuth(page: Page) {
           <id>e2e-test-123</id>
           <username>e2etestuser</username>
           <email>e2e@test.local</email>
-        </user>`
+        </user>`,
     });
   });
 }
 
 async function setupAuthenticatedSession(page: Page, userType: 'admin' | 'user' = 'user') {
   const userData = TEST_USERS[userType];
-  
+
   // Create user in database
   await prisma.user.upsert({
     where: { plexId: userData.plexId },
@@ -102,7 +102,7 @@ async function setupAuthenticatedSession(page: Page, userType: 'admin' | 'user' 
   ]);
 
   // Mock JWT verification
-  await page.route(`${API_BASE_URL}/auth/session`, async route => {
+  await page.route(`${API_BASE_URL}/auth/session`, async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -179,7 +179,7 @@ test.describe('Plex OAuth Flow', () => {
 
   test('should handle PIN generation errors', async ({ page }) => {
     // Mock Plex API failure
-    await page.route('https://plex.tv/pins.xml', async route => {
+    await page.route('https://plex.tv/pins.xml', async (route) => {
       await route.abort('failed');
     });
 
@@ -189,47 +189,47 @@ test.describe('Plex OAuth Flow', () => {
     // Verify error message is displayed
     await expect(page.locator('[data-testid="auth-error-message"]')).toBeVisible();
     await expect(page.locator('[data-testid="auth-error-message"]')).toContainText(
-      'Cannot connect to Plex server'
+      'Cannot connect to Plex server',
     );
   });
 
   test('should handle unauthorized PIN scenario', async ({ page }) => {
     // Mock unauthorized PIN response
-    await page.route('https://plex.tv/pins/e2e-pin-123.xml', async route => {
+    await page.route('https://plex.tv/pins/e2e-pin-123.xml', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/xml',
         body: `<?xml version="1.0" encoding="UTF-8"?>
           <pin>
             <id>e2e-pin-123</id>
-          </pin>`
+          </pin>`,
       });
     });
 
     await page.goto(`${BASE_URL}/auth/login`);
     await page.click('[data-testid="plex-login-button"]');
-    
+
     // Wait for PIN modal
     await expect(page.locator('[data-testid="plex-pin-modal"]')).toBeVisible();
-    
+
     // Try to authorize
     await page.click('[data-testid="plex-authorize-button"]');
 
     // Verify error message
     await expect(page.locator('[data-testid="pin-error-message"]')).toBeVisible();
     await expect(page.locator('[data-testid="pin-error-message"]')).toContainText(
-      'PIN has not been authorized'
+      'PIN has not been authorized',
     );
   });
 
   test('should handle network timeout during authentication', async ({ page }) => {
     // Mock delayed response to simulate timeout
-    await page.route('https://plex.tv/pins/e2e-pin-123.xml', async route => {
-      await new Promise(resolve => setTimeout(resolve, 6000)); // 6 second delay
+    await page.route('https://plex.tv/pins/e2e-pin-123.xml', async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 6000)); // 6 second delay
       await route.fulfill({
         status: 200,
         contentType: 'application/xml',
-        body: `<pin><authToken>test-token</authToken></pin>`
+        body: `<pin><authToken>test-token</authToken></pin>`,
       });
     });
 
@@ -238,7 +238,9 @@ test.describe('Plex OAuth Flow', () => {
     await page.click('[data-testid="plex-authorize-button"]');
 
     // Verify timeout handling
-    await expect(page.locator('[data-testid="auth-timeout-message"]')).toBeVisible({ timeout: 8000 });
+    await expect(page.locator('[data-testid="auth-timeout-message"]')).toBeVisible({
+      timeout: 8000,
+    });
   });
 });
 
@@ -281,7 +283,7 @@ test.describe('Admin Bootstrap', () => {
 
     await expect(page.locator('[data-testid="password-error"]')).toBeVisible();
     await expect(page.locator('[data-testid="password-error"]')).toContainText(
-      'Password must be at least 8 characters'
+      'Password must be at least 8 characters',
     );
 
     // Test mismatched passwords
@@ -362,14 +364,14 @@ test.describe('Session Management', () => {
     await setupAuthenticatedSession(page);
 
     // Mock expired token response
-    await page.route(`${API_BASE_URL}/auth/session`, async route => {
+    await page.route(`${API_BASE_URL}/auth/session`, async (route) => {
       await route.fulfill({
         status: 401,
         contentType: 'application/json',
         body: JSON.stringify({
           success: false,
-          error: { message: 'Token expired', code: 'TOKEN_EXPIRED' }
-        })
+          error: { message: 'Token expired', code: 'TOKEN_EXPIRED' },
+        }),
       });
     });
 
@@ -409,12 +411,10 @@ test.describe('Authorization Tests', () => {
 
     // Try to access admin panel
     await page.goto(`${BASE_URL}/admin`);
-    
+
     // Should be redirected to unauthorized page or dashboard
     await expect(page.url()).not.toContain('/admin');
-    await expect(
-      page.locator('[data-testid="unauthorized-message"]')
-    ).toBeVisible();
+    await expect(page.locator('[data-testid="unauthorized-message"]')).toBeVisible();
   });
 
   test('should allow admin access to admin routes', async ({ page }) => {
@@ -428,14 +428,14 @@ test.describe('Authorization Tests', () => {
     await setupAuthenticatedSession(page, 'user');
 
     // Mock admin-only API endpoint
-    await page.route(`${API_BASE_URL}/admin/**`, async route => {
+    await page.route(`${API_BASE_URL}/admin/**`, async (route) => {
       await route.fulfill({
         status: 403,
         contentType: 'application/json',
         body: JSON.stringify({
           success: false,
-          error: { message: 'Insufficient permissions', code: 'FORBIDDEN' }
-        })
+          error: { message: 'Insufficient permissions', code: 'FORBIDDEN' },
+        }),
       });
     });
 
@@ -479,7 +479,7 @@ test.describe('Authorization Tests', () => {
 
 test.describe('Error Scenarios', () => {
   test('should handle network errors during PIN verification', async ({ page }) => {
-    await page.route('https://plex.tv/pins/e2e-pin-123.xml', async route => {
+    await page.route('https://plex.tv/pins/e2e-pin-123.xml', async (route) => {
       await route.abort('failed');
     });
 
@@ -493,11 +493,11 @@ test.describe('Error Scenarios', () => {
 
   test('should handle invalid PIN responses', async ({ page }) => {
     // Mock invalid PIN response
-    await page.route('https://plex.tv/pins/e2e-pin-123.xml', async route => {
+    await page.route('https://plex.tv/pins/e2e-pin-123.xml', async (route) => {
       await route.fulfill({
         status: 404,
         contentType: 'application/json',
-        body: JSON.stringify({ error: 'PIN not found' })
+        body: JSON.stringify({ error: 'PIN not found' }),
       });
     });
 
@@ -510,18 +510,18 @@ test.describe('Error Scenarios', () => {
 
   test('should handle rate limiting on authentication endpoints', async ({ page }) => {
     // Mock rate limit response
-    await page.route(`${API_BASE_URL}/auth/plex/verify`, async route => {
+    await page.route(`${API_BASE_URL}/auth/plex/verify`, async (route) => {
       await route.fulfill({
         status: 429,
         contentType: 'application/json',
         body: JSON.stringify({
           success: false,
-          error: { 
-            message: 'Too many authentication attempts', 
+          error: {
+            message: 'Too many authentication attempts',
             code: 'RATE_LIMITED',
-            retryAfter: 60
-          }
-        })
+            retryAfter: 60,
+          },
+        }),
       });
     });
 
@@ -531,15 +531,15 @@ test.describe('Error Scenarios', () => {
 
     await expect(page.locator('[data-testid="rate-limit-error"]')).toBeVisible();
     await expect(page.locator('[data-testid="rate-limit-error"]')).toContainText(
-      'Too many attempts'
+      'Too many attempts',
     );
   });
 
   test('should recover from temporary network issues', async ({ page }) => {
     let callCount = 0;
-    
+
     // First call fails, second succeeds
-    await page.route('https://plex.tv/pins/e2e-pin-123.xml', async route => {
+    await page.route('https://plex.tv/pins/e2e-pin-123.xml', async (route) => {
       callCount++;
       if (callCount === 1) {
         await route.abort('failed');
@@ -547,7 +547,7 @@ test.describe('Error Scenarios', () => {
         await route.fulfill({
           status: 200,
           contentType: 'application/xml',
-          body: `<pin><authToken>recovered-token</authToken></pin>`
+          body: `<pin><authToken>recovered-token</authToken></pin>`,
         });
       }
     });
@@ -565,18 +565,14 @@ test.describe('Error Scenarios', () => {
   });
 
   test('should handle concurrent login attempts gracefully', async ({ context }) => {
-    const pages = await Promise.all([
-      context.newPage(),
-      context.newPage(),
-      context.newPage()
-    ]);
+    const pages = await Promise.all([context.newPage(), context.newPage(), context.newPage()]);
 
     // Attempt login from multiple pages simultaneously
     const loginPromises = pages.map(async (page, index) => {
       await page.goto(`${BASE_URL}/auth/login`);
       await page.click('[data-testid="plex-login-button"]');
       await page.click('[data-testid="plex-authorize-button"]');
-      
+
       // One should succeed, others should handle gracefully
       try {
         await page.waitForURL(`${BASE_URL}/dashboard`, { timeout: 5000 });
@@ -587,13 +583,13 @@ test.describe('Error Scenarios', () => {
     });
 
     const results = await Promise.all(loginPromises);
-    const successCount = results.filter(r => r.success).length;
+    const successCount = results.filter((r) => r.success).length;
 
     // At least one should succeed, and failures should be handled gracefully
     expect(successCount).toBeGreaterThanOrEqual(1);
-    
+
     // Clean up pages
-    await Promise.all(pages.map(page => page.close()));
+    await Promise.all(pages.map((page) => page.close()));
   });
 });
 
@@ -601,12 +597,8 @@ test.describe('Data Test ID Coverage', () => {
   test('should have all required test IDs for authentication flow', async ({ page }) => {
     // Login page elements
     await page.goto(`${BASE_URL}/auth/login`);
-    
-    const requiredLoginTestIds = [
-      'login-page',
-      'plex-login-button',
-      'auth-error-message',
-    ];
+
+    const requiredLoginTestIds = ['login-page', 'plex-login-button', 'auth-error-message'];
 
     for (const testId of requiredLoginTestIds) {
       await expect(page.locator(`[data-testid="${testId}"]`)).toBeDefined();
@@ -634,11 +626,7 @@ test.describe('Data Test ID Coverage', () => {
     await setupAuthenticatedSession(page);
     await page.goto(`${BASE_URL}/dashboard`);
 
-    const requiredDashboardTestIds = [
-      'dashboard-welcome',
-      'user-menu-button',
-      'logout-button',
-    ];
+    const requiredDashboardTestIds = ['dashboard-welcome', 'user-menu-button', 'logout-button'];
 
     for (const testId of requiredDashboardTestIds) {
       await expect(page.locator(`[data-testid="${testId}"]`)).toBeDefined();

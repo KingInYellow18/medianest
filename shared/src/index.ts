@@ -1,10 +1,10 @@
 /**
  * @medianest/shared - Shared Types and Utilities for MediaNest
- * 
+ *
  * This module provides a comprehensive shared library for the MediaNest application,
  * containing reusable types, utilities, patterns, and configurations that are used
  * across both frontend and backend components.
- * 
+ *
  * Key Features:
  * - Type-safe shared interfaces and types
  * - Error handling utilities and patterns
@@ -14,7 +14,7 @@
  * - Database utilities
  * - Security utilities
  * - Architectural patterns
- * 
+ *
  * @package @medianest/shared
  * @version 2.0.0
  * @author MediaNest Team

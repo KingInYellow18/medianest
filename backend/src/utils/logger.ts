@@ -37,9 +37,9 @@ const prodFormat = winston.format.combine(
       service: service || 'medianest-backend',
       correlationId: correlationId || 'no-correlation-id',
       environment: process.env.NODE_ENV || 'development',
-      ...meta
+      ...meta,
     };
-    
+
     // Add request context if available
     if (meta.req) {
       logEntry.requestId = meta.req.id;
@@ -50,21 +50,21 @@ const prodFormat = winston.format.combine(
       logEntry.userId = meta.req.user?.id;
       delete logEntry.req; // Remove raw request object
     }
-    
+
     // Add response context if available
     if (meta.res) {
       logEntry.statusCode = meta.res.statusCode;
       logEntry.responseTime = meta.responseTime;
       delete logEntry.res; // Remove raw response object
     }
-    
+
     // Ensure stack traces are preserved for errors
     if (meta.stack) {
       logEntry.stack = meta.stack;
     }
-    
+
     return JSON.stringify(logEntry);
-  })
+  }),
 );
 
 // Create the logger instance
@@ -143,7 +143,7 @@ export function logPerformance(
   operation: string,
   duration: number,
   metadata?: Record<string, any>,
-  correlationId?: string
+  correlationId?: string,
 ): void {
   logger.info(`Performance: ${operation}`, {
     correlationId: correlationId || generateCorrelationId(),
@@ -159,7 +159,7 @@ export function logSecurityEvent(
   event: string,
   severity: 'low' | 'medium' | 'high' | 'critical',
   details: Record<string, any>,
-  correlationId?: string
+  correlationId?: string,
 ): void {
   logger.warn(`Security Event: ${event}`, {
     correlationId: correlationId || generateCorrelationId(),
@@ -175,7 +175,7 @@ export function logBusinessMetric(
   value: number,
   unit: string,
   tags?: Record<string, any>,
-  correlationId?: string
+  correlationId?: string,
 ): void {
   logger.info(`Business Metric: ${metric}`, {
     correlationId: correlationId || generateCorrelationId(),
@@ -191,17 +191,32 @@ export const stream = {
   write: (message: string) => {
     // Parse Morgan log format to extract structured data
     const trimmed = message.trim();
-    const match = trimmed.match(/^(\S+) (\S+) (\S+) \[([^\]]+)\] "(\S+) (\S+) (\S+)" (\d+) (\d+|-) "([^"]*)" "([^"]*)"/);
-    
+    const match = trimmed.match(
+      /^(\S+) (\S+) (\S+) \[([^\]]+)\] "(\S+) (\S+) (\S+)" (\d+) (\d+|-) "([^"]*)" "([^"]*)"/,
+    );
+
     if (match) {
-      const [, remoteAddr, , remoteUser, timestamp, method, url, version, status, size, referer, userAgent] = match;
+      const [
+        ,
+        remoteAddr,
+        ,
+        remoteUser,
+        timestamp,
+        method,
+        url,
+        version,
+        status,
+        size,
+        referer,
+        userAgent,
+      ] = match;
       logger.info('HTTP Request', {
         ip: remoteAddr,
         method,
         url,
         version,
         statusCode: status ? parseInt(status, 10) : 0,
-        responseSize: size === '-' ? 0 : (size ? parseInt(size, 10) : 0),
+        responseSize: size === '-' ? 0 : size ? parseInt(size, 10) : 0,
         referer: referer === '-' ? undefined : referer,
         userAgent: userAgent === '-' ? undefined : userAgent,
       });

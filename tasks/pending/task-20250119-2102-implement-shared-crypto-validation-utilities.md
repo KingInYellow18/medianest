@@ -39,7 +39,6 @@ The shared package is missing critical utility files that are being imported by 
 ## Files to Modify/Create
 
 - **Create**: `shared/src/utils/crypto.ts`
-
   - `encrypt(text, password)` using AES-256-GCM
   - `decrypt(encryptedText, password)` with auth tag verification
   - `generateSecureToken(length)` for secure random strings
@@ -47,7 +46,6 @@ The shared package is missing critical utility files that are being imported by 
   - `deriveKey(password, salt)` using PBKDF2
 
 - **Create**: `shared/src/utils/validation.ts`
-
   - Common Zod schemas (email, URL, UUID, date)
   - Pagination schema with defaults
   - Generic validation functions
@@ -60,13 +58,11 @@ The shared package is missing critical utility files that are being imported by 
 ## Testing Strategy
 
 1. **Unit Testing**:
-
    - Test crypto functions with known inputs/outputs
    - Verify encryption/decryption round trips
    - Test validation schemas with valid/invalid data
 
 2. **Integration Testing**:
-
    - Run existing tests that import these modules
    - Verify no regressions in dependent code
    - Test cross-package imports work correctly
@@ -92,14 +88,12 @@ The shared package is missing critical utility files that are being imported by 
 ## Implementation Notes
 
 - **Crypto Security**:
-
   - Use AES-256-GCM for authenticated encryption
   - PBKDF2 with 100,000 iterations for key derivation
   - Cryptographically secure random generation
   - Proper salt and IV handling
 
 - **Validation Patterns**:
-
   - Reusable Zod schemas for common types
   - Generic validation functions with type safety
   - Consistent error handling across validators

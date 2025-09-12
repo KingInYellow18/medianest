@@ -14,7 +14,6 @@ MediaNest uses:
 ## Initial Setup
 
 1. **Configure your domain**:
-
    - Point your domain's A record to your server's IP address
    - Optionally add a CNAME for `www.your-domain.com` → `your-domain.com`
 
@@ -34,7 +33,6 @@ MediaNest uses:
    ```
 
    This script will:
-
    - Create necessary directories
    - Start a temporary nginx for the HTTP challenge
    - Request certificates from Let's Encrypt

@@ -12,7 +12,7 @@ tests/integration/
 │   ├── plex-api-client.test.ts
 │   ├── overseerr-api-client.test.ts
 │   └── uptime-kuma-client.test.ts
-├── services/              # Service layer integration tests  
+├── services/              # Service layer integration tests
 │   ├── integration.service.test.ts
 │   └── service-degradation.test.ts
 ├── utils/                 # Utility integration tests
@@ -31,8 +31,9 @@ tests/integration/
 **Purpose**: Validate Plex API integration contract compliance and error handling
 
 **Key Test Areas**:
+
 - **Authentication & User Data**: Token validation, user data retrieval, OAuth flows
-- **Server Discovery**: Server enumeration, library discovery, connection management  
+- **Server Discovery**: Server enumeration, library discovery, connection management
 - **Media Content**: Library browsing, search functionality, metadata retrieval
 - **Error Handling**: Network failures, timeouts, malformed responses
 - **Circuit Breaker**: State transitions, failure thresholds, recovery scenarios
@@ -40,6 +41,7 @@ tests/integration/
 - **Contract Validation**: API response structure validation, type safety
 
 **Critical Scenarios**:
+
 - Invalid/expired token handling
 - Service unavailable responses (503)
 - Request timeout simulation (6+ seconds)
@@ -51,6 +53,7 @@ tests/integration/
 **Purpose**: Ensure Overseerr media request system integration reliability
 
 **Key Test Areas**:
+
 - **Service Configuration**: Status checking, settings validation, API key authentication
 - **Media Request Management**: CRUD operations, approval workflows, pagination
 - **User Request Tracking**: Per-user request history, permission validation
@@ -60,6 +63,7 @@ tests/integration/
 - **Contract Validation**: Response structure validation, data type checking
 
 **Critical Scenarios**:
+
 - Invalid API key handling
 - Non-existent request operations (404 errors)
 - Service degradation simulation
@@ -71,6 +75,7 @@ tests/integration/
 **Purpose**: Validate WebSocket-based real-time monitoring integration
 
 **Key Test Areas**:
+
 - **Connection Management**: WebSocket establishment, authentication, disconnection
 - **Monitor Management**: Monitor list parsing, status tracking, configuration updates
 - **Real-time Updates**: Heartbeat processing, status changes, statistics calculation
@@ -79,6 +84,7 @@ tests/integration/
 - **Performance**: High-frequency events, memory management, concurrent operations
 
 **Critical Scenarios**:
+
 - WebSocket connection failures and timeouts
 - Malformed message handling
 - Rapid monitor status changes
@@ -90,6 +96,7 @@ tests/integration/
 **Purpose**: Ensure circuit breaker pattern implementation correctness
 
 **Key Test Areas**:
+
 - **State Transitions**: CLOSED → OPEN → HALF_OPEN → CLOSED flows
 - **Error Classification**: Expected vs unexpected error handling
 - **Failure Counting**: Threshold tracking, success reset logic
@@ -98,6 +105,7 @@ tests/integration/
 - **Concurrency**: Thread safety, concurrent operation handling
 
 **Critical Scenarios**:
+
 - Threshold boundary testing (exactly at failure limit)
 - Mixed success/failure patterns
 - Rapid successive operations
@@ -109,14 +117,16 @@ tests/integration/
 **Purpose**: Validate graceful degradation and fallback mechanisms
 
 **Key Test Areas**:
+
 - **Partial Service Failures**: Single service outages, system health calculation
 - **Fallback Mechanisms**: Cached data usage, graceful error responses
-- **Recovery Scenarios**: Service restoration, health status updates  
+- **Recovery Scenarios**: Service restoration, health status updates
 - **Circuit Breaker Integration**: State reflection in health status
 - **Resource Management**: Redis failures, memory pressure handling
 - **Event Handling**: Health change notifications, recovery events
 
 **Critical Scenarios**:
+
 - All services failing simultaneously
 - Intermittent network failures
 - Authentication/configuration errors
@@ -128,6 +138,7 @@ tests/integration/
 **Purpose**: Ensure real-time event processing and WebSocket reliability
 
 **Key Test Areas**:
+
 - **Real-time Updates**: Monitor status changes, heartbeat processing
 - **Dynamic Management**: Monitor addition/removal, configuration changes
 - **Event Performance**: High-frequency events, memory management
@@ -135,6 +146,7 @@ tests/integration/
 - **Concurrent Operations**: Multiple simultaneous events, data consistency
 
 **Critical Scenarios**:
+
 - 1000+ rapid events processing
 - Concurrent monitor updates
 - WebSocket connection instability
@@ -148,6 +160,7 @@ The test suite includes comprehensive MSW (Mock Service Worker) handlers that si
 ### 🎭 Mock Features
 
 **Plex API Mocking**:
+
 - Complete OAuth PIN flow simulation
 - User authentication with multiple token scenarios
 - Server discovery and library enumeration
@@ -155,6 +168,7 @@ The test suite includes comprehensive MSW (Mock Service Worker) handlers that si
 - Error simulation (503, 401, timeouts)
 
 **Overseerr API Mocking**:
+
 - Status and settings endpoints
 - Request lifecycle management
 - Media search with TMDB-like responses
@@ -162,6 +176,7 @@ The test suite includes comprehensive MSW (Mock Service Worker) handlers that si
 - Pagination and filtering support
 
 **Network Condition Simulation**:
+
 - Timeout scenarios (6+ second delays)
 - Service unavailable conditions
 - Rate limiting responses
@@ -172,9 +187,9 @@ The test suite includes comprehensive MSW (Mock Service Worker) handlers that si
 
 ```typescript
 // Control mock behavior during tests
-mockState.plexDown = true;           // Simulate Plex outage
+mockState.plexDown = true; // Simulate Plex outage
 mockState.overseerrSlowResponse = true; // Simulate slow responses
-mockState.resetFailures();           // Reset failure counters
+mockState.resetFailures(); // Reset failure counters
 ```
 
 ## Running Tests
@@ -194,7 +209,7 @@ npm run test:service-integration
 ```bash
 # Run specific test categories
 ./tests/integration/run-service-integration-tests.sh plex
-./tests/integration/run-service-integration-tests.sh overseerr  
+./tests/integration/run-service-integration-tests.sh overseerr
 ./tests/integration/run-service-integration-tests.sh circuit-breaker
 ./tests/integration/run-service-integration-tests.sh degradation
 ./tests/integration/run-service-integration-tests.sh websocket
@@ -259,7 +274,7 @@ npx vitest run tests/integration/ --coverage
 The tests include performance validations to ensure efficiency:
 
 - **Concurrent Requests**: Handle 5+ simultaneous API calls
-- **High-frequency Events**: Process 1000+ WebSocket events efficiently  
+- **High-frequency Events**: Process 1000+ WebSocket events efficiently
 - **Large Datasets**: Manage 100+ monitors/requests without degradation
 - **Response Times**: API calls complete within timeout thresholds
 - **Memory Usage**: No memory leaks with continuous operation

@@ -5,28 +5,33 @@ MediaNest provides real-time updates through WebSocket connections using Socket.
 ## Connection
 
 ### Endpoint
+
 ```
 ws://localhost:3001
 ```
+
 or
+
 ```
 wss://api.medianest.io
 ```
 
 ### Authentication
+
 WebSocket connections require authentication via JWT tokens:
 
 ```javascript
 const socket = io('http://localhost:3001', {
   auth: {
-    token: 'your-jwt-token-here'
-  }
+    token: 'your-jwt-token-here',
+  },
 });
 ```
 
 ### Connection Events
 
 #### Client Connection
+
 ```javascript
 socket.on('connect', () => {
   console.log('Connected to MediaNest WebSocket');
@@ -38,6 +43,7 @@ socket.on('disconnect', (reason) => {
 ```
 
 #### Reconnection Handling
+
 ```javascript
 socket.on('client:reconnection-confirmed', (data) => {
   console.log('Reconnection confirmed:', data.timestamp);
@@ -46,7 +52,7 @@ socket.on('client:reconnection-confirmed', (data) => {
 // Notify server of reconnection
 socket.emit('client:reconnected', {
   previousSocketId: 'old-socket-id',
-  disconnectedFor: 30000 // milliseconds
+  disconnectedFor: 30000, // milliseconds
 });
 ```
 
@@ -54,13 +60,13 @@ socket.emit('client:reconnected', {
 
 MediaNest uses multiple Socket.IO namespaces for different types of events:
 
-| Namespace | Purpose |
-|-----------|---------|
-| `/` (default) | General events, authentication |
-| `/notifications` | User notifications |
-| `/status` | Service status updates |
-| `/requests` | Media request updates |
-| `/downloads` | Download progress events |
+| Namespace        | Purpose                        |
+| ---------------- | ------------------------------ |
+| `/` (default)    | General events, authentication |
+| `/notifications` | User notifications             |
+| `/status`        | Service status updates         |
+| `/requests`      | Media request updates          |
+| `/downloads`     | Download progress events       |
 
 ### Connecting to Namespaces
 
@@ -74,6 +80,7 @@ const statusSocket = io('/status', { auth: { token } });
 ### 1. Connection Management
 
 #### Ping/Pong Heartbeat
+
 ```javascript
 // Client sends ping
 socket.emit('client:ping', Date.now(), (response) => {
@@ -85,6 +92,7 @@ socket.emit('client:ping', Date.now(), (response) => {
 ```
 
 #### Connection Quality Check
+
 ```javascript
 socket.emit('connection:quality-check', (response) => {
   if (response.success) {
@@ -96,6 +104,7 @@ socket.emit('connection:quality-check', (response) => {
 ### 2. Media Request Events
 
 #### Subscribe to Request Updates
+
 ```javascript
 // Subscribe to specific request
 socket.emit('subscribe:request', requestId);
@@ -109,12 +118,13 @@ socket.on(`request:${requestId}:status`, (update) => {
     requestId: update.requestId,
     status: update.status,
     progress: update.progress,
-    message: update.message
+    message: update.message,
   });
 });
 ```
 
 #### Request Status Update Schema
+
 ```typescript
 interface RequestStatusUpdate {
   requestId: string;
@@ -128,6 +138,7 @@ interface RequestStatusUpdate {
 ```
 
 #### Request Management
+
 ```javascript
 // Cancel a request
 socket.emit('request:cancel', requestId, (response) => {
@@ -152,6 +163,7 @@ socket.emit('requests:history', { limit: 20, offset: 0 }, (response) => {
 ```
 
 #### Unsubscribe from Request Updates
+
 ```javascript
 socket.emit('unsubscribe:request', requestId);
 socket.emit('unsubscribe:user-requests');
@@ -160,6 +172,7 @@ socket.emit('unsubscribe:user-requests');
 ### 3. Service Status Events
 
 #### Subscribe to Service Status
+
 ```javascript
 // Subscribe to all service status updates
 socket.emit('subscribe:status');
@@ -169,7 +182,7 @@ socket.emit('subscribe:service', 'plex');
 
 // Listen for status updates
 socket.on('status:current', (statuses) => {
-  statuses.forEach(status => {
+  statuses.forEach((status) => {
     console.log(`${status.name}: ${status.status}`);
   });
 });
@@ -178,12 +191,13 @@ socket.on('service:status', (update) => {
   console.log('Service update:', {
     serviceId: update.serviceId,
     status: update.status,
-    responseTime: update.responseTime
+    responseTime: update.responseTime,
   });
 });
 ```
 
 #### Service Status Schema
+
 ```typescript
 interface ServiceStatusUpdate {
   serviceId: string;
@@ -196,6 +210,7 @@ interface ServiceStatusUpdate {
 ```
 
 #### Admin Service Management
+
 ```javascript
 // Admin: Refresh all service statuses
 socket.emit('admin:refresh-status');
@@ -209,13 +224,14 @@ socket.emit('service:history', 'plex', 24, (response) => {
 ```
 
 #### System Alerts
+
 ```javascript
 socket.on('system:alert', (alert) => {
   console.log('System alert:', {
     type: alert.type, // 'warning' | 'error' | 'info'
     title: alert.title,
     message: alert.message,
-    serviceId: alert.serviceId
+    serviceId: alert.serviceId,
   });
 });
 ```
@@ -223,6 +239,7 @@ socket.on('system:alert', (alert) => {
 ### 4. Notification Events
 
 #### Subscribe to Notifications
+
 ```javascript
 // Subscribe to user notifications
 socket.emit('subscribe:notifications');
@@ -233,7 +250,7 @@ socket.on('notification:new', (notification) => {
     id: notification.id,
     type: notification.type, // 'info' | 'success' | 'warning' | 'error'
     title: notification.title,
-    message: notification.message
+    message: notification.message,
   });
 });
 
@@ -244,6 +261,7 @@ socket.on('notification:system', (notification) => {
 ```
 
 #### Notification Schema
+
 ```typescript
 interface NotificationData {
   id: string;
@@ -264,6 +282,7 @@ interface NotificationData {
 ```
 
 #### Notification Management
+
 ```javascript
 // Mark notification as read
 socket.emit('notification:read', notificationId, (response) => {
@@ -281,14 +300,18 @@ socket.emit('notifications:read-all', (response) => {
 socket.emit('notification:dismiss', notificationId);
 
 // Handle notification action
-socket.emit('notification:action', {
-  notificationId: 'notif_123',
-  action: 'view'
-}, (response) => {
-  if (response.success) {
-    console.log('Action handled successfully');
-  }
-});
+socket.emit(
+  'notification:action',
+  {
+    notificationId: 'notif_123',
+    action: 'view',
+  },
+  (response) => {
+    if (response.success) {
+      console.log('Action handled successfully');
+    }
+  },
+);
 
 // Get notification history
 socket.emit('notifications:history', { limit: 50, offset: 0 }, (response) => {
@@ -301,6 +324,7 @@ socket.emit('notifications:history', { limit: 50, offset: 0 }, (response) => {
 ### 5. Download Events
 
 #### Subscribe to Download Updates
+
 ```javascript
 // These events are emitted by the server for download progress
 socket.on('download:progress', (data) => {
@@ -309,7 +333,7 @@ socket.on('download:progress', (data) => {
     title: data.title,
     progress: data.progress, // 0-100
     speed: data.speed,
-    eta: data.eta
+    eta: data.eta,
   });
 });
 
@@ -318,7 +342,7 @@ socket.on('download:complete', (data) => {
     id: data.id,
     title: data.title,
     path: data.path,
-    size: data.size
+    size: data.size,
   });
 });
 
@@ -326,7 +350,7 @@ socket.on('download:failed', (data) => {
   console.log('Download failed:', {
     id: data.id,
     title: data.title,
-    error: data.error
+    error: data.error,
   });
 });
 ```
@@ -334,6 +358,7 @@ socket.on('download:failed', (data) => {
 ### 6. YouTube Download Events (Legacy)
 
 #### YouTube Download Schema
+
 ```typescript
 interface YouTubeDownloadEvent {
   id: string;
@@ -351,13 +376,14 @@ interface YouTubeDownloadEvent {
 Admin users have access to additional events:
 
 #### Admin Activity Monitoring
+
 ```javascript
 // Admin activity events (automatically emitted for admin actions)
 socket.on('admin:activity', (activity) => {
   console.log('Admin activity:', {
     action: activity.action,
     userId: activity.userId,
-    details: activity.details
+    details: activity.details,
   });
 });
 ```
@@ -365,13 +391,14 @@ socket.on('admin:activity', (activity) => {
 ## Error Handling
 
 ### Connection Errors
+
 ```javascript
 socket.on('connect_error', (error) => {
   console.error('Connection failed:', error.message);
-  
+
   if (error.message === 'Authentication failed') {
     // Refresh token and retry
-    refreshAuthToken().then(newToken => {
+    refreshAuthToken().then((newToken) => {
       socket.auth.token = newToken;
       socket.connect();
     });
@@ -380,6 +407,7 @@ socket.on('connect_error', (error) => {
 ```
 
 ### Event Errors
+
 ```javascript
 socket.on('error', (error) => {
   console.error('Socket error:', error);
@@ -402,6 +430,7 @@ WebSocket events are rate-limited to prevent abuse:
 - **Admin events**: 10 per minute (e.g., `admin:refresh-status`)
 
 Rate limit exceeded responses:
+
 ```json
 {
   "success": false,
@@ -414,6 +443,7 @@ Rate limit exceeded responses:
 ## Best Practices
 
 ### Connection Management
+
 ```javascript
 // Reconnection with exponential backoff
 const socket = io('http://localhost:3001', {
@@ -422,11 +452,12 @@ const socket = io('http://localhost:3001', {
   reconnectionAttempts: 5,
   reconnectionDelay: 1000,
   reconnectionDelayMax: 5000,
-  maxReconnectionAttempts: 5
+  maxReconnectionAttempts: 5,
 });
 ```
 
 ### Memory Management
+
 ```javascript
 // Clean up event listeners
 socket.off('notification:new');
@@ -439,6 +470,7 @@ socket.disconnect();
 ```
 
 ### Subscription Management
+
 ```javascript
 class SocketManager {
   constructor() {
@@ -453,7 +485,7 @@ class SocketManager {
   }
 
   cleanup() {
-    this.subscriptions.forEach(sub => {
+    this.subscriptions.forEach((sub) => {
       const [type, id] = sub.split(':');
       socket.emit(`unsubscribe:${type}`, id);
     });
@@ -465,6 +497,7 @@ class SocketManager {
 ## Integration Examples
 
 ### React Hook for WebSocket
+
 ```javascript
 import { useEffect, useState } from 'react';
 import io from 'socket.io-client';
@@ -477,7 +510,7 @@ function useSocket(token) {
     if (!token) return;
 
     const newSocket = io('http://localhost:3001', {
-      auth: { token }
+      auth: { token },
     });
 
     newSocket.on('connect', () => setConnected(true));
@@ -516,6 +549,7 @@ function MediaRequests() {
 ```
 
 ### Service Status Monitor
+
 ```javascript
 class ServiceStatusMonitor {
   constructor(socket) {
@@ -527,7 +561,7 @@ class ServiceStatusMonitor {
     this.socket.emit('subscribe:status');
 
     this.socket.on('status:current', (statuses) => {
-      statuses.forEach(status => {
+      statuses.forEach((status) => {
         this.services.set(status.id, status);
       });
       this.updateUI();
@@ -536,7 +570,7 @@ class ServiceStatusMonitor {
     this.socket.on('service:status', (update) => {
       this.services.set(update.serviceId, {
         ...this.services.get(update.serviceId),
-        ...update
+        ...update,
       });
       this.updateUI();
     });
@@ -545,8 +579,7 @@ class ServiceStatusMonitor {
   updateUI() {
     // Update dashboard with current service statuses
     this.services.forEach((status, serviceId) => {
-      document.getElementById(`status-${serviceId}`)
-        .className = `status-${status.status}`;
+      document.getElementById(`status-${serviceId}`).className = `status-${status.status}`;
     });
   }
 }
@@ -573,6 +606,7 @@ class ServiceStatusMonitor {
    - Limit number of concurrent subscriptions
 
 ### Debug Mode
+
 ```javascript
 // Enable debug logging
 localStorage.debug = 'socket.io-client:socket';

@@ -15,10 +15,10 @@ class MetricsCollector {
     this.metricsDir = path.join(this.projectRoot, 'metrics');
     this.dataDir = path.join(this.metricsDir, 'data');
     this.timestamp = new Date().toISOString();
-    
+
     // Ensure directories exist
     this.ensureDirectories();
-    
+
     this.currentMetrics = {
       timestamp: this.timestamp,
       security: {},
@@ -27,7 +27,7 @@ class MetricsCollector {
       build: {},
       performance: {},
       documentation: {},
-      infrastructure: {}
+      infrastructure: {},
     };
   }
 
@@ -47,7 +47,7 @@ class MetricsCollector {
 
   async collectAll() {
     console.log('🔍 Starting comprehensive metrics collection...');
-    
+
     try {
       await this.collectSecurityMetrics();
       await this.collectCodeQualityMetrics();
@@ -56,10 +56,10 @@ class MetricsCollector {
       await this.collectPerformanceMetrics();
       await this.collectDocumentationMetrics();
       await this.collectInfrastructureMetrics();
-      
+
       await this.saveMetrics();
       await this.generateReports();
-      
+
       console.log('✅ Metrics collection completed successfully');
     } catch (error) {
       console.error('❌ Metrics collection failed:', error);
@@ -69,16 +69,16 @@ class MetricsCollector {
 
   async collectSecurityMetrics() {
     console.log('🔒 Collecting security metrics...');
-    
+
     try {
       // Run npm audit
       const auditResult = this.safeExec('npm audit --json');
       const audit = auditResult ? JSON.parse(auditResult) : { metadata: { vulnerabilities: {} } };
-      
+
       // Collect vulnerability data from security scan results
       const securityScanPath = path.join(this.projectRoot, 'docs/security-scan-results.json');
       let securityScan = { summary: { totalIssues: 0, critical: 0, high: 0, medium: 0, low: 0 } };
-      
+
       try {
         const securityData = await fs.readFile(securityScanPath, 'utf8');
         securityScan = JSON.parse(securityData);
@@ -99,9 +99,8 @@ class MetricsCollector {
         npmAuditLow: audit.metadata?.vulnerabilities?.low || 0,
         securityScore: this.calculateSecurityScore(securityScan.summary),
         owaspCompliance: this.calculateOwaspCompliance(securityScan.summary),
-        lastScanDate: securityScan.scanTimestamp || this.timestamp
+        lastScanDate: securityScan.scanTimestamp || this.timestamp,
       };
-      
     } catch (error) {
       console.error('❌ Security metrics collection failed:', error.message);
       this.currentMetrics.security = { error: error.message };
@@ -110,19 +109,23 @@ class MetricsCollector {
 
   async collectCodeQualityMetrics() {
     console.log('📊 Collecting code quality metrics...');
-    
+
     try {
       // Count source files
-      const sourceFiles = this.countFiles('**/*.{ts,tsx,js,jsx}', ['node_modules/**', 'dist/**', 'build/**']);
+      const sourceFiles = this.countFiles('**/*.{ts,tsx,js,jsx}', [
+        'node_modules/**',
+        'dist/**',
+        'build/**',
+      ]);
       const totalFiles = this.countFiles('**/*', ['node_modules/**', '.git/**']);
       const markdownFiles = this.countFiles('**/*.md', ['node_modules/**']);
 
       // TypeScript compilation check
       const tsErrors = this.getTsErrors();
-      
+
       // Bundle size analysis
       const bundleSize = await this.getBundleSize();
-      
+
       // Code complexity analysis
       const complexity = await this.getCodeComplexity();
 
@@ -137,9 +140,8 @@ class MetricsCollector {
         cyclomaticComplexity: complexity,
         codeSmells: this.detectCodeSmells(),
         technicalDebtHours: this.calculateTechnicalDebt(),
-        lastAnalysis: this.timestamp
+        lastAnalysis: this.timestamp,
       };
-
     } catch (error) {
       console.error('❌ Code quality metrics collection failed:', error.message);
       this.currentMetrics.codeQuality = { error: error.message };
@@ -148,13 +150,17 @@ class MetricsCollector {
 
   async collectDependencyMetrics() {
     console.log('📦 Collecting dependency metrics...');
-    
+
     try {
       // Package.json analysis
       const packageJson = await this.readJsonFile(path.join(this.projectRoot, 'package.json'));
-      const backendPackageJson = await this.readJsonFile(path.join(this.projectRoot, 'backend/package.json'));
-      const frontendPackageJson = await this.readJsonFile(path.join(this.projectRoot, 'frontend/package.json'));
-      
+      const backendPackageJson = await this.readJsonFile(
+        path.join(this.projectRoot, 'backend/package.json'),
+      );
+      const frontendPackageJson = await this.readJsonFile(
+        path.join(this.projectRoot, 'frontend/package.json'),
+      );
+
       // Count dependencies
       const rootProd = Object.keys(packageJson?.dependencies || {}).length;
       const rootDev = Object.keys(packageJson?.devDependencies || {}).length;
@@ -173,12 +179,11 @@ class MetricsCollector {
         byWorkspace: {
           root: { prod: rootProd, dev: rootDev },
           backend: { prod: backendProd, dev: backendDev },
-          frontend: { prod: frontendProd, dev: frontendDev }
+          frontend: { prod: frontendProd, dev: frontendDev },
         },
         outdated: outdated,
-        lastUpdate: this.timestamp
+        lastUpdate: this.timestamp,
       };
-
     } catch (error) {
       console.error('❌ Dependency metrics collection failed:', error.message);
       this.currentMetrics.dependencies = { error: error.message };
@@ -187,28 +192,30 @@ class MetricsCollector {
 
   async collectBuildMetrics() {
     console.log('🔨 Collecting build metrics...');
-    
+
     try {
       // Test build attempts
       const buildResults = {
         root: this.testBuild('npm run build', this.projectRoot),
         backend: this.testBuild('npm run build', path.join(this.projectRoot, 'backend')),
-        frontend: this.testBuild('npm run build', path.join(this.projectRoot, 'frontend'))
+        frontend: this.testBuild('npm run build', path.join(this.projectRoot, 'frontend')),
       };
 
       // Test coverage analysis
       const testResults = this.runTests();
-      
+
       this.currentMetrics.build = {
-        buildSuccess: buildResults.root.success && buildResults.backend.success && buildResults.frontend.success,
+        buildSuccess:
+          buildResults.root.success &&
+          buildResults.backend.success &&
+          buildResults.frontend.success,
         buildResults: buildResults,
         testCoverage: testResults.coverage,
         testsPassing: testResults.passing,
         testsTotal: testResults.total,
         testResults: testResults,
-        lastBuildAttempt: this.timestamp
+        lastBuildAttempt: this.timestamp,
       };
-
     } catch (error) {
       console.error('❌ Build metrics collection failed:', error.message);
       this.currentMetrics.build = { error: error.message };
@@ -217,22 +224,21 @@ class MetricsCollector {
 
   async collectPerformanceMetrics() {
     console.log('⚡ Collecting performance metrics...');
-    
+
     try {
       // Bundle analysis
       const bundleStats = await this.analyzeBundleSize();
-      
+
       // Database connection test
       const dbStats = await this.testDatabasePerformance();
-      
+
       this.currentMetrics.performance = {
         bundleSize: bundleStats,
         database: dbStats,
         lighthouse: await this.getLighthouseScore(),
         coreWebVitals: await this.getCoreWebVitals(),
-        lastPerformanceCheck: this.timestamp
+        lastPerformanceCheck: this.timestamp,
       };
-
     } catch (error) {
       console.error('❌ Performance metrics collection failed:', error.message);
       this.currentMetrics.performance = { error: error.message };
@@ -241,18 +247,17 @@ class MetricsCollector {
 
   async collectDocumentationMetrics() {
     console.log('📚 Collecting documentation metrics...');
-    
+
     try {
       const docFiles = this.countFiles('**/*.md', ['node_modules/**']);
       const docQuality = await this.analyzeDocumentationQuality();
-      
+
       this.currentMetrics.documentation = {
         totalFiles: docFiles,
         qualityScore: docQuality.overall,
         categories: docQuality.categories,
-        lastDocumentationReview: this.timestamp
+        lastDocumentationReview: this.timestamp,
       };
-
     } catch (error) {
       console.error('❌ Documentation metrics collection failed:', error.message);
       this.currentMetrics.documentation = { error: error.message };
@@ -261,18 +266,17 @@ class MetricsCollector {
 
   async collectInfrastructureMetrics() {
     console.log('🏗️ Collecting infrastructure metrics...');
-    
+
     try {
       // Docker configuration analysis
       const dockerScore = this.analyzeDockerConfig();
-      
+
       this.currentMetrics.infrastructure = {
         dockerSecurityScore: dockerScore,
         kubernetesReadiness: this.checkKubernetesReadiness(),
         monitoringCoverage: this.checkMonitoringCoverage(),
-        lastInfrastructureCheck: this.timestamp
+        lastInfrastructureCheck: this.timestamp,
       };
-
     } catch (error) {
       console.error('❌ Infrastructure metrics collection failed:', error.message);
       this.currentMetrics.infrastructure = { error: error.message };
@@ -291,7 +295,9 @@ class MetricsCollector {
 
   countFiles(pattern, exclude = []) {
     try {
-      const result = this.safeExec(`find . -type f -name "${pattern.replace('**/', '*')}" ${exclude.map(e => `! -path "./${e}"`).join(' ')} | wc -l`);
+      const result = this.safeExec(
+        `find . -type f -name "${pattern.replace('**/', '*')}" ${exclude.map((e) => `! -path "./${e}"`).join(' ')} | wc -l`,
+      );
       return parseInt(result?.trim() || '0');
     } catch {
       return 0;
@@ -301,11 +307,11 @@ class MetricsCollector {
   getTsErrors() {
     const result = this.safeExec('npx tsc --noEmit --listFiles 2>&1');
     if (!result) return { count: 0, errors: [] };
-    
-    const errors = result.split('\n').filter(line => line.includes('error TS'));
+
+    const errors = result.split('\n').filter((line) => line.includes('error TS'));
     return {
       count: errors.length,
-      errors: errors.slice(0, 10) // Limit to first 10 errors
+      errors: errors.slice(0, 10), // Limit to first 10 errors
     };
   }
 
@@ -314,16 +320,16 @@ class MetricsCollector {
       // Analyze package.json and node_modules
       const stats = this.safeExec('du -sh node_modules 2>/dev/null || echo "0K"');
       const sizeMatch = stats?.match(/(\d+(?:\.\d+)?)(K|M|G)/);
-      
+
       if (sizeMatch) {
         const [, size, unit] = sizeMatch;
         const multiplier = { K: 1, M: 1024, G: 1024 * 1024 }[unit] || 1;
         return {
           totalKB: Math.round(parseFloat(size) * multiplier),
-          raw: stats.trim()
+          raw: stats.trim(),
         };
       }
-      
+
       return { totalKB: 0, raw: '0K' };
     } catch {
       return { totalKB: 0, raw: 'unknown' };
@@ -332,15 +338,18 @@ class MetricsCollector {
 
   async getCodeComplexity() {
     // Simplified complexity analysis
-    const sourceFiles = this.safeExec(`find . -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" | grep -v node_modules | head -20`);
+    const sourceFiles = this.safeExec(
+      `find . -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" | grep -v node_modules | head -20`,
+    );
     if (!sourceFiles) return { average: 0, high: 0, veryHigh: 0 };
-    
-    const files = sourceFiles.split('\n').filter(f => f.trim());
+
+    const files = sourceFiles.split('\n').filter((f) => f.trim());
     let totalComplexity = 0;
     let highComplexity = 0;
     let veryHighComplexity = 0;
-    
-    for (const file of files.slice(0, 10)) { // Limit analysis
+
+    for (const file of files.slice(0, 10)) {
+      // Limit analysis
       try {
         const content = await fs.readFile(file.trim(), 'utf8');
         const complexity = this.calculateFileComplexity(content);
@@ -351,27 +360,32 @@ class MetricsCollector {
         // Skip files that can't be read
       }
     }
-    
+
     return {
-      average: files.length > 0 ? Math.round(totalComplexity / files.length * 10) / 10 : 0,
+      average: files.length > 0 ? Math.round((totalComplexity / files.length) * 10) / 10 : 0,
       high: highComplexity,
-      veryHigh: veryHighComplexity
+      veryHigh: veryHighComplexity,
     };
   }
 
   calculateFileComplexity(content) {
     // Simple cyclomatic complexity calculation
     const complexityPatterns = [
-      /\bif\b/g, /\belse\b/g, /\bfor\b/g, /\bwhile\b/g, 
-      /\bswitch\b/g, /\bcatch\b/g, /\bcase\b/g
+      /\bif\b/g,
+      /\belse\b/g,
+      /\bfor\b/g,
+      /\bwhile\b/g,
+      /\bswitch\b/g,
+      /\bcatch\b/g,
+      /\bcase\b/g,
     ];
-    
+
     let complexity = 1; // Base complexity
-    complexityPatterns.forEach(pattern => {
+    complexityPatterns.forEach((pattern) => {
       const matches = content.match(pattern);
       if (matches) complexity += matches.length;
     });
-    
+
     return Math.min(complexity, 50); // Cap at 50 for sanity
   }
 
@@ -384,7 +398,7 @@ class MetricsCollector {
     // Estimate technical debt in hours based on issues found
     const tsErrors = this.getTsErrors().count;
     const baseDebt = 280; // From audit report
-    
+
     // Adjust based on current state
     return Math.max(50, baseDebt - Math.floor(tsErrors * 0.5));
   }
@@ -392,7 +406,7 @@ class MetricsCollector {
   getOutdatedPackages() {
     const result = this.safeExec('npm outdated --json 2>/dev/null');
     if (!result) return [];
-    
+
     try {
       const outdated = JSON.parse(result);
       return Object.keys(outdated).length;
@@ -405,24 +419,24 @@ class MetricsCollector {
     const start = Date.now();
     const result = this.safeExec(command, cwd);
     const duration = Date.now() - start;
-    
+
     return {
       success: result !== null,
       duration,
       output: result ? 'Build successful' : 'Build failed',
-      timestamp: this.timestamp
+      timestamp: this.timestamp,
     };
   }
 
   runTests() {
     // Test execution analysis
     const result = this.safeExec('npm test -- --coverage --passWithNoTests 2>/dev/null');
-    
+
     return {
       coverage: result ? Math.floor(Math.random() * 30) : 0, // Placeholder
       passing: result ? Math.floor(Math.random() * 20) : 0,
       total: 47, // From audit report
-      success: !!result
+      success: !!result,
     };
   }
 
@@ -431,7 +445,7 @@ class MetricsCollector {
       uncompressed: '628MB',
       compressed: '187MB',
       frameworkChunks: '673KB',
-      optimizationPotential: 64
+      optimizationPotential: 64,
     };
   }
 
@@ -439,7 +453,7 @@ class MetricsCollector {
     return {
       connectionTime: Math.floor(Math.random() * 200) + 50,
       queryTime: Math.floor(Math.random() * 150) + 25,
-      status: 'connected'
+      status: 'connected',
     };
   }
 
@@ -451,21 +465,21 @@ class MetricsCollector {
     return {
       good: 2,
       needsImprovement: 2,
-      poor: 1
+      poor: 1,
     };
   }
 
   async analyzeDocumentationQuality() {
     const markdownFiles = this.countFiles('**/*.md', ['node_modules/**']);
-    
+
     return {
       overall: Math.floor(Math.random() * 40) + 30,
       categories: {
         setup: 25,
         api: 30,
         architecture: 85,
-        security: 95
-      }
+        security: 95,
+      },
     };
   }
 
@@ -484,14 +498,14 @@ class MetricsCollector {
 
   calculateSecurityScore(summary) {
     if (!summary) return 15;
-    
+
     const { critical = 0, high = 0, medium = 0, low = 0 } = summary;
     const totalIssues = critical + high + medium + low;
-    
+
     if (totalIssues === 0) return 100;
     if (critical > 0) return Math.max(5, 20 - critical * 5);
     if (high > 0) return Math.max(25, 60 - high * 2);
-    
+
     return Math.max(40, 85 - medium * 0.1);
   }
 
@@ -502,7 +516,7 @@ class MetricsCollector {
       compliant: Math.floor(score / 10),
       partial: Math.floor((100 - score) / 25),
       nonCompliant: Math.ceil((100 - score) / 15),
-      score: Math.floor(score)
+      score: Math.floor(score),
     };
   }
 
@@ -517,66 +531,66 @@ class MetricsCollector {
 
   async saveMetrics() {
     console.log('💾 Saving metrics data...');
-    
+
     // Save current metrics
     const currentPath = path.join(this.dataDir, 'current-metrics.json');
     await fs.writeFile(currentPath, JSON.stringify(this.currentMetrics, null, 2));
-    
+
     // Save timestamped history
     const historyDir = path.join(this.dataDir, 'history');
     await fs.mkdir(historyDir, { recursive: true });
-    
+
     const timestamp = new Date().toISOString().split('T')[0];
     const historyPath = path.join(historyDir, `metrics-${timestamp}.json`);
     await fs.writeFile(historyPath, JSON.stringify(this.currentMetrics, null, 2));
-    
+
     console.log(`✅ Metrics saved to ${currentPath} and ${historyPath}`);
   }
 
   async generateReports() {
     console.log('📊 Generating reports...');
-    
+
     // Update progress tracking
     await this.updateProgressTracking();
-    
+
     // Generate trend analysis
     await this.generateTrendAnalysis();
-    
+
     console.log('✅ Reports generated successfully');
   }
 
   async updateProgressTracking() {
     const progressPath = path.join(this.dataDir, 'progress-tracking.json');
-    
+
     try {
       const progressData = await this.readJsonFile(progressPath);
-      
+
       // Update KPIs based on current metrics
       if (progressData.kpis) {
         progressData.kpis.security.current = this.currentMetrics.security.securityScore || 15;
         progressData.kpis.buildStability.current = this.currentMetrics.build.buildSuccess ? 90 : 20;
         progressData.kpis.testCoverage.current = this.currentMetrics.build.testCoverage || 0;
-        progressData.kpis.performanceScore.current = this.currentMetrics.performance.lighthouse || 40;
-        
+        progressData.kpis.performanceScore.current =
+          this.currentMetrics.performance.lighthouse || 40;
+
         // Add trend data point
         const timestamp = this.timestamp;
-        Object.keys(progressData.kpis).forEach(kpi => {
+        Object.keys(progressData.kpis).forEach((kpi) => {
           if (!progressData.kpis[kpi].trend) progressData.kpis[kpi].trend = [];
           progressData.kpis[kpi].trend.push({
             timestamp,
-            value: progressData.kpis[kpi].current
+            value: progressData.kpis[kpi].current,
           });
-          
+
           // Keep only last 30 data points
           if (progressData.kpis[kpi].trend.length > 30) {
             progressData.kpis[kpi].trend = progressData.kpis[kpi].trend.slice(-30);
           }
         });
       }
-      
+
       progressData.lastUpdated = this.timestamp;
       await fs.writeFile(progressPath, JSON.stringify(progressData, null, 2));
-      
     } catch (error) {
       console.warn('⚠️ Could not update progress tracking:', error.message);
     }
@@ -585,36 +599,35 @@ class MetricsCollector {
   async generateTrendAnalysis() {
     const historyDir = path.join(this.dataDir, 'history');
     const trendPath = path.join(this.dataDir, 'trend-analysis.json');
-    
+
     try {
       // Read recent history files
       const historyFiles = await fs.readdir(historyDir);
       const recentFiles = historyFiles
-        .filter(f => f.startsWith('metrics-'))
+        .filter((f) => f.startsWith('metrics-'))
         .sort()
         .slice(-7); // Last 7 days
-      
+
       const trends = {
         security: [],
         build: [],
         performance: [],
-        timestamp: this.timestamp
+        timestamp: this.timestamp,
       };
-      
+
       for (const file of recentFiles) {
         const filePath = path.join(historyDir, file);
         const data = await this.readJsonFile(filePath);
-        
+
         if (data.security) {
           trends.security.push({
             date: file.replace('metrics-', '').replace('.json', ''),
-            score: data.security.securityScore || 0
+            score: data.security.securityScore || 0,
           });
         }
       }
-      
+
       await fs.writeFile(trendPath, JSON.stringify(trends, null, 2));
-      
     } catch (error) {
       console.warn('⚠️ Could not generate trend analysis:', error.message);
     }

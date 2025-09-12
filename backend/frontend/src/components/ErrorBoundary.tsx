@@ -5,7 +5,7 @@ type ErrorBoundaryError = Error & { readonly __brand: 'ErrorBoundary' };
 type ComponentStack = string & { readonly __brand: 'ComponentStack' };
 
 // Context7 Pattern - Result type for error states
-type ErrorState<T = any> = 
+type ErrorState<T = any> =
   | { hasError: false; error: null; errorInfo: null }
   | { hasError: true; error: ErrorBoundaryError; errorInfo: ComponentStack; fallback?: T };
 
@@ -18,31 +18,21 @@ interface ErrorBoundaryProps {
 interface ErrorBoundaryState extends ErrorState<ReactNode> {}
 
 // Context7 Pattern - Memoized error display component
-const ErrorDisplay = memo(({ 
-  error, 
-  errorInfo,
-  onRetry 
-}: {
-  error: Error;
-  errorInfo: string;
-  onRetry: () => void;
-}) => (
-  <div className="error-boundary" role="alert" aria-live="assertive">
-    <h2>Something went wrong</h2>
-    <details>
-      <summary>Error Details</summary>
-      <pre>{error.message}</pre>
-      <pre>{errorInfo}</pre>
-    </details>
-    <button 
-      onClick={onRetry}
-      type="button"
-      aria-label="Retry rendering component"
-    >
-      Try again
-    </button>
-  </div>
-));
+const ErrorDisplay = memo(
+  ({ error, errorInfo, onRetry }: { error: Error; errorInfo: string; onRetry: () => void }) => (
+    <div className='error-boundary' role='alert' aria-live='assertive'>
+      <h2>Something went wrong</h2>
+      <details>
+        <summary>Error Details</summary>
+        <pre>{error.message}</pre>
+        <pre>{errorInfo}</pre>
+      </details>
+      <button onClick={onRetry} type='button' aria-label='Retry rendering component'>
+        Try again
+      </button>
+    </div>
+  ),
+);
 
 ErrorDisplay.displayName = 'ErrorDisplay';
 
@@ -55,7 +45,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     this.state = {
       hasError: false,
       error: null,
-      errorInfo: null
+      errorInfo: null,
     };
   }
 
@@ -71,18 +61,18 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Context7 Pattern - Branded type for component stack
     const componentStack = errorInfo.componentStack as ComponentStack;
-    
-    this.setState(prevState => ({
+
+    this.setState((prevState) => ({
       ...prevState,
-      errorInfo: componentStack
+      errorInfo: componentStack,
     }));
 
     // Context7 Pattern - Optional error reporting with type safety
     this.props.onError?.(error, errorInfo);
-    
+
     // Log error for development
     if (process.env.NODE_ENV === 'development') {
-      console.group('=¨ ErrorBoundary caught an error:');
+      console.group('=ï¿½ ErrorBoundary caught an error:');
       console.error('Error:', error);
       console.error('Component Stack:', componentStack);
       console.groupEnd();
@@ -98,7 +88,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     this.setState({
       hasError: false,
       error: null,
-      errorInfo: null
+      errorInfo: null,
     });
   };
 
@@ -113,7 +103,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       // Context7 Pattern - Custom fallback with type safety
       if (this.props.fallback) {
         return this.props.fallback(this.state.error, {
-          componentStack: this.state.errorInfo
+          componentStack: this.state.errorInfo,
         } as ErrorInfo);
       }
 
@@ -134,7 +124,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 // Context7 Pattern - HOC for error boundary wrapping
 export const withErrorBoundary = <P extends object>(
   Component: React.ComponentType<P>,
-  errorBoundaryProps?: Omit<ErrorBoundaryProps, 'children'>
+  errorBoundaryProps?: Omit<ErrorBoundaryProps, 'children'>,
 ) => {
   const WrappedComponent = memo((props: P) => (
     <ErrorBoundary {...errorBoundaryProps}>
@@ -143,7 +133,7 @@ export const withErrorBoundary = <P extends object>(
   ));
 
   WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`;
-  
+
   return WrappedComponent;
 };
 

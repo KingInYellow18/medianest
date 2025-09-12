@@ -8,12 +8,12 @@ import React from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 
 // Component that safely throws errors for testing ErrorBoundaries
-export const SafeErrorThrower = ({ 
-  shouldThrow = true, 
+export const SafeErrorThrower = ({
+  shouldThrow = true,
   message = 'Test error message',
-  children
-}: { 
-  shouldThrow?: boolean; 
+  children,
+}: {
+  shouldThrow?: boolean;
   message?: string;
   children?: React.ReactNode;
 }) => {
@@ -26,20 +26,25 @@ export const SafeErrorThrower = ({
 // Render function that properly handles ErrorBoundary testing
 export const renderWithErrorBoundary = (
   ui: React.ReactElement,
-  options?: RenderOptions & { suppressErrors?: boolean }
+  options?: RenderOptions & { suppressErrors?: boolean },
 ) => {
   const { suppressErrors = true, ...renderOptions } = options || {};
-  
+
   let consoleErrorSpy: any = null;
-  
+
   if (suppressErrors) {
     // Suppress console.error during rendering
-    consoleErrorSpy = jest ? jest.spyOn(console, 'error').mockImplementation(() => {}) 
-                           : (() => {
-                               const originalError = console.error;
-                               console.error = () => {};
-                               return { mockRestore: () => { console.error = originalError; } };
-                             })();
+    consoleErrorSpy = jest
+      ? jest.spyOn(console, 'error').mockImplementation(() => {})
+      : (() => {
+          const originalError = console.error;
+          console.error = () => {};
+          return {
+            mockRestore: () => {
+              console.error = originalError;
+            },
+          };
+        })();
   }
 
   try {
@@ -55,11 +60,11 @@ export const renderWithErrorBoundary = (
 export const withErrorBoundaryTest = (testFn: () => void) => {
   const originalError = console.error;
   const originalWarn = console.warn;
-  
+
   // Mock console methods to prevent error spam during tests
   console.error = () => {};
   console.warn = () => {};
-  
+
   try {
     testFn();
   } finally {
@@ -69,10 +74,10 @@ export const withErrorBoundaryTest = (testFn: () => void) => {
 };
 
 // Higher-order component for testing error boundaries
-export const TestErrorBoundaryWrapper = ({ 
+export const TestErrorBoundaryWrapper = ({
   children,
   onError,
-  fallback
+  fallback,
 }: {
   children: React.ReactNode;
   onError?: (error: Error, errorInfo: any) => void;

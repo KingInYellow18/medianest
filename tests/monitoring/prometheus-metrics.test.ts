@@ -6,15 +6,15 @@ import client from 'prom-client';
 
 describe('Prometheus Metrics Integration', () => {
   let app: express.Application;
-  
+
   beforeAll(() => {
     // Reset registry
     register.clear();
-    
+
     // Create test app
     app = express();
     app.use(metricsMiddleware);
-    
+
     // Add metrics endpoint
     app.get('/metrics', async (req, res) => {
       try {
@@ -25,17 +25,17 @@ describe('Prometheus Metrics Integration', () => {
         res.status(500).json({ error: 'Failed to collect metrics' });
       }
     });
-    
+
     // Test routes
     app.get('/test', (req, res) => {
       res.json({ message: 'test' });
     });
-    
+
     app.get('/error', (req, res) => {
       res.status(500).json({ error: 'test error' });
     });
   });
-  
+
   afterAll(() => {
     register.clear();
   });
@@ -43,7 +43,7 @@ describe('Prometheus Metrics Integration', () => {
   describe('Metrics Endpoint', () => {
     it('should return metrics in Prometheus format', async () => {
       const response = await request(app).get('/metrics');
-      
+
       expect(response.status).toBe(200);
       expect(response.headers['content-type']).toContain('text/plain');
       expect(response.text).toBeDefined();
@@ -52,7 +52,7 @@ describe('Prometheus Metrics Integration', () => {
 
     it('should include default Node.js metrics', async () => {
       const response = await request(app).get('/metrics');
-      
+
       expect(response.text).toMatch(/nodejs_version_info/);
       expect(response.text).toMatch(/process_cpu_user_seconds_total/);
       expect(response.text).toMatch(/process_resident_memory_bytes/);
@@ -64,9 +64,9 @@ describe('Prometheus Metrics Integration', () => {
       await request(app).get('/test');
       await request(app).get('/test');
       await request(app).get('/error');
-      
+
       const response = await request(app).get('/metrics');
-      
+
       expect(response.text).toMatch(/http_requests_total/);
       expect(response.text).toMatch(/http_request_duration_seconds/);
       expect(response.text).toMatch(/method="GET"/);
@@ -79,7 +79,7 @@ describe('Prometheus Metrics Integration', () => {
     it('should collect HTTP request metrics', async () => {
       // Clear metrics first
       register.clear();
-      
+
       // Re-register metrics
       const httpRequestsTotal = new client.Counter({
         name: 'http_requests_total',
@@ -87,14 +87,18 @@ describe('Prometheus Metrics Integration', () => {
         labelNames: ['method', 'route', 'status_code'],
       });
       register.registerMetric(httpRequestsTotal);
-      
+
       // Make requests
       await request(app).get('/test');
       await request(app).get('/error');
-      
+
       const metrics = await register.metrics();
-      expect(metrics).toMatch(/http_requests_total.*method="GET".*route="\/test".*status_code="200"/);
-      expect(metrics).toMatch(/http_requests_total.*method="GET".*route="\/error".*status_code="500"/);
+      expect(metrics).toMatch(
+        /http_requests_total.*method="GET".*route="\/test".*status_code="200"/,
+      );
+      expect(metrics).toMatch(
+        /http_requests_total.*method="GET".*route="\/error".*status_code="500"/,
+      );
     });
 
     it('should collect response time metrics', async () => {
@@ -105,10 +109,8 @@ describe('Prometheus Metrics Integration', () => {
     });
 
     it('should collect request size metrics', async () => {
-      await request(app)
-        .post('/test')
-        .send({ data: 'test request body' });
-        
+      await request(app).post('/test').send({ data: 'test request body' });
+
       const response = await request(app).get('/metrics');
       expect(response.text).toMatch(/http_request_size_bytes/);
     });
@@ -117,7 +119,7 @@ describe('Prometheus Metrics Integration', () => {
   describe('Business Metrics', () => {
     it('should include application info metrics', async () => {
       const response = await request(app).get('/metrics');
-      
+
       expect(response.text).toMatch(/app_info/);
       expect(response.text).toMatch(/version=/);
       expect(response.text).toMatch(/environment=/);
@@ -134,11 +136,11 @@ describe('Prometheus Metrics Integration', () => {
       // Mock register.metrics to throw error
       const originalMetrics = register.metrics;
       register.metrics = jest.fn().mockRejectedValue(new Error('Test error'));
-      
+
       const response = await request(app).get('/metrics');
       expect(response.status).toBe(500);
       expect(response.body.error).toBe('Failed to collect metrics');
-      
+
       // Restore original method
       register.metrics = originalMetrics;
     });
@@ -149,15 +151,17 @@ describe('Prometheus Metrics Integration', () => {
       const start = Date.now();
       await request(app).get('/metrics');
       const duration = Date.now() - start;
-      
+
       expect(duration).toBeLessThan(1000); // Should respond in less than 1 second
     });
 
     it('should handle concurrent metrics requests', async () => {
-      const requests = Array(5).fill(null).map(() => request(app).get('/metrics'));
+      const requests = Array(5)
+        .fill(null)
+        .map(() => request(app).get('/metrics'));
       const responses = await Promise.all(requests);
-      
-      responses.forEach(response => {
+
+      responses.forEach((response) => {
         expect(response.status).toBe(200);
         expect(response.text).toBeDefined();
       });
@@ -167,8 +171,8 @@ describe('Prometheus Metrics Integration', () => {
   describe('Metrics Format Validation', () => {
     it('should return valid Prometheus exposition format', async () => {
       const response = await request(app).get('/metrics');
-      const lines = response.text.split('\n').filter(line => line.trim());
-      
+      const lines = response.text.split('\n').filter((line) => line.trim());
+
       for (const line of lines) {
         if (line.startsWith('#')) {
           // Comment lines should start with # HELP or # TYPE
@@ -184,10 +188,10 @@ describe('Prometheus Metrics Integration', () => {
       const response = await request(app).get('/metrics');
       const metricNames = response.text
         .split('\n')
-        .filter(line => !line.startsWith('#') && line.trim())
-        .map(line => line.split(/[\s{]/)[0])
+        .filter((line) => !line.startsWith('#') && line.trim())
+        .map((line) => line.split(/[\s{]/)[0])
         .filter((name, index, arr) => arr.indexOf(name) === index);
-      
+
       for (const name of metricNames) {
         // Should follow Prometheus naming conventions
         expect(name).toMatch(/^[a-zA-Z_][a-zA-Z0-9_]*$/);
@@ -198,17 +202,17 @@ describe('Prometheus Metrics Integration', () => {
     it('should include proper HELP and TYPE metadata', async () => {
       const response = await request(app).get('/metrics');
       const lines = response.text.split('\n');
-      
-      const helpLines = lines.filter(line => line.startsWith('# HELP'));
-      const typeLines = lines.filter(line => line.startsWith('# TYPE'));
-      
+
+      const helpLines = lines.filter((line) => line.startsWith('# HELP'));
+      const typeLines = lines.filter((line) => line.startsWith('# TYPE'));
+
       expect(helpLines.length).toBeGreaterThan(0);
       expect(typeLines.length).toBeGreaterThan(0);
-      
+
       // Each metric should have both HELP and TYPE
       for (const helpLine of helpLines) {
         const metricName = helpLine.split(' ')[2];
-        const hasType = typeLines.some(typeLine => typeLine.includes(metricName));
+        const hasType = typeLines.some((typeLine) => typeLine.includes(metricName));
         expect(hasType).toBe(true);
       }
     });

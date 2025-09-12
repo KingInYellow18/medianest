@@ -102,7 +102,7 @@ describe('Cache Performance and Hit Ratio Tests', () => {
     operation: 'get' | 'set' | 'delete' | 'flush',
     key: string,
     operationFunction: () => Promise<any>,
-    dataSize: number = 0
+    dataSize: number = 0,
   ): Promise<CacheMetric> => {
     const memoryBefore = process.memoryUsage();
     const startTime = performance.now();
@@ -144,7 +144,7 @@ describe('Cache Performance and Hit Ratio Tests', () => {
   const analyzeCachePerformance = (
     operation: string,
     metrics: CacheMetric[],
-    targetHitRate: number = 0.8
+    targetHitRate: number = 0.8,
   ): CacheBenchmark => {
     const responseTimes = metrics.map((m) => m.responseTime).sort((a, b) => a - b);
     const hits = metrics.filter((m) => m.hit).length;
@@ -157,19 +157,19 @@ describe('Cache Performance and Hit Ratio Tests', () => {
       hitRate: totalGets > 0 ? hits / totalGets : 0,
       missRate: totalGets > 0 ? misses / totalGets : 0,
       avgResponseTime: Math.round(
-        responseTimes.reduce((sum, rt) => sum + rt, 0) / responseTimes.length
+        responseTimes.reduce((sum, rt) => sum + rt, 0) / responseTimes.length,
       ),
       p95ResponseTime: Math.round(responseTimes[Math.floor(responseTimes.length * 0.95)] || 0),
       throughputOPS: Math.round(
         (metrics.length /
           (Math.max(...metrics.map((m) => m.timestamp)) -
             Math.min(...metrics.map((m) => m.timestamp)))) *
-          1000
+          1000,
       ),
       memoryEfficiency: Math.round(
         metrics.reduce((sum, m) => sum + Math.abs(m.memoryUsage.heapUsed), 0) /
           metrics.length /
-          1024
+          1024,
       ),
       targetHitRate,
       passed: false,
@@ -203,7 +203,7 @@ describe('Cache Performance and Hit Ratio Tests', () => {
           'set',
           key,
           () => redis.set(key, testItem.data, 'EX', 300), // 5 minute TTL
-          testItem.bytes
+          testItem.bytes,
         );
         setMetrics.push(metric);
       }
@@ -416,7 +416,7 @@ describe('Cache Performance and Hit Ratio Tests', () => {
           'set',
           key,
           () => redis.set(key, data, 'EX', 300),
-          size
+          size,
         );
         memoryMetrics.push(metric);
       }
@@ -494,7 +494,7 @@ describe('Cache Performance and Hit Ratio Tests', () => {
             'set',
             key,
             () => redis.set(key, `concurrent-value-${i}`, 'EX', 300),
-            20
+            20,
           );
           operationPromises.push(promise);
         } else {
@@ -509,7 +509,7 @@ describe('Cache Performance and Hit Ratio Tests', () => {
       const results = await Promise.allSettled(operationPromises);
       const successfulMetrics = results
         .filter(
-          (result): result is PromiseFulfilledResult<CacheMetric> => result.status === 'fulfilled'
+          (result): result is PromiseFulfilledResult<CacheMetric> => result.status === 'fulfilled',
         )
         .map((result) => result.value);
 
@@ -537,13 +537,13 @@ describe('Cache Performance and Hit Ratio Tests', () => {
         passedBenchmarks: cacheBenchmarks.filter((b) => b.passed).length,
         avgHitRate: cacheBenchmarks.reduce((sum, b) => sum + b.hitRate, 0) / cacheBenchmarks.length,
         avgResponseTime: Math.round(
-          cacheBenchmarks.reduce((sum, b) => sum + b.avgResponseTime, 0) / cacheBenchmarks.length
+          cacheBenchmarks.reduce((sum, b) => sum + b.avgResponseTime, 0) / cacheBenchmarks.length,
         ),
         avgThroughputOPS: Math.round(
-          cacheBenchmarks.reduce((sum, b) => sum + b.throughputOPS, 0) / cacheBenchmarks.length
+          cacheBenchmarks.reduce((sum, b) => sum + b.throughputOPS, 0) / cacheBenchmarks.length,
         ),
         avgMemoryEfficiency: Math.round(
-          cacheBenchmarks.reduce((sum, b) => sum + b.memoryEfficiency, 0) / cacheBenchmarks.length
+          cacheBenchmarks.reduce((sum, b) => sum + b.memoryEfficiency, 0) / cacheBenchmarks.length,
         ),
         totalOperations: cacheMetrics.length,
         operationBreakdown: {

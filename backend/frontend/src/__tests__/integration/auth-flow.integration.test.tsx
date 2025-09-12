@@ -5,7 +5,12 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
-import { renderWithAuth, renderWithoutAuth, simulateLogin, simulateLogout } from '../../test-utils/integration-render';
+import {
+  renderWithAuth,
+  renderWithoutAuth,
+  simulateLogin,
+  simulateLogout,
+} from '../../test-utils/integration-render';
 import { mswUtils, mswServer } from '../../test-utils/msw-server';
 import { http, HttpResponse } from 'msw';
 import { useApp, useIsAuthenticated } from '../../contexts/OptimizedAppContext';
@@ -15,18 +20,12 @@ import React from 'react';
 const AuthStatusComponent = () => {
   const { state } = useApp();
   const isAuthenticated = useIsAuthenticated();
-  
+
   return (
     <div>
-      <div data-testid="auth-status">
-        {isAuthenticated ? 'authenticated' : 'not-authenticated'}
-      </div>
-      <div data-testid="user-info">
-        {state.user.email || 'no-user'}
-      </div>
-      <div data-testid="user-role">
-        {state.user.role || 'no-role'}
-      </div>
+      <div data-testid='auth-status'>{isAuthenticated ? 'authenticated' : 'not-authenticated'}</div>
+      <div data-testid='user-info'>{state.user.email || 'no-user'}</div>
+      <div data-testid='user-role'>{state.user.role || 'no-role'}</div>
     </div>
   );
 };
@@ -35,23 +34,23 @@ const LoginFormComponent = () => {
   const { actions } = useApp();
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  
+
   const handleLogin = async (email: string, password: string) => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Login failed');
       }
-      
+
       const data = await response.json();
       actions.setUser(data.user);
       actions.setSession({
@@ -59,49 +58,37 @@ const LoginFormComponent = () => {
         isAuthenticated: true,
         expiresAt: new Date(data.expiresAt),
       });
-      
+
       // Store token in localStorage (simplified)
       localStorage.setItem('authToken', data.token);
-      
     } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
-  
+
   return (
-    <form onSubmit={(e) => {
-      e.preventDefault();
-      const formData = new FormData(e.target as HTMLFormElement);
-      handleLogin(
-        formData.get('email') as string,
-        formData.get('password') as string
-      );
-    }}>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target as HTMLFormElement);
+        handleLogin(formData.get('email') as string, formData.get('password') as string);
+      }}
+    >
+      <input type='email' name='email' placeholder='Email' data-testid='email-input' required />
       <input
-        type="email"
-        name="email"
-        placeholder="Email"
-        data-testid="email-input"
+        type='password'
+        name='password'
+        placeholder='Password'
+        data-testid='password-input'
         required
       />
-      <input
-        type="password"
-        name="password"
-        placeholder="Password"
-        data-testid="password-input"
-        required
-      />
-      <button
-        type="submit"
-        data-testid="login-button"
-        disabled={loading}
-      >
+      <button type='submit' data-testid='login-button' disabled={loading}>
         {loading ? 'Logging in...' : 'Login'}
       </button>
       {error && (
-        <div data-testid="login-error" role="alert">
+        <div data-testid='login-error' role='alert'>
           {error}
         </div>
       )}
@@ -112,10 +99,10 @@ const LoginFormComponent = () => {
 const LogoutButtonComponent = () => {
   const { actions } = useApp();
   const [loading, setLoading] = React.useState(false);
-  
+
   const handleLogout = async () => {
     setLoading(true);
-    
+
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
       actions.logout();
@@ -126,13 +113,9 @@ const LogoutButtonComponent = () => {
       setLoading(false);
     }
   };
-  
+
   return (
-    <button
-      onClick={handleLogout}
-      data-testid="logout-button"
-      disabled={loading}
-    >
+    <button onClick={handleLogout} data-testid='logout-button' disabled={loading}>
       {loading ? 'Logging out...' : 'Logout'}
     </button>
   );
@@ -148,7 +131,7 @@ describe('Authentication Flow Integration Tests', () => {
   describe('Initial Authentication State', () => {
     it('should render unauthenticated state by default', () => {
       renderWithoutAuth(<AuthStatusComponent />);
-      
+
       expect(screen.getByTestId('auth-status')).toHaveTextContent('not-authenticated');
       expect(screen.getByTestId('user-info')).toHaveTextContent('no-user');
       expect(screen.getByTestId('user-role')).toHaveTextContent('no-role');
@@ -156,7 +139,7 @@ describe('Authentication Flow Integration Tests', () => {
 
     it('should render authenticated state when user is pre-authenticated', () => {
       renderWithAuth(<AuthStatusComponent />);
-      
+
       expect(screen.getByTestId('auth-status')).toHaveTextContent('authenticated');
       expect(screen.getByTestId('user-info')).toHaveTextContent('test@medianest.com');
       expect(screen.getByTestId('user-role')).toHaveTextContent('user');
@@ -164,7 +147,7 @@ describe('Authentication Flow Integration Tests', () => {
 
     it('should render admin role correctly', () => {
       renderWithAuth(<AuthStatusComponent />, 'admin');
-      
+
       expect(screen.getByTestId('auth-status')).toHaveTextContent('authenticated');
       expect(screen.getByTestId('user-info')).toHaveTextContent('admin@medianest.com');
       expect(screen.getByTestId('user-role')).toHaveTextContent('admin');
@@ -177,7 +160,7 @@ describe('Authentication Flow Integration Tests', () => {
         <div>
           <LoginFormComponent />
           <AuthStatusComponent />
-        </div>
+        </div>,
       );
 
       // Initially not authenticated
@@ -186,7 +169,7 @@ describe('Authentication Flow Integration Tests', () => {
       // Fill in login form
       await user.type(screen.getByTestId('email-input'), 'test@medianest.com');
       await user.type(screen.getByTestId('password-input'), 'password123');
-      
+
       // Submit form
       await user.click(screen.getByTestId('login-button'));
 
@@ -195,14 +178,17 @@ describe('Authentication Flow Integration Tests', () => {
       expect(screen.getByTestId('login-button')).toBeDisabled();
 
       // Wait for authentication to complete
-      await waitFor(() => {
-        expect(screen.getByTestId('auth-status')).toHaveTextContent('authenticated');
-      }, { timeout: 3000 });
+      await waitFor(
+        () => {
+          expect(screen.getByTestId('auth-status')).toHaveTextContent('authenticated');
+        },
+        { timeout: 3000 },
+      );
 
       // Should show user info
       expect(screen.getByTestId('user-info')).toHaveTextContent('test@medianest.com');
       expect(screen.getByTestId('user-role')).toHaveTextContent('user');
-      
+
       // Token should be stored
       expect(localStorage.getItem('authToken')).toBeTruthy();
     });
@@ -218,9 +204,12 @@ describe('Authentication Flow Integration Tests', () => {
       expect(screen.getByTestId('login-button')).toHaveTextContent('Logging in...');
 
       // Wait for error to appear
-      await waitFor(() => {
-        expect(screen.getByTestId('login-error')).toBeInTheDocument();
-      }, { timeout: 3000 });
+      await waitFor(
+        () => {
+          expect(screen.getByTestId('login-error')).toBeInTheDocument();
+        },
+        { timeout: 3000 },
+      );
 
       expect(screen.getByTestId('login-error')).toHaveTextContent('Invalid credentials');
       expect(screen.getByTestId('login-button')).toHaveTextContent('Login');
@@ -234,9 +223,12 @@ describe('Authentication Flow Integration Tests', () => {
       await user.type(screen.getByTestId('password-input'), 'password');
       await user.click(screen.getByTestId('login-button'));
 
-      await waitFor(() => {
-        expect(screen.getByTestId('login-error')).toHaveTextContent('Network timeout');
-      }, { timeout: 3000 });
+      await waitFor(
+        () => {
+          expect(screen.getByTestId('login-error')).toHaveTextContent('Network timeout');
+        },
+        { timeout: 3000 },
+      );
     });
 
     it('should prevent multiple concurrent login attempts', async () => {
@@ -244,7 +236,7 @@ describe('Authentication Flow Integration Tests', () => {
 
       await user.type(screen.getByTestId('email-input'), 'test@medianest.com');
       await user.type(screen.getByTestId('password-input'), 'password123');
-      
+
       // Click login button multiple times quickly
       await user.click(screen.getByTestId('login-button'));
       await user.click(screen.getByTestId('login-button'));
@@ -262,7 +254,7 @@ describe('Authentication Flow Integration Tests', () => {
         <div>
           <LogoutButtonComponent />
           <AuthStatusComponent />
-        </div>
+        </div>,
       );
 
       // Initially authenticated
@@ -288,18 +280,15 @@ describe('Authentication Flow Integration Tests', () => {
       // Mock logout endpoint to fail
       mswServer.use(
         http.post('/api/auth/logout', () => {
-          return HttpResponse.json(
-            { message: 'Server error' },
-            { status: 500 }
-          );
-        })
+          return HttpResponse.json({ message: 'Server error' }, { status: 500 });
+        }),
       );
 
       const { user } = renderWithAuth(
         <div>
           <LogoutButtonComponent />
           <AuthStatusComponent />
-        </div>
+        </div>,
       );
 
       // Click logout
@@ -319,26 +308,26 @@ describe('Authentication Flow Integration Tests', () => {
       const { actions } = useApp();
       const [refreshing, setRefreshing] = React.useState(false);
       const [error, setError] = React.useState<string | null>(null);
-      
+
       const handleRefresh = async () => {
         setRefreshing(true);
         setError(null);
-        
+
         try {
           const token = localStorage.getItem('authToken');
           const response = await fetch('/api/auth/refresh', {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${token}`,
+              Authorization: `Bearer ${token}`,
               'Content-Type': 'application/json',
             },
           });
-          
+
           if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.message);
           }
-          
+
           const data = await response.json();
           actions.setUser(data.user);
           actions.setSession({
@@ -346,7 +335,7 @@ describe('Authentication Flow Integration Tests', () => {
             isAuthenticated: true,
             expiresAt: new Date(data.expiresAt),
           });
-          
+
           localStorage.setItem('authToken', data.token);
         } catch (err: any) {
           setError(err.message);
@@ -355,18 +344,14 @@ describe('Authentication Flow Integration Tests', () => {
           setRefreshing(false);
         }
       };
-      
+
       return (
         <div>
-          <button
-            onClick={handleRefresh}
-            data-testid="refresh-button"
-            disabled={refreshing}
-          >
+          <button onClick={handleRefresh} data-testid='refresh-button' disabled={refreshing}>
             {refreshing ? 'Refreshing...' : 'Refresh Token'}
           </button>
           {error && (
-            <div data-testid="refresh-error" role="alert">
+            <div data-testid='refresh-error' role='alert'>
               {error}
             </div>
           )}
@@ -376,12 +361,12 @@ describe('Authentication Flow Integration Tests', () => {
 
     it('should handle successful token refresh', async () => {
       localStorage.setItem('authToken', 'existing-token');
-      
+
       const { user } = renderWithAuth(
         <div>
           <TokenRefreshComponent />
           <AuthStatusComponent />
-        </div>
+        </div>,
       );
 
       // Should be authenticated initially
@@ -405,12 +390,12 @@ describe('Authentication Flow Integration Tests', () => {
 
     it('should handle invalid token during refresh', async () => {
       localStorage.setItem('authToken', 'invalid-token');
-      
+
       const { user } = renderWithAuth(
         <div>
           <TokenRefreshComponent />
           <AuthStatusComponent />
-        </div>
+        </div>,
       );
 
       // Click refresh with invalid token
@@ -430,7 +415,7 @@ describe('Authentication Flow Integration Tests', () => {
     it('should handle expired session tokens', async () => {
       // Create an expired session
       const expiredDate = new Date(Date.now() - 3600000); // 1 hour ago
-      
+
       const { rerender } = renderWithAuth(<AuthStatusComponent />, 'user', {
         initialAppState: {
           session: {
@@ -447,12 +432,12 @@ describe('Authentication Flow Integration Tests', () => {
 
     it('should maintain session state across component re-renders', () => {
       const { rerender } = renderWithAuth(<AuthStatusComponent />);
-      
+
       expect(screen.getByTestId('auth-status')).toHaveTextContent('authenticated');
-      
+
       // Re-render component
       rerender(<AuthStatusComponent />);
-      
+
       // Should maintain authentication state
       expect(screen.getByTestId('auth-status')).toHaveTextContent('authenticated');
       expect(screen.getByTestId('user-info')).toHaveTextContent('test@medianest.com');
@@ -464,11 +449,8 @@ describe('Authentication Flow Integration Tests', () => {
       // Mock all auth endpoints to fail
       mswServer.use(
         http.post('/api/auth/login', () => {
-          return HttpResponse.json(
-            { message: 'Service temporarily unavailable' },
-            { status: 503 }
-          );
-        })
+          return HttpResponse.json({ message: 'Service temporarily unavailable' }, { status: 503 });
+        }),
       );
 
       const { user } = renderWithoutAuth(<LoginFormComponent />);
@@ -479,7 +461,7 @@ describe('Authentication Flow Integration Tests', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('login-error')).toHaveTextContent(
-          'Service temporarily unavailable'
+          'Service temporarily unavailable',
         );
       });
 
@@ -492,7 +474,7 @@ describe('Authentication Flow Integration Tests', () => {
         <div>
           <LoginFormComponent />
           <AuthStatusComponent />
-        </div>
+        </div>,
       );
 
       // Start login process
@@ -501,9 +483,12 @@ describe('Authentication Flow Integration Tests', () => {
       await user.click(screen.getByTestId('login-button'));
 
       // Should handle rapid state changes correctly
-      await waitFor(() => {
-        expect(screen.getByTestId('auth-status')).toHaveTextContent('authenticated');
-      }, { timeout: 3000 });
+      await waitFor(
+        () => {
+          expect(screen.getByTestId('auth-status')).toHaveTextContent('authenticated');
+        },
+        { timeout: 3000 },
+      );
     });
   });
 });

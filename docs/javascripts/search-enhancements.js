@@ -3,333 +3,335 @@
  * Enhanced search functionality with filtering, suggestions, and smart features
  */
 
-(function() {
-    'use strict';
+(function () {
+  'use strict';
 
-    class AdvancedSearch {
-        constructor() {
-            this.searchInput = null;
-            this.searchResults = null;
-            this.searchOverlay = null;
-            this.searchHistory = [];
-            this.searchSuggestions = [];
-            this.filters = new Map();
-            this.searchIndex = new Map();
-            this.init();
+  class AdvancedSearch {
+    constructor() {
+      this.searchInput = null;
+      this.searchResults = null;
+      this.searchOverlay = null;
+      this.searchHistory = [];
+      this.searchSuggestions = [];
+      this.filters = new Map();
+      this.searchIndex = new Map();
+      this.init();
+    }
+
+    init() {
+      document.addEventListener('DOMContentLoaded', () => {
+        this.initializeElements();
+        this.setupSearchEnhancements();
+        this.loadSearchData();
+        this.setupKeyboardShortcuts();
+        this.setupSearchFilters();
+        this.setupSmartSuggestions();
+      });
+    }
+
+    initializeElements() {
+      this.searchInput = document.querySelector('.md-search__input');
+      this.searchResults = document.querySelector('.md-search-result');
+      this.searchOverlay = document.querySelector('.md-search__overlay');
+
+      if (!this.searchInput) {
+        console.warn('Search input not found');
+        return;
+      }
+    }
+
+    setupSearchEnhancements() {
+      // Enhanced search input with real-time suggestions
+      this.searchInput.addEventListener(
+        'input',
+        this.debounce((e) => {
+          this.handleSearchInput(e.target.value);
+        }, 150),
+      );
+
+      // Search history navigation
+      this.searchInput.addEventListener('keydown', (e) => {
+        this.handleKeyNavigation(e);
+      });
+
+      // Focus enhancements
+      this.searchInput.addEventListener('focus', () => {
+        this.showSearchEnhancements();
+      });
+
+      this.searchInput.addEventListener('blur', () => {
+        setTimeout(() => this.hideSearchEnhancements(), 150);
+      });
+    }
+
+    setupKeyboardShortcuts() {
+      document.addEventListener('keydown', (e) => {
+        // Ctrl/Cmd + K to focus search
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+          e.preventDefault();
+          this.focusSearch();
         }
 
-        init() {
-            document.addEventListener('DOMContentLoaded', () => {
-                this.initializeElements();
-                this.setupSearchEnhancements();
-                this.loadSearchData();
-                this.setupKeyboardShortcuts();
-                this.setupSearchFilters();
-                this.setupSmartSuggestions();
-            });
+        // Escape to close search
+        if (e.key === 'Escape' && document.activeElement === this.searchInput) {
+          this.clearSearch();
         }
 
-        initializeElements() {
-            this.searchInput = document.querySelector('.md-search__input');
-            this.searchResults = document.querySelector('.md-search-result');
-            this.searchOverlay = document.querySelector('.md-search__overlay');
-            
-            if (!this.searchInput) {
-                console.warn('Search input not found');
-                return;
-            }
+        // Ctrl/Cmd + / for search shortcuts
+        if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+          e.preventDefault();
+          this.showSearchShortcuts();
         }
+      });
+    }
 
-        setupSearchEnhancements() {
-            // Enhanced search input with real-time suggestions
-            this.searchInput.addEventListener('input', this.debounce((e) => {
-                this.handleSearchInput(e.target.value);
-            }, 150));
+    setupSearchFilters() {
+      this.filters.set('type', {
+        api: 'API Documentation',
+        guide: 'User Guides',
+        tutorial: 'Tutorials',
+        reference: 'Reference',
+        example: 'Examples',
+      });
 
-            // Search history navigation
-            this.searchInput.addEventListener('keydown', (e) => {
-                this.handleKeyNavigation(e);
-            });
+      this.filters.set('category', {
+        setup: 'Setup & Installation',
+        config: 'Configuration',
+        security: 'Security',
+        performance: 'Performance',
+        troubleshooting: 'Troubleshooting',
+      });
 
-            // Focus enhancements
-            this.searchInput.addEventListener('focus', () => {
-                this.showSearchEnhancements();
-            });
+      this.filters.set('difficulty', {
+        beginner: 'Beginner',
+        intermediate: 'Intermediate',
+        advanced: 'Advanced',
+      });
+    }
 
-            this.searchInput.addEventListener('blur', () => {
-                setTimeout(() => this.hideSearchEnhancements(), 150);
-            });
+    setupSmartSuggestions() {
+      this.searchSuggestions = [
+        // Common search terms
+        'Docker installation',
+        'API authentication',
+        'Plex integration setup',
+        'Database configuration',
+        'Environment variables',
+        'Security settings',
+        'Performance optimization',
+        'Troubleshooting guide',
+        'User management',
+        'File organization',
+
+        // API endpoints
+        'GET /api/media',
+        'POST /api/auth/login',
+        'GET /api/dashboard',
+        'GET /api/plex/libraries',
+        'PUT /api/users/{id}',
+
+        // Configuration examples
+        'docker-compose.yml',
+        '.env configuration',
+        'nginx setup',
+        'ssl certificate',
+        'backup strategy',
+
+        // Error messages
+        '403 forbidden',
+        '500 internal server error',
+        'connection refused',
+        'database connection error',
+        'authentication failed',
+      ];
+    }
+
+    handleSearchInput(query) {
+      if (query.length === 0) {
+        this.showDefaultSuggestions();
+        return;
+      }
+
+      if (query.length < 2) {
+        this.showQuickSuggestions(query);
+        return;
+      }
+
+      // Save to search history
+      this.addToSearchHistory(query);
+
+      // Parse search query for filters
+      const parsedQuery = this.parseSearchQuery(query);
+
+      // Show filtered suggestions
+      this.showFilteredSuggestions(parsedQuery);
+
+      // Trigger smart search
+      this.performSmartSearch(parsedQuery);
+    }
+
+    parseSearchQuery(query) {
+      const filters = {};
+      let cleanQuery = query;
+
+      // Parse filter syntax: type:api, category:setup, etc.
+      const filterPattern = /(\w+):(\w+)/g;
+      let match;
+
+      while ((match = filterPattern.exec(query)) !== null) {
+        const [fullMatch, filterType, filterValue] = match;
+        filters[filterType] = filterValue;
+        cleanQuery = cleanQuery.replace(fullMatch, '').trim();
+      }
+
+      return {
+        query: cleanQuery,
+        filters: filters,
+        original: query,
+      };
+    }
+
+    performSmartSearch(parsedQuery) {
+      // Enhanced search with context awareness
+      const results = this.searchWithContext(parsedQuery);
+      this.displayEnhancedResults(results);
+    }
+
+    searchWithContext(parsedQuery) {
+      const { query, filters } = parsedQuery;
+      const results = [];
+
+      // Search through indexed content
+      for (const [content, metadata] of this.searchIndex) {
+        const score = this.calculateRelevanceScore(content, metadata, query, filters);
+        if (score > 0) {
+          results.push({
+            content,
+            metadata,
+            score,
+            highlights: this.generateHighlights(content, query),
+          });
         }
+      }
 
-        setupKeyboardShortcuts() {
-            document.addEventListener('keydown', (e) => {
-                // Ctrl/Cmd + K to focus search
-                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                    e.preventDefault();
-                    this.focusSearch();
-                }
-                
-                // Escape to close search
-                if (e.key === 'Escape' && document.activeElement === this.searchInput) {
-                    this.clearSearch();
-                }
-                
-                // Ctrl/Cmd + / for search shortcuts
-                if ((e.ctrlKey || e.metaKey) && e.key === '/') {
-                    e.preventDefault();
-                    this.showSearchShortcuts();
-                }
-            });
+      // Sort by relevance score
+      return results.sort((a, b) => b.score - a.score);
+    }
+
+    calculateRelevanceScore(content, metadata, query, filters) {
+      let score = 0;
+      const queryLower = query.toLowerCase();
+      const contentLower = content.toLowerCase();
+
+      // Exact phrase match
+      if (contentLower.includes(queryLower)) {
+        score += 100;
+      }
+
+      // Title match bonus
+      if (metadata.title && metadata.title.toLowerCase().includes(queryLower)) {
+        score += 50;
+      }
+
+      // Word matches
+      const queryWords = queryLower.split(/\s+/);
+      queryWords.forEach((word) => {
+        if (word.length > 2 && contentLower.includes(word)) {
+          score += 10;
         }
+      });
 
-        setupSearchFilters() {
-            this.filters.set('type', {
-                api: 'API Documentation',
-                guide: 'User Guides',
-                tutorial: 'Tutorials',
-                reference: 'Reference',
-                example: 'Examples'
-            });
-
-            this.filters.set('category', {
-                setup: 'Setup & Installation',
-                config: 'Configuration',
-                security: 'Security',
-                performance: 'Performance',
-                troubleshooting: 'Troubleshooting'
-            });
-
-            this.filters.set('difficulty', {
-                beginner: 'Beginner',
-                intermediate: 'Intermediate',
-                advanced: 'Advanced'
-            });
+      // Filter matches
+      Object.entries(filters).forEach(([filterType, filterValue]) => {
+        if (metadata[filterType] === filterValue) {
+          score += 25;
         }
+      });
 
-        setupSmartSuggestions() {
-            this.searchSuggestions = [
-                // Common search terms
-                'Docker installation',
-                'API authentication',
-                'Plex integration setup',
-                'Database configuration',
-                'Environment variables',
-                'Security settings',
-                'Performance optimization',
-                'Troubleshooting guide',
-                'User management',
-                'File organization',
-                
-                // API endpoints
-                'GET /api/media',
-                'POST /api/auth/login',
-                'GET /api/dashboard',
-                'GET /api/plex/libraries',
-                'PUT /api/users/{id}',
-                
-                // Configuration examples
-                'docker-compose.yml',
-                '.env configuration',
-                'nginx setup',
-                'ssl certificate',
-                'backup strategy',
-                
-                // Error messages
-                '403 forbidden',
-                '500 internal server error',
-                'connection refused',
-                'database connection error',
-                'authentication failed'
-            ];
+      // Freshness bonus
+      if (metadata.lastModified) {
+        const daysSinceModified =
+          (Date.now() - new Date(metadata.lastModified)) / (1000 * 60 * 60 * 24);
+        if (daysSinceModified < 30) {
+          score += 5;
         }
+      }
 
-        handleSearchInput(query) {
-            if (query.length === 0) {
-                this.showDefaultSuggestions();
-                return;
-            }
+      return score;
+    }
 
-            if (query.length < 2) {
-                this.showQuickSuggestions(query);
-                return;
-            }
+    generateHighlights(content, query) {
+      const queryWords = query.toLowerCase().split(/\s+/);
+      let highlighted = content;
 
-            // Save to search history
-            this.addToSearchHistory(query);
-
-            // Parse search query for filters
-            const parsedQuery = this.parseSearchQuery(query);
-            
-            // Show filtered suggestions
-            this.showFilteredSuggestions(parsedQuery);
-            
-            // Trigger smart search
-            this.performSmartSearch(parsedQuery);
+      queryWords.forEach((word) => {
+        if (word.length > 2) {
+          const regex = new RegExp(`(${word})`, 'gi');
+          highlighted = highlighted.replace(regex, '<mark>$1</mark>');
         }
+      });
 
-        parseSearchQuery(query) {
-            const filters = {};
-            let cleanQuery = query;
+      return highlighted;
+    }
 
-            // Parse filter syntax: type:api, category:setup, etc.
-            const filterPattern = /(\w+):(\w+)/g;
-            let match;
-            
-            while ((match = filterPattern.exec(query)) !== null) {
-                const [fullMatch, filterType, filterValue] = match;
-                filters[filterType] = filterValue;
-                cleanQuery = cleanQuery.replace(fullMatch, '').trim();
-            }
+    showDefaultSuggestions() {
+      const suggestions = [
+        ...this.getRecentSearches(),
+        ...this.getPopularSearches(),
+        ...this.getQuickLinks(),
+      ];
 
-            return {
-                query: cleanQuery,
-                filters: filters,
-                original: query
-            };
-        }
+      this.displaySuggestions(suggestions, 'Recent & Popular');
+    }
 
-        performSmartSearch(parsedQuery) {
-            // Enhanced search with context awareness
-            const results = this.searchWithContext(parsedQuery);
-            this.displayEnhancedResults(results);
-        }
+    showQuickSuggestions(query) {
+      const quickSuggestions = this.searchSuggestions
+        .filter((suggestion) => suggestion.toLowerCase().startsWith(query.toLowerCase()))
+        .slice(0, 8);
 
-        searchWithContext(parsedQuery) {
-            const { query, filters } = parsedQuery;
-            const results = [];
+      this.displaySuggestions(quickSuggestions, 'Quick Suggestions');
+    }
 
-            // Search through indexed content
-            for (const [content, metadata] of this.searchIndex) {
-                const score = this.calculateRelevanceScore(content, metadata, query, filters);
-                if (score > 0) {
-                    results.push({
-                        content,
-                        metadata,
-                        score,
-                        highlights: this.generateHighlights(content, query)
-                    });
-                }
-            }
+    showFilteredSuggestions(parsedQuery) {
+      const { query, filters } = parsedQuery;
 
-            // Sort by relevance score
-            return results.sort((a, b) => b.score - a.score);
-        }
+      if (Object.keys(filters).length > 0) {
+        this.showFilterChips(filters);
+      }
 
-        calculateRelevanceScore(content, metadata, query, filters) {
-            let score = 0;
-            const queryLower = query.toLowerCase();
-            const contentLower = content.toLowerCase();
+      const suggestions = this.searchSuggestions
+        .filter((suggestion) => {
+          const suggestionLower = suggestion.toLowerCase();
+          const queryLower = query.toLowerCase();
 
-            // Exact phrase match
-            if (contentLower.includes(queryLower)) {
-                score += 100;
-            }
+          return (
+            suggestionLower.includes(queryLower) ||
+            queryLower.split(' ').some((word) => word.length > 2 && suggestionLower.includes(word))
+          );
+        })
+        .slice(0, 6);
 
-            // Title match bonus
-            if (metadata.title && metadata.title.toLowerCase().includes(queryLower)) {
-                score += 50;
-            }
+      this.displaySuggestions(suggestions, 'Suggestions');
+    }
 
-            // Word matches
-            const queryWords = queryLower.split(/\s+/);
-            queryWords.forEach(word => {
-                if (word.length > 2 && contentLower.includes(word)) {
-                    score += 10;
-                }
-            });
+    showFilterChips(filters) {
+      const chipsContainer = this.getOrCreateChipsContainer();
+      chipsContainer.innerHTML = '';
 
-            // Filter matches
-            Object.entries(filters).forEach(([filterType, filterValue]) => {
-                if (metadata[filterType] === filterValue) {
-                    score += 25;
-                }
-            });
+      Object.entries(filters).forEach(([filterType, filterValue]) => {
+        const chip = this.createFilterChip(filterType, filterValue);
+        chipsContainer.appendChild(chip);
+      });
+    }
 
-            // Freshness bonus
-            if (metadata.lastModified) {
-                const daysSinceModified = (Date.now() - new Date(metadata.lastModified)) / (1000 * 60 * 60 * 24);
-                if (daysSinceModified < 30) {
-                    score += 5;
-                }
-            }
-
-            return score;
-        }
-
-        generateHighlights(content, query) {
-            const queryWords = query.toLowerCase().split(/\s+/);
-            let highlighted = content;
-
-            queryWords.forEach(word => {
-                if (word.length > 2) {
-                    const regex = new RegExp(`(${word})`, 'gi');
-                    highlighted = highlighted.replace(regex, '<mark>$1</mark>');
-                }
-            });
-
-            return highlighted;
-        }
-
-        showDefaultSuggestions() {
-            const suggestions = [
-                ...this.getRecentSearches(),
-                ...this.getPopularSearches(),
-                ...this.getQuickLinks()
-            ];
-
-            this.displaySuggestions(suggestions, 'Recent & Popular');
-        }
-
-        showQuickSuggestions(query) {
-            const quickSuggestions = this.searchSuggestions
-                .filter(suggestion => 
-                    suggestion.toLowerCase().startsWith(query.toLowerCase())
-                )
-                .slice(0, 8);
-
-            this.displaySuggestions(quickSuggestions, 'Quick Suggestions');
-        }
-
-        showFilteredSuggestions(parsedQuery) {
-            const { query, filters } = parsedQuery;
-            
-            if (Object.keys(filters).length > 0) {
-                this.showFilterChips(filters);
-            }
-
-            const suggestions = this.searchSuggestions
-                .filter(suggestion => {
-                    const suggestionLower = suggestion.toLowerCase();
-                    const queryLower = query.toLowerCase();
-                    
-                    return suggestionLower.includes(queryLower) || 
-                           queryLower.split(' ').some(word => 
-                               word.length > 2 && suggestionLower.includes(word)
-                           );
-                })
-                .slice(0, 6);
-
-            this.displaySuggestions(suggestions, 'Suggestions');
-        }
-
-        showFilterChips(filters) {
-            const chipsContainer = this.getOrCreateChipsContainer();
-            chipsContainer.innerHTML = '';
-
-            Object.entries(filters).forEach(([filterType, filterValue]) => {
-                const chip = this.createFilterChip(filterType, filterValue);
-                chipsContainer.appendChild(chip);
-            });
-        }
-
-        createFilterChip(filterType, filterValue) {
-            const chip = document.createElement('span');
-            chip.className = 'search-filter-chip';
-            chip.innerHTML = `
+    createFilterChip(filterType, filterValue) {
+      const chip = document.createElement('span');
+      chip.className = 'search-filter-chip';
+      chip.innerHTML = `
                 ${filterType}:${filterValue}
                 <button onclick="this.parentNode.remove()" aria-label="Remove filter">✕</button>
             `;
-            chip.style.cssText = `
+      chip.style.cssText = `
                 display: inline-flex;
                 align-items: center;
                 gap: 0.25rem;
@@ -342,58 +344,62 @@
                 font-weight: 500;
             `;
 
-            return chip;
-        }
+      return chip;
+    }
 
-        getOrCreateChipsContainer() {
-            let container = document.querySelector('.search-filter-chips');
-            if (!container) {
-                container = document.createElement('div');
-                container.className = 'search-filter-chips';
-                container.style.cssText = `
+    getOrCreateChipsContainer() {
+      let container = document.querySelector('.search-filter-chips');
+      if (!container) {
+        container = document.createElement('div');
+        container.className = 'search-filter-chips';
+        container.style.cssText = `
                     padding: 0.5rem;
                     border-bottom: 1px solid var(--md-default-fg-color--lightest);
                 `;
-                
-                const searchForm = this.searchInput.closest('.md-search__form');
-                if (searchForm) {
-                    searchForm.appendChild(container);
-                }
-            }
-            return container;
-        }
 
-        displaySuggestions(suggestions, title) {
-            const container = this.getOrCreateSuggestionsContainer();
-            
-            container.innerHTML = `
+        const searchForm = this.searchInput.closest('.md-search__form');
+        if (searchForm) {
+          searchForm.appendChild(container);
+        }
+      }
+      return container;
+    }
+
+    displaySuggestions(suggestions, title) {
+      const container = this.getOrCreateSuggestionsContainer();
+
+      container.innerHTML = `
                 <div class="search-suggestions-header">
                     <h4>${title}</h4>
                 </div>
                 <div class="search-suggestions-list">
-                    ${suggestions.map(suggestion => `
+                    ${suggestions
+                      .map(
+                        (suggestion) => `
                         <div class="search-suggestion-item" data-suggestion="${suggestion}">
                             <span class="suggestion-text">${suggestion}</span>
                             <span class="suggestion-action">↵</span>
                         </div>
-                    `).join('')}
+                    `,
+                      )
+                      .join('')}
                 </div>
             `;
 
-            // Add click handlers
-            container.querySelectorAll('.search-suggestion-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    this.selectSuggestion(item.getAttribute('data-suggestion'));
-                });
-            });
-        }
+      // Add click handlers
+      container.querySelectorAll('.search-suggestion-item').forEach((item) => {
+        item.addEventListener('click', () => {
+          this.selectSuggestion(item.getAttribute('data-suggestion'));
+        });
+      });
+    }
 
-        getOrCreateSuggestionsContainer() {
-            let container = document.querySelector('.search-suggestions-container');
-            if (!container) {
-                container = document.createElement('div');
-                container.className = 'search-suggestions-container';
-                container.style.cssText = `
+    getOrCreateSuggestionsContainer() {
+      let container = document.querySelector('.search-suggestions-container');
+      if (!container) {
+        container = document.createElement('div');
+        container.className = 'search-suggestions-container';
+        container.style.cssText = `
                     position: absolute;
                     top: 100%;
                     left: 0;
@@ -408,157 +414,157 @@
                     overflow-y: auto;
                 `;
 
-                const searchForm = this.searchInput.closest('.md-search__form');
-                if (searchForm) {
-                    searchForm.style.position = 'relative';
-                    searchForm.appendChild(container);
-                }
-            }
-            return container;
+        const searchForm = this.searchInput.closest('.md-search__form');
+        if (searchForm) {
+          searchForm.style.position = 'relative';
+          searchForm.appendChild(container);
         }
+      }
+      return container;
+    }
 
-        selectSuggestion(suggestion) {
-            this.searchInput.value = suggestion;
-            this.searchInput.dispatchEvent(new Event('input'));
-            this.searchInput.focus();
-            this.hideSearchEnhancements();
-        }
+    selectSuggestion(suggestion) {
+      this.searchInput.value = suggestion;
+      this.searchInput.dispatchEvent(new Event('input'));
+      this.searchInput.focus();
+      this.hideSearchEnhancements();
+    }
 
-        showSearchEnhancements() {
-            const container = this.getOrCreateSuggestionsContainer();
-            container.style.display = 'block';
-            
-            if (this.searchInput.value.length === 0) {
-                this.showDefaultSuggestions();
-            }
-        }
+    showSearchEnhancements() {
+      const container = this.getOrCreateSuggestionsContainer();
+      container.style.display = 'block';
 
-        hideSearchEnhancements() {
-            const container = document.querySelector('.search-suggestions-container');
-            if (container) {
-                container.style.display = 'none';
-            }
-        }
+      if (this.searchInput.value.length === 0) {
+        this.showDefaultSuggestions();
+      }
+    }
 
-        focusSearch() {
-            if (this.searchInput) {
-                this.searchInput.focus();
-                this.searchInput.select();
-                this.showSearchEnhancements();
-            }
-        }
+    hideSearchEnhancements() {
+      const container = document.querySelector('.search-suggestions-container');
+      if (container) {
+        container.style.display = 'none';
+      }
+    }
 
-        clearSearch() {
-            if (this.searchInput) {
-                this.searchInput.value = '';
-                this.searchInput.blur();
-                this.hideSearchEnhancements();
-            }
-        }
+    focusSearch() {
+      if (this.searchInput) {
+        this.searchInput.focus();
+        this.searchInput.select();
+        this.showSearchEnhancements();
+      }
+    }
 
-        handleKeyNavigation(e) {
-            const suggestions = document.querySelectorAll('.search-suggestion-item');
-            const activeSuggestion = document.querySelector('.search-suggestion-item.active');
-            
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                this.navigateSuggestions(suggestions, activeSuggestion, 1);
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                this.navigateSuggestions(suggestions, activeSuggestion, -1);
-            } else if (e.key === 'Enter' && activeSuggestion) {
-                e.preventDefault();
-                this.selectSuggestion(activeSuggestion.getAttribute('data-suggestion'));
-            } else if (e.key === 'Tab' && suggestions.length > 0) {
-                e.preventDefault();
-                this.selectSuggestion(suggestions[0].getAttribute('data-suggestion'));
-            }
-        }
+    clearSearch() {
+      if (this.searchInput) {
+        this.searchInput.value = '';
+        this.searchInput.blur();
+        this.hideSearchEnhancements();
+      }
+    }
 
-        navigateSuggestions(suggestions, activeSuggestion, direction) {
-            if (suggestions.length === 0) return;
+    handleKeyNavigation(e) {
+      const suggestions = document.querySelectorAll('.search-suggestion-item');
+      const activeSuggestion = document.querySelector('.search-suggestion-item.active');
 
-            // Remove current active state
-            if (activeSuggestion) {
-                activeSuggestion.classList.remove('active');
-            }
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        this.navigateSuggestions(suggestions, activeSuggestion, 1);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        this.navigateSuggestions(suggestions, activeSuggestion, -1);
+      } else if (e.key === 'Enter' && activeSuggestion) {
+        e.preventDefault();
+        this.selectSuggestion(activeSuggestion.getAttribute('data-suggestion'));
+      } else if (e.key === 'Tab' && suggestions.length > 0) {
+        e.preventDefault();
+        this.selectSuggestion(suggestions[0].getAttribute('data-suggestion'));
+      }
+    }
 
-            // Find next suggestion
-            let nextIndex = 0;
-            if (activeSuggestion) {
-                const currentIndex = Array.from(suggestions).indexOf(activeSuggestion);
-                nextIndex = (currentIndex + direction + suggestions.length) % suggestions.length;
-            }
+    navigateSuggestions(suggestions, activeSuggestion, direction) {
+      if (suggestions.length === 0) return;
 
-            // Activate next suggestion
-            suggestions[nextIndex].classList.add('active');
-            suggestions[nextIndex].scrollIntoView({ block: 'nearest' });
-        }
+      // Remove current active state
+      if (activeSuggestion) {
+        activeSuggestion.classList.remove('active');
+      }
 
-        addToSearchHistory(query) {
-            if (query.length < 3) return;
+      // Find next suggestion
+      let nextIndex = 0;
+      if (activeSuggestion) {
+        const currentIndex = Array.from(suggestions).indexOf(activeSuggestion);
+        nextIndex = (currentIndex + direction + suggestions.length) % suggestions.length;
+      }
 
-            // Remove if already exists
-            this.searchHistory = this.searchHistory.filter(item => item.query !== query);
-            
-            // Add to beginning
-            this.searchHistory.unshift({
-                query: query,
-                timestamp: Date.now()
-            });
+      // Activate next suggestion
+      suggestions[nextIndex].classList.add('active');
+      suggestions[nextIndex].scrollIntoView({ block: 'nearest' });
+    }
 
-            // Keep only last 20 searches
-            this.searchHistory = this.searchHistory.slice(0, 20);
+    addToSearchHistory(query) {
+      if (query.length < 3) return;
 
-            // Save to localStorage
-            try {
-                localStorage.setItem('medianest-search-history', JSON.stringify(this.searchHistory));
-            } catch (e) {
-                console.warn('Could not save search history:', e);
-            }
-        }
+      // Remove if already exists
+      this.searchHistory = this.searchHistory.filter((item) => item.query !== query);
 
-        getRecentSearches() {
-            try {
-                const saved = localStorage.getItem('medianest-search-history');
-                this.searchHistory = saved ? JSON.parse(saved) : [];
-                return this.searchHistory.slice(0, 5).map(item => item.query);
-            } catch (e) {
-                console.warn('Could not load search history:', e);
-                return [];
-            }
-        }
+      // Add to beginning
+      this.searchHistory.unshift({
+        query: query,
+        timestamp: Date.now(),
+      });
 
-        getPopularSearches() {
-            // In production, this would come from analytics
-            return [
-                'Docker setup',
-                'API authentication',
-                'Plex integration',
-                'Environment configuration',
-                'User management'
-            ];
-        }
+      // Keep only last 20 searches
+      this.searchHistory = this.searchHistory.slice(0, 20);
 
-        getQuickLinks() {
-            return [
-                'Getting Started',
-                'API Reference',
-                'Installation Guide',
-                'Configuration',
-                'Troubleshooting'
-            ];
-        }
+      // Save to localStorage
+      try {
+        localStorage.setItem('medianest-search-history', JSON.stringify(this.searchHistory));
+      } catch (e) {
+        console.warn('Could not save search history:', e);
+      }
+    }
 
-        showSearchShortcuts() {
-            const modal = this.createShortcutsModal();
-            document.body.appendChild(modal);
-        }
+    getRecentSearches() {
+      try {
+        const saved = localStorage.getItem('medianest-search-history');
+        this.searchHistory = saved ? JSON.parse(saved) : [];
+        return this.searchHistory.slice(0, 5).map((item) => item.query);
+      } catch (e) {
+        console.warn('Could not load search history:', e);
+        return [];
+      }
+    }
 
-        createShortcutsModal() {
-            const modal = document.createElement('div');
-            modal.className = 'search-shortcuts-modal';
-            modal.style.cssText = `
+    getPopularSearches() {
+      // In production, this would come from analytics
+      return [
+        'Docker setup',
+        'API authentication',
+        'Plex integration',
+        'Environment configuration',
+        'User management',
+      ];
+    }
+
+    getQuickLinks() {
+      return [
+        'Getting Started',
+        'API Reference',
+        'Installation Guide',
+        'Configuration',
+        'Troubleshooting',
+      ];
+    }
+
+    showSearchShortcuts() {
+      const modal = this.createShortcutsModal();
+      document.body.appendChild(modal);
+    }
+
+    createShortcutsModal() {
+      const modal = document.createElement('div');
+      modal.className = 'search-shortcuts-modal';
+      modal.style.cssText = `
                 position: fixed;
                 top: 0;
                 left: 0;
@@ -571,8 +577,8 @@
                 z-index: 10000;
             `;
 
-            const content = document.createElement('div');
-            content.style.cssText = `
+      const content = document.createElement('div');
+      content.style.cssText = `
                 background: var(--md-default-bg-color);
                 padding: 2rem;
                 border-radius: 8px;
@@ -581,7 +587,7 @@
                 overflow-y: auto;
             `;
 
-            content.innerHTML = `
+      content.innerHTML = `
                 <h3>Search Shortcuts</h3>
                 <div class="shortcuts-list">
                     <div class="shortcut-item">
@@ -630,86 +636,86 @@
                 </button>
             `;
 
-            modal.appendChild(content);
+      modal.appendChild(content);
 
-            // Close on backdrop click
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    modal.remove();
-                }
-            });
-
-            return modal;
+      // Close on backdrop click
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.remove();
         }
+      });
 
-        loadSearchData() {
-            // In production, this would load search index from API
-            // For now, we'll extract from current page content
-            this.indexCurrentPage();
-        }
-
-        indexCurrentPage() {
-            const sections = document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, li');
-            sections.forEach(section => {
-                const content = section.textContent.trim();
-                if (content.length > 10) {
-                    this.searchIndex.set(content, {
-                        title: this.findSectionTitle(section),
-                        type: this.detectContentType(section),
-                        url: window.location.pathname,
-                        element: section
-                    });
-                }
-            });
-        }
-
-        findSectionTitle(element) {
-            let current = element;
-            while (current && current !== document.body) {
-                if (current.tagName && current.tagName.match(/^H[1-6]$/)) {
-                    return current.textContent.trim();
-                }
-                current = current.previousElementSibling || current.parentElement;
-            }
-            return document.title;
-        }
-
-        detectContentType(element) {
-            const text = element.textContent.toLowerCase();
-            
-            if (text.includes('api') || text.includes('endpoint')) return 'api';
-            if (text.includes('install') || text.includes('setup')) return 'setup';
-            if (text.includes('config') || text.includes('environment')) return 'config';
-            if (text.includes('example') || text.includes('sample')) return 'example';
-            if (text.includes('tutorial') || text.includes('walkthrough')) return 'tutorial';
-            
-            return 'guide';
-        }
-
-        displayEnhancedResults(results) {
-            // This would integrate with MkDocs Material's search results
-            // For now, we'll enhance the existing results display
-            if (results.length > 0) {
-                console.log('Enhanced search results:', results);
-            }
-        }
-
-        debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
+      return modal;
     }
 
-    // Add enhanced search styles
-    const style = document.createElement('style');
-    style.textContent = `
+    loadSearchData() {
+      // In production, this would load search index from API
+      // For now, we'll extract from current page content
+      this.indexCurrentPage();
+    }
+
+    indexCurrentPage() {
+      const sections = document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, li');
+      sections.forEach((section) => {
+        const content = section.textContent.trim();
+        if (content.length > 10) {
+          this.searchIndex.set(content, {
+            title: this.findSectionTitle(section),
+            type: this.detectContentType(section),
+            url: window.location.pathname,
+            element: section,
+          });
+        }
+      });
+    }
+
+    findSectionTitle(element) {
+      let current = element;
+      while (current && current !== document.body) {
+        if (current.tagName && current.tagName.match(/^H[1-6]$/)) {
+          return current.textContent.trim();
+        }
+        current = current.previousElementSibling || current.parentElement;
+      }
+      return document.title;
+    }
+
+    detectContentType(element) {
+      const text = element.textContent.toLowerCase();
+
+      if (text.includes('api') || text.includes('endpoint')) return 'api';
+      if (text.includes('install') || text.includes('setup')) return 'setup';
+      if (text.includes('config') || text.includes('environment')) return 'config';
+      if (text.includes('example') || text.includes('sample')) return 'example';
+      if (text.includes('tutorial') || text.includes('walkthrough')) return 'tutorial';
+
+      return 'guide';
+    }
+
+    displayEnhancedResults(results) {
+      // This would integrate with MkDocs Material's search results
+      // For now, we'll enhance the existing results display
+      if (results.length > 0) {
+        console.log('Enhanced search results:', results);
+      }
+    }
+
+    debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+  }
+
+  // Add enhanced search styles
+  const style = document.createElement('style');
+  style.textContent = `
         .search-suggestions-container {
             font-family: var(--md-text-font-family);
         }
@@ -809,13 +815,12 @@
             font-size: 0.75rem;
         }
     `;
-    document.head.appendChild(style);
+  document.head.appendChild(style);
 
-    // Initialize enhanced search
-    const advancedSearch = new AdvancedSearch();
-    
-    // Make available globally
-    window.MediaNestDocs = window.MediaNestDocs || {};
-    window.MediaNestDocs.advancedSearch = advancedSearch;
+  // Initialize enhanced search
+  const advancedSearch = new AdvancedSearch();
 
+  // Make available globally
+  window.MediaNestDocs = window.MediaNestDocs || {};
+  window.MediaNestDocs.advancedSearch = advancedSearch;
 })();

@@ -100,11 +100,11 @@ let authToken: string | null = null;
 const handlers = [
   // Authentication endpoints
   http.post('/api/auth/login', async ({ request }) => {
-    const body = await request.json() as { email: string; password: string };
-    
+    const body = (await request.json()) as { email: string; password: string };
+
     // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
     if (body.email === 'invalid@test.com') {
       return HttpResponse.json(
         {
@@ -112,10 +112,10 @@ const handlers = [
           code: 'AUTH_INVALID_CREDENTIALS',
           timestamp: new Date().toISOString(),
         } as ApiError,
-        { status: 401 }
+        { status: 401 },
       );
     }
-    
+
     if (body.email === 'network-error@test.com') {
       return HttpResponse.json(
         {
@@ -123,29 +123,29 @@ const handlers = [
           code: 'NETWORK_ERROR',
           timestamp: new Date().toISOString(),
         } as ApiError,
-        { status: 500 }
+        { status: 500 },
       );
     }
-    
-    const user = mockUsers.find(u => u.email === body.email) || mockUsers[0];
+
+    const user = mockUsers.find((u) => u.email === body.email) || mockUsers[0];
     authToken = `mock-token-${Date.now()}`;
     currentUser = user;
-    
+
     const response: AuthResponse = {
       user,
       token: authToken,
       refreshToken: `refresh-${authToken}`,
       expiresAt: new Date(Date.now() + 3600000).toISOString(), // 1 hour
     };
-    
+
     return HttpResponse.json(response);
   }),
 
   http.post('/api/auth/refresh', async ({ request }) => {
     const authHeader = request.headers.get('authorization');
-    
-    await new Promise(resolve => setTimeout(resolve, 200));
-    
+
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
     if (!authHeader || !authHeader.includes('Bearer')) {
       return HttpResponse.json(
         {
@@ -153,10 +153,10 @@ const handlers = [
           code: 'AUTH_INVALID_TOKEN',
           timestamp: new Date().toISOString(),
         } as ApiError,
-        { status: 401 }
+        { status: 401 },
       );
     }
-    
+
     if (!currentUser) {
       return HttpResponse.json(
         {
@@ -164,36 +164,36 @@ const handlers = [
           code: 'AUTH_NO_SESSION',
           timestamp: new Date().toISOString(),
         } as ApiError,
-        { status: 401 }
+        { status: 401 },
       );
     }
-    
+
     authToken = `refreshed-token-${Date.now()}`;
-    
+
     const response: AuthResponse = {
       user: currentUser,
       token: authToken,
       refreshToken: `refresh-${authToken}`,
       expiresAt: new Date(Date.now() + 3600000).toISOString(),
     };
-    
+
     return HttpResponse.json(response);
   }),
 
   http.post('/api/auth/logout', async ({ request }) => {
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     currentUser = null;
     authToken = null;
-    
+
     return HttpResponse.json({ success: true });
   }),
 
   http.get('/api/auth/me', async ({ request }) => {
     const authHeader = request.headers.get('authorization');
-    
-    await new Promise(resolve => setTimeout(resolve, 150));
-    
+
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
     if (!authHeader || !authToken || !authHeader.includes(authToken)) {
       return HttpResponse.json(
         {
@@ -201,10 +201,10 @@ const handlers = [
           code: 'AUTH_UNAUTHORIZED',
           timestamp: new Date().toISOString(),
         } as ApiError,
-        { status: 401 }
+        { status: 401 },
       );
     }
-    
+
     if (!currentUser) {
       return HttpResponse.json(
         {
@@ -212,10 +212,10 @@ const handlers = [
           code: 'USER_NOT_FOUND',
           timestamp: new Date().toISOString(),
         } as ApiError,
-        { status: 404 }
+        { status: 404 },
       );
     }
-    
+
     return HttpResponse.json({ user: currentUser });
   }),
 
@@ -226,9 +226,9 @@ const handlers = [
     const status = url.searchParams.get('status');
     const page = parseInt(url.searchParams.get('page') || '1');
     const limit = parseInt(url.searchParams.get('limit') || '10');
-    
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
+
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
     if (!authHeader || !authToken || !authHeader.includes(authToken)) {
       return HttpResponse.json(
         {
@@ -236,20 +236,20 @@ const handlers = [
           code: 'AUTH_UNAUTHORIZED',
           timestamp: new Date().toISOString(),
         } as ApiError,
-        { status: 401 }
+        { status: 401 },
       );
     }
-    
+
     let filteredServices = [...mockServices];
-    
+
     if (status) {
-      filteredServices = filteredServices.filter(service => service.status === status);
+      filteredServices = filteredServices.filter((service) => service.status === status);
     }
-    
+
     // Simulate pagination
     const startIndex = (page - 1) * limit;
     const paginatedServices = filteredServices.slice(startIndex, startIndex + limit);
-    
+
     return HttpResponse.json({
       services: paginatedServices,
       pagination: {
@@ -264,9 +264,9 @@ const handlers = [
   http.get('/api/services/:id', async ({ params, request }) => {
     const authHeader = request.headers.get('authorization');
     const { id } = params;
-    
-    await new Promise(resolve => setTimeout(resolve, 200));
-    
+
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
     if (!authHeader || !authToken || !authHeader.includes(authToken)) {
       return HttpResponse.json(
         {
@@ -274,12 +274,12 @@ const handlers = [
           code: 'AUTH_UNAUTHORIZED',
           timestamp: new Date().toISOString(),
         } as ApiError,
-        { status: 401 }
+        { status: 401 },
       );
     }
-    
-    const service = mockServices.find(s => s.id === id);
-    
+
+    const service = mockServices.find((s) => s.id === id);
+
     if (!service) {
       return HttpResponse.json(
         {
@@ -287,19 +287,19 @@ const handlers = [
           code: 'SERVICE_NOT_FOUND',
           timestamp: new Date().toISOString(),
         } as ApiError,
-        { status: 404 }
+        { status: 404 },
       );
     }
-    
+
     return HttpResponse.json({ service });
   }),
 
   http.post('/api/services/:id/test', async ({ params, request }) => {
     const authHeader = request.headers.get('authorization');
     const { id } = params;
-    
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate longer test operation
-    
+
+    await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate longer test operation
+
     if (!authHeader || !authToken || !authHeader.includes(authToken)) {
       return HttpResponse.json(
         {
@@ -307,12 +307,12 @@ const handlers = [
           code: 'AUTH_UNAUTHORIZED',
           timestamp: new Date().toISOString(),
         } as ApiError,
-        { status: 401 }
+        { status: 401 },
       );
     }
-    
-    const service = mockServices.find(s => s.id === id);
-    
+
+    const service = mockServices.find((s) => s.id === id);
+
     if (!service) {
       return HttpResponse.json(
         {
@@ -320,10 +320,10 @@ const handlers = [
           code: 'SERVICE_NOT_FOUND',
           timestamp: new Date().toISOString(),
         } as ApiError,
-        { status: 404 }
+        { status: 404 },
       );
     }
-    
+
     // Simulate different test results based on service status
     if (service.status === 'error') {
       return HttpResponse.json(
@@ -333,10 +333,10 @@ const handlers = [
           details: { responseTime: null, error: 'Connection timeout after 5000ms' },
           timestamp: new Date().toISOString(),
         } as ApiError,
-        { status: 400 }
+        { status: 400 },
       );
     }
-    
+
     return HttpResponse.json({
       success: true,
       responseTime: Math.floor(Math.random() * 500) + 100,
@@ -348,10 +348,10 @@ const handlers = [
   http.put('/api/services/:id', async ({ params, request }) => {
     const authHeader = request.headers.get('authorization');
     const { id } = params;
-    const body = await request.json() as Partial<MediaService>;
-    
-    await new Promise(resolve => setTimeout(resolve, 400));
-    
+    const body = (await request.json()) as Partial<MediaService>;
+
+    await new Promise((resolve) => setTimeout(resolve, 400));
+
     if (!authHeader || !authToken || !authHeader.includes(authToken)) {
       return HttpResponse.json(
         {
@@ -359,12 +359,12 @@ const handlers = [
           code: 'AUTH_UNAUTHORIZED',
           timestamp: new Date().toISOString(),
         } as ApiError,
-        { status: 401 }
+        { status: 401 },
       );
     }
-    
-    const serviceIndex = mockServices.findIndex(s => s.id === id);
-    
+
+    const serviceIndex = mockServices.findIndex((s) => s.id === id);
+
     if (serviceIndex === -1) {
       return HttpResponse.json(
         {
@@ -372,24 +372,24 @@ const handlers = [
           code: 'SERVICE_NOT_FOUND',
           timestamp: new Date().toISOString(),
         } as ApiError,
-        { status: 404 }
+        { status: 404 },
       );
     }
-    
+
     // Update the service
     mockServices[serviceIndex] = {
       ...mockServices[serviceIndex],
       ...body,
       lastChecked: new Date().toISOString(),
     };
-    
+
     return HttpResponse.json({ service: mockServices[serviceIndex] });
   }),
 
   // Health check endpoint
   http.get('/api/health', async () => {
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     return HttpResponse.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
@@ -403,15 +403,15 @@ const handlers = [
 
   // Error simulation endpoints
   http.get('/api/error/500', async () => {
-    await new Promise(resolve => setTimeout(resolve, 200));
-    
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
     return HttpResponse.json(
       {
         message: 'Internal server error simulation',
         code: 'INTERNAL_SERVER_ERROR',
         timestamp: new Date().toISOString(),
       } as ApiError,
-      { status: 500 }
+      { status: 500 },
     );
   }),
 
@@ -423,8 +423,8 @@ const handlers = [
 
   // Rate limiting simulation
   http.get('/api/rate-limited', async () => {
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     return HttpResponse.json(
       {
         message: 'Too many requests',
@@ -432,24 +432,21 @@ const handlers = [
         details: { retryAfter: 60 },
         timestamp: new Date().toISOString(),
       } as ApiError,
-      { 
+      {
         status: 429,
         headers: {
           'Retry-After': '60',
           'X-RateLimit-Limit': '100',
           'X-RateLimit-Remaining': '0',
           'X-RateLimit-Reset': (Date.now() + 60000).toString(),
-        }
-      }
+        },
+      },
     );
   }),
 ];
 
 // WebSocket handlers for real-time updates
-const websocketHandlers = [
-  ws.link('ws://localhost:3000/ws'),
-  ws.link('ws://localhost:3001/ws'),
-];
+const websocketHandlers = [ws.link('ws://localhost:3000/ws'), ws.link('ws://localhost:3001/ws')];
 
 // Create MSW server
 export const mswServer = setupServer(...handlers, ...websocketHandlers);
@@ -461,7 +458,9 @@ export const mswUtils = {
     currentUser = null;
     authToken = null;
     // Reset services to original state
-    mockServices.splice(0, mockServices.length, 
+    mockServices.splice(
+      0,
+      mockServices.length,
       {
         id: 'service-1',
         name: 'Plex Server',
@@ -494,7 +493,7 @@ export const mswUtils = {
         uptime: 0.0,
         responseTime: undefined,
         errorCount: 1,
-      }
+      },
     );
   },
 
@@ -513,7 +512,7 @@ export const mswUtils = {
 
   // Update service status
   updateServiceStatus: (serviceId: string, status: MediaService['status']) => {
-    const service = mockServices.find(s => s.id === serviceId);
+    const service = mockServices.find((s) => s.id === serviceId);
     if (service) {
       service.status = status;
       service.lastChecked = new Date().toISOString();
@@ -527,7 +526,7 @@ export const mswUtils = {
 
   // Remove service
   removeService: (serviceId: string) => {
-    const index = mockServices.findIndex(s => s.id === serviceId);
+    const index = mockServices.findIndex((s) => s.id === serviceId);
     if (index > -1) {
       mockServices.splice(index, 1);
     }

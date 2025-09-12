@@ -11,11 +11,11 @@
 ## 2. Hardcoded Secrets Analysis
 
 - Scanning for hardcoded secrets and credentials...
-- ⚠️ Potential hardcoded secret pattern found: password.*=.*['"][^'"]*['"]
-- ⚠️ Potential hardcoded secret pattern found: secret.*=.*['"][^'"]*['"]
-- ⚠️ Potential hardcoded secret pattern found: key.*=.*['"][^'"]*['"]
-- ⚠️ Potential hardcoded secret pattern found: token.*=.*['"][^'"]*['"]
-- ⚠️ Potential hardcoded secret pattern found: api_key.*=.*['"][^'"]*['"]
+- ⚠️ Potential hardcoded secret pattern found: password._=._['"][^'"]\*['"]
+- ⚠️ Potential hardcoded secret pattern found: secret._=._['"][^'"]\*['"]
+- ⚠️ Potential hardcoded secret pattern found: key._=._['"][^'"]\*['"]
+- ⚠️ Potential hardcoded secret pattern found: token._=._['"][^'"]\*['"]
+- ⚠️ Potential hardcoded secret pattern found: api*key.*=.\_['"][^'"]\*['"]
 
 ## 3. Environment File Security
 
@@ -75,11 +75,14 @@
 **Audit completed at:** Fri Sep 12 08:38:15 AM CDT 2025
 
 ### Results Overview
+
 - ✅ Successful checks: 20
 - ⚠️ Warnings: 6
 - ❌ Errors: 0
-0
+  0
 
 ### ❌ STAGING BLOCKED
+
 Critical security issues must be resolved before staging deployment.
+
 - ❌ Security audit completed - STAGING BLOCKED

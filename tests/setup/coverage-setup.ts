@@ -1,6 +1,6 @@
 /**
  * Coverage Setup Configuration
- * 
+ *
  * Purpose: Configure optimal environment for coverage measurement
  * Strategy: Maximize accuracy while maintaining reasonable performance
  */
@@ -12,22 +12,22 @@ beforeAll(() => {
   // Set coverage mode indicators
   process.env.COVERAGE_MODE = 'true';
   process.env.NODE_ENV = 'test';
-  
+
   // Optimize memory for coverage analysis
   if (!process.env.NODE_OPTIONS) {
     process.env.NODE_OPTIONS = '--max-old-space-size=4096';
   }
-  
+
   // Disable verbose logging during coverage runs
   process.env.LOG_LEVEL = 'error';
-  
+
   // Configure coverage-specific timeouts
   if (global.setTimeout) {
     global.setTimeout(() => {
       throw new Error('Coverage test timeout - consider breaking down large test suites');
     }, 30000); // 30 second global timeout
   }
-  
+
   console.log('🔍 Coverage measurement mode activated');
 });
 

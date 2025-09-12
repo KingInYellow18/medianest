@@ -56,7 +56,7 @@ describe('CacheService - Simple Test', () => {
   beforeEach(() => {
     // Reset all mocks
     vi.resetAllMocks();
-    
+
     // Create fresh instance
     cacheService = new CacheService();
   });
@@ -69,7 +69,7 @@ describe('CacheService - Simple Test', () => {
 
       // Mock handleAsync to simulate successful Redis get
       mockHandleAsync.mockResolvedValue([cachedValue, null]);
-      
+
       // Mock safeJsonParse to parse the JSON
       mockSafeJsonParse.mockReturnValue(parsedValue);
 
@@ -98,12 +98,12 @@ describe('CacheService - Simple Test', () => {
 
       // Mock safeJsonStringify to return JSON string
       mockSafeJsonStringify.mockReturnValue(jsonValue);
-      
+
       // Mock safeAsyncTry to execute successfully
       mockSafeAsyncTry.mockImplementation(async (fn) => {
         return await fn();
       });
-      
+
       // Mock the actual Redis setex call
       mockRedisClient.setex.mockResolvedValue('OK');
 
@@ -120,7 +120,7 @@ describe('CacheService - Simple Test', () => {
       mockSafeAsyncTry.mockImplementation(async (fn) => {
         return await fn();
       });
-      
+
       mockRedisClient.del.mockResolvedValue(1);
 
       await cacheService.del(key);
@@ -171,18 +171,16 @@ describe('CacheService - Simple Test', () => {
     it('should get multiple values', async () => {
       // Clear all previous mock calls to prevent contamination
       vi.resetAllMocks();
-      
+
       const keys = ['key1', 'key2'];
       const values = ['{"data1": "test"}', '{"data2": "test"}'];
       const parsedValues = [{ data1: 'test' }, { data2: 'test' }];
 
       // Mock handleAsync to return the values
       mockHandleAsync.mockResolvedValue([values, null]);
-      
+
       // Mock safeJsonParse for each value
-      mockSafeJsonParse
-        .mockReturnValueOnce(parsedValues[0])
-        .mockReturnValueOnce(parsedValues[1]);
+      mockSafeJsonParse.mockReturnValueOnce(parsedValues[0]).mockReturnValueOnce(parsedValues[1]);
 
       const result = await cacheService.mget(keys);
 
@@ -192,10 +190,10 @@ describe('CacheService - Simple Test', () => {
     it('should set multiple key-value pairs', async () => {
       // Clear all previous mock calls to prevent contamination
       vi.resetAllMocks();
-      
+
       const keyValuePairs = {
-        'key1': { data: 'test1' },
-        'key2': { data: 'test2' },
+        key1: { data: 'test1' },
+        key2: { data: 'test2' },
       };
 
       // Mock safeJsonStringify for each value
@@ -205,7 +203,7 @@ describe('CacheService - Simple Test', () => {
 
       // Mock safeAsyncTry to execute successfully
       mockSafeAsyncTry.mockImplementation(async (fn) => await fn());
-      
+
       mockRedisClient.setex.mockResolvedValue('OK');
 
       await cacheService.mset(keyValuePairs);
@@ -227,7 +225,7 @@ describe('CacheService - Simple Test', () => {
 
       expect(result).toEqual({
         keyCount: 42,
-        memoryUsage: '16.25M'
+        memoryUsage: '16.25M',
       });
     });
 
@@ -241,7 +239,7 @@ describe('CacheService - Simple Test', () => {
     it('should handle empty mget array', async () => {
       // Clear all previous mock calls to prevent contamination
       vi.resetAllMocks();
-      
+
       const result = await cacheService.mget([]);
 
       expect(result).toEqual([]);
@@ -346,15 +344,13 @@ describe('CacheService - Simple Test', () => {
       const error = new Error('Redis info error');
 
       // Mock handleAsync to return error for info, success for dbsize
-      mockHandleAsync
-        .mockResolvedValueOnce([null, error])
-        .mockResolvedValueOnce([100, null]);
+      mockHandleAsync.mockResolvedValueOnce([null, error]).mockResolvedValueOnce([100, null]);
 
       const result = await cacheService.getInfo();
 
       expect(result).toEqual({
         keyCount: 0,
-        memoryUsage: 'unknown'
+        memoryUsage: 'unknown',
       });
     });
   });

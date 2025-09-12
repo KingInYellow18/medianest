@@ -1,6 +1,6 @@
 /**
  * Integration Test Runner and Coordinator
- * 
+ *
  * Main runner for all integration tests with:
  * - Test environment setup and teardown
  * - Parallel test execution coordination
@@ -65,7 +65,7 @@ export class IntegrationTestRunner {
       category: 'api',
       estimatedDuration: 120000, // 2 minutes
       dependencies: ['database', 'redis'],
-      parallel: true
+      parallel: true,
     },
     {
       name: 'Service Integration Tests',
@@ -73,7 +73,7 @@ export class IntegrationTestRunner {
       category: 'service',
       estimatedDuration: 300000, // 5 minutes
       dependencies: ['database', 'redis', 'docker'],
-      parallel: false // Requires Docker resources
+      parallel: false, // Requires Docker resources
     },
     {
       name: 'Frontend-Backend Integration Tests',
@@ -81,7 +81,7 @@ export class IntegrationTestRunner {
       category: 'frontend-backend',
       estimatedDuration: 180000, // 3 minutes
       dependencies: ['database', 'redis'],
-      parallel: true
+      parallel: true,
     },
     {
       name: 'Third-Party Integration Tests',
@@ -89,8 +89,8 @@ export class IntegrationTestRunner {
       category: 'third-party',
       estimatedDuration: 240000, // 4 minutes
       dependencies: ['database', 'redis', 'external-apis'],
-      parallel: true
-    }
+      parallel: true,
+    },
   ];
 
   private results: TestResult[] = [];
@@ -145,11 +145,10 @@ export class IntegrationTestRunner {
       }
 
       return {
-        success: this.results.every(r => r.status === 'passed'),
+        success: this.results.every((r) => r.status === 'passed'),
         results: this.results,
-        summary
+        summary,
       };
-
     } catch (error) {
       console.error('❌ Integration test runner failed:', error);
       throw error;
@@ -160,9 +159,7 @@ export class IntegrationTestRunner {
    * Run specific test suites
    */
   async runSpecificSuites(suiteNames: string[]): Promise<TestResult[]> {
-    const suitesToRun = this.testSuites.filter(suite => 
-      suiteNames.includes(suite.name)
-    );
+    const suitesToRun = this.testSuites.filter((suite) => suiteNames.includes(suite.name));
 
     if (suitesToRun.length === 0) {
       throw new Error(`No matching test suites found for: ${suiteNames.join(', ')}`);
@@ -209,19 +206,18 @@ export class IntegrationTestRunner {
       // Stop any existing test containers
       execSync('docker-compose -f docker-compose.test.yml down -v', {
         stdio: 'inherit',
-        cwd: process.cwd()
+        cwd: process.cwd(),
       });
 
       // Start test services
       execSync('docker-compose -f docker-compose.test.yml up -d --wait', {
         stdio: 'inherit',
         cwd: process.cwd(),
-        timeout: 60000 // 1 minute timeout
+        timeout: 60000, // 1 minute timeout
       });
 
       // Wait for services to be healthy
       await this.waitForDockerServices();
-
     } catch (error) {
       throw new Error(`Failed to setup Docker environment: ${error}`);
     }
@@ -243,8 +239,8 @@ export class IntegrationTestRunner {
       stdio: 'inherit',
       env: {
         ...process.env,
-        DATABASE_URL: process.env.TEST_DATABASE_URL
-      }
+        DATABASE_URL: process.env.TEST_DATABASE_URL,
+      },
     });
   }
 
@@ -259,24 +255,23 @@ export class IntegrationTestRunner {
       try {
         // Check PostgreSQL
         execSync('docker-compose -f docker-compose.test.yml exec -T postgres pg_isready -U test', {
-          stdio: 'ignore'
+          stdio: 'ignore',
         });
 
         // Check Redis
         execSync('docker-compose -f docker-compose.test.yml exec -T redis redis-cli ping', {
-          stdio: 'ignore'
+          stdio: 'ignore',
         });
 
         console.log('✅ Docker services are ready');
         return;
-
       } catch (error) {
         if (i === maxRetries - 1) {
           throw new Error('Docker services failed to become ready');
         }
-        
+
         console.log(`⏳ Waiting for Docker services... (${i + 1}/${maxRetries})`);
-        await new Promise(resolve => setTimeout(resolve, retryInterval));
+        await new Promise((resolve) => setTimeout(resolve, retryInterval));
       }
     }
   }
@@ -289,13 +284,13 @@ export class IntegrationTestRunner {
       const { PrismaClient } = await import('@prisma/client');
       const prisma = new PrismaClient({
         datasources: {
-          db: { url: process.env.TEST_DATABASE_URL }
-        }
+          db: { url: process.env.TEST_DATABASE_URL },
+        },
       });
 
       await prisma.$queryRaw`SELECT 1`;
       await prisma.$disconnect();
-      
+
       console.log('✅ Test database verified');
     } catch (error) {
       throw new Error(`Test database verification failed: ${error}`);
@@ -309,10 +304,10 @@ export class IntegrationTestRunner {
     try {
       const Redis = (await import('ioredis')).default;
       const redis = new Redis(process.env.TEST_REDIS_URL);
-      
+
       await redis.ping();
       await redis.quit();
-      
+
       console.log('✅ Test Redis verified');
     } catch (error) {
       throw new Error(`Test Redis verification failed: ${error}`);
@@ -326,8 +321,8 @@ export class IntegrationTestRunner {
     console.log('🔍 Checking test dependencies...');
 
     const requiredDependencies = new Set<string>();
-    this.testSuites.forEach(suite => {
-      suite.dependencies.forEach(dep => requiredDependencies.add(dep));
+    this.testSuites.forEach((suite) => {
+      suite.dependencies.forEach((dep) => requiredDependencies.add(dep));
     });
 
     for (const dependency of requiredDependencies) {
@@ -370,12 +365,12 @@ export class IntegrationTestRunner {
   private async runTestsInParallel(): Promise<void> {
     console.log('⚡ Running tests in parallel...');
 
-    const parallelSuites = this.testSuites.filter(suite => suite.parallel);
-    const sequentialSuites = this.testSuites.filter(suite => !suite.parallel);
+    const parallelSuites = this.testSuites.filter((suite) => suite.parallel);
+    const sequentialSuites = this.testSuites.filter((suite) => !suite.parallel);
 
     // Run parallel suites
     if (parallelSuites.length > 0) {
-      const parallelPromises = parallelSuites.map(suite => this.runSingleSuite(suite));
+      const parallelPromises = parallelSuites.map((suite) => this.runSingleSuite(suite));
       const parallelResults = await Promise.all(parallelPromises);
       this.results.push(...parallelResults);
     }
@@ -404,10 +399,10 @@ export class IntegrationTestRunner {
    */
   private async runSingleSuite(suite: TestSuite): Promise<TestResult> {
     console.log(`\n🧪 Running ${suite.name}...`);
-    
+
     const initialMemory = process.memoryUsage();
     let peakMemory = initialMemory;
-    
+
     // Monitor memory usage
     const memoryMonitor = setInterval(() => {
       const currentMemory = process.memoryUsage();
@@ -422,7 +417,7 @@ export class IntegrationTestRunner {
       // Build test command
       const testFile = path.join(__dirname, suite.file);
       let command = `npx vitest run "${testFile}"`;
-      
+
       if (this.config.coverage) {
         command += ' --coverage';
       }
@@ -436,9 +431,9 @@ export class IntegrationTestRunner {
         cwd: process.cwd(),
         env: {
           ...process.env,
-          NODE_ENV: 'test'
+          NODE_ENV: 'test',
         },
-        timeout: this.config.timeout
+        timeout: this.config.timeout,
       });
 
       clearInterval(memoryMonitor);
@@ -456,8 +451,8 @@ export class IntegrationTestRunner {
         memoryUsage: {
           initial: initialMemory,
           peak: peakMemory,
-          final: finalMemory
-        }
+          final: finalMemory,
+        },
       };
 
       console.log(`✅ ${suite.name} completed in ${Math.round(duration)}ms`);
@@ -465,11 +460,10 @@ export class IntegrationTestRunner {
       console.log(`   Memory: ${Math.round(finalMemory.heapUsed / 1024 / 1024)}MB`);
 
       return result;
-
     } catch (error) {
       clearInterval(memoryMonitor);
       const duration = performance.now() - startTime;
-      
+
       console.error(`❌ ${suite.name} failed after ${Math.round(duration)}ms`);
       console.error(`   Error: ${error}`);
 
@@ -481,9 +475,9 @@ export class IntegrationTestRunner {
         memoryUsage: {
           initial: initialMemory,
           peak: peakMemory,
-          final: process.memoryUsage()
+          final: process.memoryUsage(),
         },
-        errors: [error instanceof Error ? error.message : String(error)]
+        errors: [error instanceof Error ? error.message : String(error)],
       };
     }
   }
@@ -507,7 +501,7 @@ export class IntegrationTestRunner {
       total: totalMatch ? parseInt(totalMatch[1]) : 0,
       passed: passedMatch ? parseInt(passedMatch[1]) : 0,
       failed: failedMatch ? parseInt(failedMatch[1]) : 0,
-      skipped: skippedMatch ? parseInt(skippedMatch[1]) : 0
+      skipped: skippedMatch ? parseInt(skippedMatch[1]) : 0,
     };
   }
 
@@ -516,19 +510,21 @@ export class IntegrationTestRunner {
    */
   private generateSummary() {
     const totalDuration = performance.now() - this.startTime;
-    
+
     const totalTests = this.results.reduce((sum, r) => sum + r.tests.total, 0);
     const passedTests = this.results.reduce((sum, r) => sum + r.tests.passed, 0);
     const failedTests = this.results.reduce((sum, r) => sum + r.tests.failed, 0);
 
-    const memoryUsages = this.results.map(r => r.memoryUsage.peak.heapUsed);
-    const avgMemoryUsage = memoryUsages.length > 0 ? 
-      memoryUsages.reduce((sum, mem) => sum + mem, 0) / memoryUsages.length : 0;
+    const memoryUsages = this.results.map((r) => r.memoryUsage.peak.heapUsed);
+    const avgMemoryUsage =
+      memoryUsages.length > 0
+        ? memoryUsages.reduce((sum, mem) => sum + mem, 0) / memoryUsages.length
+        : 0;
     const peakMemoryUsage = Math.max(...memoryUsages);
 
     // Simple memory leak detection
-    const memoryLeaks = this.results.some(r => 
-      r.memoryUsage.final.heapUsed > r.memoryUsage.initial.heapUsed * 1.5
+    const memoryLeaks = this.results.some(
+      (r) => r.memoryUsage.final.heapUsed > r.memoryUsage.initial.heapUsed * 1.5,
     );
 
     return {
@@ -539,8 +535,8 @@ export class IntegrationTestRunner {
       performance: {
         avgMemoryUsage: Math.round(avgMemoryUsage / 1024 / 1024), // MB
         peakMemoryUsage: Math.round(peakMemoryUsage / 1024 / 1024), // MB
-        memoryLeaks
-      }
+        memoryLeaks,
+      },
     };
   }
 
@@ -549,7 +545,7 @@ export class IntegrationTestRunner {
    */
   async generateDetailedReport(): Promise<void> {
     const reportDir = path.join(process.cwd(), 'test-reports', 'integration');
-    
+
     try {
       await fs.mkdir(reportDir, { recursive: true });
     } catch (error) {
@@ -560,7 +556,7 @@ export class IntegrationTestRunner {
       timestamp: new Date().toISOString(),
       configuration: this.config,
       results: this.results,
-      summary: this.generateSummary()
+      summary: this.generateSummary(),
     };
 
     const reportPath = path.join(reportDir, `integration-test-report-${Date.now()}.json`);
@@ -579,7 +575,7 @@ export class IntegrationTestRunner {
       try {
         execSync('docker-compose -f docker-compose.test.yml down -v', {
           stdio: 'inherit',
-          timeout: 30000
+          timeout: 30000,
         });
         console.log('✅ Docker test environment cleaned');
       } catch (error) {
@@ -602,29 +598,35 @@ export class IntegrationTestRunner {
 // CLI Interface
 if (require.main === module) {
   const config: TestRunConfiguration = {
-    suites: process.argv.includes('--suite') ? 
-      [process.argv[process.argv.indexOf('--suite') + 1]] : [],
+    suites: process.argv.includes('--suite')
+      ? [process.argv[process.argv.indexOf('--suite') + 1]]
+      : [],
     parallel: !process.argv.includes('--sequential'),
     coverage: process.argv.includes('--coverage'),
-    timeout: process.argv.includes('--timeout') ? 
-      parseInt(process.argv[process.argv.indexOf('--timeout') + 1]) : 300000,
-    retries: process.argv.includes('--retries') ? 
-      parseInt(process.argv[process.argv.indexOf('--retries') + 1]) : 0,
+    timeout: process.argv.includes('--timeout')
+      ? parseInt(process.argv[process.argv.indexOf('--timeout') + 1])
+      : 300000,
+    retries: process.argv.includes('--retries')
+      ? parseInt(process.argv[process.argv.indexOf('--retries') + 1])
+      : 0,
     environment: process.argv.includes('--local') ? 'local' : 'docker',
-    cleanup: !process.argv.includes('--no-cleanup')
+    cleanup: !process.argv.includes('--no-cleanup'),
   };
 
   const runner = new IntegrationTestRunner(config);
 
-  runner.runAllTests()
+  runner
+    .runAllTests()
     .then(async (result) => {
       await runner.generateDetailedReport();
-      
+
       console.log('\n🎉 Integration Test Results:');
       console.log(`   Total Duration: ${Math.round(result.summary.totalDuration)}ms`);
       console.log(`   Tests: ${result.summary.passedTests}/${result.summary.totalTests} passed`);
-      console.log(`   Memory Usage: avg ${result.summary.performance.avgMemoryUsage}MB, peak ${result.summary.performance.peakMemoryUsage}MB`);
-      
+      console.log(
+        `   Memory Usage: avg ${result.summary.performance.avgMemoryUsage}MB, peak ${result.summary.performance.peakMemoryUsage}MB`,
+      );
+
       if (result.summary.performance.memoryLeaks) {
         console.log('⚠️ Potential memory leaks detected');
       }

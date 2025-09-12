@@ -85,7 +85,7 @@ export function useOptimizedWebSocket<TMessage = any>(url: string, options: WebS
   const reconnectAttemptsRef = useRef<number>(0);
   const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const messageBufferRef = useRef<MessageBuffer<TMessage>>(
-    new MessageBuffer(opts.messageBufferSize)
+    new MessageBuffer(opts.messageBufferSize),
   );
 
   // Context7 Pattern - Memoized message listeners
@@ -218,7 +218,7 @@ export function useOptimizedWebSocket<TMessage = any>(url: string, options: WebS
         return false;
       }
     },
-    [state]
+    [state],
   );
 
   // Context7 Pattern - Memoized listener management
@@ -248,7 +248,7 @@ export function useOptimizedWebSocket<TMessage = any>(url: string, options: WebS
         });
       };
     },
-    []
+    [],
   );
 
   // Context7 Pattern - Auto-connect on mount if enabled
@@ -286,14 +286,14 @@ export function useOptimizedWebSocket<TMessage = any>(url: string, options: WebS
       reconnectAttempts: reconnectAttemptsRef.current,
       maxReconnectAttempts: opts.maxReconnectAttempts,
     }),
-    [state, connect, disconnect, sendMessage, addMessageListener, opts.maxReconnectAttempts]
+    [state, connect, disconnect, sendMessage, addMessageListener, opts.maxReconnectAttempts],
   );
 }
 
 // Context7 Pattern - Specialized hook for typed message handling
 export function useTypedWebSocketMessage<TMessage = any>(
   webSocket: ReturnType<typeof useOptimizedWebSocket<TMessage>>,
-  messageType: string
+  messageType: string,
 ): {
   messages: ReadonlyArray<WebSocketMessage<TMessage>>;
   latestMessage: WebSocketMessage<TMessage> | null;
@@ -313,7 +313,7 @@ export function useTypedWebSocketMessage<TMessage = any>(
     (payload: TMessage) => {
       return webSocket.sendMessage(messageType, payload);
     },
-    [webSocket, messageType]
+    [webSocket, messageType],
   );
 
   return useMemo(
@@ -322,6 +322,6 @@ export function useTypedWebSocketMessage<TMessage = any>(
       latestMessage: messages[messages.length - 1] || null,
       sendTypedMessage,
     }),
-    [messages, sendTypedMessage]
+    [messages, sendTypedMessage],
   );
 }

@@ -1,12 +1,12 @@
 /**
  * SHARED AUTHENTICATION TEST UTILITIES
- * 
+ *
  * Comprehensive utilities consolidating common test helpers from:
  * - Mock factories for users, tokens, requests, responses
  * - JWT test helpers for token generation and validation
  * - Database cleanup and setup utilities
  * - Request/response mocking utilities
- * 
+ *
  * Used by all consolidated authentication test files
  */
 
@@ -29,12 +29,12 @@ export const jwtTestHelpers = {
     };
 
     const finalPayload = { ...defaultPayload, ...payload };
-    
+
     // Create a valid JWT format (header.payload.signature)
     const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
     const payloadBase64 = btoa(JSON.stringify(finalPayload));
     const signature = 'test-signature-' + Math.random().toString(36).substring(7);
-    
+
     return `${header}.${payloadBase64}.${signature}`;
   },
 
@@ -51,7 +51,7 @@ export const jwtTestHelpers = {
     const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
     const payloadBase64 = btoa(JSON.stringify(expiredPayload));
     const signature = 'expired-signature-' + Math.random().toString(36).substring(7);
-    
+
     return `${header}.${payloadBase64}.${signature}`;
   },
 
@@ -68,7 +68,7 @@ export const jwtTestHelpers = {
     const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
     const payloadBase64 = btoa(JSON.stringify(nearExpiredPayload));
     const signature = 'near-expired-signature-' + Math.random().toString(36).substring(7);
-    
+
     return `${header}.${payloadBase64}.${signature}`;
   },
 
@@ -85,7 +85,7 @@ export const jwtTestHelpers = {
     const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
     const payloadBase64 = btoa(JSON.stringify(refreshPayload));
     const signature = 'refresh-signature-' + Math.random().toString(36).substring(7);
-    
+
     return `${header}.${payloadBase64}.${signature}`;
   },
 
@@ -103,7 +103,7 @@ export const jwtTestHelpers = {
     const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
     const payloadBase64 = btoa(JSON.stringify(tokenPayload));
     const signature = 'ip-bound-signature-' + Math.random().toString(36).substring(7);
-    
+
     return `${header}.${payloadBase64}.${signature}`;
   },
 
@@ -111,7 +111,7 @@ export const jwtTestHelpers = {
     try {
       const parts = token.split('.');
       if (parts.length !== 3) return null;
-      
+
       const payload = JSON.parse(atob(parts[1]));
       return payload;
     } catch {
@@ -122,7 +122,7 @@ export const jwtTestHelpers = {
   isTokenExpired(token: string): boolean {
     const decoded = this.decodeToken(token);
     if (!decoded || !decoded.exp) return true;
-    
+
     return decoded.exp < Math.floor(Date.now() / 1000);
   },
 };
@@ -266,9 +266,9 @@ export class DatabaseCleanup {
     await Promise.all(
       mockCleanupOperations.map(async (operation) => {
         // Mock database operation
-        await new Promise(resolve => setTimeout(resolve, 1));
+        await new Promise((resolve) => setTimeout(resolve, 1));
         console.log(`Mock cleanup: ${operation}`);
-      })
+      }),
     );
   }
 
@@ -371,7 +371,7 @@ export const testAssertions = {
     if (parts.length !== 3) {
       throw new Error(`Invalid JWT format: expected 3 parts, got ${parts.length}`);
     }
-    
+
     // Try to decode parts to ensure they're valid base64
     try {
       JSON.parse(atob(parts[0])); // header
@@ -383,8 +383,8 @@ export const testAssertions = {
 
   expectUserObjectShape(user: any): void {
     const requiredFields = ['id', 'email', 'role'];
-    const missingFields = requiredFields.filter(field => !user[field]);
-    
+    const missingFields = requiredFields.filter((field) => !user[field]);
+
     if (missingFields.length > 0) {
       throw new Error(`User object missing required fields: ${missingFields.join(', ')}`);
     }
@@ -394,11 +394,11 @@ export const testAssertions = {
     if (!errorResponse.success || errorResponse.success !== false) {
       throw new Error('Error response should have success: false');
     }
-    
+
     if (!errorResponse.error || !errorResponse.error.statusCode) {
       throw new Error('Error response should have error.statusCode');
     }
-    
+
     if (!errorResponse.error.message) {
       throw new Error('Error response should have error.message');
     }
@@ -408,7 +408,7 @@ export const testAssertions = {
     if (!successResponse.success || successResponse.success !== true) {
       throw new Error('Success response should have success: true');
     }
-    
+
     if (!successResponse.data && !successResponse.message) {
       throw new Error('Success response should have either data or message');
     }
@@ -424,26 +424,26 @@ export const performanceHelpers = {
     const startTime = Date.now();
     const result = await fn();
     const duration = Date.now() - startTime;
-    
+
     return { result, duration };
   },
 
   createMemoryPressure(): { cleanup: () => void } {
     const arrays: any[] = [];
-    
+
     for (let i = 0; i < 100; i++) {
       arrays.push(new Array(10000).fill(`memory-pressure-${i}`));
     }
-    
+
     return {
       cleanup: () => {
         arrays.length = 0;
-      }
+      },
     };
   },
 
   async simulateNetworkDelay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   },
 };
 
@@ -481,8 +481,8 @@ export const securityHelpers = {
       'strict-transport-security',
     ];
 
-    const missing = requiredHeaders.filter(header => !headers[header]);
-    
+    const missing = requiredHeaders.filter((header) => !headers[header]);
+
     return {
       valid: missing.length === 0,
       missing,
@@ -497,7 +497,7 @@ export const securityHelpers = {
 export const accessibilityHelpers = {
   validateAriaLabels(elements: any[]): { valid: boolean; issues: string[] } {
     const issues: string[] = [];
-    
+
     elements.forEach((element, index) => {
       if (!element['aria-label'] && !element['aria-labelledby']) {
         issues.push(`Element ${index} missing aria-label or aria-labelledby`);

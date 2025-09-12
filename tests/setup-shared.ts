@@ -1,6 +1,6 @@
 /**
  * SHARED TEST SETUP - CORE UTILITIES
- * 
+ *
  * Shared testing utilities and mocks used across all test packages.
  * This file provides the foundation for consistent test infrastructure.
  */
@@ -112,7 +112,7 @@ beforeAll(async () => {
 beforeEach(() => {
   // Clear all mocks between tests for isolation
   vi.clearAllMocks();
-  
+
   // Reset environment
   process.env.NODE_ENV = 'test';
 });

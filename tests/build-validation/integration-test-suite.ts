@@ -45,7 +45,7 @@ export class IntegrationTestSuite {
       backendUrl: 'http://localhost:3001',
       frontendUrl: 'http://localhost:3000',
       isRunning: false,
-      processes: []
+      processes: [],
     };
   }
 
@@ -59,7 +59,7 @@ export class IntegrationTestSuite {
       apiEndpoints: false,
       authenticationFlow: false,
       crossPackageImports: false,
-      performance: false
+      performance: false,
     };
 
     try {
@@ -93,7 +93,6 @@ export class IntegrationTestSuite {
 
       await this.storeResults(result);
       return result;
-
     } catch (error) {
       console.error('Integration test suite failed:', error);
       await this.cleanup();
@@ -110,7 +109,7 @@ export class IntegrationTestSuite {
         'backend/dist/server.js',
         'backend/dist/app.js',
         'frontend/.next/BUILD_ID',
-        'shared/dist/index.js'
+        'shared/dist/index.js',
       ];
 
       const artifacts: BuildArtifact[] = [];
@@ -118,25 +117,27 @@ export class IntegrationTestSuite {
       for (const artifactPath of requiredArtifacts) {
         const fullPath = path.join(this.rootDir, artifactPath);
         const exists = fs.existsSync(fullPath);
-        
+
         artifacts.push({
           path: artifactPath,
           exists,
           size: exists ? fs.statSync(fullPath).size : 0,
-          modified: exists ? fs.statSync(fullPath).mtime : new Date(0)
+          modified: exists ? fs.statSync(fullPath).mtime : new Date(0),
         });
       }
 
-      const missingArtifacts = artifacts.filter(a => !a.exists);
-      
+      const missingArtifacts = artifacts.filter((a) => !a.exists);
+
       if (missingArtifacts.length > 0) {
-        console.error('❌ Missing build artifacts:', missingArtifacts.map(a => a.path));
+        console.error(
+          '❌ Missing build artifacts:',
+          missingArtifacts.map((a) => a.path),
+        );
         return false;
       }
 
       console.log('✅ All build artifacts validated');
       return true;
-
     } catch (error) {
       console.error('❌ Build artifact validation failed:', error);
       return false;
@@ -149,21 +150,17 @@ export class IntegrationTestSuite {
   async validateServerStartup(): Promise<boolean> {
     try {
       // Start backend server in test mode
-      const serverProcess = execSync(
-        `cd backend && timeout 10s npm start`,
-        { 
-          encoding: 'utf8',
-          stdio: 'pipe',
-          timeout: 15000
-        }
-      );
+      const serverProcess = execSync(`cd backend && timeout 10s npm start`, {
+        encoding: 'utf8',
+        stdio: 'pipe',
+        timeout: 15000,
+      });
 
       // Test basic connectivity
       await this.waitForServer(this.environment.backendUrl, 10000);
-      
+
       console.log('✅ Server startup validated');
       return true;
-
     } catch (error) {
       console.error('❌ Server startup validation failed:', error);
       return false;
@@ -178,7 +175,7 @@ export class IntegrationTestSuite {
       const endpoints = [
         { path: '/health', method: 'GET', expectedStatus: 200 },
         { path: '/api/auth/status', method: 'GET', expectedStatus: [200, 401] },
-        { path: '/api/media', method: 'GET', expectedStatus: [200, 401] }
+        { path: '/api/media', method: 'GET', expectedStatus: [200, 401] },
       ];
 
       for (const endpoint of endpoints) {
@@ -188,13 +185,15 @@ export class IntegrationTestSuite {
             url: `${this.environment.backendUrl}${endpoint.path}`,
             timeout: 5000,
             validateStatus: (status) => {
-              return Array.isArray(endpoint.expectedStatus) 
+              return Array.isArray(endpoint.expectedStatus)
                 ? endpoint.expectedStatus.includes(status)
                 : status === endpoint.expectedStatus;
-            }
+            },
           });
 
-          console.log(`✅ Endpoint validated: ${endpoint.method} ${endpoint.path} - ${response.status}`);
+          console.log(
+            `✅ Endpoint validated: ${endpoint.method} ${endpoint.path} - ${response.status}`,
+          );
         } catch (error) {
           console.error(`❌ Endpoint failed: ${endpoint.method} ${endpoint.path}:`, error.message);
           return false;
@@ -202,7 +201,6 @@ export class IntegrationTestSuite {
       }
 
       return true;
-
     } catch (error) {
       console.error('❌ API endpoint validation failed:', error);
       return false;
@@ -215,33 +213,44 @@ export class IntegrationTestSuite {
   async validateAuthenticationFlow(): Promise<boolean> {
     try {
       // Test user registration
-      const registerResponse = await axios.post(`${this.environment.backendUrl}/api/auth/register`, {
-        email: 'test@medianest.com',
-        password: 'TestPassword123!',
-        username: 'testuser'
-      }, {
-        timeout: 5000,
-        validateStatus: (status) => [200, 201, 409].includes(status) // 409 for existing user
-      });
+      const registerResponse = await axios.post(
+        `${this.environment.backendUrl}/api/auth/register`,
+        {
+          email: 'test@medianest.com',
+          password: 'TestPassword123!',
+          username: 'testuser',
+        },
+        {
+          timeout: 5000,
+          validateStatus: (status) => [200, 201, 409].includes(status), // 409 for existing user
+        },
+      );
 
       // Test login
-      const loginResponse = await axios.post(`${this.environment.backendUrl}/api/auth/login`, {
-        email: 'test@medianest.com',
-        password: 'TestPassword123!'
-      }, {
-        timeout: 5000,
-        validateStatus: (status) => [200, 201].includes(status)
-      });
+      const loginResponse = await axios.post(
+        `${this.environment.backendUrl}/api/auth/login`,
+        {
+          email: 'test@medianest.com',
+          password: 'TestPassword123!',
+        },
+        {
+          timeout: 5000,
+          validateStatus: (status) => [200, 201].includes(status),
+        },
+      );
 
       if (loginResponse.data.token) {
         // Test authenticated endpoint
-        const protectedResponse = await axios.get(`${this.environment.backendUrl}/api/user/profile`, {
-          headers: {
-            'Authorization': `Bearer ${loginResponse.data.token}`
+        const protectedResponse = await axios.get(
+          `${this.environment.backendUrl}/api/user/profile`,
+          {
+            headers: {
+              Authorization: `Bearer ${loginResponse.data.token}`,
+            },
+            timeout: 5000,
+            validateStatus: (status) => [200, 404].includes(status),
           },
-          timeout: 5000,
-          validateStatus: (status) => [200, 404].includes(status)
-        });
+        );
 
         console.log('✅ Authentication flow validated');
         return true;
@@ -249,7 +258,6 @@ export class IntegrationTestSuite {
 
       console.error('❌ No token received from login');
       return false;
-
     } catch (error) {
       console.error('❌ Authentication flow validation failed:', error.message);
       return false;
@@ -289,7 +297,6 @@ export class IntegrationTestSuite {
 
       console.log('✅ Cross-package imports validated');
       return true;
-
     } catch (error) {
       console.error('❌ Cross-package import validation failed:', error);
       return false;
@@ -304,14 +311,14 @@ export class IntegrationTestSuite {
       const performanceMetrics = {
         buildTime: 0,
         serverStartupTime: 0,
-        firstResponseTime: 0
+        firstResponseTime: 0,
       };
 
       // Measure build time
       const buildStart = Date.now();
-      execSync('npm run build:fast', { 
+      execSync('npm run build:fast', {
         stdio: 'pipe',
-        timeout: 120000
+        timeout: 120000,
       });
       performanceMetrics.buildTime = Date.now() - buildStart;
 
@@ -329,11 +336,11 @@ export class IntegrationTestSuite {
       const thresholds = {
         buildTime: 180000, // 3 minutes
         serverStartupTime: 30000, // 30 seconds
-        firstResponseTime: 5000 // 5 seconds
+        firstResponseTime: 5000, // 5 seconds
       };
 
       const performancePassed = Object.entries(performanceMetrics).every(
-        ([metric, value]) => value <= thresholds[metric]
+        ([metric, value]) => value <= thresholds[metric],
       );
 
       if (performancePassed) {
@@ -344,7 +351,6 @@ export class IntegrationTestSuite {
         console.error('Thresholds:', thresholds);
         return false;
       }
-
     } catch (error) {
       console.error('❌ Performance validation failed:', error);
       return false;
@@ -356,16 +362,16 @@ export class IntegrationTestSuite {
    */
   private async waitForServer(url: string, timeout: number): Promise<void> {
     const start = Date.now();
-    
+
     while (Date.now() - start < timeout) {
       try {
         await axios.get(`${url}/health`, { timeout: 2000 });
         return; // Server is ready
       } catch {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }
-    
+
     throw new Error(`Server not ready after ${timeout}ms`);
   }
 
@@ -377,12 +383,12 @@ export class IntegrationTestSuite {
       const resultData = {
         timestamp: new Date().toISOString(),
         results: result,
-        success: Object.values(result).every(Boolean)
+        success: Object.values(result).every(Boolean),
       };
 
       execSync(
         `npx claude-flow@alpha hooks memory-store --key "${this.memoryKey}/last-run" --value '${JSON.stringify(resultData)}' --ttl 3600`,
-        { stdio: 'ignore' }
+        { stdio: 'ignore' },
       );
     } catch {
       // Memory storage is optional
@@ -395,7 +401,7 @@ export class IntegrationTestSuite {
   private async cleanup(): Promise<void> {
     try {
       // Kill any running test processes
-      this.environment.processes.forEach(process => {
+      this.environment.processes.forEach((process) => {
         try {
           process.kill();
         } catch {
@@ -404,18 +410,14 @@ export class IntegrationTestSuite {
       });
 
       // Clean up test files
-      const testFiles = [
-        'test-user-data.json',
-        'integration-test.log'
-      ];
+      const testFiles = ['test-user-data.json', 'integration-test.log'];
 
-      testFiles.forEach(file => {
+      testFiles.forEach((file) => {
         const filePath = path.join(this.rootDir, file);
         if (fs.existsSync(filePath)) {
           fs.unlinkSync(filePath);
         }
       });
-
     } catch (error) {
       console.warn('Cleanup warning:', error.message);
     }
@@ -436,7 +438,7 @@ describe('MediaNest Integration Tests - HIVE-MIND Build Validation', () => {
 
   it('should validate complete integration test suite', async () => {
     const result = await testSuite.runCompleteTestSuite();
-    
+
     expect(result.buildValidation).toBe(true);
     expect(result.serverStartup).toBe(true);
     expect(result.apiEndpoints).toBe(true);
@@ -479,13 +481,13 @@ describe('MediaNest Integration Tests - HIVE-MIND Build Validation', () => {
 // CLI interface
 if (require.main === module) {
   const testSuite = new IntegrationTestSuite();
-  
+
   async function main() {
     try {
       const result = await testSuite.runCompleteTestSuite();
       console.log('\n📊 Integration Test Results:');
       console.log(JSON.stringify(result, null, 2));
-      
+
       const success = Object.values(result).every(Boolean);
       process.exit(success ? 0 : 1);
     } catch (error) {

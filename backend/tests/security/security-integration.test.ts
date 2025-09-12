@@ -1,7 +1,7 @@
 /**
  * SECURITY INTEGRATION TESTS
- * 
- * Comprehensive security testing covering authentication, authorization, 
+ *
+ * Comprehensive security testing covering authentication, authorization,
  * input validation, and protection against common attacks
  */
 
@@ -21,7 +21,7 @@ describe('Security Integration Tests', () => {
     authHelper = new AuthTestHelper();
     dbHelper = new DatabaseTestHelper();
     await dbHelper.setupTestDatabase();
-    
+
     app = await createServer();
     server = app.listen(0);
   });
@@ -38,23 +38,23 @@ describe('Security Integration Tests', () => {
 
   describe('Authentication Security', () => {
     test('should prevent brute force attacks', async () => {
-      const attempts = Array(10).fill(null).map(() =>
-        request(app)
-          .post('/api/v1/auth/login')
-          .send({
+      const attempts = Array(10)
+        .fill(null)
+        .map(() =>
+          request(app).post('/api/v1/auth/login').send({
             email: 'nonexistent@test.com',
-            password: 'wrongpassword'
-          })
-      );
+            password: 'wrongpassword',
+          }),
+        );
 
       const responses = await Promise.all(attempts);
-      
+
       // First few attempts should return 401
       expect(responses[0].status).toBe(401);
       expect(responses[4].status).toBe(401);
-      
+
       // Later attempts should be rate limited (429)
-      const rateLimitedCount = responses.filter(res => res.status === 429).length;
+      const rateLimitedCount = responses.filter((res) => res.status === 429).length;
       expect(rateLimitedCount).toBeGreaterThan(0);
     });
 
@@ -100,13 +100,13 @@ describe('Security Integration Tests', () => {
 
     test('should enforce token expiration', async () => {
       const user = await authHelper.createTestUser();
-      
+
       // Create expired token
       const expiredPayload = {
         sub: user.id,
         type: 'access',
         iat: Math.floor(Date.now() / 1000) - 7200, // 2 hours ago
-        exp: Math.floor(Date.now() / 1000) - 3600  // 1 hour ago (expired)
+        exp: Math.floor(Date.now() / 1000) - 3600, // 1 hour ago (expired)
       };
 
       const jwt = require('jsonwebtoken');
@@ -162,7 +162,7 @@ describe('Security Integration Tests', () => {
           title: 'Test Movie',
           year: 2023,
           type: 'movie',
-          imdbId: 'tt1234567'
+          imdbId: 'tt1234567',
         })
         .set('Authorization', `Bearer ${await authHelper.generateAccessToken(user2.id)}`)
         .expect(201);
@@ -187,7 +187,7 @@ describe('Security Integration Tests', () => {
         "'; DROP TABLE users; --",
         "' OR '1'='1",
         "'; INSERT INTO users (email) VALUES ('hacker@evil.com'); --",
-        "' UNION SELECT * FROM users WHERE '1'='1"
+        "' UNION SELECT * FROM users WHERE '1'='1",
       ];
 
       for (const payload of sqlInjectionPayloads) {
@@ -197,7 +197,7 @@ describe('Security Integration Tests', () => {
             title: payload,
             year: 2023,
             type: 'movie',
-            imdbId: 'tt1234567'
+            imdbId: 'tt1234567',
           })
           .set('Authorization', `Bearer ${accessToken}`);
 
@@ -233,7 +233,7 @@ describe('Security Integration Tests', () => {
             description: `Description with ${payload}`,
             year: 2023,
             type: 'movie',
-            imdbId: 'tt1234567'
+            imdbId: 'tt1234567',
           })
           .set('Authorization', `Bearer ${accessToken}`);
 
@@ -267,7 +267,7 @@ describe('Security Integration Tests', () => {
             title: `Movie ${payload}`,
             year: 2023,
             type: 'movie',
-            imdbId: 'tt1234567'
+            imdbId: 'tt1234567',
           })
           .set('Authorization', `Bearer ${accessToken}`);
 
@@ -296,7 +296,7 @@ describe('Security Integration Tests', () => {
           description: veryLongDescription,
           year: 2023,
           type: 'movie',
-          imdbId: 'tt1234567'
+          imdbId: 'tt1234567',
         })
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(400);
@@ -308,9 +308,7 @@ describe('Security Integration Tests', () => {
 
   describe('HTTP Security Headers', () => {
     test('should include security headers', async () => {
-      const response = await request(app)
-        .get('/api/v1/health')
-        .expect(200);
+      const response = await request(app).get('/api/v1/health').expect(200);
 
       // Check for security headers
       expect(response.headers).toHaveProperty('x-frame-options');
@@ -335,9 +333,7 @@ describe('Security Integration Tests', () => {
     });
 
     test('should reject unauthorized origins', async () => {
-      const response = await request(app)
-        .get('/api/v1/health')
-        .set('Origin', 'https://evil.com');
+      const response = await request(app).get('/api/v1/health').set('Origin', 'https://evil.com');
 
       // Should either reject or not include CORS headers for unauthorized origins
       if (response.headers['access-control-allow-origin']) {
@@ -352,19 +348,17 @@ describe('Security Integration Tests', () => {
       const accessToken = await authHelper.generateAccessToken(user.id);
 
       // Make many rapid requests
-      const rapidRequests = Array(50).fill(null).map(() =>
-        request(app)
-          .get('/api/v1/dashboard/stats')
-          .set('Authorization', `Bearer ${accessToken}`)
-      );
+      const rapidRequests = Array(50)
+        .fill(null)
+        .map(() =>
+          request(app).get('/api/v1/dashboard/stats').set('Authorization', `Bearer ${accessToken}`),
+        );
 
       const responses = await Promise.allSettled(rapidRequests);
-      const statuses = responses.map(r => 
-        r.status === 'fulfilled' ? r.value.status : 500
-      );
+      const statuses = responses.map((r) => (r.status === 'fulfilled' ? r.value.status : 500));
 
       // Should have some rate limited responses
-      const rateLimited = statuses.filter(status => status === 429).length;
+      const rateLimited = statuses.filter((status) => status === 429).length;
       expect(rateLimited).toBeGreaterThan(0);
     });
 
@@ -373,25 +367,25 @@ describe('Security Integration Tests', () => {
       const accessToken = await authHelper.generateAccessToken(user.id);
 
       // Test rate limiting on sensitive endpoints
-      const sensitiveRequests = Array(20).fill(null).map(() =>
-        request(app)
-          .post('/api/v1/media/request')
-          .send({
-            title: 'Rate Limit Test',
-            year: 2023,
-            type: 'movie',
-            imdbId: 'tt1234567'
-          })
-          .set('Authorization', `Bearer ${accessToken}`)
-      );
+      const sensitiveRequests = Array(20)
+        .fill(null)
+        .map(() =>
+          request(app)
+            .post('/api/v1/media/request')
+            .send({
+              title: 'Rate Limit Test',
+              year: 2023,
+              type: 'movie',
+              imdbId: 'tt1234567',
+            })
+            .set('Authorization', `Bearer ${accessToken}`),
+        );
 
       const responses = await Promise.allSettled(sensitiveRequests);
-      const statuses = responses.map(r => 
-        r.status === 'fulfilled' ? r.value.status : 500
-      );
+      const statuses = responses.map((r) => (r.status === 'fulfilled' ? r.value.status : 500));
 
       // Should rate limit media requests more aggressively
-      const rateLimited = statuses.filter(status => status === 429).length;
+      const rateLimited = statuses.filter((status) => status === 429).length;
       expect(rateLimited).toBeGreaterThan(5); // At least 25% should be rate limited
     });
   });
@@ -399,12 +393,12 @@ describe('Security Integration Tests', () => {
   describe('Session Security', () => {
     test('should implement secure session management', async () => {
       const user = await authHelper.createTestUser();
-      
+
       const loginResponse = await request(app)
         .post('/api/v1/auth/login')
         .send({
           email: user.email,
-          password: 'password123'
+          password: 'password123',
         })
         .expect(200);
 
@@ -420,11 +414,9 @@ describe('Security Integration Tests', () => {
 
     test('should prevent session fixation', async () => {
       const user = await authHelper.createTestUser();
-      
+
       // Get initial session
-      const initialResponse = await request(app)
-        .get('/api/v1/auth/session')
-        .expect(200);
+      const initialResponse = await request(app).get('/api/v1/auth/session').expect(200);
 
       const initialSession = initialResponse.headers['set-cookie'];
 
@@ -433,7 +425,7 @@ describe('Security Integration Tests', () => {
         .post('/api/v1/auth/login')
         .send({
           email: user.email,
-          password: 'password123'
+          password: 'password123',
         })
         .set('Cookie', initialSession)
         .expect(200);
@@ -456,13 +448,11 @@ describe('Security Integration Tests', () => {
       ];
 
       for (const scenario of errorScenarios) {
-        const response = await request(app)
-          .post(scenario.endpoint)
-          .send(scenario.data);
+        const response = await request(app).post(scenario.endpoint).send(scenario.data);
 
         // Error responses should not contain sensitive information
         const responseText = JSON.stringify(response.body).toLowerCase();
-        
+
         expect(responseText).not.toContain('password');
         expect(responseText).not.toContain('secret');
         expect(responseText).not.toContain('key');
@@ -476,14 +466,12 @@ describe('Security Integration Tests', () => {
 
     test('should mask sensitive data in logs', async () => {
       const user = await authHelper.createTestUser();
-      
+
       // Perform login (which should be logged)
-      await request(app)
-        .post('/api/v1/auth/login')
-        .send({
-          email: user.email,
-          password: 'password123'
-        });
+      await request(app).post('/api/v1/auth/login').send({
+        email: user.email,
+        password: 'password123',
+      });
 
       // In a real test, you would check log files or mock the logger
       // to verify that passwords and tokens are masked
@@ -498,7 +486,7 @@ describe('Security Integration Tests', () => {
 
       // Test malicious file upload (if file upload is supported)
       const maliciousFile = Buffer.from('<?php echo "hacked"; ?>');
-      
+
       const response = await request(app)
         .post('/api/v1/users/avatar')
         .attach('file', maliciousFile, 'malicious.php')

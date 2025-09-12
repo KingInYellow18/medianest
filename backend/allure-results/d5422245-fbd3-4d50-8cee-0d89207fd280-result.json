@@ -1,1 +1,30 @@
-{"uuid":"d5422245-fbd3-4d50-8cee-0d89207fd280","name":"should maintain session across browser tabs","historyId":"499efe083a160e6733db9240664641ed:b444eb0fbe6390c71e68b51dd25701fc","status":"skipped","statusDetails":{},"stage":"finished","steps":[],"attachments":[],"parameters":[{"name":"Project","value":"firefox"}],"labels":[{"name":"language","value":"javascript"},{"name":"framework","value":"playwright"},{"name":"package","value":"auth-journey.spec.ts"},{"name":"titlePath","value":" > firefox > auth-journey.spec.ts > Authentication User Journey"},{"name":"host","value":"kubuntudev"},{"name":"thread","value":"pid-38931-worker-0"},{"name":"parentSuite","value":"firefox"},{"name":"subSuite","value":"Authentication User Journey"}],"links":[],"start":1757602649401,"testCaseId":"499efe083a160e6733db9240664641ed","fullName":"auth-journey.spec.ts:178:7","titlePath":["auth-journey.spec.ts","Authentication User Journey"],"stop":1757602649401}
+{
+  "uuid": "d5422245-fbd3-4d50-8cee-0d89207fd280",
+  "name": "should maintain session across browser tabs",
+  "historyId": "499efe083a160e6733db9240664641ed:b444eb0fbe6390c71e68b51dd25701fc",
+  "status": "skipped",
+  "statusDetails": {},
+  "stage": "finished",
+  "steps": [],
+  "attachments": [],
+  "parameters": [{ "name": "Project", "value": "firefox" }],
+  "labels": [
+    { "name": "language", "value": "javascript" },
+    { "name": "framework", "value": "playwright" },
+    { "name": "package", "value": "auth-journey.spec.ts" },
+    {
+      "name": "titlePath",
+      "value": " > firefox > auth-journey.spec.ts > Authentication User Journey"
+    },
+    { "name": "host", "value": "kubuntudev" },
+    { "name": "thread", "value": "pid-38931-worker-0" },
+    { "name": "parentSuite", "value": "firefox" },
+    { "name": "subSuite", "value": "Authentication User Journey" }
+  ],
+  "links": [],
+  "start": 1757602649401,
+  "testCaseId": "499efe083a160e6733db9240664641ed",
+  "fullName": "auth-journey.spec.ts:178:7",
+  "titlePath": ["auth-journey.spec.ts", "Authentication User Journey"],
+  "stop": 1757602649401
+}

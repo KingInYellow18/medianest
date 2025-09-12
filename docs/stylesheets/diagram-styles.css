@@ -344,7 +344,7 @@
 /* Gantt Chart Specific Styles */
 .gantt .grid .tick line {
   stroke: var(--md-default-fg-color--lightest);
-  stroke-dasharray: 3,3;
+  stroke-dasharray: 3, 3;
 }
 
 .gantt .task {
@@ -365,7 +365,7 @@
 .gantt .today {
   stroke: var(--mn-accent-600);
   stroke-width: 3;
-  stroke-dasharray: 5,5;
+  stroke-dasharray: 5, 5;
 }
 
 /* Class Diagram Specific Styles */
@@ -409,12 +409,24 @@
   stroke-width: 2;
 }
 
-.pie-chart .slice:nth-child(1) { fill: var(--mn-deep-purple-600); }
-.pie-chart .slice:nth-child(2) { fill: var(--mn-purple-600); }
-.pie-chart .slice:nth-child(3) { fill: var(--mn-deep-purple-400); }
-.pie-chart .slice:nth-child(4) { fill: var(--mn-purple-400); }
-.pie-chart .slice:nth-child(5) { fill: var(--mn-deep-purple-300); }
-.pie-chart .slice:nth-child(6) { fill: var(--mn-purple-300); }
+.pie-chart .slice:nth-child(1) {
+  fill: var(--mn-deep-purple-600);
+}
+.pie-chart .slice:nth-child(2) {
+  fill: var(--mn-purple-600);
+}
+.pie-chart .slice:nth-child(3) {
+  fill: var(--mn-deep-purple-400);
+}
+.pie-chart .slice:nth-child(4) {
+  fill: var(--mn-purple-400);
+}
+.pie-chart .slice:nth-child(5) {
+  fill: var(--mn-deep-purple-300);
+}
+.pie-chart .slice:nth-child(6) {
+  fill: var(--mn-purple-300);
+}
 
 .pie-chart .label {
   fill: var(--md-default-fg-color);
@@ -562,31 +574,31 @@
 }
 
 /* Dark Mode Adjustments */
-[data-md-color-scheme="slate"] .diagram-container {
+[data-md-color-scheme='slate'] .diagram-container {
   background: var(--md-code-bg-color);
   border-color: var(--md-default-fg-color--lightest);
 }
 
-[data-md-color-scheme="slate"] .diagram-legend {
+[data-md-color-scheme='slate'] .diagram-legend {
   background: rgba(103, 58, 183, 0.1);
   border-color: rgba(103, 58, 183, 0.2);
 }
 
-[data-md-color-scheme="slate"] .zoom-btn {
+[data-md-color-scheme='slate'] .zoom-btn {
   background: var(--md-code-bg-color);
   color: var(--md-default-fg-color);
 }
 
-[data-md-color-scheme="slate"] .diagram-minimap {
+[data-md-color-scheme='slate'] .diagram-minimap {
   background: rgba(0, 0, 0, 0.7);
 }
 
-[data-md-color-scheme="slate"] .diagram-tooltip {
+[data-md-color-scheme='slate'] .diagram-tooltip {
   background: rgba(255, 255, 255, 0.9);
   color: black;
 }
 
-[data-md-color-scheme="slate"] .diagram-tooltip::after {
+[data-md-color-scheme='slate'] .diagram-tooltip::after {
   border-top-color: rgba(255, 255, 255, 0.9);
 }
 
@@ -596,16 +608,16 @@
     padding: 1rem;
     margin: 1.5rem -0.5rem;
   }
-  
+
   .diagram-controls {
     gap: 0.25rem;
   }
-  
+
   .diagram-control {
     padding: 0.4rem 0.8rem;
     font-size: 0.8rem;
   }
-  
+
   .zoom-controls {
     position: static;
     flex-direction: row;
@@ -613,12 +625,12 @@
     margin-bottom: 1rem;
     opacity: 1;
   }
-  
+
   .diagram-minimap {
     width: 120px;
     height: 80px;
   }
-  
+
   .legend-items {
     grid-template-columns: 1fr;
   }
@@ -628,20 +640,20 @@
   .diagram-container {
     padding: 0.75rem;
   }
-  
+
   .diagram-title {
     font-size: 1rem;
   }
-  
+
   .diagram-controls {
     flex-direction: column;
   }
-  
+
   .diagram-control {
     width: 100%;
     justify-content: center;
   }
-  
+
   .diagram-minimap {
     display: none;
   }
@@ -656,17 +668,17 @@
     break-inside: avoid;
     page-break-inside: avoid;
   }
-  
+
   .diagram-controls,
   .zoom-controls,
   .diagram-minimap {
     display: none !important;
   }
-  
+
   .diagram-tooltip {
     display: none !important;
   }
-  
+
   /* Ensure diagrams are visible in print */
   .diagram-container svg {
     max-width: 100% !important;

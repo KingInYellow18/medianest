@@ -15,7 +15,9 @@ These integration tests use **MSW (Mock Service Worker)** for API mocking and pr
 ## Test Files
 
 ### `auth-flow.integration.test.tsx`
+
 Tests complete authentication workflows including:
+
 - Initial authentication state
 - Login with valid/invalid credentials
 - Logout functionality
@@ -24,7 +26,9 @@ Tests complete authentication workflows including:
 - Authentication error boundaries
 
 ### `api-integration.integration.test.tsx`
+
 Tests API interactions and error handling:
+
 - Services API (CRUD operations)
 - Filtering and pagination
 - Authentication headers
@@ -34,7 +38,9 @@ Tests API interactions and error handling:
 - Rate limiting scenarios
 
 ### `data-fetching-hooks.integration.test.tsx`
+
 Tests custom hooks for data management:
+
 - `useServices` hook with filtering
 - `useService` hook for individual items
 - Caching mechanisms
@@ -43,7 +49,9 @@ Tests custom hooks for data management:
 - Performance optimizations
 
 ### `state-management.integration.test.tsx`
+
 Tests global state management:
+
 - App context providers
 - Granular state selectors
 - Optimized state hooks
@@ -52,7 +60,9 @@ Tests global state management:
 - Concurrent state updates
 
 ### `websocket.integration.test.tsx`
+
 Tests WebSocket real-time features:
+
 - Connection management
 - Message sending/receiving
 - Typed message handlers
@@ -119,11 +129,13 @@ The tests use a comprehensive MSW server (`msw-server.ts`) that mocks:
 ### Test Utilities
 
 #### `integration-setup.ts`
+
 - Configures MSW server lifecycle
 - Sets up test environment with mocks
 - Provides global test utilities
 
 #### `integration-render.tsx`
+
 - Custom render functions with providers
 - Authentication helper functions
 - Network condition simulation
@@ -205,7 +217,7 @@ mswUtils.setAuthenticatedUser(mockUser);
 mswServer.use(
   http.get('/api/services', () => {
     return HttpResponse.json({ message: 'Error' }, { status: 500 });
-  })
+  }),
 );
 ```
 
@@ -228,7 +240,7 @@ renderWithAuth(<Component />, 'user', {
 const mockWs = (global.WebSocket as any).mockInstance;
 mockWs.simulateMessage({
   type: 'service-update',
-  payload: { serviceId: 'service-1', status: 'connected' }
+  payload: { serviceId: 'service-1', status: 'connected' },
 });
 ```
 
@@ -240,17 +252,17 @@ mockWs.simulateMessage({
 it('should complete service configuration workflow', async () => {
   // 1. User logs in
   await simulateLogin(user, 'admin@medianest.com', 'password');
-  
+
   // 2. User navigates to services
   await user.click(screen.getByText('Services'));
-  
+
   // 3. User adds new service
   await user.click(screen.getByText('Add Service'));
-  
+
   // 4. User fills form and submits
   await user.type(screen.getByLabelText('Service Name'), 'New Plex Server');
   await user.click(screen.getByText('Save'));
-  
+
   // 5. Verify service was created
   expect(screen.getByText('New Plex Server')).toBeInTheDocument();
 });
@@ -266,14 +278,14 @@ it('should handle network errors gracefully', async () => {
       return HttpResponse.json({}, { status: 500 });
     })
   );
-  
+
   renderWithAuth(<ServicesPage />);
-  
+
   // Should show error message
   await waitFor(() => {
     expect(screen.getByText(/error/i)).toBeInTheDocument();
   });
-  
+
   // Should show retry option
   expect(screen.getByText('Retry')).toBeInTheDocument();
 });
@@ -284,15 +296,15 @@ it('should handle network errors gracefully', async () => {
 ```typescript
 it('should show loading states during async operations', async () => {
   const { user } = renderWithAuth(<ServiceDetail serviceId="service-1" />);
-  
+
   // Should show loading initially
   expect(screen.getByText('Loading...')).toBeInTheDocument();
-  
+
   // Wait for data to load
   await waitFor(() => {
     expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
   });
-  
+
   // Test action loading state
   await user.click(screen.getByText('Test Connection'));
   expect(screen.getByText('Testing...')).toBeInTheDocument();
@@ -304,13 +316,13 @@ it('should show loading states during async operations', async () => {
 ```typescript
 it('should maintain state across component re-renders', () => {
   const { rerender } = renderWithAuth(<Component />);
-  
+
   // Make changes to state
   // ... user interactions
-  
+
   // Re-render component
   rerender(<Component />);
-  
+
   // State should be maintained
   expect(screen.getByTestId('user-name')).toHaveTextContent('Expected Value');
 });
@@ -408,6 +420,7 @@ For issues with integration tests:
 ## Memory: MEDIANEST_TESTING_PHASE3_20250912
 
 This comprehensive integration test suite provides:
+
 - ✅ Complete API integration testing with MSW
 - ✅ Authentication flow testing with real scenarios
 - ✅ Data fetching hooks testing with caching

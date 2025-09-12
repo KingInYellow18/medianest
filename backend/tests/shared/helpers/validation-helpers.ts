@@ -220,7 +220,7 @@ export class ValidationHelper {
   static validatePaginationResponse(
     response: ApiResponse<PaginationResponse<unknown>>,
     expectedPage: number = 1,
-    expectedPageSize: number = 20
+    expectedPageSize: number = 20,
   ): boolean {
     try {
       this.validateApiResponse(response, 200);
@@ -299,7 +299,7 @@ export class ValidationHelper {
    */
   static validateUserIsolation(
     userRequests: RequestItem[],
-    otherUserRequests: RequestItem[]
+    otherUserRequests: RequestItem[],
   ): boolean {
     try {
       const userIds = userRequests.map((r) => r.id);
@@ -319,7 +319,7 @@ export class ValidationHelper {
    */
   static validatePerformanceMetrics(
     metrics: PerformanceMetrics,
-    thresholds: { maxDuration: number }
+    thresholds: { maxDuration: number },
   ): boolean {
     try {
       expect(metrics.duration).toBeGreaterThan(0);
@@ -342,7 +342,7 @@ export class ValidationHelper {
   static validateDataConsistency(
     initialData: any,
     updatedData: any,
-    expectedChanges: string[]
+    expectedChanges: string[],
   ): boolean {
     try {
       // Check that non-changed fields remain the same

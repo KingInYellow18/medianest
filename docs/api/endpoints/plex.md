@@ -11,8 +11,9 @@ All Plex endpoints require authentication and a configured Plex server connectio
 ## Caching
 
 Plex endpoints use intelligent caching to optimize performance:
+
 - Server info: Long-term cache (1 hour)
-- Libraries: Long-term cache (1 hour) 
+- Libraries: Long-term cache (1 hour)
 - Library items: Medium-term cache (15 minutes)
 - Search results: Medium-term cache (15 minutes)
 - Recently added: Medium-term cache (15 minutes)
@@ -104,11 +105,11 @@ GET /api/v1/plex/libraries/{libraryKey}/items
 
 #### Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `libraryKey` | string | Yes | Plex library key |
-| `limit` | integer | No | Number of items to return (1-100, default: 50) |
-| `offset` | integer | No | Number of items to skip (default: 0) |
+| Parameter    | Type    | Required | Description                                    |
+| ------------ | ------- | -------- | ---------------------------------------------- |
+| `libraryKey` | string  | Yes      | Plex library key                               |
+| `limit`      | integer | No       | Number of items to return (1-100, default: 50) |
+| `offset`     | integer | No       | Number of items to skip (default: 0)           |
 
 #### Example Request
 
@@ -159,9 +160,9 @@ GET /api/v1/plex/search
 
 #### Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `query` | string | Yes | Search query (min 1 character) |
+| Parameter | Type   | Required | Description                    |
+| --------- | ------ | -------- | ------------------------------ |
+| `query`   | string | Yes      | Search query (min 1 character) |
 
 #### Example Request
 
@@ -209,9 +210,9 @@ GET /api/v1/plex/recently-added
 
 #### Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `limit` | integer | No | Number of items to return (1-100, default: 20) |
+| Parameter | Type    | Required | Description                                    |
+| --------- | ------- | -------- | ---------------------------------------------- |
+| `limit`   | integer | No       | Number of items to return (1-100, default: 20) |
 
 #### Example Request
 
@@ -259,9 +260,9 @@ GET /api/v1/plex/libraries/{libraryKey}/collections
 
 #### Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `libraryKey` | string | Yes | Plex library key |
+| Parameter    | Type   | Required | Description      |
+| ------------ | ------ | -------- | ---------------- |
+| `libraryKey` | string | Yes      | Plex library key |
 
 #### Example Request
 
@@ -299,9 +300,9 @@ GET /api/v1/plex/collections/{collectionKey}
 
 #### Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `collectionKey` | string | Yes | Plex collection key |
+| Parameter       | Type   | Required | Description         |
+| --------------- | ------ | -------- | ------------------- |
+| `collectionKey` | string | Yes      | Plex collection key |
 
 #### Example Request
 
@@ -333,7 +334,7 @@ curl "http://localhost:3001/api/v1/plex/collections/coll_1" \
     {
       "key": "12352",
       "title": "The Incredible Hulk",
-      "type": "movie", 
+      "type": "movie",
       "year": 2008,
       "thumb": "/library/metadata/12352/thumb/1638360120"
     }
@@ -343,14 +344,14 @@ curl "http://localhost:3001/api/v1/plex/collections/coll_1" \
 
 ## Status Codes
 
-| Status | Description |
-|--------|-------------|
-| `200` | Success |
-| `400` | Bad request (invalid query parameters) |
-| `401` | Unauthorized |
-| `404` | Library or item not found |
-| `503` | Plex server unavailable |
-| `500` | Internal server error |
+| Status | Description                            |
+| ------ | -------------------------------------- |
+| `200`  | Success                                |
+| `400`  | Bad request (invalid query parameters) |
+| `401`  | Unauthorized                           |
+| `404`  | Library or item not found              |
+| `503`  | Plex server unavailable                |
+| `500`  | Internal server error                  |
 
 ## Error Responses
 
@@ -368,7 +369,7 @@ curl "http://localhost:3001/api/v1/plex/collections/coll_1" \
 
 ```json
 {
-  "error": "Service Unavailable", 
+  "error": "Service Unavailable",
   "message": "Plex server is currently unavailable"
 }
 ```
@@ -391,6 +392,7 @@ https://your-plex-server.com:32400{thumb_path}?X-Plex-Token=<plex-token>
 ```
 
 Example:
+
 ```
 https://plex.example.com:32400/library/metadata/12345/thumb/1638360000?X-Plex-Token=abc123
 ```
@@ -399,27 +401,30 @@ https://plex.example.com:32400/library/metadata/12345/thumb/1638360000?X-Plex-To
 
 Plex supports different library types:
 
-| Type | Description |
-|------|-------------|
-| `movie` | Movie library |
-| `show` | TV Show library |
-| `artist` | Music library |
-| `photo` | Photo library |
+| Type     | Description     |
+| -------- | --------------- |
+| `movie`  | Movie library   |
+| `show`   | TV Show library |
+| `artist` | Music library   |
+| `photo`  | Photo library   |
 
 ## Performance Optimizations
 
 ### Caching Strategy
+
 - Server information cached for 1 hour
 - Library listings cached for 1 hour
 - Dynamic content (items, search) cached for 15 minutes
 - Cache headers included in responses
 
 ### Pagination
+
 - Large libraries automatically paginated
 - Use `limit` and `offset` for efficient browsing
 - Default page size optimized for performance
 
 ### Connection Pooling
+
 - Persistent connections to Plex server
 - Connection pool managed automatically
 - Failover handling for server unavailability
@@ -427,12 +432,15 @@ Plex supports different library types:
 ## Integration Notes
 
 ### Authentication Requirements
+
 - User must be authenticated with MediaNest
 - Plex server connection configured by admin
 - Read-only access to Plex content
 
 ### Real-time Updates
+
 While Plex endpoints don't support real-time updates directly, the dashboard status endpoints provide Plex server health information.
 
 ### Rate Limiting
+
 Plex endpoints share the same rate limiting as other API endpoints to prevent overloading the Plex server.

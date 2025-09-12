@@ -92,13 +92,11 @@ ports:
 **PRIMARY ATTACK VECTORS**:
 
 1. **Supply Chain Exploitation**:
-
    - Malicious `color-convert` package provides initial access
    - Build-time code injection capabilities
    - Development environment compromise potential
 
 2. **Container Escape Potential**:
-
    - Overprivileged Docker containers
    - Missing security contexts
    - Network isolation gaps

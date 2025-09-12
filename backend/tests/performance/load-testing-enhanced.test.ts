@@ -1,6 +1,6 @@
 /**
  * ENHANCED LOAD TESTING SUITE
- * 
+ *
  * Comprehensive performance testing for MediaNest production readiness
  * Tests system behavior under various load conditions and identifies bottlenecks
  */
@@ -31,14 +31,14 @@ describe('Enhanced Load Testing Suite', () => {
       const concurrentLogins = 50;
       const startTime = Date.now();
 
-      const loginRequests = Array(concurrentLogins).fill(null).map((_, index) =>
-        request
-          .post('/api/auth/login')
-          .send({ 
-            username: `testuser${index}`, 
-            password: 'testpass123' 
-          })
-      );
+      const loginRequests = Array(concurrentLogins)
+        .fill(null)
+        .map((_, index) =>
+          request.post('/api/auth/login').send({
+            username: `testuser${index}`,
+            password: 'testpass123',
+          }),
+        );
 
       const responses = await Promise.allSettled(loginRequests);
       const endTime = Date.now();
@@ -48,7 +48,7 @@ describe('Enhanced Load Testing Suite', () => {
         concurrentRequests: concurrentLogins,
         duration,
         avgResponseTime: duration / concurrentLogins,
-        successRate: responses.filter(r => r.status === 'fulfilled').length / concurrentLogins
+        successRate: responses.filter((r) => r.status === 'fulfilled').length / concurrentLogins,
       };
 
       // Performance expectations
@@ -64,19 +64,19 @@ describe('Enhanced Load Testing Suite', () => {
         'comedy series',
         'documentary nature',
         'thriller suspense',
-        'sci-fi adventure'
+        'sci-fi adventure',
       ];
 
       const startTime = Date.now();
 
-      const searchRequests = Array(concurrentSearches).fill(null).map((_, index) =>
-        request
-          .get('/api/media/search')
-          .query({ 
+      const searchRequests = Array(concurrentSearches)
+        .fill(null)
+        .map((_, index) =>
+          request.get('/api/media/search').query({
             q: searchQueries[index % searchQueries.length],
-            page: Math.floor(index / 20) + 1
-          })
-      );
+            page: Math.floor(index / 20) + 1,
+          }),
+        );
 
       const responses = await Promise.allSettled(searchRequests);
       const endTime = Date.now();
@@ -86,9 +86,9 @@ describe('Enhanced Load Testing Suite', () => {
         concurrentRequests: concurrentSearches,
         duration,
         avgResponseTime: duration / concurrentSearches,
-        successCount: responses.filter(r => 
-          r.status === 'fulfilled' && (r.value as any).status === 200
-        ).length
+        successCount: responses.filter(
+          (r) => r.status === 'fulfilled' && (r.value as any).status === 200,
+        ).length,
       };
 
       expect(duration).toBeLessThan(15000); // All searches under 15 seconds
@@ -100,11 +100,9 @@ describe('Enhanced Load Testing Suite', () => {
       const concurrentDashboards = 75;
       const startTime = Date.now();
 
-      const dashboardRequests = Array(concurrentDashboards).fill(null).map(() =>
-        request
-          .get('/api/dashboard')
-          .set('Authorization', 'Bearer valid-test-token')
-      );
+      const dashboardRequests = Array(concurrentDashboards)
+        .fill(null)
+        .map(() => request.get('/api/dashboard').set('Authorization', 'Bearer valid-test-token'));
 
       const responses = await Promise.allSettled(dashboardRequests);
       const endTime = Date.now();
@@ -113,7 +111,7 @@ describe('Enhanced Load Testing Suite', () => {
       performanceMetrics.dashboardLoad = {
         concurrentRequests: concurrentDashboards,
         duration,
-        avgResponseTime: duration / concurrentDashboards
+        avgResponseTime: duration / concurrentDashboards,
       };
 
       expect(duration).toBeLessThan(8000); // All dashboard loads under 8 seconds
@@ -126,16 +124,18 @@ describe('Enhanced Load Testing Suite', () => {
       const concurrentQueries = 200;
       const startTime = Date.now();
 
-      const databaseRequests = Array(concurrentQueries).fill(null).map((_, index) => {
-        const endpoints = [
-          '/api/media/recent',
-          '/api/users/stats',
-          '/api/admin/system-info',
-          '/api/media/popular'
-        ];
-        
-        return request.get(endpoints[index % endpoints.length]);
-      });
+      const databaseRequests = Array(concurrentQueries)
+        .fill(null)
+        .map((_, index) => {
+          const endpoints = [
+            '/api/media/recent',
+            '/api/users/stats',
+            '/api/admin/system-info',
+            '/api/media/popular',
+          ];
+
+          return request.get(endpoints[index % endpoints.length]);
+        });
 
       const responses = await Promise.allSettled(databaseRequests);
       const endTime = Date.now();
@@ -145,28 +145,30 @@ describe('Enhanced Load Testing Suite', () => {
         concurrentQueries,
         duration,
         avgQueryTime: duration / concurrentQueries,
-        successfulQueries: responses.filter(r => r.status === 'fulfilled').length
+        successfulQueries: responses.filter((r) => r.status === 'fulfilled').length,
       };
 
       expect(duration).toBeLessThan(20000); // All DB queries under 20 seconds
       expect(performanceMetrics.databaseLoad.avgQueryTime).toBeLessThan(100);
-      expect(performanceMetrics.databaseLoad.successfulQueries).toBeGreaterThan(concurrentQueries * 0.9);
+      expect(performanceMetrics.databaseLoad.successfulQueries).toBeGreaterThan(
+        concurrentQueries * 0.9,
+      );
     });
 
     test('should handle database write operations under load', async () => {
       const concurrentWrites = 50;
       const startTime = Date.now();
 
-      const writeRequests = Array(concurrentWrites).fill(null).map((_, index) =>
-        request
-          .post('/api/media/request')
-          .send({
+      const writeRequests = Array(concurrentWrites)
+        .fill(null)
+        .map((_, index) =>
+          request.post('/api/media/request').send({
             title: `Load Test Movie ${index}`,
             type: 'movie',
             year: 2024,
-            imdbId: `tt${1000000 + index}`
-          })
-      );
+            imdbId: `tt${1000000 + index}`,
+          }),
+        );
 
       const responses = await Promise.allSettled(writeRequests);
       const endTime = Date.now();
@@ -176,9 +178,9 @@ describe('Enhanced Load Testing Suite', () => {
         concurrentWrites,
         duration,
         avgWriteTime: duration / concurrentWrites,
-        successfulWrites: responses.filter(r => 
-          r.status === 'fulfilled' && [200, 201].includes((r.value as any).status)
-        ).length
+        successfulWrites: responses.filter(
+          (r) => r.status === 'fulfilled' && [200, 201].includes((r.value as any).status),
+        ).length,
       };
 
       expect(duration).toBeLessThan(15000); // All writes under 15 seconds
@@ -190,19 +192,19 @@ describe('Enhanced Load Testing Suite', () => {
     test('should handle large payload processing efficiently', async () => {
       const largePayload = {
         data: 'A'.repeat(100000), // 100KB payload
-        metadata: Array(1000).fill(null).map((_, i) => ({
-          id: i,
-          name: `item-${i}`,
-          description: 'Large payload test item with substantial content'
-        }))
+        metadata: Array(1000)
+          .fill(null)
+          .map((_, i) => ({
+            id: i,
+            name: `item-${i}`,
+            description: 'Large payload test item with substantial content',
+          })),
       };
 
       const startTime = Date.now();
       const memoryBefore = process.memoryUsage();
 
-      const response = await request
-        .post('/api/admin/bulk-import')
-        .send(largePayload);
+      const response = await request.post('/api/admin/bulk-import').send(largePayload);
 
       const endTime = Date.now();
       const memoryAfter = process.memoryUsage();
@@ -212,7 +214,7 @@ describe('Enhanced Load Testing Suite', () => {
         payloadSize: JSON.stringify(largePayload).length,
         processingTime: duration,
         memoryIncrease: memoryAfter.heapUsed - memoryBefore.heapUsed,
-        response: response.status
+        response: response.status,
       };
 
       expect(duration).toBeLessThan(5000); // Process large payload under 5 seconds
@@ -237,7 +239,7 @@ describe('Enhanced Load Testing Suite', () => {
         fileSize,
         uploadTime: duration,
         throughput: fileSize / (duration / 1000), // bytes per second
-        response: response.status
+        response: response.status,
       };
 
       expect(duration).toBeLessThan(30000); // Upload 5MB file under 30 seconds
@@ -250,12 +252,14 @@ describe('Enhanced Load Testing Suite', () => {
       const concurrentPlexRequests = 25;
       const startTime = Date.now();
 
-      const plexRequests = Array(concurrentPlexRequests).fill(null).map((_, index) =>
-        request
-          .get('/api/plex/libraries')
-          .set('Authorization', 'Bearer valid-plex-token')
-          .query({ server: `server-${index % 3}` })
-      );
+      const plexRequests = Array(concurrentPlexRequests)
+        .fill(null)
+        .map((_, index) =>
+          request
+            .get('/api/plex/libraries')
+            .set('Authorization', 'Bearer valid-plex-token')
+            .query({ server: `server-${index % 3}` }),
+        );
 
       const responses = await Promise.allSettled(plexRequests);
       const endTime = Date.now();
@@ -265,9 +269,9 @@ describe('Enhanced Load Testing Suite', () => {
         concurrentRequests: concurrentPlexRequests,
         duration,
         avgResponseTime: duration / concurrentPlexRequests,
-        successRate: responses.filter(r => 
-          r.status === 'fulfilled' && (r.value as any).status === 200
-        ).length / concurrentPlexRequests
+        successRate:
+          responses.filter((r) => r.status === 'fulfilled' && (r.value as any).status === 200)
+            .length / concurrentPlexRequests,
       };
 
       expect(duration).toBeLessThan(20000); // All Plex requests under 20 seconds
@@ -280,19 +284,19 @@ describe('Enhanced Load Testing Suite', () => {
         'movie trailer',
         'tv show review',
         'behind the scenes',
-        'official soundtrack'
+        'official soundtrack',
       ];
 
       const startTime = Date.now();
 
-      const youtubeRequests = Array(concurrentYouTubeRequests).fill(null).map((_, index) =>
-        request
-          .get('/api/youtube/search')
-          .query({ 
+      const youtubeRequests = Array(concurrentYouTubeRequests)
+        .fill(null)
+        .map((_, index) =>
+          request.get('/api/youtube/search').query({
             q: searchTerms[index % searchTerms.length],
-            maxResults: 10
-          })
-      );
+            maxResults: 10,
+          }),
+        );
 
       const responses = await Promise.allSettled(youtubeRequests);
       const endTime = Date.now();
@@ -302,9 +306,9 @@ describe('Enhanced Load Testing Suite', () => {
         concurrentRequests: concurrentYouTubeRequests,
         duration,
         avgResponseTime: duration / concurrentYouTubeRequests,
-        apiCallsSuccessful: responses.filter(r => 
-          r.status === 'fulfilled' && (r.value as any).status === 200
-        ).length
+        apiCallsSuccessful: responses.filter(
+          (r) => r.status === 'fulfilled' && (r.value as any).status === 200,
+        ).length,
       };
 
       expect(duration).toBeLessThan(25000); // All YouTube requests under 25 seconds
@@ -324,7 +328,7 @@ describe('Enhanced Load Testing Suite', () => {
           .get('/api/socket/connect')
           .set('Upgrade', 'websocket')
           .set('Connection', 'Upgrade');
-        
+
         connections.push(response);
       }
 
@@ -335,7 +339,7 @@ describe('Enhanced Load Testing Suite', () => {
         concurrentConnections,
         connectionTime: duration,
         avgConnectionTime: duration / concurrentConnections,
-        successfulConnections: connections.filter(c => c.status === 101).length
+        successfulConnections: connections.filter((c) => c.status === 101).length,
       };
 
       expect(duration).toBeLessThan(10000); // Connect all sockets under 10 seconds
@@ -346,15 +350,15 @@ describe('Enhanced Load Testing Suite', () => {
       const messageCount = 1000;
       const startTime = Date.now();
 
-      const messageRequests = Array(messageCount).fill(null).map((_, index) =>
-        request
-          .post('/api/socket/broadcast')
-          .send({
+      const messageRequests = Array(messageCount)
+        .fill(null)
+        .map((_, index) =>
+          request.post('/api/socket/broadcast').send({
             type: 'notification',
             message: `Test message ${index}`,
-            timestamp: Date.now()
-          })
-      );
+            timestamp: Date.now(),
+          }),
+        );
 
       const responses = await Promise.allSettled(messageRequests);
       const endTime = Date.now();
@@ -364,9 +368,9 @@ describe('Enhanced Load Testing Suite', () => {
         messageCount,
         broadcastTime: duration,
         avgMessageTime: duration / messageCount,
-        messagesDelivered: responses.filter(r => 
-          r.status === 'fulfilled' && (r.value as any).status === 200
-        ).length
+        messagesDelivered: responses.filter(
+          (r) => r.status === 'fulfilled' && (r.value as any).status === 200,
+        ).length,
       };
 
       expect(duration).toBeLessThan(5000); // Broadcast 1000 messages under 5 seconds
@@ -381,7 +385,7 @@ describe('Enhanced Load Testing Suite', () => {
         { path: '/api/health', weight: 0.4 },
         { path: '/api/media/search?q=popular', weight: 0.3 },
         { path: '/api/dashboard', weight: 0.2 },
-        { path: '/api/media/recent', weight: 0.1 }
+        { path: '/api/media/recent', weight: 0.1 },
       ];
 
       const startTime = Date.now();
@@ -390,7 +394,7 @@ describe('Enhanced Load Testing Suite', () => {
       for (let i = 0; i < peakLoad; i++) {
         const random = Math.random();
         let cumulativeWeight = 0;
-        
+
         for (const endpoint of endpointMix) {
           cumulativeWeight += endpoint.weight;
           if (random <= cumulativeWeight) {
@@ -408,12 +412,12 @@ describe('Enhanced Load Testing Suite', () => {
         peakLoad,
         duration,
         avgResponseTime: duration / peakLoad,
-        successRate: responses.filter(r => 
-          r.status === 'fulfilled' && (r.value as any).status === 200
-        ).length / peakLoad,
-        errorRate: responses.filter(r => 
-          r.status === 'fulfilled' && (r.value as any).status >= 500
-        ).length / peakLoad
+        successRate:
+          responses.filter((r) => r.status === 'fulfilled' && (r.value as any).status === 200)
+            .length / peakLoad,
+        errorRate:
+          responses.filter((r) => r.status === 'fulfilled' && (r.value as any).status >= 500)
+            .length / peakLoad,
       };
 
       expect(duration).toBeLessThan(30000); // Handle peak load under 30 seconds
@@ -423,20 +427,18 @@ describe('Enhanced Load Testing Suite', () => {
 
     test('should recover from overload conditions', async () => {
       // Simulate system overload
-      const overloadRequests = Array(1000).fill(null).map(() =>
-        request
-          .post('/api/admin/heavy-operation')
-          .send({ data: 'A'.repeat(50000) })
-      );
+      const overloadRequests = Array(1000)
+        .fill(null)
+        .map(() => request.post('/api/admin/heavy-operation').send({ data: 'A'.repeat(50000) }));
 
       const startTime = Date.now();
-      
+
       // Start overload requests
       const overloadResponses = await Promise.allSettled(overloadRequests);
-      
+
       // Wait for system to recover
-      await new Promise(resolve => setTimeout(resolve, 5000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+
       // Test normal operation after overload
       const recoveryResponse = await request.get('/api/health');
       const endTime = Date.now();
@@ -445,7 +447,7 @@ describe('Enhanced Load Testing Suite', () => {
         overloadDuration: endTime - startTime,
         overloadRequests: overloadRequests.length,
         recoveryStatus: recoveryResponse.status,
-        systemRecovered: recoveryResponse.status === 200
+        systemRecovered: recoveryResponse.status === 200,
       };
 
       expect(recoveryResponse.status).toBe(200); // System should recover
@@ -459,7 +461,7 @@ describe('Enhanced Load Testing Suite', () => {
         { endpoint: '/api/health', maxTime: 50 },
         { endpoint: '/api/media/search?q=test', maxTime: 200 },
         { endpoint: '/api/dashboard', maxTime: 300 },
-        { endpoint: '/api/admin/stats', maxTime: 500 }
+        { endpoint: '/api/admin/stats', maxTime: 500 },
       ];
 
       const regressionResults: any[] = [];
@@ -484,14 +486,14 @@ describe('Enhanced Load Testing Suite', () => {
           maxTime,
           minTime,
           baseline: test.maxTime,
-          passed: avgTime <= test.maxTime
+          passed: avgTime <= test.maxTime,
         });
       }
 
       performanceMetrics.regressionTests = regressionResults;
 
       // All baseline tests should pass
-      const allPassed = regressionResults.every(result => result.passed);
+      const allPassed = regressionResults.every((result) => result.passed);
       expect(allPassed).toBe(true);
     });
   });

@@ -58,7 +58,7 @@ describe('DashboardController', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     controller = new DashboardController();
-    
+
     mockRequest = {
       query: {},
       params: {},
@@ -108,7 +108,7 @@ describe('DashboardController', () => {
       expect(cacheService.getOrSet).toHaveBeenCalledWith(
         'service:statuses:all',
         expect.any(Function),
-        300
+        300,
       );
 
       expect(mockResponse.set).toHaveBeenCalledWith({
@@ -174,10 +174,13 @@ describe('DashboardController', () => {
       (cacheService.getOrSet as Mock).mockRejectedValue(new Error('Cache service error'));
 
       await expect(
-        controller.getServiceStatuses(mockRequest as Request, mockResponse as Response)
+        controller.getServiceStatuses(mockRequest as Request, mockResponse as Response),
       ).rejects.toThrow(AppError);
 
-      expect(logger.error).toHaveBeenCalledWith('Failed to get service statuses', expect.any(Object));
+      expect(logger.error).toHaveBeenCalledWith(
+        'Failed to get service statuses',
+        expect.any(Object),
+      );
     });
 
     it('should set appropriate cache headers', async () => {
@@ -189,7 +192,7 @@ describe('DashboardController', () => {
         expect.objectContaining({
           'Cache-Control': 'public, max-age=60',
           ETag: expect.any(String),
-        })
+        }),
       );
     });
   });
@@ -217,7 +220,7 @@ describe('DashboardController', () => {
       expect(cacheService.getOrSet).toHaveBeenCalledWith(
         `service:status:${serviceName}`,
         expect.any(Function),
-        300
+        300,
       );
 
       expect(mockResponse.set).toHaveBeenCalledWith({
@@ -261,7 +264,7 @@ describe('DashboardController', () => {
       mockRequest.params = {};
 
       await expect(
-        controller.getServiceStatus(mockRequest as Request, mockResponse as Response)
+        controller.getServiceStatus(mockRequest as Request, mockResponse as Response),
       ).rejects.toThrow(AppError);
 
       expect(cacheService.getOrSet).not.toHaveBeenCalled();
@@ -271,7 +274,7 @@ describe('DashboardController', () => {
       mockRequest.params = { service: '' };
 
       await expect(
-        controller.getServiceStatus(mockRequest as Request, mockResponse as Response)
+        controller.getServiceStatus(mockRequest as Request, mockResponse as Response),
       ).rejects.toThrow(AppError);
     });
 
@@ -280,7 +283,7 @@ describe('DashboardController', () => {
       (cacheService.getOrSet as Mock).mockRejectedValue(new Error('Service unavailable'));
 
       await expect(
-        controller.getServiceStatus(mockRequest as Request, mockResponse as Response)
+        controller.getServiceStatus(mockRequest as Request, mockResponse as Response),
       ).rejects.toThrow(AppError);
 
       expect(logger.error).toHaveBeenCalled();
@@ -349,7 +352,7 @@ describe('DashboardController', () => {
       expect(cacheService.getOrSet).toHaveBeenCalledWith(
         'dashboard:metrics',
         expect.any(Function),
-        300
+        300,
       );
 
       expect(mockResponse.set).toHaveBeenCalledWith({
@@ -429,7 +432,7 @@ describe('DashboardController', () => {
       (userRepository.count as Mock).mockRejectedValue(new Error('Database error'));
 
       await expect(
-        controller.getDashboardMetrics(mockRequest as Request, mockResponse as Response)
+        controller.getDashboardMetrics(mockRequest as Request, mockResponse as Response),
       ).rejects.toThrow(AppError);
 
       expect(logger.error).toHaveBeenCalled();
@@ -456,7 +459,7 @@ describe('DashboardController', () => {
             free: expect.any(Number),
             total: expect.any(Number),
           }),
-        })
+        }),
       );
     });
   });
@@ -491,7 +494,7 @@ describe('DashboardController', () => {
       expect(cacheService.getOrSet).toHaveBeenCalledWith(
         'dashboard:activity:10',
         expect.any(Function),
-        60 // 1 minute cache
+        60, // 1 minute cache
       );
 
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -514,7 +517,7 @@ describe('DashboardController', () => {
       expect(cacheService.getOrSet).toHaveBeenCalledWith(
         'dashboard:activity:25',
         expect.any(Function),
-        60
+        60,
       );
 
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -536,7 +539,7 @@ describe('DashboardController', () => {
       expect(cacheService.getOrSet).toHaveBeenCalledWith(
         'dashboard:activity:20',
         expect.any(Function),
-        60
+        60,
       );
     });
 
@@ -544,7 +547,7 @@ describe('DashboardController', () => {
       (cacheService.getOrSet as Mock).mockRejectedValue(new Error('Service error'));
 
       await expect(
-        controller.getRecentActivity(mockRequest as Request, mockResponse as Response)
+        controller.getRecentActivity(mockRequest as Request, mockResponse as Response),
       ).rejects.toThrow(AppError);
 
       expect(logger.error).toHaveBeenCalled();

@@ -27,18 +27,18 @@ class MonitoringDashboardServer {
       current_deployments: 0,
       system_status: {
         frontend: 'operational',
-        backend: 'operational', 
+        backend: 'operational',
         database: 'operational',
         redis: 'operational',
-        monitoring: 'operational'
+        monitoring: 'operational',
       },
       alerts: [],
       performance: {
         response_time: 150,
         cpu_usage: 25,
         memory_usage: 45,
-        disk_usage: 60
-      }
+        disk_usage: 60,
+      },
     };
     this.clients = new Set();
     this.alertThresholds = {
@@ -47,28 +47,30 @@ class MonitoringDashboardServer {
       rollback_rate: 5,
       response_time: 1000,
       cpu_usage: 80,
-      memory_usage: 85
+      memory_usage: 85,
     };
   }
 
   setupWebSocket() {
     this.wss = new WebSocket.Server({ port: this.wsPort });
-    
+
     this.wss.on('connection', (ws) => {
       console.log('📊 New monitoring client connected');
       this.clients.add(ws);
-      
+
       // Send current metrics to new client
-      ws.send(JSON.stringify({
-        type: 'initial_metrics',
-        data: this.metrics
-      }));
-      
+      ws.send(
+        JSON.stringify({
+          type: 'initial_metrics',
+          data: this.metrics,
+        }),
+      );
+
       ws.on('close', () => {
         console.log('📊 Monitoring client disconnected');
         this.clients.delete(ws);
       });
-      
+
       ws.on('error', (error) => {
         console.error('WebSocket error:', error);
         this.clients.delete(ws);
@@ -82,38 +84,37 @@ class MonitoringDashboardServer {
     try {
       // Docker container health
       const containerHealth = await this.getContainerHealth();
-      
+
       // System resource usage
       const systemResources = await this.getSystemResources();
-      
+
       // Application health checks
       const appHealth = await this.getApplicationHealth();
-      
+
       // Pipeline metrics
       const pipelineMetrics = await this.getPipelineMetrics();
-      
+
       // Update metrics
       this.metrics = {
         ...this.metrics,
         ...pipelineMetrics,
         system_status: {
           ...this.metrics.system_status,
-          ...containerHealth
+          ...containerHealth,
         },
         performance: {
           ...this.metrics.performance,
           ...systemResources,
-          ...appHealth
+          ...appHealth,
         },
-        last_updated: new Date().toISOString()
+        last_updated: new Date().toISOString(),
       };
 
       // Check for alerts
       this.checkAlerts();
-      
+
       // Broadcast to all connected clients
       this.broadcastMetrics();
-      
     } catch (error) {
       console.error('Error collecting metrics:', error);
     }
@@ -122,28 +123,35 @@ class MonitoringDashboardServer {
   async getContainerHealth() {
     try {
       const { stdout } = await execAsync('docker ps --format "table {{.Names}}\\t{{.Status}}"');
-      const containers = stdout.split('\n').slice(1).filter(line => line.trim());
-      
+      const containers = stdout
+        .split('\n')
+        .slice(1)
+        .filter((line) => line.trim());
+
       const health = {
         frontend: 'unknown',
         backend: 'unknown',
         database: 'unknown',
-        redis: 'unknown'
+        redis: 'unknown',
       };
-      
-      containers.forEach(container => {
+
+      containers.forEach((container) => {
         const [name, status] = container.split('\t');
         if (name.includes('frontend') || name.includes('medianest_app')) {
-          health.frontend = status.includes('healthy') || status.includes('Up') ? 'operational' : 'degraded';
+          health.frontend =
+            status.includes('healthy') || status.includes('Up') ? 'operational' : 'degraded';
         } else if (name.includes('backend')) {
-          health.backend = status.includes('healthy') || status.includes('Up') ? 'operational' : 'degraded';
+          health.backend =
+            status.includes('healthy') || status.includes('Up') ? 'operational' : 'degraded';
         } else if (name.includes('postgres')) {
-          health.database = status.includes('healthy') || status.includes('Up') ? 'operational' : 'degraded';
+          health.database =
+            status.includes('healthy') || status.includes('Up') ? 'operational' : 'degraded';
         } else if (name.includes('redis')) {
-          health.redis = status.includes('healthy') || status.includes('Up') ? 'operational' : 'degraded';
+          health.redis =
+            status.includes('healthy') || status.includes('Up') ? 'operational' : 'degraded';
         }
       });
-      
+
       return health;
     } catch (error) {
       console.error('Error getting container health:', error);
@@ -154,17 +162,23 @@ class MonitoringDashboardServer {
   async getSystemResources() {
     try {
       // CPU usage
-      const { stdout: cpuOutput } = await execAsync("top -bn1 | grep 'Cpu(s)' | awk '{print $2}' | sed 's/%us,//'");
+      const { stdout: cpuOutput } = await execAsync(
+        "top -bn1 | grep 'Cpu(s)' | awk '{print $2}' | sed 's/%us,//'",
+      );
       const cpu_usage = parseFloat(cpuOutput.trim()) || 0;
-      
+
       // Memory usage
-      const { stdout: memOutput } = await execAsync("free | grep Mem | awk '{printf \"%.1f\", ($3/$2) * 100.0}'");
+      const { stdout: memOutput } = await execAsync(
+        'free | grep Mem | awk \'{printf "%.1f", ($3/$2) * 100.0}\'',
+      );
       const memory_usage = parseFloat(memOutput.trim()) || 0;
-      
+
       // Disk usage
-      const { stdout: diskOutput } = await execAsync("df -h / | awk 'NR==2{printf \"%s\", $5}' | sed 's/%//'");
+      const { stdout: diskOutput } = await execAsync(
+        "df -h / | awk 'NR==2{printf \"%s\", $5}' | sed 's/%//'",
+      );
       const disk_usage = parseFloat(diskOutput.trim()) || 0;
-      
+
       return { cpu_usage, memory_usage, disk_usage };
     } catch (error) {
       console.error('Error getting system resources:', error);
@@ -175,7 +189,7 @@ class MonitoringDashboardServer {
   async getApplicationHealth() {
     try {
       const healthChecks = [];
-      
+
       // Frontend health check
       try {
         const start = Date.now();
@@ -185,7 +199,7 @@ class MonitoringDashboardServer {
       } catch (error) {
         healthChecks.push({ service: 'frontend', response_time: 0, status: 'unhealthy' });
       }
-      
+
       // Backend health check
       try {
         const start = Date.now();
@@ -195,13 +209,15 @@ class MonitoringDashboardServer {
       } catch (error) {
         healthChecks.push({ service: 'backend', response_time: 0, status: 'unhealthy' });
       }
-      
+
       // Calculate average response time
-      const healthyChecks = healthChecks.filter(check => check.status === 'healthy');
-      const response_time = healthyChecks.length > 0 
-        ? healthyChecks.reduce((acc, check) => acc + check.response_time, 0) / healthyChecks.length
-        : 0;
-      
+      const healthyChecks = healthChecks.filter((check) => check.status === 'healthy');
+      const response_time =
+        healthyChecks.length > 0
+          ? healthyChecks.reduce((acc, check) => acc + check.response_time, 0) /
+            healthyChecks.length
+          : 0;
+
       return { response_time };
     } catch (error) {
       console.error('Error getting application health:', error);
@@ -219,10 +235,10 @@ class MonitoringDashboardServer {
           pipeline_health: report.overallScore || this.metrics.pipeline_health,
           test_coverage: report.metrics?.testCoverage || 0,
           security_score: report.metrics?.securityScore || 0,
-          performance_score: report.metrics?.performanceScore || 0
+          performance_score: report.metrics?.performanceScore || 0,
         };
       }
-      
+
       return {};
     } catch (error) {
       console.error('Error getting pipeline metrics:', error);
@@ -232,57 +248,57 @@ class MonitoringDashboardServer {
 
   checkAlerts() {
     const alerts = [];
-    
+
     // Pipeline health alert
     if (this.metrics.pipeline_health < this.alertThresholds.pipeline_health) {
       alerts.push({
         id: 'pipeline-health',
         severity: 'high',
         message: `Pipeline health degraded: ${this.metrics.pipeline_health}% (threshold: ${this.alertThresholds.pipeline_health}%)`,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
-    
+
     // Success rate alert
     if (this.metrics.success_rate < this.alertThresholds.success_rate) {
       alerts.push({
         id: 'success-rate',
         severity: 'medium',
         message: `Deployment success rate low: ${this.metrics.success_rate}% (threshold: ${this.alertThresholds.success_rate}%)`,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
-    
+
     // Response time alert
     if (this.metrics.performance.response_time > this.alertThresholds.response_time) {
       alerts.push({
         id: 'response-time',
         severity: 'medium',
         message: `High response time: ${this.metrics.performance.response_time}ms (threshold: ${this.alertThresholds.response_time}ms)`,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
-    
+
     // CPU usage alert
     if (this.metrics.performance.cpu_usage > this.alertThresholds.cpu_usage) {
       alerts.push({
         id: 'cpu-usage',
         severity: 'medium',
         message: `High CPU usage: ${this.metrics.performance.cpu_usage}% (threshold: ${this.alertThresholds.cpu_usage}%)`,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
-    
+
     // Memory usage alert
     if (this.metrics.performance.memory_usage > this.alertThresholds.memory_usage) {
       alerts.push({
         id: 'memory-usage',
         severity: 'high',
         message: `High memory usage: ${this.metrics.performance.memory_usage}% (threshold: ${this.alertThresholds.memory_usage}%)`,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
-    
+
     // Service status alerts
     Object.entries(this.metrics.system_status).forEach(([service, status]) => {
       if (status === 'degraded' || status === 'down') {
@@ -290,26 +306,28 @@ class MonitoringDashboardServer {
           id: `service-${service}`,
           severity: status === 'down' ? 'critical' : 'high',
           message: `Service ${service} is ${status}`,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
       }
     });
-    
+
     this.metrics.alerts = alerts;
-    
+
     // Log critical alerts
-    alerts.filter(alert => alert.severity === 'critical').forEach(alert => {
-      console.error(`🚨 CRITICAL ALERT: ${alert.message}`);
-    });
+    alerts
+      .filter((alert) => alert.severity === 'critical')
+      .forEach((alert) => {
+        console.error(`🚨 CRITICAL ALERT: ${alert.message}`);
+      });
   }
 
   broadcastMetrics() {
     const message = JSON.stringify({
       type: 'metrics_update',
-      data: this.metrics
+      data: this.metrics,
     });
-    
-    this.clients.forEach(client => {
+
+    this.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
         client.send(message);
       }
@@ -318,7 +336,7 @@ class MonitoringDashboardServer {
 
   setupRoutes() {
     this.app.use(express.static(path.join(__dirname, 'public')));
-    
+
     // Main dashboard route
     this.app.get('/', (req, res) => {
       res.send(`
@@ -736,7 +754,7 @@ class MonitoringDashboardServer {
       res.json({
         status: 'healthy',
         timestamp: new Date().toISOString(),
-        uptime: process.uptime()
+        uptime: process.uptime(),
       });
     });
   }
@@ -744,15 +762,15 @@ class MonitoringDashboardServer {
   start() {
     this.setupWebSocket();
     this.setupRoutes();
-    
+
     // Start metrics collection
     this.collectSystemMetrics();
-    
+
     // Schedule metrics collection every 30 seconds
     cron.schedule('*/30 * * * * *', () => {
       this.collectSystemMetrics();
     });
-    
+
     // Start HTTP server
     this.app.listen(this.port, () => {
       console.log(`🚀 Monitoring Dashboard Server running on http://localhost:${this.port}`);

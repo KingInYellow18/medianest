@@ -177,7 +177,7 @@ describe('Concurrent User Handling and Load Scenarios', () => {
     duration: number, // in milliseconds
     workloadPattern: string,
     targetRPS: number = 50,
-    targetSuccessRate: number = 0.95
+    targetSuccessRate: number = 0.95,
   ): Promise<LoadScenarioResult> => {
     const pattern = workloadPatterns[workloadPattern];
     const startTime = performance.now();
@@ -218,7 +218,7 @@ describe('Concurrent User Handling and Load Scenarios', () => {
 
           // Build request
           let req = request(app)[selectedEndpoint.method.toLowerCase() as keyof typeof request](
-            selectedEndpoint.path
+            selectedEndpoint.path,
           );
 
           // Add authentication if required
@@ -281,7 +281,7 @@ describe('Concurrent User Handling and Load Scenarios', () => {
       totalRequests: responses.length,
       duration: actualDuration,
       avgResponseTime: Math.round(
-        responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length
+        responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length,
       ),
       minResponseTime: Math.round(responseTimes[0] || 0),
       maxResponseTime: Math.round(responseTimes[responseTimes.length - 1] || 0),
@@ -315,7 +315,7 @@ describe('Concurrent User Handling and Load Scenarios', () => {
         30000, // 30 seconds
         'browsing',
         30, // 30 RPS target
-        0.98 // 98% success rate
+        0.98, // 98% success rate
       );
 
       expect(result.passed).toBe(true);
@@ -338,7 +338,7 @@ describe('Concurrent User Handling and Load Scenarios', () => {
         25000, // 25 seconds
         'interactive',
         40, // 40 RPS target
-        0.95
+        0.95,
       );
 
       expect(result.passed).toBe(true);
@@ -354,7 +354,7 @@ describe('Concurrent User Handling and Load Scenarios', () => {
         20000, // 20 seconds
         'mixed',
         50, // 50 RPS target
-        0.95
+        0.95,
       );
 
       expect(result.passed).toBe(true);
@@ -371,7 +371,7 @@ describe('Concurrent User Handling and Load Scenarios', () => {
         30000, // 30 seconds
         'mixed',
         100, // 100 RPS target
-        0.9 // 90% success rate under peak load
+        0.9, // 90% success rate under peak load
       );
 
       expect(result.passed).toBe(true);
@@ -396,7 +396,7 @@ describe('Concurrent User Handling and Load Scenarios', () => {
         25000, // 25 seconds
         'browsing',
         120, // 120 RPS target
-        0.88
+        0.88,
       );
 
       expect(result.successRate).toBeGreaterThan(0.85);
@@ -411,7 +411,7 @@ describe('Concurrent User Handling and Load Scenarios', () => {
         30000, // 30 seconds
         'mixed',
         150, // 150 RPS target
-        0.85
+        0.85,
       );
 
       expect(result.successRate).toBeGreaterThan(0.8);
@@ -429,7 +429,7 @@ describe('Concurrent User Handling and Load Scenarios', () => {
         20000, // 20 seconds
         'browsing', // Lighter workload for stress test
         200, // 200 RPS target
-        0.75 // 75% success rate acceptable under stress
+        0.75, // 75% success rate acceptable under stress
       );
 
       // Stress test is about survival, not optimal performance
@@ -455,7 +455,7 @@ describe('Concurrent User Handling and Load Scenarios', () => {
         15000, // 15 seconds
         'admin',
         120, // 120 RPS target
-        0.7 // 70% success rate for heavy admin operations
+        0.7, // 70% success rate for heavy admin operations
       );
 
       expect(result.successRate).toBeGreaterThan(0.65);
@@ -508,7 +508,7 @@ describe('Concurrent User Handling and Load Scenarios', () => {
         60000, // 60 seconds - longer duration
         'mixed',
         90, // 90 RPS target
-        0.88
+        0.88,
       );
 
       expect(sustainedResult.successRate).toBeGreaterThan(0.85);
@@ -540,12 +540,12 @@ describe('Concurrent User Handling and Load Scenarios', () => {
         totalScenarios: loadResults.length,
         passedScenarios: loadResults.filter((r) => r.passed).length,
         avgThroughputRPS: Math.round(
-          loadResults.reduce((sum, r) => sum + r.throughputRPS, 0) / loadResults.length
+          loadResults.reduce((sum, r) => sum + r.throughputRPS, 0) / loadResults.length,
         ),
         avgSuccessRate: loadResults.reduce((sum, r) => sum + r.successRate, 0) / loadResults.length,
         maxConcurrentUsers: Math.max(...loadResults.map((r) => r.concurrentUsers)),
         avgResponseTime: Math.round(
-          loadResults.reduce((sum, r) => sum + r.avgResponseTime, 0) / loadResults.length
+          loadResults.reduce((sum, r) => sum + r.avgResponseTime, 0) / loadResults.length,
         ),
         totalRequests: loadResults.reduce((sum, r) => sum + r.totalRequests, 0),
         totalMemoryImpact: loadResults.reduce((sum, r) => sum + r.memoryImpact, 0),

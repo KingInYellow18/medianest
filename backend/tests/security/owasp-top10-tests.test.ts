@@ -297,7 +297,7 @@ describe('OWASP Top 10 Security Vulnerabilities Test Suite', () => {
           request
             .post('/api/v1/media/request')
             .send({ title: 'Race Condition Test', type: 'movie', tmdbId: 99999 })
-            .set('Authorization', `Bearer ${userToken}`)
+            .set('Authorization', `Bearer ${userToken}`),
         );
 
       const responses = await Promise.all(concurrentRequests);
@@ -408,7 +408,7 @@ describe('OWASP Top 10 Security Vulnerabilities Test Suite', () => {
         attempts.push(
           request
             .post('/api/v1/auth/plex/verify')
-            .send({ pin: `wrong-${i}`, username: 'brute-force-test' })
+            .send({ pin: `wrong-${i}`, username: 'brute-force-test' }),
         );
       }
 

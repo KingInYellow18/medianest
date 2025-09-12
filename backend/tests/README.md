@@ -18,12 +18,14 @@ tests/
 ### Prerequisites
 
 1. Start the test database and Redis:
+
 ```bash
 cd /home/kinginyellow/projects/medianest
 docker-compose -f docker-compose.test.yml up -d
 ```
 
 2. Install dependencies:
+
 ```bash
 cd backend
 npm install
@@ -73,24 +75,28 @@ The following areas have the highest priority for testing:
 ### Example Test Structure
 
 ```typescript
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest';
 
 describe('Feature Name', () => {
   beforeEach(() => {
     // Setup
-  })
+  });
 
   it('should do something specific', async () => {
     // Arrange
-    const input = { /* test data */ }
-    
+    const input = {
+      /* test data */
+    };
+
     // Act
-    const result = await functionUnderTest(input)
-    
+    const result = await functionUnderTest(input);
+
     // Assert
-    expect(result).toMatchObject({ /* expected */ })
-  })
-})
+    expect(result).toMatchObject({
+      /* expected */
+    });
+  });
+});
 ```
 
 ## Mocking External Services
@@ -101,9 +107,9 @@ We use MSW (Mock Service Worker) for mocking external APIs:
 // In tests/mocks/handlers.ts
 export const handlers = [
   http.post('https://plex.tv/pins.xml', () => {
-    return HttpResponse.text(`<pin>...</pin>`)
-  })
-]
+    return HttpResponse.text(`<pin>...</pin>`);
+  }),
+];
 ```
 
 ## Test Database

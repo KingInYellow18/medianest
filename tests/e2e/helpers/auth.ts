@@ -1,4 +1,4 @@
-import { Page, expect } from '@playwright/test'
+import { Page, expect } from '@playwright/test';
 
 export class AuthHelper {
   constructor(private page: Page) {}
@@ -9,28 +9,28 @@ export class AuthHelper {
    */
   async loginWithPlex(pinCode: string = '1234') {
     // Navigate to login page
-    await this.page.goto('/auth/signin')
-    
+    await this.page.goto('/auth/signin');
+
     // Wait for login page to load
-    await expect(this.page.locator('[data-testid="plex-login-button"]')).toBeVisible()
-    
+    await expect(this.page.locator('[data-testid="plex-login-button"]')).toBeVisible();
+
     // Click Plex login button
-    await this.page.click('[data-testid="plex-login-button"]')
-    
+    await this.page.click('[data-testid="plex-login-button"]');
+
     // Wait for PIN input to appear (mocked Plex OAuth flow)
-    await expect(this.page.locator('[data-testid="pin-input"]')).toBeVisible()
-    
+    await expect(this.page.locator('[data-testid="pin-input"]')).toBeVisible();
+
     // Enter PIN code
-    await this.page.fill('[data-testid="pin-input"]', pinCode)
-    
+    await this.page.fill('[data-testid="pin-input"]', pinCode);
+
     // Click verify PIN button
-    await this.page.click('[data-testid="verify-pin"]')
-    
+    await this.page.click('[data-testid="verify-pin"]');
+
     // Wait for successful login redirect to dashboard
-    await expect(this.page).toHaveURL('/dashboard')
-    
+    await expect(this.page).toHaveURL('/dashboard');
+
     // Verify we're logged in by checking for user-specific elements
-    await expect(this.page.locator('[data-testid="user-menu"]')).toBeVisible()
+    await expect(this.page.locator('[data-testid="user-menu"]')).toBeVisible();
   }
 
   /**
@@ -38,10 +38,10 @@ export class AuthHelper {
    */
   async isLoggedIn(): Promise<boolean> {
     try {
-      await this.page.locator('[data-testid="user-menu"]').waitFor({ timeout: 3000 })
-      return true
+      await this.page.locator('[data-testid="user-menu"]').waitFor({ timeout: 3000 });
+      return true;
     } catch {
-      return false
+      return false;
     }
   }
 
@@ -50,13 +50,13 @@ export class AuthHelper {
    */
   async logout() {
     // Click user menu
-    await this.page.click('[data-testid="user-menu"]')
-    
+    await this.page.click('[data-testid="user-menu"]');
+
     // Click logout button
-    await this.page.click('[data-testid="logout-button"]')
-    
+    await this.page.click('[data-testid="logout-button"]');
+
     // Verify redirect to login page
-    await expect(this.page).toHaveURL('/auth/signin')
+    await expect(this.page).toHaveURL('/auth/signin');
   }
 
   /**
@@ -65,10 +65,10 @@ export class AuthHelper {
   async quickLogin() {
     // Check if already logged in
     if (await this.isLoggedIn()) {
-      return
+      return;
     }
-    
+
     // Perform login
-    await this.loginWithPlex()
+    await this.loginWithPlex();
   }
 }

@@ -10,7 +10,7 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: 4000,
-        HOSTNAME: '0.0.0.0'
+        HOSTNAME: '0.0.0.0',
       },
       error_file: '/app/backend/logs/pm2-error.log',
       out_file: '/app/backend/logs/pm2-out.log',
@@ -19,7 +19,7 @@ module.exports = {
       max_memory_restart: '1G',
       restart_delay: 4000,
       max_restarts: 10,
-      min_uptime: '10s'
+      min_uptime: '10s',
     },
     {
       name: 'medianest-frontend',
@@ -31,7 +31,7 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: 3000,
-        HOSTNAME: '0.0.0.0'
+        HOSTNAME: '0.0.0.0',
       },
       error_file: '/app/frontend/logs/pm2-error.log',
       out_file: '/app/frontend/logs/pm2-out.log',
@@ -40,7 +40,7 @@ module.exports = {
       max_memory_restart: '512M',
       restart_delay: 4000,
       max_restarts: 10,
-      min_uptime: '10s'
-    }
-  ]
+      min_uptime: '10s',
+    },
+  ],
 };

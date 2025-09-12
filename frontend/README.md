@@ -13,13 +13,13 @@ The MediaNest Frontend is a Next.js 15 React 19 application providing a modern, 
 
 ## 📈 Development Progress
 
-| Feature | Status | Notes |
-|---------|--------|-------|
-| **Core UI** | ✅ Working | Modern responsive design |
-| **Authentication** | ✅ Working | JWT-based auth flow |
-| **API Integration** | 🔶 Partial | Some endpoints functional |
+| Feature               | Status     | Notes                       |
+| --------------------- | ---------- | --------------------------- |
+| **Core UI**           | ✅ Working | Modern responsive design    |
+| **Authentication**    | ✅ Working | JWT-based auth flow         |
+| **API Integration**   | 🔶 Partial | Some endpoints functional   |
 | **Real-time Updates** | 🔶 Partial | Socket.io connection issues |
-| **Testing** | ❌ Limited | Needs test expansion |
+| **Testing**           | ❌ Limited | Needs test expansion        |
 
 > **React 19 + Next.js 15**: Cutting-edge features may require `--legacy-peer-deps` for some packages.
 

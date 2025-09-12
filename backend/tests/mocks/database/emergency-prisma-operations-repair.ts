@@ -1,8 +1,8 @@
 /**
  * EMERGENCY PRISMA OPERATIONS REPAIR - Phase D Critical Stabilization
- * 
+ *
  * This script systematically adds ALL missing Prisma operations to restore 72% baseline
- * 
+ *
  * CRITICAL MISSING OPERATIONS IDENTIFIED:
  * 1. createMany - missing across ALL models (50+ failing tests)
  * 2. updateMany - missing in 10+ models
@@ -17,13 +17,18 @@ import { vi } from 'vitest';
 /**
  * Generate ALL missing operations for any model - EMERGENCY TEMPLATE
  */
-export function generateCompleteOperations(store: any, modelName: string, collectionName: string, TypeInterface: any) {
+export function generateCompleteOperations(
+  store: any,
+  modelName: string,
+  collectionName: string,
+  TypeInterface: any,
+) {
   return {
     // PHASE 1: CRITICAL OPERATIONS (immediate impact)
     createMany: vi.fn().mockImplementation(({ data, skipDuplicates = false }) => {
       const items = Array.isArray(data) ? data : [data];
       const created = [];
-      
+
       for (const itemData of items) {
         try {
           const item = createModelInstance(itemData, modelName);
@@ -33,7 +38,7 @@ export function generateCompleteOperations(store: any, modelName: string, collec
           if (!skipDuplicates) throw error;
         }
       }
-      
+
       return Promise.resolve({ count: created.length });
     }),
 
@@ -59,58 +64,70 @@ export function generateCompleteOperations(store: any, modelName: string, collec
       return Promise.resolve(item);
     }),
 
-    groupBy: vi.fn().mockImplementation(({ by, where, having, orderBy, take, skip, _count, _avg, _sum, _min, _max }) => {
-      const items = store.findMany(collectionName, { where });
-      const groups = new Map();
-      
-      items.forEach((item: any) => {
-        const groupKey = Array.isArray(by) ? 
-          by.map(field => item[field]).join('|') : item[by];
-        
-        if (!groups.has(groupKey)) {
-          groups.set(groupKey, { 
-            items: [], 
-            [by]: Array.isArray(by) ? 
-              by.reduce((acc, field) => ({ ...acc, [field]: item[field] }), {}) : 
-              item[by] 
+    groupBy: vi
+      .fn()
+      .mockImplementation(
+        ({ by, where, having, orderBy, take, skip, _count, _avg, _sum, _min, _max }) => {
+          const items = store.findMany(collectionName, { where });
+          const groups = new Map();
+
+          items.forEach((item: any) => {
+            const groupKey = Array.isArray(by)
+              ? by.map((field) => item[field]).join('|')
+              : item[by];
+
+            if (!groups.has(groupKey)) {
+              groups.set(groupKey, {
+                items: [],
+                [by]: Array.isArray(by)
+                  ? by.reduce((acc, field) => ({ ...acc, [field]: item[field] }), {})
+                  : item[by],
+              });
+            }
+
+            groups.get(groupKey).items.push(item);
           });
-        }
-        
-        groups.get(groupKey).items.push(item);
-      });
-      
-      let result = Array.from(groups.values()).map(group => {
-        const item = { ...group };
-        delete item.items;
-        
-        if (_count) {
-          item._count = typeof _count === 'object' ? 
-            Object.keys(_count).reduce((acc, key) => ({ ...acc, [key]: group.items.length }), {}) :
-            group.items.length;
-        }
-        
-        if (_avg && group.items.length > 0) {
-          item._avg = {};
-          Object.keys(_avg || {}).forEach(field => {
-            const values = group.items.map(i => i[field]).filter(v => typeof v === 'number');
-            item._avg[field] = values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : null;
+
+          let result = Array.from(groups.values()).map((group) => {
+            const item = { ...group };
+            delete item.items;
+
+            if (_count) {
+              item._count =
+                typeof _count === 'object'
+                  ? Object.keys(_count).reduce(
+                      (acc, key) => ({ ...acc, [key]: group.items.length }),
+                      {},
+                    )
+                  : group.items.length;
+            }
+
+            if (_avg && group.items.length > 0) {
+              item._avg = {};
+              Object.keys(_avg || {}).forEach((field) => {
+                const values = group.items
+                  .map((i) => i[field])
+                  .filter((v) => typeof v === 'number');
+                item._avg[field] =
+                  values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : null;
+              });
+            }
+
+            return item;
           });
-        }
-        
-        return item;
-      });
-      
-      if (skip) result = result.slice(skip);
-      if (take) result = result.slice(0, take);
-      
-      return Promise.resolve(result);
-    }),
+
+          if (skip) result = result.slice(skip);
+          if (take) result = result.slice(0, take);
+
+          return Promise.resolve(result);
+        },
+      ),
 
     // PHASE 3: ADVANCED OPERATIONS
     createManyAndReturn: vi.fn().mockImplementation(({ data, skipDuplicates = false }) => {
       const items = Array.isArray(data) ? data : [data];
       const created = [];
-      
+
       for (const itemData of items) {
         try {
           const item = createModelInstance(itemData, modelName);
@@ -120,7 +137,7 @@ export function generateCompleteOperations(store: any, modelName: string, collec
           if (!skipDuplicates) throw error;
         }
       }
-      
+
       return Promise.resolve(created);
     }),
 
@@ -140,16 +157,18 @@ export function generateCompleteOperations(store: any, modelName: string, collec
     update: vi.fn().mockImplementation(({ where, data, include }) => {
       const existing = store.findUnique(collectionName, { where });
       if (!existing) throw new Error(`${modelName} not found`);
-      
+
       const updated = { ...existing, ...data, updatedAt: new Date() };
       store.setItem(collectionName, existing.id || existing.identifier, updated);
-      return Promise.resolve(include ? store.applyIncludes(collectionName, updated, include) : updated);
+      return Promise.resolve(
+        include ? store.applyIncludes(collectionName, updated, include) : updated,
+      );
     }),
 
     delete: vi.fn().mockImplementation(({ where }) => {
       const item = store.findUnique(collectionName, { where });
       if (!item) throw new Error(`${modelName} not found`);
-      
+
       store.deleteItem(collectionName, item.id || item.identifier);
       return Promise.resolve(item);
     }),
@@ -169,7 +188,9 @@ export function generateCompleteOperations(store: any, modelName: string, collec
       if (existing) {
         const updated = { ...existing, ...update, updatedAt: new Date() };
         store.setItem(collectionName, existing.id || existing.identifier, updated);
-        return Promise.resolve(include ? store.applyIncludes(collectionName, updated, include) : updated);
+        return Promise.resolve(
+          include ? store.applyIncludes(collectionName, updated, include) : updated,
+        );
       } else {
         const item = createModelInstance(create, modelName);
         store.setItem(collectionName, item.id || item.identifier, item);
@@ -195,7 +216,7 @@ export function generateCompleteOperations(store: any, modelName: string, collec
 function createModelInstance(data: any, modelName: string): any {
   const timestamp = Date.now();
   const random = Math.random().toString(36).substr(2, 9);
-  
+
   const baseInstance = {
     id: data.id || `${modelName.toLowerCase()}-${timestamp}-${random}`,
     createdAt: data.createdAt || new Date(),
@@ -219,7 +240,7 @@ function createModelInstance(data: any, modelName: string): any {
         lastLoginAt: data.lastLoginAt || null,
         status: data.status || 'active',
       };
-      
+
     case 'MediaRequest':
       return {
         ...baseInstance,
@@ -231,7 +252,7 @@ function createModelInstance(data: any, modelName: string): any {
         overseerrId: data.overseerrId || null,
         completedAt: data.completedAt || null,
       };
-      
+
     case 'Session':
       return {
         ...baseInstance,
@@ -239,7 +260,7 @@ function createModelInstance(data: any, modelName: string): any {
         userId: data.userId,
         expires: data.expires || new Date(Date.now() + 24 * 60 * 60 * 1000),
       };
-      
+
     case 'SessionToken':
       return {
         ...baseInstance,
@@ -248,7 +269,7 @@ function createModelInstance(data: any, modelName: string): any {
         expiresAt: data.expiresAt,
         lastUsedAt: data.lastUsedAt || null,
       };
-      
+
     case 'ServiceConfig':
       return {
         ...baseInstance,
@@ -260,7 +281,7 @@ function createModelInstance(data: any, modelName: string): any {
         configData: data.configData || null,
         updatedBy: data.updatedBy || null,
       };
-      
+
     case 'YoutubeDownload':
       return {
         ...baseInstance,
@@ -272,7 +293,7 @@ function createModelInstance(data: any, modelName: string): any {
         plexCollectionId: data.plexCollectionId || null,
         completedAt: data.completedAt || null,
       };
-      
+
     case 'ServiceStatus':
       return {
         ...baseInstance,
@@ -281,13 +302,15 @@ function createModelInstance(data: any, modelName: string): any {
         status: data.status || null,
         responseTimeMs: data.responseTimeMs || null,
         lastCheckAt: data.lastCheckAt || new Date(),
-        uptimePercentage: data.uptimePercentage ? { 
-          toNumber: () => parseFloat(data.uptimePercentage),
-          toString: () => data.uptimePercentage.toString(),
-          valueOf: () => parseFloat(data.uptimePercentage)
-        } : null,
+        uptimePercentage: data.uptimePercentage
+          ? {
+              toNumber: () => parseFloat(data.uptimePercentage),
+              toString: () => data.uptimePercentage.toString(),
+              valueOf: () => parseFloat(data.uptimePercentage),
+            }
+          : null,
       };
-      
+
     case 'RateLimit':
       return {
         ...baseInstance,
@@ -297,7 +320,7 @@ function createModelInstance(data: any, modelName: string): any {
         requestCount: data.requestCount || 0,
         windowStart: data.windowStart || new Date(),
       };
-      
+
     case 'Account':
       return {
         ...baseInstance,
@@ -313,7 +336,7 @@ function createModelInstance(data: any, modelName: string): any {
         id_token: data.id_token || null,
         session_state: data.session_state || null,
       };
-      
+
     case 'ErrorLog':
       return {
         ...baseInstance,
@@ -327,7 +350,7 @@ function createModelInstance(data: any, modelName: string): any {
         statusCode: data.statusCode || null,
         metadata: data.metadata || null,
       };
-      
+
     case 'Notification':
       return {
         ...baseInstance,
@@ -339,7 +362,7 @@ function createModelInstance(data: any, modelName: string): any {
         readAt: data.readAt || null,
         metadata: data.metadata || null,
       };
-      
+
     case 'ServiceMetric':
       return {
         ...baseInstance,
@@ -349,7 +372,7 @@ function createModelInstance(data: any, modelName: string): any {
         timestamp: data.timestamp || new Date(),
         metadata: data.metadata || null,
       };
-      
+
     case 'ServiceIncident':
       return {
         ...baseInstance,
@@ -361,14 +384,14 @@ function createModelInstance(data: any, modelName: string): any {
         resolvedAt: data.resolvedAt || null,
         metadata: data.metadata || null,
       };
-      
+
     case 'VerificationToken':
       return {
         identifier: data.identifier,
         token: data.token,
         expires: data.expires,
       };
-      
+
     // PHASE 2: NEW MISSING MODELS
     case 'Media':
       return {
@@ -383,7 +406,7 @@ function createModelInstance(data: any, modelName: string): any {
         quality: data.quality || null,
         metadata: data.metadata || null,
       };
-      
+
     case 'AuditLog':
       return {
         ...baseInstance,
@@ -396,7 +419,7 @@ function createModelInstance(data: any, modelName: string): any {
         userAgent: data.userAgent || null,
         metadata: data.metadata || null,
       };
-      
+
     case 'UploadedFile':
       return {
         ...baseInstance,
@@ -408,7 +431,7 @@ function createModelInstance(data: any, modelName: string): any {
         path: data.path,
         metadata: data.metadata || null,
       };
-      
+
     default:
       return baseInstance;
   }
@@ -417,17 +440,22 @@ function createModelInstance(data: any, modelName: string): any {
 /**
  * EMERGENCY APPLICATION: Apply missing operations to existing models
  */
-export function applyEmergencyOperationsToModel(modelOperations: any, store: any, modelName: string, collectionName: string) {
+export function applyEmergencyOperationsToModel(
+  modelOperations: any,
+  store: any,
+  modelName: string,
+  collectionName: string,
+) {
   const missingOps = generateCompleteOperations(store, modelName, collectionName, null);
-  
+
   // Apply only missing operations to avoid overriding existing ones
-  Object.keys(missingOps).forEach(operation => {
+  Object.keys(missingOps).forEach((operation) => {
     if (!modelOperations[operation]) {
       modelOperations[operation] = missingOps[operation];
       console.log(`✅ Added missing operation '${operation}' to ${modelName} model`);
     }
   });
-  
+
   return modelOperations;
 }
 
@@ -444,18 +472,29 @@ export function createMissingModel(store: any, modelName: string, collectionName
  */
 export function validateModelOperations(modelOperations: any, modelName: string): string[] {
   const requiredOperations = [
-    'create', 'createMany', 'createManyAndReturn',
-    'findUnique', 'findUniqueOrThrow', 'findFirst', 'findFirstOrThrow', 'findMany',
-    'update', 'updateMany', 'upsert',
-    'delete', 'deleteMany',
-    'count', 'aggregate', 'groupBy'
+    'create',
+    'createMany',
+    'createManyAndReturn',
+    'findUnique',
+    'findUniqueOrThrow',
+    'findFirst',
+    'findFirstOrThrow',
+    'findMany',
+    'update',
+    'updateMany',
+    'upsert',
+    'delete',
+    'deleteMany',
+    'count',
+    'aggregate',
+    'groupBy',
   ];
-  
-  const missing = requiredOperations.filter(op => !modelOperations[op]);
-  
+
+  const missing = requiredOperations.filter((op) => !modelOperations[op]);
+
   if (missing.length > 0) {
     console.log(`⚠️ Model ${modelName} missing operations:`, missing);
   }
-  
+
   return missing;
 }

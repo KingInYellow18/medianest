@@ -6,12 +6,12 @@ This guide covers migration from the **25+ fragmented Docker files** to the new 
 
 ## 🎯 Migration Summary
 
-| **Before** | **After** |
-|------------|-----------|
-| 25+ Docker files | 1 Dockerfile + 3 compose files |
+| **Before**                   | **After**                         |
+| ---------------------------- | --------------------------------- |
+| 25+ Docker files             | 1 Dockerfile + 3 compose files    |
 | Mixed Flask/Python + Node.js | Standardized Node.js 20 + Express |
-| Inconsistent environments | Unified dev/test/prod paths |
-| Manual environment setup | Automated environment variables |
+| Inconsistent environments    | Unified dev/test/prod paths       |
+| Manual environment setup     | Automated environment variables   |
 
 ## 📁 File Mapping
 
@@ -20,7 +20,7 @@ This guide covers migration from the **25+ fragmented Docker files** to the new 
 ```bash
 # Backend Dockerfiles (REMOVED)
 ❌ backend/Dockerfile
-❌ backend/Dockerfile.prod  
+❌ backend/Dockerfile.prod
 ❌ backend/Dockerfile.production
 ❌ backend/Dockerfile.production-secure
 ❌ backend/Dockerfile.optimized
@@ -29,7 +29,7 @@ This guide covers migration from the **25+ fragmented Docker files** to the new 
 # Frontend Dockerfiles (REMOVED)
 ❌ frontend/Dockerfile
 ❌ frontend/Dockerfile.prod
-❌ frontend/Dockerfile.production  
+❌ frontend/Dockerfile.production
 ❌ frontend/Dockerfile.optimized
 
 # Root Dockerfiles (REMOVED)
@@ -64,7 +64,7 @@ This guide covers migration from the **25+ fragmented Docker files** to the new 
 
 # Three environment-specific compose files
 ✅ config/docker/docker-compose.dev.yml
-✅ config/docker/docker-compose.test.yml  
+✅ config/docker/docker-compose.test.yml
 ✅ config/docker/docker-compose.prod.yml
 
 # Supporting files
@@ -115,21 +115,23 @@ chmod 600 secrets/*
 #### GitHub Actions
 
 **Before:**
+
 ```yaml
 # .github/workflows/old-docker.yml
 - name: Build backend
   run: docker build -f backend/Dockerfile.prod -t backend .
-  
-- name: Build frontend  
+
+- name: Build frontend
   run: docker build -f frontend/Dockerfile.prod -t frontend .
 ```
 
 **After:**
+
 ```yaml
 # .github/workflows/new-docker.yml
 - name: Build backend
   run: docker build -f config/docker/Dockerfile.consolidated --target backend-production -t backend .
-  
+
 - name: Build frontend
   run: docker build -f config/docker/Dockerfile.consolidated --target frontend-production -t frontend .
 ```
@@ -137,6 +139,7 @@ chmod 600 secrets/*
 #### Jenkins Pipeline
 
 **Before:**
+
 ```groovy
 stage('Build') {
     docker.build("backend", "-f backend/Dockerfile.prod .")
@@ -145,6 +148,7 @@ stage('Build') {
 ```
 
 **After:**
+
 ```groovy
 stage('Build') {
     docker.build("backend", "-f config/docker/Dockerfile.consolidated --target backend-production .")
@@ -157,12 +161,14 @@ stage('Build') {
 #### Local Development
 
 **Before:**
+
 ```bash
 # Old development setup
 docker-compose up -d
 ```
 
 **After:**
+
 ```bash
 # New development setup
 docker-compose -f config/docker/docker-compose.dev.yml --env-file docker-environment.env up -d
@@ -171,12 +177,14 @@ docker-compose -f config/docker/docker-compose.dev.yml --env-file docker-environ
 #### Testing
 
 **Before:**
+
 ```bash
 # Old testing
 docker-compose -f docker-compose.test.yml up --abort-on-container-exit
 ```
 
 **After:**
+
 ```bash
 # New testing
 docker-compose -f config/docker/docker-compose.test.yml up --abort-on-container-exit
@@ -185,12 +193,14 @@ docker-compose -f config/docker/docker-compose.test.yml up --abort-on-container-
 #### Production Deployment
 
 **Before:**
+
 ```bash
 # Old production
 docker-compose -f docker-compose.production.yml up -d
 ```
 
 **After:**
+
 ```bash
 # New production
 docker-compose -f config/docker/docker-compose.prod.yml --env-file docker-environment.env up -d
@@ -203,12 +213,14 @@ docker-compose -f config/docker/docker-compose.prod.yml --env-file docker-enviro
 The consolidation standardizes on **Node.js + Express** (removing Flask/Python confusion):
 
 **Dockerfile Changes:**
+
 - Base image: `python:3.11-slim` → `node:20-alpine`
 - Runtime: Flask → Express/Node.js
 - Dependencies: requirements.txt → package.json
 - Health checks: Flask endpoints → Express endpoints
 
 **If you have Python dependencies:**
+
 1. Port Python functionality to Node.js
 2. Use microservices for Python-specific tasks
 3. Update API contracts and interfaces
@@ -216,6 +228,7 @@ The consolidation standardizes on **Node.js + Express** (removing Flask/Python c
 #### Frontend Alignment
 
 **Next.js Configuration:**
+
 - Standardized on Next.js 14
 - Consistent build targets across environments
 - Optimized static generation
@@ -223,12 +236,13 @@ The consolidation standardizes on **Node.js + Express** (removing Flask/Python c
 ### Phase 6: Environment Variable Consolidation
 
 #### Before (Multiple .env files)
+
 ```bash
 # Development
 .env.development
 .env.local
 
-# Testing  
+# Testing
 .env.test
 .env.test.local
 
@@ -238,6 +252,7 @@ The consolidation standardizes on **Node.js + Express** (removing Flask/Python c
 ```
 
 #### After (Single template)
+
 ```bash
 # Single source of truth
 docker-environment.env (from template)
@@ -247,12 +262,13 @@ docker-environment.env (from template)
 ```
 
 **Variable Mapping:**
+
 ```bash
 # Database
 DATABASE_URL → Same (but via secrets in prod)
 DB_HOST, DB_PORT, DB_NAME → Consolidated into DATABASE_URL
 
-# Redis  
+# Redis
 REDIS_HOST, REDIS_PORT → Consolidated into REDIS_URL
 
 # Authentication
@@ -270,13 +286,14 @@ SESSION_SECRET → NEXTAUTH_SECRET_FILE (production)
 
 # Test each environment
 docker-compose -f config/docker/docker-compose.dev.yml config
-docker-compose -f config/docker/docker-compose.test.yml config  
+docker-compose -f config/docker/docker-compose.test.yml config
 docker-compose -f config/docker/docker-compose.prod.yml config
 ```
 
 ### Performance Validation
 
 **Expected Improvements:**
+
 - ✅ Build time: 25-50% faster (layer caching)
 - ✅ Image size: 40-60% smaller (multi-stage builds)
 - ✅ Cache hit rate: >85% (optimized layering)
@@ -306,6 +323,7 @@ docker run --rm medianest/backend:test ls -la /app
 **Error:** `failed to read dockerfile: file too large`
 
 **Solution:**
+
 ```bash
 # Check .dockerignore is in place
 ls -la config/docker/.dockerignore
@@ -319,6 +337,7 @@ du -sh . --exclude=node_modules --exclude=.git
 **Error:** `bind: address already in use`
 
 **Solution:**
+
 ```bash
 # Update port mappings in docker-environment.env
 # Or stop conflicting services
@@ -331,6 +350,7 @@ docker ps | grep 4000
 **Error:** `no such file or directory`
 
 **Solution:**
+
 ```bash
 # Ensure directories exist
 mkdir -p backend/logs backend/uploads
@@ -345,6 +365,7 @@ docker-compose -f config/docker/docker-compose.dev.yml config | grep volumes -A 
 **Error:** `Cannot read property of undefined`
 
 **Solution:**
+
 ```bash
 # Validate environment file
 cat docker-environment.env
@@ -423,6 +444,7 @@ Migration is successful when:
 After successful migration:
 
 1. **Clean up old files**
+
    ```bash
    # Remove old Docker files (after verification)
    rm -f Dockerfile*
@@ -431,7 +453,7 @@ After successful migration:
 
 2. **Update documentation**
    - README files
-   - Deployment guides  
+   - Deployment guides
    - Developer onboarding
 
 3. **Train team members**

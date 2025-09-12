@@ -137,7 +137,7 @@ export interface CounterMetricConfig extends PrometheusMetric {
 }
 
 /**
- * Gauge metric configuration  
+ * Gauge metric configuration
  */
 export interface GaugeMetricConfig extends PrometheusMetric {
   type: 'gauge';
@@ -164,7 +164,11 @@ export interface SummaryMetricConfig extends PrometheusMetric {
 /**
  * Union type for all metric configurations
  */
-export type MetricConfig = CounterMetricConfig | GaugeMetricConfig | HistogramMetricConfig | SummaryMetricConfig;
+export type MetricConfig =
+  | CounterMetricConfig
+  | GaugeMetricConfig
+  | HistogramMetricConfig
+  | SummaryMetricConfig;
 
 /**
  * Enhanced custom metric options with type safety
@@ -197,7 +201,16 @@ export interface MetricRegistry {
 export type HttpMethodLabel = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
 export type StatusClassLabel = '1xx' | '2xx' | '3xx' | '4xx' | '5xx';
 export type DatabaseOperationLabel = 'select' | 'insert' | 'update' | 'delete' | 'create' | 'drop';
-export type RedisCommandLabel = 'get' | 'set' | 'del' | 'exists' | 'expire' | 'incr' | 'decr' | 'hget' | 'hset';
+export type RedisCommandLabel =
+  | 'get'
+  | 'set'
+  | 'del'
+  | 'exists'
+  | 'expire'
+  | 'incr'
+  | 'decr'
+  | 'hget'
+  | 'hset';
 export type QueueStatusLabel = 'pending' | 'processing' | 'completed' | 'failed' | 'retried';
 
 /**

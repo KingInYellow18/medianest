@@ -15,7 +15,7 @@ export class LoginPage extends BasePage {
     socialLoginGoogle: '[data-testid="google-login-button"]',
     socialLoginFacebook: '[data-testid="facebook-login-button"]',
     logo: '[data-testid="app-logo"]',
-    loginForm: '[data-testid="login-form"]'
+    loginForm: '[data-testid="login-form"]',
   };
 
   constructor(page: Page) {
@@ -59,11 +59,11 @@ export class LoginPage extends BasePage {
     await this.fillEmail(email);
     await this.fillPassword(password);
     await this.clickLogin();
-    
+
     // Wait for either success (redirect) or error message
     await Promise.race([
       this.page.waitForNavigation({ timeout: 10000 }),
-      this.waitForElement(this.selectors.errorMessage, 10000).catch(() => {})
+      this.waitForElement(this.selectors.errorMessage, 10000).catch(() => {}),
     ]);
   }
 
@@ -72,7 +72,7 @@ export class LoginPage extends BasePage {
    */
   async loginAndWaitForDashboard(email: string, password: string): Promise<void> {
     await this.login(email, password);
-    
+
     // Verify successful login by checking URL or dashboard elements
     await expect(this.page).toHaveURL(/\/dashboard/);
   }

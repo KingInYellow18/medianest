@@ -31,7 +31,7 @@ class ResponsiveTestHelper {
 // Mock performance test helper
 class PerformanceTestHelper {
   static async measureResponseTime<T>(
-    operation: () => Promise<T>
+    operation: () => Promise<T>,
   ): Promise<{ response: T; duration: number }> {
     const start = Date.now();
     const response = await operation();
@@ -178,7 +178,7 @@ describe('Responsive and Visual Testing', () => {
         .expect(200);
 
       expect(ValidationHelper.validatePaginationResponse(response, 1, viewport.pageSize)).toBe(
-        true
+        true,
       );
       console.log(`  ✅ ${viewport.name}: Pagination works with page size ${viewport.pageSize}`);
     }
@@ -223,7 +223,7 @@ describe('Performance and Load Testing', () => {
             .get('/api/v1/media/search')
             .query({ query: `test${i}`, page: 1 })
             .set('Authorization', `Bearer ${users.user.token}`)
-            .expect(200)
+            .expect(200),
       );
 
       const results = await Promise.all(concurrentSearches);
@@ -239,12 +239,12 @@ describe('Performance and Load Testing', () => {
     const loadResult = await PerformanceTestHelper.measureResponseTime(searchLoad);
 
     expect(loadResult.duration).toBeLessThan(
-      (performanceData.timeout.search * performanceData.concurrentSearches) / 2
+      (performanceData.timeout.search * performanceData.concurrentSearches) / 2,
     );
     expect(loadResult.response).toBe(performanceData.concurrentSearches);
 
     console.log(
-      `  ✅ ${performanceData.concurrentSearches} concurrent searches completed in ${loadResult.duration}ms`
+      `  ✅ ${performanceData.concurrentSearches} concurrent searches completed in ${loadResult.duration}ms`,
     );
 
     // Test request creation performance
@@ -350,8 +350,8 @@ describe('Performance and Load Testing', () => {
     console.log(`  ✅ Sustained load test: ${results.length} requests`);
     console.log(
       `  📊 Avg: ${avgResponseTime.toFixed(
-        2
-      )}ms, Min: ${minResponseTime}ms, Max: ${maxResponseTime}ms`
+        2,
+      )}ms, Min: ${minResponseTime}ms, Max: ${maxResponseTime}ms`,
     );
     console.log('✅ Sustained load performance tests completed');
   });

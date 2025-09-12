@@ -18,13 +18,13 @@ class BuildPerformanceTester {
       development: {},
       testing: {},
       production: {},
-      summary: {}
+      summary: {},
     };
     this.startTime = Date.now();
     this.targets = {
       buildTime: 5 * 60 * 1000, // 5 minutes
       imageSize: 200 * 1024 * 1024, // 200MB
-      cacheHitRate: 0.85 // 85%
+      cacheHitRate: 0.85, // 85%
     };
   }
 
@@ -38,11 +38,11 @@ class BuildPerformanceTester {
     return new Promise((resolve, reject) => {
       const startTime = Date.now();
       this.log(`Executing: ${command}`);
-      
+
       const child = spawn('bash', ['-c', command], {
         cwd,
         stdio: 'pipe',
-        env: { ...process.env, BUILDKIT_PROGRESS: 'plain' }
+        env: { ...process.env, BUILDKIT_PROGRESS: 'plain' },
       });
 
       let stdout = '';
@@ -66,7 +66,7 @@ class BuildPerformanceTester {
       child.on('close', (code) => {
         clearTimeout(timer);
         const duration = Date.now() - startTime;
-        
+
         if (code === 0) {
           resolve({ stdout, stderr, duration, exitCode: code });
         } else {
@@ -83,7 +83,9 @@ class BuildPerformanceTester {
 
   async getImageSize(imageName) {
     try {
-      const result = await this.executeCommand(`docker image inspect ${imageName} --format='{{.Size}}'`);
+      const result = await this.executeCommand(
+        `docker image inspect ${imageName} --format='{{.Size}}'`,
+      );
       return parseInt(result.stdout.trim());
     } catch (error) {
       this.log(`Failed to get image size for ${imageName}: ${error.message}`, 'warn');
@@ -92,22 +94,25 @@ class BuildPerformanceTester {
   }
 
   async analyzeCacheEffectiveness(buildOutput) {
-    const cacheLines = buildOutput.split('\n').filter(line => 
-      line.includes('CACHED') || line.includes('cache hit') || line.includes('cache miss')
-    );
-    
-    const cacheHits = cacheLines.filter(line => 
-      line.includes('CACHED') || line.includes('cache hit')
+    const cacheLines = buildOutput
+      .split('\n')
+      .filter(
+        (line) =>
+          line.includes('CACHED') || line.includes('cache hit') || line.includes('cache miss'),
+      );
+
+    const cacheHits = cacheLines.filter(
+      (line) => line.includes('CACHED') || line.includes('cache hit'),
     ).length;
-    
+
     const totalCacheableOps = cacheLines.length;
-    
+
     if (totalCacheableOps === 0) return { hitRate: 0, hits: 0, total: 0 };
-    
+
     return {
       hitRate: cacheHits / totalCacheableOps,
       hits: cacheHits,
-      total: totalCacheableOps
+      total: totalCacheableOps,
     };
   }
 
@@ -117,23 +122,23 @@ class BuildPerformanceTester {
 
     try {
       // Clean up any existing containers
-      await this.executeCommand('docker-compose -f docker-compose.dev.yml down -v', '.', 30000).catch(() => {});
+      await this.executeCommand(
+        'docker-compose -f docker-compose.dev.yml down -v',
+        '.',
+        30000,
+      ).catch(() => {});
 
       // Build and start development environment
       const buildResult = await this.executeCommand(
-        'docker-compose -f docker-compose.dev.yml build --parallel', 
-        '.', 
-        600000
+        'docker-compose -f docker-compose.dev.yml build --parallel',
+        '.',
+        600000,
       );
 
       const buildDuration = Date.now() - startTime;
 
       // Start services
-      await this.executeCommand(
-        'docker-compose -f docker-compose.dev.yml up -d', 
-        '.', 
-        120000
-      );
+      await this.executeCommand('docker-compose -f docker-compose.dev.yml up -d', '.', 120000);
 
       // Wait for services to be healthy
       await this.sleep(30000);
@@ -146,10 +151,16 @@ class BuildPerformanceTester {
       const frontendSize = await this.getImageSize('medianest-frontend-dev');
 
       // Analyze cache effectiveness
-      const cacheAnalysis = await this.analyzeCacheEffectiveness(buildResult.stdout + buildResult.stderr);
+      const cacheAnalysis = await this.analyzeCacheEffectiveness(
+        buildResult.stdout + buildResult.stderr,
+      );
 
       // Clean up
-      await this.executeCommand('docker-compose -f docker-compose.dev.yml down -v', '.', 60000).catch(() => {});
+      await this.executeCommand(
+        'docker-compose -f docker-compose.dev.yml down -v',
+        '.',
+        60000,
+      ).catch(() => {});
 
       this.results.development = {
         buildTime: buildDuration,
@@ -161,21 +172,20 @@ class BuildPerformanceTester {
         cacheEffectiveness: cacheAnalysis,
         targetsMet: {
           buildTime: buildDuration <= this.targets.buildTime,
-          imageSize: (backendSize + frontendSize) <= this.targets.imageSize * 2, // Dev images can be larger
-          cacheHitRate: cacheAnalysis.hitRate >= this.targets.cacheHitRate
-        }
+          imageSize: backendSize + frontendSize <= this.targets.imageSize * 2, // Dev images can be larger
+          cacheHitRate: cacheAnalysis.hitRate >= this.targets.cacheHitRate,
+        },
       };
 
       this.log(`Development build completed in ${buildDuration}ms`, 'success');
       return this.results.development;
-
     } catch (error) {
       this.log(`Development build failed: ${error.message}`, 'error');
       this.results.development = {
         buildTime: Date.now() - startTime,
         buildSuccess: false,
         error: error.message,
-        targetsMet: { buildTime: false, imageSize: false, cacheHitRate: false }
+        targetsMet: { buildTime: false, imageSize: false, cacheHitRate: false },
       };
       return this.results.development;
     }
@@ -187,16 +197,20 @@ class BuildPerformanceTester {
 
     try {
       // Clean up any existing containers
-      await this.executeCommand('docker-compose -f docker-compose.prod.yml down -v', '.', 30000).catch(() => {});
+      await this.executeCommand(
+        'docker-compose -f docker-compose.prod.yml down -v',
+        '.',
+        30000,
+      ).catch(() => {});
 
       // Create required directories and secrets
       await this.setupProductionSecrets();
 
       // Build production images
       const buildResult = await this.executeCommand(
-        'docker-compose -f docker-compose.prod.yml build --parallel', 
-        '.', 
-        600000
+        'docker-compose -f docker-compose.prod.yml build --parallel',
+        '.',
+        600000,
       );
 
       const buildDuration = Date.now() - startTime;
@@ -210,10 +224,14 @@ class BuildPerformanceTester {
       const nginxSize = await this.getImageSize('medianest/nginx:latest');
 
       // Analyze cache effectiveness
-      const cacheAnalysis = await this.analyzeCacheEffectiveness(buildResult.stdout + buildResult.stderr);
+      const cacheAnalysis = await this.analyzeCacheEffectiveness(
+        buildResult.stdout + buildResult.stderr,
+      );
 
       // Test multi-stage build efficiency
-      const multistageAnalysis = await this.analyzeMultistageBuild(buildResult.stdout + buildResult.stderr);
+      const multistageAnalysis = await this.analyzeMultistageBuild(
+        buildResult.stdout + buildResult.stderr,
+      );
 
       this.results.production = {
         buildTime: buildDuration,
@@ -227,21 +245,20 @@ class BuildPerformanceTester {
         multistageEfficiency: multistageAnalysis,
         targetsMet: {
           buildTime: buildDuration <= this.targets.buildTime,
-          imageSize: (backendSize + frontendSize + nginxSize) <= this.targets.imageSize * 3,
-          cacheHitRate: cacheAnalysis.hitRate >= this.targets.cacheHitRate
-        }
+          imageSize: backendSize + frontendSize + nginxSize <= this.targets.imageSize * 3,
+          cacheHitRate: cacheAnalysis.hitRate >= this.targets.cacheHitRate,
+        },
       };
 
       this.log(`Production build completed in ${buildDuration}ms`, 'success');
       return this.results.production;
-
     } catch (error) {
       this.log(`Production build failed: ${error.message}`, 'error');
       this.results.production = {
         buildTime: Date.now() - startTime,
         buildSuccess: false,
         error: error.message,
-        targetsMet: { buildTime: false, imageSize: false, cacheHitRate: false }
+        targetsMet: { buildTime: false, imageSize: false, cacheHitRate: false },
       };
       return this.results.production;
     }
@@ -253,13 +270,17 @@ class BuildPerformanceTester {
 
     try {
       // Clean up any existing containers
-      await this.executeCommand('docker-compose -f docker-compose.test.yml down -v', '.', 30000).catch(() => {});
+      await this.executeCommand(
+        'docker-compose -f docker-compose.test.yml down -v',
+        '.',
+        30000,
+      ).catch(() => {});
 
       // Build test images
       const buildResult = await this.executeCommand(
-        'docker-compose -f docker-compose.test.yml build --parallel', 
-        '.', 
-        300000
+        'docker-compose -f docker-compose.test.yml build --parallel',
+        '.',
+        300000,
       );
 
       const buildDuration = Date.now() - startTime;
@@ -274,7 +295,9 @@ class BuildPerformanceTester {
       const testImageSize = await this.getImageSize('medianest-backend-test');
 
       // Analyze cache effectiveness
-      const cacheAnalysis = await this.analyzeCacheEffectiveness(buildResult.stdout + buildResult.stderr);
+      const cacheAnalysis = await this.analyzeCacheEffectiveness(
+        buildResult.stdout + buildResult.stderr,
+      );
 
       this.results.testing = {
         buildTime: buildDuration,
@@ -286,20 +309,19 @@ class BuildPerformanceTester {
         targetsMet: {
           buildTime: buildDuration <= this.targets.buildTime * 0.6, // Test builds should be faster
           imageSize: testImageSize <= this.targets.imageSize,
-          cacheHitRate: cacheAnalysis.hitRate >= this.targets.cacheHitRate
-        }
+          cacheHitRate: cacheAnalysis.hitRate >= this.targets.cacheHitRate,
+        },
       };
 
       this.log(`CI/CD build completed in ${buildDuration}ms`, 'success');
       return this.results.testing;
-
     } catch (error) {
       this.log(`CI/CD build failed: ${error.message}`, 'error');
       this.results.testing = {
         buildTime: Date.now() - startTime,
         buildSuccess: false,
         error: error.message,
-        targetsMet: { buildTime: false, imageSize: false, cacheHitRate: false }
+        targetsMet: { buildTime: false, imageSize: false, cacheHitRate: false },
       };
       return this.results.testing;
     }
@@ -335,19 +357,23 @@ class BuildPerformanceTester {
     try {
       // Test that containers run as non-root
       const backendUser = await this.executeCommand(
-        'docker run --rm medianest/backend:latest id', '.', 10000
+        'docker run --rm medianest/backend:latest id',
+        '.',
+        10000,
       );
 
       const frontendUser = await this.executeCommand(
-        'docker run --rm medianest/frontend:latest id', '.', 10000
+        'docker run --rm medianest/frontend:latest id',
+        '.',
+        10000,
       );
 
       return {
         nonRootExecution: {
           backend: !backendUser.stdout.includes('uid=0'),
-          frontend: !frontendUser.stdout.includes('uid=0')
+          frontend: !frontendUser.stdout.includes('uid=0'),
         },
-        success: true
+        success: true,
       };
     } catch (error) {
       return { success: false, error: error.message };
@@ -357,12 +383,12 @@ class BuildPerformanceTester {
   async testFastStartup() {
     this.log('Testing fast startup for CI/CD...');
     const startTime = Date.now();
-    
+
     try {
       await this.executeCommand(
-        'docker-compose -f docker-compose.test.yml up -d postgres-test redis-test', 
-        '.', 
-        60000
+        'docker-compose -f docker-compose.test.yml up -d postgres-test redis-test',
+        '.',
+        60000,
       );
 
       // Wait for services to be healthy
@@ -371,36 +397,43 @@ class BuildPerformanceTester {
       const checkInterval = 2000;
       const startCheck = Date.now();
 
-      while (healthyServices < 2 && (Date.now() - startCheck) < maxWait) {
+      while (healthyServices < 2 && Date.now() - startCheck < maxWait) {
         try {
           const result = await this.executeCommand(
-            'docker-compose -f docker-compose.test.yml ps --format json', '.', 10000
+            'docker-compose -f docker-compose.test.yml ps --format json',
+            '.',
+            10000,
           );
-          const services = result.stdout.split('\n')
-            .filter(line => line.trim())
-            .map(line => JSON.parse(line))
-            .filter(service => service.Health === 'healthy');
-          
+          const services = result.stdout
+            .split('\n')
+            .filter((line) => line.trim())
+            .map((line) => JSON.parse(line))
+            .filter((service) => service.Health === 'healthy');
+
           healthyServices = services.length;
         } catch (e) {
           // Continue checking
         }
-        
+
         if (healthyServices < 2) {
           await this.sleep(checkInterval);
         }
       }
 
       const startupTime = Date.now() - startTime;
-      
+
       // Clean up
-      await this.executeCommand('docker-compose -f docker-compose.test.yml down -v', '.', 30000).catch(() => {});
+      await this.executeCommand(
+        'docker-compose -f docker-compose.test.yml down -v',
+        '.',
+        30000,
+      ).catch(() => {});
 
       return {
         success: healthyServices >= 2,
         startupTime,
         target: 30000,
-        met: startupTime <= 30000
+        met: startupTime <= 30000,
       };
     } catch (error) {
       return { success: false, error: error.message };
@@ -412,25 +445,31 @@ class BuildPerformanceTester {
     try {
       // Start test services with tmpfs
       await this.executeCommand(
-        'docker-compose -f docker-compose.test.yml up -d postgres-test', 
-        '.', 
-        60000
+        'docker-compose -f docker-compose.test.yml up -d postgres-test',
+        '.',
+        60000,
       );
 
       // Verify tmpfs is used
       const mountInfo = await this.executeCommand(
-        'docker exec medianest-postgres-test mount | grep tmpfs', '.', 10000
+        'docker exec medianest-postgres-test mount | grep tmpfs',
+        '.',
+        10000,
       );
 
       const hasTmpfs = mountInfo.stdout.includes('/var/lib/postgresql/data');
 
       // Clean up
-      await this.executeCommand('docker-compose -f docker-compose.test.yml down -v', '.', 30000).catch(() => {});
+      await this.executeCommand(
+        'docker-compose -f docker-compose.test.yml down -v',
+        '.',
+        30000,
+      ).catch(() => {});
 
       return {
         success: hasTmpfs,
         tmpfsMount: hasTmpfs,
-        ephemeralStorage: true
+        ephemeralStorage: true,
       };
     } catch (error) {
       return { success: false, error: error.message };
@@ -438,38 +477,40 @@ class BuildPerformanceTester {
   }
 
   async analyzeMultistageBuild(buildOutput) {
-    const stages = buildOutput.split('\n').filter(line => 
-      line.includes('FROM') || line.includes('Stage') || line.includes('COPY --from=')
-    );
+    const stages = buildOutput
+      .split('\n')
+      .filter(
+        (line) => line.includes('FROM') || line.includes('Stage') || line.includes('COPY --from='),
+      );
 
-    const copyFromStages = stages.filter(line => line.includes('COPY --from=')).length;
-    const totalStages = stages.filter(line => line.includes('FROM')).length;
+    const copyFromStages = stages.filter((line) => line.includes('COPY --from=')).length;
+    const totalStages = stages.filter((line) => line.includes('FROM')).length;
 
     return {
       totalStages,
       copyFromStages,
       efficiency: copyFromStages / Math.max(totalStages - 1, 1),
-      optimized: copyFromStages > 0
+      optimized: copyFromStages > 0,
     };
   }
 
   async setupProductionSecrets() {
     const secretsDir = path.join(__dirname, '../secrets');
-    
+
     if (!fs.existsSync(secretsDir)) {
       fs.mkdirSync(secretsDir, { recursive: true });
     }
 
     const secrets = {
-      'database_url': 'postgresql://medianest:test_password@postgres:5432/medianest',
-      'postgres_password': 'test_password',
-      'redis_url': 'redis://redis:6379',
-      'redis_password': 'test_password',
-      'nextauth_secret': 'test_secret_12345',
-      'jwt_secret': 'test_jwt_secret',
-      'encryption_key': 'test_encryption_key',
-      'plex_client_id': 'test_client_id',
-      'plex_client_secret': 'test_client_secret'
+      database_url: 'postgresql://medianest:test_password@postgres:5432/medianest',
+      postgres_password: 'test_password',
+      redis_url: 'redis://redis:6379',
+      redis_password: 'test_password',
+      nextauth_secret: 'test_secret_12345',
+      jwt_secret: 'test_jwt_secret',
+      encryption_key: 'test_encryption_key',
+      plex_client_id: 'test_client_id',
+      plex_client_secret: 'test_client_secret',
     };
 
     for (const [filename, content] of Object.entries(secrets)) {
@@ -479,36 +520,37 @@ class BuildPerformanceTester {
 
   async generatePerformanceReport() {
     const totalDuration = Date.now() - this.startTime;
-    
+
     this.results.summary = {
       totalTestDuration: totalDuration,
-      overallSuccess: this.results.development.buildSuccess && 
-                     this.results.testing.buildSuccess && 
-                     this.results.production.buildSuccess,
+      overallSuccess:
+        this.results.development.buildSuccess &&
+        this.results.testing.buildSuccess &&
+        this.results.production.buildSuccess,
       targetsMet: {
-        buildTime: Object.values(this.results).every(r => r.targetsMet?.buildTime),
-        imageSize: Object.values(this.results).every(r => r.targetsMet?.imageSize),
-        cacheHitRate: Object.values(this.results).every(r => r.targetsMet?.cacheHitRate)
+        buildTime: Object.values(this.results).every((r) => r.targetsMet?.buildTime),
+        imageSize: Object.values(this.results).every((r) => r.targetsMet?.imageSize),
+        cacheHitRate: Object.values(this.results).every((r) => r.targetsMet?.cacheHitRate),
       },
-      recommendations: []
+      recommendations: [],
     };
 
     // Generate recommendations
     if (!this.results.summary.targetsMet.buildTime) {
       this.results.summary.recommendations.push(
-        'Build times exceed 5-minute target. Consider optimizing Dockerfiles and enabling BuildKit caching.'
+        'Build times exceed 5-minute target. Consider optimizing Dockerfiles and enabling BuildKit caching.',
       );
     }
 
     if (!this.results.summary.targetsMet.imageSize) {
       this.results.summary.recommendations.push(
-        'Image sizes exceed 200MB target. Consider using multi-stage builds and minimizing layer size.'
+        'Image sizes exceed 200MB target. Consider using multi-stage builds and minimizing layer size.',
       );
     }
 
     if (!this.results.summary.targetsMet.cacheHitRate) {
       this.results.summary.recommendations.push(
-        'Cache hit rate below 85% target. Review Dockerfile layer ordering and use .dockerignore effectively.'
+        'Cache hit rate below 85% target. Review Dockerfile layer ordering and use .dockerignore effectively.',
       );
     }
 
@@ -562,7 +604,7 @@ Generated: ${new Date().toISOString()}
 
 ## Recommendations
 
-${this.results.summary.recommendations.map(rec => `- ${rec}`).join('\n')}
+${this.results.summary.recommendations.map((rec) => `- ${rec}`).join('\n')}
 
 ## Detailed Results
 
@@ -573,7 +615,7 @@ ${JSON.stringify(this.results, null, 2)}
   }
 
   sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   async run() {
@@ -591,14 +633,13 @@ ${JSON.stringify(this.results, null, 2)}
       this.log('=== BUILD PERFORMANCE TEST COMPLETE ===');
       this.log(`Overall Success: ${summary.overallSuccess}`);
       this.log(`Total Duration: ${Math.round(summary.totalTestDuration / 1000)}s`);
-      
+
       if (summary.recommendations.length > 0) {
         this.log('Recommendations:');
-        summary.recommendations.forEach(rec => this.log(`  - ${rec}`));
+        summary.recommendations.forEach((rec) => this.log(`  - ${rec}`));
       }
 
       process.exit(summary.overallSuccess ? 0 : 1);
-
     } catch (error) {
       this.log(`Test execution failed: ${error.message}`, 'error');
       process.exit(1);

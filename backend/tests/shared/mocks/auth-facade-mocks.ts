@@ -4,21 +4,21 @@
  * @deprecated - This file will be removed in the next cleanup phase
  */
 
-import { 
-  createMockAuthenticatedUser, 
-  createMockAuthResult, 
+import {
+  createMockAuthenticatedUser,
+  createMockAuthResult,
   createMockUserRepository,
   createMockRequest,
-  createMockResponse
+  createMockResponse,
 } from '../test-factories';
 
 // Re-export centralized factories for backward compatibility
-export { 
-  createMockAuthenticatedUser, 
-  createMockAuthResult, 
+export {
+  createMockAuthenticatedUser,
+  createMockAuthResult,
   createMockUserRepository,
   createMockRequest,
-  createMockResponse
+  createMockResponse,
 } from '../test-factories';
 
 // Mark as deprecated

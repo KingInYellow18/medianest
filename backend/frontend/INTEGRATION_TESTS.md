@@ -18,7 +18,7 @@ This deliverable provides comprehensive **frontend integration tests** for Media
 
 3. **Comprehensive Test Coverage** (5 Test Files)
    - **Authentication Flow** (`auth-flow.integration.test.tsx`) - 27 test scenarios
-   - **API Integration** (`api-integration.integration.test.tsx`) - 25+ test scenarios  
+   - **API Integration** (`api-integration.integration.test.tsx`) - 25+ test scenarios
    - **Data Fetching Hooks** (`data-fetching-hooks.integration.test.tsx`) - 20+ test scenarios
    - **State Management** (`state-management.integration.test.tsx`) - 30+ test scenarios
    - **WebSocket Integration** (`websocket.integration.test.tsx`) - 25+ test scenarios
@@ -34,10 +34,11 @@ This deliverable provides comprehensive **frontend integration tests** for Media
 ## 🧪 **Test Coverage Details**
 
 ### **Authentication Flow Integration Tests**
+
 ```typescript
 // Key test scenarios covered:
 ✅ Initial authentication state validation
-✅ Login with valid/invalid credentials  
+✅ Login with valid/invalid credentials
 ✅ Network error handling during authentication
 ✅ Token refresh mechanisms and error recovery
 ✅ Session expiry and automatic logout
@@ -45,7 +46,8 @@ This deliverable provides comprehensive **frontend integration tests** for Media
 ✅ Authentication error boundary testing
 ```
 
-### **API Integration Tests**  
+### **API Integration Tests**
+
 ```typescript
 // Key test scenarios covered:
 ✅ Services CRUD operations with real API flow
@@ -58,10 +60,11 @@ This deliverable provides comprehensive **frontend integration tests** for Media
 ```
 
 ### **Data Fetching Hooks Tests**
+
 ```typescript
 // Key test scenarios covered:
 ✅ Custom useServices hook with filtering/pagination
-✅ Individual service fetching with useService hook  
+✅ Individual service fetching with useService hook
 ✅ Caching mechanisms and cache invalidation
 ✅ Async state management with loading/error states
 ✅ Error recovery and retry patterns
@@ -70,7 +73,8 @@ This deliverable provides comprehensive **frontend integration tests** for Media
 ```
 
 ### **State Management Tests**
-```typescript  
+
+```typescript
 // Key test scenarios covered:
 ✅ Global app state initialization and defaults
 ✅ User, session, and UI state management
@@ -83,8 +87,9 @@ This deliverable provides comprehensive **frontend integration tests** for Media
 ```
 
 ### **WebSocket Integration Tests**
+
 ```typescript
-// Key test scenarios covered:  
+// Key test scenarios covered:
 ✅ WebSocket connection establishment and management
 ✅ Message sending/receiving with type safety
 ✅ Real-time message handling and buffering
@@ -100,33 +105,36 @@ This deliverable provides comprehensive **frontend integration tests** for Media
 ## 🚀 **Key Features Implemented**
 
 ### **1. MSW for Realistic API Mocking**
+
 - **Authentication endpoints**: Login, logout, refresh, user info
 - **Services endpoints**: CRUD operations, testing, status updates
-- **Error simulation**: 401, 404, 500, timeouts, rate limiting  
+- **Error simulation**: 401, 404, 500, timeouts, rate limiting
 - **WebSocket mocking**: Real-time message handling
 - **Realistic delays**: Network latency simulation
 
 ### **2. Real User Workflow Testing**
+
 ```typescript
 // Example: Complete service configuration workflow
 it('should complete service configuration workflow', async () => {
   // 1. User authentication
   await simulateLogin(user, 'admin@medianest.com', 'password');
-  
+
   // 2. Navigation to services
   await user.click(screen.getByText('Services'));
-  
+
   // 3. Service creation flow
   await user.click(screen.getByText('Add Service'));
   await user.type(screen.getByLabelText('Service Name'), 'New Plex Server');
   await user.click(screen.getByText('Save'));
-  
+
   // 4. Verification of success
   expect(screen.getByText('New Plex Server')).toBeInTheDocument();
 });
 ```
 
 ### **3. Error Scenario Coverage**
+
 - **Network errors**: Timeouts, connection failures, 5xx errors
 - **Authentication errors**: Invalid credentials, expired tokens
 - **Validation errors**: Form validation, input constraints
@@ -134,14 +142,16 @@ it('should complete service configuration workflow', async () => {
 - **WebSocket errors**: Connection drops, message failures
 
 ### **4. Loading State Testing**
+
 - **Initial loading**: Component mount states
 - **Action loading**: Button disabled states during operations
 - **Background loading**: Data refresh indicators
 - **Skeleton states**: Progressive loading experiences
 
 ### **5. Success Path Validation**
+
 - **Happy path workflows**: Complete user journeys
-- **Data consistency**: State updates across components  
+- **Data consistency**: State updates across components
 - **UI feedback**: Success messages and state changes
 - **Performance**: Render optimization verification
 
@@ -150,9 +160,10 @@ it('should complete service configuration workflow', async () => {
 ## 📊 **Test Configuration & Performance**
 
 ### **Optimized for Integration Testing**
+
 ```typescript
 // vitest.integration.config.ts highlights:
-testTimeout: 30000,        // Extended for complex scenarios  
+testTimeout: 30000,        // Extended for complex scenarios
 maxConcurrency: 1,         // Sequential execution for stability
 retry: 2,                  // Retry flaky tests
 coverage: 70-80%,          // Realistic thresholds
@@ -160,9 +171,10 @@ environment: 'jsdom',      // Full DOM simulation
 ```
 
 ### **Memory and Resource Management**
+
 - **Test isolation**: Each test runs in clean environment
 - **Mock cleanup**: Automatic MSW server reset between tests
-- **Timer management**: Proper fake timer usage for async operations  
+- **Timer management**: Proper fake timer usage for async operations
 - **WebSocket cleanup**: Connection disposal after tests
 - **State reset**: Clean slate for each test scenario
 
@@ -171,11 +183,12 @@ environment: 'jsdom',      // Full DOM simulation
 ## 🔧 **Running the Tests**
 
 ### **Local Development**
+
 ```bash
 # Watch mode for active development
 npm run test:integration
 
-# Single run for CI/verification  
+# Single run for CI/verification
 npm run test:integration:run
 
 # Coverage analysis
@@ -186,6 +199,7 @@ npm run test:integration:ui
 ```
 
 ### **Debugging Integration Tests**
+
 ```bash
 # Debug specific test file
 npx vitest --inspect-brk --config vitest.integration.config.ts -t "Authentication Flow"
@@ -193,7 +207,7 @@ npx vitest --inspect-brk --config vitest.integration.config.ts -t "Authenticatio
 # Enable verbose logging
 npm run test:integration -- --reporter=verbose
 
-# Run single test scenario  
+# Run single test scenario
 npm run test:integration -- -t "should handle login with valid credentials"
 ```
 
@@ -207,7 +221,7 @@ frontend/
 │   ├── __tests__/
 │   │   └── integration/
 │   │       ├── auth-flow.integration.test.tsx          # Authentication tests
-│   │       ├── api-integration.integration.test.tsx   # API interaction tests  
+│   │       ├── api-integration.integration.test.tsx   # API interaction tests
 │   │       ├── data-fetching-hooks.integration.test.tsx # Hook testing
 │   │       ├── state-management.integration.test.tsx  # State management
 │   │       ├── websocket.integration.test.tsx         # WebSocket tests
@@ -226,13 +240,15 @@ frontend/
 ## ✅ **Success Metrics**
 
 ### **Test Coverage Achieved**
+
 - **127+ individual test scenarios** across 5 test files
 - **Real user workflow simulation** with complete end-to-end flows
-- **Error scenario coverage** including edge cases and failure modes  
+- **Error scenario coverage** including edge cases and failure modes
 - **Performance testing** with state optimization validation
 - **Cross-browser compatibility** through jsdom environment
 
 ### **Quality Assurance**
+
 - **MSW integration** provides realistic API behavior
 - **Type-safe testing** with full TypeScript support
 - **Async operation handling** with proper timing and cleanup
@@ -253,7 +269,7 @@ frontend/
 ✅ **WebSocket Integration Tests** - Real-time connections, message handling, reconnection logic  
 ✅ **Error Scenarios** - Network errors, authentication failures, validation errors  
 ✅ **Loading States** - Progressive loading, skeleton states, action feedback  
-✅ **Success Paths** - Complete user workflows, data consistency, UI feedback  
+✅ **Success Paths** - Complete user workflows, data consistency, UI feedback
 
 **127+ test scenarios** covering real user workflows with production-ready quality assurance and CI/CD integration.
 

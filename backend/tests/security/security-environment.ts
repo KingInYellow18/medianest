@@ -84,7 +84,7 @@ export class SecurityTestEnvironment {
     }
 
     console.warn(
-      '  ⚠️  Services not ready within timeout, continuing with limited functionality...'
+      '  ⚠️  Services not ready within timeout, continuing with limited functionality...',
     );
     // Don't throw error to allow tests to run even if some services are unavailable
   }
@@ -163,7 +163,7 @@ export class SecurityTestEnvironment {
     for (const op of dangerousOps) {
       if (process.env[op] === 'true') {
         issues.push(
-          `Dangerous operation ${op} is enabled - this should never be true in test environment`
+          `Dangerous operation ${op} is enabled - this should never be true in test environment`,
         );
       }
     }

@@ -6,9 +6,9 @@ import { test, expect } from '@playwright/test';
 test.describe('Basic MediaNest E2E Tests', () => {
   test('should load the application', async ({ page }) => {
     // Mock the main page
-    await page.route('**/*', route => {
+    await page.route('**/*', (route) => {
       const url = route.request().url();
-      
+
       if (url.includes('/login')) {
         route.fulfill({
           status: 200,
@@ -25,12 +25,12 @@ test.describe('Basic MediaNest E2E Tests', () => {
               </div>
             </body>
             </html>
-          `
+          `,
         });
       } else if (url.includes('/dashboard')) {
         route.fulfill({
           status: 200,
-          contentType: 'text/html', 
+          contentType: 'text/html',
           body: `
             <!DOCTYPE html>
             <html>
@@ -43,7 +43,7 @@ test.describe('Basic MediaNest E2E Tests', () => {
               </div>
             </body>
             </html>
-          `
+          `,
         });
       } else {
         route.fulfill({
@@ -60,14 +60,14 @@ test.describe('Basic MediaNest E2E Tests', () => {
               </div>
             </body>
             </html>
-          `
+          `,
         });
       }
     });
 
     // Navigate to the app
     await page.goto('http://localhost:5173');
-    
+
     // Verify the application loads
     await expect(page).toHaveTitle(/MediaNest/);
     await expect(page.getByTestId('app')).toBeVisible();
@@ -75,9 +75,9 @@ test.describe('Basic MediaNest E2E Tests', () => {
 
   test('should navigate to login page', async ({ page }) => {
     // Mock the pages
-    await page.route('**/*', route => {
+    await page.route('**/*', (route) => {
       const url = route.request().url();
-      
+
       if (url.includes('/login')) {
         route.fulfill({
           status: 200,
@@ -95,7 +95,7 @@ test.describe('Basic MediaNest E2E Tests', () => {
               </div>
             </body>
             </html>
-          `
+          `,
         });
       } else {
         route.fulfill({
@@ -112,13 +112,13 @@ test.describe('Basic MediaNest E2E Tests', () => {
               </div>
             </body>
             </html>
-          `
+          `,
         });
       }
     });
 
     await page.goto('http://localhost:5173/login');
-    
+
     // Verify login page elements
     await expect(page).toHaveTitle(/MediaNest Login/);
     await expect(page.getByTestId('login-form')).toBeVisible();
@@ -129,7 +129,7 @@ test.describe('Basic MediaNest E2E Tests', () => {
 
   test('should validate basic form interaction', async ({ page }) => {
     // Mock login page
-    await page.route('**/login', route => {
+    await page.route('**/login', (route) => {
       route.fulfill({
         status: 200,
         contentType: 'text/html',
@@ -145,20 +145,20 @@ test.describe('Basic MediaNest E2E Tests', () => {
             </div>
           </body>
           </html>
-        `
+        `,
       });
     });
 
     await page.goto('http://localhost:5173/login');
-    
+
     // Test form interactions
     await page.fill('[data-testid="email-input"]', 'test@example.com');
     await page.fill('[data-testid="password-input"]', 'password123');
-    
+
     // Verify values were entered
     await expect(page.getByTestId('email-input')).toHaveValue('test@example.com');
     await expect(page.getByTestId('password-input')).toHaveValue('password123');
-    
+
     // Test button is clickable
     await expect(page.getByTestId('login-submit')).toBeEnabled();
   });

@@ -1,6 +1,6 @@
 /**
  * Database Test Helper
- * 
+ *
  * Provides utilities for database testing including:
  * - Test database setup and teardown
  * - Test data creation and cleanup
@@ -50,12 +50,12 @@ export class DatabaseTestHelper {
       console.log('📊 Setting up test database schema...');
       execSync('npx prisma migrate reset --force --skip-seed', {
         stdio: 'inherit',
-        env: { ...process.env, DATABASE_URL: process.env.TEST_DATABASE_URL }
+        env: { ...process.env, DATABASE_URL: process.env.TEST_DATABASE_URL },
       });
-      
+
       // Generate Prisma client
       execSync('npx prisma generate', {
-        stdio: 'inherit'
+        stdio: 'inherit',
       });
 
       console.log('✅ Test database schema ready');
@@ -82,8 +82,8 @@ export class DatabaseTestHelper {
         status: userData.status,
         plexToken: userData.plexToken || 'encrypted-test-token',
         createdAt: new Date(),
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     });
 
     return user;
@@ -111,8 +111,8 @@ export class DatabaseTestHelper {
         overview: mediaData.overview || 'Test media overview',
         status: mediaData.status || 'available',
         createdAt: new Date(),
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     });
 
     return media;
@@ -134,12 +134,12 @@ export class DatabaseTestHelper {
         quality: requestData.quality,
         notes: requestData.notes,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       include: {
         user: true,
-        media: true
-      }
+        media: true,
+      },
     });
 
     return request;
@@ -160,7 +160,7 @@ export class DatabaseTestHelper {
       username: 'workflowuser',
       email: 'workflow@test.com',
       role: 'user',
-      status: 'active'
+      status: 'active',
     });
 
     // Create test admin
@@ -169,14 +169,14 @@ export class DatabaseTestHelper {
       username: 'workflowadmin',
       email: 'workflowadmin@test.com',
       role: 'admin',
-      status: 'active'
+      status: 'active',
     });
 
     // Create test media
     const media = await this.createTestMedia({
       tmdbId: 999999,
       mediaType: 'movie',
-      title: 'Workflow Test Movie'
+      title: 'Workflow Test Movie',
     });
 
     // Create test request
@@ -185,7 +185,7 @@ export class DatabaseTestHelper {
       mediaId: media.id,
       status: 'pending',
       quality: 'HD',
-      notes: 'Test workflow request'
+      notes: 'Test workflow request',
     });
 
     return { user, admin, media, request };
@@ -204,7 +204,7 @@ export class DatabaseTestHelper {
       await this.prisma.mediaRequest.deleteMany();
       await this.prisma.media.deleteMany();
       await this.prisma.user.deleteMany();
-      
+
       console.log('🧹 Test data cleared');
     } catch (error) {
       console.error('❌ Failed to clear test data:', error);
@@ -247,12 +247,14 @@ export class DatabaseTestHelper {
         username: `concurrent${i}`,
         email: `concurrent${i}@test.com`,
         role: 'user',
-        status: 'active'
-      }).then(() => {
-        successCount++;
-      }).catch(() => {
-        failureCount++;
+        status: 'active',
       })
+        .then(() => {
+          successCount++;
+        })
+        .catch(() => {
+          failureCount++;
+        }),
     );
 
     await Promise.all(operations);
@@ -263,7 +265,7 @@ export class DatabaseTestHelper {
     return {
       successCount,
       failureCount,
-      avgDuration
+      avgDuration,
     };
   }
 
@@ -289,7 +291,7 @@ export class DatabaseTestHelper {
     // Test bulk insert
     console.log(`🚀 Testing bulk insert of ${recordCount} records...`);
     const insertStart = Date.now();
-    
+
     const users = Array.from({ length: recordCount }, (_, i) => ({
       plexId: `perf-user-${i}`,
       plexUsername: `perfuser${i}`,
@@ -298,64 +300,64 @@ export class DatabaseTestHelper {
       status: 'active' as const,
       plexToken: 'test-token',
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     }));
 
     await this.prisma.user.createMany({
       data: users,
-      skipDuplicates: true
+      skipDuplicates: true,
     });
-    
+
     insertTime = Date.now() - insertStart;
     console.log(`✅ Bulk insert completed in ${insertTime}ms`);
 
     // Test query performance
     console.log('🔍 Testing query performance...');
     const queryStart = Date.now();
-    
+
     const queriedUsers = await this.prisma.user.findMany({
       where: {
         plexUsername: {
-          startsWith: 'perfuser'
-        }
+          startsWith: 'perfuser',
+        },
       },
-      take: 100
+      take: 100,
     });
-    
+
     queryTime = Date.now() - queryStart;
     console.log(`✅ Query completed in ${queryTime}ms (found ${queriedUsers.length} records)`);
 
     // Test bulk update
     console.log('📝 Testing bulk update...');
     const updateStart = Date.now();
-    
+
     await this.prisma.user.updateMany({
       where: {
         plexUsername: {
-          startsWith: 'perfuser'
-        }
+          startsWith: 'perfuser',
+        },
       },
       data: {
         status: 'inactive',
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     });
-    
+
     updateTime = Date.now() - updateStart;
     console.log(`✅ Bulk update completed in ${updateTime}ms`);
 
     // Test bulk delete
     console.log('🗑️  Testing bulk delete...');
     const deleteStart = Date.now();
-    
+
     await this.prisma.user.deleteMany({
       where: {
         plexUsername: {
-          startsWith: 'perfuser'
-        }
-      }
+          startsWith: 'perfuser',
+        },
+      },
     });
-    
+
     deleteTime = Date.now() - deleteStart;
     console.log(`✅ Bulk delete completed in ${deleteTime}ms`);
 
@@ -363,7 +365,7 @@ export class DatabaseTestHelper {
       insertTime,
       queryTime,
       updateTime,
-      deleteTime
+      deleteTime,
     };
   }
 
@@ -373,7 +375,7 @@ export class DatabaseTestHelper {
   async simulateConnectionError(): Promise<void> {
     console.log('💥 Simulating database connection error...');
     this.isConnectionBroken = true;
-    
+
     // Disconnect Prisma client
     await this.prisma.$disconnect();
   }
@@ -384,7 +386,7 @@ export class DatabaseTestHelper {
   async restoreConnection(): Promise<void> {
     console.log('🔄 Restoring database connection...');
     this.isConnectionBroken = false;
-    
+
     // Reconnect Prisma client
     await this.prisma.$connect();
     console.log('✅ Database connection restored');
@@ -405,7 +407,7 @@ export class DatabaseTestHelper {
       const start = Date.now();
       await this.prisma.$queryRaw`SELECT 1`;
       const responseTime = Date.now() - start;
-      
+
       return { connected: true, responseTime };
     } catch (error) {
       return { connected: false, responseTime: -1 };
@@ -429,8 +431,8 @@ export class DatabaseTestHelper {
       // Check for orphaned media requests (requests without valid user)
       const orphanedRequests = await this.prisma.mediaRequest.count({
         where: {
-          user: null
-        }
+          user: null,
+        },
       });
 
       if (orphanedRequests > 0) {
@@ -440,8 +442,8 @@ export class DatabaseTestHelper {
       // Check for orphaned media requests (requests without valid media)
       const orphanedMediaRequests = await this.prisma.mediaRequest.count({
         where: {
-          media: null
-        }
+          media: null,
+        },
       });
 
       if (orphanedMediaRequests > 0) {
@@ -452,7 +454,7 @@ export class DatabaseTestHelper {
 
       return {
         valid: issues.length === 0,
-        issues
+        issues,
       };
     } catch (error) {
       issues.push(`Error checking integrity: ${error}`);
@@ -476,14 +478,14 @@ export class DatabaseTestHelper {
     const [users, mediaRequests, media] = await Promise.all([
       this.prisma.user.count(),
       this.prisma.mediaRequest.count(),
-      this.prisma.media.count()
+      this.prisma.media.count(),
     ]);
 
     return {
       users,
       mediaRequests,
       media,
-      totalRecords: users + mediaRequests + media
+      totalRecords: users + mediaRequests + media,
     };
   }
 
@@ -492,7 +494,7 @@ export class DatabaseTestHelper {
    */
   async cleanup(): Promise<void> {
     console.log('🧹 Cleaning up database test helper...');
-    
+
     try {
       if (!this.isConnectionBroken) {
         await this.clearTestData();
@@ -501,7 +503,7 @@ export class DatabaseTestHelper {
     } catch (error) {
       console.error('❌ Error during database cleanup:', error);
     }
-    
+
     console.log('✅ Database test helper cleanup complete');
   }
 }

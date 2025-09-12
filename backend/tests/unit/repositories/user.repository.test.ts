@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import { UserRepository } from '@/repositories/user.repository';
 import { User } from '@prisma/client';
-import { 
-  createComprehensiveAlignedMocks, 
-  resetComprehensiveMocks 
+import {
+  createComprehensiveAlignedMocks,
+  resetComprehensiveMocks,
 } from '../../mocks/database/comprehensive-prisma-repository-alignment';
 
 // ✅ ENVIRONMENT SETUP (before imports)
@@ -41,9 +41,9 @@ vi.mock('@/services/encryption.service', () => {
       return data && (data.startsWith('encrypted_') || data.startsWith('storage_encrypted_'));
     }),
   });
-  
+
   const mockInstance = createAlignedEncryptionMock();
-  
+
   return {
     EncryptionService: vi.fn().mockImplementation(() => mockInstance),
     encryptionService: {
@@ -113,11 +113,14 @@ vi.mock('@/config/database', () => ({
 }));
 
 vi.mock('@/utils/logger', () => ({
-  logger: new Proxy({}, {
-    get: (target, prop) => {
-      return isolatedMocks?.logger?.[prop] || vi.fn();
-    }
-  }),
+  logger: new Proxy(
+    {},
+    {
+      get: (target, prop) => {
+        return isolatedMocks?.logger?.[prop] || vi.fn();
+      },
+    },
+  ),
 }));
 
 describe('UserRepository', () => {
@@ -139,23 +142,23 @@ describe('UserRepository', () => {
 
   beforeEach(async () => {
     // CRITICAL: Complete test isolation for each test
-    
+
     // 1. Reset comprehensive mock data between tests
     resetComprehensiveMocks();
-    
+
     // 2. Create completely fresh comprehensive mocks - no shared state
     isolatedMocks = new ComprehensiveUserRepositoryMocks();
-    
+
     // 3. AGGRESSIVE mock clearing to prevent cross-test contamination
     vi.clearAllMocks();
     vi.resetAllMocks();
     vi.restoreAllMocks();
-    
+
     // 3. Create fresh repository instance for each test
     repository = new UserRepository(isolatedMocks.database);
-    
+
     // 4. Allow a small delay for mock setup to complete
-    await new Promise(resolve => setTimeout(resolve, 1));
+    await new Promise((resolve) => setTimeout(resolve, 1));
   });
 
   afterEach(() => {
@@ -222,7 +225,9 @@ describe('UserRepository', () => {
         plexToken: 'encrypted-token',
       };
 
-      isolatedMocks.database.user.create.mockRejectedValue(new Error('Unique constraint violation'));
+      isolatedMocks.database.user.create.mockRejectedValue(
+        new Error('Unique constraint violation'),
+      );
 
       await expect(repository.create(userData)).rejects.toThrow('Unique constraint violation');
     });
@@ -357,8 +362,9 @@ describe('UserRepository', () => {
     it('should handle user not found during update', async () => {
       isolatedMocks.database.user.update.mockRejectedValue(new Error('Record not found'));
 
-      await expect(repository.update('nonexistent', { email: 'test@example.com' }))
-        .rejects.toThrow('Record not found');
+      await expect(repository.update('nonexistent', { email: 'test@example.com' })).rejects.toThrow(
+        'Record not found',
+      );
     });
 
     it('should update user role', async () => {
@@ -590,7 +596,7 @@ describe('UserRepository', () => {
       const cutoffDate = call[0].where.lastLoginAt.gte;
       const expectedDate = new Date();
       expectedDate.setDate(expectedDate.getDate() - 30);
-      
+
       const timeDiff = Math.abs(cutoffDate.getTime() - expectedDate.getTime());
       expect(timeDiff).toBeLessThan(60000); // Within 1 minute
     });
@@ -631,8 +637,9 @@ describe('UserRepository', () => {
     it('should handle invalid user ID', async () => {
       isolatedMocks.database.user.update.mockRejectedValue(new Error('User not found'));
 
-      await expect(repository.updateUserRole('nonexistent', 'admin'))
-        .rejects.toThrow('User not found');
+      await expect(repository.updateUserRole('nonexistent', 'admin')).rejects.toThrow(
+        'User not found',
+      );
     });
   });
 
@@ -651,7 +658,9 @@ describe('UserRepository', () => {
 
       isolatedMocks.database.user.create.mockRejectedValue(new Error('Missing required fields'));
 
-      await expect(repository.create(malformedData as any)).rejects.toThrow('Missing required fields');
+      await expect(repository.create(malformedData as any)).rejects.toThrow(
+        'Missing required fields',
+      );
     });
 
     it('should handle empty result sets', async () => {
@@ -675,7 +684,9 @@ describe('UserRepository', () => {
   describe('transaction support', () => {
     it('should support database transactions', async () => {
       const transactionCallback = vi.fn().mockResolvedValue(mockUser);
-      isolatedMocks.database.$transaction.mockImplementation(callback => callback(isolatedMocks.database));
+      isolatedMocks.database.$transaction.mockImplementation((callback) =>
+        callback(isolatedMocks.database),
+      );
 
       await repository.withTransaction(transactionCallback);
 
@@ -687,8 +698,9 @@ describe('UserRepository', () => {
       const transactionCallback = vi.fn().mockRejectedValue(new Error('Transaction failed'));
       isolatedMocks.database.$transaction.mockRejectedValue(new Error('Transaction failed'));
 
-      await expect(repository.withTransaction(transactionCallback))
-        .rejects.toThrow('Transaction failed');
+      await expect(repository.withTransaction(transactionCallback)).rejects.toThrow(
+        'Transaction failed',
+      );
     });
   });
 });

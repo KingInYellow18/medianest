@@ -44,7 +44,7 @@ vi.mock('winston', () => {
       File: vi.fn(),
     },
   };
-  
+
   return {
     default: mockWinston,
     ...mockWinston,
@@ -299,7 +299,7 @@ describe('Logger Utility', () => {
 
     it('should inherit parent logger methods in child', () => {
       const child = createChildLogger('test-correlation-id');
-      
+
       expect(child).toBeDefined();
       expect(child.info).toBeDefined();
       expect(child.error).toBeDefined();
@@ -310,13 +310,13 @@ describe('Logger Utility', () => {
 
     it('should create nested child loggers', () => {
       const parent = createChildLogger('parent-correlation-id');
-      
+
       expect(parent).toBeDefined();
       expect(parent.child).toBeDefined();
-      
+
       if (parent && typeof parent.child === 'function') {
         const nested = parent.child({ operation: 'nested' });
-        
+
         expect(nested).toBeDefined();
         if (nested && typeof nested.info === 'function') {
           expect(() => nested.info('Nested message')).not.toThrow();

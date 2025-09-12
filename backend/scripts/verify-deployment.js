@@ -2,7 +2,7 @@
 
 /**
  * Container Deployment Verification Script
- * 
+ *
  * This script verifies that core API endpoints are ready for container deployment
  * by testing the actual running server endpoints.
  */
@@ -22,15 +22,15 @@ const config = {
 console.log('🚀 Starting Container Deployment Verification...');
 console.log(`🔗 API Base URL: ${config.baseUrl}`);
 
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function makeRequest(method, url, data = null, headers = {}) {
   const fullUrl = `${config.baseUrl}${url}`;
-  
+
   for (let attempt = 1; attempt <= config.retryAttempts; attempt++) {
     try {
       console.log(`  🔍 ${method.toUpperCase()} ${url} (attempt ${attempt})`);
-      
+
       const response = await axios({
         method,
         url: fullUrl,
@@ -47,7 +47,7 @@ async function makeRequest(method, url, data = null, headers = {}) {
       };
     } catch (error) {
       console.log(`  ❌ Attempt ${attempt} failed: ${error.message}`);
-      
+
       if (attempt === config.retryAttempts) {
         return {
           status: 0,
@@ -55,7 +55,7 @@ async function makeRequest(method, url, data = null, headers = {}) {
           error: error.message,
         };
       }
-      
+
       await sleep(config.retryDelay);
     }
   }
@@ -63,7 +63,7 @@ async function makeRequest(method, url, data = null, headers = {}) {
 
 async function testHealthEndpoints() {
   console.log('\n📋 Testing Health Endpoints...');
-  
+
   const tests = [
     {
       name: 'Basic Health Check',
@@ -84,13 +84,13 @@ async function testHealthEndpoints() {
   let passedTests = 0;
   for (const test of tests) {
     const response = await makeRequest(test.method, test.url);
-    
+
     if (response.status === test.expectedStatus) {
       console.log(`  ✅ ${test.name}: ${response.status}`);
-      
+
       // Check required fields
       if (test.requiredFields && response.data) {
-        const missingFields = test.requiredFields.filter(field => !(field in response.data));
+        const missingFields = test.requiredFields.filter((field) => !(field in response.data));
         if (missingFields.length === 0) {
           console.log(`     🔍 All required fields present`);
           passedTests++;
@@ -107,13 +107,13 @@ async function testHealthEndpoints() {
       }
     }
   }
-  
+
   return passedTests;
 }
 
 async function testAuthEndpoints() {
   console.log('\n🔐 Testing Authentication Endpoints...');
-  
+
   const tests = [
     {
       name: 'Generate Plex PIN',
@@ -146,10 +146,10 @@ async function testAuthEndpoints() {
   let passedTests = 0;
   for (const test of tests) {
     const response = await makeRequest(test.method, test.url, test.data);
-    
+
     if (test.expectedStatuses.includes(response.status)) {
       console.log(`  ✅ ${test.name}: ${response.status} (expected)`);
-      
+
       // Verify response is JSON
       if (response.data && typeof response.data === 'object') {
         console.log(`     📄 Valid JSON response`);
@@ -158,7 +158,9 @@ async function testAuthEndpoints() {
         console.log(`     ⚠️  Non-JSON response`);
       }
     } else {
-      console.log(`  ❌ ${test.name}: Got ${response.status}, expected one of ${test.expectedStatuses.join(', ')}`);
+      console.log(
+        `  ❌ ${test.name}: Got ${response.status}, expected one of ${test.expectedStatuses.join(', ')}`,
+      );
       if (response.error) {
         console.log(`     Error: ${response.error}`);
       } else if (response.data) {
@@ -166,13 +168,13 @@ async function testAuthEndpoints() {
       }
     }
   }
-  
+
   return passedTests;
 }
 
 async function testBusinessEndpoints() {
   console.log('\n📊 Testing Business Logic Endpoints...');
-  
+
   const tests = [
     {
       name: 'Dashboard Stats (No Auth)',
@@ -191,10 +193,10 @@ async function testBusinessEndpoints() {
   let passedTests = 0;
   for (const test of tests) {
     const response = await makeRequest(test.method, test.url);
-    
+
     if (test.expectedStatuses.includes(response.status)) {
       console.log(`  ✅ ${test.name}: ${response.status} (expected)`);
-      
+
       // Verify response format
       if (response.data && typeof response.data === 'object') {
         console.log(`     📄 Valid JSON response`);
@@ -203,16 +205,18 @@ async function testBusinessEndpoints() {
         console.log(`     ⚠️  Non-JSON response`);
       }
     } else {
-      console.log(`  ❌ ${test.name}: Got ${response.status}, expected one of ${test.expectedStatuses.join(', ')}`);
+      console.log(
+        `  ❌ ${test.name}: Got ${response.status}, expected one of ${test.expectedStatuses.join(', ')}`,
+      );
     }
   }
-  
+
   return passedTests;
 }
 
 async function testErrorHandling() {
   console.log('\n🔥 Testing Error Handling...');
-  
+
   const tests = [
     {
       name: '404 for Non-existent Route',
@@ -233,11 +237,11 @@ async function testErrorHandling() {
   let passedTests = 0;
   for (const test of tests) {
     const response = await makeRequest(test.method, test.url, test.data, test.headers);
-    
+
     const expectedStatuses = test.expectedStatuses || [test.expectedStatus];
     if (expectedStatuses.includes(response.status)) {
       console.log(`  ✅ ${test.name}: ${response.status} (expected)`);
-      
+
       // Verify it's not a 500 error
       if (response.status !== 500) {
         console.log(`     🛡️  No 500 errors (good error handling)`);
@@ -246,18 +250,20 @@ async function testErrorHandling() {
         console.log(`     ❌ 500 error detected - needs better error handling`);
       }
     } else {
-      console.log(`  ❌ ${test.name}: Got ${response.status}, expected one of ${expectedStatuses.join(', ')}`);
+      console.log(
+        `  ❌ ${test.name}: Got ${response.status}, expected one of ${expectedStatuses.join(', ')}`,
+      );
     }
   }
-  
+
   return passedTests;
 }
 
 async function checkSecurityHeaders() {
   console.log('\n🛡️ Testing Security Headers...');
-  
+
   const response = await makeRequest('GET', '/health');
-  
+
   if (response.headers) {
     const securityHeaders = [
       'x-content-type-options',
@@ -265,9 +271,9 @@ async function checkSecurityHeaders() {
       'x-download-options',
       'x-xss-protection',
     ];
-    
+
     let foundHeaders = 0;
-    securityHeaders.forEach(header => {
+    securityHeaders.forEach((header) => {
       if (response.headers[header]) {
         console.log(`  ✅ ${header}: ${response.headers[header]}`);
         foundHeaders++;
@@ -275,10 +281,10 @@ async function checkSecurityHeaders() {
         console.log(`  ⚠️  ${header}: Missing`);
       }
     });
-    
+
     return foundHeaders;
   }
-  
+
   return 0;
 }
 
@@ -286,7 +292,7 @@ async function generateReport(results) {
   const totalTests = results.health + results.auth + results.business + results.errors;
   const passedTests = totalTests;
   const securityScore = (results.security / 4) * 100;
-  
+
   console.log('\n📋 CONTAINER DEPLOYMENT VERIFICATION REPORT');
   console.log('='.repeat(50));
   console.log(`🏥 Health Endpoints:     ${results.health}/2 ✅`);
@@ -296,13 +302,13 @@ async function generateReport(results) {
   console.log(`🛡️  Security Headers:     ${results.security}/4 (${securityScore.toFixed(0)}%)`);
   console.log('='.repeat(50));
   console.log(`📊 Overall Score: ${totalTests}/10 tests passed`);
-  
+
   const isReady = totalTests >= 8 && results.health === 2; // Health is critical
-  
+
   if (isReady) {
     console.log('🎉 CONTAINER DEPLOYMENT READY! ✅');
     console.log('✅ Core endpoints are functional');
-    console.log('✅ Error handling prevents crashes');  
+    console.log('✅ Error handling prevents crashes');
     console.log('✅ Security headers present');
     console.log('✅ Proper HTTP status codes returned');
   } else {
@@ -310,7 +316,7 @@ async function generateReport(results) {
     console.log('⚠️  Some critical endpoints are failing');
     console.log('🔧 Please fix the issues above before deployment');
   }
-  
+
   return isReady;
 }
 
@@ -323,19 +329,26 @@ async function main() {
       errors: await testErrorHandling(),
       security: await checkSecurityHeaders(),
     };
-    
+
     const deploymentReady = await generateReport(results);
-    
+
     // Create a simple status file for CI/CD
     const statusFile = path.join(__dirname, '..', 'deployment-status.json');
-    fs.writeFileSync(statusFile, JSON.stringify({
-      ready: deploymentReady,
-      timestamp: new Date().toISOString(),
-      results,
-    }, null, 2));
-    
+    fs.writeFileSync(
+      statusFile,
+      JSON.stringify(
+        {
+          ready: deploymentReady,
+          timestamp: new Date().toISOString(),
+          results,
+        },
+        null,
+        2,
+      ),
+    );
+
     console.log(`\n📄 Status saved to: ${statusFile}`);
-    
+
     process.exit(deploymentReady ? 0 : 1);
   } catch (error) {
     console.error('❌ Verification failed:', error.message);

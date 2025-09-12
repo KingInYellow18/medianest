@@ -41,6 +41,7 @@ npm run test:e2e:headed
 ## 📋 Available Scripts
 
 ### Test Execution
+
 - `npm run test:e2e` - Run all E2E tests
 - `npm run test:e2e:ui` - Run with Playwright UI
 - `npm run test:e2e:debug` - Run in debug mode
@@ -48,6 +49,7 @@ npm run test:e2e:headed
 - `npm run test:e2e:ci` - Run with CI reporters
 
 ### Environment Management
+
 - `npm run e2e:install` - Install Playwright browsers
 - `npm run e2e:setup` - Start Docker test services
 - `npm run e2e:teardown` - Stop and clean Docker services
@@ -55,11 +57,13 @@ npm run test:e2e:headed
 - `npm run e2e:cleanup` - Clean test data
 
 ### Reporting
+
 - `npm run e2e:reports` - Open HTML test report
 - `npm run e2e:allure` - Generate Allure report
 - `npm run lighthouse` - Run Lighthouse performance tests
 
 ### Utility Scripts
+
 - `./tests/e2e/scripts/run-e2e.sh` - Advanced test runner with options
 - `./tests/e2e/scripts/debug-failed-tests.sh` - Debug failed test analysis
 
@@ -67,29 +71,32 @@ npm run test:e2e:headed
 
 The E2E setup includes several Docker services:
 
-| Service | Port | Purpose |
-|---------|------|---------|
-| PostgreSQL | 5434 | Test database |
-| Redis | 6381 | Test cache |
-| Plex Mock | 32400 | Mock Plex server |
-| Overseerr Mock | 5055 | Mock Overseerr service |
-| Application | 3001 | App under test |
+| Service        | Port  | Purpose                |
+| -------------- | ----- | ---------------------- |
+| PostgreSQL     | 5434  | Test database          |
+| Redis          | 6381  | Test cache             |
+| Plex Mock      | 32400 | Mock Plex server       |
+| Overseerr Mock | 5055  | Mock Overseerr service |
+| Application    | 3001  | App under test         |
 
 ## 🧪 Test Categories
 
 ### Functional Tests
+
 - **Authentication**: Login/logout flows, Plex OAuth
-- **Media Management**: Request creation, approval workflows  
+- **Media Management**: Request creation, approval workflows
 - **Admin Features**: User management, system settings
 - **API Integration**: REST endpoint testing
 
 ### Non-Functional Tests
+
 - **Performance**: Core Web Vitals, load times
 - **Security**: XSS protection, CSRF validation, rate limiting
 - **Accessibility**: WCAG compliance, keyboard navigation
 - **Responsiveness**: Mobile and desktop layouts
 
 ### Browser Matrix
+
 - **Chromium**: Desktop + Mobile
 - **Firefox**: Desktop only
 - **WebKit/Safari**: Desktop + Mobile
@@ -97,18 +104,21 @@ The E2E setup includes several Docker services:
 ## 📊 Reporting Features
 
 ### HTML Reports
+
 - Interactive test results
 - Screenshots on failure
 - Video recordings
 - Test timeline and duration
 
 ### Performance Monitoring
+
 - Lighthouse CI integration
 - Core Web Vitals tracking
 - Performance regression detection
 - Resource loading analysis
 
 ### CI/CD Integration
+
 - JUnit XML output
 - GitHub Actions integration
 - Parallel test execution (4 shards per browser)
@@ -116,14 +126,14 @@ The E2E setup includes several Docker services:
 
 ## 🔧 Configuration Files
 
-| File | Purpose |
-|------|---------|
-| `playwright.config.ts` | Main Playwright configuration |
-| `docker-compose.e2e.yml` | Test services orchestration |
-| `.env.e2e` | E2E environment variables |
-| `lighthouserc.js` | Performance testing config |
-| `tests/e2e/config/global-setup.ts` | Test environment setup |
-| `tests/e2e/config/global-teardown.ts` | Test cleanup |
+| File                                  | Purpose                       |
+| ------------------------------------- | ----------------------------- |
+| `playwright.config.ts`                | Main Playwright configuration |
+| `docker-compose.e2e.yml`              | Test services orchestration   |
+| `.env.e2e`                            | E2E environment variables     |
+| `lighthouserc.js`                     | Performance testing config    |
+| `tests/e2e/config/global-setup.ts`    | Test environment setup        |
+| `tests/e2e/config/global-teardown.ts` | Test cleanup                  |
 
 ## 🎯 Page Object Pattern
 
@@ -133,7 +143,7 @@ Tests use the Page Object Model for maintainability:
 // Example: LoginPage.ts
 export class LoginPage {
   constructor(private page: Page) {}
-  
+
   async login(username: string, password: string) {
     await this.page.getByTestId('username-input').fill(username);
     await this.page.getByTestId('password-input').fill(password);
@@ -145,12 +155,14 @@ export class LoginPage {
 ## 📱 Writing New Tests
 
 ### 1. Create Test File
+
 ```bash
 # Create new test spec
 touch tests/e2e/specs/feature/new-feature.spec.ts
 ```
 
 ### 2. Use Page Objects
+
 ```typescript
 import { test, expect } from '@playwright/test';
 import { LoginPage } from '../page-objects/LoginPage';
@@ -158,12 +170,13 @@ import { LoginPage } from '../page-objects/LoginPage';
 test('should test new feature', async ({ page }) => {
   const loginPage = new LoginPage(page);
   await loginPage.loginAsTestUser();
-  
+
   // Test implementation
 });
 ```
 
 ### 3. Follow Naming Conventions
+
 - Use descriptive test names: `should allow admin to approve media request`
 - Group related tests: `test.describe('Media Requests', () => {})`
 - Use `data-testid` attributes for element selection
@@ -171,6 +184,7 @@ test('should test new feature', async ({ page }) => {
 ## 🔍 Debugging Failed Tests
 
 ### Quick Debug Commands
+
 ```bash
 # Debug specific test
 npx playwright test --debug tests/e2e/specs/auth/login.spec.ts
@@ -185,26 +199,32 @@ npx playwright show-trace tests/e2e/test-results/*/trace.zip
 ### Common Issues & Solutions
 
 **Timeout Errors**
+
 - Increase timeout values in `playwright.config.ts`
 - Add explicit waits: `await page.waitForSelector('[data-testid="element"]')`
 
 **Element Not Found**
+
 - Verify `data-testid` attributes exist in components
 - Check element visibility: `await expect(element).toBeVisible()`
 
-**Database Issues**  
+**Database Issues**
+
 - Restart services: `npm run e2e:teardown && npm run e2e:setup`
 - Re-seed data: `npm run e2e:seed`
 
 ## 🚀 CI/CD Pipeline
 
 ### GitHub Actions Workflow
+
 The E2E tests run automatically on:
-- Pull requests to `main`/`develop` 
+
+- Pull requests to `main`/`develop`
 - Pushes to `main` branch
 - Manual workflow dispatch
 
 ### Pipeline Features
+
 - **Parallel Execution**: 4 shards × 3 browsers = 12 concurrent jobs
 - **Service Health Checks**: Database and Redis readiness
 - **Artifact Collection**: Screenshots, videos, reports
@@ -212,6 +232,7 @@ The E2E tests run automatically on:
 - **Security Scanning**: npm audit checks
 
 ### Environment Variables Required
+
 ```env
 DATABASE_URL=postgresql://e2e_user:e2e_password@localhost:5434/medianest_e2e
 REDIS_URL=redis://localhost:6381
@@ -231,16 +252,19 @@ PLEX_CLIENT_SECRET=e2e-test-client-secret
 ## ⚠️ Troubleshooting
 
 ### Services Won't Start
+
 1. Check Docker is running
 2. Verify ports 5434, 6381, 32400, 5055 are available
 3. Run `docker-compose -f docker-compose.e2e.yml logs` for error details
 
 ### Tests Fail in CI but Pass Locally
+
 1. Check environment variables match
 2. Verify service startup timing
 3. Review browser compatibility
 
 ### Memory Issues
+
 1. Reduce parallel workers: `--workers=2`
 2. Use `--project=chromium` to test single browser
 3. Increase Docker memory limits

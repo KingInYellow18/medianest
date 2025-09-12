@@ -641,19 +641,19 @@ export class PerformanceOptimizationService {
    */
   public async shutdown(): Promise<void> {
     logger.info('Shutting down PerformanceOptimizationService...');
-    
+
     this.isShutdown = true;
     this.stopPerformanceMonitoring();
-    
+
     // Clear memory buffers
     this.metricsBuffer = [];
     this.optimizationHistory = [];
-    
+
     // Force garbage collection if available
     if (global.gc) {
       global.gc();
     }
-    
+
     logger.info('PerformanceOptimizationService shutdown complete');
   }
 

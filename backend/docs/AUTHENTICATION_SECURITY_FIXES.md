@@ -70,7 +70,7 @@ await authSecurityService.logSecurityEvent({
 const activityResult = await authSecurityService.detectSuspiciousActivity(
   userId,
   ipAddress,
-  userAgent
+  userAgent,
 );
 ```
 

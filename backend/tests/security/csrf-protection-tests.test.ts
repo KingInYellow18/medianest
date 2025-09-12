@@ -497,7 +497,7 @@ describe('CSRF Protection Test Suite', () => {
       for (const attack of tagBasedAttacks) {
         const response = await request[attack.method](attack.url).set(
           'Authorization',
-          `Bearer ${adminToken}`
+          `Bearer ${adminToken}`,
         );
 
         // Should not perform state-changing operations via GET

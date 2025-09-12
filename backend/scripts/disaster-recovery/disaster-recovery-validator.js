@@ -2,7 +2,7 @@
 /**
  * MediaNest Disaster Recovery Validation Suite - JavaScript Version
  * Comprehensive disaster recovery testing and validation
- * 
+ *
  * CRITICAL: This validates ALL disaster recovery scenarios
  * including database failure, container crashes, and network issues
  */
@@ -26,9 +26,9 @@ class DisasterRecoveryValidator {
         failed: 0,
         criticalFailures: 0,
         averageRecoveryTime: 0,
-        maxRecoveryTime: 0
+        maxRecoveryTime: 0,
       },
-      recommendations: []
+      recommendations: [],
     };
 
     // Ensure directories exist
@@ -50,7 +50,7 @@ class DisasterRecoveryValidator {
         severity: 'critical',
         rtoTarget: 5,
         rpoTarget: 1,
-        testFunction: () => this.testBackupSystemValidation()
+        testFunction: () => this.testBackupSystemValidation(),
       },
       {
         name: 'rollback_procedures_validation',
@@ -58,7 +58,7 @@ class DisasterRecoveryValidator {
         severity: 'critical',
         rtoTarget: 20,
         rpoTarget: 0,
-        testFunction: () => this.testRollbackProceduresValidation()
+        testFunction: () => this.testRollbackProceduresValidation(),
       },
       {
         name: 'container_resilience_validation',
@@ -66,7 +66,7 @@ class DisasterRecoveryValidator {
         severity: 'high',
         rtoTarget: 5,
         rpoTarget: 1,
-        testFunction: () => this.testContainerResilienceValidation()
+        testFunction: () => this.testContainerResilienceValidation(),
       },
       {
         name: 'infrastructure_recovery_validation',
@@ -74,7 +74,7 @@ class DisasterRecoveryValidator {
         severity: 'high',
         rtoTarget: 15,
         rpoTarget: 5,
-        testFunction: () => this.testInfrastructureRecoveryValidation()
+        testFunction: () => this.testInfrastructureRecoveryValidation(),
       },
       {
         name: 'monitoring_integration_validation',
@@ -82,8 +82,8 @@ class DisasterRecoveryValidator {
         severity: 'medium',
         rtoTarget: 10,
         rpoTarget: 2,
-        testFunction: () => this.testMonitoringIntegrationValidation()
-      }
+        testFunction: () => this.testMonitoringIntegrationValidation(),
+      },
     ];
   }
 
@@ -94,17 +94,19 @@ class DisasterRecoveryValidator {
     for (const scenario of this.scenarios) {
       console.log(`\n🎯 Testing: ${scenario.name}`);
       console.log(`📋 ${scenario.description}`);
-      console.log(`⏱️  RTO Target: ${scenario.rtoTarget}min | RPO Target: ${scenario.rpoTarget}min`);
-      
+      console.log(
+        `⏱️  RTO Target: ${scenario.rtoTarget}min | RPO Target: ${scenario.rpoTarget}min`,
+      );
+
       const startTime = performance.now();
-      
+
       try {
         const result = await scenario.testFunction();
         const duration = (performance.now() - startTime) / 1000 / 60; // Convert to minutes
-        
+
         result.duration = duration;
         this.results.scenarioResults.set(scenario.name, result);
-        
+
         if (result.success) {
           console.log(`✅ PASSED in ${duration.toFixed(2)} minutes`);
           this.results.summary.passed++;
@@ -112,29 +114,28 @@ class DisasterRecoveryValidator {
           console.log(`❌ FAILED: ${result.error}`);
           this.results.summary.failed++;
           this.results.overallSuccess = false;
-          
+
           if (scenario.severity === 'critical') {
             this.results.summary.criticalFailures++;
           }
         }
-        
       } catch (error) {
         const result = {
           success: false,
           duration: (performance.now() - startTime) / 1000 / 60,
           error: error.message || 'Unknown error',
           details: ['Test execution failed'],
-          metrics: {}
+          metrics: {},
         };
-        
+
         this.results.scenarioResults.set(scenario.name, result);
         this.results.summary.failed++;
         this.results.overallSuccess = false;
-        
+
         if (scenario.severity === 'critical') {
           this.results.summary.criticalFailures++;
         }
-        
+
         console.log(`💥 EXCEPTION: ${result.error}`);
       }
     }
@@ -148,38 +149,38 @@ class DisasterRecoveryValidator {
 
   async testBackupSystemValidation() {
     const details = [];
-    
+
     try {
       details.push('1. Validating backup scripts exist...');
       const backupScript = join(process.cwd(), 'scripts', 'backup-procedures.sh');
-      
+
       if (!existsSync(backupScript)) {
         throw new Error('Backup script not found');
       }
       details.push('✅ Backup script found');
-      
+
       details.push('2. Testing backup command help...');
-      const helpOutput = execSync(`bash ${backupScript}`, { 
+      const helpOutput = execSync(`bash ${backupScript}`, {
         encoding: 'utf-8',
-        timeout: 30000
+        timeout: 30000,
       });
-      
+
       if (!helpOutput.includes('backup')) {
         throw new Error('Backup command help not working');
       }
       details.push('✅ Backup command structure validated');
-      
+
       details.push('3. Testing backup list functionality...');
       try {
-        execSync(`bash ${backupScript} list`, { 
+        execSync(`bash ${backupScript} list`, {
           encoding: 'utf-8',
-          timeout: 30000
+          timeout: 30000,
         });
         details.push('✅ Backup list command works');
       } catch (error) {
         details.push('ℹ️  Backup list returned no results (expected in test environment)');
       }
-      
+
       return {
         success: true,
         duration: 1,
@@ -187,51 +188,50 @@ class DisasterRecoveryValidator {
         metrics: {
           rtoAchieved: 1,
           rpoAchieved: 0,
-          dataLoss: false
-        }
+          dataLoss: false,
+        },
       };
-      
     } catch (error) {
       return {
         success: false,
         duration: 1,
         error: error.message,
         details,
-        metrics: {}
+        metrics: {},
       };
     }
   }
 
   async testRollbackProceduresValidation() {
     const details = [];
-    
+
     try {
       details.push('1. Validating rollback scripts exist...');
-      const rollbackScript = join(process.cwd(), 'scripts', 'disaster-recovery', 'rollback-procedures.ts');
+      const rollbackScript = join(
+        process.cwd(),
+        'scripts',
+        'disaster-recovery',
+        'rollback-procedures.ts',
+      );
       const migrationRollback = join(process.cwd(), 'scripts', 'migration-rollback.ts');
-      
+
       if (!existsSync(rollbackScript)) {
         details.push('⚠️  Main rollback script not found');
       } else {
         details.push('✅ Rollback procedures script found');
       }
-      
+
       if (!existsSync(migrationRollback)) {
         details.push('⚠️  Migration rollback script not found');
       } else {
         details.push('✅ Migration rollback script found');
       }
-      
+
       details.push('2. Validating package.json rollback commands...');
       const packageJson = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf-8'));
-      
-      const rollbackCommands = [
-        'db:backup',
-        'db:restore', 
-        'migration:rollback',
-        'rollback'
-      ];
-      
+
+      const rollbackCommands = ['db:backup', 'db:restore', 'migration:rollback', 'rollback'];
+
       let validCommands = 0;
       for (const cmd of rollbackCommands) {
         if (packageJson.scripts && packageJson.scripts[cmd]) {
@@ -241,13 +241,13 @@ class DisasterRecoveryValidator {
           details.push(`⚠️  Command '${cmd}' not found`);
         }
       }
-      
+
       if (validCommands >= 2) {
         details.push('✅ Sufficient rollback commands available');
       } else {
         details.push('❌ Insufficient rollback commands');
       }
-      
+
       return {
         success: validCommands >= 2,
         duration: 1,
@@ -255,56 +255,58 @@ class DisasterRecoveryValidator {
         metrics: {
           rtoAchieved: 1,
           rpoAchieved: 0,
-          dataLoss: false
-        }
+          dataLoss: false,
+        },
       };
-      
     } catch (error) {
       return {
         success: false,
         duration: 1,
         error: error.message,
         details,
-        metrics: {}
+        metrics: {},
       };
     }
   }
 
   async testContainerResilienceValidation() {
     const details = [];
-    
+
     try {
       details.push('1. Validating production Docker Compose configuration...');
       const composeFile = join(process.cwd(), 'docker-compose.production.yml');
-      
+
       if (!existsSync(composeFile)) {
         throw new Error('Production Docker Compose file not found');
       }
-      
+
       const composeContent = readFileSync(composeFile, 'utf-8');
       details.push('✅ Production Docker Compose file found');
-      
+
       details.push('2. Validating health checks configuration...');
       const healthCheckCount = (composeContent.match(/healthcheck:/g) || []).length;
-      
+
       if (healthCheckCount < 3) {
         throw new Error('Insufficient health checks configured');
       }
       details.push(`✅ Health checks configured: ${healthCheckCount} services`);
-      
+
       details.push('3. Validating restart policies...');
       if (!composeContent.includes('restart: unless-stopped')) {
         throw new Error('Restart policies not properly configured');
       }
       details.push('✅ Restart policies configured');
-      
+
       details.push('4. Validating service dependencies...');
-      if (!composeContent.includes('depends_on:') || !composeContent.includes('condition: service_healthy')) {
+      if (
+        !composeContent.includes('depends_on:') ||
+        !composeContent.includes('condition: service_healthy')
+      ) {
         details.push('⚠️  Service dependencies could be improved');
       } else {
         details.push('✅ Service dependencies properly configured');
       }
-      
+
       return {
         success: true,
         duration: 1,
@@ -312,32 +314,31 @@ class DisasterRecoveryValidator {
         metrics: {
           rtoAchieved: 1,
           rpoAchieved: 0,
-          dataLoss: false
-        }
+          dataLoss: false,
+        },
       };
-      
     } catch (error) {
       return {
         success: false,
         duration: 1,
         error: error.message,
         details,
-        metrics: {}
+        metrics: {},
       };
     }
   }
 
   async testInfrastructureRecoveryValidation() {
     const details = [];
-    
+
     try {
       details.push('1. Validating monitoring scripts...');
       const monitoringScripts = [
         'start-monitoring.sh',
-        'metrics-collector.sh', 
-        'deployment-health.sh'
+        'metrics-collector.sh',
+        'deployment-health.sh',
       ];
-      
+
       let scriptsFound = 0;
       for (const script of monitoringScripts) {
         const scriptPath = join(process.cwd(), 'scripts', script);
@@ -348,32 +349,34 @@ class DisasterRecoveryValidator {
           details.push(`⚠️  Missing ${script}`);
         }
       }
-      
+
       details.push(`📊 Monitoring scripts available: ${scriptsFound}/${monitoringScripts.length}`);
-      
+
       details.push('2. Validating security configuration...');
       const composeFile = join(process.cwd(), 'docker-compose.production.yml');
-      
+
       if (existsSync(composeFile)) {
         const composeContent = readFileSync(composeFile, 'utf-8');
-        
+
         const securityFeatures = [
           'security_opt:',
           'no-new-privileges:true',
           'cap_drop:',
-          'read_only: true'
+          'read_only: true',
         ];
-        
+
         let securityFeaturesFound = 0;
         for (const feature of securityFeatures) {
           if (composeContent.includes(feature)) {
             securityFeaturesFound++;
           }
         }
-        
-        details.push(`🔒 Security features configured: ${securityFeaturesFound}/${securityFeatures.length}`);
+
+        details.push(
+          `🔒 Security features configured: ${securityFeaturesFound}/${securityFeatures.length}`,
+        );
       }
-      
+
       return {
         success: scriptsFound >= 2,
         duration: 2,
@@ -381,51 +384,50 @@ class DisasterRecoveryValidator {
         metrics: {
           rtoAchieved: 2,
           rpoAchieved: 1,
-          dataLoss: false
-        }
+          dataLoss: false,
+        },
       };
-      
     } catch (error) {
       return {
         success: false,
         duration: 2,
         error: error.message,
         details,
-        metrics: {}
+        metrics: {},
       };
     }
   }
 
   async testMonitoringIntegrationValidation() {
     const details = [];
-    
+
     try {
       details.push('1. Validating logging configuration...');
       const composeFile = join(process.cwd(), 'docker-compose.production.yml');
-      
+
       if (existsSync(composeFile)) {
         const composeContent = readFileSync(composeFile, 'utf-8');
-        
+
         if (composeContent.includes('logging:')) {
           details.push('✅ Container logging configured');
         } else {
           details.push('⚠️  Container logging not explicitly configured');
         }
-        
+
         if (composeContent.includes('max-size:')) {
           details.push('✅ Log rotation configured');
         } else {
           details.push('⚠️  Log rotation not configured');
         }
       }
-      
+
       details.push('2. Validating environment variable management...');
       if (existsSync('.env.example') || existsSync('.env.template')) {
         details.push('✅ Environment template found');
       } else {
         details.push('⚠️  No environment template found');
       }
-      
+
       return {
         success: true,
         duration: 1,
@@ -433,28 +435,27 @@ class DisasterRecoveryValidator {
         metrics: {
           rtoAchieved: 1,
           rpoAchieved: 0,
-          dataLoss: false
-        }
+          dataLoss: false,
+        },
       };
-      
     } catch (error) {
       return {
         success: false,
         duration: 1,
         error: error.message,
         details,
-        metrics: {}
+        metrics: {},
       };
     }
   }
 
   calculateSummaryMetrics() {
     this.results.summary.totalTests = this.scenarios.length;
-    
+
     let totalRecoveryTime = 0;
     let maxRecoveryTime = 0;
     let validResults = 0;
-    
+
     for (const [_, result] of this.results.scenarioResults) {
       if (result.success && result.metrics.rtoAchieved) {
         totalRecoveryTime += result.metrics.rtoAchieved;
@@ -462,14 +463,15 @@ class DisasterRecoveryValidator {
         validResults++;
       }
     }
-    
-    this.results.summary.averageRecoveryTime = validResults > 0 ? totalRecoveryTime / validResults : 0;
+
+    this.results.summary.averageRecoveryTime =
+      validResults > 0 ? totalRecoveryTime / validResults : 0;
     this.results.summary.maxRecoveryTime = maxRecoveryTime;
   }
 
   generateRecommendations() {
     const recs = [];
-    
+
     if (this.results.summary.criticalFailures > 0) {
       recs.push('CRITICAL: Address critical disaster recovery failures immediately');
       recs.push('Review and update backup procedures for failed scenarios');
@@ -482,7 +484,7 @@ class DisasterRecoveryValidator {
       recs.push('Some disaster recovery components need attention');
       recs.push('Review failed validation scenarios');
     }
-    
+
     this.results.recommendations = recs;
   }
 
@@ -490,9 +492,9 @@ class DisasterRecoveryValidator {
     const reportPath = join(this.logPath, 'disaster-recovery-report.json');
     const resultsObj = {
       ...this.results,
-      scenarioResults: Object.fromEntries(this.results.scenarioResults)
+      scenarioResults: Object.fromEntries(this.results.scenarioResults),
     };
-    
+
     try {
       writeFileSync(reportPath, JSON.stringify(resultsObj, null, 2));
       console.log(`\n📄 Full results saved to: ${reportPath}`);
@@ -505,25 +507,25 @@ class DisasterRecoveryValidator {
     console.log('\n' + '='.repeat(60));
     console.log('🚨 DISASTER RECOVERY VALIDATION SUMMARY 🚨');
     console.log('='.repeat(60));
-    
+
     const { summary } = this.results;
-    
+
     console.log(`📊 Total Tests: ${summary.totalTests}`);
     console.log(`✅ Passed: ${summary.passed}`);
     console.log(`❌ Failed: ${summary.failed}`);
     console.log(`🚨 Critical Failures: ${summary.criticalFailures}`);
     console.log(`⏱️  Average Recovery Time: ${summary.averageRecoveryTime.toFixed(2)} minutes`);
     console.log(`⏱️  Max Recovery Time: ${summary.maxRecoveryTime.toFixed(2)} minutes`);
-    
+
     console.log(`\n🎯 Overall Status: ${this.results.overallSuccess ? '✅ PASSED' : '❌ FAILED'}`);
-    
+
     if (this.results.recommendations.length > 0) {
       console.log('\n📋 RECOMMENDATIONS:');
       this.results.recommendations.forEach((rec, i) => {
         console.log(`${i + 1}. ${rec}`);
       });
     }
-    
+
     console.log('\n' + '='.repeat(60));
   }
 }
@@ -531,29 +533,34 @@ class DisasterRecoveryValidator {
 // CLI execution
 async function main() {
   const validator = new DisasterRecoveryValidator();
-  
+
   try {
     console.log('🚀 Starting MediaNest Disaster Recovery Validation...\n');
-    
+
     const results = await validator.runAllTests();
     validator.printSummaryReport();
-    
+
     // Store results in memory concept for production validation coordinator
     console.log('\n💾 STORING RESULTS IN MEMORY: MEDIANEST_PROD_VALIDATION/disaster_recovery');
-    console.log(JSON.stringify({
-      timestamp: results.timestamp,
-      validation_results: {
-        overall_status: results.overallSuccess ? 'PASSED' : 'FAILED',
-        scenarios_tested: results.summary.totalTests,
-        scenarios_passed: results.summary.passed,
-        critical_failures: results.summary.criticalFailures,
-        recommendations: results.recommendations
-      }
-    }, null, 2));
-    
+    console.log(
+      JSON.stringify(
+        {
+          timestamp: results.timestamp,
+          validation_results: {
+            overall_status: results.overallSuccess ? 'PASSED' : 'FAILED',
+            scenarios_tested: results.summary.totalTests,
+            scenarios_passed: results.summary.passed,
+            critical_failures: results.summary.criticalFailures,
+            recommendations: results.recommendations,
+          },
+        },
+        null,
+        2,
+      ),
+    );
+
     // Exit with appropriate code
     process.exit(results.overallSuccess ? 0 : 1);
-    
   } catch (error) {
     console.error('💥 Disaster Recovery Validation Failed:', error);
     process.exit(1);

@@ -53,29 +53,34 @@ medianest/
 **TOTAL TEST FILES IDENTIFIED: 49**
 
 #### By Type:
+
 - **.test.ts/.tsx**: 36 files
 - **.spec.ts**: 13 files
 - **Setup/Config files**: 5+ setup.ts files
 
 #### By Location:
+
 - **Backend Tests**: 31 files
-- **Root Tests**: 10 files  
+- **Root Tests**: 10 files
 - **Shared Tests**: 1 file
 - **Frontend Tests**: 7 files (referenced in configs but many missing)
 
 ### Test Framework Configuration Analysis
 
 #### Primary Framework: **Vitest** (Modern, Vite-native)
+
 - Root: `vitest.config.ts`, `vitest.workspace.ts`
-- Backend: `backend/vitest.config.ts` 
+- Backend: `backend/vitest.config.ts`
 - Frontend: `frontend/vitest.config.ts`
 - Shared: `shared/vitest.config.ts`
 
 #### Secondary Framework: **Jest** (Legacy integration)
+
 - `backend/tests/integration/jest.config.integration.js`
 - Playwright E2E: `backend/tests/e2e/playwright.config.ts`
 
 #### Test Runners Configured:
+
 1. **Vitest Workspace**: Multi-package test orchestration
 2. **Playwright**: E2E testing framework
 3. **Cypress**: Available but unused (installed dependency)
@@ -83,6 +88,7 @@ medianest/
 ### Architecture Patterns Identified
 
 #### ✅ POSITIVE PATTERNS:
+
 1. **Workspace-based testing** with vitest.workspace.ts
 2. **Separation of concerns**: unit/integration/e2e directories
 3. **Mock Service Worker (MSW)** integration
@@ -91,9 +97,10 @@ medianest/
 6. **Helper utilities** for common test operations
 
 #### ❌ ANTI-PATTERNS & ISSUES:
+
 1. **FRAGMENTED STRUCTURE**: Tests scattered across multiple locations
 2. **MISSING FRONTEND TESTS**: Config references non-existent files
 3. **FRAMEWORK DUPLICATION**: Both Vitest and Jest configured
-4. **INCONSISTENT NAMING**: Mix of .test.* and .spec.* conventions
+4. **INCONSISTENT NAMING**: Mix of .test._ and .spec._ conventions
 5. **SETUP FILE PROLIFERATION**: 5+ different setup.ts files
 6. **DEAD CODE**: References to missing test files in configs

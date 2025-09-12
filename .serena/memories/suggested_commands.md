@@ -1,6 +1,7 @@
 # MediaNest Essential Commands
 
 ## Development Commands
+
 ```bash
 # Start development environment
 npm run dev                    # Start both backend and frontend
@@ -15,6 +16,7 @@ npm run build:optimized       # Optimized production build
 ```
 
 ## Testing Commands
+
 ```bash
 # Testing
 npm run test                  # Run all tests
@@ -30,6 +32,7 @@ npm run security:scan       # Security scanning
 ```
 
 ## Docker Commands
+
 ```bash
 # Docker Operations
 npm run docker:build         # Build Docker images
@@ -43,17 +46,19 @@ docker-compose -f docker-compose.hardened.yml up -d
 ```
 
 ## Database Commands
+
 ```bash
 # Database Management
 npm run db:migrate           # Run migrations
-npm run db:rollback          # Rollback migrations  
+npm run db:rollback          # Rollback migrations
 npm run db:seed             # Seed database
 npm run db:reset            # Reset and reseed
 ```
 
 ## System Commands (Linux)
+
 ```bash
-# Process Management  
+# Process Management
 ps aux | grep node          # Check running Node processes
 systemctl status nginx      # Check nginx status
 df -h                       # Check disk usage
@@ -66,6 +71,7 @@ docker system prune         # Clean up unused resources
 ```
 
 ## Build & Deployment
+
 ```bash
 # Production Preparation
 npm run build:production     # Production build

@@ -1,6 +1,6 @@
 /**
  * AUTHENTICATION TEST HELPER
- * 
+ *
  * Utilities for creating test users, tokens, and authentication scenarios
  */
 
@@ -29,8 +29,8 @@ export class AuthTestHelper {
         plexUsername: testUsername,
         role,
         status: 'ACTIVE',
-        passwordHash: hashedPassword
-      }
+        passwordHash: hashedPassword,
+      },
     });
   }
 
@@ -47,7 +47,7 @@ export class AuthTestHelper {
       sub: userId,
       type: 'access',
       iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + (60 * 60) // 1 hour
+      exp: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour
     };
 
     return jwt.sign(payload, process.env.JWT_SECRET || 'test-secret');
@@ -58,7 +58,7 @@ export class AuthTestHelper {
       sub: userId,
       type: 'refresh',
       iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60) // 30 days
+      exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60, // 30 days
     };
 
     return jwt.sign(payload, process.env.JWT_SECRET || 'test-secret');
@@ -72,7 +72,7 @@ export class AuthTestHelper {
     return {
       user,
       accessToken,
-      refreshToken
+      refreshToken,
     };
   }
 
@@ -80,9 +80,9 @@ export class AuthTestHelper {
     await this.prisma.user.deleteMany({
       where: {
         email: {
-          contains: '@medianest.test'
-        }
-      }
+          contains: '@medianest.test',
+        },
+      },
     });
   }
 

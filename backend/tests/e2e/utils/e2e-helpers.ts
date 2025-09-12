@@ -66,17 +66,17 @@ export async function setupE2EEnvironment(): Promise<E2ETestContext> {
     users: {
       user: {
         ...testUser,
-        token: createAuthToken(testUser)
+        token: createAuthToken(testUser),
       },
       admin: {
         ...adminUser,
-        token: createAuthToken(adminUser)
-      }
+        token: createAuthToken(adminUser),
+      },
     },
     cleanup: async () => {
       await databaseCleanup.cleanAll();
       await prisma.$disconnect();
-    }
+    },
   };
 }
 
@@ -97,7 +97,7 @@ export async function createAdditionalTestUser(context: E2ETestContext): Promise
 
   const userWithToken = {
     ...secondUser,
-    token: createAuthToken(secondUser)
+    token: createAuthToken(secondUser),
   };
 
   context.users.secondUser = userWithToken;
@@ -119,7 +119,7 @@ export async function createTestRequests(userId: number, count: number = 5) {
         mediaType: i % 2 === 0 ? 'movie' : 'tv',
         tmdbId: `${10000 + i}`,
         status: statuses[i % statuses.length],
-        requestedAt: new Date(Date.now() - (i * 24 * 60 * 60 * 1000)), // Stagger dates
+        requestedAt: new Date(Date.now() - i * 24 * 60 * 60 * 1000), // Stagger dates
       },
     });
     requests.push(request);
@@ -146,21 +146,21 @@ export interface VisualTestConfig {
 export class VisualRegression {
   static async compareResponse(
     response: any,
-    config: VisualTestConfig
+    config: VisualTestConfig,
   ): Promise<{ match: boolean; diff?: number }> {
     // Simulate visual regression testing for API responses
     // In a real implementation, this would compare response structure,
     // data completeness, and format consistency
-    
+
     const responseStructure = this.analyzeResponseStructure(response);
     const expectedStructure = await this.getExpectedStructure(config.name);
-    
+
     const similarity = this.calculateSimilarity(responseStructure, expectedStructure);
     const match = similarity >= config.threshold;
-    
+
     return {
       match,
-      diff: match ? undefined : (1 - similarity) * 100
+      diff: match ? undefined : (1 - similarity) * 100,
     };
   }
 
@@ -171,7 +171,7 @@ export class VisualRegression {
       hasError: response.body?.error !== undefined,
       statusCode: response.status,
       dataType: Array.isArray(response.body?.data) ? 'array' : typeof response.body?.data,
-      keysCount: response.body?.data ? Object.keys(response.body.data).length : 0
+      keysCount: response.body?.data ? Object.keys(response.body.data).length : 0,
     };
   }
 
@@ -183,21 +183,21 @@ export class VisualRegression {
       hasError: false,
       statusCode: 200,
       dataType: 'object',
-      keysCount: 5
+      keysCount: 5,
     };
   }
 
   private static calculateSimilarity(actual: any, expected: any): number {
     let matches = 0;
     let total = 0;
-    
+
     for (const key in expected) {
       total++;
       if (actual[key] === expected[key]) {
         matches++;
       }
     }
-    
+
     return total > 0 ? matches / total : 0;
   }
 }
@@ -217,54 +217,54 @@ export const viewports: ViewportConfig[] = [
     name: 'mobile',
     width: 375,
     height: 667,
-    userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_7_1 like Mac OS X)'
+    userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_7_1 like Mac OS X)',
   },
   {
     name: 'tablet',
     width: 768,
     height: 1024,
-    userAgent: 'Mozilla/5.0 (iPad; CPU OS 14_7_1 like Mac OS X)'
+    userAgent: 'Mozilla/5.0 (iPad; CPU OS 14_7_1 like Mac OS X)',
   },
   {
     name: 'desktop',
     width: 1920,
     height: 1080,
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-  }
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+  },
 ];
 
 export class ResponsiveTestHelper {
   static async testAcrossViewports<T>(
     testFunction: (viewport: ViewportConfig) => Promise<T>,
-    viewports: ViewportConfig[] = viewports
+    viewports: ViewportConfig[] = viewports,
   ): Promise<Record<string, T>> {
     const results: Record<string, T> = {};
-    
+
     for (const viewport of viewports) {
       results[viewport.name] = await testFunction(viewport);
     }
-    
+
     return results;
   }
 
   static validateResponseForViewport(response: any, viewport: ViewportConfig): boolean {
     // Validate that response is appropriate for the viewport
     // This could check data pagination, content filtering, etc.
-    
+
     if (viewport.name === 'mobile') {
       // Mobile should have smaller page sizes
       if (response.body?.data?.requests?.length > 10) {
         return false;
       }
     }
-    
+
     if (viewport.name === 'desktop') {
       // Desktop can handle larger data sets
       if (response.body?.data?.requests?.length > 50) {
         return false;
       }
     }
-    
+
     return true;
   }
 }
@@ -280,16 +280,16 @@ export class PerformanceTestHelper {
     const startTime = process.hrtime.bigint();
     const response = await testFunction();
     const endTime = process.hrtime.bigint();
-    
+
     const duration = Number(endTime - startTime) / 1_000_000; // Convert to milliseconds
-    
+
     return { response, duration };
   }
 
   static async loadTest(
     testFunction: () => Promise<any>,
     concurrency: number = 10,
-    iterations: number = 100
+    iterations: number = 100,
   ): Promise<{
     avgResponseTime: number;
     minResponseTime: number;
@@ -299,42 +299,44 @@ export class PerformanceTestHelper {
   }> {
     const results: number[] = [];
     let successCount = 0;
-    
+
     const batches = Math.ceil(iterations / concurrency);
-    
+
     for (let batch = 0; batch < batches; batch++) {
       const batchPromises: Promise<any>[] = [];
       const batchSize = Math.min(concurrency, iterations - batch * concurrency);
-      
+
       for (let i = 0; i < batchSize; i++) {
         batchPromises.push(
-          this.measureResponseTime(testFunction).then(
-            (result) => {
-              successCount++;
-              results.push(result.duration);
-              return result;
-            },
-            (error) => {
-              results.push(Infinity); // Mark as failed
-              throw error;
-            }
-          ).catch(() => {
-            // Swallow errors for load testing
-          })
+          this.measureResponseTime(testFunction)
+            .then(
+              (result) => {
+                successCount++;
+                results.push(result.duration);
+                return result;
+              },
+              (error) => {
+                results.push(Infinity); // Mark as failed
+                throw error;
+              },
+            )
+            .catch(() => {
+              // Swallow errors for load testing
+            }),
         );
       }
-      
+
       await Promise.allSettled(batchPromises);
     }
-    
-    const validResults = results.filter(time => time !== Infinity);
-    
+
+    const validResults = results.filter((time) => time !== Infinity);
+
     return {
       avgResponseTime: validResults.reduce((a, b) => a + b, 0) / validResults.length || 0,
       minResponseTime: Math.min(...validResults) || 0,
       maxResponseTime: Math.max(...validResults) || 0,
       successRate: (successCount / iterations) * 100,
-      totalRequests: iterations
+      totalRequests: iterations,
     };
   }
 }
@@ -345,14 +347,15 @@ export class PerformanceTestHelper {
 export class DataValidationHelper {
   static validateMediaSearchResponse(response: any): boolean {
     const body = response.body;
-    
+
     return !!(
       body?.success &&
       Array.isArray(body.data) &&
-      body.data.every((item: any) => 
-        typeof item.id === 'number' &&
-        typeof item.title === 'string' &&
-        ['movie', 'tv'].includes(item.mediaType)
+      body.data.every(
+        (item: any) =>
+          typeof item.id === 'number' &&
+          typeof item.title === 'string' &&
+          ['movie', 'tv'].includes(item.mediaType),
       ) &&
       body.meta?.query &&
       typeof body.meta.page === 'number'
@@ -361,7 +364,7 @@ export class DataValidationHelper {
 
   static validateMediaDetailsResponse(response: any): boolean {
     const data = response.body?.data;
-    
+
     return !!(
       response.body?.success &&
       data &&
@@ -374,7 +377,7 @@ export class DataValidationHelper {
 
   static validateRequestResponse(response: any): boolean {
     const data = response.body?.data;
-    
+
     return !!(
       response.body?.success &&
       data &&
@@ -387,7 +390,7 @@ export class DataValidationHelper {
 
   static validateRequestListResponse(response: any): boolean {
     const data = response.body?.data;
-    
+
     return !!(
       response.body?.success &&
       data &&
@@ -440,13 +443,13 @@ export const mockExternalResponses = {
           title: `${query} Result`,
           overview: `Test overview for ${query}`,
           release_date: '2023-01-01',
-          media_type: mediaType || 'movie'
-        }
+          media_type: mediaType || 'movie',
+        },
       ],
       total_pages: 1,
-      total_results: 1
+      total_results: 1,
     }),
-    
+
     details: (id: number, mediaType: string = 'movie') => ({
       id,
       title: `Test ${mediaType} ${id}`,
@@ -455,8 +458,8 @@ export const mockExternalResponses = {
       genres: [{ id: 1, name: 'Action' }],
       runtime: 120,
       vote_average: 8.5,
-      vote_count: 1000
-    })
+      vote_count: 1000,
+    }),
   },
 
   plex: {
@@ -464,11 +467,11 @@ export const mockExternalResponses = {
       MediaContainer: {
         Directory: [
           { key: '1', title: 'Movies', type: 'movie' },
-          { key: '2', title: 'TV Shows', type: 'show' }
-        ]
-      }
+          { key: '2', title: 'TV Shows', type: 'show' },
+        ],
+      },
     }),
-    
+
     library: (sectionId: string) => ({
       MediaContainer: {
         Metadata: [
@@ -476,10 +479,10 @@ export const mockExternalResponses = {
             ratingKey: `${sectionId}001`,
             title: `Test Content ${sectionId}`,
             type: sectionId === '1' ? 'movie' : 'show',
-            year: 2023
-          }
-        ]
-      }
-    })
-  }
+            year: 2023,
+          },
+        ],
+      },
+    }),
+  },
 };

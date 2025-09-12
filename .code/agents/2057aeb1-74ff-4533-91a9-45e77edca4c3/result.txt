@@ -1,0 +1,77 @@
+Okay, I will act as a pre-flight check agent for the MediaNest monorepo. My goal is to analyze the project, identify issues related to formatting, linting, type safety, tests, and environment configuration, and then provide a clear, actionable plan with commands and code patches to resolve them. I will operate in a read-only capacity.
+
+First, I will analyze the key configuration files to identify likely hotspots and formulate a precise plan. I'll start by reading the root `package.json`, the Vitest "ultra-fast" test configuration, the root ESLint configuration, the base TypeScript configuration, and the environment variable example files.
+
+
+Based on my analysis of the project's configuration files, I have identified two primary issues that will prevent a clean pre-flight run. The environment variable files (`.env.example` and `.env.staging.example`) appear to be in sync, with the staging file correctly containing all keys from the base example file.
+
+Here are the identified hotspots and the plan to address them.
+
+### **Analysis and Proposed Fixes**
+
+1.  **Formatting Scope is Incomplete:** The `format` script in the root `package.json` is configured to run Prettier only on the root `src/` directory. This will miss files in the `backend`, `frontend`, and `shared` workspaces.
+
+    **Proposed Fix:** Update the script to scan all relevant files across the monorepo.
+
+    ```diff
+    --- a/package.json
+    +++ b/package.json
+    @@ -68,7 +68,7 @@
+     "test:integration": "vitest run --config vitest.integration.config.ts",
+     "test:integration:watch": "vitest --config vitest.integration.config.ts",
+     "lint": "eslint src --ext .ts,.tsx,.js,.jsx",
+-    "lint:fix": "eslint src --ext .ts,.tsx,.js,.jsx --fix",
+-    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
++    "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
++    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+     "typecheck": "npm run typecheck:backend && npm run typecheck:frontend",
+     "typecheck:backend": "cd backend && npm run type-check",
+     "typecheck:frontend": "cd frontend && npm run type-check",
+
+    ```
+
+2.  **Test Scope is Missing Frontend:** The `vitest.ultrafast.config.ts` file, used by the `test:ultra-fast` script, does not include any tests from the `frontend` workspace. This means the smoke test is not comprehensive.
+
+    **Proposed Fix:** Add patterns for frontend tests to the `include` array in the Vitest configuration.
+
+    ```diff
+    --- a/vitest.ultrafast.config.ts
+    +++ b/vitest.ultrafast.config.ts
+    @@ -49,7 +49,9 @@
+     include: [
+       'backend/tests/unit/**/*.test.ts',
+       'backend/tests/**/*.test.ts',
++      'frontend/src/**/*.test.ts',
++      'frontend/src/**/*.test.tsx',
+       'shared/src/**/*.test.ts',
+       'tests/unit/**/*.test.ts'
+     ],
+
+    ```
+
+### **Pre-Flight Execution Plan**
+
+Here is the proposed command sequence to achieve a clean pre-flight run. Please apply the patches above before executing the commands.
+
+1.  **Formatting:**
+    *   **Command:** `npm run format`
+    *   **Expected Outcome:** Prettier will format all relevant files in the monorepo. The command should exit cleanly.
+
+2.  **Linting:**
+    *   **Commands:**
+        ```bash
+        cd backend && npm run lint && cd ..
+        cd frontend && npm run lint && cd ..
+        cd shared && npm run lint && cd ..
+        ```
+    *   **Expected Outcome:** ESLint will check all three workspaces. Please provide the output if any errors or warnings are reported.
+
+3.  **Type Safety:**
+    *   **Command:** `npm run typecheck`
+    *   **Expected Outcome:** TypeScript will check the `backend` and `frontend` workspaces. Please provide the output if any type errors are found.
+
+4.  **Fast Tests (Smoke Test):**
+    *   **Command:** `npm run test:ultra-fast`
+    *   **Expected Outcome:** Vitest will run all unit tests included in the now-updated configuration. The run should report 100% passing tests.
+
+After you have run these commands, please provide the output. I will analyze any failures and propose the next set of patches to resolve them.

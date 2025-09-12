@@ -17,7 +17,7 @@ graph TB
     subgraph "Application Layer"
         EXPRESS[Express.js Server<br/>TypeScript + Node.js 20+]
         SOCKET[Socket.IO Server<br/>Real-time Communication]
-        
+
         subgraph "API Routes v1"
             HEALTH[Health Check API]
             AUTH_API[Authentication API<br/>JWT + OAuth]
@@ -64,7 +64,7 @@ graph TB
     subgraph "Data Persistence Layer"
         POSTGRES[(PostgreSQL 15+<br/>Primary Database)]
         REDIS[(Redis 7+<br/>Cache & Sessions)]
-        
+
         subgraph "Database Models"
             USERS[Users & Accounts]
             MEDIA_REQ[Media Requests]

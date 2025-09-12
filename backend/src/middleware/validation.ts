@@ -74,7 +74,10 @@ export function validate(schemas: ValidationSchemas) {
       }
     } catch (error: CatchError) {
       // Check if it's a transformation error (from zod transform) or unexpected error
-      if (error instanceof Error && (error.message.includes('Invalid date') || error.message.includes('transformation'))) {
+      if (
+        error instanceof Error &&
+        (error.message.includes('Invalid date') || error.message.includes('transformation'))
+      ) {
         // Handle transformation errors as validation errors
         logger.warn('Validation transformation error', {
           error,
@@ -89,18 +92,22 @@ export function validate(schemas: ValidationSchemas) {
             success: false,
             error: 'VALIDATION_ERROR',
             message: 'Invalid data transformation',
-            details: [{
-              field: 'unknown',
-              message: error.message,
-              code: 'transformation_error'
-            }],
+            details: [
+              {
+                field: 'unknown',
+                message: error.message,
+                code: 'transformation_error',
+              },
+            ],
           });
         } catch (resError) {
-          const appError = new AppError('VALIDATION_ERROR', 'Invalid data transformation', 400, [{
-            field: 'unknown',
-            message: error.message,
-            code: 'transformation_error'
-          }]);
+          const appError = new AppError('VALIDATION_ERROR', 'Invalid data transformation', 400, [
+            {
+              field: 'unknown',
+              message: error.message,
+              code: 'transformation_error',
+            },
+          ]);
           return next(appError);
         }
       } else {
@@ -109,7 +116,7 @@ export function validate(schemas: ValidationSchemas) {
           error,
           correlationId: req.correlationId,
         });
-        
+
         // Handle case where res might be undefined due to test mocking issues
         try {
           return res.status(500).json({
@@ -143,7 +150,12 @@ export function validate(schemas: ValidationSchemas) {
           details: validationError.details,
         });
       } catch (resError) {
-        const appError = new AppError('VALIDATION_ERROR', validationError.message, 400, validationError.details);
+        const appError = new AppError(
+          'VALIDATION_ERROR',
+          validationError.message,
+          400,
+          validationError.details,
+        );
         return next(appError);
       }
     }

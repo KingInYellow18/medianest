@@ -1,1 +1,34 @@
-{"uuid":"9446a873-2a0d-427c-aa1d-a3f66b58600f","name":"should work on mobile devices","historyId":"e6159d7b2ee06ff60d83f2256129e6c1:5bd835b0d6b1d4ada3b9f0db936e82c8","status":"skipped","statusDetails":{},"stage":"finished","steps":[],"attachments":[],"parameters":[{"name":"Project","value":"chromium"}],"labels":[{"name":"language","value":"javascript"},{"name":"framework","value":"playwright"},{"name":"package","value":"admin-dashboard-journey.spec.ts"},{"name":"titlePath","value":" > chromium > admin-dashboard-journey.spec.ts > Admin Dashboard User Journey > Responsive Design"},{"name":"host","value":"kubuntudev"},{"name":"thread","value":"pid-38931-worker-0"},{"name":"parentSuite","value":"chromium"},{"name":"subSuite","value":"Admin Dashboard User Journey > Responsive Design"}],"links":[],"start":1757602649376,"testCaseId":"e6159d7b2ee06ff60d83f2256129e6c1","fullName":"admin-dashboard-journey.spec.ts:774:9","titlePath":["admin-dashboard-journey.spec.ts","Admin Dashboard User Journey","Responsive Design"],"stop":1757602649376}
+{
+  "uuid": "9446a873-2a0d-427c-aa1d-a3f66b58600f",
+  "name": "should work on mobile devices",
+  "historyId": "e6159d7b2ee06ff60d83f2256129e6c1:5bd835b0d6b1d4ada3b9f0db936e82c8",
+  "status": "skipped",
+  "statusDetails": {},
+  "stage": "finished",
+  "steps": [],
+  "attachments": [],
+  "parameters": [{ "name": "Project", "value": "chromium" }],
+  "labels": [
+    { "name": "language", "value": "javascript" },
+    { "name": "framework", "value": "playwright" },
+    { "name": "package", "value": "admin-dashboard-journey.spec.ts" },
+    {
+      "name": "titlePath",
+      "value": " > chromium > admin-dashboard-journey.spec.ts > Admin Dashboard User Journey > Responsive Design"
+    },
+    { "name": "host", "value": "kubuntudev" },
+    { "name": "thread", "value": "pid-38931-worker-0" },
+    { "name": "parentSuite", "value": "chromium" },
+    { "name": "subSuite", "value": "Admin Dashboard User Journey > Responsive Design" }
+  ],
+  "links": [],
+  "start": 1757602649376,
+  "testCaseId": "e6159d7b2ee06ff60d83f2256129e6c1",
+  "fullName": "admin-dashboard-journey.spec.ts:774:9",
+  "titlePath": [
+    "admin-dashboard-journey.spec.ts",
+    "Admin Dashboard User Journey",
+    "Responsive Design"
+  ],
+  "stop": 1757602649376
+}

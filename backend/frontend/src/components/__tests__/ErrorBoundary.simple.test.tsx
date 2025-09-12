@@ -29,8 +29,8 @@ describe('ErrorBoundary Simple Test', () => {
   it('should catch and display error when child component throws', () => {
     render(
       <ErrorBoundary>
-        <ThrowError message="Test error message" />
-      </ErrorBoundary>
+        <ThrowError message='Test error message' />
+      </ErrorBoundary>,
     );
 
     expect(screen.getByRole('alert')).toBeInTheDocument();

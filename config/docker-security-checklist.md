@@ -155,19 +155,16 @@ echo "new_secure_password" | docker secret create medianest_postgres_password_v2
 ## 🔄 Next Steps for Production
 
 1. **SSL/TLS Configuration**
-
    - Configure Let's Encrypt certificates
    - Enable HTTPS-only mode
    - Implement HSTS headers
 
 2. **Advanced Monitoring**
-
    - Set up Grafana dashboards
    - Configure alerting rules
    - Implement log aggregation
 
 3. **Backup & Recovery**
-
    - Test recovery procedures
    - Implement automated backup rotation
    - Configure offsite backup storage

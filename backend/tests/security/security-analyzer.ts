@@ -241,10 +241,13 @@ export class SecurityIssueAnalyzer {
     const totalRiskScore = critical * 10 + high * 5 + medium * 2 + low * 1;
 
     // Get top vulnerabilities by frequency
-    const vulnerabilityTypes = issues.reduce((acc, issue) => {
-      acc[issue.description] = (acc[issue.description] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const vulnerabilityTypes = issues.reduce(
+      (acc, issue) => {
+        acc[issue.description] = (acc[issue.description] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
     const topVulnerabilities = Object.entries(vulnerabilityTypes)
       .sort(([, a], [, b]) => b - a)

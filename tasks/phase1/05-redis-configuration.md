@@ -6,38 +6,45 @@
 **Phase:** 1 (Week 3)
 
 ## Objective
+
 Set up Redis connection with connection pooling, implement session storage with proper TTL, create rate limiting data structures, configure BullMQ for job queuing, and implement cache invalidation strategies.
 
 ## Background
+
 Redis serves multiple critical functions: session management, rate limiting, caching, and job queue backing. Proper configuration ensures performance and reliability.
 
 ## Detailed Requirements
 
 ### 1. Redis Connection Setup
+
 - Connection pooling with ioredis
 - Cluster support ready
 - Error handling and reconnection
 - Health check implementation
 
 ### 2. Session Storage
+
 - JWT session data caching
 - 24-hour TTL for standard sessions
 - 90-day TTL for "remember me"
 - Session invalidation support
 
 ### 3. Rate Limiting
+
 - Atomic operations with Lua scripts
 - Per-user rate limiting
 - Endpoint-specific limits
 - YouTube download rate limits
 
 ### 4. Cache Strategy
+
 - Service status caching
 - API response caching
 - Cache invalidation patterns
 - TTL management
 
 ### 5. Job Queue Setup
+
 - BullMQ configuration
 - Queue monitoring
 - Failed job handling
@@ -46,6 +53,7 @@ Redis serves multiple critical functions: session management, rate limiting, cac
 ## Technical Implementation Details
 
 ### Redis Client Configuration
+
 ```typescript
 // backend/src/lib/redis/client.ts
 import Redis from 'ioredis';
@@ -100,6 +108,7 @@ export async function checkRedisHealth(): Promise<boolean> {
 ```
 
 ### Session Management Service
+
 ```typescript
 // backend/src/services/sessionService.ts
 import { redis } from '@/lib/redis/client';
@@ -131,7 +140,7 @@ export class SessionService {
       JSON.stringify({
         ...data,
         createdAt: Date.now(),
-      })
+      }),
     );
 
     // Store user's active sessions for invalidation
@@ -184,7 +193,7 @@ export class SessionService {
     const sessionIds = await redis.smembers(`user:sessions:${userId}`);
 
     if (sessionIds.length > 0) {
-      const keys = sessionIds.map(id => `${this.SESSION_PREFIX}${id}`);
+      const keys = sessionIds.map((id) => `${this.SESSION_PREFIX}${id}`);
       await redis.del(...keys);
       await redis.del(`user:sessions:${userId}`);
     }
@@ -193,6 +202,7 @@ export class SessionService {
 ```
 
 ### Rate Limiting with Lua Scripts
+
 ```typescript
 // backend/src/lib/redis/rateLimiter.ts
 import { redis } from './client';
@@ -248,7 +258,7 @@ export class RateLimiter {
   async checkLimit(
     userId: string,
     resource: string,
-    options: RateLimitOptions
+    options: RateLimitOptions,
   ): Promise<{ limited: boolean; current: number; resetIn: number }> {
     const key = `rate:${resource}:${userId}`;
     const currentTime = Date.now();
@@ -263,7 +273,7 @@ export class RateLimiter {
             key,
             options.limit,
             options.window,
-            currentTime
+            currentTime,
           );
         } catch (error: any) {
           if (error.message.includes('NOSCRIPT')) {
@@ -275,7 +285,7 @@ export class RateLimiter {
               key,
               options.limit,
               options.window,
-              currentTime
+              currentTime,
             );
           } else {
             throw error;
@@ -289,7 +299,7 @@ export class RateLimiter {
           key,
           options.limit,
           options.window,
-          currentTime
+          currentTime,
         );
       }
 
@@ -308,21 +318,27 @@ export class RateLimiter {
   }
 
   // Specific rate limiters
-  async checkApiLimit(userId: string): Promise<{ limited: boolean; current: number; resetIn: number }> {
+  async checkApiLimit(
+    userId: string,
+  ): Promise<{ limited: boolean; current: number; resetIn: number }> {
     return this.checkLimit(userId, 'api', {
       limit: 100,
       window: 60, // 100 requests per minute
     });
   }
 
-  async checkYouTubeLimit(userId: string): Promise<{ limited: boolean; current: number; resetIn: number }> {
+  async checkYouTubeLimit(
+    userId: string,
+  ): Promise<{ limited: boolean; current: number; resetIn: number }> {
     return this.checkLimit(userId, 'youtube', {
       limit: 5,
       window: 3600, // 5 downloads per hour
     });
   }
 
-  async checkMediaRequestLimit(userId: string): Promise<{ limited: boolean; current: number; resetIn: number }> {
+  async checkMediaRequestLimit(
+    userId: string,
+  ): Promise<{ limited: boolean; current: number; resetIn: number }> {
     return this.checkLimit(userId, 'media-request', {
       limit: 20,
       window: 3600, // 20 requests per hour
@@ -335,6 +351,7 @@ export const rateLimiter = new RateLimiter();
 ```
 
 ### Cache Service
+
 ```typescript
 // backend/src/services/cacheService.ts
 import { redis } from '@/lib/redis/client';
@@ -360,17 +377,17 @@ export class CacheService {
 
   async set(key: string, value: any, options: CacheOptions = {}): Promise<void> {
     const ttl = options.ttl || this.DEFAULT_TTL;
-    
+
     try {
       if (options.tags && options.tags.length > 0) {
         // Store key in tag sets for bulk invalidation
         const pipeline = redis.pipeline();
-        
+
         for (const tag of options.tags) {
           pipeline.sadd(`tag:${tag}`, key);
           pipeline.expire(`tag:${tag}`, ttl + 60); // Tag expires slightly after cache
         }
-        
+
         pipeline.setex(key, ttl, JSON.stringify(value));
         await pipeline.exec();
       } else {
@@ -402,11 +419,7 @@ export class CacheService {
 
   // Service-specific cache methods
   async cacheServiceStatus(serviceName: string, status: any): Promise<void> {
-    await this.set(
-      `service:status:${serviceName}`,
-      status,
-      { ttl: 60, tags: ['service-status'] }
-    );
+    await this.set(`service:status:${serviceName}`, status, { ttl: 60, tags: ['service-status'] });
   }
 
   async getServiceStatus(serviceName: string): Promise<any> {
@@ -423,6 +436,7 @@ export const cacheService = new CacheService();
 ```
 
 ### BullMQ Configuration
+
 ```typescript
 // backend/src/lib/queue/config.ts
 import { Queue, Worker, QueueEvents } from 'bullmq';
@@ -474,7 +488,7 @@ export const youtubeQueueEvents = new QueueEvents('youtube-downloads', {
 // Queue monitoring
 export async function getQueueMetrics(queueName: string) {
   const queue = queueName === 'youtube-downloads' ? youtubeQueue : mediaRequestQueue;
-  
+
   const [waiting, active, completed, failed] = await Promise.all([
     queue.getWaitingCount(),
     queue.getActiveCount(),
@@ -497,6 +511,7 @@ export async function closeQueues() {
 ```
 
 ### Redis Middleware for Express
+
 ```typescript
 // backend/src/middleware/redis.ts
 import { Request, Response, NextFunction } from 'express';
@@ -510,7 +525,7 @@ export const rateLimitMiddleware = (resource: string = 'api') => {
     }
 
     const userId = req.user?.id || req.ip || 'anonymous';
-    
+
     const result = await rateLimiter.checkLimit(userId, resource, {
       limit: resource === 'youtube' ? 5 : 100,
       window: resource === 'youtube' ? 3600 : 60,
@@ -519,7 +534,10 @@ export const rateLimitMiddleware = (resource: string = 'api') => {
     if (result.limited) {
       res.setHeader('X-RateLimit-Limit', result.limited ? '0' : '100');
       res.setHeader('X-RateLimit-Remaining', Math.max(0, 100 - result.current).toString());
-      res.setHeader('X-RateLimit-Reset', new Date(Date.now() + result.resetIn * 1000).toISOString());
+      res.setHeader(
+        'X-RateLimit-Reset',
+        new Date(Date.now() + result.resetIn * 1000).toISOString(),
+      );
 
       return res.status(429).json({
         success: false,
@@ -537,6 +555,7 @@ export const rateLimitMiddleware = (resource: string = 'api') => {
 ```
 
 ## Acceptance Criteria
+
 1. ✅ Redis connection established with retry logic
 2. ✅ Session management working with proper TTLs
 3. ✅ Rate limiting prevents abuse (100/min API, 5/hr YouTube)
@@ -547,6 +566,7 @@ export const rateLimitMiddleware = (resource: string = 'api') => {
 8. ✅ Health check endpoint reports Redis status
 
 ## Testing Requirements
+
 1. **Unit Tests:**
    - Session creation and retrieval
    - Rate limit logic with mocked Redis
@@ -560,23 +580,27 @@ export const rateLimitMiddleware = (resource: string = 'api') => {
    - Cache invalidation patterns
 
 ## Error Handling
+
 - Connection failures: Exponential backoff retry
 - Script errors: Fallback to direct commands
 - Cache misses: Return null, don't throw
 - Queue failures: Dead letter queue handling
 
 ## Performance Considerations
+
 - Use pipelining for multiple operations
 - Implement connection pooling
 - Cache Lua scripts with SHA hashes
 - Monitor memory usage
 
 ## Dependencies
+
 - `ioredis` - Redis client
 - `bullmq` - Job queue
 - `@types/redis` - TypeScript types
 
 ## References
+
 - [ioredis Documentation](https://github.com/redis/ioredis)
 - [BullMQ Documentation](https://docs.bullmq.io/)
 - [Redis Best Practices](https://redis.io/docs/manual/patterns/)

@@ -1,9 +1,9 @@
 /**
  * Comprehensive Prisma Database Mock - Phase A Foundation
- * 
+ *
  * Enterprise-grade Prisma client mock with complete CRUD operations,
  * transaction support, relationship handling, and realistic behavior patterns.
- * 
+ *
  * Key Features:
  * - Complete interface compatibility with PrismaClient
  * - All model operations (User, MediaRequest, Session, etc.)
@@ -15,16 +15,16 @@
  */
 
 import { vi, type MockedFunction } from 'vitest';
-import { 
-  StatelessMock, 
-  MockFactory, 
-  MockConfig, 
+import {
+  StatelessMock,
+  MockFactory,
+  MockConfig,
   ValidationResult,
-  MockIsolation 
+  MockIsolation,
 } from '../foundation/unified-mock-registry';
-import { 
-  generateCompleteOperations, 
-  applyEmergencyOperationsToModel 
+import {
+  generateCompleteOperations,
+  applyEmergencyOperationsToModel,
 } from './emergency-prisma-operations-repair';
 
 // =============================================================================
@@ -253,13 +253,23 @@ class MockDataStore {
 
   private initializeCollections(): void {
     const collections = [
-      'User', 'MediaRequest', 'Session', 'SessionToken', 
-      'ServiceConfig', 'YoutubeDownload', 'ServiceStatus', 
-      'RateLimit', 'Account', 'ErrorLog', 'Notification',
-      'ServiceMetric', 'ServiceIncident', 'VerificationToken'
+      'User',
+      'MediaRequest',
+      'Session',
+      'SessionToken',
+      'ServiceConfig',
+      'YoutubeDownload',
+      'ServiceStatus',
+      'RateLimit',
+      'Account',
+      'ErrorLog',
+      'Notification',
+      'ServiceMetric',
+      'ServiceIncident',
+      'VerificationToken',
     ];
 
-    collections.forEach(collection => {
+    collections.forEach((collection) => {
       this.data.set(collection, new Map());
     });
   }
@@ -368,7 +378,7 @@ class MockDataStore {
       return this.getCollection(collection).size;
     }
 
-    return this.getAll(collection).filter(item => this.matchesWhere(item, where)).length;
+    return this.getAll(collection).filter((item) => this.matchesWhere(item, where)).length;
   }
 
   /**
@@ -379,7 +389,7 @@ class MockDataStore {
 
     // Apply where filter
     if (options.where) {
-      items = items.filter(item => this.matchesWhere(item, options.where));
+      items = items.filter((item) => this.matchesWhere(item, options.where));
     }
 
     // Apply orderBy
@@ -397,7 +407,7 @@ class MockDataStore {
 
     // Apply include (relationship loading)
     if (options.include) {
-      items = items.map(item => this.applyIncludes(collection, item, options.include));
+      items = items.map((item) => this.applyIncludes(collection, item, options.include));
     }
 
     return items;
@@ -420,11 +430,11 @@ class MockDataStore {
     }
 
     const items = this.findMany(collection, { where: options.where, take: 2 });
-    
+
     if (items.length === 0) {
       return null;
     }
-    
+
     if (items.length > 1) {
       throw new Error('Unique constraint violation: multiple records found');
     }
@@ -443,10 +453,10 @@ class MockDataStore {
   private matchesWhere(item: any, where: any): boolean {
     for (const [key, value] of Object.entries(where)) {
       if (key === 'AND') {
-        return (value as any[]).every(condition => this.matchesWhere(item, condition));
+        return (value as any[]).every((condition) => this.matchesWhere(item, condition));
       }
       if (key === 'OR') {
-        return (value as any[]).some(condition => this.matchesWhere(item, condition));
+        return (value as any[]).some((condition) => this.matchesWhere(item, condition));
       }
       if (key === 'NOT') {
         return !this.matchesWhere(item, value);
@@ -509,7 +519,7 @@ class MockDataStore {
     const result = { ...item };
 
     for (const [relation, includeOptions] of Object.entries(include)) {
-      if (includeOptions === true || (typeof includeOptions === 'object')) {
+      if (includeOptions === true || typeof includeOptions === 'object') {
         result[relation] = this.loadRelation(collection, item, relation, includeOptions);
       }
     }
@@ -523,7 +533,7 @@ class MockDataStore {
   private loadRelation(collection: string, item: any, relation: string, options: any): any {
     // This is a simplified implementation - in a real scenario,
     // you'd have proper schema definitions for relationships
-    
+
     switch (relation) {
       case 'user':
         return this.findUnique('User', { where: { id: item.userId } });
@@ -557,14 +567,14 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
 
   createFreshInstance(): any {
     const store = new MockDataStore();
-    
+
     return {
       // Connection management
       $connect: vi.fn().mockImplementation(() => {
         this.connected = true;
         return Promise.resolve();
       }),
-      
+
       $disconnect: vi.fn().mockImplementation(() => {
         this.connected = false;
         return Promise.resolve();
@@ -589,46 +599,46 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
 
       // User model operations
       user: this.createUserModel(store),
-      
+
       // MediaRequest model operations
       mediaRequest: this.createMediaRequestModel(store),
-      
+
       // Session model operations
       session: this.createSessionModel(store),
-      
+
       // SessionToken model operations
       sessionToken: this.createSessionTokenModel(store),
-      
+
       // ServiceConfig model operations
       serviceConfig: this.createServiceConfigModel(store),
-      
+
       // YoutubeDownload model operations
       youtubeDownload: this.createYoutubeDownloadModel(store),
-      
+
       // ServiceStatus model operations
       serviceStatus: this.createServiceStatusModel(store),
-      
+
       // RateLimit model operations
       rateLimit: this.createRateLimitModel(store),
-      
+
       // Account model operations
       account: this.createAccountModel(store),
-      
+
       // ErrorLog model operations
       errorLog: this.createErrorLogModel(store),
-      
+
       // Notification model operations
       notification: this.createNotificationModel(store),
-      
+
       // ServiceMetric model operations
       serviceMetric: this.createServiceMetricModel(store),
-      
+
       // ServiceIncident model operations
       serviceIncident: this.createServiceIncidentModel(store),
-      
+
       // VerificationToken model operations
       verificationToken: this.createVerificationTokenModel(store),
-      
+
       // EMERGENCY FIX: Add completely missing models
       media: this.createMissingModel(store, 'Media', 'Media'),
       auditLog: this.createMissingModel(store, 'AuditLog', 'AuditLog'),
@@ -647,10 +657,8 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
     const warnings: string[] = [];
 
     // Check for required methods
-    const requiredMethods = [
-      '$connect', '$disconnect', '$transaction', '$queryRaw', '$executeRaw'
-    ];
-    
+    const requiredMethods = ['$connect', '$disconnect', '$transaction', '$queryRaw', '$executeRaw'];
+
     for (const method of requiredMethods) {
       if (typeof instance[method] !== 'function') {
         errors.push(`Missing required method: ${method}`);
@@ -659,10 +667,20 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
 
     // Check for model operations
     const requiredModels = [
-      'user', 'mediaRequest', 'session', 'sessionToken', 'serviceConfig',
-      'youtubeDownload', 'serviceStatus', 'rateLimit', 'account', 
-      'errorLog', 'notification', 'serviceMetric', 'serviceIncident',
-      'verificationToken'
+      'user',
+      'mediaRequest',
+      'session',
+      'sessionToken',
+      'serviceConfig',
+      'youtubeDownload',
+      'serviceStatus',
+      'rateLimit',
+      'account',
+      'errorLog',
+      'notification',
+      'serviceMetric',
+      'serviceIncident',
+      'verificationToken',
     ];
 
     for (const model of requiredModels) {
@@ -672,8 +690,13 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
       }
 
       const requiredOperations = [
-        'create', 'findUnique', 'findFirst', 'findMany', 
-        'update', 'delete', 'count'
+        'create',
+        'findUnique',
+        'findFirst',
+        'findMany',
+        'update',
+        'delete',
+        'count',
       ];
 
       for (const operation of requiredOperations) {
@@ -721,7 +744,7 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
       serviceMetric: this.createServiceMetricModel(store),
       serviceIncident: this.createServiceIncidentModel(store),
       verificationToken: this.createVerificationTokenModel(store),
-      
+
       // EMERGENCY FIX: Add missing models to transaction client
       media: this.createMissingModel(store, 'Media', 'Media'),
       auditLog: this.createMissingModel(store, 'AuditLog', 'AuditLog'),
@@ -749,7 +772,7 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
           lastLoginAt: data.lastLoginAt || null,
           status: data.status || 'active',
         };
-        
+
         store.setItem('User', user.id, user);
         return Promise.resolve(include ? store.applyIncludes('User', user, include) : user);
       }),
@@ -774,10 +797,10 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
         if (!existing) {
           throw new Error('User not found');
         }
-        
+
         const updated = { ...existing, ...data, updatedAt: new Date() };
         store.setItem('User', existing.id, updated);
-        
+
         return Promise.resolve(include ? store.applyIncludes('User', updated, include) : updated);
       }),
 
@@ -797,14 +820,14 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
         if (!user) {
           throw new Error('User not found');
         }
-        
+
         store.deleteItem('User', user.id);
         return Promise.resolve(user);
       }),
 
       deleteMany: vi.fn().mockImplementation(({ where }) => {
         const users = store.findMany('User', { where });
-        users.forEach(user => store.deleteItem('User', user.id));
+        users.forEach((user) => store.deleteItem('User', user.id));
         return Promise.resolve({ count: users.length });
       }),
 
@@ -827,7 +850,7 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
       createMany: vi.fn().mockImplementation(({ data, skipDuplicates = false }) => {
         const users = Array.isArray(data) ? data : [data];
         const created = [];
-        
+
         for (const userData of users) {
           try {
             const user: MockUser = {
@@ -844,7 +867,7 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
               lastLoginAt: userData.lastLoginAt || null,
               status: userData.status || 'active',
             };
-            
+
             // Check for duplicates if not skipping
             if (!skipDuplicates) {
               const existing = store.findUnique('User', { where: { email: user.email } });
@@ -852,7 +875,7 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
                 throw new Error(`Unique constraint failed on email: ${user.email}`);
               }
             }
-            
+
             store.setItem('User', user.id, user);
             created.push(user);
           } catch (error) {
@@ -861,13 +884,13 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
             }
           }
         }
-        
+
         return Promise.resolve({ count: created.length });
       }),
 
       updateMany: vi.fn().mockImplementation(({ where, data }) => {
         const users = store.findMany('User', { where });
-        users.forEach(user => {
+        users.forEach((user) => {
           const updated = { ...user, ...data, updatedAt: new Date() };
           store.setItem('User', user.id, updated);
         });
@@ -890,44 +913,55 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
         return Promise.resolve(user);
       }),
 
-      groupBy: vi.fn().mockImplementation(({ by, where, having, orderBy, take, skip, _count, _avg, _sum, _min, _max }) => {
-        const users = store.findMany('User', { where });
-        const groups = new Map();
-        
-        users.forEach(user => {
-          const groupKey = Array.isArray(by) ? 
-            by.map(field => user[field]).join('|') : 
-            user[by];
-          
-          if (!groups.has(groupKey)) {
-            groups.set(groupKey, { items: [], [by]: Array.isArray(by) ? 
-              by.reduce((acc, field) => ({ ...acc, [field]: user[field] }), {}) : 
-              user[by] });
-          }
-          
-          groups.get(groupKey).items.push(user);
-        });
-        
-        let result = Array.from(groups.values()).map(group => {
-          const item = { ...group };
-          delete item.items;
-          
-          if (_count) {
-            item._count = typeof _count === 'object' ? 
-              Object.keys(_count).reduce((acc, key) => ({ ...acc, [key]: group.items.length }), {}) :
-              group.items.length;
-          }
-          
-          return item;
-        });
-        
-        return Promise.resolve(result);
-      }),
+      groupBy: vi
+        .fn()
+        .mockImplementation(
+          ({ by, where, having, orderBy, take, skip, _count, _avg, _sum, _min, _max }) => {
+            const users = store.findMany('User', { where });
+            const groups = new Map();
+
+            users.forEach((user) => {
+              const groupKey = Array.isArray(by)
+                ? by.map((field) => user[field]).join('|')
+                : user[by];
+
+              if (!groups.has(groupKey)) {
+                groups.set(groupKey, {
+                  items: [],
+                  [by]: Array.isArray(by)
+                    ? by.reduce((acc, field) => ({ ...acc, [field]: user[field] }), {})
+                    : user[by],
+                });
+              }
+
+              groups.get(groupKey).items.push(user);
+            });
+
+            let result = Array.from(groups.values()).map((group) => {
+              const item = { ...group };
+              delete item.items;
+
+              if (_count) {
+                item._count =
+                  typeof _count === 'object'
+                    ? Object.keys(_count).reduce(
+                        (acc, key) => ({ ...acc, [key]: group.items.length }),
+                        {},
+                      )
+                    : group.items.length;
+              }
+
+              return item;
+            });
+
+            return Promise.resolve(result);
+          },
+        ),
 
       createManyAndReturn: vi.fn().mockImplementation(({ data, skipDuplicates = false }) => {
         const users = Array.isArray(data) ? data : [data];
         const created = [];
-        
+
         for (const userData of users) {
           try {
             const user: MockUser = {
@@ -944,14 +978,14 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
               lastLoginAt: userData.lastLoginAt || null,
               status: userData.status || 'active',
             };
-            
+
             if (!skipDuplicates) {
               const existing = store.findUnique('User', { where: { email: user.email } });
               if (existing) {
                 throw new Error(`Unique constraint failed on email: ${user.email}`);
               }
             }
-            
+
             store.setItem('User', user.id, user);
             created.push(user);
           } catch (error) {
@@ -960,7 +994,7 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
             }
           }
         }
-        
+
         return Promise.resolve(created);
       }),
     };
@@ -983,9 +1017,11 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
           createdAt: new Date(),
           completedAt: data.completedAt || null,
         };
-        
+
         store.setItem('MediaRequest', request.id, request);
-        return Promise.resolve(include ? store.applyIncludes('MediaRequest', request, include) : request);
+        return Promise.resolve(
+          include ? store.applyIncludes('MediaRequest', request, include) : request,
+        );
       }),
 
       findUnique: vi.fn().mockImplementation(({ where, include }) => {
@@ -1008,19 +1044,21 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
         if (!existing) {
           throw new Error('MediaRequest not found');
         }
-        
+
         const updated = { ...existing, ...data };
         if (data.status === 'completed' && !existing.completedAt) {
           updated.completedAt = new Date();
         }
-        
+
         store.setItem('MediaRequest', existing.id, updated);
-        return Promise.resolve(include ? store.applyIncludes('MediaRequest', updated, include) : updated);
+        return Promise.resolve(
+          include ? store.applyIncludes('MediaRequest', updated, include) : updated,
+        );
       }),
 
       updateMany: vi.fn().mockImplementation(({ where, data }) => {
         const requests = store.findMany('MediaRequest', { where });
-        requests.forEach(request => {
+        requests.forEach((request) => {
           const updated = { ...request, ...data };
           store.setItem('MediaRequest', request.id, updated);
         });
@@ -1032,14 +1070,14 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
         if (!request) {
           throw new Error('MediaRequest not found');
         }
-        
+
         store.deleteItem('MediaRequest', request.id);
         return Promise.resolve(request);
       }),
 
       deleteMany: vi.fn().mockImplementation(({ where }) => {
         const requests = store.findMany('MediaRequest', { where });
-        requests.forEach(request => store.deleteItem('MediaRequest', request.id));
+        requests.forEach((request) => store.deleteItem('MediaRequest', request.id));
         return Promise.resolve({ count: requests.length });
       }),
 
@@ -1062,11 +1100,13 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
       createMany: vi.fn().mockImplementation(({ data, skipDuplicates = false }) => {
         const requests = Array.isArray(data) ? data : [data];
         const created = [];
-        
+
         for (const requestData of requests) {
           try {
             const request: MockMediaRequest = {
-              id: requestData.id || `request-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+              id:
+                requestData.id ||
+                `request-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
               userId: requestData.userId,
               title: requestData.title,
               mediaType: requestData.mediaType,
@@ -1076,7 +1116,7 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
               createdAt: new Date(),
               completedAt: requestData.completedAt || null,
             };
-            
+
             store.setItem('MediaRequest', request.id, request);
             created.push(request);
           } catch (error) {
@@ -1085,7 +1125,7 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
             }
           }
         }
-        
+
         return Promise.resolve({ count: created.length });
       }),
 
@@ -1105,48 +1145,61 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
         return Promise.resolve(request);
       }),
 
-      groupBy: vi.fn().mockImplementation(({ by, where, having, orderBy, take, skip, _count, _avg, _sum, _min, _max }) => {
-        const requests = store.findMany('MediaRequest', { where });
-        const groups = new Map();
-        
-        requests.forEach(request => {
-          const groupKey = Array.isArray(by) ? 
-            by.map(field => request[field]).join('|') : 
-            request[by];
-          
-          if (!groups.has(groupKey)) {
-            groups.set(groupKey, { items: [], [by]: Array.isArray(by) ? 
-              by.reduce((acc, field) => ({ ...acc, [field]: request[field] }), {}) : 
-              request[by] });
-          }
-          
-          groups.get(groupKey).items.push(request);
-        });
-        
-        let result = Array.from(groups.values()).map(group => {
-          const item = { ...group };
-          delete item.items;
-          
-          if (_count) {
-            item._count = typeof _count === 'object' ? 
-              Object.keys(_count).reduce((acc, key) => ({ ...acc, [key]: group.items.length }), {}) :
-              group.items.length;
-          }
-          
-          return item;
-        });
-        
-        return Promise.resolve(result);
-      }),
+      groupBy: vi
+        .fn()
+        .mockImplementation(
+          ({ by, where, having, orderBy, take, skip, _count, _avg, _sum, _min, _max }) => {
+            const requests = store.findMany('MediaRequest', { where });
+            const groups = new Map();
+
+            requests.forEach((request) => {
+              const groupKey = Array.isArray(by)
+                ? by.map((field) => request[field]).join('|')
+                : request[by];
+
+              if (!groups.has(groupKey)) {
+                groups.set(groupKey, {
+                  items: [],
+                  [by]: Array.isArray(by)
+                    ? by.reduce((acc, field) => ({ ...acc, [field]: request[field] }), {})
+                    : request[by],
+                });
+              }
+
+              groups.get(groupKey).items.push(request);
+            });
+
+            let result = Array.from(groups.values()).map((group) => {
+              const item = { ...group };
+              delete item.items;
+
+              if (_count) {
+                item._count =
+                  typeof _count === 'object'
+                    ? Object.keys(_count).reduce(
+                        (acc, key) => ({ ...acc, [key]: group.items.length }),
+                        {},
+                      )
+                    : group.items.length;
+              }
+
+              return item;
+            });
+
+            return Promise.resolve(result);
+          },
+        ),
 
       createManyAndReturn: vi.fn().mockImplementation(({ data, skipDuplicates = false }) => {
         const requests = Array.isArray(data) ? data : [data];
         const created = [];
-        
+
         for (const requestData of requests) {
           try {
             const request: MockMediaRequest = {
-              id: requestData.id || `request-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+              id:
+                requestData.id ||
+                `request-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
               userId: requestData.userId,
               title: requestData.title,
               mediaType: requestData.mediaType,
@@ -1156,7 +1209,7 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
               createdAt: new Date(),
               completedAt: requestData.completedAt || null,
             };
-            
+
             store.setItem('MediaRequest', request.id, request);
             created.push(request);
           } catch (error) {
@@ -1165,7 +1218,7 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
             }
           }
         }
-        
+
         return Promise.resolve(created);
       }),
     };
@@ -1183,9 +1236,11 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
           userId: data.userId,
           expires: data.expires,
         };
-        
+
         store.setItem('Session', session.id, session);
-        return Promise.resolve(include ? store.applyIncludes('Session', session, include) : session);
+        return Promise.resolve(
+          include ? store.applyIncludes('Session', session, include) : session,
+        );
       }),
 
       findUnique: vi.fn().mockImplementation(({ where, include }) => {
@@ -1208,11 +1263,13 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
         if (!existing) {
           throw new Error('Session not found');
         }
-        
+
         const updated = { ...existing, ...data };
         store.setItem('Session', existing.id, updated);
-        
-        return Promise.resolve(include ? store.applyIncludes('Session', updated, include) : updated);
+
+        return Promise.resolve(
+          include ? store.applyIncludes('Session', updated, include) : updated,
+        );
       }),
 
       delete: vi.fn().mockImplementation(({ where }) => {
@@ -1220,14 +1277,14 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
         if (!session) {
           throw new Error('Session not found');
         }
-        
+
         store.deleteItem('Session', session.id);
         return Promise.resolve(session);
       }),
 
       deleteMany: vi.fn().mockImplementation(({ where }) => {
         const sessions = store.findMany('Session', { where });
-        sessions.forEach(session => store.deleteItem('Session', session.id));
+        sessions.forEach((session) => store.deleteItem('Session', session.id));
         return Promise.resolve({ count: sessions.length });
       }),
 
@@ -1252,9 +1309,11 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
           createdAt: new Date(),
           lastUsedAt: data.lastUsedAt || null,
         };
-        
+
         store.setItem('SessionToken', token.id, token);
-        return Promise.resolve(include ? store.applyIncludes('SessionToken', token, include) : token);
+        return Promise.resolve(
+          include ? store.applyIncludes('SessionToken', token, include) : token,
+        );
       }),
 
       findUnique: vi.fn().mockImplementation(({ where, include }) => {
@@ -1277,14 +1336,16 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
         if (!existing) {
           throw new Error('SessionToken not found');
         }
-        
+
         const updated = { ...existing, ...data };
         if (!existing.lastUsedAt && !data.lastUsedAt) {
           updated.lastUsedAt = new Date();
         }
-        
+
         store.setItem('SessionToken', existing.id, updated);
-        return Promise.resolve(include ? store.applyIncludes('SessionToken', updated, include) : updated);
+        return Promise.resolve(
+          include ? store.applyIncludes('SessionToken', updated, include) : updated,
+        );
       }),
 
       delete: vi.fn().mockImplementation(({ where }) => {
@@ -1292,14 +1353,14 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
         if (!token) {
           throw new Error('SessionToken not found');
         }
-        
+
         store.deleteItem('SessionToken', token.id);
         return Promise.resolve(token);
       }),
 
       deleteMany: vi.fn().mockImplementation(({ where }) => {
         const tokens = store.findMany('SessionToken', { where });
-        tokens.forEach(token => store.deleteItem('SessionToken', token.id));
+        tokens.forEach((token) => store.deleteItem('SessionToken', token.id));
         return Promise.resolve({ count: tokens.length });
       }),
 
@@ -1326,9 +1387,11 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
           updatedAt: new Date(),
           updatedBy: data.updatedBy || null,
         };
-        
+
         store.setItem('ServiceConfig', config.id.toString(), config);
-        return Promise.resolve(include ? store.applyIncludes('ServiceConfig', config, include) : config);
+        return Promise.resolve(
+          include ? store.applyIncludes('ServiceConfig', config, include) : config,
+        );
       }),
 
       findUnique: vi.fn().mockImplementation(({ where, include }) => {
@@ -1351,11 +1414,13 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
         if (!existing) {
           throw new Error('ServiceConfig not found');
         }
-        
+
         const updated = { ...existing, ...data, updatedAt: new Date() };
         store.setItem('ServiceConfig', existing.id.toString(), updated);
-        
-        return Promise.resolve(include ? store.applyIncludes('ServiceConfig', updated, include) : updated);
+
+        return Promise.resolve(
+          include ? store.applyIncludes('ServiceConfig', updated, include) : updated,
+        );
       }),
 
       upsert: vi.fn().mockImplementation(({ where, create, update, include }) => {
@@ -1363,7 +1428,9 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
         if (existing) {
           const updated = { ...existing, ...update, updatedAt: new Date() };
           store.setItem('ServiceConfig', existing.id.toString(), updated);
-          return Promise.resolve(include ? store.applyIncludes('ServiceConfig', updated, include) : updated);
+          return Promise.resolve(
+            include ? store.applyIncludes('ServiceConfig', updated, include) : updated,
+          );
         } else {
           return this.createServiceConfigModel(store).create({ data: create, include });
         }
@@ -1374,7 +1441,7 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
         if (!config) {
           throw new Error('ServiceConfig not found');
         }
-        
+
         store.deleteItem('ServiceConfig', config.id.toString());
         return Promise.resolve(config);
       }),
@@ -1398,9 +1465,11 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
           status: data.status || null,
           responseTimeMs: data.responseTimeMs || null,
           lastCheckAt: data.lastCheckAt || new Date(),
-          uptimePercentage: data.uptimePercentage ? new MockDecimalClass(data.uptimePercentage) : null,
+          uptimePercentage: data.uptimePercentage
+            ? new MockDecimalClass(data.uptimePercentage)
+            : null,
         };
-        
+
         store.setItem('ServiceStatus', status.id.toString(), status);
         return Promise.resolve(status);
       }),
@@ -1420,12 +1489,12 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
         if (!existing) {
           throw new Error('ServiceStatus not found');
         }
-        
+
         const updated = { ...existing, ...data };
         if (data.uptimePercentage) {
           updated.uptimePercentage = new MockDecimalClass(data.uptimePercentage);
         }
-        
+
         store.setItem('ServiceStatus', existing.id.toString(), updated);
         return Promise.resolve(updated);
       }),
@@ -1449,7 +1518,7 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
         if (!status) {
           throw new Error('ServiceStatus not found');
         }
-        
+
         store.deleteItem('ServiceStatus', status.id.toString());
         return Promise.resolve(status);
       }),
@@ -1488,9 +1557,11 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
           createdAt: new Date(),
           completedAt: data.completedAt || null,
         };
-        
+
         store.setItem('YoutubeDownload', download.id, download);
-        return Promise.resolve(include ? store.applyIncludes('YoutubeDownload', download, include) : download);
+        return Promise.resolve(
+          include ? store.applyIncludes('YoutubeDownload', download, include) : download,
+        );
       }),
       // ... other CRUD operations following the same pattern
       findUnique: vi.fn().mockImplementation(({ where, include }) => {
@@ -1502,15 +1573,17 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
       update: vi.fn().mockImplementation(({ where, data, include }) => {
         const existing = store.findUnique('YoutubeDownload', { where });
         if (!existing) throw new Error('YoutubeDownload not found');
-        
+
         const updated = { ...existing, ...data };
         store.setItem('YoutubeDownload', existing.id, updated);
-        return Promise.resolve(include ? store.applyIncludes('YoutubeDownload', updated, include) : updated);
+        return Promise.resolve(
+          include ? store.applyIncludes('YoutubeDownload', updated, include) : updated,
+        );
       }),
       delete: vi.fn().mockImplementation(({ where }) => {
         const download = store.findUnique('YoutubeDownload', { where });
         if (!download) throw new Error('YoutubeDownload not found');
-        
+
         store.deleteItem('YoutubeDownload', download.id);
         return Promise.resolve(download);
       }),
@@ -1530,7 +1603,7 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
           requestCount: data.requestCount || 0,
           windowStart: data.windowStart || new Date(),
         };
-        
+
         store.setItem('RateLimit', rateLimit.id.toString(), rateLimit);
         return Promise.resolve(rateLimit);
       }),
@@ -1543,7 +1616,7 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
       update: vi.fn().mockImplementation(({ where, data }) => {
         const existing = store.findUnique('RateLimit', { where });
         if (!existing) throw new Error('RateLimit not found');
-        
+
         const updated = { ...existing, ...data };
         store.setItem('RateLimit', existing.id.toString(), updated);
         return Promise.resolve(updated);
@@ -1551,7 +1624,7 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
       delete: vi.fn().mockImplementation(({ where }) => {
         const rateLimit = store.findUnique('RateLimit', { where });
         if (!rateLimit) throw new Error('RateLimit not found');
-        
+
         store.deleteItem('RateLimit', rateLimit.id.toString());
         return Promise.resolve(rateLimit);
       }),
@@ -1578,7 +1651,7 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
           id_token: data.id_token || null,
           session_state: data.session_state || null,
         };
-        
+
         store.setItem('Account', account.id, account);
         return Promise.resolve(account);
       }),
@@ -1591,7 +1664,7 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
       update: vi.fn().mockImplementation(({ where, data }) => {
         const existing = store.findUnique('Account', { where });
         if (!existing) throw new Error('Account not found');
-        
+
         const updated = { ...existing, ...data };
         store.setItem('Account', existing.id, updated);
         return Promise.resolve(updated);
@@ -1599,7 +1672,7 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
       delete: vi.fn().mockImplementation(({ where }) => {
         const account = store.findUnique('Account', { where });
         if (!account) throw new Error('Account not found');
-        
+
         store.deleteItem('Account', account.id);
         return Promise.resolve(account);
       }),
@@ -1625,7 +1698,7 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
           metadata: data.metadata || null,
           createdAt: new Date(),
         };
-        
+
         store.setItem('ErrorLog', errorLog.id, errorLog);
         return Promise.resolve(errorLog);
       }),
@@ -1638,7 +1711,7 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
       delete: vi.fn().mockImplementation(({ where }) => {
         const errorLog = store.findUnique('ErrorLog', { where });
         if (!errorLog) throw new Error('ErrorLog not found');
-        
+
         store.deleteItem('ErrorLog', errorLog.id);
         return Promise.resolve(errorLog);
       }),
@@ -1662,7 +1735,7 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
           readAt: data.readAt || null,
           metadata: data.metadata || null,
         };
-        
+
         store.setItem('Notification', notification.id, notification);
         return Promise.resolve(notification);
       }),
@@ -1675,19 +1748,19 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
       update: vi.fn().mockImplementation(({ where, data }) => {
         const existing = store.findUnique('Notification', { where });
         if (!existing) throw new Error('Notification not found');
-        
+
         const updated = { ...existing, ...data };
         if (data.read && !existing.readAt) {
           updated.readAt = new Date();
         }
-        
+
         store.setItem('Notification', existing.id, updated);
         return Promise.resolve(updated);
       }),
       delete: vi.fn().mockImplementation(({ where }) => {
         const notification = store.findUnique('Notification', { where });
         if (!notification) throw new Error('Notification not found');
-        
+
         store.deleteItem('Notification', notification.id);
         return Promise.resolve(notification);
       }),
@@ -1708,7 +1781,7 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
           timestamp: data.timestamp || new Date(),
           metadata: data.metadata || null,
         };
-        
+
         store.setItem('ServiceMetric', metric.id, metric);
         return Promise.resolve(metric);
       }),
@@ -1720,7 +1793,7 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
       }),
       deleteMany: vi.fn().mockImplementation(({ where }) => {
         const metrics = store.findMany('ServiceMetric', { where });
-        metrics.forEach(metric => store.deleteItem('ServiceMetric', metric.id));
+        metrics.forEach((metric) => store.deleteItem('ServiceMetric', metric.id));
         return Promise.resolve({ count: metrics.length });
       }),
     };
@@ -1740,7 +1813,7 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
           resolvedAt: data.resolvedAt || null,
           metadata: data.metadata || null,
         };
-        
+
         store.setItem('ServiceIncident', incident.id, incident);
         return Promise.resolve(incident);
       }),
@@ -1750,12 +1823,12 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
       update: vi.fn().mockImplementation(({ where, data }) => {
         const existing = store.findUnique('ServiceIncident', { where });
         if (!existing) throw new Error('ServiceIncident not found');
-        
+
         const updated = { ...existing, ...data };
         if (data.status === 'resolved' && !existing.resolvedAt) {
           updated.resolvedAt = new Date();
         }
-        
+
         store.setItem('ServiceIncident', existing.id, updated);
         return Promise.resolve(updated);
       }),
@@ -1773,7 +1846,7 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
           token: data.token,
           expires: data.expires,
         };
-        
+
         const key = `${data.identifier}-${data.token}`;
         store.setItem('VerificationToken', key, token);
         return Promise.resolve(token);
@@ -1784,7 +1857,7 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
       delete: vi.fn().mockImplementation(({ where }) => {
         const token = store.findUnique('VerificationToken', { where });
         if (!token) throw new Error('VerificationToken not found');
-        
+
         const key = `${token.identifier}-${token.token}`;
         store.deleteItem('VerificationToken', key);
         return Promise.resolve(token);
@@ -1814,9 +1887,9 @@ export class PrismaDatabaseMockFactory implements MockFactory<any> {
   reset(instance: any): void {
     // Reset all mock functions to their initial state
     if (instance && typeof instance === 'object') {
-      Object.values(instance).forEach(model => {
+      Object.values(instance).forEach((model) => {
         if (model && typeof model === 'object') {
-          Object.values(model).forEach(method => {
+          Object.values(model).forEach((method) => {
             if (typeof method === 'function' && method.mockReset) {
               method.mockReset();
             }

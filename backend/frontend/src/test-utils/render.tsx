@@ -9,11 +9,11 @@ import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 
 // Mock Error Boundary Provider for testing error states
-export const TestErrorBoundaryProvider = ({ 
-  children, 
-  shouldError = false 
-}: { 
-  children: ReactNode; 
+export const TestErrorBoundaryProvider = ({
+  children,
+  shouldError = false,
+}: {
+  children: ReactNode;
   shouldError?: boolean;
 }) => {
   if (shouldError) {
@@ -24,32 +24,25 @@ export const TestErrorBoundaryProvider = ({
 
 // Custom render function with providers
 const AllTheProviders = ({ children }: { children: ReactNode }) => {
-  return (
-    <div data-testid="test-wrapper">
-      {children}
-    </div>
-  );
+  return <div data-testid='test-wrapper'>{children}</div>;
 };
 
-const customRender = (
-  ui: ReactElement,
-  options?: Omit<RenderOptions, 'wrapper'>
-) => {
+const customRender = (ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) => {
   const user = userEvent.setup();
-  
+
   return {
     user,
-    ...render(ui, { wrapper: AllTheProviders, ...options })
+    ...render(ui, { wrapper: AllTheProviders, ...options }),
   };
 };
 
 // Component that throws an error for testing ErrorBoundary
-export const ThrowError = ({ 
-  shouldThrow = true, 
-  message = 'Test error message' 
-}: { 
-  shouldThrow?: boolean; 
-  message?: string; 
+export const ThrowError = ({
+  shouldThrow = true,
+  message = 'Test error message',
+}: {
+  shouldThrow?: boolean;
+  message?: string;
 }) => {
   if (shouldThrow) {
     throw new Error(message);
@@ -58,10 +51,10 @@ export const ThrowError = ({
 };
 
 // Component that throws async error
-export const ThrowAsyncError = ({ 
+export const ThrowAsyncError = ({
   shouldThrow = true,
   message = 'Async test error',
-  delay = 0
+  delay = 0,
 }: {
   shouldThrow?: boolean;
   message?: string;
@@ -94,19 +87,21 @@ export const createMockService = (overrides: Record<string, any> = {}) => {
   };
 };
 
-export const createMockServiceWithError = () => createMockService({
-  status: 'error',
-  errorCount: 5,
-  uptime: 0.85,
-  responseTime: undefined,
-});
+export const createMockServiceWithError = () =>
+  createMockService({
+    status: 'error',
+    errorCount: 5,
+    uptime: 0.85,
+    responseTime: undefined,
+  });
 
-export const createMockServiceInactive = () => createMockService({
-  status: 'inactive',
-  uptime: 0.0,
-  responseTime: undefined,
-  errorCount: 0,
-});
+export const createMockServiceInactive = () =>
+  createMockService({
+    status: 'inactive',
+    uptime: 0.0,
+    responseTime: undefined,
+    errorCount: 0,
+  });
 
 // Accessibility testing utilities
 export const axeMatchers = {
@@ -120,12 +115,10 @@ export const axeMatchers = {
         };
       } else {
         return {
-          message: () => 
-            `Expected no accessibility violations, but found:\n${
-              received.violations
-                .map((v: any) => `- ${v.description}`)
-                .join('\n')
-            }`,
+          message: () =>
+            `Expected no accessibility violations, but found:\n${received.violations
+              .map((v: any) => `- ${v.description}`)
+              .join('\n')}`,
           pass: false,
         };
       }
@@ -147,7 +140,7 @@ export const suppressErrorOutput = (testFn: () => void) => {
   const originalWarn = console.warn;
   console.error = () => {};
   console.warn = () => {};
-  
+
   try {
     testFn();
   } finally {
@@ -157,20 +150,16 @@ export const suppressErrorOutput = (testFn: () => void) => {
 };
 
 // Mock ErrorBoundary that doesn't interfere with testing
-export const MockErrorBoundary = ({ 
-  children, 
-  onError, 
-  fallback 
-}: { 
-  children: React.ReactNode; 
+export const MockErrorBoundary = ({
+  children,
+  onError,
+  fallback,
+}: {
+  children: React.ReactNode;
   onError?: (error: Error, errorInfo: any) => void;
   fallback?: (error: Error, errorInfo: any) => React.ReactNode;
 }) => {
-  return (
-    <React.Suspense fallback={<div>Loading...</div>}>
-      {children}
-    </React.Suspense>
-  );
+  return <React.Suspense fallback={<div>Loading...</div>}>{children}</React.Suspense>;
 };
 
 // Test helper that wraps components for error testing
@@ -178,11 +167,11 @@ export const renderWithErrorHandling = (ui: ReactElement, options?: RenderOption
   // Store original console methods
   const originalError = console.error;
   const originalWarn = console.warn;
-  
+
   // Suppress React error logging during tests
   console.error = () => {};
   console.warn = () => {};
-  
+
   try {
     return render(ui, options);
   } finally {
@@ -199,10 +188,10 @@ export const renderWithErrorBoundary = (ui: ReactElement, options?: RenderOption
   console.error = () => {};
 
   const result = render(ui, options);
-  
+
   // Restore console.error after render
   console.error = originalConsoleError;
-  
+
   return result;
 };
 

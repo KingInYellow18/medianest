@@ -1,10 +1,10 @@
 /**
  * Database Behavior Patterns - Phase A Foundation
- * 
+ *
  * Realistic behavior simulation and error patterns for Prisma database mock.
- * Provides comprehensive error scenarios, performance characteristics, 
+ * Provides comprehensive error scenarios, performance characteristics,
  * and edge case handling for thorough testing.
- * 
+ *
  * Key Features:
  * - Realistic timing and latency simulation
  * - Comprehensive error scenario coverage
@@ -60,7 +60,7 @@ export const DATABASE_ERRORS = {
   },
   CONNECTION_REFUSED: {
     type: 'P1001',
-    message: 'Can\'t reach database server at `localhost:5432`',
+    message: "Can't reach database server at `localhost:5432`",
     retryable: true,
   },
   CONNECTION_POOL_EXHAUSTED: {
@@ -68,7 +68,7 @@ export const DATABASE_ERRORS = {
     message: 'Connection pool exhausted. Try again later.',
     retryable: true,
   },
-  
+
   // Constraint Violations
   UNIQUE_CONSTRAINT: {
     type: 'P2002',
@@ -82,10 +82,11 @@ export const DATABASE_ERRORS = {
   },
   RECORD_NOT_FOUND: {
     type: 'P2025',
-    message: 'An operation failed because it depends on one or more records that were required but not found.',
+    message:
+      'An operation failed because it depends on one or more records that were required but not found.',
     retryable: false,
   },
-  
+
   // Data Validation Errors
   NULL_CONSTRAINT: {
     type: 'P2011',
@@ -94,7 +95,7 @@ export const DATABASE_ERRORS = {
   },
   VALUE_TOO_LONG: {
     type: 'P2000',
-    message: 'The provided value for the column is too long for the column\'s type.',
+    message: "The provided value for the column is too long for the column's type.",
     retryable: false,
   },
   INVALID_DATA_TYPE: {
@@ -102,7 +103,7 @@ export const DATABASE_ERRORS = {
     message: 'The provided value is not valid for the field type.',
     retryable: false,
   },
-  
+
   // Transaction Errors
   TRANSACTION_FAILED: {
     type: 'P2034',
@@ -114,7 +115,7 @@ export const DATABASE_ERRORS = {
     message: 'Deadlock detected. Transaction was rolled back.',
     retryable: true,
   },
-  
+
   // Database Server Errors
   SERVER_ERROR: {
     type: 'P1002',
@@ -142,41 +143,46 @@ export class DatabasePerformanceSimulator {
   private currentLoad = 0;
   private connectionCount = 0;
 
-  constructor(characteristics: PerformanceCharacteristics = {
-    baseLatency: 5,
-    variability: 0.3,
-    degradationFactor: 1.5,
-    connectionPoolSize: 20,
-    queryComplexityMultiplier: 2,
-  }) {
+  constructor(
+    characteristics: PerformanceCharacteristics = {
+      baseLatency: 5,
+      variability: 0.3,
+      degradationFactor: 1.5,
+      connectionPoolSize: 20,
+      queryComplexityMultiplier: 2,
+    },
+  ) {
     this.characteristics = characteristics;
   }
 
   /**
    * Calculate realistic latency based on operation and current load
    */
-  calculateLatency(operation: string, complexity: 'simple' | 'medium' | 'complex' = 'simple'): number {
+  calculateLatency(
+    operation: string,
+    complexity: 'simple' | 'medium' | 'complex' = 'simple',
+  ): number {
     let baseLatency = this.characteristics.baseLatency;
-    
+
     // Adjust for operation complexity
     const complexityMultipliers = {
       simple: 1,
       medium: this.characteristics.queryComplexityMultiplier,
       complex: this.characteristics.queryComplexityMultiplier * 2,
     };
-    
+
     baseLatency *= complexityMultipliers[complexity];
-    
+
     // Apply load-based degradation
     const loadFactor = this.currentLoad / this.characteristics.connectionPoolSize;
     if (loadFactor > 0.8) {
       baseLatency *= this.characteristics.degradationFactor;
     }
-    
+
     // Add variability
     const variance = baseLatency * this.characteristics.variability;
     const variability = (Math.random() - 0.5) * 2 * variance;
-    
+
     return Math.max(1, baseLatency + variability);
   }
 
@@ -186,9 +192,9 @@ export class DatabasePerformanceSimulator {
   acquireConnection(): { success: boolean; latency: number; error?: string } {
     this.connectionCount++;
     this.currentLoad = this.connectionCount;
-    
+
     const latency = this.calculateLatency('connect');
-    
+
     if (this.connectionCount > this.characteristics.connectionPoolSize) {
       this.connectionCount--;
       return {
@@ -197,7 +203,7 @@ export class DatabasePerformanceSimulator {
         error: DATABASE_ERRORS.CONNECTION_POOL_EXHAUSTED.message,
       };
     }
-    
+
     return { success: true, latency };
   }
 
@@ -217,15 +223,15 @@ export class DatabasePerformanceSimulator {
     if (operation.includes('aggregate') || operation.includes('groupBy')) {
       return 'complex';
     }
-    
+
     if (operation.includes('findMany') && data?.include) {
       return 'medium';
     }
-    
+
     if (operation.includes('transaction') || operation.includes('$')) {
       return 'medium';
     }
-    
+
     return 'simple';
   }
 
@@ -295,7 +301,7 @@ export class DatabaseErrorInjector {
       },
     ];
 
-    scenarios.forEach(scenario => {
+    scenarios.forEach((scenario) => {
       this.errorScenarios.set(scenario.name, scenario);
     });
   }
@@ -303,8 +309,11 @@ export class DatabaseErrorInjector {
   /**
    * Check if operation should trigger an error
    */
-  shouldTriggerError(operation: string, data?: any): { 
-    shouldError: boolean; 
+  shouldTriggerError(
+    operation: string,
+    data?: any,
+  ): {
+    shouldError: boolean;
     error?: ErrorScenario;
     errorDetails?: any;
   } {
@@ -319,8 +328,8 @@ export class DatabaseErrorInjector {
       const error = this.selectRandomError();
       if (error) {
         this.consecutiveErrors++;
-        return { 
-          shouldError: true, 
+        return {
+          shouldError: true,
           error,
           errorDetails: this.generateErrorDetails(operation, data, error),
         };
@@ -333,8 +342,8 @@ export class DatabaseErrorInjector {
       const error = this.selectOperationSpecificError(operation, data);
       if (error) {
         this.consecutiveErrors++;
-        return { 
-          shouldError: true, 
+        return {
+          shouldError: true,
           error,
           errorDetails: this.generateErrorDetails(operation, data, error),
         };
@@ -369,7 +378,7 @@ export class DatabaseErrorInjector {
             target: ['email'], // Could be dynamic based on data
           },
         };
-      
+
       case DATABASE_ERRORS.FOREIGN_KEY_CONSTRAINT.type:
         return {
           ...base,
@@ -378,7 +387,7 @@ export class DatabaseErrorInjector {
             field_name: 'userId',
           },
         };
-      
+
       case DATABASE_ERRORS.RECORD_NOT_FOUND.type:
         return {
           ...base,
@@ -387,7 +396,7 @@ export class DatabaseErrorInjector {
             cause: 'Record to update not found.',
           },
         };
-      
+
       default:
         return base;
     }
@@ -399,18 +408,18 @@ export class DatabaseErrorInjector {
   private selectRandomError(): ErrorScenario | null {
     const scenarios = Array.from(this.errorScenarios.values());
     const totalProbability = scenarios.reduce((sum, scenario) => sum + scenario.probability, 0);
-    
+
     if (totalProbability === 0) return null;
-    
+
     let random = Math.random() * totalProbability;
-    
+
     for (const scenario of scenarios) {
       random -= scenario.probability;
       if (random <= 0) {
         return scenario;
       }
     }
-    
+
     return null;
   }
 
@@ -423,17 +432,17 @@ export class DatabaseErrorInjector {
       // Check for potential unique constraint violations
       return this.errorScenarios.get('unique_constraint_violation') || null;
     }
-    
+
     if (operation.includes('update') || operation.includes('delete')) {
       // Check for record not found
       return this.errorScenarios.get('record_not_found') || null;
     }
-    
+
     if (operation.includes('transaction')) {
       // Transaction-specific errors
       return this.errorScenarios.get('deadlock') || null;
     }
-    
+
     // Default to connection timeout for all operations
     return this.errorScenarios.get('connection_timeout') || null;
   }
@@ -494,10 +503,10 @@ export class DatabaseBehaviorOrchestrator {
   async applyBehavior<T>(
     operation: string,
     originalMethod: () => Promise<T>,
-    data?: any
+    data?: any,
   ): Promise<T> {
     const connection = this.performanceSimulator.acquireConnection();
-    
+
     try {
       // Check connection availability
       if (!connection.success) {
@@ -521,7 +530,7 @@ export class DatabaseBehaviorOrchestrator {
 
       // Execute original operation
       const result = await originalMethod();
-      
+
       return result;
     } finally {
       this.performanceSimulator.releaseConnection();
@@ -535,9 +544,9 @@ export class DatabaseBehaviorOrchestrator {
     if (this.behaviorMode === 'performance' || this.behaviorMode === 'realistic') {
       const complexity = this.performanceSimulator.getOperationComplexity(operation, data);
       const latency = this.performanceSimulator.calculateLatency(operation, complexity);
-      
+
       if (latency > 0) {
-        await new Promise(resolve => setTimeout(resolve, latency));
+        await new Promise((resolve) => setTimeout(resolve, latency));
       }
     }
   }
@@ -547,7 +556,7 @@ export class DatabaseBehaviorOrchestrator {
    */
   setBehaviorMode(mode: 'realistic' | 'error' | 'performance' | 'custom'): void {
     this.behaviorMode = mode;
-    
+
     switch (mode) {
       case 'realistic':
         this.errorInjector.setGlobalErrorRate(0.01); // 1% error rate
@@ -606,7 +615,9 @@ export class DatabaseBehaviorOrchestrator {
 /**
  * Create realistic success behavior
  */
-export function createSuccessBehavior(latency: { min: number; max: number } = { min: 1, max: 10 }): DatabaseBehavior {
+export function createSuccessBehavior(
+  latency: { min: number; max: number } = { min: 1, max: 10 },
+): DatabaseBehavior {
   return {
     type: 'success',
     scenario: 'normal_operation',
@@ -630,15 +641,17 @@ export function createConnectionTimeoutBehavior(): DatabaseBehavior {
 /**
  * Create constraint violation behavior
  */
-export function createConstraintViolationBehavior(constraint: 'unique' | 'foreign_key' | 'null'): DatabaseBehavior {
+export function createConstraintViolationBehavior(
+  constraint: 'unique' | 'foreign_key' | 'null',
+): DatabaseBehavior {
   const errorMap = {
     unique: DATABASE_ERRORS.UNIQUE_CONSTRAINT,
     foreign_key: DATABASE_ERRORS.FOREIGN_KEY_CONSTRAINT,
     null: DATABASE_ERRORS.NULL_CONSTRAINT,
   };
-  
+
   const error = errorMap[constraint];
-  
+
   return {
     type: 'error',
     scenario: `${constraint}_constraint_violation`,

@@ -1,6 +1,6 @@
 /**
  * COMPREHENSIVE JWT MOCKING INFRASTRUCTURE
- * 
+ *
  * Fixes JWT authentication test failures by providing robust JWT mocking.
  * Addresses token verification, signing, and error handling.
  */
@@ -14,7 +14,7 @@ import { TEST_CONFIG } from '../test-infrastructure-config';
 export class TokenExpiredError extends Error {
   name = 'TokenExpiredError';
   expiredAt: Date;
-  
+
   constructor(message: string, expiredAt: Date) {
     super(message);
     this.expiredAt = expiredAt;
@@ -23,7 +23,7 @@ export class TokenExpiredError extends Error {
 
 export class JsonWebTokenError extends Error {
   name = 'JsonWebTokenError';
-  
+
   constructor(message: string) {
     super(message);
   }
@@ -32,7 +32,7 @@ export class JsonWebTokenError extends Error {
 export class NotBeforeError extends Error {
   name = 'NotBeforeError';
   date: Date;
-  
+
   constructor(message: string, date: Date) {
     super(message);
     this.date = date;
@@ -57,39 +57,39 @@ class JWTMockState {
   private mockPayloads = new Map<string, any>();
   private shouldFailVerification = false;
   private shouldExpire = false;
-  
+
   blacklistToken(tokenId: string): void {
     this.blacklistedTokens.add(tokenId);
   }
-  
+
   isBlacklisted(tokenId: string): boolean {
     return this.blacklistedTokens.has(tokenId);
   }
-  
+
   setMockPayload(token: string, payload: any): void {
     this.mockPayloads.set(token, payload);
   }
-  
+
   getMockPayload(token: string): any {
     return this.mockPayloads.get(token);
   }
-  
+
   setShouldFailVerification(fail: boolean): void {
     this.shouldFailVerification = fail;
   }
-  
+
   getShouldFailVerification(): boolean {
     return this.shouldFailVerification;
   }
-  
+
   setShouldExpire(expire: boolean): void {
     this.shouldExpire = expire;
   }
-  
+
   getShouldExpire(): boolean {
     return this.shouldExpire;
   }
-  
+
   reset(): void {
     this.blacklistedTokens.clear();
     this.mockPayloads.clear();
@@ -157,11 +157,11 @@ export function setupJWTMocks(config: JWTMockConfig = {}) {
       ...createDefaultPayload(),
       ...payload,
     };
-    
+
     // Generate a deterministic token ID for testing
     const tokenId = `test-jwt-token-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     jwtMockState.setMockPayload(tokenId, mockPayload);
-    
+
     return tokenId;
   });
 
@@ -170,22 +170,22 @@ export function setupJWTMocks(config: JWTMockConfig = {}) {
     if (jwtMockState.getShouldFailVerification()) {
       throw new JsonWebTokenError('Invalid token signature');
     }
-    
+
     if (jwtMockState.getShouldExpire()) {
       throw new TokenExpiredError('jwt expired', new Date());
     }
-    
+
     // Check if token is blacklisted
     if (jwtMockState.isBlacklisted(token)) {
       throw new JsonWebTokenError('Token has been revoked');
     }
-    
+
     // Return mock payload or default
     const mockPayload = jwtMockState.getMockPayload(token);
     if (mockPayload) {
       return mockPayload;
     }
-    
+
     // Return default payload
     return createDefaultPayload();
   });
@@ -198,7 +198,7 @@ export function setupJWTMocks(config: JWTMockConfig = {}) {
       if (mockPayload) {
         return mockPayload;
       }
-      
+
       return createDefaultPayload();
     } catch (error) {
       return null;
@@ -235,7 +235,7 @@ export function setupJWTMocks(config: JWTMockConfig = {}) {
     resetMocks: () => {
       vi.clearAllMocks();
       jwtMockState.reset();
-      
+
       // Reset to default behavior
       mockSign.mockImplementation((payload, secret, options = {}) => {
         const mockPayload = {
@@ -246,12 +246,12 @@ export function setupJWTMocks(config: JWTMockConfig = {}) {
         jwtMockState.setMockPayload(tokenId, mockPayload);
         return tokenId;
       });
-      
+
       mockVerify.mockImplementation((token) => {
         const mockPayload = jwtMockState.getMockPayload(token) || createDefaultPayload();
         return mockPayload;
       });
-      
+
       mockDecode.mockImplementation((token) => {
         const mockPayload = jwtMockState.getMockPayload(token) || createDefaultPayload();
         return mockPayload;
@@ -274,9 +274,12 @@ export const jwtTestHelpers = {
   // Create an expired token
   createExpiredToken: () => {
     const token = `test-expired-token-${Date.now()}`;
-    jwtMockState.setMockPayload(token, createDefaultPayload({
-      exp: Math.floor(Date.now() / 1000) - 3600, // Expired 1 hour ago
-    }));
+    jwtMockState.setMockPayload(
+      token,
+      createDefaultPayload({
+        exp: Math.floor(Date.now() / 1000) - 3600, // Expired 1 hour ago
+      }),
+    );
     return token;
   },
 
@@ -310,22 +313,28 @@ export const jwtTestHelpers = {
   // Create admin token
   createAdminToken: () => {
     const token = `test-admin-token-${Date.now()}`;
-    jwtMockState.setMockPayload(token, createDefaultPayload({
-      role: 'ADMIN',
-      email: 'admin@medianest.com',
-      userId: 'admin-user-id',
-    }));
+    jwtMockState.setMockPayload(
+      token,
+      createDefaultPayload({
+        role: 'ADMIN',
+        email: 'admin@medianest.com',
+        userId: 'admin-user-id',
+      }),
+    );
     return token;
   },
 
   // Create guest token
   createGuestToken: () => {
     const token = `test-guest-token-${Date.now()}`;
-    jwtMockState.setMockPayload(token, createDefaultPayload({
-      role: 'GUEST',
-      email: 'guest@medianest.com',
-      userId: 'guest-user-id',
-    }));
+    jwtMockState.setMockPayload(
+      token,
+      createDefaultPayload({
+        role: 'GUEST',
+        email: 'guest@medianest.com',
+        userId: 'guest-user-id',
+      }),
+    );
     return token;
   },
 
@@ -348,8 +357,8 @@ export const jwtAssertionHelpers = {
   expectJWTPayload: (payload: any, expectedFields: string[]) => {
     expect(payload).toBeDefined();
     expect(typeof payload).toBe('object');
-    
-    expectedFields.forEach(field => {
+
+    expectedFields.forEach((field) => {
       expect(payload).toHaveProperty(field);
     });
   },

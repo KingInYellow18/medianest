@@ -173,11 +173,11 @@ describe('Media API Integration Tests', () => {
           request(app)
             .get('/api/v1/media/search')
             .query({ query: 'test', type: 'movie' })
-            .set('Authorization', `Bearer ${accessToken}`)
+            .set('Authorization', `Bearer ${accessToken}`),
         );
 
       const responses = await Promise.all(
-        requests.map((req) => req.then((res) => res.status).catch(() => 429))
+        requests.map((req) => req.then((res) => res.status).catch(() => 429)),
       );
 
       const rateLimitedCount = responses.filter((status) => status === 429).length;
@@ -380,7 +380,7 @@ describe('Media API Integration Tests', () => {
               type: 'movie',
               tmdbId: 1000 + index,
             })
-            .set('Authorization', `Bearer ${accessToken}`)
+            .set('Authorization', `Bearer ${accessToken}`),
         );
 
       const responses = await Promise.all(requests);
@@ -670,17 +670,17 @@ describe('Media API Integration Tests', () => {
           request(app)
             .post('/api/v1/media/request')
             .send(movieRequest)
-            .set('Authorization', `Bearer ${accessToken}`)
+            .set('Authorization', `Bearer ${accessToken}`),
         );
 
       const responses = await Promise.allSettled(concurrentRequests);
       const successful = responses.filter(
         (result): result is PromiseFulfilledResult<any> =>
-          result.status === 'fulfilled' && result.value.status === 201
+          result.status === 'fulfilled' && result.value.status === 201,
       );
       const conflicts = responses.filter(
         (result): result is PromiseFulfilledResult<any> =>
-          result.status === 'fulfilled' && result.value.status === 409
+          result.status === 'fulfilled' && result.value.status === 409,
       );
 
       // Only one should succeed, others should be conflicts
@@ -736,7 +736,7 @@ describe('Media API Integration Tests', () => {
               query: `test${index}`,
               type: 'movie',
             })
-            .set('Authorization', `Bearer ${accessToken}`)
+            .set('Authorization', `Bearer ${accessToken}`),
         );
 
       const responses = await Promise.allSettled(searchPromises);
@@ -744,7 +744,7 @@ describe('Media API Integration Tests', () => {
 
       const successful = responses.filter(
         (result): result is PromiseFulfilledResult<any> =>
-          result.status === 'fulfilled' && result.value.status === 200
+          result.status === 'fulfilled' && result.value.status === 200,
       );
 
       // Should handle most requests successfully within reasonable time
@@ -756,7 +756,7 @@ describe('Media API Integration Tests', () => {
       const users = await Promise.all(
         Array(10)
           .fill(null)
-          .map(() => authHelper.createUserWithTokens())
+          .map(() => authHelper.createUserWithTokens()),
       );
 
       const responseTimes: number[] = [];

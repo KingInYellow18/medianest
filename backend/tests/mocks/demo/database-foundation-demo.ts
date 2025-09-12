@@ -1,14 +1,11 @@
 /**
  * Database Mock Foundation Demo - Phase A
- * 
+ *
  * Demonstrates the comprehensive Prisma database mock foundation
  * capabilities and validates core functionality.
  */
 
-import { 
-  PrismaDatabaseMockFactory,
-  MockDecimal,
-} from '../database/prisma-database-mock';
+import { PrismaDatabaseMockFactory, MockDecimal } from '../database/prisma-database-mock';
 
 /**
  * Demonstration of the Database Mock Foundation capabilities
@@ -28,27 +25,27 @@ export async function runDatabaseFoundationDemo(): Promise<void> {
     console.log(`   Warnings: ${validation.warnings.length}\n`);
 
     console.log('✅ Step 2: Basic CRUD Operations');
-    
+
     // Create a user
     const user = await prisma.user.create({
       data: {
         email: 'demo@example.com',
         name: 'Demo User',
         role: 'USER',
-      }
+      },
     });
     console.log(`   Created user: ${user.id} (${user.email})`);
 
     // Find the user
     const foundUser = await prisma.user.findUnique({
-      where: { id: user.id }
+      where: { id: user.id },
     });
     console.log(`   Found user: ${foundUser ? 'SUCCESS' : 'FAILED'}`);
 
     // Update the user
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
-      data: { name: 'Updated Demo User' }
+      data: { name: 'Updated Demo User' },
     });
     console.log(`   Updated user name: ${updatedUser.name}`);
 
@@ -57,7 +54,7 @@ export async function runDatabaseFoundationDemo(): Promise<void> {
     console.log(`   Total users: ${userCount}\n`);
 
     console.log('✅ Step 3: Relationship Operations');
-    
+
     // Create a media request
     const mediaRequest = await prisma.mediaRequest.create({
       data: {
@@ -65,26 +62,26 @@ export async function runDatabaseFoundationDemo(): Promise<void> {
         title: 'Demo Movie',
         mediaType: 'movie',
         tmdbId: '12345',
-      }
+      },
     });
     console.log(`   Created media request: ${mediaRequest.title}`);
 
     // Find with include
     const requestWithUser = await prisma.mediaRequest.findUnique({
       where: { id: mediaRequest.id },
-      include: { user: true }
+      include: { user: true },
     });
     console.log(`   Request with user include: ${requestWithUser?.user ? 'SUCCESS' : 'FAILED'}`);
     console.log(`   User email in relationship: ${requestWithUser?.user?.email}\n`);
 
     console.log('✅ Step 4: Transaction Support');
-    
+
     const transactionResult = await prisma.$transaction(async (tx: any) => {
       const sessionUser = await tx.user.create({
         data: {
           email: 'session@example.com',
           name: 'Session User',
-        }
+        },
       });
 
       const session = await tx.session.create({
@@ -92,17 +89,19 @@ export async function runDatabaseFoundationDemo(): Promise<void> {
           sessionToken: 'demo-session-token',
           userId: sessionUser.id,
           expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-        }
+        },
       });
 
       return { sessionUser, session };
     });
 
-    console.log(`   Transaction result: ${transactionResult.sessionUser.email} -> ${transactionResult.session.sessionToken}`);
+    console.log(
+      `   Transaction result: ${transactionResult.sessionUser.email} -> ${transactionResult.session.sessionToken}`,
+    );
     console.log(`   Transaction isolation: SUCCESS\n`);
 
     console.log('✅ Step 5: Service Status with Decimal Support');
-    
+
     const serviceStatus = await prisma.serviceStatus.upsert({
       where: { serviceName: 'demo-service' },
       create: {
@@ -113,7 +112,7 @@ export async function runDatabaseFoundationDemo(): Promise<void> {
       },
       update: {
         status: 'healthy',
-      }
+      },
     });
 
     console.log(`   Service status: ${serviceStatus.serviceName} (${serviceStatus.status})`);
@@ -121,10 +120,10 @@ export async function runDatabaseFoundationDemo(): Promise<void> {
     console.log(`   Decimal support: SUCCESS\n`);
 
     console.log('✅ Step 6: Complex Queries');
-    
+
     // Create more test data
     await prisma.user.create({
-      data: { email: 'admin@example.com', name: 'Admin User', role: 'ADMIN' }
+      data: { email: 'admin@example.com', name: 'Admin User', role: 'ADMIN' },
     });
 
     await prisma.mediaRequest.create({
@@ -133,29 +132,26 @@ export async function runDatabaseFoundationDemo(): Promise<void> {
         title: 'Another Movie',
         mediaType: 'movie',
         status: 'completed',
-      }
+      },
     });
 
     // Complex query with filters and includes
     const pendingMovies = await prisma.mediaRequest.findMany({
       where: {
-        AND: [
-          { mediaType: 'movie' },
-          { status: 'pending' }
-        ]
+        AND: [{ mediaType: 'movie' }, { status: 'pending' }],
       },
       include: { user: true },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
 
     console.log(`   Pending movies found: ${pendingMovies.length}`);
     console.log(`   Complex query support: SUCCESS\n`);
 
     console.log('✅ Step 7: Error Handling');
-    
+
     try {
       await prisma.user.findUnique({
-        where: { id: 'non-existent-id' }
+        where: { id: 'non-existent-id' },
       });
       console.log(`   Non-existent user query: NULL (as expected)`);
     } catch (error) {
@@ -165,7 +161,7 @@ export async function runDatabaseFoundationDemo(): Promise<void> {
     try {
       await prisma.user.update({
         where: { id: 'non-existent-id' },
-        data: { name: 'Should fail' }
+        data: { name: 'Should fail' },
       });
     } catch (error) {
       console.log(`   Update non-existent user: ERROR (as expected)`);
@@ -173,9 +169,9 @@ export async function runDatabaseFoundationDemo(): Promise<void> {
     }
 
     console.log('✅ Step 8: Performance Validation');
-    
+
     const startTime = Date.now();
-    
+
     // Perform multiple operations
     await Promise.all([
       prisma.user.create({ data: { email: 'perf1@example.com' } }),
@@ -185,7 +181,7 @@ export async function runDatabaseFoundationDemo(): Promise<void> {
 
     const endTime = Date.now();
     const duration = endTime - startTime;
-    
+
     console.log(`   Concurrent operations duration: ${duration}ms`);
     console.log(`   Performance: ${duration < 100 ? 'EXCELLENT' : 'GOOD'}\n`);
 
@@ -202,7 +198,6 @@ export async function runDatabaseFoundationDemo(): Promise<void> {
     console.log('');
     console.log('🏆 DATABASE MOCK FOUNDATION: FULLY OPERATIONAL');
     console.log('   Ready for MediaNest Phase A integration!');
-
   } catch (error) {
     console.error('❌ Demo failed:', error);
     throw error;

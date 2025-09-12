@@ -76,16 +76,16 @@ export class MediaPage extends BasePage {
    */
   async playMediaItem(itemId: string) {
     const mediaItem = this.getMediaItem(itemId);
-    
+
     await this.clickWithRetry(mediaItem);
-    
+
     // Wait for player modal to open
     await expect(this.playerModal).toBeVisible();
-    
+
     // Start playback
     await expect(this.playButton).toBeVisible();
     await this.clickWithRetry(this.playButton);
-    
+
     // Verify playback started
     await expect(this.pauseButton).toBeVisible();
   }
@@ -96,7 +96,7 @@ export class MediaPage extends BasePage {
   async pausePlayback() {
     await expect(this.pauseButton).toBeVisible();
     await this.clickWithRetry(this.pauseButton);
-    
+
     // Verify playback paused
     await expect(this.playButton).toBeVisible();
   }
@@ -107,9 +107,9 @@ export class MediaPage extends BasePage {
   async setVolume(level: number) {
     // level should be between 0 and 1
     const volumeControl = this.volumeSlider;
-    
+
     await volumeControl.fill(level.toString());
-    
+
     // Verify volume changed
     const currentVolume = await volumeControl.inputValue();
     expect(parseFloat(currentVolume)).toBeCloseTo(level, 1);
@@ -121,9 +121,9 @@ export class MediaPage extends BasePage {
   async seekTo(position: number) {
     // position should be between 0 and 1 (percentage of total duration)
     const progressControl = this.progressSlider;
-    
+
     await progressControl.fill(position.toString());
-    
+
     // Verify position changed
     const currentPosition = await progressControl.inputValue();
     expect(parseFloat(currentPosition)).toBeCloseTo(position, 1);
@@ -134,15 +134,15 @@ export class MediaPage extends BasePage {
    */
   async toggleFullscreen() {
     await this.clickWithRetry(this.fullscreenButton);
-    
+
     // Wait for fullscreen change
     await this.waitForAnimation();
-    
+
     // Check if in fullscreen mode
     const isFullscreen = await this.executeScript(() => {
       return document.fullscreenElement !== null;
     });
-    
+
     return isFullscreen;
   }
 
@@ -160,7 +160,7 @@ export class MediaPage extends BasePage {
   async searchMedia(query: string) {
     await this.fillField(this.searchInput, query);
     await this.searchInput.press('Enter');
-    
+
     // Wait for search results
     await this.waitForAnimation();
     await this.waitForResponse('**/api/media/search**');
@@ -172,7 +172,7 @@ export class MediaPage extends BasePage {
   async filterByType(type: 'all' | 'video' | 'audio' | 'image') {
     const typeFilter = this.filterPanel.getByTestId(`filter-${type}`);
     await this.clickWithRetry(typeFilter);
-    
+
     await this.waitForAnimation();
   }
 
@@ -189,14 +189,14 @@ export class MediaPage extends BasePage {
    */
   async toggleViewMode() {
     const currentMode = await this.viewModeToggle.getAttribute('data-mode');
-    
+
     await this.clickWithRetry(this.viewModeToggle);
     await this.waitForAnimation();
-    
+
     // Verify view mode changed
     const newMode = await this.viewModeToggle.getAttribute('data-mode');
     expect(newMode).not.toBe(currentMode);
-    
+
     return newMode;
   }
 
@@ -206,15 +206,15 @@ export class MediaPage extends BasePage {
   async uploadMedia(filePath: string) {
     // Set up file chooser
     const fileChooserPromise = this.page.waitForEvent('filechooser');
-    
+
     await this.clickWithRetry(this.uploadButton);
-    
+
     const fileChooser = await fileChooserPromise;
     await fileChooser.setFiles(filePath);
-    
+
     // Wait for upload to complete
     await this.waitForResponse('**/api/media/upload');
-    
+
     // Verify upload success notification
     await expect(this.page.getByTestId('upload-success')).toBeVisible();
   }
@@ -227,27 +227,27 @@ export class MediaPage extends BasePage {
     const firstVideo = this.mediaItems.first();
     await this.clickWithRetry(firstVideo);
     await expect(this.playerModal).toBeVisible();
-    
+
     // Start playback
     await this.clickWithRetry(this.playButton);
-    
+
     // Wait for video to load and start playing
     await this.page.waitForTimeout(2000);
-    
+
     // Check if video is actually playing
     const isPlaying = await this.executeScript(() => {
       const video = document.querySelector('video') as HTMLVideoElement;
       return video && !video.paused && video.currentTime > 0;
     });
-    
+
     expect(isPlaying).toBeTruthy();
-    
+
     // Check for playback errors
     const hasErrors = await this.executeScript(() => {
       const video = document.querySelector('video') as HTMLVideoElement;
       return video && video.error !== null;
     });
-    
+
     expect(hasErrors).toBeFalsy();
   }
 
@@ -256,21 +256,21 @@ export class MediaPage extends BasePage {
    */
   async testVideoControls() {
     // Assume video is already playing
-    
+
     // Test pause/play
     await this.pausePlayback();
     await this.page.waitForTimeout(500);
     await this.clickWithRetry(this.playButton);
-    
+
     // Test volume control
     await this.setVolume(0.5);
     await this.setVolume(0.8);
-    
+
     // Test seeking
     await this.seekTo(0.3);
     await this.page.waitForTimeout(1000);
     await this.seekTo(0.6);
-    
+
     // Test mute/unmute
     const muteButton = this.playerModal.getByTestId('mute-button');
     if (await muteButton.isVisible()) {
@@ -283,31 +283,36 @@ export class MediaPage extends BasePage {
   /**
    * Verify media metadata
    */
-  async verifyMediaMetadata(itemId: string, expectedData: {
-    title?: string;
-    duration?: string;
-    fileSize?: string;
-    resolution?: string;
-    format?: string;
-  }) {
+  async verifyMediaMetadata(
+    itemId: string,
+    expectedData: {
+      title?: string;
+      duration?: string;
+      fileSize?: string;
+      resolution?: string;
+      format?: string;
+    },
+  ) {
     const mediaItem = this.getMediaItem(itemId);
-    
+
     if (expectedData.title) {
       await expect(mediaItem.getByTestId('media-title')).toContainText(expectedData.title);
     }
-    
+
     if (expectedData.duration) {
       await expect(mediaItem.getByTestId('media-duration')).toContainText(expectedData.duration);
     }
-    
+
     if (expectedData.fileSize) {
       await expect(mediaItem.getByTestId('media-size')).toContainText(expectedData.fileSize);
     }
-    
+
     if (expectedData.resolution) {
-      await expect(mediaItem.getByTestId('media-resolution')).toContainText(expectedData.resolution);
+      await expect(mediaItem.getByTestId('media-resolution')).toContainText(
+        expectedData.resolution,
+      );
     }
-    
+
     if (expectedData.format) {
       await expect(mediaItem.getByTestId('media-format')).toContainText(expectedData.format);
     }
@@ -320,15 +325,15 @@ export class MediaPage extends BasePage {
     // Desktop view - should show grid
     await this.page.setViewportSize({ width: 1280, height: 720 });
     await expect(this.mediaGrid).toHaveClass(/grid/);
-    
+
     // Tablet view - should adapt grid
     await this.page.setViewportSize({ width: 768, height: 1024 });
     await this.waitForAnimation();
-    
+
     // Mobile view - should show list or smaller grid
     await this.page.setViewportSize({ width: 375, height: 667 });
     await this.waitForAnimation();
-    
+
     // Restore desktop view
     await this.page.setViewportSize({ width: 1280, height: 720 });
   }
@@ -339,21 +344,21 @@ export class MediaPage extends BasePage {
   async testKeyboardNavigation() {
     // Focus first media item
     await this.mediaItems.first().focus();
-    
+
     // Navigate with arrow keys
     await this.page.keyboard.press('ArrowRight');
     await this.page.keyboard.press('ArrowDown');
-    
+
     // Press Enter to select/play
     await this.page.keyboard.press('Enter');
     await expect(this.playerModal).toBeVisible();
-    
+
     // Test player keyboard controls
     await this.page.keyboard.press('Space'); // Play/pause
     await this.page.keyboard.press('ArrowLeft'); // Seek backward
     await this.page.keyboard.press('ArrowRight'); // Seek forward
     await this.page.keyboard.press('Escape'); // Close player
-    
+
     await expect(this.playerModal).toBeHidden();
   }
 }

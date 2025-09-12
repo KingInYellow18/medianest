@@ -20,7 +20,7 @@ class MockWebSocket {
   constructor(url: string, protocols: string[] = []) {
     this.url = url;
     this.protocols = protocols;
-    
+
     // Simulate async connection
     setTimeout(() => {
       this.readyState = MockWebSocket.OPEN;
@@ -44,9 +44,11 @@ class MockWebSocket {
 
   simulateMessage(data: any) {
     if (this.onmessage) {
-      this.onmessage(new MessageEvent('message', { 
-        data: JSON.stringify(data) 
-      }));
+      this.onmessage(
+        new MessageEvent('message', {
+          data: JSON.stringify(data),
+        }),
+      );
     }
   }
 
@@ -77,10 +79,10 @@ describe('useOptimizedWebSocket', () => {
 
   describe('Initial State', () => {
     it('should initialize with idle status when autoConnect is false', () => {
-      const { result } = renderHook(() => 
-        useOptimizedWebSocket('ws://localhost:8080', { autoConnect: false })
+      const { result } = renderHook(() =>
+        useOptimizedWebSocket('ws://localhost:8080', { autoConnect: false }),
       );
-      
+
       expect(result.current.status).toBe('idle');
       expect(result.current.isConnected).toBe(false);
       expect(result.current.isConnecting).toBe(false);
@@ -89,70 +91,66 @@ describe('useOptimizedWebSocket', () => {
     });
 
     it('should auto-connect by default', async () => {
-      const { result } = renderHook(() => 
-        useOptimizedWebSocket('ws://localhost:8080')
-      );
-      
+      const { result } = renderHook(() => useOptimizedWebSocket('ws://localhost:8080'));
+
       expect(result.current.status).toBe('connecting');
       expect(result.current.isConnecting).toBe(true);
-      
+
       await act(async () => {
         vi.advanceTimersByTime(20);
       });
-      
+
       expect(result.current.status).toBe('connected');
       expect(result.current.isConnected).toBe(true);
       expect(result.current.connectionId).toBeTruthy();
     });
 
     it('should connect manually when autoConnect is false', async () => {
-      const { result } = renderHook(() => 
-        useOptimizedWebSocket('ws://localhost:8080', { autoConnect: false })
+      const { result } = renderHook(() =>
+        useOptimizedWebSocket('ws://localhost:8080', { autoConnect: false }),
       );
-      
+
       act(() => {
         result.current.connect();
       });
-      
+
       expect(result.current.status).toBe('connecting');
-      
+
       await act(async () => {
         vi.advanceTimersByTime(20);
       });
-      
+
       expect(result.current.status).toBe('connected');
       expect(result.current.isConnected).toBe(true);
     });
 
     it('should send messages when connected', async () => {
-      const { result } = renderHook(() => 
-        useOptimizedWebSocket('ws://localhost:8080')
-      );
-      
+      const { result } = renderHook(() => useOptimizedWebSocket('ws://localhost:8080'));
+
       await act(async () => {
         vi.advanceTimersByTime(20);
       });
-      
+
       const success = result.current.sendMessage('test', { data: 'hello' });
-      
+
       expect(success).toBe(true);
       expect(MockWebSocket.prototype.send).toHaveBeenCalledWith(
         JSON.stringify({
           type: 'test',
           payload: { data: 'hello' },
           timestamp: expect.any(Number),
-          id: result.current.connectionId
-        })
+          id: result.current.connectionId,
+        }),
       );
     });
 
     it('should not send messages when disconnected', () => {
-      const { result } = renderHook(() => 
-        useOptimizedWebSocket('ws://localhost:8080', { autoConnect: false })
+      const { result } = renderHook(() =>
+        useOptimizedWebSocket('ws://localhost:8080', { autoConnect: false }),
       );
-      
+
       const success = result.current.sendMessage('test', { data: 'hello' });
-      
+
       expect(success).toBe(false);
       expect(MockWebSocket.prototype.send).not.toHaveBeenCalled();
     });
@@ -174,18 +172,13 @@ describe('useTypedWebSocketMessage', () => {
         addMessageListener: vi.fn((type, handler) => {
           return () => {};
         }),
-        sendMessage: vi.fn(() => true)
+        sendMessage: vi.fn(() => true),
       } as any;
-      
-      const { result } = renderHook(() => 
-        useTypedWebSocketMessage(mockWebSocket, 'chat')
-      );
-      
-      expect(mockWebSocket.addMessageListener).toHaveBeenCalledWith(
-        'chat',
-        expect.any(Function)
-      );
-      
+
+      const { result } = renderHook(() => useTypedWebSocketMessage(mockWebSocket, 'chat'));
+
+      expect(mockWebSocket.addMessageListener).toHaveBeenCalledWith('chat', expect.any(Function));
+
       expect(result.current.messages).toHaveLength(0);
       expect(result.current.latestMessage).toBeNull();
     });
@@ -193,16 +186,14 @@ describe('useTypedWebSocketMessage', () => {
     it('should send typed messages', () => {
       const mockWebSocket = {
         addMessageListener: vi.fn(() => () => {}),
-        sendMessage: vi.fn(() => true)
+        sendMessage: vi.fn(() => true),
       } as any;
-      
-      const { result } = renderHook(() => 
-        useTypedWebSocketMessage(mockWebSocket, 'command')
-      );
-      
+
+      const { result } = renderHook(() => useTypedWebSocketMessage(mockWebSocket, 'command'));
+
       const payload = { action: 'start', data: { id: 123 } };
       const success = result.current.sendTypedMessage(payload);
-      
+
       expect(success).toBe(true);
       expect(mockWebSocket.sendMessage).toHaveBeenCalledWith('command', payload);
     });

@@ -1,9 +1,9 @@
 /**
  * BACKEND TEST SETUP - WORKER THREAD STABILITY FOCUSED
- * 
+ *
  * CRITICAL FIXES:
  * - Prevents worker thread termination errors
- * - Handles unhandled promise rejections  
+ * - Handles unhandled promise rejections
  * - Ensures proper resource cleanup
  * - Manages memory pressure
  */
@@ -133,8 +133,10 @@ vi.mock('../src/utils/logger', () => ({
 
 // Global test setup hooks - WORKER THREAD STABLE
 beforeAll(async () => {
-  console.log('🧪 Backend test suite initializing - Worker Thread Safe with Resource Management...');
-  
+  console.log(
+    '🧪 Backend test suite initializing - Worker Thread Safe with Resource Management...',
+  );
+
   // Initialize resource tracking
   resourceManager.reset();
 });
@@ -147,7 +149,7 @@ beforeEach(async () => {
   } catch (error) {
     console.warn('Mock clearing error (non-fatal):', error);
   }
-  
+
   // Clear any pending promises
   await vi.waitFor(() => Promise.resolve(), { timeout: 100 }).catch(() => {});
 });
@@ -157,7 +159,7 @@ afterEach(async () => {
   try {
     // Use resource manager for comprehensive cleanup
     await resourceManager.cleanup();
-    
+
     // Clear active resources
     activeResources.clear();
   } catch (error) {
@@ -166,16 +168,18 @@ afterEach(async () => {
 });
 
 afterAll(async () => {
-  console.log('🧪 Backend test suite cleanup - Preventing Worker Thread Issues and Hanging Processes...');
-  
+  console.log(
+    '🧪 Backend test suite cleanup - Preventing Worker Thread Issues and Hanging Processes...',
+  );
+
   try {
     // CRITICAL: Final comprehensive cleanup using resource manager
     await resourceManager.cleanup();
-    
+
     // Clear cleanup registry
     cleanup.clear();
     activeResources.clear();
-    
+
     console.log('✅ Backend test suite completed - Worker Threads Stable, No Hanging Processes');
   } catch (error) {
     console.warn('AfterAll cleanup error (non-fatal):', error);

@@ -1,6 +1,6 @@
 /**
  * MediaNest Frontend-Backend Integration Tests
- * 
+ *
  * Comprehensive integration testing between frontend and backend:
  * - API contract validation
  * - Data flow testing between services
@@ -33,7 +33,7 @@ describe('Frontend-Backend Integration Tests', () => {
   let dbHelper: DatabaseTestHelper;
   let redisHelper: RedisTestHelper;
   let contractValidator: APIContractValidator;
-  
+
   // Test authentication tokens
   let userToken: string;
   let adminToken: string;
@@ -46,28 +46,29 @@ describe('Frontend-Backend Integration Tests', () => {
     prisma = new PrismaClient({
       datasources: {
         db: {
-          url: process.env.TEST_DATABASE_URL || 'postgresql://test:test@localhost:5433/medianest_test'
-        }
-      }
+          url:
+            process.env.TEST_DATABASE_URL || 'postgresql://test:test@localhost:5433/medianest_test',
+        },
+      },
     });
-    
+
     redis = new Redis(process.env.TEST_REDIS_URL || 'redis://localhost:6380');
-    
+
     // Initialize helpers
     dbHelper = new DatabaseTestHelper(prisma);
     redisHelper = new RedisTestHelper(redis);
     contractValidator = new APIContractValidator();
-    
+
     // Setup test environment
     await dbHelper.setupTestDatabase();
     await redisHelper.clearTestData();
-    
+
     // Create test users and generate tokens
     const authService = new AuthService();
-    
+
     userInfo = await dbHelper.createTestUser(testUsers[0]);
     adminInfo = await dbHelper.createTestUser(testUsers[1]);
-    
+
     userToken = await authService.generateToken(userInfo);
     adminToken = await authService.generateToken(adminInfo);
   });
@@ -87,13 +88,11 @@ describe('Frontend-Backend Integration Tests', () => {
   describe('API Contract Validation', () => {
     test('should validate authentication endpoints contract', async () => {
       // Test login endpoint
-      const loginResponse = await request(app)
-        .post('/api/v1/auth/plex/pin')
-        .expect(200);
+      const loginResponse = await request(app).post('/api/v1/auth/plex/pin').expect(200);
 
       const loginContract = await contractValidator.validateResponse(
         loginResponse,
-        'AuthPinResponse'
+        'AuthPinResponse',
       );
       expect(loginContract.isValid).toBe(true);
       expect(loginContract.errors).toHaveLength(0);
@@ -106,7 +105,7 @@ describe('Frontend-Backend Integration Tests', () => {
 
       const sessionContract = await contractValidator.validateResponse(
         sessionResponse,
-        'SessionResponse'
+        'SessionResponse',
       );
       expect(sessionContract.isValid).toBe(true);
 
@@ -118,7 +117,7 @@ describe('Frontend-Backend Integration Tests', () => {
 
       const profileContract = await contractValidator.validateResponse(
         profileResponse,
-        'UserProfileResponse'
+        'UserProfileResponse',
       );
       expect(profileContract.isValid).toBe(true);
       expect(profileContract.data.user.id).toBe(userInfo.id);
@@ -134,7 +133,7 @@ describe('Frontend-Backend Integration Tests', () => {
 
       const searchContract = await contractValidator.validateResponse(
         searchResponse,
-        'MediaSearchResponse'
+        'MediaSearchResponse',
       );
       expect(searchContract.isValid).toBe(true);
       expect(searchContract.data.results).toBeTruthy();
@@ -150,7 +149,7 @@ describe('Frontend-Backend Integration Tests', () => {
 
         const detailsContract = await contractValidator.validateResponse(
           detailsResponse,
-          'MediaDetailsResponse'
+          'MediaDetailsResponse',
         );
         expect(detailsContract.isValid).toBe(true);
       }
@@ -162,14 +161,14 @@ describe('Frontend-Backend Integration Tests', () => {
           mediaType: 'movie',
           tmdbId: 12345,
           title: 'Test Movie',
-          quality: 'HD'
+          quality: 'HD',
         })
         .set('Authorization', `Bearer ${userToken}`)
         .expect(201);
 
       const requestContract = await contractValidator.validateResponse(
         requestResponse,
-        'MediaRequestResponse'
+        'MediaRequestResponse',
       );
       expect(requestContract.isValid).toBe(true);
       expect(requestContract.data.id).toBeTruthy();
@@ -183,7 +182,7 @@ describe('Frontend-Backend Integration Tests', () => {
 
       const listContract = await contractValidator.validateResponse(
         requestListResponse,
-        'MediaRequestListResponse'
+        'MediaRequestListResponse',
       );
       expect(listContract.isValid).toBe(true);
       expect(Array.isArray(listContract.data.requests)).toBe(true);
@@ -198,7 +197,7 @@ describe('Frontend-Backend Integration Tests', () => {
 
       const dashboardContract = await contractValidator.validateResponse(
         dashboardResponse,
-        'AdminDashboardResponse'
+        'AdminDashboardResponse',
       );
       expect(dashboardContract.isValid).toBe(true);
       expect(dashboardContract.data.stats).toBeTruthy();
@@ -212,7 +211,7 @@ describe('Frontend-Backend Integration Tests', () => {
 
       const usersContract = await contractValidator.validateResponse(
         usersResponse,
-        'AdminUsersResponse'
+        'AdminUsersResponse',
       );
       expect(usersContract.isValid).toBe(true);
       expect(Array.isArray(usersContract.data.users)).toBe(true);
@@ -226,7 +225,7 @@ describe('Frontend-Backend Integration Tests', () => {
 
       const adminRequestsContract = await contractValidator.validateResponse(
         adminRequestsResponse,
-        'AdminRequestsResponse'
+        'AdminRequestsResponse',
       );
       expect(adminRequestsContract.isValid).toBe(true);
     });
@@ -239,7 +238,10 @@ describe('Frontend-Backend Integration Tests', () => {
         .expect(200);
 
       // Compare with expected contract
-      const v1Contract = await contractValidator.validateResponse(v1Response, 'UserProfileResponse');
+      const v1Contract = await contractValidator.validateResponse(
+        v1Response,
+        'UserProfileResponse',
+      );
       expect(v1Contract.isValid).toBe(true);
 
       // Verify backwards compatibility fields are present
@@ -254,16 +256,14 @@ describe('Frontend-Backend Integration Tests', () => {
   describe('Data Flow Testing', () => {
     test('should handle complete user registration flow', async () => {
       // 1. User initiates Plex OAuth
-      const pinResponse = await request(app)
-        .post('/api/v1/auth/plex/pin')
-        .expect(200);
+      const pinResponse = await request(app).post('/api/v1/auth/plex/pin').expect(200);
 
       expect(pinResponse.body).toMatchObject({
         success: true,
         data: expect.objectContaining({
           id: expect.any(String),
-          code: expect.any(String)
-        })
+          code: expect.any(String),
+        }),
       });
 
       const pinId = pinResponse.body.data.id;
@@ -280,9 +280,9 @@ describe('Frontend-Backend Integration Tests', () => {
           token: expect.any(String),
           user: expect.objectContaining({
             id: expect.any(String),
-            isNewUser: true
-          })
-        })
+            isNewUser: true,
+          }),
+        }),
       });
 
       const newUserToken = verifyResponse.body.data.token;
@@ -295,8 +295,8 @@ describe('Frontend-Backend Integration Tests', () => {
           displayName: 'New Test User',
           preferences: {
             notifications: true,
-            language: 'en'
-          }
+            language: 'en',
+          },
         })
         .set('Authorization', `Bearer ${newUserToken}`)
         .expect(200);
@@ -314,7 +314,7 @@ describe('Frontend-Backend Integration Tests', () => {
       // 5. Verify user data is properly stored
       const dbUser = await prisma.user.findUnique({
         where: { id: newUserId },
-        include: { profile: true }
+        include: { profile: true },
       });
 
       expect(dbUser).toBeTruthy();
@@ -331,7 +331,7 @@ describe('Frontend-Backend Integration Tests', () => {
           tmdbId: 54321,
           title: 'Workflow Test Movie',
           quality: 'HD',
-          notes: 'Please approve this test request'
+          notes: 'Please approve this test request',
         })
         .set('Authorization', `Bearer ${userToken}`)
         .expect(201);
@@ -367,7 +367,7 @@ describe('Frontend-Backend Integration Tests', () => {
         .send({
           notes: 'Approved for download',
           priority: 'normal',
-          estimatedCompletion: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+          estimatedCompletion: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         })
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
@@ -392,7 +392,7 @@ describe('Frontend-Backend Integration Tests', () => {
       // 7. Verify status history is maintained
       const requestWithHistory = await prisma.mediaRequest.findUnique({
         where: { id: requestId },
-        include: { statusHistory: { orderBy: { createdAt: 'asc' } } }
+        include: { statusHistory: { orderBy: { createdAt: 'asc' } } },
       });
 
       expect(requestWithHistory!.statusHistory).toHaveLength(2);
@@ -408,7 +408,7 @@ describe('Frontend-Backend Integration Tests', () => {
           mediaType: 'invalid-type',
           tmdbId: 'not-a-number',
           title: '', // empty title
-          quality: 'INVALID_QUALITY'
+          quality: 'INVALID_QUALITY',
         })
         .set('Authorization', `Bearer ${userToken}`)
         .expect(400);
@@ -418,15 +418,15 @@ describe('Frontend-Backend Integration Tests', () => {
         error: expect.objectContaining({
           code: 'VALIDATION_ERROR',
           message: expect.any(String),
-          details: expect.any(Array)
-        })
+          details: expect.any(Array),
+        }),
       });
 
       expect(validationErrorResponse.body.error.details).toContainEqual(
         expect.objectContaining({
           field: 'mediaType',
-          message: expect.stringMatching(/invalid/i)
-        })
+          message: expect.stringMatching(/invalid/i),
+        }),
       );
 
       // Test authorization error propagation
@@ -439,8 +439,8 @@ describe('Frontend-Backend Integration Tests', () => {
         success: false,
         error: expect.objectContaining({
           code: 'FORBIDDEN',
-          message: expect.stringMatching(/insufficient.*permission/i)
-        })
+          message: expect.stringMatching(/insufficient.*permission/i),
+        }),
       });
 
       // Test not found error propagation
@@ -453,8 +453,8 @@ describe('Frontend-Backend Integration Tests', () => {
         success: false,
         error: expect.objectContaining({
           code: 'NOT_FOUND',
-          message: expect.stringMatching(/request.*not found/i)
-        })
+          message: expect.stringMatching(/request.*not found/i),
+        }),
       });
 
       // Test server error propagation
@@ -467,8 +467,8 @@ describe('Frontend-Backend Integration Tests', () => {
         success: false,
         error: expect.objectContaining({
           code: 'INTERNAL_ERROR',
-          message: expect.any(String)
-        })
+          message: expect.any(String),
+        }),
       });
     });
   });
@@ -484,11 +484,11 @@ describe('Frontend-Backend Integration Tests', () => {
         username: 'tokentest',
         email: 'token@test.com',
         role: 'user',
-        status: 'active'
+        status: 'active',
       });
 
       const newToken = await authService.generateToken(newUser);
-      
+
       // 2. Verify token works
       const authenticatedResponse = await request(app)
         .get('/api/v1/auth/me')
@@ -537,7 +537,7 @@ describe('Frontend-Backend Integration Tests', () => {
 
     test('should handle token expiration gracefully', async () => {
       const authService = new AuthService();
-      
+
       // Generate short-lived token (1 second)
       const shortToken = await authService.generateToken(userInfo, { expiresIn: '1s' });
 
@@ -548,7 +548,7 @@ describe('Frontend-Backend Integration Tests', () => {
         .expect(200);
 
       // Wait for expiration
-      await new Promise(resolve => setTimeout(resolve, 1100));
+      await new Promise((resolve) => setTimeout(resolve, 1100));
 
       // Token should be expired
       const expiredResponse = await request(app)
@@ -560,8 +560,8 @@ describe('Frontend-Backend Integration Tests', () => {
         success: false,
         error: expect.objectContaining({
           code: 'TOKEN_EXPIRED',
-          message: expect.stringMatching(/token.*expired/i)
-        })
+          message: expect.stringMatching(/token.*expired/i),
+        }),
       });
     });
 
@@ -570,10 +570,11 @@ describe('Frontend-Backend Integration Tests', () => {
         { token: 'invalid-token', description: 'completely invalid token' },
         { token: 'Bearer invalid-token', description: 'malformed bearer token' },
         { token: '', description: 'empty token' },
-        { 
-          token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
-          description: 'token with invalid signature'
-        }
+        {
+          token:
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+          description: 'token with invalid signature',
+        },
       ];
 
       for (const test of malformedTokenTests) {
@@ -585,8 +586,8 @@ describe('Frontend-Backend Integration Tests', () => {
         expect(response.body).toMatchObject({
           success: false,
           error: expect.objectContaining({
-            code: expect.stringMatching(/TOKEN_INVALID|INVALID_TOKEN/i)
-          })
+            code: expect.stringMatching(/TOKEN_INVALID|INVALID_TOKEN/i),
+          }),
         });
       }
     });
@@ -594,13 +595,11 @@ describe('Frontend-Backend Integration Tests', () => {
     test('should handle concurrent token operations safely', async () => {
       // Create multiple simultaneous requests with the same token
       const concurrentRequests = Array.from({ length: 10 }, () =>
-        request(app)
-          .get('/api/v1/media/requests')
-          .set('Authorization', `Bearer ${userToken}`)
+        request(app).get('/api/v1/media/requests').set('Authorization', `Bearer ${userToken}`),
       );
 
       const results = await Promise.all(concurrentRequests);
-      
+
       // All requests should succeed
       results.forEach((response) => {
         expect(response.status).toBe(200);
@@ -609,15 +608,13 @@ describe('Frontend-Backend Integration Tests', () => {
 
       // Test concurrent refresh operations
       const refreshRequests = Array.from({ length: 3 }, () =>
-        request(app)
-          .post('/api/v1/auth/refresh')
-          .set('Authorization', `Bearer ${userToken}`)
+        request(app).post('/api/v1/auth/refresh').set('Authorization', `Bearer ${userToken}`),
       );
 
       const refreshResults = await Promise.all(refreshRequests);
-      
+
       // At least one should succeed, others may fail due to token invalidation
-      const successCount = refreshResults.filter(r => r.status === 200).length;
+      const successCount = refreshResults.filter((r) => r.status === 200).length;
       expect(successCount).toBeGreaterThanOrEqual(1);
     });
   });
@@ -625,23 +622,23 @@ describe('Frontend-Backend Integration Tests', () => {
   describe('WebSocket Integration', () => {
     test('should authenticate WebSocket connections', async () => {
       const wsUrl = `ws://localhost:3001/ws?token=${userToken}`;
-      
+
       const ws = new WebSocket(wsUrl);
-      
+
       const authMessage = await new Promise((resolve, reject) => {
         ws.on('open', () => {
           // Connection opened successfully
         });
-        
+
         ws.on('message', (data) => {
           const message = JSON.parse(data.toString());
           if (message.type === 'auth_success') {
             resolve(message);
           }
         });
-        
+
         ws.on('error', reject);
-        
+
         setTimeout(() => reject(new Error('WebSocket auth timeout')), 5000);
       });
 
@@ -649,8 +646,8 @@ describe('Frontend-Backend Integration Tests', () => {
         type: 'auth_success',
         data: expect.objectContaining({
           userId: userInfo.id,
-          role: userInfo.role
-        })
+          role: userInfo.role,
+        }),
       });
 
       ws.close();
@@ -659,8 +656,8 @@ describe('Frontend-Backend Integration Tests', () => {
     test('should handle real-time request updates', async () => {
       const wsUrl = `ws://localhost:3001/ws?token=${userToken}`;
       const ws = new WebSocket(wsUrl);
-      
-      await new Promise(resolve => {
+
+      await new Promise((resolve) => {
         ws.on('open', resolve);
       });
 
@@ -671,7 +668,7 @@ describe('Frontend-Backend Integration Tests', () => {
           mediaType: 'tv',
           tmdbId: 98765,
           title: 'WebSocket Test Show',
-          seasons: [1, 2]
+          seasons: [1, 2],
         })
         .set('Authorization', `Bearer ${userToken}`)
         .expect(201);
@@ -686,7 +683,7 @@ describe('Frontend-Backend Integration Tests', () => {
             resolve(message);
           }
         });
-        
+
         setTimeout(() => reject(new Error('WebSocket message timeout')), 3000);
       });
 
@@ -695,8 +692,8 @@ describe('Frontend-Backend Integration Tests', () => {
         data: expect.objectContaining({
           requestId,
           userId: userInfo.id,
-          status: 'pending'
-        })
+          status: 'pending',
+        }),
       });
 
       // Admin approves request
@@ -714,7 +711,7 @@ describe('Frontend-Backend Integration Tests', () => {
             resolve(message);
           }
         });
-        
+
         setTimeout(() => reject(new Error('Approval message timeout')), 3000);
       });
 
@@ -723,8 +720,8 @@ describe('Frontend-Backend Integration Tests', () => {
         data: expect.objectContaining({
           requestId,
           status: 'approved',
-          approvedBy: adminInfo.id
-        })
+          approvedBy: adminInfo.id,
+        }),
       });
 
       ws.close();
@@ -732,37 +729,37 @@ describe('Frontend-Backend Integration Tests', () => {
 
     test('should handle WebSocket disconnection and reconnection', async () => {
       const wsUrl = `ws://localhost:3001/ws?token=${userToken}`;
-      
+
       // Initial connection
       let ws = new WebSocket(wsUrl);
-      await new Promise(resolve => ws.on('open', resolve));
-      
+      await new Promise((resolve) => ws.on('open', resolve));
+
       // Simulate disconnection
       ws.close();
-      
+
       // Reconnect
       ws = new WebSocket(wsUrl);
-      
+
       const reconnectMessage = await new Promise((resolve, reject) => {
         ws.on('open', () => {
           // Send ping to verify connection
           ws.send(JSON.stringify({ type: 'ping' }));
         });
-        
+
         ws.on('message', (data) => {
           const message = JSON.parse(data.toString());
           if (message.type === 'pong') {
             resolve(message);
           }
         });
-        
+
         ws.on('error', reject);
         setTimeout(() => reject(new Error('Reconnection timeout')), 3000);
       });
 
       expect(reconnectMessage).toMatchObject({
         type: 'pong',
-        timestamp: expect.any(String)
+        timestamp: expect.any(String),
       });
 
       ws.close();
@@ -780,7 +777,7 @@ describe('Frontend-Backend Integration Tests', () => {
       const form = new FormData();
       form.append('file', testContent, {
         filename: 'test-media.jpg',
-        contentType: 'image/jpeg'
+        contentType: 'image/jpeg',
       });
       form.append('mediaType', 'movie');
       form.append('tmdbId', '12345');
@@ -798,8 +795,8 @@ describe('Frontend-Backend Integration Tests', () => {
           fileId: expect.any(String),
           filename: 'test-media.jpg',
           size: expect.any(Number),
-          url: expect.any(String)
-        })
+          url: expect.any(String),
+        }),
       });
 
       // Verify file can be downloaded
@@ -818,11 +815,11 @@ describe('Frontend-Backend Integration Tests', () => {
     test('should validate file uploads correctly', async () => {
       // Test file size limit
       const largeFakeContent = Buffer.alloc(100 * 1024 * 1024); // 100MB
-      
+
       const form = new FormData();
       form.append('file', largeFakeContent, {
         filename: 'too-large.jpg',
-        contentType: 'image/jpeg'
+        contentType: 'image/jpeg',
       });
 
       const sizeErrorResponse = await request(app)
@@ -836,15 +833,15 @@ describe('Frontend-Backend Integration Tests', () => {
         success: false,
         error: expect.objectContaining({
           code: 'FILE_TOO_LARGE',
-          message: expect.stringMatching(/file.*too large/i)
-        })
+          message: expect.stringMatching(/file.*too large/i),
+        }),
       });
 
       // Test invalid file type
       const textForm = new FormData();
       textForm.append('file', 'text content', {
         filename: 'test.txt',
-        contentType: 'text/plain'
+        contentType: 'text/plain',
       });
 
       const typeErrorResponse = await request(app)
@@ -858,24 +855,24 @@ describe('Frontend-Backend Integration Tests', () => {
         success: false,
         error: expect.objectContaining({
           code: 'INVALID_FILE_TYPE',
-          message: expect.stringMatching(/file type.*not supported/i)
-        })
+          message: expect.stringMatching(/file type.*not supported/i),
+        }),
       });
     });
 
     test('should handle upload progress and cancellation', async () => {
       // This test would typically involve streaming uploads
       // For now, we'll test the upload metadata handling
-      
+
       const testContent = Buffer.alloc(1024 * 1024); // 1MB
       const form = new FormData();
       form.append('file', testContent, {
         filename: 'progress-test.jpg',
-        contentType: 'image/jpeg'
+        contentType: 'image/jpeg',
       });
 
       const startTime = Date.now();
-      
+
       const uploadResponse = await request(app)
         .post('/api/v1/media/upload')
         .set('Authorization', `Bearer ${userToken}`)
@@ -884,14 +881,14 @@ describe('Frontend-Backend Integration Tests', () => {
         .expect(200);
 
       const uploadTime = Date.now() - startTime;
-      
+
       expect(uploadResponse.body).toMatchObject({
         success: true,
         data: expect.objectContaining({
           filename: 'progress-test.jpg',
           size: 1024 * 1024,
-          uploadTime: expect.any(Number)
-        })
+          uploadTime: expect.any(Number),
+        }),
       });
 
       // Upload should complete within reasonable time
@@ -906,7 +903,7 @@ describe('Frontend-Backend Integration Tests', () => {
         request(app)
           .get('/api/v1/media/search')
           .query({ query: `concurrent-${i}`, page: 1 })
-          .set('Authorization', `Bearer ${userToken}`)
+          .set('Authorization', `Bearer ${userToken}`),
       );
 
       const startTime = Date.now();
@@ -924,30 +921,30 @@ describe('Frontend-Backend Integration Tests', () => {
       const avgTime = totalTime / concurrentCount;
       expect(avgTime).toBeLessThan(500); // Average 500ms per request
 
-      console.log(`Concurrent requests completed: ${concurrentCount} requests in ${totalTime}ms (avg: ${avgTime}ms)`);
+      console.log(
+        `Concurrent requests completed: ${concurrentCount} requests in ${totalTime}ms (avg: ${avgTime}ms)`,
+      );
     });
 
     test('should maintain response times under load', async () => {
       const loadTestRounds = 5;
       const requestsPerRound = 10;
-      
+
       const roundTimes = [];
-      
+
       for (let round = 0; round < loadTestRounds; round++) {
         const roundRequests = Array.from({ length: requestsPerRound }, () =>
-          request(app)
-            .get('/api/v1/media/requests')
-            .set('Authorization', `Bearer ${userToken}`)
+          request(app).get('/api/v1/media/requests').set('Authorization', `Bearer ${userToken}`),
         );
 
         const roundStart = Date.now();
         const roundResponses = await Promise.all(roundRequests);
         const roundTime = Date.now() - roundStart;
-        
+
         roundTimes.push(roundTime);
-        
+
         // Verify all responses are successful
-        roundResponses.forEach(response => {
+        roundResponses.forEach((response) => {
           expect(response.status).toBe(200);
           expect(response.body.success).toBe(true);
         });
@@ -961,17 +958,19 @@ describe('Frontend-Backend Integration Tests', () => {
       // Performance should be consistent
       expect(avgRoundTime).toBeLessThan(3000); // 3 seconds average
       expect(maxRoundTime).toBeLessThan(5000); // 5 seconds max
-      
+
       // Variance shouldn't be too high (max shouldn't be more than 3x min)
       expect(maxRoundTime).toBeLessThan(minRoundTime * 3);
 
-      console.log(`Load test results: avg=${avgRoundTime}ms, min=${minRoundTime}ms, max=${maxRoundTime}ms`);
+      console.log(
+        `Load test results: avg=${avgRoundTime}ms, min=${minRoundTime}ms, max=${maxRoundTime}ms`,
+      );
     });
 
     test('should handle memory usage efficiently during operations', async () => {
       // Monitor memory usage during operations
       const initialMemory = process.memoryUsage();
-      
+
       // Perform memory-intensive operations
       const operations = [];
       for (let i = 0; i < 50; i++) {
@@ -979,27 +978,29 @@ describe('Frontend-Backend Integration Tests', () => {
           request(app)
             .get('/api/v1/media/search')
             .query({ query: `memory-test-${i}`, pageSize: 50 })
-            .set('Authorization', `Bearer ${userToken}`)
+            .set('Authorization', `Bearer ${userToken}`),
         );
       }
 
       await Promise.all(operations);
-      
+
       // Force garbage collection if available
       if (global.gc) {
         global.gc();
       }
-      
+
       const finalMemory = process.memoryUsage();
-      
+
       // Memory usage shouldn't increase dramatically
       const memoryIncrease = finalMemory.heapUsed - initialMemory.heapUsed;
       const memoryIncreasePercent = (memoryIncrease / initialMemory.heapUsed) * 100;
-      
+
       // Memory increase should be reasonable (less than 50% increase)
       expect(memoryIncreasePercent).toBeLessThan(50);
-      
-      console.log(`Memory usage: ${memoryIncreasePercent.toFixed(2)}% increase (${(memoryIncrease / 1024 / 1024).toFixed(2)}MB)`);
+
+      console.log(
+        `Memory usage: ${memoryIncreasePercent.toFixed(2)}% increase (${(memoryIncrease / 1024 / 1024).toFixed(2)}MB)`,
+      );
     });
   });
 });

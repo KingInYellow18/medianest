@@ -42,15 +42,15 @@ vi.mock('@medianest/shared/config', () => ({
       REDIS_HOST: process.env.REDIS_HOST,
       REDIS_PORT: process.env.REDIS_PORT,
       LOG_LEVEL: process.env.LOG_LEVEL,
-      ENCRYPTION_KEY: process.env.ENCRYPTION_KEY
-    }))
+      ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
+    })),
   },
   environmentLoader: {
-    getEnvironment: vi.fn(() => 'test')
+    getEnvironment: vi.fn(() => 'test'),
   },
   configUtils: {
-    createConfiguration: vi.fn()
-  }
+    createConfiguration: vi.fn(),
+  },
 }));
 
 vi.mock('@medianest/shared/config/utils', () => ({
@@ -61,22 +61,22 @@ vi.mock('@medianest/shared/config/utils', () => ({
         secret: process.env.JWT_SECRET,
         issuer: process.env.JWT_ISSUER || 'medianest',
         audience: process.env.JWT_AUDIENCE || 'medianest-users',
-        expiresIn: process.env.JWT_EXPIRES_IN || '1h'
+        expiresIn: process.env.JWT_EXPIRES_IN || '1h',
       },
       database: {
-        url: process.env.DATABASE_URL
+        url: process.env.DATABASE_URL,
       },
       redis: {
         url: process.env.REDIS_URL,
         host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6380')
+        port: parseInt(process.env.REDIS_PORT || '6380'),
       },
       encryption: {
-        key: process.env.ENCRYPTION_KEY
-      }
+        key: process.env.ENCRYPTION_KEY,
+      },
     };
     return mockConfig;
-  })
+  }),
 }));
 
 // Mock the backend config module directly
@@ -87,31 +87,31 @@ vi.mock('../src/config', () => ({
       secret: process.env.JWT_SECRET,
       issuer: process.env.JWT_ISSUER || 'medianest',
       audience: process.env.JWT_AUDIENCE || 'medianest-users',
-      expiresIn: process.env.JWT_EXPIRES_IN || '1h'
+      expiresIn: process.env.JWT_EXPIRES_IN || '1h',
     },
     database: {
-      url: process.env.DATABASE_URL
+      url: process.env.DATABASE_URL,
     },
     redis: {
       url: process.env.REDIS_URL,
       host: process.env.REDIS_HOST || 'localhost',
-      port: parseInt(process.env.REDIS_PORT || '6380')
+      port: parseInt(process.env.REDIS_PORT || '6380'),
     },
     encryption: {
-      key: process.env.ENCRYPTION_KEY
-    }
+      key: process.env.ENCRYPTION_KEY,
+    },
   },
   BackendConfigSchema: {
-    parse: vi.fn()
+    parse: vi.fn(),
   },
   environmentLoader: {
-    getEnvironment: vi.fn(() => 'test')
+    getEnvironment: vi.fn(() => 'test'),
   },
   configUtils: {
-    createConfiguration: vi.fn()
+    createConfiguration: vi.fn(),
   },
   createConfiguration: vi.fn(),
-  logConfiguration: vi.fn()
+  logConfiguration: vi.fn(),
 }));
 
 // Mock external dependencies that might interfere with security testing
@@ -236,7 +236,7 @@ vi.mock('winston', () => ({
 
 beforeAll(async () => {
   console.log('🧪 Security test suite initializing...');
-  
+
   // Validate critical environment variables are set
   const requiredVars = ['JWT_SECRET', 'DATABASE_URL', 'NODE_ENV'];
   for (const varName of requiredVars) {
@@ -244,7 +244,7 @@ beforeAll(async () => {
       throw new Error(`Required environment variable ${varName} not set for security tests`);
     }
   }
-  
+
   // Validate JWT_SECRET meets minimum requirements
   if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 32) {
     throw new Error('JWT_SECRET must be at least 32 characters for security tests');

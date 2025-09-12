@@ -172,7 +172,7 @@ describe('PlexService', () => {
       expect(redisClient.setex).toHaveBeenCalledWith(
         'plex:server-info:user-123',
         3600, // 1 hour TTL
-        JSON.stringify(mockServerInfo)
+        JSON.stringify(mockServerInfo),
       );
     });
 
@@ -244,7 +244,7 @@ describe('PlexService', () => {
       expect(redisClient.setex).toHaveBeenCalledWith(
         'plex:libraries:user-123',
         3600,
-        JSON.stringify(mockLibraries)
+        JSON.stringify(mockLibraries),
       );
     });
 
@@ -291,7 +291,7 @@ describe('PlexService', () => {
     it('should use cache for library items', async () => {
       const mockResult = { items: [], totalSize: 0 };
       const cacheKey = 'plex:library-items:user-123:1:0:50';
-      
+
       (redisClient.get as Mock).mockResolvedValue(JSON.stringify(mockResult));
 
       const result = await plexService.getLibraryItems('user-123', '1', {
@@ -317,7 +317,7 @@ describe('PlexService', () => {
       expect(redisClient.setex).toHaveBeenCalledWith(
         'plex:library-items:user-123:1:100:25',
         1800, // 30 minutes TTL
-        JSON.stringify(mockResult)
+        JSON.stringify(mockResult),
       );
     });
   });
@@ -340,7 +340,7 @@ describe('PlexService', () => {
       expect(redisClient.setex).toHaveBeenCalledWith(
         'plex:search:user-123:matrix',
         300, // 5 minutes TTL
-        JSON.stringify(mockResults)
+        JSON.stringify(mockResults),
       );
     });
 
@@ -392,7 +392,7 @@ describe('PlexService', () => {
       expect(redisClient.setex).toHaveBeenCalledWith(
         'plex:recently-added:user-123',
         1800, // 30 minutes TTL
-        JSON.stringify(mockItems)
+        JSON.stringify(mockItems),
       );
     });
 
@@ -462,7 +462,7 @@ describe('PlexService', () => {
       expect(redisClient.setex).toHaveBeenCalledWith(
         'plex:collection-details:user-123:1',
         3600,
-        JSON.stringify(mockCollection)
+        JSON.stringify(mockCollection),
       );
     });
 
@@ -501,7 +501,7 @@ describe('PlexService', () => {
 
       // Should attempt to delete all user-specific cache keys
       expect(redisClient.del).toHaveBeenCalledWith(
-        expect.arrayContaining(expectedKeys.map(expect.stringContaining))
+        expect.arrayContaining(expectedKeys.map(expect.stringContaining)),
       );
     });
 

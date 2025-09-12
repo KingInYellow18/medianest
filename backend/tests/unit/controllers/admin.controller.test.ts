@@ -44,7 +44,7 @@ describe('AdminController', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     controller = new AdminController();
-    
+
     mockRequest = {
       query: {},
       params: {},
@@ -141,7 +141,7 @@ describe('AdminController', () => {
 
     it('should filter users by search term', async () => {
       const testRequest = { ...mockRequest, query: { search: 'john' } };
-      
+
       // Clear and set fresh mocks for this test
       (prisma.user.count as Mock).mockClear().mockResolvedValue(2);
       (prisma.user.findMany as Mock).mockClear().mockResolvedValue([]);
@@ -170,7 +170,7 @@ describe('AdminController', () => {
 
     it('should filter users by role', async () => {
       const testRequest = { ...mockRequest, query: { role: 'admin' } };
-      
+
       // Clear and set fresh mocks for this test
       (prisma.user.count as Mock).mockClear().mockResolvedValue(1);
       (prisma.user.findMany as Mock).mockClear().mockResolvedValue([]);
@@ -184,7 +184,7 @@ describe('AdminController', () => {
 
     it('should handle custom pagination', async () => {
       const testRequest = { ...mockRequest, query: { page: '2', pageSize: '5' } };
-      
+
       // Clear and set fresh mocks for this test
       (prisma.user.count as Mock).mockClear().mockResolvedValue(15);
       (prisma.user.findMany as Mock).mockClear().mockResolvedValue([]);
@@ -215,7 +215,7 @@ describe('AdminController', () => {
 
     it('should handle custom sorting', async () => {
       const testRequest = { ...mockRequest, query: { sortBy: 'email', sortOrder: 'asc' } };
-      
+
       // Clear and set fresh mocks for this test
       (prisma.user.count as Mock).mockClear().mockResolvedValue(5);
       (prisma.user.findMany as Mock).mockClear().mockResolvedValue([]);
@@ -235,7 +235,7 @@ describe('AdminController', () => {
       (prisma.user.count as Mock).mockRejectedValue(new Error('Database error'));
 
       await expect(
-        controller.getUsers(mockRequest as Request, mockResponse as Response)
+        controller.getUsers(mockRequest as Request, mockResponse as Response),
       ).rejects.toThrow(AppError);
 
       expect(logger.error).toHaveBeenCalledWith('Failed to get users', expect.any(Object));
@@ -294,7 +294,7 @@ describe('AdminController', () => {
       (prisma.serviceConfig.findMany as Mock).mockRejectedValue(new Error('Database error'));
 
       await expect(
-        controller.getServices(mockRequest as Request, mockResponse as Response)
+        controller.getServices(mockRequest as Request, mockResponse as Response),
       ).rejects.toThrow(AppError);
 
       expect(logger.error).toHaveBeenCalledWith('Failed to get services', expect.any(Object));
@@ -350,7 +350,7 @@ describe('AdminController', () => {
       };
 
       await expect(
-        controller.updateUserRole(testRequest as Request, mockResponse as Response)
+        controller.updateUserRole(testRequest as Request, mockResponse as Response),
       ).rejects.toThrow('Invalid role');
 
       // Note: Not checking mock calls due to test parallelism issues
@@ -365,7 +365,7 @@ describe('AdminController', () => {
       };
 
       await expect(
-        controller.updateUserRole(testRequest as Request, mockResponse as Response)
+        controller.updateUserRole(testRequest as Request, mockResponse as Response),
       ).rejects.toThrow('Cannot remove your own admin role');
 
       // Note: Not checking mock calls due to test parallelism issues
@@ -381,7 +381,7 @@ describe('AdminController', () => {
       (prisma.user.update as Mock).mockRejectedValue(new Error('Database error'));
 
       await expect(
-        controller.updateUserRole(testRequest as Request, mockResponse as Response)
+        controller.updateUserRole(testRequest as Request, mockResponse as Response),
       ).rejects.toThrow(AppError);
 
       expect(logger.error).toHaveBeenCalledWith('Failed to update user role', expect.any(Object));
@@ -401,7 +401,7 @@ describe('AdminController', () => {
         ...mockRequest,
         params: { userId: 'user-123' },
       };
-      
+
       // Clear and set fresh mocks for this test
       (prisma.user.findUnique as Mock).mockClear().mockResolvedValue(mockUser);
       (prisma.user.delete as Mock).mockClear().mockResolvedValue(undefined);
@@ -435,7 +435,7 @@ describe('AdminController', () => {
       };
 
       await expect(
-        controller.deleteUser(testRequest as Request, mockResponse as Response)
+        controller.deleteUser(testRequest as Request, mockResponse as Response),
       ).rejects.toThrow('Cannot delete your own account');
 
       // Note: Not checking mock calls due to test parallelism issues
@@ -447,7 +447,7 @@ describe('AdminController', () => {
       (prisma.user.findUnique as Mock).mockResolvedValue(null);
 
       await expect(
-        controller.deleteUser(mockRequest as Request, mockResponse as Response)
+        controller.deleteUser(mockRequest as Request, mockResponse as Response),
       ).rejects.toThrow(AppError);
 
       expect(prisma.user.delete).not.toHaveBeenCalled();
@@ -465,13 +465,13 @@ describe('AdminController', () => {
         ...mockRequest,
         params: { userId: 'user-123' },
       };
-      
+
       // Clear and set fresh mocks for this test
       (prisma.user.findUnique as Mock).mockClear().mockResolvedValue(mockUser);
       (prisma.user.delete as Mock).mockClear().mockRejectedValue(new Error('Database error'));
 
       await expect(
-        controller.deleteUser(testRequest as Request, mockResponse as Response)
+        controller.deleteUser(testRequest as Request, mockResponse as Response),
       ).rejects.toThrow(AppError);
 
       expect(logger.error).toHaveBeenCalledWith('Failed to delete user', expect.any(Object));
@@ -484,15 +484,15 @@ describe('AdminController', () => {
       (prisma.user.count as Mock).mockClear();
       (prisma.mediaRequest.count as Mock).mockClear();
       (prisma.youtubeDownload.count as Mock).mockClear();
-      
+
       (prisma.user.count as Mock)
         .mockResolvedValueOnce(15) // totalUsers
         .mockResolvedValueOnce(8); // activeUsers
-      
+
       (prisma.mediaRequest.count as Mock)
         .mockResolvedValueOnce(45) // totalRequests
         .mockResolvedValueOnce(12); // pendingRequests
-      
+
       (prisma.youtubeDownload.count as Mock)
         .mockResolvedValueOnce(23) // totalDownloads
         .mockResolvedValueOnce(3); // activeDownloads
@@ -544,24 +544,18 @@ describe('AdminController', () => {
       (prisma.user.count as Mock).mockRejectedValue(new Error('Database error'));
 
       await expect(
-        controller.getSystemStats(mockRequest as Request, mockResponse as Response)
+        controller.getSystemStats(mockRequest as Request, mockResponse as Response),
       ).rejects.toThrow(AppError);
 
       expect(logger.error).toHaveBeenCalledWith('Failed to get system stats', expect.any(Object));
     });
 
     it('should handle zero statistics', async () => {
-      (prisma.user.count as Mock)
-        .mockResolvedValueOnce(0)
-        .mockResolvedValueOnce(0);
-      
-      (prisma.mediaRequest.count as Mock)
-        .mockResolvedValueOnce(0)
-        .mockResolvedValueOnce(0);
-      
-      (prisma.youtubeDownload.count as Mock)
-        .mockResolvedValueOnce(0)
-        .mockResolvedValueOnce(0);
+      (prisma.user.count as Mock).mockResolvedValueOnce(0).mockResolvedValueOnce(0);
+
+      (prisma.mediaRequest.count as Mock).mockResolvedValueOnce(0).mockResolvedValueOnce(0);
+
+      (prisma.youtubeDownload.count as Mock).mockResolvedValueOnce(0).mockResolvedValueOnce(0);
 
       await controller.getSystemStats(mockRequest as Request, mockResponse as Response);
 

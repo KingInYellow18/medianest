@@ -24,13 +24,13 @@ class MockWebSocket {
   onclose: ((event: CloseEvent) => void) | null = null;
   onmessage: ((event: MessageEvent) => void) | null = null;
   onerror: ((event: Event) => void) | null = null;
-  
+
   private listeners = new Map<string, Set<(event: any) => void>>();
   private messageQueue: any[] = [];
 
   constructor(url: string) {
     this.url = url;
-    
+
     // Simulate connection delay
     setTimeout(() => {
       this.readyState = MockWebSocket.OPEN;
@@ -38,9 +38,9 @@ class MockWebSocket {
         this.onopen(new Event('open'));
       }
       this.dispatchEvent(new Event('open'));
-      
+
       // Send queued messages
-      this.messageQueue.forEach(message => {
+      this.messageQueue.forEach((message) => {
         if (this.onmessage) {
           this.onmessage(new MessageEvent('message', { data: JSON.stringify(message) }));
         }
@@ -53,7 +53,7 @@ class MockWebSocket {
     if (this.readyState !== MockWebSocket.OPEN) {
       throw new Error('WebSocket is not open');
     }
-    
+
     // Echo back the message for testing
     setTimeout(() => {
       const message = {
@@ -61,7 +61,7 @@ class MockWebSocket {
         payload: JSON.parse(data),
         timestamp: Date.now(),
       };
-      
+
       if (this.onmessage) {
         this.onmessage(new MessageEvent('message', { data: JSON.stringify(message) }));
       }
@@ -91,7 +91,7 @@ class MockWebSocket {
   }
 
   dispatchEvent(event: Event) {
-    this.listeners.get(event.type)?.forEach(listener => listener(event));
+    this.listeners.get(event.type)?.forEach((listener) => listener(event));
     return true;
   }
 
@@ -128,12 +128,12 @@ const WebSocketTestComponent = ({ url = 'ws://localhost:3000/ws' }: { url?: stri
   const [connectionHistory, setConnectionHistory] = React.useState<string[]>([]);
 
   React.useEffect(() => {
-    setConnectionHistory(prev => [...prev, webSocket.status]);
+    setConnectionHistory((prev) => [...prev, webSocket.status]);
   }, [webSocket.status]);
 
   React.useEffect(() => {
     const cleanup = webSocket.addMessageListener('*', (message) => {
-      setMessages(prev => [...prev, message]);
+      setMessages((prev) => [...prev, message]);
     });
 
     return cleanup;
@@ -149,42 +149,42 @@ const WebSocketTestComponent = ({ url = 'ws://localhost:3000/ws' }: { url?: stri
 
   return (
     <div>
-      <div data-testid="ws-status">{webSocket.status}</div>
-      <div data-testid="ws-connected">{webSocket.isConnected ? 'yes' : 'no'}</div>
-      <div data-testid="ws-connecting">{webSocket.isConnecting ? 'yes' : 'no'}</div>
-      <div data-testid="ws-error">{webSocket.error?.message || 'no-error'}</div>
-      <div data-testid="ws-connection-id">{webSocket.connectionId || 'no-id'}</div>
-      <div data-testid="ws-message-count">{webSocket.messageCount}</div>
-      <div data-testid="ws-reconnect-attempts">{webSocket.reconnectAttempts}</div>
-      <div data-testid="ws-max-reconnect-attempts">{webSocket.maxReconnectAttempts}</div>
-      
-      <button onClick={webSocket.connect} data-testid="ws-connect">
+      <div data-testid='ws-status'>{webSocket.status}</div>
+      <div data-testid='ws-connected'>{webSocket.isConnected ? 'yes' : 'no'}</div>
+      <div data-testid='ws-connecting'>{webSocket.isConnecting ? 'yes' : 'no'}</div>
+      <div data-testid='ws-error'>{webSocket.error?.message || 'no-error'}</div>
+      <div data-testid='ws-connection-id'>{webSocket.connectionId || 'no-id'}</div>
+      <div data-testid='ws-message-count'>{webSocket.messageCount}</div>
+      <div data-testid='ws-reconnect-attempts'>{webSocket.reconnectAttempts}</div>
+      <div data-testid='ws-max-reconnect-attempts'>{webSocket.maxReconnectAttempts}</div>
+
+      <button onClick={webSocket.connect} data-testid='ws-connect'>
         Connect
       </button>
-      <button onClick={webSocket.disconnect} data-testid="ws-disconnect">
+      <button onClick={webSocket.disconnect} data-testid='ws-disconnect'>
         Disconnect
       </button>
-      <button onClick={sendTestMessage} data-testid="ws-send-message">
+      <button onClick={sendTestMessage} data-testid='ws-send-message'>
         Send Test Message
       </button>
-      <button onClick={sendPing} data-testid="ws-send-ping">
+      <button onClick={sendPing} data-testid='ws-send-ping'>
         Send Ping
       </button>
-      
-      <div data-testid="message-list">
+
+      <div data-testid='message-list'>
         {messages.map((message, index) => (
           <div key={message.id || index} data-testid={`message-${index}`}>
             <span data-testid={`message-type-${index}`}>{message.type}</span>
-            <span data-testid={`message-payload-${index}`}>
-              {JSON.stringify(message.payload)}
-            </span>
+            <span data-testid={`message-payload-${index}`}>{JSON.stringify(message.payload)}</span>
           </div>
         ))}
       </div>
-      
-      <div data-testid="connection-history">
+
+      <div data-testid='connection-history'>
         {connectionHistory.map((status, index) => (
-          <span key={index} data-testid={`history-${index}`}>{status}</span>
+          <span key={index} data-testid={`history-${index}`}>
+            {status}
+          </span>
         ))}
       </div>
     </div>
@@ -195,31 +195,27 @@ const TypedWebSocketTestComponent = () => {
   const webSocket = useOptimizedWebSocket('ws://localhost:3000/ws');
   const serviceUpdates = useTypedWebSocketMessage(webSocket, 'service-update');
   const notifications = useTypedWebSocketMessage(webSocket, 'notification');
-  
+
   return (
     <div>
-      <div data-testid="service-updates-count">
-        {serviceUpdates.messages.length}
-      </div>
-      <div data-testid="notifications-count">
-        {notifications.messages.length}
-      </div>
-      <div data-testid="latest-service-update">
+      <div data-testid='service-updates-count'>{serviceUpdates.messages.length}</div>
+      <div data-testid='notifications-count'>{notifications.messages.length}</div>
+      <div data-testid='latest-service-update'>
         {serviceUpdates.latestMessage?.payload?.serviceId || 'none'}
       </div>
-      <div data-testid="latest-notification">
+      <div data-testid='latest-notification'>
         {notifications.latestMessage?.payload?.message || 'none'}
       </div>
-      
-      <button 
+
+      <button
         onClick={() => serviceUpdates.sendTypedMessage({ serviceId: 'test', status: 'updated' })}
-        data-testid="send-service-update"
+        data-testid='send-service-update'
       >
         Send Service Update
       </button>
-      <button 
+      <button
         onClick={() => notifications.sendTypedMessage({ message: 'Test notification' })}
-        data-testid="send-notification"
+        data-testid='send-notification'
       >
         Send Notification
       </button>
@@ -232,31 +228,36 @@ const ReconnectionTestComponent = () => {
     maxReconnectAttempts: 3,
     reconnectInterval: 1000,
   });
-  
+
   const [reconnectionEvents, setReconnectionEvents] = React.useState<string[]>([]);
-  
+
   React.useEffect(() => {
     if (webSocket.status === 'disconnected' && webSocket.reconnectAttempts > 0) {
-      setReconnectionEvents(prev => [...prev, `attempt-${webSocket.reconnectAttempts}`]);
+      setReconnectionEvents((prev) => [...prev, `attempt-${webSocket.reconnectAttempts}`]);
     }
   }, [webSocket.status, webSocket.reconnectAttempts]);
-  
+
   return (
     <div>
-      <div data-testid="reconnect-status">{webSocket.status}</div>
-      <div data-testid="reconnect-attempts">{webSocket.reconnectAttempts}</div>
-      <div data-testid="reconnect-events">
+      <div data-testid='reconnect-status'>{webSocket.status}</div>
+      <div data-testid='reconnect-attempts'>{webSocket.reconnectAttempts}</div>
+      <div data-testid='reconnect-events'>
         {reconnectionEvents.map((event, index) => (
-          <span key={index} data-testid={`reconnect-event-${index}`}>{event}</span>
+          <span key={index} data-testid={`reconnect-event-${index}`}>
+            {event}
+          </span>
         ))}
       </div>
-      
-      <button onClick={() => {
-        // Simulate connection drop
-        if (webSocket.status === 'connected') {
-          (global.WebSocket as any).mockInstance?.simulateClose(1006, 'Connection dropped');
-        }
-      }} data-testid="simulate-disconnect">
+
+      <button
+        onClick={() => {
+          // Simulate connection drop
+          if (webSocket.status === 'connected') {
+            (global.WebSocket as any).mockInstance?.simulateClose(1006, 'Connection dropped');
+          }
+        }}
+        data-testid='simulate-disconnect'
+      >
         Simulate Disconnect
       </button>
     </div>
@@ -266,20 +267,20 @@ const ReconnectionTestComponent = () => {
 describe('WebSocket Integration Tests', () => {
   beforeEach(() => {
     mswUtils.resetMockState();
-    
+
     // Mock WebSocket with enhanced functionality
     const mockWebSocketClass = vi.fn().mockImplementation((url: string) => {
       const instance = new MockWebSocket(url);
       (mockWebSocketClass as any).mockInstance = instance;
       return instance;
     });
-    
+
     // Add static constants
     mockWebSocketClass.CONNECTING = MockWebSocket.CONNECTING;
     mockWebSocketClass.OPEN = MockWebSocket.OPEN;
     mockWebSocketClass.CLOSING = MockWebSocket.CLOSING;
     mockWebSocketClass.CLOSED = MockWebSocket.CLOSED;
-    
+
     global.WebSocket = mockWebSocketClass as any;
     vi.useFakeTimers();
   });
@@ -313,9 +314,7 @@ describe('WebSocket Integration Tests', () => {
     });
 
     it('should handle manual connection and disconnection', async () => {
-      const { user } = renderWithAuth(
-        <WebSocketTestComponent url="ws://manual-test" />
-      );
+      const { user } = renderWithAuth(<WebSocketTestComponent url='ws://manual-test' />);
 
       // Wait for auto-connection
       act(() => {
@@ -398,7 +397,7 @@ describe('WebSocket Integration Tests', () => {
       // Check message details
       expect(screen.getByTestId('message-type-0')).toHaveTextContent('echo');
       expect(screen.getByTestId('message-payload-0')).toHaveTextContent(
-        JSON.stringify({ type: 'test', payload: { content: 'Hello WebSocket!' } })
+        JSON.stringify({ type: 'test', payload: { content: 'Hello WebSocket!' } }),
       );
     });
 
@@ -496,7 +495,7 @@ describe('WebSocket Integration Tests', () => {
 
       // Simulate incoming typed messages
       const mockWs = (global.WebSocket as any).mockInstance;
-      
+
       act(() => {
         mockWs.simulateMessage({
           type: 'service-update',
@@ -696,9 +695,7 @@ describe('WebSocket Integration Tests', () => {
     it('should work correctly when used directly with renderHook', async () => {
       const { result } = renderHook(() => useOptimizedWebSocket('ws://test'), {
         wrapper: ({ children }) => (
-          <IntegrationProvider mockAuthentication={true}>
-            {children}
-          </IntegrationProvider>
+          <IntegrationProvider mockAuthentication={true}>{children}</IntegrationProvider>
         ),
       });
 
@@ -724,10 +721,10 @@ describe('WebSocket Integration Tests', () => {
 
         return (
           <div>
-            <div data-testid="ws1-status">{ws1.status}</div>
-            <div data-testid="ws2-status">{ws2.status}</div>
-            <div data-testid="ws1-id">{ws1.connectionId || 'no-id'}</div>
-            <div data-testid="ws2-id">{ws2.connectionId || 'no-id'}</div>
+            <div data-testid='ws1-status'>{ws1.status}</div>
+            <div data-testid='ws2-status'>{ws2.status}</div>
+            <div data-testid='ws1-id'>{ws1.connectionId || 'no-id'}</div>
+            <div data-testid='ws2-id'>{ws2.connectionId || 'no-id'}</div>
           </div>
         );
       };

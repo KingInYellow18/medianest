@@ -55,16 +55,17 @@ Before contributing, ensure you have:
    - [Development Setup](../getting-started/development-setup.md)
 
 2. **Set Up Development Environment**
+
    ```bash
    # Fork and clone the repository
    git clone https://github.com/YOUR_USERNAME/medianest.git
    cd medianest
-   
+
    # Install dependencies and setup environment
    npm install
    cp .env.example .env
    npm run generate-secrets
-   
+
    # Start development environment
    docker compose -f docker-compose.dev.yml up -d
    npm run db:migrate
@@ -79,6 +80,7 @@ Before contributing, ensure you have:
 ### Finding Work
 
 Look for issues labeled:
+
 - **`good first issue`**: Perfect for newcomers
 - **`help wanted`**: Community assistance needed
 - **`bug`**: Bug fixes needed
@@ -86,6 +88,7 @@ Look for issues labeled:
 - **`documentation`**: Documentation improvements
 
 Before starting work:
+
 1. Comment on the issue expressing interest
 2. Wait for maintainer confirmation
 3. Ask questions if anything is unclear
@@ -97,10 +100,12 @@ Before starting work:
 We use **GitFlow** with these branch types:
 
 #### Main Branches
+
 - **`main`**: Production-ready code, always stable
 - **`develop`**: Integration branch for features
 
 #### Feature Branches
+
 - **`feature/issue-number-short-description`**: New features
 - **`fix/issue-number-short-description`**: Bug fixes
 - **`docs/short-description`**: Documentation changes
@@ -111,11 +116,12 @@ We use **GitFlow** with these branch types:
 ### Workflow Steps
 
 1. **Create Feature Branch**
+
    ```bash
    # Start from develop branch
    git checkout develop
    git pull upstream develop
-   
+
    # Create feature branch
    git checkout -b feature/123-add-media-filtering
    ```
@@ -127,18 +133,20 @@ We use **GitFlow** with these branch types:
    - Ensure TypeScript compliance
 
 3. **Commit Changes**
+
    ```bash
    # Use conventional commit format
    git commit -m "feat(media): add advanced filtering options
-   
+
    - Add genre and year filters
-   - Implement filter persistence 
+   - Implement filter persistence
    - Add filter reset functionality
-   
+
    Closes #123"
    ```
 
 4. **Keep Branch Updated**
+
    ```bash
    # Regularly sync with upstream
    git fetch upstream
@@ -156,6 +164,7 @@ We use **GitFlow** with these branch types:
 ### TypeScript Guidelines
 
 #### Type Safety
+
 ```typescript
 // ✅ Good: Explicit interfaces
 interface UserProps {
@@ -173,6 +182,7 @@ const userData: User = await fetchUser(userId);
 ```
 
 #### Function Signatures
+
 ```typescript
 // ✅ Good: Clear function typing
 async function createUser(
@@ -189,14 +199,14 @@ interface ButtonProps {
   children: React.ReactNode;
 }
 
-export const Button: React.FC<ButtonProps> = ({ 
-  variant, 
-  onClick, 
-  disabled = false, 
-  children 
+export const Button: React.FC<ButtonProps> = ({
+  variant,
+  onClick,
+  disabled = false,
+  children
 }) => {
   return (
-    <button 
+    <button
       className={`btn btn-${variant}`}
       onClick={onClick}
       disabled={disabled}
@@ -208,6 +218,7 @@ export const Button: React.FC<ButtonProps> = ({
 ```
 
 #### Error Handling
+
 ```typescript
 // ✅ Good: Proper error handling
 async function fetchUserData(userId: string): Promise<User> {
@@ -232,7 +243,7 @@ router.get('/users/:id', async (req, res, next) => {
     if (error instanceof NotFoundError) {
       return res.status(404).json({
         success: false,
-        error: { code: 'USER_NOT_FOUND', message: error.message }
+        error: { code: 'USER_NOT_FOUND', message: error.message },
       });
     }
     next(error);
@@ -243,6 +254,7 @@ router.get('/users/:id', async (req, res, next) => {
 ### React/Next.js Guidelines
 
 #### Component Structure
+
 ```tsx
 // ✅ Good: Well-structured component
 interface ServiceCardProps {
@@ -254,15 +266,12 @@ interface ServiceCardProps {
   onTest?: () => void;
 }
 
-export const ServiceCard: React.FC<ServiceCardProps> = ({ 
-  service, 
-  onTest 
-}) => {
+export const ServiceCard: React.FC<ServiceCardProps> = ({ service, onTest }) => {
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const handleTest = useCallback(async () => {
     if (!onTest) return;
-    
+
     setIsLoading(true);
     try {
       await onTest();
@@ -270,27 +279,21 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
       setIsLoading(false);
     }
   }, [onTest]);
-  
+
   return (
-    <Card className="service-card">
+    <Card className='service-card'>
       <CardHeader>
         <CardTitle>{service.name}</CardTitle>
         <StatusIndicator status={service.status} />
       </CardHeader>
-      
+
       <CardContent>
-        {service.url && (
-          <p className="text-sm text-gray-600">{service.url}</p>
-        )}
+        {service.url && <p className='text-sm text-gray-600'>{service.url}</p>}
       </CardContent>
-      
+
       {onTest && (
         <CardFooter>
-          <Button 
-            onClick={handleTest}
-            disabled={isLoading}
-            variant="outline"
-          >
+          <Button onClick={handleTest} disabled={isLoading} variant='outline'>
             {isLoading ? 'Testing...' : 'Test Connection'}
           </Button>
         </CardFooter>
@@ -301,13 +304,14 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
 ```
 
 #### Hooks and State Management
+
 ```tsx
 // ✅ Good: Custom hooks
 const useServiceStatus = (serviceId: string) => {
   const [status, setStatus] = useState<ServiceStatus>('unknown');
   const [lastCheck, setLastCheck] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
-  
+
   const checkStatus = useCallback(async () => {
     try {
       setError(null);
@@ -319,13 +323,13 @@ const useServiceStatus = (serviceId: string) => {
       setStatus('error');
     }
   }, [serviceId]);
-  
+
   useEffect(() => {
     checkStatus();
     const interval = setInterval(checkStatus, 30000); // 30s
     return () => clearInterval(interval);
   }, [checkStatus]);
-  
+
   return { status, lastCheck, error, refetch: checkStatus };
 };
 ```
@@ -333,25 +337,26 @@ const useServiceStatus = (serviceId: string) => {
 ### Backend/API Guidelines
 
 #### Service Layer Pattern
+
 ```typescript
 // ✅ Good: Service class structure
 export class MediaService {
   constructor(
     private readonly mediaRepository: MediaRepository,
-    private readonly overseerrClient: OverseerrClient
+    private readonly overseerrClient: OverseerrClient,
   ) {}
-  
+
   async searchMedia(query: MediaSearchQuery): Promise<MediaSearchResult[]> {
     // Validate input
     const validatedQuery = MediaSearchSchema.parse(query);
-    
+
     // Business logic
     const results = await this.overseerrClient.search(validatedQuery);
-    
+
     // Transform and return
     return results.map(this.transformMediaResult);
   }
-  
+
   private transformMediaResult(result: ExternalMediaResult): MediaSearchResult {
     return {
       id: result.tmdbId,
@@ -359,32 +364,33 @@ export class MediaService {
       year: result.releaseDate ? new Date(result.releaseDate).getFullYear() : undefined,
       type: result.mediaType,
       posterPath: result.posterPath,
-      overview: result.overview
+      overview: result.overview,
     };
   }
 }
 ```
 
 #### Repository Pattern
+
 ```typescript
 // ✅ Good: Repository implementation
 export class UserRepository extends BaseRepository<User> {
   constructor(prisma: PrismaClient) {
     super(prisma, 'user');
   }
-  
+
   async findByPlexId(plexId: string): Promise<User | null> {
     return this.prisma.user.findUnique({
       where: { plexId },
       include: {
         sessions: {
           where: { expiresAt: { gt: new Date() } },
-          take: 1
-        }
-      }
+          take: 1,
+        },
+      },
     });
   }
-  
+
   async createWithPlexData(plexData: PlexUserData): Promise<User> {
     return this.prisma.user.create({
       data: {
@@ -392,11 +398,11 @@ export class UserRepository extends BaseRepository<User> {
         plexUsername: plexData.username,
         email: plexData.email,
         role: this.determineUserRole(plexData),
-        plexToken: await this.encryptionService.encrypt(plexData.token)
-      }
+        plexToken: await this.encryptionService.encrypt(plexData.token),
+      },
     });
   }
-  
+
   private determineUserRole(plexData: PlexUserData): UserRole {
     // First user becomes admin
     const userCount = await this.count();
@@ -408,23 +414,25 @@ export class UserRepository extends BaseRepository<User> {
 ### Database Guidelines
 
 #### Migration Best Practices
+
 ```sql
 -- ✅ Good: Safe migration with rollback plan
 -- Migration: 20250109120000_add_user_preferences
-ALTER TABLE users 
+ALTER TABLE users
   ADD COLUMN preferences JSONB DEFAULT '{}';
 
 -- Add index for performance
-CREATE INDEX idx_users_preferences 
+CREATE INDEX idx_users_preferences
   ON users USING gin(preferences);
 
 -- Update existing users
-UPDATE users 
+UPDATE users
   SET preferences = '{}'
   WHERE preferences IS NULL;
 ```
 
 #### Prisma Schema Guidelines
+
 ```prisma
 // ✅ Good: Well-structured schema
 model User {
@@ -433,19 +441,19 @@ model User {
   plexUsername String
   email        String?
   role         UserRole @default(USER)
-  
+
   // Encrypted sensitive data
   plexToken    String?  @db.Text
-  
+
   // Relationships
   mediaRequests MediaRequest[]
   sessions      UserSession[]
-  
+
   // Timestamps
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   lastLoginAt  DateTime?
-  
+
   // Indexes for performance
   @@index([plexId])
   @@index([role])
@@ -462,6 +470,7 @@ enum UserRole {
 ### Security Guidelines
 
 #### Input Validation
+
 ```typescript
 // ✅ Good: Zod schema validation
 export const CreateMediaRequestSchema = z.object({
@@ -469,7 +478,7 @@ export const CreateMediaRequestSchema = z.object({
   mediaType: z.enum(['movie', 'tv']),
   tmdbId: z.string().regex(/^\d+$/),
   seasonNumber: z.number().int().positive().optional(),
-  notes: z.string().max(1000).optional()
+  notes: z.string().max(1000).optional(),
 });
 
 // ✅ Good: Middleware usage
@@ -484,8 +493,8 @@ export const validateCreateMediaRequest = (req: Request, res: Response, next: Ne
         error: {
           code: 'VALIDATION_ERROR',
           message: 'Invalid request data',
-          details: error.errors
-        }
+          details: error.errors,
+        },
       });
     }
     next(error);
@@ -494,6 +503,7 @@ export const validateCreateMediaRequest = (req: Request, res: Response, next: Ne
 ```
 
 #### Authentication & Authorization
+
 ```typescript
 // ✅ Good: Role-based middleware
 export const requireRole = (role: UserRole) => {
@@ -501,17 +511,17 @@ export const requireRole = (role: UserRole) => {
     if (!req.user) {
       return res.status(401).json({
         success: false,
-        error: { code: 'UNAUTHORIZED', message: 'Authentication required' }
+        error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
       });
     }
-    
+
     if (req.user.role !== role && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
-        error: { code: 'FORBIDDEN', message: 'Insufficient permissions' }
+        error: { code: 'FORBIDDEN', message: 'Insufficient permissions' },
       });
     }
-    
+
     next();
   };
 };
@@ -520,14 +530,14 @@ export const requireRole = (role: UserRole) => {
 export const requireOwnership = (resourceUserIdParam: string = 'userId') => {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     const resourceUserId = req.params[resourceUserIdParam];
-    
+
     if (req.user.role !== 'admin' && req.user.id !== resourceUserId) {
       return res.status(403).json({
         success: false,
-        error: { code: 'FORBIDDEN', message: 'Access denied' }
+        error: { code: 'FORBIDDEN', message: 'Access denied' },
       });
     }
-    
+
     next();
   };
 };
@@ -550,13 +560,13 @@ describe('MediaService', () => {
   let mediaService: MediaService;
   let mockRepository: jest.Mocked<MediaRepository>;
   let mockOverseerrClient: jest.Mocked<OverseerrClient>;
-  
+
   beforeEach(() => {
     mockRepository = createMockRepository();
     mockOverseerrClient = createMockOverseerrClient();
     mediaService = new MediaService(mockRepository, mockOverseerrClient);
   });
-  
+
   describe('searchMedia', () => {
     it('should return transformed search results', async () => {
       // Arrange
@@ -568,15 +578,15 @@ describe('MediaService', () => {
           releaseDate: '2010-07-16',
           mediaType: 'movie',
           posterPath: '/poster.jpg',
-          overview: 'A mind-bending thriller'
-        }
+          overview: 'A mind-bending thriller',
+        },
       ];
-      
+
       mockOverseerrClient.search.mockResolvedValue(externalResults);
-      
+
       // Act
       const results = await mediaService.searchMedia(query);
-      
+
       // Assert
       expect(results).toHaveLength(1);
       expect(results[0]).toEqual({
@@ -585,18 +595,17 @@ describe('MediaService', () => {
         year: 2010,
         type: 'movie',
         posterPath: '/poster.jpg',
-        overview: 'A mind-bending thriller'
+        overview: 'A mind-bending thriller',
       });
     });
-    
+
     it('should handle overseerr client errors', async () => {
       // Arrange
       const query = { title: 'Test', type: 'movie' };
       mockOverseerrClient.search.mockRejectedValue(new Error('Service unavailable'));
-      
+
       // Act & Assert
-      await expect(mediaService.searchMedia(query))
-        .rejects.toThrow('Service unavailable');
+      await expect(mediaService.searchMedia(query)).rejects.toThrow('Service unavailable');
     });
   });
 });
@@ -610,51 +619,48 @@ describe('Media API', () => {
   let app: Express;
   let testDb: TestDatabase;
   let testUser: User;
-  
+
   beforeAll(async () => {
     testDb = await createTestDatabase();
     app = createTestApp(testDb);
     testUser = await testDb.createUser({ role: 'user' });
   });
-  
+
   afterAll(async () => {
     await testDb.cleanup();
   });
-  
+
   describe('POST /api/media/request', () => {
     it('should create media request for authenticated user', async () => {
       // Arrange
       const requestData = {
         title: 'Test Movie',
         mediaType: 'movie',
-        tmdbId: '12345'
+        tmdbId: '12345',
       };
-      
+
       // Act
       const response = await request(app)
         .post('/api/media/request')
         .set('Authorization', `Bearer ${testUser.token}`)
         .send(requestData)
         .expect(201);
-      
+
       // Assert
       expect(response.body.success).toBe(true);
       expect(response.body.data.id).toBeDefined();
       expect(response.body.data.userId).toBe(testUser.id);
-      
+
       // Verify database state
       const dbRequest = await testDb.findMediaRequest(response.body.data.id);
       expect(dbRequest).toBeTruthy();
       expect(dbRequest.title).toBe(requestData.title);
     });
-    
+
     it('should reject request without authentication', async () => {
       const requestData = { title: 'Test', mediaType: 'movie', tmdbId: '123' };
-      
-      await request(app)
-        .post('/api/media/request')
-        .send(requestData)
-        .expect(401);
+
+      await request(app).post('/api/media/request').send(requestData).expect(401);
     });
   });
 });
@@ -669,34 +675,32 @@ test.describe('Media Management Flow', () => {
     await page.goto('/');
     await loginAsUser(page, 'testuser');
   });
-  
+
   test('should allow user to search and request media', async ({ page }) => {
     // Navigate to media page
     await page.click('[data-testid="nav-media"]');
     await page.waitForLoadState('networkidle');
-    
+
     // Search for media
     await page.fill('[data-testid="search-input"]', 'Inception');
     await page.click('[data-testid="search-button"]');
-    
+
     // Wait for results
     await page.waitForSelector('[data-testid="media-results"]');
-    
+
     // Verify results are displayed
     const results = page.locator('[data-testid="media-card"]');
     await expect(results).toHaveCount.greaterThan(0);
-    
+
     // Request first result
     await results.first().click('[data-testid="request-button"]');
-    
+
     // Verify success message
-    await expect(page.locator('[data-testid="success-notification"]'))
-      .toBeVisible();
-    
+    await expect(page.locator('[data-testid="success-notification"]')).toBeVisible();
+
     // Verify request appears in user's requests
     await page.click('[data-testid="nav-requests"]');
-    await expect(page.locator('[data-testid="request-item"]'))
-      .toContainText('Inception');
+    await expect(page.locator('[data-testid="request-item"]')).toContainText('Inception');
   });
 });
 ```
@@ -706,17 +710,18 @@ test.describe('Media Management Flow', () => {
 ### Code Documentation
 
 #### JSDoc Standards
-```typescript
+
+````typescript
 /**
  * Searches for media content across configured providers
- * 
+ *
  * @param query - Search parameters including title, type, and filters
  * @param options - Additional search options like pagination and sorting
  * @returns Promise resolving to paginated search results
- * 
+ *
  * @throws {ValidationError} When query parameters are invalid
  * @throws {ServiceUnavailableError} When external services are down
- * 
+ *
  * @example
  * ```typescript
  * const results = await mediaService.searchMedia(
@@ -731,19 +736,20 @@ async searchMedia(
 ): Promise<PaginatedResult<MediaSearchResult>> {
   // Implementation
 }
-```
+````
 
 #### Component Documentation
-```tsx
+
+````tsx
 /**
  * ServiceCard displays the status and details of an external service
- * 
+ *
  * Features:
  * - Real-time status updates via WebSocket
  * - Connection testing functionality
  * - Responsive design for mobile and desktop
  * - Accessibility compliant (WCAG 2.1 AA)
- * 
+ *
  * @example
  * ```tsx
  * <ServiceCard
@@ -756,17 +762,15 @@ async searchMedia(
  * />
  * ```
  */
-export const ServiceCard: React.FC<ServiceCardProps> = ({ 
-  service, 
-  onTest 
-}) => {
+export const ServiceCard: React.FC<ServiceCardProps> = ({ service, onTest }) => {
   // Component implementation
 };
-```
+````
 
 ### API Documentation
 
 #### OpenAPI/Swagger Standards
+
 ```yaml
 # ✅ Good: Complete API documentation
 paths:
@@ -819,18 +823,22 @@ When adding features, update relevant README sections:
 
 ```markdown
 ## ✅ Features Added
+
 - **Advanced Media Filtering**: Filter by genre, year, and rating
   - Persistent filter state across sessions
   - Quick filter presets for common searches
   - Mobile-optimized filter interface
 
 ## 📖 API Changes
+
 - Added `/api/media/filters` endpoint for available filters
 - Extended `/api/media/search` with new query parameters
 - WebSocket event `media:filters-updated` for real-time updates
 
 ## 🔧 Configuration
+
 New environment variables:
+
 - `MEDIA_FILTER_CACHE_TTL`: Cache duration for filter options (default: 3600)
 - `ENABLE_ADVANCED_FILTERS`: Enable advanced filtering UI (default: true)
 ```
@@ -866,9 +874,11 @@ New environment variables:
 
 ```markdown
 ## Description
+
 Brief description of the changes and their purpose.
 
 ## Type of Change
+
 - [ ] 🐛 Bug fix (non-breaking change which fixes an issue)
 - [ ] ✨ New feature (non-breaking change which adds functionality)
 - [ ] 💥 Breaking change (fix or feature that would cause existing functionality to not work as expected)
@@ -877,33 +887,40 @@ Brief description of the changes and their purpose.
 - [ ] ⚡ Performance improvement
 
 ## Related Issues
+
 - Closes #[issue-number]
 - Related to #[issue-number]
 
 ## Changes Made
+
 - [ ] Detailed list of changes
 - [ ] Including technical details
 - [ ] And user-facing improvements
 
 ## Testing
+
 - [ ] Unit tests added/updated
 - [ ] Integration tests pass
 - [ ] Manual testing completed
 - [ ] Cross-browser testing (if applicable)
 
 ## Documentation
+
 - [ ] Code documentation updated
 - [ ] API documentation updated (if applicable)
 - [ ] README updated (if applicable)
 - [ ] Migration guide provided (for breaking changes)
 
 ## Screenshots (if applicable)
+
 Include screenshots or GIFs for UI changes.
 
 ## Deployment Notes
+
 Any special deployment considerations or database migrations needed.
 
 ## Checklist
+
 - [ ] My code follows the style guidelines of this project
 - [ ] I have performed a self-review of my own code
 - [ ] I have commented my code, particularly in hard-to-understand areas
@@ -956,6 +973,7 @@ Any special deployment considerations or database migrations needed.
 ### Recognition
 
 We recognize contributors through:
+
 - **Contributors List**: All contributors are listed in the project
 - **Release Notes**: Significant contributions mentioned in releases
 - **Community Shoutouts**: Recognition in community discussions

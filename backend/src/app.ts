@@ -1,6 +1,6 @@
 /**
  * MediaNest Application Server - Main Express application setup
- * 
+ *
  * This module configures and initializes the complete MediaNest backend application including:
  * - Express server with optimized middleware stack
  * - Socket.IO server for real-time communication
@@ -8,7 +8,7 @@
  * - Performance optimizations and compression
  * - Request logging and error handling
  * - API route mounting and 404 handling
- * 
+ *
  * @fileoverview Main application entry point with comprehensive middleware configuration
  * @version 2.0.0
  * @author MediaNest Team
@@ -54,7 +54,7 @@ export const httpServer = createServer(app);
  * Socket.IO server instance
  * @type {SocketIOServer}
  * @description Real-time WebSocket server for live updates and notifications
- * 
+ *
  * Configuration:
  * - CORS enabled for frontend domain
  * - 60s ping timeout for connection stability
@@ -80,7 +80,7 @@ initSocketHandlers(io);
 /**
  * CORS Configuration
  * @description Cross-Origin Resource Sharing middleware for frontend communication
- * 
+ *
  * Features:
  * - Restricts origin to configured frontend URL
  * - Supports credentials for authenticated requests
@@ -109,7 +109,7 @@ app.use(helmet());
 /**
  * Enhanced Compression Middleware
  * @description Context7 Pattern: Advanced compression with performance optimizations
- * 
+ *
  * Features:
  * - Dynamic compression level based on environment
  * - 1KB threshold to avoid compressing small responses
@@ -117,7 +117,7 @@ app.use(helmet());
  * - Memory usage optimization with reduced window bits
  * - RLE strategy optimized for JSON/text content
  * - Smart filtering to skip images and pre-compressed content
- * 
+ *
  * @performance Production uses level 4 compression for CPU efficiency
  * @performance Development uses level 6 for better compression ratio
  */
@@ -147,14 +147,14 @@ app.use(
 /**
  * Enhanced JSON Body Parsing
  * @description Context7 Pattern: Optimized body parsing with security enhancements
- * 
+ *
  * Security Features:
  * - 1MB limit for DoS protection
  * - Strict JSON parsing
  * - Content-type validation
  * - Early JSON format validation
  * - Buffer inspection to prevent malformed payloads
- * 
+ *
  * @security Prevents large payload attacks
  * @security Validates JSON format before parsing
  */
@@ -176,13 +176,13 @@ app.use(
 /**
  * URL-Encoded Body Parsing
  * @description Context7 Pattern: Secure URL-encoded data parsing
- * 
+ *
  * Security Features:
  * - Simple parsing (extended: false) for better security
  * - 100KB limit for form data protection
  * - 20 parameter limit to prevent parameter pollution attacks
  * - Explicit content-type restriction
- * 
+ *
  * @security Prevents parameter pollution and large form attacks
  */
 app.use(
@@ -203,13 +203,13 @@ app.use(cookieParser());
 /**
  * Performance Optimization Middleware
  * @description Context7 Pattern: Early performance optimizations and security headers
- * 
+ *
  * Features:
  * - Efficient security headers for all responses
  * - Keep-alive connection optimization
  * - Early exit optimization for health check endpoints
  * - Caching headers for health endpoints
- * 
+ *
  * @performance Keep-alive with 5s timeout and 1000 max requests
  * @performance Pre-compiled health check paths for fast lookup
  */
@@ -239,14 +239,14 @@ app.use(timeoutPresets.medium as express.RequestHandler);
 /**
  * Enhanced Request Logging Middleware
  * @description Context7 Pattern: High-performance logging with optimizations
- * 
+ *
  * Features:
  * - High-precision timing with process.hrtime.bigint()
  * - Smart filtering to reduce noise from health checks
  * - Structured logging with performance metrics
  * - Slow request detection and warnings
  * - User agent and IP tracking for security
- * 
+ *
  * @performance Pre-compiled health check paths for fast lookup
  * @performance Skips detailed logging for health endpoints
  * @performance Sub-millisecond timing precision
@@ -301,7 +301,7 @@ app.use('/api/v1', v1Router);
 /**
  * 404 Not Found Handler
  * @description Handles all unmatched routes with structured error response
- * 
+ *
  * Response Format:
  * - error: Human-readable error type
  * - message: Specific error with method and path
@@ -329,7 +329,7 @@ app.use(errorHandler as express.ErrorRequestHandler);
  * @function createApp
  * @description Factory function for creating the Express app instance (primarily for testing)
  * @returns {express.Application} Configured Express application
- * 
+ *
  * @example
  * // In tests
  * const testApp = createApp();

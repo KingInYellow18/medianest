@@ -2,13 +2,13 @@
 
 /**
  * Database Performance Analyzer for MediaNest
- * 
+ *
  * Analyzes database performance, identifies bottlenecks, and provides optimization recommendations.
  * Target: <50ms average query time, optimized indexes, efficient connection pooling.
- * 
+ *
  * Features:
  * - Query performance analysis
- * - Index utilization analysis  
+ * - Index utilization analysis
  * - Connection pool monitoring
  * - Table statistics analysis
  * - Optimization recommendations
@@ -26,7 +26,7 @@ class DatabasePerformanceAnalyzer {
       max: 5, // Limit connections for analysis
       idleTimeoutMillis: 30000,
     });
-    
+
     this.thresholds = {
       slowQueryMs: 50,
       highConnectionUsage: 0.8,
@@ -41,7 +41,7 @@ class DatabasePerformanceAnalyzer {
    */
   async analyzePerformance() {
     console.log('🔍 Starting Database Performance Analysis for MediaNest');
-    console.log('=' .repeat(60));
+    console.log('='.repeat(60));
 
     try {
       const results = {
@@ -51,7 +51,7 @@ class DatabasePerformanceAnalyzer {
         indexUsage: await this.analyzeIndexUsage(),
         tableStatistics: await this.analyzeTableStatistics(),
         cacheEfficiency: await this.analyzeCacheEfficiency(),
-        recommendations: []
+        recommendations: [],
       };
 
       // Generate recommendations based on analysis
@@ -105,7 +105,7 @@ class DatabasePerformanceAnalyzer {
       idleInTransaction: parseInt(conn.idle_in_transaction),
       maxConnections: parseInt(conn.max_connections),
       connectionUsage: connectionUsage,
-      sharedBuffers: conn.shared_buffers
+      sharedBuffers: conn.shared_buffers,
     };
   }
 
@@ -122,7 +122,9 @@ class DatabasePerformanceAnalyzer {
       `);
 
       if (!extensionCheck.rows[0].enabled) {
-        console.log('   ⚠️  pg_stat_statements extension not enabled. Limited query analysis available.');
+        console.log(
+          '   ⚠️  pg_stat_statements extension not enabled. Limited query analysis available.',
+        );
         return { extensionEnabled: false, slowQueries: [], summary: null };
       }
 
@@ -159,20 +161,26 @@ class DatabasePerformanceAnalyzer {
       const summary = await this.pool.query(summaryQuery, [this.thresholds.slowQueryMs]);
 
       console.log(`   Total Unique Queries: ${summary.rows[0].total_queries}`);
-      console.log(`   Average Execution Time: ${parseFloat(summary.rows[0].avg_execution_time).toFixed(2)}ms`);
-      console.log(`   Slow Queries (>${this.thresholds.slowQueryMs}ms): ${summary.rows[0].slow_queries}`);
-      console.log(`   Cache Hit Ratio: ${parseFloat(summary.rows[0].avg_cache_hit_ratio).toFixed(2)}%`);
+      console.log(
+        `   Average Execution Time: ${parseFloat(summary.rows[0].avg_execution_time).toFixed(2)}ms`,
+      );
+      console.log(
+        `   Slow Queries (>${this.thresholds.slowQueryMs}ms): ${summary.rows[0].slow_queries}`,
+      );
+      console.log(
+        `   Cache Hit Ratio: ${parseFloat(summary.rows[0].avg_cache_hit_ratio).toFixed(2)}%`,
+      );
 
       return {
         extensionEnabled: true,
-        slowQueries: slowQueries.rows.map(row => ({
+        slowQueries: slowQueries.rows.map((row) => ({
           query: row.query.substring(0, 100) + (row.query.length > 100 ? '...' : ''),
           calls: parseInt(row.calls),
           totalTime: parseFloat(row.total_exec_time),
           meanTime: parseFloat(row.mean_exec_time),
           stddevTime: parseFloat(row.stddev_exec_time),
           rows: parseInt(row.rows),
-          hitPercent: parseFloat(row.hit_percent) || 0
+          hitPercent: parseFloat(row.hit_percent) || 0,
         })),
         summary: {
           totalQueries: parseInt(summary.rows[0].total_queries),
@@ -180,8 +188,8 @@ class DatabasePerformanceAnalyzer {
           avgExecutionTime: parseFloat(summary.rows[0].avg_execution_time),
           maxExecutionTime: parseFloat(summary.rows[0].max_execution_time),
           slowQueries: parseInt(summary.rows[0].slow_queries),
-          avgCacheHitRatio: parseFloat(summary.rows[0].avg_cache_hit_ratio)
-        }
+          avgCacheHitRatio: parseFloat(summary.rows[0].avg_cache_hit_ratio),
+        },
       };
     } catch (error) {
       console.log('   ⚠️  Could not analyze query performance:', error.message);
@@ -224,15 +232,15 @@ class DatabasePerformanceAnalyzer {
 
     const [indexUsage, unusedIndexes] = await Promise.all([
       this.pool.query(indexUsageQuery),
-      this.pool.query(unusedIndexesQuery)
+      this.pool.query(unusedIndexesQuery),
     ]);
 
     console.log(`   Total Indexes: ${indexUsage.rows.length}`);
     console.log(`   Unused Indexes: ${unusedIndexes.rows.length}`);
-    
+
     if (unusedIndexes.rows.length > 0) {
       console.log('   Unused indexes found:');
-      unusedIndexes.rows.slice(0, 5).forEach(idx => {
+      unusedIndexes.rows.slice(0, 5).forEach((idx) => {
         console.log(`     - ${idx.tablename}.${idx.indexname} (${idx.index_size})`);
       });
     }
@@ -241,7 +249,7 @@ class DatabasePerformanceAnalyzer {
       totalIndexes: indexUsage.rows.length,
       unusedIndexes: unusedIndexes.rows.length,
       indexUsageStats: indexUsage.rows.slice(0, 10), // Top 10 most used
-      unusedIndexesList: unusedIndexes.rows
+      unusedIndexesList: unusedIndexes.rows,
     };
   }
 
@@ -287,22 +295,26 @@ class DatabasePerformanceAnalyzer {
 
     const [tableStats, tableSizes] = await Promise.all([
       this.pool.query(tableStatsQuery),
-      this.pool.query(tableSizesQuery)
+      this.pool.query(tableSizesQuery),
     ]);
 
     // Identify tables needing attention
-    const tablesNeedingVacuum = tableStats.rows.filter(table => 
-      parseFloat(table.dead_ratio) > this.thresholds.highTableBloat
+    const tablesNeedingVacuum = tableStats.rows.filter(
+      (table) => parseFloat(table.dead_ratio) > this.thresholds.highTableBloat,
     );
 
     console.log(`   Total Tables: ${tableStats.rows.length}`);
-    console.log(`   Largest Table: ${tableSizes.rows[0]?.tablename} (${tableSizes.rows[0]?.total_size})`);
+    console.log(
+      `   Largest Table: ${tableSizes.rows[0]?.tablename} (${tableSizes.rows[0]?.total_size})`,
+    );
     console.log(`   Tables Needing Vacuum: ${tablesNeedingVacuum.length}`);
 
     if (tablesNeedingVacuum.length > 0) {
       console.log('   Tables with high dead tuple ratio:');
-      tablesNeedingVacuum.slice(0, 3).forEach(table => {
-        console.log(`     - ${table.tablename}: ${(parseFloat(table.dead_ratio) * 100).toFixed(1)}% dead`);
+      tablesNeedingVacuum.slice(0, 3).forEach((table) => {
+        console.log(
+          `     - ${table.tablename}: ${(parseFloat(table.dead_ratio) * 100).toFixed(1)}% dead`,
+        );
       });
     }
 
@@ -310,7 +322,7 @@ class DatabasePerformanceAnalyzer {
       tableCount: tableStats.rows.length,
       tableStats: tableStats.rows,
       tableSizes: tableSizes.rows,
-      tablesNeedingVacuum: tablesNeedingVacuum.length
+      tablesNeedingVacuum: tablesNeedingVacuum.length,
     };
   }
 
@@ -347,7 +359,7 @@ class DatabasePerformanceAnalyzer {
 
     const [cacheStats, bufferSettings] = await Promise.all([
       this.pool.query(cacheStatsQuery),
-      this.pool.query(bufferStatsQuery)
+      this.pool.query(bufferStatsQuery),
     ]);
 
     const cache = cacheStats.rows[0];
@@ -356,8 +368,8 @@ class DatabasePerformanceAnalyzer {
 
     console.log(`   Heap Cache Hit Ratio: ${cache.heap_hit_ratio}%`);
     console.log(`   Index Cache Hit Ratio: ${cache.index_hit_ratio}%`);
-    
-    bufferSettings.rows.forEach(setting => {
+
+    bufferSettings.rows.forEach((setting) => {
       console.log(`   ${setting.name}: ${setting.setting}${setting.unit || ''}`);
     });
 
@@ -368,7 +380,7 @@ class DatabasePerformanceAnalyzer {
       heapHit: parseInt(cache.heap_hit),
       indexRead: parseInt(cache.idx_read),
       indexHit: parseInt(cache.idx_hit),
-      bufferSettings: bufferSettings.rows
+      bufferSettings: bufferSettings.rows,
     };
   }
 
@@ -385,7 +397,7 @@ class DatabasePerformanceAnalyzer {
         priority: 'High',
         issue: 'High connection pool usage',
         recommendation: 'Consider increasing max_connections or optimizing connection pooling',
-        details: `Current usage: ${(results.connectionInfo.connectionUsage * 100).toFixed(2)}%`
+        details: `Current usage: ${(results.connectionInfo.connectionUsage * 100).toFixed(2)}%`,
       });
     }
 
@@ -397,17 +409,20 @@ class DatabasePerformanceAnalyzer {
           priority: 'High',
           issue: 'Multiple slow queries detected',
           recommendation: 'Optimize slow queries with proper indexing and query rewriting',
-          details: `${results.queryPerformance.summary.slowQueries} queries averaging over ${this.thresholds.slowQueryMs}ms`
+          details: `${results.queryPerformance.summary.slowQueries} queries averaging over ${this.thresholds.slowQueryMs}ms`,
         });
       }
 
-      if (results.queryPerformance.summary.avgCacheHitRatio < this.thresholds.lowCacheHitRate * 100) {
+      if (
+        results.queryPerformance.summary.avgCacheHitRatio <
+        this.thresholds.lowCacheHitRate * 100
+      ) {
         recommendations.push({
           category: 'Cache Performance',
           priority: 'Medium',
           issue: 'Low cache hit ratio',
           recommendation: 'Increase shared_buffers or optimize query patterns',
-          details: `Average cache hit ratio: ${results.queryPerformance.summary.avgCacheHitRatio.toFixed(2)}%`
+          details: `Average cache hit ratio: ${results.queryPerformance.summary.avgCacheHitRatio.toFixed(2)}%`,
         });
       }
     }
@@ -419,7 +434,7 @@ class DatabasePerformanceAnalyzer {
         priority: 'Low',
         issue: 'Unused indexes consuming space',
         recommendation: 'Review and drop unused indexes to improve write performance',
-        details: `${results.indexUsage.unusedIndexes} unused indexes found`
+        details: `${results.indexUsage.unusedIndexes} unused indexes found`,
       });
     }
 
@@ -430,7 +445,7 @@ class DatabasePerformanceAnalyzer {
         priority: 'Medium',
         issue: 'Tables with high dead tuple ratio',
         recommendation: 'Run VACUUM ANALYZE on tables with high bloat',
-        details: `${results.tableStatistics.tablesNeedingVacuum} tables need vacuum`
+        details: `${results.tableStatistics.tablesNeedingVacuum} tables need vacuum`,
       });
     }
 
@@ -441,17 +456,17 @@ class DatabasePerformanceAnalyzer {
         priority: 'High',
         issue: 'Low heap cache hit ratio',
         recommendation: 'Increase shared_buffers setting',
-        details: `Heap hit ratio: ${(results.cacheEfficiency.heapHitRatio * 100).toFixed(2)}%`
+        details: `Heap hit ratio: ${(results.cacheEfficiency.heapHitRatio * 100).toFixed(2)}%`,
       });
     }
 
     if (results.cacheEfficiency.indexHitRatio < this.thresholds.lowIndexHitRate) {
       recommendations.push({
-        category: 'Cache Tuning', 
+        category: 'Cache Tuning',
         priority: 'High',
         issue: 'Low index cache hit ratio',
         recommendation: 'Increase shared_buffers or review index usage patterns',
-        details: `Index hit ratio: ${(results.cacheEfficiency.indexHitRatio * 100).toFixed(2)}%`
+        details: `Index hit ratio: ${(results.cacheEfficiency.indexHitRatio * 100).toFixed(2)}%`,
       });
     }
 
@@ -462,7 +477,7 @@ class DatabasePerformanceAnalyzer {
         priority: 'Info',
         issue: 'Database performance is within acceptable ranges',
         recommendation: 'Continue monitoring and maintain current optimization strategies',
-        details: 'All metrics are meeting performance targets'
+        details: 'All metrics are meeting performance targets',
       });
     }
 
@@ -474,18 +489,23 @@ class DatabasePerformanceAnalyzer {
    */
   displayResults(results) {
     console.log('\n🎯 OPTIMIZATION RECOMMENDATIONS');
-    console.log('=' .repeat(50));
+    console.log('='.repeat(50));
 
-    const priorityOrder = { 'High': 1, 'Medium': 2, 'Low': 3, 'Info': 4 };
+    const priorityOrder = { High: 1, Medium: 2, Low: 3, Info: 4 };
     const sortedRecommendations = results.recommendations.sort(
-      (a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]
+      (a, b) => priorityOrder[a.priority] - priorityOrder[b.priority],
     );
 
     sortedRecommendations.forEach((rec, index) => {
-      const priorityIcon = rec.priority === 'High' ? '🔴' : 
-                          rec.priority === 'Medium' ? '🟡' : 
-                          rec.priority === 'Low' ? '🟢' : '💡';
-      
+      const priorityIcon =
+        rec.priority === 'High'
+          ? '🔴'
+          : rec.priority === 'Medium'
+            ? '🟡'
+            : rec.priority === 'Low'
+              ? '🟢'
+              : '💡';
+
       console.log(`\n${index + 1}. ${priorityIcon} ${rec.category} - ${rec.priority} Priority`);
       console.log(`   Issue: ${rec.issue}`);
       console.log(`   Recommendation: ${rec.recommendation}`);
@@ -493,14 +513,18 @@ class DatabasePerformanceAnalyzer {
     });
 
     console.log('\n📊 PERFORMANCE SUMMARY');
-    console.log('=' .repeat(30));
+    console.log('='.repeat(30));
     console.log(`Connection Usage: ${(results.connectionInfo.connectionUsage * 100).toFixed(2)}%`);
-    
+
     if (results.queryPerformance.extensionEnabled && results.queryPerformance.summary) {
-      console.log(`Average Query Time: ${results.queryPerformance.summary.avgExecutionTime.toFixed(2)}ms`);
-      console.log(`Cache Hit Ratio: ${results.queryPerformance.summary.avgCacheHitRatio.toFixed(2)}%`);
+      console.log(
+        `Average Query Time: ${results.queryPerformance.summary.avgExecutionTime.toFixed(2)}ms`,
+      );
+      console.log(
+        `Cache Hit Ratio: ${results.queryPerformance.summary.avgCacheHitRatio.toFixed(2)}%`,
+      );
     }
-    
+
     console.log(`Heap Cache Hit: ${(results.cacheEfficiency.heapHitRatio * 100).toFixed(2)}%`);
     console.log(`Index Cache Hit: ${(results.cacheEfficiency.indexHitRatio * 100).toFixed(2)}%`);
   }
@@ -511,7 +535,7 @@ class DatabasePerformanceAnalyzer {
   async saveReport(results) {
     const reportPath = path.join(__dirname, '..', 'docs', 'database-performance-report.json');
     await fs.writeFile(reportPath, JSON.stringify(results, null, 2));
-    
+
     console.log(`\n💾 Detailed report saved to: ${reportPath}`);
   }
 
@@ -526,7 +550,7 @@ class DatabasePerformanceAnalyzer {
 // CLI execution
 if (require.main === module) {
   const config = {
-    connectionString: process.env.DATABASE_URL
+    connectionString: process.env.DATABASE_URL,
   };
 
   if (!config.connectionString) {
@@ -536,15 +560,18 @@ if (require.main === module) {
 
   const analyzer = new DatabasePerformanceAnalyzer(config);
 
-  analyzer.analyzePerformance()
-    .then(results => {
+  analyzer
+    .analyzePerformance()
+    .then((results) => {
       console.log('\n🎉 Database analysis completed successfully!');
-      
+
       // Exit with error code if high priority issues found
-      const highPriorityIssues = results.recommendations.filter(r => r.priority === 'High').length;
+      const highPriorityIssues = results.recommendations.filter(
+        (r) => r.priority === 'High',
+      ).length;
       process.exit(highPriorityIssues > 0 ? 1 : 0);
     })
-    .catch(error => {
+    .catch((error) => {
       console.error('\n💥 Database analysis failed:', error);
       process.exit(1);
     })

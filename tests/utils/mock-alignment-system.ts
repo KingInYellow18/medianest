@@ -1,9 +1,9 @@
 /**
  * Mock Alignment System
- * 
+ *
  * Ensures mock interfaces match actual service implementations
  * Prevents runtime errors and improves test reliability
- * 
+ *
  * CRITICAL FIX: Addresses Phase 1 mock interface mismatches
  */
 
@@ -44,29 +44,40 @@ export class CacheServiceMockGenerator implements ServiceMockGenerator {
       mset: vi.fn().mockResolvedValue(undefined),
       getInfo: vi.fn().mockResolvedValue({
         keyCount: 0,
-        memoryUsage: '0B'
+        memoryUsage: '0B',
       }),
       getOrSet: vi.fn(),
-      invalidatePattern: vi.fn().mockResolvedValue(undefined)
+      invalidatePattern: vi.fn().mockResolvedValue(undefined),
     };
   }
 
   validate(mockInstance: any): MockValidation {
     const expectedMethods = [
-      'get', 'set', 'del', 'exists', 'ttl', 'clear', 
-      'ping', 'mget', 'mset', 'getInfo', 'getOrSet', 'invalidatePattern'
+      'get',
+      'set',
+      'del',
+      'exists',
+      'ttl',
+      'clear',
+      'ping',
+      'mget',
+      'mset',
+      'getInfo',
+      'getOrSet',
+      'invalidatePattern',
     ];
-    
+
     const actualMethods = Object.keys(mockInstance);
-    const missingMethods = expectedMethods.filter(method => !actualMethods.includes(method));
-    const extraMethods = actualMethods.filter(method => !expectedMethods.includes(method));
-    
+    const missingMethods = expectedMethods.filter((method) => !actualMethods.includes(method));
+    const extraMethods = actualMethods.filter((method) => !expectedMethods.includes(method));
+
     return {
       service: this.serviceName,
       methods: expectedMethods,
       missingMethods,
       extraMethods,
-      alignmentStatus: missingMethods.length === 0 && extraMethods.length === 0 ? 'ALIGNED' : 'MISALIGNED'
+      alignmentStatus:
+        missingMethods.length === 0 && extraMethods.length === 0 ? 'ALIGNED' : 'MISALIGNED',
     };
   }
 }
@@ -99,20 +110,32 @@ export class RedisClientMockGenerator implements ServiceMockGenerator {
 
   validate(mockInstance: any): MockValidation {
     const expectedMethods = [
-      'get', 'setex', 'del', 'exists', 'ttl', 'flushall', 
-      'ping', 'info', 'dbsize', 'mget', 'keys', 'mset', 'expire', 'scan'
+      'get',
+      'setex',
+      'del',
+      'exists',
+      'ttl',
+      'flushall',
+      'ping',
+      'info',
+      'dbsize',
+      'mget',
+      'keys',
+      'mset',
+      'expire',
+      'scan',
     ];
-    
+
     const actualMethods = Object.keys(mockInstance);
-    const missingMethods = expectedMethods.filter(method => !actualMethods.includes(method));
-    const extraMethods = actualMethods.filter(method => !expectedMethods.includes(method));
-    
+    const missingMethods = expectedMethods.filter((method) => !actualMethods.includes(method));
+    const extraMethods = actualMethods.filter((method) => !expectedMethods.includes(method));
+
     return {
       service: this.serviceName,
       methods: expectedMethods,
       missingMethods,
       extraMethods,
-      alignmentStatus: missingMethods.length === 0 ? 'ALIGNED' : 'MISALIGNED'
+      alignmentStatus: missingMethods.length === 0 ? 'ALIGNED' : 'MISALIGNED',
     };
   }
 }
@@ -139,26 +162,32 @@ export class JWTServiceMockGenerator implements ServiceMockGenerator {
 
   validate(mockInstance: any): MockValidation {
     const expectedMethods = [
-      'sign', 'verify', 'decode', 'refresh', 'isExpired', 
-      'getExpirationTime', 'generateRefreshToken', 'validateRefreshToken'
+      'sign',
+      'verify',
+      'decode',
+      'refresh',
+      'isExpired',
+      'getExpirationTime',
+      'generateRefreshToken',
+      'validateRefreshToken',
     ];
-    
+
     const actualMethods = Object.keys(mockInstance);
-    const missingMethods = expectedMethods.filter(method => !actualMethods.includes(method));
-    const extraMethods = actualMethods.filter(method => !expectedMethods.includes(method));
-    
+    const missingMethods = expectedMethods.filter((method) => !actualMethods.includes(method));
+    const extraMethods = actualMethods.filter((method) => !expectedMethods.includes(method));
+
     return {
       service: this.serviceName,
       methods: expectedMethods,
       missingMethods,
       extraMethods,
-      alignmentStatus: missingMethods.length === 0 ? 'ALIGNED' : 'MISALIGNED'
+      alignmentStatus: missingMethods.length === 0 ? 'ALIGNED' : 'MISALIGNED',
     };
   }
 }
 
 /**
- * Auth Service Mock Generator  
+ * Auth Service Mock Generator
  * TIER 1 PRIORITY: Critical auth component
  */
 export class AuthServiceMockGenerator implements ServiceMockGenerator {
@@ -166,17 +195,17 @@ export class AuthServiceMockGenerator implements ServiceMockGenerator {
 
   generate() {
     return {
-      login: vi.fn().mockResolvedValue({ 
-        token: 'mock.jwt.token', 
+      login: vi.fn().mockResolvedValue({
+        token: 'mock.jwt.token',
         refreshToken: 'refresh.token',
-        user: { id: 'test-user-id', username: 'testuser' }
+        user: { id: 'test-user-id', username: 'testuser' },
       }),
       logout: vi.fn().mockResolvedValue(undefined),
       refreshToken: vi.fn().mockResolvedValue('new.jwt.token'),
       validateToken: vi.fn().mockResolvedValue(true),
       register: vi.fn().mockResolvedValue({
         user: { id: 'new-user-id', username: 'newuser' },
-        token: 'new.jwt.token'
+        token: 'new.jwt.token',
       }),
       resetPassword: vi.fn().mockResolvedValue(undefined),
       changePassword: vi.fn().mockResolvedValue(undefined),
@@ -186,20 +215,26 @@ export class AuthServiceMockGenerator implements ServiceMockGenerator {
 
   validate(mockInstance: any): MockValidation {
     const expectedMethods = [
-      'login', 'logout', 'refreshToken', 'validateToken', 
-      'register', 'resetPassword', 'changePassword', 'verifyEmail'
+      'login',
+      'logout',
+      'refreshToken',
+      'validateToken',
+      'register',
+      'resetPassword',
+      'changePassword',
+      'verifyEmail',
     ];
-    
+
     const actualMethods = Object.keys(mockInstance);
-    const missingMethods = expectedMethods.filter(method => !actualMethods.includes(method));
-    const extraMethods = actualMethods.filter(method => !expectedMethods.includes(method));
-    
+    const missingMethods = expectedMethods.filter((method) => !actualMethods.includes(method));
+    const extraMethods = actualMethods.filter((method) => !expectedMethods.includes(method));
+
     return {
       service: this.serviceName,
       methods: expectedMethods,
       missingMethods,
       extraMethods,
-      alignmentStatus: missingMethods.length === 0 ? 'ALIGNED' : 'MISALIGNED'
+      alignmentStatus: missingMethods.length === 0 ? 'ALIGNED' : 'MISALIGNED',
     };
   }
 }
@@ -220,7 +255,7 @@ export class MockAlignmentValidator {
    * Validate all mock generators
    */
   validateAll(): MockValidation[] {
-    return this.generators.map(generator => {
+    return this.generators.map((generator) => {
       const mockInstance = generator.generate();
       return generator.validate(mockInstance);
     });
@@ -230,7 +265,7 @@ export class MockAlignmentValidator {
    * Get misaligned mocks
    */
   getMisalignedMocks(): MockValidation[] {
-    return this.validateAll().filter(validation => validation.alignmentStatus === 'MISALIGNED');
+    return this.validateAll().filter((validation) => validation.alignmentStatus === 'MISALIGNED');
   }
 
   /**
@@ -239,8 +274,9 @@ export class MockAlignmentValidator {
   assertAllAligned(): void {
     const misaligned = this.getMisalignedMocks();
     if (misaligned.length > 0) {
-      const errors = misaligned.map(m => 
-        `${m.service}: missing ${m.missingMethods.join(', ')}, extra ${m.extraMethods.join(', ')}`
+      const errors = misaligned.map(
+        (m) =>
+          `${m.service}: missing ${m.missingMethods.join(', ')}, extra ${m.extraMethods.join(', ')}`,
       );
       throw new Error(`Mock alignment errors:\n${errors.join('\n')}`);
     }
@@ -251,14 +287,14 @@ export class MockAlignmentValidator {
    */
   generateReport(): string {
     const validations = this.validateAll();
-    const aligned = validations.filter(v => v.alignmentStatus === 'ALIGNED').length;
+    const aligned = validations.filter((v) => v.alignmentStatus === 'ALIGNED').length;
     const total = validations.length;
-    
+
     let report = `Mock Alignment Report\n`;
     report += `===================\n`;
-    report += `Aligned: ${aligned}/${total} (${Math.round(aligned/total * 100)}%)\n\n`;
-    
-    validations.forEach(validation => {
+    report += `Aligned: ${aligned}/${total} (${Math.round((aligned / total) * 100)}%)\n\n`;
+
+    validations.forEach((validation) => {
       report += `${validation.service}: ${validation.alignmentStatus}\n`;
       if (validation.missingMethods.length > 0) {
         report += `  Missing: ${validation.missingMethods.join(', ')}\n`;
@@ -267,7 +303,7 @@ export class MockAlignmentValidator {
         report += `  Extra: ${validation.extraMethods.join(', ')}\n`;
       }
     });
-    
+
     return report;
   }
 }

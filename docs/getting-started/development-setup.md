@@ -20,6 +20,7 @@ This comprehensive guide walks you through setting up a complete MediaNest devel
 ### Required Software
 
 #### Node.js 20.x LTS
+
 ```bash
 # Check current version
 node --version
@@ -32,6 +33,7 @@ nvm alias default 20
 ```
 
 #### Docker & Docker Compose V2
+
 ```bash
 # Install Docker Desktop (recommended for beginners)
 # Download from: https://www.docker.com/products/docker-desktop
@@ -46,6 +48,7 @@ docker compose version    # Should be v2.x+
 ```
 
 #### Git with LFS (Large File Support)
+
 ```bash
 # Install Git LFS for handling large files
 git lfs install
@@ -57,6 +60,7 @@ git lfs version
 ### Optional but Recommended
 
 #### PostgreSQL Client Tools
+
 ```bash
 # macOS
 brew install postgresql
@@ -69,6 +73,7 @@ sudo apt install postgresql-client
 ```
 
 #### Redis CLI
+
 ```bash
 # macOS
 brew install redis
@@ -323,6 +328,7 @@ npm run db:validate
      - Redirect URI: `http://localhost:3000/api/auth/callback/plex`
 
 2. **Configure Plex Settings**:
+
    ```bash
    # Add to .env
    PLEX_CLIENT_ID="your-client-id"
@@ -331,6 +337,7 @@ npm run db:validate
    ```
 
 3. **Test Plex Connection**:
+
    ```bash
    # Start development server
    npm run dev
@@ -346,6 +353,7 @@ npm run db:validate
    - Generate an API key in Overseerr settings
 
 2. **Configure MediaNest**:
+
    ```bash
    # Add to .env
    OVERSEERR_URL="http://your-overseerr-instance:5055"
@@ -440,12 +448,14 @@ npm run dev
 ### 2. Development Server Details
 
 #### Frontend (Next.js)
+
 - **Port**: 3000
 - **Hot Reload**: Automatic on file changes
 - **Custom Server**: Integrated with Socket.io
 - **Build Output**: `.next/` directory
 
 #### Backend (Express)
+
 - **Port**: 4000
 - **Auto Restart**: via nodemon
 - **TypeScript Compilation**: On-the-fly with ts-node
@@ -454,6 +464,7 @@ npm run dev
 ### 3. File Watching and Auto-Reload
 
 The development setup includes:
+
 - **Frontend**: Next.js fast refresh for React components
 - **Backend**: Nodemon restart on `.ts` file changes
 - **Database**: Prisma Client regeneration on schema changes
@@ -528,6 +539,7 @@ npm run test:e2e:debug
 ### 4. Test Configuration
 
 #### Vitest Configuration (`vitest.config.ts`)
+
 ```typescript
 import { defineConfig } from 'vitest/config';
 import { resolve } from 'path';
@@ -539,21 +551,15 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'json'],
-      exclude: [
-        'node_modules/',
-        'dist/',
-        'coverage/',
-        '**/*.test.ts',
-        '**/*.config.ts'
-      ]
-    }
+      exclude: ['node_modules/', 'dist/', 'coverage/', '**/*.test.ts', '**/*.config.ts'],
+    },
   },
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
-      '@shared': resolve(__dirname, '../shared/src')
-    }
-  }
+      '@shared': resolve(__dirname, '../shared/src'),
+    },
+  },
 });
 ```
 
@@ -562,11 +568,13 @@ export default defineConfig({
 ### 1. Backend Debugging
 
 #### VS Code Debugging
+
 1. Set breakpoints in TypeScript files
 2. Press F5 or use "Debug Backend" configuration
 3. Debug directly in source code
 
 #### Manual Debugging
+
 ```bash
 # Start with Node.js inspector
 cd backend
@@ -579,12 +587,14 @@ npx tsx --inspect src/server.ts
 ### 2. Frontend Debugging
 
 #### Browser DevTools
+
 - React Developer Tools extension
 - Next.js development panel
 - Network tab for API calls
 - WebSocket inspection
 
 #### VS Code Debugging
+
 ```json
 {
   "name": "Debug Next.js",
@@ -600,12 +610,14 @@ npx tsx --inspect src/server.ts
 ### 3. Database Debugging
 
 #### SQL Query Logging
+
 ```bash
 # Enable Prisma query logging in development
 DEBUG="prisma:query" npm run dev
 ```
 
 #### Database Connection Issues
+
 ```bash
 # Test database connectivity
 cd backend
@@ -618,12 +630,14 @@ docker compose -f docker-compose.dev.yml logs postgres
 ### 4. WebSocket Debugging
 
 #### Server-Side WebSocket Logs
+
 ```typescript
 // Enable Socket.io debugging
 DEBUG="socket.io:*" npm run dev
 ```
 
 #### Client-Side WebSocket Testing
+
 ```javascript
 // Browser console
 const socket = io('http://localhost:4000');
@@ -636,6 +650,7 @@ socket.on('disconnect', () => console.log('Disconnected'));
 ### 1. Development Performance
 
 #### Build Performance
+
 ```bash
 # Use SWC compiler for faster builds
 # Already configured in Next.js config
@@ -648,6 +663,7 @@ npm config set script-shell "bash"
 ```
 
 #### Database Performance
+
 ```bash
 # Enable query optimization in development
 DATABASE_URL="${DATABASE_URL}?connection_limit=5&pool_timeout=30"
@@ -656,11 +672,13 @@ DATABASE_URL="${DATABASE_URL}?connection_limit=5&pool_timeout=30"
 ### 2. Hot Reload Optimization
 
 #### Next.js Fast Refresh
+
 - Preserve component state during edits
 - Automatic error recovery
 - Optimized for TypeScript
 
 #### Backend Auto-Restart
+
 ```json
 // nodemon.json
 {
@@ -689,6 +707,7 @@ node --inspect --trace-warnings src/server.ts
 ### Common Issues and Solutions
 
 #### TypeScript Compilation Errors
+
 ```bash
 # Clear TypeScript cache
 npx tsc --build --clean
@@ -701,6 +720,7 @@ npm run db:generate
 ```
 
 #### Port Conflicts
+
 ```bash
 # Find and kill processes using ports
 lsof -ti:3000 | xargs kill -9
@@ -712,6 +732,7 @@ BACKEND_PORT=4001 npm run dev:backend
 ```
 
 #### Docker Issues
+
 ```bash
 # Reset Docker environment
 docker compose -f docker-compose.dev.yml down -v
@@ -722,6 +743,7 @@ docker compose -f docker-compose.dev.yml up --build -d
 ```
 
 #### Database Connection Issues
+
 ```bash
 # Check database status
 docker compose -f docker-compose.dev.yml ps postgres
@@ -738,6 +760,7 @@ npm run db:migrate
 ### Performance Issues
 
 #### Slow Hot Reload
+
 ```bash
 # Disable source maps in development (faster compilation)
 # Edit next.config.js:
@@ -753,6 +776,7 @@ const nextConfig = {
 ```
 
 #### High Memory Usage
+
 ```bash
 # Monitor memory usage
 node --max-old-space-size=4096 node_modules/.bin/next dev
@@ -766,16 +790,19 @@ node --inspect --max-old-space-size=4096 backend/src/server.ts
 You now have a complete development environment! Here's what to do next:
 
 ### 1. Explore the Codebase
+
 - Read the [Architecture Documentation](../ARCHITECTURE.md)
 - Understand the [API Structure](../api/README.md)
 - Review existing components and services
 
 ### 2. Make Your First Contribution
+
 - Find a [good first issue](https://github.com/repo/medianest/labels/good%20first%20issue)
 - Read the [Contributing Guidelines](../developers/contributing.md)
 - Follow the [Development Workflow](../developers/workflow.md)
 
 ### 3. Join the Community
+
 - Participate in discussions
 - Help other developers
 - Share your improvements

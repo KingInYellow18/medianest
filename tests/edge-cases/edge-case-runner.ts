@@ -35,12 +35,15 @@ interface EdgeCaseReport {
     duration: number;
     memoryPeak: number;
   };
-  categories: Record<string, {
-    tests: number;
-    passed: number;
-    failed: number;
-    duration: number;
-  }>;
+  categories: Record<
+    string,
+    {
+      tests: number;
+      passed: number;
+      failed: number;
+      duration: number;
+    }
+  >;
   criticalFindings: Array<{
     category: string;
     test: string;
@@ -74,7 +77,7 @@ class EdgeCaseTestRunner {
     this.redis = new Redis({
       host: process.env.REDIS_HOST || 'localhost',
       port: parseInt(process.env.REDIS_PORT || '6379'),
-      db: 1
+      db: 1,
     });
   }
 
@@ -90,25 +93,24 @@ class EdgeCaseTestRunner {
 
       // Generate comprehensive report
       const report = await this.generateReport();
-      
+
       // Store results in memory for production validation
       await this.storeResultsInMemory(report);
-      
+
       // Save report to filesystem
       await this.saveReport(report);
-      
+
       console.log('✅ Edge case testing completed successfully');
       console.log(`📊 Summary: ${report.summary.passed}/${report.summary.totalTests} tests passed`);
       console.log(`⏱️  Duration: ${report.summary.duration}ms`);
-      
+
       if (report.criticalFindings.length > 0) {
         console.log(`🚨 Critical Findings: ${report.criticalFindings.length}`);
       }
-      
+
       if (report.vulnerabilities.length > 0) {
         console.log(`🔓 Vulnerabilities Found: ${report.vulnerabilities.length}`);
       }
-
     } catch (error) {
       console.error('❌ Edge case testing failed:', error);
       throw error;
@@ -119,13 +121,17 @@ class EdgeCaseTestRunner {
 
   private async executeTestSuite(testFile: string, description: string): Promise<void> {
     console.log(`\n🧪 Running ${description}...`);
-    
+
     return new Promise((resolve, reject) => {
       const testPath = path.join(__dirname, testFile);
-      const childProcess = spawn('npx', ['vitest', 'run', testPath, '--config', './tests/edge-cases/vitest.config.ts'], {
-        stdio: ['pipe', 'pipe', 'pipe'],
-        env: { ...process.env, NODE_ENV: 'test' }
-      });
+      const childProcess = spawn(
+        'npx',
+        ['vitest', 'run', testPath, '--config', './tests/edge-cases/vitest.config.ts'],
+        {
+          stdio: ['pipe', 'pipe', 'pipe'],
+          env: { ...process.env, NODE_ENV: 'test' },
+        },
+      );
 
       let stdout = '';
       let stderr = '';
@@ -176,16 +182,20 @@ class EdgeCaseTestRunner {
     for (const match of matches) {
       const testName = match[1];
       const duration = parseInt(match[2]);
-      const status = output.includes('✓') ? 'pass' : 
-                    output.includes('✗') ? 'fail' : 
-                    output.includes('⚠') ? 'skip' : 'timeout';
+      const status = output.includes('✓')
+        ? 'pass'
+        : output.includes('✗')
+          ? 'fail'
+          : output.includes('⚠')
+            ? 'skip'
+            : 'timeout';
 
       this.results.push({
         category,
         testName,
         status,
         duration,
-        memory: process.memoryUsage()
+        memory: process.memoryUsage(),
       });
     }
   }
@@ -197,12 +207,12 @@ class EdgeCaseTestRunner {
     // Calculate summary statistics
     const summary = {
       totalTests: this.results.length,
-      passed: this.results.filter(r => r.status === 'pass').length,
-      failed: this.results.filter(r => r.status === 'fail').length,
-      skipped: this.results.filter(r => r.status === 'skip').length,
-      timeouts: this.results.filter(r => r.status === 'timeout').length,
+      passed: this.results.filter((r) => r.status === 'pass').length,
+      failed: this.results.filter((r) => r.status === 'fail').length,
+      skipped: this.results.filter((r) => r.status === 'skip').length,
+      timeouts: this.results.filter((r) => r.status === 'timeout').length,
       duration: totalDuration,
-      memoryPeak: this.peakMemory
+      memoryPeak: this.peakMemory,
     };
 
     // Group by categories
@@ -211,10 +221,10 @@ class EdgeCaseTestRunner {
       if (!categories[result.category]) {
         categories[result.category] = { tests: 0, passed: 0, failed: 0, duration: 0 };
       }
-      
+
       categories[result.category].tests++;
       categories[result.category].duration += result.duration;
-      
+
       if (result.status === 'pass') {
         categories[result.category].passed++;
       } else if (result.status === 'fail') {
@@ -224,16 +234,17 @@ class EdgeCaseTestRunner {
 
     // Identify critical findings
     const criticalFindings = this.identifyCriticalFindings();
-    
+
     // Identify vulnerabilities
     const vulnerabilities = this.identifyVulnerabilities();
-    
+
     // Calculate performance metrics
     const performanceMetrics = {
-      averageResponseTime: this.results.reduce((sum, r) => sum + r.duration, 0) / this.results.length,
+      averageResponseTime:
+        this.results.reduce((sum, r) => sum + r.duration, 0) / this.results.length,
       memoryUsage: this.peakMemory / 1024 / 1024, // MB
       errorRate: summary.failed / summary.totalTests,
-      concurrencyLimit: this.estimateConcurrencyLimit()
+      concurrencyLimit: this.estimateConcurrencyLimit(),
     };
 
     // Generate recommendations
@@ -247,18 +258,19 @@ class EdgeCaseTestRunner {
       criticalFindings,
       vulnerabilities,
       performanceMetrics,
-      recommendations
+      recommendations,
     };
   }
 
   private identifyCriticalFindings(): EdgeCaseReport['criticalFindings'] {
     const findings: EdgeCaseReport['criticalFindings'] = [];
 
-    const failedSecurityTests = this.results.filter(r => 
-      r.status === 'fail' && 
-      (r.testName.includes('injection') || 
-       r.testName.includes('xss') || 
-       r.testName.includes('auth'))
+    const failedSecurityTests = this.results.filter(
+      (r) =>
+        r.status === 'fail' &&
+        (r.testName.includes('injection') ||
+          r.testName.includes('xss') ||
+          r.testName.includes('auth')),
     );
 
     for (const test of failedSecurityTests) {
@@ -267,32 +279,32 @@ class EdgeCaseTestRunner {
         test: test.testName,
         severity: 'critical',
         description: `Security test failed: ${test.testName}`,
-        recommendation: 'Immediate security review required'
+        recommendation: 'Immediate security review required',
       });
     }
 
-    const timeoutTests = this.results.filter(r => r.status === 'timeout');
+    const timeoutTests = this.results.filter((r) => r.status === 'timeout');
     if (timeoutTests.length > 0) {
       findings.push({
         category: 'performance',
         test: 'timeout-tests',
         severity: 'high',
         description: `${timeoutTests.length} tests timed out`,
-        recommendation: 'Review performance bottlenecks and increase resource limits'
+        recommendation: 'Review performance bottlenecks and increase resource limits',
       });
     }
 
-    const highMemoryTests = this.results.filter(r => 
-      r.memory && r.memory.heapUsed > 100 * 1024 * 1024 // > 100MB
+    const highMemoryTests = this.results.filter(
+      (r) => r.memory && r.memory.heapUsed > 100 * 1024 * 1024, // > 100MB
     );
-    
+
     if (highMemoryTests.length > 0) {
       findings.push({
         category: 'memory',
         test: 'high-memory-usage',
         severity: 'medium',
         description: `${highMemoryTests.length} tests used excessive memory`,
-        recommendation: 'Optimize memory usage and implement memory limits'
+        recommendation: 'Optimize memory usage and implement memory limits',
       });
     }
 
@@ -303,47 +315,47 @@ class EdgeCaseTestRunner {
     const vulnerabilities: EdgeCaseReport['vulnerabilities'] = [];
 
     // Check for SQL injection vulnerabilities
-    const sqlFailures = this.results.filter(r => 
-      r.testName.includes('sql-injection') && r.status === 'fail'
+    const sqlFailures = this.results.filter(
+      (r) => r.testName.includes('sql-injection') && r.status === 'fail',
     );
-    
+
     if (sqlFailures.length > 0) {
       vulnerabilities.push({
         type: 'SQL Injection',
         description: 'Application vulnerable to SQL injection attacks',
-        affected: sqlFailures.map(r => r.testName),
+        affected: sqlFailures.map((r) => r.testName),
         severity: 'critical',
-        cve: 'CWE-89'
+        cve: 'CWE-89',
       });
     }
 
     // Check for XSS vulnerabilities
-    const xssFailures = this.results.filter(r => 
-      r.testName.includes('xss') && r.status === 'fail'
+    const xssFailures = this.results.filter(
+      (r) => r.testName.includes('xss') && r.status === 'fail',
     );
-    
+
     if (xssFailures.length > 0) {
       vulnerabilities.push({
         type: 'Cross-Site Scripting (XSS)',
         description: 'Application vulnerable to XSS attacks',
-        affected: xssFailures.map(r => r.testName),
+        affected: xssFailures.map((r) => r.testName),
         severity: 'high',
-        cve: 'CWE-79'
+        cve: 'CWE-79',
       });
     }
 
     // Check for authentication bypass
-    const authFailures = this.results.filter(r => 
-      r.testName.includes('auth') && r.status === 'fail'
+    const authFailures = this.results.filter(
+      (r) => r.testName.includes('auth') && r.status === 'fail',
     );
-    
+
     if (authFailures.length > 0) {
       vulnerabilities.push({
         type: 'Authentication Bypass',
         description: 'Authentication mechanisms can be bypassed',
-        affected: authFailures.map(r => r.testName),
+        affected: authFailures.map((r) => r.testName),
         severity: 'critical',
-        cve: 'CWE-287'
+        cve: 'CWE-287',
       });
     }
 
@@ -351,52 +363,61 @@ class EdgeCaseTestRunner {
   }
 
   private estimateConcurrencyLimit(): number {
-    const concurrencyTests = this.results.filter(r => 
-      r.testName.includes('concurrent')
-    );
-    
+    const concurrencyTests = this.results.filter((r) => r.testName.includes('concurrent'));
+
     // Simple heuristic based on successful concurrent tests
-    const successfulConcurrencyTests = concurrencyTests.filter(r => r.status === 'pass');
-    
+    const successfulConcurrencyTests = concurrencyTests.filter((r) => r.status === 'pass');
+
     if (successfulConcurrencyTests.length === 0) return 10; // Default conservative limit
-    
+
     // Extract concurrency numbers from test names (rough heuristic)
     const concurrencyNumbers = successfulConcurrencyTests
-      .map(r => {
+      .map((r) => {
         const match = r.testName.match(/(\d+)/);
         return match ? parseInt(match[1]) : 10;
       })
-      .filter(n => n > 0);
+      .filter((n) => n > 0);
 
     return concurrencyNumbers.length > 0 ? Math.max(...concurrencyNumbers) : 50;
   }
 
   private generateRecommendations(
     criticalFindings: EdgeCaseReport['criticalFindings'],
-    vulnerabilities: EdgeCaseReport['vulnerabilities']
+    vulnerabilities: EdgeCaseReport['vulnerabilities'],
   ): string[] {
     const recommendations = [];
 
-    if (vulnerabilities.some(v => v.severity === 'critical')) {
-      recommendations.push('🚨 CRITICAL: Immediate security patch required - critical vulnerabilities detected');
+    if (vulnerabilities.some((v) => v.severity === 'critical')) {
+      recommendations.push(
+        '🚨 CRITICAL: Immediate security patch required - critical vulnerabilities detected',
+      );
     }
 
-    if (criticalFindings.some(f => f.severity === 'critical')) {
-      recommendations.push('⚠️  Critical system issues identified - review and address immediately');
+    if (criticalFindings.some((f) => f.severity === 'critical')) {
+      recommendations.push(
+        '⚠️  Critical system issues identified - review and address immediately',
+      );
     }
 
-    const errorRate = this.results.filter(r => r.status === 'fail').length / this.results.length;
+    const errorRate = this.results.filter((r) => r.status === 'fail').length / this.results.length;
     if (errorRate > 0.1) {
-      recommendations.push(`📈 High error rate detected (${(errorRate * 100).toFixed(1)}%) - improve error handling`);
+      recommendations.push(
+        `📈 High error rate detected (${(errorRate * 100).toFixed(1)}%) - improve error handling`,
+      );
     }
 
-    if (this.peakMemory > 200 * 1024 * 1024) { // > 200MB
+    if (this.peakMemory > 200 * 1024 * 1024) {
+      // > 200MB
       recommendations.push('💾 High memory usage detected - optimize memory management');
     }
 
-    const avgResponseTime = this.results.reduce((sum, r) => sum + r.duration, 0) / this.results.length;
-    if (avgResponseTime > 1000) { // > 1 second
-      recommendations.push(`⏱️  Slow response times (avg: ${avgResponseTime.toFixed(0)}ms) - optimize performance`);
+    const avgResponseTime =
+      this.results.reduce((sum, r) => sum + r.duration, 0) / this.results.length;
+    if (avgResponseTime > 1000) {
+      // > 1 second
+      recommendations.push(
+        `⏱️  Slow response times (avg: ${avgResponseTime.toFixed(0)}ms) - optimize performance`,
+      );
     }
 
     if (recommendations.length === 0) {
@@ -416,14 +437,14 @@ class EdgeCaseTestRunner {
       recommendations: report.recommendations,
       categories: Object.keys(report.categories),
       performanceMetrics: report.performanceMetrics,
-      fullReport: report
+      fullReport: report,
     };
 
     // Store in Redis with 24-hour expiration
     await this.redis.setex(
       'MEDIANEST_PROD_VALIDATION:edge_case_testing',
       86400, // 24 hours
-      JSON.stringify(memoryData)
+      JSON.stringify(memoryData),
     );
 
     console.log('💾 Edge case testing results stored in memory');
@@ -436,22 +457,16 @@ class EdgeCaseTestRunner {
     // Save JSON report
     await fs.writeFile(
       './test-results/edge-cases/edge-case-report.json',
-      JSON.stringify(report, null, 2)
+      JSON.stringify(report, null, 2),
     );
 
     // Generate markdown report
     const markdownReport = this.generateMarkdownReport(report);
-    await fs.writeFile(
-      './test-results/edge-cases/edge-case-report.md',
-      markdownReport
-    );
+    await fs.writeFile('./test-results/edge-cases/edge-case-report.md', markdownReport);
 
     // Generate executive summary
     const executiveSummary = this.generateExecutiveSummary(report);
-    await fs.writeFile(
-      './test-results/edge-cases/executive-summary.md',
-      executiveSummary
-    );
+    await fs.writeFile('./test-results/edge-cases/executive-summary.md', executiveSummary);
 
     console.log('📄 Reports saved to ./test-results/edge-cases/');
   }
@@ -473,23 +488,37 @@ class EdgeCaseTestRunner {
 
 ## Critical Findings
 
-${report.criticalFindings.length > 0 ? 
-  report.criticalFindings.map(f => 
-    `### ${f.severity.toUpperCase()}: ${f.test}
+${
+  report.criticalFindings.length > 0
+    ? report.criticalFindings
+        .map(
+          (f) =>
+            `### ${f.severity.toUpperCase()}: ${f.test}
 **Category:** ${f.category}
 **Description:** ${f.description}
 **Recommendation:** ${f.recommendation}
-`).join('\n') : '✅ No critical findings detected'}
+`,
+        )
+        .join('\n')
+    : '✅ No critical findings detected'
+}
 
 ## Vulnerabilities
 
-${report.vulnerabilities.length > 0 ?
-  report.vulnerabilities.map(v =>
-    `### ${v.severity.toUpperCase()}: ${v.type}
+${
+  report.vulnerabilities.length > 0
+    ? report.vulnerabilities
+        .map(
+          (v) =>
+            `### ${v.severity.toUpperCase()}: ${v.type}
 **Description:** ${v.description}
 **Affected:** ${v.affected.join(', ')}
 ${v.cve ? `**CVE:** ${v.cve}` : ''}
-`).join('\n') : '✅ No vulnerabilities detected'}
+`,
+        )
+        .join('\n')
+    : '✅ No vulnerabilities detected'
+}
 
 ## Performance Metrics
 
@@ -500,18 +529,22 @@ ${v.cve ? `**CVE:** ${v.cve}` : ''}
 
 ## Category Breakdown
 
-${Object.entries(report.categories).map(([category, stats]) =>
-  `### ${category}
+${Object.entries(report.categories)
+  .map(
+    ([category, stats]) =>
+      `### ${category}
 - **Tests:** ${stats.tests}
 - **Passed:** ${stats.passed}
 - **Failed:** ${stats.failed}
 - **Success Rate:** ${((stats.passed / stats.tests) * 100).toFixed(1)}%
 - **Total Duration:** ${stats.duration.toFixed(0)}ms
-`).join('\n')}
+`,
+  )
+  .join('\n')}
 
 ## Recommendations
 
-${report.recommendations.map(rec => `- ${rec}`).join('\n')}
+${report.recommendations.map((rec) => `- ${rec}`).join('\n')}
 
 ## Test Details
 
@@ -533,14 +566,23 @@ Injection vulnerabilities, authentication bypass attempts, authorization edge ca
   }
 
   private generateExecutiveSummary(report: EdgeCaseReport): string {
-    const riskLevel = report.vulnerabilities.some(v => v.severity === 'critical') ? 'HIGH' :
-                     report.vulnerabilities.some(v => v.severity === 'high') ? 'MEDIUM' : 'LOW';
+    const riskLevel = report.vulnerabilities.some((v) => v.severity === 'critical')
+      ? 'HIGH'
+      : report.vulnerabilities.some((v) => v.severity === 'high')
+        ? 'MEDIUM'
+        : 'LOW';
 
     const quality = report.summary.passed / report.summary.totalTests;
-    const qualityGrade = quality >= 0.95 ? 'A' :
-                        quality >= 0.85 ? 'B' :
-                        quality >= 0.75 ? 'C' :
-                        quality >= 0.65 ? 'D' : 'F';
+    const qualityGrade =
+      quality >= 0.95
+        ? 'A'
+        : quality >= 0.85
+          ? 'B'
+          : quality >= 0.75
+            ? 'C'
+            : quality >= 0.65
+              ? 'D'
+              : 'F';
 
     return `
 # MediaNest Edge Case Testing - Executive Summary
@@ -554,18 +596,27 @@ Injection vulnerabilities, authentication bypass attempts, authorization edge ca
 ## Key Metrics
 
 - **Success Rate:** ${((report.summary.passed / report.summary.totalTests) * 100).toFixed(1)}%
-- **Critical Issues:** ${report.criticalFindings.filter(f => f.severity === 'critical').length}
+- **Critical Issues:** ${report.criticalFindings.filter((f) => f.severity === 'critical').length}
 - **Security Vulnerabilities:** ${report.vulnerabilities.length}
 - **Performance Grade:** ${report.performanceMetrics.averageResponseTime < 500 ? 'Good' : 'Needs Improvement'}
 
 ## Immediate Actions Required
 
-${report.vulnerabilities.filter(v => v.severity === 'critical').length > 0 ? 
-  '🚨 **CRITICAL:** Address security vulnerabilities immediately' : ''}
-${report.criticalFindings.filter(f => f.severity === 'critical').length > 0 ?
-  '⚠️ **HIGH PRIORITY:** Resolve critical system issues' : ''}
-${report.summary.failed > report.summary.totalTests * 0.2 ?
-  '📈 **MEDIUM PRIORITY:** Improve system reliability (high failure rate)' : ''}
+${
+  report.vulnerabilities.filter((v) => v.severity === 'critical').length > 0
+    ? '🚨 **CRITICAL:** Address security vulnerabilities immediately'
+    : ''
+}
+${
+  report.criticalFindings.filter((f) => f.severity === 'critical').length > 0
+    ? '⚠️ **HIGH PRIORITY:** Resolve critical system issues'
+    : ''
+}
+${
+  report.summary.failed > report.summary.totalTests * 0.2
+    ? '📈 **MEDIUM PRIORITY:** Improve system reliability (high failure rate)'
+    : ''
+}
 
 ## Business Impact
 
@@ -594,7 +645,8 @@ ${report.summary.failed > report.summary.totalTests * 0.2 ?
 // Run if called directly
 if (require.main === module) {
   const runner = new EdgeCaseTestRunner();
-  runner.runEdgeCaseTests()
+  runner
+    .runEdgeCaseTests()
     .then(() => {
       console.log('🎉 Edge case testing completed successfully');
       process.exit(0);

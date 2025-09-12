@@ -169,6 +169,6 @@ if (typeof globalThis !== 'undefined' && globalThis) {
     value: true,
     writable: true,
     enumerable: false,
-    configurable: true
+    configurable: true,
   });
 }

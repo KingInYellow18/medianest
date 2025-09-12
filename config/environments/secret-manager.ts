@@ -336,12 +336,12 @@ export class SecretManager {
    */
   async validateSecrets(environment: string): Promise<{ valid: boolean; missing: string[] }> {
     const missing: string[] = [];
-    
+
     for (const [key, metadata] of Object.entries(SECRET_DEFINITIONS)) {
       // Check if secret is required for this environment
       if (metadata.required && metadata.environment.includes(environment)) {
         const value = await this.getSecret(key);
-        
+
         if (!value) {
           missing.push(key);
           continue;
@@ -350,7 +350,7 @@ export class SecretManager {
         // Validate the secret value
         if (metadata.validation) {
           let isValid: boolean;
-          
+
           if (metadata.validation instanceof RegExp) {
             isValid = metadata.validation.test(value);
           } else if (typeof metadata.validation === 'function') {
@@ -378,12 +378,12 @@ export class SecretManager {
    */
   async loadSecrets(environment: string): Promise<void> {
     console.log(`Loading secrets for environment: ${environment}`);
-    
+
     const validation = await this.validateSecrets(environment);
-    
+
     if (!validation.valid) {
       throw new Error(
-        `Missing required secrets for ${environment} environment: ${validation.missing.join(', ')}`
+        `Missing required secrets for ${environment} environment: ${validation.missing.join(', ')}`,
       );
     }
 
@@ -408,11 +408,11 @@ export class SecretManager {
   static generateSecret(length: number = 64): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
     let result = '';
-    
+
     for (let i = 0; i < length; i++) {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    
+
     return result;
   }
 
@@ -460,7 +460,7 @@ export function getSecretManager(): SecretManager {
 export async function initializeSecrets(environment?: string): Promise<void> {
   const env = environment || process.env.NODE_ENV || 'development';
   const secretManager = getSecretManager();
-  
+
   try {
     await secretManager.loadSecrets(env);
   } catch (error) {

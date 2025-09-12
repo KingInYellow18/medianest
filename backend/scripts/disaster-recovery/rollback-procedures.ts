@@ -2,7 +2,7 @@
 /**
  * Comprehensive Rollback Procedures for MediaNest
  * Handles application, database, and infrastructure rollbacks
- * 
+ *
  * CRITICAL: This script provides SAFE rollback procedures
  * with validation and integrity checks
  */
@@ -66,51 +66,53 @@ class RollbackManager {
         {
           description: 'Create pre-rollback backup',
           command: './scripts/backup-procedures.sh backup pre-rollback',
-          timeout: 300
+          timeout: 300,
         },
         {
           description: 'Stop current application containers',
           command: 'docker-compose -f docker-compose.production.yml stop backend',
-          timeout: 60
+          timeout: 60,
         },
         {
           description: 'Tag current image as rollback-source',
           command: 'docker tag medianest-backend:latest medianest-backend:rollback-source',
-          timeout: 30
+          timeout: 30,
         },
         {
           description: 'Pull or restore previous stable image',
-          command: 'docker pull medianest-backend:stable || docker tag medianest-backend:previous medianest-backend:latest',
-          timeout: 300
+          command:
+            'docker pull medianest-backend:stable || docker tag medianest-backend:previous medianest-backend:latest',
+          timeout: 300,
         },
         {
           description: 'Start application with previous version',
           command: 'docker-compose -f docker-compose.production.yml up -d backend',
-          timeout: 120
+          timeout: 120,
         },
         {
           description: 'Wait for application startup',
           command: 'sleep 30',
-          timeout: 35
-        }
+          timeout: 35,
+        },
       ],
       validationChecks: [
         {
           name: 'Application Health Check',
           command: 'curl -f http://localhost:3000/health',
-          criticalCheck: true
+          criticalCheck: true,
         },
         {
           name: 'Database Connectivity',
-          command: 'docker exec medianest-backend-prod node -e "console.log(\\"DB connection test\\")"',
-          criticalCheck: true
+          command:
+            'docker exec medianest-backend-prod node -e "console.log(\\"DB connection test\\")"',
+          criticalCheck: true,
         },
         {
           name: 'API Endpoints Responding',
           command: 'curl -f http://localhost:3000/api/auth/status',
-          criticalCheck: false
-        }
-      ]
+          criticalCheck: false,
+        },
+      ],
     });
 
     // DATABASE SCHEMA ROLLBACK
@@ -123,46 +125,46 @@ class RollbackManager {
         {
           description: 'Create comprehensive database backup',
           command: './scripts/backup-procedures.sh backup emergency',
-          timeout: 600
+          timeout: 600,
         },
         {
           description: 'Stop application to prevent schema conflicts',
           command: 'docker-compose -f docker-compose.production.yml stop backend',
-          timeout: 60
+          timeout: 60,
         },
         {
           description: 'Execute schema rollback',
           command: 'npm run migration:rollback execute',
-          timeout: 300
+          timeout: 300,
         },
         {
           description: 'Validate schema integrity',
           command: 'npm run migration:rollback validate',
-          timeout: 120
+          timeout: 120,
         },
         {
           description: 'Restart application with rolled-back schema',
           command: 'docker-compose -f docker-compose.production.yml up -d backend',
-          timeout: 120
-        }
+          timeout: 120,
+        },
       ],
       validationChecks: [
         {
           name: 'Database Schema Validation',
           command: 'docker exec medianest-postgres-prod psql -U medianest -d medianest -c "\\d"',
-          criticalCheck: true
+          criticalCheck: true,
         },
         {
           name: 'Migration Status Check',
           command: 'npm run migration:rollback history | head -5',
-          criticalCheck: true
+          criticalCheck: true,
         },
         {
           name: 'Application Database Integration',
           command: 'curl -f http://localhost:3000/api/system/database-status',
-          criticalCheck: true
-        }
-      ]
+          criticalCheck: true,
+        },
+      ],
     });
 
     // CONTAINER INFRASTRUCTURE ROLLBACK
@@ -174,47 +176,49 @@ class RollbackManager {
       steps: [
         {
           description: 'Create system snapshot',
-          command: 'docker-compose -f docker-compose.production.yml config > docker-compose.backup.yml',
-          timeout: 30
+          command:
+            'docker-compose -f docker-compose.production.yml config > docker-compose.backup.yml',
+          timeout: 30,
         },
         {
           description: 'Stop all services gracefully',
           command: 'docker-compose -f docker-compose.production.yml stop',
-          timeout: 120
+          timeout: 120,
         },
         {
           description: 'Remove current containers',
           command: 'docker-compose -f docker-compose.production.yml down',
-          timeout: 60
+          timeout: 60,
         },
         {
           description: 'Restore from stable configuration',
-          command: 'cp docker-compose.stable.yml docker-compose.production.yml || echo "No stable config found"',
-          timeout: 10
+          command:
+            'cp docker-compose.stable.yml docker-compose.production.yml || echo "No stable config found"',
+          timeout: 10,
         },
         {
           description: 'Restart infrastructure with stable config',
           command: 'docker-compose -f docker-compose.production.yml up -d',
-          timeout: 300
-        }
+          timeout: 300,
+        },
       ],
       validationChecks: [
         {
           name: 'All Containers Running',
           command: 'docker-compose -f docker-compose.production.yml ps | grep -c "Up"',
-          criticalCheck: true
+          criticalCheck: true,
         },
         {
           name: 'Network Connectivity',
           command: 'docker exec medianest-backend-prod ping -c 2 medianest-postgres-prod',
-          criticalCheck: true
+          criticalCheck: true,
         },
         {
           name: 'Service Health Checks',
           command: 'curl -f http://localhost:3000/health && curl -f http://localhost/health',
-          criticalCheck: false
-        }
-      ]
+          criticalCheck: false,
+        },
+      ],
     });
 
     // CONFIGURATION ROLLBACK
@@ -227,36 +231,37 @@ class RollbackManager {
         {
           description: 'Backup current configuration',
           command: 'cp -r config config.backup.$(date +%Y%m%d_%H%M%S)',
-          timeout: 30
+          timeout: 30,
         },
         {
           description: 'Restore stable environment variables',
           command: 'cp .env.stable .env || echo "No stable .env found"',
-          timeout: 10
+          timeout: 10,
         },
         {
           description: 'Restore nginx configuration',
-          command: 'cp nginx/nginx.stable.conf nginx/nginx.conf || echo "No stable nginx config found"',
-          timeout: 10
+          command:
+            'cp nginx/nginx.stable.conf nginx/nginx.conf || echo "No stable nginx config found"',
+          timeout: 10,
         },
         {
           description: 'Restart services to apply config changes',
           command: 'docker-compose -f docker-compose.production.yml restart',
-          timeout: 120
-        }
+          timeout: 120,
+        },
       ],
       validationChecks: [
         {
           name: 'Configuration Syntax Valid',
           command: 'docker exec medianest-nginx-prod nginx -t',
-          criticalCheck: true
+          criticalCheck: true,
         },
         {
           name: 'Environment Variables Set',
           command: 'docker exec medianest-backend-prod node -e "console.log(process.env.NODE_ENV)"',
-          criticalCheck: false
-        }
-      ]
+          criticalCheck: false,
+        },
+      ],
     });
 
     // DATA ROLLBACK (Point-in-time)
@@ -269,55 +274,61 @@ class RollbackManager {
         {
           description: 'Stop application to prevent data changes',
           command: 'docker-compose -f docker-compose.production.yml stop backend',
-          timeout: 60
+          timeout: 60,
         },
         {
           description: 'Create current state backup',
           command: './scripts/backup-procedures.sh backup emergency-current-state',
-          timeout: 600
+          timeout: 600,
         },
         {
           description: 'Identify target backup for restoration',
-          command: './scripts/backup-procedures.sh list | grep -E "(daily|weekly|monthly)" | head -1',
-          timeout: 30
+          command:
+            './scripts/backup-procedures.sh list | grep -E "(daily|weekly|monthly)" | head -1',
+          timeout: 30,
         },
         {
           description: 'Execute database restoration',
           command: 'echo "Manual step: specify backup file to restore"',
-          timeout: 10
+          timeout: 10,
         },
         {
           description: 'Validate data integrity post-restore',
-          command: 'docker exec medianest-postgres-prod psql -U medianest -d medianest -c "SELECT COUNT(*) FROM users;"',
-          timeout: 60
+          command:
+            'docker exec medianest-postgres-prod psql -U medianest -d medianest -c "SELECT COUNT(*) FROM users;"',
+          timeout: 60,
         },
         {
           description: 'Restart application',
           command: 'docker-compose -f docker-compose.production.yml up -d backend',
-          timeout: 120
-        }
+          timeout: 120,
+        },
       ],
       validationChecks: [
         {
           name: 'Data Integrity Check',
-          command: 'docker exec medianest-postgres-prod psql -U medianest -d medianest -c "SELECT COUNT(*) FROM _prisma_migrations;"',
-          criticalCheck: true
+          command:
+            'docker exec medianest-postgres-prod psql -U medianest -d medianest -c "SELECT COUNT(*) FROM _prisma_migrations;"',
+          criticalCheck: true,
         },
         {
           name: 'User Data Validation',
           command: 'curl -f http://localhost:3000/api/users/count',
-          criticalCheck: true
+          criticalCheck: true,
         },
         {
           name: 'Application Functionality',
           command: 'curl -f http://localhost:3000/api/auth/status',
-          criticalCheck: false
-        }
-      ]
+          criticalCheck: false,
+        },
+      ],
     });
   }
 
-  async executeRollback(procedureName: string, confirmationRequired: boolean = true): Promise<RollbackResult> {
+  async executeRollback(
+    procedureName: string,
+    confirmationRequired: boolean = true,
+  ): Promise<RollbackResult> {
     const procedure = this.procedures.get(procedureName);
     if (!procedure) {
       throw new Error(`Unknown rollback procedure: ${procedureName}`);
@@ -330,7 +341,9 @@ class RollbackManager {
 
     if (confirmationRequired && procedure.riskLevel === 'critical') {
       console.log('\n⚠️  CRITICAL ROLLBACK - MANUAL CONFIRMATION REQUIRED');
-      console.log('This rollback has significant risk. Set CONFIRM_CRITICAL_ROLLBACK=yes to proceed.');
+      console.log(
+        'This rollback has significant risk. Set CONFIRM_CRITICAL_ROLLBACK=yes to proceed.',
+      );
       if (process.env.CONFIRM_CRITICAL_ROLLBACK !== 'yes') {
         return {
           success: false,
@@ -338,7 +351,7 @@ class RollbackManager {
           executionTime: 0,
           stepsCompleted: 0,
           validationResults: new Map(),
-          error: 'Critical rollback cancelled - confirmation required'
+          error: 'Critical rollback cancelled - confirmation required',
         };
       }
     }
@@ -349,7 +362,7 @@ class RollbackManager {
       procedure: procedureName,
       executionTime: 0,
       stepsCompleted: 0,
-      validationResults: new Map()
+      validationResults: new Map(),
     };
 
     // Execute rollback steps
@@ -363,7 +376,7 @@ class RollbackManager {
           const output = execSync(step.command, {
             encoding: 'utf-8',
             timeout,
-            stdio: 'pipe'
+            stdio: 'pipe',
           });
 
           console.log(`✅ Completed: ${step.description}`);
@@ -372,7 +385,6 @@ class RollbackManager {
           }
 
           result.stepsCompleted++;
-
         } catch (error) {
           console.log(`❌ Failed: ${step.description}`);
           console.log(`💥 Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -410,7 +422,7 @@ class RollbackManager {
           const output = execSync(check.command, {
             encoding: 'utf-8',
             timeout: 30000,
-            stdio: 'pipe'
+            stdio: 'pipe',
           });
 
           let checkPassed = true;
@@ -429,7 +441,6 @@ class RollbackManager {
               result.error = `Critical validation failed: ${check.name}`;
             }
           }
-
         } catch (error) {
           console.log(`❌ ${check.name}: VALIDATION ERROR`);
           result.validationResults.set(check.name, false);
@@ -462,10 +473,14 @@ class RollbackManager {
       error: result.error,
       validationResults: Object.fromEntries(result.validationResults),
       riskLevel: procedure.riskLevel,
-      recommendations: this.generateRecommendations(result, procedure)
+      recommendations: this.generateRecommendations(result, procedure),
     };
 
-    const reportPath = join(process.cwd(), 'logs', `rollback-${result.procedure}-${Date.now()}.json`);
+    const reportPath = join(
+      process.cwd(),
+      'logs',
+      `rollback-${result.procedure}-${Date.now()}.json`,
+    );
     writeFileSync(reportPath, JSON.stringify(report, null, 2));
 
     console.log(`\n📄 Rollback report saved: ${reportPath}`);
@@ -477,7 +492,9 @@ class RollbackManager {
     if (result.success) {
       recommendations.push('Rollback completed successfully');
       recommendations.push('Monitor application for stability over next 24 hours');
-      recommendations.push('Consider implementing additional monitoring for rolled-back components');
+      recommendations.push(
+        'Consider implementing additional monitoring for rolled-back components',
+      );
     } else {
       recommendations.push('URGENT: Rollback failed - immediate manual intervention required');
       recommendations.push('Review logs and error messages for failure root cause');
@@ -615,7 +632,6 @@ EMERGENCY CONTACTS:
         console.error(`❌ Unknown command: ${command}`);
         process.exit(1);
     }
-
   } catch (error) {
     console.error('💥 Rollback Manager Error:', error instanceof Error ? error.message : error);
     process.exit(1);

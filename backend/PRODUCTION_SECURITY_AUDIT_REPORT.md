@@ -160,13 +160,11 @@ Implement CORS middleware in main application router.
 ### 🚨 HIGH SEVERITY
 
 1. **Development Secrets in Production**
-
    - **Risk**: Complete system compromise
    - **Impact**: Authentication bypass, data access
    - **Remediation**: Generate and deploy production secrets
 
 2. **Weak Cryptographic Keys**
-
    - **Risk**: Token forgery, session hijacking
    - **Impact**: User impersonation, unauthorized access
    - **Remediation**: Generate 256-bit minimum keys
@@ -179,7 +177,6 @@ Implement CORS middleware in main application router.
 ### ⚠️ MEDIUM SEVERITY
 
 4. **Environment Configuration**
-
    - **Risk**: Debug information exposure
    - **Impact**: Information disclosure
    - **Remediation**: Set NODE_ENV=production

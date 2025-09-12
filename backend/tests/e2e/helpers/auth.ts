@@ -124,7 +124,7 @@ export class AuthHelper {
           localStorage.setItem('refreshToken', refreshToken);
           localStorage.setItem('user', JSON.stringify(user));
         },
-        { token, refreshToken, user }
+        { token, refreshToken, user },
       );
 
       return { token, refreshToken, user };
@@ -182,7 +182,7 @@ export class AuthHelper {
         const token = localStorage.getItem('authToken');
         return token !== null;
       },
-      { timeout: 10000 }
+      { timeout: 10000 },
     );
   }
 }

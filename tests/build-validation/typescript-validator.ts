@@ -47,7 +47,7 @@ export class TypeScriptValidator {
       warnings: [],
       fixedCount: 0,
       totalFiles: 0,
-      validationTime: 0
+      validationTime: 0,
     };
 
     try {
@@ -84,7 +84,7 @@ export class TypeScriptValidator {
         column: 0,
         code: 'VALIDATION_ERROR',
         message: `Validation process failed: ${error.message}`,
-        severity: 'error'
+        severity: 'error',
       });
       result.validationTime = Date.now() - startTime;
       return result;
@@ -102,7 +102,7 @@ export class TypeScriptValidator {
       warnings: [],
       fixedCount: 0,
       totalFiles: 0,
-      validationTime: 0
+      validationTime: 0,
     };
 
     if (!fs.existsSync(packageDir)) {
@@ -112,7 +112,7 @@ export class TypeScriptValidator {
         column: 0,
         code: 'PACKAGE_NOT_FOUND',
         message: `Package directory not found: ${packageDir}`,
-        severity: 'error'
+        severity: 'error',
       });
       return result;
     }
@@ -122,25 +122,23 @@ export class TypeScriptValidator {
       result.totalFiles = this.countTypeScriptFiles(packageDir);
 
       // Run TypeScript compilation check
-      const output = execSync(
-        `cd ${packageDir} && npm run type-check`,
-        { 
-          encoding: 'utf8',
-          timeout: 60000,
-          stdio: 'pipe'
-        }
-      );
+      const output = execSync(`cd ${packageDir} && npm run type-check`, {
+        encoding: 'utf8',
+        timeout: 60000,
+        stdio: 'pipe',
+      });
 
       // If we get here, compilation succeeded
       this.log(`✅ ${packageName}: TypeScript compilation successful`);
-
     } catch (error) {
       // Parse TypeScript errors from output
       const errors = this.parseTypeScriptErrors(error.stdout + error.stderr, packageName);
-      result.errors.push(...errors.filter(e => e.severity === 'error'));
-      result.warnings.push(...errors.filter(e => e.severity === 'warning'));
-      
-      this.log(`❌ ${packageName}: ${result.errors.length} errors, ${result.warnings.length} warnings`);
+      result.errors.push(...errors.filter((e) => e.severity === 'error'));
+      result.warnings.push(...errors.filter((e) => e.severity === 'warning'));
+
+      this.log(
+        `❌ ${packageName}: ${result.errors.length} errors, ${result.warnings.length} warnings`,
+      );
     }
 
     result.success = result.errors.length === 0;
@@ -150,20 +148,24 @@ export class TypeScriptValidator {
   /**
    * Test incremental fixes to prevent regressions
    */
-  async testIncrementalFix(filePath: string, originalContent: string, fixedContent: string): Promise<boolean> {
+  async testIncrementalFix(
+    filePath: string,
+    originalContent: string,
+    fixedContent: string,
+  ): Promise<boolean> {
     const backupPath = `${filePath}.backup`;
-    
+
     try {
       // Create backup
       fs.writeFileSync(backupPath, originalContent);
-      
+
       // Apply fix
       fs.writeFileSync(filePath, fixedContent);
-      
+
       // Run validation on affected package
       const packageName = this.getPackageFromPath(filePath);
       const result = await this.validatePackage(packageName);
-      
+
       if (result.success) {
         // Fix successful, remove backup
         fs.unlinkSync(backupPath);
@@ -197,7 +199,7 @@ export class TypeScriptValidator {
       warnings: [],
       fixedCount: 0,
       totalFiles: 0,
-      validationTime: 0
+      validationTime: 0,
     };
 
     try {
@@ -206,8 +208,20 @@ export class TypeScriptValidator {
       const frontendSharedImports = this.findSharedImports('frontend');
 
       // Validate shared package is properly linked
-      const backendSharedPath = path.join(this.rootDir, 'backend', 'node_modules', '@medianest', 'shared');
-      const frontendSharedPath = path.join(this.rootDir, 'frontend', 'node_modules', '@medianest', 'shared');
+      const backendSharedPath = path.join(
+        this.rootDir,
+        'backend',
+        'node_modules',
+        '@medianest',
+        'shared',
+      );
+      const frontendSharedPath = path.join(
+        this.rootDir,
+        'frontend',
+        'node_modules',
+        '@medianest',
+        'shared',
+      );
 
       if (!fs.existsSync(backendSharedPath)) {
         result.errors.push({
@@ -216,7 +230,7 @@ export class TypeScriptValidator {
           column: 0,
           code: 'SHARED_PACKAGE_NOT_LINKED',
           message: 'Shared package not linked in backend',
-          severity: 'error'
+          severity: 'error',
         });
       }
 
@@ -227,7 +241,7 @@ export class TypeScriptValidator {
           column: 0,
           code: 'SHARED_PACKAGE_NOT_LINKED',
           message: 'Shared package not linked in frontend',
-          severity: 'error'
+          severity: 'error',
         });
       }
 
@@ -236,7 +250,6 @@ export class TypeScriptValidator {
 
       result.success = result.errors.length === 0;
       return result;
-
     } catch (error) {
       result.errors.push({
         file: 'cross-package-validation',
@@ -244,7 +257,7 @@ export class TypeScriptValidator {
         column: 0,
         code: 'VALIDATION_ERROR',
         message: `Cross-package validation failed: ${error.message}`,
-        severity: 'error'
+        severity: 'error',
       });
       return result;
     }
@@ -255,7 +268,7 @@ export class TypeScriptValidator {
    */
   async generateRollbackProcedure(failedFiles: string[]): Promise<string> {
     const rollbackScript = path.join(this.rootDir, 'rollback-typescript-fixes.sh');
-    
+
     let content = `#!/bin/bash
 # Auto-generated rollback script for failed TypeScript fixes
 # Generated at: ${new Date().toISOString()}
@@ -284,7 +297,7 @@ npm run typecheck
 
     fs.writeFileSync(rollbackScript, content);
     fs.chmodSync(rollbackScript, 0o755);
-    
+
     this.log(`📋 Rollback procedure generated: ${rollbackScript}`);
     return rollbackScript;
   }
@@ -296,7 +309,7 @@ npm run typecheck
     for (const line of lines) {
       // Match TypeScript error format: filename(line,col): error TSxxxx: message
       const match = line.match(/^(.+?)\((\d+),(\d+)\):\s+(error|warning)\s+(TS\d+):\s+(.+)$/);
-      
+
       if (match) {
         errors.push({
           file: path.join(packageName, match[1]),
@@ -304,7 +317,7 @@ npm run typecheck
           column: parseInt(match[3]),
           code: match[5],
           message: match[6],
-          severity: match[4] as 'error' | 'warning'
+          severity: match[4] as 'error' | 'warning',
         });
       }
     }
@@ -338,14 +351,14 @@ npm run typecheck
   private findSharedImports(packageName: string): string[] {
     const imports: string[] = [];
     const packageDir = path.join(this.rootDir, packageName);
-    
+
     const findImports = (dir: string) => {
       const items = fs.readdirSync(dir);
-      
+
       for (const item of items) {
         const fullPath = path.join(dir, item);
         const stat = fs.statSync(fullPath);
-        
+
         if (stat.isDirectory() && item !== 'node_modules') {
           findImports(fullPath);
         } else if (stat.isFile() && (item.endsWith('.ts') || item.endsWith('.tsx'))) {
@@ -368,7 +381,7 @@ npm run typecheck
   private async validateTypeConsistency(result: ValidationResult): Promise<void> {
     // Check for common type inconsistencies between packages
     const sharedTypesPath = path.join(this.rootDir, 'shared', 'src', 'types');
-    
+
     if (!fs.existsSync(sharedTypesPath)) {
       result.warnings.push({
         file: 'shared/src/types',
@@ -376,7 +389,7 @@ npm run typecheck
         column: 0,
         code: 'SHARED_TYPES_NOT_FOUND',
         message: 'Shared types directory not found',
-        severity: 'warning'
+        severity: 'warning',
       });
       return;
     }
@@ -392,7 +405,7 @@ npm run typecheck
       warnings: result.warnings.length,
       totalFiles: result.totalFiles,
       validationTime: result.validationTime,
-      details: result
+      details: result,
     };
 
     fs.appendFileSync(this.logFile, JSON.stringify(logEntry) + '\n');
@@ -402,7 +415,7 @@ npm run typecheck
     try {
       execSync(
         `npx claude-flow@alpha hooks memory-store --key "${this.memoryKey}/last-validation" --value '${JSON.stringify(result)}' --ttl 3600`,
-        { stdio: 'ignore' }
+        { stdio: 'ignore' },
       );
     } catch {
       // Memory storage is optional, continue if it fails
@@ -420,17 +433,17 @@ npm run typecheck
 // CLI interface
 if (require.main === module) {
   const validator = new TypeScriptValidator();
-  
+
   async function main() {
     const command = process.argv[2];
-    
+
     switch (command) {
       case 'validate-all':
         const result = await validator.validateAllPackages();
         console.log(JSON.stringify(result, null, 2));
         process.exit(result.success ? 0 : 1);
         break;
-      
+
       case 'validate-package':
         const packageName = process.argv[3];
         if (!packageName) {
@@ -441,13 +454,13 @@ if (require.main === module) {
         console.log(JSON.stringify(pkgResult, null, 2));
         process.exit(pkgResult.success ? 0 : 1);
         break;
-        
+
       case 'validate-cross-deps':
         const crossResult = await validator.validateCrossPackageDependencies();
         console.log(JSON.stringify(crossResult, null, 2));
         process.exit(crossResult.success ? 0 : 1);
         break;
-        
+
       default:
         console.log('Usage: typescript-validator.ts <command>');
         console.log('Commands:');
@@ -457,8 +470,8 @@ if (require.main === module) {
         process.exit(1);
     }
   }
-  
-  main().catch(error => {
+
+  main().catch((error) => {
     console.error('Validation failed:', error);
     process.exit(1);
   });

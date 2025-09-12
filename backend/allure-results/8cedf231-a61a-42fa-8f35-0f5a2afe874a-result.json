@@ -1,1 +1,30 @@
-{"uuid":"8cedf231-a61a-42fa-8f35-0f5a2afe874a","name":"should handle Plex server connectivity issues","historyId":"9f68849a56e4acadb80b63de5ea8d73f:f0494070a4792d94c64308aac1604abb","status":"skipped","statusDetails":{},"stage":"finished","steps":[],"attachments":[],"parameters":[{"name":"Project","value":"Mobile Safari"}],"labels":[{"name":"language","value":"javascript"},{"name":"framework","value":"playwright"},{"name":"package","value":"plex-integration-journey.spec.ts"},{"name":"titlePath","value":" > Mobile Safari > plex-integration-journey.spec.ts > Plex Integration User Journey"},{"name":"host","value":"kubuntudev"},{"name":"thread","value":"pid-38931-worker-0"},{"name":"parentSuite","value":"Mobile Safari"},{"name":"subSuite","value":"Plex Integration User Journey"}],"links":[],"start":1757602649464,"testCaseId":"9f68849a56e4acadb80b63de5ea8d73f","fullName":"plex-integration-journey.spec.ts:511:7","titlePath":["plex-integration-journey.spec.ts","Plex Integration User Journey"],"stop":1757602649464}
+{
+  "uuid": "8cedf231-a61a-42fa-8f35-0f5a2afe874a",
+  "name": "should handle Plex server connectivity issues",
+  "historyId": "9f68849a56e4acadb80b63de5ea8d73f:f0494070a4792d94c64308aac1604abb",
+  "status": "skipped",
+  "statusDetails": {},
+  "stage": "finished",
+  "steps": [],
+  "attachments": [],
+  "parameters": [{ "name": "Project", "value": "Mobile Safari" }],
+  "labels": [
+    { "name": "language", "value": "javascript" },
+    { "name": "framework", "value": "playwright" },
+    { "name": "package", "value": "plex-integration-journey.spec.ts" },
+    {
+      "name": "titlePath",
+      "value": " > Mobile Safari > plex-integration-journey.spec.ts > Plex Integration User Journey"
+    },
+    { "name": "host", "value": "kubuntudev" },
+    { "name": "thread", "value": "pid-38931-worker-0" },
+    { "name": "parentSuite", "value": "Mobile Safari" },
+    { "name": "subSuite", "value": "Plex Integration User Journey" }
+  ],
+  "links": [],
+  "start": 1757602649464,
+  "testCaseId": "9f68849a56e4acadb80b63de5ea8d73f",
+  "fullName": "plex-integration-journey.spec.ts:511:7",
+  "titlePath": ["plex-integration-journey.spec.ts", "Plex Integration User Journey"],
+  "stop": 1757602649464
+}

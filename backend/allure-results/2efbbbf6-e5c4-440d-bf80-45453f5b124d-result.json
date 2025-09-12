@@ -1,1 +1,30 @@
-{"uuid":"2efbbbf6-e5c4-440d-bf80-45453f5b124d","name":"should handle invalid PIN gracefully","historyId":"710cd3856cb17199b9649c2abffcdd9f:b444eb0fbe6390c71e68b51dd25701fc","status":"skipped","statusDetails":{},"stage":"finished","steps":[],"attachments":[],"parameters":[{"name":"Project","value":"firefox"}],"labels":[{"name":"language","value":"javascript"},{"name":"framework","value":"playwright"},{"name":"package","value":"auth-journey.spec.ts"},{"name":"titlePath","value":" > firefox > auth-journey.spec.ts > Authentication User Journey"},{"name":"host","value":"kubuntudev"},{"name":"thread","value":"pid-38931-worker-0"},{"name":"parentSuite","value":"firefox"},{"name":"subSuite","value":"Authentication User Journey"}],"links":[],"start":1757602649400,"testCaseId":"710cd3856cb17199b9649c2abffcdd9f","fullName":"auth-journey.spec.ts:123:7","titlePath":["auth-journey.spec.ts","Authentication User Journey"],"stop":1757602649400}
+{
+  "uuid": "2efbbbf6-e5c4-440d-bf80-45453f5b124d",
+  "name": "should handle invalid PIN gracefully",
+  "historyId": "710cd3856cb17199b9649c2abffcdd9f:b444eb0fbe6390c71e68b51dd25701fc",
+  "status": "skipped",
+  "statusDetails": {},
+  "stage": "finished",
+  "steps": [],
+  "attachments": [],
+  "parameters": [{ "name": "Project", "value": "firefox" }],
+  "labels": [
+    { "name": "language", "value": "javascript" },
+    { "name": "framework", "value": "playwright" },
+    { "name": "package", "value": "auth-journey.spec.ts" },
+    {
+      "name": "titlePath",
+      "value": " > firefox > auth-journey.spec.ts > Authentication User Journey"
+    },
+    { "name": "host", "value": "kubuntudev" },
+    { "name": "thread", "value": "pid-38931-worker-0" },
+    { "name": "parentSuite", "value": "firefox" },
+    { "name": "subSuite", "value": "Authentication User Journey" }
+  ],
+  "links": [],
+  "start": 1757602649400,
+  "testCaseId": "710cd3856cb17199b9649c2abffcdd9f",
+  "fullName": "auth-journey.spec.ts:123:7",
+  "titlePath": ["auth-journey.spec.ts", "Authentication User Journey"],
+  "stop": 1757602649400
+}

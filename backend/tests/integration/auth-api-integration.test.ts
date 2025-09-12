@@ -75,7 +75,7 @@ describe('Authentication API Integration Tests', () => {
 
       const responses = await Promise.allSettled(requests);
       const statusCodes = responses.map((result) =>
-        result.status === 'fulfilled' ? result.value.status : 500
+        result.status === 'fulfilled' ? result.value.status : 500,
       );
 
       // Should have some rate limited responses
@@ -174,7 +174,7 @@ describe('Authentication API Integration Tests', () => {
       // Only one should succeed, others should fail
       const successfulResponses = responses.filter(
         (result): result is PromiseFulfilledResult<any> =>
-          result.status === 'fulfilled' && result.value.status === 200
+          result.status === 'fulfilled' && result.value.status === 200,
       );
 
       expect(successfulResponses.length).toBe(1);
@@ -370,7 +370,7 @@ describe('Authentication API Integration Tests', () => {
         .map((_, index) =>
           request(app)
             .post('/api/v1/auth/plex/verify')
-            .send({ pinId, code: `999${index}` })
+            .send({ pinId, code: `999${index}` }),
         );
 
       const responses = await Promise.all(attempts);

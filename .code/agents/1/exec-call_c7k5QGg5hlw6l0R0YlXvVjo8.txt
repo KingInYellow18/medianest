@@ -1,0 +1,771 @@
+total 1848
+drwxrwxr-x 21 kinginyellow kinginyellow   4096 Sep 12 09:19 .
+drwxrwxr-x 45 kinginyellow kinginyellow  12288 Sep 12 11:59 ..
+drwxrwxr-x  2 kinginyellow kinginyellow  32768 Sep 11 09:57 allure-results
+drwxrwxr-x  4 kinginyellow kinginyellow   4096 Sep  9 08:45 backups
+drwxrwxr-x  3 kinginyellow kinginyellow   4096 Sep  5 08:16 .claude-flow
+drwxrwxr-x  3 kinginyellow kinginyellow   4096 Sep 11 13:30 coverage
+-rw-rw-r--  1 kinginyellow kinginyellow  11409 Sep  9 08:45 DISASTER_RECOVERY_VALIDATION_SUMMARY.md
+drwxrwxr-x 20 kinginyellow kinginyellow   4096 Sep 12 09:06 dist
+drwxrwxr-x  2 kinginyellow kinginyellow   4096 Sep  9 08:45 docker
+-rw-rw-r--  1 kinginyellow kinginyellow   2100 Sep  9 08:45 Dockerfile
+-rw-rw-r--  1 kinginyellow kinginyellow   2163 Sep  9 08:45 .dockerignore
+drwxrwxr-x  3 kinginyellow kinginyellow   4096 Sep 12 10:40 docs
+-rw-rw-r--  1 kinginyellow kinginyellow   5086 Sep  9 08:45 EMERGENCY_DEPLOYMENT_COMPLETE.md
+-rw-rw-r--  1 kinginyellow kinginyellow   1763 Sep  9 08:45 EMERGENCY_DEPLOYMENT_GUIDE.md
+-rw-rw-r--  1 kinginyellow kinginyellow   3478 Sep  9 08:45 EMERGENCY_DEPLOYMENT_STATUS.md
+-rw-rw-r--  1 kinginyellow kinginyellow   4483 Sep  9 08:45 EMERGENCY_RECOVERY_REPORT.md
+-rw-rw-r--  1 kinginyellow kinginyellow   1134 Sep  7 23:23 .env
+-rw-rw-r--  1 kinginyellow kinginyellow    971 Sep  9 08:45 .env.e2e
+-rw-rw-r--  1 kinginyellow kinginyellow   1597 Sep  9 08:45 .env.production
+-rw-rw-r--  1 kinginyellow kinginyellow   1154 Sep  9 08:45 .env.production.final
+-rw-------  1 kinginyellow kinginyellow   2664 Sep 12 09:20 .env.staging
+-rw-------  1 kinginyellow kinginyellow   1597 Sep  7 23:23 .env.temp
+-rw-rw-r--  1 kinginyellow kinginyellow   1892 Sep 11 10:05 .env.test
+-rw-rw-r--  1 kinginyellow kinginyellow   3377 Sep  9 08:52 eslint.config.js
+-rw-rw-r--  1 kinginyellow kinginyellow   7504 Sep  9 08:45 EXPRESS_OPTIMIZATION_RESULTS.md
+-rw-rw-r--  1 kinginyellow kinginyellow  10203 Sep  9 08:45 EXTERNAL_API_INTEGRATION_REPORT.md
+drwxrwxr-x 11 kinginyellow kinginyellow   4096 Sep 12 10:40 frontend
+-rwxrwxr-x  1 kinginyellow kinginyellow   1376 Sep 12 09:19 generate-staging-secrets.sh
+drwxrwxr-x  3 kinginyellow kinginyellow   4096 Sep  9 08:45 .github
+-rw-rw-r--  1 kinginyellow kinginyellow    909 Sep  9 08:45 .gitignore
+-rw-rw-r--  1 kinginyellow kinginyellow     45 Sep  7 23:20 jwt_secret_rotation.key
+-rw-rw-r--  1 kinginyellow kinginyellow   2289 Sep  9 08:45 lighthouserc.js
+drwxrwxr-x  7 kinginyellow kinginyellow   4096 Sep 11 13:30 logs
+drwxrwxr-x  3 kinginyellow kinginyellow   4096 Sep  9 13:40 .medianest-cleanup
+drwxrwxr-x  2 kinginyellow kinginyellow   4096 Sep  7 13:36 memory
+-rw-rw-r--  1 kinginyellow kinginyellow   7605 Sep  9 08:45 MONITORING_DEPLOYMENT_REPORT.md
+-rw-rw-r--  1 kinginyellow kinginyellow     65 Sep  7 23:20 new_encryption.key
+-rw-rw-r--  1 kinginyellow kinginyellow     65 Sep  7 23:20 new_jwt.key
+-rw-rw-r--  1 kinginyellow kinginyellow     65 Sep  7 23:20 new_nextauth.key
+drwxrwxr-x  2 kinginyellow kinginyellow   4096 Sep  9 08:45 nginx
+drwxrwxr-x  4 kinginyellow kinginyellow  32768 Sep 12 09:39 node_modules
+-rw-rw-r--  1 kinginyellow kinginyellow    181 Sep  5 08:05 nodemon.json
+-rw-rw-r--  1 kinginyellow kinginyellow   2258 Sep  9 08:45 package.emergency.json
+-rw-rw-r--  1 kinginyellow kinginyellow   4358 Sep 12 09:07 package.json
+-rw-rw-r--  1 kinginyellow kinginyellow 433849 Sep 11 19:22 package-lock.json
+-rw-rw-r--  1 kinginyellow kinginyellow   1664 Sep  9 08:45 package.prod.json
+-rw-rw-r--  1 kinginyellow kinginyellow  11359 Sep  9 08:45 PERFORMANCE_OPTIMIZATION_GUIDE.md
+-rw-rw-r--  1 kinginyellow kinginyellow   6089 Sep 11 09:55 playwright.config.ts
+drwxrwxr-x  3 kinginyellow kinginyellow   4096 Sep  9 10:34 prisma
+-rw-rw-r--  1 kinginyellow kinginyellow  12496 Sep  9 08:45 PRODUCTION_DISASTER_RECOVERY_FINAL_REPORT.md
+-rw-rw-r--  1 kinginyellow kinginyellow   7925 Sep  9 08:45 PRODUCTION_SECURITY_AUDIT_REPORT.md
+-rw-rw-r--  1 kinginyellow kinginyellow   1537 Sep  9 08:45 production-security-report.json
+-rw-rw-r--  1 kinginyellow kinginyellow  13036 Sep 11 15:04 README.md
+-rwxrwxr-x  1 kinginyellow kinginyellow   1461 Sep  9 08:45 run-tests.sh
+-rw-rw-r--  1 kinginyellow kinginyellow   6101 Sep  9 08:45 RUNTIME_VALIDATION_REPORT.md
+drwxrwxr-x  3 kinginyellow kinginyellow   4096 Sep 12 09:20 scripts
+-rw-rw-r--  1 kinginyellow kinginyellow  11528 Sep  5 18:02 SECURITY_TEST_IMPLEMENTATION.md
+-rw-rw-r--  1 kinginyellow kinginyellow   5731 Sep  9 08:45 SERVICE_LAYER_TYPESCRIPT_FIXES_REPORT.md
+drwxrwxr-x 22 kinginyellow kinginyellow   4096 Sep 12 00:09 src
+drwxrwxr-x  2 kinginyellow kinginyellow   4096 Sep 11 08:32 .swarm
+-rw-rw-r--  1 kinginyellow kinginyellow   7985 Sep  9 08:45 TEST_EXPANSION_SUMMARY.md
+-rw-rw-r--  1 kinginyellow kinginyellow 118808 Sep 10 19:46 test_failures_full.log
+-rw-rw-r--  1 kinginyellow kinginyellow   1097 Sep 10 08:40 test-results-backend.json
+drwxrwxr-x 21 kinginyellow kinginyellow   4096 Sep 11 22:14 tests
+-rw-rw-r--  1 kinginyellow kinginyellow 279542 Sep 12 10:15 .tsbuildinfo
+-rw-rw-r--  1 kinginyellow kinginyellow    360 Sep  9 08:45 tsconfig.deploy.json
+-rw-rw-r--  1 kinginyellow kinginyellow 286845 Sep  7 13:11 tsconfig.deploy.tsbuildinfo
+-rw-rw-r--  1 kinginyellow kinginyellow    310 Sep  9 08:45 tsconfig.emergency.json
+-rw-rw-r--  1 kinginyellow kinginyellow 285982 Sep  7 13:39 tsconfig.emergency.tsbuildinfo
+-rw-rw-r--  1 kinginyellow kinginyellow    204 Sep  9 08:45 tsconfig.eslint.json
+-rw-rw-r--  1 kinginyellow kinginyellow   2497 Sep 11 21:28 tsconfig.json
+-rw-rw-r--  1 kinginyellow kinginyellow   1474 Sep  9 08:45 tsconfig.prod.json
+-rw-rw-r--  1 kinginyellow kinginyellow    245 Sep 11 09:06 tsconfig.test.json
+-rw-rw-r--  1 kinginyellow kinginyellow   3215 Sep  9 08:45 TYPESCRIPT_CLEANUP_REPORT.md
+-rw-rw-r--  1 kinginyellow kinginyellow   5823 Sep 11 22:14 vitest.config.ts
+-rw-rw-r--  1 kinginyellow kinginyellow   2010 Sep 11 10:10 vitest.security.config.ts
+-rw-rw-r--  1 kinginyellow kinginyellow   3325 Sep 11 10:19 webpack.config.emergency.js
+-rw-rw-r--  1 kinginyellow kinginyellow   1143 Sep  9 08:45 webpack.config.js
+--- backend package.json
+{
+  "name": "@medianest/backend",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kinginyellow/medianest.git",
+    "directory": "backend"
+  },
+  "scripts": {
+    "dev": "nodemon",
+    "build": "tsc --build",
+    "start": "node dist/server.js",
+    "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --fix",
+    "type-check": "tsc --noEmit",
+    "clean": "rimraf dist",
+    "test": "vitest run",
+    "test:ci": "vitest run --reporter=verbose",
+    "test:ui": "vitest --ui",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:chromium": "playwright test --project=chromium",
+    "test:e2e:firefox": "playwright test --project=firefox",
+    "test:e2e:webkit": "playwright test --project=webkit",
+    "test:e2e:mobile": "playwright test --project='Mobile Chrome' --project='Mobile Safari'",
+    "test:e2e:headed": "playwright test --headed",
+    "test:setup": "docker compose -f docker-compose.test.yml up -d --wait",
+    "test:teardown": "docker compose -f docker-compose.test.yml down -v",
+    "test:integration": "npm run test:setup && npm test && npm run test:teardown",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio",
+    "db:validate": "ts-node scripts/database-validation.ts",
+    "db:backup": "./scripts/backup-procedures.sh backup",
+    "db:backup:pre-deployment": "./scripts/backup-procedures.sh pre-deployment",
+    "db:restore": "./scripts/backup-procedures.sh restore",
+    "db:backup:list": "./scripts/backup-procedures.sh list",
+    "db:backup:cleanup": "./scripts/backup-procedures.sh cleanup",
+    "migration:rollback": "ts-node scripts/migration-rollback.ts",
+    "security:validate": "node scripts/production-security-validator.js",
+    "security:test": "./scripts/run-security-tests.sh",
+    "deployment:verify": "node scripts/verify-deployment.js",
+    "start:prod": "NODE_ENV=production node dist/server.js",
+    "build:prod": "NODE_ENV=production npm run build"
+  },
+  "dependencies": {
+    "@medianest/shared": "file:../shared",
+    "@opentelemetry/api": "^1.9.0",
+    "@prisma/client": "^6.15.0",
+    "@types/ws": "^8.18.1",
+    "axios": "^1.7.7",
+    "bcrypt": "^5.1.1",
+    "bull": "^4.16.5",
+    "bullmq": "^5.58.5",
+    "compression": "^1.7.4",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "ioredis": "^5.4.1",
+    "jsonwebtoken": "^9.0.2",
+    "opossum": "^8.1.4",
+    "prom-client": "^15.1.3",
+    "qrcode": "^1.3.3",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "speakeasy": "^2.0.0",
+    "winston": "^3.14.2",
+    "winston-daily-rotate-file": "^5.0.0",
+    "ws": "^8.18.3",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@types/bcrypt": "^5.0.2",
+    "@types/bull": "^4.10.0",
+    "@types/compression": "^1.8.1",
+    "@types/cookie-parser": "^1.4.9",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.21",
+    "@types/ioredis": "^4.28.10",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^20.14.10",
+    "@types/qrcode": "^1.5.5",
+    "@types/speakeasy": "^2.0.10",
+    "@types/supertest": "^6.0.2",
+    "@types/uuid": "^10.0.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "allure-playwright": "^3.3.3",
+    "jsdom": "^26.1.0",
+    "prisma": "^6.15.0",
+    "supertest": "^7.1.4",
+    "ts-loader": "^9.5.4",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.7.3",
+    "vitest": "^3.2.4",
+    "webpack": "^5.101.3",
+    "webpack-cli": "^6.0.1"
+  },
+  "optionalDependencies": {
+    "@opentelemetry/auto-instrumentations-node": "^0.62.2",
+    "@opentelemetry/exporter-jaeger": "^2.1.0",
+    "@opentelemetry/exporter-otlp-http": "^0.26.0",
+    "@opentelemetry/instrumentation-express": "^0.52.0",
+    "@opentelemetry/instrumentation-http": "^0.204.0",
+    "@opentelemetry/node": "^0.24.0",
+    "@opentelemetry/resources": "^2.1.0",
+    "@opentelemetry/sdk-node": "^0.204.0",
+    "@opentelemetry/semantic-conventions": "^1.37.0"
+  }
+}
+--- backend eslint
+const js = require('@eslint/js');
+const typescriptEslint = require('@typescript-eslint/eslint-plugin');
+const typescriptParser = require('@typescript-eslint/parser');
+const importPlugin = require('eslint-plugin-import');
+const prettier = require('eslint-plugin-prettier');
+const globals = require('globals');
+
+module.exports = [
+  // Ignore patterns
+  {
+    ignores: [
+      'node_modules/**', 
+      'dist/**',
+      'build/**',
+      'coverage/**',
+      '**/*.d.ts',
+      '**/*.config.js',
+      '**/*.config.ts',
+      'eslint.config.js',
+      '.eslintrc.js',
+      'scripts/**',
+      'lighthouserc.js',
+    ],
+  },
+  
+  // JavaScript files
+  {
+    files: ['**/*.js', '**/*.mjs', '**/*.cjs'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.es2022,
+      },
+      ecmaVersion: 2022,
+      sourceType: 'module',
+    },
+    plugins: {
+      import: importPlugin,
+      prettier,
+    },
+    rules: {
+      ...js.configs.recommended.rules,
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'prefer-const': 'error',
+      'no-debugger': 'error',
+      'prettier/prettier': 'error',
+      'import/no-duplicates': 'error',
+    },
+  },
+  
+  // TypeScript files
+  {
+    files: ['**/*.ts', '**/*.tsx'],
+    languageOptions: {
+      parser: typescriptParser,
+      parserOptions: {
+        tsconfigRootDir: __dirname,
+        ecmaVersion: 2022,
+        sourceType: 'module',
+        project: ['./tsconfig.json'],
+      },
+      globals: {
+        ...globals.node,
+        ...globals.es2022,
+        Buffer: 'readonly',
+        process: 'readonly',
+        console: 'readonly',
+        global: 'readonly',
+        NodeJS: 'readonly',
+        setTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearTimeout: 'readonly',
+        clearInterval: 'readonly',
+      },
+    },
+    plugins: {
+      '@typescript-eslint': typescriptEslint,
+      import: importPlugin,
+      prettier,
+    },
+    rules: {
+      ...js.configs.recommended.rules,
+      ...typescriptEslint.configs.recommended.rules,
+      
+      // TypeScript specific
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/explicit-module-boundary-types': 'off',
+      '@typescript-eslint/no-var-requires': 'warn',
+      'no-undef': 'off', // TypeScript handles this
+      
+      // Import rules
+      'import/order': [
+        'error',
+        {
+          groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
+          'newlines-between': 'always',
+          alphabetize: { order: 'asc', caseInsensitive: true },
+        },
+      ],
+      'import/no-duplicates': 'error',
+      'import/no-unresolved': 'error',
+      
+      // General rules
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'prefer-const': 'error',
+      'no-debugger': 'error',
+      'no-useless-escape': 'warn',
+      'prettier/prettier': 'error',
+      
+      // Node.js specific
+      'no-process-exit': 'error',
+    },
+    settings: {
+      'import/parsers': {
+        '@typescript-eslint/parser': ['.ts', '.tsx'],
+      },
+      'import/resolver': {
+        typescript: {
+          alwaysTryTypes: true,
+          project: ['./tsconfig.json'],
+        },
+      },
+    },
+  },
+];--- backend tsconfig
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "lib": ["ES2022"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "baseUrl": ".",
+    "composite": true,
+    "incremental": true,
+    "tsBuildInfoFile": "./.tsbuildinfo",
+    "isolatedModules": true,
+    "preserveWatchOutput": true,
+    "assumeChangesOnlyAffectDirectDependencies": true,
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/controllers/*": ["./src/controllers/*"],
+      "@/services/*": ["./src/services/*"],
+      "@/middleware/*": ["./src/middleware/*"],
+      "@/routes/*": ["./src/routes/*"],
+      "@/models/*": ["./src/models/*"],
+      "@/utils/*": ["./src/utils/*"],
+      "@/integrations/*": ["./src/integrations/*"],
+      "@/jobs/*": ["./src/jobs/*"],
+      "@/repositories/*": ["./src/repositories/*"],
+      "@/types/*": ["./src/types/*"],
+      "@/config/*": ["./src/config/*"],
+      "@medianest/shared": ["../shared/dist", "../shared/src", "./node_modules/@medianest/shared"],
+      "@medianest/shared/*": ["../shared/dist/*", "../shared/src/*", "./node_modules/@medianest/shared/*"]
+    },
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "resolveJsonModule": true,
+    "allowJs": false,
+    "noEmit": false,
+
+    // Context7 TypeScript Performance Optimizations
+    "disableSizeLimit": false,
+    "preserveSymlinks": false,
+    "maxNodeModuleJsDepth": 0,
+    "importsNotUsedAsValues": "remove",
+    "useDefineForClassFields": true,
+    "exactOptionalPropertyTypes": false,
+
+    // Context7 Pattern: Full strict mode for A+ configuration (temporarily relaxed)
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": true,
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": false,
+    "noUncheckedIndexedAccess": true,
+    "checkJs": false,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitAny": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"],
+  // "references": [
+  //   { "path": "../shared" }
+  // ],
+  "ts-node": {
+    "require": ["tsconfig-paths/register"],
+    "transpileOnly": true,
+    "files": true,
+    "compilerOptions": {
+      "isolatedModules": true
+    }
+  }
+}
+--- backend tsconfig.test
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["vitest/globals", "node"]
+  },
+  "include": [
+    "src/**/*",
+    "config/**/*",
+    "tests/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}--- backend vitest
+/// <reference types="vitest" />
+import { defineConfig } from 'vite';
+import path from 'path';
+
+const cpuCount = require('os').cpus().length;
+const maxWorkers = Math.max(2, Math.min(6, cpuCount));
+
+export default defineConfig({
+  test: {
+    environment: 'node',
+    setupFiles: ['./tests/setup.ts'],
+    globals: true,
+    
+    // **SINGLE THREAD EXECUTION - ELIMINATES WORKER THREAD ISSUES**
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        singleThread: true, // CRITICAL: Single thread eliminates worker termination
+        minThreads: 1,
+        maxThreads: 1, // Force single thread
+        isolate: false, // Disable isolation for single thread performance
+        useAtomics: false, // Not needed for single thread
+      },
+    },
+    
+    // **STABILIZED TIMEOUTS - PREVENT WORKER TERMINATION**
+    testTimeout: 15000,   // Increased for worker stability
+    hookTimeout: 10000,   // Increased for proper cleanup
+    teardownTimeout: 5000, // Reduced - file handles should close quickly
+    
+    // **SINGLE THREAD EXECUTION STRATEGY**
+    bail: 3, // Stop after 3 failures
+    retry: 0, // No retries needed in single thread
+    sequence: {
+      shuffle: false,      // Deterministic execution
+      concurrent: false,   // Single thread, no concurrency
+      setupTimeout: 15000, // Reduced timeout for single thread
+    },
+    
+    // **SINGLE THREAD CONCURRENCY**
+    maxConcurrency: 1, // Single thread only
+    
+    // **MOCK STABILIZATION - PREVENT MEMORY LEAKS**
+    mockReset: true,      // Enable for proper cleanup
+    clearMocks: true,     // Enable for test isolation
+    restoreMocks: true,   // Enable for proper teardown
+    
+    // **DEBUG REPORTER: Identify hanging processes**
+    reporter: ['default', 'hanging-process'],
+    
+    // **OPTIMIZED COVERAGE**
+    coverage: {
+      provider: 'v8',
+      reporter: ['text-summary', 'json'],
+      
+      // Performance settings
+      clean: false,
+      cleanOnRerun: false,
+      skipFull: true,
+      reportOnFailure: false,
+      
+      exclude: [
+        'node_modules/',
+        'tests/',
+        'src/__tests__/',
+        '**/*.d.ts',
+        '**/*.config.*',
+        'dist/',
+        'coverage/',
+        'src/types/**',
+        'src/schemas/**',
+        'src/validations/**',
+        '**/test-*.ts',
+        '**/mocks/**',
+        '**/fixtures/**',
+        '**/helpers/**'
+      ],
+      
+      include: [
+        'src/controllers/**/*.ts',
+        'src/services/**/*.ts',
+        'src/middleware/**/*.ts',
+        'src/utils/**/*.ts',
+        'src/repositories/**/*.ts',
+      ],
+      
+      // Relaxed thresholds for speed
+      thresholds: {
+        branches: 60,
+        functions: 60,
+        lines: 60,
+        statements: 60,
+      },
+    },
+    
+    // **OPTIMIZED FILE PATTERNS**
+    include: [
+      'tests/**/*.test.ts',
+      'src/**/*.test.ts'
+    ],
+    
+    exclude: [
+      'node_modules/**',
+      'dist/**',
+      'coverage/**',
+      '**/*.d.ts',
+      '**/*.config.*',
+      '**/e2e/**',           // Exclude slow E2E tests
+      '**/integration/**',   // Run integration separately
+      '**/performance/**'    // Exclude performance tests
+    ],
+    
+    // **DEPENDENCY OPTIMIZATIONS** (Updated for Vitest 3.x)
+    server: {
+      deps: {
+        external: [
+          '@prisma/client', 
+          'ioredis', 
+          'redis',
+          'bcrypt',
+          'jsonwebtoken'
+        ],
+      }
+    },
+    
+    // **TEST ENVIRONMENT**
+    env: {
+      NODE_ENV: 'test',
+      JWT_SECRET: 'test-jwt-secret-key-32-bytes-long',
+      JWT_ISSUER: 'medianest-test',
+      JWT_AUDIENCE: 'medianest-test-users',
+      ENCRYPTION_KEY: 'test-encryption-key-32-bytes-long',
+      DATABASE_URL: 'postgresql://test:test@localhost:5433/medianest_test',
+      REDIS_URL: 'redis://localhost:6380/0',
+      PLEX_CLIENT_ID: 'test-plex-client-id',
+      PLEX_CLIENT_SECRET: 'test-plex-client-secret',
+      FRONTEND_URL: 'http://localhost:3000',
+      LOG_LEVEL: 'silent',
+      
+      // Database optimizations
+      DATABASE_POOL_SIZE: '2',     // Increased from 1
+      DATABASE_TIMEOUT: '3000',    // Reduced timeout
+      REDIS_TEST_DB: '15',
+      
+      // Performance flags - WORKER THREAD STABILITY
+      VITEST_POOL_SIZE: Math.min(maxWorkers, 4).toString(),
+      NODE_OPTIONS: '--max-old-space-size=2048 --enable-source-maps=false',
+      // Critical: Add worker thread pool configuration
+      UV_THREADPOOL_SIZE: '8',
+      // Prevent worker thread memory issues
+      VITEST_SEGFAULT_RETRY: '3',
+      // Worker termination handling
+      VITEST_WORKER_TIMEOUT: '30000',
+      
+      // CRITICAL: Resource cleanup to prevent hanging processes
+      VITE_CJS_IGNORE_WARNING: 'true',
+      FORCE_COLOR: '0', // Disable colors to prevent terminal hangs
+    },
+    
+    // **RESOURCE CLEANUP CONFIGURATION**
+    // Force proper cleanup to prevent hanging processes
+    fileParallelism: false,
+    // Ensure proper shutdown
+    forceRerunTriggers: ['**/vitest.config.*', '**/package.json'],
+  },
+  
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+      '@/config': path.resolve(__dirname, './src/config'),
+      '@/controllers': path.resolve(__dirname, './src/controllers'),
+      '@/middleware': path.resolve(__dirname, './src/middleware'),
+      '@/repositories': path.resolve(__dirname, './src/repositories'),
+      '@/services': path.resolve(__dirname, './src/services'),
+      '@/utils': path.resolve(__dirname, './src/utils'),
+      '@/types': path.resolve(__dirname, './src/types'),
+      '@/routes': path.resolve(__dirname, './src/routes'),
+    },
+  },
+  
+  // **BUILD OPTIMIZATIONS**
+  esbuild: {
+    target: 'node18',
+    sourcemap: false,
+    minify: false,
+  },
+  
+  optimizeDeps: {
+    include: ['vitest > @vitest/utils'],
+    exclude: ['@prisma/client', 'ioredis']
+  }
+});
+--- find backend tests
+backend/frontend/src/hooks/__tests__/useOptimizedWebSocket.test.ts
+backend/frontend/src/hooks/__tests__/edge-cases-and-error-handling.test.ts
+backend/frontend/src/hooks/__tests__/custom-hooks-utilities.test.ts
+backend/frontend/src/hooks/__tests__/useOptimizedState.test.ts
+backend/frontend/src/hooks/__tests__/integration-hooks.test.ts
+backend/frontend/src/components/__tests__/visual-regression.test.ts
+backend/frontend/src/test-utils/__tests__/test-utilities.test.ts
+backend/frontend/node_modules/@mswjs/interceptors/src/Interceptor.test.ts
+backend/frontend/node_modules/@mswjs/interceptors/src/interceptors/Socket/MockSocket.test.ts
+backend/frontend/node_modules/@mswjs/interceptors/src/interceptors/Socket/utils/normalizeSocketWriteArgs.test.ts
+backend/frontend/node_modules/@mswjs/interceptors/src/interceptors/WebSocket/utils/events.test.ts
+backend/frontend/node_modules/@mswjs/interceptors/src/interceptors/WebSocket/utils/bindEvent.test.ts
+backend/frontend/node_modules/@mswjs/interceptors/src/interceptors/ClientRequest/index.test.ts
+backend/frontend/node_modules/@mswjs/interceptors/src/interceptors/ClientRequest/utils/getIncomingMessageBody.test.ts
+backend/frontend/node_modules/@mswjs/interceptors/src/interceptors/ClientRequest/utils/recordRawHeaders.test.ts
+backend/frontend/node_modules/@mswjs/interceptors/src/interceptors/ClientRequest/utils/normalizeClientRequestArgs.test.ts
+backend/frontend/node_modules/@mswjs/interceptors/src/interceptors/XMLHttpRequest/utils/concateArrayBuffer.test.ts
+backend/frontend/node_modules/@mswjs/interceptors/src/interceptors/XMLHttpRequest/utils/createEvent.test.ts
+backend/frontend/node_modules/@mswjs/interceptors/src/interceptors/XMLHttpRequest/utils/getBodyByteLength.test.ts
+backend/frontend/node_modules/@mswjs/interceptors/src/createRequestId.test.ts
+backend/frontend/node_modules/@mswjs/interceptors/src/RequestController.test.ts
+backend/frontend/node_modules/@mswjs/interceptors/src/utils/createProxy.test.ts
+backend/frontend/node_modules/@mswjs/interceptors/src/utils/getUrlByRequestOptions.test.ts
+backend/frontend/node_modules/@mswjs/interceptors/src/utils/cloneObject.test.ts
+backend/frontend/node_modules/@mswjs/interceptors/src/utils/findPropertySource.test.ts
+backend/frontend/node_modules/@mswjs/interceptors/src/utils/parseJson.test.ts
+backend/frontend/node_modules/@mswjs/interceptors/src/utils/bufferUtils.test.ts
+backend/frontend/node_modules/@mswjs/interceptors/src/utils/getCleanUrl.test.ts
+backend/frontend/node_modules/@mswjs/interceptors/src/utils/hasConfigurableGlobal.test.ts
+backend/frontend/node_modules/@mswjs/interceptors/src/utils/isObject.test.ts
+backend/frontend/node_modules/@mswjs/interceptors/src/utils/getValueBySymbol.test.ts
+backend/frontend/node_modules/@mswjs/interceptors/src/BatchInterceptor.test.ts
+backend/frontend/node_modules/msw/src/core/http.test.ts
+backend/frontend/node_modules/msw/src/core/ws/WebSocketClientManager.test.ts
+backend/frontend/node_modules/msw/src/core/ws/utils/getMessageLength.test.ts
+backend/frontend/node_modules/msw/src/core/ws/utils/truncateMessage.test.ts
+backend/frontend/node_modules/msw/src/core/ws/utils/getPublicData.test.ts
+backend/frontend/node_modules/msw/src/core/passthrough.test.ts
+backend/frontend/node_modules/msw/src/core/HttpResponse.test.ts
+backend/frontend/node_modules/msw/src/core/handlers/WebSocketHandler.test.ts
+backend/frontend/node_modules/msw/src/core/handlers/HttpHandler.test.ts
+backend/frontend/node_modules/msw/src/core/handlers/GraphQLHandler.test.ts
+backend/frontend/node_modules/msw/src/core/ws.test.ts
+backend/frontend/node_modules/msw/src/core/graphql.test.ts
+backend/frontend/node_modules/msw/src/core/getResponse.test.ts
+backend/frontend/node_modules/msw/src/core/bypass.test.ts
+backend/frontend/node_modules/msw/src/core/utils/url/getAbsoluteUrl.test.ts
+backend/frontend/node_modules/msw/src/core/utils/url/isAbsoluteUrl.test.ts
+backend/frontend/node_modules/msw/src/core/utils/url/cleanUrl.test.ts
+backend/frontend/node_modules/msw/src/core/utils/url/getAbsoluteUrl.node.test.ts
+backend/frontend/node_modules/msw/src/core/utils/request/toPublicUrl.test.ts
+backend/frontend/node_modules/msw/src/core/utils/request/onUnhandledRequest.test.ts
+backend/frontend/node_modules/msw/src/core/utils/matching/matchRequestUrl.test.ts
+backend/frontend/node_modules/msw/src/core/utils/matching/normalizePath.test.ts
+backend/frontend/node_modules/msw/src/core/utils/matching/normalizePath.node.test.ts
+backend/frontend/node_modules/msw/src/core/utils/handleRequest.test.ts
+backend/frontend/node_modules/msw/src/core/utils/internal/isHandlerKind.test.ts
+backend/frontend/node_modules/msw/src/core/utils/internal/isIterable.test.ts
+backend/frontend/node_modules/msw/src/core/utils/internal/devUtils.test.ts
+backend/frontend/node_modules/msw/src/core/utils/internal/tryCatch.test.ts
+backend/frontend/node_modules/msw/src/core/utils/internal/jsonParse.test.ts
+backend/frontend/node_modules/msw/src/core/utils/internal/mergeRight.test.ts
+backend/frontend/node_modules/msw/src/core/utils/internal/isObject.test.ts
+backend/frontend/node_modules/msw/src/core/utils/internal/getCallFrame.test.ts
+backend/frontend/node_modules/msw/src/core/utils/internal/pipeEvents.test.ts
+backend/frontend/node_modules/msw/src/core/utils/internal/isStringEqual.test.ts
+backend/frontend/node_modules/msw/src/core/utils/internal/parseMultipartData.test.ts
+backend/frontend/node_modules/msw/src/core/utils/internal/toReadonlyArray.test.ts
+backend/frontend/node_modules/msw/src/core/utils/internal/parseGraphQLRequest.test.ts
+backend/frontend/node_modules/msw/src/core/utils/logging/serializeRequest.test.ts
+backend/frontend/node_modules/msw/src/core/utils/logging/getTimestamp.test.ts
+backend/frontend/node_modules/msw/src/core/utils/logging/serializeResponse.test.ts
+backend/frontend/node_modules/msw/src/core/utils/logging/getStatusCodeColor.test.ts
+backend/frontend/node_modules/msw/src/browser/setupWorker/setupWorker.node.test.ts
+backend/frontend/node_modules/msw/src/browser/setupWorker/stop/utils/printStopMessage.test.ts
+backend/frontend/node_modules/msw/src/browser/setupWorker/start/utils/printStartMessage.test.ts
+backend/frontend/node_modules/msw/src/browser/setupWorker/start/utils/prepareStartHandler.test.ts
+backend/frontend/node_modules/msw/src/browser/utils/pruneGetRequestBody.test.ts
+backend/frontend/node_modules/msw/src/browser/utils/getAbsoluteWorkerUrl.test.ts
+backend/frontend/node_modules/msw/src/browser/utils/deferNetworkRequestsUntil.test.ts
+backend/frontend/node_modules/@jest/pattern/src/__tests__/TestPathPatterns.test.ts
+backend/frontend/node_modules/@testing-library/jest-dom/types/__tests__/bun/bun-custom-expect-types.test.ts
+backend/frontend/node_modules/@testing-library/jest-dom/types/__tests__/bun/bun-types.test.ts
+backend/frontend/node_modules/@testing-library/jest-dom/types/__tests__/jest-globals/jest-globals-custom-expect-types.test.ts
+backend/frontend/node_modules/@testing-library/jest-dom/types/__tests__/jest-globals/jest-globals-types.test.ts
+backend/frontend/node_modules/@testing-library/jest-dom/types/__tests__/jest/jest-types.test.ts
+backend/frontend/node_modules/@testing-library/jest-dom/types/__tests__/jest/jest-custom-expect-types.test.ts
+backend/frontend/node_modules/@testing-library/jest-dom/types/__tests__/vitest/vitest-custom-expect-types.test.ts
+backend/frontend/node_modules/@testing-library/jest-dom/types/__tests__/vitest/vitest-types.test.ts
+backend/node_modules/tsconfig-paths/src/__tests__/try-path.test.ts
+backend/node_modules/tsconfig-paths/src/__tests__/config-loader.test.ts
+backend/node_modules/tsconfig-paths/src/__tests__/mapping-entry.test.ts
+backend/node_modules/tsconfig-paths/src/__tests__/filesystem.test.ts
+backend/node_modules/tsconfig-paths/src/__tests__/tsconfig-loader.test.ts
+backend/node_modules/tsconfig-paths/src/__tests__/match-path-async.test.ts
+backend/node_modules/tsconfig-paths/src/__tests__/match-path-sync.test.ts
+backend/tests/auth/jwt-facade.test.ts
+backend/tests/auth/authentication-facade.test.ts
+backend/tests/auth/auth-middleware.test.ts
+backend/tests/e2e/end-to-end-workflows.test.ts
+backend/tests/emergency-core-tests.test.ts
+backend/tests/comprehensive-coverage-report.test.ts
+backend/tests/unit/core-business-logic.test.ts
+backend/tests/unit/controllers-validation.test.ts
+backend/tests/unit/middleware/validation.test.ts
+backend/tests/unit/middleware/rate-limit.test.ts
+backend/tests/unit/repositories/user.repository.test.ts
+backend/tests/unit/services/plex.service.test.ts
+backend/tests/unit/services/cache.service.simple.test.ts
+backend/tests/unit/services/encryption.service.test.ts
+backend/tests/unit/services/cache.service.test.ts
+backend/tests/unit/services/youtube.service.test.ts
+backend/tests/unit/services/device-session.service.test.ts
+backend/tests/unit/services/notification-database.service.test.ts
+backend/tests/unit/services/jwt.service.test.ts
+backend/tests/unit/controllers/media.controller.test.ts
+backend/tests/unit/controllers/dashboard.controller.test.ts
+backend/tests/unit/controllers/admin.controller.test.ts
+backend/tests/unit/controllers/plex.controller.test.ts
+backend/tests/unit/controllers/health.controller.test.ts
+backend/tests/unit/controllers/auth.controller.test.ts
+backend/tests/unit/utils/logger.test.ts
+backend/tests/unit/utils/async-handler.test.ts
+backend/tests/unit/utils/errors.test.ts
+backend/tests/performance/file-throughput.test.ts
+backend/tests/performance/concurrent-load-scenarios.test.ts
+backend/tests/performance/memory-leak-detection.test.ts
+backend/tests/performance/websocket-performance.test.ts
+backend/tests/performance/database-performance.test.ts
+backend/tests/performance/api-response-benchmarks.test.ts
+backend/tests/performance/cache-performance.test.ts
+backend/tests/performance/performance-documentation.test.ts
+backend/tests/performance/load-testing-enhanced.test.ts
+backend/tests/security/rate-limiting-tests.test.ts
+backend/tests/security/security-penetration.test.ts
+backend/tests/security/sql-injection-tests.test.ts
+backend/tests/security/xss-prevention-tests.test.ts
+backend/tests/security/security-integration.test.ts
+backend/tests/security/csrf-protection-tests.test.ts
+backend/tests/security/session-security-tests.test.ts
+backend/tests/security/owasp-top10-tests.test.ts
+backend/tests/security/authentication-bypass-tests.test.ts
+backend/tests/integration/auth-api-integration.test.ts
+backend/tests/integration/plex-api-integration.test.ts
+backend/tests/integration/service-integration.test.ts
+backend/tests/integration/third-party-integration.test.ts
+backend/tests/integration/youtube-api-integration.test.ts
+backend/tests/integration/health-monitoring-api-integration.test.ts
+backend/tests/integration/webhook-api-integration.test.ts
+backend/tests/integration/api-endpoints-comprehensive.test.ts
+backend/tests/integration/media-api-integration.test.ts
+backend/tests/integration/admin-api-integration.test.ts
+backend/tests/integration/frontend-backend-integration.test.ts
+backend/tests/integration/dashboard-api-integration.test.ts
+backend/tests/integration/api-integration.test.ts
+backend/tests/integration/database-transaction-tests.test.ts
+backend/tests/integration/external-api-integration.test.ts

@@ -1,1 +1,34 @@
-{"uuid":"77dcf11d-a7af-47bf-83c8-cb6ff1a7cf40","name":"should handle large download history efficiently","historyId":"8ceff5a14bba8f0701b40573354aadf3:84e28e814b821ed013329cc8dbc467e0","status":"skipped","statusDetails":{},"stage":"finished","steps":[],"attachments":[],"parameters":[{"name":"Project","value":"webkit"}],"labels":[{"name":"language","value":"javascript"},{"name":"framework","value":"playwright"},{"name":"package","value":"youtube-download-journey.spec.ts"},{"name":"titlePath","value":" > webkit > youtube-download-journey.spec.ts > YouTube Download User Journey > Performance and Load Testing"},{"name":"host","value":"kubuntudev"},{"name":"thread","value":"pid-38931-worker-0"},{"name":"parentSuite","value":"webkit"},{"name":"subSuite","value":"YouTube Download User Journey > Performance and Load Testing"}],"links":[],"start":1757602649431,"testCaseId":"8ceff5a14bba8f0701b40573354aadf3","fullName":"youtube-download-journey.spec.ts:605:9","titlePath":["youtube-download-journey.spec.ts","YouTube Download User Journey","Performance and Load Testing"],"stop":1757602649431}
+{
+  "uuid": "77dcf11d-a7af-47bf-83c8-cb6ff1a7cf40",
+  "name": "should handle large download history efficiently",
+  "historyId": "8ceff5a14bba8f0701b40573354aadf3:84e28e814b821ed013329cc8dbc467e0",
+  "status": "skipped",
+  "statusDetails": {},
+  "stage": "finished",
+  "steps": [],
+  "attachments": [],
+  "parameters": [{ "name": "Project", "value": "webkit" }],
+  "labels": [
+    { "name": "language", "value": "javascript" },
+    { "name": "framework", "value": "playwright" },
+    { "name": "package", "value": "youtube-download-journey.spec.ts" },
+    {
+      "name": "titlePath",
+      "value": " > webkit > youtube-download-journey.spec.ts > YouTube Download User Journey > Performance and Load Testing"
+    },
+    { "name": "host", "value": "kubuntudev" },
+    { "name": "thread", "value": "pid-38931-worker-0" },
+    { "name": "parentSuite", "value": "webkit" },
+    { "name": "subSuite", "value": "YouTube Download User Journey > Performance and Load Testing" }
+  ],
+  "links": [],
+  "start": 1757602649431,
+  "testCaseId": "8ceff5a14bba8f0701b40573354aadf3",
+  "fullName": "youtube-download-journey.spec.ts:605:9",
+  "titlePath": [
+    "youtube-download-journey.spec.ts",
+    "YouTube Download User Journey",
+    "Performance and Load Testing"
+  ],
+  "stop": 1757602649431
+}

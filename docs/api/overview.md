@@ -20,7 +20,7 @@ MediaNest uses **Plex OAuth** for user authentication with JWT tokens for sessio
    - Returns a PIN code and authorization URL
    - PIN expires in 10 minutes
 
-2. **User Authorization**: 
+2. **User Authorization**:
    - User visits the authorization URL
    - Enters the PIN code on Plex website
    - Authorizes MediaNest application
@@ -36,6 +36,7 @@ MediaNest uses **Plex OAuth** for user authentication with JWT tokens for sessio
 ### Authentication Examples
 
 #### Generate PIN
+
 ```bash
 # Development
 curl -X POST http://localhost:3000/api/auth/plex/pin \
@@ -47,6 +48,7 @@ curl -X POST https://your-domain.com/api/auth/plex/pin \
 ```
 
 Response:
+
 ```json
 {
   "id": "12345",
@@ -57,6 +59,7 @@ Response:
 ```
 
 #### Verify PIN
+
 ```bash
 # Development
 curl -X POST http://localhost:3000/api/auth/plex/verify \
@@ -70,6 +73,7 @@ curl -X POST https://your-domain.com/api/auth/plex/verify \
 ```
 
 Response:
+
 ```json
 {
   "success": true,
@@ -83,6 +87,7 @@ Response:
 ```
 
 #### Get Current Session
+
 ```bash
 # Development
 curl http://localhost:3000/api/auth/session \
@@ -96,6 +101,7 @@ curl https://your-domain.com/api/auth/session \
 ## API Features
 
 ### Rate Limiting
+
 - API endpoints are rate-limited to prevent abuse
 - Rate limit headers included in responses:
   - `X-RateLimit-Limit`: Request limit per window
@@ -103,6 +109,7 @@ curl https://your-domain.com/api/auth/session \
   - `X-RateLimit-Reset`: Reset time
 
 ### Caching
+
 - Static data cached with appropriate cache headers
 - Cache times vary by endpoint:
   - Plex server info: Long-term (1 hour)
@@ -110,6 +117,7 @@ curl https://your-domain.com/api/auth/session \
   - Notifications: No cache (real-time)
 
 ### Error Handling
+
 All API endpoints return consistent error responses:
 
 ```json
@@ -121,6 +129,7 @@ All API endpoints return consistent error responses:
 ```
 
 Common HTTP status codes:
+
 - `200` - Success
 - `201` - Created
 - `400` - Bad Request (validation errors)
@@ -133,10 +142,12 @@ Common HTTP status codes:
 ### Request/Response Format
 
 #### Content Type
+
 - All requests should use `Content-Type: application/json`
 - All responses return `application/json`
 
 #### Request Body Example
+
 ```json
 {
   "title": "The Matrix",
@@ -146,6 +157,7 @@ Common HTTP status codes:
 ```
 
 #### Success Response Example
+
 ```json
 {
   "id": "req-123",
@@ -156,29 +168,30 @@ Common HTTP status codes:
 ```
 
 #### Error Response Example
+
 ```json
 {
   "error": "Bad Request",
   "message": "Validation failed",
-  "details": [
-    "Title is required",
-    "MediaType must be 'movie' or 'tv'"
-  ]
+  "details": ["Title is required", "MediaType must be 'movie' or 'tv'"]
 }
 ```
 
 ## Security
 
 ### CSRF Protection
+
 - CSRF tokens required for state-changing operations
 - Tokens provided via `/auth/plex/verify` endpoint
 - Include `X-CSRF-Token` header in requests
 
 ### CORS
+
 - CORS enabled for allowed origins
 - Credentials (cookies) allowed for authenticated requests
 
 ### Request Security
+
 - Request body size limited to prevent abuse
 - Input validation on all endpoints
 - SQL injection protection via parameterized queries
@@ -192,11 +205,13 @@ List endpoints support pagination with query parameters:
 - `offset`: Number of items to skip (default: 0)
 
 Example:
+
 ```bash
 curl "http://localhost:3001/api/v1/media/requests?limit=10&offset=20"
 ```
 
 Response includes pagination metadata:
+
 ```json
 {
   "requests": [...],
@@ -208,6 +223,7 @@ Response includes pagination metadata:
 ## Available Endpoints
 
 ### Public Endpoints (No Authentication Required)
+
 - `GET /health` - Simple health check for Docker containers
 - `GET /api/health` - Detailed health check with system metrics
 - `GET /api/health/readiness` - Kubernetes readiness probe with database/Redis status
@@ -222,11 +238,13 @@ Response includes pagination metadata:
 ### Protected Endpoints (Authentication Required)
 
 #### Authentication & Session Management
+
 - `GET /api/auth/session` - Get current authenticated user session info
 - `POST /api/auth/logout` - Logout user and invalidate session
 - `POST /api/auth/change-password` - Change user password (admin users)
 
 #### Dashboard & Analytics
+
 - `GET /api/dashboard/stats` - User-specific dashboard statistics
 - `GET /api/dashboard/metrics` - System-wide dashboard metrics (cached 5min)
 - `GET /api/dashboard/activity` - Recent system activity feed
@@ -235,6 +253,7 @@ Response includes pagination metadata:
 - `GET /api/dashboard/status/:service` - Specific service health status
 
 #### Media Management
+
 - `GET /api/media/search` - Search media via Overseerr/TMDB integration
 - `GET /api/media/:mediaType/:tmdbId` - Get detailed media information
 - `POST /api/media/request` - Submit new media request
@@ -244,6 +263,7 @@ Response includes pagination metadata:
 - `GET /api/media/requests/all` - Get all requests (admin only)
 
 #### Plex Integration
+
 - `GET /api/plex/server` - Get Plex server information and status
 - `GET /api/plex/libraries` - Get all available Plex media libraries
 - `GET /api/plex/libraries/:libraryKey/items` - Get items from specific library (paginated)
@@ -253,6 +273,7 @@ Response includes pagination metadata:
 - `GET /api/plex/collections/:collectionKey/details` - Get collection details
 
 #### YouTube Downloads
+
 - `POST /api/youtube/download` - Create new YouTube download job (rate limited: 5/hour)
 - `GET /api/youtube/downloads` - Get user's download history (paginated)
 - `GET /api/youtube/downloads/:id` - Get specific download details and progress
@@ -262,23 +283,26 @@ Response includes pagination metadata:
 ### Admin Endpoints (Admin Role Required)
 
 #### User Management
+
 - `GET /api/admin/users` - Get all users (paginated, searchable, sortable)
 - `PUT /api/admin/users/:userId/role` - Update user role (user/admin)
 - `DELETE /api/admin/users/:userId` - Delete user account (with safeguards)
 - `GET /api/admin/stats` - Get comprehensive system statistics
 
 #### Service Management
+
 - `GET /api/admin/services` - Get all service configurations
 - `PUT /api/admin/services/:service` - Update service configuration
 - `GET /api/admin/logs` - Access system logs (if implemented)
 - `POST /api/admin/backup` - Create system backup (if implemented)
 
 For detailed endpoint documentation, see:
+
 - [Authentication Endpoints](endpoints/auth.md) - Plex OAuth, admin bootstrap, session management
 - [Dashboard Endpoints](endpoints/dashboard.md) - Statistics, metrics, service status
 - [Media Endpoints](endpoints/media.md) - Search, requests, and media management
 - [Plex Endpoints](endpoints/plex.md) - Server integration and library access
-- [Admin Endpoints](endpoints/admin.md) - User management and system administration  
+- [Admin Endpoints](endpoints/admin.md) - User management and system administration
 - [YouTube Endpoints](endpoints/youtube.md) - Video downloads and queue management
 - [Authentication Flows](authentication-flows.md) - Detailed flow diagrams and security
 
@@ -289,10 +313,12 @@ MediaNest provides real-time updates via WebSocket connections. See [WebSocket D
 ## SDK and Tools
 
 ### OpenAPI Specification
+
 - Complete OpenAPI 3.0 specification available at `/api/openapi.yaml`
 - Use with tools like Swagger UI, Postman, or code generators
 
 ### Testing
+
 - Comprehensive test suite ensures API reliability
 - Integration tests cover authentication flows
 - Rate limiting and error handling tested
@@ -306,6 +332,7 @@ MediaNest provides real-time updates via WebSocket connections. See [WebSocket D
 ## Changelog
 
 ### v1.0.0
+
 - Initial API release
 - Plex OAuth authentication
 - Media search and requests

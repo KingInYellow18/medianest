@@ -15,7 +15,7 @@ let originalConsoleError: any = null;
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
-  
+
   // Restore original console.error if it was modified for error boundary tests
   if (originalConsoleError) {
     restoreErrorBoundaryTesting(originalConsoleError);
@@ -27,7 +27,7 @@ afterEach(() => {
 beforeEach(() => {
   // Don't mock console methods globally - let individual tests handle this
   // This is important for ErrorBoundary tests that need to check console calls
-  
+
   // Configure error boundary testing support
   originalConsoleError = configureErrorBoundaryTesting();
 });

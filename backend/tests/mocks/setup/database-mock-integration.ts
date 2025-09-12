@@ -1,10 +1,10 @@
 /**
  * Database Mock Integration Setup - Phase A Foundation
- * 
+ *
  * Integration layer that connects the comprehensive Prisma database mock
  * with the existing test infrastructure and provides seamless replacement
  * of the original mock system.
- * 
+ *
  * Key Features:
  * - Automatic mock registration and lifecycle management
  * - Seamless integration with existing test setup
@@ -15,23 +15,23 @@
  */
 
 import { vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
-import { 
-  PrismaDatabaseMock, 
+import {
+  PrismaDatabaseMock,
   PrismaDatabaseMockFactory,
-  MockDecimal 
+  MockDecimal,
 } from '../database/prisma-database-mock';
-import { 
+import {
   registerMock,
   getMock,
   resetMocks,
   cleanupMocks,
   mockRegistry,
-  executeLifecycleHook 
+  executeLifecycleHook,
 } from '../foundation/unified-mock-registry';
-import { 
+import {
   DatabaseBehaviorOrchestrator,
   createSuccessBehavior,
-  createConnectionTimeoutBehavior 
+  createConnectionTimeoutBehavior,
 } from '../behaviors/database-behavior-patterns';
 
 // =============================================================================
@@ -60,7 +60,7 @@ interface DatabaseMockConfig {
 function getDatabaseMockConfig(): DatabaseMockConfig {
   const nodeEnv = process.env.NODE_ENV || 'test';
   const testMode = process.env.TEST_MODE || 'unit';
-  
+
   // Base configuration
   const baseConfig: DatabaseMockConfig = {
     behavior: 'realistic',
@@ -85,7 +85,7 @@ function getDatabaseMockConfig(): DatabaseMockConfig {
           operationSpecificRates: {},
         },
       };
-    
+
     case 'development':
       return {
         ...baseConfig,
@@ -101,7 +101,7 @@ function getDatabaseMockConfig(): DatabaseMockConfig {
           operationSpecificRates: {},
         },
       };
-    
+
     default:
       return baseConfig;
   }
@@ -153,7 +153,7 @@ export class DatabaseMockManager {
     try {
       // Configure behavior orchestrator
       this.behaviorOrchestrator.setBehaviorMode(this.config.behavior);
-      
+
       if (this.config.performanceCharacteristics) {
         const perfSimulator = this.behaviorOrchestrator.getPerformanceSimulator();
         // Apply configuration to performance simulator
@@ -163,16 +163,18 @@ export class DatabaseMockManager {
       if (this.config.errorInjection) {
         const errorInjector = this.behaviorOrchestrator.getErrorInjector();
         errorInjector.setGlobalErrorRate(this.config.errorInjection.globalErrorRate);
-        
-        for (const [operation, rate] of Object.entries(this.config.errorInjection.operationSpecificRates)) {
+
+        for (const [operation, rate] of Object.entries(
+          this.config.errorInjection.operationSpecificRates,
+        )) {
           errorInjector.setOperationErrorRate(operation, rate);
         }
       }
 
       // Register mock factory with integration namespace
-      registerMock('prisma', this.mockFactory, undefined, { 
+      registerMock('prisma', this.mockFactory, undefined, {
         namespace: 'integration',
-        isolate: true
+        isolate: true,
       });
 
       // Setup lifecycle hooks
@@ -187,12 +189,11 @@ export class DatabaseMockManager {
       this.setupPrismaClientMock();
 
       this.isInitialized = true;
-      
+
       console.log('🗄️ Database Mock Foundation initialized successfully');
       console.log(`📊 Behavior mode: ${this.config.behavior}`);
       console.log(`🔍 Validation: ${this.config.enableValidation ? 'enabled' : 'disabled'}`);
       console.log(`📈 Metrics: ${this.config.enableMetrics ? 'enabled' : 'disabled'}`);
-      
     } catch (error) {
       console.error('❌ Failed to initialize Database Mock Foundation:', error);
       throw error;
@@ -238,17 +239,17 @@ export class DatabaseMockManager {
     vi.mock('@prisma/client', () => {
       const mockFactory = this.mockFactory;
       const behaviorOrchestrator = this.behaviorOrchestrator;
-      
+
       return {
         PrismaClient: vi.fn().mockImplementation(() => {
           const mock = mockFactory.create(this.config);
-          
+
           // Wrap methods with behavior orchestrator if needed
           if (this.config.behavior !== 'performance') {
             // Apply behavior patterns to operations
             this.wrapMockWithBehavior(mock);
           }
-          
+
           return mock;
         }),
         Decimal: MockDecimal,
@@ -261,27 +262,34 @@ export class DatabaseMockManager {
    */
   private wrapMockWithBehavior(mock: any): void {
     const models = [
-      'user', 'mediaRequest', 'session', 'sessionToken',
-      'serviceConfig', 'youtubeDownload', 'serviceStatus',
-      'rateLimit', 'account', 'errorLog'
+      'user',
+      'mediaRequest',
+      'session',
+      'sessionToken',
+      'serviceConfig',
+      'youtubeDownload',
+      'serviceStatus',
+      'rateLimit',
+      'account',
+      'errorLog',
     ];
 
-    models.forEach(modelName => {
+    models.forEach((modelName) => {
       if (mock[modelName]) {
         const model = mock[modelName];
         const operations = ['create', 'findUnique', 'findMany', 'update', 'delete'];
-        
-        operations.forEach(operationName => {
+
+        operations.forEach((operationName) => {
           if (model[operationName]) {
             const originalMethod = model[operationName];
-            
+
             model[operationName] = vi.fn().mockImplementation(async (args) => {
               const operationKey = `${modelName}.${operationName}`;
-              
+
               return this.behaviorOrchestrator.applyBehavior(
                 operationKey,
                 () => originalMethod.getMockImplementation()(args),
-                args
+                args,
               );
             });
           }
@@ -297,7 +305,7 @@ export class DatabaseMockManager {
     if (!this.isInitialized) {
       throw new Error('Database Mock Manager not initialized. Call initialize() first.');
     }
-    
+
     return getMock('prisma', this.config, 'integration');
   }
 
@@ -307,11 +315,11 @@ export class DatabaseMockManager {
   private async beforeEachTest(): Promise<void> {
     // Reset behavior orchestrator state
     this.behaviorOrchestrator.reset();
-    
+
     // Reset metrics for the test
     this.metrics.operationCount = 0;
     this.metrics.errorCount = 0;
-    
+
     if (this.config.enableValidation) {
       // Run quick validation
       const validation = this.mockFactory.validate(this.getPrismaClient());
@@ -327,10 +335,12 @@ export class DatabaseMockManager {
   private async afterEachTest(): Promise<void> {
     // Reset mocks to clean state
     resetMocks('prisma');
-    
+
     // Log metrics if enabled
     if (this.config.enableMetrics && this.metrics.operationCount > 0) {
-      console.log(`📊 Test metrics: ${this.metrics.operationCount} operations, ${this.metrics.errorCount} errors`);
+      console.log(
+        `📊 Test metrics: ${this.metrics.operationCount} operations, ${this.metrics.errorCount} errors`,
+      );
     }
   }
 
@@ -348,7 +358,7 @@ export class DatabaseMockManager {
   private async afterAllTests(): Promise<void> {
     const totalTime = Date.now() - this.metrics.startTime;
     console.log(`✅ Database mock test suite completed in ${totalTime}ms`);
-    
+
     // Cleanup all resources
     await cleanupMocks();
   }
@@ -358,9 +368,9 @@ export class DatabaseMockManager {
    */
   private handleError(error: Error): void {
     this.metrics.errorCount++;
-    
+
     console.error('❌ Database mock error:', error.message);
-    
+
     // Could implement error recovery strategies here
     if (error.message.includes('pool exhausted')) {
       // Reset connection pool
@@ -380,10 +390,10 @@ export class DatabaseMockManager {
    */
   updateConfig(newConfig: Partial<DatabaseMockConfig>): void {
     this.config = { ...this.config, ...newConfig };
-    
+
     // Apply new configuration
     this.behaviorOrchestrator.setBehaviorMode(this.config.behavior);
-    
+
     if (newConfig.errorInjection) {
       const errorInjector = this.behaviorOrchestrator.getErrorInjector();
       if (newConfig.errorInjection.globalErrorRate !== undefined) {
@@ -452,20 +462,20 @@ export function configureDatabaseMockBehavior(config: {
   latency?: number;
 }): void {
   const manager = DatabaseMockManager.getInstance();
-  
+
   const updateConfig: Partial<DatabaseMockConfig> = {};
-  
+
   if (config.behavior) {
     updateConfig.behavior = config.behavior;
   }
-  
+
   if (config.errorRate !== undefined) {
     updateConfig.errorInjection = {
       globalErrorRate: config.errorRate,
       operationSpecificRates: {},
     };
   }
-  
+
   if (config.latency !== undefined) {
     updateConfig.performanceCharacteristics = {
       baseLatency: config.latency,
@@ -474,7 +484,7 @@ export function configureDatabaseMockBehavior(config: {
       connectionPoolSize: 20,
     };
   }
-  
+
   manager.updateConfig(updateConfig);
 }
 
@@ -495,7 +505,7 @@ export function setupPrismaMock(): void {
  */
 export function createPrismaMock() {
   const manager = DatabaseMockManager.getInstance();
-  
+
   return vi.hoisted(() => {
     return {
       Decimal: MockDecimal,
@@ -514,12 +524,7 @@ export function createPrismaMock() {
 export { setupDatabaseMock as default };
 
 // Core classes and functions
-export {
-  DatabaseMockManager,
-  PrismaDatabaseMock,
-  PrismaDatabaseMockFactory,
-  MockDecimal,
-};
+export { DatabaseMockManager, PrismaDatabaseMock, PrismaDatabaseMockFactory, MockDecimal };
 
 // Utility functions
 export {
@@ -530,6 +535,4 @@ export {
 };
 
 // Type exports
-export type {
-  DatabaseMockConfig,
-};
+export type { DatabaseMockConfig };

@@ -57,11 +57,11 @@ class ZeroFailurePipelineValidator {
     const icon = result.success ? '✅' : '❌';
     const duration = `(${result.duration.toFixed(0)}ms)`;
     console.log(`${icon} ${result.message} ${duration}`);
-    
+
     if (result.details) {
       console.log(`   └── ${JSON.stringify(result.details, null, 2).slice(0, 200)}...`);
     }
-    
+
     this.results.push(result);
   }
 
@@ -73,13 +73,13 @@ class ZeroFailurePipelineValidator {
       // Run comprehensive test suite with coverage
       const coverageOutput = await this.executeWithTimeout(
         'npm run test:coverage -- --reporter=verbose',
-        180000 // 3 minutes timeout
+        180000, // 3 minutes timeout
       );
 
       // Extract coverage metrics
       let totalCoverage = 0;
       const coverageFiles = ['./coverage/coverage-summary.json'];
-      
+
       for (const file of coverageFiles) {
         if (fs.existsSync(file)) {
           const coverage = JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -91,7 +91,9 @@ class ZeroFailurePipelineValidator {
       try {
         await this.executeWithTimeout('cd backend && npm run test:coverage', 120000);
         if (fs.existsSync('./backend/coverage/coverage-summary.json')) {
-          const backendCoverage = JSON.parse(fs.readFileSync('./backend/coverage/coverage-summary.json', 'utf8'));
+          const backendCoverage = JSON.parse(
+            fs.readFileSync('./backend/coverage/coverage-summary.json', 'utf8'),
+          );
           totalCoverage = Math.max(totalCoverage, backendCoverage?.total?.lines?.pct || 0);
         }
       } catch (error) {
@@ -102,7 +104,9 @@ class ZeroFailurePipelineValidator {
       try {
         await this.executeWithTimeout('cd frontend && npm run test:coverage', 120000);
         if (fs.existsSync('./frontend/coverage/coverage-summary.json')) {
-          const frontendCoverage = JSON.parse(fs.readFileSync('./frontend/coverage/coverage-summary.json', 'utf8'));
+          const frontendCoverage = JSON.parse(
+            fs.readFileSync('./frontend/coverage/coverage-summary.json', 'utf8'),
+          );
           totalCoverage = Math.max(totalCoverage, frontendCoverage?.total?.lines?.pct || 0);
         }
       } catch (error) {
@@ -110,22 +114,21 @@ class ZeroFailurePipelineValidator {
       }
 
       this.metrics.testCoverage = totalCoverage;
-      
+
       const success = totalCoverage >= 80; // Minimum 80% for zero-failure
       return {
         success,
         score: totalCoverage,
         message: `Test Coverage: ${totalCoverage.toFixed(1)}% (target: ≥80%)`,
         duration: performance.now() - startTime,
-        details: { coverage: totalCoverage, threshold: 80 }
+        details: { coverage: totalCoverage, threshold: 80 },
       };
-
     } catch (error) {
       return {
         success: false,
         score: 0,
         message: `Test Coverage Validation Failed: ${error}`,
-        duration: performance.now() - startTime
+        duration: performance.now() - startTime,
       };
     }
   }
@@ -143,7 +146,7 @@ class ZeroFailurePipelineValidator {
         const auditOutput = await this.executeWithTimeout('npm audit --json', 30000);
         const auditResult = JSON.parse(auditOutput);
         vulnerabilities = auditResult?.metadata?.vulnerabilities?.total || 0;
-        
+
         // Reduce score based on vulnerability count and severity
         securityScore -= Math.min(vulnerabilities * 5, 80);
       } catch (error) {
@@ -154,14 +157,22 @@ class ZeroFailurePipelineValidator {
       // Security scan with Trivy (if available)
       try {
         await this.executeWithTimeout('which trivy', 5000);
-        await this.executeWithTimeout('trivy fs --format json --output security-scan.json .', 60000);
-        
+        await this.executeWithTimeout(
+          'trivy fs --format json --output security-scan.json .',
+          60000,
+        );
+
         if (fs.existsSync('./security-scan.json')) {
           const scanResult = JSON.parse(fs.readFileSync('./security-scan.json', 'utf8'));
-          const criticalVulns = scanResult?.Results?.reduce((acc: number, result: any) => {
-            return acc + (result?.Vulnerabilities?.filter((v: any) => v.Severity === 'CRITICAL')?.length || 0);
-          }, 0) || 0;
-          
+          const criticalVulns =
+            scanResult?.Results?.reduce((acc: number, result: any) => {
+              return (
+                acc +
+                (result?.Vulnerabilities?.filter((v: any) => v.Severity === 'CRITICAL')?.length ||
+                  0)
+              );
+            }, 0) || 0;
+
           securityScore -= criticalVulns * 15;
         }
       } catch (error) {
@@ -172,7 +183,7 @@ class ZeroFailurePipelineValidator {
       const securityChecks = [
         { file: '.env.example', message: 'Environment template exists' },
         { file: '.gitignore', message: 'Git ignore configured' },
-        { file: 'backend/src/middleware/auth.ts', message: 'Authentication middleware exists' }
+        { file: 'backend/src/middleware/auth.ts', message: 'Authentication middleware exists' },
       ];
 
       for (const check of securityChecks) {
@@ -183,22 +194,21 @@ class ZeroFailurePipelineValidator {
       }
 
       this.metrics.securityScore = Math.max(0, securityScore);
-      
+
       const success = securityScore >= 85; // High security threshold
       return {
         success,
         score: securityScore,
         message: `Security Score: ${securityScore.toFixed(0)}/100 (${vulnerabilities} vulnerabilities)`,
         duration: performance.now() - startTime,
-        details: { vulnerabilities, securityScore }
+        details: { vulnerabilities, securityScore },
       };
-
     } catch (error) {
       return {
         success: false,
         score: 0,
         message: `Security Validation Failed: ${error}`,
-        duration: performance.now() - startTime
+        duration: performance.now() - startTime,
       };
     }
   }
@@ -233,13 +243,10 @@ class ZeroFailurePipelineValidator {
       try {
         await this.executeWithTimeout('npm run build:optimized', 300000); // 5 minutes
         buildChecks.push('Optimized build: ✅');
-        
+
         // Validate build artifacts
-        const artifacts = [
-          './backend/dist',
-          './frontend/.next',
-        ];
-        
+        const artifacts = ['./backend/dist', './frontend/.next'];
+
         for (const artifact of artifacts) {
           if (fs.existsSync(artifact)) {
             buildChecks.push(`Build artifact ${artifact}: ✅`);
@@ -248,7 +255,6 @@ class ZeroFailurePipelineValidator {
             buildChecks.push(`Build artifact ${artifact}: ❌`);
           }
         }
-        
       } catch (error) {
         buildScore -= 25;
         buildChecks.push('Optimized build: ❌');
@@ -264,22 +270,21 @@ class ZeroFailurePipelineValidator {
       }
 
       this.metrics.buildQuality = Math.max(0, buildScore);
-      
+
       const success = buildScore >= 80;
       return {
         success,
         score: buildScore,
         message: `Build Quality: ${buildScore.toFixed(0)}/100`,
         duration: performance.now() - startTime,
-        details: { checks: buildChecks }
+        details: { checks: buildChecks },
       };
-
     } catch (error) {
       return {
         success: false,
         score: 0,
         message: `Build Quality Validation Failed: ${error}`,
-        duration: performance.now() - startTime
+        duration: performance.now() - startTime,
       };
     }
   }
@@ -296,7 +301,7 @@ class ZeroFailurePipelineValidator {
       const buildMetricsFile = './build-metrics.json';
       if (fs.existsSync(buildMetricsFile)) {
         const metrics = JSON.parse(fs.readFileSync(buildMetricsFile, 'utf8'));
-        
+
         // Check build time (should be < 300 seconds for zero-failure)
         if (metrics.buildTime && metrics.buildTime > 300) {
           performanceScore -= 20;
@@ -304,19 +309,27 @@ class ZeroFailurePipelineValidator {
         } else {
           performanceChecks.push(`Build time: ${metrics.buildTime || 'N/A'}s ✅`);
         }
-        
+
         // Check bundle sizes
-        if (metrics.bundleSize && metrics.bundleSize > 5 * 1024 * 1024) { // 5MB
+        if (metrics.bundleSize && metrics.bundleSize > 5 * 1024 * 1024) {
+          // 5MB
           performanceScore -= 15;
-          performanceChecks.push(`Bundle size: ${(metrics.bundleSize / 1024 / 1024).toFixed(1)}MB (>5MB) ❌`);
+          performanceChecks.push(
+            `Bundle size: ${(metrics.bundleSize / 1024 / 1024).toFixed(1)}MB (>5MB) ❌`,
+          );
         } else {
-          performanceChecks.push(`Bundle size: ${(metrics.bundleSize / 1024 / 1024).toFixed(1)}MB ✅`);
+          performanceChecks.push(
+            `Bundle size: ${(metrics.bundleSize / 1024 / 1024).toFixed(1)}MB ✅`,
+          );
         }
       }
 
       // Memory usage validation
       try {
-        const memoryCheck = await this.executeWithTimeout('node -e "console.log(process.memoryUsage())"', 10000);
+        const memoryCheck = await this.executeWithTimeout(
+          'node -e "console.log(process.memoryUsage())"',
+          10000,
+        );
         performanceChecks.push('Memory baseline: ✅');
       } catch (error) {
         performanceScore -= 10;
@@ -326,7 +339,10 @@ class ZeroFailurePipelineValidator {
       // Basic load test simulation
       try {
         // Simulate a quick load test
-        await this.executeWithTimeout('node -e "for(let i=0; i<100; i++) { console.log(`Load test iteration ${i}`); }"', 15000);
+        await this.executeWithTimeout(
+          'node -e "for(let i=0; i<100; i++) { console.log(`Load test iteration ${i}`); }"',
+          15000,
+        );
         performanceChecks.push('Load test simulation: ✅');
       } catch (error) {
         performanceScore -= 15;
@@ -334,22 +350,21 @@ class ZeroFailurePipelineValidator {
       }
 
       this.metrics.performanceScore = Math.max(0, performanceScore);
-      
+
       const success = performanceScore >= 75;
       return {
         success,
         score: performanceScore,
         message: `Performance Score: ${performanceScore.toFixed(0)}/100`,
         duration: performance.now() - startTime,
-        details: { checks: performanceChecks }
+        details: { checks: performanceChecks },
       };
-
     } catch (error) {
       return {
         success: false,
         score: 0,
         message: `Performance Validation Failed: ${error}`,
-        duration: performance.now() - startTime
+        duration: performance.now() - startTime,
       };
     }
   }
@@ -367,7 +382,7 @@ class ZeroFailurePipelineValidator {
         './Dockerfile.production',
         './docker-compose.production.yml',
         './backend/Dockerfile.production',
-        './frontend/Dockerfile.production'
+        './frontend/Dockerfile.production',
       ];
 
       for (const dockerFile of dockerFiles) {
@@ -400,10 +415,7 @@ class ZeroFailurePipelineValidator {
       }
 
       // Health check endpoints
-      const healthEndpoints = [
-        './backend/src/routes/health.ts',
-        './backend/src/routes/system.ts'
-      ];
+      const healthEndpoints = ['./backend/src/routes/health.ts', './backend/src/routes/system.ts'];
 
       for (const endpoint of healthEndpoints) {
         if (fs.existsSync(endpoint)) {
@@ -417,7 +429,7 @@ class ZeroFailurePipelineValidator {
       // Monitoring configuration
       const monitoringFiles = [
         './config/production/prometheus.yml',
-        './config/production/alert_rules.yml'
+        './config/production/alert_rules.yml',
       ];
 
       for (const monitoringFile of monitoringFiles) {
@@ -430,22 +442,21 @@ class ZeroFailurePipelineValidator {
       }
 
       this.metrics.deploymentReadiness = Math.max(0, readinessScore);
-      
+
       const success = readinessScore >= 85;
       return {
         success,
         score: readinessScore,
         message: `Deployment Readiness: ${readinessScore.toFixed(0)}/100`,
         duration: performance.now() - startTime,
-        details: { checks: readinessChecks }
+        details: { checks: readinessChecks },
       };
-
     } catch (error) {
       return {
         success: false,
         score: 0,
         message: `Deployment Readiness Validation Failed: ${error}`,
-        duration: performance.now() - startTime
+        duration: performance.now() - startTime,
       };
     }
   }
@@ -454,9 +465,9 @@ class ZeroFailurePipelineValidator {
     const weights = {
       testCoverage: 0.25,
       securityScore: 0.25,
-      performanceScore: 0.20,
+      performanceScore: 0.2,
       buildQuality: 0.15,
-      deploymentReadiness: 0.15
+      deploymentReadiness: 0.15,
     };
 
     let totalScore = 0;
@@ -476,17 +487,17 @@ class ZeroFailurePipelineValidator {
   private generateReport(): void {
     const totalDuration = performance.now() - this.startTime;
     const overallScore = this.calculateOverallScore();
-    const passedCount = this.results.filter(r => r.success).length;
+    const passedCount = this.results.filter((r) => r.success).length;
     const totalCount = this.results.length;
 
     console.log('\n' + '='.repeat(60));
     console.log('📊 ZERO-FAILURE DEPLOYMENT PIPELINE VALIDATION REPORT');
     console.log('='.repeat(60));
-    
+
     console.log(`\n🎯 Overall Score: ${overallScore.toFixed(1)}/100`);
     console.log(`✅ Passed Validations: ${passedCount}/${totalCount}`);
     console.log(`⏱️  Total Duration: ${(totalDuration / 1000).toFixed(2)}s`);
-    
+
     const status = overallScore >= 85 ? '✅ DEPLOYMENT APPROVED' : '❌ DEPLOYMENT BLOCKED';
     const bgColor = overallScore >= 85 ? '\x1b[42m' : '\x1b[41m';
     console.log(`\n${bgColor}\x1b[30m ${status} \x1b[0m`);
@@ -496,14 +507,18 @@ class ZeroFailurePipelineValidator {
     console.log(`   Security Score: ${this.metrics.securityScore?.toFixed(1) || 'N/A'}/100`);
     console.log(`   Performance Score: ${this.metrics.performanceScore?.toFixed(1) || 'N/A'}/100`);
     console.log(`   Build Quality: ${this.metrics.buildQuality?.toFixed(1) || 'N/A'}/100`);
-    console.log(`   Deployment Readiness: ${this.metrics.deploymentReadiness?.toFixed(1) || 'N/A'}/100`);
+    console.log(
+      `   Deployment Readiness: ${this.metrics.deploymentReadiness?.toFixed(1) || 'N/A'}/100`,
+    );
 
     if (overallScore < 85) {
       console.log('\n❌ CRITICAL ISSUES IDENTIFIED:');
-      this.results.filter(r => !r.success).forEach(result => {
-        console.log(`   • ${result.message}`);
-      });
-      
+      this.results
+        .filter((r) => !r.success)
+        .forEach((result) => {
+          console.log(`   • ${result.message}`);
+        });
+
       console.log('\n🔧 REQUIRED ACTIONS:');
       console.log('   1. Fix all failing validation checks');
       console.log('   2. Achieve minimum 80% test coverage');
@@ -528,8 +543,8 @@ class ZeroFailurePipelineValidator {
         passed: passedCount,
         total: totalCount,
         duration: totalDuration,
-        approved: overallScore >= 85
-      }
+        approved: overallScore >= 85,
+      },
     };
 
     fs.writeFileSync('./pipeline-validation-report.json', JSON.stringify(report, null, 2));
@@ -538,7 +553,7 @@ class ZeroFailurePipelineValidator {
 
   async validatePipeline(): Promise<void> {
     this.startTime = performance.now();
-    
+
     try {
       // Run all validations
       const validations = [
@@ -546,7 +561,7 @@ class ZeroFailurePipelineValidator {
         this.validateSecurityVulnerabilities(),
         this.validateBuildQuality(),
         this.validatePerformance(),
-        this.validateDeploymentReadiness()
+        this.validateDeploymentReadiness(),
       ];
 
       // Execute validations sequentially to prevent resource conflicts
@@ -556,11 +571,10 @@ class ZeroFailurePipelineValidator {
       }
 
       this.generateReport();
-      
+
       // Exit with appropriate code
       const overallScore = this.calculateOverallScore();
       process.exit(overallScore >= 85 ? 0 : 1);
-      
     } catch (error) {
       console.error('\n💥 Pipeline validation failed unexpectedly:', error);
       process.exit(1);

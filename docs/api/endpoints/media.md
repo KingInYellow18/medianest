@@ -20,10 +20,10 @@ GET /api/v1/media/search
 
 #### Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `q` | string | Yes | Search query (min 1 character) |
-| `type` | string | No | Media type: `movie`, `tv`, or `all` (default: `all`) |
+| Parameter | Type   | Required | Description                                          |
+| --------- | ------ | -------- | ---------------------------------------------------- |
+| `q`       | string | Yes      | Search query (min 1 character)                       |
+| `type`    | string | No       | Media type: `movie`, `tv`, or `all` (default: `all`) |
 
 #### Example Request
 
@@ -65,10 +65,10 @@ GET /api/v1/media/{mediaType}/{tmdbId}
 
 #### Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `mediaType` | string | Yes | Type of media: `movie` or `tv` |
-| `tmdbId` | string | Yes | TMDB ID of the media |
+| Parameter   | Type   | Required | Description                    |
+| ----------- | ------ | -------- | ------------------------------ |
+| `mediaType` | string | Yes      | Type of media: `movie` or `tv` |
+| `tmdbId`    | string | Yes      | TMDB ID of the media           |
 
 #### Example Request
 
@@ -129,12 +129,12 @@ POST /api/v1/media/request
 
 #### Request Body Schema
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `title` | string | Yes | Title of the media (1-500 characters) |
-| `mediaType` | string | Yes | Type of media: `movie` or `tv` |
-| `tmdbId` | string | No | TMDB ID for the media |
-| `overseerrId` | string | No | Overseerr ID for the media |
+| Field         | Type   | Required | Description                           |
+| ------------- | ------ | -------- | ------------------------------------- |
+| `title`       | string | Yes      | Title of the media (1-500 characters) |
+| `mediaType`   | string | Yes      | Type of media: `movie` or `tv`        |
+| `tmdbId`      | string | No       | TMDB ID for the media                 |
+| `overseerrId` | string | No       | Overseerr ID for the media            |
 
 #### Example Request
 
@@ -176,11 +176,11 @@ GET /api/v1/media/requests
 
 #### Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `limit` | integer | No | Number of requests to return (1-100, default: 20) |
-| `offset` | integer | No | Number of requests to skip (default: 0) |
-| `status` | string | No | Filter by status: `pending`, `approved`, `declined`, `completed` |
+| Parameter | Type    | Required | Description                                                      |
+| --------- | ------- | -------- | ---------------------------------------------------------------- |
+| `limit`   | integer | No       | Number of requests to return (1-100, default: 20)                |
+| `offset`  | integer | No       | Number of requests to skip (default: 0)                          |
+| `status`  | string  | No       | Filter by status: `pending`, `approved`, `declined`, `completed` |
 
 #### Example Request
 
@@ -222,9 +222,9 @@ GET /api/v1/media/requests/{requestId}
 
 #### Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `requestId` | string | Yes | UUID of the request |
+| Parameter   | Type   | Required | Description         |
+| ----------- | ------ | -------- | ------------------- |
+| `requestId` | string | Yes      | UUID of the request |
 
 #### Example Request
 
@@ -262,9 +262,9 @@ DELETE /api/v1/media/requests/{requestId}
 
 #### Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `requestId` | string | Yes | UUID of the request |
+| Parameter   | Type   | Required | Description         |
+| ----------- | ------ | -------- | ------------------- |
+| `requestId` | string | Yes      | UUID of the request |
 
 #### Example Request
 
@@ -284,15 +284,15 @@ curl -X DELETE "http://localhost:3001/api/v1/media/requests/req-123e4567-e89b-12
 
 ## Status Codes
 
-| Status | Description |
-|--------|-------------|
-| `200` | Success |
-| `201` | Request created |
-| `400` | Bad request (validation errors) |
-| `401` | Unauthorized |
-| `403` | Forbidden (cannot delete non-pending request) |
-| `404` | Request not found |
-| `500` | Internal server error |
+| Status | Description                                   |
+| ------ | --------------------------------------------- |
+| `200`  | Success                                       |
+| `201`  | Request created                               |
+| `400`  | Bad request (validation errors)               |
+| `401`  | Unauthorized                                  |
+| `403`  | Forbidden (cannot delete non-pending request) |
+| `404`  | Request not found                             |
+| `500`  | Internal server error                         |
 
 ## Error Responses
 
@@ -302,10 +302,7 @@ curl -X DELETE "http://localhost:3001/api/v1/media/requests/req-123e4567-e89b-12
 {
   "error": "Bad Request",
   "message": "Validation failed",
-  "details": [
-    "Title is required",
-    "MediaType must be 'movie' or 'tv'"
-  ]
+  "details": ["Title is required", "MediaType must be 'movie' or 'tv'"]
 }
 ```
 
@@ -346,16 +343,19 @@ See [WebSocket Documentation](../websocket.md) for more details.
 ## Integration Notes
 
 ### TMDB Integration
+
 - Search results include TMDB metadata
 - Poster and backdrop images available via TMDB image URLs
 - Rating information from TMDB community
 
 ### Request Processing
+
 - Requests are processed asynchronously
 - Status updates sent via WebSocket
 - Processing may involve external services (Overseerr, Plex)
 
 ### Permissions
+
 - Users can only view/manage their own requests
 - Admin users can view all requests
 - Request deletion only allowed for pending requests

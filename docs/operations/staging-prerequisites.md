@@ -5,28 +5,30 @@
 This document outlines all infrastructure, software, and configuration prerequisites required for successful MediaNest staging deployment. Following these requirements ensures a stable and reliable staging environment.
 
 !!! info "Deployment Validation"
-    All prerequisites have been validated in our staging environment and are required for successful deployment with the applied critical fixes.
+All prerequisites have been validated in our staging environment and are required for successful deployment with the applied critical fixes.
 
 ## System Requirements
 
 ### Hardware Requirements
 
-| Component | Minimum | Recommended | Notes |
-|-----------|---------|-------------|-------|
-| **CPU** | 2 cores | 4 cores | AMD64/ARM64 architecture supported |
-| **RAM** | 4GB | 8GB | Includes all services (app, DB, cache) |
-| **Storage** | 20GB | 50GB | SSD recommended for database performance |
-| **Network** | 10 Mbps | 100 Mbps | For media file operations |
+| Component   | Minimum | Recommended | Notes                                    |
+| ----------- | ------- | ----------- | ---------------------------------------- |
+| **CPU**     | 2 cores | 4 cores     | AMD64/ARM64 architecture supported       |
+| **RAM**     | 4GB     | 8GB         | Includes all services (app, DB, cache)   |
+| **Storage** | 20GB    | 50GB        | SSD recommended for database performance |
+| **Network** | 10 Mbps | 100 Mbps    | For media file operations                |
 
 ### Operating System Support
 
 **Supported Platforms:**
+
 - Ubuntu 20.04 LTS or later
-- CentOS/RHEL 8 or later  
+- CentOS/RHEL 8 or later
 - macOS 10.15 or later
 - Windows Server 2019 or later (with WSL2)
 
 **Container Runtime:**
+
 - Docker Engine 20.10+ with Docker Compose v2.0+
 - Podman 3.0+ (experimental support)
 
@@ -55,6 +57,7 @@ docker-compose --version
 ```
 
 **Version Requirements:**
+
 - Docker Engine: 20.10.0+
 - Docker Compose: 2.0.0+
 
@@ -69,6 +72,7 @@ git --version
 ```
 
 **Version Requirements:**
+
 - Git: 2.30.0+
 
 #### 3. SSL/TLS Tools (Optional for HTTPS)
@@ -96,6 +100,7 @@ npm --version
 ```
 
 **Recommended Version:**
+
 - Node.js: 18.17.0+ (LTS)
 - npm: 9.0.0+
 
@@ -106,6 +111,7 @@ npm --version
 #### Database Server
 
 **Option 1: Docker Container (Recommended)**
+
 ```yaml
 postgres:
   image: postgres:14-alpine
@@ -118,6 +124,7 @@ postgres:
 ```
 
 **Option 2: External Database**
+
 - PostgreSQL 14.0+ server
 - Minimum 2GB RAM allocated to PostgreSQL
 - UTF-8 encoding support
@@ -153,6 +160,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 #### Redis Server
 
 **Option 1: Docker Container (Recommended)**
+
 ```yaml
 redis:
   image: redis:6-alpine
@@ -162,6 +170,7 @@ redis:
 ```
 
 **Option 2: External Redis**
+
 - Redis 6.0+ server
 - Minimum 1GB memory allocation
 - Persistence enabled (AOF or RDB)
@@ -192,13 +201,13 @@ CONFIG REWRITE
 
 ### Port Requirements
 
-| Service | Port | Protocol | Access | Purpose |
-|---------|------|----------|--------|---------|
+| Service       | Port | Protocol   | Access   | Purpose          |
+| ------------- | ---- | ---------- | -------- | ---------------- |
 | MediaNest API | 3000 | HTTP/HTTPS | External | Main application |
-| Frontend | 3001 | HTTP/HTTPS | External | Web interface |
-| PostgreSQL | 5432 | TCP | Internal | Database |
-| Redis | 6379 | TCP | Internal | Cache/Sessions |
-| Health Check | 8080 | HTTP | Internal | Monitoring |
+| Frontend      | 3001 | HTTP/HTTPS | External | Web interface    |
+| PostgreSQL    | 5432 | TCP        | Internal | Database         |
+| Redis         | 6379 | TCP        | Internal | Cache/Sessions   |
+| Health Check  | 8080 | HTTP       | Internal | Monitoring       |
 
 ### Firewall Configuration
 
@@ -218,6 +227,7 @@ sudo ufw --force enable
 ### DNS Configuration
 
 **Required DNS Records:**
+
 - A record for staging domain (e.g., `staging.medianest.com`)
 - Optional: CNAME for API subdomain (e.g., `api-staging.medianest.com`)
 
@@ -235,7 +245,7 @@ NODE_ENV=staging
 PORT=3000
 LOG_LEVEL=info
 
-# Database Configuration  
+# Database Configuration
 DATABASE_URL=postgresql://medianest_user:${DB_PASSWORD}@postgres:5432/medianest_staging
 
 # Cache Configuration
@@ -296,12 +306,14 @@ curl -u "username:password" \
 #### Plex Server Preparation
 
 **Required Plex Configuration:**
+
 - Plex Media Server 1.25.0+
 - Remote access enabled
 - Library sharing configured
 - API access allowed
 
 **Network Requirements:**
+
 - Plex server accessible from staging environment
 - Port 32400 open for API access
 - Firewall rules configured for communication
@@ -331,11 +343,11 @@ volumes:
     driver_opts:
       type: ext4
       device: /dev/disk/medianest-db
-      
-  # Redis persistence  
+
+  # Redis persistence
   redis_data:
     driver: local
-    
+
   # Media file storage
   media_storage:
     driver: local
@@ -362,6 +374,7 @@ echo "0 2 * * * find /opt/medianest/backups -name '*.sql' -mtime +7 -delete" | s
 #### Generate SSL Certificates
 
 **Option 1: Self-Signed (Development)**
+
 ```bash
 # Generate private key
 openssl genrsa -out staging.medianest.com.key 2048
@@ -375,6 +388,7 @@ openssl x509 -req -days 365 -in staging.medianest.com.csr \
 ```
 
 **Option 2: Let's Encrypt (Production)**
+
 ```bash
 # Install certbot
 sudo apt-get install certbot
@@ -432,7 +446,7 @@ docker-compose exec postgres pg_isready -U medianest_user || {
     exit 1
 }
 
-# Test Redis connectivity  
+# Test Redis connectivity
 docker-compose exec redis redis-cli ping || {
     echo "Redis not ready"
     exit 1

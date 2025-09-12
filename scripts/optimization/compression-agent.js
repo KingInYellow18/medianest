@@ -13,25 +13,25 @@ class CompressionAgent {
     this.compressionResults = {
       gzip: {},
       brotli: {},
-      assets: {}
+      assets: {},
     };
   }
 
   async optimize() {
     console.log('🗜️  Compression Agent: Advanced optimization started');
-    
+
     await this.setupGzipOptimization();
     await this.setupBrotliCompression();
     await this.optimizeStaticAssets();
     await this.configureBuildCompression();
     await this.generateReport();
-    
+
     console.log('✅ Compression optimization complete');
   }
 
   async setupGzipOptimization() {
     console.log('📦 Setting up aggressive Gzip compression...');
-    
+
     // Express compression middleware optimization
     const expressCompressionConfig = `
 // Optimized compression middleware
@@ -53,9 +53,9 @@ const compressionConfig = {
 
 module.exports = compressionConfig;
 `;
-    
+
     fs.writeFileSync('backend/src/config/compression.config.js', expressCompressionConfig);
-    
+
     // Nginx compression configuration
     const nginxConfig = `
 # Aggressive Gzip Configuration
@@ -113,7 +113,7 @@ brotli_types
     text/plain
     text/xml;
 `;
-    
+
     if (!fs.existsSync('infrastructure/nginx')) {
       fs.mkdirSync('infrastructure/nginx', { recursive: true });
     }
@@ -122,7 +122,7 @@ brotli_types
 
   async setupBrotliCompression() {
     console.log('🚀 Setting up Brotli compression...');
-    
+
     // Next.js Brotli configuration
     const nextBrotliConfig = `
 // Add to next.config.js
@@ -174,13 +174,13 @@ const withBrotli = (nextConfig = {}) => {
 
 module.exports = withBrotli;
 `;
-    
+
     fs.writeFileSync('frontend/lib/with-brotli.js', nextBrotliConfig);
   }
 
   async optimizeStaticAssets() {
     console.log('🎨 Optimizing static assets...');
-    
+
     // Image optimization script
     const imageOptimizationScript = `#!/bin/bash
 # Aggressive image optimization
@@ -210,14 +210,14 @@ done
 
 echo "✅ Asset optimization complete"
 `;
-    
+
     fs.writeFileSync('scripts/optimize-assets.sh', imageOptimizationScript);
     execSync('chmod +x scripts/optimize-assets.sh');
   }
 
   async configureBuildCompression() {
     console.log('⚙️  Configuring build-time compression...');
-    
+
     // Create comprehensive build compression script
     const buildCompressionScript = `#!/usr/bin/env node
 /**
@@ -325,13 +325,13 @@ if (require.main === module) {
 
 module.exports = BuildCompressionOptimizer;
 `;
-    
+
     fs.writeFileSync('scripts/optimization/build-compression.js', buildCompressionScript);
   }
 
   async generateReport() {
     console.log('📋 Generating compression report...');
-    
+
     const report = {
       timestamp: new Date().toISOString(),
       agent: 'Compression Optimizer',
@@ -340,42 +340,39 @@ module.exports = BuildCompressionOptimizer;
         'Nginx gzip and brotli configuration created',
         'Next.js webpack compression plugins added',
         'Static asset optimization script created',
-        'Build-time compression optimizer created'
+        'Build-time compression optimizer created',
       ],
       recommendations: [
         {
           priority: 'high',
           action: 'Install compression-webpack-plugin',
-          command: 'npm install --save-dev compression-webpack-plugin'
+          command: 'npm install --save-dev compression-webpack-plugin',
         },
         {
           priority: 'high',
           action: 'Install image optimization tools',
-          command: 'sudo apt-get install optipng jpegoptim && npm install -g svgo'
+          command: 'sudo apt-get install optipng jpegoptim && npm install -g svgo',
         },
         {
           priority: 'medium',
           action: 'Configure CDN with compression',
-          impact: 'Serve pre-compressed assets from edge locations'
+          impact: 'Serve pre-compressed assets from edge locations',
         },
         {
           priority: 'low',
           action: 'Monitor compression ratios',
-          impact: 'Track compression effectiveness over time'
-        }
+          impact: 'Track compression effectiveness over time',
+        },
       ],
       expectedImpact: {
         bundleReduction: '30-50% (with gzip/brotli)',
         loadTime: '40-60% faster initial load',
-        bandwidthSavings: '50-70% reduction'
-      }
+        bandwidthSavings: '50-70% reduction',
+      },
     };
-    
-    fs.writeFileSync(
-      'docs/performance/compression-report.json',
-      JSON.stringify(report, null, 2)
-    );
-    
+
+    fs.writeFileSync('docs/performance/compression-report.json', JSON.stringify(report, null, 2));
+
     console.log('💾 Report saved: docs/performance/compression-report.json');
   }
 }

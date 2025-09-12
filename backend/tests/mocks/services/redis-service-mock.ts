@@ -1,6 +1,6 @@
 /**
  * EMERGENCY REDIS SERVICE MOCK - Resolving 71% Cache Operation Failures
- * 
+ *
  * Complete Redis mock implementation with state management and coordination patterns
  * Implements Context7 mock call tracking and proper behavior modeling
  */
@@ -25,31 +25,31 @@ class RedisServiceMockState {
     this.calls.get.push(key);
     const item = this.cache.get(key);
     if (!item) return null;
-    
+
     // TTL expiration check (prevents state corruption)
     if (item.ttl > 0 && Date.now() - item.setAt > item.ttl * 1000) {
       this.cache.delete(key);
       return null;
     }
-    
+
     return item.value;
   }
-  
+
   setex(key: string, ttl: number, value: string): string {
     this.calls.setex.push([key, ttl, value]);
     this.cache.set(key, {
       value,
       ttl,
-      setAt: Date.now()
+      setAt: Date.now(),
     });
     return 'OK';
   }
-  
+
   del(keys: string | string[]): number {
     this.calls.del.push(keys);
     if (Array.isArray(keys)) {
       let deleted = 0;
-      keys.forEach(key => {
+      keys.forEach((key) => {
         if (this.cache.delete(key)) deleted++;
       });
       return deleted;
@@ -57,31 +57,31 @@ class RedisServiceMockState {
       return this.cache.delete(keys) ? 1 : 0;
     }
   }
-  
+
   exists(key: string): number {
     this.calls.exists.push(key);
     return this.cache.has(key) ? 1 : 0;
   }
-  
+
   keys(pattern: string): string[] {
     this.calls.keys.push(pattern);
     const keys = Array.from(this.cache.keys());
-    
+
     if (pattern === '*') return keys;
-    
+
     // Pattern matching with proper regex conversion
     const regexPattern = pattern.replace(/\*/g, '.*').replace(/\?/g, '.');
     const regex = new RegExp(`^${regexPattern}$`);
-    
-    return keys.filter(key => regex.test(key));
+
+    return keys.filter((key) => regex.test(key));
   }
-  
+
   flushall(): string {
     this.calls.flushall.push({});
     this.cache.clear();
     return 'OK';
   }
-  
+
   info(section?: string): string {
     this.calls.info.push(section || 'default');
     if (section === 'memory') {
@@ -89,24 +89,24 @@ class RedisServiceMockState {
     }
     return 'used_memory_human:1.2M';
   }
-  
+
   dbsize(): number {
     this.calls.dbsize.push({});
     return this.cache.size;
   }
-  
+
   // State management methods
   clear(): void {
     this.cache.clear();
-    Object.keys(this.calls).forEach(key => {
+    Object.keys(this.calls).forEach((key) => {
       (this.calls as any)[key] = [];
     });
   }
-  
+
   getCalls() {
     return { ...this.calls };
   }
-  
+
   getState() {
     return {
       cacheSize: this.cache.size,
@@ -125,48 +125,42 @@ const redisServiceMockState = new RedisServiceMockState();
 export class RedisServiceMock {
   // Redis Client Mock (Context7 pattern)
   public client = {
-    get: vi.fn().mockImplementation(async (key: string) => 
-      redisServiceMockState.get(key)
-    ),
-    
-    setex: vi.fn().mockImplementation(async (key: string, ttl: number, value: string) => 
-      redisServiceMockState.setex(key, ttl, value)
-    ),
-    
-    del: vi.fn().mockImplementation(async (keys: string | string[]) => 
-      redisServiceMockState.del(keys)
-    ),
-    
-    exists: vi.fn().mockImplementation(async (key: string) => 
-      redisServiceMockState.exists(key)
-    ),
-    
-    keys: vi.fn().mockImplementation(async (pattern: string) => 
-      redisServiceMockState.keys(pattern)
-    ),
-    
-    flushall: vi.fn().mockImplementation(async () => 
-      redisServiceMockState.flushall()
-    ),
-    
-    info: vi.fn().mockImplementation(async (section?: string) => 
-      redisServiceMockState.info(section)
-    ),
-    
-    dbsize: vi.fn().mockImplementation(async () => 
-      redisServiceMockState.dbsize()
-    ),
-    
+    get: vi.fn().mockImplementation(async (key: string) => redisServiceMockState.get(key)),
+
+    setex: vi
+      .fn()
+      .mockImplementation(async (key: string, ttl: number, value: string) =>
+        redisServiceMockState.setex(key, ttl, value),
+      ),
+
+    del: vi
+      .fn()
+      .mockImplementation(async (keys: string | string[]) => redisServiceMockState.del(keys)),
+
+    exists: vi.fn().mockImplementation(async (key: string) => redisServiceMockState.exists(key)),
+
+    keys: vi
+      .fn()
+      .mockImplementation(async (pattern: string) => redisServiceMockState.keys(pattern)),
+
+    flushall: vi.fn().mockImplementation(async () => redisServiceMockState.flushall()),
+
+    info: vi
+      .fn()
+      .mockImplementation(async (section?: string) => redisServiceMockState.info(section)),
+
+    dbsize: vi.fn().mockImplementation(async () => redisServiceMockState.dbsize()),
+
     // Additional Redis methods for comprehensive coverage
     ttl: vi.fn().mockImplementation(async (key: string) => {
       const item = redisServiceMockState.cache.get(key);
       if (!item) return -2; // Key doesn't exist
       if (item.ttl <= 0) return -1; // No expiration
-      
+
       const remaining = Math.ceil(item.ttl - (Date.now() - item.setAt) / 1000);
       return remaining > 0 ? remaining : -2;
     }),
-    
+
     expire: vi.fn().mockImplementation(async (key: string, ttl: number) => {
       const item = redisServiceMockState.cache.get(key);
       if (item) {
@@ -176,13 +170,13 @@ export class RedisServiceMock {
       }
       return 0;
     }),
-    
+
     ping: vi.fn().mockResolvedValue('PONG'),
     quit: vi.fn().mockResolvedValue('OK'),
     connect: vi.fn().mockResolvedValue(undefined),
     disconnect: vi.fn().mockResolvedValue(undefined),
     on: vi.fn(),
-    
+
     // Connection health methods
     status: 'ready',
     connected: true,
@@ -193,37 +187,33 @@ export class RedisServiceMock {
     redisServiceMockState.clear();
     this.resetMocks();
   }
-  
+
   resetMocks(): void {
     Object.values(this.client).forEach((fn: any) => {
       if (typeof fn?.mockReset === 'function') fn.mockReset();
       if (typeof fn?.mockClear === 'function') fn.mockClear();
     });
-    
+
     // Restore implementations after reset
-    this.client.get.mockImplementation(async (key: string) => 
-      redisServiceMockState.get(key)
+    this.client.get.mockImplementation(async (key: string) => redisServiceMockState.get(key));
+    this.client.setex.mockImplementation(async (key: string, ttl: number, value: string) =>
+      redisServiceMockState.setex(key, ttl, value),
     );
-    this.client.setex.mockImplementation(async (key: string, ttl: number, value: string) => 
-      redisServiceMockState.setex(key, ttl, value)
+    this.client.del.mockImplementation(async (keys: string | string[]) =>
+      redisServiceMockState.del(keys),
     );
-    this.client.del.mockImplementation(async (keys: string | string[]) => 
-      redisServiceMockState.del(keys)
-    );
-    this.client.exists.mockImplementation(async (key: string) => 
-      redisServiceMockState.exists(key)
-    );
+    this.client.exists.mockImplementation(async (key: string) => redisServiceMockState.exists(key));
   }
-  
+
   // Context7 coordination patterns
   getCalls() {
     return redisServiceMockState.getCalls();
   }
-  
+
   getState() {
     return redisServiceMockState.getState();
   }
-  
+
   // Error simulation for testing failure scenarios
   simulateConnectionError(): void {
     this.client.get.mockRejectedValue(new Error('Redis connection failed'));
@@ -231,12 +221,12 @@ export class RedisServiceMock {
     this.client.del.mockRejectedValue(new Error('Redis connection failed'));
     this.client.exists.mockRejectedValue(new Error('Redis connection failed'));
   }
-  
+
   simulateTimeoutError(): void {
     this.client.get.mockRejectedValue(new Error('Redis timeout'));
     this.client.setex.mockRejectedValue(new Error('Redis timeout'));
   }
-  
+
   restoreNormalBehavior(): void {
     this.resetMocks();
   }

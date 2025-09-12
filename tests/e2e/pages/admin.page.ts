@@ -16,7 +16,7 @@ export class AdminDashboardPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    
+
     this.adminHeader = page.locator('[data-testid="admin-header"]');
     this.navUsers = page.locator('[data-testid="nav-users"]');
     this.navServices = page.locator('[data-testid="nav-services"]');
@@ -107,7 +107,7 @@ export class AdminUsersPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    
+
     this.usersTable = page.locator('[data-testid="users-table"]');
     this.userRows = page.locator('[data-testid="user-row"]');
     this.userSearch = page.locator('[data-testid="user-search"]');
@@ -142,7 +142,7 @@ export class AdminUsersPage extends BasePage {
   async editUserRole(userIndex: number, newRole: string): Promise<void> {
     const userRow = this.userRows.nth(userIndex);
     await userRow.locator('[data-testid="edit-role-btn"]').click();
-    
+
     await expect(this.editRoleModal).toBeVisible();
     await this.page.selectOption('[data-testid="new-role-select"]', newRole);
     await this.page.click('[data-testid="save-role-btn"]');
@@ -154,7 +154,7 @@ export class AdminUsersPage extends BasePage {
   async deleteUser(userIndex: number): Promise<void> {
     const userRow = this.userRows.nth(userIndex);
     await userRow.locator('[data-testid="delete-user-btn"]').click();
-    
+
     await expect(this.deleteUserModal).toBeVisible();
     await this.page.fill('[data-testid="delete-confirmation"]', 'DELETE');
     await this.page.click('[data-testid="confirm-delete-btn"]');
@@ -163,14 +163,17 @@ export class AdminUsersPage extends BasePage {
   /**
    * Verify user data in table
    */
-  async verifyUserData(userIndex: number, data: {
-    username?: string;
-    email?: string;
-    role?: string;
-    requestCount?: string;
-  }): Promise<void> {
+  async verifyUserData(
+    userIndex: number,
+    data: {
+      username?: string;
+      email?: string;
+      role?: string;
+      requestCount?: string;
+    },
+  ): Promise<void> {
     const userRow = this.userRows.nth(userIndex);
-    
+
     if (data.username) {
       await expect(userRow.locator('[data-testid="username"]')).toContainText(data.username);
     }
@@ -181,7 +184,9 @@ export class AdminUsersPage extends BasePage {
       await expect(userRow.locator('[data-testid="role-badge"]')).toContainText(data.role);
     }
     if (data.requestCount) {
-      await expect(userRow.locator('[data-testid="request-count"]')).toContainText(data.requestCount);
+      await expect(userRow.locator('[data-testid="request-count"]')).toContainText(
+        data.requestCount,
+      );
     }
   }
 
@@ -207,7 +212,7 @@ export class AdminServicesPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    
+
     this.servicesGrid = page.locator('[data-testid="services-grid"]');
     this.serviceCards = page.locator('[data-testid="service-card"]');
     this.refreshButton = page.locator('[data-testid="refresh-services"]');
@@ -241,7 +246,7 @@ export class AdminServicesPage extends BasePage {
   async verifyServiceStatus(serviceName: string, status: 'healthy' | 'unhealthy'): Promise<void> {
     const serviceCard = this.page.locator(`[data-testid="service-card-${serviceName}"]`);
     const statusIndicator = serviceCard.locator('[data-testid="status-indicator"]');
-    
+
     await expect(statusIndicator).toHaveClass(new RegExp(status));
   }
 
@@ -277,7 +282,7 @@ export class AdminStatsPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    
+
     this.statsGrid = page.locator('[data-testid="stats-grid"]');
     this.usersStatsCard = page.locator('[data-testid="users-stats-card"]');
     this.requestsStatsCard = page.locator('[data-testid="requests-stats-card"]');
@@ -312,28 +317,34 @@ export class AdminStatsPage extends BasePage {
     activeDownloads?: string;
   }): Promise<void> {
     if (stats.totalUsers) {
-      await expect(this.usersStatsCard.locator('[data-testid="total-users"]'))
-        .toContainText(stats.totalUsers);
+      await expect(this.usersStatsCard.locator('[data-testid="total-users"]')).toContainText(
+        stats.totalUsers,
+      );
     }
     if (stats.activeUsers) {
-      await expect(this.usersStatsCard.locator('[data-testid="active-users"]'))
-        .toContainText(stats.activeUsers);
+      await expect(this.usersStatsCard.locator('[data-testid="active-users"]')).toContainText(
+        stats.activeUsers,
+      );
     }
     if (stats.totalRequests) {
-      await expect(this.requestsStatsCard.locator('[data-testid="total-requests"]'))
-        .toContainText(stats.totalRequests);
+      await expect(this.requestsStatsCard.locator('[data-testid="total-requests"]')).toContainText(
+        stats.totalRequests,
+      );
     }
     if (stats.pendingRequests) {
-      await expect(this.requestsStatsCard.locator('[data-testid="pending-requests"]'))
-        .toContainText(stats.pendingRequests);
+      await expect(
+        this.requestsStatsCard.locator('[data-testid="pending-requests"]'),
+      ).toContainText(stats.pendingRequests);
     }
     if (stats.totalDownloads) {
-      await expect(this.downloadsStatsCard.locator('[data-testid="total-downloads"]'))
-        .toContainText(stats.totalDownloads);
+      await expect(
+        this.downloadsStatsCard.locator('[data-testid="total-downloads"]'),
+      ).toContainText(stats.totalDownloads);
     }
     if (stats.activeDownloads) {
-      await expect(this.downloadsStatsCard.locator('[data-testid="active-downloads"]'))
-        .toContainText(stats.activeDownloads);
+      await expect(
+        this.downloadsStatsCard.locator('[data-testid="active-downloads"]'),
+      ).toContainText(stats.activeDownloads);
     }
   }
 
@@ -343,7 +354,7 @@ export class AdminStatsPage extends BasePage {
   async verifyCharts(): Promise<void> {
     await expect(this.usageChart).toBeVisible();
     await expect(this.activityTimeline).toBeVisible();
-    
+
     // Test chart interactivity
     await this.usageChart.hover();
     await expect(this.page.locator('[data-testid="chart-tooltip"]')).toBeVisible();
@@ -364,7 +375,7 @@ export class AdminBroadcastPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    
+
     this.messageTitle = page.locator('[data-testid="message-title"]');
     this.messageContent = page.locator('[data-testid="message-content"]');
     this.messageType = page.locator('[data-testid="message-type"]');
@@ -395,7 +406,7 @@ export class AdminBroadcastPage extends BasePage {
     await this.messageTitle.fill(title);
     await this.messageContent.fill(content);
     await this.previewButton.click();
-    
+
     await expect(this.messagePreview).toBeVisible();
   }
 

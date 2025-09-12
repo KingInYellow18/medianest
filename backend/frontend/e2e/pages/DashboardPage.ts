@@ -49,10 +49,10 @@ export class DashboardPage extends BasePage {
   async logout() {
     await this.clickWithRetry(this.userMenu);
     await this.clickWithRetry(this.logoutButton);
-    
+
     // Verify redirect to login
     await expect(this.page).toHaveURL(/.*\/login/);
-    
+
     // Verify auth token is cleared
     const authToken = await this.getLocalStorage('authToken');
     expect(authToken).toBeFalsy();
@@ -107,7 +107,7 @@ export class DashboardPage extends BasePage {
   async search(query: string) {
     await this.fillField(this.searchInput, query);
     await this.searchInput.press('Enter');
-    
+
     // Wait for search results
     await this.waitForResponse('**/api/search**');
     await expect(this.page.getByTestId('search-results')).toBeVisible();
@@ -118,10 +118,10 @@ export class DashboardPage extends BasePage {
    */
   async checkNotifications() {
     const notificationCount = await this.notificationBell.getAttribute('data-count');
-    
+
     await this.clickWithRetry(this.notificationBell);
     await expect(this.page.getByTestId('notifications-panel')).toBeVisible();
-    
+
     return parseInt(notificationCount || '0', 10);
   }
 
@@ -130,10 +130,10 @@ export class DashboardPage extends BasePage {
    */
   async expectServicesVisible(minCount = 1) {
     await expect(this.servicesSection).toBeVisible();
-    
+
     const serviceCards = this.servicesSection.getByTestId(/^service-card-/);
     const count = await serviceCards.count();
-    
+
     expect(count).toBeGreaterThanOrEqual(minCount);
     return count;
   }
@@ -143,10 +143,10 @@ export class DashboardPage extends BasePage {
    */
   async expectMediaVisible(minCount = 1) {
     await expect(this.mediaSection).toBeVisible();
-    
+
     const mediaItems = this.mediaSection.getByTestId(/^media-item-/);
     const count = await mediaItems.count();
-    
+
     expect(count).toBeGreaterThanOrEqual(minCount);
     return count;
   }
@@ -157,14 +157,14 @@ export class DashboardPage extends BasePage {
   async testResponsiveLayout() {
     // Test mobile view
     await this.page.setViewportSize({ width: 375, height: 667 });
-    
+
     // Should show mobile menu
     await expect(this.page.getByTestId('mobile-menu-toggle')).toBeVisible();
     await expect(this.navigationMenu).toBeHidden();
-    
+
     // Test tablet view
     await this.page.setViewportSize({ width: 768, height: 1024 });
-    
+
     // Test desktop view
     await this.page.setViewportSize({ width: 1280, height: 720 });
     await expect(this.navigationMenu).toBeVisible();
@@ -176,18 +176,18 @@ export class DashboardPage extends BasePage {
   async expectRealTimeUpdates() {
     // Get initial stats
     const initialStats = await this.getStats();
-    
+
     // Simulate data change (mock WebSocket message)
     await this.executeScript(() => {
       const mockEvent = new CustomEvent('statsUpdate', {
-        detail: { services: 5, media: 150, uptime: 99.5 }
+        detail: { services: 5, media: 150, uptime: 99.5 },
       });
       window.dispatchEvent(mockEvent);
     });
-    
+
     // Wait for updates
     await this.waitForAnimation();
-    
+
     // Verify stats changed
     const updatedStats = await this.getStats();
     expect(updatedStats).not.toEqual(initialStats);

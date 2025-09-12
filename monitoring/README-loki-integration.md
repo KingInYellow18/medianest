@@ -19,6 +19,7 @@ Complete log aggregation solution for MEDIANEST using Grafana Loki, Promtail, an
 ## Features
 
 ### ✅ Enhanced Logging
+
 - **Structured JSON logs** for production
 - **Correlation ID tracking** across requests
 - **Performance metrics** logging
@@ -26,18 +27,21 @@ Complete log aggregation solution for MEDIANEST using Grafana Loki, Promtail, an
 - **Business metrics** integration
 
 ### ✅ Log Collection
+
 - **Docker container logs** via Promtail
 - **Application log files** with rotation
 - **Error and exception logs** with stack traces
 - **System logs** (optional)
 
 ### ✅ Storage & Retention
+
 - **30-day retention policy**
 - **Efficient indexing** with BoltDB Shipper
 - **Automatic compaction** for storage optimization
 - **Query performance tuning**
 
 ### ✅ Visualization
+
 - **Pre-built Grafana dashboards**
 - **Real-time log streaming**
 - **Correlation ID linking**
@@ -76,11 +80,13 @@ docker network connect medianest-development medianest-loki
 ## Configuration Files
 
 ### Core Configuration
+
 - `loki/loki-config.yml` - Loki server configuration
 - `promtail/promtail-config.yml` - Log collection rules
 - `docker-compose.loki.yml` - Complete monitoring stack
 
 ### Grafana Integration
+
 - `grafana/datasources/loki.yml` - Loki datasource configuration
 - `grafana/dashboards/medianest-logs.json` - MEDIANEST dashboard
 - `grafana/dashboards/dashboard.yml` - Dashboard provisioning
@@ -88,11 +94,13 @@ docker network connect medianest-development medianest-loki
 ## Log Formats
 
 ### Development Logs
+
 ```
 2025-09-11T20:05:13.226Z [abc123def] info: User login successful {"userId": "123", "ip": "192.168.1.1"}
 ```
 
 ### Production JSON Logs
+
 ```json
 {
   "timestamp": "2025-09-11T20:05:13.226Z",
@@ -114,6 +122,7 @@ docker network connect medianest-development medianest-loki
 ## Enhanced Logger Usage
 
 ### Basic Logging with Correlation
+
 ```typescript
 import { createChildLogger } from '../utils/logger';
 
@@ -122,6 +131,7 @@ logger.info('Processing user request', { userId: '456' });
 ```
 
 ### Request Logging
+
 ```typescript
 import { createRequestLogger } from '../utils/logger';
 
@@ -130,6 +140,7 @@ requestLogger.info('API request started');
 ```
 
 ### Performance Logging
+
 ```typescript
 import { logPerformance } from '../utils/logger';
 
@@ -139,17 +150,19 @@ logPerformance('database_query', Date.now() - startTime, { table: 'users' });
 ```
 
 ### Security Events
+
 ```typescript
 import { logSecurityEvent } from '../utils/logger';
 
 logSecurityEvent('failed_login_attempt', 'medium', {
   ip: req.ip,
   username: req.body.username,
-  attempts: 3
+  attempts: 3,
 });
 ```
 
 ### Business Metrics
+
 ```typescript
 import { logBusinessMetric } from '../utils/logger';
 
@@ -160,26 +173,31 @@ logBusinessMetric('revenue', 29.99, 'usd', { plan: 'premium' });
 ## Loki Query Examples
 
 ### Find logs by correlation ID
+
 ```logql
 {service="medianest-backend"} | json | correlation_id="abc123def"
 ```
 
 ### Error logs in last hour
+
 ```logql
 {service="medianest-backend",level="error"} | json
 ```
 
 ### Performance metrics
+
 ```logql
 {service="medianest-backend"} | json | operation != ""
 ```
 
 ### HTTP requests with high response time
+
 ```logql
 {service="medianest-backend"} | json | response_time > 1000
 ```
 
 ### Security events
+
 ```logql
 {service="medianest-backend"} |~ "Security Event"
 ```
@@ -187,6 +205,7 @@ logBusinessMetric('revenue', 29.99, 'usd', { plan: 'premium' });
 ## Grafana Dashboards
 
 ### MEDIANEST Application Logs
+
 - **Log volume** by service
 - **Error rate** monitoring
 - **Response time** distribution
@@ -196,8 +215,9 @@ logBusinessMetric('revenue', 29.99, 'usd', { plan: 'premium' });
 - **Correlation ID** filtering
 
 ### Key Metrics
+
 - **Error Rate**: Errors per second
-- **Response Time**: P50, P95, P99 percentiles  
+- **Response Time**: P50, P95, P99 percentiles
 - **Request Volume**: Requests per minute
 - **Status Codes**: 2xx, 4xx, 5xx distribution
 
@@ -210,6 +230,7 @@ docker-compose -f docker-compose.loki.yml --profile alerting up -d
 ```
 
 ### Alert Rules
+
 - High error rate (>10 errors/min)
 - Slow response time (P95 > 2s)
 - Security events (any critical)
@@ -218,11 +239,13 @@ docker-compose -f docker-compose.loki.yml --profile alerting up -d
 ## Storage Management
 
 ### Retention Policy
+
 - **Default**: 30 days (720 hours)
 - **Configuration**: `limits_config.retention_period` in loki-config.yml
 - **Automatic cleanup**: Every 10 minutes
 
 ### Storage Optimization
+
 - **Chunk size**: 256KB blocks, 1MB target
 - **Compression**: Automatic via BoltDB Shipper
 - **Indexing**: Optimized for time-series queries
@@ -233,6 +256,7 @@ docker-compose -f docker-compose.loki.yml --profile alerting up -d
 ### Common Issues
 
 #### Promtail can't read Docker logs
+
 ```bash
 # Check Docker socket permissions
 ls -la /var/run/docker.sock
@@ -242,6 +266,7 @@ docker exec medianest-promtail ls -la /var/run/docker.sock
 ```
 
 #### Loki out of memory
+
 ```bash
 # Check Loki memory usage
 docker stats medianest-loki
@@ -251,6 +276,7 @@ docker stats medianest-loki
 ```
 
 #### Grafana datasource issues
+
 ```bash
 # Verify Loki connectivity
 docker exec medianest-grafana curl http://loki:3100/ready
@@ -280,6 +306,7 @@ curl http://localhost:3001/api/health
 ### High-Volume Environments
 
 1. **Increase ingestion limits** in loki-config.yml:
+
    ```yaml
    limits_config:
      ingestion_rate_mb: 16
@@ -290,7 +317,7 @@ curl http://localhost:3001/api/health
 3. **Optimize Promtail batching**:
    ```yaml
    clients:
-     - batchsize: 2097152  # 2MB
+     - batchsize: 2097152 # 2MB
        batchwait: 2s
    ```
 
@@ -304,6 +331,7 @@ curl http://localhost:3001/api/health
 ## Integration with CI/CD
 
 ### Docker Compose Override
+
 Create `docker-compose.override.yml` in project root:
 
 ```yaml
@@ -311,18 +339,20 @@ version: '3.8'
 services:
   backend:
     logging:
-      driver: "json-file"
+      driver: 'json-file'
       options:
-        max-size: "10m"
-        max-file: "3"
-        labels: "service,environment"
+        max-size: '10m'
+        max-file: '3'
+        labels: 'service,environment'
     labels:
-      - "com.medianest.service=backend"
-      - "com.medianest.environment=${ENVIRONMENT:-development}"
+      - 'com.medianest.service=backend'
+      - 'com.medianest.environment=${ENVIRONMENT:-development}'
 ```
 
 ### Kubernetes Integration
+
 Use the provided configurations as base for Kubernetes deployments with:
+
 - **ConfigMaps** for Loki/Promtail configuration
 - **PersistentVolumes** for data storage
 - **Services** for network connectivity
@@ -331,6 +361,7 @@ Use the provided configurations as base for Kubernetes deployments with:
 ## Security Considerations
 
 ### Production Deployment
+
 - Enable **authentication** in Loki
 - Use **TLS encryption** for all connections
 - Implement **RBAC** in Grafana
@@ -338,6 +369,7 @@ Use the provided configurations as base for Kubernetes deployments with:
 - **Network segmentation** for monitoring stack
 
 ### Log Sanitization
+
 - **Remove sensitive data** before logging
 - **Hash user identifiers** where needed
 - **Comply with GDPR** for personal data
@@ -346,13 +378,15 @@ Use the provided configurations as base for Kubernetes deployments with:
 ## Monitoring the Monitoring
 
 ### Key Metrics to Monitor
+
 - **Promtail ingestion rate** and errors
-- **Loki memory usage** and query performance  
+- **Loki memory usage** and query performance
 - **Grafana dashboard** load times
 - **Storage utilization** and growth rate
 - **Query response times**
 
 ### Self-Monitoring Queries
+
 ```logql
 # Promtail errors
 {job="promtail"} |= "error"

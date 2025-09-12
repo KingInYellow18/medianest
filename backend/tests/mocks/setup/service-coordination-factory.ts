@@ -1,6 +1,6 @@
 /**
  * Service Coordination Factory
- * 
+ *
  * Creates coordinated mock services with enhanced integration patterns.
  * Specifically designed to address common failure patterns and achieve 90%+ test success.
  */
@@ -43,7 +43,7 @@ export class ServiceCoordinationFactory {
       // Core Plex operations with coordination
       async getServerInfo(serverUrl?: string): Promise<any> {
         const cacheKey = `plex:server_info:${serverUrl || 'default'}`;
-        
+
         // Check cache first
         if (defaultConfig.caching) {
           const cached = this.coordinationManager.getCoordinationState().cacheState.get(cacheKey);
@@ -77,7 +77,7 @@ export class ServiceCoordinationFactory {
 
         // Simulate search delay based on performance profile
         const delay = this.getSearchDelay(defaultConfig.performanceProfile);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
 
         const mockResults = [
           {
@@ -115,7 +115,7 @@ export class ServiceCoordinationFactory {
             createdAt: Date.now() - 86400000,
           },
           {
-            key: '2', 
+            key: '2',
             title: 'TV Shows',
             type: 'show',
             agent: 'com.plexapp.agents.thetvdb',
@@ -154,8 +154,8 @@ export class ServiceCoordinationFactory {
 
       async refreshLibrary(libraryKey: string): Promise<void> {
         // Simulate library refresh
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
         // Invalidate related cache entries
         if (defaultConfig.caching) {
           this.coordinationManager.coordinateCache('invalidate', `plex:library:${libraryKey}`);
@@ -211,7 +211,7 @@ export class ServiceCoordinationFactory {
 
     // Register the coordinated service
     this.coordinationManager.registerService(defaultConfig.name, plexService, defaultConfig);
-    
+
     return plexService;
   }
 
@@ -232,7 +232,7 @@ export class ServiceCoordinationFactory {
 
       async get<T>(key: string): Promise<T | null> {
         const entry = this.private.get(key);
-        
+
         if (!entry) {
           return null;
         }
@@ -245,7 +245,7 @@ export class ServiceCoordinationFactory {
 
         // Update cache hit metrics
         this.coordinationManager.updatePerformanceMetrics({ cacheHitRate: 0.9 });
-        
+
         return entry.value;
       },
 
@@ -263,11 +263,11 @@ export class ServiceCoordinationFactory {
       async del(key: string): Promise<boolean> {
         const existed = this.private.has(key);
         this.private.delete(key);
-        
+
         if (existed) {
           this.coordinationManager.coordinateCache('invalidate', key);
         }
-        
+
         return existed;
       },
 
@@ -283,31 +283,29 @@ export class ServiceCoordinationFactory {
       async ttl(key: string): Promise<number> {
         const entry = this.private.get(key);
         if (!entry) return -2;
-        
+
         if (entry.ttl <= 0) return -1;
-        
+
         const remaining = entry.ttl - Math.floor((Date.now() - entry.timestamp) / 1000);
         return Math.max(0, remaining);
       },
 
       async keys(pattern?: string): Promise<string[]> {
         const allKeys = Array.from(this.private.keys());
-        
+
         if (!pattern) return allKeys;
-        
+
         // Simple pattern matching
         const regex = new RegExp(pattern.replace(/\*/g, '.*'));
-        return allKeys.filter(key => regex.test(key));
+        return allKeys.filter((key) => regex.test(key));
       },
 
       async mget<T>(keys: string[]): Promise<Array<T | null>> {
-        return Promise.all(keys.map(key => this.get<T>(key)));
+        return Promise.all(keys.map((key) => this.get<T>(key)));
       },
 
       async mset(keyValuePairs: Array<[string, any]>, ttl: number = 3600): Promise<void> {
-        await Promise.all(
-          keyValuePairs.map(([key, value]) => this.set(key, value, ttl))
-        );
+        await Promise.all(keyValuePairs.map(([key, value]) => this.set(key, value, ttl)));
       },
 
       // Coordination methods
@@ -371,9 +369,10 @@ export class ServiceCoordinationFactory {
       // User operations
       async findUser(criteria: any): Promise<any | null> {
         const users = Array.from(this.private.users.values());
-        return users.find(user => 
-          Object.keys(criteria).every(key => user[key] === criteria[key])
-        ) || null;
+        return (
+          users.find((user) => Object.keys(criteria).every((key) => user[key] === criteria[key])) ||
+          null
+        );
       },
 
       async createUser(userData: any): Promise<any> {
@@ -384,7 +383,7 @@ export class ServiceCoordinationFactory {
           createdAt: new Date(),
           updatedAt: new Date(),
         };
-        
+
         this.private.users.set(id, user);
         return user;
       },
@@ -392,13 +391,13 @@ export class ServiceCoordinationFactory {
       async updateUser(id: string, userData: any): Promise<any | null> {
         const user = this.private.users.get(id);
         if (!user) return null;
-        
+
         const updatedUser = {
           ...user,
           ...userData,
           updatedAt: new Date(),
         };
-        
+
         this.private.users.set(id, updatedUser);
         return updatedUser;
       },
@@ -412,16 +411,18 @@ export class ServiceCoordinationFactory {
           createdAt: new Date(),
           updatedAt: new Date(),
         };
-        
+
         this.private.sessions.set(id, session);
         return session;
       },
 
       async findSession(criteria: any): Promise<any | null> {
         const sessions = Array.from(this.private.sessions.values());
-        return sessions.find(session =>
-          Object.keys(criteria).every(key => session[key] === criteria[key])
-        ) || null;
+        return (
+          sessions.find((session) =>
+            Object.keys(criteria).every((key) => session[key] === criteria[key]),
+          ) || null
+        );
       },
 
       async deleteSession(id: string): Promise<boolean> {
@@ -479,7 +480,7 @@ export class ServiceCoordinationFactory {
       async authenticate(credentials: any): Promise<any> {
         // Simulate authentication
         const { email, password } = credentials;
-        
+
         if (!email || !password) {
           throw new Error('Email and password are required');
         }
@@ -493,7 +494,7 @@ export class ServiceCoordinationFactory {
         };
 
         const token = `mock-jwt-token-${Date.now()}`;
-        
+
         // Cache the session
         if (defaultConfig.caching) {
           const cacheKey = `auth:session:${token}`;
@@ -570,15 +571,19 @@ export class ServiceCoordinationFactory {
   // Utility methods
   private getSearchDelay(profile: string): number {
     switch (profile) {
-      case 'fast': return 10;
-      case 'normal': return 50;
-      case 'slow': return 200;
-      default: return 50;
+      case 'fast':
+        return 10;
+      case 'normal':
+        return 50;
+      case 'slow':
+        return 200;
+      default:
+        return 50;
     }
   }
 
   public isTransactionalOperation(context: any): boolean {
-    return ['create', 'update', 'delete'].some(op => context.method.toLowerCase().includes(op));
+    return ['create', 'update', 'delete'].some((op) => context.method.toLowerCase().includes(op));
   }
 
   public getCoordinationManager(): AdvancedCoordinationManager {

@@ -90,10 +90,18 @@ class Logger {
     console.log(`${timestamp} ${prefix} ${message}`, ...args);
   }
 
-  static info(message, ...args) { this.log('blue', message, ...args); }
-  static success(message, ...args) { this.log('green', message, ...args); }
-  static warning(message, ...args) { this.log('yellow', message, ...args); }
-  static error(message, ...args) { this.log('red', message, ...args); }
+  static info(message, ...args) {
+    this.log('blue', message, ...args);
+  }
+  static success(message, ...args) {
+    this.log('green', message, ...args);
+  }
+  static warning(message, ...args) {
+    this.log('yellow', message, ...args);
+  }
+  static error(message, ...args) {
+    this.log('red', message, ...args);
+  }
 }
 
 class TestJob {
@@ -182,7 +190,7 @@ class WorkerPool {
 
   async executeJob(job) {
     const command = this.buildTestCommand(job);
-    
+
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         if (job.process) {
@@ -218,7 +226,7 @@ class WorkerPool {
 
       job.process.on('close', (code) => {
         clearTimeout(timeout);
-        
+
         job.exitCode = code;
         job.output.push(stdout);
         job.output.push(stderr);
@@ -245,7 +253,8 @@ class WorkerPool {
   }
 
   buildTestCommand(job) {
-    const componentPath = job.component === 'tests' ? PROJECT_ROOT : join(PROJECT_ROOT, job.component);
+    const componentPath =
+      job.component === 'tests' ? PROJECT_ROOT : join(PROJECT_ROOT, job.component);
     const args = ['run'];
 
     // Determine test command based on suite type
@@ -306,23 +315,25 @@ class CoverageAnalyzer {
 
     for (const component of components) {
       const coveragePath = join(this.config.coverageDir, component, 'coverage-summary.json');
-      
+
       if (existsSync(coveragePath)) {
         const coverageData = JSON.parse(readFileSync(coveragePath, 'utf-8'));
         const total = coverageData.total;
-        
+
         this.coverageData.set(component, total);
-        
+
         // Calculate weighted average
         const weight = component === 'backend' ? 0.5 : 0.25; // Backend weighted higher
         totalCoverage.lines += total.lines.pct * weight;
         totalCoverage.statements += total.statements.pct * weight;
         totalCoverage.functions += total.functions.pct * weight;
         totalCoverage.branches += total.branches.pct * weight;
-        
+
         weightedTotal += weight;
-        
-        Logger.info(`${component} coverage: ${total.lines.pct}% lines, ${total.statements.pct}% statements`);
+
+        Logger.info(
+          `${component} coverage: ${total.lines.pct}% lines, ${total.statements.pct}% statements`,
+        );
       } else {
         Logger.warning(`Coverage file not found for ${component}: ${coveragePath}`);
       }
@@ -336,12 +347,12 @@ class CoverageAnalyzer {
       totalCoverage.branches /= weightedTotal;
     }
 
-    const overallCoverage = (
-      totalCoverage.lines + 
-      totalCoverage.statements + 
-      totalCoverage.functions + 
-      totalCoverage.branches
-    ) / 4;
+    const overallCoverage =
+      (totalCoverage.lines +
+        totalCoverage.statements +
+        totalCoverage.functions +
+        totalCoverage.branches) /
+      4;
 
     Logger.info(`Overall coverage: ${overallCoverage.toFixed(2)}%`);
 
@@ -395,12 +406,12 @@ class TestReporter {
 
   generateTestReport(jobs, coverage = null) {
     const summary = this.calculateSummary(jobs);
-    
+
     const report = {
       timestamp: new Date().toISOString(),
       summary,
       coverage,
-      jobs: jobs.map(job => ({
+      jobs: jobs.map((job) => ({
         id: job.id,
         suite: job.suite,
         component: job.component,
@@ -422,10 +433,10 @@ class TestReporter {
 
   calculateSummary(jobs) {
     const total = jobs.length;
-    const passed = jobs.filter(j => j.status === 'passed').length;
-    const failed = jobs.filter(j => j.status === 'failed').length;
-    const timeout = jobs.filter(j => j.status === 'timeout').length;
-    const skipped = jobs.filter(j => j.status === 'skipped').length;
+    const passed = jobs.filter((j) => j.status === 'passed').length;
+    const failed = jobs.filter((j) => j.status === 'failed').length;
+    const timeout = jobs.filter((j) => j.status === 'timeout').length;
+    const skipped = jobs.filter((j) => j.status === 'skipped').length;
 
     const totalDuration = jobs.reduce((sum, job) => sum + job.duration, 0);
     const avgDuration = totalDuration / total || 0;
@@ -444,13 +455,13 @@ class TestReporter {
 
   calculatePerformanceMetrics(jobs) {
     const suiteMetrics = {};
-    
+
     for (const suite of Object.keys(TEST_SUITES)) {
-      const suiteJobs = jobs.filter(j => j.suite === suite);
+      const suiteJobs = jobs.filter((j) => j.suite === suite);
       if (suiteJobs.length > 0) {
         const totalDuration = suiteJobs.reduce((sum, job) => sum + job.duration, 0);
-        const passed = suiteJobs.filter(j => j.status === 'passed').length;
-        
+        const passed = suiteJobs.filter((j) => j.status === 'passed').length;
+
         suiteMetrics[suite] = {
           jobs: suiteJobs.length,
           passed,
@@ -482,20 +493,24 @@ class TestReporter {
       console.log('\n📊 COVERAGE SUMMARY:');
       console.log(`Overall: ${coverage.overall.toFixed(2)}%`);
       console.log(`Threshold: ${this.config.coverageThreshold}%`);
-      const coverageStatus = coverage.overall >= this.config.coverageThreshold 
-        ? `${Logger.colors.green}PASSED${Logger.colors.reset}`
-        : `${Logger.colors.red}FAILED${Logger.colors.reset}`;
+      const coverageStatus =
+        coverage.overall >= this.config.coverageThreshold
+          ? `${Logger.colors.green}PASSED${Logger.colors.reset}`
+          : `${Logger.colors.red}FAILED${Logger.colors.reset}`;
       console.log(`Status: ${coverageStatus}`);
     }
 
     console.log('\n📋 JOB DETAILS:');
-    jobs.forEach(job => {
-      const statusColor = job.status === 'passed' 
-        ? Logger.colors.green 
-        : job.status === 'failed' 
-          ? Logger.colors.red 
-          : Logger.colors.yellow;
-      console.log(`  ${job.id}: ${statusColor}${job.status.toUpperCase()}${Logger.colors.reset} (${job.duration.toFixed(2)}s)`);
+    jobs.forEach((job) => {
+      const statusColor =
+        job.status === 'passed'
+          ? Logger.colors.green
+          : job.status === 'failed'
+            ? Logger.colors.red
+            : Logger.colors.yellow;
+      console.log(
+        `  ${job.id}: ${statusColor}${job.status.toUpperCase()}${Logger.colors.reset} (${job.duration.toFixed(2)}s)`,
+      );
     });
 
     console.log('='.repeat(60));
@@ -527,14 +542,14 @@ class ParallelTestRunner {
     Logger.info(`Generated ${jobs.length} test jobs`);
 
     // Add jobs to worker pool
-    jobs.forEach(job => this.workerPool.addJob(job));
+    jobs.forEach((job) => this.workerPool.addJob(job));
 
     // Start processing
     await this.workerPool.processQueue();
 
     // Wait for all jobs to complete
     while (!this.workerPool.isIdle) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
     const allJobs = this.workerPool.completedJobs;
@@ -552,7 +567,7 @@ class ParallelTestRunner {
     this.reporter.printSummary(allJobs, coverage);
 
     // Determine exit code
-    const hasFailures = allJobs.some(job => job.status === 'failed' || job.status === 'timeout');
+    const hasFailures = allJobs.some((job) => job.status === 'failed' || job.status === 'timeout');
     const coverageFailed = coverage && !this.coverageAnalyzer.validateCoverageThreshold(coverage);
 
     if (hasFailures || coverageFailed) {
@@ -577,14 +592,9 @@ class ParallelTestRunner {
 
       for (const component of suite.components) {
         const componentPath = component === 'tests' ? PROJECT_ROOT : join(PROJECT_ROOT, component);
-        
+
         if (existsSync(componentPath)) {
-          const job = new TestJob(
-            `job-${jobId++}`,
-            suiteName,
-            component,
-            this.config
-          );
+          const job = new TestJob(`job-${jobId++}`, suiteName, component, this.config);
           jobs.push(job);
         } else {
           Logger.warning(`Component path not found: ${componentPath}`);

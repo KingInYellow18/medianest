@@ -1,6 +1,6 @@
 /**
  * Error Boundary Testing Helpers
- * 
+ *
  * This module provides utilities to properly test React Error Boundaries
  * with Vitest, addressing the challenge where React errors are caught by
  * the testing framework before Error Boundaries can handle them.
@@ -16,7 +16,7 @@ let errorBoundaryTestSpy: any = null;
 export const configureErrorBoundaryTesting = () => {
   // Store original console.error
   const originalConsoleError = console.error;
-  
+
   // Create custom error handler that doesn't interfere with Error Boundary tests
   console.error = (...args: any[]) => {
     const message = args[0];
@@ -24,7 +24,7 @@ export const configureErrorBoundaryTesting = () => {
       // Known error messages that should be handled by ErrorBoundary
       const errorBoundaryMessages = [
         'Test error message',
-        'Stack trace test', 
+        'Stack trace test',
         'Callback test error',
         'First error',
         'Custom fallback test',
@@ -34,7 +34,7 @@ export const configureErrorBoundaryTesting = () => {
         'Retry functionality test',
         'Timeout test error',
         'Accessibility test',
-        'Button accessibility test', 
+        'Button accessibility test',
         'Keyboard test',
         'Screen reader test',
         'Deep nested error',
@@ -43,26 +43,28 @@ export const configureErrorBoundaryTesting = () => {
         'HOC error test',
         'Wrapped component error',
         'Error with <script>',
-        'very long error message'
+        'very long error message',
       ];
-      
+
       // If this is an expected error boundary test error, suppress it
-      if (errorBoundaryMessages.some(msg => message.includes(msg))) {
+      if (errorBoundaryMessages.some((msg) => message.includes(msg))) {
         return;
       }
-      
+
       // Also suppress React's error boundary warnings
-      if (message.includes('Error boundaries should implement getDerivedStateFromError') ||
-          message.includes('componentDidCatch') ||
-          message.includes('The above error occurred in the')) {
+      if (
+        message.includes('Error boundaries should implement getDerivedStateFromError') ||
+        message.includes('componentDidCatch') ||
+        message.includes('The above error occurred in the')
+      ) {
         return;
       }
     }
-    
+
     // For other errors, use original console.error
     originalConsoleError(...args);
   };
-  
+
   return originalConsoleError;
 };
 
@@ -72,12 +74,9 @@ export const restoreErrorBoundaryTesting = (originalConsoleError: any) => {
 };
 
 // Render function optimized for error boundary testing
-export const renderWithErrorBoundarySupport = (
-  ui: React.ReactElement,
-  options?: RenderOptions
-) => {
+export const renderWithErrorBoundarySupport = (ui: React.ReactElement, options?: RenderOptions) => {
   const originalConsoleError = configureErrorBoundaryTesting();
-  
+
   try {
     return render(ui, options);
   } finally {
@@ -91,7 +90,7 @@ export const renderWithErrorBoundarySupport = (
 export const withErrorBoundarySupport = (testFn: () => void | Promise<void>) => {
   return async () => {
     const originalConsoleError = configureErrorBoundaryTesting();
-    
+
     try {
       await testFn();
     } finally {
@@ -101,15 +100,15 @@ export const withErrorBoundarySupport = (testFn: () => void | Promise<void>) => 
 };
 
 // Error throwing component for consistent testing
-export const TestErrorComponent = ({ 
-  message = 'Test error', 
-  shouldThrow = true 
-}: { 
-  message?: string; 
+export const TestErrorComponent = ({
+  message = 'Test error',
+  shouldThrow = true,
+}: {
+  message?: string;
   shouldThrow?: boolean;
 }) => {
   if (shouldThrow) {
     throw new Error(message);
   }
-  return <div data-testid="no-error">No error thrown</div>;
+  return <div data-testid='no-error'>No error thrown</div>;
 };

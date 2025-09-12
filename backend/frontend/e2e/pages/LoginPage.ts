@@ -36,13 +36,13 @@ export class LoginPage extends BasePage {
   async login(email: string, password: string, rememberMe = false) {
     await this.fillField(this.emailInput, email);
     await this.fillField(this.passwordInput, password);
-    
+
     if (rememberMe) {
       await this.rememberMeCheckbox.check();
     }
-    
+
     await this.clickWithRetry(this.loginButton);
-    
+
     // Wait for login to complete (either success or error)
     await Promise.race([
       this.page.waitForURL('**/dashboard'),
@@ -58,7 +58,7 @@ export class LoginPage extends BasePage {
     await this.emailInput.press('Tab');
     await this.fillField(this.passwordInput, password);
     await this.passwordInput.press('Enter');
-    
+
     // Wait for navigation or error
     await Promise.race([
       this.page.waitForURL('**/dashboard'),
@@ -79,11 +79,11 @@ export class LoginPage extends BasePage {
    */
   async expectSuccessfulLogin() {
     await expect(this.page).toHaveURL(/.*\/dashboard/);
-    
+
     // Verify authentication token is stored
     const authToken = await this.getLocalStorage('authToken');
     expect(authToken).toBeTruthy();
-    
+
     // Verify user menu is visible
     await expect(this.page.getByTestId('user-menu')).toBeVisible();
   }
@@ -94,7 +94,7 @@ export class LoginPage extends BasePage {
   async expectFailedLogin() {
     await expect(this.errorMessage).toBeVisible();
     await expect(this.page).toHaveURL(/.*\/login/);
-    
+
     // Verify no auth token is stored
     const authToken = await this.getLocalStorage('authToken');
     expect(authToken).toBeFalsy();
@@ -108,20 +108,20 @@ export class LoginPage extends BasePage {
     await this.fillField(this.emailInput, '');
     await this.fillField(this.passwordInput, 'password');
     await this.loginButton.click();
-    
+
     await expect(this.emailInput).toHaveAttribute('aria-invalid', 'true');
-    
+
     // Test invalid email format
     await this.fillField(this.emailInput, 'invalid-email');
     await this.loginButton.click();
-    
+
     await expect(this.emailInput).toHaveAttribute('aria-invalid', 'true');
-    
+
     // Test empty password
     await this.fillField(this.emailInput, 'test@example.com');
     await this.fillField(this.passwordInput, '');
     await this.loginButton.click();
-    
+
     await expect(this.passwordInput).toHaveAttribute('aria-invalid', 'true');
   }
 
@@ -133,15 +133,15 @@ export class LoginPage extends BasePage {
     await expect(this.emailInput).toHaveAttribute('aria-label');
     await expect(this.passwordInput).toHaveAttribute('aria-label');
     await expect(this.loginButton).toHaveAttribute('aria-label');
-    
+
     // Check form can be navigated with keyboard
     await this.emailInput.focus();
     await this.page.keyboard.press('Tab');
     await expect(this.passwordInput).toBeFocused();
-    
+
     await this.page.keyboard.press('Tab');
     await expect(this.rememberMeCheckbox).toBeFocused();
-    
+
     await this.page.keyboard.press('Tab');
     await expect(this.loginButton).toBeFocused();
   }

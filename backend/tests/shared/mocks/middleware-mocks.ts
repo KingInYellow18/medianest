@@ -4,17 +4,17 @@
  * @deprecated - This file will be removed in the next cleanup phase
  */
 
-import { 
+import {
   createMockRequest,
   createMockResponse,
-  createMockAuthenticatedUser
+  createMockAuthenticatedUser,
 } from '../test-factories';
 
 // Re-export centralized factories for backward compatibility
-export { 
+export {
   createMockRequest,
   createMockResponse,
-  createMockAuthenticatedUser
+  createMockAuthenticatedUser,
 } from '../test-factories';
 
 // Mark as deprecated

@@ -48,4 +48,4 @@ The most recently added and updated content with tags will appear here automatic
 
 ---
 
-*This page is automatically generated based on tagged content throughout the documentation.*
+_This page is automatically generated based on tagged content throughout the documentation._

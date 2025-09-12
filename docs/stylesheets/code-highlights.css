@@ -141,7 +141,7 @@
   -ms-user-select: none;
 }
 
-[data-md-color-scheme="slate"] .md-typeset .highlight .linenos {
+[data-md-color-scheme='slate'] .md-typeset .highlight .linenos {
   background: rgba(255, 255, 255, 0.05);
 }
 
@@ -287,13 +287,13 @@
   color: #22863a;
 }
 
-[data-md-color-scheme="slate"] .md-typeset .highlight .s,
-[data-md-color-scheme="slate"] .md-typeset .highlight .s1,
-[data-md-color-scheme="slate"] .md-typeset .highlight .s2,
-[data-md-color-scheme="slate"] .md-typeset .highlight .se,
-[data-md-color-scheme="slate"] .md-typeset .highlight .sh,
-[data-md-color-scheme="slate"] .md-typeset .highlight .si,
-[data-md-color-scheme="slate"] .md-typeset .highlight .sx {
+[data-md-color-scheme='slate'] .md-typeset .highlight .s,
+[data-md-color-scheme='slate'] .md-typeset .highlight .s1,
+[data-md-color-scheme='slate'] .md-typeset .highlight .s2,
+[data-md-color-scheme='slate'] .md-typeset .highlight .se,
+[data-md-color-scheme='slate'] .md-typeset .highlight .sh,
+[data-md-color-scheme='slate'] .md-typeset .highlight .si,
+[data-md-color-scheme='slate'] .md-typeset .highlight .sx {
   color: #9ecbff;
 }
 
@@ -308,12 +308,12 @@
   font-weight: 500;
 }
 
-[data-md-color-scheme="slate"] .md-typeset .highlight .m,
-[data-md-color-scheme="slate"] .md-typeset .highlight .mb,
-[data-md-color-scheme="slate"] .md-typeset .highlight .mf,
-[data-md-color-scheme="slate"] .md-typeset .highlight .mh,
-[data-md-color-scheme="slate"] .md-typeset .highlight .mi,
-[data-md-color-scheme="slate"] .md-typeset .highlight .mo {
+[data-md-color-scheme='slate'] .md-typeset .highlight .m,
+[data-md-color-scheme='slate'] .md-typeset .highlight .mb,
+[data-md-color-scheme='slate'] .md-typeset .highlight .mf,
+[data-md-color-scheme='slate'] .md-typeset .highlight .mh,
+[data-md-color-scheme='slate'] .md-typeset .highlight .mi,
+[data-md-color-scheme='slate'] .md-typeset .highlight .mo {
   color: #79b8ff;
 }
 
@@ -333,18 +333,18 @@
   color: #6f42c1;
 }
 
-[data-md-color-scheme="slate"] .md-typeset .highlight .n,
-[data-md-color-scheme="slate"] .md-typeset .highlight .na,
-[data-md-color-scheme="slate"] .md-typeset .highlight .nb,
-[data-md-color-scheme="slate"] .md-typeset .highlight .nc,
-[data-md-color-scheme="slate"] .md-typeset .highlight .nd,
-[data-md-color-scheme="slate"] .md-typeset .highlight .ne,
-[data-md-color-scheme="slate"] .md-typeset .highlight .nf,
-[data-md-color-scheme="slate"] .md-typeset .highlight .ni,
-[data-md-color-scheme="slate"] .md-typeset .highlight .nl,
-[data-md-color-scheme="slate"] .md-typeset .highlight .nn,
-[data-md-color-scheme="slate"] .md-typeset .highlight .nt,
-[data-md-color-scheme="slate"] .md-typeset .highlight .nv {
+[data-md-color-scheme='slate'] .md-typeset .highlight .n,
+[data-md-color-scheme='slate'] .md-typeset .highlight .na,
+[data-md-color-scheme='slate'] .md-typeset .highlight .nb,
+[data-md-color-scheme='slate'] .md-typeset .highlight .nc,
+[data-md-color-scheme='slate'] .md-typeset .highlight .nd,
+[data-md-color-scheme='slate'] .md-typeset .highlight .ne,
+[data-md-color-scheme='slate'] .md-typeset .highlight .nf,
+[data-md-color-scheme='slate'] .md-typeset .highlight .ni,
+[data-md-color-scheme='slate'] .md-typeset .highlight .nl,
+[data-md-color-scheme='slate'] .md-typeset .highlight .nn,
+[data-md-color-scheme='slate'] .md-typeset .highlight .nt,
+[data-md-color-scheme='slate'] .md-typeset .highlight .nv {
   color: #b392f0;
 }
 
@@ -362,9 +362,9 @@
   color: #e36209;
 }
 
-[data-md-color-scheme="slate"] .md-typeset .highlight .vg,
-[data-md-color-scheme="slate"] .md-typeset .highlight .vi,
-[data-md-color-scheme="slate"] .md-typeset .highlight .vm {
+[data-md-color-scheme='slate'] .md-typeset .highlight .vg,
+[data-md-color-scheme='slate'] .md-typeset .highlight .vi,
+[data-md-color-scheme='slate'] .md-typeset .highlight .vm {
   color: #ffab70;
 }
 
@@ -388,7 +388,7 @@
   border: 1px solid rgba(103, 58, 183, 0.2);
 }
 
-[data-md-color-scheme="slate"] .md-typeset code {
+[data-md-color-scheme='slate'] .md-typeset code {
   background: rgba(187, 134, 252, 0.15);
   color: #bb86fc;
   border-color: rgba(187, 134, 252, 0.3);
@@ -516,24 +516,24 @@
     margin: 1rem -0.5rem;
     border-radius: 0;
   }
-  
+
   .md-typeset .highlight .filename {
     padding: 0.5rem 0.75rem;
     font-size: 0.8rem;
   }
-  
+
   .md-typeset .highlight pre {
     padding: 1rem 0.75rem;
     font-size: 0.8rem;
   }
-  
+
   .md-typeset .highlight .md-code__copy {
     top: 0.25rem;
     right: 0.25rem;
     padding: 0.3rem;
     font-size: 0.7rem;
   }
-  
+
   .md-typeset .tabbed-labels label {
     padding: 0.5rem 1rem;
     font-size: 0.8rem;
@@ -546,22 +546,22 @@
     align-items: flex-start;
     gap: 0.5rem;
   }
-  
+
   .md-typeset .highlight .language-badge {
     align-self: flex-end;
   }
-  
+
   .md-typeset .tabbed-labels {
     flex-direction: column;
   }
-  
+
   .md-typeset .tabbed-labels label {
     padding: 0.75rem;
     text-align: center;
     border-bottom: none;
     border-left: 3px solid transparent;
   }
-  
+
   .md-typeset .tabbed-set input:checked + label {
     border-left-color: var(--mn-accent);
     border-bottom: none;
@@ -578,22 +578,22 @@
     break-inside: avoid;
     page-break-inside: avoid;
   }
-  
+
   .md-typeset .highlight .filename {
     background: #f8f9fa !important;
     color: black !important;
     border-bottom: 1px solid #ccc;
   }
-  
+
   .md-typeset .highlight pre {
     background: transparent !important;
     color: black !important;
   }
-  
+
   .md-typeset .highlight .md-code__copy {
     display: none !important;
   }
-  
+
   .md-typeset code {
     background: #f8f9fa !important;
     color: black !important;
@@ -606,12 +606,12 @@
   .md-typeset .highlight {
     border: 2px solid var(--md-default-fg-color);
   }
-  
+
   .md-typeset .highlight .filename {
     background: var(--md-default-fg-color) !important;
     color: var(--md-default-bg-color) !important;
   }
-  
+
   .md-typeset code {
     border: 2px solid var(--md-default-fg-color);
     background: var(--md-default-bg-color);
@@ -623,19 +623,19 @@
   .md-typeset .highlight {
     transition: none;
   }
-  
+
   .md-typeset .highlight:hover {
     transform: none;
   }
-  
+
   .md-typeset .highlight .md-code__copy {
     transition: none;
   }
-  
+
   .md-typeset .highlight .md-code__copy:hover {
     transform: none;
   }
-  
+
   .md-typeset .tabbed-labels label {
     transition: none;
   }

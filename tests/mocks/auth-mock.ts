@@ -1,6 +1,6 @@
 /**
  * COMPREHENSIVE AUTHENTICATION MOCKING INFRASTRUCTURE
- * 
+ *
  * Provides high-level authentication mocks for middleware, facades, and services.
  * Addresses authentication test failures and provides consistent auth behavior.
  */
@@ -32,7 +32,7 @@ export const createMockUser = (overrides = {}) => ({
 export const createMockAuthenticatedRequest = (overrides = {}) => {
   const user = createMockUser(overrides.user);
   const token = jwtTestHelpers.createValidToken({ userId: user.id });
-  
+
   return {
     headers: {
       authorization: `Bearer ${token}`,
@@ -85,22 +85,22 @@ export function setupAuthServiceMocks() {
     generateToken: vi.fn().mockImplementation((payload, rememberMe = false) => {
       return jwtTestHelpers.createValidToken(payload);
     }),
-    
+
     verifyToken: vi.fn().mockImplementation((token) => {
       return createDefaultPayload();
     }),
-    
+
     generateRefreshToken: vi.fn().mockImplementation((payload = {}) => {
       return jwtTestHelpers.createRefreshToken(payload);
     }),
-    
+
     verifyRefreshToken: vi.fn().mockImplementation((token) => {
       return {
         userId: 'test-user-id',
         sessionId: 'test-session-id',
       };
     }),
-    
+
     getTokenMetadata: vi.fn().mockImplementation((token) => {
       return {
         userId: 'test-user-id',
@@ -110,7 +110,7 @@ export function setupAuthServiceMocks() {
         expiresAt: new Date(Date.now() + 900000), // 15 minutes
       };
     }),
-    
+
     isTokenBlacklisted: vi.fn().mockReturnValue(false),
     blacklistToken: vi.fn(),
     shouldRotateToken: vi.fn().mockReturnValue(false),
@@ -126,7 +126,7 @@ export function setupAuthServiceMocks() {
       }
       throw new Error('Authorization header missing');
     }),
-    
+
     extractTokenOptional: vi.fn().mockImplementation((req) => {
       const auth = req.headers?.authorization;
       if (auth && auth.startsWith('Bearer ')) {
@@ -134,18 +134,18 @@ export function setupAuthServiceMocks() {
       }
       return null;
     }),
-    
+
     validateToken: vi.fn().mockImplementation((req, context) => {
       const authHeader = req.headers?.authorization;
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
         throw new Error('Authentication required');
       }
-      
+
       const token = authHeader.substring(7);
       if (token === 'invalid-token') {
         throw new Error('Invalid token');
       }
-      
+
       return {
         token,
         payload: createDefaultPayload(),
@@ -200,23 +200,23 @@ export function setupAuthServiceMocks() {
     mockDeviceSessionManager,
     resetMocks: () => {
       vi.clearAllMocks();
-      
+
       // Reset to default behavior
       mockJWTUtils.verifyToken.mockImplementation(() => createDefaultPayload());
       mockJWTUtils.isTokenBlacklisted.mockReturnValue(false);
       mockJWTUtils.shouldRotateToken.mockReturnValue(false);
-      
+
       mockTokenValidator.validateToken.mockImplementation((req, context) => {
         const authHeader = req.headers?.authorization;
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
           throw new Error('Authentication required');
         }
-        
+
         const token = authHeader.substring(7);
         if (token === 'invalid-token') {
           throw new Error('Invalid token');
         }
-        
+
         return {
           token,
           payload: createDefaultPayload(),
@@ -229,7 +229,7 @@ export function setupAuthServiceMocks() {
           },
         };
       });
-      
+
       mockUserValidator.validateUser.mockResolvedValue(createMockUser());
       mockDeviceSessionManager.registerAndAssessDevice.mockResolvedValue({
         deviceId: 'test-device-id',
@@ -247,21 +247,21 @@ export const authMiddlewareHelpers = {
   // Mock successful authentication
   mockSuccessfulAuth: (user = createMockUser()) => {
     const { mockUserValidator, mockDeviceSessionManager } = setupAuthServiceMocks();
-    
+
     mockUserValidator.validateUser.mockResolvedValue(user);
     mockDeviceSessionManager.registerAndAssessDevice.mockResolvedValue({
       deviceId: 'test-device-id',
       isNewDevice: false,
       riskScore: 0.1,
     });
-    
+
     return { user, token: jwtTestHelpers.createValidToken({ userId: user.id }) };
   },
 
   // Mock authentication failure
   mockAuthFailure: (errorMessage = 'Invalid token') => {
     const { mockTokenValidator } = setupAuthServiceMocks();
-    
+
     mockTokenValidator.validateToken.mockImplementation(() => {
       throw new Error(errorMessage);
     });
@@ -270,7 +270,7 @@ export const authMiddlewareHelpers = {
   // Mock expired token
   mockExpiredToken: () => {
     const { mockJWTUtils } = setupAuthServiceMocks();
-    
+
     mockJWTUtils.verifyToken.mockImplementation(() => {
       const error = new Error('jwt expired');
       error.name = 'TokenExpiredError';
@@ -281,7 +281,7 @@ export const authMiddlewareHelpers = {
   // Mock missing authorization header
   mockMissingAuth: () => {
     const { mockTokenValidator } = setupAuthServiceMocks();
-    
+
     mockTokenValidator.extractToken.mockImplementation(() => {
       throw new Error('Authorization header missing');
     });
@@ -290,7 +290,7 @@ export const authMiddlewareHelpers = {
   // Mock blacklisted token
   mockBlacklistedToken: () => {
     const { mockJWTUtils } = setupAuthServiceMocks();
-    
+
     mockJWTUtils.isTokenBlacklisted.mockReturnValue(true);
   },
 };
@@ -314,7 +314,7 @@ export const authorizationHelpers = {
     return (user: any) => {
       // Admin has all permissions
       if (user.role === 'ADMIN') return true;
-      
+
       // Define role permissions
       const rolePermissions: Record<string, string[]> = {
         USER: ['media:read', 'media:create', 'profile:update'],
@@ -322,7 +322,7 @@ export const authorizationHelpers = {
         ADMIN: ['*'], // All permissions
         GUEST: ['media:read'],
       };
-      
+
       const userPermissions = rolePermissions[user.role] || [];
       return userPermissions.includes('*') || userPermissions.includes(requiredPermission);
     };

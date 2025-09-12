@@ -2,7 +2,7 @@ import { Page, Route } from '@playwright/test';
 
 /**
  * Network Mocking Helper for E2E Tests
- * 
+ *
  * Provides utilities for mocking external service responses
  * and API endpoints during E2E testing
  */
@@ -13,13 +13,15 @@ export class NetworkMockingHelper {
   /**
    * Mock YouTube API responses for various scenarios
    */
-  async mockYouTubeApi(scenarios: {
-    validUrls?: string[];
-    invalidUrls?: string[];
-    metadata?: any;
-    rateLimited?: boolean;
-    serverError?: boolean;
-  } = {}) {
+  async mockYouTubeApi(
+    scenarios: {
+      validUrls?: string[];
+      invalidUrls?: string[];
+      metadata?: any;
+      rateLimited?: boolean;
+      serverError?: boolean;
+    } = {},
+  ) {
     const {
       validUrls = ['https://www.youtube.com/watch?v=dQw4w9WgXcQ'],
       invalidUrls = ['https://www.google.com'],
@@ -29,10 +31,10 @@ export class NetworkMockingHelper {
         channel: 'Test Channel',
         duration: '3:32',
         thumbnail: 'https://img.youtube.com/vi/test/maxresdefault.jpg',
-        availableQualities: ['720p', '1080p']
+        availableQualities: ['720p', '1080p'],
       },
       rateLimited = false,
-      serverError = false
+      serverError = false,
     } = scenarios;
 
     // Mock metadata endpoint
@@ -41,25 +43,25 @@ export class NetworkMockingHelper {
         await route.fulfill({
           status: 500,
           contentType: 'application/json',
-          body: JSON.stringify({ error: 'Internal server error' })
+          body: JSON.stringify({ error: 'Internal server error' }),
         });
         return;
       }
 
       const url = new URL(route.request().url());
       const videoUrl = url.searchParams.get('url');
-      
-      if (validUrls.some(validUrl => videoUrl?.includes(this.extractVideoId(validUrl)))) {
+
+      if (validUrls.some((validUrl) => videoUrl?.includes(this.extractVideoId(validUrl)))) {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify(metadata)
+          body: JSON.stringify(metadata),
         });
       } else {
         await route.fulfill({
           status: 400,
           contentType: 'application/json',
-          body: JSON.stringify({ error: 'Invalid YouTube URL or video not found' })
+          body: JSON.stringify({ error: 'Invalid YouTube URL or video not found' }),
         });
       }
     });
@@ -75,8 +77,8 @@ export class NetworkMockingHelper {
               error: 'Download rate limit exceeded',
               limit: 5,
               window: '1 hour',
-              retryAfter: 3600
-            })
+              retryAfter: 3600,
+            }),
           });
           return;
         }
@@ -85,14 +87,14 @@ export class NetworkMockingHelper {
           await route.fulfill({
             status: 500,
             contentType: 'application/json',
-            body: JSON.stringify({ error: 'Internal server error' })
+            body: JSON.stringify({ error: 'Internal server error' }),
           });
           return;
         }
 
         const data = await route.request().postDataJSON();
-        
-        if (validUrls.some(validUrl => data.url?.includes(this.extractVideoId(validUrl)))) {
+
+        if (validUrls.some((validUrl) => data.url?.includes(this.extractVideoId(validUrl)))) {
           await route.fulfill({
             status: 201,
             contentType: 'application/json',
@@ -105,14 +107,14 @@ export class NetworkMockingHelper {
               progress: 0,
               quality: data.quality || '1080p',
               format: data.format || 'mp4',
-              createdAt: new Date().toISOString()
-            })
+              createdAt: new Date().toISOString(),
+            }),
           });
         } else {
           await route.fulfill({
             status: 400,
             contentType: 'application/json',
-            body: JSON.stringify({ error: 'Invalid YouTube URL' })
+            body: JSON.stringify({ error: 'Invalid YouTube URL' }),
           });
         }
       }
@@ -123,7 +125,7 @@ export class NetworkMockingHelper {
       if (route.request().method() === 'GET') {
         const url = new URL(route.request().url());
         const status = url.searchParams.get('status');
-        
+
         let downloads = [
           {
             id: 'download-1',
@@ -137,7 +139,7 @@ export class NetworkMockingHelper {
             format: 'mp4',
             error: null,
             createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-            completedAt: new Date(Date.now() - 23 * 60 * 60 * 1000).toISOString()
+            completedAt: new Date(Date.now() - 23 * 60 * 60 * 1000).toISOString(),
           },
           {
             id: 'download-2',
@@ -146,12 +148,12 @@ export class NetworkMockingHelper {
             status: 'failed',
             progress: 45,
             error: 'Network timeout',
-            createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString()
-          }
+            createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+          },
         ];
 
         if (status) {
-          downloads = downloads.filter(d => d.status === status);
+          downloads = downloads.filter((d) => d.status === status);
         }
 
         await route.fulfill({
@@ -162,8 +164,8 @@ export class NetworkMockingHelper {
             total: downloads.length,
             page: 1,
             limit: 20,
-            totalPages: 1
-          })
+            totalPages: 1,
+          }),
         });
       }
     });
@@ -172,17 +174,19 @@ export class NetworkMockingHelper {
   /**
    * Mock Admin API responses
    */
-  async mockAdminApi(scenarios: {
-    users?: any[];
-    systemStats?: any;
-    services?: any[];
-    isAdmin?: boolean;
-  } = {}) {
+  async mockAdminApi(
+    scenarios: {
+      users?: any[];
+      systemStats?: any;
+      services?: any[];
+      isAdmin?: boolean;
+    } = {},
+  ) {
     const {
       users = this.generateMockUsers(),
       systemStats = this.generateMockSystemStats(),
       services = this.generateMockServices(),
-      isAdmin = true
+      isAdmin = true,
     } = scenarios;
 
     // Mock session/auth endpoint
@@ -195,9 +199,9 @@ export class NetworkMockingHelper {
             id: 'admin-123',
             plexUsername: isAdmin ? 'admin_user' : 'regular_user',
             email: isAdmin ? 'admin@example.com' : 'user@example.com',
-            role: isAdmin ? 'admin' : 'user'
-          }
-        })
+            role: isAdmin ? 'admin' : 'user',
+          },
+        }),
       });
     });
 
@@ -207,7 +211,7 @@ export class NetworkMockingHelper {
         await route.fulfill({
           status: 403,
           contentType: 'application/json',
-          body: JSON.stringify({ error: 'Forbidden' })
+          body: JSON.stringify({ error: 'Forbidden' }),
         });
         return;
       }
@@ -220,16 +224,17 @@ export class NetworkMockingHelper {
         const role = url.searchParams.get('role');
 
         let filteredUsers = users;
-        
+
         if (search) {
-          filteredUsers = users.filter(user => 
-            user.plexUsername.toLowerCase().includes(search.toLowerCase()) || 
-            user.email.toLowerCase().includes(search.toLowerCase())
+          filteredUsers = users.filter(
+            (user) =>
+              user.plexUsername.toLowerCase().includes(search.toLowerCase()) ||
+              user.email.toLowerCase().includes(search.toLowerCase()),
           );
         }
-        
+
         if (role && role !== 'all') {
-          filteredUsers = users.filter(user => user.role === role);
+          filteredUsers = users.filter((user) => user.role === role);
         }
 
         const startIdx = (page - 1) * pageSize;
@@ -247,10 +252,10 @@ export class NetworkMockingHelper {
                 total: filteredUsers.length,
                 page,
                 pageSize,
-                totalPages: Math.ceil(filteredUsers.length / pageSize)
-              }
-            }
-          })
+                totalPages: Math.ceil(filteredUsers.length / pageSize),
+              },
+            },
+          }),
         });
       }
     });
@@ -259,8 +264,11 @@ export class NetworkMockingHelper {
     await this.page.route('**/api/v1/admin/users/*/role', async (route: Route) => {
       if (route.request().method() === 'PATCH') {
         const data = await route.request().postDataJSON();
-        const userId = route.request().url().match(/users\/([^\/]+)\/role/)?.[1];
-        
+        const userId = route
+          .request()
+          .url()
+          .match(/users\/([^\/]+)\/role/)?.[1];
+
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
@@ -268,9 +276,9 @@ export class NetworkMockingHelper {
             success: true,
             data: {
               id: userId,
-              role: data.role
-            }
-          })
+              role: data.role,
+            },
+          }),
         });
       }
     });
@@ -283,8 +291,8 @@ export class NetworkMockingHelper {
           contentType: 'application/json',
           body: JSON.stringify({
             success: true,
-            message: 'User deleted successfully'
-          })
+            message: 'User deleted successfully',
+          }),
         });
       }
     });
@@ -296,8 +304,8 @@ export class NetworkMockingHelper {
         contentType: 'application/json',
         body: JSON.stringify({
           success: true,
-          data: systemStats
-        })
+          data: systemStats,
+        }),
       });
     });
 
@@ -308,8 +316,8 @@ export class NetworkMockingHelper {
         contentType: 'application/json',
         body: JSON.stringify({
           success: true,
-          data: services
-        })
+          data: services,
+        }),
       });
     });
   }
@@ -317,11 +325,13 @@ export class NetworkMockingHelper {
   /**
    * Mock Plex API responses
    */
-  async mockPlexApi(scenarios: {
-    healthy?: boolean;
-    authSuccess?: boolean;
-    libraries?: any[];
-  } = {}) {
+  async mockPlexApi(
+    scenarios: {
+      healthy?: boolean;
+      authSuccess?: boolean;
+      libraries?: any[];
+    } = {},
+  ) {
     const { healthy = true, authSuccess = true, libraries = [] } = scenarios;
 
     await this.page.route('**/plex/**', async (route: Route) => {
@@ -334,16 +344,17 @@ export class NetworkMockingHelper {
         await route.fulfill({
           status: authSuccess ? 200 : 401,
           contentType: 'application/json',
-          body: JSON.stringify(authSuccess ? 
-            { user: { id: 'plex-123', username: 'test_user' } } :
-            { error: 'Unauthorized' }
-          )
+          body: JSON.stringify(
+            authSuccess
+              ? { user: { id: 'plex-123', username: 'test_user' } }
+              : { error: 'Unauthorized' },
+          ),
         });
       } else if (route.request().url().includes('/library/')) {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify({ libraries })
+          body: JSON.stringify({ libraries }),
         });
       }
     });
@@ -352,10 +363,12 @@ export class NetworkMockingHelper {
   /**
    * Mock Overseerr API responses
    */
-  async mockOverseerrApi(scenarios: {
-    healthy?: boolean;
-    requests?: any[];
-  } = {}) {
+  async mockOverseerrApi(
+    scenarios: {
+      healthy?: boolean;
+      requests?: any[];
+    } = {},
+  ) {
     const { healthy = true, requests = [] } = scenarios;
 
     await this.page.route('**/overseerr/**', async (route: Route) => {
@@ -363,7 +376,7 @@ export class NetworkMockingHelper {
         await route.fulfill({
           status: 500,
           contentType: 'application/json',
-          body: JSON.stringify({ error: 'Service unavailable' })
+          body: JSON.stringify({ error: 'Service unavailable' }),
         });
         return;
       }
@@ -371,7 +384,7 @@ export class NetworkMockingHelper {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ requests })
+        body: JSON.stringify({ requests }),
       });
     });
   }
@@ -390,7 +403,7 @@ export class NetworkMockingHelper {
           }
         },
         emit: () => {},
-        disconnect: () => {}
+        disconnect: () => {},
       });
     });
   }
@@ -409,7 +422,7 @@ export class NetworkMockingHelper {
    */
   async simulateSlowNetwork(pattern: string, delay: number = 5000) {
     await this.page.route(pattern, async (route: Route) => {
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
       await route.continue();
     });
   }
@@ -433,8 +446,8 @@ export class NetworkMockingHelper {
         lastLoginAt: '2024-01-20T14:22:00Z',
         _count: {
           mediaRequests: 15,
-          youtubeDownloads: 8
-        }
+          youtubeDownloads: 8,
+        },
       },
       {
         id: 'user-2',
@@ -447,9 +460,9 @@ export class NetworkMockingHelper {
         lastLoginAt: '2024-01-21T09:45:00Z',
         _count: {
           mediaRequests: 25,
-          youtubeDownloads: 12
-        }
-      }
+          youtubeDownloads: 12,
+        },
+      },
     ];
   }
 
@@ -457,16 +470,16 @@ export class NetworkMockingHelper {
     return {
       users: {
         total: 150,
-        active: 89
+        active: 89,
       },
       requests: {
         total: 543,
-        pending: 23
+        pending: 23,
       },
       downloads: {
         total: 298,
-        active: 5
-      }
+        active: 5,
+      },
     };
   }
 
@@ -478,7 +491,7 @@ export class NetworkMockingHelper {
         baseUrl: 'https://plex.example.com',
         status: 'healthy',
         lastChecked: '2024-01-21T10:00:00Z',
-        responseTime: 150
+        responseTime: 150,
       },
       {
         id: 'service-2',
@@ -487,8 +500,8 @@ export class NetworkMockingHelper {
         status: 'unhealthy',
         lastChecked: '2024-01-21T10:00:00Z',
         responseTime: 5000,
-        error: 'Connection timeout'
-      }
+        error: 'Connection timeout',
+      },
     ];
   }
 }

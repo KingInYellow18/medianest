@@ -815,21 +815,18 @@ export function getStepStatus(
 ## Testing Requirements
 
 1. **Collection Creation**:
-
    - Collections created with correct metadata
    - Playlist thumbnails used as posters
    - Videos added in correct order
    - Duplicate handling works properly
 
 2. **Progress Tracking**:
-
    - Real-time updates display correctly
    - Progress calculations accurate
    - Failed videos tracked properly
    - Status transitions smooth
 
 3. **User Experience**:
-
    - Notifications when collections ready
    - Easy navigation to Plex
    - Clear error messages

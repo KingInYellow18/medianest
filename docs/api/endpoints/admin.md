@@ -5,6 +5,7 @@ Admin endpoints provide user management, system administration, and service conf
 ## Overview
 
 Admin functionality includes:
+
 - **User Management**: View, modify, and delete users
 - **System Statistics**: Comprehensive system metrics
 - **Service Configuration**: External service management
@@ -13,6 +14,7 @@ Admin functionality includes:
 ## Authentication
 
 All admin endpoints require:
+
 - Valid JWT token with `admin` role
 - Proper authorization headers or cookies
 
@@ -23,11 +25,13 @@ All admin endpoints require:
 Get all users with pagination, filtering, and sorting.
 
 **Request**
+
 ```http
 GET /api/admin/users?page=1&pageSize=20&search=john&role=user&sortBy=createdAt&sortOrder=desc
 ```
 
 **Query Parameters**
+
 - `page` (integer): Page number (default: 1)
 - `pageSize` (integer): Items per page (default: 20, max: 100)
 - `search` (string): Search in username/email
@@ -36,6 +40,7 @@ GET /api/admin/users?page=1&pageSize=20&search=john&role=user&sortBy=createdAt&s
 - `sortOrder` (string): Sort direction (`asc`, `desc`)
 
 **Response** (200 OK)
+
 ```json
 {
   "success": true,
@@ -67,6 +72,7 @@ GET /api/admin/users?page=1&pageSize=20&search=john&role=user&sortBy=createdAt&s
 ```
 
 **Error Responses**
+
 - `403` - Insufficient permissions (non-admin user)
 
 ### PUT /api/admin/users/:userId/role
@@ -74,6 +80,7 @@ GET /api/admin/users?page=1&pageSize=20&search=john&role=user&sortBy=createdAt&s
 Update a user's role.
 
 **Request**
+
 ```http
 PUT /api/admin/users/user-123/role
 Content-Type: application/json
@@ -84,6 +91,7 @@ Content-Type: application/json
 ```
 
 **Response** (200 OK)
+
 ```json
 {
   "success": true,
@@ -97,6 +105,7 @@ Content-Type: application/json
 ```
 
 **Error Responses**
+
 - `400` - Invalid role or trying to remove own admin role
 - `404` - User not found
 
@@ -105,11 +114,13 @@ Content-Type: application/json
 Delete a user account and all associated data.
 
 **Request**
+
 ```http
 DELETE /api/admin/users/user-123
 ```
 
 **Response** (200 OK)
+
 ```json
 {
   "success": true,
@@ -118,6 +129,7 @@ DELETE /api/admin/users/user-123
 ```
 
 **Error Responses**
+
 - `400` - Cannot delete own account
 - `404` - User not found
 
@@ -128,11 +140,13 @@ DELETE /api/admin/users/user-123
 Get comprehensive system statistics.
 
 **Request**
+
 ```http
 GET /api/admin/stats
 ```
 
 **Response** (200 OK)
+
 ```json
 {
   "success": true,
@@ -154,6 +168,7 @@ GET /api/admin/stats
 ```
 
 **Statistics Include**:
+
 - **Users**: Total count and active users (logged in within 30 days)
 - **Media Requests**: Total and pending request counts
 - **YouTube Downloads**: Total and currently active downloads
@@ -163,11 +178,13 @@ GET /api/admin/stats
 Get all external service configurations.
 
 **Request**
+
 ```http
 GET /api/admin/services
 ```
 
 **Response** (200 OK)
+
 ```json
 {
   "success": true,
@@ -192,19 +209,24 @@ GET /api/admin/services
 ## Security Safeguards
 
 ### Self-Protection
+
 - Admins cannot delete their own account
 - Admins cannot remove their own admin role
 - Last admin cannot be demoted or deleted
 
 ### Audit Logging
+
 All admin actions are logged with:
+
 - Admin user ID performing the action
 - Target user/resource affected
 - Action performed and timestamp
 - IP address and user agent
 
 ### Rate Limiting
+
 Admin endpoints have generous rate limits but still enforce:
+
 - 100 requests per minute for read operations
 - 20 requests per minute for write operations
 
@@ -216,19 +238,19 @@ graph TD
     B --> C{Filter/Search Users}
     C --> D[Select User]
     D --> E{Action Required}
-    
+
     E -->|Role Change| F[Update Role]
     E -->|Delete User| G[Confirm Deletion]
     E -->|View Details| H[User Profile]
-    
+
     F --> I[Verify Not Self]
     I --> J[Update Database]
     J --> K[Log Action]
-    
+
     G --> L[Verify Not Self]
     L --> M[Cascade Delete]
     M --> N[Log Deletion]
-    
+
     H --> O[Show Activity]
     O --> P[Media Requests]
     O --> Q[Download History]
@@ -236,13 +258,13 @@ graph TD
 
 ## Permission Matrix
 
-| Endpoint | User | Admin | Notes |
-|----------|------|--------|-------|
-| GET /admin/users | ❌ | ✅ | View all users |
-| PUT /admin/users/:id/role | ❌ | ✅ | Cannot modify self |
-| DELETE /admin/users/:id | ❌ | ✅ | Cannot delete self |
-| GET /admin/stats | ❌ | ✅ | System statistics |
-| GET /admin/services | ❌ | ✅ | Service configurations |
+| Endpoint                  | User | Admin | Notes                  |
+| ------------------------- | ---- | ----- | ---------------------- |
+| GET /admin/users          | ❌   | ✅    | View all users         |
+| PUT /admin/users/:id/role | ❌   | ✅    | Cannot modify self     |
+| DELETE /admin/users/:id   | ❌   | ✅    | Cannot delete self     |
+| GET /admin/stats          | ❌   | ✅    | System statistics      |
+| GET /admin/services       | ❌   | ✅    | Service configurations |
 
 ## Error Handling
 
@@ -257,6 +279,7 @@ Admin endpoints use consistent error responses:
 ```
 
 Common error codes:
+
 - `ACCESS_DENIED` - Insufficient permissions
 - `VALIDATION_ERROR` - Invalid request data
 - `NOT_FOUND` - Resource not found

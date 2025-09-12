@@ -31,7 +31,7 @@ export abstract class BasePage {
    * Take a screenshot with a specific name
    */
   async takeScreenshot(name: string) {
-    await this.page.screenshot({ 
+    await this.page.screenshot({
       path: `e2e/results/screenshots/${name}.png`,
       fullPage: true,
     });
@@ -106,23 +106,26 @@ export abstract class BasePage {
   async waitForElementStable(locator: Locator, timeout = 5000) {
     await expect(locator).toBeVisible();
     await locator.waitFor({ state: 'attached', timeout });
-    
+
     // Wait for element to be stable (no movement)
     let previousBox = await locator.boundingBox();
     let stableCount = 0;
-    
+
     while (stableCount < 3) {
       await this.page.waitForTimeout(100);
       const currentBox = await locator.boundingBox();
-      
-      if (previousBox && currentBox && 
-          previousBox.x === currentBox.x && 
-          previousBox.y === currentBox.y) {
+
+      if (
+        previousBox &&
+        currentBox &&
+        previousBox.x === currentBox.x &&
+        previousBox.y === currentBox.y
+      ) {
         stableCount++;
       } else {
         stableCount = 0;
       }
-      
+
       previousBox = currentBox;
     }
   }
@@ -132,7 +135,7 @@ export abstract class BasePage {
    */
   async fillField(locator: Locator, value: string, validate = true) {
     await locator.fill(value);
-    
+
     if (validate) {
       await expect(locator).toHaveValue(value);
     }
@@ -143,7 +146,7 @@ export abstract class BasePage {
    */
   async clickWithRetry(locator: Locator, retries = 3) {
     let lastError;
-    
+
     for (let i = 0; i < retries; i++) {
       try {
         await this.waitForElementStable(locator);
@@ -154,7 +157,7 @@ export abstract class BasePage {
         await this.page.waitForTimeout(500);
       }
     }
-    
+
     throw lastError;
   }
 
@@ -170,7 +173,7 @@ export abstract class BasePage {
    */
   async hoverAndWait(locator: Locator, waitForSelector?: string, timeout = 3000) {
     await locator.hover();
-    
+
     if (waitForSelector) {
       await this.page.waitForSelector(waitForSelector, { timeout });
     } else {

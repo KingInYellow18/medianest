@@ -60,13 +60,13 @@ export class ServicesPage extends BasePage {
   async toggleServiceStatus(serviceId: string) {
     const serviceCard = this.getServiceCard(serviceId);
     const toggleButton = serviceCard.getByTestId('toggle-status-btn');
-    
+
     const initialStatus = await serviceCard.getAttribute('data-status');
     await this.clickWithRetry(toggleButton);
-    
+
     // Wait for status change
     await expect(serviceCard).not.toHaveAttribute('data-status', initialStatus);
-    
+
     return await serviceCard.getAttribute('data-status');
   }
 
@@ -76,10 +76,10 @@ export class ServicesPage extends BasePage {
   async retryService(serviceId: string) {
     const serviceCard = this.getServiceCard(serviceId);
     const retryButton = serviceCard.getByTestId('retry-btn');
-    
+
     await expect(retryButton).toBeVisible();
     await this.clickWithRetry(retryButton);
-    
+
     // Wait for retry operation
     await this.waitForResponse('**/api/services/*/retry');
   }
@@ -87,38 +87,35 @@ export class ServicesPage extends BasePage {
   /**
    * Add new service
    */
-  async addService(serviceData: {
-    name: string;
-    url: string;
-    type: string;
-    description?: string;
-  }) {
+  async addService(serviceData: { name: string; url: string; type: string; description?: string }) {
     await this.clickWithRetry(this.addServiceButton);
-    
+
     // Wait for modal to appear
     const modal = this.page.getByTestId('add-service-modal');
     await expect(modal).toBeVisible();
-    
+
     // Fill form
     await this.fillField(modal.getByTestId('service-name'), serviceData.name);
     await this.fillField(modal.getByTestId('service-url'), serviceData.url);
-    
+
     // Select service type
     await modal.getByTestId('service-type').selectOption(serviceData.type);
-    
+
     if (serviceData.description) {
       await this.fillField(modal.getByTestId('service-description'), serviceData.description);
     }
-    
+
     // Submit form
     await this.clickWithRetry(modal.getByTestId('submit-service'));
-    
+
     // Wait for service to be added
     await this.waitForResponse('**/api/services');
     await expect(modal).toBeHidden();
-    
+
     // Verify service appears in list
-    await expect(this.getServiceCard(serviceData.name.toLowerCase().replace(/\s+/g, '-'))).toBeVisible();
+    await expect(
+      this.getServiceCard(serviceData.name.toLowerCase().replace(/\s+/g, '-')),
+    ).toBeVisible();
   }
 
   /**
@@ -127,15 +124,15 @@ export class ServicesPage extends BasePage {
   async deleteService(serviceId: string) {
     const serviceCard = this.getServiceCard(serviceId);
     const deleteButton = serviceCard.getByTestId('delete-service-btn');
-    
+
     await this.hoverAndWait(serviceCard, '[data-testid="delete-service-btn"]');
     await this.clickWithRetry(deleteButton);
-    
+
     // Confirm deletion
     const confirmDialog = this.page.getByTestId('confirm-delete-modal');
     await expect(confirmDialog).toBeVisible();
     await this.clickWithRetry(confirmDialog.getByTestId('confirm-delete'));
-    
+
     // Wait for deletion
     await this.waitForResponse(`**/api/services/${serviceId}`);
     await expect(serviceCard).toBeHidden();
@@ -147,7 +144,7 @@ export class ServicesPage extends BasePage {
   async searchServices(query: string) {
     await this.fillField(this.searchInput, query);
     await this.searchInput.press('Enter');
-    
+
     // Wait for filtered results
     await this.waitForAnimation();
   }
@@ -173,7 +170,7 @@ export class ServicesPage extends BasePage {
    */
   async refreshServices() {
     await this.clickWithRetry(this.refreshButton);
-    
+
     // Wait for loading to complete
     await expect(this.loadingSpinner).toBeVisible();
     await expect(this.loadingSpinner).toBeHidden();
@@ -182,31 +179,36 @@ export class ServicesPage extends BasePage {
   /**
    * Verify service details
    */
-  async verifyServiceDetails(serviceId: string, expectedData: {
-    name?: string;
-    status?: string;
-    uptime?: string;
-    responseTime?: string;
-    errorCount?: string;
-  }) {
+  async verifyServiceDetails(
+    serviceId: string,
+    expectedData: {
+      name?: string;
+      status?: string;
+      uptime?: string;
+      responseTime?: string;
+      errorCount?: string;
+    },
+  ) {
     const serviceCard = this.getServiceCard(serviceId);
-    
+
     if (expectedData.name) {
       await expect(serviceCard.getByTestId('service-name')).toContainText(expectedData.name);
     }
-    
+
     if (expectedData.status) {
       await expect(serviceCard.getByTestId('service-status')).toContainText(expectedData.status);
     }
-    
+
     if (expectedData.uptime) {
       await expect(serviceCard.getByTestId('uptime')).toContainText(expectedData.uptime);
     }
-    
+
     if (expectedData.responseTime) {
-      await expect(serviceCard.getByTestId('response-time')).toContainText(expectedData.responseTime);
+      await expect(serviceCard.getByTestId('response-time')).toContainText(
+        expectedData.responseTime,
+      );
     }
-    
+
     if (expectedData.errorCount) {
       await expect(serviceCard.getByTestId('error-count')).toContainText(expectedData.errorCount);
     }
@@ -226,14 +228,14 @@ export class ServicesPage extends BasePage {
   async verifySortOrder(sortBy: 'name' | 'status') {
     const cards = await this.serviceCards.all();
     const values: string[] = [];
-    
+
     for (const card of cards) {
-      const value = await card.getByTestId(
-        sortBy === 'name' ? 'service-name' : 'service-status'
-      ).textContent();
+      const value = await card
+        .getByTestId(sortBy === 'name' ? 'service-name' : 'service-status')
+        .textContent();
       values.push(value || '');
     }
-    
+
     const sortedValues = [...values].sort();
     expect(values).toEqual(sortedValues);
   }
@@ -246,7 +248,7 @@ export class ServicesPage extends BasePage {
       const checkbox = this.getServiceCard(id).getByTestId('service-checkbox');
       await checkbox.check();
     }
-    
+
     // Verify bulk actions are available
     await expect(this.page.getByTestId('bulk-actions')).toBeVisible();
   }
@@ -254,16 +256,16 @@ export class ServicesPage extends BasePage {
   async performBulkAction(action: 'start' | 'stop' | 'delete') {
     const bulkActions = this.page.getByTestId('bulk-actions');
     const actionButton = bulkActions.getByTestId(`bulk-${action}`);
-    
+
     await this.clickWithRetry(actionButton);
-    
+
     if (action === 'delete') {
       // Confirm bulk deletion
       const confirmDialog = this.page.getByTestId('confirm-bulk-delete');
       await expect(confirmDialog).toBeVisible();
       await this.clickWithRetry(confirmDialog.getByTestId('confirm-bulk-delete'));
     }
-    
+
     // Wait for operation to complete
     await this.waitForResponse('**/api/services/bulk');
   }

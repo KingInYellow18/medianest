@@ -15,7 +15,7 @@
         "id": 1,
         "title": "Log Volume by Service",
         "type": "stat",
-        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0},
+        "gridPos": { "h": 8, "w": 6, "x": 0, "y": 0 },
         "targets": [
           {
             "expr": "sum by (service) (count_over_time({service=~\"medianest.*\"}[5m]))",
@@ -25,8 +25,8 @@
         ],
         "fieldConfig": {
           "defaults": {
-            "color": {"mode": "palette-classic"},
-            "custom": {"displayMode": "list", "orientation": "horizontal"},
+            "color": { "mode": "palette-classic" },
+            "custom": { "displayMode": "list", "orientation": "horizontal" },
             "unit": "short"
           }
         }
@@ -35,7 +35,7 @@
         "id": 2,
         "title": "Error Rate",
         "type": "stat",
-        "gridPos": {"h": 8, "w": 6, "x": 6, "y": 0},
+        "gridPos": { "h": 8, "w": 6, "x": 6, "y": 0 },
         "targets": [
           {
             "expr": "sum(rate({service=~\"medianest.*\",level=\"error\"}[5m]))",
@@ -45,12 +45,12 @@
         ],
         "fieldConfig": {
           "defaults": {
-            "color": {"mode": "thresholds"},
+            "color": { "mode": "thresholds" },
             "thresholds": {
               "steps": [
-                {"color": "green", "value": null},
-                {"color": "yellow", "value": 5},
-                {"color": "red", "value": 10}
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 5 },
+                { "color": "red", "value": 10 }
               ]
             },
             "unit": "reqps"
@@ -61,7 +61,7 @@
         "id": 3,
         "title": "Response Time Distribution",
         "type": "histogram",
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
         "targets": [
           {
             "expr": "{service=\"medianest-backend\"} | json | response_time != \"\" | unwrap response_time",
@@ -74,7 +74,7 @@
         "id": 4,
         "title": "Recent Error Logs",
         "type": "logs",
-        "gridPos": {"h": 12, "w": 24, "x": 0, "y": 8},
+        "gridPos": { "h": 12, "w": 24, "x": 0, "y": 8 },
         "targets": [
           {
             "expr": "{service=~\"medianest.*\",level=\"error\"}",
@@ -94,7 +94,7 @@
         "id": 5,
         "title": "HTTP Status Codes",
         "type": "piechart",
-        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
         "targets": [
           {
             "expr": "sum by (status_code) (count_over_time({service=\"medianest-backend\"} | json | status_code != \"\" [5m]))",
@@ -107,7 +107,7 @@
         "id": 6,
         "title": "Top Request URLs",
         "type": "barchart",
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20},
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
         "targets": [
           {
             "expr": "topk(10, sum by (url) (count_over_time({service=\"medianest-backend\"} | json | url != \"\" [5m])))",
@@ -120,7 +120,7 @@
         "id": 7,
         "title": "Application Logs by Correlation ID",
         "type": "logs",
-        "gridPos": {"h": 12, "w": 24, "x": 0, "y": 28},
+        "gridPos": { "h": 12, "w": 24, "x": 0, "y": 28 },
         "targets": [
           {
             "expr": "{service=~\"medianest.*\"} | json | correlation_id != \"no-correlation-id\"",
@@ -140,7 +140,7 @@
         "id": 8,
         "title": "Security Events",
         "type": "logs",
-        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 40},
+        "gridPos": { "h": 8, "w": 24, "x": 0, "y": 40 },
         "targets": [
           {
             "expr": "{service=~\"medianest.*\"} |~ \"Security Event\"",

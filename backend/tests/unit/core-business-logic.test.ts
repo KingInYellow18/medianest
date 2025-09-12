@@ -1,6 +1,6 @@
 /**
  * CORE BUSINESS LOGIC UNIT TESTS
- * 
+ *
  * Critical unit tests for core business functionality
  * Provides immediate test coverage for staging readiness
  */
@@ -8,7 +8,6 @@
 import { describe, test, expect } from 'vitest';
 
 describe('Core Business Logic Unit Tests', () => {
-  
   describe('User Management', () => {
     test('should validate user data structure', () => {
       const user = {
@@ -19,7 +18,7 @@ describe('Core Business Logic Unit Tests', () => {
         role: 'user',
         status: 'active',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       expect(user.id).toBeDefined();
@@ -30,9 +29,9 @@ describe('Core Business Logic Unit Tests', () => {
 
     test('should validate user permissions', () => {
       const userPermissions = {
-        'user': ['media:read', 'request:create', 'request:read', 'profile:update'],
-        'admin': ['*'],
-        'guest': ['media:read']
+        user: ['media:read', 'request:create', 'request:read', 'profile:update'],
+        admin: ['*'],
+        guest: ['media:read'],
       };
 
       expect(userPermissions.user.includes('media:read')).toBe(true);
@@ -53,7 +52,7 @@ describe('Core Business Logic Unit Tests', () => {
         requestType: 'movie',
         notes: 'User requested movie',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       const allowedStatuses = ['pending', 'approved', 'denied', 'completed', 'cancelled'];
@@ -73,7 +72,7 @@ describe('Core Business Logic Unit Tests', () => {
         ['approved', ['completed', 'cancelled']],
         ['denied', []],
         ['completed', []],
-        ['cancelled', []]
+        ['cancelled', []],
       ]);
 
       const canTransition = (from: string, to: string): boolean => {
@@ -99,8 +98,8 @@ describe('Core Business Logic Unit Tests', () => {
           role: 'user',
           sessionId: 'session-456',
           iat: Math.floor(Date.now() / 1000),
-          exp: Math.floor(Date.now() / 1000) + 3600
-        }
+          exp: Math.floor(Date.now() / 1000) + 3600,
+        },
       };
 
       expect(mockToken.header.alg).toBe('HS256');
@@ -122,8 +121,8 @@ describe('Core Business Logic Unit Tests', () => {
         metadata: {
           userAgent: 'Mozilla/5.0...',
           ipAddress: '192.168.1.100',
-          location: 'US'
-        }
+          location: 'US',
+        },
       };
 
       expect(session.id).toBeDefined();
@@ -134,18 +133,20 @@ describe('Core Business Logic Unit Tests', () => {
     });
 
     test('should validate password requirements', () => {
-      const validatePassword = (password: string): { 
-        isValid: boolean; 
-        errors: string[] 
+      const validatePassword = (
+        password: string,
+      ): {
+        isValid: boolean;
+        errors: string[];
       } => {
         const errors: string[] = [];
-        
+
         if (password.length < 8) errors.push('Password must be at least 8 characters');
         if (!/[A-Z]/.test(password)) errors.push('Password must contain uppercase letter');
         if (!/[a-z]/.test(password)) errors.push('Password must contain lowercase letter');
         if (!/[0-9]/.test(password)) errors.push('Password must contain number');
         if (!/[^A-Za-z0-9]/.test(password)) errors.push('Password must contain special character');
-        
+
         return { isValid: errors.length === 0, errors };
       };
 
@@ -168,7 +169,7 @@ describe('Core Business Logic Unit Tests', () => {
         data,
         message: message || 'Operation successful',
         timestamp: new Date().toISOString(),
-        version: '1.0.0'
+        version: '1.0.0',
       });
 
       const response = createSuccessResponse({ id: 123, name: 'Test' }, 'User created');
@@ -188,8 +189,8 @@ describe('Core Business Logic Unit Tests', () => {
           message,
           details: details || null,
           timestamp: new Date().toISOString(),
-          traceId: Math.random().toString(36).substr(2, 9)
-        }
+          traceId: Math.random().toString(36).substr(2, 9),
+        },
       });
 
       const error = createErrorResponse('VALIDATION_ERROR', 'Invalid input', ['Email required']);
@@ -203,10 +204,10 @@ describe('Core Business Logic Unit Tests', () => {
 
     test('should format paginated responses correctly', () => {
       const createPaginatedResponse = <T>(
-        data: T[], 
-        page: number, 
-        limit: number, 
-        total: number
+        data: T[],
+        page: number,
+        limit: number,
+        total: number,
       ) => {
         const totalPages = Math.ceil(total / limit);
         return {
@@ -220,8 +221,8 @@ describe('Core Business Logic Unit Tests', () => {
             hasNext: page < totalPages,
             hasPrev: page > 1,
             nextPage: page < totalPages ? page + 1 : null,
-            prevPage: page > 1 ? page - 1 : null
-          }
+            prevPage: page > 1 ? page - 1 : null,
+          },
         };
       };
 
@@ -322,7 +323,7 @@ describe('Core Business Logic Unit Tests', () => {
       const calculatePagination = (page: number, limit: number, total: number) => {
         const totalPages = Math.ceil(total / limit);
         const offset = (page - 1) * limit;
-        
+
         return {
           page,
           limit,
@@ -332,7 +333,7 @@ describe('Core Business Logic Unit Tests', () => {
           hasNext: page < totalPages,
           hasPrev: page > 1,
           isFirstPage: page === 1,
-          isLastPage: page === totalPages
+          isLastPage: page === totalPages,
         };
       };
 
@@ -355,14 +356,16 @@ describe('Core Business Logic Unit Tests', () => {
           public code: string,
           message: string,
           public statusCode: number = 500,
-          public details?: any
+          public details?: any,
         ) {
           super(message);
           this.name = 'AppError';
         }
       }
 
-      const validationError = new AppError('VALIDATION_ERROR', 'Invalid data', 400, { field: 'email' });
+      const validationError = new AppError('VALIDATION_ERROR', 'Invalid data', 400, {
+        field: 'email',
+      });
       const notFoundError = new AppError('NOT_FOUND', 'User not found', 404);
 
       expect(validationError.code).toBe('VALIDATION_ERROR');
@@ -373,12 +376,12 @@ describe('Core Business Logic Unit Tests', () => {
 
     test('should handle async operation errors', async () => {
       const asyncOperation = async (shouldFail: boolean): Promise<string> => {
-        await new Promise(resolve => setTimeout(resolve, 10));
-        
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
         if (shouldFail) {
           throw new Error('Operation failed');
         }
-        
+
         return 'Success';
       };
 

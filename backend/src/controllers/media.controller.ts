@@ -9,13 +9,13 @@ import { logger } from '@/utils/logger';
 
 /**
  * Media Controller - Handles all media-related HTTP requests
- * 
+ *
  * This controller manages:
  * - Media search functionality through Overseerr integration
  * - Media request creation and management
  * - User request history and details
  * - Admin request oversight
- * 
+ *
  * @class MediaController
  * @description RESTful controller for media management operations
  * @version 2.0.0
@@ -24,17 +24,17 @@ import { logger } from '@/utils/logger';
 export class MediaController {
   /**
    * Search for media content through external APIs
-   * 
+   *
    * @async
    * @method searchMedia
    * @description Searches for movies and TV shows using Overseerr integration
    * @param {Request} req - Express request object containing search query and pagination
    * @param {Response} res - Express response object
    * @returns {Promise<void>} JSON response with search results and metadata
-   * 
+   *
    * @example
    * GET /api/v1/media/search?query=inception&page=1
-   * 
+   *
    * @throws {AppError} VALIDATION_ERROR - When search query is missing or invalid
    * @throws {AppError} INTERNAL_ERROR - When search operation fails
    */
@@ -68,17 +68,17 @@ export class MediaController {
 
   /**
    * Retrieve detailed information for a specific media item
-   * 
+   *
    * @async
    * @method getMediaDetails
    * @description Fetches comprehensive media details including metadata, cast, and availability
    * @param {Request} req - Express request object with mediaType and tmdbId parameters
    * @param {Response} res - Express response object
    * @returns {Promise<void>} JSON response with detailed media information
-   * 
+   *
    * @example
    * GET /api/v1/media/movie/123456
-   * 
+   *
    * @throws {AppError} VALIDATION_ERROR - When media type is invalid or missing
    * @throws {AppError} INTERNAL_ERROR - When detail retrieval fails
    */
@@ -118,21 +118,21 @@ export class MediaController {
 
   /**
    * Create a new media request for download/availability
-   * 
+   *
    * @async
    * @method requestMedia
    * @description Submits a request for media content to be downloaded or made available
    * @param {Request} req - Express request object with media details and user context
    * @param {Response} res - Express response object
    * @returns {Promise<void>} JSON response with created request details
-   * 
+   *
    * @example
    * POST /api/v1/media/request
    * Body: { mediaType: 'movie', tmdbId: 123456, seasons: [1,2] }
-   * 
+   *
    * @throws {AppError} VALIDATION_ERROR - When required fields are missing or invalid
    * @throws {AppError} INTERNAL_ERROR - When request creation fails
-   * 
+   *
    * @security Requires valid JWT authentication
    */
   async requestMedia(req: Request, res: Response) {
@@ -175,17 +175,17 @@ export class MediaController {
 
   /**
    * Retrieve media requests for the authenticated user
-   * 
+   *
    * @async
    * @method getUserRequests
    * @description Fetches paginated list of user's media requests with filtering and sorting
    * @param {Request} req - Express request object with query parameters for filtering
    * @param {Response} res - Express response object
    * @returns {Promise<void>} JSON response with user's requests and pagination metadata
-   * 
+   *
    * @example
    * GET /api/v1/media/requests?page=1&status=pending&mediaType=movie
-   * 
+   *
    * Query Parameters:
    * - page: Page number (default: 1)
    * - pageSize: Items per page (default: 20)
@@ -195,9 +195,9 @@ export class MediaController {
    * - startDate/endDate: Date range filtering
    * - sortBy: Sort field (date, title, status)
    * - sortOrder: Sort direction (asc, desc)
-   * 
+   *
    * @throws {AppError} INTERNAL_ERROR - When request retrieval fails
-   * 
+   *
    * @security Requires valid JWT authentication
    */
   async getUserRequests(req: Request, res: Response) {
@@ -281,22 +281,22 @@ export class MediaController {
 
   /**
    * Retrieve detailed information for a specific media request
-   * 
+   *
    * @async
    * @method getRequestDetails
    * @description Fetches comprehensive details for a single media request with access control
    * @param {Request} req - Express request object with requestId parameter
    * @param {Response} res - Express response object
    * @returns {Promise<void>} JSON response with request details
-   * 
+   *
    * @example
    * GET /api/v1/media/requests/abc123
-   * 
+   *
    * @throws {AppError} VALIDATION_ERROR - When request ID is missing
    * @throws {AppError} NOT_FOUND - When request doesn't exist
    * @throws {AppError} ACCESS_DENIED - When user lacks permission to view request
    * @throws {AppError} INTERNAL_ERROR - When detail retrieval fails
-   * 
+   *
    * @security Requires valid JWT authentication
    * @security Users can only view their own requests (unless admin)
    */
@@ -335,22 +335,22 @@ export class MediaController {
 
   /**
    * Delete a pending media request
-   * 
+   *
    * @async
    * @method deleteRequest
    * @description Removes a media request that is still in pending status
    * @param {Request} req - Express request object with requestId parameter
    * @param {Response} res - Express response object
    * @returns {Promise<void>} JSON response confirming deletion
-   * 
+   *
    * @example
    * DELETE /api/v1/media/requests/abc123
-   * 
+   *
    * @throws {AppError} VALIDATION_ERROR - When request ID is missing or request is not pending
    * @throws {AppError} NOT_FOUND - When request doesn't exist
    * @throws {AppError} ACCESS_DENIED - When user lacks permission to delete request
    * @throws {AppError} INTERNAL_ERROR - When deletion fails
-   * 
+   *
    * @security Requires valid JWT authentication
    * @security Users can only delete their own pending requests (unless admin)
    * @constraint Only pending requests can be deleted
@@ -397,24 +397,24 @@ export class MediaController {
 
   /**
    * Retrieve all media requests (admin only)
-   * 
+   *
    * @async
    * @method getAllRequests
    * @description Fetches paginated list of all media requests with advanced filtering for administrators
    * @param {Request} req - Express request object with query parameters for filtering
    * @param {Response} res - Express response object
    * @returns {Promise<void>} JSON response with all requests and pagination metadata
-   * 
+   *
    * @example
    * GET /api/v1/media/admin/requests?page=1&userId=user123&status=pending
-   * 
+   *
    * Query Parameters:
    * - All parameters from getUserRequests plus:
    * - userId: Filter by specific user ID
-   * 
+   *
    * @throws {AppError} ACCESS_DENIED - When user is not an administrator
    * @throws {AppError} INTERNAL_ERROR - When request retrieval fails
-   * 
+   *
    * @security Requires valid JWT authentication
    * @security Requires administrator role
    */

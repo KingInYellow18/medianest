@@ -5,6 +5,7 @@ Authentication in MediaNest uses Plex OAuth for user authentication and JWT toke
 ## Overview
 
 MediaNest provides multiple authentication methods:
+
 - **Plex OAuth**: Primary authentication method using Plex.tv accounts
 - **Admin Bootstrap**: One-time admin user creation for first deployment
 - **Password Login**: For admin users with passwords set
@@ -17,6 +18,7 @@ MediaNest provides multiple authentication methods:
 Generate a Plex OAuth PIN for authentication flow initiation.
 
 **Request**
+
 ```http
 POST /api/auth/plex/pin
 Content-Type: application/json
@@ -27,6 +29,7 @@ Content-Type: application/json
 ```
 
 **Response** (200 OK)
+
 ```json
 {
   "success": true,
@@ -40,6 +43,7 @@ Content-Type: application/json
 ```
 
 **Error Responses**
+
 - `502` - Plex service unavailable
 - `503` - Plex connection timeout
 - `504` - Plex timeout
@@ -49,11 +53,13 @@ Content-Type: application/json
 Check the authorization status of a Plex PIN.
 
 **Request**
+
 ```http
 GET /api/auth/plex/pin/123456789/status
 ```
 
 **Response** (200 OK)
+
 ```json
 {
   "success": true,
@@ -70,6 +76,7 @@ GET /api/auth/plex/pin/123456789/status
 Complete Plex OAuth flow and create authenticated session.
 
 **Request**
+
 ```http
 POST /api/auth/plex
 Content-Type: application/json
@@ -80,6 +87,7 @@ Content-Type: application/json
 ```
 
 **Response** (200 OK)
+
 ```json
 {
   "success": true,
@@ -87,7 +95,7 @@ Content-Type: application/json
     "user": {
       "id": "user-abc123",
       "username": "plexuser",
-      "email": "user@example.com", 
+      "email": "user@example.com",
       "role": "user"
     },
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -99,6 +107,7 @@ Content-Type: application/json
 **Set-Cookie Header**: `auth-token=<jwt>; HttpOnly; Secure; SameSite=Lax; Max-Age=86400`
 
 **Error Responses**
+
 - `400` - PIN not authorized or invalid
 - `502` - Failed to retrieve user information from Plex
 - `503` - Database error during user creation
@@ -108,6 +117,7 @@ Content-Type: application/json
 Bootstrap admin user creation (only available when no users exist).
 
 **Request**
+
 ```http
 POST /api/auth/admin
 Content-Type: application/json
@@ -120,6 +130,7 @@ Content-Type: application/json
 ```
 
 **Response** (200 OK)
+
 ```json
 {
   "success": true,
@@ -137,6 +148,7 @@ Content-Type: application/json
 ```
 
 **Error Responses**
+
 - `400` - Admin user already exists
 
 ### POST /api/auth/login
@@ -144,6 +156,7 @@ Content-Type: application/json
 Password-based login for admin users.
 
 **Request**
+
 ```http
 POST /api/auth/login
 Content-Type: application/json
@@ -156,6 +169,7 @@ Content-Type: application/json
 ```
 
 **Response** (200 OK)
+
 ```json
 {
   "success": true,
@@ -173,6 +187,7 @@ Content-Type: application/json
 ```
 
 **Error Responses**
+
 - `401` - Invalid credentials
 - `400` - User has no password set (must use Plex auth)
 
@@ -181,12 +196,14 @@ Content-Type: application/json
 Get current authenticated user session information.
 
 **Request**
+
 ```http
 GET /api/auth/session
 Authorization: Bearer <token>
 ```
 
 **Response** (200 OK)
+
 ```json
 {
   "success": true,
@@ -209,6 +226,7 @@ Authorization: Bearer <token>
 Logout user and invalidate session.
 
 **Request**
+
 ```http
 POST /api/auth/logout
 Authorization: Bearer <token>
@@ -219,6 +237,7 @@ Authorization: Bearer <token>
 ```
 
 **Response** (200 OK)
+
 ```json
 {
   "success": true,
@@ -233,6 +252,7 @@ Authorization: Bearer <token>
 Change user password (admin users only).
 
 **Request**
+
 ```http
 POST /api/auth/change-password
 Authorization: Bearer <token>
@@ -244,6 +264,7 @@ Authorization: Bearer <token>
 ```
 
 **Response** (200 OK)
+
 ```json
 {
   "success": true,
@@ -254,6 +275,7 @@ Authorization: Bearer <token>
 ```
 
 **Error Responses**
+
 - `400` - Current password incorrect
 - `400` - Admin users must have a password
 
@@ -264,22 +286,22 @@ sequenceDiagram
     participant C as Client
     participant M as MediaNest API
     participant P as Plex.tv
-    
+
     C->>M: POST /auth/plex/pin
     M->>P: Create PIN via Plex API
     P-->>M: PIN ID, Code, Expires
     M-->>C: PIN details + QR URL
-    
+
     Note over C,P: User visits Plex.tv and enters PIN
     C->>P: Authorize application with PIN
-    
+
     loop Check PIN Status
         C->>M: GET /auth/plex/pin/:id/status
         M->>P: Check PIN authorization
         P-->>M: Authorization status
         M-->>C: { authorized: true/false }
     end
-    
+
     C->>M: POST /auth/plex (with PIN ID)
     M->>P: Get auth token for PIN
     P-->>M: Auth token
@@ -295,7 +317,7 @@ sequenceDiagram
 Authentication endpoints have specific rate limits:
 
 - `/auth/plex/pin`: 10 requests per minute per IP
-- `/auth/plex`: 5 requests per minute per IP  
+- `/auth/plex`: 5 requests per minute per IP
 - `/auth/login`: 5 requests per minute per IP
 - `/auth/change-password`: 3 requests per minute per user
 
@@ -321,6 +343,7 @@ All authentication endpoints return consistent error formats:
 ```
 
 Common error codes:
+
 - `AUTH_ERROR` - General authentication failure
 - `PLEX_ERROR` - Plex service integration issue
 - `VALIDATION_ERROR` - Request validation failed

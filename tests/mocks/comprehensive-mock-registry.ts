@@ -1,6 +1,6 @@
 /**
  * COMPREHENSIVE MOCK REGISTRY
- * 
+ *
  * Centralized mock management system for all external dependencies.
  * Provides isolation, reliability, and consistent mock behavior.
  */
@@ -57,7 +57,7 @@ export class MockRegistry {
   private setupJWTMocks(): void {
     const jwtMocks = setupJWTMocks();
     const authMocks = setupAuthServiceMocks();
-    
+
     this.mocks.set('jwt', jwtMocks);
     this.mocks.set('auth', authMocks);
   }
@@ -68,7 +68,7 @@ export class MockRegistry {
   private setupDatabaseMocks(): void {
     const prismaMocks = setupPrismaMocks();
     const redisMocks = setupRedisMocks();
-    
+
     this.mocks.set('prisma', prismaMocks);
     this.mocks.set('redis', redisMocks);
 
@@ -170,18 +170,18 @@ export class MockRegistry {
       head: vi.fn().mockResolvedValue({ headers: {}, status: 200, statusText: 'OK' }),
       options: vi.fn().mockResolvedValue({ headers: {}, status: 200, statusText: 'OK' }),
       request: vi.fn().mockResolvedValue({ data: {}, status: 200, statusText: 'OK' }),
-      defaults: { 
+      defaults: {
         headers: { common: {} },
         timeout: 5000,
         baseURL: '',
       },
       interceptors: {
-        request: { 
+        request: {
           use: vi.fn().mockReturnValue(0),
           eject: vi.fn(),
           clear: vi.fn(),
         },
-        response: { 
+        response: {
           use: vi.fn().mockReturnValue(0),
           eject: vi.fn(),
           clear: vi.fn(),
@@ -345,9 +345,11 @@ export class MockRegistry {
         scrypt: vi.fn().mockImplementation((password, salt, keylen, callback) => {
           callback(null, Buffer.alloc(keylen, 'k'));
         }),
-        pbkdf2: vi.fn().mockImplementation((password, salt, iterations, keylen, digest, callback) => {
-          callback(null, Buffer.alloc(keylen, 'p'));
-        }),
+        pbkdf2: vi
+          .fn()
+          .mockImplementation((password, salt, iterations, keylen, digest, callback) => {
+            callback(null, Buffer.alloc(keylen, 'p'));
+          }),
       };
     });
 
@@ -655,7 +657,7 @@ export class MockRegistry {
    */
   resetAll(): void {
     vi.clearAllMocks();
-    
+
     // Reset each mock system
     for (const [name, mock] of this.mocks) {
       if (mock && typeof mock.resetMocks === 'function') {
@@ -679,7 +681,7 @@ export class MockRegistry {
    */
   cleanup(): void {
     vi.restoreAllMocks();
-    
+
     // Restore original environment
     const originalEnv = this.mocks.get('env')?.original;
     if (originalEnv) {
@@ -759,7 +761,7 @@ export const mockHelpers = {
   // Cache mocks
   mockCacheHit: (key: string, value: any) => {
     const cacheMocks = mockRegistry.getMock('cache');
-    cacheMocks?.get.mockImplementation((k: string) => k === key ? value : undefined);
+    cacheMocks?.get.mockImplementation((k: string) => (k === key ? value : undefined));
     return value;
   },
 
@@ -806,7 +808,7 @@ export const isolationHelpers = {
   // Create isolated environment for a test
   createIsolatedEnvironment: (config: Record<string, any> = {}) => {
     mockRegistry.resetAll();
-    
+
     // Apply custom configuration
     Object.entries(config).forEach(([key, value]) => {
       const mock = mockRegistry.getMock(key);

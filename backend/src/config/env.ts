@@ -1,12 +1,12 @@
 /**
  * Environment Configuration - Centralized application settings
- * 
+ *
  * This module provides a unified configuration object that reads from:
  * - Environment variables
  * - Docker secrets (in production)
  * - Secure secret files
  * - Default fallback values
- * 
+ *
  * Categories:
  * - Application settings (NODE_ENV, PORT, etc.)
  * - Database configuration (PostgreSQL, Redis)
@@ -14,7 +14,7 @@
  * - Security settings (encryption, rate limiting)
  * - External services (Plex, TMDB, YouTube)
  * - Feature flags and monitoring
- * 
+ *
  * @fileoverview Environment configuration with Docker secrets support
  * @version 2.0.0
  * @author MediaNest Team
@@ -27,18 +27,18 @@ import { readSecret, readSecretFromFile, validateSecrets } from './secrets';
  * Application Environment Configuration
  * @const {Object} env
  * @description Centralized configuration object with all application settings
- * 
+ *
  * @example
  * // Access configuration values
  * console.log('Server port:', env.PORT);
  * console.log('Database URL:', env.DATABASE_URL);
- * 
+ *
  * @example
  * // Feature flag checks
  * if (env.ENABLE_REGISTRATION) {
  *   // Registration is enabled
  * }
- * 
+ *
  * @security Sensitive values are read from Docker secrets in production
  * @security Default values are safe for development environments
  */
@@ -238,7 +238,7 @@ export const env = {
 /**
  * Production Environment Validation
  * @description Validates that all required secrets are present in production
- * 
+ *
  * @security Ensures critical secrets are available before starting the application
  * @security Prevents startup with missing security credentials
  */

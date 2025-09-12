@@ -1,10 +1,10 @@
 /**
  * STANDARDIZED TEST ENVIRONMENT SETUP
- * 
+ *
  * This is the single source of truth for test environment configuration
  * across all test files. Ensures consistent mock initialization, proper
  * test isolation, and standardized environment variable loading.
- * 
+ *
  * Phase 4A Environment Stability Requirements:
  * - Consistent mock initialization order
  * - Proper test isolation between suites
@@ -22,33 +22,33 @@ import { vi, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 export function setupTestEnvironment() {
   // Set NODE_ENV first - critical for proper mocking
   process.env.NODE_ENV = 'test';
-  
+
   // JWT Configuration - consistent across all tests
   process.env.JWT_SECRET = 'test-jwt-secret-key-32-bytes-long';
   process.env.JWT_ISSUER = 'medianest-test';
   process.env.JWT_AUDIENCE = 'medianest-test-users';
-  
+
   // Database Configuration - consistent test values
   process.env.DATABASE_URL = 'postgresql://test:test@localhost:5433/medianest_test';
   process.env.DATABASE_POOL_SIZE = '2';
   process.env.DATABASE_TIMEOUT = '3000';
-  
+
   // Redis Configuration - consistent test values
   process.env.REDIS_URL = 'redis://localhost:6380/15';
   process.env.REDIS_TEST_DB = '15';
-  
+
   // Plex Configuration - consistent test values
   process.env.PLEX_CLIENT_ID = 'test-plex-client-id';
   process.env.PLEX_CLIENT_SECRET = 'test-plex-client-secret';
-  
+
   // Application Configuration
   process.env.FRONTEND_URL = 'http://localhost:3000';
   process.env.BACKEND_URL = 'http://localhost:4000';
   process.env.LOG_LEVEL = 'silent';
-  
+
   // Encryption Configuration
   process.env.ENCRYPTION_KEY = 'test-encryption-key-32-bytes-long!!!';
-  
+
   // Performance Configuration
   process.env.VITEST_POOL_SIZE = '4';
   process.env.NODE_OPTIONS = '--max-old-space-size=4096';
@@ -66,33 +66,33 @@ interface RedisMockItem {
 
 class StandardizedRedisMock {
   private cache = new Map<string, RedisMockItem>();
-  
+
   get(key: string): string | null {
     const item = this.cache.get(key);
     if (!item) return null;
-    
+
     // Check TTL expiration
     if (item.ttl > 0 && Date.now() - item.setAt > item.ttl * 1000) {
       this.cache.delete(key);
       return null;
     }
-    
+
     return item.value;
   }
-  
+
   setex(key: string, ttl: number, value: string): string {
     this.cache.set(key, {
       value,
       ttl,
-      setAt: Date.now()
+      setAt: Date.now(),
     });
     return 'OK';
   }
-  
+
   del(keys: string | string[]): number {
     if (Array.isArray(keys)) {
       let deleted = 0;
-      keys.forEach(key => {
+      keys.forEach((key) => {
         if (this.cache.delete(key)) deleted++;
       });
       return deleted;
@@ -100,62 +100,62 @@ class StandardizedRedisMock {
       return this.cache.delete(keys) ? 1 : 0;
     }
   }
-  
+
   exists(key: string): number {
     return this.cache.has(key) ? 1 : 0;
   }
-  
+
   ttl(key: string): number {
     const item = this.cache.get(key);
     if (!item) return -2; // Key doesn't exist
     if (item.ttl <= 0) return -1; // No expiration
-    
+
     const remaining = Math.ceil(item.ttl - (Date.now() - item.setAt) / 1000);
     return remaining > 0 ? remaining : -2;
   }
-  
+
   flushall(): string {
     this.cache.clear();
     return 'OK';
   }
-  
+
   keys(pattern: string): string[] {
     const keys = Array.from(this.cache.keys());
-    
+
     if (pattern === '*') {
       return keys;
     }
-    
+
     // Simple pattern matching for test:*
     const regexPattern = pattern.replace(/\*/g, '.*');
     const regex = new RegExp(`^${regexPattern}$`);
-    
-    return keys.filter(key => regex.test(key));
+
+    return keys.filter((key) => regex.test(key));
   }
-  
+
   info(section?: string): string {
     if (section === 'memory') {
       return 'used_memory_human:1.23M\nused_memory_peak_human:2.45M';
     }
     return 'used_memory_human:1.2M';
   }
-  
+
   dbsize(): number {
     return this.cache.size;
   }
-  
+
   ping(): string {
     return 'PONG';
   }
-  
+
   connect(): Promise<void> {
     return Promise.resolve();
   }
-  
+
   disconnect(): Promise<void> {
     return Promise.resolve();
   }
-  
+
   // Test isolation helper
   clear(): void {
     this.cache.clear();
@@ -167,43 +167,31 @@ const globalRedisMock = new StandardizedRedisMock();
 
 export function createStandardRedisClient() {
   return {
-    get: vi.fn().mockImplementation((key: string) => 
-      Promise.resolve(globalRedisMock.get(key))
-    ),
-    setex: vi.fn().mockImplementation((key: string, ttl: number, value: string) => 
-      Promise.resolve(globalRedisMock.setex(key, ttl, value))
-    ),
-    del: vi.fn().mockImplementation((keys: string | string[]) => 
-      Promise.resolve(globalRedisMock.del(keys))
-    ),
-    exists: vi.fn().mockImplementation((key: string) => 
-      Promise.resolve(globalRedisMock.exists(key))
-    ),
-    ttl: vi.fn().mockImplementation((key: string) => 
-      Promise.resolve(globalRedisMock.ttl(key))
-    ),
-    flushall: vi.fn().mockImplementation(() => 
-      Promise.resolve(globalRedisMock.flushall())
-    ),
-    keys: vi.fn().mockImplementation((pattern: string) => 
-      Promise.resolve(globalRedisMock.keys(pattern))
-    ),
-    info: vi.fn().mockImplementation((section?: string) => 
-      Promise.resolve(globalRedisMock.info(section))
-    ),
-    dbsize: vi.fn().mockImplementation(() => 
-      Promise.resolve(globalRedisMock.dbsize())
-    ),
-    ping: vi.fn().mockImplementation(() => 
-      Promise.resolve(globalRedisMock.ping())
-    ),
-    connect: vi.fn().mockImplementation(() => 
-      Promise.resolve(globalRedisMock.connect())
-    ),
-    disconnect: vi.fn().mockImplementation(() => 
-      Promise.resolve(globalRedisMock.disconnect())
-    ),
-    
+    get: vi.fn().mockImplementation((key: string) => Promise.resolve(globalRedisMock.get(key))),
+    setex: vi
+      .fn()
+      .mockImplementation((key: string, ttl: number, value: string) =>
+        Promise.resolve(globalRedisMock.setex(key, ttl, value)),
+      ),
+    del: vi
+      .fn()
+      .mockImplementation((keys: string | string[]) => Promise.resolve(globalRedisMock.del(keys))),
+    exists: vi
+      .fn()
+      .mockImplementation((key: string) => Promise.resolve(globalRedisMock.exists(key))),
+    ttl: vi.fn().mockImplementation((key: string) => Promise.resolve(globalRedisMock.ttl(key))),
+    flushall: vi.fn().mockImplementation(() => Promise.resolve(globalRedisMock.flushall())),
+    keys: vi
+      .fn()
+      .mockImplementation((pattern: string) => Promise.resolve(globalRedisMock.keys(pattern))),
+    info: vi
+      .fn()
+      .mockImplementation((section?: string) => Promise.resolve(globalRedisMock.info(section))),
+    dbsize: vi.fn().mockImplementation(() => Promise.resolve(globalRedisMock.dbsize())),
+    ping: vi.fn().mockImplementation(() => Promise.resolve(globalRedisMock.ping())),
+    connect: vi.fn().mockImplementation(() => Promise.resolve(globalRedisMock.connect())),
+    disconnect: vi.fn().mockImplementation(() => Promise.resolve(globalRedisMock.disconnect())),
+
     // Test helpers
     _clearState: () => globalRedisMock.clear(),
     _getInternalState: () => globalRedisMock,
@@ -306,10 +294,10 @@ export function setupTestLifecycleHooks() {
 
   beforeAll(async () => {
     console.log('🧪 Initializing standardized test environment...');
-    
+
     // Setup environment first
     setupTestEnvironment();
-    
+
     // Initialize all mocks
     redisClient = createStandardRedisClient();
     databaseMocks = createStandardDatabaseMocks();
@@ -320,17 +308,17 @@ export function setupTestLifecycleHooks() {
   beforeEach(() => {
     // Clear all mocks for test isolation
     vi.clearAllMocks();
-    
+
     // Reset Redis state
     if (redisClient) {
       redisClient._clearState();
     }
-    
+
     // Reset database mock implementations
     if (databaseMocks) {
-      Object.values(databaseMocks).forEach(mock => {
+      Object.values(databaseMocks).forEach((mock) => {
         if (typeof mock === 'object' && mock !== null) {
-          Object.values(mock).forEach(method => {
+          Object.values(mock).forEach((method) => {
             if (vi.isMockFunction(method)) {
               method.mockReset();
             }
@@ -458,19 +446,14 @@ export const testDataFactory = {
 // ================================================================
 
 export function validateTestEnvironment() {
-  const required = [
-    'NODE_ENV',
-    'JWT_SECRET', 
-    'DATABASE_URL',
-    'REDIS_URL'
-  ];
+  const required = ['NODE_ENV', 'JWT_SECRET', 'DATABASE_URL', 'REDIS_URL'];
 
-  const missing = required.filter(key => !process.env[key]);
-  
+  const missing = required.filter((key) => !process.env[key]);
+
   if (missing.length > 0) {
     throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
   }
-  
+
   if (process.env.NODE_ENV !== 'test') {
     throw new Error('NODE_ENV must be set to "test" for test environment');
   }

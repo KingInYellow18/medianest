@@ -52,7 +52,7 @@ describe('Rate Limiting and DoS Prevention Test Suite', () => {
         attempts.push(
           request
             .post('/api/v1/auth/plex/verify')
-            .send({ pin: `${1000 + i}`, username: 'rate-limit-test' })
+            .send({ pin: `${1000 + i}`, username: 'rate-limit-test' }),
         );
       }
 
@@ -124,7 +124,7 @@ describe('Rate Limiting and DoS Prevention Test Suite', () => {
           request
             .get('/api/v1/media/search')
             .query({ query: `search-${i}` })
-            .set('Authorization', `Bearer ${userToken}`)
+            .set('Authorization', `Bearer ${userToken}`),
         );
       }
 
@@ -151,7 +151,7 @@ describe('Rate Limiting and DoS Prevention Test Suite', () => {
           request
             .post('/api/v1/youtube/download')
             .send({ url: `https://youtube.com/watch?v=test${i}` })
-            .set('Authorization', `Bearer ${userToken}`)
+            .set('Authorization', `Bearer ${userToken}`),
         );
       }
 
@@ -172,14 +172,14 @@ describe('Rate Limiting and DoS Prevention Test Suite', () => {
       // Test user requests
       for (let i = 0; i < 20; i++) {
         userRequests.push(
-          request.get('/api/v1/dashboard/stats').set('Authorization', `Bearer ${userToken}`)
+          request.get('/api/v1/dashboard/stats').set('Authorization', `Bearer ${userToken}`),
         );
       }
 
       // Test admin requests (should have higher limits)
       for (let i = 0; i < 20; i++) {
         adminRequests.push(
-          request.get('/api/v1/admin/stats').set('Authorization', `Bearer ${adminToken}`)
+          request.get('/api/v1/admin/stats').set('Authorization', `Bearer ${adminToken}`),
         );
       }
 
@@ -275,7 +275,7 @@ describe('Rate Limiting and DoS Prevention Test Suite', () => {
               .get('/api/v1/media/search')
               .query({ query: `test-${i}` })
               .set('Authorization', `Bearer ${userToken}`)
-              .set('X-Forwarded-For', ip)
+              .set('X-Forwarded-For', ip),
           );
         }
       });
@@ -324,7 +324,7 @@ describe('Rate Limiting and DoS Prevention Test Suite', () => {
               .get('/api/v1/media/search')
               .query({ query: `bypass-${i}` })
               .set('Authorization', `Bearer ${userToken}`)
-              .set(headers)
+              .set(headers),
           );
         }
 
@@ -354,7 +354,7 @@ describe('Rate Limiting and DoS Prevention Test Suite', () => {
             .get('/api/v1/media/search')
             .query({ query: `ua-rotation-${i}` })
             .set('Authorization', `Bearer ${userToken}`)
-            .set('User-Agent', userAgents[i % userAgents.length])
+            .set('User-Agent', userAgents[i % userAgents.length]),
         );
       }
 
@@ -381,7 +381,7 @@ describe('Rate Limiting and DoS Prevention Test Suite', () => {
           request
             .get('/api/v1/media/search')
             .query({ query: `token-rotation-${i}` })
-            .set('Authorization', `Bearer ${tokens[i % tokens.length]}`)
+            .set('Authorization', `Bearer ${tokens[i % tokens.length]}`),
         );
       }
 
@@ -417,7 +417,7 @@ describe('Rate Limiting and DoS Prevention Test Suite', () => {
       // Send a burst of requests quickly
       for (let i = 0; i < 15; i++) {
         burstRequests.push(
-          request.get('/api/v1/dashboard/stats').set('Authorization', `Bearer ${userToken}`)
+          request.get('/api/v1/dashboard/stats').set('Authorization', `Bearer ${userToken}`),
         );
       }
 
@@ -460,7 +460,7 @@ describe('Rate Limiting and DoS Prevention Test Suite', () => {
           request
             .post('/api/v1/media/request')
             .send({ title: `Spam ${i}`, type: 'movie', tmdbId: i })
-            .set('Authorization', `Bearer ${userToken}`)
+            .set('Authorization', `Bearer ${userToken}`),
         );
       }
 
@@ -473,7 +473,7 @@ describe('Rate Limiting and DoS Prevention Test Suite', () => {
 
       if (alertResponse.status === 200 && alertResponse.body.alerts) {
         const rateLimitAlerts = alertResponse.body.alerts.filter(
-          (alert: any) => alert.type === 'RATE_LIMIT_VIOLATION'
+          (alert: any) => alert.type === 'RATE_LIMIT_VIOLATION',
         );
         expect(rateLimitAlerts.length).toBeGreaterThanOrEqual(0);
       }

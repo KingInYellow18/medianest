@@ -1,6 +1,6 @@
 /**
  * API Integration Performance Benchmark Report
- * 
+ *
  * Generates comprehensive performance analysis and benchmarks for:
  * - API endpoint response times and throughput
  * - Database query performance under load
@@ -63,13 +63,13 @@ export class PerformanceBenchmarkReporter {
         fileCount: 5,
         totalExecutionTime: 37500, // 30-45s average
         avgExecutionTimePerFile: 7500,
-        memoryFootprint: 250 // MB estimated
+        memoryFootprint: 250, // MB estimated
       },
       afterConsolidation: {
         fileCount: 2,
         totalExecutionTime: 15000, // Target <15s
         avgExecutionTimePerFile: 7500,
-        memoryFootprint: 150 // MB estimated
+        memoryFootprint: 150, // MB estimated
       },
       improvements: {
         executionTimeReduction: 0,
@@ -77,8 +77,8 @@ export class PerformanceBenchmarkReporter {
         fileCountReduction: 0,
         fileCountReductionPercent: 0,
         memoryReduction: 0,
-        memoryReductionPercent: 0
-      }
+        memoryReductionPercent: 0,
+      },
     };
 
     this.calculateImprovements();
@@ -87,14 +87,16 @@ export class PerformanceBenchmarkReporter {
   private calculateImprovements(): void {
     const before = this.consolidationData.beforeConsolidation;
     const after = this.consolidationData.afterConsolidation;
-    
+
     this.consolidationData.improvements = {
       executionTimeReduction: before.totalExecutionTime - after.totalExecutionTime,
-      executionTimeReductionPercent: ((before.totalExecutionTime - after.totalExecutionTime) / before.totalExecutionTime) * 100,
+      executionTimeReductionPercent:
+        ((before.totalExecutionTime - after.totalExecutionTime) / before.totalExecutionTime) * 100,
       fileCountReduction: before.fileCount - after.fileCount,
       fileCountReductionPercent: ((before.fileCount - after.fileCount) / before.fileCount) * 100,
       memoryReduction: before.memoryFootprint - after.memoryFootprint,
-      memoryReductionPercent: ((before.memoryFootprint - after.memoryFootprint) / before.memoryFootprint) * 100
+      memoryReductionPercent:
+        ((before.memoryFootprint - after.memoryFootprint) / before.memoryFootprint) * 100,
     };
   }
 
@@ -106,8 +108,11 @@ export class PerformanceBenchmarkReporter {
   private updateConsolidationMetrics(result: BenchmarkResult): void {
     // Update actual performance metrics based on test results
     const after = this.consolidationData.afterConsolidation;
-    
-    if (result.suite === 'Core API Integration Suite' || result.suite === 'External API Integration Suite') {
+
+    if (
+      result.suite === 'Core API Integration Suite' ||
+      result.suite === 'External API Integration Suite'
+    ) {
       // Update actual timing if we have real data
       after.totalExecutionTime = Math.max(after.totalExecutionTime, result.duration);
     }
@@ -129,7 +134,7 @@ The consolidation of 5 redundant API integration test files into 2 optimized sui
 | Metric | Before | After | Improvement |
 |--------|---------|-------|-------------|
 | **Test Files** | ${data.beforeConsolidation.fileCount} | ${data.afterConsolidation.fileCount} | ${improvements.fileCountReduction} files (${improvements.fileCountReductionPercent.toFixed(1)}% reduction) |
-| **Execution Time** | ${data.beforeConsolidation.totalExecutionTime/1000}s | ${data.afterConsolidation.totalExecutionTime/1000}s | ${improvements.executionTimeReduction/1000}s faster (${improvements.executionTimeReductionPercent.toFixed(1)}% improvement) |
+| **Execution Time** | ${data.beforeConsolidation.totalExecutionTime / 1000}s | ${data.afterConsolidation.totalExecutionTime / 1000}s | ${improvements.executionTimeReduction / 1000}s faster (${improvements.executionTimeReductionPercent.toFixed(1)}% improvement) |
 | **Memory Footprint** | ${data.beforeConsolidation.memoryFootprint}MB | ${data.afterConsolidation.memoryFootprint}MB | ${improvements.memoryReduction}MB savings (${improvements.memoryReductionPercent.toFixed(1)}% reduction) |
 
 ### Performance Benefits
@@ -288,7 +293,7 @@ testSuite.assertPerformance('GET /api/v1/auth/me', {
     }
 
     const sortedBenchmarks = [...this.benchmarks].sort((a, b) => b.duration - a.duration);
-    
+
     let report = `
 # 📊 Detailed Performance Metrics
 
@@ -317,7 +322,7 @@ testSuite.assertPerformance('GET /api/v1/auth/me', {
 - **Min/Max:** ${benchmark.minResponseTime.toFixed(1)}ms / ${benchmark.maxResponseTime.toFixed(1)}ms
 - **Success Rate:** ${(benchmark.successRate * 100).toFixed(2)}%
 `;
-      
+
       if (benchmark.errors.length > 0) {
         report += `- **Errors:** ${benchmark.errors.slice(0, 3).join(', ')}${benchmark.errors.length > 3 ? '...' : ''}\n`;
       }
@@ -341,8 +346,12 @@ testSuite.assertPerformance('GET /api/v1/auth/me', {
     };
   } {
     const totalRequests = this.benchmarks.reduce((sum, b) => sum + b.requestCount, 0);
-    const totalSuccessful = this.benchmarks.reduce((sum, b) => sum + (b.requestCount * b.successRate), 0);
-    const avgExecutionTime = this.benchmarks.reduce((sum, b) => sum + b.duration, 0) / this.benchmarks.length;
+    const totalSuccessful = this.benchmarks.reduce(
+      (sum, b) => sum + b.requestCount * b.successRate,
+      0,
+    );
+    const avgExecutionTime =
+      this.benchmarks.reduce((sum, b) => sum + b.duration, 0) / this.benchmarks.length;
 
     return {
       consolidation: this.consolidationData,
@@ -351,8 +360,8 @@ testSuite.assertPerformance('GET /api/v1/auth/me', {
         totalTestSuites: this.benchmarks.length,
         totalRequests,
         overallSuccessRate: totalRequests > 0 ? totalSuccessful / totalRequests : 0,
-        avgExecutionTime
-      }
+        avgExecutionTime,
+      },
     };
   }
 }

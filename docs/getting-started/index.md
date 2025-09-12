@@ -39,6 +39,7 @@ MediaNest follows a monolithic architecture optimized for 10-20 concurrent users
 ## Technology Stack
 
 ### Frontend
+
 - **Next.js 14** with App Router
 - **React 18** with TypeScript
 - **Tailwind CSS** for styling
@@ -47,6 +48,7 @@ MediaNest follows a monolithic architecture optimized for 10-20 concurrent users
 - **Zod** for validation
 
 ### Backend
+
 - **Node.js 20.x** with TypeScript
 - **Express.js** web framework
 - **Prisma ORM** with PostgreSQL
@@ -56,6 +58,7 @@ MediaNest follows a monolithic architecture optimized for 10-20 concurrent users
 - **Winston** for logging
 
 ### Infrastructure
+
 - **Docker & Docker Compose** for deployment
 - **PostgreSQL 15** as primary database
 - **Redis 7** for cache and job queues
@@ -112,17 +115,20 @@ MediaNest follows a monolithic architecture optimized for 10-20 concurrent users
 ## Quick Navigation
 
 ### For Developers
+
 - [Quick Start Guide](./quickstart.md) - Get running in 5 minutes
 - [Development Setup](./development-setup.md) - Detailed development environment setup
 - [Development Workflow](../developers/workflow.md) - How to contribute effectively
 - [Contribution Guidelines](../developers/contributing.md) - Code standards and processes
 
 ### For System Administrators
+
 - [Production Deployment](../deployment/) - Docker-based deployment guide
 - [Configuration Reference](../ENVIRONMENT_VARIABLES.md) - All environment variables
 - [Troubleshooting](../troubleshooting/common-issues.md) - Common problems and solutions
 
 ### For API Developers
+
 - [API Documentation](../api/) - Complete API reference
 - [WebSocket Events](../api/websockets.md) - Real-time event documentation
 - [Authentication Guide](../api/authentication.md) - JWT and session handling
@@ -130,6 +136,7 @@ MediaNest follows a monolithic architecture optimized for 10-20 concurrent users
 ## System Requirements
 
 ### Development Environment
+
 - **Node.js**: 20.x LTS (required)
 - **Docker**: 24.x with Compose V2
 - **RAM**: 8GB minimum, 16GB recommended
@@ -137,6 +144,7 @@ MediaNest follows a monolithic architecture optimized for 10-20 concurrent users
 - **OS**: Linux, macOS, or Windows with WSL2
 
 ### Production Environment
+
 - **CPU**: 2+ cores recommended
 - **RAM**: 4GB minimum, 8GB recommended for heavy usage
 - **Storage**: 20GB+ (depends on YouTube downloads)
@@ -147,11 +155,13 @@ MediaNest follows a monolithic architecture optimized for 10-20 concurrent users
 MediaNest integrates with external services that you'll need to configure:
 
 ### Required Services
+
 - **Plex Media Server**: Your media server instance
 - **PostgreSQL Database**: Can be containerized or external
 - **Redis Server**: Can be containerized or external
 
 ### Optional Services
+
 - **Overseerr**: For media request management
 - **Uptime Kuma**: For service monitoring
 - **Nginx**: For reverse proxy and SSL termination

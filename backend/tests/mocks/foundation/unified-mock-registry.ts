@@ -1,9 +1,9 @@
 /**
  * Unified Mock Registry - Phase A Database Foundation
- * 
+ *
  * Enterprise-grade centralized mock management system for MediaNest.
  * Provides unified registration, lifecycle management, and validation for all mocks.
- * 
+ *
  * Key Features:
  * - Centralized mock registration and factory management
  * - Complete test isolation with stateless operation
@@ -94,7 +94,7 @@ export abstract class StatelessMock<T> {
   public validate(): ValidationResult {
     const interfaceResult = this.validateInterface();
     const isolationResult = this.validateIsolation();
-    
+
     return {
       valid: interfaceResult.valid && isolationResult.valid,
       errors: [...interfaceResult.errors, ...isolationResult.errors],
@@ -110,10 +110,10 @@ export abstract class StatelessMock<T> {
     // Check for shared state contamination
     const instance1 = this.createFreshInstance();
     const instance2 = this.createFreshInstance();
-    
+
     // Basic isolation check - instances should be different objects
     const isolated = instance1 !== instance2;
-    
+
     return {
       valid: isolated,
       errors: isolated ? [] : ['Mock instances share state - isolation failure'],
@@ -146,9 +146,9 @@ export class MockIsolation {
   static validateIsolation(mockA: any, mockB: any): ValidationResult {
     const idA = this.instanceRegistry.get(mockA);
     const idB = this.instanceRegistry.get(mockB);
-    
+
     const isolated = idA !== idB && mockA !== mockB;
-    
+
     return {
       valid: isolated,
       errors: isolated ? [] : ['Mock instances not properly isolated'],
@@ -203,13 +203,17 @@ export class UnifiedMockRegistry {
    * Register a mock factory with the registry
    * EMERGENCY FIX: Handle registration conflicts with namespace isolation
    */
-  register<T>(name: string, factory: MockFactory<T>, options?: { 
-    overwrite?: boolean; 
-    namespace?: string;
-    isolate?: boolean;
-  }): void {
+  register<T>(
+    name: string,
+    factory: MockFactory<T>,
+    options?: {
+      overwrite?: boolean;
+      namespace?: string;
+      isolate?: boolean;
+    },
+  ): void {
     const actualName = options?.namespace ? `${options.namespace}:${name}` : name;
-    
+
     if (this.factories.has(actualName)) {
       if (options?.overwrite) {
         console.warn(`⚠️ Overwriting existing mock factory '${actualName}'`);
@@ -225,17 +229,17 @@ export class UnifiedMockRegistry {
         throw new Error(`Mock factory '${actualName}' is already registered`);
       }
     }
-    
+
     this.factories.set(actualName, factory);
-    
+
     // Validate factory immediately
     if (this.validationEnabled) {
       const testInstance = factory.create({ behavior: 'realistic' });
       const validation = factory.validate(testInstance);
-      
+
       if (!validation.valid) {
         throw new Error(
-          `Mock factory '${name}' failed validation: ${validation.errors.join(', ')}`
+          `Mock factory '${name}' failed validation: ${validation.errors.join(', ')}`,
         );
       }
     }
@@ -247,28 +251,26 @@ export class UnifiedMockRegistry {
   get<T>(name: string, config?: MockConfig, namespace?: string): T {
     const actualName = namespace ? `${namespace}:${name}` : name;
     let factory = this.factories.get(actualName);
-    
+
     // EMERGENCY FIX: Try to find isolated instance if direct name fails
     if (!factory && !namespace) {
       const isolatedFactories = Array.from(this.factories.keys())
-        .filter(key => key.startsWith(`${name}:`))
+        .filter((key) => key.startsWith(`${name}:`))
         .sort(); // Get most recent
-      
+
       if (isolatedFactories.length > 0) {
         const latestIsolated = isolatedFactories[isolatedFactories.length - 1];
         factory = this.factories.get(latestIsolated);
         console.log(`🔍 Using isolated mock instance '${latestIsolated}' for '${name}'`);
       }
     }
-    
+
     if (!factory) {
       throw new Error(`Mock factory '${actualName}' not found`);
     }
 
     // Create fresh instance for each request (stateless)
-    const instance = MockIsolation.createIsolatedMock(() => 
-      factory.create(config)
-    );
+    const instance = MockIsolation.createIsolatedMock(() => factory.create(config));
 
     // Store for lifecycle management
     this.instances.set(`${name}-${Date.now()}`, instance);
@@ -282,21 +284,21 @@ export class UnifiedMockRegistry {
   reset(name?: string, namespace?: string): void {
     if (name) {
       const actualName = namespace ? `${namespace}:${name}` : name;
-      
+
       // Try exact match first
       let factory = this.factories.get(actualName);
-      
+
       // If not found and no namespace specified, try to find any namespaced version
       if (!factory && !namespace) {
-        const namespacedKeys = Array.from(this.factories.keys()).filter(key => 
-          key.includes(':') && key.endsWith(`:${name}`) || key.startsWith(`${name}:`)
+        const namespacedKeys = Array.from(this.factories.keys()).filter(
+          (key) => (key.includes(':') && key.endsWith(`:${name}`)) || key.startsWith(`${name}:`),
         );
-        
+
         if (namespacedKeys.length > 0) {
           factory = this.factories.get(namespacedKeys[0]);
         }
       }
-      
+
       if (factory) {
         // Reset all instances of this mock type
         for (const [key, instance] of this.instances) {
@@ -312,11 +314,12 @@ export class UnifiedMockRegistry {
         const mockName = key.split('-')[0];
         // Handle namespaced mock names
         const baseName = mockName.includes(':') ? mockName.split(':')[1] : mockName;
-        const factory = this.factories.get(mockName) || 
-                       Array.from(this.factories.values()).find(f => 
-                         f.getName && f.getName().includes(baseName)
-                       );
-        
+        const factory =
+          this.factories.get(mockName) ||
+          Array.from(this.factories.values()).find(
+            (f) => f.getName && f.getName().includes(baseName),
+          );
+
         if (factory) {
           factory.reset(instance);
         }
@@ -338,14 +341,14 @@ export class UnifiedMockRegistry {
       try {
         const testInstance = factory.create({ behavior: 'realistic' });
         const validation = factory.validate(testInstance);
-        
+
         metadata[name] = validation.metadata;
-        
+
         if (!validation.valid) {
           errors.push(`Mock '${name}': ${validation.errors.join(', ')}`);
         }
-        
-        warnings.push(...validation.warnings.map(w => `Mock '${name}': ${w}`));
+
+        warnings.push(...validation.warnings.map((w) => `Mock '${name}': ${w}`));
       } catch (error) {
         errors.push(`Mock '${name}': Factory creation failed - ${error.message}`);
       }
@@ -370,7 +373,7 @@ export class UnifiedMockRegistry {
    * Execute lifecycle hooks
    */
   async executeHook(phase: keyof MockLifecycle, mockName?: string): Promise<void> {
-    const hooks = mockName 
+    const hooks = mockName
       ? [this.lifecycleHooks.get(mockName)].filter(Boolean)
       : Array.from(this.lifecycleHooks.values());
 
@@ -395,7 +398,7 @@ export class UnifiedMockRegistry {
    */
   async cleanup(): Promise<void> {
     await this.executeHook('afterAll');
-    
+
     for (const [key, instance] of this.instances) {
       const mockName = key.split('-')[0];
       const factory = this.factories.get(mockName);
@@ -403,7 +406,7 @@ export class UnifiedMockRegistry {
         factory.reset(instance);
       }
     }
-    
+
     this.instances.clear();
     MockIsolation.cleanup();
   }
@@ -442,21 +445,21 @@ export const mockRegistry = UnifiedMockRegistry.getInstance();
  * Register a mock factory with emergency collision handling
  */
 export function registerMock<T>(
-  name: string, 
-  factory: MockFactory<T>, 
+  name: string,
+  factory: MockFactory<T>,
   validator?: any,
-  options?: { 
-    overwrite?: boolean; 
+  options?: {
+    overwrite?: boolean;
     namespace?: string;
     isolate?: boolean;
-  }
+  },
 ): void {
   // EMERGENCY FIX: Use namespace if provided, otherwise use isolation
   const safeOptions = {
     isolate: !options?.namespace, // Only use isolation if no namespace
-    ...options
+    ...options,
   };
-  
+
   mockRegistry.register(name, factory, safeOptions);
 }
 

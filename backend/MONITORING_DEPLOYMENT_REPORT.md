@@ -149,20 +149,17 @@ Successfully implemented comprehensive real-time monitoring for MediaNest stagin
 ### Monitoring Components
 
 1. **Real-time Dashboard** (`monitoring-dashboard.sh`)
-
    - Live system metrics
    - Service health status
    - Performance graphs
    - Log streaming
 
 2. **Health Check Engine** (`deployment-health.sh`)
-
    - Automated health validation
    - Comprehensive system analysis
    - Continuous monitoring mode
 
 3. **Metrics Collector** (`metrics-collector.sh`)
-
    - Time-series data collection
    - Performance analytics
    - Historical reporting

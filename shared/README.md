@@ -344,7 +344,7 @@ export class AppError extends Error {
     public message: string,
     public code: string = 'APP_ERROR',
     public statusCode: number = 500,
-    public details?: Record<string, any>
+    public details?: Record<string, any>,
   ) {
     super(message);
     this.name = this.constructor.name;
@@ -356,7 +356,7 @@ export class AppError extends Error {
 export class ValidationError extends AppError {
   constructor(
     message: string,
-    public validationErrors: any[]
+    public validationErrors: any[],
   ) {
     super(message, 'VALIDATION_ERROR', 400, { validationErrors });
   }

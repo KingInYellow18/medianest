@@ -317,7 +317,7 @@ test.describe('YouTube Download User Journey', () => {
 
     // Check video information
     await expect(page.locator('[data-testid="video-title"]')).toContainText(
-      'Rick Astley - Never Gonna Give You Up'
+      'Rick Astley - Never Gonna Give You Up',
     );
     await expect(page.locator('[data-testid="video-uploader"]')).toContainText('Rick Astley');
     await expect(page.locator('[data-testid="video-duration"]')).toContainText('3:32');
@@ -328,12 +328,12 @@ test.describe('YouTube Download User Journey', () => {
     await expect(page.locator('[data-testid="video-thumbnail"]')).toBeVisible();
     await expect(page.locator('[data-testid="video-thumbnail"]')).toHaveAttribute(
       'src',
-      /maxresdefault/
+      /maxresdefault/,
     );
 
     // Verify description
     await expect(page.locator('[data-testid="video-description"]')).toContainText(
-      'The official video'
+      'The official video',
     );
   });
 
@@ -347,7 +347,7 @@ test.describe('YouTube Download User Journey', () => {
     // Verify format selection is available
     await expect(page.locator('[data-testid="format-selection"]')).toBeVisible();
     await expect(page.locator('[data-testid="format-title"]')).toContainText(
-      'Choose Quality & Format'
+      'Choose Quality & Format',
     );
 
     // Check available formats
@@ -373,7 +373,7 @@ test.describe('YouTube Download User Journey', () => {
     const video1080p = formatOptions.nth(3);
     await expect(video1080p.locator('[data-testid="format-quality"]')).toContainText('1080p');
     await expect(video1080p.locator('[data-testid="format-resolution"]')).toContainText(
-      '1920x1080'
+      '1920x1080',
     );
     await expect(video1080p.locator('[data-testid="format-size"]')).toContainText('43.6 MB');
   });
@@ -397,7 +397,7 @@ test.describe('YouTube Download User Journey', () => {
     // Verify success notification
     await expect(page.locator('[data-testid="success-notification"]')).toBeVisible();
     await expect(page.locator('[data-testid="success-notification"]')).toContainText(
-      'Download started successfully'
+      'Download started successfully',
     );
 
     // Verify download appears in queue
@@ -426,37 +426,37 @@ test.describe('YouTube Download User Journey', () => {
     // Check completed download
     const completedDownload = downloadItems.first();
     await expect(completedDownload.locator('[data-testid="download-title"]')).toContainText(
-      'Rick Astley'
+      'Rick Astley',
     );
     await expect(completedDownload.locator('[data-testid="download-status"]')).toContainText(
-      'Completed'
+      'Completed',
     );
     await expect(completedDownload.locator('[data-testid="download-progress"]')).toContainText(
-      '100%'
+      '100%',
     );
     await expect(completedDownload.locator('[data-testid="download-size"]')).toContainText(
-      '22.4 MB'
+      '22.4 MB',
     );
     await expect(completedDownload.locator('[data-testid="download-quality"]')).toContainText(
-      '720p'
+      '720p',
     );
     await expect(completedDownload.locator('[data-testid="download-button"]')).toBeVisible();
 
     // Check active download
     const activeDownload = downloadItems.nth(1);
     await expect(activeDownload.locator('[data-testid="download-title"]')).toContainText(
-      'Another Video Title'
+      'Another Video Title',
     );
     await expect(activeDownload.locator('[data-testid="download-status"]')).toContainText(
-      'Downloading'
+      'Downloading',
     );
     await expect(activeDownload.locator('[data-testid="download-progress"]')).toContainText('45%');
     await expect(activeDownload.locator('[data-testid="progress-bar"]')).toHaveAttribute(
       'value',
-      '45'
+      '45',
     );
     await expect(activeDownload.locator('[data-testid="download-speed"]')).toContainText(
-      '1.0 MB/s'
+      '1.0 MB/s',
     );
     await expect(activeDownload.locator('[data-testid="eta"]')).toContainText('5m');
     await expect(activeDownload.locator('[data-testid="cancel-button"]')).toBeVisible();
@@ -464,11 +464,11 @@ test.describe('YouTube Download User Journey', () => {
     // Check failed download
     const failedDownload = downloadItems.nth(2);
     await expect(failedDownload.locator('[data-testid="download-title"]')).toContainText(
-      'Failed Download Video'
+      'Failed Download Video',
     );
     await expect(failedDownload.locator('[data-testid="download-status"]')).toContainText('Failed');
     await expect(failedDownload.locator('[data-testid="error-message"]')).toContainText(
-      'Video no longer available'
+      'Video no longer available',
     );
     await expect(failedDownload.locator('[data-testid="retry-button"]')).toBeVisible();
   });
@@ -483,14 +483,14 @@ test.describe('YouTube Download User Journey', () => {
     // Confirm cancellation
     await expect(page.locator('[data-testid="cancel-modal"]')).toBeVisible();
     await expect(page.locator('[data-testid="cancel-message"]')).toContainText(
-      'Are you sure you want to cancel this download?'
+      'Are you sure you want to cancel this download?',
     );
     await page.click('[data-testid="confirm-cancel"]');
 
     // Verify success notification
     await expect(page.locator('[data-testid="success-notification"]')).toBeVisible();
     await expect(page.locator('[data-testid="success-notification"]')).toContainText(
-      'Download cancelled successfully'
+      'Download cancelled successfully',
     );
   });
 
@@ -504,7 +504,7 @@ test.describe('YouTube Download User Journey', () => {
     // Verify success notification
     await expect(page.locator('[data-testid="success-notification"]')).toBeVisible();
     await expect(page.locator('[data-testid="success-notification"]')).toContainText(
-      'Download retry started'
+      'Download retry started',
     );
   });
 
@@ -553,10 +553,10 @@ test.describe('YouTube Download User Journey', () => {
     // Verify rate limit error
     await expect(page.locator('[data-testid="error-notification"]')).toBeVisible();
     await expect(page.locator('[data-testid="error-notification"]')).toContainText(
-      'Rate limit exceeded'
+      'Rate limit exceeded',
     );
     await expect(page.locator('[data-testid="error-notification"]')).toContainText(
-      '5 downloads per hour'
+      '5 downloads per hour',
     );
 
     // Verify rate limit info is displayed
@@ -574,7 +574,7 @@ test.describe('YouTube Download User Journey', () => {
     // Verify error handling
     await expect(page.locator('[data-testid="error-notification"]')).toBeVisible();
     await expect(page.locator('[data-testid="error-notification"]')).toContainText(
-      'Video not found'
+      'Video not found',
     );
 
     // Verify metadata section is not shown

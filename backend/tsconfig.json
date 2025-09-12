@@ -28,7 +28,11 @@
       "@/types/*": ["./src/types/*"],
       "@/config/*": ["./src/config/*"],
       "@medianest/shared": ["../shared/dist", "../shared/src", "./node_modules/@medianest/shared"],
-      "@medianest/shared/*": ["../shared/dist/*", "../shared/src/*", "./node_modules/@medianest/shared/*"]
+      "@medianest/shared/*": [
+        "../shared/dist/*",
+        "../shared/src/*",
+        "./node_modules/@medianest/shared/*"
+      ]
     },
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,

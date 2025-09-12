@@ -1,1 +1,30 @@
-{"uuid":"11fe1ab6-634b-4ef5-a19b-34fe5447eaae","name":"should deny admin access to regular users","historyId":"9fe4292a786513e13dab95470f87185f:f0494070a4792d94c64308aac1604abb","status":"skipped","statusDetails":{},"stage":"finished","steps":[],"attachments":[],"parameters":[{"name":"Project","value":"Mobile Safari"}],"labels":[{"name":"language","value":"javascript"},{"name":"framework","value":"playwright"},{"name":"package","value":"auth-journey.spec.ts"},{"name":"titlePath","value":" > Mobile Safari > auth-journey.spec.ts > Authentication User Journey > Role-based Access Control"},{"name":"host","value":"kubuntudev"},{"name":"thread","value":"pid-38931-worker-0"},{"name":"parentSuite","value":"Mobile Safari"},{"name":"subSuite","value":"Authentication User Journey > Role-based Access Control"}],"links":[],"start":1757602649457,"testCaseId":"9fe4292a786513e13dab95470f87185f","fullName":"auth-journey.spec.ts:289:9","titlePath":["auth-journey.spec.ts","Authentication User Journey","Role-based Access Control"],"stop":1757602649457}
+{
+  "uuid": "11fe1ab6-634b-4ef5-a19b-34fe5447eaae",
+  "name": "should deny admin access to regular users",
+  "historyId": "9fe4292a786513e13dab95470f87185f:f0494070a4792d94c64308aac1604abb",
+  "status": "skipped",
+  "statusDetails": {},
+  "stage": "finished",
+  "steps": [],
+  "attachments": [],
+  "parameters": [{ "name": "Project", "value": "Mobile Safari" }],
+  "labels": [
+    { "name": "language", "value": "javascript" },
+    { "name": "framework", "value": "playwright" },
+    { "name": "package", "value": "auth-journey.spec.ts" },
+    {
+      "name": "titlePath",
+      "value": " > Mobile Safari > auth-journey.spec.ts > Authentication User Journey > Role-based Access Control"
+    },
+    { "name": "host", "value": "kubuntudev" },
+    { "name": "thread", "value": "pid-38931-worker-0" },
+    { "name": "parentSuite", "value": "Mobile Safari" },
+    { "name": "subSuite", "value": "Authentication User Journey > Role-based Access Control" }
+  ],
+  "links": [],
+  "start": 1757602649457,
+  "testCaseId": "9fe4292a786513e13dab95470f87185f",
+  "fullName": "auth-journey.spec.ts:289:9",
+  "titlePath": ["auth-journey.spec.ts", "Authentication User Journey", "Role-based Access Control"],
+  "stop": 1757602649457
+}

@@ -30,23 +30,23 @@
     display: flex;
     align-items: center;
   }
-  
+
   /* Improve text readability */
   .md-typeset {
     font-size: 0.9rem;
     line-height: 1.6;
   }
-  
+
   .md-typeset h1 {
     font-size: 1.75rem;
     line-height: 1.3;
   }
-  
+
   .md-typeset h2 {
     font-size: 1.5rem;
     line-height: 1.3;
   }
-  
+
   .md-typeset h3 {
     font-size: 1.25rem;
     line-height: 1.4;
@@ -58,17 +58,17 @@
   .md-typeset {
     font-size: 0.95rem;
   }
-  
+
   /* Improve feature card layout */
   .feature-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
-  
+
   .feature-card {
     padding: 1.5rem;
   }
-  
+
   /* Better button spacing */
   .hero-actions {
     gap: 1rem;
@@ -80,35 +80,35 @@
   .md-typeset {
     font-size: 1rem;
   }
-  
+
   .md-typeset h1 {
     font-size: 2rem;
   }
-  
+
   .md-typeset h2 {
     font-size: 1.75rem;
   }
-  
+
   .md-typeset h3 {
     font-size: 1.5rem;
   }
-  
+
   /* Two-column feature grid */
   .feature-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 2rem;
   }
-  
+
   /* Improve navigation */
   .md-nav__link {
     padding: 0.5rem 1rem;
   }
-  
+
   /* Better code block display */
   .md-typeset .highlight {
     margin: 2rem 0;
   }
-  
+
   .md-typeset .highlight pre {
     padding: 1.5rem;
     font-size: 0.9rem;
@@ -120,21 +120,21 @@
   .md-typeset h1 {
     font-size: 2.25rem;
   }
-  
+
   .md-typeset h2 {
     font-size: 2rem;
   }
-  
+
   /* Three-column layout for features */
   .feature-grid {
     grid-template-columns: repeat(3, 1fr);
   }
-  
+
   /* Restore sidebar */
   .md-sidebar {
     width: 242px;
   }
-  
+
   /* Better spacing */
   .md-content__inner {
     padding: 2rem 1.5rem;
@@ -146,18 +146,18 @@
   .md-typeset h1 {
     font-size: 2.5rem;
   }
-  
+
   /* Wider sidebar */
   .md-sidebar {
     width: 280px;
   }
-  
+
   /* Better content width */
   .md-content__inner {
     max-width: none;
     padding: 2.5rem 2rem;
   }
-  
+
   /* Improved feature card sizing */
   .feature-card {
     padding: 2rem;
@@ -169,20 +169,20 @@
   .md-typeset {
     font-size: 1.1rem;
   }
-  
+
   .md-typeset h1 {
     font-size: 3rem;
   }
-  
+
   .md-typeset h2 {
     font-size: 2.25rem;
   }
-  
+
   /* Enhanced spacing */
   .md-content__inner {
     padding: 3rem 2.5rem;
   }
-  
+
   /* Better code display */
   .md-typeset .highlight pre {
     font-size: 1rem;
@@ -197,63 +197,63 @@
     font-size: 1rem;
     padding: 0 0.5rem;
   }
-  
+
   /* Better mobile search */
   .md-search__form {
     margin: 0 0.5rem;
   }
-  
+
   .md-search__input {
     font-size: 1rem; /* Prevent zoom on iOS */
   }
-  
+
   /* Mobile navigation */
   .md-nav {
     font-size: 0.9rem;
   }
-  
+
   .md-nav__link {
     padding: 0.75rem 1rem;
     min-height: 48px;
   }
-  
+
   .md-nav__link--active {
     background: rgba(103, 58, 183, 0.1);
     border-left: 3px solid var(--mn-primary);
   }
-  
+
   /* Mobile content adjustments */
   .md-content__inner {
     margin: 0 1rem;
     padding: 1.5rem 0;
   }
-  
+
   /* Better mobile tables */
   .md-typeset table {
     display: block;
     overflow-x: auto;
     white-space: nowrap;
   }
-  
+
   .md-typeset table th,
   .md-typeset table td {
     min-width: 120px;
     padding: 0.75rem 0.5rem;
   }
-  
+
   /* Mobile admonitions */
   .md-typeset .admonition {
     margin: 1rem -1rem;
     border-radius: 0;
     border-left-width: 4px;
   }
-  
+
   /* Mobile code blocks */
   .md-typeset .highlight {
     margin: 1.5rem -1rem;
     border-radius: 0;
   }
-  
+
   .md-typeset .highlight pre {
     padding: 1rem;
     font-size: 0.85rem;
@@ -266,26 +266,26 @@
   .md-typeset {
     font-size: 0.85rem;
   }
-  
+
   .md-typeset h1 {
     font-size: 1.5rem;
     margin-bottom: 1rem;
   }
-  
+
   .md-typeset h2 {
     font-size: 1.25rem;
   }
-  
+
   .md-typeset h3 {
     font-size: 1.1rem;
   }
-  
+
   /* Compact navigation */
   .md-nav__link {
     padding: 0.5rem 0.75rem;
     font-size: 0.85rem;
   }
-  
+
   /* Single column everything */
   .feature-grid,
   .doc-sections,
@@ -293,31 +293,31 @@
     grid-template-columns: 1fr;
     gap: 1rem;
   }
-  
+
   .feature-card,
   .doc-section,
   .community-card {
     padding: 1rem;
   }
-  
+
   /* Compact buttons */
   .md-button {
     padding: 0.5rem 1rem;
     font-size: 0.85rem;
   }
-  
+
   .hero-actions {
     flex-direction: column;
     gap: 0.75rem;
   }
-  
+
   /* Better code display */
   .md-typeset .highlight pre {
     font-size: 0.8rem;
     padding: 0.75rem;
     line-height: 1.5;
   }
-  
+
   /* Compact tables */
   .md-typeset table th,
   .md-typeset table td {
@@ -332,21 +332,21 @@
   .md-header {
     height: 3rem;
   }
-  
+
   .md-header__title {
     font-size: 0.9rem;
   }
-  
+
   /* Compact navigation */
   .md-tabs {
     height: 2.5rem;
   }
-  
+
   .md-tabs__link {
     font-size: 0.8rem;
     padding: 0.5rem 0.75rem;
   }
-  
+
   /* Reduce content padding */
   .md-content__inner {
     padding-top: 1rem;
@@ -362,7 +362,7 @@
   .md-button {
     min-height: 48px; /* iOS accessibility guidelines */
   }
-  
+
   /* Larger touch targets */
   .feature-card__link {
     padding: 0.5rem;
@@ -371,7 +371,7 @@
     min-height: 44px;
     line-height: 1.2;
   }
-  
+
   /* Remove hover effects on touch devices */
   .feature-card:hover,
   .md-button:hover,
@@ -379,7 +379,7 @@
     transform: none;
     box-shadow: inherit;
   }
-  
+
   /* Better tap highlights */
   .md-nav__link,
   .md-tabs__link,
@@ -397,7 +397,7 @@
     image-rendering: -webkit-optimize-contrast;
     image-rendering: crisp-edges;
   }
-  
+
   /* Better icon rendering */
   .md-icon svg {
     image-rendering: -webkit-optimize-contrast;
@@ -416,18 +416,18 @@
   .md-button {
     display: none !important;
   }
-  
+
   /* Full width content */
   .md-content {
     margin: 0 !important;
   }
-  
+
   .md-content__inner {
     margin: 0 !important;
     padding: 0 !important;
     max-width: none !important;
   }
-  
+
   /* Better print colors */
   .md-typeset {
     color: black !important;
@@ -435,29 +435,29 @@
     font-size: 12pt;
     line-height: 1.4;
   }
-  
+
   .md-typeset h1 {
     font-size: 18pt;
     page-break-after: avoid;
   }
-  
+
   .md-typeset h2 {
     font-size: 16pt;
     page-break-after: avoid;
   }
-  
+
   .md-typeset h3 {
     font-size: 14pt;
     page-break-after: avoid;
   }
-  
+
   /* Print-friendly feature cards */
   .feature-grid {
     grid-template-columns: 1fr 1fr;
     gap: 1rem;
     break-inside: avoid;
   }
-  
+
   .feature-card {
     border: 1px solid #ccc !important;
     background: white !important;
@@ -465,7 +465,7 @@
     break-inside: avoid;
     page-break-inside: avoid;
   }
-  
+
   /* Better code printing */
   .md-typeset .highlight {
     border: 1px solid #ccc !important;
@@ -474,7 +474,7 @@
     break-inside: avoid;
     page-break-inside: avoid;
   }
-  
+
   .md-typeset .highlight pre {
     background: transparent !important;
     color: black !important;
@@ -482,17 +482,17 @@
     overflow: visible !important;
     white-space: pre-wrap !important;
   }
-  
+
   /* Link URLs in print */
   .md-typeset a::after {
-    content: " (" attr(href) ")";
+    content: ' (' attr(href) ')';
     font-size: 0.8em;
     color: #666;
   }
-  
-  .md-typeset a[href^="#"]::after,
-  .md-typeset a[href^="javascript:"]::after {
-    content: "";
+
+  .md-typeset a[href^='#']::after,
+  .md-typeset a[href^='javascript:']::after {
+    content: '';
   }
 }
 
@@ -504,7 +504,7 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-  
+
   /* Remove transform effects */
   .feature-card:hover,
   .md-button:hover {
@@ -518,20 +518,20 @@
     color: black !important;
     background: white !important;
   }
-  
+
   .feature-card,
   .doc-section,
   .community-card {
     border: 2px solid black !important;
     background: white !important;
   }
-  
+
   .md-button {
     border: 2px solid black !important;
     background: white !important;
     color: black !important;
   }
-  
+
   .md-button--primary {
     background: black !important;
     color: white !important;
@@ -539,35 +539,65 @@
 }
 
 /* Custom Responsive Utilities */
-.hidden-xs { display: none !important; }
-.hidden-sm { display: none !important; }
-.hidden-md { display: none !important; }
-.hidden-lg { display: none !important; }
-.hidden-xl { display: none !important; }
+.hidden-xs {
+  display: none !important;
+}
+.hidden-sm {
+  display: none !important;
+}
+.hidden-md {
+  display: none !important;
+}
+.hidden-lg {
+  display: none !important;
+}
+.hidden-xl {
+  display: none !important;
+}
 
 @media screen and (min-width: 576px) {
-  .hidden-xs { display: initial !important; }
-  .visible-sm { display: initial !important; }
+  .hidden-xs {
+    display: initial !important;
+  }
+  .visible-sm {
+    display: initial !important;
+  }
 }
 
 @media screen and (min-width: 768px) {
-  .hidden-sm { display: initial !important; }
-  .visible-md { display: initial !important; }
+  .hidden-sm {
+    display: initial !important;
+  }
+  .visible-md {
+    display: initial !important;
+  }
 }
 
 @media screen and (min-width: 992px) {
-  .hidden-md { display: initial !important; }
-  .visible-lg { display: initial !important; }
+  .hidden-md {
+    display: initial !important;
+  }
+  .visible-lg {
+    display: initial !important;
+  }
 }
 
 @media screen and (min-width: 1200px) {
-  .hidden-lg { display: initial !important; }
-  .visible-xl { display: initial !important; }
+  .hidden-lg {
+    display: initial !important;
+  }
+  .visible-xl {
+    display: initial !important;
+  }
 }
 
 @media screen and (min-width: 1400px) {
-  .hidden-xl { display: initial !important; }
-  .visible-xxl { display: initial !important; }
+  .hidden-xl {
+    display: initial !important;
+  }
+  .visible-xxl {
+    display: initial !important;
+  }
 }
 
 /* Responsive Typography Scale */

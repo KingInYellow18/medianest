@@ -27,7 +27,7 @@ export const createMockPlexClient = () => ({
       uuid: 'mock-movies-uuid',
     },
     {
-      key: '2', 
+      key: '2',
       title: 'TV Shows',
       type: 'show',
       agent: 'tv.plex.agents.series',
@@ -48,7 +48,7 @@ export const createMockPlexClient = () => ({
   getLibraryItems: vi.fn().mockImplementation((libraryKey: string, options?: any) => {
     const offset = options?.offset || 0;
     const limit = options?.limit || 50;
-    
+
     return Promise.resolve({
       items: Array.from({ length: Math.min(limit, 20) }, (_, i) => ({
         ratingKey: `${libraryKey}-item-${offset + i + 1}`,
@@ -56,10 +56,10 @@ export const createMockPlexClient = () => ({
         title: `Mock Item ${offset + i + 1}`,
         type: libraryKey === '1' ? 'movie' : libraryKey === '2' ? 'episode' : 'video',
         year: 2020 + (i % 5),
-        addedAt: Date.now() - (i * 24 * 60 * 60 * 1000),
-        updatedAt: Date.now() - (i * 24 * 60 * 60 * 1000),
+        addedAt: Date.now() - i * 24 * 60 * 60 * 1000,
+        updatedAt: Date.now() - i * 24 * 60 * 60 * 1000,
         thumb: `/library/metadata/${libraryKey}-item-${offset + i + 1}/thumb`,
-        duration: 120000 + (i * 1000), // milliseconds
+        duration: 120000 + i * 1000, // milliseconds
       })),
       totalSize: 100,
       size: Math.min(limit, 20),
@@ -171,19 +171,17 @@ export const createMockPlexService = () => {
       // Simulate different user scenarios
       if (userId.includes('no-plex-token')) {
         return mockFailure(
-          new AppError('PLEX_USER_NOT_FOUND', 'User not found or missing Plex token', 401)
+          new AppError('PLEX_USER_NOT_FOUND', 'User not found or missing Plex token', 401),
         );
       }
-      
+
       if (userId.includes('plex-config-missing')) {
-        return mockFailure(
-          new AppError('PLEX_CONFIG_MISSING', 'Plex server not configured', 500)
-        );
+        return mockFailure(new AppError('PLEX_CONFIG_MISSING', 'Plex server not configured', 500));
       }
-      
+
       if (userId.includes('connection-failed')) {
         return mockFailure(
-          new AppError('PLEX_CONNECTION_FAILED', 'Failed to connect to Plex server', 503)
+          new AppError('PLEX_CONNECTION_FAILED', 'Failed to connect to Plex server', 503),
         );
       }
 
@@ -208,17 +206,21 @@ export const createMockPlexService = () => {
       return clientResult.data.getLibraries();
     }),
 
-    getLibraryItems: vi.fn().mockImplementation(async (
-      userId: string,
-      libraryKey: string,
-      options?: { offset?: number; limit?: number }
-    ) => {
-      const clientResult = await plexService.getClientForUser(userId);
-      if (!clientResult.success) {
-        throw clientResult.error;
-      }
-      return clientResult.data.getLibraryItems(libraryKey, options);
-    }),
+    getLibraryItems: vi
+      .fn()
+      .mockImplementation(
+        async (
+          userId: string,
+          libraryKey: string,
+          options?: { offset?: number; limit?: number },
+        ) => {
+          const clientResult = await plexService.getClientForUser(userId);
+          if (!clientResult.success) {
+            throw clientResult.error;
+          }
+          return clientResult.data.getLibraryItems(libraryKey, options);
+        },
+      ),
 
     search: vi.fn().mockImplementation(async (userId: string, query: string) => {
       const clientResult = await plexService.getClientForUser(userId);
@@ -245,88 +247,92 @@ export const createMockPlexService = () => {
       await clientResult.data.refreshLibrary(libraryKey);
     }),
 
-    scanDirectory: vi.fn().mockImplementation(async (
-      userId: string,
-      libraryKey: string,
-      directory: string
-    ) => {
-      const clientResult = await plexService.getClientForUser(userId);
-      if (!clientResult.success) {
-        throw clientResult.error;
-      }
-      await clientResult.data.scanDirectory(libraryKey, directory);
-    }),
+    scanDirectory: vi
+      .fn()
+      .mockImplementation(async (userId: string, libraryKey: string, directory: string) => {
+        const clientResult = await plexService.getClientForUser(userId);
+        if (!clientResult.success) {
+          throw clientResult.error;
+        }
+        await clientResult.data.scanDirectory(libraryKey, directory);
+      }),
 
     // Collections
-    getCollections: vi.fn().mockImplementation(async (
-      userId: string,
-      libraryKey: string,
-      options?: { search?: string; sort?: string }
-    ) => {
-      const clientResult = await plexService.getClientForUser(userId);
-      if (!clientResult.success) {
-        throw clientResult.error;
-      }
-
-      let collections = await clientResult.data.getCollections(libraryKey);
-
-      // Apply search filter if provided
-      if (options?.search) {
-        const searchLower = options.search.toLowerCase();
-        collections = collections.filter((collection: any) =>
-          collection.title.toLowerCase().includes(searchLower)
-        );
-      }
-
-      // Apply sorting if provided
-      if (options?.sort) {
-        collections = [...collections].sort((a: any, b: any) => {
-          switch (options.sort) {
-            case 'title':
-              return a.title.localeCompare(b.title);
-            case 'addedAt':
-              return b.addedAt - a.addedAt;
-            case 'childCount':
-              return b.childCount - a.childCount;
-            default:
-              return 0;
+    getCollections: vi
+      .fn()
+      .mockImplementation(
+        async (
+          userId: string,
+          libraryKey: string,
+          options?: { search?: string; sort?: string },
+        ) => {
+          const clientResult = await plexService.getClientForUser(userId);
+          if (!clientResult.success) {
+            throw clientResult.error;
           }
-        });
-      }
 
-      return collections;
-    }),
+          let collections = await clientResult.data.getCollections(libraryKey);
 
-    getCollectionDetails: vi.fn().mockImplementation(async (userId: string, collectionKey: string) => {
-      const clientResult = await plexService.getClientForUser(userId);
-      if (!clientResult.success) {
-        throw clientResult.error;
-      }
-      return clientResult.data.getCollectionDetails(collectionKey);
-    }),
+          // Apply search filter if provided
+          if (options?.search) {
+            const searchLower = options.search.toLowerCase();
+            collections = collections.filter((collection: any) =>
+              collection.title.toLowerCase().includes(searchLower),
+            );
+          }
 
-    createCollection: vi.fn().mockImplementation(async (
-      userId: string,
-      libraryKey: string,
-      title: string,
-      items: string[] = []
-    ) => {
-      const clientResult = await plexService.getClientForUser(userId);
-      if (!clientResult.success) {
-        throw clientResult.error;
-      }
-      await clientResult.data.createCollection(libraryKey, title, items);
-    }),
+          // Apply sorting if provided
+          if (options?.sort) {
+            collections = [...collections].sort((a: any, b: any) => {
+              switch (options.sort) {
+                case 'title':
+                  return a.title.localeCompare(b.title);
+                case 'addedAt':
+                  return b.addedAt - a.addedAt;
+                case 'childCount':
+                  return b.childCount - a.childCount;
+                default:
+                  return 0;
+              }
+            });
+          }
+
+          return collections;
+        },
+      ),
+
+    getCollectionDetails: vi
+      .fn()
+      .mockImplementation(async (userId: string, collectionKey: string) => {
+        const clientResult = await plexService.getClientForUser(userId);
+        if (!clientResult.success) {
+          throw clientResult.error;
+        }
+        return clientResult.data.getCollectionDetails(collectionKey);
+      }),
+
+    createCollection: vi
+      .fn()
+      .mockImplementation(
+        async (userId: string, libraryKey: string, title: string, items: string[] = []) => {
+          const clientResult = await plexService.getClientForUser(userId);
+          if (!clientResult.success) {
+            throw clientResult.error;
+          }
+          await clientResult.data.createCollection(libraryKey, title, items);
+        },
+      ),
 
     // YouTube library helper
     findYouTubeLibrary: vi.fn().mockImplementation(async (userId: string) => {
       const libraries = await plexService.getLibraries(userId);
-      
+
       // Look for YouTube library
-      const youtubeLib = libraries.find((lib: any) =>
-        lib.title.toLowerCase().includes('youtube') ||
-        lib.type === 'youtube' ||
-        lib.type === 'other'
+      const youtubeLib = libraries.find(
+        (lib: any) =>
+          lib.title.toLowerCase().includes('youtube') ||
+          lib.type === 'youtube' ||
+          lib.type === 'other',
       );
 
       if (youtubeLib) {
@@ -334,9 +340,9 @@ export const createMockPlexService = () => {
       }
 
       // Fallback to 'Other Videos' or similar
-      const otherLib = libraries.find((lib: any) =>
-        lib.title.toLowerCase().includes('other') || 
-        lib.title.toLowerCase().includes('video')
+      const otherLib = libraries.find(
+        (lib: any) =>
+          lib.title.toLowerCase().includes('other') || lib.title.toLowerCase().includes('video'),
       );
 
       return otherLib ? otherLib.key : null;
@@ -402,7 +408,9 @@ export const createPlexTestScenarios = () => ({
 });
 
 // Reset PlexService mocks
-export const resetPlexServiceMocks = (mockPlexService: ReturnType<typeof createMockPlexService>) => {
+export const resetPlexServiceMocks = (
+  mockPlexService: ReturnType<typeof createMockPlexService>,
+) => {
   Object.values(mockPlexService).forEach((method) => {
     if (method && typeof method.mockReset === 'function') {
       method.mockReset();
@@ -413,7 +421,7 @@ export const resetPlexServiceMocks = (mockPlexService: ReturnType<typeof createM
   mockPlexService.getClientForUser.mockImplementation(async (userId: string) => {
     if (userId.includes('no-plex-token')) {
       return mockFailure(
-        new AppError('PLEX_USER_NOT_FOUND', 'User not found or missing Plex token', 401)
+        new AppError('PLEX_USER_NOT_FOUND', 'User not found or missing Plex token', 401),
       );
     }
     return mockSuccess(createMockPlexClient());
@@ -431,20 +439,18 @@ export const createMockPlexPerformanceMetrics = () => ({
 // Error simulation helpers
 export const simulatePlexErrors = {
   networkTimeout: (mockService: ReturnType<typeof createMockPlexService>) => {
-    mockService.getClientForUser.mockRejectedValue(
-      new Error('Network timeout')
-    );
+    mockService.getClientForUser.mockRejectedValue(new Error('Network timeout'));
   },
-  
+
   authenticationFailure: (mockService: ReturnType<typeof createMockPlexService>) => {
     mockService.getClientForUser.mockResolvedValue(
-      mockFailure(new AppError('PLEX_AUTH_FAILED', 'Invalid Plex token', 401))
+      mockFailure(new AppError('PLEX_AUTH_FAILED', 'Invalid Plex token', 401)),
     );
   },
-  
+
   serverUnavailable: (mockService: ReturnType<typeof createMockPlexService>) => {
     mockService.getClientForUser.mockResolvedValue(
-      mockFailure(new AppError('PLEX_SERVER_UNAVAILABLE', 'Plex server is unavailable', 503))
+      mockFailure(new AppError('PLEX_SERVER_UNAVAILABLE', 'Plex server is unavailable', 503)),
     );
   },
 };

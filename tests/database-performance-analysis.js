@@ -3,13 +3,13 @@
 /**
  * 🔍 MEDIANEST DATABASE PERFORMANCE ANALYZER
  * ==========================================
- * 
+ *
  * Comprehensive database performance analysis for production readiness
  * Target: <50ms query times, 99%+ cache hit ratio, 1000+ concurrent connections
- * 
+ *
  * Analysis Components:
  * - PostgreSQL query optimization and index effectiveness
- * - Redis cache performance and memory utilization  
+ * - Redis cache performance and memory utilization
  * - Connection pooling under high load
  * - Database stress testing with concurrent operations
  * - Backup performance impact assessment
@@ -63,11 +63,11 @@ class MediaNestDatabasePerformanceAnalyzer {
    */
   async runCompleteAnalysis() {
     console.log('🔍 MediaNest Database Performance Analysis Starting');
-    console.log('=' .repeat(60));
+    console.log('='.repeat(60));
 
     try {
       await this.initializeConnections();
-      
+
       // Parallel analysis execution for comprehensive coverage
       const analysisPromises = [
         this.analyzePostgreSQLPerformance(),
@@ -78,13 +78,12 @@ class MediaNestDatabasePerformanceAnalyzer {
       ];
 
       await Promise.all(analysisPromises);
-      
+
       await this.generatePerformanceRecommendations();
       await this.generateDetailedReport();
-      
+
       console.log('\n🎉 Database Performance Analysis Completed!');
       return this.results;
-
     } catch (error) {
       console.error('💥 Analysis failed:', error);
       throw error;
@@ -98,29 +97,29 @@ class MediaNestDatabasePerformanceAnalyzer {
    */
   async analyzePostgreSQLPerformance() {
     console.log('\n🐘 Analyzing PostgreSQL Performance...');
-    
+
     const startTime = performance.now();
-    
+
     // Connection pool analysis
     const connectionAnalysis = await this.analyzeConnectionPool();
-    
+
     // Query performance analysis with pg_stat_statements
     const queryPerformance = await this.analyzeQueryPerformance();
-    
+
     // Index effectiveness analysis
     const indexAnalysis = await this.analyzeIndexEffectiveness();
-    
+
     // Table bloat and vacuum analysis
     const maintenanceAnalysis = await this.analyzeTableMaintenance();
-    
+
     // Buffer hit ratios and cache efficiency
     const cacheAnalysis = await this.analyzeDatabaseCacheEfficiency();
-    
+
     // Lock contention analysis
     const lockAnalysis = await this.analyzeLockContention();
 
     const analysisTime = performance.now() - startTime;
-    
+
     this.results.postgres = {
       analysisTime: Math.round(analysisTime),
       connections: connectionAnalysis,
@@ -130,7 +129,7 @@ class MediaNestDatabasePerformanceAnalyzer {
       cache: cacheAnalysis,
       locks: lockAnalysis,
     };
-    
+
     console.log(`   ✅ PostgreSQL analysis completed in ${Math.round(analysisTime)}ms`);
   }
 
@@ -154,11 +153,15 @@ class MediaNestDatabasePerformanceAnalyzer {
 
     const result = await this.pgPool.query(query);
     const data = result.rows[0];
-    
+
     const connectionUsage = parseInt(data.total_connections) / parseInt(data.max_connections);
-    
-    console.log(`   📊 Connections: ${data.active} active, ${data.idle} idle (${(connectionUsage * 100).toFixed(2)}% usage)`);
-    console.log(`   💾 Memory: ${data.shared_buffers} shared_buffers, ${data.effective_cache_size} effective_cache`);
+
+    console.log(
+      `   📊 Connections: ${data.active} active, ${data.idle} idle (${(connectionUsage * 100).toFixed(2)}% usage)`,
+    );
+    console.log(
+      `   💾 Memory: ${data.shared_buffers} shared_buffers, ${data.effective_cache_size} effective_cache`,
+    );
 
     return {
       totalConnections: parseInt(data.total_connections),
@@ -201,7 +204,9 @@ class MediaNestDatabasePerformanceAnalyzer {
       LIMIT 10
     `;
 
-    const slowQueries = await this.pgPool.query(slowQueriesQuery, [this.config.analysis.slowQueryThreshold]);
+    const slowQueries = await this.pgPool.query(slowQueriesQuery, [
+      this.config.analysis.slowQueryThreshold,
+    ]);
 
     // Overall statistics
     const statsQuery = `
@@ -218,8 +223,12 @@ class MediaNestDatabasePerformanceAnalyzer {
     const stats = await this.pgPool.query(statsQuery, [this.config.analysis.slowQueryThreshold]);
     const summary = stats.rows[0];
 
-    console.log(`   ⚡ Queries: ${summary.total_unique_queries} unique, avg ${parseFloat(summary.avg_execution_time).toFixed(2)}ms`);
-    console.log(`   🐌 Slow queries: ${summary.slow_queries_count} (>${this.config.analysis.slowQueryThreshold}ms)`);
+    console.log(
+      `   ⚡ Queries: ${summary.total_unique_queries} unique, avg ${parseFloat(summary.avg_execution_time).toFixed(2)}ms`,
+    );
+    console.log(
+      `   🐌 Slow queries: ${summary.slow_queries_count} (>${this.config.analysis.slowQueryThreshold}ms)`,
+    );
     console.log(`   💾 Cache hit ratio: ${parseFloat(summary.avg_cache_hit_ratio).toFixed(2)}%`);
 
     return {
@@ -229,7 +238,7 @@ class MediaNestDatabasePerformanceAnalyzer {
       maxExecutionTime: parseFloat(summary.max_execution_time),
       slowQueriesCount: parseInt(summary.slow_queries_count),
       avgCacheHitRatio: parseFloat(summary.avg_cache_hit_ratio),
-      slowQueries: slowQueries.rows.map(row => ({
+      slowQueries: slowQueries.rows.map((row) => ({
         query: row.query_snippet,
         calls: parseInt(row.calls),
         meanTime: parseFloat(row.mean_exec_time),
@@ -238,12 +247,15 @@ class MediaNestDatabasePerformanceAnalyzer {
         rows: parseInt(row.rows),
         cacheHitRatio: parseFloat(row.cache_hit_ratio) || 0,
       })),
-      status: parseFloat(summary.avg_execution_time) < this.config.analysis.slowQueryThreshold ? 'GOOD' : 'WARNING',
+      status:
+        parseFloat(summary.avg_execution_time) < this.config.analysis.slowQueryThreshold
+          ? 'GOOD'
+          : 'WARNING',
     };
   }
 
   /**
-   * 📊 Index Effectiveness Analysis  
+   * 📊 Index Effectiveness Analysis
    */
   async analyzeIndexEffectiveness() {
     // Index usage statistics
@@ -263,7 +275,7 @@ class MediaNestDatabasePerformanceAnalyzer {
     const indexUsage = await this.pgPool.query(indexUsageQuery);
 
     // Unused indexes
-    const unusedIndexes = indexUsage.rows.filter(idx => parseInt(idx.scans) === 0);
+    const unusedIndexes = indexUsage.rows.filter((idx) => parseInt(idx.scans) === 0);
 
     // Missing indexes analysis (tables with many sequential scans)
     const seqScanQuery = `
@@ -322,14 +334,16 @@ class MediaNestDatabasePerformanceAnalyzer {
     `;
 
     const maintenance = await this.pgPool.query(maintenanceQuery);
-    
+
     // Identify tables needing attention
-    const bloatedTables = maintenance.rows.filter(table => 
-      parseFloat(table.dead_tuple_ratio) > 0.2 // >20% dead tuples
+    const bloatedTables = maintenance.rows.filter(
+      (table) => parseFloat(table.dead_tuple_ratio) > 0.2, // >20% dead tuples
     );
 
-    const staleStats = maintenance.rows.filter(table =>
-      !table.last_analyze || (Date.now() - new Date(table.last_analyze).getTime()) > 7 * 24 * 60 * 60 * 1000 // >7 days
+    const staleStats = maintenance.rows.filter(
+      (table) =>
+        !table.last_analyze ||
+        Date.now() - new Date(table.last_analyze).getTime() > 7 * 24 * 60 * 60 * 1000, // >7 days
     );
 
     console.log(`   🧹 Tables needing vacuum: ${bloatedTables.length}`);
@@ -376,8 +390,11 @@ class MediaNestDatabasePerformanceAnalyzer {
       heapBlksHit: parseInt(data.heap_blks_hit),
       idxBlksRead: parseInt(data.idx_blks_read),
       idxBlksHit: parseInt(data.idx_blks_hit),
-      status: heapHitRatio >= this.config.analysis.cacheHitTarget && 
-              indexHitRatio >= this.config.analysis.cacheHitTarget ? 'GOOD' : 'WARNING',
+      status:
+        heapHitRatio >= this.config.analysis.cacheHitTarget &&
+        indexHitRatio >= this.config.analysis.cacheHitTarget
+          ? 'GOOD'
+          : 'WARNING',
     };
   }
 
@@ -427,18 +444,18 @@ class MediaNestDatabasePerformanceAnalyzer {
    */
   async analyzeRedisPerformance() {
     console.log('\n📱 Analyzing Redis Cache Performance...');
-    
+
     const startTime = performance.now();
-    
+
     // Memory utilization analysis
     const memoryAnalysis = await this.analyzeRedisMemory();
-    
+
     // Cache hit/miss ratio analysis
     const hitRatioAnalysis = await this.analyzeRedisCacheRatio();
-    
+
     // Performance benchmarking
     const performanceBenchmark = await this.benchmarkRedisPerformance();
-    
+
     // Session storage analysis
     const sessionAnalysis = await this.analyzeSessionStorage();
 
@@ -451,7 +468,7 @@ class MediaNestDatabasePerformanceAnalyzer {
       performance: performanceBenchmark,
       sessions: sessionAnalysis,
     };
-    
+
     console.log(`   ✅ Redis analysis completed in ${Math.round(analysisTime)}ms`);
   }
 
@@ -461,10 +478,10 @@ class MediaNestDatabasePerformanceAnalyzer {
   async analyzeRedisMemory() {
     const info = await this.redisClient.info('memory');
     const stats = await this.redisClient.info('stats');
-    
+
     // Parse memory info
     const memoryData = {};
-    info.split('\r\n').forEach(line => {
+    info.split('\r\n').forEach((line) => {
       if (line.includes(':')) {
         const [key, value] = line.split(':');
         memoryData[key] = value;
@@ -473,7 +490,7 @@ class MediaNestDatabasePerformanceAnalyzer {
 
     // Parse stats info
     const statsData = {};
-    stats.split('\r\n').forEach(line => {
+    stats.split('\r\n').forEach((line) => {
       if (line.includes(':')) {
         const [key, value] = line.split(':');
         statsData[key] = value;
@@ -484,7 +501,9 @@ class MediaNestDatabasePerformanceAnalyzer {
     const maxMemory = parseInt(memoryData.maxmemory) || 0;
     const memoryUsage = maxMemory > 0 ? usedMemory / maxMemory : 0;
 
-    console.log(`   🧠 Memory: ${memoryData.used_memory_human} / ${memoryData.maxmemory_human || 'unlimited'}`);
+    console.log(
+      `   🧠 Memory: ${memoryData.used_memory_human} / ${memoryData.maxmemory_human || 'unlimited'}`,
+    );
     console.log(`   📊 Usage: ${(memoryUsage * 100).toFixed(2)}%`);
     console.log(`   ♻️  Evictions: ${statsData.evicted_keys || 0}`);
 
@@ -506,9 +525,9 @@ class MediaNestDatabasePerformanceAnalyzer {
    */
   async analyzeRedisCacheRatio() {
     const info = await this.redisClient.info('stats');
-    
+
     const statsData = {};
-    info.split('\r\n').forEach(line => {
+    info.split('\r\n').forEach((line) => {
       if (line.includes(':')) {
         const [key, value] = line.split(':');
         statsData[key] = value;
@@ -539,17 +558,17 @@ class MediaNestDatabasePerformanceAnalyzer {
    */
   async benchmarkRedisPerformance() {
     console.log('   ⚡ Running Redis performance benchmark...');
-    
+
     const operations = ['get', 'set', 'hget', 'hset', 'lpush', 'lpop'];
     const benchmarkResults = {};
-    
+
     for (const operation of operations) {
       const iterations = 1000;
       const startTime = performance.now();
-      
+
       for (let i = 0; i < iterations; i++) {
         const key = `benchmark_${operation}_${i}`;
-        
+
         switch (operation) {
           case 'set':
             await this.redisClient.set(key, `value_${i}`);
@@ -571,12 +590,12 @@ class MediaNestDatabasePerformanceAnalyzer {
             break;
         }
       }
-      
+
       const endTime = performance.now();
       const totalTime = endTime - startTime;
       const avgTime = totalTime / iterations;
       const opsPerSecond = Math.round(1000 / avgTime);
-      
+
       benchmarkResults[operation] = {
         iterations,
         totalTime: Math.round(totalTime),
@@ -585,7 +604,11 @@ class MediaNestDatabasePerformanceAnalyzer {
       };
     }
 
-    console.log(`   📈 Benchmark completed: ${Object.values(benchmarkResults).map(r => r.opsPerSecond).join(', ')} ops/sec`);
+    console.log(
+      `   📈 Benchmark completed: ${Object.values(benchmarkResults)
+        .map((r) => r.opsPerSecond)
+        .join(', ')} ops/sec`,
+    );
 
     return benchmarkResults;
   }
@@ -598,17 +621,20 @@ class MediaNestDatabasePerformanceAnalyzer {
     const sessionKeys = await this.redisClient.keys('session:*');
     const tokenKeys = await this.redisClient.keys('token:*');
     const cacheKeys = await this.redisClient.keys('cache:*');
-    
+
     // Sample TTL analysis
     const sampleTTLs = [];
     for (let i = 0; i < Math.min(10, sessionKeys.length); i++) {
       const ttl = await this.redisClient.ttl(sessionKeys[i]);
       sampleTTLs.push(ttl);
     }
-    
-    const avgTTL = sampleTTLs.length > 0 ? sampleTTLs.reduce((a, b) => a + b, 0) / sampleTTLs.length : 0;
 
-    console.log(`   🔐 Sessions: ${sessionKeys.length}, Tokens: ${tokenKeys.length}, Cache: ${cacheKeys.length}`);
+    const avgTTL =
+      sampleTTLs.length > 0 ? sampleTTLs.reduce((a, b) => a + b, 0) / sampleTTLs.length : 0;
+
+    console.log(
+      `   🔐 Sessions: ${sessionKeys.length}, Tokens: ${tokenKeys.length}, Cache: ${cacheKeys.length}`,
+    );
     console.log(`   ⏱️  Average TTL: ${Math.round(avgTTL)}s`);
 
     return {
@@ -627,18 +653,18 @@ class MediaNestDatabasePerformanceAnalyzer {
    */
   async runDatabaseStressTest() {
     console.log('\n💪 Running Database Stress Test...');
-    
+
     const startTime = performance.now();
-    
+
     // Connection stress test
     const connectionStress = await this.stressTestConnections();
-    
-    // Query throughput test  
+
+    // Query throughput test
     const queryThroughput = await this.stressTestQueryThroughput();
-    
+
     // Concurrent transaction test
     const transactionStress = await this.stressTestTransactions();
-    
+
     // Deadlock detection test
     const deadlockTest = await this.testDeadlockHandling();
 
@@ -651,7 +677,7 @@ class MediaNestDatabasePerformanceAnalyzer {
       transactions: transactionStress,
       deadlocks: deadlockTest,
     };
-    
+
     console.log(`   ✅ Stress testing completed in ${Math.round(testTime)}ms`);
   }
 
@@ -660,14 +686,14 @@ class MediaNestDatabasePerformanceAnalyzer {
    */
   async stressTestConnections() {
     console.log('   🔗 Testing connection handling under load...');
-    
+
     const connectionCount = Math.min(this.config.analysis.concurrentConnections, 500); // Limit for safety
     const connections = [];
     const connectionTimes = [];
-    
+
     try {
       const startTime = performance.now();
-      
+
       // Create connections concurrently
       const connectionPromises = Array.from({ length: connectionCount }, async (_, i) => {
         const connStart = performance.now();
@@ -677,28 +703,30 @@ class MediaNestDatabasePerformanceAnalyzer {
             max: 1,
             idleTimeoutMillis: 5000,
           });
-          
+
           await client.connect();
           const connTime = performance.now() - connStart;
           connectionTimes.push(connTime);
           connections.push(client);
-          
+
           // Simple query to test functionality
           await client.query('SELECT 1');
-          
+
           return { success: true, time: connTime };
         } catch (error) {
           return { success: false, error: error.message };
         }
       });
-      
+
       const results = await Promise.allSettled(connectionPromises);
-      const successful = results.filter(r => r.status === 'fulfilled' && r.value.success).length;
+      const successful = results.filter((r) => r.status === 'fulfilled' && r.value.success).length;
       const failed = results.length - successful;
-      
+
       const totalTime = performance.now() - startTime;
-      const avgConnectionTime = connectionTimes.length > 0 ? 
-        connectionTimes.reduce((a, b) => a + b, 0) / connectionTimes.length : 0;
+      const avgConnectionTime =
+        connectionTimes.length > 0
+          ? connectionTimes.reduce((a, b) => a + b, 0) / connectionTimes.length
+          : 0;
 
       console.log(`   📊 Connections: ${successful} successful, ${failed} failed`);
       console.log(`   ⏱️  Average connection time: ${Math.round(avgConnectionTime)}ms`);
@@ -709,13 +737,13 @@ class MediaNestDatabasePerformanceAnalyzer {
         failed,
         totalTime: Math.round(totalTime),
         avgConnectionTime: Math.round(avgConnectionTime),
-        maxConnectionTime: connectionTimes.length > 0 ? Math.round(Math.max(...connectionTimes)) : 0,
+        maxConnectionTime:
+          connectionTimes.length > 0 ? Math.round(Math.max(...connectionTimes)) : 0,
         status: failed > connectionCount * 0.1 ? 'WARNING' : 'GOOD', // >10% failure rate
       };
-      
     } finally {
       // Cleanup connections
-      await Promise.all(connections.map(conn => conn.end().catch(() => {})));
+      await Promise.all(connections.map((conn) => conn.end().catch(() => {})));
     }
   }
 
@@ -724,10 +752,10 @@ class MediaNestDatabasePerformanceAnalyzer {
    */
   async stressTestQueryThroughput() {
     console.log('   ⚡ Testing query throughput under load...');
-    
+
     const queryCount = this.config.analysis.queryBatchSize;
     const concurrentBatches = 10;
-    
+
     const queries = [
       'SELECT COUNT(*) FROM users WHERE status = $1',
       'SELECT * FROM media_requests WHERE created_at > $1 ORDER BY created_at DESC LIMIT 10',
@@ -735,46 +763,50 @@ class MediaNestDatabasePerformanceAnalyzer {
       'SELECT COUNT(*) FROM session_tokens WHERE expires_at > $1',
       'SELECT * FROM rate_limits WHERE window_start > $1 LIMIT 5',
     ];
-    
+
     const queryTimes = [];
     const startTime = performance.now();
-    
+
     try {
       const batchPromises = Array.from({ length: concurrentBatches }, async () => {
         const batchTimes = [];
-        
+
         for (let i = 0; i < queryCount; i++) {
           const query = queries[i % queries.length];
-          const param = i % 2 === 0 ? 'active' : new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-          
+          const param =
+            i % 2 === 0 ? 'active' : new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
           const queryStart = performance.now();
           await this.pgPool.query(query, [param]);
           const queryTime = performance.now() - queryStart;
-          
+
           batchTimes.push(queryTime);
         }
-        
+
         return batchTimes;
       });
-      
+
       const batchResults = await Promise.all(batchPromises);
-      batchResults.forEach(times => queryTimes.push(...times));
-      
+      batchResults.forEach((times) => queryTimes.push(...times));
     } catch (error) {
       console.error('   ❌ Query stress test error:', error.message);
     }
-    
+
     const totalTime = performance.now() - startTime;
     const totalQueries = queryTimes.length;
-    const avgQueryTime = queryTimes.length > 0 ? 
-      queryTimes.reduce((a, b) => a + b, 0) / queryTimes.length : 0;
+    const avgQueryTime =
+      queryTimes.length > 0 ? queryTimes.reduce((a, b) => a + b, 0) / queryTimes.length : 0;
     const queriesPerSecond = Math.round((totalQueries / totalTime) * 1000);
-    
-    const slowQueries = queryTimes.filter(time => time > this.config.analysis.slowQueryThreshold).length;
-    
+
+    const slowQueries = queryTimes.filter(
+      (time) => time > this.config.analysis.slowQueryThreshold,
+    ).length;
+
     console.log(`   📊 Executed ${totalQueries} queries in ${Math.round(totalTime)}ms`);
     console.log(`   ⚡ Throughput: ${queriesPerSecond} queries/sec`);
-    console.log(`   🐌 Slow queries: ${slowQueries} (${((slowQueries/totalQueries)*100).toFixed(1)}%)`);
+    console.log(
+      `   🐌 Slow queries: ${slowQueries} (${((slowQueries / totalQueries) * 100).toFixed(1)}%)`,
+    );
 
     return {
       totalQueries,
@@ -782,7 +814,7 @@ class MediaNestDatabasePerformanceAnalyzer {
       avgQueryTime: Math.round(avgQueryTime * 100) / 100,
       queriesPerSecond,
       slowQueries,
-      slowQueryPercentage: Math.round((slowQueries/totalQueries)*100*10)/10,
+      slowQueryPercentage: Math.round((slowQueries / totalQueries) * 100 * 10) / 10,
       status: avgQueryTime < this.config.analysis.slowQueryThreshold ? 'GOOD' : 'WARNING',
     };
   }
@@ -792,38 +824,39 @@ class MediaNestDatabasePerformanceAnalyzer {
    */
   async stressTestTransactions() {
     console.log('   🔄 Testing concurrent transactions...');
-    
+
     const transactionCount = 50;
     const results = { successful: 0, failed: 0, rolledBack: 0 };
     const transactionTimes = [];
-    
+
     const transactionPromises = Array.from({ length: transactionCount }, async (_, i) => {
       const client = await this.pgPool.connect();
       const startTime = performance.now();
-      
+
       try {
         await client.query('BEGIN');
-        
+
         // Simulate complex transaction
         await client.query('SELECT COUNT(*) FROM users FOR UPDATE');
-        await client.query('INSERT INTO rate_limits (user_id, endpoint, request_count) VALUES ($1, $2, 1) ON CONFLICT (user_id, endpoint) DO UPDATE SET request_count = rate_limits.request_count + 1', [
-          `test_user_${i}`, `test_endpoint_${i}`
-        ]);
-        
+        await client.query(
+          'INSERT INTO rate_limits (user_id, endpoint, request_count) VALUES ($1, $2, 1) ON CONFLICT (user_id, endpoint) DO UPDATE SET request_count = rate_limits.request_count + 1',
+          [`test_user_${i}`, `test_endpoint_${i}`],
+        );
+
         // Random delay to increase contention
-        await new Promise(resolve => setTimeout(resolve, Math.random() * 10));
-        
-        if (Math.random() > 0.1) { // 90% commit rate
+        await new Promise((resolve) => setTimeout(resolve, Math.random() * 10));
+
+        if (Math.random() > 0.1) {
+          // 90% commit rate
           await client.query('COMMIT');
           results.successful++;
         } else {
           await client.query('ROLLBACK');
           results.rolledBack++;
         }
-        
+
         const transactionTime = performance.now() - startTime;
         transactionTimes.push(transactionTime);
-        
       } catch (error) {
         await client.query('ROLLBACK').catch(() => {});
         results.failed++;
@@ -831,13 +864,17 @@ class MediaNestDatabasePerformanceAnalyzer {
         client.release();
       }
     });
-    
-    await Promise.all(transactionPromises);
-    
-    const avgTransactionTime = transactionTimes.length > 0 ?
-      transactionTimes.reduce((a, b) => a + b, 0) / transactionTimes.length : 0;
 
-    console.log(`   📊 Transactions: ${results.successful} successful, ${results.failed} failed, ${results.rolledBack} rolled back`);
+    await Promise.all(transactionPromises);
+
+    const avgTransactionTime =
+      transactionTimes.length > 0
+        ? transactionTimes.reduce((a, b) => a + b, 0) / transactionTimes.length
+        : 0;
+
+    console.log(
+      `   📊 Transactions: ${results.successful} successful, ${results.failed} failed, ${results.rolledBack} rolled back`,
+    );
     console.log(`   ⏱️  Average transaction time: ${Math.round(avgTransactionTime)}ms`);
 
     return {
@@ -854,39 +891,44 @@ class MediaNestDatabasePerformanceAnalyzer {
    */
   async testDeadlockHandling() {
     console.log('   🔒 Testing deadlock detection and resolution...');
-    
+
     // Create a controlled deadlock scenario
     const client1 = await this.pgPool.connect();
     const client2 = await this.pgPool.connect();
-    
+
     let deadlockDetected = false;
     let resolutionTime = 0;
-    
+
     try {
       const startTime = performance.now();
-      
+
       // Start transactions
       await client1.query('BEGIN');
       await client2.query('BEGIN');
-      
+
       // Lock resources in opposite order to create deadlock
       await client1.query('SELECT COUNT(*) FROM users WHERE id = $1 FOR UPDATE', ['test-user-1']);
       await client2.query('SELECT COUNT(*) FROM users WHERE id = $1 FOR UPDATE', ['test-user-2']);
-      
+
       // Try to create deadlock
-      const promise1 = client1.query('SELECT COUNT(*) FROM users WHERE id = $1 FOR UPDATE', ['test-user-2']).catch(err => err);
-      const promise2 = client2.query('SELECT COUNT(*) FROM users WHERE id = $1 FOR UPDATE', ['test-user-1']).catch(err => err);
-      
+      const promise1 = client1
+        .query('SELECT COUNT(*) FROM users WHERE id = $1 FOR UPDATE', ['test-user-2'])
+        .catch((err) => err);
+      const promise2 = client2
+        .query('SELECT COUNT(*) FROM users WHERE id = $1 FOR UPDATE', ['test-user-1'])
+        .catch((err) => err);
+
       const [result1, result2] = await Promise.all([promise1, promise2]);
-      
+
       resolutionTime = performance.now() - startTime;
-      
+
       // Check if deadlock was detected
-      if ((result1 instanceof Error && result1.code === '40P01') || 
-          (result2 instanceof Error && result2.code === '40P01')) {
+      if (
+        (result1 instanceof Error && result1.code === '40P01') ||
+        (result2 instanceof Error && result2.code === '40P01')
+      ) {
         deadlockDetected = true;
       }
-      
     } catch (error) {
       // Expected error
     } finally {
@@ -911,12 +953,13 @@ class MediaNestDatabasePerformanceAnalyzer {
    */
   async analyzeBackupPerformance() {
     console.log('\n💾 Analyzing Backup Performance Impact...');
-    
+
     // Simulate backup impact by measuring query performance during heavy I/O
     const normalPerformance = await this.measureQueryPerformanceDuringOperation('normal');
     const backupSimulation = await this.measureQueryPerformanceDuringOperation('backup');
-    
-    const impactPercentage = ((backupSimulation.avgTime - normalPerformance.avgTime) / normalPerformance.avgTime) * 100;
+
+    const impactPercentage =
+      ((backupSimulation.avgTime - normalPerformance.avgTime) / normalPerformance.avgTime) * 100;
 
     this.results.backup = {
       normalPerformance,
@@ -925,8 +968,12 @@ class MediaNestDatabasePerformanceAnalyzer {
       status: impactPercentage < 20 ? 'GOOD' : impactPercentage < 50 ? 'CAUTION' : 'WARNING',
     };
 
-    console.log(`   📊 Backup impact: ${Math.round(impactPercentage * 10) / 10}% performance degradation`);
-    console.log(`   ⏱️  Normal: ${Math.round(normalPerformance.avgTime)}ms, During backup: ${Math.round(backupSimulation.avgTime)}ms`);
+    console.log(
+      `   📊 Backup impact: ${Math.round(impactPercentage * 10) / 10}% performance degradation`,
+    );
+    console.log(
+      `   ⏱️  Normal: ${Math.round(normalPerformance.avgTime)}ms, During backup: ${Math.round(backupSimulation.avgTime)}ms`,
+    );
   }
 
   /**
@@ -934,10 +981,10 @@ class MediaNestDatabasePerformanceAnalyzer {
    */
   async validateRecoveryTimeObjectives() {
     console.log('\n⏰ Validating Recovery Time Objectives...');
-    
+
     // Test connection recovery after simulated failure
     const recoveryTest = await this.testConnectionRecovery();
-    
+
     // Test Redis failover time
     const redisRecoveryTest = await this.testRedisRecovery();
 
@@ -963,24 +1010,28 @@ class MediaNestDatabasePerformanceAnalyzer {
       'SELECT * FROM media_requests ORDER BY created_at DESC LIMIT 10',
       'SELECT service_name, status FROM service_status',
     ];
-    
+
     const queryTimes = [];
     const iterations = operationType === 'backup' ? 20 : 50; // Fewer iterations for backup simulation
-    
+
     // For backup simulation, create some I/O load
     if (operationType === 'backup') {
       // Simulate backup I/O by running a heavy query in background
-      this.pgPool.query(`
+      this.pgPool
+        .query(
+          `
         SELECT pg_sleep(0.1), COUNT(*)
         FROM generate_series(1, 1000) g1
         CROSS JOIN generate_series(1, 100) g2
-      `).catch(() => {}); // Run in background, ignore errors
+      `,
+        )
+        .catch(() => {}); // Run in background, ignore errors
     }
-    
+
     for (let i = 0; i < iterations; i++) {
       const query = queries[i % queries.length];
       const startTime = performance.now();
-      
+
       try {
         await this.pgPool.query(query);
         const queryTime = performance.now() - startTime;
@@ -988,14 +1039,15 @@ class MediaNestDatabasePerformanceAnalyzer {
       } catch (error) {
         // Continue with test
       }
-      
+
       // Small delay between queries
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
     }
-    
-    const avgTime = queryTimes.length > 0 ? queryTimes.reduce((a, b) => a + b, 0) / queryTimes.length : 0;
+
+    const avgTime =
+      queryTimes.length > 0 ? queryTimes.reduce((a, b) => a + b, 0) / queryTimes.length : 0;
     const maxTime = queryTimes.length > 0 ? Math.max(...queryTimes) : 0;
-    
+
     return {
       operationType,
       iterations,
@@ -1010,7 +1062,7 @@ class MediaNestDatabasePerformanceAnalyzer {
    */
   async testConnectionRecovery() {
     const startTime = performance.now();
-    
+
     try {
       // Test reconnection after connection drop simulation
       const testClient = new Pool({
@@ -1019,31 +1071,30 @@ class MediaNestDatabasePerformanceAnalyzer {
         idleTimeoutMillis: 1000,
         connectionTimeoutMillis: 5000,
       });
-      
+
       await testClient.connect();
       await testClient.query('SELECT 1');
-      
+
       // Simulate connection drop and recovery
       await testClient.end();
-      
+
       const recoveryStartTime = performance.now();
       const newClient = new Pool({
         connectionString: this.config.postgres.connectionString,
         max: 1,
         connectionTimeoutMillis: 5000,
       });
-      
+
       await newClient.connect();
       await newClient.query('SELECT 1');
       await newClient.end();
-      
+
       const recoveryTime = performance.now() - recoveryStartTime;
-      
+
       return {
         recoveryTime: Math.round(recoveryTime),
         status: recoveryTime < 5000 ? 'GOOD' : 'WARNING', // <5 seconds
       };
-      
     } catch (error) {
       return {
         recoveryTime: performance.now() - startTime,
@@ -1058,26 +1109,25 @@ class MediaNestDatabasePerformanceAnalyzer {
    */
   async testRedisRecovery() {
     const startTime = performance.now();
-    
+
     try {
       // Test Redis reconnection
       const testClient = createClient({ url: this.config.redis.url });
       await testClient.connect();
       await testClient.ping();
       await testClient.disconnect();
-      
+
       const recoveryStartTime = performance.now();
       await testClient.connect();
       await testClient.ping();
       await testClient.disconnect();
-      
+
       const recoveryTime = performance.now() - recoveryStartTime;
-      
+
       return {
         recoveryTime: Math.round(recoveryTime),
         status: recoveryTime < 2000 ? 'GOOD' : 'WARNING', // <2 seconds
       };
-      
     } catch (error) {
       return {
         recoveryTime: performance.now() - startTime,
@@ -1092,9 +1142,9 @@ class MediaNestDatabasePerformanceAnalyzer {
    */
   async generatePerformanceRecommendations() {
     console.log('\n🎯 Generating Performance Recommendations...');
-    
+
     const recommendations = [];
-    
+
     // PostgreSQL recommendations
     if (this.results.postgres.connections?.status === 'WARNING') {
       recommendations.push({
@@ -1106,18 +1156,18 @@ class MediaNestDatabasePerformanceAnalyzer {
         impact: 'Performance degradation under load',
       });
     }
-    
+
     if (this.results.postgres.queries?.status === 'WARNING') {
       recommendations.push({
         category: 'PostgreSQL Query Performance',
-        priority: 'HIGH', 
+        priority: 'HIGH',
         issue: `${this.results.postgres.queries.slowQueriesCount} slow queries detected`,
         recommendation: 'Optimize slow queries with proper indexing and query rewriting',
         details: `Average execution time: ${this.results.postgres.queries.avgExecutionTime.toFixed(2)}ms`,
         impact: 'Direct user experience impact',
       });
     }
-    
+
     if (this.results.postgres.cache?.status === 'WARNING') {
       recommendations.push({
         category: 'PostgreSQL Cache Efficiency',
@@ -1128,7 +1178,7 @@ class MediaNestDatabasePerformanceAnalyzer {
         impact: 'Increased I/O load and slower queries',
       });
     }
-    
+
     if (this.results.postgres.indexes?.unusedIndexes > 5) {
       recommendations.push({
         category: 'PostgreSQL Index Optimization',
@@ -1139,8 +1189,8 @@ class MediaNestDatabasePerformanceAnalyzer {
         impact: 'Write performance optimization',
       });
     }
-    
-    // Redis recommendations  
+
+    // Redis recommendations
     if (this.results.redis.memory?.status === 'WARNING') {
       recommendations.push({
         category: 'Redis Memory Management',
@@ -1151,7 +1201,7 @@ class MediaNestDatabasePerformanceAnalyzer {
         impact: 'Cache eviction and performance degradation',
       });
     }
-    
+
     if (this.results.redis.hitRatio?.status === 'WARNING') {
       recommendations.push({
         category: 'Redis Cache Efficiency',
@@ -1162,7 +1212,7 @@ class MediaNestDatabasePerformanceAnalyzer {
         impact: 'Increased database load',
       });
     }
-    
+
     // Stress test recommendations
     if (this.results.stress.connections?.status === 'WARNING') {
       recommendations.push({
@@ -1174,7 +1224,7 @@ class MediaNestDatabasePerformanceAnalyzer {
         impact: 'Service unavailability under high load',
       });
     }
-    
+
     if (this.results.stress.queries?.status === 'WARNING') {
       recommendations.push({
         category: 'Query Throughput',
@@ -1185,7 +1235,7 @@ class MediaNestDatabasePerformanceAnalyzer {
         impact: 'User experience degradation during peak usage',
       });
     }
-    
+
     // Backup performance recommendations
     if (this.results.backup?.status === 'WARNING') {
       recommendations.push({
@@ -1197,7 +1247,7 @@ class MediaNestDatabasePerformanceAnalyzer {
         impact: 'Service degradation during backup operations',
       });
     }
-    
+
     // Add positive recommendations if all good
     if (recommendations.length === 0) {
       recommendations.push({
@@ -1209,26 +1259,26 @@ class MediaNestDatabasePerformanceAnalyzer {
         impact: 'Excellent performance baseline established',
       });
     }
-    
+
     this.results.recommendations = recommendations;
-    
+
     // Display recommendations
     console.log('\n📋 PERFORMANCE RECOMMENDATIONS');
-    console.log('=' .repeat(50));
-    
-    const priorityOrder = { 'HIGH': 1, 'MEDIUM': 2, 'LOW': 3, 'INFO': 4 };
+    console.log('='.repeat(50));
+
+    const priorityOrder = { HIGH: 1, MEDIUM: 2, LOW: 3, INFO: 4 };
     const sortedRecommendations = recommendations.sort(
-      (a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]
+      (a, b) => priorityOrder[a.priority] - priorityOrder[b.priority],
     );
-    
+
     sortedRecommendations.forEach((rec, index) => {
       const priorityIcon = {
-        'HIGH': '🔴',
-        'MEDIUM': '🟡', 
-        'LOW': '🟢',
-        'INFO': '💡'
+        HIGH: '🔴',
+        MEDIUM: '🟡',
+        LOW: '🟢',
+        INFO: '💡',
       }[rec.priority];
-      
+
       console.log(`\n${index + 1}. ${priorityIcon} ${rec.category} - ${rec.priority} Priority`);
       console.log(`   Issue: ${rec.issue}`);
       console.log(`   Recommendation: ${rec.recommendation}`);
@@ -1241,8 +1291,13 @@ class MediaNestDatabasePerformanceAnalyzer {
    * 📝 Generate Detailed Report
    */
   async generateDetailedReport() {
-    const reportPath = path.join(__dirname, '..', 'docs', 'database-performance-analysis-report.json');
-    
+    const reportPath = path.join(
+      __dirname,
+      '..',
+      'docs',
+      'database-performance-analysis-report.json',
+    );
+
     // Create summary for easy consumption
     const summary = {
       analysisTimestamp: this.results.timestamp,
@@ -1256,9 +1311,10 @@ class MediaNestDatabasePerformanceAnalyzer {
         queryThroughput: this.results.stress.queries?.queriesPerSecond || 0,
         backupPerformanceImpact: this.results.backup?.impactPercentage || 0,
       },
-      highPriorityIssues: this.results.recommendations.filter(r => r.priority === 'HIGH').length,
-      mediumPriorityIssues: this.results.recommendations.filter(r => r.priority === 'MEDIUM').length,
-      lowPriorityIssues: this.results.recommendations.filter(r => r.priority === 'LOW').length,
+      highPriorityIssues: this.results.recommendations.filter((r) => r.priority === 'HIGH').length,
+      mediumPriorityIssues: this.results.recommendations.filter((r) => r.priority === 'MEDIUM')
+        .length,
+      lowPriorityIssues: this.results.recommendations.filter((r) => r.priority === 'LOW').length,
     };
 
     const fullReport = {
@@ -1269,14 +1325,22 @@ class MediaNestDatabasePerformanceAnalyzer {
     };
 
     await fs.writeFile(reportPath, JSON.stringify(fullReport, null, 2));
-    
+
     console.log(`\n💾 Detailed performance analysis report saved: ${reportPath}`);
     console.log(`📊 Overall Status: ${summary.overallStatus}`);
     console.log(`🎯 Key Metrics Summary:`);
-    console.log(`   • PostgreSQL avg query time: ${Math.round(summary.keyMetrics.postgresqlAvgQueryTime)}ms`);
-    console.log(`   • PostgreSQL cache hit ratio: ${(summary.keyMetrics.postgresqlCacheHitRatio * 100).toFixed(2)}%`);
-    console.log(`   • Redis cache hit ratio: ${(summary.keyMetrics.redisCacheHitRatio * 100).toFixed(2)}%`);
-    console.log(`   • Redis memory usage: ${(summary.keyMetrics.redisMemoryUsage * 100).toFixed(2)}%`);
+    console.log(
+      `   • PostgreSQL avg query time: ${Math.round(summary.keyMetrics.postgresqlAvgQueryTime)}ms`,
+    );
+    console.log(
+      `   • PostgreSQL cache hit ratio: ${(summary.keyMetrics.postgresqlCacheHitRatio * 100).toFixed(2)}%`,
+    );
+    console.log(
+      `   • Redis cache hit ratio: ${(summary.keyMetrics.redisCacheHitRatio * 100).toFixed(2)}%`,
+    );
+    console.log(
+      `   • Redis memory usage: ${(summary.keyMetrics.redisMemoryUsage * 100).toFixed(2)}%`,
+    );
     console.log(`   • Query throughput: ${summary.keyMetrics.queryThroughput} queries/sec`);
     console.log(`   • High priority issues: ${summary.highPriorityIssues}`);
   }
@@ -1285,9 +1349,13 @@ class MediaNestDatabasePerformanceAnalyzer {
    * 📊 Calculate Overall Status
    */
   calculateOverallStatus() {
-    const highPriorityIssues = this.results.recommendations.filter(r => r.priority === 'HIGH').length;
-    const mediumPriorityIssues = this.results.recommendations.filter(r => r.priority === 'MEDIUM').length;
-    
+    const highPriorityIssues = this.results.recommendations.filter(
+      (r) => r.priority === 'HIGH',
+    ).length;
+    const mediumPriorityIssues = this.results.recommendations.filter(
+      (r) => r.priority === 'MEDIUM',
+    ).length;
+
     if (highPriorityIssues > 0) return 'CRITICAL';
     if (mediumPriorityIssues > 2) return 'WARNING';
     if (mediumPriorityIssues > 0) return 'CAUTION';
@@ -1299,7 +1367,7 @@ class MediaNestDatabasePerformanceAnalyzer {
    */
   async initializeConnections() {
     console.log('🔌 Initializing database connections...');
-    
+
     // PostgreSQL connection
     this.pgPool = new Pool({
       connectionString: this.config.postgres.connectionString,
@@ -1307,17 +1375,17 @@ class MediaNestDatabasePerformanceAnalyzer {
       idleTimeoutMillis: this.config.postgres.idleTimeout,
       connectionTimeoutMillis: this.config.postgres.connectionTimeout,
     });
-    
+
     await this.pgPool.connect();
-    
-    // Redis connection  
+
+    // Redis connection
     this.redisClient = createClient({
       url: this.config.redis.url,
       password: this.config.redis.password,
     });
-    
+
     await this.redisClient.connect();
-    
+
     console.log('   ✅ Database connections initialized');
   }
 
@@ -1326,16 +1394,16 @@ class MediaNestDatabasePerformanceAnalyzer {
    */
   async cleanup() {
     console.log('\n🧹 Cleaning up connections...');
-    
+
     try {
       if (this.pgPool) {
         await this.pgPool.end();
       }
-      
+
       if (this.redisClient) {
         await this.redisClient.disconnect();
       }
-      
+
       console.log('   ✅ Cleanup completed');
     } catch (error) {
       console.log('   ⚠️  Cleanup warning:', error.message);
@@ -1361,26 +1429,29 @@ if (require.main === module) {
   }
 
   if (!config.redis.url) {
-    console.error('❌ REDIS_URL environment variable is required'); 
+    console.error('❌ REDIS_URL environment variable is required');
     process.exit(1);
   }
 
   const analyzer = new MediaNestDatabasePerformanceAnalyzer(config);
 
-  analyzer.runCompleteAnalysis()
-    .then(results => {
+  analyzer
+    .runCompleteAnalysis()
+    .then((results) => {
       console.log('\n🎉 MediaNest Database Performance Analysis Completed Successfully!');
-      
-      const highPriorityIssues = results.recommendations.filter(r => r.priority === 'HIGH').length;
+
+      const highPriorityIssues = results.recommendations.filter(
+        (r) => r.priority === 'HIGH',
+      ).length;
       console.log(`\n📊 Summary: ${highPriorityIssues} high priority issues found`);
-      
+
       // Store results in memory for production validation
       console.log('\n💾 Storing results in memory: MEDIANEST_PROD_VALIDATION/database_performance');
-      
+
       // Exit with error code if critical issues found
       process.exit(highPriorityIssues > 0 ? 1 : 0);
     })
-    .catch(error => {
+    .catch((error) => {
       console.error('\n💥 Database Performance Analysis Failed:', error);
       process.exit(1);
     });

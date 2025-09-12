@@ -1,9 +1,9 @@
 /**
  * CRITICAL JWT FACADE MOCK IMPLEMENTATION
- * 
+ *
  * Complete mock implementation matching jwt-facade.ts interface
  * Fixes authentication system test failures by providing all required exports
- * 
+ *
  * Based on DeviceSessionService template success pattern (100% compatibility)
  */
 
@@ -37,14 +37,14 @@ export const createJWTFacadeMock = () => {
       exp: Math.floor(Date.now() / 1000) + 3600,
       jti: 'mock-token-id',
     }),
-    
+
     // CRITICAL MISSING EXPORTS - Authentication facade requirements
     generateRefreshToken: vi.fn().mockReturnValue('mock-refresh-token'),
     verifyRefreshToken: vi.fn().mockReturnValue({
       userId: 'mock-user-id',
       sessionId: 'mock-session-id',
     }),
-    
+
     // Token metadata and lifecycle
     getTokenMetadata: vi.fn().mockReturnValue({
       userId: 'mock-user-id',
@@ -57,15 +57,15 @@ export const createJWTFacadeMock = () => {
     isTokenExpired: vi.fn().mockReturnValue(false),
     shouldRotateToken: vi.fn().mockReturnValue(false),
     rotateTokenIfNeeded: vi.fn().mockReturnValue(null),
-    
+
     // Token blacklist operations
     blacklistToken: vi.fn().mockImplementation(() => undefined),
     isTokenBlacklisted: vi.fn().mockReturnValue(false),
-    
+
     // Legacy compatibility exports
     getTokenExpiry: vi.fn().mockReturnValue(new Date(Date.now() + 3600000)),
     getTokenIssuedAt: vi.fn().mockReturnValue(new Date(Date.now() - 60000)),
-    
+
     // Additional compatibility methods
     refreshToken: vi.fn().mockReturnValue('mock-refreshed-token'),
     validateTokenStructure: vi.fn().mockReturnValue(true),
@@ -150,7 +150,7 @@ export const resetJWTFacadeMock = () => {
       mockFn.mockReset();
     }
   });
-  
+
   // Restore default implementations
   mockJWTFacadeInstance.generateToken.mockReturnValue('mock-jwt-token');
   mockJWTFacadeInstance.generateRefreshToken.mockReturnValue('mock-refresh-token');
@@ -173,11 +173,11 @@ export const resetJWTFacadeMock = () => {
 
 /**
  * USAGE PATTERNS FOR FIXING JWT FACADE IMPORT FAILURES:
- * 
+ *
  * 1. COMPLETE JWT FACADE MOCK:
  * ```typescript
  * import { mockJWTFacadeInstance } from '@/tests/mocks/services/jwt-facade-mock';
- * 
+ *
  * vi.mock('@/auth/jwt-facade', () => ({
  *   jwtFacade: mockJWTFacadeInstance,
  *   JWTFacade: JWTFacadeMock,
@@ -185,7 +185,7 @@ export const resetJWTFacadeMock = () => {
  *   shouldRotateToken: vi.fn().mockReturnValue(false),
  * }));
  * ```
- * 
+ *
  * 2. DIRECT FUNCTION IMPORTS:
  * ```typescript
  * vi.mock('@/auth/jwt-facade', () => ({
@@ -197,7 +197,7 @@ export const resetJWTFacadeMock = () => {
  *   }),
  * }));
  * ```
- * 
+ *
  * 3. SINGLETON INSTANCE MOCK:
  * ```typescript
  * vi.mock('@/auth/jwt-facade', () => ({

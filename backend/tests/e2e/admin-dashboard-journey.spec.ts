@@ -255,7 +255,7 @@ test.describe('Admin Dashboard User Journey', () => {
 
       if (search) {
         filteredUsers = filteredUsers.filter(
-          (u) => u.username.includes(search) || u.email.includes(search)
+          (u) => u.username.includes(search) || u.email.includes(search),
         );
       }
 
@@ -536,7 +536,7 @@ test.describe('Admin Dashboard User Journey', () => {
     await adminServices.verifyServiceStatus('Redis Cache', 'warning');
     const redisCard = page.locator('[data-testid="service-card-Redis Cache"]');
     await expect(redisCard.locator('[data-testid="warning-message"]')).toContainText(
-      'High memory usage'
+      'High memory usage',
     );
 
     // Check unhealthy service (TMDB API)
@@ -561,7 +561,7 @@ test.describe('Admin Dashboard User Journey', () => {
     await expect(modal.locator('[data-testid="service-version"]')).toContainText('1.32.5.7349');
     await expect(modal.locator('[data-testid="service-uptime"]')).toContainText('99.8%');
     await expect(modal.locator('[data-testid="service-url"]')).toContainText(
-      'plex.medianest.local:32400'
+      'plex.medianest.local:32400',
     );
   });
 
@@ -611,7 +611,7 @@ test.describe('Admin Dashboard User Journey', () => {
     // Check pending request
     const pendingRequest = requestItems.first();
     await expect(pendingRequest.locator('[data-testid="request-title"]')).toContainText(
-      'Inception'
+      'Inception',
     );
     await expect(pendingRequest.locator('[data-testid="request-status"]')).toContainText('pending');
     await expect(pendingRequest.locator('[data-testid="request-user"]')).toContainText('john_doe');
@@ -628,7 +628,7 @@ test.describe('Admin Dashboard User Journey', () => {
 
     // Verify success
     await expect(page.locator('[data-testid="success-notification"]')).toContainText(
-      'Request approved successfully'
+      'Request approved successfully',
     );
   });
 
@@ -646,7 +646,7 @@ test.describe('Admin Dashboard User Journey', () => {
 
     // Verify success
     await expect(page.locator('[data-testid="success-notification"]')).toContainText(
-      'Request rejected successfully'
+      'Request rejected successfully',
     );
   });
 
@@ -691,7 +691,7 @@ test.describe('Admin Dashboard User Journey', () => {
       // Verify error handling
       await expect(page.locator('[data-testid="services-error"]')).toBeVisible();
       await expect(page.locator('[data-testid="services-error"]')).toContainText(
-        'monitoring temporarily unavailable'
+        'monitoring temporarily unavailable',
       );
       await expect(page.locator('[data-testid="retry-services"]')).toBeVisible();
     });
@@ -713,7 +713,7 @@ test.describe('Admin Dashboard User Journey', () => {
       // Verify error handling
       await expect(page.locator('[data-testid="users-error"]')).toBeVisible();
       await expect(page.locator('[data-testid="users-error"]')).toContainText(
-        'Database connection failed'
+        'Database connection failed',
       );
     });
   });

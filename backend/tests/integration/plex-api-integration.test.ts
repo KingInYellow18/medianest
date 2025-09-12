@@ -491,11 +491,11 @@ describe('Plex API Integration Tests', () => {
           request(app)
             .get('/api/v1/plex/search')
             .query({ query: 'test' })
-            .set('Authorization', `Bearer ${accessToken}`)
+            .set('Authorization', `Bearer ${accessToken}`),
         );
 
       const responses = await Promise.all(
-        requests.map((req) => req.then((res) => res.status).catch(() => 429))
+        requests.map((req) => req.then((res) => res.status).catch(() => 429)),
       );
 
       const rateLimitedCount = responses.filter((status) => status === 429).length;
@@ -544,7 +544,7 @@ describe('Plex API Integration Tests', () => {
       // Verify items are sorted by addedAt descending
       const items = response.body.data.items;
       expect(new Date(items[0].addedAt).getTime()).toBeGreaterThanOrEqual(
-        new Date(items[1].addedAt).getTime()
+        new Date(items[1].addedAt).getTime(),
       );
     });
 
@@ -806,7 +806,7 @@ describe('Plex API Integration Tests', () => {
       const requests = Array(10)
         .fill(null)
         .map(() =>
-          request(app).get('/api/v1/plex/libraries').set('Authorization', `Bearer ${accessToken}`)
+          request(app).get('/api/v1/plex/libraries').set('Authorization', `Bearer ${accessToken}`),
         );
 
       const responses = await Promise.all(requests);

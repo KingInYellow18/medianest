@@ -318,19 +318,16 @@ await createRecommendedIndexes(prisma);
 ### **Key Metrics to Track**:
 
 1. **Response Time Distribution**:
-
    - P50 (median): Target < 100ms
    - P95: Target < 300ms
    - P99: Target < 500ms
 
 2. **Cache Hit Rates**:
-
    - Authentication cache: Target > 90%
    - Search results cache: Target > 80%
    - Media details cache: Target > 85%
 
 3. **Database Performance**:
-
    - Average query time: Target < 20ms
    - Slow queries (>100ms): Target < 5% of total
 

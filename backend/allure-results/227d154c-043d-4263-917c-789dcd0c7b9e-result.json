@@ -1,1 +1,30 @@
-{"uuid":"227d154c-043d-4263-917c-789dcd0c7b9e","name":"should prevent XSS attacks in login form","historyId":"15360daa2a35193e3a392f04bb13cfe1:f0494070a4792d94c64308aac1604abb","status":"skipped","statusDetails":{},"stage":"finished","steps":[],"attachments":[],"parameters":[{"name":"Project","value":"Mobile Safari"}],"labels":[{"name":"language","value":"javascript"},{"name":"framework","value":"playwright"},{"name":"package","value":"auth-journey.spec.ts"},{"name":"titlePath","value":" > Mobile Safari > auth-journey.spec.ts > Authentication User Journey > Security Validation"},{"name":"host","value":"kubuntudev"},{"name":"thread","value":"pid-38931-worker-0"},{"name":"parentSuite","value":"Mobile Safari"},{"name":"subSuite","value":"Authentication User Journey > Security Validation"}],"links":[],"start":1757602649458,"testCaseId":"15360daa2a35193e3a392f04bb13cfe1","fullName":"auth-journey.spec.ts:373:9","titlePath":["auth-journey.spec.ts","Authentication User Journey","Security Validation"],"stop":1757602649458}
+{
+  "uuid": "227d154c-043d-4263-917c-789dcd0c7b9e",
+  "name": "should prevent XSS attacks in login form",
+  "historyId": "15360daa2a35193e3a392f04bb13cfe1:f0494070a4792d94c64308aac1604abb",
+  "status": "skipped",
+  "statusDetails": {},
+  "stage": "finished",
+  "steps": [],
+  "attachments": [],
+  "parameters": [{ "name": "Project", "value": "Mobile Safari" }],
+  "labels": [
+    { "name": "language", "value": "javascript" },
+    { "name": "framework", "value": "playwright" },
+    { "name": "package", "value": "auth-journey.spec.ts" },
+    {
+      "name": "titlePath",
+      "value": " > Mobile Safari > auth-journey.spec.ts > Authentication User Journey > Security Validation"
+    },
+    { "name": "host", "value": "kubuntudev" },
+    { "name": "thread", "value": "pid-38931-worker-0" },
+    { "name": "parentSuite", "value": "Mobile Safari" },
+    { "name": "subSuite", "value": "Authentication User Journey > Security Validation" }
+  ],
+  "links": [],
+  "start": 1757602649458,
+  "testCaseId": "15360daa2a35193e3a392f04bb13cfe1",
+  "fullName": "auth-journey.spec.ts:373:9",
+  "titlePath": ["auth-journey.spec.ts", "Authentication User Journey", "Security Validation"],
+  "stop": 1757602649458
+}

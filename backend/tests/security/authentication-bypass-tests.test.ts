@@ -113,7 +113,7 @@ describe('Authentication Bypass Prevention Test Suite', () => {
         .get('/api/v1/dashboard/stats')
         .set(
           'Authorization',
-          'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjJ9.invalid'
+          'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjJ9.invalid',
         );
 
       expect([401, 403]).toContain(response.status);
@@ -184,8 +184,8 @@ describe('Authentication Bypass Prevention Test Suite', () => {
 
       const responses = await Promise.all(
         tokens.map((token) =>
-          request.get('/api/v1/dashboard/stats').set('Authorization', `Bearer ${token}`)
-        )
+          request.get('/api/v1/dashboard/stats').set('Authorization', `Bearer ${token}`),
+        ),
       );
 
       // All should work (unless there's a concurrent session limit)
@@ -400,7 +400,7 @@ describe('Authentication Bypass Prevention Test Suite', () => {
         attempts.push(
           request
             .post('/api/v1/auth/plex/verify')
-            .send({ pin: `${1000 + i}`, username: 'brute-force-test' })
+            .send({ pin: `${1000 + i}`, username: 'brute-force-test' }),
         );
       }
 

@@ -1,1 +1,30 @@
-{"uuid":"7d4a7742-a713-44c9-adef-b0a0dbf0f111","name":"should search across Plex libraries","historyId":"af2330acb8bc839190a61f832be9bded:5bd835b0d6b1d4ada3b9f0db936e82c8","status":"skipped","statusDetails":{},"stage":"finished","steps":[],"attachments":[],"parameters":[{"name":"Project","value":"chromium"}],"labels":[{"name":"language","value":"javascript"},{"name":"framework","value":"playwright"},{"name":"package","value":"plex-integration-journey.spec.ts"},{"name":"titlePath","value":" > chromium > plex-integration-journey.spec.ts > Plex Integration User Journey"},{"name":"host","value":"kubuntudev"},{"name":"thread","value":"pid-38931-worker-0"},{"name":"parentSuite","value":"chromium"},{"name":"subSuite","value":"Plex Integration User Journey"}],"links":[],"start":1757602649386,"testCaseId":"af2330acb8bc839190a61f832be9bded","fullName":"plex-integration-journey.spec.ts:459:7","titlePath":["plex-integration-journey.spec.ts","Plex Integration User Journey"],"stop":1757602649386}
+{
+  "uuid": "7d4a7742-a713-44c9-adef-b0a0dbf0f111",
+  "name": "should search across Plex libraries",
+  "historyId": "af2330acb8bc839190a61f832be9bded:5bd835b0d6b1d4ada3b9f0db936e82c8",
+  "status": "skipped",
+  "statusDetails": {},
+  "stage": "finished",
+  "steps": [],
+  "attachments": [],
+  "parameters": [{ "name": "Project", "value": "chromium" }],
+  "labels": [
+    { "name": "language", "value": "javascript" },
+    { "name": "framework", "value": "playwright" },
+    { "name": "package", "value": "plex-integration-journey.spec.ts" },
+    {
+      "name": "titlePath",
+      "value": " > chromium > plex-integration-journey.spec.ts > Plex Integration User Journey"
+    },
+    { "name": "host", "value": "kubuntudev" },
+    { "name": "thread", "value": "pid-38931-worker-0" },
+    { "name": "parentSuite", "value": "chromium" },
+    { "name": "subSuite", "value": "Plex Integration User Journey" }
+  ],
+  "links": [],
+  "start": 1757602649386,
+  "testCaseId": "af2330acb8bc839190a61f832be9bded",
+  "fullName": "plex-integration-journey.spec.ts:459:7",
+  "titlePath": ["plex-integration-journey.spec.ts", "Plex Integration User Journey"],
+  "stop": 1757602649386
+}

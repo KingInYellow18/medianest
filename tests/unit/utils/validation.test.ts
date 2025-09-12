@@ -1,6 +1,6 @@
 /**
  * VALIDATION UTILITIES UNIT TESTS
- * 
+ *
  * Comprehensive tests for validation utilities covering:
  * - Input validation
  * - Data sanitization
@@ -30,7 +30,7 @@ describe('Validation Utilities', () => {
         'first.last@subdomain.domain.com',
       ];
 
-      validEmails.forEach(email => {
+      validEmails.forEach((email) => {
         expect(() => validateEmail(email)).not.toThrow();
       });
     });
@@ -48,7 +48,7 @@ describe('Validation Utilities', () => {
         'user space@domain.com',
       ];
 
-      invalidEmails.forEach(email => {
+      invalidEmails.forEach((email) => {
         expect(() => validateEmail(email)).toThrow(ValidationError);
       });
     });
@@ -73,7 +73,7 @@ describe('Validation Utilities', () => {
         '8CharsPwd!',
       ];
 
-      strongPasswords.forEach(password => {
+      strongPasswords.forEach((password) => {
         expect(() => validatePassword(password)).not.toThrow();
       });
     });
@@ -91,7 +91,7 @@ describe('Validation Utilities', () => {
         'nonumbers1', // No uppercase or special chars
       ];
 
-      weakPasswords.forEach(password => {
+      weakPasswords.forEach((password) => {
         expect(() => validatePassword(password)).toThrow(ValidationError);
       });
     });
@@ -121,7 +121,7 @@ describe('Validation Utilities', () => {
         'a'.repeat(30), // Max length
       ];
 
-      validUsernames.forEach(username => {
+      validUsernames.forEach((username) => {
         expect(() => validateUsername(username)).not.toThrow();
       });
     });
@@ -140,7 +140,7 @@ describe('Validation Utilities', () => {
         'user-', // Ending with hyphen
       ];
 
-      invalidUsernames.forEach(username => {
+      invalidUsernames.forEach((username) => {
         expect(() => validateUsername(username)).toThrow(ValidationError);
       });
     });
@@ -150,7 +150,7 @@ describe('Validation Utilities', () => {
     it('should sanitize HTML and script tags', () => {
       const maliciousInput = '<script>alert("xss")</script>Hello <b>World</b>';
       const sanitized = sanitizeInput(maliciousInput);
-      
+
       expect(sanitized).not.toContain('<script>');
       expect(sanitized).not.toContain('</script>');
       expect(sanitized).toContain('Hello');
@@ -159,7 +159,7 @@ describe('Validation Utilities', () => {
     it('should trim whitespace', () => {
       const input = '  Hello World  ';
       const sanitized = sanitizeInput(input);
-      
+
       expect(sanitized).toBe('Hello World');
     });
 
@@ -171,14 +171,14 @@ describe('Validation Utilities', () => {
     it('should preserve safe content', () => {
       const safeInput = 'This is safe content with numbers 123 and symbols: !@#$%';
       const sanitized = sanitizeInput(safeInput);
-      
+
       expect(sanitized).toBe(safeInput);
     });
 
     it('should remove SQL injection attempts', () => {
       const sqlInjection = "'; DROP TABLE users; --";
       const sanitized = sanitizeInput(sqlInjection);
-      
+
       expect(sanitized).not.toContain('DROP TABLE');
       expect(sanitized).not.toContain('--');
     });
@@ -192,7 +192,7 @@ describe('Validation Utilities', () => {
         { page: 100, limit: 100 },
       ];
 
-      validPagination.forEach(params => {
+      validPagination.forEach((params) => {
         expect(() => validatePagination(params)).not.toThrow();
       });
     });
@@ -208,7 +208,7 @@ describe('Validation Utilities', () => {
         { page: 1, limit: 'xyz' }, // Non-numeric limit
       ];
 
-      invalidPagination.forEach(params => {
+      invalidPagination.forEach((params) => {
         expect(() => validatePagination(params as any)).toThrow(ValidationError);
       });
     });
@@ -239,7 +239,7 @@ describe('Validation Utilities', () => {
         '01234567-89ab-cdef-0123-456789abcdef',
       ];
 
-      validUUIDs.forEach(uuid => {
+      validUUIDs.forEach((uuid) => {
         expect(() => validateUUID(uuid)).not.toThrow();
       });
     });
@@ -255,7 +255,7 @@ describe('Validation Utilities', () => {
         'ZZZZZZZZ-e89b-12d3-a456-426614174000', // Invalid hex
       ];
 
-      invalidUUIDs.forEach(uuid => {
+      invalidUUIDs.forEach((uuid) => {
         expect(() => validateUUID(uuid)).toThrow(ValidationError);
       });
     });
@@ -275,24 +275,15 @@ describe('Validation Utilities', () => {
         '999999999999999999', // Very long number
       ];
 
-      validPlexIds.forEach(plexId => {
+      validPlexIds.forEach((plexId) => {
         expect(() => validatePlexId(plexId)).not.toThrow();
       });
     });
 
     it('should reject invalid Plex ID formats', () => {
-      const invalidPlexIds = [
-        '',
-        'abc123',
-        '123abc',
-        '12.34',
-        '12,34',
-        ' 123 ',
-        '-123',
-        '+123',
-      ];
+      const invalidPlexIds = ['', 'abc123', '123abc', '12.34', '12,34', ' 123 ', '-123', '+123'];
 
-      invalidPlexIds.forEach(plexId => {
+      invalidPlexIds.forEach((plexId) => {
         expect(() => validatePlexId(plexId)).toThrow(ValidationError);
       });
     });
@@ -306,7 +297,7 @@ describe('Validation Utilities', () => {
   describe('Edge Cases and Security', () => {
     it('should handle extremely long inputs gracefully', () => {
       const veryLongString = 'a'.repeat(10000);
-      
+
       expect(() => validateEmail(veryLongString + '@example.com')).toThrow(ValidationError);
       expect(() => validatePassword(veryLongString)).toThrow(ValidationError);
       expect(() => validateUsername(veryLongString)).toThrow(ValidationError);
@@ -315,7 +306,7 @@ describe('Validation Utilities', () => {
     it('should sanitize Unicode and special characters properly', () => {
       const unicodeInput = 'Hello 👋 World 🌍 with émojis';
       const sanitized = sanitizeInput(unicodeInput);
-      
+
       expect(sanitized).toContain('Hello');
       expect(sanitized).toContain('World');
     });
@@ -330,7 +321,7 @@ describe('Validation Utilities', () => {
         '<embed src=javascript:alert(1)>',
       ];
 
-      xssAttempts.forEach(attempt => {
+      xssAttempts.forEach((attempt) => {
         const sanitized = sanitizeInput(attempt);
         expect(sanitized).not.toContain('javascript:');
         expect(sanitized).not.toContain('onerror');
@@ -352,7 +343,7 @@ describe('Validation Utilities', () => {
       expect(() => validateEmail(edgeCaseEmails[1])).not.toThrow();
       expect(() => validateEmail(edgeCaseEmails[2])).not.toThrow();
       expect(() => validateEmail(edgeCaseEmails[3])).not.toThrow();
-      
+
       // IP addresses should be rejected for this application
       expect(() => validateEmail(edgeCaseEmails[4])).toThrow(ValidationError);
     });

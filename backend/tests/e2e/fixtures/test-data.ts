@@ -43,8 +43,8 @@ export const testMediaRequests: Record<string, TestMediaRequest> = {
     metadata: {
       youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
       quality: '720p',
-      format: 'mp4'
-    }
+      format: 'mp4',
+    },
   },
 
   urgentAudioRequest: {
@@ -54,7 +54,7 @@ export const testMediaRequests: Record<string, TestMediaRequest> = {
     priority: 'urgent',
     status: 'pending',
     dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 1 day from now
-    tags: ['podcast', 'audio', 'editing']
+    tags: ['podcast', 'audio', 'editing'],
   },
 
   largeVideoRequest: {
@@ -67,8 +67,8 @@ export const testMediaRequests: Record<string, TestMediaRequest> = {
     tags: ['documentary', 'education', 'full-length'],
     metadata: {
       estimatedSize: '2.5GB',
-      duration: '120 minutes'
-    }
+      duration: '120 minutes',
+    },
   },
 
   completedRequest: {
@@ -82,9 +82,9 @@ export const testMediaRequests: Record<string, TestMediaRequest> = {
       youtubeUrl: 'https://www.youtube.com/watch?v=example',
       quality: '1080p',
       format: 'mp4',
-      downloadPath: '/downloads/music-video.mp4'
-    }
-  }
+      downloadPath: '/downloads/music-video.mp4',
+    },
+  },
 };
 
 // YouTube-specific test data
@@ -93,22 +93,22 @@ export const youTubeTestData = {
     'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
     'https://youtu.be/dQw4w9WgXcQ',
     'https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=30s',
-    'https://m.youtube.com/watch?v=dQw4w9WgXcQ'
+    'https://m.youtube.com/watch?v=dQw4w9WgXcQ',
   ],
-  
+
   invalidUrls: [
     'https://www.google.com',
     'not-a-url',
     'https://youtube.com/invalid',
     'https://www.youtube.com/watch?v=',
-    ''
+    '',
   ],
 
   requestOptions: {
     qualities: ['144p', '240p', '360p', '480p', '720p', '1080p', '1440p', '2160p'],
     formats: ['mp4', 'webm', 'mkv', 'flv', 'avi'],
-    subtitleLanguages: ['en', 'es', 'fr', 'de', 'ja', 'ko', 'zh']
-  }
+    subtitleLanguages: ['en', 'es', 'fr', 'de', 'ja', 'ko', 'zh'],
+  },
 };
 
 // Test file data
@@ -117,21 +117,21 @@ export const testFiles = {
     name: 'test-image.jpg',
     size: 50 * 1024, // 50KB
     type: 'image/jpeg',
-    content: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAAAAAAAD...' // Truncated base64
+    content: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAAAAAAAD...', // Truncated base64
   },
-  
+
   largeVideo: {
     name: 'test-video.mp4',
     size: 100 * 1024 * 1024, // 100MB
-    type: 'video/mp4'
+    type: 'video/mp4',
   },
 
   textDocument: {
     name: 'test-document.txt',
     size: 1024, // 1KB
     type: 'text/plain',
-    content: 'This is a test document for E2E testing.'
-  }
+    content: 'This is a test document for E2E testing.',
+  },
 };
 
 // Test notification data
@@ -140,22 +140,22 @@ export const testNotifications = {
     type: 'request_completed',
     title: 'Download Completed',
     message: 'Your media request has been processed successfully',
-    priority: 'medium'
+    priority: 'medium',
   },
-  
+
   requestFailed: {
     type: 'request_failed',
     title: 'Download Failed',
     message: 'There was an error processing your request',
-    priority: 'high'
+    priority: 'high',
   },
 
   systemMaintenance: {
     type: 'system_maintenance',
     title: 'Scheduled Maintenance',
     message: 'The system will be undergoing maintenance tonight',
-    priority: 'low'
-  }
+    priority: 'low',
+  },
 };
 
 // Test comment data
@@ -167,27 +167,21 @@ export const testComments = [
   'This is for educational purposes.',
   'Request completed successfully!',
   'There was an issue with the original URL.',
-  'Updated the request with new requirements.'
+  'Updated the request with new requirements.',
 ];
 
 // Test search queries
 export const testSearchQueries = {
-  valid: [
-    'conference',
-    'music video',
-    'documentary',
-    'podcast',
-    'education'
-  ],
-  
+  valid: ['conference', 'music video', 'documentary', 'podcast', 'education'],
+
   edge_cases: [
     '',
     'a',
     'very long search query that might test input limits and see how the system handles extensive search terms',
     '123',
     '@#$%^&*()',
-    'search with   multiple   spaces'
-  ]
+    'search with   multiple   spaces',
+  ],
 };
 
 // Test filter combinations
@@ -198,15 +192,15 @@ export const testFilters = {
   byDateRange: [
     { start: '2024-01-01', end: '2024-01-31' },
     { start: '2024-02-01', end: '2024-02-29' },
-    { start: '2024-03-01', end: '2024-03-31' }
-  ]
+    { start: '2024-03-01', end: '2024-03-31' },
+  ],
 };
 
 // Test pagination data
 export const testPagination = {
   pageSizes: [10, 25, 50, 100],
   pageNumbers: [1, 2, 3, 10, 50],
-  totalRecords: [0, 1, 5, 15, 47, 100, 1000]
+  totalRecords: [0, 1, 5, 15, 47, 100, 1000],
 };
 
 // Factory functions for generating test data
@@ -218,7 +212,7 @@ export class TestDataFactory {
    */
   static createMediaRequest(overrides: Partial<TestMediaRequest> = {}): TestMediaRequest {
     this.requestCounter++;
-    
+
     return {
       title: `Test Request ${this.requestCounter}`,
       description: `Test description for request ${this.requestCounter}`,
@@ -227,7 +221,7 @@ export class TestDataFactory {
       status: 'pending',
       dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       tags: ['test', `request-${this.requestCounter}`],
-      ...overrides
+      ...overrides,
     };
   }
 
@@ -236,7 +230,7 @@ export class TestDataFactory {
    */
   static createYouTubeRequest(overrides: Partial<TestYouTubeRequest> = {}): TestYouTubeRequest {
     const baseRequest = this.createMediaRequest({ type: 'youtube' });
-    
+
     return {
       ...baseRequest,
       type: 'youtube',
@@ -245,7 +239,7 @@ export class TestDataFactory {
       format: 'mp4',
       includeSubtitles: false,
       includeThumbnail: true,
-      ...overrides
+      ...overrides,
     } as TestYouTubeRequest;
   }
 
@@ -254,11 +248,11 @@ export class TestDataFactory {
    */
   static createBatch(count: number, template: Partial<TestMediaRequest> = {}): TestMediaRequest[] {
     const requests: TestMediaRequest[] = [];
-    
+
     for (let i = 0; i < count; i++) {
       requests.push(this.createMediaRequest(template));
     }
-    
+
     return requests;
   }
 
@@ -266,9 +260,15 @@ export class TestDataFactory {
    * Generate requests with different statuses
    */
   static createRequestsWithAllStatuses(): TestMediaRequest[] {
-    const statuses: TestMediaRequest['status'][] = ['pending', 'in_progress', 'completed', 'failed', 'cancelled'];
-    
-    return statuses.map(status => this.createMediaRequest({ status }));
+    const statuses: TestMediaRequest['status'][] = [
+      'pending',
+      'in_progress',
+      'completed',
+      'failed',
+      'cancelled',
+    ];
+
+    return statuses.map((status) => this.createMediaRequest({ status }));
   }
 
   /**
@@ -276,25 +276,31 @@ export class TestDataFactory {
    */
   static createRequestsWithAllPriorities(): TestMediaRequest[] {
     const priorities: TestMediaRequest['priority'][] = ['low', 'medium', 'high', 'urgent'];
-    
-    return priorities.map(priority => this.createMediaRequest({ priority }));
+
+    return priorities.map((priority) => this.createMediaRequest({ priority }));
   }
 
   /**
    * Generate requests for date range testing
    */
-  static createRequestsForDateRange(startDate: Date, endDate: Date, count: number): TestMediaRequest[] {
+  static createRequestsForDateRange(
+    startDate: Date,
+    endDate: Date,
+    count: number,
+  ): TestMediaRequest[] {
     const requests: TestMediaRequest[] = [];
     const dateRange = endDate.getTime() - startDate.getTime();
-    
+
     for (let i = 0; i < count; i++) {
       const randomDate = new Date(startDate.getTime() + Math.random() * dateRange);
-      requests.push(this.createMediaRequest({
-        createdAt: randomDate.toISOString(),
-        dueDate: new Date(randomDate.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString()
-      }));
+      requests.push(
+        this.createMediaRequest({
+          createdAt: randomDate.toISOString(),
+          dueDate: new Date(randomDate.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        }),
+      );
     }
-    
+
     return requests;
   }
 
@@ -310,28 +316,28 @@ export class TestDataFactory {
 export const testScenarios = {
   emptyState: {
     description: 'User with no media requests',
-    data: []
+    data: [],
   },
 
   singleRequest: {
     description: 'User with one media request',
-    data: [testMediaRequests.basicYouTubeRequest]
+    data: [testMediaRequests.basicYouTubeRequest],
   },
 
   multipleRequests: {
     description: 'User with multiple requests in different states',
-    data: Object.values(testMediaRequests)
+    data: Object.values(testMediaRequests),
   },
 
   mixedPriorities: {
     description: 'Requests with different priority levels',
-    data: TestDataFactory.createRequestsWithAllPriorities()
+    data: TestDataFactory.createRequestsWithAllPriorities(),
   },
 
   allStatuses: {
     description: 'Requests covering all possible statuses',
-    data: TestDataFactory.createRequestsWithAllStatuses()
-  }
+    data: TestDataFactory.createRequestsWithAllStatuses(),
+  },
 };
 
 // Export all test data for easy import
@@ -344,5 +350,5 @@ export const allTestData = {
   searchQueries: testSearchQueries,
   filters: testFilters,
   pagination: testPagination,
-  scenarios: testScenarios
+  scenarios: testScenarios,
 };

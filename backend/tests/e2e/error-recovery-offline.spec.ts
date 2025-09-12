@@ -80,7 +80,7 @@ test.describe('Error Recovery and Offline Scenarios', () => {
       // Verify offline/error state is shown
       await expect(page.locator('[data-testid="offline-indicator"]')).toBeVisible();
       await expect(page.locator('[data-testid="offline-message"]')).toContainText(
-        /offline|network/i
+        /offline|network/i,
       );
       await expect(page.locator('[data-testid="retry-connection"]')).toBeVisible();
 
@@ -179,7 +179,7 @@ test.describe('Error Recovery and Offline Scenarios', () => {
       // Verify error state
       await expect(page.locator('[data-testid="plex-unavailable"]')).toBeVisible();
       await expect(page.locator('[data-testid="service-error-message"]')).toContainText(
-        'Plex server unavailable'
+        'Plex server unavailable',
       );
       await expect(page.locator('[data-testid="retry-plex-connection"]')).toBeVisible();
 
@@ -208,7 +208,7 @@ test.describe('Error Recovery and Offline Scenarios', () => {
       // Verify graceful error handling
       await expect(page.locator('[data-testid="service-error"]')).toBeVisible();
       await expect(page.locator('[data-testid="service-error"]')).toContainText(
-        /temporarily unavailable/i
+        /temporarily unavailable/i,
       );
       await expect(page.locator('[data-testid="try-again-later"]')).toBeVisible();
 
@@ -269,7 +269,7 @@ test.describe('Error Recovery and Offline Scenarios', () => {
       // Should preserve the intended destination
       await expect(page.locator('[data-testid="redirect-after-login"]')).toHaveAttribute(
         'value',
-        '/requests'
+        '/requests',
       );
     });
 
@@ -294,7 +294,7 @@ test.describe('Error Recovery and Offline Scenarios', () => {
       // Verify session conflict handling
       await expect(page.locator('[data-testid="session-conflict-modal"]')).toBeVisible();
       await expect(page.locator('[data-testid="conflict-message"]')).toContainText(
-        /another device/i
+        /another device/i,
       );
 
       // Should offer options to continue or logout
@@ -409,7 +409,7 @@ test.describe('Error Recovery and Offline Scenarios', () => {
       // Should handle JSON parse errors gracefully
       await expect(page.locator('[data-testid="parse-error"]')).toBeVisible();
       await expect(page.locator('[data-testid="error-message"]')).toContainText(
-        /unable to process/i
+        /unable to process/i,
       );
       await expect(page.locator('[data-testid="retry-button"]')).toBeVisible();
     });

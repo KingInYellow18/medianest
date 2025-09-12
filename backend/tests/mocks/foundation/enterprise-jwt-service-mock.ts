@@ -1,12 +1,12 @@
 /**
  * ENTERPRISE JWT SERVICE MOCK - Phase G Critical Repair
- * 
+ *
  * Fixes JWT authentication system breakdown by providing comprehensive
  * mocking infrastructure with proper Vitest patterns and export structure.
- * 
+ *
  * CRITICAL FIXES:
  * - Adds missing generateRefreshToken and shouldRotateToken exports
- * - Proper vi.mock factory functions for class instantiation  
+ * - Proper vi.mock factory functions for class instantiation
  * - Complete method coverage for JwtService interface
  * - Enterprise-grade mock coordination with Phase G registry
  */
@@ -52,11 +52,11 @@ export const createEnterpriseJwtServiceMock = () => {
       if (!token) {
         throw new Error('Token is required');
       }
-      
+
       if (token.includes('invalid')) {
         throw new Error('Invalid token');
       }
-      
+
       if (token.includes('expired')) {
         const error = new Error('jwt expired');
         (error as any).name = 'TokenExpiredError';
@@ -79,14 +79,14 @@ export const createEnterpriseJwtServiceMock = () => {
         tokenVersion: 1,
         iat: Math.floor(Date.now() / 1000),
         exp: Math.floor(Date.now() / 1000) + 86400, // 24 hours
-        jti: `enterprise-jti-${userId}-${Date.now()}`
+        jti: `enterprise-jti-${userId}-${Date.now()}`,
       };
     }),
 
     decodeToken: vi.fn().mockImplementation((token: string): JwtPayload | null => {
       try {
         if (!token) return null;
-        
+
         const userIdMatch = token.match(/(?:access|remember|refresh)-token-([^-]+)-/);
         const userId = userIdMatch ? userIdMatch[1] : 'enterprise-user-id';
 
@@ -95,7 +95,7 @@ export const createEnterpriseJwtServiceMock = () => {
           email: `${userId}@enterprise.medianest.com`,
           role: 'user',
           iat: Math.floor(Date.now() / 1000),
-          exp: Math.floor(Date.now() / 1000) + 86400
+          exp: Math.floor(Date.now() / 1000) + 86400,
         };
       } catch {
         return null;
@@ -122,33 +122,35 @@ export const createEnterpriseJwtServiceMock = () => {
     }),
 
     // CRITICAL MISSING METHODS - Emergency Export Repair
-    generateRefreshToken: vi.fn().mockImplementation((payload?: { userId: string; sessionId?: string }) => {
-      if (!payload?.userId) {
-        throw new Error('userId is required for refresh token generation');
-      }
-      return `enterprise-refresh-token-${payload.userId}-${Date.now()}`;
-    }),
+    generateRefreshToken: vi
+      .fn()
+      .mockImplementation((payload?: { userId: string; sessionId?: string }) => {
+        if (!payload?.userId) {
+          throw new Error('userId is required for refresh token generation');
+        }
+        return `enterprise-refresh-token-${payload.userId}-${Date.now()}`;
+      }),
 
     shouldRotateToken: vi.fn().mockImplementation((token: string): boolean => {
       if (!token) return true;
       if (token.includes('old') || token.includes('expired')) return true;
-      
+
       // Mock token rotation logic - rotate if token is "old"
       const decoded = mock.decodeToken(token);
       if (!decoded || !decoded.iat || !decoded.exp) return true;
-      
+
       const now = Math.floor(Date.now() / 1000);
       const tokenAge = now - decoded.iat;
       const tokenLifetime = decoded.exp - decoded.iat;
-      
+
       // Rotate if more than 75% through lifetime
-      return tokenAge > (tokenLifetime * 0.75);
-    })
+      return tokenAge > tokenLifetime * 0.75;
+    }),
   };
 
   // Add reset functionality
   (mock as any).reset = vi.fn().mockImplementation(() => {
-    Object.values(mock).forEach(fn => {
+    Object.values(mock).forEach((fn) => {
       if (typeof fn === 'function' && fn.mockReset) {
         fn.mockReset();
       }
@@ -173,7 +175,7 @@ export function setupEnterpriseJwtServiceMocks() {
     jwtService: enterpriseJwtServiceMock,
     default: enterpriseJwtServiceMock,
     // Export payload interface for type checking
-    JwtPayload: {} as JwtPayload
+    JwtPayload: {} as JwtPayload,
   }));
 
   return {
@@ -196,8 +198,8 @@ export function setupEnterpriseJwtServiceMocks() {
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + 86400,
       jti: `enterprise-test-jti-${Date.now()}`,
-      ...overrides
-    })
+      ...overrides,
+    }),
   };
 }
 
@@ -215,7 +217,9 @@ export const enterpriseJwtHelpers = {
     enterpriseJwtServiceMock.verifyToken.mockReturnValue(payload);
   },
 
-  mockTokenVerificationFailure: (error: Error = new Error('Enterprise token verification failed')) => {
+  mockTokenVerificationFailure: (
+    error: Error = new Error('Enterprise token verification failed'),
+  ) => {
     enterpriseJwtServiceMock.verifyToken.mockImplementation(() => {
       throw error;
     });
@@ -247,12 +251,12 @@ export const enterpriseJwtHelpers = {
     iat: Math.floor(Date.now() / 1000),
     exp: Math.floor(Date.now() / 1000) + 86400,
     jti: `enterprise-admin-jti-${Date.now()}`,
-    ...overrides
+    ...overrides,
   }),
 
   reset: () => {
     (enterpriseJwtServiceMock as any).reset();
-  }
+  },
 };
 
 // Type exports for enhanced TypeScript support

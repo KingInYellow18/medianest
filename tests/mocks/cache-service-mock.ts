@@ -1,6 +1,6 @@
 /**
  * COMPREHENSIVE CACHE SERVICE MOCK
- * 
+ *
  * Provides complete mocking for the CacheService class with all methods
  * including the missing 'clear' method that was causing test failures.
  */
@@ -16,29 +16,31 @@ export const createCacheServiceMock = () => {
     get: vi.fn().mockResolvedValue(null),
     set: vi.fn().mockResolvedValue(undefined),
     del: vi.fn().mockResolvedValue(undefined),
-    
+
     // Advanced operations
-    getOrSet: vi.fn().mockImplementation(async (key: string, callback: () => Promise<any>, ttl?: number) => {
-      // Simulate cache miss and call callback
-      return await callback();
-    }),
-    
+    getOrSet: vi
+      .fn()
+      .mockImplementation(async (key: string, callback: () => Promise<any>, ttl?: number) => {
+        // Simulate cache miss and call callback
+        return await callback();
+      }),
+
     // Pattern operations
     invalidatePattern: vi.fn().mockResolvedValue(undefined),
-    
+
     // Utility operations
     exists: vi.fn().mockResolvedValue(false),
     ttl: vi.fn().mockResolvedValue(-1),
-    
+
     // Information
     getInfo: vi.fn().mockResolvedValue({
       keyCount: 0,
-      memoryUsage: '1.2MB'
+      memoryUsage: '1.2MB',
     }),
-    
+
     // Clear operation (this was missing and causing test failures)
     clear: vi.fn().mockResolvedValue(undefined),
-    
+
     // Additional helper methods for testing
     flushAll: vi.fn().mockResolvedValue(undefined),
     reset: vi.fn().mockImplementation(() => {
@@ -85,8 +87,8 @@ export function setupCacheServiceMocks() {
 export const cacheServiceHelpers = {
   // Mock cache hit
   mockCacheHit: (key: string, value: any) => {
-    mockCacheService.get.mockImplementation((k: string) => 
-      k === key ? Promise.resolve(value) : Promise.resolve(null)
+    mockCacheService.get.mockImplementation((k: string) =>
+      k === key ? Promise.resolve(value) : Promise.resolve(null),
     );
   },
 
@@ -115,7 +117,7 @@ export const cacheServiceHelpers = {
     mockCacheService.get.mockImplementation((key: string) => {
       return Promise.resolve(data[key] || null);
     });
-    
+
     mockCacheService.exists.mockImplementation((key: string) => {
       return Promise.resolve(key in data);
     });

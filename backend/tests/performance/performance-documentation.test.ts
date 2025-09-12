@@ -209,7 +209,7 @@ describe('Performance Documentation and Baseline Validation', () => {
       (baseline.metrics.api.throughputRPS > 50 ? 25 : 15) +
         (baseline.metrics.api.avgResponseTime < 200 ? 25 : 15) +
         (baseline.metrics.api.p95ResponseTime < 500 ? 25 : 15) +
-        (baseline.metrics.api.errorRate < 0.05 ? 25 : 15)
+        (baseline.metrics.api.errorRate < 0.05 ? 25 : 15),
     );
 
     const databaseScore = Math.min(
@@ -217,7 +217,7 @@ describe('Performance Documentation and Baseline Validation', () => {
       (baseline.metrics.database.avgQueryTime < 100 ? 30 : 20) +
         (baseline.metrics.database.p95QueryTime < 200 ? 25 : 15) +
         (baseline.metrics.database.throughputQPS > 150 ? 25 : 15) +
-        (baseline.metrics.database.connectionEfficiency > 0.85 ? 20 : 10)
+        (baseline.metrics.database.connectionEfficiency > 0.85 ? 20 : 10),
     );
 
     const memoryScore = Math.min(
@@ -225,7 +225,7 @@ describe('Performance Documentation and Baseline Validation', () => {
       (!baseline.metrics.memory.leakDetected ? 30 : 0) +
         (baseline.metrics.memory.gcEfficiency > 0.7 ? 25 : 15) +
         (baseline.metrics.memory.avgHeapUsage < 100 * 1024 * 1024 ? 25 : 15) +
-        (baseline.metrics.memory.peakHeapUsage < 200 * 1024 * 1024 ? 20 : 10)
+        (baseline.metrics.memory.peakHeapUsage < 200 * 1024 * 1024 ? 20 : 10),
     );
 
     const concurrencyScore = Math.min(
@@ -233,7 +233,7 @@ describe('Performance Documentation and Baseline Validation', () => {
       (baseline.metrics.concurrency.maxConcurrentUsers >= 50 ? 30 : 20) +
         (baseline.metrics.concurrency.avgLoadHandling > 0.85 ? 25 : 15) +
         (baseline.metrics.concurrency.stressTestPassed ? 25 : 10) +
-        20 // Base score for attempting concurrency tests
+        20, // Base score for attempting concurrency tests
     );
 
     const cacheScore = Math.min(
@@ -241,7 +241,7 @@ describe('Performance Documentation and Baseline Validation', () => {
       (baseline.metrics.cache.hitRate > 0.7 ? 30 : 20) +
         (baseline.metrics.cache.avgResponseTime < 10 ? 25 : 15) +
         (baseline.metrics.cache.throughputOPS > 2000 ? 25 : 15) +
-        (baseline.metrics.cache.memoryEfficiency < 2 ? 20 : 10)
+        (baseline.metrics.cache.memoryEfficiency < 2 ? 20 : 10),
     );
 
     const websocketScore = Math.min(
@@ -249,7 +249,7 @@ describe('Performance Documentation and Baseline Validation', () => {
       (baseline.metrics.websocket.connectionTime < 100 ? 25 : 15) +
         (baseline.metrics.websocket.messageLatency < 50 ? 25 : 15) +
         (baseline.metrics.websocket.concurrentConnections >= 30 ? 25 : 15) +
-        (baseline.metrics.websocket.throughputMPS > 100 ? 25 : 15)
+        (baseline.metrics.websocket.throughputMPS > 100 ? 25 : 15),
     );
 
     const fileIOScore = Math.min(
@@ -257,7 +257,7 @@ describe('Performance Documentation and Baseline Validation', () => {
       (baseline.metrics.fileIO.uploadThroughput > 20 * 1024 * 1024 ? 30 : 20) +
         (baseline.metrics.fileIO.downloadThroughput > 30 * 1024 * 1024 ? 30 : 20) +
         (baseline.metrics.fileIO.processingEfficiency > 0.8 ? 25 : 15) +
-        15 // Base score for file operations
+        15, // Base score for file operations
     );
 
     const overallScore = Math.round(
@@ -268,7 +268,7 @@ describe('Performance Documentation and Baseline Validation', () => {
         cacheScore +
         websocketScore +
         fileIOScore) /
-        7
+        7,
     );
 
     baseline.grades = {
@@ -290,7 +290,7 @@ describe('Performance Documentation and Baseline Validation', () => {
    */
   const detectPerformanceRegression = (
     current: PerformanceBaseline,
-    previous?: PerformanceBaseline
+    previous?: PerformanceBaseline,
   ): void => {
     if (!previous) {
       current.regression = {
@@ -483,7 +483,7 @@ describe('Performance Documentation and Baseline Validation', () => {
       expect(currentBaseline.regression.detected).toBe(true);
       expect(currentBaseline.regression.affectedComponents.length).toBeGreaterThan(0);
       expect(
-        ['low', 'medium', 'high', 'critical'].includes(currentBaseline.regression.severity)
+        ['low', 'medium', 'high', 'critical'].includes(currentBaseline.regression.severity),
       ).toBe(true);
 
       logger.info('Regression detection completed', {
@@ -625,7 +625,7 @@ ${Object.entries(reportData.targets)
     ([component, targets]) =>
       `- **${component.toUpperCase()}**: ${Object.entries(targets as any)
         .map(([metric, target]) => `${metric}: ${target}`)
-        .join(', ')}`
+        .join(', ')}`,
   )
   .join('\n')}
       `.trim();

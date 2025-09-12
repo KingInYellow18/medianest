@@ -51,14 +51,14 @@ describe('JwtService', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Reset the config to test values before creating service
     vi.mocked(config).JWT_SECRET = 'test-secret';
     vi.mocked(config).JWT_ISSUER = 'medianest';
     vi.mocked(config).JWT_AUDIENCE = 'medianest-users';
-    
+
     jwtService = new JwtService();
-    
+
     mockPayload = {
       userId: 'user-123',
       email: 'test@example.com',
@@ -80,7 +80,7 @@ describe('JwtService', () => {
     it('should throw error if JWT_SECRET is missing', () => {
       // Mock config without JWT secret
       vi.mocked(config).JWT_SECRET = undefined as any;
-      
+
       expect(() => new JwtService()).toThrow('JWT_SECRET is required for authentication');
     });
 
@@ -88,7 +88,7 @@ describe('JwtService', () => {
       vi.mocked(config).JWT_SECRET = 'test-secret';
       vi.mocked(config).JWT_ISSUER = undefined as any;
       vi.mocked(config).JWT_AUDIENCE = undefined as any;
-      
+
       expect(() => new JwtService()).not.toThrow();
     });
   });
@@ -102,12 +102,12 @@ describe('JwtService', () => {
 
       expect(jwt.sign).toHaveBeenCalledWith(
         mockPayload,
-        'test-secret',  // Updated to match mock config
+        'test-secret', // Updated to match mock config
         {
           expiresIn: '24h',
-          issuer: 'medianest',  // Updated to match mock config
-          audience: 'medianest-users',  // Updated to match mock config
-        }
+          issuer: 'medianest', // Updated to match mock config
+          audience: 'medianest-users', // Updated to match mock config
+        },
       );
       expect(token).toBe(mockToken);
     });
@@ -116,7 +116,7 @@ describe('JwtService', () => {
       const invalidPayload = { ...mockPayload, userId: undefined as any };
 
       expect(() => jwtService.generateAccessToken(invalidPayload)).toThrow(
-        'JWT payload must include userId, email, and role'
+        'JWT payload must include userId, email, and role',
       );
     });
 
@@ -124,7 +124,7 @@ describe('JwtService', () => {
       const invalidPayload = { ...mockPayload, email: undefined as any };
 
       expect(() => jwtService.generateAccessToken(invalidPayload)).toThrow(
-        'JWT payload must include userId, email, and role'
+        'JWT payload must include userId, email, and role',
       );
     });
 
@@ -132,7 +132,7 @@ describe('JwtService', () => {
       const invalidPayload = { ...mockPayload, role: undefined as any };
 
       expect(() => jwtService.generateAccessToken(invalidPayload)).toThrow(
-        'JWT payload must include userId, email, and role'
+        'JWT payload must include userId, email, and role',
       );
     });
 
@@ -147,7 +147,7 @@ describe('JwtService', () => {
     it('should accept minimal payload', () => {
       const minimalPayload: JwtPayload = {
         userId: 'user-123',
-        email: 'test@example.com', 
+        email: 'test@example.com',
         role: 'user',
       };
 
@@ -158,12 +158,12 @@ describe('JwtService', () => {
 
       expect(jwt.sign).toHaveBeenCalledWith(
         minimalPayload,
-        'test-secret',  // Updated to match mock config
+        'test-secret', // Updated to match mock config
         {
           expiresIn: '24h',
-          issuer: 'medianest',  // Updated to match mock config
-          audience: 'medianest-users',  // Updated to match mock config
-        }
+          issuer: 'medianest', // Updated to match mock config
+          audience: 'medianest-users', // Updated to match mock config
+        },
       );
       expect(token).toBe(mockToken);
     });
@@ -178,12 +178,12 @@ describe('JwtService', () => {
 
       expect(jwt.sign).toHaveBeenCalledWith(
         mockPayload,
-        'test-secret',  // Updated to match mock config
+        'test-secret', // Updated to match mock config
         {
           expiresIn: '90d',
-          issuer: 'medianest',  // Updated to match mock config
-          audience: 'medianest-users',  // Updated to match mock config
-        }
+          issuer: 'medianest', // Updated to match mock config
+          audience: 'medianest-users', // Updated to match mock config
+        },
       );
       expect(token).toBe(mockToken);
     });
@@ -192,7 +192,7 @@ describe('JwtService', () => {
       const invalidPayload = { ...mockPayload, userId: undefined as any };
 
       expect(() => jwtService.generateRememberToken(invalidPayload)).toThrow(
-        'JWT payload must include userId, email, and role'
+        'JWT payload must include userId, email, and role',
       );
     });
 
@@ -215,11 +215,11 @@ describe('JwtService', () => {
 
       expect(jwt.verify).toHaveBeenCalledWith(
         mockToken,
-        'test-secret',  // Updated to match mock config
+        'test-secret', // Updated to match mock config
         {
-          issuer: 'medianest',  // Updated to match mock config
-          audience: 'medianest-users',  // Updated to match mock config
-        }
+          issuer: 'medianest', // Updated to match mock config
+          audience: 'medianest-users', // Updated to match mock config
+        },
       );
       expect(result).toEqual(mockDecodedPayload);
     });
@@ -320,12 +320,12 @@ describe('JwtService', () => {
           email: mockPayload.email,
           role: mockPayload.role,
         }),
-        'test-secret',  // Updated to match mock config
+        'test-secret', // Updated to match mock config
         {
           expiresIn: '24h',
-          issuer: 'medianest',  // Updated to match mock config
-          audience: 'medianest-users',  // Updated to match mock config
-        }
+          issuer: 'medianest', // Updated to match mock config
+          audience: 'medianest-users', // Updated to match mock config
+        },
       );
       expect(result).toBe(newToken);
     });
@@ -343,18 +343,18 @@ describe('JwtService', () => {
       vi.mocked(jwt.decode).mockReturnValue(incompletePayload as any);
 
       expect(() => jwtService.refreshToken(invalidToken)).toThrow(
-        'JWT payload must include userId, email, and role'
+        'JWT payload must include userId, email, and role',
       );
     });
 
     it('should exclude timing-sensitive fields from refreshed token', () => {
       const oldToken = 'old-token';
       const newToken = 'new-token';
-      const mockDecodedPayload = { 
-        ...mockPayload, 
-        iat: 1234567890, 
+      const mockDecodedPayload = {
+        ...mockPayload,
+        iat: 1234567890,
         exp: 1234571490,
-        jti: 'old-jti' 
+        jti: 'old-jti',
       };
 
       vi.mocked(jwt.decode).mockReturnValue(mockDecodedPayload as any);
@@ -370,16 +370,16 @@ describe('JwtService', () => {
           jti: expect.anything(),
         }),
         expect.any(String),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
   });
 
   describe('isTokenExpired', () => {
     it('should return false for valid token', () => {
-      const validPayload = { 
-        ...mockPayload, 
-        exp: Math.floor(Date.now() / 1000) + 3600 // 1 hour from now
+      const validPayload = {
+        ...mockPayload,
+        exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour from now
       };
       vi.mocked(jwt.decode).mockReturnValue(validPayload as any);
 
@@ -389,9 +389,9 @@ describe('JwtService', () => {
     });
 
     it('should return true for expired token', () => {
-      const expiredPayload = { 
-        ...mockPayload, 
-        exp: Math.floor(Date.now() / 1000) - 3600 // 1 hour ago
+      const expiredPayload = {
+        ...mockPayload,
+        exp: Math.floor(Date.now() / 1000) - 3600, // 1 hour ago
       };
       vi.mocked(jwt.decode).mockReturnValue(expiredPayload as any);
 

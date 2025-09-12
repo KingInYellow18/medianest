@@ -54,54 +54,49 @@ const ServicesListComponent = () => {
   const [services, setServices] = React.useState<any[]>([]);
   const [pagination, setPagination] = React.useState<any>(null);
 
-  const fetchServices = React.useCallback(async (page = 1, status?: string) => {
-    try {
-      const params = new URLSearchParams({ page: page.toString(), limit: '5' });
-      if (status) params.set('status', status);
-      
-      const data = await makeRequest(`/api/services?${params.toString()}`);
-      setServices(data.services);
-      setPagination(data.pagination);
-    } catch (err) {
-      console.error('Failed to fetch services:', err);
-    }
-  }, [makeRequest]);
+  const fetchServices = React.useCallback(
+    async (page = 1, status?: string) => {
+      try {
+        const params = new URLSearchParams({ page: page.toString(), limit: '5' });
+        if (status) params.set('status', status);
+
+        const data = await makeRequest(`/api/services?${params.toString()}`);
+        setServices(data.services);
+        setPagination(data.pagination);
+      } catch (err) {
+        console.error('Failed to fetch services:', err);
+      }
+    },
+    [makeRequest],
+  );
 
   React.useEffect(() => {
     fetchServices();
   }, [fetchServices]);
 
   if (loading && services.length === 0) {
-    return <div data-testid="services-loading">Loading services...</div>;
+    return <div data-testid='services-loading'>Loading services...</div>;
   }
 
   return (
     <div>
       {error && (
-        <div data-testid="services-error" role="alert">
+        <div data-testid='services-error' role='alert'>
           Error: {error}
         </div>
       )}
-      
-      <div data-testid="services-filter">
-        <button onClick={() => fetchServices(1, 'connected')}>
-          Connected Only
-        </button>
-        <button onClick={() => fetchServices(1, 'error')}>
-          Error Only
-        </button>
-        <button onClick={() => fetchServices(1)}>
-          All Services
-        </button>
+
+      <div data-testid='services-filter'>
+        <button onClick={() => fetchServices(1, 'connected')}>Connected Only</button>
+        <button onClick={() => fetchServices(1, 'error')}>Error Only</button>
+        <button onClick={() => fetchServices(1)}>All Services</button>
       </div>
 
-      <div data-testid="services-list">
+      <div data-testid='services-list'>
         {services.map((service) => (
           <div key={service.id} data-testid={`service-${service.id}`}>
             <h3>{service.name}</h3>
-            <span data-testid={`service-status-${service.id}`}>
-              {service.status}
-            </span>
+            <span data-testid={`service-status-${service.id}`}>{service.status}</span>
             <span data-testid={`service-uptime-${service.id}`}>
               {(service.uptime * 100).toFixed(1)}%
             </span>
@@ -110,25 +105,21 @@ const ServicesListComponent = () => {
       </div>
 
       {pagination && (
-        <div data-testid="services-pagination">
-          <span>Page {pagination.page} of {pagination.totalPages}</span>
+        <div data-testid='services-pagination'>
+          <span>
+            Page {pagination.page} of {pagination.totalPages}
+          </span>
           <span>Total: {pagination.total} services</span>
           {pagination.page > 1 && (
-            <button onClick={() => fetchServices(pagination.page - 1)}>
-              Previous
-            </button>
+            <button onClick={() => fetchServices(pagination.page - 1)}>Previous</button>
           )}
           {pagination.page < pagination.totalPages && (
-            <button onClick={() => fetchServices(pagination.page + 1)}>
-              Next
-            </button>
+            <button onClick={() => fetchServices(pagination.page + 1)}>Next</button>
           )}
         </div>
       )}
 
-      {loading && services.length > 0 && (
-        <div data-testid="services-refreshing">Refreshing...</div>
-      )}
+      {loading && services.length > 0 && <div data-testid='services-refreshing'>Refreshing...</div>}
     </div>
   );
 };
@@ -152,7 +143,7 @@ const ServiceDetailComponent = ({ serviceId }: { serviceId: string }) => {
   const testService = async () => {
     setTesting(true);
     setTestResult(null);
-    
+
     try {
       const result = await makeRequest(`/api/services/${serviceId}/test`, {
         method: 'POST',
@@ -182,51 +173,45 @@ const ServiceDetailComponent = ({ serviceId }: { serviceId: string }) => {
   }, [fetchService]);
 
   if (loading && !service) {
-    return <div data-testid="service-loading">Loading service...</div>;
+    return <div data-testid='service-loading'>Loading service...</div>;
   }
 
   if (error && !service) {
     return (
-      <div data-testid="service-error" role="alert">
+      <div data-testid='service-error' role='alert'>
         Error loading service: {error}
       </div>
     );
   }
 
   return (
-    <div data-testid="service-detail">
+    <div data-testid='service-detail'>
       {service && (
         <div>
           <h2>{service.name}</h2>
-          <div data-testid="service-status">{service.status}</div>
-          <div data-testid="service-url">{service.url}</div>
-          <div data-testid="service-uptime">{(service.uptime * 100).toFixed(1)}%</div>
-          
-          <button
-            onClick={testService}
-            disabled={testing}
-            data-testid="test-service-button"
-          >
+          <div data-testid='service-status'>{service.status}</div>
+          <div data-testid='service-url'>{service.url}</div>
+          <div data-testid='service-uptime'>{(service.uptime * 100).toFixed(1)}%</div>
+
+          <button onClick={testService} disabled={testing} data-testid='test-service-button'>
             {testing ? 'Testing...' : 'Test Connection'}
           </button>
 
           <button
             onClick={() => updateService({ name: 'Updated Service Name' })}
-            data-testid="update-service-button"
+            data-testid='update-service-button'
           >
             Update Service
           </button>
-          
+
           {testResult && (
-            <div data-testid="test-result">
+            <div data-testid='test-result'>
               {testResult.success ? (
-                <div data-testid="test-success">
+                <div data-testid='test-success'>
                   Test successful - Response time: {testResult.responseTime}ms
                 </div>
               ) : (
-                <div data-testid="test-error">
-                  Test failed: {testResult.error}
-                </div>
+                <div data-testid='test-error'>Test failed: {testResult.error}</div>
               )}
             </div>
           )}
@@ -244,10 +229,10 @@ const ErrorHandlingComponent = () => {
 
   const makeFailingRequest = async (endpoint: string) => {
     setResult('');
-    
+
     const maxRetries = 3;
     let attempts = 0;
-    
+
     while (attempts < maxRetries) {
       try {
         const response = await fetch(endpoint);
@@ -258,45 +243,38 @@ const ErrorHandlingComponent = () => {
       } catch (err) {
         attempts++;
         if (attempts < maxRetries) {
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
+          await new Promise((resolve) => setTimeout(resolve, 1000 * attempts));
         }
       }
     }
-    
+
     setResult(`Failed after ${attempts} attempts`);
     setRetryCount(attempts);
   };
 
   return (
     <div>
-      <button
-        onClick={() => makeFailingRequest('/api/error/500')}
-        data-testid="trigger-500-error"
-      >
+      <button onClick={() => makeFailingRequest('/api/error/500')} data-testid='trigger-500-error'>
         Test 500 Error
       </button>
-      
+
       <button
         onClick={() => makeFailingRequest('/api/error/timeout')}
-        data-testid="trigger-timeout-error"
+        data-testid='trigger-timeout-error'
       >
         Test Timeout
       </button>
-      
+
       <button
         onClick={() => makeFailingRequest('/api/rate-limited')}
-        data-testid="trigger-rate-limit"
+        data-testid='trigger-rate-limit'
       >
         Test Rate Limit
       </button>
-      
-      {result && (
-        <div data-testid="error-result">{result}</div>
-      )}
-      
-      {retryCount > 0 && (
-        <div data-testid="retry-count">Retries: {retryCount}</div>
-      )}
+
+      {result && <div data-testid='error-result'>{result}</div>}
+
+      {retryCount > 0 && <div data-testid='retry-count'>Retries: {retryCount}</div>}
     </div>
   );
 };
@@ -305,7 +283,7 @@ describe('API Integration Tests', () => {
   beforeEach(() => {
     mswUtils.resetMockState();
     localStorage.clear();
-    
+
     // Set up authenticated user for API tests
     mswUtils.setAuthenticatedUser({
       id: 'user-123',
@@ -395,7 +373,7 @@ describe('API Integration Tests', () => {
       // Test pagination navigation
       if (screen.queryByText('Next')) {
         await user.click(screen.getByText('Next'));
-        
+
         await waitFor(() => {
           expect(screen.getByText(/Page 2 of/)).toBeInTheDocument();
         });
@@ -417,7 +395,7 @@ describe('API Integration Tests', () => {
 
   describe('Service Detail API', () => {
     it('should fetch and display service details', async () => {
-      renderWithAuth(<ServiceDetailComponent serviceId="service-1" />);
+      renderWithAuth(<ServiceDetailComponent serviceId='service-1' />);
 
       // Should show loading state
       expect(screen.getByTestId('service-loading')).toBeInTheDocument();
@@ -434,7 +412,7 @@ describe('API Integration Tests', () => {
     });
 
     it('should handle service testing', async () => {
-      const { user } = renderWithAuth(<ServiceDetailComponent serviceId="service-1" />);
+      const { user } = renderWithAuth(<ServiceDetailComponent serviceId='service-1' />);
 
       await waitFor(() => {
         expect(screen.getByTestId('test-service-button')).toBeInTheDocument();
@@ -448,15 +426,18 @@ describe('API Integration Tests', () => {
       expect(screen.getByTestId('test-service-button')).toBeDisabled();
 
       // Wait for test result
-      await waitFor(() => {
-        expect(screen.getByTestId('test-result')).toBeInTheDocument();
-      }, { timeout: 5000 });
+      await waitFor(
+        () => {
+          expect(screen.getByTestId('test-result')).toBeInTheDocument();
+        },
+        { timeout: 5000 },
+      );
 
       expect(screen.getByTestId('test-success')).toHaveTextContent(/Response time: \d+ms/);
     });
 
     it('should handle service test failures', async () => {
-      const { user } = renderWithAuth(<ServiceDetailComponent serviceId="service-2" />);
+      const { user } = renderWithAuth(<ServiceDetailComponent serviceId='service-2' />);
 
       await waitFor(() => {
         expect(screen.getByTestId('test-service-button')).toBeInTheDocument();
@@ -465,15 +446,18 @@ describe('API Integration Tests', () => {
       // Test failing service
       await user.click(screen.getByTestId('test-service-button'));
 
-      await waitFor(() => {
-        expect(screen.getByTestId('test-error')).toBeInTheDocument();
-      }, { timeout: 5000 });
+      await waitFor(
+        () => {
+          expect(screen.getByTestId('test-error')).toBeInTheDocument();
+        },
+        { timeout: 5000 },
+      );
 
       expect(screen.getByTestId('test-error')).toHaveTextContent(/connection timeout/i);
     });
 
     it('should handle service updates', async () => {
-      const { user } = renderWithAuth(<ServiceDetailComponent serviceId="service-1" />);
+      const { user } = renderWithAuth(<ServiceDetailComponent serviceId='service-1' />);
 
       await waitFor(() => {
         expect(screen.getByTestId('update-service-button')).toBeInTheDocument();
@@ -489,7 +473,7 @@ describe('API Integration Tests', () => {
     });
 
     it('should handle 404 errors for non-existent services', async () => {
-      renderWithAuth(<ServiceDetailComponent serviceId="non-existent" />);
+      renderWithAuth(<ServiceDetailComponent serviceId='non-existent' />);
 
       await waitFor(() => {
         expect(screen.getByTestId('service-error')).toHaveTextContent(/not found/i);
@@ -505,9 +489,12 @@ describe('API Integration Tests', () => {
       await user.click(screen.getByTestId('trigger-500-error'));
 
       // Should eventually show retry result
-      await waitFor(() => {
-        expect(screen.getByTestId('error-result')).toBeInTheDocument();
-      }, { timeout: 10000 });
+      await waitFor(
+        () => {
+          expect(screen.getByTestId('error-result')).toBeInTheDocument();
+        },
+        { timeout: 10000 },
+      );
 
       expect(screen.getByTestId('retry-count')).toBeInTheDocument();
     });
@@ -517,9 +504,12 @@ describe('API Integration Tests', () => {
 
       await user.click(screen.getByTestId('trigger-timeout-error'));
 
-      await waitFor(() => {
-        expect(screen.getByTestId('error-result')).toHaveTextContent(/Failed after/);
-      }, { timeout: 15000 });
+      await waitFor(
+        () => {
+          expect(screen.getByTestId('error-result')).toHaveTextContent(/Failed after/);
+        },
+        { timeout: 15000 },
+      );
     });
 
     it('should handle rate limiting', async () => {
@@ -540,7 +530,7 @@ describe('API Integration Tests', () => {
     it('should handle multiple concurrent requests', async () => {
       const ConcurrentRequestsComponent = () => {
         const [results, setResults] = React.useState<string[]>([]);
-        
+
         const makeConcurrentRequests = async () => {
           const promises = [
             fetch('/api/services/service-1'),
@@ -548,23 +538,25 @@ describe('API Integration Tests', () => {
             fetch('/api/services/service-3'),
             fetch('/api/health'),
           ];
-          
+
           try {
             const responses = await Promise.all(promises);
-            const results = await Promise.all(responses.map(r => r.json()));
+            const results = await Promise.all(responses.map((r) => r.json()));
             setResults(results.map((r, i) => `Request ${i + 1}: Success`));
           } catch (err) {
             setResults(['Some requests failed']);
           }
         };
-        
+
         return (
           <div>
-            <button onClick={makeConcurrentRequests} data-testid="concurrent-requests">
+            <button onClick={makeConcurrentRequests} data-testid='concurrent-requests'>
               Make Concurrent Requests
             </button>
             {results.map((result, i) => (
-              <div key={i} data-testid={`result-${i}`}>{result}</div>
+              <div key={i} data-testid={`result-${i}`}>
+                {result}
+              </div>
             ))}
           </div>
         );
@@ -588,37 +580,33 @@ describe('API Integration Tests', () => {
       // This test would require implementing caching logic in the components
       // For now, we'll test that multiple requests to the same endpoint
       // don't cause issues and return consistent data
-      
+
       const CachedRequestComponent = () => {
         const [firstResult, setFirstResult] = React.useState<any>(null);
         const [secondResult, setSecondResult] = React.useState<any>(null);
-        
+
         const makeFirstRequest = async () => {
           const response = await fetch('/api/services/service-1');
           const data = await response.json();
           setFirstResult(data.service);
         };
-        
+
         const makeSecondRequest = async () => {
           const response = await fetch('/api/services/service-1');
           const data = await response.json();
           setSecondResult(data.service);
         };
-        
+
         return (
           <div>
-            <button onClick={makeFirstRequest} data-testid="first-request">
+            <button onClick={makeFirstRequest} data-testid='first-request'>
               First Request
             </button>
-            <button onClick={makeSecondRequest} data-testid="second-request">
+            <button onClick={makeSecondRequest} data-testid='second-request'>
               Second Request
             </button>
-            {firstResult && (
-              <div data-testid="first-result">{firstResult.name}</div>
-            )}
-            {secondResult && (
-              <div data-testid="second-result">{secondResult.name}</div>
-            )}
+            {firstResult && <div data-testid='first-result'>{firstResult.name}</div>}
+            {secondResult && <div data-testid='second-result'>{secondResult.name}</div>}
           </div>
         );
       };
@@ -626,13 +614,13 @@ describe('API Integration Tests', () => {
       const { user } = renderWithAuth(<CachedRequestComponent />);
 
       await user.click(screen.getByTestId('first-request'));
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('first-result')).toBeInTheDocument();
       });
 
       await user.click(screen.getByTestId('second-request'));
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('second-result')).toBeInTheDocument();
       });

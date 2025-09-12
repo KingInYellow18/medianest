@@ -28,24 +28,28 @@ tests/e2e/
 ## Test Coverage
 
 ### 🎬 Core Workflows
+
 - **Search and Browse**: Media discovery, pagination, filtering, sorting
-- **Request Creation**: Form validation, duplicate handling, error scenarios  
+- **Request Creation**: Form validation, duplicate handling, error scenarios
 - **Request Management**: Status tracking, filtering, cancellation
 - **Admin Operations**: Approval/denial, bulk actions, user management
 
 ### 🔒 Security Testing
+
 - **User Isolation**: Data access controls, request ownership
 - **Authentication**: Token validation, session management
 - **Authorization**: Role-based access, privilege escalation prevention
 - **Data Protection**: Sensitive data exposure, input sanitization
 
 ### 🎯 Integration Testing
+
 - **Plex Integration**: Library browsing, content search, availability status
 - **External APIs**: TMDB integration, metadata retrieval
 - **Database Operations**: CRUD operations, transaction integrity
 - **Real-time Features**: Status updates, notifications
 
 ### 📱 Cross-Platform Testing
+
 - **Responsive Design**: Mobile, tablet, desktop viewports
 - **Visual Regression**: API response structure consistency
 - **Performance**: Load testing, concurrent operations

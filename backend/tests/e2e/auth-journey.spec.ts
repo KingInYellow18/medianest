@@ -87,7 +87,7 @@ test.describe('Authentication User Journey', () => {
     await expect(page.locator('[data-testid="plex-login-button"]')).toBeVisible();
     await expect(page.locator('[data-testid="app-logo"]')).toBeVisible();
     await expect(page.locator('[data-testid="welcome-message"]')).toContainText(
-      'Welcome to MediaNest'
+      'Welcome to MediaNest',
     );
 
     // Start Plex login flow
@@ -96,7 +96,7 @@ test.describe('Authentication User Journey', () => {
     // Verify PIN input appears
     await expect(page.locator('[data-testid="pin-input"]')).toBeVisible();
     await expect(page.locator('[data-testid="plex-instructions"]')).toContainText(
-      'Enter the 4-digit PIN'
+      'Enter the 4-digit PIN',
     );
 
     // Enter PIN
@@ -211,7 +211,7 @@ test.describe('Authentication User Journey', () => {
     // Should redirect to login page
     await expect(page).toHaveURL('/auth/signin');
     await expect(page.locator('[data-testid="session-expired-message"]')).toContainText(
-      'session has expired'
+      'session has expired',
     );
   });
 

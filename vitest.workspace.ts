@@ -1,4 +1,4 @@
-import { defineWorkspace } from 'vitest/config'
+import { defineWorkspace } from 'vitest/config';
 
 export default defineWorkspace([
   {
@@ -17,21 +17,21 @@ export default defineWorkspace([
           '**/tests/**',
           '**/node_modules/**',
           'src/types/**',
-          'src/**/*.stories.tsx'
+          'src/**/*.stories.tsx',
         ],
         thresholds: {
           branches: 60,
           functions: 60,
           lines: 60,
-          statements: 60
-        }
-      }
-    }
+          statements: 60,
+        },
+      },
+    },
   },
   {
     extends: './backend/vitest.config.ts',
     test: {
-      name: 'backend', 
+      name: 'backend',
       root: './backend',
       coverage: {
         provider: 'v8',
@@ -43,16 +43,16 @@ export default defineWorkspace([
           '**/__tests__/**',
           '**/tests/**',
           '**/node_modules/**',
-          'src/types/**'
+          'src/types/**',
         ],
         thresholds: {
           branches: 60,
           functions: 60,
           lines: 60,
-          statements: 60
-        }
-      }
-    }
+          statements: 60,
+        },
+      },
+    },
   },
   {
     test: {
@@ -70,15 +70,15 @@ export default defineWorkspace([
           '**/__tests__/**',
           '**/tests/**',
           '**/node_modules/**',
-          'src/types/**'
+          'src/types/**',
         ],
         thresholds: {
           branches: 60,
           functions: 60,
           lines: 60,
-          statements: 60
-        }
-      }
-    }
-  }
-])
+          statements: 60,
+        },
+      },
+    },
+  },
+]);

@@ -153,7 +153,7 @@ export class SecurityTestRunner {
     const duration = (result.duration / 1000).toFixed(2);
 
     console.log(
-      `   ${status} ${result.passed} passed, ${result.failed} failed, ${result.skipped} skipped (${duration}s)`
+      `   ${status} ${result.passed} passed, ${result.failed} failed, ${result.skipped} skipped (${duration}s)`,
     );
 
     if (result.securityIssues.length > 0) {
@@ -263,7 +263,7 @@ export class SecurityTestRunner {
   private getCriticalTestsStatus(): boolean {
     const criticalSuites = this.testSuites.filter((s) => s.critical);
     const criticalResults = this.results.filter((r) =>
-      criticalSuites.some((s) => s.name === r.suite)
+      criticalSuites.some((s) => s.name === r.suite),
     );
 
     return criticalResults.every((r) => r.failed === 0);

@@ -126,7 +126,7 @@ describe('Database Query Performance Tests', () => {
       iterations?: number;
       target?: number;
       queryType?: 'SELECT' | 'INSERT' | 'UPDATE' | 'DELETE' | 'COMPLEX';
-    } = {}
+    } = {},
   ): Promise<DatabaseBenchmark> => {
     const { iterations = 10, target = 100, queryType = 'SELECT' } = options;
     const executionTimes: number[] = [];
@@ -169,7 +169,7 @@ describe('Database Query Performance Tests', () => {
     const benchmark: DatabaseBenchmark = {
       queryName,
       avgExecutionTime: Math.round(
-        executionTimes.reduce((sum, time) => sum + time, 0) / executionTimes.length
+        executionTimes.reduce((sum, time) => sum + time, 0) / executionTimes.length,
       ),
       minExecutionTime: Math.round(executionTimes[0]),
       maxExecutionTime: Math.round(executionTimes[executionTimes.length - 1]),
@@ -194,7 +194,7 @@ describe('Database Query Performance Tests', () => {
           prisma.user.findUnique({
             where: { id: testUsers[0].id },
           }),
-        { target: 50, iterations: 20 }
+        { target: 50, iterations: 20 },
       );
 
       expect(result.avgExecutionTime).toBeLessThan(50);
@@ -209,7 +209,7 @@ describe('Database Query Performance Tests', () => {
           prisma.user.findUnique({
             where: { email: testUsers[0].email },
           }),
-        { target: 75, iterations: 20 }
+        { target: 75, iterations: 20 },
       );
 
       expect(result.avgExecutionTime).toBeLessThan(75);
@@ -233,7 +233,7 @@ describe('Database Query Performance Tests', () => {
               createdAt: true,
             },
           }),
-        { target: 100, iterations: 15 }
+        { target: 100, iterations: 15 },
       );
 
       expect(result.avgExecutionTime).toBeLessThan(100);
@@ -264,7 +264,7 @@ describe('Database Query Performance Tests', () => {
               },
             },
           }),
-        { target: 50, iterations: 20 }
+        { target: 50, iterations: 20 },
       );
 
       expect(result.avgExecutionTime).toBeLessThan(50);
@@ -285,7 +285,7 @@ describe('Database Query Performance Tests', () => {
               },
             },
           }),
-        { target: 150, iterations: 15 }
+        { target: 150, iterations: 15 },
       );
 
       expect(result.avgExecutionTime).toBeLessThan(150);
@@ -305,7 +305,7 @@ describe('Database Query Performance Tests', () => {
             },
             take: 50,
           }),
-        { target: 200, iterations: 10 }
+        { target: 200, iterations: 10 },
       );
 
       expect(result.avgExecutionTime).toBeLessThan(200);
@@ -321,7 +321,7 @@ describe('Database Query Performance Tests', () => {
             orderBy: { createdAt: 'desc' },
             take: 30,
           }),
-        { target: 100, iterations: 15 }
+        { target: 100, iterations: 15 },
       );
 
       expect(result.avgExecutionTime).toBeLessThan(100);
@@ -336,7 +336,7 @@ describe('Database Query Performance Tests', () => {
             by: ['status'],
             _count: { status: true },
           }),
-        { target: 75, iterations: 20 }
+        { target: 75, iterations: 20 },
       );
 
       expect(result.avgExecutionTime).toBeLessThan(75);
@@ -357,7 +357,7 @@ describe('Database Query Performance Tests', () => {
           ]);
           return { totalUsers, activeUsers, adminUsers, totalRequests };
         },
-        { target: 300, iterations: 10, queryType: 'COMPLEX' }
+        { target: 300, iterations: 10, queryType: 'COMPLEX' },
       );
 
       expect(result.avgExecutionTime).toBeLessThan(300);
@@ -399,7 +399,7 @@ describe('Database Query Performance Tests', () => {
             topRequesters,
           };
         },
-        { target: 400, iterations: 8, queryType: 'COMPLEX' }
+        { target: 400, iterations: 8, queryType: 'COMPLEX' },
       );
 
       expect(result.avgExecutionTime).toBeLessThan(400);
@@ -439,7 +439,7 @@ describe('Database Query Performance Tests', () => {
             },
           });
         },
-        { target: 500, iterations: 5, queryType: 'COMPLEX' }
+        { target: 500, iterations: 5, queryType: 'COMPLEX' },
       );
 
       expect(result.avgExecutionTime).toBeLessThan(500);
@@ -463,7 +463,7 @@ describe('Database Query Performance Tests', () => {
             },
           });
         },
-        { target: 100, iterations: 10, queryType: 'INSERT' }
+        { target: 100, iterations: 10, queryType: 'INSERT' },
       );
 
       expect(result.avgExecutionTime).toBeLessThan(100);
@@ -494,7 +494,7 @@ describe('Database Query Performance Tests', () => {
             },
           });
         },
-        { target: 150, iterations: 8, queryType: 'INSERT' }
+        { target: 150, iterations: 8, queryType: 'INSERT' },
       );
 
       expect(result.avgExecutionTime).toBeLessThan(150);
@@ -517,7 +517,7 @@ describe('Database Query Performance Tests', () => {
             data: { status: 'APPROVED' },
           });
         },
-        { target: 75, iterations: 15, queryType: 'UPDATE' }
+        { target: 75, iterations: 15, queryType: 'UPDATE' },
       );
 
       expect(result.avgExecutionTime).toBeLessThan(75);
@@ -530,7 +530,7 @@ describe('Database Query Performance Tests', () => {
       const result = await measureDatabaseQuery(
         'databaseConnection',
         () => prisma.$queryRaw`SELECT 1 as connection_test`,
-        { target: 50, iterations: 20 }
+        { target: 50, iterations: 20 },
       );
 
       expect(result.avgExecutionTime).toBeLessThan(50);
@@ -567,7 +567,7 @@ describe('Database Query Performance Tests', () => {
             return { user, mediaRequest };
           });
         },
-        { target: 200, iterations: 5, queryType: 'COMPLEX' }
+        { target: 200, iterations: 5, queryType: 'COMPLEX' },
       );
 
       expect(result.avgExecutionTime).toBeLessThan(200);
@@ -592,7 +592,7 @@ describe('Database Query Performance Tests', () => {
         avgMemoryImpact:
           performanceMetrics.reduce(
             (sum, m) => sum + (m.memoryAfter.heapUsed - m.memoryBefore.heapUsed),
-            0
+            0,
           ) / performanceMetrics.length,
         queryTypeBreakdown: {
           select: performanceMetrics.filter((m) => m.queryType === 'SELECT').length,

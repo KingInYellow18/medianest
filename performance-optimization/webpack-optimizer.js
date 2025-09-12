@@ -14,7 +14,7 @@ class WebpackOptimizer {
       treeshaking: true,
       compression: true,
       bundleAnalysis: true,
-      caching: true
+      caching: true,
     };
   }
 
@@ -365,12 +365,12 @@ module.exports = {
 
   async applyOptimizations() {
     const frontendPath = path.join(process.cwd(), 'frontend');
-    
+
     if (fs.existsSync(frontendPath)) {
       // Apply Next.js optimizations
       const nextConfigPath = path.join(frontendPath, 'next.config.js');
       fs.writeFileSync(nextConfigPath, this.generateOptimizedNextConfig());
-      
+
       // Apply Tailwind optimizations
       const tailwindConfigPath = path.join(frontendPath, 'tailwind.config.js');
       if (fs.existsSync(tailwindConfigPath)) {
@@ -382,7 +382,7 @@ module.exports = {
       console.log('   - Bundle splitting configured');
       console.log('   - Tree shaking enabled');
       console.log('   - Tailwind CSS optimized');
-      
+
       return true;
     }
 
@@ -393,8 +393,9 @@ module.exports = {
 // Run optimization if called directly
 if (require.main === module) {
   const optimizer = new WebpackOptimizer();
-  optimizer.applyOptimizations()
-    .then(result => {
+  optimizer
+    .applyOptimizations()
+    .then((result) => {
       if (result) {
         console.log('🚀 Webpack optimization completed successfully');
       } else {

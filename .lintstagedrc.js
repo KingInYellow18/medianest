@@ -3,24 +3,18 @@
  */
 module.exports = {
   // Frontend files - use Next.js ESLint integration
-  'frontend/**/*.{js,jsx,ts,tsx}': [
-    'prettier --write'
-  ],
+  'frontend/**/*.{js,jsx,ts,tsx}': ['prettier --write'],
 
   // Backend TypeScript files
-  'backend/**/*.ts': [
-    'prettier --write'
-  ],
+  'backend/**/*.ts': ['prettier --write'],
 
   // Shared package TypeScript files
-  'shared/**/*.ts': [
-    'prettier --write'
-  ],
+  'shared/**/*.ts': ['prettier --write'],
 
   // JSON files (excluding package-lock.json)
   '**/*.json': (files) => {
-    const filtered = files.filter(file => !file.includes('package-lock.json'))
-    return filtered.length ? [`prettier --write ${filtered.join(' ')}`] : []
+    const filtered = files.filter((file) => !file.includes('package-lock.json'));
+    return filtered.length ? [`prettier --write ${filtered.join(' ')}`] : [];
   },
 
   // Markdown files
@@ -36,5 +30,5 @@ module.exports = {
   '**/*.css': 'prettier --write',
 
   // Shell scripts - ensure they're executable
-  '**/*.sh': (files) => files.map(file => `chmod +x ${file}`)
-}
+  '**/*.sh': (files) => files.map((file) => `chmod +x ${file}`),
+};

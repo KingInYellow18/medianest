@@ -127,7 +127,7 @@ describe('AuthenticationFacade', () => {
     authFacade = new AuthenticationFacade(
       mockUserRepository,
       mockSessionTokenRepository,
-      mockDeviceSessionService
+      mockDeviceSessionService,
     );
 
     mockRequest = {
@@ -151,8 +151,10 @@ describe('AuthenticationFacade', () => {
       // Mock successful authentication flow
       const { validateToken } = await import('../../src/middleware/auth/token-validator');
       const { validateUser } = await import('../../src/middleware/auth/user-validator');
-      const { registerAndAssessDevice } = await import('../../src/middleware/auth/device-session-manager');
-      
+      const { registerAndAssessDevice } = await import(
+        '../../src/middleware/auth/device-session-manager'
+      );
+
       vi.mocked(validateToken).mockReturnValue({
         token: 'test-jwt-token',
         payload: {
@@ -166,7 +168,7 @@ describe('AuthenticationFacade', () => {
           sessionId: 'test-session-id',
         },
       } as any);
-      
+
       vi.mocked(validateUser).mockResolvedValue({
         id: 'user-123',
         email: 'test@example.com',
@@ -176,7 +178,7 @@ describe('AuthenticationFacade', () => {
         plexId: 'plex-123',
         plexUsername: 'testuser',
       } as any);
-      
+
       vi.mocked(registerAndAssessDevice).mockResolvedValue({
         deviceId: 'device-123',
         isNewDevice: false,
@@ -201,7 +203,7 @@ describe('AuthenticationFacade', () => {
       mockRequest.headers!.authorization = 'Bearer invalid-token';
 
       await expect(authFacade.authenticate(mockRequest as Request)).rejects.toThrow(
-        'Invalid token'
+        'Invalid token',
       );
     });
 
@@ -212,7 +214,7 @@ describe('AuthenticationFacade', () => {
       } as any);
 
       await expect(authFacade.authenticate(mockRequest as Request)).rejects.toThrow(
-        AuthenticationError
+        AuthenticationError,
       );
     });
 
@@ -220,7 +222,7 @@ describe('AuthenticationFacade', () => {
       delete mockRequest.headers!.authorization;
 
       await expect(authFacade.authenticate(mockRequest as Request)).rejects.toThrow(
-        'Authentication required'
+        'Authentication required',
       );
     });
   });
@@ -229,7 +231,7 @@ describe('AuthenticationFacade', () => {
     it('should return user data for valid token', async () => {
       const { extractTokenOptional } = await import('../../src/middleware/auth/token-validator');
       const { validateUserOptional } = await import('../../src/middleware/auth/user-validator');
-      
+
       vi.mocked(extractTokenOptional).mockReturnValue('test-jwt-token');
       vi.mocked(validateUserOptional).mockResolvedValue({
         id: 'user-123',
@@ -272,7 +274,7 @@ describe('AuthenticationFacade', () => {
     it('should return null for inactive user', async () => {
       const { extractTokenOptional } = await import('../../src/middleware/auth/token-validator');
       const { validateUserOptional } = await import('../../src/middleware/auth/user-validator');
-      
+
       vi.mocked(extractTokenOptional).mockReturnValue('test-jwt-token');
       vi.mocked(validateUserOptional).mockResolvedValue(null); // Inactive users return null
 

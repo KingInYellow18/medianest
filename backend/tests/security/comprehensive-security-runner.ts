@@ -414,7 +414,7 @@ export class ComprehensiveSecurityRunner {
 
   private calculateCategoryCoverage(results: SecurityTestResult[], category: string): number {
     const categoryResults = results.filter(
-      (r) => this.securityTestSuites.find((s) => s.name === r.suite)?.category === category
+      (r) => this.securityTestSuites.find((s) => s.name === r.suite)?.category === category,
     );
 
     if (categoryResults.length === 0) return 0;
@@ -427,7 +427,7 @@ export class ComprehensiveSecurityRunner {
 
   private generateRecommendations(
     vulnerabilities: SecurityVulnerability[],
-    score: number
+    score: number,
   ): string[] {
     const recommendations = new Set<string>();
 
@@ -485,16 +485,16 @@ export class ComprehensiveSecurityRunner {
     console.log('='.repeat(80));
 
     console.log(
-      `\n🎯 OVERALL SECURITY SCORE: ${report.overallScore.toFixed(1)}/100 (Grade: ${report.grade})`
+      `\n🎯 OVERALL SECURITY SCORE: ${report.overallScore.toFixed(1)}/100 (Grade: ${report.grade})`,
     );
 
     console.log(`\n📊 TEST RESULTS:`);
     console.log(`   Total Tests: ${report.totalTests}`);
     console.log(
-      `   Passed: ${report.passedTests} (${((report.passedTests / report.totalTests) * 100).toFixed(1)}%)`
+      `   Passed: ${report.passedTests} (${((report.passedTests / report.totalTests) * 100).toFixed(1)}%)`,
     );
     console.log(
-      `   Failed: ${report.failedTests} (${((report.failedTests / report.totalTests) * 100).toFixed(1)}%)`
+      `   Failed: ${report.failedTests} (${((report.failedTests / report.totalTests) * 100).toFixed(1)}%)`,
     );
 
     console.log(`\n🚨 VULNERABILITIES:`);

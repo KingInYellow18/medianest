@@ -17,7 +17,11 @@ export class TestHelpers {
   /**
    * Wait for specific API call to complete
    */
-  static async waitForAPICall(page: Page, urlPattern: string | RegExp, timeout = 30000): Promise<any> {
+  static async waitForAPICall(
+    page: Page,
+    urlPattern: string | RegExp,
+    timeout = 30000,
+  ): Promise<any> {
     const response = await page.waitForResponse(urlPattern, { timeout });
     const data = await response.json().catch(() => null);
     return { response, data };
@@ -30,12 +34,12 @@ export class TestHelpers {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const filename = `${name}-${timestamp}.png`;
     const path = `tests/e2e/screenshots/${filename}`;
-    
-    await page.screenshot({ 
-      path, 
-      fullPage: true 
+
+    await page.screenshot({
+      path,
+      fullPage: true,
     });
-    
+
     return path;
   }
 
@@ -87,12 +91,12 @@ export class TestHelpers {
    * Wait for element with retry logic
    */
   static async waitForElementWithRetry(
-    page: Page, 
-    selector: string, 
-    options: { timeout?: number; retries?: number; retryDelay?: number } = {}
+    page: Page,
+    selector: string,
+    options: { timeout?: number; retries?: number; retryDelay?: number } = {},
   ): Promise<boolean> {
     const { timeout = 5000, retries = 3, retryDelay = 1000 } = options;
-    
+
     for (let i = 0; i < retries; i++) {
       try {
         await page.waitForSelector(selector, { timeout });
@@ -104,7 +108,7 @@ export class TestHelpers {
         await page.waitForTimeout(retryDelay);
       }
     }
-    
+
     return false;
   }
 
@@ -128,14 +132,14 @@ export class TestHelpers {
   static async getAllTextContents(page: Page, selector: string): Promise<string[]> {
     const elements = await page.locator(selector).all();
     const texts = [];
-    
+
     for (const element of elements) {
       const text = await element.textContent();
       if (text) {
         texts.push(text.trim());
       }
     }
-    
+
     return texts;
   }
 
@@ -154,7 +158,12 @@ export class TestHelpers {
   /**
    * Wait for text to appear in element
    */
-  static async waitForTextInElement(page: Page, selector: string, text: string, timeout = 10000): Promise<void> {
+  static async waitForTextInElement(
+    page: Page,
+    selector: string,
+    text: string,
+    timeout = 10000,
+  ): Promise<void> {
     await expect(page.locator(selector)).toContainText(text, { timeout });
   }
 
@@ -170,7 +179,11 @@ export class TestHelpers {
   /**
    * Select multiple options from select element
    */
-  static async selectMultipleOptions(page: Page, selector: string, values: string[]): Promise<void> {
+  static async selectMultipleOptions(
+    page: Page,
+    selector: string,
+    values: string[],
+  ): Promise<void> {
     const select = page.locator(selector);
     await select.selectOption(values);
   }
@@ -178,7 +191,11 @@ export class TestHelpers {
   /**
    * Upload multiple files
    */
-  static async uploadMultipleFiles(page: Page, selector: string, filePaths: string[]): Promise<void> {
+  static async uploadMultipleFiles(
+    page: Page,
+    selector: string,
+    filePaths: string[],
+  ): Promise<void> {
     const fileInput = page.locator(selector);
     await fileInput.setInputFiles(filePaths);
   }
@@ -186,7 +203,11 @@ export class TestHelpers {
   /**
    * Handle dialog (alert, confirm, prompt)
    */
-  static async handleNextDialog(page: Page, action: 'accept' | 'dismiss', promptText?: string): Promise<void> {
+  static async handleNextDialog(
+    page: Page,
+    action: 'accept' | 'dismiss',
+    promptText?: string,
+  ): Promise<void> {
     page.once('dialog', async (dialog) => {
       if (promptText && dialog.type() === 'prompt') {
         await dialog.accept(promptText);
@@ -250,15 +271,15 @@ export class TestHelpers {
       '.error',
       '[class*="error"]',
       'h1:has-text("Error")',
-      'h1:has-text("Not Found")'
+      'h1:has-text("Not Found")',
     ];
-    
+
     for (const selector of errorSelectors) {
       if (await page.locator(selector).isVisible()) {
         return true;
       }
     }
-    
+
     return false;
   }
 
@@ -267,12 +288,19 @@ export class TestHelpers {
    */
   static async getPageMetrics(page: Page): Promise<any> {
     return await page.evaluate(() => {
-      const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+      const navigation = performance.getEntriesByType(
+        'navigation',
+      )[0] as PerformanceNavigationTiming;
       return {
         loadTime: navigation.loadEventEnd - navigation.fetchStart,
         domContentLoaded: navigation.domContentLoadedEventEnd - navigation.fetchStart,
-        firstPaint: performance.getEntriesByType('paint').find(entry => entry.name === 'first-paint')?.startTime || 0,
-        firstContentfulPaint: performance.getEntriesByType('paint').find(entry => entry.name === 'first-contentful-paint')?.startTime || 0
+        firstPaint:
+          performance.getEntriesByType('paint').find((entry) => entry.name === 'first-paint')
+            ?.startTime || 0,
+        firstContentfulPaint:
+          performance
+            .getEntriesByType('paint')
+            .find((entry) => entry.name === 'first-contentful-paint')?.startTime || 0,
       };
     });
   }
@@ -286,13 +314,15 @@ export class TestHelpers {
     return await page.evaluate(() => {
       // Basic accessibility checks
       const missingAltImages = document.querySelectorAll('img:not([alt])').length;
-      const missingLabels = document.querySelectorAll('input:not([aria-label]):not([aria-labelledby]):not([id])').length;
-      
+      const missingLabels = document.querySelectorAll(
+        'input:not([aria-label]):not([aria-labelledby]):not([id])',
+      ).length;
+
       return {
         missingAltImages,
         missingLabels,
         hasSkipLink: !!document.querySelector('[href="#main"], [href="#content"]'),
-        hasHeadings: !!document.querySelector('h1, h2, h3, h4, h5, h6')
+        hasHeadings: !!document.querySelector('h1, h2, h3, h4, h5, h6'),
       };
     });
   }
@@ -329,8 +359,8 @@ export class TestHelpers {
    * Simulate slow network
    */
   static async simulateSlowNetwork(page: Page): Promise<void> {
-    await page.route('**/*', async route => {
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Add 1s delay
+    await page.route('**/*', async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Add 1s delay
       route.continue();
     });
   }
@@ -354,15 +384,15 @@ export class TestHelpers {
    */
   static async getConsoleLogs(page: Page): Promise<any[]> {
     const logs: any[] = [];
-    
-    page.on('console', msg => {
+
+    page.on('console', (msg) => {
       logs.push({
         type: msg.type(),
         text: msg.text(),
-        location: msg.location()
+        location: msg.location(),
       });
     });
-    
+
     return logs;
   }
 
@@ -377,7 +407,7 @@ export class TestHelpers {
    * Assert no console errors
    */
   static assertNoConsoleErrors(logs: any[]): void {
-    const errors = logs.filter(log => log.type === 'error');
+    const errors = logs.filter((log) => log.type === 'error');
     if (errors.length > 0) {
       throw new Error(`Console errors found: ${JSON.stringify(errors, null, 2)}`);
     }
@@ -390,7 +420,7 @@ export class TestHelpers {
     return await browser.newContext({
       viewport: { width: 1920, height: 1080 },
       ignoreHTTPSErrors: true,
-      ...options
+      ...options,
     });
   }
 
@@ -405,11 +435,10 @@ export class TestHelpers {
           await apiHelpers.delete(`/api/requests/${data.id}`).catch(() => {});
         }
       }
-      
+
       // Clear browser data
       await page.context().clearCookies();
       await page.context().clearPermissions();
-      
     } catch (error) {
       console.warn('Cleanup error:', error);
     }
@@ -418,13 +447,19 @@ export class TestHelpers {
   /**
    * Generate test report data
    */
-  static generateTestReport(testName: string, startTime: number, endTime: number, status: 'passed' | 'failed', error?: any): any {
+  static generateTestReport(
+    testName: string,
+    startTime: number,
+    endTime: number,
+    status: 'passed' | 'failed',
+    error?: any,
+  ): any {
     return {
       testName,
       duration: endTime - startTime,
       status,
       timestamp: new Date().toISOString(),
-      error: error?.message || null
+      error: error?.message || null,
     };
   }
 }
@@ -437,7 +472,7 @@ export const utils = {
   parseDate: TestHelpers.parseDate,
   addDays: TestHelpers.addDays,
   getCurrentPath: TestHelpers.getCurrentPath,
-  getSearchParams: TestHelpers.getSearchParams
+  getSearchParams: TestHelpers.getSearchParams,
 };
 
 // Export test helper class

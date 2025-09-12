@@ -11,7 +11,7 @@ Dashboard endpoints provide real-time and cached data about system health, perfo
 ## Caching Strategy
 
 - **Stats**: 5-minute cache (medium volatility)
-- **Service Status**: 1-minute cache (high volatility) 
+- **Service Status**: 1-minute cache (high volatility)
 - **Notifications**: No cache (real-time data)
 
 ## Endpoints
@@ -56,22 +56,22 @@ curl "http://localhost:3001/api/v1/dashboard/stats" \
 
 #### Response Schema
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `totalRequests` | integer | Total number of media requests |
-| `pendingRequests` | integer | Number of pending requests |
-| `completedRequests` | integer | Number of completed requests |
-| `totalUsers` | integer | Total registered users |
-| `activeUsers` | integer | Users active in last 24 hours |
-| `systemUptime` | number | System uptime in seconds |
-| `diskUsage` | object | Disk space information in bytes |
-| `diskUsage.total` | number | Total disk space |
-| `diskUsage.used` | number | Used disk space |
-| `diskUsage.available` | number | Available disk space |
-| `memoryUsage` | object | Memory usage information in bytes |
-| `memoryUsage.total` | number | Total system memory |
-| `memoryUsage.used` | number | Used memory |
-| `memoryUsage.free` | number | Free memory |
+| Field                 | Type    | Description                       |
+| --------------------- | ------- | --------------------------------- |
+| `totalRequests`       | integer | Total number of media requests    |
+| `pendingRequests`     | integer | Number of pending requests        |
+| `completedRequests`   | integer | Number of completed requests      |
+| `totalUsers`          | integer | Total registered users            |
+| `activeUsers`         | integer | Users active in last 24 hours     |
+| `systemUptime`        | number  | System uptime in seconds          |
+| `diskUsage`           | object  | Disk space information in bytes   |
+| `diskUsage.total`     | number  | Total disk space                  |
+| `diskUsage.used`      | number  | Used disk space                   |
+| `diskUsage.available` | number  | Available disk space              |
+| `memoryUsage`         | object  | Memory usage information in bytes |
+| `memoryUsage.total`   | number  | Total system memory               |
+| `memoryUsage.used`    | number  | Used memory                       |
+| `memoryUsage.free`    | number  | Free memory                       |
 
 ---
 
@@ -135,15 +135,15 @@ curl "http://localhost:3001/api/v1/dashboard/status" \
 
 #### Service Status Schema
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | string | Unique service identifier |
-| `name` | string | Human-readable service name |
-| `status` | string | Service status: `up`, `down`, or `degraded` |
-| `responseTime` | number | Response time in milliseconds |
-| `lastChecked` | string | ISO timestamp of last health check |
-| `uptime` | number | Uptime percentage (last 24 hours) |
-| `error` | string | Error message if service has issues |
+| Field          | Type   | Description                                 |
+| -------------- | ------ | ------------------------------------------- |
+| `id`           | string | Unique service identifier                   |
+| `name`         | string | Human-readable service name                 |
+| `status`       | string | Service status: `up`, `down`, or `degraded` |
+| `responseTime` | number | Response time in milliseconds               |
+| `lastChecked`  | string | ISO timestamp of last health check          |
+| `uptime`       | number | Uptime percentage (last 24 hours)           |
+| `error`        | string | Error message if service has issues         |
 
 ---
 
@@ -157,9 +157,9 @@ GET /api/v1/dashboard/status/{service}
 
 #### Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `service` | string | Yes | Service identifier (e.g., `plex`, `overseerr`, `database`) |
+| Parameter | Type   | Required | Description                                                |
+| --------- | ------ | -------- | ---------------------------------------------------------- |
+| `service` | string | Yes      | Service identifier (e.g., `plex`, `overseerr`, `database`) |
 
 #### Example Request
 
@@ -194,10 +194,10 @@ GET /api/v1/dashboard/notifications
 
 #### Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `limit` | integer | No | Number of notifications to return (1-100, default: 20) |
-| `unread` | boolean | No | Filter for unread notifications only |
+| Parameter | Type    | Required | Description                                            |
+| --------- | ------- | -------- | ------------------------------------------------------ |
+| `limit`   | integer | No       | Number of notifications to return (1-100, default: 20) |
+| `unread`  | boolean | No       | Filter for unread notifications only                   |
 
 #### Example Request
 
@@ -238,25 +238,25 @@ curl "http://localhost:3001/api/v1/dashboard/notifications?limit=5&unread=true" 
 
 #### Notification Schema
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | string | Unique notification identifier |
-| `type` | string | Notification type: `info`, `success`, `warning`, `error` |
-| `title` | string | Notification title |
-| `message` | string | Notification message |
-| `read` | boolean | Whether notification has been read |
-| `persistent` | boolean | Whether notification persists until dismissed |
-| `createdAt` | string | ISO timestamp when notification was created |
-| `readAt` | string | ISO timestamp when notification was read |
+| Field        | Type    | Description                                              |
+| ------------ | ------- | -------------------------------------------------------- |
+| `id`         | string  | Unique notification identifier                           |
+| `type`       | string  | Notification type: `info`, `success`, `warning`, `error` |
+| `title`      | string  | Notification title                                       |
+| `message`    | string  | Notification message                                     |
+| `read`       | boolean | Whether notification has been read                       |
+| `persistent` | boolean | Whether notification persists until dismissed            |
+| `createdAt`  | string  | ISO timestamp when notification was created              |
+| `readAt`     | string  | ISO timestamp when notification was read                 |
 
 ## Status Codes
 
-| Status | Description |
-|--------|-------------|
-| `200` | Success |
-| `401` | Unauthorized |
-| `404` | Service not found |
-| `500` | Internal server error |
+| Status | Description           |
+| ------ | --------------------- |
+| `200`  | Success               |
+| `401`  | Unauthorized          |
+| `404`  | Service not found     |
+| `500`  | Internal server error |
 
 ## Error Responses
 
@@ -318,17 +318,18 @@ See [WebSocket Documentation](../websocket.md) for complete event details.
 
 The following services are monitored by default:
 
-| Service ID | Name | Description |
-|------------|------|-------------|
-| `plex` | Plex Media Server | Media server connectivity |
-| `overseerr` | Overseerr | Request management service |
-| `database` | Database | PostgreSQL database health |
-| `redis` | Redis Cache | Cache service health |
-| `tmdb` | TMDB API | Movie database API |
+| Service ID  | Name              | Description                |
+| ----------- | ----------------- | -------------------------- |
+| `plex`      | Plex Media Server | Media server connectivity  |
+| `overseerr` | Overseerr         | Request management service |
+| `database`  | Database          | PostgreSQL database health |
+| `redis`     | Redis Cache       | Cache service health       |
+| `tmdb`      | TMDB API          | Movie database API         |
 
 ## Performance Metrics
 
 ### System Metrics
+
 - **CPU Usage**: Current CPU utilization percentage
 - **Memory Usage**: RAM usage statistics
 - **Disk Usage**: Storage space utilization
@@ -336,6 +337,7 @@ The following services are monitored by default:
 - **Uptime**: System uptime in seconds
 
 ### Application Metrics
+
 - **Request Count**: Total and recent API requests
 - **Response Time**: Average API response times
 - **Error Rate**: API error percentage
@@ -345,18 +347,21 @@ The following services are monitored by default:
 ## Caching Behavior
 
 ### Stats Endpoint
+
 - **Cache Duration**: 5 minutes
 - **Cache Key**: `dashboard:stats:${userId}`
 - **Invalidation**: Automatic after cache expiry
 - **Headers**: `Cache-Control: private, max-age=300`
 
 ### Status Endpoints
+
 - **Cache Duration**: 1 minute
 - **Cache Key**: `dashboard:status:all` or `dashboard:status:${serviceId}`
 - **Invalidation**: Automatic and on service state change
 - **Headers**: `Cache-Control: private, max-age=60`
 
 ### Notifications
+
 - **Cache Duration**: None (real-time)
 - **Invalidation**: Immediate
 - **Headers**: `Cache-Control: no-cache, no-store`
@@ -366,12 +371,14 @@ The following services are monitored by default:
 Admin users have additional capabilities:
 
 ### Refresh Service Status
+
 ```javascript
 // Admin can force refresh all services
 socket.emit('admin:refresh-status');
 ```
 
 ### Service History
+
 ```javascript
 // Get historical data for a service
 socket.emit('service:history', 'plex', 24, (response) => {
@@ -382,17 +389,20 @@ socket.emit('service:history', 'plex', 24, (response) => {
 ## Integration Notes
 
 ### External Services
+
 - Service health checks run every 30 seconds
 - Timeouts configured per service type
 - Retry logic for transient failures
 - Circuit breaker pattern for failing services
 
 ### Alerting
+
 - Critical service failures trigger notifications
 - Admin users receive system alerts
 - Webhook integration available for external alerting
 
 ### Historical Data
+
 - Service status history stored for 30 days
 - Metrics aggregated hourly for reporting
 - Export functionality for historical analysis

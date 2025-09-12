@@ -87,7 +87,7 @@ describe('API Response Time Benchmarks', () => {
       query?: any;
       iterations?: number;
       target?: number;
-    } = {}
+    } = {},
   ): Promise<BenchmarkResult> => {
     const { auth, body, query, iterations = 10, target = 200 } = options;
     const responseTimes: number[] = [];
@@ -151,7 +151,7 @@ describe('API Response Time Benchmarks', () => {
     const result: BenchmarkResult = {
       endpoint,
       avgResponseTime: Math.round(
-        responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length
+        responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length,
       ),
       minResponseTime: Math.round(responseTimes[0] || 0),
       maxResponseTime: Math.round(responseTimes[responseTimes.length - 1] || 0),
@@ -375,7 +375,7 @@ describe('API Response Time Benchmarks', () => {
           passedBenchmarks: benchmarkResults.filter((r) => r.passed).length,
           avgResponseTimeAcrossAll: Math.round(
             benchmarkResults.reduce((sum, r) => sum + r.avgResponseTime, 0) /
-              benchmarkResults.length
+              benchmarkResults.length,
           ),
           performanceGrade:
             benchmarkResults.filter((r) => r.passed).length / benchmarkResults.length >= 0.9
@@ -395,7 +395,7 @@ describe('API Response Time Benchmarks', () => {
       expect(baselineReport.summary.performanceGrade).not.toBe('F');
       expect(baselineReport.summary.avgResponseTimeAcrossAll).toBeLessThan(300);
       expect(baselineReport.benchmarks.filter((b) => b.passed).length).toBeGreaterThan(
-        baselineReport.benchmarks.length * 0.8
+        baselineReport.benchmarks.length * 0.8,
       );
 
       // Store baseline for regression comparison

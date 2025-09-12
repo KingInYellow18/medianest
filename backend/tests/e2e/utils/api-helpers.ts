@@ -13,8 +13,8 @@ export class ApiHelpers {
       baseURL,
       timeout: 30000,
       headers: {
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
     });
 
     // Request interceptor to add auth token
@@ -31,7 +31,7 @@ export class ApiHelpers {
       (error) => {
         console.error('API Error:', error.response?.data || error.message);
         return Promise.reject(error);
-      }
+      },
     );
   }
 
@@ -95,11 +95,11 @@ export class ApiHelpers {
    */
   async login(email: string, password: string): Promise<{ user: any; token: string }> {
     const response = await this.post('/api/auth/login', { email, password });
-    
+
     if (response.success && response.data.token) {
       this.setAuthToken(response.data.token);
     }
-    
+
     return response.data;
   }
 
@@ -138,11 +138,11 @@ export class ApiHelpers {
   async refreshToken(): Promise<string> {
     const response = await this.post('/api/auth/refresh');
     const newToken = response.data.token;
-    
+
     if (newToken) {
       this.setAuthToken(newToken);
     }
-    
+
     return newToken;
   }
 
@@ -300,7 +300,7 @@ export class ApiHelpers {
    */
   async uploadFile(file: File | Buffer, fileName: string, mimeType?: string): Promise<any> {
     const formData = new FormData();
-    
+
     if (file instanceof Buffer) {
       formData.append('file', new Blob([file]), fileName);
     } else {
@@ -309,10 +309,10 @@ export class ApiHelpers {
 
     const response = await this.post('/api/files/upload', formData, {
       headers: {
-        'Content-Type': 'multipart/form-data'
-      }
+        'Content-Type': 'multipart/form-data',
+      },
     });
-    
+
     return response.data;
   }
 
@@ -394,23 +394,23 @@ export class ApiHelpers {
    */
   async waitForRequestCompletion(requestId: string, timeout = 60000): Promise<any> {
     const startTime = Date.now();
-    
+
     while (Date.now() - startTime < timeout) {
       try {
         const request = await this.getMediaRequest(requestId);
-        
+
         if (request.status === 'completed' || request.status === 'failed') {
           return request;
         }
-        
+
         // Wait 2 seconds before checking again
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
       } catch (error) {
         // Continue polling if request not found yet
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }
-    
+
     throw new Error(`Request ${requestId} did not complete within ${timeout}ms`);
   }
 
@@ -419,7 +419,7 @@ export class ApiHelpers {
    */
   async batchCreateMediaRequests(requests: any[]): Promise<any[]> {
     const createdRequests = [];
-    
+
     for (const requestData of requests) {
       try {
         const request = await this.createMediaRequest(requestData);
@@ -428,7 +428,7 @@ export class ApiHelpers {
         console.error('Failed to create request:', requestData, error);
       }
     }
-    
+
     return createdRequests;
   }
 }

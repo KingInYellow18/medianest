@@ -17,6 +17,7 @@ This guide outlines the day-to-day development workflow for MediaNest contributo
 ### Morning Routine
 
 1. **Sync Your Fork**
+
    ```bash
    git checkout develop
    git pull upstream develop
@@ -24,22 +25,24 @@ This guide outlines the day-to-day development workflow for MediaNest contributo
    ```
 
 2. **Start Development Environment**
+
    ```bash
    # Start database services
    docker compose -f docker-compose.dev.yml up -d
-   
+
    # Start development servers
    npm run dev
-   
+
    # Verify everything is running
    curl http://localhost:4000/api/health
    ```
 
 3. **Check for Updates**
+
    ```bash
    # Check for dependency updates
    npm outdated
-   
+
    # Check for new issues or PRs
    gh issue list --assignee @me
    gh pr list --author @me
@@ -54,24 +57,26 @@ This guide outlines the day-to-day development workflow for MediaNest contributo
    - Comment on issue with plan
 
 2. **Create Feature Branch**
+
    ```bash
    # Always start from develop
    git checkout develop
    git pull upstream develop
-   
+
    # Create feature branch
    git checkout -b feature/123-add-media-filtering
    ```
 
 3. **Development Cycle**
+
    ```bash
    # Make changes iteratively
    # Run tests frequently
    npm test
-   
+
    # Check types
    npm run type-check
-   
+
    # Commit small, logical changes
    git add -A
    git commit -m "feat(media): add basic filter structure"
@@ -80,19 +85,21 @@ This guide outlines the day-to-day development workflow for MediaNest contributo
 ### End of Day
 
 1. **Save Progress**
+
    ```bash
    # Push work in progress
    git push origin feature/123-add-media-filtering
-   
+
    # Create draft PR if significant progress
    gh pr create --draft --title "WIP: Add media filtering" --body "Work in progress"
    ```
 
 2. **Clean Up**
+
    ```bash
    # Stop development servers
    # Ctrl+C to stop npm run dev
-   
+
    # Optional: Stop Docker services to free resources
    docker compose -f docker-compose.dev.yml down
    ```
@@ -298,24 +305,28 @@ npm run build
 #### Code Review Checklist
 
 **Functionality**
+
 - [ ] Code works as intended
 - [ ] Edge cases are handled
 - [ ] Error handling is appropriate
 - [ ] Performance is acceptable
 
 **Code Quality**
+
 - [ ] Code is readable and well-documented
 - [ ] Functions are small and focused
 - [ ] No code duplication
 - [ ] TypeScript types are accurate
 
 **Testing**
+
 - [ ] Unit tests cover new functionality
 - [ ] Integration tests updated if needed
 - [ ] Manual testing completed
 - [ ] Test data is realistic
 
 **Security**
+
 - [ ] Input validation implemented
 - [ ] Authorization checks in place
 - [ ] No secrets in code
@@ -408,39 +419,38 @@ npm run test:e2e:debug
 describe('MediaController', () => {
   let controller: MediaController;
   let mockService: jest.Mocked<MediaService>;
-  
+
   beforeEach(() => {
     // Setup test environment
     mockService = createMockMediaService();
     controller = new MediaController(mockService);
   });
-  
+
   describe('searchMedia', () => {
     const validRequest = {
       query: 'Inception',
-      type: 'movie'
+      type: 'movie',
     };
-    
+
     it('should return search results for valid query', async () => {
       // Arrange
       const expectedResults = [{ id: '1', title: 'Inception' }];
       mockService.searchMedia.mockResolvedValue(expectedResults);
-      
+
       // Act
       const response = await controller.searchMedia(validRequest);
-      
+
       // Assert
       expect(response.success).toBe(true);
       expect(response.data).toEqual(expectedResults);
     });
-    
+
     it('should handle service errors gracefully', async () => {
       // Arrange
       mockService.searchMedia.mockRejectedValue(new Error('Service unavailable'));
-      
+
       // Act & Assert
-      await expect(controller.searchMedia(validRequest))
-        .rejects.toThrow('Service unavailable');
+      await expect(controller.searchMedia(validRequest)).rejects.toThrow('Service unavailable');
     });
   });
 });
@@ -467,7 +477,7 @@ jest.mock('../integrations/overseerr.client', () => ({
   OverseerrClient: jest.fn().mockImplementation(() => ({
     search: jest.fn(),
     getMovie: jest.fn(),
-  }))
+  })),
 }));
 ```
 
@@ -505,24 +515,29 @@ npm run build
 
 ```markdown
 ## Description
+
 Clear description of what this PR does and why.
 
 ## Changes Made
+
 - [ ] Added media filtering functionality
 - [ ] Updated API endpoints to support filters
 - [ ] Added filter persistence to localStorage
 - [ ] Updated tests for new functionality
 
 ## Testing
+
 - [ ] Unit tests pass
-- [ ] Integration tests pass  
+- [ ] Integration tests pass
 - [ ] Manual testing completed
 - [ ] Cross-browser testing done
 
 ## Screenshots
+
 Include before/after screenshots for UI changes.
 
 ## Breaking Changes
+
 List any breaking changes and migration steps.
 ```
 
@@ -531,6 +546,7 @@ List any breaking changes and migration steps.
 #### As a Reviewer
 
 **Focus Areas:**
+
 1. **Functionality**: Does the code work as intended?
 2. **Code Quality**: Is it maintainable and readable?
 3. **Performance**: Are there any performance concerns?
@@ -538,6 +554,7 @@ List any breaking changes and migration steps.
 5. **Testing**: Is the code adequately tested?
 
 **Review Process:**
+
 ```bash
 # Checkout PR branch for testing
 gh pr checkout 123
@@ -555,8 +572,10 @@ npm test
 ```
 
 **Constructive Feedback Examples:**
+
 ```markdown
 # ✅ Good feedback
+
 Consider extracting this logic into a separate function for reusability:
 [suggest specific code]
 
@@ -565,6 +584,7 @@ This could potentially cause a memory leak. Have you considered using useCallbac
 Great implementation! One small suggestion: we could add error boundaries here for better UX.
 
 # ❌ Poor feedback
+
 This is wrong.
 Change this.
 I don't like this approach.
@@ -573,6 +593,7 @@ I don't like this approach.
 #### As a PR Author
 
 **Responding to Reviews:**
+
 - Thank reviewers for their time
 - Ask clarifying questions if feedback is unclear
 - Make requested changes promptly
@@ -744,6 +765,7 @@ git push upstream develop
 #### Common Issues
 
 **TypeScript Errors:**
+
 ```bash
 # Clear TypeScript cache
 npx tsc --build --clean
@@ -756,6 +778,7 @@ npm run db:generate
 ```
 
 **Test Failures:**
+
 ```bash
 # Clear test cache
 npx jest --clearCache
@@ -768,6 +791,7 @@ npm run test:ui -- --grep "failing test name"
 ```
 
 **Build Failures:**
+
 ```bash
 # Clear build cache
 npm run clean
@@ -782,6 +806,7 @@ npx madge --circular src/
 ```
 
 **Performance Issues:**
+
 ```bash
 # Profile application
 npm run dev -- --inspect
@@ -854,30 +879,35 @@ alias mn-reset="cd ~/projects/medianest && docker compose -f docker-compose.dev.
 ## Best Practices Summary
 
 ### Code Organization
+
 - Keep functions small and focused
 - Use consistent naming conventions
 - Organize files logically
 - Avoid deep nesting
 
 ### Git Hygiene
+
 - Write clear commit messages
 - Keep commits atomic and focused
 - Rebase feature branches regularly
 - Clean up branches after merge
 
 ### Testing Strategy
+
 - Write tests first when possible
 - Test edge cases and error conditions
 - Use realistic test data
 - Keep tests fast and isolated
 
 ### Code Review
+
 - Review your own code first
 - Provide constructive feedback
 - Be responsive to feedback
 - Learn from each review
 
 ### Performance
+
 - Profile before optimizing
 - Monitor key metrics
 - Use appropriate caching

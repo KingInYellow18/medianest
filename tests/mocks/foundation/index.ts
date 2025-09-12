@@ -1,6 +1,6 @@
 /**
  * REDIS MOCK FOUNDATION - MAIN EXPORT
- * 
+ *
  * Phase A Redis Mock Foundation providing:
  * - 100% Redis interface coverage
  * - Realistic TTL support with time simulation
@@ -8,7 +8,7 @@
  * - Error simulation patterns
  * - Service-specific method support
  * - Progressive validation system
- * 
+ *
  * This foundation ensures 100% Redis mock operations success rate
  * and eliminates ALL Redis-related test failures.
  */
@@ -40,13 +40,13 @@ export {
   getRedisMock,
   resetRedisMock,
   validateRedisMock,
-  
+
   // Time simulation
   TimeSimulator,
-  
+
   // State management
   RedisStateManager,
-  
+
   // Data types
   RedisDataItem,
   RedisHashItem,
@@ -54,7 +54,7 @@ export {
   RedisListItem,
   RedisSortedSetItem,
   RedisState,
-  
+
   // Factory instance
   redisMockFactory,
 } from './redis-mock-foundation';
@@ -65,10 +65,10 @@ export {
   RedisServiceHelpers,
   createRedisServiceHelpers,
   redisServiceHelpers,
-  
+
   // Scenarios
   redisScenarios,
-  
+
   // Data types
   OAuthStateData,
   TwoFactorChallengeData,
@@ -100,7 +100,7 @@ export const setupRedisMock = {
     const { createRedisMock } = require('./redis-mock-foundation');
     return createRedisMock({ behavior: 'realistic' });
   },
-  
+
   /**
    * Redis mock with error simulation
    */
@@ -108,7 +108,7 @@ export const setupRedisMock = {
     const { createRedisMock } = require('./redis-mock-foundation');
     return createRedisMock({ behavior: 'error' });
   },
-  
+
   /**
    * Redis mock for service testing
    */
@@ -116,17 +116,17 @@ export const setupRedisMock = {
     const { createRedisServiceHelpers } = require('./redis-service-helpers');
     return createRedisServiceHelpers();
   },
-  
+
   /**
    * Complete setup with validation
    */
   complete: () => {
     const { createRedisMock } = require('./redis-mock-foundation');
     const { createRedisServiceHelpers } = require('./redis-service-helpers');
-    
+
     const mock = createRedisMock();
     const helpers = createRedisServiceHelpers();
-    
+
     return { mock, helpers };
   },
 };
@@ -137,10 +137,10 @@ export const setupRedisMock = {
 export const validateRedisFoundation = () => {
   const { validateMocks } = require('./mock-registry');
   const { validateRedisMock } = require('./redis-mock-foundation');
-  
+
   const registryResult = validateMocks();
   const redisResult = validateRedisMock();
-  
+
   return {
     registry: registryResult,
     redis: redisResult,
@@ -158,7 +158,7 @@ export const validateRedisFoundation = () => {
 export const cleanupRedisFoundation = () => {
   const { cleanupMocks } = require('./mock-registry');
   const { TimeSimulator } = require('./redis-mock-foundation');
-  
+
   cleanupMocks();
   TimeSimulator.reset();
 };
@@ -170,17 +170,17 @@ export const cleanupRedisFoundation = () => {
 export default {
   // Quick setup
   setup: setupRedisMock,
-  
+
   // Core functions
   createMock: () => require('./redis-mock-foundation').createRedisMock(),
   createHelpers: () => require('./redis-service-helpers').createRedisServiceHelpers(),
-  
+
   // Validation
   validate: validateRedisFoundation,
-  
+
   // Cleanup
   cleanup: cleanupRedisFoundation,
-  
+
   // Scenarios
   scenarios: () => require('./redis-service-helpers').redisScenarios,
 };

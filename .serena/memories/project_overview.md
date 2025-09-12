@@ -1,11 +1,13 @@
 # MediaNest Project Overview
 
 ## Purpose
+
 MediaNest is an Advanced Media Management Platform designed for digital asset management, file organization, and content management. It provides a comprehensive solution for managing media files with features like user authentication, file uploads, organization, and content delivery.
 
 ## Technology Stack
 
 ### Backend (Node.js/TypeScript)
+
 - **Runtime**: Node.js 20+
 - **Language**: TypeScript 5.6+
 - **Framework**: Express.js 4.21
@@ -18,6 +20,7 @@ MediaNest is an Advanced Media Management Platform designed for digital asset ma
 - **Monitoring**: OpenTelemetry, Prometheus metrics
 
 ### Frontend (React/Next.js)
+
 - **Framework**: React 18.2
 - **Platform**: Next.js (inferred from build artifacts)
 - **Language**: TypeScript
@@ -25,6 +28,7 @@ MediaNest is an Advanced Media Management Platform designed for digital asset ma
 - **Testing**: React Testing Library (inferred)
 
 ### Infrastructure & DevOps
+
 - **Containerization**: Docker with multi-stage builds
 - **Orchestration**: Docker Compose (8 variants for different environments)
 - **Database**: PostgreSQL 15-alpine
@@ -34,10 +38,11 @@ MediaNest is an Advanced Media Management Platform designed for digital asset ma
 - **Monitoring**: Prometheus, Grafana, OpenTelemetry
 
 ## Project Structure
+
 ```
 medianest/
 ├── backend/          # Express.js API server
-├── frontend/         # React/Next.js web app  
+├── frontend/         # React/Next.js web app
 ├── shared/           # Common utilities and types
 ├── docs/             # Project documentation
 ├── scripts/          # Build and deployment scripts
@@ -47,6 +52,7 @@ medianest/
 ```
 
 ## Key Files & Configuration
+
 - `package.json` - Monorepo root configuration
 - `docker-compose.yml` - Main container orchestration
 - `Dockerfile` - Multi-stage build configuration

@@ -40,14 +40,12 @@ task-YYYYMMDD-HHmm-documentation-description
 ### What needs to be documented:
 
 1. **Core Content**
-
    - [ ] Feature/system overview
    - [ ] Prerequisites and requirements
    - [ ] Step-by-step procedures
    - [ ] Configuration examples
 
 2. **Supporting Content**
-
    - [ ] Troubleshooting guide
    - [ ] FAQ section
    - [ ] Best practices

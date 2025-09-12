@@ -1,1 +1,30 @@
-{"uuid":"aced34f8-1670-46bc-a742-495d6b4f7591","name":"should handle session expiration properly","historyId":"008b3b06a38bfe84eae9e9978be1eeed:f0494070a4792d94c64308aac1604abb","status":"skipped","statusDetails":{},"stage":"finished","steps":[],"attachments":[],"parameters":[{"name":"Project","value":"Mobile Safari"}],"labels":[{"name":"language","value":"javascript"},{"name":"framework","value":"playwright"},{"name":"package","value":"auth-journey.spec.ts"},{"name":"titlePath","value":" > Mobile Safari > auth-journey.spec.ts > Authentication User Journey"},{"name":"host","value":"kubuntudev"},{"name":"thread","value":"pid-38931-worker-0"},{"name":"parentSuite","value":"Mobile Safari"},{"name":"subSuite","value":"Authentication User Journey"}],"links":[],"start":1757602649456,"testCaseId":"008b3b06a38bfe84eae9e9978be1eeed","fullName":"auth-journey.spec.ts:193:7","titlePath":["auth-journey.spec.ts","Authentication User Journey"],"stop":1757602649456}
+{
+  "uuid": "aced34f8-1670-46bc-a742-495d6b4f7591",
+  "name": "should handle session expiration properly",
+  "historyId": "008b3b06a38bfe84eae9e9978be1eeed:f0494070a4792d94c64308aac1604abb",
+  "status": "skipped",
+  "statusDetails": {},
+  "stage": "finished",
+  "steps": [],
+  "attachments": [],
+  "parameters": [{ "name": "Project", "value": "Mobile Safari" }],
+  "labels": [
+    { "name": "language", "value": "javascript" },
+    { "name": "framework", "value": "playwright" },
+    { "name": "package", "value": "auth-journey.spec.ts" },
+    {
+      "name": "titlePath",
+      "value": " > Mobile Safari > auth-journey.spec.ts > Authentication User Journey"
+    },
+    { "name": "host", "value": "kubuntudev" },
+    { "name": "thread", "value": "pid-38931-worker-0" },
+    { "name": "parentSuite", "value": "Mobile Safari" },
+    { "name": "subSuite", "value": "Authentication User Journey" }
+  ],
+  "links": [],
+  "start": 1757602649456,
+  "testCaseId": "008b3b06a38bfe84eae9e9978be1eeed",
+  "fullName": "auth-journey.spec.ts:193:7",
+  "titlePath": ["auth-journey.spec.ts", "Authentication User Journey"],
+  "stop": 1757602649456
+}

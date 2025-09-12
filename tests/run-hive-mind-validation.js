@@ -18,7 +18,7 @@ class HiveMindValidationRunner {
       integrationTests: null,
       regressionMonitor: null,
       hiveMindSuite: null,
-      overallSuccess: false
+      overallSuccess: false,
     };
   }
 
@@ -48,7 +48,6 @@ class HiveMindValidationRunner {
 
       // Generate final report
       await this.generateFinalReport();
-
     } catch (error) {
       console.error('❌ HIVE-MIND Validation Failed:', error.message);
       this.results.overallSuccess = false;
@@ -60,28 +59,28 @@ class HiveMindValidationRunner {
   async runBuildStabilizer() {
     try {
       console.log('  📋 Executing build stabilizer validation...');
-      
+
       const output = execSync('./scripts/build-stabilizer.sh', {
         encoding: 'utf8',
         stdio: 'pipe',
-        timeout: 300000 // 5 minutes
+        timeout: 300000, // 5 minutes
       });
 
       console.log('  ✅ Build stabilizer completed successfully');
-      
+
       return {
         success: true,
         output: output,
-        duration: this.getElapsedTime()
+        duration: this.getElapsedTime(),
       };
     } catch (error) {
       console.log('  ❌ Build stabilizer failed');
-      
+
       return {
         success: false,
         error: error.message,
         output: error.stdout + error.stderr,
-        duration: this.getElapsedTime()
+        duration: this.getElapsedTime(),
       };
     }
   }
@@ -89,28 +88,31 @@ class HiveMindValidationRunner {
   async runTypeScriptValidator() {
     try {
       console.log('  📋 Running TypeScript validation...');
-      
-      const output = execSync('cd tests/build-validation && ts-node typescript-validator.ts validate-all', {
-        encoding: 'utf8',
-        stdio: 'pipe',
-        timeout: 120000 // 2 minutes
-      });
+
+      const output = execSync(
+        'cd tests/build-validation && ts-node typescript-validator.ts validate-all',
+        {
+          encoding: 'utf8',
+          stdio: 'pipe',
+          timeout: 120000, // 2 minutes
+        },
+      );
 
       console.log('  ✅ TypeScript validation completed');
-      
+
       return {
         success: true,
         output: output,
-        duration: this.getElapsedTime()
+        duration: this.getElapsedTime(),
       };
     } catch (error) {
       console.log('  ⚠️ TypeScript validation completed with issues');
-      
+
       return {
         success: false,
         error: error.message,
         output: error.stdout + error.stderr,
-        duration: this.getElapsedTime()
+        duration: this.getElapsedTime(),
       };
     }
   }
@@ -118,21 +120,21 @@ class HiveMindValidationRunner {
   async runIntegrationTests() {
     try {
       console.log('  📋 Running integration test suite...');
-      
+
       // Note: This would normally run the full suite, but we'll simulate for now
       console.log('  🚧 Integration tests require running server - simulating...');
-      
+
       return {
         success: true,
         simulated: true,
         message: 'Integration tests configured but not run (requires server)',
-        duration: this.getElapsedTime()
+        duration: this.getElapsedTime(),
       };
     } catch (error) {
       return {
         success: false,
         error: error.message,
-        duration: this.getElapsedTime()
+        duration: this.getElapsedTime(),
       };
     }
   }
@@ -140,28 +142,31 @@ class HiveMindValidationRunner {
   async runRegressionMonitor() {
     try {
       console.log('  📋 Running regression monitoring...');
-      
-      const output = execSync('cd tests/build-validation && ts-node regression-prevention-monitor.ts baseline', {
-        encoding: 'utf8',
-        stdio: 'pipe',
-        timeout: 60000 // 1 minute
-      });
+
+      const output = execSync(
+        'cd tests/build-validation && ts-node regression-prevention-monitor.ts baseline',
+        {
+          encoding: 'utf8',
+          stdio: 'pipe',
+          timeout: 60000, // 1 minute
+        },
+      );
 
       console.log('  ✅ Regression monitoring baseline created');
-      
+
       return {
         success: true,
         output: output,
-        duration: this.getElapsedTime()
+        duration: this.getElapsedTime(),
       };
     } catch (error) {
       console.log('  ⚠️ Regression monitoring completed with issues');
-      
+
       return {
         success: false,
         error: error.message,
         output: error.stdout + error.stderr,
-        duration: this.getElapsedTime()
+        duration: this.getElapsedTime(),
       };
     }
   }
@@ -169,32 +174,32 @@ class HiveMindValidationRunner {
   async runHiveMindSuite() {
     try {
       console.log('  📋 Running HIVE-MIND validation suite...');
-      
+
       // Note: This would coordinate with all agents
       console.log('  🚧 HIVE-MIND suite requires agent coordination - simulating...');
-      
+
       return {
         success: true,
         simulated: true,
         message: 'HIVE-MIND suite configured but requires agent coordination',
-        duration: this.getElapsedTime()
+        duration: this.getElapsedTime(),
       };
     } catch (error) {
       return {
         success: false,
         error: error.message,
-        duration: this.getElapsedTime()
+        duration: this.getElapsedTime(),
       };
     }
   }
 
   async generateFinalReport() {
     const totalDuration = Date.now() - this.startTime;
-    
+
     // Calculate overall success
     this.results.overallSuccess = Object.values(this.results)
-      .filter(result => result && typeof result === 'object')
-      .every(result => result.success || result.simulated);
+      .filter((result) => result && typeof result === 'object')
+      .every((result) => result.success || result.simulated);
 
     const report = {
       timestamp: new Date().toISOString(),
@@ -202,11 +207,13 @@ class HiveMindValidationRunner {
       results: this.results,
       summary: {
         totalPhases: 5,
-        successfulPhases: Object.values(this.results).filter(r => r && (r.success || r.simulated)).length,
-        failedPhases: Object.values(this.results).filter(r => r && !r.success && !r.simulated).length,
-        overallSuccess: this.results.overallSuccess
+        successfulPhases: Object.values(this.results).filter((r) => r && (r.success || r.simulated))
+          .length,
+        failedPhases: Object.values(this.results).filter((r) => r && !r.success && !r.simulated)
+          .length,
+        overallSuccess: this.results.overallSuccess,
       },
-      recommendations: this.generateRecommendations()
+      recommendations: this.generateRecommendations(),
     };
 
     // Save report
@@ -216,16 +223,18 @@ class HiveMindValidationRunner {
     // Display summary
     console.log('\n🧠 HIVE-MIND Validation Complete');
     console.log('=====================================');
-    console.log(`⏱️ Total Duration: ${Math.round(totalDuration/1000)}s`);
-    console.log(`✅ Successful Phases: ${report.summary.successfulPhases}/${report.summary.totalPhases}`);
+    console.log(`⏱️ Total Duration: ${Math.round(totalDuration / 1000)}s`);
+    console.log(
+      `✅ Successful Phases: ${report.summary.successfulPhases}/${report.summary.totalPhases}`,
+    );
     console.log(`❌ Failed Phases: ${report.summary.failedPhases}`);
     console.log(`🎯 Overall Success: ${this.results.overallSuccess ? '✅ YES' : '❌ NO'}`);
-    
+
     if (report.recommendations.length > 0) {
       console.log('\n📋 Recommendations:');
-      report.recommendations.forEach(rec => console.log(`  • ${rec}`));
+      report.recommendations.forEach((rec) => console.log(`  • ${rec}`));
     }
-    
+
     console.log(`\n📊 Full report saved: ${reportPath}`);
 
     return report;
@@ -233,23 +242,23 @@ class HiveMindValidationRunner {
 
   generateRecommendations() {
     const recommendations = [];
-    
+
     if (!this.results.buildStabilizer?.success) {
       recommendations.push('Fix build stabilizer issues before proceeding');
     }
-    
+
     if (!this.results.typescriptValidator?.success) {
       recommendations.push('Address TypeScript compilation errors');
     }
-    
+
     if (this.results.integrationTests?.simulated) {
       recommendations.push('Run full integration test suite with active server');
     }
-    
+
     if (this.results.hiveMindSuite?.simulated) {
       recommendations.push('Execute HIVE-MIND coordination with all agents');
     }
-    
+
     if (this.results.overallSuccess) {
       recommendations.push('All validation phases completed - ready for deployment');
     }
@@ -265,7 +274,7 @@ class HiveMindValidationRunner {
 // CLI execution
 async function main() {
   const runner = new HiveMindValidationRunner();
-  
+
   try {
     const results = await runner.runComplete();
     process.exit(results.overallSuccess ? 0 : 1);

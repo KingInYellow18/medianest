@@ -7,7 +7,11 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, cleanup } from '../../test-utils/render';
 import ServiceCard, { withLazyServiceCard } from '../OptimizedServiceCard';
-import { createMockService, createMockServiceWithError, createMockServiceInactive } from '../../test-utils/render';
+import {
+  createMockService,
+  createMockServiceWithError,
+  createMockServiceInactive,
+} from '../../test-utils/render';
 
 // Mock performance.now for consistent timing tests
 const mockPerformanceNow = vi.fn();
@@ -185,7 +189,7 @@ describe('OptimizedServiceCard Component', () => {
 
         const uptimeElement = container.querySelector('[data-testid="uptime"]');
         expect(uptimeElement).toHaveTextContent(expected);
-        
+
         unmount();
       });
     });
@@ -200,7 +204,7 @@ describe('OptimizedServiceCard Component', () => {
 
     it('should format last checked time correctly', () => {
       vi.useFakeTimers();
-      
+
       const now = new Date('2025-01-12T12:00:00Z');
       vi.setSystemTime(now);
 
@@ -218,7 +222,7 @@ describe('OptimizedServiceCard Component', () => {
 
         const lastCheckedElement = container.querySelector('[data-testid="last-checked"]');
         expect(lastCheckedElement).toHaveTextContent(expected);
-        
+
         unmount();
       });
 
@@ -260,11 +264,13 @@ describe('OptimizedServiceCard Component', () => {
       const onStatusChange = vi.fn();
       const service = createMockService({ status: 'active' });
 
-      const { container } = render(<ServiceCard service={service} onStatusChange={onStatusChange} />);
+      const { container } = render(
+        <ServiceCard service={service} onStatusChange={onStatusChange} />,
+      );
 
       const toggleButton = container.querySelector('[data-testid="toggle-status-btn"]');
       expect(toggleButton).not.toBeNull();
-      
+
       fireEvent.click(toggleButton!);
 
       // Use immediate expectation instead of waitFor since it's synchronous
@@ -306,7 +312,7 @@ describe('OptimizedServiceCard Component', () => {
 
       const retryButton = container.querySelector('[data-testid="retry-btn"]');
       expect(retryButton).not.toBeNull();
-      
+
       fireEvent.click(retryButton!);
 
       // Use immediate expectation since it's synchronous
@@ -380,7 +386,7 @@ describe('OptimizedServiceCard Component', () => {
 
       const card = container.querySelector(`[data-testid="service-card-${service.id}"]`);
       card!.focus();
-      
+
       expect(document.activeElement).toBe(card);
     });
 
@@ -388,11 +394,13 @@ describe('OptimizedServiceCard Component', () => {
       const onStatusChange = vi.fn();
       const service = createMockService({ status: 'active' });
 
-      const { container } = render(<ServiceCard service={service} onStatusChange={onStatusChange} />);
+      const { container } = render(
+        <ServiceCard service={service} onStatusChange={onStatusChange} />,
+      );
 
       const toggleButton = container.querySelector('[data-testid="toggle-status-btn"]');
       expect(toggleButton).not.toBeNull();
-      
+
       // Simulate rapid clicks
       fireEvent.click(toggleButton!);
       fireEvent.click(toggleButton!);
@@ -406,17 +414,19 @@ describe('OptimizedServiceCard Component', () => {
       const onStatusChange = vi.fn();
       const service = createMockService();
 
-      const { container } = render(<ServiceCard service={service} onStatusChange={onStatusChange} />);
+      const { container } = render(
+        <ServiceCard service={service} onStatusChange={onStatusChange} />,
+      );
 
       const toggleButton = container.querySelector('[data-testid="toggle-status-btn"]');
-      
+
       // Simulate Enter key press
       fireEvent.keyDown(toggleButton!, { key: 'Enter' });
       fireEvent.keyUp(toggleButton!, { key: 'Enter' });
-      
+
       // Should still be able to click normally after keyboard interaction
       fireEvent.click(toggleButton!);
-      
+
       expect(onStatusChange).toHaveBeenCalledTimes(1);
     });
   });
@@ -440,7 +450,9 @@ describe('OptimizedServiceCard Component', () => {
       const { container } = render(<ServiceCard service={service} showDetails={true} />);
 
       expect(container.querySelector('[data-testid="uptime"]')).toHaveTextContent('100%'); // Should round correctly
-      expect(container.querySelector('[data-testid="response-time"]')).toHaveTextContent('999999ms');
+      expect(container.querySelector('[data-testid="response-time"]')).toHaveTextContent(
+        '999999ms',
+      );
       expect(container.querySelector('[data-testid="error-count"]')).toHaveTextContent('999999');
     });
 
@@ -456,11 +468,11 @@ describe('OptimizedServiceCard Component', () => {
       const uptimeEl = container.querySelector('[data-testid="uptime"]');
       const responseTimeEl = container.querySelector('[data-testid="response-time"]');
       const errorCountEl = container.querySelector('[data-testid="error-count"]');
-      
+
       expect(uptimeEl).not.toBeNull();
       // responseTime might be hidden when 0, which is acceptable behavior
       expect(errorCountEl).not.toBeNull();
-      
+
       expect(uptimeEl).toHaveTextContent('0%');
       // responseTime might be hidden when 0, which is acceptable behavior
       if (responseTimeEl) {
@@ -497,7 +509,8 @@ describe('OptimizedServiceCard Component', () => {
     });
 
     it('should handle long service names', () => {
-      const longName = 'Very Long Service Name That Might Cause Layout Issues Or Text Overflow Problems';
+      const longName =
+        'Very Long Service Name That Might Cause Layout Issues Or Text Overflow Problems';
       const service = createMockService({ name: longName });
 
       render(<ServiceCard service={service} />);
@@ -520,12 +533,12 @@ describe('OptimizedServiceCard Component', () => {
       const service = createMockServiceWithError();
 
       render(
-        <ServiceCard 
-          service={service} 
-          onStatusChange={vi.fn()} 
-          onRetry={vi.fn()} 
-          showDetails={true} 
-        />
+        <ServiceCard
+          service={service}
+          onStatusChange={vi.fn()}
+          onRetry={vi.fn()}
+          showDetails={true}
+        />,
       );
 
       // Check all ARIA labels
@@ -543,11 +556,7 @@ describe('OptimizedServiceCard Component', () => {
       const service = createMockServiceWithError();
 
       const { container } = render(
-        <ServiceCard 
-          service={service} 
-          onStatusChange={onStatusChange} 
-          onRetry={onRetry} 
-        />
+        <ServiceCard service={service} onStatusChange={onStatusChange} onRetry={onRetry} />,
       );
 
       const card = container.querySelector(`[data-testid="service-card-${service.id}"]`);
@@ -609,7 +618,9 @@ describe('withLazyServiceCard HOC', () => {
     const { container } = render(<LazyServiceCard service={service} loading={false} />);
 
     // Use container queries to ensure isolation
-    expect(container.querySelector('[data-testid="service-card-skeleton"]')).not.toBeInTheDocument();
+    expect(
+      container.querySelector('[data-testid="service-card-skeleton"]'),
+    ).not.toBeInTheDocument();
     expect(container.querySelector('h3')).toHaveTextContent('Test Service');
   });
 
@@ -621,7 +632,9 @@ describe('withLazyServiceCard HOC', () => {
 
     const { container } = render(<LazyServiceCard service={service} />);
 
-    expect(container.querySelector('[data-testid="service-card-skeleton"]')).not.toBeInTheDocument();
+    expect(
+      container.querySelector('[data-testid="service-card-skeleton"]'),
+    ).not.toBeInTheDocument();
     expect(container.querySelector('h3')).toHaveTextContent('Test Service');
   });
 
@@ -644,9 +657,7 @@ describe('withLazyServiceCard HOC', () => {
 
   it('should pass through all props to wrapped component', () => {
     const TestComponent = (props: any) => (
-      <div data-testid="test-props">
-        {JSON.stringify(props, null, 2)}
-      </div>
+      <div data-testid='test-props'>{JSON.stringify(props, null, 2)}</div>
     );
     const LazyServiceCard = withLazyServiceCard(TestComponent);
     const service = createMockService();

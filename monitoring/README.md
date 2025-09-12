@@ -59,6 +59,7 @@ cd monitoring/
 MEDIANEST backend exposes comprehensive metrics at `http://localhost:4000/metrics`:
 
 #### HTTP Metrics
+
 - `medianest_http_request_duration_seconds` - Request latency by endpoint
 - `medianest_http_requests_total` - Request count by status code
 - `medianest_http_request_size_bytes` - Request payload sizes
@@ -66,24 +67,28 @@ MEDIANEST backend exposes comprehensive metrics at `http://localhost:4000/metric
 - `medianest_http_active_connections` - Active HTTP connections
 
 #### Database Metrics
+
 - `medianest_database_query_duration_seconds` - Query performance
 - `medianest_database_queries_total` - Query count by operation
 - `medianest_database_connections_active` - Active DB connections
 - `medianest_database_connections_idle` - Idle DB connections
 
 #### Redis Metrics
+
 - `medianest_redis_operation_duration_seconds` - Redis command latency
 - `medianest_redis_operations_total` - Redis command count
 - `medianest_redis_connections_active` - Active Redis connections
 - `medianest_redis_cache_hit_ratio` - Cache effectiveness
 
 #### Business Metrics
+
 - `medianest_media_requests_total` - Media processing requests
 - `medianest_media_request_duration_seconds` - Processing time
 - `medianest_user_sessions_active` - Active user sessions
 - `medianest_queue_size` - Background job queue depth
 
 #### Security Metrics
+
 - `medianest_auth_attempts_total` - Authentication attempts
 - `medianest_rate_limit_hits_total` - Rate limiting triggers
 - `medianest_security_events_total` - Security incidents
@@ -91,12 +96,14 @@ MEDIANEST backend exposes comprehensive metrics at `http://localhost:4000/metric
 ### Infrastructure Metrics
 
 #### System (Node Exporter)
+
 - CPU usage, load averages
 - Memory usage and swap
 - Disk I/O and space utilization
 - Network interface statistics
 
 #### Containers (cAdvisor)
+
 - Container CPU and memory usage
 - Container network and filesystem I/O
 - Container restart and health status
@@ -137,6 +144,7 @@ All logs are enriched with structured metadata:
 ### Alert Categories
 
 #### Critical Alerts (Immediate Response)
+
 - **ApplicationDown**: Backend service unreachable
 - **CriticalErrorRate**: >5% HTTP 5xx errors
 - **CriticalResponseTime**: >5s response time
@@ -144,6 +152,7 @@ All logs are enriched with structured metadata:
 - **RedisDown**: Redis cache unavailable
 
 #### Warning Alerts (Monitor)
+
 - **HighErrorRate**: >1% HTTP 5xx errors
 - **HighResponseTime**: >2s response time
 - **HighCPUUsage**: >80% system CPU
@@ -151,6 +160,7 @@ All logs are enriched with structured metadata:
 - **SlowDatabaseQueries**: >1s query time
 
 #### Business Alerts
+
 - **MediaRequestBacklog**: >100 queued requests
 - **LowActiveUsers**: <1 active user for 1 hour
 - **ExternalServiceFailure**: >10% API error rate
@@ -228,11 +238,13 @@ METRICS_TOKEN=secure-metrics-access-token
 ### Resource Requirements
 
 #### Minimum (Development)
+
 - 2 CPU cores
 - 4GB RAM
 - 20GB disk space
 
 #### Production
+
 - 4 CPU cores
 - 8GB RAM
 - 100GB disk space (with log/metric retention)
@@ -289,24 +301,28 @@ tar -czf config-backup-$(date +%Y%m%d).tar.gz prometheus/ alertmanager/
 ### Common Issues
 
 #### Services Not Starting
+
 - Check Docker daemon is running
 - Verify port availability (9090, 3001, 3100, etc.)
 - Check data directory permissions
 - Review service logs: `./start-monitoring.sh logs [service]`
 
 #### No Metrics from Application
+
 - Verify MEDIANEST backend is running on port 4000
 - Check `/metrics` endpoint: `curl http://localhost:4000/metrics`
 - Ensure Prometheus can reach backend container
 - Review Prometheus targets: http://localhost:9090/targets
 
 #### Grafana Can't Connect to Data Sources
+
 - Verify Prometheus URL: http://prometheus:9090
 - Check network connectivity between containers
 - Review Grafana logs for connection errors
 - Test data source connections in Grafana UI
 
 #### Missing Logs in Loki
+
 - Check Promtail service status
 - Verify log file paths in promtail-config.yml
 - Ensure log files are readable by Promtail
@@ -315,12 +331,14 @@ tar -czf config-backup-$(date +%Y%m%d).tar.gz prometheus/ alertmanager/
 ### Performance Tuning
 
 #### High Memory Usage
+
 - Reduce retention periods in configuration
 - Adjust Prometheus scrape intervals
 - Limit high-cardinality metrics
 - Enable metric compression
 
 #### Slow Queries
+
 - Add database indexes for frequently queried metrics
 - Optimize PromQL queries in dashboards
 - Use recording rules for complex aggregations
@@ -331,6 +349,7 @@ tar -czf config-backup-$(date +%Y%m%d).tar.gz prometheus/ alertmanager/
 ### Adding Custom Metrics
 
 1. **In Application Code**:
+
 ```typescript
 import { trackCustomMetric } from './metrics/prometheus';
 
@@ -339,6 +358,7 @@ trackMediaRequest('movie', 'completed', 'plex', 'premium');
 ```
 
 2. **In Prometheus Config**:
+
 ```yaml
 - job_name: 'custom-exporter'
   static_configs:
@@ -355,7 +375,7 @@ trackMediaRequest('movie', 'completed', 'plex', 'premium');
 ### External Integrations
 
 - **PagerDuty**: Configure webhook in alertmanager.yml
-- **Slack**: Add webhook URL for team notifications  
+- **Slack**: Add webhook URL for team notifications
 - **ITSM Tools**: Use webhook receivers for ticket creation
 - **Custom APIs**: Implement webhook handlers for alert processing
 
@@ -370,6 +390,7 @@ trackMediaRequest('movie', 'completed', 'plex', 'premium');
 ## 📞 Support
 
 For issues and questions:
+
 - Check service logs: `./start-monitoring.sh logs`
 - Review configuration files for syntax errors
 - Verify network connectivity between services

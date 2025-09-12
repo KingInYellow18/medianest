@@ -1,8 +1,8 @@
-import { Router } from 'express'
-import { z } from 'zod'
+import { Router } from 'express';
+import { z } from 'zod';
 
 // Mock auth router for testing
-export const authRouter = Router()
+export const authRouter = Router();
 
 // PIN generation endpoint
 authRouter.post('/plex/pin', async (_req, res, next) => {
@@ -14,24 +14,24 @@ authRouter.post('/plex/pin', async (_req, res, next) => {
         id: '12345',
         code: 'ABCD',
         qrUrl: 'https://plex.tv/link',
-        expiresIn: 900
-      }
-    })
+        expiresIn: 900,
+      },
+    });
   } catch (error) {
-    next(error)
+    next(error);
   }
-})
+});
 
 // PIN verification endpoint
 const verifySchema = z.object({
   pinId: z.string(),
-  rememberMe: z.boolean().optional()
-})
+  rememberMe: z.boolean().optional(),
+});
 
 authRouter.post('/plex/verify', async (req, res, next) => {
   try {
-    const { pinId } = verifySchema.parse(req.body)
-    
+    const { pinId } = verifySchema.parse(req.body);
+
     // This would normally verify PIN and create/update user
     res.json({
       success: true,
@@ -40,13 +40,13 @@ authRouter.post('/plex/verify', async (req, res, next) => {
           id: 'user-id',
           username: 'testuser',
           email: 'test@example.com',
-          role: 'user'
+          role: 'user',
         },
         token: 'jwt-token',
-        rememberToken: 'remember-token'
-      }
-    })
+        rememberToken: 'remember-token',
+      },
+    });
   } catch (error) {
-    next(error)
+    next(error);
   }
-})
+});

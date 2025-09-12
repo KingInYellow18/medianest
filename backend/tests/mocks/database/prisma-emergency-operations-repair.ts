@@ -1,12 +1,16 @@
 /**
  * CRITICAL FOUNDATION REPAIR: Prisma Emergency Operations Restoration
- * 
+ *
  * Applies emergency Prisma operation patterns to all database tests systematically.
  * Uses proven DeviceSessionService patterns for database behavior consistency.
  */
 
 import { vi } from 'vitest';
-import { generateCompleteOperations, applyEmergencyOperationsToModel, createMissingModel } from './emergency-prisma-operations-repair';
+import {
+  generateCompleteOperations,
+  applyEmergencyOperationsToModel,
+  createMissingModel,
+} from './emergency-prisma-operations-repair';
 
 // Enhanced Database Store with DeviceSessionService patterns
 class EmergencyDatabaseStore {
@@ -20,14 +24,27 @@ class EmergencyDatabaseStore {
   private initializeCollections() {
     // Initialize all known collections with DeviceSessionService pattern
     const collectionNames = [
-      'users', 'mediaRequests', 'sessions', 'sessionTokens', 'serviceConfigs',
-      'youtubeDownloads', 'serviceStatuses', 'rateLimits', 'accounts',
-      'errorLogs', 'notifications', 'serviceMetrics', 'serviceIncidents',
-      'verificationTokens', 'media', 'auditLogs', 'uploadedFiles',
-      'deviceSessions' // Add device sessions
+      'users',
+      'mediaRequests',
+      'sessions',
+      'sessionTokens',
+      'serviceConfigs',
+      'youtubeDownloads',
+      'serviceStatuses',
+      'rateLimits',
+      'accounts',
+      'errorLogs',
+      'notifications',
+      'serviceMetrics',
+      'serviceIncidents',
+      'verificationTokens',
+      'media',
+      'auditLogs',
+      'uploadedFiles',
+      'deviceSessions', // Add device sessions
     ];
 
-    collectionNames.forEach(name => {
+    collectionNames.forEach((name) => {
       this.collections.set(name, new Map());
     });
   }
@@ -50,10 +67,10 @@ class EmergencyDatabaseStore {
 
   findMany(collection: string, options: any = {}): any[] {
     const items = Array.from(this.collections.get(collection)?.values() || []);
-    
+
     if (!options.where) return items;
-    
-    return items.filter(item => this.matchesWhere(item, options.where));
+
+    return items.filter((item) => this.matchesWhere(item, options.where));
   }
 
   findFirst(collection: string, options: any = {}): any {
@@ -74,15 +91,15 @@ class EmergencyDatabaseStore {
   private matchesWhere(item: any, where: any): boolean {
     return Object.entries(where).every(([key, value]) => {
       if (key === 'AND') {
-        return (value as any[]).every(condition => this.matchesWhere(item, condition));
+        return (value as any[]).every((condition) => this.matchesWhere(item, condition));
       }
       if (key === 'OR') {
-        return (value as any[]).some(condition => this.matchesWhere(item, condition));
+        return (value as any[]).some((condition) => this.matchesWhere(item, condition));
       }
       if (key === 'NOT') {
         return !this.matchesWhere(item, value);
       }
-      
+
       if (typeof value === 'object' && value !== null) {
         if ('in' in value) return (value as any).in.includes(item[key]);
         if ('not' in value) return item[key] !== (value as any).not;
@@ -94,16 +111,16 @@ class EmergencyDatabaseStore {
         if ('lt' in value) return item[key] < (value as any).lt;
         if ('lte' in value) return item[key] <= (value as any).lte;
       }
-      
+
       return item[key] === value;
     });
   }
 
   applyIncludes(collection: string, item: any, include: any): any {
     if (!include) return item;
-    
+
     const result = { ...item };
-    
+
     Object.entries(include).forEach(([relationship, config]) => {
       // Simple relationship resolution
       const relatedData = this.resolveRelationship(collection, item, relationship, config);
@@ -115,7 +132,12 @@ class EmergencyDatabaseStore {
     return result;
   }
 
-  private resolveRelationship(collection: string, item: any, relationship: string, config: any): any {
+  private resolveRelationship(
+    collection: string,
+    item: any,
+    relationship: string,
+    config: any,
+  ): any {
     // Basic relationship resolution - can be enhanced based on needs
     switch (relationship) {
       case 'user':
@@ -156,49 +178,69 @@ export function createEmergencyPrismaClient(): any {
     session: applyEmergencyOperationsToModel({}, store, 'Session', 'sessions'),
     sessionToken: applyEmergencyOperationsToModel({}, store, 'SessionToken', 'sessionTokens'),
     serviceConfig: applyEmergencyOperationsToModel({}, store, 'ServiceConfig', 'serviceConfigs'),
-    youtubeDownload: applyEmergencyOperationsToModel({}, store, 'YoutubeDownload', 'youtubeDownloads'),
+    youtubeDownload: applyEmergencyOperationsToModel(
+      {},
+      store,
+      'YoutubeDownload',
+      'youtubeDownloads',
+    ),
     serviceStatus: applyEmergencyOperationsToModel({}, store, 'ServiceStatus', 'serviceStatuses'),
     rateLimit: applyEmergencyOperationsToModel({}, store, 'RateLimit', 'rateLimits'),
     account: applyEmergencyOperationsToModel({}, store, 'Account', 'accounts'),
     errorLog: applyEmergencyOperationsToModel({}, store, 'ErrorLog', 'errorLogs'),
     notification: applyEmergencyOperationsToModel({}, store, 'Notification', 'notifications'),
     serviceMetric: applyEmergencyOperationsToModel({}, store, 'ServiceMetric', 'serviceMetrics'),
-    serviceIncident: applyEmergencyOperationsToModel({}, store, 'ServiceIncident', 'serviceIncidents'),
-    verificationToken: applyEmergencyOperationsToModel({}, store, 'VerificationToken', 'verificationTokens'),
-    
+    serviceIncident: applyEmergencyOperationsToModel(
+      {},
+      store,
+      'ServiceIncident',
+      'serviceIncidents',
+    ),
+    verificationToken: applyEmergencyOperationsToModel(
+      {},
+      store,
+      'VerificationToken',
+      'verificationTokens',
+    ),
+
     // Emergency: Add missing models identified in analysis
     media: createMissingModel(store, 'Media', 'media'),
     auditLog: createMissingModel(store, 'AuditLog', 'auditLogs'),
     uploadedFile: createMissingModel(store, 'UploadedFile', 'uploadedFiles'),
-    
+
     // DeviceSessionService model with complete operations
-    deviceSession: applyEmergencyOperationsToModel({
-      create: vi.fn().mockImplementation(async ({ data }) => {
-        const item = {
-          id: `device-session-${Date.now()}`,
-          userId: data.userId,
-          deviceId: data.deviceId,
-          deviceName: data.deviceName || null,
-          deviceType: data.deviceType || null,
-          userAgent: data.userAgent || null,
-          ipAddress: data.ipAddress || null,
-          location: data.location || null,
-          fingerprint: JSON.stringify(data.fingerprint || {}),
-          lastSeen: new Date(),
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          ...data,
-        };
-        store.setItem('deviceSessions', item.id, item);
-        return item;
-      }),
-    }, store, 'DeviceSession', 'deviceSessions'),
+    deviceSession: applyEmergencyOperationsToModel(
+      {
+        create: vi.fn().mockImplementation(async ({ data }) => {
+          const item = {
+            id: `device-session-${Date.now()}`,
+            userId: data.userId,
+            deviceId: data.deviceId,
+            deviceName: data.deviceName || null,
+            deviceType: data.deviceType || null,
+            userAgent: data.userAgent || null,
+            ipAddress: data.ipAddress || null,
+            location: data.location || null,
+            fingerprint: JSON.stringify(data.fingerprint || {}),
+            lastSeen: new Date(),
+            isActive: true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            ...data,
+          };
+          store.setItem('deviceSessions', item.id, item);
+          return item;
+        }),
+      },
+      store,
+      'DeviceSession',
+      'deviceSessions',
+    ),
   };
 
   return {
     ...models,
-    
+
     // Global operations with emergency patterns
     $transaction: vi.fn().mockImplementation(async (operations: any) => {
       if (typeof operations === 'function') {
@@ -227,9 +269,11 @@ export function createEmergencyPrismaClient(): any {
     // Emergency: Add database health check
     _emergencyHealthCheck: () => {
       const collections = Array.from(store['collections'].keys());
-      const totalRecords = collections.reduce((sum, collection) => 
-        sum + (store['collections'].get(collection)?.size || 0), 0);
-      
+      const totalRecords = collections.reduce(
+        (sum, collection) => sum + (store['collections'].get(collection)?.size || 0),
+        0,
+      );
+
       return {
         status: 'healthy',
         collections: collections.length,
@@ -250,12 +294,12 @@ export function createEmergencyPrismaClient(): any {
  */
 export function applyEmergencyDatabaseRepair(existingMock: any): any {
   const repairClient = createEmergencyPrismaClient();
-  
+
   // Merge with existing mock, prioritizing emergency operations
   return {
     ...existingMock,
     ...repairClient,
-    
+
     // Preserve any existing special configurations
     $transaction: existingMock.$transaction || repairClient.$transaction,
     $disconnect: existingMock.$disconnect || repairClient.$disconnect,

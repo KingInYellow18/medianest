@@ -1,33 +1,38 @@
 /**
  * EXAMPLE TESTS DEMONSTRATING FIXED INFRASTRUCTURE
- * 
+ *
  * This file demonstrates how to write tests using the comprehensive
  * mock infrastructure to achieve >70% coverage targets.
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { createTestUser, createTestJWT, createMockRequest, createMockResponse } from './helpers/test-utilities';
+import {
+  createTestUser,
+  createTestJWT,
+  createMockRequest,
+  createMockResponse,
+} from './helpers/test-utilities';
 
 describe('Test Infrastructure Examples', () => {
   describe('Redis Mocking', () => {
     it('should handle Redis operations without connection', async () => {
       const mockRedis = getMockRedis();
-      
+
       await mockRedis.set('test-key', 'test-value');
       const value = await mockRedis.get('test-key');
-      
+
       expect(mockRedis.set).toHaveBeenCalledWith('test-key', 'test-value');
       expect(value).toBe(null); // Mock returns null by default
     });
 
     it('should handle rate limiting scenarios', async () => {
       const mockRedis = getMockRedis();
-      
+
       // Mock rate limiting response
       mockRedis.eval.mockResolvedValue([1, 100, 99, Math.floor(Date.now() / 1000) + 60]);
-      
+
       const result = await mockRedis.eval('rate-limit-script', 1, 'user:123', 100, 60);
-      
+
       expect(result).toEqual([1, 100, 99, expect.any(Number)]);
     });
   });
@@ -38,7 +43,7 @@ describe('Test Infrastructure Examples', () => {
         email: 'custom@test.com',
         role: 'ADMIN',
       });
-      
+
       expect(user.email).toBe('custom@test.com');
       expect(user.role).toBe('ADMIN');
       expect(user.id).toBe('test-user-id');
@@ -49,7 +54,7 @@ describe('Test Infrastructure Examples', () => {
         role: 'ADMIN',
         permissions: ['read', 'write'],
       });
-      
+
       expect(typeof token).toBe('string');
       expect(token.length).toBeGreaterThan(0);
     });
@@ -60,7 +65,7 @@ describe('Test Infrastructure Examples', () => {
         path: '/api/media',
         body: { title: 'Test Movie' },
       });
-      
+
       expect(req.headers.authorization).toContain('Bearer ');
       expect(req.user).toBeDefined();
       expect(req.method).toBe('POST');
@@ -69,13 +74,13 @@ describe('Test Infrastructure Examples', () => {
 
   describe('Error Handling', () => {
     it('should handle authentication errors', async () => {
-      const jwt = await vi.importActual('jsonwebtoken') as any;
-      
+      const jwt = (await vi.importActual('jsonwebtoken')) as any;
+
       // Test expired token
       jwt.verify.mockImplementation(() => {
         throw new jwt.TokenExpiredError('Token expired', new Date());
       });
-      
+
       try {
         jwt.verify('expired-token', 'secret');
       } catch (error) {
@@ -89,9 +94,10 @@ describe('Test Infrastructure Examples', () => {
           findUnique: vi.fn().mockRejectedValue(new Error('Database connection failed')),
         },
       };
-      
-      await expect(mockPrisma.user.findUnique({ where: { id: '123' } }))
-        .rejects.toThrow('Database connection failed');
+
+      await expect(mockPrisma.user.findUnique({ where: { id: '123' } })).rejects.toThrow(
+        'Database connection failed',
+      );
     });
   });
 
@@ -108,7 +114,7 @@ describe('Test Infrastructure Examples', () => {
       });
 
       const res = createTestResponse();
-      
+
       // Simulate successful creation
       res.status.mockReturnValue(res);
       res.json.mockReturnValue({
@@ -134,7 +140,7 @@ describe('Test Infrastructure Examples', () => {
   describe('Service Integration', () => {
     it('should mock external API calls', async () => {
       const axios = await vi.importMocked('axios');
-      
+
       axios.get.mockResolvedValue({
         data: {
           title: 'The Matrix',
@@ -144,30 +150,29 @@ describe('Test Infrastructure Examples', () => {
       });
 
       const response = await axios.get('/api/external/movie/tt0133093');
-      
+
       expect(response.data.title).toBe('The Matrix');
       expect(axios.get).toHaveBeenCalledWith('/api/external/movie/tt0133093');
     });
 
     it('should handle service timeouts', async () => {
       const axios = await vi.importMocked('axios');
-      
+
       axios.get.mockRejectedValue(new Error('TIMEOUT'));
 
-      await expect(axios.get('/api/slow-service'))
-        .rejects.toThrow('TIMEOUT');
+      await expect(axios.get('/api/slow-service')).rejects.toThrow('TIMEOUT');
     });
   });
 
   describe('Performance Testing', () => {
     it('should measure function execution time', async () => {
       const start = performance.now();
-      
+
       // Simulate some async work
-      await new Promise(resolve => setTimeout(resolve, 10));
-      
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
       const duration = performance.now() - start;
-      
+
       expect(duration).toBeGreaterThanOrEqual(10);
       expect(duration).toBeLessThan(50); // Should be reasonably fast
     });
@@ -179,7 +184,7 @@ describe('Test Infrastructure Examples', () => {
       });
 
       const userIds = await Promise.all(promises);
-      
+
       expect(userIds).toHaveLength(10);
       expect(userIds[0]).toBe('user-0');
       expect(userIds[9]).toBe('user-9');
@@ -204,7 +209,7 @@ describe('Coverage Examples', () => {
       const malformedReq = createTestRequest({
         body: 'not-json',
       });
-      
+
       expect(typeof malformedReq.body).toBe('string');
     });
   });

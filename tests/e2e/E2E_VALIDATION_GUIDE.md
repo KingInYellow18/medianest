@@ -46,6 +46,7 @@ The MediaNest End-to-End Testing Suite provides comprehensive validation of comp
 **Purpose**: Validate complete user workflows from registration to content management
 
 **Key Journeys**:
+
 - User registration, email verification, and login
 - File upload, processing, and organization
 - Media management and collection creation
@@ -54,6 +55,7 @@ The MediaNest End-to-End Testing Suite provides comprehensive validation of comp
 - Collaboration and sharing workflows
 
 **Validation Points**:
+
 - UI element accessibility and visibility
 - API endpoint responses
 - Database state consistency
@@ -65,6 +67,7 @@ The MediaNest End-to-End Testing Suite provides comprehensive validation of comp
 **Purpose**: Ensure critical business processes function correctly end-to-end
 
 **Key Processes**:
+
 - **Media Lifecycle**: Upload → Processing → Organization → Archival
 - **User Permissions**: Role creation → Assignment → Enforcement
 - **Backup/Recovery**: Configuration → Execution → Validation
@@ -73,6 +76,7 @@ The MediaNest End-to-End Testing Suite provides comprehensive validation of comp
 - **Analytics**: Data collection → Processing → Report generation
 
 **Validation Points**:
+
 - Business logic correctness
 - Data integrity maintenance
 - Process completion verification
@@ -84,17 +88,20 @@ The MediaNest End-to-End Testing Suite provides comprehensive validation of comp
 **Purpose**: Validate system performance under realistic user load
 
 **Load Patterns**:
+
 - **Steady**: Consistent user activity over time
 - **Gradual**: Progressive increase in user load
 - **Burst**: Sudden spike in concurrent users
 - **Spike**: Targeted high-load periods
 
 **User Types**:
+
 - **Casual Users** (70%): Browse, view content, basic interactions
 - **Power Users** (25%): Upload, organize, share content actively
 - **Admin Users** (5%): System management, user administration
 
 **Performance Metrics**:
+
 - Throughput (requests per second)
 - Response times (average, 95th percentile)
 - Error rates and failure patterns
@@ -106,17 +113,20 @@ The MediaNest End-to-End Testing Suite provides comprehensive validation of comp
 **Purpose**: Ensure compatibility across all supported platforms
 
 **Browser Coverage**:
+
 - **Chrome**: Latest stable, feature-rich testing
 - **Firefox**: Standards compliance validation
 - **Safari**: WebKit engine compatibility
 - **Edge**: Microsoft ecosystem support
 
 **Device Categories**:
+
 - **Desktop**: 1920x1080, 1366x768 resolutions
 - **Tablet**: iPad Pro, standard iPad, Android tablets
 - **Mobile**: iPhone variants, Android devices (Pixel, Galaxy)
 
 **Feature Validation**:
+
 - Responsive design adaptation
 - Touch and gesture support
 - Progressive Web App features
@@ -183,7 +193,7 @@ npm run test:e2e:headed
 npx playwright test --grep "User Journey"
 
 # Business process validation
-npx playwright test --grep "Business Process"  
+npx playwright test --grep "Business Process"
 
 # Performance testing
 npx playwright test --grep "Performance and Load"
@@ -196,15 +206,15 @@ npx playwright test --grep "Cross-Browser"
 
 The suite assesses production readiness based on:
 
-| Metric | Threshold | Weight |
-|--------|-----------|--------|
-| User Journey Success Rate | ≥85% | Critical |
-| Business Process Success Rate | ≥90% | Critical |
-| System Throughput | ≥10 req/sec | Critical |
-| Error Rate | ≤5% | Critical |
-| Response Time | ≤3 seconds | Important |
-| Cross-Browser Compatibility | ≥80% | Important |
-| Accessibility Score | ≥90 | Important |
+| Metric                        | Threshold   | Weight    |
+| ----------------------------- | ----------- | --------- |
+| User Journey Success Rate     | ≥85%        | Critical  |
+| Business Process Success Rate | ≥90%        | Critical  |
+| System Throughput             | ≥10 req/sec | Critical  |
+| Error Rate                    | ≤5%         | Critical  |
+| Response Time                 | ≤3 seconds  | Important |
+| Cross-Browser Compatibility   | ≥80%        | Important |
+| Accessibility Score           | ≥90         | Important |
 
 ## Generated Reports
 

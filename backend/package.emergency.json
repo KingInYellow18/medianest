@@ -68,7 +68,7 @@
     "optimizations": [
       "All major dependencies externalized",
       "OpenTelemetry packages removed",
-      "Aggressive tree shaking enabled", 
+      "Aggressive tree shaking enabled",
       "Production-only build",
       "Bundle analyzer integration"
     ]

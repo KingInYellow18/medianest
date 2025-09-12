@@ -6,45 +6,49 @@ This document provides a comprehensive overview of the MediaNest project, its st
 
 MediaNest is a unified web portal for managing Plex media server and related services. It provides a modern, responsive interface for media management, user authentication, and service integration.
 
-*   **Frontend:** Next.js 15, React 19, TypeScript, Tailwind CSS
-*   **Backend:** Express.js, TypeScript, Prisma ORM
-*   **Database:** PostgreSQL
-*   **Caching:** Redis
-*   **Deployment:** Docker
+- **Frontend:** Next.js 15, React 19, TypeScript, Tailwind CSS
+- **Backend:** Express.js, TypeScript, Prisma ORM
+- **Database:** PostgreSQL
+- **Caching:** Redis
+- **Deployment:** Docker
 
 The project is structured as a monorepo with the following key directories:
 
-*   `frontend/`: The Next.js frontend application.
-*   `backend/`: The Express.js backend API.
-*   `shared/`: Shared utilities and types between the frontend and backend.
-*   `infrastructure/`: Deployment configurations, including Docker and Nginx.
-*   `tests/`: E2E, integration, and security tests.
-*   `docs/`: Project documentation.
-*   `scripts/`: Various build, test, and deployment scripts.
+- `frontend/`: The Next.js frontend application.
+- `backend/`: The Express.js backend API.
+- `shared/`: Shared utilities and types between the frontend and backend.
+- `infrastructure/`: Deployment configurations, including Docker and Nginx.
+- `tests/`: E2E, integration, and security tests.
+- `docs/`: Project documentation.
+- `scripts/`: Various build, test, and deployment scripts.
 
 ## Building and Running
 
 ### Prerequisites
 
-*   Node.js 20.x+
-*   Docker
-*   PostgreSQL 15.x+
-*   Redis 7.x+
+- Node.js 20.x+
+- Docker
+- PostgreSQL 15.x+
+- Redis 7.x+
 
 ### Development
 
 1.  **Install Dependencies:**
+
     ```bash
     npm install
     ```
 
 2.  **Set up Environment Variables:**
+
     ```bash
     cp .env.example .env
     ```
-    *Note: You will need to fill in the required environment variables in the `.env` file.*
+
+    _Note: You will need to fill in the required environment variables in the `.env` file._
 
 3.  **Run Database Migrations:**
+
     ```bash
     cd backend && npx prisma migrate deploy
     ```
@@ -59,39 +63,42 @@ The project is structured as a monorepo with the following key directories:
 
 The project is configured to run with Docker Compose.
 
-*   **Start Development Environment:**
-    ```bash
-    npm run docker:compose
-    ```
+- **Start Development Environment:**
 
-*   **Start Production Environment:**
-    ```bash
-    ./deployment/scripts/deploy-compose.sh --domain your-domain.com
-    ```
+  ```bash
+  npm run docker:compose
+  ```
+
+- **Start Production Environment:**
+  ```bash
+  ./deployment/scripts/deploy-compose.sh --domain your-domain.com
+  ```
 
 ## Testing
 
 The project uses `vitest` for testing.
 
-*   **Run All Tests:**
-    ```bash
-    npm test
-    ```
+- **Run All Tests:**
 
-*   **Run Fast Tests (for development):**
-    ```bash
-    npm run test:ultra-fast
-    ```
+  ```bash
+  npm test
+  ```
 
-*   **Run Tests with Coverage:**
-    ```bash
-    npm run test:coverage
-    ```
+- **Run Fast Tests (for development):**
+
+  ```bash
+  npm run test:ultra-fast
+  ```
+
+- **Run Tests with Coverage:**
+  ```bash
+  npm run test:coverage
+  ```
 
 ## Development Conventions
 
-*   **Code Style:** The project uses ESLint and Prettier for code formatting and linting.
-*   **Commits:** The project follows the Conventional Commits specification.
-*   **Branching:** Feature branches should be created from `main`.
-*   **Backend:** The backend follows a layered architecture with `controllers`, `services`, `middleware`, and `routes`.
-*   **Frontend:** The frontend uses the Next.js App Router and a component-based architecture.
+- **Code Style:** The project uses ESLint and Prettier for code formatting and linting.
+- **Commits:** The project follows the Conventional Commits specification.
+- **Branching:** Feature branches should be created from `main`.
+- **Backend:** The backend follows a layered architecture with `controllers`, `services`, `middleware`, and `routes`.
+- **Frontend:** The frontend uses the Next.js App Router and a component-based architecture.

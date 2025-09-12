@@ -1,9 +1,9 @@
 /**
  * EMERGENCY PRISMA REPOSITORY API ALIGNMENT FIX
- * 
+ *
  * Addresses the critical 67% repository test failure rate by fixing API misalignment
  * between actual repository implementations and mock implementations.
- * 
+ *
  * CRITICAL FIXES:
  * 1. Repository interface alignment (findUnique vs findFirst)
  * 2. Missing CRUD operations in mocks
@@ -28,7 +28,7 @@ export interface PrismaRepositoryInterface {
   update: MockedFunction<any>;
   delete: MockedFunction<any>;
   count: MockedFunction<any>;
-  
+
   // Advanced operations (Phase G requirements)
   createMany: MockedFunction<any>;
   updateMany: MockedFunction<any>;
@@ -56,7 +56,7 @@ export interface PrismaClientInterface {
   serviceMetric: PrismaRepositoryInterface;
   serviceIncident: PrismaRepositoryInterface;
   verificationToken: PrismaRepositoryInterface;
-  
+
   // Transaction support
   $transaction: MockedFunction<any>;
   $connect: MockedFunction<any>;
@@ -86,13 +86,23 @@ export class AlignedRepositoryMockFactory {
 
   private initializeCollections(): void {
     const collections = [
-      'User', 'MediaRequest', 'Session', 'SessionToken', 
-      'ServiceConfig', 'YoutubeDownload', 'ServiceStatus', 
-      'RateLimit', 'Account', 'ErrorLog', 'Notification',
-      'ServiceMetric', 'ServiceIncident', 'VerificationToken'
+      'User',
+      'MediaRequest',
+      'Session',
+      'SessionToken',
+      'ServiceConfig',
+      'YoutubeDownload',
+      'ServiceStatus',
+      'RateLimit',
+      'Account',
+      'ErrorLog',
+      'Notification',
+      'ServiceMetric',
+      'ServiceIncident',
+      'VerificationToken',
     ];
 
-    collections.forEach(collection => {
+    collections.forEach((collection) => {
       this.mockData.set(collection, new Map());
     });
   }
@@ -102,7 +112,7 @@ export class AlignedRepositoryMockFactory {
    */
   createAlignedRepositoryMock(modelName: string): PrismaRepositoryInterface {
     const collection = this.getCollection(modelName);
-    
+
     return {
       // CRITICAL: Aligned CRUD operations (matches actual repository implementations)
       create: vi.fn().mockImplementation(({ data, include }) => {
@@ -114,62 +124,62 @@ export class AlignedRepositoryMockFactory {
       findUnique: vi.fn().mockImplementation(({ where, include, select }) => {
         const item = this.findByWhere(collection, where);
         if (!item) return Promise.resolve(null);
-        
+
         let result = item;
         if (select) result = this.applySelect(item, select);
         if (include) result = this.applyIncludes(result, include);
-        
+
         return Promise.resolve(result);
       }),
 
       findFirst: vi.fn().mockImplementation(({ where, include, select, orderBy }) => {
         const items = Array.from(collection.values());
-        let filtered = where ? items.filter(item => this.matchesWhere(item, where)) : items;
-        
+        let filtered = where ? items.filter((item) => this.matchesWhere(item, where)) : items;
+
         if (orderBy) filtered = this.applyOrderBy(filtered, orderBy);
-        
+
         const item = filtered[0] || null;
         if (!item) return Promise.resolve(null);
-        
+
         let result = item;
         if (select) result = this.applySelect(item, select);
         if (include) result = this.applyIncludes(result, include);
-        
+
         return Promise.resolve(result);
       }),
 
       findMany: vi.fn().mockImplementation(({ where, include, select, orderBy, take, skip }) => {
         let items = Array.from(collection.values());
-        
-        if (where) items = items.filter(item => this.matchesWhere(item, where));
+
+        if (where) items = items.filter((item) => this.matchesWhere(item, where));
         if (orderBy) items = this.applyOrderBy(items, orderBy);
         if (skip) items = items.slice(skip);
         if (take) items = items.slice(0, take);
-        
-        if (select) items = items.map(item => this.applySelect(item, select));
-        if (include) items = items.map(item => this.applyIncludes(item, include));
-        
+
+        if (select) items = items.map((item) => this.applySelect(item, select));
+        if (include) items = items.map((item) => this.applyIncludes(item, include));
+
         return Promise.resolve(items);
       }),
 
       update: vi.fn().mockImplementation(({ where, data, include, select }) => {
         const item = this.findByWhere(collection, where);
         if (!item) throw new Error(`${modelName} not found`);
-        
+
         const updated = { ...item, ...data, updatedAt: new Date() };
         collection.set(item.id, updated);
-        
+
         let result = updated;
         if (select) result = this.applySelect(updated, select);
         if (include) result = this.applyIncludes(result, include);
-        
+
         return Promise.resolve(result);
       }),
 
       delete: vi.fn().mockImplementation(({ where }) => {
         const item = this.findByWhere(collection, where);
         if (!item) throw new Error(`${modelName} not found`);
-        
+
         collection.delete(item.id);
         return Promise.resolve(item);
       }),
@@ -178,7 +188,7 @@ export class AlignedRepositoryMockFactory {
         let count = collection.size;
         if (where) {
           const items = Array.from(collection.values());
-          count = items.filter(item => this.matchesWhere(item, where)).length;
+          count = items.filter((item) => this.matchesWhere(item, where)).length;
         }
         return Promise.resolve(count);
       }),
@@ -187,222 +197,238 @@ export class AlignedRepositoryMockFactory {
       createMany: vi.fn().mockImplementation(({ data, skipDuplicates = false }) => {
         const items = Array.isArray(data) ? data : [data];
         let created = 0;
-        
+
         for (const itemData of items) {
           try {
             const item = this.createModelInstance(itemData, modelName);
-            
+
             // Check for duplicates based on unique constraints
             if (!skipDuplicates) {
               // Check unique constraints based on model type
-              const existing = modelName === 'User' ? 
-                this.findByWhere(collection, { email: itemData.email }) :
-                this.findByWhere(collection, { id: item.id });
-              
+              const existing =
+                modelName === 'User'
+                  ? this.findByWhere(collection, { email: itemData.email })
+                  : this.findByWhere(collection, { id: item.id });
+
               if (existing) {
                 const field = modelName === 'User' ? 'email' : 'id';
-                throw new Error(`Unique constraint failed on ${field}: ${itemData.email || item.id}`);
+                throw new Error(
+                  `Unique constraint failed on ${field}: ${itemData.email || item.id}`,
+                );
               }
             }
-            
+
             collection.set(item.id, item);
             created++;
           } catch (error) {
             if (!skipDuplicates) throw error;
           }
         }
-        
+
         return Promise.resolve({ count: created });
       }),
 
       updateMany: vi.fn().mockImplementation(({ where, data }) => {
         const items = Array.from(collection.values());
-        const filtered = where ? items.filter(item => this.matchesWhere(item, where)) : items;
-        
-        filtered.forEach(item => {
+        const filtered = where ? items.filter((item) => this.matchesWhere(item, where)) : items;
+
+        filtered.forEach((item) => {
           const updated = { ...item, ...data, updatedAt: new Date() };
           collection.set(item.id, updated);
         });
-        
+
         return Promise.resolve({ count: filtered.length });
       }),
 
       deleteMany: vi.fn().mockImplementation(({ where }) => {
         const items = Array.from(collection.values());
-        const filtered = where ? items.filter(item => this.matchesWhere(item, where)) : items;
-        
-        filtered.forEach(item => collection.delete(item.id));
-        
+        const filtered = where ? items.filter((item) => this.matchesWhere(item, where)) : items;
+
+        filtered.forEach((item) => collection.delete(item.id));
+
         return Promise.resolve({ count: filtered.length });
       }),
 
       upsert: vi.fn().mockImplementation(({ where, create, update, include, select }) => {
         const existing = this.findByWhere(collection, where);
-        
+
         if (existing) {
           const updated = { ...existing, ...update, updatedAt: new Date() };
           collection.set(existing.id, updated);
-          
+
           let result = updated;
           if (select) result = this.applySelect(updated, select);
           if (include) result = this.applyIncludes(result, include);
-          
+
           return Promise.resolve(result);
         } else {
           const item = this.createModelInstance(create, modelName);
           collection.set(item.id, item);
-          
+
           let result = item;
           if (select) result = this.applySelect(item, select);
           if (include) result = this.applyIncludes(result, include);
-          
+
           return Promise.resolve(result);
         }
       }),
 
       findFirstOrThrow: vi.fn().mockImplementation(({ where, include, select, orderBy }) => {
         const items = Array.from(collection.values());
-        let filtered = where ? items.filter(item => this.matchesWhere(item, where)) : items;
-        
+        let filtered = where ? items.filter((item) => this.matchesWhere(item, where)) : items;
+
         if (orderBy) filtered = this.applyOrderBy(filtered, orderBy);
-        
+
         const item = filtered[0];
         if (!item) throw new Error(`${modelName} not found`);
-        
+
         let result = item;
         if (select) result = this.applySelect(item, select);
         if (include) result = this.applyIncludes(result, include);
-        
+
         return Promise.resolve(result);
       }),
 
       findUniqueOrThrow: vi.fn().mockImplementation(({ where, include, select }) => {
         const item = this.findByWhere(collection, where);
         if (!item) throw new Error(`${modelName} not found`);
-        
+
         let result = item;
         if (select) result = this.applySelect(item, select);
         if (include) result = this.applyIncludes(result, include);
-        
+
         return Promise.resolve(result);
       }),
 
       createManyAndReturn: vi.fn().mockImplementation(({ data, skipDuplicates = false }) => {
         const items = Array.isArray(data) ? data : [data];
         const created = [];
-        
+
         for (const itemData of items) {
           try {
             const item = this.createModelInstance(itemData, modelName);
-            
+
             if (!skipDuplicates && this.findByWhere(collection, { id: item.id })) {
               throw new Error(`Unique constraint failed on id: ${item.id}`);
             }
-            
+
             collection.set(item.id, item);
             created.push(item);
           } catch (error) {
             if (!skipDuplicates) throw error;
           }
         }
-        
+
         return Promise.resolve(created);
       }),
 
-      groupBy: vi.fn().mockImplementation(({ by, where, having, orderBy, take, skip, _count, _avg, _sum, _min, _max }) => {
-        const items = Array.from(collection.values());
-        const filtered = where ? items.filter(item => this.matchesWhere(item, where)) : items;
-        
-        const groups = new Map();
-        
-        filtered.forEach(item => {
-          const groupKey = Array.isArray(by) ? 
-            by.map(field => item[field]).join('|') : 
-            item[by];
-          
-          if (!groups.has(groupKey)) {
-            groups.set(groupKey, {
-              items: [],
-              [by]: Array.isArray(by) ? 
-                by.reduce((acc, field) => ({ ...acc, [field]: item[field] }), {}) : 
-                item[by]
+      groupBy: vi
+        .fn()
+        .mockImplementation(
+          ({ by, where, having, orderBy, take, skip, _count, _avg, _sum, _min, _max }) => {
+            const items = Array.from(collection.values());
+            const filtered = where ? items.filter((item) => this.matchesWhere(item, where)) : items;
+
+            const groups = new Map();
+
+            filtered.forEach((item) => {
+              const groupKey = Array.isArray(by)
+                ? by.map((field) => item[field]).join('|')
+                : item[by];
+
+              if (!groups.has(groupKey)) {
+                groups.set(groupKey, {
+                  items: [],
+                  [by]: Array.isArray(by)
+                    ? by.reduce((acc, field) => ({ ...acc, [field]: item[field] }), {})
+                    : item[by],
+                });
+              }
+
+              groups.get(groupKey).items.push(item);
             });
-          }
-          
-          groups.get(groupKey).items.push(item);
-        });
-        
-        let result = Array.from(groups.values()).map(group => {
-          const item = { ...group };
-          delete item.items;
-          
-          if (_count) {
-            item._count = typeof _count === 'object' ? 
-              Object.keys(_count).reduce((acc, key) => ({ ...acc, [key]: group.items.length }), {}) :
-              group.items.length;
-          }
-          
-          if (_avg && group.items.length > 0) {
-            item._avg = {};
-            Object.keys(_avg || {}).forEach(field => {
-              const values = group.items.map(i => i[field]).filter(v => typeof v === 'number');
-              item._avg[field] = values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : null;
+
+            let result = Array.from(groups.values()).map((group) => {
+              const item = { ...group };
+              delete item.items;
+
+              if (_count) {
+                item._count =
+                  typeof _count === 'object'
+                    ? Object.keys(_count).reduce(
+                        (acc, key) => ({ ...acc, [key]: group.items.length }),
+                        {},
+                      )
+                    : group.items.length;
+              }
+
+              if (_avg && group.items.length > 0) {
+                item._avg = {};
+                Object.keys(_avg || {}).forEach((field) => {
+                  const values = group.items
+                    .map((i) => i[field])
+                    .filter((v) => typeof v === 'number');
+                  item._avg[field] =
+                    values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : null;
+                });
+              }
+
+              return item;
             });
-          }
-          
-          return item;
-        });
-        
-        if (skip) result = result.slice(skip);
-        if (take) result = result.slice(0, take);
-        
-        return Promise.resolve(result);
-      }),
+
+            if (skip) result = result.slice(skip);
+            if (take) result = result.slice(0, take);
+
+            return Promise.resolve(result);
+          },
+        ),
 
       aggregate: vi.fn().mockImplementation(({ where, _count, _avg, _sum, _min, _max }) => {
         const items = Array.from(collection.values());
-        const filtered = where ? items.filter(item => this.matchesWhere(item, where)) : items;
-        
+        const filtered = where ? items.filter((item) => this.matchesWhere(item, where)) : items;
+
         const result: any = {};
-        
+
         if (_count) {
-          result._count = typeof _count === 'object' ? 
-            Object.keys(_count).reduce((acc, key) => ({ ...acc, [key]: filtered.length }), {}) :
-            filtered.length;
+          result._count =
+            typeof _count === 'object'
+              ? Object.keys(_count).reduce((acc, key) => ({ ...acc, [key]: filtered.length }), {})
+              : filtered.length;
         }
-        
+
         if (_avg) {
           result._avg = {};
-          Object.keys(_avg || {}).forEach(field => {
-            const values = filtered.map(item => item[field]).filter(v => typeof v === 'number');
-            result._avg[field] = values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : null;
+          Object.keys(_avg || {}).forEach((field) => {
+            const values = filtered.map((item) => item[field]).filter((v) => typeof v === 'number');
+            result._avg[field] =
+              values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : null;
           });
         }
-        
+
         if (_sum) {
           result._sum = {};
-          Object.keys(_sum || {}).forEach(field => {
-            const values = filtered.map(item => item[field]).filter(v => typeof v === 'number');
+          Object.keys(_sum || {}).forEach((field) => {
+            const values = filtered.map((item) => item[field]).filter((v) => typeof v === 'number');
             result._sum[field] = values.length > 0 ? values.reduce((a, b) => a + b, 0) : null;
           });
         }
-        
+
         if (_min) {
           result._min = {};
-          Object.keys(_min || {}).forEach(field => {
-            const values = filtered.map(item => item[field]).filter(v => typeof v === 'number');
+          Object.keys(_min || {}).forEach((field) => {
+            const values = filtered.map((item) => item[field]).filter((v) => typeof v === 'number');
             result._min[field] = values.length > 0 ? Math.min(...values) : null;
           });
         }
-        
+
         if (_max) {
           result._max = {};
-          Object.keys(_max || {}).forEach(field => {
-            const values = filtered.map(item => item[field]).filter(v => typeof v === 'number');
+          Object.keys(_max || {}).forEach((field) => {
+            const values = filtered.map((item) => item[field]).filter((v) => typeof v === 'number');
             result._max[field] = values.length > 0 ? Math.max(...values) : null;
           });
         }
-        
+
         return Promise.resolve(result);
       }),
     };
@@ -413,16 +439,26 @@ export class AlignedRepositoryMockFactory {
    */
   createAlignedPrismaClientMock(): PrismaClientInterface {
     const models = [
-      'user', 'mediaRequest', 'session', 'sessionToken', 
-      'serviceConfig', 'youtubeDownload', 'serviceStatus', 
-      'rateLimit', 'account', 'errorLog', 'notification',
-      'serviceMetric', 'serviceIncident', 'verificationToken'
+      'user',
+      'mediaRequest',
+      'session',
+      'sessionToken',
+      'serviceConfig',
+      'youtubeDownload',
+      'serviceStatus',
+      'rateLimit',
+      'account',
+      'errorLog',
+      'notification',
+      'serviceMetric',
+      'serviceIncident',
+      'verificationToken',
     ];
 
     const client: any = {};
 
     // Create aligned model mocks
-    models.forEach(model => {
+    models.forEach((model) => {
       const modelName = model.charAt(0).toUpperCase() + model.slice(1);
       client[model] = this.createAlignedRepositoryMock(modelName);
     });
@@ -450,16 +486,16 @@ export class AlignedRepositoryMockFactory {
 
   private findByWhere(collection: Map<string, any>, where: any): any {
     const items = Array.from(collection.values());
-    return items.find(item => this.matchesWhere(item, where)) || null;
+    return items.find((item) => this.matchesWhere(item, where)) || null;
   }
 
   private matchesWhere(item: any, where: any): boolean {
     for (const [key, value] of Object.entries(where)) {
       if (key === 'AND') {
-        return (value as any[]).every(condition => this.matchesWhere(item, condition));
+        return (value as any[]).every((condition) => this.matchesWhere(item, condition));
       }
       if (key === 'OR') {
-        return (value as any[]).some(condition => this.matchesWhere(item, condition));
+        return (value as any[]).some((condition) => this.matchesWhere(item, condition));
       }
       if (key === 'NOT') {
         return !this.matchesWhere(item, value);
@@ -468,41 +504,40 @@ export class AlignedRepositoryMockFactory {
       // Handle Prisma query operators
       if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
         const itemValue = item[key];
-        
+
         // Handle Prisma operators
         if ('contains' in value) {
           if (typeof itemValue !== 'string') return false;
-          const searchValue = value.mode === 'insensitive' ? 
-            itemValue.toLowerCase() : itemValue;
-          const contains = value.mode === 'insensitive' ? 
-            value.contains.toLowerCase() : value.contains;
+          const searchValue = value.mode === 'insensitive' ? itemValue.toLowerCase() : itemValue;
+          const contains =
+            value.mode === 'insensitive' ? value.contains.toLowerCase() : value.contains;
           return searchValue.includes(contains);
         }
-        
+
         if ('gte' in value) {
           return itemValue >= value.gte;
         }
-        
+
         if ('lte' in value) {
           return itemValue <= value.lte;
         }
-        
+
         if ('gt' in value) {
           return itemValue > value.gt;
         }
-        
+
         if ('lt' in value) {
           return itemValue < value.lt;
         }
-        
+
         if ('in' in value) {
           return Array.isArray(value.in) && value.in.includes(itemValue);
         }
-        
+
         if ('notIn' in value) {
           return Array.isArray(value.notIn) && !value.notIn.includes(itemValue);
         }
-        
+
         // Handle nested object conditions (relationships)
         if (!itemValue) return false;
         return this.matchesWhere(itemValue, value);
@@ -555,14 +590,14 @@ export class AlignedRepositoryMockFactory {
 
   private applyIncludes(item: any, include: any): any {
     const result = { ...item };
-    
+
     // Handle relationship includes properly
     for (const [relation, includeOptions] of Object.entries(include)) {
-      if (includeOptions === true || (typeof includeOptions === 'object')) {
+      if (includeOptions === true || typeof includeOptions === 'object') {
         result[relation] = this.loadRelation(item, relation, includeOptions);
       }
     }
-    
+
     return result;
   }
 
@@ -572,21 +607,26 @@ export class AlignedRepositoryMockFactory {
       case 'user':
         return this.findByWhere(this.getCollection('User'), { id: item.userId }) || null;
       case 'mediaRequests':
-        return Array.from(this.getCollection('MediaRequest').values())
-          .filter((req: any) => req.userId === item.id);
+        return Array.from(this.getCollection('MediaRequest').values()).filter(
+          (req: any) => req.userId === item.id,
+        );
       case 'sessions':
-        return Array.from(this.getCollection('Session').values())
-          .filter((session: any) => session.userId === item.id);
+        return Array.from(this.getCollection('Session').values()).filter(
+          (session: any) => session.userId === item.id,
+        );
       case 'sessionTokens':
-        return Array.from(this.getCollection('SessionToken').values())
-          .filter((token: any) => token.userId === item.id);
+        return Array.from(this.getCollection('SessionToken').values()).filter(
+          (token: any) => token.userId === item.id,
+        );
       default:
         return null;
     }
   }
 
   private createModelInstance(data: any, modelName: string): any {
-    const id = data.id || `${modelName.toLowerCase()}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const id =
+      data.id ||
+      `${modelName.toLowerCase()}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const timestamp = new Date();
 
     const baseInstance = {

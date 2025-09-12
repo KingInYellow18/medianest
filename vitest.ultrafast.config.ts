@@ -4,14 +4,14 @@ import { cpus } from 'os';
 
 /**
  * ULTRA-FAST TEST CONFIGURATION - OPTIMIZED FOR SUB-2-MINUTE EXECUTION
- * 
+ *
  * Performance Architecture:
  * - 1:1 CPU core mapping for optimal thread utilization
  * - Intelligent test sharding and parallel execution
  * - Aggressive caching and pre-compilation
  * - Memory-optimized test isolation
  * - Zero overhead for development speed
- * 
+ *
  * Target Performance:
  * - Individual tests: <2ms/test (50% improvement)
  * - Full suite: <2 minutes (50% improvement)
@@ -28,33 +28,33 @@ export default defineConfig({
     poolOptions: {
       threads: {
         singleThread: false,
-        maxThreads: CPU_CORES, // Optimal: 1:1 with CPU cores 
-        minThreads: Math.max(2, Math.floor(CPU_CORES / 2)),
+        maxThreads: Math.min(CPU_CORES, 4), // Cap threads for stability
+        minThreads: 1,
         useAtomics: true,
-        isolate: false, // CRITICAL: 5x speed boost through context sharing
-        // Removed invalid execArgv flags that cause worker errors
-        // Memory optimization handled by pool configuration instead
-      }
+        isolate: true, // Enable isolation to prevent worker crashes
+      },
     },
-    
-    // AGGRESSIVE TIMEOUTS: Fail fast for development speed
-    testTimeout: 3000,   // Reduced from 5s to 3s
-    hookTimeout: 800,    // Reduced from 1s to 800ms
-    teardownTimeout: 400, // Reduced from 500ms to 400ms
-    
-    // OPTIMAL CONCURRENCY: 2x CPU cores for balanced performance
-    maxConcurrency: CPU_CORES * 2,
-    
+
+    // STABILIZED TIMEOUTS: Prevent premature worker termination
+    testTimeout: 10000,
+    hookTimeout: 5000,
+    teardownTimeout: 5000,
+
+    // STABILIZED CONCURRENCY: Reduce chance of ERR_IPC_CHANNEL_CLOSED
+    maxConcurrency: Math.min(CPU_CORES, 4),
+
     // PERFORMANCE ENVIRONMENT
     environment: 'node',
     globals: true,
-    
+
     // ULTRA-FAST FILE DISCOVERY: Only unit tests, exclude slow tests
     include: [
       'backend/tests/unit/**/*.test.ts',
       'backend/tests/**/*.test.ts',
+      'frontend/src/**/*.test.ts',
+      'frontend/src/**/*.test.tsx',
       'shared/src/**/*.test.ts',
-      'tests/unit/**/*.test.ts'
+      'tests/unit/**/*.test.ts',
     ],
     exclude: [
       '**/node_modules/**',
@@ -62,31 +62,31 @@ export default defineConfig({
       '**/coverage/**',
       '**/*.d.ts',
       '**/build/**',
-      '**/.next/**'
+      '**/.next/**',
     ],
-    
+
     // OPTIMIZED SETUP: Single pre-compiled setup file
     setupFiles: ['./tests/setup-performance-optimized.ts'],
-    
+
     // ZERO COVERAGE OVERHEAD: Maximum speed
     coverage: {
-      enabled: false
+      enabled: false,
     },
-    
+
     // OPTIMAL REPORTER: Fast output without deprecation warnings
     reporter: [['default', { summary: false }]],
-    
+
     // NO RETRIES: Fail fast for development
     retry: 0,
     bail: IS_CI ? 5 : 0, // Stop after 5 failures in CI
-    
+
     // DEVELOPMENT FEATURES
     watch: !IS_CI,
-    isolate: false, // Consistent with poolOptions
-    
+    isolate: true, // Consistent with poolOptions
+
     // Modern caching using Vite's cacheDir
     // cache.dir is deprecated - handled by Vite's cacheDir instead
-    
+
     // MODERN DEPENDENCY OPTIMIZATION: Use new Vitest v3 APIs
     deps: {
       optimizer: {
@@ -99,22 +99,22 @@ export default defineConfig({
             '@testing-library/react',
             'react',
             '@types/*',
-            'lodash'
-          ]
-        }
-      }
+            'lodash',
+          ],
+        },
+      },
     },
-    
+
     // OPTIMIZED SEQUENCE: No shuffling for predictable performance
     sequence: {
       shuffle: false,
       concurrent: true,
-      setupTimeout: 3000 // Reduced from 5s
+      setupTimeout: 3000, // Reduced from 5s
     },
-    
+
     // MEMORY OPTIMIZATION
     logHeapUsage: false,
-    
+
     // ENVIRONMENT OPTIMIZATIONS
     env: {
       NODE_ENV: 'test',
@@ -123,10 +123,10 @@ export default defineConfig({
       DISABLE_LOGGING: 'true',
       // Performance optimizations
       UV_THREADPOOL_SIZE: String(CPU_CORES * 2),
-      NODE_OPTIONS: '--max-old-space-size=2048'
-    }
+      NODE_OPTIONS: '--max-old-space-size=2048',
+    },
   },
-  
+
   // MINIMAL RESOLVE CONFIG
   resolve: {
     alias: {
@@ -135,47 +135,44 @@ export default defineConfig({
       '@frontend': resolve(__dirname, './frontend/src'),
       '@shared': resolve(__dirname, './shared/src'),
       '@medianest/shared': resolve(__dirname, './shared/src'),
-      '@tests': resolve(__dirname, './tests')
-    }
+      '@tests': resolve(__dirname, './tests'),
+    },
   },
-  
+
   // OPTIMIZED COMPILATION: Maximum speed, minimal overhead
   esbuild: {
     target: 'node18',
     format: 'esm',
     sourcemap: false, // No source maps for speed
-    minify: false,    // No minification overhead
+    minify: false, // No minification overhead
     keepNames: false, // Strip names for performance
     treeShaking: true,
-    platform: 'node'
+    platform: 'node',
   },
-  
+
   // PERFORMANCE DEFINES
   define: {
     'import.meta.env.NODE_ENV': '"test"',
     'import.meta.env.VITEST_ULTRAFAST': 'true',
     'global.__VITEST_ULTRAFAST__': 'true',
-    '__DEV__': 'false' // Disable dev mode overhead
+    __DEV__: 'false', // Disable dev mode overhead
   },
-  
+
   // VITE OPTIMIZATIONS: Enhanced for performance
   optimizeDeps: {
     exclude: ['@medianest/shared'],
-    include: [
-      '@testing-library/jest-dom',
-      'vitest/globals'
-    ]
+    include: ['@testing-library/jest-dom', 'vitest/globals'],
   },
-  
+
   // MODERN CACHE CONFIGURATION
   cacheDir: '.vitest-cache',
-  
+
   // BUILD OPTIMIZATIONS
   build: {
     target: 'node18',
     minify: false,
     rollupOptions: {
-      external: ['@medianest/shared']
-    }
-  }
+      external: ['@medianest/shared'],
+    },
+  },
 });

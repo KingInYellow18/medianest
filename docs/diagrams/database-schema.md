@@ -204,7 +204,7 @@ graph TD
 
     classDef userMgmt fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
     classDef security fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    
+
     class USERS,SESSIONS,ACCOUNTS,SESSION_TOKENS,VERIFY_TOKENS userMgmt
     class RATE_LIMITS,ERROR_LOGS security
 ```
@@ -233,7 +233,7 @@ graph TD
 
     classDef media fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
     classDef services fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    
+
     class MEDIA_REQ,YOUTUBE_DL,NOTIFICATIONS media
     class SERVICE_CONFIG,SERVICE_STATUS,SERVICE_METRICS,SERVICE_INCIDENTS services
 ```
@@ -270,7 +270,7 @@ graph LR
     classDef primary fill:#e8f5e8,stroke:#4caf50,stroke-width:2px
     classDef optimization fill:#e3f2fd,stroke:#2196f3,stroke-width:2px
     classDef composite fill:#fff3e0,stroke:#ff9800,stroke-width:2px
-    
+
     class IDX1,IDX2,IDX3,IDX4 primary
     class IDX5,IDX6,IDX7,IDX8,IDX9,IDX10,IDX11 optimization
     class IDX12,IDX13,IDX14 composite
@@ -285,15 +285,15 @@ stateDiagram-v2
     [*] --> Login
     Login --> CreateSession : Valid credentials
     Login --> [*] : Invalid credentials
-    
+
     CreateSession --> ActiveSession : JWT + Cookie
     ActiveSession --> TokenRefresh : Before expiration
     ActiveSession --> Logout : User action
     ActiveSession --> SessionExpired : Timeout
-    
+
     TokenRefresh --> ActiveSession : New token
     TokenRefresh --> Login : Refresh failed
-    
+
     SessionExpired --> Login
     Logout --> CleanupSession
     CleanupSession --> [*]
@@ -306,18 +306,18 @@ stateDiagram-v2
     [*] --> RequestCreated
     RequestCreated --> PendingApproval : Manual approval required
     RequestCreated --> AutoApproved : Auto-approval enabled
-    
+
     PendingApproval --> Approved : Admin approval
     PendingApproval --> Rejected : Admin rejection
-    
+
     AutoApproved --> InProgress : Sent to Overseerr
     Approved --> InProgress : Sent to Overseerr
-    
+
     InProgress --> Downloading : Sonarr/Radarr picks up
     Downloading --> Processing : Download complete
     Processing --> Completed : Added to Plex
     Processing --> Failed : Processing error
-    
+
     Rejected --> [*]
     Completed --> [*]
     Failed --> PendingApproval : Retry option

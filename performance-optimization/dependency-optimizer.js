@@ -57,11 +57,11 @@ class DependencyOptimizer {
     if (modified) {
       fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
       console.log(`✅ Optimized ${packageName} package`);
-      
+
       this.optimizations.push({
         package: packageName,
         changes: modified,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
   }
@@ -73,16 +73,16 @@ class DependencyOptimizer {
     const devToMove = [
       'cypress',
       '@testing-library/dom',
-      '@testing-library/jest-dom', 
+      '@testing-library/jest-dom',
       '@testing-library/react',
       '@testing-library/user-event',
       'msw',
       '@vitest/coverage-v8',
       '@vitest/ui',
-      'vitest'
+      'vitest',
     ];
 
-    devToMove.forEach(dep => {
+    devToMove.forEach((dep) => {
       if (packageJson.dependencies && packageJson.dependencies[dep]) {
         if (!packageJson.devDependencies) packageJson.devDependencies = {};
         packageJson.devDependencies[dep] = packageJson.dependencies[dep];
@@ -105,14 +105,9 @@ class DependencyOptimizer {
     // Add bundle optimization configuration
     if (!packageJson.bundleOptimization) {
       packageJson.bundleOptimization = {
-        excludeFromBundle: [
-          '@testing-library/*',
-          'cypress',
-          'vitest',
-          'msw'
-        ],
+        excludeFromBundle: ['@testing-library/*', 'cypress', 'vitest', 'msw'],
         treeShaking: true,
-        compression: true
+        compression: true,
       };
       changes.push('Added bundle optimization configuration');
     }
@@ -133,7 +128,7 @@ class DependencyOptimizer {
       '@opentelemetry/node',
       '@opentelemetry/resources',
       '@opentelemetry/sdk-node',
-      '@opentelemetry/semantic-conventions'
+      '@opentelemetry/semantic-conventions',
     ];
 
     // Move OpenTelemetry to optional dependencies
@@ -141,7 +136,7 @@ class DependencyOptimizer {
       packageJson.optionalDependencies = {};
     }
 
-    telemetryDeps.forEach(dep => {
+    telemetryDeps.forEach((dep) => {
       if (packageJson.dependencies && packageJson.dependencies[dep]) {
         packageJson.optionalDependencies[dep] = packageJson.dependencies[dep];
         delete packageJson.dependencies[dep];
@@ -183,16 +178,16 @@ class DependencyOptimizer {
     // Ensure proper module exports
     if (!packageJson.exports) {
       packageJson.exports = {
-        ".": {
-          "types": "./dist/index.d.ts",
-          "import": "./dist/index.mjs",
-          "require": "./dist/index.js"
+        '.': {
+          types: './dist/index.d.ts',
+          import: './dist/index.mjs',
+          require: './dist/index.js',
         },
-        "./client": {
-          "types": "./dist/client/index.d.ts", 
-          "import": "./dist/client/index.mjs",
-          "require": "./dist/client/index.js"
-        }
+        './client': {
+          types: './dist/client/index.d.ts',
+          import: './dist/client/index.mjs',
+          require: './dist/client/index.js',
+        },
       };
       changes.push('Optimized module exports for better tree shaking');
     }
@@ -206,14 +201,9 @@ class DependencyOptimizer {
     let changes = [];
 
     // Move heavy dependencies to specific packages
-    const heavyDeps = [
-      'ffmpeg-static',
-      'fluent-ffmpeg',
-      'sharp',
-      'cypress'
-    ];
+    const heavyDeps = ['ffmpeg-static', 'fluent-ffmpeg', 'sharp', 'cypress'];
 
-    heavyDeps.forEach(dep => {
+    heavyDeps.forEach((dep) => {
       if (packageJson.dependencies && packageJson.dependencies[dep]) {
         if (!packageJson.optionalDependencies) {
           packageJson.optionalDependencies = {};
@@ -294,28 +284,32 @@ CMD ["node", "backend/dist/server.js"]`;
 
     const dockerfilePath = path.join(process.cwd(), 'Dockerfile.performance-optimized');
     fs.writeFileSync(dockerfilePath, optimizedDockerfile);
-    
+
     console.log('✅ Generated performance-optimized Dockerfile');
-    
+
     return true;
   }
 
   async generateReport() {
-    const reportPath = path.join(process.cwd(), 'performance-optimization', 'dependency-optimization-report.json');
+    const reportPath = path.join(
+      process.cwd(),
+      'performance-optimization',
+      'dependency-optimization-report.json',
+    );
     const report = {
       timestamp: new Date().toISOString(),
       optimizations: this.optimizations,
       summary: {
         packagesOptimized: this.optimizations.length,
         totalChanges: this.optimizations.reduce((sum, opt) => sum + opt.changes.length, 0),
-        expectedSavings: '500MB+'
+        expectedSavings: '500MB+',
       },
       nextSteps: [
         'Run npm install in each package to apply changes',
         'Test builds to ensure functionality',
         'Measure bundle size reductions',
-        'Deploy with optimized Docker image'
-      ]
+        'Deploy with optimized Docker image',
+      ],
     };
 
     fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
@@ -328,9 +322,10 @@ CMD ["node", "backend/dist/server.js"]`;
 // Run optimization if called directly
 if (require.main === module) {
   const optimizer = new DependencyOptimizer();
-  optimizer.optimizePackages()
+  optimizer
+    .optimizePackages()
     .then(() => optimizer.generateReport())
-    .then(report => {
+    .then((report) => {
       console.log('🚀 Dependency optimization completed');
       console.log(`   Packages optimized: ${report.summary.packagesOptimized}`);
       console.log(`   Total changes: ${report.summary.totalChanges}`);

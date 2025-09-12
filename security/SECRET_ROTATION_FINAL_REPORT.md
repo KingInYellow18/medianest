@@ -70,7 +70,6 @@
 The following files contain **historical references** to old secrets and require manual review:
 
 1. **Archive Files** (Low Priority):
-
    - `docs-old-20250907/docker-security-audit.md`
    - `.medianest-cleanup/archive-20250907/docs-archive/archive/`
 

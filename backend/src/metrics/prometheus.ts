@@ -322,27 +322,63 @@ export const securityEventsTotal = new Counter({
 // =================================
 
 // Type-safe metric registration helper
-function registerMetricSafely(metric: Counter<any> | Gauge<any> | Histogram<any> | Summary<any>): void {
+function registerMetricSafely(
+  metric: Counter<any> | Gauge<any> | Histogram<any> | Summary<any>,
+): void {
   try {
     register.registerMetric(metric as any);
   } catch (error: CatchError) {
     // Type-safe name access
-    const metricName = 'name' in metric && typeof metric.name === 'string' ? metric.name : 'unknown';
+    const metricName =
+      'name' in metric && typeof metric.name === 'string' ? metric.name : 'unknown';
     logger.warn(`Metric already registered: ${metricName}`, { error });
   }
 }
 
 const metricsToRegister = [
-  httpRequestDuration, httpRequestsTotal, httpRequestSize, httpResponseSize, httpActiveConnections,
-  dbQueryDuration, dbQueriesTotal, dbConnectionsActive, dbConnectionsIdle, dbConnectionPoolSize, dbLockWaitTime,
-  redisOperationDuration, redisOperationsTotal, redisConnectionsActive, redisMemoryUsage, redisCacheHitRatio, redisKeyCount,
-  logMessagesTotal, logErrors,
-  externalApiDuration, externalApiRequestsTotal, externalApiErrors,
-  mediaRequestsTotal, mediaRequestDuration, userSessionsActive, userActionsTotal, mediaLibrarySize, mediaLibraryItems,
-  queueSize, queueProcessingTime, queueJobsTotal, queueWorkerUtilization,
-  appInfo, appUptime, eventLoopLag, memoryHeapUsed, gcDuration,
-  websocketConnections, websocketMessages, websocketErrors,
-  authAttemptsTotal, rateLimitHits, securityEventsTotal,
+  httpRequestDuration,
+  httpRequestsTotal,
+  httpRequestSize,
+  httpResponseSize,
+  httpActiveConnections,
+  dbQueryDuration,
+  dbQueriesTotal,
+  dbConnectionsActive,
+  dbConnectionsIdle,
+  dbConnectionPoolSize,
+  dbLockWaitTime,
+  redisOperationDuration,
+  redisOperationsTotal,
+  redisConnectionsActive,
+  redisMemoryUsage,
+  redisCacheHitRatio,
+  redisKeyCount,
+  logMessagesTotal,
+  logErrors,
+  externalApiDuration,
+  externalApiRequestsTotal,
+  externalApiErrors,
+  mediaRequestsTotal,
+  mediaRequestDuration,
+  userSessionsActive,
+  userActionsTotal,
+  mediaLibrarySize,
+  mediaLibraryItems,
+  queueSize,
+  queueProcessingTime,
+  queueJobsTotal,
+  queueWorkerUtilization,
+  appInfo,
+  appUptime,
+  eventLoopLag,
+  memoryHeapUsed,
+  gcDuration,
+  websocketConnections,
+  websocketMessages,
+  websocketErrors,
+  authAttemptsTotal,
+  rateLimitHits,
+  securityEventsTotal,
 ];
 
 metricsToRegister.forEach(registerMetricSafely);
@@ -372,10 +408,21 @@ export const prometheusMiddleware = (req: Request, res: Response, next: NextFunc
 
     // Record metrics
     httpRequestDuration.observe(
-      { method: req.method, route, status_code: res.statusCode, status_class: statusClass, user_agent: userAgent },
+      {
+        method: req.method,
+        route,
+        status_code: res.statusCode,
+        status_class: statusClass,
+        user_agent: userAgent,
+      },
       duration,
     );
-    httpRequestsTotal.inc({ method: req.method, route, status_code: res.statusCode, status_class: statusClass });
+    httpRequestsTotal.inc({
+      method: req.method,
+      route,
+      status_code: res.statusCode,
+      status_class: statusClass,
+    });
     httpResponseSize.observe(
       { method: req.method, route, status_code: res.statusCode },
       responseSize,
@@ -465,7 +512,12 @@ export async function trackExternalApiCall<T>(
 // BUSINESS METRIC HELPERS
 // =================================
 
-export const trackMediaRequest = (type: string, status: string, source: string, userType: string = 'user') => {
+export const trackMediaRequest = (
+  type: string,
+  status: string,
+  source: string,
+  userType: string = 'user',
+) => {
   mediaRequestsTotal.inc({ type, status, source, user_type: userType });
 };
 
@@ -481,7 +533,11 @@ export const updateUserSessions = (count: number, userType: string = 'all') => {
   userSessionsActive.set({ user_type: userType }, count);
 };
 
-export const updateQueueMetrics = (queueName: string, size: number, priority: string = 'normal') => {
+export const updateQueueMetrics = (
+  queueName: string,
+  size: number,
+  priority: string = 'normal',
+) => {
   queueSize.set({ queue_name: queueName, priority }, size);
 };
 
@@ -512,7 +568,7 @@ export const trackQueueJob = async <T>(
 
 export const trackLogMessage = (level: string, service: string = 'medianest-backend') => {
   logMessagesTotal.inc({ level, service });
-  
+
   if (level === 'error') {
     logErrors.inc({ error_type: 'application', source: service });
   }
@@ -522,7 +578,11 @@ export const trackLogMessage = (level: string, service: string = 'medianest-back
 // WEBSOCKET TRACKING
 // =================================
 
-export const trackWebSocketConnection = (namespace: string, userType: string, connected: boolean) => {
+export const trackWebSocketConnection = (
+  namespace: string,
+  userType: string,
+  connected: boolean,
+) => {
   if (connected) {
     websocketConnections.inc({ namespace, user_type: userType });
   } else {
@@ -530,7 +590,11 @@ export const trackWebSocketConnection = (namespace: string, userType: string, co
   }
 };
 
-export const trackWebSocketMessage = (direction: 'inbound' | 'outbound', eventType: string, namespace: string) => {
+export const trackWebSocketMessage = (
+  direction: 'inbound' | 'outbound',
+  eventType: string,
+  namespace: string,
+) => {
   websocketMessages.inc({ direction, event_type: eventType, namespace });
 };
 

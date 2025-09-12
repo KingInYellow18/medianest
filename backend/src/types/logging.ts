@@ -315,7 +315,7 @@ export type LogPerformance = (
   operation: string,
   duration: number,
   metadata?: Record<string, unknown>,
-  correlationId?: string
+  correlationId?: string,
 ) => void;
 
 /**
@@ -325,7 +325,7 @@ export type LogSecurityEvent = (
   event: string,
   severity: 'low' | 'medium' | 'high' | 'critical',
   details: Record<string, unknown>,
-  correlationId?: string
+  correlationId?: string,
 ) => void;
 
 /**
@@ -336,5 +336,5 @@ export type LogBusinessMetric = (
   value: number,
   unit: string,
   tags?: Record<string, unknown>,
-  correlationId?: string
+  correlationId?: string,
 ) => void;

@@ -89,7 +89,7 @@ describe('DeviceSessionService', () => {
       expect(mockRedisService.setex).toHaveBeenCalledWith(
         `device_session:${mockSession.id}`,
         3600,
-        JSON.stringify(mockSession)
+        JSON.stringify(mockSession),
       );
 
       expect(result).toEqual(mockSession);
@@ -200,7 +200,7 @@ describe('DeviceSessionService', () => {
       expect(mockRedisService.setex).toHaveBeenCalledWith(
         `device_session:${sessionId}`,
         3600,
-        JSON.stringify(mockSession)
+        JSON.stringify(mockSession),
       );
 
       expect(result).toEqual(mockSession);
@@ -210,7 +210,7 @@ describe('DeviceSessionService', () => {
       mockDatabase.deviceSession.update.mockRejectedValue(new Error('Record not found'));
 
       await expect(service.updateSessionActivity('nonexistent')).rejects.toThrow(
-        'Record not found'
+        'Record not found',
       );
     });
   });
@@ -248,7 +248,7 @@ describe('DeviceSessionService', () => {
       mockDatabase.deviceSession.update.mockRejectedValue(new Error('Record not found'));
 
       await expect(service.revokeSession('session-123', 'wrong-user')).rejects.toThrow(
-        'Record not found'
+        'Record not found',
       );
     });
   });
@@ -345,7 +345,7 @@ describe('DeviceSessionService', () => {
       expect(mockRedisService.setex).toHaveBeenCalledWith(
         `device_session:${sessionId}`,
         3600,
-        JSON.stringify(dbSession)
+        JSON.stringify(dbSession),
       );
       expect(result).toEqual(dbSession);
     });

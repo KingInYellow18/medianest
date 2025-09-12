@@ -91,7 +91,7 @@ describe('Admin API Integration Tests', () => {
       await Promise.all(
         Array(15)
           .fill(null)
-          .map((_, index) => authHelper.createTestUser(`user${index}@test.com`, 'USER'))
+          .map((_, index) => authHelper.createTestUser(`user${index}@test.com`, 'USER')),
       );
 
       const response = await request(app)
@@ -277,7 +277,7 @@ describe('Admin API Integration Tests', () => {
     test('should prevent self-demotion', async () => {
       const { user, accessToken } = await authHelper.createUserWithTokens(
         'admin@test.com',
-        'ADMIN'
+        'ADMIN',
       );
 
       const response = await request(app)
@@ -346,7 +346,7 @@ describe('Admin API Integration Tests', () => {
     test('should prevent self-deletion', async () => {
       const { user, accessToken } = await authHelper.createUserWithTokens(
         'admin@test.com',
-        'ADMIN'
+        'ADMIN',
       );
 
       const response = await request(app)
@@ -679,11 +679,11 @@ describe('Admin API Integration Tests', () => {
       const requests = Array(20)
         .fill(null)
         .map(() =>
-          request(app).get('/api/v1/admin/users').set('Authorization', `Bearer ${accessToken}`)
+          request(app).get('/api/v1/admin/users').set('Authorization', `Bearer ${accessToken}`),
         );
 
       const responses = await Promise.all(
-        requests.map((req) => req.then((res) => res.status).catch(() => 429))
+        requests.map((req) => req.then((res) => res.status).catch(() => 429)),
       );
 
       const rateLimitedCount = responses.filter((status) => status === 429).length;
@@ -728,7 +728,7 @@ describe('Admin API Integration Tests', () => {
       // One should succeed, one should fail due to race condition handling
       const successful = responses.filter(
         (result): result is PromiseFulfilledResult<any> =>
-          result.status === 'fulfilled' && result.value.status === 200
+          result.status === 'fulfilled' && result.value.status === 200,
       );
 
       expect(successful.length).toBeGreaterThanOrEqual(1);

@@ -1,4 +1,4 @@
-import { http, HttpResponse, delay } from 'msw'
+import { http, HttpResponse, delay } from 'msw';
 
 // Test state for controlling mock responses
 export const mockState = {
@@ -7,72 +7,80 @@ export const mockState = {
   overseerrDown: false,
   overseerrSlowResponse: false,
   failureCount: 0,
-  resetFailures: () => { mockState.failureCount = 0 }
-}
+  resetFailures: () => {
+    mockState.failureCount = 0;
+  },
+};
 
 export const handlers = [
   // =========================
   // PLEX API ENDPOINTS
   // =========================
-  
+
   // Plex OAuth PIN endpoints
   http.post('https://plex.tv/pins.xml', async () => {
     if (mockState.plexSlowResponse) {
-      await delay(6000) // Timeout simulation
+      await delay(6000); // Timeout simulation
     }
     if (mockState.plexDown) {
-      return HttpResponse.text('Service Unavailable', { status: 503 })
+      return HttpResponse.text('Service Unavailable', { status: 503 });
     }
-    return HttpResponse.text(`
+    return HttpResponse.text(
+      `
       <pin>
         <id>12345</id>
         <code>ABCD</code>
       </pin>
-    `, {
-      headers: { 'Content-Type': 'application/xml' }
-    })
+    `,
+      {
+        headers: { 'Content-Type': 'application/xml' },
+      },
+    );
   }),
 
   http.get('https://plex.tv/pins/:id.xml', async ({ params }) => {
     if (mockState.plexSlowResponse) {
-      await delay(6000)
+      await delay(6000);
     }
     if (mockState.plexDown) {
-      return HttpResponse.text('Service Unavailable', { status: 503 })
+      return HttpResponse.text('Service Unavailable', { status: 503 });
     }
-    
-    const { id } = params
+
+    const { id } = params;
     if (id === '12345') {
-      return HttpResponse.text(`
+      return HttpResponse.text(
+        `
         <pin>
           <id>12345</id>
           <code>ABCD</code>
           <authToken>plex-auth-token-123</authToken>
         </pin>
-      `, {
-        headers: { 'Content-Type': 'application/xml' }
-      })
+      `,
+        {
+          headers: { 'Content-Type': 'application/xml' },
+        },
+      );
     }
-    return HttpResponse.text('Pin not found', { status: 404 })
+    return HttpResponse.text('Pin not found', { status: 404 });
   }),
 
   // Plex user endpoints
   http.get('https://plex.tv/api/v2/user', async ({ request }) => {
     if (mockState.plexSlowResponse) {
-      await delay(6000)
+      await delay(6000);
     }
     if (mockState.plexDown) {
-      return HttpResponse.json({ error: 'Service unavailable' }, { status: 503 })
+      return HttpResponse.json({ error: 'Service unavailable' }, { status: 503 });
     }
 
-    const token = request.headers.get('X-Plex-Token')
-    
+    const token = request.headers.get('X-Plex-Token');
+
     if (token === 'invalid-token') {
-      return HttpResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return HttpResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    
+
     if (token === 'expired-token') {
-      return HttpResponse.json({ error: 'Token expired' }, { status: 401 })
+      return HttpResponse.json({ error: 'Token expired' }, { status: 401 });
     }
 
     if (token === 'plex-auth-token-123' || token === 'test-plex-token') {
@@ -89,27 +97,27 @@ export const handlers = [
           subscription: {
             active: true,
             status: 'active',
-            plan: 'plex_pass'
-          }
-        }
-      })
+            plan: 'plex_pass',
+          },
+        },
+      });
     }
-    
-    return HttpResponse.json({ error: 'Invalid token' }, { status: 401 })
+
+    return HttpResponse.json({ error: 'Invalid token' }, { status: 401 });
   }),
 
   // Plex servers endpoint
   http.get('https://plex.tv/api/v2/resources', async ({ request }) => {
     if (mockState.plexSlowResponse) {
-      await delay(6000)
+      await delay(6000);
     }
     if (mockState.plexDown) {
-      return HttpResponse.json({ error: 'Service unavailable' }, { status: 503 })
+      return HttpResponse.json({ error: 'Service unavailable' }, { status: 503 });
     }
 
-    const token = request.headers.get('X-Plex-Token')
+    const token = request.headers.get('X-Plex-Token');
     if (!token || token === 'invalid-token') {
-      return HttpResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return HttpResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     return HttpResponse.json({
@@ -123,25 +131,25 @@ export const handlers = [
             version: '1.32.0.6918',
             scheme: 'http',
             address: '192.168.1.100',
-            owned: true
-          }
-        ]
-      }
-    })
+            owned: true,
+          },
+        ],
+      },
+    });
   }),
 
   // Plex server libraries endpoint
   http.get('http://192.168.1.100:32400/library/sections', async ({ request }) => {
     if (mockState.plexSlowResponse) {
-      await delay(6000)
+      await delay(6000);
     }
     if (mockState.plexDown) {
-      return HttpResponse.json({ error: 'Server unavailable' }, { status: 503 })
+      return HttpResponse.json({ error: 'Server unavailable' }, { status: 503 });
     }
 
-    const token = request.headers.get('X-Plex-Token')
+    const token = request.headers.get('X-Plex-Token');
     if (!token) {
-      return HttpResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return HttpResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     return HttpResponse.json({
@@ -158,7 +166,7 @@ export const handlers = [
             updatedAt: 1640995200,
             createdAt: 1640995200,
             scannedAt: 1640995200,
-            refreshing: false
+            refreshing: false,
           },
           {
             key: '2',
@@ -171,100 +179,104 @@ export const handlers = [
             updatedAt: 1640995200,
             createdAt: 1640995200,
             scannedAt: 1640995200,
-            refreshing: false
-          }
-        ]
-      }
-    })
+            refreshing: false,
+          },
+        ],
+      },
+    });
   }),
 
   // Plex library content endpoint
-  http.get('http://192.168.1.100:32400/library/sections/:sectionKey/all', async ({ params, request }) => {
-    if (mockState.plexSlowResponse) {
-      await delay(6000)
-    }
-    if (mockState.plexDown) {
-      return HttpResponse.json({ error: 'Server unavailable' }, { status: 503 })
-    }
+  http.get(
+    'http://192.168.1.100:32400/library/sections/:sectionKey/all',
+    async ({ params, request }) => {
+      if (mockState.plexSlowResponse) {
+        await delay(6000);
+      }
+      if (mockState.plexDown) {
+        return HttpResponse.json({ error: 'Server unavailable' }, { status: 503 });
+      }
 
-    const token = request.headers.get('X-Plex-Token')
-    if (!token) {
-      return HttpResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+      const token = request.headers.get('X-Plex-Token');
+      if (!token) {
+        return HttpResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
 
-    const { sectionKey } = params
-    
-    if (sectionKey === '1') { // Movies
+      const { sectionKey } = params;
+
+      if (sectionKey === '1') {
+        // Movies
+        return HttpResponse.json({
+          MediaContainer: {
+            Metadata: [
+              {
+                ratingKey: '101',
+                key: '/library/metadata/101',
+                guid: 'plex://movie/5d7768d59ab54200216b3d44',
+                title: 'Test Movie',
+                type: 'movie',
+                summary: 'A test movie for integration testing',
+                year: 2023,
+                thumb: '/library/metadata/101/thumb/1640995200',
+                art: '/library/metadata/101/art/1640995200',
+                duration: 7200000,
+                addedAt: 1640995200,
+                updatedAt: 1640995200,
+                Media: [
+                  {
+                    id: '201',
+                    duration: 7200000,
+                    bitrate: 8000,
+                    width: 1920,
+                    height: 1080,
+                    aspectRatio: 1.78,
+                    audioChannels: 6,
+                    audioCodec: 'ac3',
+                    videoCodec: 'h264',
+                    videoResolution: '1080',
+                    container: 'mkv',
+                    videoFrameRate: '24p',
+                    Part: [
+                      {
+                        id: '301',
+                        key: '/library/parts/301/1640995200/file.mkv',
+                        duration: 7200000,
+                        file: '/movies/Test Movie (2023)/Test Movie.mkv',
+                        size: 7200000000,
+                        container: 'mkv',
+                        has64bitOffsets: false,
+                        optimizedForStreaming: true,
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        });
+      }
+
       return HttpResponse.json({
-        MediaContainer: {
-          Metadata: [
-            {
-              ratingKey: '101',
-              key: '/library/metadata/101',
-              guid: 'plex://movie/5d7768d59ab54200216b3d44',
-              title: 'Test Movie',
-              type: 'movie',
-              summary: 'A test movie for integration testing',
-              year: 2023,
-              thumb: '/library/metadata/101/thumb/1640995200',
-              art: '/library/metadata/101/art/1640995200',
-              duration: 7200000,
-              addedAt: 1640995200,
-              updatedAt: 1640995200,
-              Media: [
-                {
-                  id: '201',
-                  duration: 7200000,
-                  bitrate: 8000,
-                  width: 1920,
-                  height: 1080,
-                  aspectRatio: 1.78,
-                  audioChannels: 6,
-                  audioCodec: 'ac3',
-                  videoCodec: 'h264',
-                  videoResolution: '1080',
-                  container: 'mkv',
-                  videoFrameRate: '24p',
-                  Part: [
-                    {
-                      id: '301',
-                      key: '/library/parts/301/1640995200/file.mkv',
-                      duration: 7200000,
-                      file: '/movies/Test Movie (2023)/Test Movie.mkv',
-                      size: 7200000000,
-                      container: 'mkv',
-                      has64bitOffsets: false,
-                      optimizedForStreaming: true
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        }
-      })
-    }
-
-    return HttpResponse.json({
-      MediaContainer: { Metadata: [] }
-    })
-  }),
+        MediaContainer: { Metadata: [] },
+      });
+    },
+  ),
 
   // Plex search endpoint
   http.get('http://192.168.1.100:32400/search', async ({ request }) => {
     if (mockState.plexSlowResponse) {
-      await delay(6000)
+      await delay(6000);
     }
     if (mockState.plexDown) {
-      return HttpResponse.json({ error: 'Server unavailable' }, { status: 503 })
+      return HttpResponse.json({ error: 'Server unavailable' }, { status: 503 });
     }
 
-    const url = new URL(request.url)
-    const query = url.searchParams.get('query')
-    const token = request.headers.get('X-Plex-Token')
-    
+    const url = new URL(request.url);
+    const query = url.searchParams.get('query');
+    const token = request.headers.get('X-Plex-Token');
+
     if (!token) {
-      return HttpResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return HttpResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     if (query === 'test') {
@@ -278,52 +290,52 @@ export const handlers = [
               type: 'movie',
               year: 2023,
               addedAt: 1640995200,
-              updatedAt: 1640995200
-            }
-          ]
-        }
-      })
+              updatedAt: 1640995200,
+            },
+          ],
+        },
+      });
     }
 
     return HttpResponse.json({
-      MediaContainer: { Metadata: [] }
-    })
+      MediaContainer: { Metadata: [] },
+    });
   }),
 
   // =========================
-  // OVERSEERR API ENDPOINTS  
+  // OVERSEERR API ENDPOINTS
   // =========================
 
   // Overseerr status endpoint
   http.get('**/api/v1/status', async ({ request }) => {
     if (mockState.overseerrSlowResponse) {
-      await delay(6000)
+      await delay(6000);
     }
     if (mockState.overseerrDown) {
-      mockState.failureCount++
-      return HttpResponse.json({ error: 'Service unavailable' }, { status: 503 })
+      mockState.failureCount++;
+      return HttpResponse.json({ error: 'Service unavailable' }, { status: 503 });
     }
 
     return HttpResponse.json({
       version: '1.32.0',
       commitTag: 'v1.32.0',
       updateAvailable: false,
-      commitsBehind: 0
-    })
+      commitsBehind: 0,
+    });
   }),
 
   // Overseerr settings endpoint
   http.get('**/api/v1/settings/main', async ({ request }) => {
     if (mockState.overseerrSlowResponse) {
-      await delay(6000)
+      await delay(6000);
     }
     if (mockState.overseerrDown) {
-      return HttpResponse.json({ error: 'Service unavailable' }, { status: 503 })
+      return HttpResponse.json({ error: 'Service unavailable' }, { status: 503 });
     }
 
-    const apiKey = request.headers.get('X-API-Key')
+    const apiKey = request.headers.get('X-API-Key');
     if (!apiKey || apiKey === 'invalid-key') {
-      return HttpResponse.json({ error: 'Invalid API key' }, { status: 401 })
+      return HttpResponse.json({ error: 'Invalid API key' }, { status: 401 });
     }
 
     return HttpResponse.json({
@@ -342,28 +354,28 @@ export const handlers = [
       hideAvailable: false,
       localLogin: true,
       newPlexLogin: true,
-      defaultPermissions: 2
-    })
+      defaultPermissions: 2,
+    });
   }),
 
   // Overseerr requests endpoint
   http.get('**/api/v1/request', async ({ request }) => {
     if (mockState.overseerrSlowResponse) {
-      await delay(6000)
+      await delay(6000);
     }
     if (mockState.overseerrDown) {
-      return HttpResponse.json({ error: 'Service unavailable' }, { status: 503 })
+      return HttpResponse.json({ error: 'Service unavailable' }, { status: 503 });
     }
 
-    const apiKey = request.headers.get('X-API-Key')
+    const apiKey = request.headers.get('X-API-Key');
     if (!apiKey || apiKey === 'invalid-key') {
-      return HttpResponse.json({ error: 'Invalid API key' }, { status: 401 })
+      return HttpResponse.json({ error: 'Invalid API key' }, { status: 401 });
     }
 
-    const url = new URL(request.url)
-    const take = url.searchParams.get('take') || '20'
-    const skip = url.searchParams.get('skip') || '0'
-    const filter = url.searchParams.get('filter')
+    const url = new URL(request.url);
+    const take = url.searchParams.get('take') || '20';
+    const skip = url.searchParams.get('skip') || '0';
+    const filter = url.searchParams.get('filter');
 
     return HttpResponse.json({
       results: [
@@ -378,7 +390,7 @@ export const handlers = [
             email: 'user@example.com',
             displayName: 'Test User',
             avatar: '/avatar.jpg',
-            permissions: 2
+            permissions: 2,
           },
           media: {
             id: 1,
@@ -387,82 +399,85 @@ export const handlers = [
             status: 1,
             status4k: 1,
             createdAt: '2023-12-01T10:00:00.000Z',
-            updatedAt: '2023-12-01T10:00:00.000Z'
-          }
-        }
+            updatedAt: '2023-12-01T10:00:00.000Z',
+          },
+        },
       ],
       pageInfo: {
         pages: 1,
         pageSize: parseInt(take),
         total: 1,
-        page: Math.floor(parseInt(skip) / parseInt(take)) + 1
-      }
-    })
+        page: Math.floor(parseInt(skip) / parseInt(take)) + 1,
+      },
+    });
   }),
 
   // Create request endpoint
   http.post('**/api/v1/request', async ({ request }) => {
     if (mockState.overseerrSlowResponse) {
-      await delay(6000)
+      await delay(6000);
     }
     if (mockState.overseerrDown) {
-      return HttpResponse.json({ error: 'Service unavailable' }, { status: 503 })
+      return HttpResponse.json({ error: 'Service unavailable' }, { status: 503 });
     }
 
-    const apiKey = request.headers.get('X-API-Key')
+    const apiKey = request.headers.get('X-API-Key');
     if (!apiKey || apiKey === 'invalid-key') {
-      return HttpResponse.json({ error: 'Invalid API key' }, { status: 401 })
+      return HttpResponse.json({ error: 'Invalid API key' }, { status: 401 });
     }
 
-    const body = await request.json() as any
-    
+    const body = (await request.json()) as any;
+
     if (body.mediaId === 999) {
-      return HttpResponse.json({ error: 'Media not found' }, { status: 404 })
+      return HttpResponse.json({ error: 'Media not found' }, { status: 404 });
     }
 
-    return HttpResponse.json({
-      id: 123,
-      status: 1,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      type: body.mediaType,
-      requestedBy: {
-        id: 1,
-        email: 'user@example.com',
-        displayName: 'Test User',
-        avatar: '/avatar.jpg',
-        permissions: 2
-      },
-      media: {
+    return HttpResponse.json(
+      {
         id: 123,
-        mediaType: body.mediaType,
-        tmdbId: body.mediaId,
         status: 1,
-        status4k: 1,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-    }, { status: 201 })
+        updatedAt: new Date().toISOString(),
+        type: body.mediaType,
+        requestedBy: {
+          id: 1,
+          email: 'user@example.com',
+          displayName: 'Test User',
+          avatar: '/avatar.jpg',
+          permissions: 2,
+        },
+        media: {
+          id: 123,
+          mediaType: body.mediaType,
+          tmdbId: body.mediaId,
+          status: 1,
+          status4k: 1,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      },
+      { status: 201 },
+    );
   }),
 
   // Get specific request
   http.get('**/api/v1/request/:id', async ({ params, request }) => {
     if (mockState.overseerrSlowResponse) {
-      await delay(6000)
+      await delay(6000);
     }
     if (mockState.overseerrDown) {
-      return HttpResponse.json({ error: 'Service unavailable' }, { status: 503 })
+      return HttpResponse.json({ error: 'Service unavailable' }, { status: 503 });
     }
 
-    const apiKey = request.headers.get('X-API-Key')
+    const apiKey = request.headers.get('X-API-Key');
     if (!apiKey || apiKey === 'invalid-key') {
-      return HttpResponse.json({ error: 'Invalid API key' }, { status: 401 })
+      return HttpResponse.json({ error: 'Invalid API key' }, { status: 401 });
     }
 
-    const { id } = params
-    
+    const { id } = params;
+
     if (id === '999') {
-      return HttpResponse.json({ error: 'Request not found' }, { status: 404 })
+      return HttpResponse.json({ error: 'Request not found' }, { status: 404 });
     }
 
     return HttpResponse.json({
@@ -476,7 +491,7 @@ export const handlers = [
         email: 'user@example.com',
         displayName: 'Test User',
         avatar: '/avatar.jpg',
-        permissions: 2
+        permissions: 2,
       },
       media: {
         id: parseInt(id as string),
@@ -485,29 +500,29 @@ export const handlers = [
         status: 1,
         status4k: 1,
         createdAt: '2023-12-01T10:00:00.000Z',
-        updatedAt: '2023-12-01T10:00:00.000Z'
-      }
-    })
+        updatedAt: '2023-12-01T10:00:00.000Z',
+      },
+    });
   }),
 
   // Approve request
   http.post('**/api/v1/request/:id/approve', async ({ params, request }) => {
     if (mockState.overseerrSlowResponse) {
-      await delay(6000)
+      await delay(6000);
     }
     if (mockState.overseerrDown) {
-      return HttpResponse.json({ error: 'Service unavailable' }, { status: 503 })
+      return HttpResponse.json({ error: 'Service unavailable' }, { status: 503 });
     }
 
-    const apiKey = request.headers.get('X-API-Key')
+    const apiKey = request.headers.get('X-API-Key');
     if (!apiKey || apiKey === 'invalid-key') {
-      return HttpResponse.json({ error: 'Invalid API key' }, { status: 401 })
+      return HttpResponse.json({ error: 'Invalid API key' }, { status: 401 });
     }
 
-    const { id } = params
-    
+    const { id } = params;
+
     if (id === '999') {
-      return HttpResponse.json({ error: 'Request not found' }, { status: 404 })
+      return HttpResponse.json({ error: 'Request not found' }, { status: 404 });
     }
 
     return HttpResponse.json({
@@ -521,7 +536,7 @@ export const handlers = [
         email: 'user@example.com',
         displayName: 'Test User',
         avatar: '/avatar.jpg',
-        permissions: 2
+        permissions: 2,
       },
       media: {
         id: parseInt(id as string),
@@ -530,24 +545,24 @@ export const handlers = [
         status: 2,
         status4k: 1,
         createdAt: '2023-12-01T10:00:00.000Z',
-        updatedAt: new Date().toISOString()
-      }
-    })
+        updatedAt: new Date().toISOString(),
+      },
+    });
   }),
 
   // Search media
   http.get('**/api/v1/search', async ({ request }) => {
     if (mockState.overseerrSlowResponse) {
-      await delay(6000)
+      await delay(6000);
     }
     if (mockState.overseerrDown) {
-      return HttpResponse.json({ error: 'Service unavailable' }, { status: 503 })
+      return HttpResponse.json({ error: 'Service unavailable' }, { status: 503 });
     }
 
-    const url = new URL(request.url)
-    const query = url.searchParams.get('query')
-    const type = url.searchParams.get('type')
-    const page = url.searchParams.get('page') || '1'
+    const url = new URL(request.url);
+    const query = url.searchParams.get('query');
+    const type = url.searchParams.get('type');
+    const page = url.searchParams.get('page') || '1';
 
     if (query === 'test movie') {
       return HttpResponse.json({
@@ -570,63 +585,60 @@ export const handlers = [
             original_language: 'en',
             original_title: 'Test Movie',
             video: false,
-            mediaType: 'movie'
-          }
-        ]
-      })
+            mediaType: 'movie',
+          },
+        ],
+      });
     }
 
     return HttpResponse.json({
       page: parseInt(page),
       totalPages: 0,
       totalResults: 0,
-      results: []
-    })
+      results: [],
+    });
   }),
 
   // =========================
   // UPTIME KUMA ENDPOINTS
   // =========================
-  
+
   // Status page heartbeat (for HTTP monitoring checks)
   http.get('**/api/status-page/heartbeat', async () => {
     return HttpResponse.json({
       heartbeatList: {
         '1': [{ status: 1, time: Date.now(), msg: 'Up', ping: 50 }],
         '2': [{ status: 0, time: Date.now(), msg: 'Down', ping: null }],
-        '3': [{ status: 1, time: Date.now(), msg: 'Up', ping: 120 }]
-      }
-    })
+        '3': [{ status: 1, time: Date.now(), msg: 'Up', ping: 120 }],
+      },
+    });
   }),
 
   // =========================
   // ERROR SIMULATION ENDPOINTS
   // =========================
-  
+
   // Network error simulation
   http.get('http://unreachable.test', () => {
-    return HttpResponse.error()
+    return HttpResponse.error();
   }),
-  
-  // Timeout simulation  
+
+  // Timeout simulation
   http.get('http://timeout.test', async () => {
-    await delay(30000) // 30 second delay to trigger timeout
-    return HttpResponse.json({ message: 'This should timeout' })
+    await delay(30000); // 30 second delay to trigger timeout
+    return HttpResponse.json({ message: 'This should timeout' });
   }),
 
   // Rate limit simulation
   http.get('http://ratelimited.test', () => {
     return HttpResponse.json(
-      { error: 'Rate limit exceeded' }, 
-      { status: 429, headers: { 'Retry-After': '60' } }
-    )
+      { error: 'Rate limit exceeded' },
+      { status: 429, headers: { 'Retry-After': '60' } },
+    );
   }),
 
   // Internal server error
   http.get('http://servererror.test', () => {
-    return HttpResponse.json(
-      { error: 'Internal server error' }, 
-      { status: 500 }
-    )
-  })
-]
+    return HttpResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }),
+];

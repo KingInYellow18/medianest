@@ -12,7 +12,7 @@ type StateResult<T, E = Error> =
 // Context7 Pattern - Optimized state hook with memoization
 export function useOptimizedState<T>(
   initialState: T | (() => T),
-  stateId?: string
+  stateId?: string,
 ): [T, (newState: T | ((prev: T) => T)) => void, { version: StateVersion; reset: () => void }] {
   const id = useMemo(() => (stateId || Date.now().toString()) as StateId, [stateId]);
   const versionRef = useRef<StateVersion>(0 as StateVersion);
@@ -38,7 +38,7 @@ export function useOptimizedState<T>(
       version: versionRef.current,
       reset,
     }),
-    [versionRef.current, reset]
+    [versionRef.current, reset],
   );
 
   return [state, updateState, metadata];
@@ -46,7 +46,7 @@ export function useOptimizedState<T>(
 
 // Context7 Pattern - Type-safe async state hook
 export function useAsyncState<T, E = Error>(
-  asyncFn?: () => Promise<T>
+  asyncFn?: () => Promise<T>,
 ): {
   data: T | null;
   loading: boolean;
@@ -109,7 +109,7 @@ export function useAsyncState<T, E = Error>(
         return { success: false, error: typedError, version: newVersion };
       }
     },
-    [asyncFn, state.version, setState]
+    [asyncFn, state.version, setState],
   );
 
   // Context7 Pattern - Memoized reset function
@@ -134,7 +134,7 @@ export function useAsyncState<T, E = Error>(
 // Context7 Pattern - Optimized debounced state hook
 export function useDebouncedState<T>(
   initialValue: T,
-  delay: number = 300
+  delay: number = 300,
 ): [T, T, (value: T) => void] {
   const [immediateValue, setImmediateValue] = useState<T>(initialValue);
   const [debouncedValue, setDebouncedValue] = useState<T>(initialValue);
@@ -153,7 +153,7 @@ export function useDebouncedState<T>(
         setDebouncedValue(value);
       }, delay);
     },
-    [delay]
+    [delay],
   );
 
   // Cleanup on unmount

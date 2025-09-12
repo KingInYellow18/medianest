@@ -5,8 +5,8 @@
 This guide provides comprehensive instructions for deploying MediaNest to staging environments. The staging deployment has been thoroughly tested and validated with critical fixes applied for production-ready stability.
 
 !!! success "Production Ready"
-    The staging deployment includes critical fixes for:
-    
+The staging deployment includes critical fixes for:
+
     - ✅ Backend service startup (secrets_validator_1 fix)
     - ✅ Docker build improvements
     - ✅ JWT/Cache service stabilization
@@ -120,7 +120,7 @@ curl -f http://localhost:3000/api/health
 # Database connectivity test
 docker-compose exec backend npm run test:db-connection
 
-# Redis connectivity test  
+# Redis connectivity test
 docker-compose exec backend npm run test:redis-connection
 
 # Plex integration test
@@ -159,7 +159,7 @@ services:
         NODE_ENV: staging
     container_name: medianest-backend-staging
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       - NODE_ENV=staging
       - PORT=3000
@@ -174,7 +174,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/api/health']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -189,21 +189,21 @@ services:
   # Frontend Web Application
   frontend:
     build:
-      context: ./frontend  
+      context: ./frontend
       dockerfile: Dockerfile.staging
       args:
         NODE_ENV: staging
         API_BASE_URL: http://localhost:3000/api
     container_name: medianest-frontend-staging
     ports:
-      - "3001:3000"
+      - '3001:3000'
     environment:
       - NODE_ENV=staging
       - API_BASE_URL=http://backend:3000/api
     depends_on:
       - backend
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000']
       interval: 30s
       timeout: 5s
       retries: 3
@@ -224,7 +224,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./database/staging-init.sql:/docker-entrypoint-initdb.d/01-init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U medianest_user -d medianest_staging"]
+      test: ['CMD-SHELL', 'pg_isready -U medianest_user -d medianest_staging']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -240,7 +240,7 @@ services:
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 3s
       retries: 3
@@ -259,7 +259,7 @@ volumes:
   postgres_data:
     driver: local
   redis_data:
-    driver: local  
+    driver: local
   media_storage:
     driver: local
 ```
@@ -268,25 +268,25 @@ volumes:
 
 ### Required Environment Variables
 
-| Variable | Description | Example | Required |
-|----------|-------------|---------|----------|
-| `NODE_ENV` | Application environment | `staging` | Yes |
-| `PORT` | Application port | `3000` | Yes |
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@host:5432/db` | Yes |
-| `REDIS_URL` | Redis connection string | `redis://localhost:6379` | Yes |
-| `JWT_SECRET` | JWT signing secret | `random-32-char-string` | Yes |
-| `PLEX_TOKEN` | Plex server authentication token | `your-plex-token` | Yes |
-| `LOG_LEVEL` | Logging verbosity | `info` | No |
-| `HEALTH_CHECK_TIMEOUT` | Health check timeout (ms) | `30000` | No |
+| Variable               | Description                      | Example                               | Required |
+| ---------------------- | -------------------------------- | ------------------------------------- | -------- |
+| `NODE_ENV`             | Application environment          | `staging`                             | Yes      |
+| `PORT`                 | Application port                 | `3000`                                | Yes      |
+| `DATABASE_URL`         | PostgreSQL connection string     | `postgresql://user:pass@host:5432/db` | Yes      |
+| `REDIS_URL`            | Redis connection string          | `redis://localhost:6379`              | Yes      |
+| `JWT_SECRET`           | JWT signing secret               | `random-32-char-string`               | Yes      |
+| `PLEX_TOKEN`           | Plex server authentication token | `your-plex-token`                     | Yes      |
+| `LOG_LEVEL`            | Logging verbosity                | `info`                                | No       |
+| `HEALTH_CHECK_TIMEOUT` | Health check timeout (ms)        | `30000`                               | No       |
 
 ### Optional Configuration
 
-| Variable | Description | Default | Purpose |
-|----------|-------------|---------|---------|
-| `MAX_UPLOAD_SIZE` | Maximum file upload size | `100MB` | File upload limits |
-| `SESSION_TIMEOUT` | User session timeout | `24h` | Security |
-| `RATE_LIMIT_WINDOW` | Rate limiting window | `15min` | API protection |
-| `BACKUP_RETENTION` | Backup retention period | `7d` | Data management |
+| Variable            | Description              | Default | Purpose            |
+| ------------------- | ------------------------ | ------- | ------------------ |
+| `MAX_UPLOAD_SIZE`   | Maximum file upload size | `100MB` | File upload limits |
+| `SESSION_TIMEOUT`   | User session timeout     | `24h`   | Security           |
+| `RATE_LIMIT_WINDOW` | Rate limiting window     | `15min` | API protection     |
+| `BACKUP_RETENTION`  | Backup retention period  | `7d`    | Data management    |
 
 ## Service Management
 
@@ -360,10 +360,10 @@ else
     exit 1
 fi
 
-# Redis Connection  
+# Redis Connection
 echo "🔴 Checking Redis connection..."
 if docker-compose exec -T redis redis-cli ping > /dev/null 2>&1; then
-    echo "✅ Redis connection successful" 
+    echo "✅ Redis connection successful"
 else
     echo "❌ Redis connection failed"
     exit 1
@@ -383,22 +383,24 @@ echo "🎉 Staging deployment validation complete!"
 ### Manual Validation Steps
 
 1. **API Endpoints Test**
+
    ```bash
    # Test authentication endpoint
    curl -X POST http://localhost:3000/api/auth/login \
      -H "Content-Type: application/json" \
      -d '{"username":"test","password":"test"}'
-   
+
    # Test media endpoint
    curl -H "Authorization: Bearer $TOKEN" \
      http://localhost:3000/api/media
    ```
 
 2. **Frontend Accessibility**
+
    ```bash
    # Test frontend loading
    curl -f http://localhost:3001/
-   
+
    # Test static assets
    curl -f http://localhost:3001/static/js/main.js
    ```
@@ -511,7 +513,7 @@ services:
   prometheus:
     image: prom/prometheus:latest
     ports:
-      - "9090:9090"
+      - '9090:9090'
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
     networks:
@@ -520,7 +522,7 @@ services:
   grafana:
     image: grafana/grafana:latest
     ports:
-      - "3002:3000"
+      - '3002:3000'
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     volumes:
@@ -565,7 +567,7 @@ echo "🧪 Running integration tests..."
 # API integration tests
 npm run test:integration:api
 
-# Database integration tests  
+# Database integration tests
 npm run test:integration:db
 
 # Plex integration tests
@@ -608,7 +610,7 @@ docker-compose exec backend npm audit fix
 # Optimize database
 docker-compose exec postgres psql -U medianest_user -d medianest_staging -c "VACUUM ANALYZE;"
 
-# Clear application logs older than 7 days  
+# Clear application logs older than 7 days
 find ./logs -name "*.log" -mtime +7 -delete
 
 echo "✅ Maintenance completed"
@@ -620,17 +622,17 @@ For detailed troubleshooting information, see [Staging Troubleshooting Guide](st
 
 ### Common Issues
 
-| Issue | Quick Fix | See Also |
-|-------|-----------|----------|
-| Service won't start | Check logs and dependencies | [Troubleshooting](staging-troubleshooting.md#service-startup) |
-| Database connection fails | Verify credentials and network | [Prerequisites](staging-prerequisites.md#database) |
-| High memory usage | Restart services, check for leaks | [Performance](../operations/monitoring-stack.md) |
-| Slow response times | Check database queries and cache | [Optimization](#performance-monitoring) |
+| Issue                     | Quick Fix                         | See Also                                                      |
+| ------------------------- | --------------------------------- | ------------------------------------------------------------- |
+| Service won't start       | Check logs and dependencies       | [Troubleshooting](staging-troubleshooting.md#service-startup) |
+| Database connection fails | Verify credentials and network    | [Prerequisites](staging-prerequisites.md#database)            |
+| High memory usage         | Restart services, check for leaks | [Performance](../operations/monitoring-stack.md)              |
+| Slow response times       | Check database queries and cache  | [Optimization](#performance-monitoring)                       |
 
 ### Emergency Contacts
 
 - **On-call Engineer**: [Contact Information]
-- **DevOps Team**: [Contact Information]  
+- **DevOps Team**: [Contact Information]
 - **Database Administrator**: [Contact Information]
 
 ---

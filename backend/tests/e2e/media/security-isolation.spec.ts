@@ -243,7 +243,7 @@ describe('Security and Isolation Testing', () => {
         .send({ ...requestData, tmdbId: requestData.tmdbId + i })
         .set('Authorization', `Bearer ${context.users.user.token}`)
         .then((res) => ({ status: res.status, body: res.body }))
-        .catch((err) => ({ status: err.status, body: err.response?.body }))
+        .catch((err) => ({ status: err.status, body: err.response?.body })),
     );
 
     const results = await Promise.all(requestPromises);
@@ -259,7 +259,7 @@ describe('Security and Isolation Testing', () => {
         ValidationHelper.validateRateLimitResponse({
           status: rateLimitResponse.status,
           body: rateLimitResponse.body,
-        })
+        }),
       ).toBe(true);
     }
 

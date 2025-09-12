@@ -1,6 +1,6 @@
 /**
  * END-TO-END USER WORKFLOWS TESTING
- * 
+ *
  * Complete user journey testing from registration to media consumption
  */
 
@@ -202,7 +202,7 @@ describe('End-to-End User Workflows', () => {
     test('should receive real-time notifications for request status changes', async () => {
       // This would typically involve WebSocket testing
       // Simplified version for demonstration
-      
+
       await page.goto('http://localhost:3000/login');
       await page.fill('[data-testid=email-input]', 'admin@medianest.test');
       await page.fill('[data-testid=password-input]', 'password123');
@@ -223,13 +223,15 @@ describe('End-to-End User Workflows', () => {
 
       // Simulate receiving a notification (this would typically come from WebSocket)
       await page.evaluate(() => {
-        window.dispatchEvent(new CustomEvent('notification', {
-          detail: {
-            type: 'success',
-            message: 'Your request for "Test Movie" has been approved!',
-            timestamp: new Date().toISOString()
-          }
-        }));
+        window.dispatchEvent(
+          new CustomEvent('notification', {
+            detail: {
+              type: 'success',
+              message: 'Your request for "Test Movie" has been approved!',
+              timestamp: new Date().toISOString(),
+            },
+          }),
+        );
       });
 
       // Verify notification appears
@@ -248,7 +250,7 @@ describe('End-to-End User Workflows', () => {
       await page.waitForURL('**/dashboard');
 
       // Simulate network failure
-      await page.route('**/api/**', route => {
+      await page.route('**/api/**', (route) => {
         route.abort('failed');
       });
 
@@ -259,7 +261,11 @@ describe('End-to-End User Workflows', () => {
 
       // Should show error message
       await expect(page.locator('[data-testid=error-message]')).toBeVisible();
-      await expect(page.locator('[data-testid=error-message]')).toContainText(['network', 'error', 'connection']);
+      await expect(page.locator('[data-testid=error-message]')).toContainText([
+        'network',
+        'error',
+        'connection',
+      ]);
 
       // Should show retry option
       await expect(page.locator('[data-testid=retry-button]')).toBeVisible();
