@@ -3,12 +3,23 @@
 import { User } from '@medianest/shared';
 import { Request } from 'express';
 
-// Import AuthenticatedUser to maintain type consistency
-import { AuthenticatedUser } from './auth';
+// Import and re-export AuthenticatedUser to maintain type consistency
+export type { AuthenticatedUser } from './auth';
 
-// Extend Express Request with user
+// Import consolidated type definitions
+export * from './logging';
+export * from './metrics';
+
+// Import Express consolidated global types
+import './express-consolidated';
+
+// Import winston type extensions (maintain existing import)
+import './winston';
+
+// Express consolidated types are globally declared
+// Re-export specific interfaces for backwards compatibility
 export interface AuthenticatedRequest extends Request {
-  user?: AuthenticatedUser;
+  user?: import('./auth').AuthenticatedUser;
   correlationId: string;
 }
 

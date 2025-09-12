@@ -94,6 +94,10 @@ export class MediaController {
         throw new AppError('VALIDATION_ERROR', 'Invalid media type', 400);
       }
 
+      if (!tmdbId) {
+        throw new AppError('VALIDATION_ERROR', 'TMDB ID is required', 400);
+      }
+
       const details = await overseerrService.getMediaDetails(
         mediaType as 'movie' | 'tv',
         Number(tmdbId),

@@ -54,9 +54,9 @@ describe('AsyncHandler Utility', () => {
     // 1. Create completely fresh isolated mocks - no shared state
     isolatedMocks = new IsolatedAsyncHandlerMocks();
 
-    // 2. AGGRESSIVE mock clearing to prevent cross-test contamination
-    vi.clearAllMocks();
-    vi.resetAllMocks();
+    // 2. More targeted mock clearing to prevent cross-test contamination
+    // Don't clear ALL mocks as it affects inline spy functions
+    vi.clearAllTimers();
 
     // 3. Set test environment
     process.env.NODE_ENV = 'test';
@@ -68,8 +68,8 @@ describe('AsyncHandler Utility', () => {
   afterEach(() => {
     // Comprehensive cleanup to prevent cross-test contamination
     isolatedMocks?.cleanup();
-    vi.restoreAllMocks();
     vi.useRealTimers();
+    // Don't restore all mocks as it affects test-specific spy functions
   });
 
   describe('successful async operations', () => {
@@ -395,7 +395,8 @@ describe('AsyncHandler Utility', () => {
     });
 
     it('should handle functions with delays', async () => {
-      const delayedFunction = vi.fn().mockImplementation(async () => {
+      // Create the spy function after the beforeEach cleanup
+      const delayedFunction = vi.fn(async () => {
         await new Promise((resolve) => setTimeout(resolve, 50));
         return 'delayed';
       });
@@ -416,7 +417,8 @@ describe('AsyncHandler Utility', () => {
 
     it('should handle concurrent wrapped function calls', async () => {
       let callCount = 0;
-      const concurrentFunction = vi.fn().mockImplementation(async () => {
+      // Create the spy function after the beforeEach cleanup
+      const concurrentFunction = vi.fn(async () => {
         callCount++;
         await new Promise((resolve) => setTimeout(resolve, 10));
         return `call-${callCount}`;

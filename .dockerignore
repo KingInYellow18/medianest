@@ -4,25 +4,32 @@ node_modules
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+lerna-debug.log*
 
 # Build outputs  
-dist
-build
 .next
 coverage
 .nyc_output
+.tsbuildinfo
+# Keep shared/dist for Docker builds
+# **/dist
+# **/build
+# Only exclude specific build outputs, not shared
+backend/dist
+frontend/dist
+frontend/.next
+frontend/build
 
 # Environment files
 .env*
 !.env.example
+!.env.production.example
 
 # IDE and editor files
 .vscode
 .idea
 *.swp
 *.swo
-
-# OS generated files
 .DS_Store
 .Trashes
 Thumbs.db
@@ -30,34 +37,96 @@ Thumbs.db
 # Git files
 .git
 .gitignore
+.gitattributes
 
-# Documentation
-README.md
-*.md
+# Documentation and development files
+README*.md
+CHANGELOG.md
+CONTRIBUTING.md
 docs/
+*.md
+!Dockerfile*
 
-# Testing
+# Testing files (but allow shared dist)
 test/
 tests/
 **/*.test.*
 **/*.spec.*
-jest.config.js
-playwright.config.ts
+jest.config.*
+playwright.config.*
+vitest.config.*
+.vitest-cache/
+.vitest-performance-cache/
+# Don't exclude shared dist
+!shared/dist/
 
-# CI/CD
+# CI/CD files
 .github/
 .gitlab-ci.yml
+.circleci/
+.travis.yml
 
-# Logs
+# Logs and monitoring
 logs
 *.log
+monitoring/
+metrics/
 
-# Temporary files
+# Temporary and cache files
 tmp/
 temp/
 *.tmp
+.cache/
+.parcel-cache/
 
-# Package manager locks
+# Package manager files (keep package.json but ignore locks in container)
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
+
+# Docker files (exclude from build context except main Dockerfile)
+docker-compose*.yml
+Dockerfile.*
+!Dockerfile
+.dockerignore
+
+# Development tools
+.husky/
+.pre-commit-config.yaml
+.eslintcache
+.prettierrc*
+.editorconfig
+commitlint.config.js
+lint-staged.config.js
+
+# Security and secrets
+secrets/
+.env.local
+.env.*.local
+*.pem
+*.key
+*.crt
+
+# Performance and profiling
+.clinic/
+prof/
+*.prof
+
+# Backup files
+backups/
+*.bak
+*.backup
+
+# Project specific
+.serena/
+.swarm/
+.claude/
+.claude-flow/
+validation/
+tasks/
+workflows-backup/
+mkdocs-env/
+site/
+prisma/migrations/
+infrastructure/
+deployment/

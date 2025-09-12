@@ -1,6 +1,9 @@
 import 'tsconfig-paths/register';
 import 'dotenv/config';
 
+// Import secrets validator before usage
+import { validateSecretsOrThrow } from './config/secrets-validator';
+
 // Validate all required secrets before starting the application
 validateSecretsOrThrow();
 
@@ -18,7 +21,6 @@ import { configService } from './config/config.service';
 import { initializeDatabase } from './config/database';
 import { initializeQueues } from './config/queues';
 import { initializeRedis } from './config/redis';
-import { validateSecretsOrThrow } from './config/secrets-validator';
 import { correlationIdMiddleware } from './middleware/correlation-id';
 import { errorHandler } from './middleware/error';
 import { requestLogger } from './middleware/logging';

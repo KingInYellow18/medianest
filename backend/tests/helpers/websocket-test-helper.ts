@@ -32,6 +32,8 @@ export class WebSocketTestHelper extends EventEmitter {
   private connections: Map<string, WebSocket> = new Map();
   private connectionInfo: Map<string, ConnectionInfo> = new Map();
   private messageHandlers: Map<string, Function[]> = new Map();
+  private activeTimeouts: Set<NodeJS.Timeout> = new Set();
+  private isCleanedUp = false;
 
   constructor(baseUrl: string) {
     super();
@@ -99,29 +101,48 @@ export class WebSocketTestHelper extends EventEmitter {
         reject(error);
       });
 
-      // Timeout for connection
-      setTimeout(() => {
+      // Timeout for connection with proper cleanup
+      const timeout = setTimeout(() => {
         if (!this.connections.has(connectionId)) {
+          ws.terminate(); // Force close the connection
           reject(new Error('WebSocket connection timeout'));
         }
+        this.activeTimeouts.delete(timeout);
       }, 5000);
+      this.activeTimeouts.add(timeout);
     });
   }
 
   /**
-   * Close a WebSocket connection
+   * Close a WebSocket connection with proper cleanup
    */
   async closeConnection(connectionId: string): Promise<boolean> {
     const ws = this.connections.get(connectionId);
     if (!ws) return false;
 
     return new Promise((resolve) => {
-      ws.on('close', () => {
+      // Set timeout to prevent hanging
+      const timeout = setTimeout(() => {
+        ws.terminate(); // Force close if clean close fails
         this.connections.delete(connectionId);
         this.connectionInfo.delete(connectionId);
+        this.cleanupConnectionHandlers(connectionId);
+        resolve(true);
+        this.activeTimeouts.delete(timeout);
+      }, 3000);
+      this.activeTimeouts.add(timeout);
+
+      ws.on('close', () => {
+        clearTimeout(timeout);
+        this.activeTimeouts.delete(timeout);
+        this.connections.delete(connectionId);
+        this.connectionInfo.delete(connectionId);
+        this.cleanupConnectionHandlers(connectionId);
         resolve(true);
       });
 
+      // Remove all event listeners to prevent leaks
+      ws.removeAllListeners();
       ws.close();
     });
   }
@@ -188,10 +209,12 @@ export class WebSocketTestHelper extends EventEmitter {
 
       this.addMessageHandler(connectionId, messageType, handler);
 
-      setTimeout(() => {
+      const timeoutHandle = setTimeout(() => {
         this.removeMessageHandler(connectionId, messageType, handler);
         reject(new Error(`Timeout waiting for message type: ${messageType}`));
+        this.activeTimeouts.delete(timeoutHandle);
       }, timeout);
+      this.activeTimeouts.add(timeoutHandle);
     });
   }
 
@@ -614,20 +637,101 @@ export class WebSocketTestHelper extends EventEmitter {
   }
 
   /**
-   * Cleanup all connections
+   * Clean up handlers for a specific connection
+   */
+  private cleanupConnectionHandlers(connectionId: string): void {
+    // Remove all message handlers for this connection
+    const keysToDelete = Array.from(this.messageHandlers.keys())
+      .filter(key => key.startsWith(`${connectionId}:`));
+    
+    keysToDelete.forEach(key => this.messageHandlers.delete(key));
+    
+    // Remove event listeners for this connection
+    this.removeAllListeners(`message:${connectionId}`);
+    this.eventNames().forEach(eventName => {
+      if (typeof eventName === 'string' && eventName.includes(connectionId)) {
+        this.removeAllListeners(eventName);
+      }
+    });
+  }
+
+  /**
+   * Cleanup all connections with thorough resource cleanup
    */
   async cleanup(): Promise<void> {
+    if (this.isCleanedUp) {
+      return; // Prevent double cleanup
+    }
+    
     console.log('🧹 Cleaning up WebSocket test helper...');
     
-    const closePromises = Array.from(this.connections.keys()).map(connectionId =>
-      this.closeConnection(connectionId)
-    );
+    this.isCleanedUp = true;
+    
+    // Clear all active timeouts to prevent leaks
+    this.activeTimeouts.forEach(timeout => clearTimeout(timeout));
+    this.activeTimeouts.clear();
+    
+    // Close all WebSocket connections with timeout
+    const closePromises = Array.from(this.connections.keys()).map(async (connectionId) => {
+      try {
+        await Promise.race([
+          this.closeConnection(connectionId),
+          new Promise(resolve => setTimeout(resolve, 1000)) // 1s max wait
+        ]);
+      } catch (error) {
+        console.warn(`Failed to close connection ${connectionId}:`, error);
+      }
+    });
 
     await Promise.all(closePromises);
     
+    // Force close any remaining connections
+    this.connections.forEach((ws, connectionId) => {
+      try {
+        ws.terminate();
+        console.warn(`Force terminated connection: ${connectionId}`);
+      } catch (error) {
+        console.warn(`Failed to terminate connection ${connectionId}:`, error);
+      }
+    });
+    
+    // Clear all data structures
+    this.connections.clear();
+    this.connectionInfo.clear();
     this.messageHandlers.clear();
+    
+    // Remove all event listeners
     this.removeAllListeners();
     
+    // Force garbage collection if available
+    if (global.gc) {
+      global.gc();
+    }
+    
     console.log('✅ WebSocket test helper cleanup complete');
+  }
+
+  /**
+   * Check if the helper is cleaned up
+   */
+  public isDestroyed(): boolean {
+    return this.isCleanedUp;
+  }
+
+  /**
+   * Force terminate all connections (emergency cleanup)
+   */
+  public forceTerminateAll(): void {
+    this.connections.forEach((ws, connectionId) => {
+      try {
+        ws.terminate();
+        console.log(`Force terminated: ${connectionId}`);
+      } catch (error) {
+        console.warn(`Failed to terminate ${connectionId}:`, error);
+      }
+    });
+    
+    this.connections.clear();
+    this.connectionInfo.clear();
   }
 }

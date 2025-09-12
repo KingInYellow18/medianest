@@ -1,8 +1,10 @@
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 
-import winston from 'winston';
-import DailyRotateFile from 'winston-daily-rotate-file';
+import * as winston from 'winston';
+const DailyRotateFile = require('winston-daily-rotate-file');
+
+// Winston type extensions are automatically available from types/winston.d.ts
 
 const generateCorrelationId = () => Math.random().toString(36).substr(2, 9);
 
@@ -13,7 +15,8 @@ if (!fs.existsSync(logsDir)) {
 }
 
 // Define log format for development
-const devFormat = winston.format.printf(({ level, message, timestamp, correlationId, ...meta }) => {
+const devFormat = winston.format.printf((info: any) => {
+  const { level, message, timestamp, correlationId, ...meta } = info;
   const metaStr = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : '';
   return `${timestamp} [${correlationId || 'no-correlation-id'}] ${level}: ${message}${metaStr}`;
 });
@@ -25,8 +28,9 @@ const prodFormat = winston.format.combine(
   winston.format.splat(),
   winston.format.json(),
   // Add Loki-compatible labels and structure
-  winston.format.printf(({ timestamp, level, message, correlationId, service, ...meta }) => {
-    const logEntry = {
+  winston.format.printf((info: any) => {
+    const { timestamp, level, message, correlationId, service, ...meta } = info;
+    const logEntry: any = {
       timestamp,
       level,
       message,
@@ -196,8 +200,8 @@ export const stream = {
         method,
         url,
         version,
-        statusCode: parseInt(status),
-        responseSize: size === '-' ? 0 : parseInt(size),
+        statusCode: status ? parseInt(status, 10) : 0,
+        responseSize: size === '-' ? 0 : (size ? parseInt(size, 10) : 0),
         referer: referer === '-' ? undefined : referer,
         userAgent: userAgent === '-' ? undefined : userAgent,
       });

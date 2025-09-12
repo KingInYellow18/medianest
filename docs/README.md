@@ -29,6 +29,11 @@ docs/
 │   ├── ci-cd.md                # Continuous integration/deployment
 │   ├── prerequisites-checklist.md # Pre-deployment requirements
 │   └── deployment-validation.md   # Post-deployment validation
+├── ⚙️ operations/                # Operations and staging deployment
+│   ├── staging-deployment.md   # Complete staging deployment guide
+│   ├── staging-prerequisites.md # Staging infrastructure requirements
+│   ├── staging-troubleshooting.md # Staging troubleshooting guide
+│   └── monitoring-stack.md     # Monitoring and observability
 ├── 🧑‍💻 developers/                # Developer guides and contribution
 │   ├── contributing.md         # Contribution guidelines
 │   └── workflow.md            # Development workflow
@@ -204,6 +209,13 @@ mkdocs gh-deploy
 - **[API Reference](api/)** - Complete API documentation
 - **[Architecture](architecture/)** - System design and patterns
 - **[Deployment](deployment/)** - Production deployment guides
+- **[Operations](operations/)** - Staging deployment and operations
+
+#### Staging Deployment
+- **[Staging Deployment Guide](operations/staging-deployment.md)** - Complete staging setup
+- **[Staging Prerequisites](operations/staging-prerequisites.md)** - Infrastructure requirements
+- **[Staging Troubleshooting](operations/staging-troubleshooting.md)** - Common issues and solutions
+- **[Critical Fixes Applied](operations/critical-fixes-applied.md)** - Resolved deployment issues
 
 ### Development Resources
 - **[Contributing Guidelines](developers/contributing.md)** - How to contribute

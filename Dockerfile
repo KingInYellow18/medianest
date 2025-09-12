@@ -7,11 +7,12 @@ WORKDIR /app
 
 # Copy package files for dependency installation
 COPY package*.json ./
+COPY tsconfig.base.json ./
 COPY shared/package*.json ./shared/
 COPY shared/tsconfig.json ./shared/
 
-# Install dependencies with exact versions
-RUN npm ci --only=production --no-audit --no-fund
+# Install all workspace dependencies including dev deps for building
+RUN npm install --no-audit --no-fund --include=dev
 
 # Copy shared source code
 COPY shared/src ./shared/src
@@ -20,12 +21,16 @@ COPY shared/src ./shared/src
 WORKDIR /app/shared
 RUN npm run build
 
+# Verify shared build output
+RUN ls -la dist/ || echo "Shared build verification failed"
+
 # Build stage for backend
 FROM node:20-alpine AS backend-builder
 WORKDIR /app
 
 # Copy root package files
 COPY package*.json ./
+COPY tsconfig.base.json ./
 COPY backend/package*.json ./backend/
 COPY backend/tsconfig.json ./backend/
 COPY backend/prisma ./backend/prisma
@@ -34,8 +39,13 @@ COPY backend/prisma ./backend/prisma
 COPY --from=shared-builder /app/shared/dist ./shared/dist
 COPY --from=shared-builder /app/shared/package.json ./shared/
 
-# Install backend dependencies
-RUN npm ci --workspace=backend --only=production --no-audit --no-fund
+# Install all workspace dependencies
+RUN npm install --no-audit --no-fund --include=dev
+
+# Install backend dependencies specifically
+WORKDIR /app/backend
+RUN npm install --include=dev --no-audit --no-fund
+WORKDIR /app
 
 # Generate Prisma client
 WORKDIR /app/backend
@@ -53,6 +63,7 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
+COPY tsconfig.base.json ./
 COPY frontend/package*.json ./frontend/
 COPY frontend/next.config.js ./frontend/
 COPY frontend/tailwind.config.ts ./frontend/
@@ -64,7 +75,9 @@ COPY --from=shared-builder /app/shared/dist ./shared/dist
 COPY --from=shared-builder /app/shared/package.json ./shared/
 
 # Install frontend dependencies
-RUN npm ci --workspace=frontend --only=production --no-audit --no-fund
+WORKDIR /app/frontend
+RUN npm install --include=dev --no-audit --no-fund
+WORKDIR /app
 
 # Copy frontend source code
 COPY frontend/src ./frontend/src
@@ -89,7 +102,7 @@ COPY --from=backend-builder /app/backend/package*.json ./backend/
 COPY --from=backend-builder /app/shared/package.json ./shared/
 
 # Install runtime dependencies
-RUN npm ci --workspace=backend --only=production --no-audit --no-fund \
+RUN npm install --workspace=backend --only=production --no-audit --no-fund \
     && npm cache clean --force \
     && rm -rf ~/.npm
 
@@ -130,7 +143,7 @@ COPY --from=frontend-builder /app/package*.json ./
 COPY --from=frontend-builder /app/frontend/package*.json ./frontend/
 COPY --from=frontend-builder /app/shared/package.json ./shared/
 
-RUN npm ci --workspace=frontend --only=production --no-audit --no-fund \
+RUN npm install --workspace=frontend --only=production --no-audit --no-fund \
     && npm cache clean --force \
     && rm -rf ~/.npm
 
@@ -167,7 +180,7 @@ COPY backend/package*.json ./backend/
 COPY frontend/package*.json ./frontend/
 
 # Install all dependencies (including dev dependencies)
-RUN npm ci --no-audit --no-fund
+RUN npm install --no-audit --no-fund
 
 # Copy source code
 COPY --chown=app:nodejs . .

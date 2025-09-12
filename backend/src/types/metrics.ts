@@ -110,11 +110,124 @@ export interface MetricsSummary {
 
 export type MetricLabels = Record<string, string | number>;
 
+// ===================================
+// PROMETHEUS TYPE CONSOLIDATION
+// ===================================
+
+/**
+ * Prometheus metric type union for type-safe metric operations
+ */
+export type PrometheusMetricType = 'counter' | 'gauge' | 'histogram' | 'summary';
+
+/**
+ * Generic prometheus metric interface
+ */
+export interface PrometheusMetric {
+  name: string;
+  help: string;
+  type: PrometheusMetricType;
+  labelNames?: string[];
+}
+
+/**
+ * Counter metric configuration
+ */
+export interface CounterMetricConfig extends PrometheusMetric {
+  type: 'counter';
+}
+
+/**
+ * Gauge metric configuration  
+ */
+export interface GaugeMetricConfig extends PrometheusMetric {
+  type: 'gauge';
+}
+
+/**
+ * Histogram metric configuration
+ */
+export interface HistogramMetricConfig extends PrometheusMetric {
+  type: 'histogram';
+  buckets?: number[];
+}
+
+/**
+ * Summary metric configuration
+ */
+export interface SummaryMetricConfig extends PrometheusMetric {
+  type: 'summary';
+  percentiles?: number[];
+  maxAgeSeconds?: number;
+  ageBuckets?: number;
+}
+
+/**
+ * Union type for all metric configurations
+ */
+export type MetricConfig = CounterMetricConfig | GaugeMetricConfig | HistogramMetricConfig | SummaryMetricConfig;
+
+/**
+ * Enhanced custom metric options with type safety
+ */
 export interface CustomMetricOptions {
   name: string;
   help: string;
+  type: PrometheusMetricType;
   labels?: string[];
   buckets?: number[];
+  percentiles?: number[];
+  maxAgeSeconds?: number;
+  ageBuckets?: number;
+}
+
+/**
+ * Metric registry interface for type-safe metric management
+ */
+export interface MetricRegistry {
+  registerMetric(config: MetricConfig): void;
+  getMetric(name: string): PrometheusMetric | undefined;
+  removeMetric(name: string): boolean;
+  listMetrics(): PrometheusMetric[];
+  clear(): void;
+}
+
+/**
+ * Label constraint types for type-safe label operations
+ */
+export type HttpMethodLabel = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
+export type StatusClassLabel = '1xx' | '2xx' | '3xx' | '4xx' | '5xx';
+export type DatabaseOperationLabel = 'select' | 'insert' | 'update' | 'delete' | 'create' | 'drop';
+export type RedisCommandLabel = 'get' | 'set' | 'del' | 'exists' | 'expire' | 'incr' | 'decr' | 'hget' | 'hset';
+export type QueueStatusLabel = 'pending' | 'processing' | 'completed' | 'failed' | 'retried';
+
+/**
+ * Metric label interfaces for type safety
+ */
+export interface HttpMetricLabels {
+  method: HttpMethodLabel;
+  route: string;
+  status_code: number;
+  status_class: StatusClassLabel;
+  user_agent?: string;
+}
+
+export interface DatabaseMetricLabels {
+  operation: DatabaseOperationLabel;
+  table: string;
+  status: 'success' | 'error';
+}
+
+export interface RedisMetricLabels {
+  command: RedisCommandLabel;
+  status: 'success' | 'error';
+  key_pattern?: string;
+}
+
+export interface QueueMetricLabels {
+  queue_name: string;
+  job_type: string;
+  status: QueueStatusLabel;
+  priority?: string;
 }
 
 export interface MetricsMiddlewareOptions {

@@ -5,7 +5,8 @@
 
 import { performance } from 'perf_hooks';
 import { Request, Response, NextFunction } from 'express';
-import client, { Counter, Gauge, Histogram, Summary, register } from 'prom-client';
+import * as client from 'prom-client';
+import { Counter, Gauge, Histogram, Summary, register } from 'prom-client';
 import { logger } from '../utils/logger';
 import { CatchError } from '../types/common';
 
@@ -320,6 +321,17 @@ export const securityEventsTotal = new Counter({
 // REGISTER ALL METRICS
 // =================================
 
+// Type-safe metric registration helper
+function registerMetricSafely(metric: Counter<any> | Gauge<any> | Histogram<any> | Summary<any>): void {
+  try {
+    register.registerMetric(metric as any);
+  } catch (error: CatchError) {
+    // Type-safe name access
+    const metricName = 'name' in metric && typeof metric.name === 'string' ? metric.name : 'unknown';
+    logger.warn(`Metric already registered: ${metricName}`, { error });
+  }
+}
+
 const metricsToRegister = [
   httpRequestDuration, httpRequestsTotal, httpRequestSize, httpResponseSize, httpActiveConnections,
   dbQueryDuration, dbQueriesTotal, dbConnectionsActive, dbConnectionsIdle, dbConnectionPoolSize, dbLockWaitTime,
@@ -333,13 +345,7 @@ const metricsToRegister = [
   authAttemptsTotal, rateLimitHits, securityEventsTotal,
 ];
 
-metricsToRegister.forEach(metric => {
-  try {
-    register.registerMetric(metric);
-  } catch (error: CatchError) {
-    logger.warn(`Metric already registered: ${metric.name}`, { error });
-  }
-});
+metricsToRegister.forEach(registerMetricSafely);
 
 // =================================
 // MIDDLEWARE FUNCTIONS
@@ -358,7 +364,7 @@ export const prometheusMiddleware = (req: Request, res: Response, next: NextFunc
 
   // Override res.end to capture metrics
   const originalEnd = res.end;
-  res.end = function (chunk?: any, encoding?: any) {
+  res.end = function (this: Response, chunk?: any, encoding?: any, cb?: () => void): Response {
     const duration = Number(process.hrtime.bigint() - start) / 1e9; // Convert to seconds
     const responseSize = parseInt(res.get('content-length') || '0', 10);
     const statusClass = `${Math.floor(res.statusCode / 100)}xx`;
@@ -378,9 +384,9 @@ export const prometheusMiddleware = (req: Request, res: Response, next: NextFunc
     // Decrement active connections
     httpActiveConnections.dec();
 
-    // Call original end
-    originalEnd.call(this, chunk, encoding);
-  };
+    // Call original end method with proper return type
+    return originalEnd.call(this, chunk, encoding, cb) as Response;
+  } as typeof res.end;
 
   next();
 };

@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 
-import { config } from '@/config';
+import { config } from '../config';
 
 /**
  * JWT Payload interface defining the structure of JWT token claims
@@ -30,6 +30,8 @@ export interface JwtPayload {
   tokenVersion?: number;
   /** Standard JWT issued at timestamp */
   iat?: number;
+  /** Standard JWT expiration timestamp */
+  exp?: number;
   /** Standard JWT unique identifier */
   jti?: string;
 }
@@ -68,13 +70,13 @@ export class JwtService {
    * @description Sets up JWT signing parameters from application configuration
    */
   constructor() {
-    if (!config.jwt?.secret) {
+    if (!config.JWT_SECRET) {
       throw new Error('JWT_SECRET is required for authentication');
     }
 
-    this.secret = config.jwt.secret;
-    this.issuer = config.jwt?.issuer || 'medianest';
-    this.audience = config.jwt?.audience || 'medianest-users';
+    this.secret = config.JWT_SECRET;
+    this.issuer = config.JWT_ISSUER || 'medianest';
+    this.audience = config.JWT_AUDIENCE || 'medianest-users';
   }
 
   /**
@@ -192,10 +194,145 @@ export class JwtService {
       userAgent: decoded.userAgent,
       tokenVersion: decoded.tokenVersion,
       iat: decoded.iat,
+      exp: decoded.exp,
       jti: decoded.jti,
     };
 
     return validatedPayload;
+  }
+
+  /**
+   * Decode JWT token without verification
+   * 
+   * @method decodeToken
+   * @description Extracts payload from JWT token without signature validation
+   * @param {string} token - JWT token to decode
+   * @returns {JwtPayload | null} Decoded payload or null if invalid
+   * 
+   * @example
+   * const payload = jwtService.decodeToken(token);
+   * if (payload) {
+   *   console.log('User ID:', payload.userId);
+   * }
+   * 
+   * @warning Does not verify token signature - use only for non-security-critical operations
+   */
+  decodeToken(token: string): JwtPayload | null {
+    if (!token) {
+      return null;
+    }
+
+    try {
+      const decoded = jwt.decode(token) as JwtPayload;
+      return decoded;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Refresh a JWT token with new expiration
+   * 
+   * @method refreshToken
+   * @description Creates a new token from an existing token's payload
+   * @param {string} oldToken - Existing JWT token to refresh
+   * @returns {string} New JWT token with updated expiration
+   * 
+   * @throws {Error} When old token is invalid or missing required fields
+   * 
+   * @example
+   * try {
+   *   const newToken = jwtService.refreshToken(oldToken);
+   *   // Use newToken for authenticated requests
+   * } catch (error) {
+   *   // Handle token refresh failure
+   * }
+   * 
+   * @security Excludes timing-sensitive claims (iat, exp, jti) from refresh
+   */
+  refreshToken(oldToken: string): string {
+    const decoded = this.decodeToken(oldToken);
+    
+    if (!decoded) {
+      throw new Error('Invalid token for refresh');
+    }
+
+    // Validate required fields
+    if (!decoded.userId || !decoded.email || !decoded.role) {
+      throw new Error('JWT payload must include userId, email, and role');
+    }
+
+    // Create fresh payload without timing-sensitive fields
+    const refreshPayload: JwtPayload = {
+      userId: decoded.userId,
+      email: decoded.email,
+      role: decoded.role,
+      plexId: decoded.plexId,
+      sessionId: decoded.sessionId,
+      deviceId: decoded.deviceId,
+      ipAddress: decoded.ipAddress,
+      userAgent: decoded.userAgent,
+      tokenVersion: decoded.tokenVersion,
+      // Exclude: iat, exp, jti (will be regenerated)
+    };
+
+    return this.generateAccessToken(refreshPayload);
+  }
+
+  /**
+   * Check if a JWT token has expired
+   * 
+   * @method isTokenExpired
+   * @description Determines if token has passed its expiration time
+   * @param {string} token - JWT token to check
+   * @returns {boolean} True if token is expired or invalid
+   * 
+   * @example
+   * if (jwtService.isTokenExpired(token)) {
+   *   // Token needs refresh or re-authentication
+   * } else {
+   *   // Token is still valid
+   * }
+   * 
+   * @security Returns true for any invalid token to err on the side of caution
+   */
+  isTokenExpired(token: string): boolean {
+    try {
+      const decoded = this.decodeToken(token);
+      
+      if (!decoded || !decoded.exp) {
+        return true;
+      }
+
+      const currentTime = Math.floor(Date.now() / 1000);
+      return decoded.exp < currentTime;
+    } catch (error) {
+      return true;
+    }
+  }
+
+  /**
+   * Get token expiration timestamp
+   * 
+   * @method getTokenExpirationTime
+   * @description Extracts the expiration timestamp from a JWT token
+   * @param {string} token - JWT token to examine
+   * @returns {number | null} Unix timestamp of expiration or null if not available
+   * 
+   * @example
+   * const expTime = jwtService.getTokenExpirationTime(token);
+   * if (expTime) {
+   *   const expDate = new Date(expTime * 1000);
+   *   console.log('Token expires at:', expDate);
+   * }
+   */
+  getTokenExpirationTime(token: string): number | null {
+    try {
+      const decoded = this.decodeToken(token);
+      return decoded?.exp || null;
+    } catch (error) {
+      return null;
+    }
   }
 }
 

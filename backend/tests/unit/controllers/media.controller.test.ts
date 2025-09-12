@@ -39,7 +39,23 @@ describe('MediaController', () => {
   let mockResponse: Partial<Response>;
 
   beforeEach(() => {
+    // Comprehensive mock clearing and reset
     vi.clearAllMocks();
+    vi.resetAllMocks();
+    
+    // Clear each mock individually to ensure proper reset
+    vi.mocked(overseerrService.searchMedia).mockClear();
+    vi.mocked(overseerrService.getMediaDetails).mockClear();
+    vi.mocked(overseerrService.requestMedia).mockClear();
+    vi.mocked(mediaRequestRepository.count).mockClear();
+    vi.mocked(mediaRequestRepository.findMany).mockClear();
+    vi.mocked(mediaRequestRepository.findById).mockClear();
+    vi.mocked(mediaRequestRepository.delete).mockClear();
+    vi.mocked(logger.error).mockClear();
+    vi.mocked(logger.info).mockClear();
+    vi.mocked(logger.warn).mockClear();
+    vi.mocked(logger.debug).mockClear();
+    
     controller = new MediaController();
     
     mockRequest = {
@@ -74,7 +90,7 @@ describe('MediaController', () => {
 
       await controller.searchMedia(mockRequest as Request, mockResponse as Response);
 
-      expect(overseerrService.searchMedia).toHaveBeenCalledWith('test', 1);
+      expect((overseerrService.searchMedia as Mock)).toHaveBeenCalledWith('test', 1);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
         data: mockResults.results,
@@ -87,13 +103,16 @@ describe('MediaController', () => {
     });
 
     it('should throw validation error for missing query', async () => {
+      // Explicitly clear the mock for this test
+      vi.mocked(overseerrService.searchMedia).mockClear();
+      
       mockRequest.query = {};
 
       await expect(
         controller.searchMedia(mockRequest as Request, mockResponse as Response)
       ).rejects.toThrow(AppError);
 
-      expect(overseerrService.searchMedia).not.toHaveBeenCalled();
+      expect((overseerrService.searchMedia as Mock)).not.toHaveBeenCalled();
     });
 
     it('should throw validation error for non-string query', async () => {
@@ -128,6 +147,8 @@ describe('MediaController', () => {
 
   describe('getMediaDetails', () => {
     it('should get media details successfully', async () => {
+      // Explicitly clear the mock for this test
+      vi.mocked(overseerrService.getMediaDetails).mockClear();
       const mockDetails = {
         id: 1,
         title: 'Test Movie',
@@ -140,7 +161,7 @@ describe('MediaController', () => {
 
       await controller.getMediaDetails(mockRequest as Request, mockResponse as Response);
 
-      expect(overseerrService.getMediaDetails).toHaveBeenCalledWith('movie', 123);
+      expect((overseerrService.getMediaDetails as Mock)).toHaveBeenCalledWith('movie', 123);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
         data: mockDetails,
@@ -164,6 +185,9 @@ describe('MediaController', () => {
     });
 
     it('should handle service errors', async () => {
+      // Explicitly clear the mock for this test
+      vi.mocked(overseerrService.getMediaDetails).mockClear();
+      
       mockRequest.params = { mediaType: 'movie', tmdbId: '123' };
       (overseerrService.getMediaDetails as Mock).mockRejectedValue(new Error('Service error'));
 
@@ -177,7 +201,7 @@ describe('MediaController', () => {
 
   describe('requestMedia', () => {
     it('should request media successfully', async () => {
-      const mockRequest = {
+      const mockRequestData = {
         id: 'request-123',
         userId: 'user-123',
         mediaType: 'movie',
@@ -186,11 +210,11 @@ describe('MediaController', () => {
       };
 
       mockRequest.body = { mediaType: 'movie', tmdbId: 456 };
-      (overseerrService.requestMedia as Mock).mockResolvedValue(mockRequest);
+      (overseerrService.requestMedia as Mock).mockResolvedValue(mockRequestData);
 
       await controller.requestMedia(mockRequest as Request, mockResponse as Response);
 
-      expect(overseerrService.requestMedia).toHaveBeenCalledWith('user-123', {
+      expect((overseerrService.requestMedia as Mock)).toHaveBeenCalledWith('user-123', {
         mediaType: 'movie',
         tmdbId: 456,
         seasons: undefined,
@@ -198,7 +222,7 @@ describe('MediaController', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(201);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        data: mockRequest,
+        data: mockRequestData,
         meta: {
           timestamp: expect.any(String),
         },
@@ -219,7 +243,7 @@ describe('MediaController', () => {
 
       await controller.requestMedia(mockRequest as Request, mockResponse as Response);
 
-      expect(overseerrService.requestMedia).toHaveBeenCalledWith('user-123', {
+      expect((overseerrService.requestMedia as Mock)).toHaveBeenCalledWith('user-123', {
         mediaType: 'movie',
         tmdbId: 456,
         seasons: undefined,
@@ -227,6 +251,8 @@ describe('MediaController', () => {
     });
 
     it('should include seasons for TV shows', async () => {
+      // Explicitly clear the mock for this test
+      vi.mocked(overseerrService.requestMedia).mockClear();
       const mockRequestData = {
         id: 'request-123',
         userId: 'user-123',
@@ -241,7 +267,7 @@ describe('MediaController', () => {
 
       await controller.requestMedia(mockRequest as Request, mockResponse as Response);
 
-      expect(overseerrService.requestMedia).toHaveBeenCalledWith('user-123', {
+      expect((overseerrService.requestMedia as Mock)).toHaveBeenCalledWith('user-123', {
         mediaType: 'tv',
         tmdbId: 456,
         seasons: [1, 2, 3],
@@ -277,8 +303,8 @@ describe('MediaController', () => {
 
       await controller.getUserRequests(mockRequest as Request, mockResponse as Response);
 
-      expect(mediaRequestRepository.count).toHaveBeenCalledWith({ userId: 'user-123' });
-      expect(mediaRequestRepository.findMany).toHaveBeenCalledWith(
+      expect((mediaRequestRepository.count as Mock)).toHaveBeenCalledWith({ userId: 'user-123' });
+      expect((mediaRequestRepository.findMany as Mock)).toHaveBeenCalledWith(
         { userId: 'user-123' },
         {
           skip: 0,
@@ -305,26 +331,34 @@ describe('MediaController', () => {
 
       await controller.getUserRequests(mockRequest as Request, mockResponse as Response);
 
-      expect(mediaRequestRepository.count).toHaveBeenCalledWith({
+      expect((mediaRequestRepository.count as Mock)).toHaveBeenCalledWith({
         userId: 'user-123',
         status: 'pending',
       });
     });
 
     it('should filter requests by search term', async () => {
+      // Explicitly clear the mock for this test
+      vi.mocked(mediaRequestRepository.count).mockClear();
+      vi.mocked(mediaRequestRepository.findMany).mockClear();
+      
       mockRequest.query = { search: 'matrix' };
       (mediaRequestRepository.count as Mock).mockResolvedValue(1);
       (mediaRequestRepository.findMany as Mock).mockResolvedValue([]);
 
       await controller.getUserRequests(mockRequest as Request, mockResponse as Response);
 
-      expect(mediaRequestRepository.count).toHaveBeenCalledWith({
+      expect((mediaRequestRepository.count as Mock)).toHaveBeenCalledWith({
         userId: 'user-123',
         title: { contains: 'matrix', mode: 'insensitive' },
       });
     });
 
     it('should filter requests by date range', async () => {
+      // Explicitly clear the mock for this test
+      vi.mocked(mediaRequestRepository.count).mockClear();
+      vi.mocked(mediaRequestRepository.findMany).mockClear();
+      
       mockRequest.query = {
         startDate: '2023-01-01',
         endDate: '2023-12-31',
@@ -334,7 +368,7 @@ describe('MediaController', () => {
 
       await controller.getUserRequests(mockRequest as Request, mockResponse as Response);
 
-      expect(mediaRequestRepository.count).toHaveBeenCalledWith({
+      expect((mediaRequestRepository.count as Mock)).toHaveBeenCalledWith({
         userId: 'user-123',
         requestedAt: {
           gte: new Date('2023-01-01'),
@@ -350,7 +384,7 @@ describe('MediaController', () => {
 
       await controller.getUserRequests(mockRequest as Request, mockResponse as Response);
 
-      expect(mediaRequestRepository.findMany).toHaveBeenCalledWith(
+      expect((mediaRequestRepository.findMany as Mock)).toHaveBeenCalledWith(
         { userId: 'user-123' },
         {
           skip: 10,
@@ -363,7 +397,7 @@ describe('MediaController', () => {
 
   describe('getRequestDetails', () => {
     it('should get request details for user own request', async () => {
-      const mockRequest = {
+      const mockRequestData = {
         id: 'req-123',
         userId: 'user-123',
         title: 'Test Movie',
@@ -371,14 +405,14 @@ describe('MediaController', () => {
       };
 
       mockRequest.params = { requestId: 'req-123' };
-      (mediaRequestRepository.findById as Mock).mockResolvedValue(mockRequest);
+      (mediaRequestRepository.findById as Mock).mockResolvedValue(mockRequestData);
 
       await controller.getRequestDetails(mockRequest as Request, mockResponse as Response);
 
-      expect(mediaRequestRepository.findById).toHaveBeenCalledWith('req-123');
+      expect((mediaRequestRepository.findById as Mock)).toHaveBeenCalledWith('req-123');
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        data: mockRequest,
+        data: mockRequestData,
       });
     });
 
@@ -451,7 +485,7 @@ describe('MediaController', () => {
 
       await controller.deleteRequest(mockRequest as Request, mockResponse as Response);
 
-      expect(mediaRequestRepository.delete).toHaveBeenCalledWith('req-123');
+      expect((mediaRequestRepository.delete as Mock)).toHaveBeenCalledWith('req-123');
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
         message: 'Request deleted successfully',
@@ -473,7 +507,7 @@ describe('MediaController', () => {
 
       await controller.deleteRequest(mockRequest as Request, mockResponse as Response);
 
-      expect(mediaRequestRepository.delete).toHaveBeenCalledWith('req-123');
+      expect((mediaRequestRepository.delete as Mock)).toHaveBeenCalledWith('req-123');
     });
 
     it('should throw error for non-pending requests', async () => {
@@ -491,7 +525,7 @@ describe('MediaController', () => {
         controller.deleteRequest(mockRequest as Request, mockResponse as Response)
       ).rejects.toThrow(AppError);
 
-      expect(mediaRequestRepository.delete).not.toHaveBeenCalled();
+      expect((mediaRequestRepository.delete as Mock)).not.toHaveBeenCalled();
     });
   });
 
@@ -536,7 +570,7 @@ describe('MediaController', () => {
 
       await controller.getAllRequests(mockRequest as Request, mockResponse as Response);
 
-      expect(mediaRequestRepository.count).toHaveBeenCalledWith({
+      expect((mediaRequestRepository.count as Mock)).toHaveBeenCalledWith({
         userId: 'user-123',
       });
     });

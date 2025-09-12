@@ -113,6 +113,11 @@ nav:
   - Operations:
       - Monitoring Stack: operations/monitoring-stack.md
       - Alert Runbooks: operations/runbooks/alert-runbooks.md
+      - Staging Deployment:
+        - Deployment Guide: operations/staging-deployment.md
+        - Prerequisites: operations/staging-prerequisites.md
+        - Troubleshooting: operations/staging-troubleshooting.md
+        - Critical Fixes Applied: operations/critical-fixes-applied.md
   - Deployment:
       - CI/CD: deployment/ci-cd.md
   - Developers:
@@ -132,8 +137,6 @@ plugins:
       separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
       lang:
         - en
-      # Advanced search features
-      indexing: 'full'
       
   # Enhanced tags system (requires mkdocs-material[tags])
   # - tags:

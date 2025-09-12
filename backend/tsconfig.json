@@ -27,8 +27,8 @@
       "@/repositories/*": ["./src/repositories/*"],
       "@/types/*": ["./src/types/*"],
       "@/config/*": ["./src/config/*"],
-      "@medianest/shared": ["../shared/dist", "../shared/src"],
-      "@medianest/shared/*": ["../shared/dist/*", "../shared/src/*"]
+      "@medianest/shared": ["../shared/dist", "../shared/src", "./node_modules/@medianest/shared"],
+      "@medianest/shared/*": ["../shared/dist/*", "../shared/src/*", "./node_modules/@medianest/shared/*"]
     },
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
@@ -63,9 +63,9 @@
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"],
-  "references": [
-    { "path": "../shared" }
-  ],
+  // "references": [
+  //   { "path": "../shared" }
+  // ],
   "ts-node": {
     "require": ["tsconfig-paths/register"],
     "transpileOnly": true,

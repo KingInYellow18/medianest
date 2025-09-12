@@ -131,12 +131,12 @@ export class AdminController {
       const { role } = req.body;
 
       // Validate role
-      if (!['user', 'admin'].includes(role)) {
+      if (!role || !['user', 'admin'].includes(role)) {
         throw new AppError('VALIDATION_ERROR', 'Invalid role', 400);
       }
 
       // Prevent admin from removing their own admin role
-      if (userId === req.user!.id && role !== 'admin') {
+      if (userId === req.user!.id && role === 'user') {
         throw new AppError('VALIDATION_ERROR', 'Cannot remove your own admin role', 400);
       }
 
