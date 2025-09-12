@@ -1,8 +1,9 @@
-import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+import { AppError } from '@medianest/shared';
 import { Request, Response } from 'express';
+import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+
 import { PlexController, plexController } from '../../../src/controllers/plex.controller';
 import { plexService } from '../../../src/services/plex.service';
-import { AppError } from '@medianest/shared';
 import { logger } from '../../../src/utils/logger';
 
 // Mock dependencies

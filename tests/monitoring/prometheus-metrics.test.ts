@@ -1,8 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/testing-library/jest-dom';
-import request from 'supertest';
 import express from 'express';
-import { register, metricsMiddleware } from '../../backend/src/middleware/metrics';
 import client from 'prom-client';
+import request from 'supertest';
+
+import { register, metricsMiddleware } from '../../backend/src/middleware/metrics';
+
 
 describe('Prometheus Metrics Integration', () => {
   let app: express.Application;

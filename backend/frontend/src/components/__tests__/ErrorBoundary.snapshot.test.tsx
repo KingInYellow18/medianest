@@ -5,6 +5,7 @@
 
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
 import { render } from '../../test-utils/render';
 import ErrorBoundary, { withErrorBoundary } from '../ErrorBoundary';
 

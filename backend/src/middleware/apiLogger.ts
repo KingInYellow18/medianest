@@ -5,7 +5,6 @@ import { Request, Response, NextFunction } from 'express';
 // @ts-ignore
 import { CatchError } from '../types/common';
 import { getCorrelationId } from '../utils/correlationId';
-
 import { logger } from '../utils/logger';
 
 // API-specific logging middleware

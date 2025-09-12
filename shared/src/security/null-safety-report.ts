@@ -146,6 +146,8 @@ export const VALIDATION_RESULTS = {
   productionReadiness: true,
 };
 
+// Development report output
+// eslint-disable-next-line no-console
 console.log(`
 🛡️  NULL SAFETY IMPLEMENTATION MISSION COMPLETED
 ==============================================

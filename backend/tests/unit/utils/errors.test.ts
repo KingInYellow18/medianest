@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AppError, isAppError } from '@medianest/shared';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
 import { handleAsyncError, createErrorResponse } from '@/utils/error-handler';
 
 // Simplified Stateless Mock Pattern for Perfect Test Isolation

@@ -8,9 +8,10 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
+
 import { configService } from '../config/config.service';
-import { logger } from '../utils/logger';
 import { AppError } from '../utils/errors';
+import { logger } from '../utils/logger';
 
 // Import database security manager
 const { DatabaseSecurityManager } = require('../../../config/security/database-security');

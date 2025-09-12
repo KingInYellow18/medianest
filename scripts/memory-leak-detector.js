@@ -461,7 +461,7 @@ class MemoryLeakDetector {
    */
   assessLeakProbability(heapGrowthRate, trends) {
     let probability = 0;
-    let factors = [];
+    const factors = [];
 
     // Factor 1: High growth rate
     const growthMBPerHour = (heapGrowthRate * 3600) / (1024 * 1024);

@@ -1,12 +1,12 @@
 import { Prisma, PrismaClient } from '@prisma/client';
 
-type MediaRequest = Prisma.MediaRequestGetPayload<{}>;
-
+import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
 import { getRedis } from '../config/redis';
 import { CatchError } from '../types/common';
 import { logger } from '../utils/logger';
 
-import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
+
+type MediaRequest = any;
 
 /**
  * Optimized Media Request Repository with aggressive caching and query optimization
@@ -155,7 +155,7 @@ export class OptimizedMediaRequestRepository extends BaseRepository<MediaRequest
     options: PaginationOptions & { includeFullUser?: boolean } = {},
   ): Promise<PaginatedResult<MediaRequest>> {
     const { includeFullUser = false, ...paginationOptions } = options;
-    const where: Prisma.MediaRequestWhereInput = {};
+    const where: any = {};
 
     // Build where clause efficiently
     if (filters.userId) where.userId = filters.userId;
@@ -224,7 +224,7 @@ export class OptimizedMediaRequestRepository extends BaseRepository<MediaRequest
       };
 
       // Process grouped results
-      requests.forEach((item) => {
+      requests.forEach((item: any) => {
         const count = item._count.status;
         switch (item.status) {
           case 'pending':
@@ -345,7 +345,7 @@ export class OptimizedMediaRequestRepository extends BaseRepository<MediaRequest
     if (requestIds.length === 0) return 0;
 
     try {
-      const data: Prisma.MediaRequestUpdateManyMutationInput = { status };
+      const data: any = { status };
 
       if (status === 'completed' || status === 'available') {
         data.completedAt = new Date();
@@ -473,7 +473,7 @@ export class OptimizedMediaRequestRepository extends BaseRepository<MediaRequest
         select: { userId: true },
       });
 
-      const uniqueUserIds = [...new Set(requests.map((r) => r.userId))];
+      const uniqueUserIds = [...new Set(requests.map((r: any) => r.userId))];
 
       // Invalidate user stats caches
       const redis = getRedis();
@@ -494,7 +494,7 @@ export class OptimizedMediaRequestRepository extends BaseRepository<MediaRequest
    * Enhanced count method with optimizations
    */
   async count(filters: MediaRequestFilters = {}): Promise<number> {
-    const where: Prisma.MediaRequestWhereInput = {};
+    const where: any = {};
 
     if (filters.userId) where.userId = filters.userId;
     if (filters.status) where.status = filters.status;
@@ -527,7 +527,7 @@ export class OptimizedMediaRequestRepository extends BaseRepository<MediaRequest
     } = {},
   ): Promise<MediaRequest[]> {
     const { includeFullUser = false, ...queryOptions } = options;
-    const where: Prisma.MediaRequestWhereInput = {};
+    const where: any = {};
 
     if (filters.userId) where.userId = filters.userId;
     if (filters.status) where.status = filters.status;

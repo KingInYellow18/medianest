@@ -2,10 +2,11 @@ import jwt from 'jsonwebtoken';
 import { Socket } from 'socket.io';
 import { ExtendedError } from 'socket.io/dist/namespace';
 
-import { CatchError } from '../types/common';
 
 import { userRepository } from '@/repositories';
 import { logger } from '@/utils/logger';
+
+import { CatchError } from '../types/common';
 
 export async function authenticateSocket(
   socket: Socket,

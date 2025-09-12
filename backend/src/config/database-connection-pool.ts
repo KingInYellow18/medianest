@@ -3,11 +3,11 @@
  * Replaces singleton pattern with proper connection pooling
  */
 // import { PrismaClient, Prisma } from '@prisma/client';
-type PrismaClient = any;
+import { env } from './env';
 import { CatchError } from '../types/common';
 import { logger } from '../utils/logger';
 
-import { env } from './env';
+type PrismaClient = any;
 
 // Connection pool configuration
 interface DatabasePoolConfig {

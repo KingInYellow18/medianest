@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Request, Response, NextFunction } from 'express';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
 import { createRateLimit } from '@/middleware/rate-limit';
 
 // Simplified Stateless Mock Pattern for Perfect Test Isolation

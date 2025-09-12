@@ -5,12 +5,14 @@
  * Documents all performance metrics and creates validation benchmarks
  */
 
-import { describe, test, expect, beforeAll, afterAll } from 'vitest';
-import { app, httpServer } from '../../src/app';
-import { AuthTestHelper } from '../helpers/auth-test-helper';
-import { logger } from '../../src/utils/logger';
 import { writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
+
+import { describe, test, expect, beforeAll, afterAll } from 'vitest';
+
+import { app, httpServer } from '../../src/app';
+import { logger } from '../../src/utils/logger';
+import { AuthTestHelper } from '../helpers/auth-test-helper';
 
 interface PerformanceBaseline {
   timestamp: string;

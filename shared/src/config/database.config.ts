@@ -1,10 +1,11 @@
-import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
-// Use basic log level types instead of Prisma types
-type LogLevel = 'info' | 'query' | 'warn' | 'error';
+import { z } from 'zod';
+
+import { createServiceLogger } from './logging.config';
 
 import type { DatabaseConfig } from './base.config';
-import { createServiceLogger } from './logging.config';
+// Use basic log level types instead of Prisma types
+type LogLevel = 'info' | 'query' | 'warn' | 'error';
 
 /**
  * Database Connection Pool Configuration

@@ -3,8 +3,9 @@
  * Global setup for performance testing environment
  */
 
-import { beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 import { performance } from 'perf_hooks';
+
+import { beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 
 // Performance monitoring globals
 declare global {

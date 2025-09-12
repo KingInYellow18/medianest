@@ -5,13 +5,13 @@
 
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor, cleanup } from '../../test-utils/render';
-import ServiceCard, { withLazyServiceCard } from '../OptimizedServiceCard';
-import {
+
+import { render, screen, fireEvent, waitFor, cleanup ,
   createMockService,
   createMockServiceWithError,
   createMockServiceInactive,
 } from '../../test-utils/render';
+import ServiceCard, { withLazyServiceCard } from '../OptimizedServiceCard';
 
 // Mock performance.now for consistent timing tests
 const mockPerformanceNow = vi.fn();

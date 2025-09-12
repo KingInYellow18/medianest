@@ -99,7 +99,7 @@ module.exports = {
 
     const configPath = 'frontend/next.config.js';
     if (fs.existsSync(configPath)) {
-      let config = fs.readFileSync(configPath, 'utf8');
+      const config = fs.readFileSync(configPath, 'utf8');
 
       // Enhanced tree-shaking configuration
       const treeShakingEnhancements = `

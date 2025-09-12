@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 
+const { execSync } = require('child_process');
+const path = require('path');
+
+const chalk = require('chalk');
+const fs = require('fs-extra');
 const lighthouse = require('lighthouse');
 const { chromium } = require('playwright');
-const fs = require('fs-extra');
-const path = require('path');
-const chalk = require('chalk');
-const { execSync } = require('child_process');
+
+
 
 class PerformanceTester {
   constructor() {

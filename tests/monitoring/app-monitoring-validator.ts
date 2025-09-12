@@ -5,12 +5,14 @@
  * Comprehensive testing of application-level observability capabilities
  */
 
-import { createServer } from 'http';
-import { Express } from 'express';
-import axios, { AxiosResponse } from 'axios';
-import WebSocket from 'ws';
-import { performance } from 'perf_hooks';
 import { EventEmitter } from 'events';
+import { createServer } from 'http';
+import { performance } from 'perf_hooks';
+
+import axios, { AxiosResponse } from 'axios';
+import { Express } from 'express';
+import WebSocket from 'ws';
+
 
 interface ValidationResult {
   category: string;

@@ -1,9 +1,10 @@
 // @ts-nocheck
 import crypto from 'crypto';
 
+import { logger } from '@/utils/logger';
+
 import { CatchError } from '../types/common';
 
-import { logger } from '@/utils/logger';
 
 interface EncryptedData {
   encrypted: string;

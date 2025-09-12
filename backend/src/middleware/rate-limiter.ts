@@ -5,10 +5,11 @@ import { Request, Response, NextFunction } from 'express';
 
 // @ts-ignore
 
-import { CatchError } from '../types/common';
 
 import { getRedis } from '@/config/redis';
 import { logger } from '@/utils/logger';
+
+import { CatchError } from '../types/common';
 
 export interface RateLimiterOptions {
   windowMs: number;

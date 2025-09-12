@@ -1,6 +1,7 @@
-import { chromium, FullConfig } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
+
+import { chromium, FullConfig } from '@playwright/test';
 
 /**
  * Global setup for MediaNest E2E tests

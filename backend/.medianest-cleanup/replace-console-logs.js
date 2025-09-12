@@ -8,6 +8,7 @@
 
 const fs = require('fs');
 const path = require('path');
+
 const glob = require('glob');
 
 const BACKEND_DIR = path.resolve(__dirname, '..');

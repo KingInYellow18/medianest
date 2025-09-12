@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 
-const { chromium, firefox, webkit } = require('playwright');
-const fs = require('fs-extra');
 const path = require('path');
+
 const chalk = require('chalk');
+const fs = require('fs-extra');
+const { chromium, firefox, webkit } = require('playwright');
 
 class ResponsiveTester {
   constructor() {
@@ -201,7 +202,7 @@ class ResponsiveTester {
       await page.waitForTimeout(1000); // Allow layout to settle
       const layoutShifts = await page.evaluate(() => {
         return new Promise((resolve) => {
-          let shifts = [];
+          const shifts = [];
           new PerformanceObserver((list) => {
             for (const entry of list.getEntries()) {
               if (entry.hadRecentInput) continue;

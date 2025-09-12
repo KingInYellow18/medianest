@@ -12,6 +12,7 @@
  */
 
 import { vi, type MockedFunction } from 'vitest';
+
 import {
   enterpriseMockRegistry,
   getEnterpriseMock,

@@ -11,9 +11,9 @@
  * If no branch-name is provided, it uses the current git branch
  */
 
+const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 
 class GitIgnoreManager {
   constructor() {

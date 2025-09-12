@@ -12,8 +12,8 @@
  * 5. Matrix-based testing configuration
  */
 
-import { vi, type MockedFunction } from 'vitest';
 import { User, MediaRequest, Session, SessionToken } from '@prisma/client';
+import { vi, type MockedFunction } from 'vitest';
 
 // =============================================================================
 // REPOSITORY API INTERFACE DEFINITIONS (Context7 Pattern)

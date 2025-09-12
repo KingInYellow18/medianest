@@ -1,13 +1,14 @@
-import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
-import { Request, Response, NextFunction } from 'express';
+import { AppError } from '@medianest/shared';
 import axios from 'axios';
+import { Request, Response, NextFunction } from 'express';
+import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+
+import { config } from '../../../src/config';
 import { AuthController, authController } from '../../../src/controllers/auth.controller';
 import { userRepository } from '../../../src/repositories/instances';
 import { encryptionService } from '../../../src/services/encryption.service';
 import { jwtService } from '../../../src/services/jwt.service';
-import { AppError } from '@medianest/shared';
 import { logger } from '../../../src/utils/logger';
-import { config } from '../../../src/config';
 
 // Mock dependencies
 vi.mock('axios');

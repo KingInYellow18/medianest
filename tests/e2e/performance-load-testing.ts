@@ -10,6 +10,7 @@
  */
 
 import { test, expect, Page, BrowserContext, Browser } from '@playwright/test';
+
 import { E2ETestResult, PerformanceMetrics } from './comprehensive-e2e-validator';
 
 interface LoadScenario {

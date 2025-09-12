@@ -4,9 +4,9 @@
  * Coordinates aggressive optimization across all MediaNest services
  */
 
+const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 
 class PerformanceSwarmOrchestrator {
   constructor() {

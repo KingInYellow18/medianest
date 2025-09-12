@@ -3,8 +3,9 @@
  * Optimized for performance testing with longer timeouts and parallel execution
  */
 
-import { defineConfig } from 'vitest/config';
 import { resolve } from 'path';
+
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {

@@ -9,11 +9,12 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { UserService } from '../../../backend/src/services/user.service';
+
 import { UserRepository } from '../../../backend/src/repositories/user.repository';
+import { UserService } from '../../../backend/src/services/user.service';
 import { AuthenticationError, ValidationError } from '../../../backend/src/utils/errors';
-import { userMockHelpers } from '../../mocks/prisma-mock';
 import { createMockUser } from '../../mocks/auth-mock';
+import { userMockHelpers } from '../../mocks/prisma-mock';
 
 // Mock dependencies
 vi.mock('../../../backend/src/repositories/user.repository');

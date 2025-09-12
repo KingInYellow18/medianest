@@ -4,9 +4,9 @@
  * Optimizes package dependencies to reduce bundle size
  */
 
+const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const { exec } = require('child_process');
 const { promisify } = require('util');
 
 const execAsync = promisify(exec);
@@ -67,7 +67,7 @@ class DependencyOptimizer {
   }
 
   async optimizeFrontendPackage(packageJson, packagePath) {
-    let changes = [];
+    const changes = [];
 
     // Move heavy development dependencies
     const devToMove = [
@@ -116,7 +116,7 @@ class DependencyOptimizer {
   }
 
   async optimizeBackendPackage(packageJson, packagePath) {
-    let changes = [];
+    const changes = [];
 
     // Optimize OpenTelemetry dependencies - make them optional
     const telemetryDeps = [
@@ -167,7 +167,7 @@ class DependencyOptimizer {
   }
 
   async optimizeSharedPackage(packageJson, packagePath) {
-    let changes = [];
+    const changes = [];
 
     // Optimize shared package exports
     if (!packageJson.sideEffects) {
@@ -198,7 +198,7 @@ class DependencyOptimizer {
   async optimizeRootPackage() {
     const packageJsonPath = path.join(process.cwd(), 'package.json');
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-    let changes = [];
+    const changes = [];
 
     // Move heavy dependencies to specific packages
     const heavyDeps = ['ffmpeg-static', 'fluent-ffmpeg', 'sharp', 'cypress'];

@@ -103,7 +103,7 @@ export class IntegrationClientFactory {
    * Remove specific client from cache
    */
   static removeClient(serviceName: string): void {
-    for (const [key, _] of this.clientCache.entries()) {
+    for (const [key] of this.clientCache.entries()) {
       if (key.startsWith(serviceName)) {
         this.clientCache.delete(key);
       }

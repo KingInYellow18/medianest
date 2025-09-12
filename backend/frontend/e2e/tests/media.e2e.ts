@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
-import { MediaPage } from '../pages/MediaPage';
+
 import { DashboardPage } from '../pages/DashboardPage';
+import { MediaPage } from '../pages/MediaPage';
 
 /**
  * Media Browsing and Playback E2E Tests for MediaNest

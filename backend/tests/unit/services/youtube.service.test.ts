@@ -1,6 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { YoutubeService } from '@/services/youtube.service';
 import axios from 'axios';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+import { YoutubeService } from '@/services/youtube.service';
 
 // Mock dependencies
 vi.mock('axios');

@@ -1,12 +1,12 @@
-import type { Sampler } from '@opentelemetry/api';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { JaegerExporter } from '@opentelemetry/exporter-jaeger';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-otlp-http';
 import { NodeSDK } from '@opentelemetry/sdk-node';
-import type { SpanExporter, SamplingResult } from '@opentelemetry/sdk-trace-base';
 import { SamplingDecision } from '@opentelemetry/sdk-trace-base';
 import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-node';
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
+
+import { logger } from '../utils/logger';
 
 import type {
   TracingSDK,
@@ -16,7 +16,8 @@ import type {
   TracingSpan,
   HttpInstrumentationResponse,
 } from '../types/opentelemetry';
-import { logger } from '../utils/logger';
+import type { Sampler } from '@opentelemetry/api';
+import type { SpanExporter, SamplingResult } from '@opentelemetry/sdk-trace-base';
 
 // Environment configuration
 const SERVICE_NAME = process.env.SERVICE_NAME || 'observe-backend';
@@ -36,6 +37,7 @@ resourceAttributes[SemanticResourceAttributes.SERVICE_INSTANCE_ID] =
 
 // Use require to avoid TypeScript import issues temporarily
 const ResourceClass = require('@opentelemetry/resources').Resource;
+
 const resource = ResourceClass.default().merge(new ResourceClass(resourceAttributes));
 
 // Jaeger exporter configuration

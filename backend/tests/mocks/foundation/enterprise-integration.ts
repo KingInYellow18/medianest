@@ -13,6 +13,7 @@
  */
 
 import { vi, beforeEach, afterEach } from 'vitest';
+
 import {
   EnterpriseMockRegistry,
   enterpriseMockRegistry,
@@ -23,7 +24,6 @@ import {
   getEnterprisePerformanceReport,
   enableLegacyCompatibility,
 } from './enterprise-mock-registry';
-
 import {
   EnterpriseServiceMockFactory,
   createEnterpriseServiceMock,
@@ -38,7 +38,6 @@ import {
   EnterprisePlexServiceMock,
   EnterpriseDatabaseMock,
 } from './enterprise-service-mocks';
-
 import {
   UnifiedMockRegistry,
   mockRegistry,

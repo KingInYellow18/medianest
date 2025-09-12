@@ -7,9 +7,9 @@
  * This script performs both static and runtime security validations.
  */
 
+const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 
 console.log('🔒 MediaNest Production Security Validator');
 console.log('==========================================\n');

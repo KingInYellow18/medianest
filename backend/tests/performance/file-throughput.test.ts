@@ -5,14 +5,17 @@
  * Tests upload/download speeds, file processing, and storage efficiency
  */
 
-import { describe, test, expect, beforeAll, afterAll, vi } from 'vitest';
-import request from 'supertest';
+import crypto from 'crypto';
 import { createReadStream, createWriteStream, existsSync, unlinkSync, mkdirSync } from 'fs';
 import { join } from 'path';
+
+import request from 'supertest';
+import { describe, test, expect, beforeAll, afterAll, vi } from 'vitest';
+
 import { app, httpServer } from '../../src/app';
-import { AuthTestHelper } from '../helpers/auth-test-helper';
 import { logger } from '../../src/utils/logger';
-import crypto from 'crypto';
+import { AuthTestHelper } from '../helpers/auth-test-helper';
+
 
 interface ThroughputMetric {
   operation: 'upload' | 'download' | 'process';
@@ -40,8 +43,8 @@ describe('File Upload/Download Throughput Tests', () => {
   let authHelper: AuthTestHelper;
   let userToken: string;
   let testUser: any;
-  let performanceMetrics: ThroughputMetric[] = [];
-  let benchmarkResults: ThroughputBenchmark[] = [];
+  const performanceMetrics: ThroughputMetric[] = [];
+  const benchmarkResults: ThroughputBenchmark[] = [];
   const testFilesDir = join(__dirname, '../fixtures/performance-files');
   const testFiles: { [key: string]: string } = {};
 

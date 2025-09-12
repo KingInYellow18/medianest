@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
 import { DeviceSessionService } from '@/services/device-session.service';
 
 // Mock dependencies

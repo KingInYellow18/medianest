@@ -5,11 +5,11 @@
  * Comprehensive network throughput, latency, and performance analysis
  */
 
+const { spawn } = require('child_process');
 const http = require('http');
 const https = require('https');
 const net = require('net');
 const { performance } = require('perf_hooks');
-const { spawn } = require('child_process');
 const fs = require('fs').promises;
 const path = require('path');
 

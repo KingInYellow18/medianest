@@ -5,6 +5,7 @@ import { AppError } from '@medianest/shared';
 import qrcode from 'qrcode';
 import speakeasy from 'speakeasy';
 
+import { RedisService } from './redis.service';
 import { UserRepository } from '../repositories/user.repository';
 import { logger } from '../utils/logger';
 import {
@@ -16,7 +17,6 @@ import {
   logSecurityEvent,
 } from '../utils/security';
 
-import { RedisService } from './redis.service';
 // Email service removed - email-based 2FA disabled
 
 interface TwoFactorSetup {

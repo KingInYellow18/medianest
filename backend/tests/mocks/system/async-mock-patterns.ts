@@ -13,6 +13,7 @@
  */
 
 import { vi } from 'vitest';
+
 import { logger } from '../../../src/utils/logger';
 
 export interface AsyncMockConfig {

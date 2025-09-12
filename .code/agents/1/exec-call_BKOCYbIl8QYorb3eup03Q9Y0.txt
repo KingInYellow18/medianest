@@ -1,0 +1,647 @@
+./shared/package.json
+./shared/node_modules/uuid/package.json
+./shared/node_modules/semver/package.json
+./shared/node_modules/ts-api-utils/package.json
+./shared/node_modules/ignore/package.json
+./shared/node_modules/@typescript-eslint/visitor-keys/package.json
+./shared/node_modules/@typescript-eslint/typescript-estree/package.json
+./shared/node_modules/@typescript-eslint/type-utils/package.json
+./shared/node_modules/@typescript-eslint/parser/package.json
+./shared/node_modules/@typescript-eslint/types/package.json
+./shared/node_modules/@typescript-eslint/utils/package.json
+./shared/node_modules/@typescript-eslint/eslint-plugin/package.json
+./shared/node_modules/@typescript-eslint/scope-manager/package.json
+./.vitest-cache/vitest/da39a3ee5e6b4b0d3255bfef95601890afd80709/deps_ssr/package.json
+./frontend/package.json
+./package.json
+./backend/frontend/package.json
+./backend/frontend/node_modules/check-error/package.json
+./backend/frontend/node_modules/electron-to-chromium/package.json
+./backend/frontend/node_modules/ci-info/package.json
+./backend/frontend/node_modules/cac/package.json
+./backend/frontend/node_modules/ufo/package.json
+./backend/frontend/node_modules/requires-port/package.json
+./backend/frontend/node_modules/side-channel/package.json
+./backend/frontend/node_modules/@sinclair/typebox/type/package.json
+./backend/frontend/node_modules/@sinclair/typebox/compiler/package.json
+./backend/frontend/node_modules/@sinclair/typebox/value/package.json
+./backend/frontend/node_modules/@sinclair/typebox/syntax/package.json
+./backend/frontend/node_modules/@sinclair/typebox/errors/package.json
+./backend/frontend/node_modules/@sinclair/typebox/system/package.json
+./backend/frontend/node_modules/@sinclair/typebox/parser/package.json
+./backend/frontend/node_modules/@sinclair/typebox/package.json
+./backend/frontend/node_modules/functions-have-names/package.json
+./backend/frontend/node_modules/is-symbol/package.json
+./backend/frontend/node_modules/punycode/package.json
+./backend/frontend/node_modules/mlly/package.json
+./backend/frontend/node_modules/mlly/node_modules/pathe/package.json
+./backend/frontend/node_modules/which/package.json
+./backend/frontend/node_modules/side-channel-list/package.json
+./backend/frontend/node_modules/is-path-inside/package.json
+./backend/frontend/node_modules/parent-module/package.json
+./backend/frontend/node_modules/lz-string/package.json
+./backend/frontend/node_modules/@inquirer/type/dist/commonjs/package.json
+./backend/frontend/node_modules/@inquirer/type/dist/esm/package.json
+./backend/frontend/node_modules/@inquirer/type/package.json
+./backend/frontend/node_modules/@inquirer/core/dist/commonjs/package.json
+./backend/frontend/node_modules/@inquirer/core/dist/esm/package.json
+./backend/frontend/node_modules/@inquirer/core/package.json
+./backend/frontend/node_modules/@inquirer/confirm/dist/commonjs/package.json
+./backend/frontend/node_modules/@inquirer/confirm/dist/esm/package.json
+./backend/frontend/node_modules/@inquirer/confirm/package.json
+./backend/frontend/node_modules/@inquirer/figures/dist/commonjs/package.json
+./backend/frontend/node_modules/@inquirer/figures/dist/esm/package.json
+./backend/frontend/node_modules/@inquirer/figures/package.json
+./backend/frontend/node_modules/istanbul-reports/package.json
+./backend/frontend/node_modules/wrap-ansi/package.json
+./backend/frontend/node_modules/form-data/package.json
+./backend/frontend/node_modules/@istanbuljs/schema/package.json
+./backend/frontend/node_modules/color-convert/package.json
+./backend/frontend/node_modules/which-collection/package.json
+./backend/frontend/node_modules/mdn-data/package.json
+./backend/frontend/node_modules/string-width/package.json
+./backend/frontend/node_modules/escalade/package.json
+./backend/frontend/node_modules/indent-string/package.json
+./backend/frontend/node_modules/universalify/package.json
+./backend/frontend/node_modules/delayed-stream/package.json
+./backend/frontend/node_modules/fast-glob/package.json
+./backend/frontend/node_modules/fast-glob/node_modules/glob-parent/package.json
+./backend/frontend/node_modules/deep-equal/package.json
+./backend/frontend/node_modules/fflate/package.json
+./backend/frontend/node_modules/once/package.json
+./backend/frontend/node_modules/undici-types/package.json
+./backend/frontend/node_modules/regexp.prototype.flags/package.json
+./backend/frontend/node_modules/magicast/package.json
+./backend/frontend/node_modules/vite/types/package.json
+./backend/frontend/node_modules/vite/package.json
+./backend/frontend/node_modules/sirv/package.json
+./backend/frontend/node_modules/tldts-core/package.json
+./backend/frontend/node_modules/outvariant/package.json
+./backend/frontend/node_modules/strip-final-newline/package.json
+./backend/frontend/node_modules/@humanwhocodes/object-schema/package.json
+./backend/frontend/node_modules/@humanwhocodes/module-importer/package.json
+./backend/frontend/node_modules/@humanwhocodes/config-array/package.json
+./backend/frontend/node_modules/@humanwhocodes/config-array/node_modules/minimatch/package.json
+./backend/frontend/node_modules/@humanwhocodes/config-array/node_modules/brace-expansion/package.json
+./backend/frontend/node_modules/ws/package.json
+./backend/frontend/node_modules/dunder-proto/package.json
+./backend/frontend/node_modules/dom-accessibility-api/package.json
+./backend/frontend/node_modules/object-inspect/package.json
+./backend/frontend/node_modules/nanoid/non-secure/package.json
+./backend/frontend/node_modules/nanoid/async/package.json
+./backend/frontend/node_modules/nanoid/url-alphabet/package.json
+./backend/frontend/node_modules/nanoid/package.json
+./backend/frontend/node_modules/micromatch/package.json
+./backend/frontend/node_modules/micromatch/node_modules/picomatch/package.json
+./backend/frontend/node_modules/yallist/package.json
+./backend/frontend/node_modules/acorn-jsx/package.json
+./backend/frontend/node_modules/wrappy/package.json
+./backend/frontend/node_modules/yargs-parser/package.json
+./backend/frontend/node_modules/fast-levenshtein/package.json
+./backend/frontend/node_modules/gensync/package.json
+./backend/frontend/node_modules/glob/package.json
+./backend/frontend/node_modules/glob/node_modules/minimatch/package.json
+./backend/frontend/node_modules/glob/node_modules/brace-expansion/package.json
+./backend/frontend/node_modules/@vitest/coverage-v8/package.json
+./backend/frontend/node_modules/@vitest/runner/package.json
+./backend/frontend/node_modules/@vitest/runner/node_modules/yocto-queue/package.json
+./backend/frontend/node_modules/@vitest/runner/node_modules/p-limit/package.json
+./backend/frontend/node_modules/@vitest/expect/package.json
+./backend/frontend/node_modules/@vitest/snapshot/package.json
+./backend/frontend/node_modules/@vitest/snapshot/node_modules/@sinclair/typebox/package.json
+./backend/frontend/node_modules/@vitest/snapshot/node_modules/react-is/package.json
+./backend/frontend/node_modules/@vitest/snapshot/node_modules/pretty-format/package.json
+./backend/frontend/node_modules/@vitest/snapshot/node_modules/@jest/schemas/package.json
+./backend/frontend/node_modules/@vitest/snapshot/node_modules/ansi-styles/package.json
+./backend/frontend/node_modules/@vitest/ui/package.json
+./backend/frontend/node_modules/@vitest/spy/package.json
+./backend/frontend/node_modules/@vitest/utils/package.json
+./backend/frontend/node_modules/@vitest/utils/node_modules/@sinclair/typebox/package.json
+./backend/frontend/node_modules/@vitest/utils/node_modules/react-is/package.json
+./backend/frontend/node_modules/@vitest/utils/node_modules/pretty-format/package.json
+./backend/frontend/node_modules/@vitest/utils/node_modules/@jest/schemas/package.json
+./backend/frontend/node_modules/@vitest/utils/node_modules/ansi-styles/package.json
+./backend/frontend/node_modules/minimatch/dist/mjs/package.json
+./backend/frontend/node_modules/minimatch/dist/cjs/package.json
+./backend/frontend/node_modules/minimatch/package.json
+./backend/frontend/node_modules/cliui/package.json
+./backend/frontend/node_modules/cliui/node_modules/wrap-ansi/package.json
+./backend/frontend/node_modules/dequal/package.json
+./backend/frontend/node_modules/make-dir/package.json
+./backend/frontend/node_modules/local-pkg/package.json
+./backend/frontend/node_modules/@mswjs/interceptors/WebSocket/package.json
+./backend/frontend/node_modules/@mswjs/interceptors/presets/browser/package.json
+./backend/frontend/node_modules/@mswjs/interceptors/presets/node/package.json
+./backend/frontend/node_modules/@mswjs/interceptors/ClientRequest/package.json
+./backend/frontend/node_modules/@mswjs/interceptors/XMLHttpRequest/package.json
+./backend/frontend/node_modules/@mswjs/interceptors/fetch/package.json
+./backend/frontend/node_modules/@mswjs/interceptors/RemoteHttpInterceptor/package.json
+./backend/frontend/node_modules/@mswjs/interceptors/package.json
+./backend/frontend/node_modules/strip-json-comments/package.json
+./backend/frontend/node_modules/to-regex-range/package.json
+./backend/frontend/node_modules/caniuse-lite/package.json
+./backend/frontend/node_modules/is-fullwidth-code-point/package.json
+./backend/frontend/node_modules/msw/config/package.json
+./backend/frontend/node_modules/msw/native/package.json
+./backend/frontend/node_modules/msw/browser/package.json
+./backend/frontend/node_modules/msw/node/package.json
+./backend/frontend/node_modules/msw/src/package.json
+./backend/frontend/node_modules/msw/package.json
+./backend/frontend/node_modules/msw/node_modules/type-fest/package.json
+./backend/frontend/node_modules/msw/node_modules/tough-cookie/package.json
+./backend/frontend/node_modules/msw/cli/package.json
+./backend/frontend/node_modules/deep-is/package.json
+./backend/frontend/node_modules/std-env/package.json
+./backend/frontend/node_modules/semver/package.json
+./backend/frontend/node_modules/lru-cache/package.json
+./backend/frontend/node_modules/headers-polyfill/package.json
+./backend/frontend/node_modules/espree/package.json
+./backend/frontend/node_modules/cli-width/package.json
+./backend/frontend/node_modules/@open-draft/until/package.json
+./backend/frontend/node_modules/@open-draft/logger/package.json
+./backend/frontend/node_modules/@open-draft/deferred-promise/package.json
+./backend/frontend/node_modules/html-encoding-sniffer/package.json
+./backend/frontend/node_modules/cssstyle/package.json
+./backend/frontend/node_modules/cssstyle/node_modules/rrweb-cssom/package.json
+./backend/frontend/node_modules/text-table/package.json
+./backend/frontend/node_modules/prettier/package.json
+./backend/frontend/node_modules/agent-base/package.json
+./backend/frontend/node_modules/levn/package.json
+./backend/frontend/node_modules/@babel/compat-data/package.json
+./backend/frontend/node_modules/@babel/traverse/package.json
+./backend/frontend/node_modules/@babel/generator/package.json
+./backend/frontend/node_modules/@babel/core/package.json
+./backend/frontend/node_modules/@babel/core/node_modules/semver/package.json
+./backend/frontend/node_modules/@babel/helper-string-parser/package.json
+./backend/frontend/node_modules/@babel/helper-validator-identifier/package.json
+./backend/frontend/node_modules/@babel/template/package.json
+./backend/frontend/node_modules/@babel/helper-module-transforms/package.json
+./backend/frontend/node_modules/@babel/helper-validator-option/package.json
+./backend/frontend/node_modules/@babel/helper-globals/package.json
+./backend/frontend/node_modules/@babel/helper-module-imports/package.json
+./backend/frontend/node_modules/@babel/code-frame/package.json
+./backend/frontend/node_modules/@babel/plugin-transform-react-jsx-self/package.json
+./backend/frontend/node_modules/@babel/parser/package.json
+./backend/frontend/node_modules/@babel/types/package.json
+./backend/frontend/node_modules/@babel/plugin-transform-react-jsx-source/package.json
+./backend/frontend/node_modules/@babel/helpers/package.json
+./backend/frontend/node_modules/@babel/runtime/helpers/esm/package.json
+./backend/frontend/node_modules/@babel/runtime/package.json
+./backend/frontend/node_modules/@babel/helper-plugin-utils/package.json
+./backend/frontend/node_modules/@babel/helper-compilation-targets/package.json
+./backend/frontend/node_modules/@babel/helper-compilation-targets/node_modules/semver/package.json
+./backend/frontend/node_modules/diff-sequences/package.json
+./backend/frontend/node_modules/@asamuzakjp/css-color/package.json
+./backend/frontend/node_modules/@asamuzakjp/css-color/node_modules/lru-cache/dist/commonjs/package.json
+./backend/frontend/node_modules/@asamuzakjp/css-color/node_modules/lru-cache/dist/esm/package.json
+./backend/frontend/node_modules/@asamuzakjp/css-color/node_modules/lru-cache/package.json
+./backend/frontend/node_modules/@asamuzakjp/dom-selector/dist/cjs/package.json
+./backend/frontend/node_modules/@asamuzakjp/dom-selector/package.json
+./backend/frontend/node_modules/json-schema-traverse/package.json
+--- root package.json ---
+{
+  "name": "medianest",
+  "version": "2.0.0",
+  "description": "Advanced Media Management Platform",
+  "type": "module",
+  "main": "src/index.js",
+  "workspaces": [
+    "shared",
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "build": "./scripts/build-stabilizer.sh",
+    "build:fast": "npm run build:backend && npm run build:frontend",
+    "build:optimized": "node scripts/build-performance-enhancer.js optimize && npm run build",
+    "build:clean": "npm run clean && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "build:docker": "docker build -f Dockerfile --target backend-production -t medianest-backend . && docker build -f Dockerfile --target frontend-production -t medianest-frontend .",
+    "build:docs": "./scripts/build-docs.sh",
+    "build:docs:dev": "./scripts/build-docs.sh --dev",
+    "build:docs:fast": "./scripts/build-docs.sh --skip-deps --skip-tests",
+    "start": "npm run start:backend",
+    "start:backend": "cd backend && npm start",
+    "start:frontend": "cd frontend && npm start",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:docs": "mkdocs serve",
+    "dev:docs:hot": "mkdocs serve --dev-addr=0.0.0.0:8001",
+    "test": "vitest run --exclude=tests/performance/** --exclude=tests/e2e/e2e-performance.spec.ts --exclude=tests/security/security-performance.test.ts",
+    "test:fast": "vitest run --config vitest.fast.config.ts",
+    "test:ultra-fast": "vitest run --config vitest.ultrafast.config.ts --no-coverage",
+    "test:sharded": "node scripts/test-sharding-optimizer.js",
+    "test:incremental": "node scripts/test-sharding-optimizer.js --incremental",
+    "test:cache": "vitest run --config vitest.cache.config.ts --reporter=basic --no-coverage",
+    "test:cache:watch": "vitest --config vitest.cache.config.ts --reporter=basic",
+    "test:parallel": "node scripts/parallel-test-optimizer.js",
+    "test:monitor": "node scripts/test-performance-monitor.js npm run test:fast",
+    "test:monitor:dashboard": "node scripts/test-performance-monitor.js --dashboard",
+    "build:verify": "node -e 'console.log(\"Build verification:\"); const fs=require(\"fs\"); console.log(\"Backend:\", fs.existsSync(\"backend/dist\") ? \"✅\" : \"❌\"); console.log(\"Frontend:\", fs.existsSync(\"frontend/.next\") ? \"✅\" : \"❌\");'",
+    "test:watch": "vitest --config vitest.fast.config.ts",
+    "test:watch:slow": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "test:backend": "cd backend && npm run test",
+    "test:frontend": "cd frontend && npm run test",
+    "test:shared": "cd shared && npm run test",
+    "test:all": "npm run test:parallel",
+    "test:all:sequential": "npm run test:backend && npm run test:frontend && npm run test:shared",
+    "test:e2e": "cd backend && npm run test:e2e",
+    "test:docs": "echo 'Link checking disabled due to security vulnerabilities'",
+    "test:comprehensive": "npx tsx tests/comprehensive-test-suite.ts",
+    "test:load": "npm run test:performance:suite",
+    "test:performance": "npm run test:performance:suite && npm run test:performance:e2e && npm run test:performance:security",
+    "test:performance:suite": "vitest run --config vitest.performance.config.ts tests/performance/performance-suite.test.ts --reporter=verbose",
+    "test:performance:e2e": "vitest run tests/e2e/e2e-performance.spec.ts --reporter=verbose",
+    "test:performance:security": "vitest run tests/security/security-performance.test.ts --reporter=verbose",
+    "test:security": "./scripts/run-security-tests.sh",
+    "test:security:validate": "node scripts/validate-security-framework.js",
+    "test:performance:all": "npm run test:performance:suite && npm run test:performance:e2e && npm run test:performance:security",
+    "test:performance:report": "npm run test:performance:all -- --reporter=json --outputFile=test-results/performance-results.json",
+    "test:ci": "vitest run --config vitest.fast.config.ts --coverage --coverage.threshold.lines=65",
+    "test:ci:full": "npm run test && npm run test:performance:all",
+    "test:ci:performance": "npm run test:performance:all -- --reporter=json --outputFile=test-results/performance-ci.json",
+    "test:ci:quick": "node scripts/parallel-test-optimizer.js --workers 4 --no-cache",
+    "test:ci:ultra": "node scripts/parallel-test-optimizer.js --workers 8",
+    "test:ci:coverage": "vitest run --coverage --reporter=verbose --reporter=json --outputFile=test-results/coverage-results.json",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:integration:watch": "vitest --config vitest.integration.config.ts",
+    "lint": "eslint src --ext .ts,.tsx,.js,.jsx",
+    "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "typecheck": "npm run typecheck:backend && npm run typecheck:frontend",
+    "typecheck:backend": "cd backend && npm run type-check",
+    "typecheck:frontend": "cd frontend && npm run type-check",
+    "typecheck:fix": "node scripts/typescript-fixer.js fix",
+    "deploy": "npm run build && npm run deploy:compose",
+    "deploy:compose": "docker-compose -f docker-compose.production.yml up -d --build",
+    "deploy:api": "pm2 start ecosystem.config.js",
+    "deploy:docs": "./scripts/deploy-docs.sh",
+    "deploy:docs:github": "./scripts/deploy-docs.sh --github",
+    "deploy:docs:netlify": "./scripts/deploy-docs.sh --netlify",
+    "deploy:docs:s3": "./scripts/deploy-docs.sh --s3",
+    "db:migrate": "cd backend && npx prisma migrate deploy",
+    "db:rollback": "cd backend && npx prisma migrate reset --force",
+    "db:seed": "cd backend && npx prisma db seed",
+    "db:reset": "npm run db:rollback && npm run db:migrate && npm run db:seed",
+    "db:check": "cd backend && npx prisma db execute --stdin < ../scripts/db-health-check.sql",
+    "migrate:up": "cd backend && npx prisma migrate deploy",
+    "migrate:down": "cd backend && npx prisma migrate reset --force",
+    "migrate:status": "cd backend && npx prisma migrate status",
+    "migrate:test": "./scripts/test-migrations.sh",
+    "db:studio": "cd backend && npx prisma studio",
+    "db:generate": "cd backend && npx prisma generate",
+    "db:push": "cd backend && npx prisma db push",
+    "db:pull": "cd backend && npx prisma db pull",
+    "db:validate": "cd backend && npx prisma validate",
+    "setup": "npm install && npm run build && npm run db:migrate",
+    "setup:dev": "npm install && npm run db:migrate && npm run db:seed",
+    "clean": "rimraf backend/dist frontend/.next shared/dist node_modules/.cache .build-cache",
+    "clean:cache": "npm cache clean --force && node scripts/build-performance-enhancer.js clean",
+    "clean:deep": "npm run clean && npm run clean:cache && rimraf node_modules */node_modules",
+    "clean:docs": "rimraf site",
+    "clean:all": "npm run clean && rimraf node_modules",
+    "docker:build": "docker build -f Dockerfile -t medianest:latest .",
+    "docker:build:optimized": "npm run build:docker",
+    "docker:build:dev": "docker build -f Dockerfile --target development -t medianest:dev .",
+    "docker:build:test": "docker build -f Dockerfile --target test -t medianest:test .",
+    "docker:run": "docker run -p 8080:8080 medianest:latest",
+    "docker:compose": "docker compose up -d",
+    "docker:compose:prod": "docker-compose -f docker-compose.production.yml up -d",
+    "docker:compose:build": "docker-compose -f docker-compose.production.yml up -d --build",
+    "docker:docs": "docker run --rm -v \"$PWD\":/docs squidfunk/mkdocs-material build",
+    "analyze": "npm run analyze:bundle && npm run analyze:performance",
+    "analyze:bundle": "cd frontend && npm run analyze:bundle",
+    "analyze:performance": "node scripts/build-performance-enhancer.js analyze",
+    "analyze:all": "npm run analyze:bundle && npm run analyze:performance && npm run build:verify",
+    "security": "npm audit --audit-level=high && npm run security:deps",
+    "security:deps": "npm audit fix",
+    "docs:validate": "mkdocs config-validation",
+    "docs:linkcheck": "echo 'Link checking disabled due to security vulnerabilities'",
+    "docs:serve": "mkdocs serve",
+    "docs:build": "mkdocs build",
+    "docs:gh-deploy": "mkdocs gh-deploy",
+    "release": "standard-version && git push --follow-tags origin main && npm publish",
+    "release:docs": "npm run build:docs && npm run deploy:docs:github",
+    "benchmark": "node scripts/benchmark.js",
+    "profile": "node --prof src/server.js",
+    "healthcheck": "curl -f http://localhost:8080/health || exit 1",
+    "security:scan": "node scripts/security-monitor.js --scan",
+    "security:monitor": "node scripts/security-monitor.js --daily",
+    "security:alert": "node scripts/security-monitor.js --alert",
+    "build:ci": "npm run typecheck:fix && npm run build && npm run build:verify",
+    "build:prod": "NODE_ENV=production npm run build:optimized",
+    "build:metrics": "npm run build && cat build-metrics.json",
+    "perf:build": "npm run analyze:performance && npm run build:optimized && npm run analyze:performance",
+    "build:production": "NODE_ENV=production npm run build:optimized",
+    "install:production": "npm ci --omit=dev --omit=optional",
+    "test:edge-cases": "cd tests/edge-cases && npx vitest run --config vitest.config.ts",
+    "test:edge-cases:watch": "cd tests/edge-cases && npx vitest --config vitest.config.ts",
+    "test:edge-cases:full": "tsx tests/edge-cases/edge-case-runner.ts",
+    "test:boundaries": "npm run test:edge-cases -- --grep=\"Boundary Value Testing\"",
+    "test:security-edges": "npm run test:edge-cases -- --grep=\"Security Edge Cases\"",
+    "test:concurrency": "npm run test:edge-cases -- --grep=\"Concurrent Access Testing\"",
+    "validate:production": "npm run test:edge-cases:full && npm run test:all && npm run security:scan",
+    "pipeline:validate": "npx tsx scripts/zero-failure-pipeline-validator.ts",
+    "pipeline:rollback": "npx tsx scripts/automated-rollback-system.ts",
+    "monitoring:dashboard": "node scripts/monitoring-dashboard-server.js",
+    "monitoring:start": "npm run monitoring:dashboard",
+    "deploy:zero-failure": "npm run pipeline:validate && npm run build:production && npm run deploy",
+    "deploy:safe": "npm run deploy:zero-failure",
+    "ci:full": "npm run pipeline:validate && npm run test:ci:full && npm run security:scan",
+    "ci:performance": "npm run test:ci:performance && npm run analyze:performance",
+    "nightly:performance": "npm run test:performance:all -- --reporter=verbose --reporter=json --outputFile=test-results/nightly-performance-$(date +%Y%m%d).json",
+    "load-test": "npx k6 run scripts/load-test.js",
+    "load-test:light": "npx k6 run --env TEST_MODE=light scripts/load-test.js",
+    "load-test:medium": "npx k6 run --env TEST_MODE=medium scripts/load-test.js",
+    "load-test:heavy": "npx k6 run --env TEST_MODE=heavy scripts/load-test.js",
+    "load-test:custom": "npx k6 run --vus ${VUS:-10} --duration ${DURATION:-2m} scripts/load-test.js",
+    "load-test:staged": "npx k6 run --stage 30s:5,60s:10,30s:15,60s:5,30s:0 scripts/load-test.js",
+    "hooks:bypass": "./scripts/git-hooks-bypass.sh",
+    "hooks:performance": "./scripts/git-hooks-performance.sh",
+    "hooks:install": "husky prepare",
+    "hooks:test": "./scripts/git-hooks-health-check.sh",
+    "prepare": "husky prepare || true"
+  },
+  "keywords": [
+    "media",
+    "management",
+    "digital-asset-management",
+    "file-organization",
+    "content-management",
+    "nodejs",
+    "typescript",
+    "react"
+  ],
+  "author": "MediaNest Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/medianest/medianest.git"
+  },
+  "bugs": {
+    "url": "https://github.com/medianest/medianest/issues"
+  },
+  "homepage": "https://docs.medianest.com",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "dependencies": {
+    "@types/express": "^4.17.17",
+    "@types/node": "^20.0.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.5.0",
+    "jsonwebtoken": "^9.0.2",
+    "knex": "^2.4.2",
+    "pg": "^8.11.0",
+--- backend package.json ---
+{
+  "name": "@medianest/backend",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kinginyellow/medianest.git",
+    "directory": "backend"
+  },
+  "scripts": {
+    "dev": "nodemon",
+    "build": "tsc --build",
+    "start": "node dist/server.js",
+    "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --fix",
+    "type-check": "tsc --noEmit",
+    "clean": "rimraf dist",
+    "test": "vitest run",
+    "test:ci": "vitest run --reporter=verbose",
+    "test:ui": "vitest --ui",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:chromium": "playwright test --project=chromium",
+    "test:e2e:firefox": "playwright test --project=firefox",
+    "test:e2e:webkit": "playwright test --project=webkit",
+    "test:e2e:mobile": "playwright test --project='Mobile Chrome' --project='Mobile Safari'",
+    "test:e2e:headed": "playwright test --headed",
+    "test:setup": "docker compose -f docker-compose.test.yml up -d --wait",
+    "test:teardown": "docker compose -f docker-compose.test.yml down -v",
+    "test:integration": "npm run test:setup && npm test && npm run test:teardown",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio",
+    "db:validate": "ts-node scripts/database-validation.ts",
+    "db:backup": "./scripts/backup-procedures.sh backup",
+    "db:backup:pre-deployment": "./scripts/backup-procedures.sh pre-deployment",
+    "db:restore": "./scripts/backup-procedures.sh restore",
+    "db:backup:list": "./scripts/backup-procedures.sh list",
+    "db:backup:cleanup": "./scripts/backup-procedures.sh cleanup",
+    "migration:rollback": "ts-node scripts/migration-rollback.ts",
+    "security:validate": "node scripts/production-security-validator.js",
+    "security:test": "./scripts/run-security-tests.sh",
+    "deployment:verify": "node scripts/verify-deployment.js",
+    "start:prod": "NODE_ENV=production node dist/server.js",
+    "build:prod": "NODE_ENV=production npm run build"
+  },
+  "dependencies": {
+    "@medianest/shared": "file:../shared",
+    "@opentelemetry/api": "^1.9.0",
+    "@prisma/client": "^6.15.0",
+    "@types/ws": "^8.18.1",
+    "axios": "^1.7.7",
+    "bcrypt": "^5.1.1",
+    "bull": "^4.16.5",
+    "bullmq": "^5.58.5",
+    "compression": "^1.7.4",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "ioredis": "^5.4.1",
+    "jsonwebtoken": "^9.0.2",
+    "opossum": "^8.1.4",
+    "prom-client": "^15.1.3",
+    "qrcode": "^1.3.3",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "speakeasy": "^2.0.0",
+    "winston": "^3.14.2",
+    "winston-daily-rotate-file": "^5.0.0",
+    "ws": "^8.18.3",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@types/bcrypt": "^5.0.2",
+    "@types/bull": "^4.10.0",
+    "@types/compression": "^1.8.1",
+    "@types/cookie-parser": "^1.4.9",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.21",
+    "@types/ioredis": "^4.28.10",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^20.14.10",
+    "@types/qrcode": "^1.5.5",
+    "@types/speakeasy": "^2.0.10",
+    "@types/supertest": "^6.0.2",
+    "@types/uuid": "^10.0.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "allure-playwright": "^3.3.3",
+    "jsdom": "^26.1.0",
+    "prisma": "^6.15.0",
+    "supertest": "^7.1.4",
+    "ts-loader": "^9.5.4",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.7.3",
+    "vitest": "^3.2.4",
+    "webpack": "^5.101.3",
+    "webpack-cli": "^6.0.1"
+  },
+  "optionalDependencies": {
+    "@opentelemetry/auto-instrumentations-node": "^0.62.2",
+    "@opentelemetry/exporter-jaeger": "^2.1.0",
+    "@opentelemetry/exporter-otlp-http": "^0.26.0",
+    "@opentelemetry/instrumentation-express": "^0.52.0",
+    "@opentelemetry/instrumentation-http": "^0.204.0",
+    "@opentelemetry/node": "^0.24.0",
+    "@opentelemetry/resources": "^2.1.0",
+    "@opentelemetry/sdk-node": "^0.204.0",
+    "@opentelemetry/semantic-conventions": "^1.37.0"
+  }
+}
+--- frontend package.json ---
+{
+  "name": "@medianest/frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "start": "next start",
+    "dev": "next dev",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:ci": "vitest run --reporter=verbose",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "next": "^14.2.32",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^5.6.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.8.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/jsdom": "^21.1.7",
+    "@types/tailwindcss": "^3.0.11",
+    "@types/testing-library__react": "^10.0.1",
+    "@vitejs/plugin-react": "^5.0.2",
+    "autoprefixer": "^10.0.0",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "14.2.5",
+    "jsdom": "^26.1.0",
+    "postcss": "^8.0.0",
+    "tailwindcss": "^3.4.17",
+    "vitest": "^3.2.4"
+  }
+}
+--- shared package.json ---
+{
+  "name": "@medianest/shared",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kinginyellow/medianest.git",
+    "directory": "shared"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.js"
+    },
+    "./client": {
+      "types": "./dist/client/index.d.ts",
+      "require": "./dist/client/index.js",
+      "import": "./dist/client/index.js"
+    },
+    "./config": {
+      "types": "./dist/config/index.d.ts",
+      "require": "./dist/config/index.js",
+      "import": "./dist/config/index.js"
+    },
+    "./config/utils": {
+      "types": "./dist/config/utils.d.ts",
+      "require": "./dist/config/utils.js",
+      "import": "./dist/config/utils.js"
+    },
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "require": "./dist/utils/index.js",
+      "import": "./dist/utils/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "rimraf dist",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --fix",
+    "test": "vitest run",
+    "test:ci": "vitest run --reporter=verbose",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.15.0",
+    "bcrypt": "^5.1.1",
+    "dotenv": "^16.6.1",
+    "ioredis": "^5.7.0",
+    "uuid": "^10.0.0",
+    "winston-daily-rotate-file": "^5.0.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.8.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/bcrypt": "^5.0.2",
+    "@types/express": "^4.17.23",
+    "@types/ioredis": "^4.28.10",
+    "@types/node": "^20.19.13",
+    "@types/uuid": "^10.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.16.1",
+    "@typescript-eslint/parser": "^7.16.1",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-prettier": "^5.5.1",
+    "globals": "^15.9.0",
+    "prettier": "^3.6.2",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.5.3",
+    "vitest": "^3.2.4"
+  },
+  "sideEffects": false
+}

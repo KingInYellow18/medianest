@@ -9,16 +9,16 @@
  * - Token blacklisting
  */
 
-import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
-import request from 'supertest';
 import { Express } from 'express';
-import jwt from 'jsonwebtoken';
 import Redis from 'ioredis';
+import jwt from 'jsonwebtoken';
+import request from 'supertest';
+import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 
-import { createTestApp } from '../helpers/test-app';
-import { createTestUser, generateValidToken } from '../helpers/auth';
-import { authSecurityService } from '../../src/middleware/auth-security-fixes';
 import { authCacheService } from '../../src/middleware/auth-cache';
+import { authSecurityService } from '../../src/middleware/auth-security-fixes';
+import { createTestUser, generateValidToken } from '../helpers/auth';
+import { createTestApp } from '../helpers/test-app';
 
 describe('CRITICAL: Authentication Bypass Prevention', () => {
   let app: Express;

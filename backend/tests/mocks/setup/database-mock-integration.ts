@@ -15,6 +15,12 @@
  */
 
 import { vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
+import {
+  DatabaseBehaviorOrchestrator,
+  createSuccessBehavior,
+  createConnectionTimeoutBehavior,
+} from '../behaviors/database-behavior-patterns';
 import {
   PrismaDatabaseMock,
   PrismaDatabaseMockFactory,
@@ -28,11 +34,6 @@ import {
   mockRegistry,
   executeLifecycleHook,
 } from '../foundation/unified-mock-registry';
-import {
-  DatabaseBehaviorOrchestrator,
-  createSuccessBehavior,
-  createConnectionTimeoutBehavior,
-} from '../behaviors/database-behavior-patterns';
 
 // =============================================================================
 // CONFIGURATION AND ENVIRONMENT DETECTION

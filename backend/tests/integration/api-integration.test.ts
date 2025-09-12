@@ -9,18 +9,21 @@
  * - Cross-service communication testing
  */
 
-import { describe, test, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
-import request from 'supertest';
-import { Express } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { Express } from 'express';
 import Redis from 'ioredis';
+import request from 'supertest';
+import { describe, test, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
+
 import { createApp } from '@/app';
-import { AuthService } from '@/services/auth.service';
-import { MediaService } from '@/services/media.service';
+
 import { testUsers, testMediaRequests } from '../fixtures/test-data';
+import { AuthTestHelper } from '../helpers/auth-test-helper';
 import { DatabaseTestHelper } from '../helpers/database-test-helper';
 import { RedisTestHelper } from '../helpers/redis-test-helper';
-import { AuthTestHelper } from '../helpers/auth-test-helper';
+
+import { AuthService } from '@/services/auth.service';
+import { MediaService } from '@/services/media.service';
 
 describe('MediaNest API Integration Tests', () => {
   let app: Express;

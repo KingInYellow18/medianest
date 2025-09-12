@@ -4,8 +4,8 @@
  * @deprecated - This file will be removed in the next cleanup phase
  */
 
-import { createMockConfigService } from '../test-factories';
 import { TEST_CONFIG } from '../../config/test-constants';
+import { createMockConfigService } from '../test-factories';
 
 // Re-export centralized mock for backward compatibility
 export const createMockConfigs = () => TEST_CONFIG;

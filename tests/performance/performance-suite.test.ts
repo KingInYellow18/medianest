@@ -4,14 +4,15 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
-import { TestDatabase, setupTestDatabase, cleanupTestDatabase } from '../shared/test-database';
-import { TestServer, setupTestServer, cleanupTestServer } from '../shared/test-server';
+
 import {
   AuthenticationMock,
   setupAuthMocks,
   cleanupAuthMocks,
 } from '../shared/test-authentication';
+import { TestDatabase, setupTestDatabase, cleanupTestDatabase } from '../shared/test-database';
 import { UserFixtures, MediaFixtures } from '../shared/test-fixtures';
+import { TestServer, setupTestServer, cleanupTestServer } from '../shared/test-server';
 
 interface PerformanceMetrics {
   executionTime: number;

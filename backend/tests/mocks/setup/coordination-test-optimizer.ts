@@ -5,10 +5,10 @@
  * to achieve the 90%+ pass rate target through intelligent test enhancement.
  */
 
-import { TestOptimizationEngine } from './test-optimization-engine';
-import { ServiceCoordinationFactory } from './service-coordination-factory';
 import { AdvancedCoordinationManager } from './advanced-coordination-manager';
+import { ServiceCoordinationFactory } from './service-coordination-factory';
 import { TestEnhancementTemplates } from './test-enhancement-templates';
+import { TestOptimizationEngine } from './test-optimization-engine';
 
 export interface OptimizationResult {
   success: boolean;

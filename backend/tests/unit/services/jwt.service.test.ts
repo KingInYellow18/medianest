@@ -1,7 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import jwt from 'jsonwebtoken';
-import { JwtService, JwtPayload } from '../../../src/services/jwt.service';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
 import { config } from '../../../src/config';
+import { JwtService, JwtPayload } from '../../../src/services/jwt.service';
 
 // Mock dependencies
 vi.mock('../../../src/config', () => ({

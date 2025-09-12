@@ -11,8 +11,8 @@
  */
 
 import { spawn } from 'child_process';
-import { cpus } from 'os';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { cpus } from 'os';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -310,7 +310,7 @@ class CoverageAnalyzer {
     Logger.info('Analyzing test coverage...');
 
     const components = ['backend', 'frontend', 'shared'];
-    let totalCoverage = { lines: 0, statements: 0, functions: 0, branches: 0 };
+    const totalCoverage = { lines: 0, statements: 0, functions: 0, branches: 0 };
     let weightedTotal = 0;
 
     for (const component of components) {

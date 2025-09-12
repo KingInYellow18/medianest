@@ -1,5 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { vi } from 'vitest';
+
 import { useOptimizedState } from '../useOptimizedState';
 
 // Additional utility hooks for comprehensive testing

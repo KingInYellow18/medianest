@@ -9,9 +9,10 @@
  */
 
 import { afterAll, afterEach, beforeAll, beforeEach, vi } from 'vitest';
+
 import '../../tests/setup-shared';
-import { resourceManager, setupGlobalErrorHandlers } from '../../tests/utils/resource-cleanup';
 import { setupForceExitHandler } from '../../tests/utils/force-exit';
+import { resourceManager, setupGlobalErrorHandlers } from '../../tests/utils/resource-cleanup';
 
 // CRITICAL: Setup comprehensive error handling and resource tracking
 setupGlobalErrorHandlers();

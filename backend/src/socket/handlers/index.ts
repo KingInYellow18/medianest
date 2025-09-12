@@ -1,6 +1,6 @@
 import { Server, Socket } from 'socket.io';
 
-import { CatchError } from '../../types/common';
+import { logger } from '@/utils/logger';
 
 import { registerAdminHandlers } from './admin.handlers';
 import { registerDownloadHandlers } from './download.handlers';
@@ -8,8 +8,8 @@ import { notificationHandlers } from './notification.handlers';
 import { requestHandlers } from './request.handlers';
 import { statusHandlers } from './status.handlers';
 import { registerYouTubeHandlers } from './youtube.handler';
+import { CatchError } from '../../types/common';
 
-import { logger } from '@/utils/logger';
 
 export function registerHandlers(io: Server, socket: Socket): void {
   // Service status subscriptions

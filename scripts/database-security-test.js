@@ -8,8 +8,9 @@
  * @since 2025-09-11
  */
 
-import { performance } from 'perf_hooks';
 import { createRequire } from 'module';
+import { performance } from 'perf_hooks';
+
 const require = createRequire(import.meta.url);
 const { DatabaseSecurityManager } = require('../config/security/database-security.cjs');
 

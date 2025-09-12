@@ -2,9 +2,9 @@ import crypto from 'crypto';
 
 import { AppError } from '@medianest/shared';
 
+import { configService } from './config.service';
 import { logger } from '../utils/logger';
 
-import { configService } from './config.service';
 
 /**
  * Webhook signature verification utility

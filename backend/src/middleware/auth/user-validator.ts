@@ -1,6 +1,7 @@
 import { UserRepository } from '../../repositories/user.repository';
 import { AuthenticationError } from '../../utils/errors';
 import { logSecurityEvent } from '../../utils/security';
+
 export interface UserValidationContext {
   ipAddress?: string;
   userAgent?: string;

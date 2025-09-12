@@ -8,9 +8,10 @@
  */
 
 import { test, expect, Page } from '@playwright/test';
+
+import { databaseCleanup } from '../../helpers/database-cleanup';
 import { AuthTestFactory } from '../../shared/factories/auth-factory';
 import { BaseTestHelper } from '../../shared/helpers/test-base';
-import { databaseCleanup } from '../../helpers/database-cleanup';
 
 // Test configuration
 const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3001';

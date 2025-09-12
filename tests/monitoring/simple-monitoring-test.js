@@ -5,8 +5,9 @@
  * Simple JavaScript validation of monitoring capabilities
  */
 
-const axios = require('axios');
 const { performance } = require('perf_hooks');
+
+const axios = require('axios');
 
 const BASE_URL = 'http://localhost:3000';
 const results = [];

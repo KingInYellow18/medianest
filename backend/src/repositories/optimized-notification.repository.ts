@@ -1,13 +1,13 @@
 /**
  * Optimized Notification Repository with Connection Pool
  */
+import { OptimizedBaseRepository } from './optimized-base.repository';
 import {
   NotificationRecord,
   CreateNotificationInput,
   NotificationFilters,
 } from '../services/notification-database.service';
 
-import { OptimizedBaseRepository } from './optimized-base.repository';
 
 interface NotificationCreateInput {
   userId: string;

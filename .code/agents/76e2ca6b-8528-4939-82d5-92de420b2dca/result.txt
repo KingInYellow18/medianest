@@ -1,0 +1,203 @@
+Here is a comprehensive plan for updating the linting strategy in the MediaNest monorepo.
+
+### Linting Strategy & Migration Plan
+
+This plan outlines a pragmatic and comprehensive update to the monorepo's linting strategy, focusing on unification, performance, and developer experience.
+
+#### 1. Analysis of Current State
+
+*   **Configuration is fragmented:** Multiple `eslint.config.js` and `.eslintrc.*` files exist, leading to inconsistent rules and maintenance overhead.
+*   **Scripts are inconsistent:** Different packages have different `lint` scripts and arguments.
+*   **Modern tooling is not fully leveraged:** The setup can be improved with ESLint's flat config, caching, and more targeted plugins.
+
+#### 2. Proposed Linting Strategy
+
+The goal is to create a single source of truth for linting that is fast, consistent, and easy to maintain.
+
+**A. Unified Configuration (`eslint.config.js`)**
+
+We will use a single `eslint.config.js` at the root of the monorepo. This file will contain a base configuration and package-specific overrides using ESLint's flat config structure.
+
+**B. Core Plugins & Rules**
+
+The unified configuration will integrate the following key plugins:
+
+*   **`@eslint/js`**: Basic JavaScript rules.
+*   **`typescript-eslint`**: For parsing and linting TypeScript.
+*   **`eslint-config-prettier`**: To disable rules that conflict with Prettier.
+*   **`eslint-plugin-import`**: To enforce import order and resolve path aliases.
+*   **`eslint-plugin-unused-imports`**: To automatically remove unused imports.
+*   **`eslint-plugin-security`**: For basic security vulnerability checks (with a light, pragmatic ruleset).
+*   **`eslint-plugin-jsx-a11y` & `next/core-web-vitals`**: For the `frontend` Next.js application.
+
+**C. Proposed `eslint.config.js` Structure**
+
+```javascript
+// /eslint.config.js
+import eslint from '@eslint/js';
+import tseslint from 'typescript-eslint';
+import prettierConfig from 'eslint-config-prettier';
+import importPlugin from 'eslint-plugin-import';
+import unusedImports from 'eslint-plugin-unused-imports';
+import security from 'eslint-plugin-security';
+import jsxA11y from 'eslint-plugin-jsx-a11y';
+import nextPlugin from '@next/eslint-plugin-next';
+
+export default tseslint.config(
+  // Base configuration for all files
+  {
+    ignores: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/coverage/**',
+      '**/.vitest-cache/**',
+      'site/**',
+      'backups/**',
+    ],
+    linterOptions: {
+      reportUnusedDisableDirectives: 'warn',
+    },
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+    },
+    plugins: {
+      '@typescript-eslint': tseslint.plugin,
+      import: importPlugin,
+      'unused-imports': unusedImports,
+    },
+    rules: {
+      ...eslint.configs.recommended.rules,
+      ...tseslint.configs.recommended.rules,
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'unused-imports/no-unused-imports': 'error',
+      'import/order': [
+        'error',
+        {
+          groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
+          'newlines-between': 'always',
+          alphabetize: { order: 'asc', caseInsensitive: true },
+        },
+      ],
+      // Add other base rules here...
+    },
+  },
+
+  // Backend-specific configuration
+  {
+    files: ['backend/**/*.ts', 'shared/**/*.ts', 'src/**/*.ts'],
+    languageOptions: {
+      globals: {
+        process: 'readonly',
+        module: 'readonly',
+        __dirname: 'readonly',
+      },
+      parserOptions: {
+        project: ['./backend/tsconfig.json', './shared/tsconfig.json', './tsconfig.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    plugins: {
+      security,
+    },
+    rules: {
+      ...security.configs.recommended.rules,
+      // Relax some security rules for Node.js context if needed
+      'security/detect-object-injection': 'off',
+    },
+  },
+
+  // Frontend-specific configuration
+  {
+    files: ['frontend/**/*.{ts,tsx}'],
+    languageOptions: {
+      globals: {
+        React: 'readonly',
+        window: 'readonly',
+        document: 'readonly',
+      },
+      parserOptions: {
+        project: './frontend/tsconfig.json',
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    plugins: {
+      'jsx-a11y': jsxA11y,
+      '@next/next': nextPlugin,
+    },
+    rules: {
+      ...jsxA11y.configs.recommended.rules,
+      ...nextPlugin.configs['core-web-vitals'].rules,
+      // Add frontend-specific rules here
+    },
+  },
+
+  // Disable type-aware rules for JS files
+  {
+    files: ['**/*.js', '**/*.cjs'],
+    extends: [tseslint.configs.disableTypeChecked],
+  },
+  
+  // Prettier config must be last
+  prettierConfig
+);
+```
+
+**D. NPM Scripts & Developer Experience**
+
+Update the root `package.json` with the following scripts:
+
+```json
+"scripts": {
+  "lint": "eslint --cache --cache-location ./.cache/eslint/ .",
+  "lint:fix": "npm run lint -- --fix",
+  "lint:changed": "npm run lint -- --fix", // To be configured with lint-staged
+  "format": "prettier --write .",
+  "typecheck": "npm run typecheck:backend && npm run typecheck:frontend",
+  "typecheck:backend": "tsc -p backend/tsconfig.json --noEmit",
+  "typecheck:frontend": "tsc -p frontend/tsconfig.json --noEmit"
+}
+```
+
+Update `.lintstagedrc.js` to run the new scripts on pre-commit.
+
+**E. CI/CD Integration**
+
+*   **Caching:** The `lint` script now includes `--cache`, which will significantly speed up subsequent runs in CI. Ensure the `.cache` directory is cached between CI jobs.
+*   **Type-Aware Linting:** The proposed config uses `parserOptions.project`, which is powerful but can be slow. For pull requests, you might consider a "fast" CI job that lints only changed files, and a separate, non-blocking job that runs a full monorepo lint.
+
+#### 3. Incremental Migration Plan
+
+This staged rollout will minimize disruption.
+
+*   **Checkpoint 1: Setup & Installation (Est: 1-2 hours)**
+    1.  Install necessary dev dependencies: `npm i -D @eslint/js typescript-eslint eslint-plugin-import eslint-plugin-unused-imports eslint-plugin-security eslint-plugin-jsx-a11y @next/eslint-plugin-next`.
+    2.  Create the new root `eslint.config.js` with the proposed structure.
+    3.  Update the root `package.json` scripts. Do not remove old config files yet.
+
+*   **Checkpoint 2: Base Rollout & Autofix (Est: 2-4 hours)**
+    1.  Run `npm run lint:fix`. This will fix a large number of initial errors.
+    2.  Run `npm run lint` to see the remaining errors. For rules that are too noisy and not critical, temporarily downgrade them to `warn` in the config.
+    3.  For legitimate errors that require manual effort, add `// eslint-disable-next-line rule-name -- TODO: fix this` comments. This makes the debt visible and trackable.
+    4.  Aim to get `npm run lint` to pass with zero errors (only warnings and disabled rules).
+
+*   **Checkpoint 3: Package-by-Package Cleanup (Est: 4-8 hours)**
+    1.  Delete `backend/eslint.config.js`, `shared/eslint.config.js`, and `frontend/.eslintrc.security.js`.
+    2.  Ensure the root config correctly handles each package by running lint targeted at each directory (e.g., `eslint backend/`).
+    3.  Fine-tune the package-specific overrides in the root config as needed.
+
+*   **Checkpoint 4: CI Integration & Finalization (Est: 2-3 hours)**
+    1.  Update the CI pipeline to use the new root `npm run lint` command.
+    2.  Configure CI caching for the ESLint cache directory.
+    3.  Remove the temporary `warn` overrides from the ESLint config. The build should now enforce all rules as errors.
+
+#### 4. Risks & Backout Plan
+
+*   **Risks:**
+    *   **Performance:** A full, type-aware lint of the monorepo might be slow. Mitigation: Use caching and consider linting only changed files in PR checks.
+    *   **Rule Noise:** The initial number of errors could be overwhelming. Mitigation: The incremental plan with autofixing and temporary suppression is designed to manage this.
+*   **Backout Plan:**
+    *   The migration is low-risk. To back out at any point before the final step, simply revert the changes in `package.json` and `eslint.config.js`. Since the old configuration files are preserved until the end, the previous state can be restored instantly.

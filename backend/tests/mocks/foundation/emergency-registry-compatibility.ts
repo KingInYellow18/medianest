@@ -9,6 +9,7 @@
  */
 
 import { vi } from 'vitest';
+
 import {
   registerMock as originalRegisterMock,
   getMock as originalGetMock,
@@ -16,6 +17,7 @@ import {
   cleanupMocks,
   mockRegistry,
 } from './unified-mock-registry';
+
 import type { MockFactory, MockConfig } from './unified-mock-registry';
 
 // =============================================================================

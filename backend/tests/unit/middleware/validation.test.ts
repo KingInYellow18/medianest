@@ -1,7 +1,9 @@
-import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
 import { Request, Response, NextFunction } from 'express';
-import { validate } from '@/middleware/validation';
+import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
 import { z } from 'zod';
+
+import { validate } from '@/middleware/validation';
+
 
 // ✅ ENVIRONMENT SETUP (before imports)
 beforeAll(() => {

@@ -10,8 +10,9 @@
  * - Per-endpoint performance profiling
  */
 
-const axios = require('axios');
 const { performance } = require('perf_hooks');
+
+const axios = require('axios');
 
 class APIPerformanceAnalyzer {
   constructor(config = {}) {

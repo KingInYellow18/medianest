@@ -1,0 +1,1420 @@
+---FILE: package.json
+     1	{
+     2	  "name": "medianest",
+     3	  "version": "2.0.0",
+     4	  "description": "Advanced Media Management Platform",
+     5	  "type": "module",
+     6	  "main": "src/index.js",
+     7	  "workspaces": [
+     8	    "shared",
+     9	    "backend",
+    10	    "frontend"
+    11	  ],
+    12	  "scripts": {
+    13	    "build": "./scripts/build-stabilizer.sh",
+    14	    "build:fast": "npm run build:backend && npm run build:frontend",
+    15	    "build:optimized": "node scripts/build-performance-enhancer.js optimize && npm run build",
+    16	    "build:clean": "npm run clean && npm run build",
+    17	    "build:backend": "cd backend && npm run build",
+    18	    "build:frontend": "cd frontend && npm run build",
+    19	    "build:docker": "docker build -f Dockerfile --target backend-production -t medianest-backend . && docker build -f Dockerfile --target frontend-production -t medianest-frontend .",
+    20	    "build:docs": "./scripts/build-docs.sh",
+    21	    "build:docs:dev": "./scripts/build-docs.sh --dev",
+    22	    "build:docs:fast": "./scripts/build-docs.sh --skip-deps --skip-tests",
+    23	    "start": "npm run start:backend",
+    24	    "start:backend": "cd backend && npm start",
+    25	    "start:frontend": "cd frontend && npm start",
+    26	    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    27	    "dev:backend": "cd backend && npm run dev",
+    28	    "dev:frontend": "cd frontend && npm run dev",
+    29	    "dev:docs": "mkdocs serve",
+    30	    "dev:docs:hot": "mkdocs serve --dev-addr=0.0.0.0:8001",
+    31	    "test": "vitest run --exclude=tests/performance/** --exclude=tests/e2e/e2e-performance.spec.ts --exclude=tests/security/security-performance.test.ts",
+    32	    "test:fast": "vitest run --config vitest.fast.config.ts",
+    33	    "test:ultra-fast": "vitest run --config vitest.ultrafast.config.ts --no-coverage",
+    34	    "test:sharded": "node scripts/test-sharding-optimizer.js",
+    35	    "test:incremental": "node scripts/test-sharding-optimizer.js --incremental",
+    36	    "test:cache": "vitest run --config vitest.cache.config.ts --reporter=basic --no-coverage",
+    37	    "test:cache:watch": "vitest --config vitest.cache.config.ts --reporter=basic",
+    38	    "test:parallel": "node scripts/parallel-test-optimizer.js",
+    39	    "test:monitor": "node scripts/test-performance-monitor.js npm run test:fast",
+    40	    "test:monitor:dashboard": "node scripts/test-performance-monitor.js --dashboard",
+    41	    "build:verify": "node -e 'console.log(\"Build verification:\"); const fs=require(\"fs\"); console.log(\"Backend:\", fs.existsSync(\"backend/dist\") ? \"✅\" : \"❌\"); console.log(\"Frontend:\", fs.existsSync(\"frontend/.next\") ? \"✅\" : \"❌\");'",
+    42	    "test:watch": "vitest --config vitest.fast.config.ts",
+    43	    "test:watch:slow": "vitest",
+    44	    "test:ui": "vitest --ui",
+    45	    "test:coverage": "vitest run --coverage",
+    46	    "test:backend": "cd backend && npm run test",
+    47	    "test:frontend": "cd frontend && npm run test",
+    48	    "test:shared": "cd shared && npm run test",
+    49	    "test:all": "npm run test:parallel",
+    50	    "test:all:sequential": "npm run test:backend && npm run test:frontend && npm run test:shared",
+    51	    "test:e2e": "cd backend && npm run test:e2e",
+    52	    "test:docs": "echo 'Link checking disabled due to security vulnerabilities'",
+    53	    "test:comprehensive": "npx tsx tests/comprehensive-test-suite.ts",
+    54	    "test:load": "npm run test:performance:suite",
+    55	    "test:performance": "npm run test:performance:suite && npm run test:performance:e2e && npm run test:performance:security",
+    56	    "test:performance:suite": "vitest run --config vitest.performance.config.ts tests/performance/performance-suite.test.ts --reporter=verbose",
+    57	    "test:performance:e2e": "vitest run tests/e2e/e2e-performance.spec.ts --reporter=verbose",
+    58	    "test:performance:security": "vitest run tests/security/security-performance.test.ts --reporter=verbose",
+    59	    "test:security": "./scripts/run-security-tests.sh",
+    60	    "test:security:validate": "node scripts/validate-security-framework.js",
+    61	    "test:performance:all": "npm run test:performance:suite && npm run test:performance:e2e && npm run test:performance:security",
+    62	    "test:performance:report": "npm run test:performance:all -- --reporter=json --outputFile=test-results/performance-results.json",
+    63	    "test:ci": "vitest run --config vitest.fast.config.ts --coverage --coverage.threshold.lines=65",
+    64	    "test:ci:full": "npm run test && npm run test:performance:all",
+    65	    "test:ci:performance": "npm run test:performance:all -- --reporter=json --outputFile=test-results/performance-ci.json",
+    66	    "test:ci:quick": "node scripts/parallel-test-optimizer.js --workers 4 --no-cache",
+    67	    "test:ci:ultra": "node scripts/parallel-test-optimizer.js --workers 8",
+    68	    "test:ci:coverage": "vitest run --coverage --reporter=verbose --reporter=json --outputFile=test-results/coverage-results.json",
+    69	    "test:integration": "vitest run --config vitest.integration.config.ts",
+    70	    "test:integration:watch": "vitest --config vitest.integration.config.ts",
+    71	    "lint": "eslint src --ext .ts,.tsx,.js,.jsx",
+    72	    "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
+    73	    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    74	    "typecheck": "npm run typecheck:backend && npm run typecheck:frontend",
+    75	    "typecheck:backend": "cd backend && npm run type-check",
+    76	    "typecheck:frontend": "cd frontend && npm run type-check",
+    77	    "typecheck:fix": "node scripts/typescript-fixer.js fix",
+    78	    "deploy": "npm run build && npm run deploy:compose",
+    79	    "deploy:compose": "docker-compose -f docker-compose.production.yml up -d --build",
+    80	    "deploy:api": "pm2 start ecosystem.config.js",
+    81	    "deploy:docs": "./scripts/deploy-docs.sh",
+    82	    "deploy:docs:github": "./scripts/deploy-docs.sh --github",
+    83	    "deploy:docs:netlify": "./scripts/deploy-docs.sh --netlify",
+    84	    "deploy:docs:s3": "./scripts/deploy-docs.sh --s3",
+    85	    "db:migrate": "cd backend && npx prisma migrate deploy",
+    86	    "db:rollback": "cd backend && npx prisma migrate reset --force",
+    87	    "db:seed": "cd backend && npx prisma db seed",
+    88	    "db:reset": "npm run db:rollback && npm run db:migrate && npm run db:seed",
+    89	    "db:check": "cd backend && npx prisma db execute --stdin < ../scripts/db-health-check.sql",
+    90	    "migrate:up": "cd backend && npx prisma migrate deploy",
+    91	    "migrate:down": "cd backend && npx prisma migrate reset --force",
+    92	    "migrate:status": "cd backend && npx prisma migrate status",
+    93	    "migrate:test": "./scripts/test-migrations.sh",
+    94	    "db:studio": "cd backend && npx prisma studio",
+    95	    "db:generate": "cd backend && npx prisma generate",
+    96	    "db:push": "cd backend && npx prisma db push",
+    97	    "db:pull": "cd backend && npx prisma db pull",
+    98	    "db:validate": "cd backend && npx prisma validate",
+    99	    "setup": "npm install && npm run build && npm run db:migrate",
+   100	    "setup:dev": "npm install && npm run db:migrate && npm run db:seed",
+   101	    "clean": "rimraf backend/dist frontend/.next shared/dist node_modules/.cache .build-cache",
+   102	    "clean:cache": "npm cache clean --force && node scripts/build-performance-enhancer.js clean",
+   103	    "clean:deep": "npm run clean && npm run clean:cache && rimraf node_modules */node_modules",
+   104	    "clean:docs": "rimraf site",
+   105	    "clean:all": "npm run clean && rimraf node_modules",
+   106	    "docker:build": "docker build -f Dockerfile -t medianest:latest .",
+   107	    "docker:build:optimized": "npm run build:docker",
+   108	    "docker:build:dev": "docker build -f Dockerfile --target development -t medianest:dev .",
+   109	    "docker:build:test": "docker build -f Dockerfile --target test -t medianest:test .",
+   110	    "docker:run": "docker run -p 8080:8080 medianest:latest",
+   111	    "docker:compose": "docker compose up -d",
+   112	    "docker:compose:prod": "docker-compose -f docker-compose.production.yml up -d",
+   113	    "docker:compose:build": "docker-compose -f docker-compose.production.yml up -d --build",
+   114	    "docker:docs": "docker run --rm -v \"$PWD\":/docs squidfunk/mkdocs-material build",
+   115	    "analyze": "npm run analyze:bundle && npm run analyze:performance",
+   116	    "analyze:bundle": "cd frontend && npm run analyze:bundle",
+   117	    "analyze:performance": "node scripts/build-performance-enhancer.js analyze",
+   118	    "analyze:all": "npm run analyze:bundle && npm run analyze:performance && npm run build:verify",
+   119	    "security": "npm audit --audit-level=high && npm run security:deps",
+   120	    "security:deps": "npm audit fix",
+   121	    "docs:validate": "mkdocs config-validation",
+   122	    "docs:linkcheck": "echo 'Link checking disabled due to security vulnerabilities'",
+   123	    "docs:serve": "mkdocs serve",
+   124	    "docs:build": "mkdocs build",
+   125	    "docs:gh-deploy": "mkdocs gh-deploy",
+   126	    "release": "standard-version && git push --follow-tags origin main && npm publish",
+   127	    "release:docs": "npm run build:docs && npm run deploy:docs:github",
+   128	    "benchmark": "node scripts/benchmark.js",
+   129	    "profile": "node --prof src/server.js",
+   130	    "healthcheck": "curl -f http://localhost:8080/health || exit 1",
+   131	    "security:scan": "node scripts/security-monitor.js --scan",
+   132	    "security:monitor": "node scripts/security-monitor.js --daily",
+   133	    "security:alert": "node scripts/security-monitor.js --alert",
+   134	    "build:ci": "npm run typecheck:fix && npm run build && npm run build:verify",
+   135	    "build:prod": "NODE_ENV=production npm run build:optimized",
+   136	    "build:metrics": "npm run build && cat build-metrics.json",
+   137	    "perf:build": "npm run analyze:performance && npm run build:optimized && npm run analyze:performance",
+   138	    "build:production": "NODE_ENV=production npm run build:optimized",
+   139	    "install:production": "npm ci --omit=dev --omit=optional",
+   140	    "test:edge-cases": "cd tests/edge-cases && npx vitest run --config vitest.config.ts",
+   141	    "test:edge-cases:watch": "cd tests/edge-cases && npx vitest --config vitest.config.ts",
+   142	    "test:edge-cases:full": "tsx tests/edge-cases/edge-case-runner.ts",
+   143	    "test:boundaries": "npm run test:edge-cases -- --grep=\"Boundary Value Testing\"",
+   144	    "test:security-edges": "npm run test:edge-cases -- --grep=\"Security Edge Cases\"",
+   145	    "test:concurrency": "npm run test:edge-cases -- --grep=\"Concurrent Access Testing\"",
+   146	    "validate:production": "npm run test:edge-cases:full && npm run test:all && npm run security:scan",
+   147	    "pipeline:validate": "npx tsx scripts/zero-failure-pipeline-validator.ts",
+   148	    "pipeline:rollback": "npx tsx scripts/automated-rollback-system.ts",
+   149	    "monitoring:dashboard": "node scripts/monitoring-dashboard-server.js",
+   150	    "monitoring:start": "npm run monitoring:dashboard",
+   151	    "deploy:zero-failure": "npm run pipeline:validate && npm run build:production && npm run deploy",
+   152	    "deploy:safe": "npm run deploy:zero-failure",
+   153	    "ci:full": "npm run pipeline:validate && npm run test:ci:full && npm run security:scan",
+   154	    "ci:performance": "npm run test:ci:performance && npm run analyze:performance",
+   155	    "nightly:performance": "npm run test:performance:all -- --reporter=verbose --reporter=json --outputFile=test-results/nightly-performance-$(date +%Y%m%d).json",
+   156	    "load-test": "npx k6 run scripts/load-test.js",
+   157	    "load-test:light": "npx k6 run --env TEST_MODE=light scripts/load-test.js",
+   158	    "load-test:medium": "npx k6 run --env TEST_MODE=medium scripts/load-test.js",
+   159	    "load-test:heavy": "npx k6 run --env TEST_MODE=heavy scripts/load-test.js",
+   160	    "load-test:custom": "npx k6 run --vus ${VUS:-10} --duration ${DURATION:-2m} scripts/load-test.js",
+   161	    "load-test:staged": "npx k6 run --stage 30s:5,60s:10,30s:15,60s:5,30s:0 scripts/load-test.js",
+   162	    "hooks:bypass": "./scripts/git-hooks-bypass.sh",
+   163	    "hooks:performance": "./scripts/git-hooks-performance.sh",
+   164	    "hooks:install": "husky prepare",
+   165	    "hooks:test": "./scripts/git-hooks-health-check.sh",
+   166	    "prepare": "husky prepare || true"
+   167	  },
+   168	  "keywords": [
+   169	    "media",
+   170	    "management",
+   171	    "digital-asset-management",
+   172	    "file-organization",
+   173	    "content-management",
+   174	    "nodejs",
+   175	    "typescript",
+   176	    "react"
+   177	  ],
+   178	  "author": "MediaNest Team",
+   179	  "license": "MIT",
+   180	  "repository": {
+   181	    "type": "git",
+   182	    "url": "https://github.com/medianest/medianest.git"
+   183	  },
+   184	  "bugs": {
+   185	    "url": "https://github.com/medianest/medianest/issues"
+   186	  },
+   187	  "homepage": "https://docs.medianest.com",
+   188	  "engines": {
+   189	    "node": ">=18.0.0",
+   190	    "npm": ">=8.0.0"
+   191	  },
+   192	  "dependencies": {
+   193	    "@types/express": "^4.17.17",
+   194	    "@types/node": "^20.0.0",
+   195	    "dotenv": "^16.4.7",
+   196	    "express": "^4.21.0",
+   197	    "express-rate-limit": "^7.5.0",
+   198	    "jsonwebtoken": "^9.0.2",
+   199	    "knex": "^2.4.2",
+   200	    "pg": "^8.11.0",
+   201	    "react": "^18.2.0",
+   202	    "react-dom": "^18.2.0",
+   203	    "redis": "^4.6.0",
+   204	    "typescript": "^5.6.0"
+   205	  },
+   206	  "devDependencies": {
+   207	    "@types/fluent-ffmpeg": "^2.1.21",
+   208	    "@types/jest": "^29.5.0",
+   209	    "@types/jsonwebtoken": "^9.0.2",
+   210	    "@types/react": "^18.2.0",
+   211	    "@types/react-dom": "^18.2.0",
+   212	    "@typescript-eslint/eslint-plugin": "^8.43.0",
+   213	    "@typescript-eslint/parser": "^8.43.0",
+   214	    "@vitejs/plugin-react": "^5.0.2",
+   215	    "@vitest/coverage-v8": "^3.2.4",
+   216	    "@vitest/ui": "^3.2.4",
+   217	    "concurrently": "^8.0.1",
+   218	    "eslint-plugin-import": "^2.32.0",
+   219	    "eslint-plugin-prettier": "^5.5.4",
+   220	    "jsdom": "^26.1.0",
+   221	    "node-cron": "^3.0.3",
+   222	    "rimraf": "^5.0.0",
+   223	    "standard-version": "^9.5.0",
+   224	    "supertest": "^7.0.0",
+   225	    "ts-node": "^10.9.1",
+   226	    "tsx": "^4.19.1",
+   227	    "vite": "^7.1.5",
+   228	    "vitest": "^3.2.4",
+   229	    "webpack-bundle-analyzer": "^4.8.0",
+   230	    "ws": "^8.18.0"
+   231	  },
+   232	  "optionalDependencies": {
+   233	    "ffmpeg-static": "^5.1.0",
+   234	    "fluent-ffmpeg": "^2.1.2",
+   235	    "pm2": "^6.0.10",
+   236	    "sharp": "^0.34.3"
+   237	  },
+   238	  "browserslist": {
+   239	    "production": [
+   240	      ">0.2%",
+   241	      "not dead",
+   242	      "not op_mini all"
+   243	    ],
+   244	    "development": [
+   245	      "last 1 chrome version",
+   246	      "last 1 firefox version",
+   247	      "last 1 safari version"
+   248	    ]
+   249	  },
+   250	  "eslintConfig": {
+
+---FILE: backend/package.json
+     1	{
+     2	  "name": "@medianest/backend",
+     3	  "version": "1.0.0",
+     4	  "private": true,
+     5	  "license": "MIT",
+     6	  "repository": {
+     7	    "type": "git",
+     8	    "url": "https://github.com/kinginyellow/medianest.git",
+     9	    "directory": "backend"
+    10	  },
+    11	  "scripts": {
+    12	    "dev": "nodemon",
+    13	    "build": "tsc --build",
+    14	    "start": "node dist/server.js",
+    15	    "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
+    16	    "lint:fix": "eslint . --fix",
+    17	    "type-check": "tsc --noEmit",
+    18	    "clean": "rimraf dist",
+    19	    "test": "vitest run",
+    20	    "test:ci": "vitest run --reporter=verbose",
+    21	    "test:ui": "vitest --ui",
+    22	    "test:watch": "vitest",
+    23	    "test:coverage": "vitest run --coverage",
+    24	    "test:e2e": "playwright test",
+    25	    "test:e2e:ui": "playwright test --ui",
+    26	    "test:e2e:debug": "playwright test --debug",
+    27	    "test:e2e:chromium": "playwright test --project=chromium",
+    28	    "test:e2e:firefox": "playwright test --project=firefox",
+    29	    "test:e2e:webkit": "playwright test --project=webkit",
+    30	    "test:e2e:mobile": "playwright test --project='Mobile Chrome' --project='Mobile Safari'",
+    31	    "test:e2e:headed": "playwright test --headed",
+    32	    "test:setup": "docker compose -f docker-compose.test.yml up -d --wait",
+    33	    "test:teardown": "docker compose -f docker-compose.test.yml down -v",
+    34	    "test:integration": "npm run test:setup && npm test && npm run test:teardown",
+    35	    "prisma:generate": "prisma generate",
+    36	    "prisma:migrate": "prisma migrate dev",
+    37	    "prisma:studio": "prisma studio",
+    38	    "db:validate": "ts-node scripts/database-validation.ts",
+    39	    "db:backup": "./scripts/backup-procedures.sh backup",
+    40	    "db:backup:pre-deployment": "./scripts/backup-procedures.sh pre-deployment",
+    41	    "db:restore": "./scripts/backup-procedures.sh restore",
+    42	    "db:backup:list": "./scripts/backup-procedures.sh list",
+    43	    "db:backup:cleanup": "./scripts/backup-procedures.sh cleanup",
+    44	    "migration:rollback": "ts-node scripts/migration-rollback.ts",
+    45	    "security:validate": "node scripts/production-security-validator.js",
+    46	    "security:test": "./scripts/run-security-tests.sh",
+    47	    "deployment:verify": "node scripts/verify-deployment.js",
+    48	    "start:prod": "NODE_ENV=production node dist/server.js",
+    49	    "build:prod": "NODE_ENV=production npm run build"
+    50	  },
+    51	  "dependencies": {
+    52	    "@medianest/shared": "file:../shared",
+    53	    "@opentelemetry/api": "^1.9.0",
+    54	    "@opentelemetry/sdk-trace-base": "^2.1.0",
+    55	    "@prisma/client": "^6.15.0",
+    56	    "@types/ws": "^8.18.1",
+    57	    "axios": "^1.7.7",
+    58	    "bcrypt": "^5.1.1",
+    59	    "bull": "^4.16.5",
+    60	    "bullmq": "^5.58.5",
+    61	    "compression": "^1.8.1",
+    62	    "cookie-parser": "^1.4.7",
+    63	    "cors": "^2.8.5",
+    64	    "dotenv": "^16.4.7",
+    65	    "express": "^4.21.0",
+    66	    "express-rate-limit": "^7.5.0",
+    67	    "helmet": "^8.1.0",
+    68	    "ioredis": "^5.4.1",
+    69	    "jsonwebtoken": "^9.0.2",
+    70	    "opossum": "^8.1.4",
+    71	    "prom-client": "^15.1.3",
+    72	    "qrcode": "^1.3.3",
+    73	    "socket.io": "^4.8.1",
+    74	    "socket.io-client": "^4.8.1",
+    75	    "speakeasy": "^2.0.0",
+    76	    "winston": "^3.14.2",
+    77	    "winston-daily-rotate-file": "^5.0.0",
+    78	    "ws": "^8.18.3",
+    79	    "zod": "^3.23.8"
+    80	  },
+    81	  "devDependencies": {
+    82	    "@playwright/test": "^1.55.0",
+    83	    "@types/bcrypt": "^5.0.2",
+    84	    "@types/bull": "^4.10.0",
+    85	    "@types/compression": "^1.8.1",
+    86	    "@types/cookie-parser": "^1.4.9",
+    87	    "@types/cors": "^2.8.19",
+    88	    "@types/express": "^4.17.21",
+    89	    "@types/ioredis": "^4.28.10",
+    90	    "@types/jsonwebtoken": "^9.0.10",
+    91	    "@types/node": "^20.14.10",
+    92	    "@types/qrcode": "^1.5.5",
+    93	    "@types/speakeasy": "^2.0.10",
+    94	    "@types/supertest": "^6.0.2",
+    95	    "@types/uuid": "^10.0.0",
+    96	    "@typescript-eslint/eslint-plugin": "^8.43.0",
+    97	    "@typescript-eslint/parser": "^8.43.0",
+    98	    "@vitest/coverage-v8": "^3.2.4",
+    99	    "allure-playwright": "^3.3.3",
+   100	    "eslint": "^8.57.1",
+   101	    "jsdom": "^26.1.0",
+   102	    "prisma": "^6.15.0",
+   103	    "supertest": "^7.1.4",
+   104	    "ts-loader": "^9.5.4",
+   105	    "ts-node": "^10.9.2",
+   106	    "tsconfig-paths": "^4.2.0",
+   107	    "typescript": "^5.7.3",
+   108	    "vitest": "^3.2.4",
+   109	    "webpack": "^5.101.3",
+   110	    "webpack-cli": "^6.0.1"
+   111	  },
+   112	  "optionalDependencies": {
+   113	    "@opentelemetry/auto-instrumentations-node": "^0.62.2",
+   114	    "@opentelemetry/exporter-jaeger": "^2.1.0",
+   115	    "@opentelemetry/exporter-otlp-http": "^0.26.0",
+   116	    "@opentelemetry/instrumentation-express": "^0.52.0",
+   117	    "@opentelemetry/instrumentation-http": "^0.204.0",
+   118	    "@opentelemetry/node": "^0.24.0",
+   119	    "@opentelemetry/resources": "^2.1.0",
+   120	    "@opentelemetry/sdk-node": "^0.204.0",
+   121	    "@opentelemetry/semantic-conventions": "^1.37.0"
+   122	  }
+   123	}
+
+---FILE: frontend/package.json
+     1	{
+     2	  "name": "@medianest/frontend",
+     3	  "version": "1.0.0",
+     4	  "private": true,
+     5	  "scripts": {
+     6	    "build": "next build",
+     7	    "start": "next start",
+     8	    "dev": "next dev",
+     9	    "lint": "next lint",
+    10	    "type-check": "tsc --noEmit",
+    11	    "test": "vitest run",
+    12	    "test:ci": "vitest run --reporter=verbose",
+    13	    "test:watch": "vitest",
+    14	    "test:coverage": "vitest run --coverage"
+    15	  },
+    16	  "dependencies": {
+    17	    "@types/react": "^18.2.0",
+    18	    "@types/react-dom": "^18.2.0",
+    19	    "react": "^18.2.0",
+    20	    "react-dom": "^18.2.0",
+    21	    "typescript": "^5.6.0"
+    22	  },
+    23	  "devDependencies": {
+    24	    "@testing-library/jest-dom": "^6.8.0",
+    25	    "@testing-library/react": "^16.3.0",
+    26	    "@testing-library/user-event": "^14.6.1",
+    27	    "@types/jsdom": "^21.1.7",
+    28	    "@types/node": "^20.19.13",
+    29	    "@types/tailwindcss": "^3.0.11",
+    30	    "@types/testing-library__react": "^10.0.1",
+    31	    "@vitejs/plugin-react": "^5.0.2",
+    32	    "autoprefixer": "^10.0.0",
+    33	    "eslint": "^8.57.1",
+    34	    "eslint-config-next": "14.2.5",
+    35	    "jsdom": "^26.1.0",
+    36	    "next": "^15.5.3",
+    37	    "postcss": "^8.0.0",
+    38	    "tailwindcss": "^3.4.17",
+    39	    "vitest": "^3.2.4"
+    40	  }
+    41	}
+
+---FILE: shared/package.json
+     1	{
+     2	  "name": "@medianest/shared",
+     3	  "version": "1.0.0",
+     4	  "private": true,
+     5	  "license": "MIT",
+     6	  "repository": {
+     7	    "type": "git",
+     8	    "url": "https://github.com/kinginyellow/medianest.git",
+     9	    "directory": "shared"
+    10	  },
+    11	  "main": "./dist/index.js",
+    12	  "types": "./dist/index.d.ts",
+    13	  "exports": {
+    14	    ".": {
+    15	      "types": "./dist/index.d.ts",
+    16	      "require": "./dist/index.js",
+    17	      "import": "./dist/index.js"
+    18	    },
+    19	    "./client": {
+    20	      "types": "./dist/client/index.d.ts",
+    21	      "require": "./dist/client/index.js",
+    22	      "import": "./dist/client/index.js"
+    23	    },
+    24	    "./config": {
+    25	      "types": "./dist/config/index.d.ts",
+    26	      "require": "./dist/config/index.js",
+    27	      "import": "./dist/config/index.js"
+    28	    },
+    29	    "./config/utils": {
+    30	      "types": "./dist/config/utils.d.ts",
+    31	      "require": "./dist/config/utils.js",
+    32	      "import": "./dist/config/utils.js"
+    33	    },
+    34	    "./utils": {
+    35	      "types": "./dist/utils/index.d.ts",
+    36	      "require": "./dist/utils/index.js",
+    37	      "import": "./dist/utils/index.js"
+    38	    }
+    39	  },
+    40	  "scripts": {
+    41	    "build": "tsc --build",
+    42	    "clean": "rimraf dist",
+    43	    "type-check": "tsc --noEmit",
+    44	    "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
+    45	    "lint:fix": "eslint . --fix",
+    46	    "test": "vitest run",
+    47	    "test:ci": "vitest run --reporter=verbose",
+    48	    "test:watch": "vitest",
+    49	    "test:coverage": "vitest run --coverage"
+    50	  },
+    51	  "dependencies": {
+    52	    "@prisma/client": "^6.15.0",
+    53	    "bcrypt": "^5.1.1",
+    54	    "dotenv": "^16.6.1",
+    55	    "ioredis": "^5.7.0",
+    56	    "uuid": "^10.0.0",
+    57	    "winston-daily-rotate-file": "^5.0.0",
+    58	    "zod": "^3.25.76"
+    59	  },
+    60	  "devDependencies": {
+    61	    "@testing-library/jest-dom": "^6.8.0",
+    62	    "@testing-library/react": "^16.3.0",
+    63	    "@testing-library/user-event": "^14.6.1",
+    64	    "@types/bcrypt": "^5.0.2",
+    65	    "@types/express": "^4.17.23",
+    66	    "@types/ioredis": "^4.28.10",
+    67	    "@types/node": "^20.19.13",
+    68	    "@types/uuid": "^10.0.0",
+    69	    "@typescript-eslint/eslint-plugin": "^7.16.1",
+    70	    "@typescript-eslint/parser": "^7.16.1",
+    71	    "eslint": "^8.57.0",
+    72	    "eslint-config-prettier": "^10.1.5",
+    73	    "eslint-import-resolver-typescript": "^4.4.4",
+    74	    "eslint-plugin-import": "^2.32.0",
+    75	    "eslint-plugin-prettier": "^5.5.1",
+    76	    "globals": "^15.9.0",
+    77	    "prettier": "^3.6.2",
+    78	    "rimraf": "^5.0.5",
+    79	    "typescript": "^5.5.3",
+    80	    "vitest": "^3.2.4"
+    81	  },
+    82	  "sideEffects": false
+    83	}
+
+---FILE: eslint.config.js
+     1	import globals from "globals";
+     2	import tsParser from "@typescript-eslint/parser";
+     3	import typescriptEslint from "@typescript-eslint/eslint-plugin";
+     4	import importPlugin from "eslint-plugin-import";
+     5	import prettier from "eslint-plugin-prettier";
+     6	import js from "@eslint/js";
+     7	
+     8	export default [
+     9	    // Ignore patterns for all configs
+    10	    {
+    11	        ignores: [
+    12	            "node_modules/**",
+    13	            "dist/**",
+    14	            "build/**",
+    15	            ".next/**",
+    16	            "coverage/**",
+    17	            "**/*.d.ts",
+    18	            "**/*.config.js",
+    19	            "**/*.config.ts",
+    20	            ".eslintrc.js",
+    21	            "eslint.config.js",
+    22	            ".lintstagedrc.js",
+    23	            "lint-staged.config.js",
+    24	            "scripts/**/*.js",
+    25	            "**/scripts/**",
+    26	            ".claude/**",
+    27	            "**/dist/**",
+    28	            "**/build/**",
+    29	            "**/__tests__/**",
+    30	            "**/tests/**",
+    31	        ],
+    32	    },
+    33	    
+    34	    // Base JavaScript configuration
+    35	    {
+    36	        files: ["**/*.js", "**/*.mjs", "**/*.cjs"],
+    37	        languageOptions: {
+    38	            globals: {
+    39	                ...globals.node,
+    40	                ...globals.es2022,
+    41	            },
+    42	            ecmaVersion: 2022,
+    43	            sourceType: "module",
+    44	        },
+    45	        plugins: {
+    46	            import: importPlugin,
+    47	            prettier,
+    48	        },
+    49	        rules: {
+    50	            ...js.configs.recommended.rules,
+    51	            "no-console": ["warn", { allow: ["warn", "error"] }],
+    52	            "prefer-const": "error",
+    53	            "no-debugger": "error",
+    54	            "prettier/prettier": "error",
+    55	            "import/no-duplicates": "error",
+    56	        },
+    57	    },
+    58	    
+    59	    // TypeScript configuration for backend
+    60	    {
+    61	        files: ["backend/**/*.ts", "backend/**/*.tsx"],
+    62	        languageOptions: {
+    63	            globals: {
+    64	                ...globals.node,
+    65	                ...globals.es2022,
+    66	            },
+    67	            parser: tsParser,
+    68	            ecmaVersion: 2022,
+    69	            sourceType: "module",
+    70	            parserOptions: {
+    71	                tsconfigRootDir: import.meta.dirname + "/backend",
+    72	                project: ["./tsconfig.json"],
+    73	            },
+    74	        },
+    75	        plugins: {
+    76	            "@typescript-eslint": typescriptEslint,
+    77	            import: importPlugin,
+    78	            prettier,
+    79	        },
+    80	        rules: {
+    81	            ...js.configs.recommended.rules,
+    82	            ...typescriptEslint.configs.recommended.rules,
+    83	            
+    84	            // TypeScript rules
+    85	            "@typescript-eslint/explicit-function-return-type": "off",
+    86	            "@typescript-eslint/explicit-module-boundary-types": "off",
+    87	            "@typescript-eslint/no-explicit-any": "warn",
+    88	            "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+    89	            "@typescript-eslint/no-non-null-assertion": "warn",
+    90	            "@typescript-eslint/no-var-requires": "warn",
+    91	            "no-undef": "off", // TypeScript handles this
+    92	            
+    93	            // Import rules
+    94	            "import/order": [
+    95	                "error",
+    96	                {
+    97	                    groups: ["builtin", "external", "internal", "parent", "sibling", "index"],
+    98	                    "newlines-between": "always",
+    99	                    alphabetize: { order: "asc", caseInsensitive: true },
+   100	                },
+   101	            ],
+   102	            "import/no-duplicates": "error",
+   103	            "import/no-unresolved": "error",
+   104	            
+   105	            // General rules
+   106	            "no-console": ["warn", { allow: ["warn", "error"] }],
+   107	            "prefer-const": "error",
+   108	            "no-debugger": "error",
+   109	            "prettier/prettier": "error",
+   110	        },
+   111	        settings: {
+   112	            "import/parsers": {
+   113	                "@typescript-eslint/parser": [".ts", ".tsx"],
+   114	            },
+   115	            "import/resolver": {
+   116	                typescript: {
+   117	                    alwaysTryTypes: true,
+   118	                    project: ["./backend/tsconfig.json"],
+   119	                },
+   120	            },
+   121	        },
+   122	    },
+   123	    
+   124	    // TypeScript configuration for shared
+   125	    {
+   126	        files: ["shared/**/*.ts", "shared/**/*.tsx"],
+   127	        languageOptions: {
+   128	            globals: {
+   129	                ...globals.node,
+   130	                ...globals.es2022,
+   131	            },
+   132	            parser: tsParser,
+   133	            ecmaVersion: 2022,
+   134	            sourceType: "module",
+   135	            parserOptions: {
+   136	                tsconfigRootDir: import.meta.dirname + "/shared",
+   137	                project: ["./tsconfig.json"],
+   138	            },
+   139	        },
+   140	        plugins: {
+   141	            "@typescript-eslint": typescriptEslint,
+   142	            import: importPlugin,
+   143	            prettier,
+   144	        },
+   145	        rules: {
+   146	            ...js.configs.recommended.rules,
+   147	            ...typescriptEslint.configs.recommended.rules,
+   148	            
+   149	            // TypeScript rules
+   150	            "@typescript-eslint/explicit-function-return-type": "off",
+   151	            "@typescript-eslint/explicit-module-boundary-types": "off",
+   152	            "@typescript-eslint/no-explicit-any": "warn",
+   153	            "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+   154	            "@typescript-eslint/no-non-null-assertion": "warn",
+   155	            "@typescript-eslint/no-var-requires": "warn",
+   156	            "no-undef": "off", // TypeScript handles this
+   157	            
+   158	            // Import rules
+   159	            "import/order": [
+   160	                "error",
+   161	                {
+   162	                    groups: ["builtin", "external", "internal", "parent", "sibling", "index"],
+   163	                    "newlines-between": "always",
+   164	                    alphabetize: { order: "asc", caseInsensitive: true },
+   165	                },
+   166	            ],
+   167	            "import/no-duplicates": "error",
+   168	            "import/no-unresolved": "error",
+   169	            
+   170	            // General rules
+   171	            "no-console": ["warn", { allow: ["warn", "error"] }],
+   172	            "prefer-const": "error",
+   173	            "no-debugger": "error",
+   174	            "prettier/prettier": "error",
+   175	        },
+   176	        settings: {
+   177	            "import/parsers": {
+   178	                "@typescript-eslint/parser": [".ts", ".tsx"],
+   179	            },
+   180	            "import/resolver": {
+   181	                typescript: {
+   182	                    alwaysTryTypes: true,
+   183	                    project: ["./shared/tsconfig.json"],
+   184	                },
+   185	            },
+   186	        },
+   187	    },
+   188	    
+   189	    // TypeScript configuration for root src files
+   190	    {
+   191	        files: ["src/**/*.ts", "src/**/*.tsx"],
+   192	        languageOptions: {
+   193	            globals: {
+   194	                ...globals.node,
+   195	                ...globals.es2022,
+   196	            },
+   197	            parser: tsParser,
+   198	            ecmaVersion: 2022,
+   199	            sourceType: "module",
+   200	            parserOptions: {
+   201	                tsconfigRootDir: import.meta.dirname,
+   202	                project: ["./tsconfig.base.json"],
+   203	            },
+   204	        },
+   205	        plugins: {
+   206	            "@typescript-eslint": typescriptEslint,
+   207	            import: importPlugin,
+   208	            prettier,
+   209	        },
+   210	        rules: {
+   211	            ...js.configs.recommended.rules,
+   212	            ...typescriptEslint.configs.recommended.rules,
+   213	            
+   214	            // TypeScript rules
+   215	            "@typescript-eslint/explicit-function-return-type": "off",
+   216	            "@typescript-eslint/explicit-module-boundary-types": "off",
+   217	            "@typescript-eslint/no-explicit-any": "warn",
+   218	            "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+   219	            "@typescript-eslint/no-non-null-assertion": "warn",
+   220	            "@typescript-eslint/no-var-requires": "warn",
+   221	            "no-undef": "off", // TypeScript handles this
+   222	            
+   223	            // Import rules
+   224	            "import/order": [
+   225	                "error",
+   226	                {
+   227	                    groups: ["builtin", "external", "internal", "parent", "sibling", "index"],
+   228	                    "newlines-between": "always",
+   229	                    alphabetize: { order: "asc", caseInsensitive: true },
+   230	                },
+   231	            ],
+   232	            "import/no-duplicates": "error",
+   233	            // Disable import/no-unresolved for root src files as they may have loose dependencies
+   234	            "import/no-unresolved": "off",
+   235	            
+   236	            // General rules
+   237	            "no-console": ["warn", { allow: ["warn", "error"] }],
+   238	            "prefer-const": "error",
+   239	            "no-debugger": "error",
+   240	            "prettier/prettier": "error",
+   241	        },
+   242	        settings: {
+   243	            "import/parsers": {
+   244	                "@typescript-eslint/parser": [".ts", ".tsx"],
+   245	            },
+   246	            "import/resolver": {
+   247	                typescript: {
+   248	                    alwaysTryTypes: true,
+   249	                    project: ["./tsconfig.base.json"],
+   250	                },
+
+---FILE: backend/eslint.config.js
+     1	const js = require('@eslint/js');
+     2	const typescriptEslint = require('@typescript-eslint/eslint-plugin');
+     3	const typescriptParser = require('@typescript-eslint/parser');
+     4	const importPlugin = require('eslint-plugin-import');
+     5	const prettier = require('eslint-plugin-prettier');
+     6	const globals = require('globals');
+     7	
+     8	module.exports = [
+     9	  // Ignore patterns
+    10	  {
+    11	    ignores: [
+    12	      'node_modules/**', 
+    13	      'dist/**',
+    14	      'build/**',
+    15	      'coverage/**',
+    16	      '**/*.d.ts',
+    17	      '**/*.config.js',
+    18	      '**/*.config.ts',
+    19	      'eslint.config.js',
+    20	      '.eslintrc.js',
+    21	      'scripts/**',
+    22	      'lighthouserc.js',
+    23	    ],
+    24	  },
+    25	  
+    26	  // JavaScript files
+    27	  {
+    28	    files: ['**/*.js', '**/*.mjs', '**/*.cjs'],
+    29	    languageOptions: {
+    30	      globals: {
+    31	        ...globals.node,
+    32	        ...globals.es2022,
+    33	      },
+    34	      ecmaVersion: 2022,
+    35	      sourceType: 'module',
+    36	    },
+    37	    plugins: {
+    38	      import: importPlugin,
+    39	      prettier,
+    40	    },
+    41	    rules: {
+    42	      ...js.configs.recommended.rules,
+    43	      'no-console': ['warn', { allow: ['warn', 'error'] }],
+    44	      'prefer-const': 'error',
+    45	      'no-debugger': 'error',
+    46	      'prettier/prettier': 'error',
+    47	      'import/no-duplicates': 'error',
+    48	    },
+    49	  },
+    50	  
+    51	  // TypeScript files
+    52	  {
+    53	    files: ['**/*.ts', '**/*.tsx'],
+    54	    languageOptions: {
+    55	      parser: typescriptParser,
+    56	      parserOptions: {
+    57	        tsconfigRootDir: __dirname,
+    58	        ecmaVersion: 2022,
+    59	        sourceType: 'module',
+    60	        project: ['./tsconfig.json'],
+    61	      },
+    62	      globals: {
+    63	        ...globals.node,
+    64	        ...globals.es2022,
+    65	        Buffer: 'readonly',
+    66	        process: 'readonly',
+    67	        console: 'readonly',
+    68	        global: 'readonly',
+    69	        NodeJS: 'readonly',
+    70	        setTimeout: 'readonly',
+    71	        setInterval: 'readonly',
+    72	        clearTimeout: 'readonly',
+    73	        clearInterval: 'readonly',
+    74	      },
+    75	    },
+    76	    plugins: {
+    77	      '@typescript-eslint': typescriptEslint,
+    78	      import: importPlugin,
+    79	      prettier,
+    80	    },
+    81	    rules: {
+    82	      ...js.configs.recommended.rules,
+    83	      ...typescriptEslint.configs.recommended.rules,
+    84	      
+    85	      // TypeScript specific
+    86	      '@typescript-eslint/no-explicit-any': 'warn',
+    87	      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    88	      '@typescript-eslint/explicit-function-return-type': 'off',
+    89	      '@typescript-eslint/explicit-module-boundary-types': 'off',
+    90	      '@typescript-eslint/no-var-requires': 'warn',
+    91	      'no-undef': 'off', // TypeScript handles this
+    92	      
+    93	      // Import rules
+    94	      'import/order': [
+    95	        'error',
+    96	        {
+    97	          groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
+    98	          'newlines-between': 'always',
+    99	          alphabetize: { order: 'asc', caseInsensitive: true },
+   100	        },
+   101	      ],
+   102	      'import/no-duplicates': 'error',
+   103	      'import/no-unresolved': 'error',
+   104	      
+   105	      // General rules
+   106	      'no-console': ['warn', { allow: ['warn', 'error'] }],
+   107	      'prefer-const': 'error',
+   108	      'no-debugger': 'error',
+   109	      'no-useless-escape': 'warn',
+   110	      'prettier/prettier': 'error',
+   111	      
+   112	      // Node.js specific
+   113	      'no-process-exit': 'error',
+   114	    },
+   115	    settings: {
+   116	      'import/parsers': {
+   117	        '@typescript-eslint/parser': ['.ts', '.tsx'],
+   118	      },
+   119	      'import/resolver': {
+   120	        typescript: {
+   121	          alwaysTryTypes: true,
+   122	          project: ['./tsconfig.json'],
+   123	        },
+   124	      },
+   125	    },
+   126	  },
+   127	];
+
+---FILE: shared/eslint.config.js
+     1	const js = require('@eslint/js');
+     2	const typescriptEslint = require('@typescript-eslint/eslint-plugin');
+     3	const typescriptParser = require('@typescript-eslint/parser');
+     4	const importPlugin = require('eslint-plugin-import');
+     5	const prettier = require('eslint-plugin-prettier');
+     6	const globals = require('globals');
+     7	
+     8	module.exports = [
+     9	  // Ignore patterns
+    10	  {
+    11	    ignores: [
+    12	      'node_modules/**', 
+    13	      'dist/**',
+    14	      'build/**',
+    15	      'coverage/**',
+    16	      '**/*.d.ts',
+    17	      '**/*.config.js',
+    18	      '**/*.config.ts',
+    19	      'eslint.config.js',
+    20	      '.eslintrc.js',
+    21	      '**/__tests__/**',
+    22	      '**/tests/**',
+    23	    ],
+    24	  },
+    25	  
+    26	  // JavaScript files
+    27	  {
+    28	    files: ['**/*.js', '**/*.mjs', '**/*.cjs'],
+    29	    languageOptions: {
+    30	      globals: {
+    31	        ...globals.node,
+    32	        ...globals.es2022,
+    33	      },
+    34	      ecmaVersion: 2022,
+    35	      sourceType: 'module',
+    36	    },
+    37	    plugins: {
+    38	      import: importPlugin,
+    39	      prettier,
+    40	    },
+    41	    rules: {
+    42	      ...js.configs.recommended.rules,
+    43	      'no-console': ['warn', { allow: ['warn', 'error'] }],
+    44	      'prefer-const': 'error',
+    45	      'no-debugger': 'error',
+    46	      'prettier/prettier': 'error',
+    47	      'import/no-duplicates': 'error',
+    48	    },
+    49	  },
+    50	  
+    51	  // TypeScript files
+    52	  {
+    53	    files: ['**/*.ts', '**/*.tsx'],
+    54	    languageOptions: {
+    55	      parser: typescriptParser,
+    56	      parserOptions: {
+    57	        tsconfigRootDir: __dirname,
+    58	        ecmaVersion: 2022,
+    59	        sourceType: 'module',
+    60	        project: ['./tsconfig.json'],
+    61	      },
+    62	      globals: {
+    63	        ...globals.node,
+    64	        ...globals.es2022,
+    65	        Buffer: 'readonly',
+    66	        process: 'readonly',
+    67	        console: 'readonly',
+    68	        global: 'readonly',
+    69	        NodeJS: 'readonly',
+    70	        setTimeout: 'readonly',
+    71	        setInterval: 'readonly',
+    72	        clearTimeout: 'readonly',
+    73	        clearInterval: 'readonly',
+    74	      },
+    75	    },
+    76	    plugins: {
+    77	      '@typescript-eslint': typescriptEslint,
+    78	      import: importPlugin,
+    79	      prettier,
+    80	    },
+    81	    rules: {
+    82	      ...js.configs.recommended.rules,
+    83	      ...typescriptEslint.configs.recommended.rules,
+    84	      
+    85	      // TypeScript specific
+    86	      '@typescript-eslint/no-explicit-any': 'warn',
+    87	      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    88	      '@typescript-eslint/explicit-function-return-type': 'off',
+    89	      '@typescript-eslint/explicit-module-boundary-types': 'off',
+    90	      '@typescript-eslint/no-var-requires': 'warn',
+    91	      'no-undef': 'off', // TypeScript handles this
+    92	      
+    93	      // Import rules
+    94	      'import/order': [
+    95	        'error',
+    96	        {
+    97	          groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
+    98	          'newlines-between': 'always',
+    99	          alphabetize: { order: 'asc', caseInsensitive: true },
+   100	        },
+   101	      ],
+   102	      'import/no-duplicates': 'error',
+   103	      'import/no-unresolved': 'error',
+   104	      
+   105	      // General rules
+   106	      'no-console': ['warn', { allow: ['warn', 'error'] }],
+   107	      'prefer-const': 'error',
+   108	      'no-debugger': 'error',
+   109	      'no-useless-escape': 'warn',
+   110	      'prettier/prettier': 'error',
+   111	    },
+   112	    settings: {
+   113	      'import/parsers': {
+   114	        '@typescript-eslint/parser': ['.ts', '.tsx'],
+   115	      },
+   116	      'import/resolver': {
+   117	        typescript: {
+   118	          alwaysTryTypes: true,
+   119	          project: ['./tsconfig.json'],
+   120	        },
+   121	      },
+   122	    },
+   123	  },
+   124	];
+
+---FILE: frontend/.eslintrc.security.js
+     1	// ESLint Security Configuration for MediaNest Frontend
+     2	// Enhanced security rules for production deployment
+     3	module.exports = {
+     4	  extends: ['./.eslintrc.js', 'plugin:security/recommended'],
+     5	  plugins: ['security'],
+     6	  rules: {
+     7	    // Security-focused rules
+     8	    'security/detect-object-injection': 'error',
+     9	    'security/detect-non-literal-regexp': 'error',
+    10	    'security/detect-unsafe-regex': 'error',
+    11	    'security/detect-buffer-noassert': 'error',
+    12	    'security/detect-child-process': 'error',
+    13	    'security/detect-disable-mustache-escape': 'error',
+    14	    'security/detect-eval-with-expression': 'error',
+    15	    'security/detect-no-csrf-before-method-override': 'error',
+    16	    'security/detect-non-literal-fs-filename': 'error',
+    17	    'security/detect-non-literal-require': 'error',
+    18	    'security/detect-possible-timing-attacks': 'error',
+    19	    'security/detect-pseudoRandomBytes': 'error',
+    20	    'security/detect-new-buffer': 'error',
+    21	
+    22	    // Additional security patterns
+    23	    'no-eval': 'error',
+    24	    'no-implied-eval': 'error',
+    25	    'no-new-func': 'error',
+    26	    'no-script-url': 'error',
+    27	    'no-console': 'warn',
+    28	    'no-debugger': 'error',
+    29	    'no-alert': 'error',
+    30	  },
+    31	  env: {
+    32	    browser: true,
+    33	    node: true,
+    34	    es2022: true,
+    35	  },
+    36	};
+
+---FILE: .prettierrc.json
+     1	{
+     2	  "semi": true,
+     3	  "trailingComma": "all",
+     4	  "singleQuote": true,
+     5	  "printWidth": 100,
+     6	  "tabWidth": 2,
+     7	  "useTabs": false,
+     8	  "bracketSpacing": true,
+     9	  "bracketSameLine": false,
+    10	  "arrowParens": "always",
+    11	  "endOfLine": "lf",
+    12	  "quoteProps": "as-needed",
+    13	  "jsxSingleQuote": true,
+    14	  "proseWrap": "preserve"
+    15	}
+
+---FILE: frontend/.prettierrc
+     1	{
+     2	  "semi": true,
+     3	  "trailingComma": "es5",
+     4	  "singleQuote": true,
+     5	  "printWidth": 100,
+     6	  "tabWidth": 2,
+     7	  "useTabs": false,
+     8	  "bracketSpacing": true,
+     9	  "jsxBracketSameLine": false,
+    10	  "arrowParens": "always"
+    11	}
+
+---FILE: tsconfig.json
+     1	{
+     2	  "extends": "./tsconfig.base.json",
+     3	  "compilerOptions": {
+     4	    "module": "commonjs",
+     5	    "outDir": "./dist",
+     6	    "composite": true,
+     7	    "noEmit": false,
+     8	    // Context7 Pattern: Root-level incremental compilation with project references
+     9	    "incremental": true,
+    10	    "tsBuildInfoFile": "./.tsbuildinfo",
+    11	    "skipLibCheck": true,
+    12	    "assumeChangesOnlyAffectDirectDependencies": true
+    13	  },
+    14	  "files": [],
+    15	  "include": [],
+    16	  "exclude": [
+    17	    "node_modules",
+    18	    "dist",
+    19	    "build",
+    20	    "frontend/**/*",
+    21	    "**/*.test.ts",
+    22	    "**/*.spec.ts",
+    23	    "tests/**/*",
+    24	    "coverage/**/*"
+    25	  ],
+    26	  "references": [{ "path": "./shared" }, { "path": "./backend" }, { "path": "./frontend" }]
+    27	}
+
+---FILE: tsconfig.base.json
+     1	{
+     2	  "compilerOptions": {
+     3	    // Type Checking
+     4	    "strict": true,
+     5	    "noImplicitAny": true,
+     6	    "strictNullChecks": true,
+     7	    "strictFunctionTypes": true,
+     8	    "strictBindCallApply": true,
+     9	    "strictPropertyInitialization": true,
+    10	    "noImplicitThis": true,
+    11	    "alwaysStrict": true,
+    12	    "noUnusedLocals": true,
+    13	    "noUnusedParameters": true,
+    14	    "noImplicitReturns": true,
+    15	    "noFallthroughCasesInSwitch": true,
+    16	    "noUncheckedIndexedAccess": true,
+    17	
+    18	    // Module Resolution - Compatible with all packages
+    19	    "moduleResolution": "node",
+    20	    "moduleDetection": "force",
+    21	    "verbatimModuleSyntax": false,
+    22	    "resolveJsonModule": true,
+    23	    "esModuleInterop": true,
+    24	    "allowSyntheticDefaultImports": true,
+    25	    "baseUrl": ".",
+    26	    "paths": {
+    27	      "@medianest/shared": ["./shared/dist", "./shared/src"],
+    28	      "@medianest/shared/*": ["./shared/dist/*", "./shared/src/*"]
+    29	    },
+    30	
+    31	    // Emit - Context7 optimized for faster builds
+    32	    "declaration": true,
+    33	    "declarationMap": true,
+    34	    "sourceMap": true,
+    35	    "removeComments": false,
+    36	    "preserveConstEnums": true,
+    37	    "importsNotUsedAsValues": "remove",
+    38	    "noEmitOnError": false,
+    39	
+    40	    // Language and Environment
+    41	    "target": "ES2022",
+    42	    "lib": ["ES2022"],
+    43	    "skipLibCheck": true,
+    44	    "forceConsistentCasingInFileNames": true,
+    45	
+    46	    // Context7 Performance Optimizations - Enhanced for A+ grade
+    47	    "isolatedModules": true,
+    48	    "preserveSymlinks": false,
+    49	    "disableSizeLimit": false,
+    50	    "incremental": true,
+    51	    "tsBuildInfoFile": ".tsbuildinfo",
+    52	    "assumeChangesOnlyAffectDirectDependencies": true,
+    53	    "useDefineForClassFields": true,
+    54	    "exactOptionalPropertyTypes": false,
+    55	    "allowImportingTsExtensions": false,
+    56	    "maxNodeModuleJsDepth": 0
+    57	  },
+    58	  "exclude": ["node_modules", "dist", "build", ".next", "coverage"]
+    59	}
+
+---FILE: backend/tsconfig.json
+     1	{
+     2	  "extends": "../tsconfig.base.json",
+     3	  "compilerOptions": {
+     4	    "target": "ES2022",
+     5	    "module": "commonjs",
+     6	    "moduleResolution": "node",
+     7	    "lib": ["ES2022"],
+     8	    "outDir": "./dist",
+     9	    "rootDir": "./src",
+    10	    "baseUrl": ".",
+    11	    "composite": true,
+    12	    "incremental": true,
+    13	    "tsBuildInfoFile": "./.tsbuildinfo",
+    14	    "isolatedModules": true,
+    15	    "preserveWatchOutput": true,
+    16	    "assumeChangesOnlyAffectDirectDependencies": true,
+    17	    "paths": {
+    18	      "@/*": ["./src/*"],
+    19	      "@/controllers/*": ["./src/controllers/*"],
+    20	      "@/services/*": ["./src/services/*"],
+    21	      "@/middleware/*": ["./src/middleware/*"],
+    22	      "@/routes/*": ["./src/routes/*"],
+    23	      "@/models/*": ["./src/models/*"],
+    24	      "@/utils/*": ["./src/utils/*"],
+    25	      "@/integrations/*": ["./src/integrations/*"],
+    26	      "@/jobs/*": ["./src/jobs/*"],
+    27	      "@/repositories/*": ["./src/repositories/*"],
+    28	      "@/types/*": ["./src/types/*"],
+    29	      "@/config/*": ["./src/config/*"],
+    30	      "@medianest/shared": ["../shared/dist", "../shared/src", "./node_modules/@medianest/shared"],
+    31	      "@medianest/shared/*": [
+    32	        "../shared/dist/*",
+    33	        "../shared/src/*",
+    34	        "./node_modules/@medianest/shared/*"
+    35	      ]
+    36	    },
+    37	    "emitDecoratorMetadata": true,
+    38	    "experimentalDecorators": true,
+    39	    "resolveJsonModule": true,
+    40	    "allowJs": false,
+    41	    "noEmit": false,
+    42	
+    43	    // Context7 TypeScript Performance Optimizations
+    44	    "disableSizeLimit": false,
+    45	    "preserveSymlinks": false,
+    46	    "maxNodeModuleJsDepth": 0,
+    47	    "importsNotUsedAsValues": "remove",
+    48	    "useDefineForClassFields": true,
+    49	    "exactOptionalPropertyTypes": false,
+    50	
+    51	    // Context7 Pattern: Full strict mode for A+ configuration (temporarily relaxed)
+    52	    "noUnusedLocals": false,
+    53	    "noUnusedParameters": false,
+    54	    "noImplicitReturns": true,
+    55	    "skipLibCheck": true,
+    56	    "allowImportingTsExtensions": false,
+    57	    "noUncheckedIndexedAccess": true,
+    58	    "checkJs": false,
+    59	    "allowUnreachableCode": false,
+    60	    "allowUnusedLabels": false,
+    61	    "strictNullChecks": true,
+    62	    "strictFunctionTypes": true,
+    63	    "strictBindCallApply": true,
+    64	    "strictPropertyInitialization": true,
+    65	    "noImplicitAny": true,
+    66	    "noFallthroughCasesInSwitch": true
+    67	  },
+    68	  "include": ["src/**/*"],
+    69	  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"],
+    70	  // "references": [
+    71	  //   { "path": "../shared" }
+    72	  // ],
+    73	  "ts-node": {
+    74	    "require": ["tsconfig-paths/register"],
+    75	    "transpileOnly": true,
+    76	    "files": true,
+    77	    "compilerOptions": {
+    78	      "isolatedModules": true
+    79	    }
+    80	  }
+    81	}
+
+---FILE: backend/tsconfig.eslint.json
+     1	{
+     2	  "extends": "./tsconfig.json",
+     3	  "compilerOptions": {
+     4	    "noEmit": true
+     5	  },
+     6	  "include": ["src/**/*", "tests/**/*", "config/**/*"],
+     7	  "exclude": ["node_modules", "dist"]
+     8	}
+
+---FILE: frontend/tsconfig.json
+     1	{
+     2	  "compilerOptions": {
+     3	    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+     4	    "allowJs": true,
+     5	    "skipLibCheck": true,
+     6	    "strict": true,
+     7	    "noEmit": true,
+     8	    "esModuleInterop": true,
+     9	    "module": "esnext",
+    10	    "moduleResolution": "bundler",
+    11	    "composite": true,
+    12	    "tsBuildInfoFile": "./.tsbuildinfo",
+    13	    "resolveJsonModule": true,
+    14	    "isolatedModules": true,
+    15	    "jsx": "preserve",
+    16	    "incremental": true,
+    17	    "plugins": [
+    18	      {
+    19	        "name": "next"
+    20	      }
+    21	    ],
+    22	    "baseUrl": ".",
+    23	    "paths": {
+    24	      "@/*": ["./src/*"],
+    25	      "@medianest/shared": ["../shared/dist"],
+    26	      "@medianest/shared/*": ["../shared/dist/*"]
+    27	    },
+    28	    "target": "ES2022"
+    29	  },
+    30	  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+    31	  "exclude": ["node_modules", "tailwind.config.ts", "tests/setup.ts", "middleware.performance.ts"],
+    32	  "references": [{ "path": "../shared" }]
+    33	}
+
+---FILE: shared/tsconfig.json
+     1	{
+     2	  "extends": "../tsconfig.base.json",
+     3	  "compilerOptions": {
+     4	    "target": "ES2022",
+     5	    "module": "commonjs",
+     6	    "moduleResolution": "node",
+     7	    "lib": ["ES2022"],
+     8	    "outDir": "./dist",
+     9	    "rootDir": "./src",
+    10	    "baseUrl": ".",
+    11	    "composite": true,
+    12	    "declaration": true,
+    13	    "declarationMap": true,
+    14	    "sourceMap": true,
+    15	    "noEmit": false,
+    16	    "emitDeclarationOnly": false,
+    17	    "resolveJsonModule": true,
+    18	    "allowSyntheticDefaultImports": true,
+    19	    "esModuleInterop": true,
+    20	    "forceConsistentCasingInFileNames": true,
+    21	    "strict": true,
+    22	    "noUnusedLocals": false,
+    23	    "noImplicitReturns": true,
+    24	    "noFallthroughCasesInSwitch": true,
+    25	    "noUncheckedIndexedAccess": false,
+    26	    "exactOptionalPropertyTypes": false,
+    27	    // Context7 Pattern: Incremental compilation for shared libraries
+    28	    "incremental": true,
+    29	    "tsBuildInfoFile": "./.tsbuildinfo",
+    30	    "skipLibCheck": true,
+    31	    "paths": {
+    32	      "@/*": ["./src/*"]
+    33	    }
+    34	  },
+    35	  "include": ["src/**/*"],
+    36	  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"],
+    37	  // Context7 Pattern: ts-node optimizations for development
+    38	  "ts-node": {
+    39	    "transpileOnly": true,
+    40	    "compilerOptions": {
+    41	      "isolatedModules": true
+    42	    }
+    43	  }
+    44	}
+
+---FILE: .husky/pre-commit
+     1	#!/usr/bin/env sh
+     2	. "$(dirname -- "$0")/_/husky.sh"
+     3	
+     4	# Performance monitoring
+     5	start_time=$(date +%s.%3N)
+     6	
+     7	# Emergency bypass mechanism
+     8	if [ "$MEDIANEST_SKIP_HOOKS" = "1" ]; then
+     9	    echo "🚀 Emergency bypass activated"
+    10	    exit 0
+    11	fi
+    12	
+    13	# Developer bypass with guidance
+    14	if [ "$MEDIANEST_SKIP_PRECOMMIT" = "1" ]; then
+    15	    echo "⚠️  Pre-commit checks skipped"
+    16	    echo "   Remember to run 'npm run lint:fix' before pushing"
+    17	    exit 0
+    18	fi
+    19	
+    20	# Fast incremental checks
+    21	NODE_OPTIONS="--max-old-space-size=512 --optimize-for-size" npx lint-staged --concurrent --quiet
+    22	
+    23	# Performance reporting
+    24	end_time=$(date +%s.%3N)
+    25	execution_time=$(echo "$end_time - $start_time" | bc -l 2>/dev/null || echo "0")
+    26	if [ -n "$execution_time" ] && [ "$execution_time" != "0" ]; then
+    27	    printf "✅ Pre-commit completed in %.3fs\n" "$execution_time"
+    28	fi
+
+---FILE: .husky/commit-msg
+     1	#!/usr/bin/env sh
+     2	. "$(dirname -- "$0")/_/husky.sh"
+     3	
+     4	# Emergency mode with basic validation
+     5	if [ "$MEDIANEST_SKIP_HOOKS" = "1" ]; then
+     6	    commit_msg=$(cat "$1")
+     7	    if [ ${#commit_msg} -lt 10 ]; then
+     8	        echo "❌ Even emergency commits need descriptive messages (min 10 chars)"
+     9	        exit 1
+    10	    fi
+    11	    echo "⚠️  Emergency mode: Basic validation only"
+    12	    exit 0
+    13	fi
+    14	
+    15	# Fast validation
+    16	NODE_OPTIONS="--max-old-space-size=256" npx commitlint --edit $1 --quiet
+
+---FILE: commitlint.config.js
+     1	module.exports = {
+     2	  extends: ['@commitlint/config-conventional'],
+     3	  rules: {
+     4	    'type-enum': [
+     5	      2,
+     6	      'always',
+     7	      [
+     8	        'feat',
+     9	        'fix',
+    10	        'docs',
+    11	        'style',
+    12	        'refactor',
+    13	        'perf',
+    14	        'test',
+    15	        'build',
+    16	        'ci',
+    17	        'chore',
+    18	        'revert',
+    19	        'hotfix',
+    20	        'emergency', // Special types for urgent commits
+    21	      ],
+    22	    ],
+    23	    'header-max-length': [2, 'always', 100],
+    24	    'scope-empty': [1, 'never'], // Warning only for flexibility
+    25	  },
+    26	};
+

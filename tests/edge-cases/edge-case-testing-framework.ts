@@ -3,10 +3,11 @@
  * Systematic exploration of boundary conditions and extreme scenarios
  */
 
-import { describe, test, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { PrismaClient } from '@prisma/client';
-import request from 'supertest';
 import Redis from 'ioredis';
+import request from 'supertest';
+import { describe, test, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+
 import { app } from '../../backend/src/app';
 
 interface TestContext {

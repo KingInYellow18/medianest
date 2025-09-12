@@ -1,15 +1,17 @@
 // Context7 Optimized Plex Service - Removed @ts-nocheck for better type safety
 import { AppError } from '@medianest/shared';
 
-import { CatchError, UserId, isNotNull, Result, success, failure } from '../types/common';
-import type { Brand } from '../types/context7-optimizations';
 
-import { encryptionService } from './encryption.service';
 
 import { redisClient } from '@/config/redis';
 import { PlexClient } from '@/integrations/plex/plex.client';
 import { userRepository, serviceConfigRepository } from '@/repositories';
 import { logger } from '@/utils/logger';
+
+import { encryptionService } from './encryption.service';
+import { CatchError, UserId, isNotNull, Result, success, failure } from '../types/common';
+
+import type { Brand } from '../types/context7-optimizations';
 
 // Context7 Pattern: Branded types for type safety
 type PlexUserId = Brand<string, 'PlexUserId'>;

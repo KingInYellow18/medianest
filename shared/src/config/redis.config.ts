@@ -1,9 +1,10 @@
 import Redis, { Cluster } from 'ioredis';
-import type { RedisOptions } from 'ioredis';
 import { z } from 'zod';
 
-import type { RedisConfig } from './base.config';
 import { createServiceLogger } from './logging.config';
+
+import type { RedisConfig } from './base.config';
+import type { RedisOptions } from 'ioredis';
 
 /**
  * Redis Cluster Configuration Schema

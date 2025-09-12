@@ -3,8 +3,8 @@
  * Provides comprehensive API mocking for authentication, media services, and WebSocket connections
  */
 
-import { setupServer } from 'msw/node';
 import { http, HttpResponse, ws } from 'msw';
+import { setupServer } from 'msw/node';
 
 // Mock data types matching MediaNest backend
 interface User {

@@ -3,8 +3,12 @@
  * Tests complete user authentication workflows including login, logout, token refresh, and error scenarios
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
+import React from 'react';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+import { useApp, useIsAuthenticated } from '../../contexts/OptimizedAppContext';
 import {
   renderWithAuth,
   renderWithoutAuth,
@@ -12,9 +16,9 @@ import {
   simulateLogout,
 } from '../../test-utils/integration-render';
 import { mswUtils, mswServer } from '../../test-utils/msw-server';
-import { http, HttpResponse } from 'msw';
-import { useApp, useIsAuthenticated } from '../../contexts/OptimizedAppContext';
-import React from 'react';
+
+
+
 
 // Test components to verify authentication state
 const AuthStatusComponent = () => {

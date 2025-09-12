@@ -2,9 +2,9 @@ import crypto from 'crypto';
 
 import bcrypt from 'bcrypt';
 
+import { logger } from './logger';
 import { configService } from '../config/config.service';
 
-import { logger } from './logger';
 
 // Password Policy Configuration
 export interface PasswordPolicy {

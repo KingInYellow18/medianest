@@ -11,8 +11,8 @@
  * - Cache operations
  */
 
-import { createRedisMock, TimeSimulator } from './redis-mock-foundation';
 import { MockConfig } from './mock-registry';
+import { createRedisMock, TimeSimulator } from './redis-mock-foundation';
 
 // ===========================
 // Redis Service Data Types

@@ -12,8 +12,8 @@
  * - Cache invalidation coordination
  */
 
-import { UnifiedMockRegistry } from '../foundation/unified-mock-registry';
 import { DatabaseBehaviorOrchestrator } from '../behaviors/database-behavior-patterns';
+import { UnifiedMockRegistry } from '../foundation/unified-mock-registry';
 
 export interface ServiceCoordinationState {
   services: Map<string, any>;

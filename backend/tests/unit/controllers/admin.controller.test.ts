@@ -1,8 +1,9 @@
-import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+import { AppError } from '@medianest/shared';
 import { Request, Response } from 'express';
+import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+
 import { AdminController, adminController } from '../../../src/controllers/admin.controller';
 import { prisma } from '../../../src/lib/prisma';
-import { AppError } from '@medianest/shared';
 import { logger } from '../../../src/utils/logger';
 
 // Mock dependencies

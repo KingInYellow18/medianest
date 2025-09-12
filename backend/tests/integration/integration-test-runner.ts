@@ -10,9 +10,9 @@
  */
 
 import { execSync } from 'child_process';
-import { performance } from 'perf_hooks';
-import path from 'path';
 import fs from 'fs/promises';
+import path from 'path';
+import { performance } from 'perf_hooks';
 
 interface TestSuite {
   name: string;

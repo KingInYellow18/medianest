@@ -3,10 +3,11 @@
  * Domain-specific edge cases and advanced boundary testing
  */
 
-import { describe, test, expect, beforeAll, afterAll } from 'vitest';
-import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
 import Redis from 'ioredis';
+import request from 'supertest';
+import { describe, test, expect, beforeAll, afterAll } from 'vitest';
+
 import { app } from '../../backend/src/app';
 import {
   createTestUser,

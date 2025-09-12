@@ -11,10 +11,10 @@
  */
 
 import { execSync, spawn } from 'child_process';
+import * as crypto from 'crypto';
 import { existsSync, readFileSync, writeFileSync, mkdirSync, statSync, readdirSync } from 'fs';
 import { join, extname } from 'path';
 import { performance } from 'perf_hooks';
-import * as crypto from 'crypto';
 
 interface BackupTest {
   name: string;
@@ -377,7 +377,7 @@ class BackupProceduresValidator {
 
       details.push('2. Testing backup file integrity...');
       let validBackups = 0;
-      let checksums: string[] = [];
+      const checksums: string[] = [];
 
       for (const backupFile of backupFiles.slice(0, 3)) {
         // Test up to 3 files

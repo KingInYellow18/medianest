@@ -12,8 +12,9 @@
  */
 
 import { test, expect, Page, BrowserContext } from '@playwright/test';
-import { DatabaseCleanup } from './database-cleanup';
+
 import { createTestUser, createTestJWT } from './auth-test-utils';
+import { DatabaseCleanup } from './database-cleanup';
 
 // Test configuration
 const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3001';

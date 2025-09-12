@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+
 import PlexLibraryBrowser from './PlexLibraryBrowser';
 
 // Mock fetch for Plex API calls

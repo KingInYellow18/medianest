@@ -1,8 +1,8 @@
+import { CircuitBreakerFactory } from './circuit-breaker';
+import { logger } from './logger';
 import { CatchError } from '../types/common';
 import { toError, getErrorMessage } from '../types/error-types';
 
-import { CircuitBreakerFactory } from './circuit-breaker';
-import { logger } from './logger';
 // WAVE 2 AGENT #11: INTEGRATION ORCHESTRATOR - CONDITIONAL REDIS IMPORT
 // Only import Redis if not in test environment or if Redis is explicitly enabled
 let IORedisClass: any;

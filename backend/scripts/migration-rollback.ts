@@ -7,6 +7,7 @@
 import { execSync, spawn } from 'child_process';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
+
 import { PrismaClient } from '@prisma/client';
 
 interface MigrationRecord {

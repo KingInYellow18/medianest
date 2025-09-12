@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
 import { NotificationDatabaseService } from '@/services/notification-database.service';
 
 // Mock dependencies

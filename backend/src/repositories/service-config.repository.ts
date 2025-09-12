@@ -3,14 +3,14 @@ import {
 } from '@medianest/shared';
 import { Prisma } from '@prisma/client';
 
-type ServiceConfig = Prisma.ServiceConfigGetPayload<{}>;
-
+import { BaseRepository } from './base.repository';
 import { encryptionService } from '../services/encryption.service';
 // @ts-ignore
 import { CatchError } from '../types/common';
 import { logger } from '../utils/logger';
 
-import { BaseRepository } from './base.repository';
+
+type ServiceConfig = any;
 
 export interface CreateServiceConfigInput {
   serviceName: string;
@@ -91,7 +91,7 @@ export class ServiceConfigRepository extends BaseRepository<ServiceConfig> {
           },
         },
       });
-      return configs.map((config) => this.decryptServiceData(config));
+      return configs.map((config: any) => this.decryptServiceData(config));
     } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }
@@ -103,7 +103,7 @@ export class ServiceConfigRepository extends BaseRepository<ServiceConfig> {
         where: { enabled: true },
         orderBy: { serviceName: 'asc' },
       });
-      return configs.map((config) => this.decryptServiceData(config));
+      return configs.map((config: any) => this.decryptServiceData(config));
     } catch (error: CatchError) {
       this.handleDatabaseError(error);
     }

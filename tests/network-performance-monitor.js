@@ -5,10 +5,10 @@
  * Real-time network performance monitoring and validation
  */
 
+const dns = require('dns');
 const http = require('http');
 const https = require('https');
 const net = require('net');
-const dns = require('dns');
 const { performance } = require('perf_hooks');
 const fs = require('fs').promises;
 const path = require('path');

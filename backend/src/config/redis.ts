@@ -1,9 +1,9 @@
 import Redis from 'ioredis';
 
+import { getRedisConfig } from './index';
 import { CatchError } from '../types/common';
 import { logger } from '../utils/logger';
 
-import { getRedisConfig } from './index';
 
 let redisClient: Redis;
 

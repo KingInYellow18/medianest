@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
-const { chromium } = require('playwright');
-const { AxePuppeteer } = require('@axe-core/playwright');
-const fs = require('fs-extra');
 const path = require('path');
+
+const { AxePuppeteer } = require('@axe-core/playwright');
 const chalk = require('chalk');
+const fs = require('fs-extra');
+const { chromium } = require('playwright');
 
 class AccessibilityTester {
   constructor() {

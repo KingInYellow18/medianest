@@ -1,4 +1,5 @@
 const path = require('path');
+
 const webpack = require('webpack');
 
 // EMERGENCY BUNDLE SIZE OPTIMIZATION - Phase 1

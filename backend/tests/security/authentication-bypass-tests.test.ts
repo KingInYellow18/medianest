@@ -5,13 +5,15 @@
  * Tests JWT token security, session management, and authorization controls
  */
 
-import { describe, test, expect, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
-import supertest from 'supertest';
-import { createApp } from '../../src/app';
 import { PrismaClient } from '@prisma/client';
+import jwt from 'jsonwebtoken';
+import supertest from 'supertest';
+import { describe, test, expect, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
+import { createApp } from '../../src/app';
 import { AuthTestHelper } from '../helpers/auth-test-helper';
 import { DatabaseTestHelper } from '../helpers/database-test-helper';
-import jwt from 'jsonwebtoken';
+
 
 describe('Authentication Bypass Prevention Test Suite', () => {
   let app: any;

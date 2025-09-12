@@ -1,8 +1,7 @@
 import { Prisma } from '@prisma/client';
-
-type User = Prisma.UserGetPayload<{}>;
 import bcrypt from 'bcrypt';
 
+import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
 import { encryptionService } from '../services/encryption.service';
 // @ts-ignore
 import { CatchError } from '../types/common';
@@ -11,7 +10,8 @@ import {
 } from '../utils/errors';
 import { logger } from '../utils/logger';
 
-import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
+
+type User = any;
 
 export interface CreateUserInput {
   email: string;
@@ -146,7 +146,7 @@ export class UserRepository extends BaseRepository<User> {
       }
 
       const user = await this.prisma.user.create({
-        data: encryptedData as Prisma.UserCreateInput,
+        data: encryptedData as any,
       });
       return this.decryptUserData(user);
     } catch (error: CatchError) {

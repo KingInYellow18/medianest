@@ -7,9 +7,9 @@
  * for performance regressions across the MediaNest application.
  */
 
+const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 
 class PerformanceMonitor {
   constructor() {

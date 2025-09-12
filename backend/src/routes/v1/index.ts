@@ -1,10 +1,11 @@
 import { Router } from 'express';
 
+import { authenticate } from '@/middleware/auth';
+
 import { performanceRoutes } from '../performance';
 import { simpleHealthRouter } from '../simple-health';
 import systemRoutes from '../system';
 import testRoutes from '../test';
-
 import adminRoutes from './admin';
 import authRoutes from './auth';
 import { router as csrfRoutes } from './csrf';
@@ -18,7 +19,6 @@ import servicesRoutes from './services';
 import webhookRoutes from './webhooks';
 import youtubeRoutes from './youtube';
 
-import { authenticate } from '@/middleware/auth';
 
 // Context7 Pattern: Optimized Router with Performance Considerations
 const router = Router();

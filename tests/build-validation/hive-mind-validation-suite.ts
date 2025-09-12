@@ -7,9 +7,10 @@
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-import { TypeScriptValidator } from './typescript-validator';
+
 import { IntegrationTestSuite } from './integration-test-suite';
 import { RegressionPreventionMonitor } from './regression-prevention-monitor';
+import { TypeScriptValidator } from './typescript-validator';
 
 interface AgentValidation {
   agentId: string;

@@ -1,8 +1,8 @@
 import { Queue, QueueEvents } from 'bullmq';
 
+import { getRedis } from './redis';
 import { logger } from '../utils/logger';
 
-import { getRedis } from './redis';
 
 export let youtubeQueue: Queue;
 export let youtubeQueueEvents: QueueEvents;

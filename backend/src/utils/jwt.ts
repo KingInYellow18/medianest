@@ -3,9 +3,9 @@ import crypto from 'crypto';
 import { AppError } from '@medianest/shared';
 import jwt from 'jsonwebtoken';
 
+import { logger } from './logger';
 import { configService } from '../config/config.service';
 
-import { logger } from './logger';
 
 export interface JWTPayload {
   userId: string;

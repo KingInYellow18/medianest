@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 
+import { AuthenticationFacade, AuthenticatedUser } from './index';
 import { SessionTokenRepository } from '../repositories/session-token.repository';
 import { UserRepository } from '../repositories/user.repository';
 import { DeviceSessionService } from '../services/device-session.service';
@@ -7,7 +8,6 @@ import { CatchError } from '../types/common';
 import { AuthenticationError } from '../utils/errors';
 import { logger } from '../utils/logger';
 
-import { AuthenticationFacade, AuthenticatedUser } from './index';
 
 // Extended request interface
 export interface AuthenticatedRequest extends Request {

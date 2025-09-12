@@ -1,5 +1,5 @@
-import { plexHandlers } from './plex.handlers';
 import { overseerrHandlers } from './overseerr.handlers';
+import { plexHandlers } from './plex.handlers';
 import { uptimeKumaHandlers } from './uptime-kuma.handlers';
 import { youtubeHandlers } from './youtube.handlers';
 

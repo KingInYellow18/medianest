@@ -4,8 +4,8 @@
  * Supports both prometheus metrics integration and correlation tracking
  */
 
-import type { Logger as WinstonLogger } from 'winston';
 import type { Request, Response } from 'express';
+import type { Logger as WinstonLogger } from 'winston';
 
 // ===================================
 // WINSTON LOGGER TYPE EXTENSIONS

@@ -1,12 +1,13 @@
 import { Server } from 'socket.io';
 
+import { logger } from '@/utils/logger';
+
 import { registerAdminHandlers } from './handlers/admin.handlers';
 import { registerDownloadHandlers } from './handlers/download.handlers';
 import { registerNotificationHandlers } from './handlers/notification.handlers';
 import { registerStatusHandlers } from './handlers/status.handlers';
 import { authenticateSocket, authenticateAdminSocket } from './middleware';
 
-import { logger } from '@/utils/logger';
 
 /**
  * Setup Socket.IO namespaces for feature isolation and better organization

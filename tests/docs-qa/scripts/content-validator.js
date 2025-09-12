@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 
-const fs = require('fs-extra');
 const path = require('path');
-const glob = require('glob');
+
 const chalk = require('chalk');
+const fs = require('fs-extra');
+const glob = require('glob');
 const markdownlint = require('markdownlint');
 const HtmlValidate = require('html-validate').HtmlValidate;
+
 const { execSync } = require('child_process');
 
 class ContentValidator {

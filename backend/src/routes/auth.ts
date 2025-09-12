@@ -55,6 +55,7 @@ const sessionTokenRepository = new SessionTokenRepository(prisma);
 // const emailService = new EmailService(); // REMOVED - email system disabled
 const plexAuthService = new PlexAuthService(userRepository, sessionTokenRepository);
 const redisService = new (require('../services/redis.service').RedisService)();
+
 const passwordResetService = new PasswordResetService(
   userRepository,
   sessionTokenRepository,

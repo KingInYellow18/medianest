@@ -9,6 +9,8 @@
  */
 
 import { describe, it, expect } from 'vitest';
+
+import { ValidationError } from '../../../backend/src/utils/errors';
 import {
   validateEmail,
   validatePassword,
@@ -18,7 +20,6 @@ import {
   validateUUID,
   validatePlexId,
 } from '../../../backend/src/utils/validation';
-import { ValidationError } from '../../../backend/src/utils/errors';
 
 describe('Validation Utilities', () => {
   describe('validateEmail', () => {

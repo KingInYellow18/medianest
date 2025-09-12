@@ -5,8 +5,8 @@
  * This shows a scaled-down version of the comprehensive load testing suite
  */
 
-const { performance } = require('perf_hooks');
 const http = require('http');
+const { performance } = require('perf_hooks');
 
 class DemoLoadTester {
   constructor() {

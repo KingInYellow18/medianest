@@ -3,8 +3,9 @@
  * Fixes mock mismatches with real PlexService implementation
  */
 
-import { vi } from 'vitest';
 import { AppError } from '@medianest/shared';
+import { vi } from 'vitest';
+
 import type { Result, success, failure } from '../../../src/types/common';
 
 // Mock PlexClient interface to match actual implementation

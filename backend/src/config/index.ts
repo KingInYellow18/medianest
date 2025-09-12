@@ -1,10 +1,12 @@
 const sharedConfig: any = require('@medianest/shared/config');
+
 export const BackendConfigSchema = sharedConfig.BackendConfigSchema;
 export const environmentLoader = sharedConfig.environmentLoader;
 export const configUtils = sharedConfig.configUtils;
 export type BackendConfig = any;
 
 const configUtils2: any = require('@medianest/shared/config/utils');
+
 export const createConfiguration = configUtils2.createConfiguration;
 
 /**

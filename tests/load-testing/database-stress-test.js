@@ -5,9 +5,10 @@
  * Tests PostgreSQL connection pool limits and performance under extreme load
  */
 
-const { Pool } = require('pg');
-const Redis = require('ioredis');
 const { performance } = require('perf_hooks');
+
+const Redis = require('ioredis');
+const { Pool } = require('pg');
 
 class DatabaseStressTester {
   constructor(config = {}) {

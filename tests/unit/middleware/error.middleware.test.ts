@@ -9,6 +9,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+
 import { errorHandler, notFoundHandler } from '../../../backend/src/middleware/error.middleware';
 import { AppError, ValidationError, AuthenticationError } from '../../../backend/src/utils/errors';
 import { createMockResponse, createMockNext } from '../../mocks/auth-mock';

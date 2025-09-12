@@ -6,9 +6,9 @@
  */
 
 import { AuthenticatedUser } from '../auth';
+import { authSecurityService } from './auth-security-fixes';
 import { logger } from '../utils/logger';
 
-import { authSecurityService } from './auth-security-fixes';
 
 export interface AuthValidationContext {
   ipAddress: string;

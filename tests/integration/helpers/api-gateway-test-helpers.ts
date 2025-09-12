@@ -1,6 +1,8 @@
-import { Request, Response, NextFunction } from 'express';
 import { EventEmitter } from 'events';
+
+import { Request, Response, NextFunction } from 'express';
 import { WebSocket } from 'ws';
+
 import { redis } from '@/config/redis';
 
 /**
@@ -179,7 +181,7 @@ export class LoadTestManager {
     const endTime = startTime + options.duration;
     const rampUpTime = options.rampUpTime || 0;
 
-    let activeWorkers = 0;
+    const activeWorkers = 0;
     const maxWorkers = options.concurrency;
 
     const startWorker = async () => {

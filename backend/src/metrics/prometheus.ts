@@ -4,11 +4,13 @@
  */
 
 import { performance } from 'perf_hooks';
+
 import { Request, Response, NextFunction } from 'express';
 import * as client from 'prom-client';
 import { Counter, Gauge, Histogram, Summary, register } from 'prom-client';
-import { logger } from '../utils/logger';
+
 import { CatchError } from '../types/common';
+import { logger } from '../utils/logger';
 
 // Initialize default metrics collection
 client.collectDefaultMetrics({

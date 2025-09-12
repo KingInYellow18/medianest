@@ -1,6 +1,7 @@
 // import { PrismaClient } from '@prisma/client';
-type PrismaClient = any;
 import { logger } from '../utils/logger';
+
+type PrismaClient = any;
 
 /**
  * Database optimization configurations and connection pooling

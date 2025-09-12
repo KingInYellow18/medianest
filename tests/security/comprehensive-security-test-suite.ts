@@ -1,18 +1,20 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
-import request from 'supertest';
-import jwt from 'jsonwebtoken';
-import { User } from '@prisma/client';
+import { spawn, ChildProcess } from 'child_process';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
-import { spawn, ChildProcess } from 'child_process';
 
-import { app } from '../../backend/src/server';
-import { cleanDatabase, disconnectDatabase } from '../helpers/database';
-import { createTestUser, generateValidToken } from '../helpers/auth';
-import { UserRepository } from '../../backend/src/repositories/user.repository';
-import { SessionTokenRepository } from '../../backend/src/repositories/session-token.repository';
+import { User } from '@prisma/client';
+import jwt from 'jsonwebtoken';
+import request from 'supertest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
+
+
 import { getRedis } from '../../backend/src/config/redis';
+import { SessionTokenRepository } from '../../backend/src/repositories/session-token.repository';
+import { UserRepository } from '../../backend/src/repositories/user.repository';
+import { app } from '../../backend/src/server';
+import { createTestUser, generateValidToken } from '../helpers/auth';
+import { cleanDatabase, disconnectDatabase } from '../helpers/database';
 
 /**
  * COMPREHENSIVE SECURITY TEST SUITE

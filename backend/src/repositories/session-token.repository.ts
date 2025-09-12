@@ -5,13 +5,13 @@ import {
 } from '@medianest/shared';
 import { Prisma } from '@prisma/client';
 
-type SessionToken = Prisma.SessionTokenGetPayload<{}>;
-
 // @ts-ignore
 
+import { BaseRepository } from './base.repository';
 import { CatchError } from '../types/common';
 
-import { BaseRepository } from './base.repository';
+
+type SessionToken = any;
 
 export interface CreateSessionTokenInput {
   userId: string;

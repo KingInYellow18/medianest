@@ -5,12 +5,13 @@
  * Covers search, requests, CRUD operations, and external API integrations
  */
 
-import { describe, test, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
-import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
+import request from 'supertest';
+import { describe, test, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
+
 import { createServer } from '../../src/server';
-import { DatabaseTestHelper } from '../helpers/database-test-helper';
 import { AuthTestHelper } from '../helpers/auth-test-helper';
+import { DatabaseTestHelper } from '../helpers/database-test-helper';
 
 const prisma = new PrismaClient();
 let app: any;

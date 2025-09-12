@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 
-const fs = require('fs-extra');
+const { execSync } = require('child_process');
 const path = require('path');
+
+const chalk = require('chalk');
+const fs = require('fs-extra');
 const glob = require('glob');
 const markdownLinkCheck = require('markdown-link-check');
-const chalk = require('chalk');
-const { execSync } = require('child_process');
+
 
 class LinkChecker {
   constructor() {

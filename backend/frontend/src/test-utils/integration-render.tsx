@@ -3,11 +3,12 @@
  * Provides enhanced testing utilities with full app context, providers, and MSW integration
  */
 
-import React, { ReactElement, ReactNode } from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { AppProvider } from '../contexts/OptimizedAppContext';
+import React, { ReactElement, ReactNode } from 'react';
+
 import { mswUtils } from './msw-server';
+import { AppProvider } from '../contexts/OptimizedAppContext';
 
 // Integration test provider that wraps components with all necessary providers
 interface IntegrationProviderProps {

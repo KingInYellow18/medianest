@@ -1,6 +1,8 @@
-import { config } from 'dotenv';
-import { resolve, join } from 'path';
 import { existsSync } from 'fs';
+import { resolve, join } from 'path';
+
+import { config } from 'dotenv';
+
 import { EnvironmentLoader, validateEnvironment, type EnvironmentConfig } from './env-validator';
 import { initializeSecrets } from './secret-manager';
 

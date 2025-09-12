@@ -1,10 +1,11 @@
 import { AppError } from '@medianest/shared';
 import { Request, Response } from 'express';
 
-import { CatchError } from '../types/common';
 
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/utils/logger';
+
+import { CatchError } from '../types/common';
 
 export class AdminController {
   /**

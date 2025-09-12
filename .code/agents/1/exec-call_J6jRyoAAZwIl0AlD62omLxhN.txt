@@ -1,0 +1,1248 @@
+Top-level dirs (depth 2):
+.
+backend
+backend/allure-results
+backend/backups
+backend/.claude-flow
+backend/coverage
+backend/dist
+backend/docker
+backend/docs
+backend/frontend
+backend/.github
+backend/logs
+backend/.medianest-cleanup
+backend/memory
+backend/nginx
+backend/node_modules
+backend/prisma
+backend/scripts
+backend/src
+backend/.swarm
+backend/tests
+backups
+.claude
+.claude/agents
+.claude/checkpoints
+.claude/commands
+.claude-flow
+.claude-flow/metrics
+.claude-flow/sessions
+.claude/helpers
+.code
+.code/agents
+config
+config/docker
+config/environments
+config/nginx
+config/production
+config/security
+config/service-discovery
+coverage-reports
+deployment
+deployment/environment
+deployment/scripts
+docker-scripts
+docs
+docs/api
+docs/architecture
+docs/assets
+docs/deployment
+docs/developers
+docs/diagrams
+docs/getting-started
+docs/implementation
+docs/javascripts
+docs/kubernetes-backup-$(date +%Y%m%d)
+docs/kubernetes-backup-20250911
+docs/layouts
+docs/operations
+docs/overrides
+docs/reports
+docs/roadmap
+docs/security
+docs/standards
+docs/stylesheets
+docs/testing
+docs/troubleshooting
+docs/validation
+docs/visuals
+frontend
+frontend/.claude-flow
+frontend/coverage
+frontend/dist
+frontend/docs
+frontend/.github
+frontend/memory
+frontend/node_modules
+frontend/scripts
+frontend/security
+frontend/src
+frontend/.swarm
+frontend/__tests__
+frontend/tests
+frontend/types
+.git
+.git/branches
+.git/hooks
+.github
+.github/ISSUE_TEMPLATE
+.github/workflows
+.github/workflows-disabled
+.git/info
+.git/logs
+.git/objects
+.git/refs
+.git/worktrees
+.husky
+.husky/_
+infrastructure
+infrastructure/database
+infrastructure/nginx
+infrastructure/scripts
+logs
+logs/archive
+logs/integration-test
+logs/validation
+memory
+memory/MEDIANEST_PROD_VALIDATION
+memory/medianest-test-optimization
+metrics
+metrics/dashboards
+metrics/data
+metrics/scripts
+mkdocs-env
+mkdocs-env/lib
+monitoring
+monitoring/alertmanager
+monitoring/blackbox-exporter
+monitoring/config
+monitoring/data
+monitoring/grafana
+monitoring/loki
+monitoring/postgres-exporter
+monitoring/prometheus
+monitoring/promtail
+monitoring/scripts
+node_modules
+node_modules/abbrev
+node_modules/accepts
+node_modules/acorn
+node_modules/acorn-import-attributes
+node_modules/acorn-import-phases
+node_modules/acorn-jsx
+node_modules/acorn-walk
+node_modules/@adobe
+node_modules/agent-base
+node_modules/ajv
+node_modules/ajv-formats
+node_modules/@alloc
+node_modules/allure-js-commons
+node_modules/allure-playwright
+node_modules/@ampproject
+node_modules/ansi-color
+node_modules/ansi-regex
+node_modules/ansi-styles
+node_modules/anymatch
+node_modules/any-promise
+node_modules/aproba
+node_modules/are-we-there-yet
+node_modules/arg
+node_modules/argparse
+node_modules/aria-query
+node_modules/array-buffer-byte-length
+node_modules/arraybuffer.prototype.slice
+node_modules/array-flatten
+node_modules/array-includes
+node_modules/array.prototype.findlast
+node_modules/array.prototype.findlastindex
+node_modules/array.prototype.flat
+node_modules/array.prototype.flatmap
+node_modules/array.prototype.tosorted
+node_modules/array-union
+node_modules/@asamuzakjp
+node_modules/asap
+node_modules/assertion-error
+node_modules/ast-types-flow
+node_modules/ast-v8-to-istanbul
+node_modules/async-function
+node_modules/asynckit
+node_modules/autoprefixer
+node_modules/available-typed-arrays
+node_modules/axe-core
+node_modules/axios
+node_modules/axobject-query
+node_modules/@babel
+node_modules/balanced-match
+node_modules/base32.js
+node_modules/base64id
+node_modules/@bcoe
+node_modules/bcrypt
+node_modules/bignumber.js
+node_modules/.bin
+node_modules/binary-extensions
+node_modules/bintrees
+node_modules/body-parser
+node_modules/brace-expansion
+node_modules/braces
+node_modules/browserslist
+node_modules/buffer-equal-constant-time
+node_modules/buffer-from
+node_modules/bufrw
+node_modules/bull
+node_modules/bullmq
+node_modules/bytes
+node_modules/c12
+node_modules/cac
+node_modules/.cache
+node_modules/call-bind
+node_modules/call-bind-apply-helpers
+node_modules/call-bound
+node_modules/callsites
+node_modules/camelcase
+node_modules/camelcase-css
+node_modules/caniuse-lite
+node_modules/chai
+node_modules/chalk
+node_modules/charenc
+node_modules/check-error
+node_modules/chokidar
+node_modules/chownr
+node_modules/chrome-trace-event
+node_modules/citty
+node_modules/cjs-module-lexer
+node_modules/client-only
+node_modules/cliui
+node_modules/clone-deep
+node_modules/cluster-key-slot
+node_modules/color
+node_modules/color-convert
+node_modules/colorette
+node_modules/color-name
+node_modules/@colors
+node_modules/colorspace
+node_modules/color-string
+node_modules/color-support
+node_modules/combined-stream
+node_modules/component-emitter
+node_modules/compressible
+node_modules/compression
+node_modules/concat-map
+node_modules/confbox
+node_modules/consola
+node_modules/console-control-strings
+node_modules/content-disposition
+node_modules/content-type
+node_modules/convert-source-map
+node_modules/cookie
+node_modules/cookiejar
+node_modules/cookie-parser
+node_modules/cookie-signature
+node_modules/cors
+node_modules/create-require
+node_modules/cron-parser
+node_modules/cross-spawn
+node_modules/crypt
+node_modules/@cspotcode
+node_modules/cssesc
+node_modules/css.escape
+node_modules/cssstyle
+node_modules/@csstools
+node_modules/csstype
+
+Package.json locations with name/scripts/workspaces/private:
+--- ./shared/package.json
+     2	  "name": "@medianest/shared",
+     4	  "private": true,
+    40	  "scripts": {
+--- ./shared/node_modules/uuid/package.json
+     2	  "name": "uuid",
+    94	  "scripts": {
+   137	    "scripts": {
+--- ./shared/node_modules/semver/package.json
+     2	  "name": "semver",
+     6	  "scripts": {
+--- ./shared/node_modules/ts-api-utils/package.json
+     2		"name": "ts-api-utils",
+    11			"name": "JoshuaKGoldberg",
+    32		"scripts": {
+--- ./shared/node_modules/ignore/package.json
+     2	  "name": "ignore",
+    11	  "scripts": {
+--- ./shared/node_modules/@typescript-eslint/visitor-keys/package.json
+     2	  "name": "@typescript-eslint/visitor-keys",
+    39	  "scripts": {
+--- ./shared/node_modules/@typescript-eslint/typescript-estree/package.json
+     2	  "name": "@typescript-eslint/typescript-estree",
+    46	  "scripts": {
+--- ./shared/node_modules/@typescript-eslint/type-utils/package.json
+     2	  "name": "@typescript-eslint/type-utils",
+    38	  "scripts": {
+--- ./shared/node_modules/@typescript-eslint/parser/package.json
+     2	  "name": "@typescript-eslint/parser",
+    41	  "scripts": {
+--- ./shared/node_modules/@typescript-eslint/types/package.json
+     2	  "name": "@typescript-eslint/types",
+    39	  "scripts": {
+--- ./shared/node_modules/@typescript-eslint/utils/package.json
+     2	  "name": "@typescript-eslint/utils",
+    55	  "scripts": {
+--- ./shared/node_modules/@typescript-eslint/eslint-plugin/package.json
+     2	  "name": "@typescript-eslint/eslint-plugin",
+    49	  "scripts": {
+--- ./shared/node_modules/@typescript-eslint/scope-manager/package.json
+     2	  "name": "@typescript-eslint/scope-manager",
+    38	  "scripts": {
+--- ./.vitest-cache/vitest/da39a3ee5e6b4b0d3255bfef95601890afd80709/deps_ssr/package.json
+--- ./frontend/package.json
+     2	  "name": "@medianest/frontend",
+     4	  "private": true,
+     5	  "scripts": {
+--- ./package.json
+     2	  "name": "medianest",
+     7	  "workspaces": [
+    12	  "scripts": {
+--- ./backend/frontend/package.json
+     2	  "name": "medianest-frontend",
+     6	  "scripts": {
+--- ./backend/frontend/node_modules/check-error/package.json
+     2	  "name": "check-error",
+    26	  "scripts": {
+--- ./backend/frontend/node_modules/electron-to-chromium/package.json
+     2	  "name": "electron-to-chromium",
+    17	  "scripts": {
+--- ./backend/frontend/node_modules/ci-info/package.json
+     2	  "name": "ci-info",
+    15	      "name": "Sibiraj",
+    38	  "scripts": {
+--- ./backend/frontend/node_modules/cac/package.json
+     2	  "name": "cac",
+    29	  "scripts": {
+--- ./backend/frontend/node_modules/ufo/package.json
+     2	  "name": "ufo",
+    22	  "scripts": {
+--- ./backend/frontend/node_modules/requires-port/package.json
+     2	  "name": "requires-port",
+     6	  "scripts": {
+--- ./backend/frontend/node_modules/side-channel/package.json
+     2		"name": "side-channel",
+    11		"scripts": {
+--- ./backend/frontend/node_modules/@sinclair/typebox/type/package.json
+--- ./backend/frontend/node_modules/@sinclair/typebox/compiler/package.json
+--- ./backend/frontend/node_modules/@sinclair/typebox/value/package.json
+--- ./backend/frontend/node_modules/@sinclair/typebox/syntax/package.json
+--- ./backend/frontend/node_modules/@sinclair/typebox/errors/package.json
+--- ./backend/frontend/node_modules/@sinclair/typebox/system/package.json
+--- ./backend/frontend/node_modules/@sinclair/typebox/parser/package.json
+--- ./backend/frontend/node_modules/@sinclair/typebox/package.json
+     2	  "name": "@sinclair/typebox",
+    17	  "scripts": {
+--- ./backend/frontend/node_modules/functions-have-names/package.json
+     2		"name": "functions-have-names",
+     6		"scripts": {
+    23			"name",
+--- ./backend/frontend/node_modules/is-symbol/package.json
+     2		"name": "is-symbol",
+     6		"scripts": {
+--- ./backend/frontend/node_modules/punycode/package.json
+     2	  "name": "punycode",
+    23	    "name": "Mathias Bynens",
+    28	      "name": "Mathias Bynens",
+    42	  "scripts": {
+--- ./backend/frontend/node_modules/mlly/package.json
+     2	  "name": "mlly",
+    20	  "scripts": {
+--- ./backend/frontend/node_modules/mlly/node_modules/pathe/package.json
+     2	  "name": "pathe",
+    52	  "scripts": {
+--- ./backend/frontend/node_modules/which/package.json
+     3	  "name": "which",
+    23	  "scripts": {
+--- ./backend/frontend/node_modules/side-channel-list/package.json
+     2		"name": "side-channel-list",
+    11		"scripts": {
+--- ./backend/frontend/node_modules/is-path-inside/package.json
+     2		"name": "is-path-inside",
+     8			"name": "Sindre Sorhus",
+    15		"scripts": {
+--- ./backend/frontend/node_modules/parent-module/package.json
+     2		"name": "parent-module",
+     8			"name": "Sindre Sorhus",
+    15		"scripts": {
+--- ./backend/frontend/node_modules/lz-string/package.json
+     2	  "name": "lz-string",
+    18	  "scripts": {},
+--- ./backend/frontend/node_modules/@inquirer/type/dist/commonjs/package.json
+--- ./backend/frontend/node_modules/@inquirer/type/dist/esm/package.json
+--- ./backend/frontend/node_modules/@inquirer/type/package.json
+     2	  "name": "@inquirer/type",
+    73	  "scripts": {
+--- ./backend/frontend/node_modules/@inquirer/core/dist/commonjs/package.json
+--- ./backend/frontend/node_modules/@inquirer/core/dist/esm/package.json
+--- ./backend/frontend/node_modules/@inquirer/core/package.json
+     2	  "name": "@inquirer/core",
+    72	  "scripts": {
+--- ./backend/frontend/node_modules/@inquirer/confirm/dist/commonjs/package.json
+--- ./backend/frontend/node_modules/@inquirer/confirm/dist/esm/package.json
+--- ./backend/frontend/node_modules/@inquirer/confirm/package.json
+     2	  "name": "@inquirer/confirm",
+    72	  "scripts": {
+--- ./backend/frontend/node_modules/@inquirer/figures/dist/commonjs/package.json
+--- ./backend/frontend/node_modules/@inquirer/figures/dist/esm/package.json
+--- ./backend/frontend/node_modules/@inquirer/figures/package.json
+     2	  "name": "@inquirer/figures",
+    73	  "scripts": {
+--- ./backend/frontend/node_modules/istanbul-reports/package.json
+     2	  "name": "istanbul-reports",
+    11	  "scripts": {
+--- ./backend/frontend/node_modules/wrap-ansi/package.json
+     2		"name": "wrap-ansi",
+     8			"name": "Sindre Sorhus",
+    15		"scripts": {
+--- ./backend/frontend/node_modules/form-data/package.json
+     3	  "name": "form-data",
+    13	  "scripts": {
+--- ./backend/frontend/node_modules/@istanbuljs/schema/package.json
+     2		"name": "@istanbuljs/schema",
+     6		"scripts": {
+--- ./backend/frontend/node_modules/color-convert/package.json
+     2	  "name": "color-convert",
+     8	  "scripts": {
+--- ./backend/frontend/node_modules/which-collection/package.json
+     2		"name": "which-collection",
+    11		"scripts": {
+--- ./backend/frontend/node_modules/mdn-data/package.json
+     2	  "name": "mdn-data",
+    34	  "scripts": {
+--- ./backend/frontend/node_modules/string-width/package.json
+     2		"name": "string-width",
+     8			"name": "Sindre Sorhus",
+    15		"scripts": {
+--- ./backend/frontend/node_modules/escalade/package.json
+     2	  "name": "escalade",
+    11	    "name": "Luke Edwards",
+    56	  "scripts": {
+--- ./backend/frontend/node_modules/indent-string/package.json
+     2		"name": "indent-string",
+     8			"name": "Sindre Sorhus",
+    15		"scripts": {
+--- ./backend/frontend/node_modules/universalify/package.json
+     2	  "name": "universalify",
+    21	  "scripts": {
+--- ./backend/frontend/node_modules/delayed-stream/package.json
+     6	  "name": "delayed-stream",
+    19	  "scripts": {
+--- ./backend/frontend/node_modules/fast-glob/package.json
+     2	  "name": "fast-glob",
+     8	    "name": "Denis Malinochkin",
+    58	  "scripts": {
+--- ./backend/frontend/node_modules/fast-glob/node_modules/glob-parent/package.json
+     2	  "name": "glob-parent",
+    20	  "scripts": {
+--- ./backend/frontend/node_modules/deep-equal/package.json
+     2	  "name": "deep-equal",
+    21	  "scripts": {
+    81	    "name": "James Halliday",
+--- ./backend/frontend/node_modules/fflate/package.json
+     2	  "name": "fflate",
+    88	  "scripts": {
+--- ./backend/frontend/node_modules/once/package.json
+     2	  "name": "once",
+    15	  "scripts": {
+--- ./backend/frontend/node_modules/undici-types/package.json
+     2	  "name": "undici-types",
+    20	      "name": "Daniele Belardi",
+    25	      "name": "Ethan Arrowood",
+    30	      "name": "Matteo Collina",
+    35	      "name": "Matthew Aitken",
+    40	      "name": "Robert Nagy",
+    45	      "name": "Szymon Marczak",
+    50	      "name": "Tomas Della Vedova",
+--- ./backend/frontend/node_modules/regexp.prototype.flags/package.json
+     2		"name": "regexp.prototype.flags",
+    11		"scripts": {
+--- ./backend/frontend/node_modules/magicast/package.json
+     2	  "name": "magicast",
+    26	  "scripts": {
+--- ./backend/frontend/node_modules/vite/types/package.json
+--- ./backend/frontend/node_modules/vite/package.json
+     2	  "name": "vite",
+--- ./backend/frontend/node_modules/sirv/package.json
+     2	  "name": "sirv",
+    15	    "name": "Luke Edwards",
+--- ./backend/frontend/node_modules/tldts-core/package.json
+     2	  "name": "tldts-core",
+     6	    "name": "Rémi Berson"
+    46	  "scripts": {
+--- ./backend/frontend/node_modules/outvariant/package.json
+     2	  "name": "outvariant",
+    17	  "scripts": {
+--- ./backend/frontend/node_modules/strip-final-newline/package.json
+     2		"name": "strip-final-newline",
+     9			"name": "Sindre Sorhus",
+    18		"scripts": {
+--- ./backend/frontend/node_modules/@humanwhocodes/object-schema/package.json
+     2	  "name": "@humanwhocodes/object-schema",
+    14	  "scripts": {
+--- ./backend/frontend/node_modules/@humanwhocodes/module-importer/package.json
+     2	  "name": "@humanwhocodes/module-importer",
+    32	  "scripts": {
+--- ./backend/frontend/node_modules/@humanwhocodes/config-array/package.json
+     2	  "name": "@humanwhocodes/config-array",
+    20	  "scripts": {
+--- ./backend/frontend/node_modules/@humanwhocodes/config-array/node_modules/minimatch/package.json
+     3	  "name": "minimatch",
+    14	  "scripts": {
+--- ./backend/frontend/node_modules/@humanwhocodes/config-array/node_modules/brace-expansion/package.json
+     2	  "name": "brace-expansion",
+    11	  "scripts": {
+    26	    "name": "Julian Gruber",
+--- ./backend/frontend/node_modules/ws/package.json
+     2	  "name": "ws",
+    40	  "scripts": {
+--- ./backend/frontend/node_modules/dunder-proto/package.json
+     2		"name": "dunder-proto",
+    12		"scripts": {
+--- ./backend/frontend/node_modules/dom-accessibility-api/package.json
+     2		"name": "dom-accessibility-api",
+    21		"scripts": {
+--- ./backend/frontend/node_modules/object-inspect/package.json
+     2	  "name": "object-inspect",
+    33	  "scripts": {
+    76	    "name": "James Halliday",
+--- ./backend/frontend/node_modules/nanoid/non-secure/package.json
+--- ./backend/frontend/node_modules/nanoid/async/package.json
+--- ./backend/frontend/node_modules/nanoid/url-alphabet/package.json
+--- ./backend/frontend/node_modules/nanoid/package.json
+     2	  "name": "nanoid",
+--- ./backend/frontend/node_modules/micromatch/package.json
+     2	  "name": "micromatch",
+    36	  "scripts": {
+--- ./backend/frontend/node_modules/micromatch/node_modules/picomatch/package.json
+     2	  "name": "picomatch",
+    21	  "scripts": {
+--- ./backend/frontend/node_modules/yallist/package.json
+     2	  "name": "yallist",
+    17	  "scripts": {
+--- ./backend/frontend/node_modules/acorn-jsx/package.json
+     2	  "name": "acorn-jsx",
+     8	      "name": "Ingvar Stepanyan",
+    18	  "scripts": {
+--- ./backend/frontend/node_modules/wrappy/package.json
+     2	  "name": "wrappy",
+    16	  "scripts": {
+--- ./backend/frontend/node_modules/yargs-parser/package.json
+     2	  "name": "yargs-parser",
+    20	  "scripts": {
+--- ./backend/frontend/node_modules/fast-levenshtein/package.json
+     2	  "name": "fast-levenshtein",
+     9	  "scripts": {
+--- ./backend/frontend/node_modules/gensync/package.json
+     2	  "name": "gensync",
+    13	  "scripts": {
+--- ./backend/frontend/node_modules/glob/package.json
+     3	  "name": "glob",
+    42	  "scripts": {
+--- ./backend/frontend/node_modules/glob/node_modules/minimatch/package.json
+     3	  "name": "minimatch",
+    14	  "scripts": {
+--- ./backend/frontend/node_modules/glob/node_modules/brace-expansion/package.json
+     2	  "name": "brace-expansion",
+    11	  "scripts": {
+    26	    "name": "Julian Gruber",
+--- ./backend/frontend/node_modules/@vitest/coverage-v8/package.json
+
+ESLint/Prettier config files:
+./shared/eslint.config.js
+./frontend/.eslintrc.security.js
+./frontend/.prettierrc
+./.prettierrc.json
+./eslint.config.js
+./.prettierignore
+./backend/frontend/node_modules/side-channel/.eslintrc
+./backend/frontend/node_modules/functions-have-names/.eslintrc
+./backend/frontend/node_modules/is-symbol/.eslintrc
+./backend/frontend/node_modules/side-channel-list/.eslintrc
+./backend/frontend/node_modules/which-collection/.eslintrc
+./backend/frontend/node_modules/deep-equal/.eslintrc
+./backend/frontend/node_modules/regexp.prototype.flags/.eslintrc
+./backend/frontend/node_modules/dunder-proto/.eslintrc
+./backend/frontend/node_modules/object-inspect/.eslintrc
+./backend/frontend/node_modules/json-schema-traverse/.eslintrc.yml
+./backend/frontend/node_modules/json-schema-traverse/spec/.eslintrc.yml
+./backend/frontend/node_modules/side-channel-map/.eslintrc
+./backend/frontend/node_modules/get-intrinsic/.eslintrc
+./backend/frontend/node_modules/object-keys/.eslintrc
+./backend/frontend/node_modules/define-properties/.eslintrc
+./backend/frontend/node_modules/which-boxed-primitive/.eslintrc
+./backend/frontend/node_modules/hasown/.eslintrc
+./backend/frontend/node_modules/is-set/.eslintrc
+./backend/frontend/node_modules/call-bind/.eslintrc
+./backend/frontend/node_modules/es-errors/.eslintrc
+./backend/frontend/node_modules/call-bound/.eslintrc
+./backend/frontend/node_modules/is-arguments/.eslintrc
+./backend/frontend/node_modules/es-object-atoms/.eslintrc
+./backend/frontend/node_modules/is-shared-array-buffer/.eslintrc
+./backend/frontend/node_modules/function-bind/test/.eslintrc
+./backend/frontend/node_modules/function-bind/.eslintrc
+./backend/frontend/node_modules/is-string/.eslintrc
+./backend/frontend/node_modules/which-typed-array/.eslintrc
+./backend/frontend/node_modules/is-number-object/.eslintrc
+./backend/frontend/node_modules/math-intrinsics/.eslintrc
+./backend/frontend/node_modules/safe-regex-test/.eslintrc
+./backend/frontend/node_modules/object-is/.eslintrc
+./backend/frontend/node_modules/array-buffer-byte-length/.eslintrc
+./backend/frontend/node_modules/is-callable/.eslintrc
+./backend/frontend/node_modules/call-bind-apply-helpers/.eslintrc
+./backend/frontend/node_modules/stop-iteration-iterator/.eslintrc
+./backend/frontend/node_modules/is-date-object/.eslintrc
+./backend/frontend/node_modules/has-symbols/.eslintrc
+./backend/frontend/node_modules/fast-json-stable-stringify/.eslintrc.yml
+./backend/frontend/node_modules/has-tostringtag/.eslintrc
+./backend/frontend/node_modules/is-weakmap/.eslintrc
+./backend/frontend/node_modules/has-bigints/.eslintrc
+./backend/frontend/node_modules/has-property-descriptors/.eslintrc
+./backend/frontend/node_modules/internal-slot/.eslintrc
+./backend/frontend/node_modules/gopd/.eslintrc
+./backend/frontend/node_modules/is-regex/.eslintrc
+./backend/frontend/node_modules/get-proto/.eslintrc
+./backend/frontend/node_modules/ajv/scripts/.eslintrc.yml
+./backend/frontend/node_modules/for-each/.eslintrc
+./backend/frontend/node_modules/es-define-property/.eslintrc
+./backend/frontend/node_modules/is-array-buffer/.eslintrc
+./backend/frontend/node_modules/object.assign/.eslintrc
+./backend/frontend/node_modules/set-function-length/.eslintrc
+./backend/frontend/node_modules/es-set-tostringtag/.eslintrc
+./backend/frontend/node_modules/reusify/eslint.config.js
+./backend/frontend/node_modules/is-bigint/.eslintrc
+./backend/frontend/node_modules/is-weakset/.eslintrc
+./backend/frontend/node_modules/is-map/.eslintrc
+./backend/frontend/node_modules/available-typed-arrays/.eslintrc
+./backend/frontend/node_modules/is-boolean-object/.eslintrc
+./backend/frontend/node_modules/entities/src/generated/.eslintrc.json
+./backend/frontend/node_modules/define-data-property/.eslintrc
+./backend/frontend/node_modules/side-channel-weakmap/.eslintrc
+./backend/frontend/node_modules/possible-typed-array-names/.eslintrc
+./backend/frontend/node_modules/set-function-name/.eslintrc
+./backend/frontend/node_modules/es-get-iterator/.eslintrc
+./backend/eslint.config.js
+./node_modules/es-shim-unscopables/.eslintrc
+./node_modules/side-channel/.eslintrc
+./node_modules/typed-array-length/.eslintrc
+./node_modules/functions-have-names/.eslintrc
+./node_modules/is-symbol/.eslintrc
+./node_modules/eslint-plugin-jsx-a11y/.eslintrc
+./node_modules/object.entries/test/.eslintrc
+./node_modules/object.entries/.eslintrc
+./node_modules/side-channel-list/.eslintrc
+./node_modules/which-collection/.eslintrc
+./node_modules/es-abstract/.eslintrc
+./node_modules/string.prototype.includes/.eslintrc
+./node_modules/extend/.eslintrc
+./node_modules/ts-loader/.prettierrc
+./node_modules/ts-loader/.eslintrc.js
+./node_modules/ts-loader/.prettierignore
+./node_modules/is-finalizationregistry/.eslintrc
+./node_modules/regexp.prototype.flags/.eslintrc
+./node_modules/unbox-primitive/.eslintrc
+./node_modules/dunder-proto/.eslintrc
+./node_modules/object-inspect/.eslintrc
+./node_modules/string.prototype.trimstart/.eslintrc
+./node_modules/qs/.eslintrc
+./node_modules/safe-array-concat/.eslintrc
+./node_modules/schema-utils/node_modules/json-schema-traverse/.eslintrc.yml
+./node_modules/schema-utils/node_modules/json-schema-traverse/spec/.eslintrc.yml
+./node_modules/string.prototype.matchall/.eslintrc
+./node_modules/data-view-byte-length/.eslintrc
+./node_modules/async-function/.eslintrc
+./node_modules/body-parser/node_modules/debug/.eslintrc
+./node_modules/is-weakref/.eslintrc
+./node_modules/@rushstack/eslint-patch/.eslintrc.js
+./node_modules/is-async-function/.eslintrc
+./node_modules/ajv-formats/node_modules/json-schema-traverse/.eslintrc.yml
+./node_modules/ajv-formats/node_modules/json-schema-traverse/spec/.eslintrc.yml
+./node_modules/logform/.eslintrc
+./node_modules/json-schema-traverse/.eslintrc.yml
+./node_modules/json-schema-traverse/spec/.eslintrc.yml
+./node_modules/object.groupby/.eslintrc
+./node_modules/side-channel-map/.eslintrc
+./node_modules/import-in-the-middle/.eslintrc.yaml
+./node_modules/get-intrinsic/.eslintrc
+./node_modules/object-keys/.eslintrc
+./node_modules/finalhandler/node_modules/debug/.eslintrc
+./node_modules/string.prototype.trimend/.eslintrc
+./node_modules/define-properties/.eslintrc
+./node_modules/which-boxed-primitive/.eslintrc
+./node_modules/hasown/.eslintrc
+./node_modules/is-set/.eslintrc
+./node_modules/call-bind/.eslintrc
+./node_modules/has-proto/.eslintrc
+./node_modules/arraybuffer.prototype.slice/.eslintrc
+./node_modules/es-errors/.eslintrc
+./node_modules/supports-preserve-symlinks-flag/.eslintrc
+./node_modules/string.prototype.trim/.eslintrc
+./node_modules/call-bound/.eslintrc
+./node_modules/es-object-atoms/.eslintrc
+./node_modules/is-shared-array-buffer/.eslintrc
+./node_modules/function-bind/test/.eslintrc
+./node_modules/function-bind/.eslintrc
+./node_modules/is-string/.eslintrc
+./node_modules/which-typed-array/.eslintrc
+./node_modules/is-number-object/.eslintrc
+./node_modules/fastest-levenshtein/.eslintrc.json
+./node_modules/fastest-levenshtein/.prettierrc
+./node_modules/math-intrinsics/.eslintrc
+./node_modules/pngjs/.eslintrc.json
+./node_modules/pngjs/.prettierignore
+./node_modules/safe-regex-test/.eslintrc
+./node_modules/array-buffer-byte-length/.eslintrc
+./node_modules/jsx-ast-utils/.eslintrc
+./node_modules/is-callable/.eslintrc
+./node_modules/call-bind-apply-helpers/.eslintrc
+./node_modules/stop-iteration-iterator/.eslintrc
+./node_modules/fast-uri/eslint.config.js
+./node_modules/express/node_modules/debug/.eslintrc
+./node_modules/data-view-buffer/.eslintrc
+./node_modules/is-date-object/.eslintrc
+./node_modules/winston-transport/.eslintrc
+./node_modules/is-typed-array/.eslintrc
+./node_modules/which-builtin-type/.eslintrc
+./node_modules/has-symbols/.eslintrc
+./node_modules/array.prototype.findlastindex/.eslintrc
+./node_modules/es-iterator-helpers/.eslintrc
+./node_modules/fast-json-stable-stringify/.eslintrc.yml
+./node_modules/object.fromentries/.eslintrc
+./node_modules/has-tostringtag/.eslintrc
+./node_modules/array.prototype.flat/.eslintrc
+./node_modules/is-weakmap/.eslintrc
+./node_modules/has-bigints/.eslintrc
+./node_modules/reflect.getprototypeof/.eslintrc
+./node_modules/is-generator-function/.eslintrc
+./node_modules/get-symbol-description/.eslintrc
+./node_modules/data-view-byte-offset/.eslintrc
+./node_modules/has-property-descriptors/.eslintrc
+./node_modules/is-core-module/.eslintrc
+./node_modules/internal-slot/.eslintrc
+./node_modules/gopd/.eslintrc
+./node_modules/is-data-view/.eslintrc
+./node_modules/send/node_modules/debug/.eslintrc
+./node_modules/is-regex/.eslintrc
+./node_modules/get-proto/.eslintrc
+./node_modules/ajv/scripts/.eslintrc.yml
+./node_modules/for-each/.eslintrc
+./node_modules/es-define-property/.eslintrc
+./node_modules/array.prototype.tosorted/.eslintrc
+./node_modules/is-array-buffer/.eslintrc
+./node_modules/object.assign/.eslintrc
+./node_modules/set-function-length/.eslintrc
+./node_modules/set-proto/.eslintrc
+./node_modules/es-set-tostringtag/.eslintrc
+./node_modules/iterator.prototype/.eslintrc
+./node_modules/reusify/eslint.config.js
+./node_modules/is-bigint/.eslintrc
+./node_modules/array-includes/.eslintrc
+./node_modules/compression/node_modules/debug/.eslintrc
+./node_modules/eslint-plugin-react/node_modules/resolve/.eslintrc
+./node_modules/is-weakset/.eslintrc
+./node_modules/is-map/.eslintrc
+./node_modules/proxy-from-env/.eslintrc
+./node_modules/available-typed-arrays/.eslintrc
+./node_modules/function.prototype.name/.eslintrc
+./node_modules/array.prototype.flatmap/.eslintrc
+./node_modules/is-boolean-object/.eslintrc
+./node_modules/array.prototype.findlast/.eslintrc
+./node_modules/entities/src/generated/.eslintrc.json
+./node_modules/safe-push-apply/.eslintrc
+
+TSConfig files:
+./tsconfig.base.json
+./shared/tsconfig.json
+./frontend/tsconfig.test.json
+./frontend/tsconfig.prod.json
+./frontend/tsconfig.json
+./tsconfig.json
+./backend/tsconfig.test.json
+./backend/tsconfig.eslint.json
+./backend/frontend/node_modules/side-channel/tsconfig.json
+./backend/frontend/node_modules/is-symbol/tsconfig.json
+./backend/frontend/node_modules/side-channel-list/tsconfig.json
+./backend/frontend/node_modules/which-collection/tsconfig.json
+./backend/frontend/node_modules/dunder-proto/tsconfig.json
+./backend/frontend/node_modules/msw/src/tsconfig.core.build.json
+./backend/frontend/node_modules/msw/src/tsconfig.worker.json
+./backend/frontend/node_modules/msw/src/tsconfig.node.json
+./backend/frontend/node_modules/msw/src/browser/tsconfig.browser.build.json
+./backend/frontend/node_modules/msw/src/browser/tsconfig.browser.json
+./backend/frontend/node_modules/msw/src/tsconfig.src.json
+./backend/frontend/node_modules/msw/src/tsconfig.node.build.json
+./backend/frontend/node_modules/psl/types/tsconfig.json
+./backend/frontend/node_modules/side-channel-map/tsconfig.json
+./backend/frontend/node_modules/which-boxed-primitive/tsconfig.json
+./backend/frontend/node_modules/hasown/tsconfig.json
+./backend/frontend/node_modules/is-set/tsconfig.json
+./backend/frontend/node_modules/es-errors/tsconfig.json
+./backend/frontend/node_modules/call-bound/tsconfig.json
+./backend/frontend/node_modules/is-arguments/tsconfig.json
+./backend/frontend/node_modules/es-object-atoms/tsconfig.json
+./backend/frontend/node_modules/is-shared-array-buffer/tsconfig.json
+./backend/frontend/node_modules/is-string/tsconfig.json
+./backend/frontend/node_modules/which-typed-array/tsconfig.json
+./backend/frontend/node_modules/is-number-object/tsconfig.json
+./backend/frontend/node_modules/math-intrinsics/tsconfig.json
+./backend/frontend/node_modules/safe-regex-test/tsconfig.json
+./backend/frontend/node_modules/array-buffer-byte-length/tsconfig.json
+./backend/frontend/node_modules/call-bind-apply-helpers/tsconfig.json
+./backend/frontend/node_modules/stop-iteration-iterator/tsconfig.json
+./backend/frontend/node_modules/is-date-object/tsconfig.json
+./backend/frontend/node_modules/has-symbols/tsconfig.json
+./backend/frontend/node_modules/has-tostringtag/tsconfig.json
+./backend/frontend/node_modules/is-weakmap/tsconfig.json
+./backend/frontend/node_modules/has-bigints/tsconfig.json
+./backend/frontend/node_modules/internal-slot/tsconfig.json
+./backend/frontend/node_modules/gopd/tsconfig.json
+./backend/frontend/node_modules/is-regex/tsconfig.json
+./backend/frontend/node_modules/@jest/pattern/tsconfig.json
+./backend/frontend/node_modules/get-proto/tsconfig.json
+./backend/frontend/node_modules/for-each/tsconfig.json
+./backend/frontend/node_modules/es-define-property/tsconfig.json
+./backend/frontend/node_modules/is-array-buffer/tsconfig.json
+./backend/frontend/node_modules/set-function-length/tsconfig.json
+./backend/frontend/node_modules/es-set-tostringtag/tsconfig.json
+./backend/frontend/node_modules/fastq/test/tsconfig.json
+./backend/frontend/node_modules/reusify/tsconfig.json
+./backend/frontend/node_modules/is-bigint/tsconfig.json
+./backend/frontend/node_modules/is-weakset/tsconfig.json
+./backend/frontend/node_modules/is-map/tsconfig.json
+./backend/frontend/node_modules/available-typed-arrays/tsconfig.json
+./backend/frontend/node_modules/is-boolean-object/tsconfig.json
+./backend/frontend/node_modules/@testing-library/jest-dom/types/__tests__/bun/tsconfig.json
+./backend/frontend/node_modules/@testing-library/jest-dom/types/__tests__/jest-globals/tsconfig.json
+./backend/frontend/node_modules/@testing-library/jest-dom/types/__tests__/jest/tsconfig.json
+./backend/frontend/node_modules/@testing-library/jest-dom/types/__tests__/vitest/tsconfig.json
+./backend/frontend/node_modules/define-data-property/tsconfig.json
+./backend/frontend/node_modules/@bcoe/v8-coverage/dist/lib/tsconfig.json
+./backend/frontend/node_modules/@bcoe/v8-coverage/tsconfig.json
+./backend/frontend/node_modules/side-channel-weakmap/tsconfig.json
+./backend/frontend/node_modules/possible-typed-array-names/tsconfig.json
+./backend/frontend/node_modules/set-function-name/tsconfig.json
+./backend/tsconfig.prod.json
+./backend/tsconfig.deploy.json
+./backend/tsconfig.json
+./backend/node_modules/tsconfig-paths/src/__tests__/tsconfig-named.json
+./backend/tsconfig.emergency.json
+./node_modules/es-shim-unscopables/tsconfig.json
+./node_modules/side-channel/tsconfig.json
+./node_modules/protobufjs/tsconfig.json
+./node_modules/typed-array-length/tsconfig.json
+./node_modules/is-symbol/tsconfig.json
+./node_modules/side-channel-list/tsconfig.json
+./node_modules/which-collection/tsconfig.json
+./node_modules/is-finalizationregistry/tsconfig.json
+./node_modules/unbox-primitive/tsconfig.json
+./node_modules/dunder-proto/tsconfig.json
+./node_modules/safe-array-concat/tsconfig.json
+./node_modules/data-view-byte-length/tsconfig.json
+./node_modules/async-function/tsconfig.json
+./node_modules/is-weakref/tsconfig.json
+./node_modules/is-async-function/tsconfig.json
+./node_modules/logform/tsconfig.json
+./node_modules/side-channel-map/tsconfig.json
+./node_modules/import-in-the-middle/tsconfig.json
+./node_modules/which-boxed-primitive/tsconfig.json
+./node_modules/hasown/tsconfig.json
+./node_modules/is-set/tsconfig.json
+./node_modules/has-proto/tsconfig.json
+./node_modules/es-errors/tsconfig.json
+./node_modules/call-bound/tsconfig.json
+./node_modules/es-object-atoms/tsconfig.json
+./node_modules/is-shared-array-buffer/tsconfig.json
+./node_modules/express-rate-limit/tsconfig.json
+./node_modules/is-string/tsconfig.json
+./node_modules/which-typed-array/tsconfig.json
+./node_modules/is-number-object/tsconfig.json
+./node_modules/math-intrinsics/tsconfig.json
+./node_modules/safe-regex-test/tsconfig.json
+./node_modules/array-buffer-byte-length/tsconfig.json
+./node_modules/call-bind-apply-helpers/tsconfig.json
+./node_modules/stop-iteration-iterator/tsconfig.json
+./node_modules/fast-uri/tsconfig.json
+./node_modules/@tsconfig/node10/tsconfig.json
+./node_modules/@tsconfig/node14/tsconfig.json
+./node_modules/@tsconfig/node12/tsconfig.json
+./node_modules/@tsconfig/node16/tsconfig.json
+./node_modules/data-view-buffer/tsconfig.json
+./node_modules/is-date-object/tsconfig.json
+./node_modules/is-typed-array/tsconfig.json
+./node_modules/which-builtin-type/tsconfig.json
+./node_modules/has-symbols/tsconfig.json
+./node_modules/has-tostringtag/tsconfig.json
+./node_modules/is-weakmap/tsconfig.json
+./node_modules/has-bigints/tsconfig.json
+./node_modules/is-generator-function/tsconfig.json
+./node_modules/get-symbol-description/tsconfig.json
+./node_modules/data-view-byte-offset/tsconfig.json
+./node_modules/internal-slot/tsconfig.json
+./node_modules/gopd/tsconfig.json
+./node_modules/is-data-view/tsconfig.json
+./node_modules/is-regex/tsconfig.json
+./node_modules/get-proto/tsconfig.json
+./node_modules/for-each/tsconfig.json
+./node_modules/tsconfig-paths/src/__tests__/tsconfig-named.json
+./node_modules/es-define-property/tsconfig.json
+./node_modules/is-array-buffer/tsconfig.json
+./node_modules/ts-node/node10/tsconfig.json
+./node_modules/ts-node/tsconfig.schemastore-schema.json
+./node_modules/ts-node/node14/tsconfig.json
+./node_modules/ts-node/node12/tsconfig.json
+./node_modules/ts-node/node16/tsconfig.json
+./node_modules/ts-node/tsconfig.schema.json
+./node_modules/set-function-length/tsconfig.json
+./node_modules/set-proto/tsconfig.json
+./node_modules/es-set-tostringtag/tsconfig.json
+./node_modules/fastq/test/tsconfig.json
+./node_modules/reusify/tsconfig.json
+./node_modules/is-bigint/tsconfig.json
+./node_modules/is-weakset/tsconfig.json
+./node_modules/is-map/tsconfig.json
+./node_modules/available-typed-arrays/tsconfig.json
+./node_modules/is-boolean-object/tsconfig.json
+./node_modules/@testing-library/jest-dom/types/__tests__/bun/tsconfig.json
+./node_modules/@testing-library/jest-dom/types/__tests__/jest-globals/tsconfig.json
+./node_modules/@testing-library/jest-dom/types/__tests__/jest/tsconfig.json
+./node_modules/@testing-library/jest-dom/types/__tests__/vitest/tsconfig.json
+./node_modules/eslint-module-utils/tsconfig.json
+./node_modules/safe-push-apply/tsconfig.json
+./node_modules/typed-array-byte-offset/tsconfig.json
+./node_modules/define-data-property/tsconfig.json
+./node_modules/typed-array-byte-length/tsconfig.json
+./node_modules/side-channel-weakmap/tsconfig.json
+./node_modules/possible-typed-array-names/tsconfig.json
+./node_modules/set-function-name/tsconfig.json
+./node_modules/is-negative-zero/tsconfig.json
+./node_modules/es-to-primitive/tsconfig.json
+./node_modules/own-keys/tsconfig.json
+./node_modules/typed-array-buffer/tsconfig.json
+./tests/monitoring/node_modules/dunder-proto/tsconfig.json
+./tests/monitoring/node_modules/hasown/tsconfig.json
+./tests/monitoring/node_modules/es-errors/tsconfig.json
+./tests/monitoring/node_modules/es-object-atoms/tsconfig.json
+./tests/monitoring/node_modules/math-intrinsics/tsconfig.json
+./tests/monitoring/node_modules/call-bind-apply-helpers/tsconfig.json
+./tests/monitoring/node_modules/@tsconfig/node10/tsconfig.json
+./tests/monitoring/node_modules/@tsconfig/node14/tsconfig.json
+./tests/monitoring/node_modules/@tsconfig/node12/tsconfig.json
+./tests/monitoring/node_modules/@tsconfig/node16/tsconfig.json
+./tests/monitoring/node_modules/has-symbols/tsconfig.json
+./tests/monitoring/node_modules/has-tostringtag/tsconfig.json
+./tests/monitoring/node_modules/gopd/tsconfig.json
+./tests/monitoring/node_modules/get-proto/tsconfig.json
+./tests/monitoring/node_modules/es-define-property/tsconfig.json
+./tests/monitoring/node_modules/ts-node/node10/tsconfig.json
+./tests/monitoring/node_modules/ts-node/tsconfig.schemastore-schema.json
+./tests/monitoring/node_modules/ts-node/node14/tsconfig.json
+./tests/monitoring/node_modules/ts-node/node12/tsconfig.json
+./tests/monitoring/node_modules/ts-node/node16/tsconfig.json
+./tests/monitoring/node_modules/ts-node/tsconfig.schema.json
+./tests/monitoring/node_modules/es-set-tostringtag/tsconfig.json
+
+Search ESLint/Prettier deps in package.json:
+--- ./shared/package.json
+44:    "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
+45:    "lint:fix": "eslint . --fix",
+69:    "@typescript-eslint/eslint-plugin": "^7.16.1",
+70:    "@typescript-eslint/parser": "^7.16.1",
+71:    "eslint": "^8.57.0",
+72:    "eslint-config-prettier": "^10.1.5",
+73:    "eslint-import-resolver-typescript": "^4.4.4",
+74:    "eslint-plugin-import": "^2.32.0",
+75:    "eslint-plugin-prettier": "^5.5.1",
+77:    "prettier": "^3.6.2",
+--- ./shared/node_modules/uuid/package.json
+60:    "@babel/eslint-parser": "7.24.6",
+72:    "eslint": "9.4.0",
+73:    "eslint-plugin-prettier": "5.1.3",
+81:    "prettier": "3.3.0",
+101:    "lint": "npm run eslint:check && npm run prettier:check",
+102:    "eslint:check": "eslint src/ test/ examples/ *.js",
+103:    "eslint:fix": "eslint --fix src/ test/ examples/ *.js",
+114:    "prettier:check": "prettier --check .",
+115:    "prettier:fix": "prettier --write .",
+130:      "prettier --no-error-on-unmatched-pattern --write"
+133:      "eslint --no-error-on-unmatched-pattern --fix"
+138:      "postchangelog": "prettier --write CHANGELOG.md"
+--- ./shared/node_modules/semver/package.json
+9:    "lint": "npm run eslint",
+11:    "lintfix": "npm run eslint -- --fix",
+14:    "eslint": "eslint \"**/*.{js,cjs,ts,mjs,jsx,tsx}\""
+17:    "@npmcli/eslint-config": "^5.0.0",
+--- ./shared/node_modules/ts-api-utils/package.json
+36:		"format": "prettier \"**/*\" --ignore-unknown",
+37:		"lint": "eslint . .*js --max-warnings 0",
+50:		"*": "prettier --ignore-unknown --write"
+55:		"@types/eslint": "^8.56.5",
+56:		"@typescript-eslint/eslint-plugin": "^7.3.1",
+57:		"@typescript-eslint/parser": "^8.0.0",
+62:		"eslint": "^8.57.0",
+63:		"eslint-plugin-deprecation": "^3.0.0",
+64:		"eslint-plugin-eslint-comments": "^3.2.0",
+65:		"eslint-plugin-jsdoc": "^50.0.0",
+66:		"eslint-plugin-jsonc": "^2.13.0",
+67:		"eslint-plugin-markdown": "^5.0.0",
+68:		"eslint-plugin-n": "^17.0.0",
+69:		"eslint-plugin-package-json": "^0.15.0",
+70:		"eslint-plugin-perfectionist": "^2.6.0",
+71:		"eslint-plugin-regexp": "^2.3.0",
+72:		"eslint-plugin-vitest": "^0.4.0",
+73:		"eslint-plugin-yml": "^1.12.2",
+75:		"jsonc-eslint-parser": "^2.4.0",
+80:		"prettier": "^3.1.1",
+81:		"prettier-plugin-curly": "^0.3.0",
+82:		"prettier-plugin-packagejson": "^2.4.7",
+95:		"yaml-eslint-parser": "^1.2.2"
+--- ./shared/node_modules/ignore/package.json
+4:  "description": "Ignore is a manager and filter for .gitignore rules, the one used by eslint, gitbook and many others.",
+14:    "test:lint": "eslint .",
+60:    "eslint": "^8.46.0",
+61:    "eslint-config-ostai": "^3.0.0",
+62:    "eslint-plugin-import": "^2.28.0",
+--- ./shared/node_modules/@typescript-eslint/visitor-keys/package.json
+2:  "name": "@typescript-eslint/visitor-keys",
+26:    "url": "https://github.com/typescript-eslint/typescript-eslint.git",
+30:    "url": "https://github.com/typescript-eslint/typescript-eslint/issues"
+32:  "homepage": "https://typescript-eslint.io",
+35:    "eslint",
+44:    "format": "prettier --write \"./**/*.{ts,mts,cts,tsx,js,mjs,cjs,jsx,json,md,css}\" --ignore-path ../../.prettierignore",
+50:    "@typescript-eslint/types": "7.18.0",
+51:    "eslint-visitor-keys": "^3.4.3"
+55:    "@types/eslint-visitor-keys": "*",
+58:    "prettier": "^3.2.5",
+64:    "url": "https://opencollective.com/typescript-eslint"
+--- ./shared/node_modules/@typescript-eslint/typescript-estree/package.json
+2:  "name": "@typescript-eslint/typescript-estree",
+29:    "url": "https://github.com/typescript-eslint/typescript-eslint.git",
+33:    "url": "https://github.com/typescript-eslint/typescript-eslint/issues"
+35:  "homepage": "https://typescript-eslint.io/packages/typescript-estree",
+51:    "format": "prettier --write \"./**/*.{ts,mts,cts,tsx,js,mjs,cjs,jsx,json,md,css}\" --ignore-path ../../.prettierignore",
+57:    "@typescript-eslint/types": "7.18.0",
+58:    "@typescript-eslint/visitor-keys": "7.18.0",
+70:    "prettier": "^3.2.5",
+82:    "url": "https://opencollective.com/typescript-eslint"
+--- ./shared/node_modules/@typescript-eslint/type-utils/package.json
+2:  "name": "@typescript-eslint/type-utils",
+25:    "url": "https://github.com/typescript-eslint/typescript-eslint.git",
+29:    "url": "https://github.com/typescript-eslint/typescript-eslint/issues"
+31:  "homepage": "https://typescript-eslint.io",
+34:    "eslint",
+43:    "format": "prettier --write \"./**/*.{ts,mts,cts,tsx,js,mjs,cjs,jsx,json,md,css}\" --ignore-path ../../.prettierignore",
+49:    "@typescript-eslint/typescript-estree": "7.18.0",
+50:    "@typescript-eslint/utils": "7.18.0",
+56:    "@typescript-eslint/parser": "7.18.0",
+60:    "prettier": "^3.2.5",
+65:    "eslint": "^8.56.0"
+74:    "url": "https://opencollective.com/typescript-eslint"
+--- ./shared/node_modules/@typescript-eslint/parser/package.json
+2:  "name": "@typescript-eslint/parser",
+24:    "url": "https://github.com/typescript-eslint/typescript-eslint.git",
+28:    "url": "https://github.com/typescript-eslint/typescript-eslint/issues"
+30:  "homepage": "https://typescript-eslint.io/packages/parser",
+39:    "eslint"
+46:    "format": "prettier --write \"./**/*.{ts,mts,cts,tsx,js,mjs,cjs,jsx,json,md,css}\" --ignore-path ../../.prettierignore",
+52:    "eslint": "^8.56.0"
+55:    "@typescript-eslint/scope-manager": "7.18.0",
+56:    "@typescript-eslint/types": "7.18.0",
+57:    "@typescript-eslint/typescript-estree": "7.18.0",
+58:    "@typescript-eslint/visitor-keys": "7.18.0",
+67:    "prettier": "^3.2.5",
+78:    "url": "https://opencollective.com/typescript-eslint"
+--- ./shared/node_modules/@typescript-eslint/types/package.json
+2:  "name": "@typescript-eslint/types",
+26:    "url": "https://github.com/typescript-eslint/typescript-eslint.git",
+30:    "url": "https://github.com/typescript-eslint/typescript-eslint/issues"
+32:  "homepage": "https://typescript-eslint.io",
+35:    "eslint",
+45:    "format": "prettier --write \"./**/*.{ts,mts,cts,tsx,js,mjs,cjs,jsx,json,md,css}\" --ignore-path ../../.prettierignore",
+72:    "prettier": "^3.2.5",
+79:    "url": "https://opencollective.com/typescript-eslint"
+--- ./shared/node_modules/@typescript-eslint/utils/package.json
+2:  "name": "@typescript-eslint/utils",
+22:    "./eslint-utils": {
+23:      "types": "./dist/eslint-utils/index.d.ts",
+24:      "default": "./dist/eslint-utils/index.js"
+30:    "./ts-eslint": {
+31:      "types": "./dist/ts-eslint/index.d.ts",
+32:      "default": "./dist/ts-eslint/index.js"
+42:    "url": "https://github.com/typescript-eslint/typescript-eslint.git",
+46:    "url": "https://github.com/typescript-eslint/typescript-eslint/issues"
+48:  "homepage": "https://typescript-eslint.io/packages/utils",
+51:    "eslint",
+60:    "format": "prettier --write \"./**/*.{ts,mts,cts,tsx,js,mjs,cjs,jsx,json,md,css}\" --ignore-path ../../.prettierignore",
+66:    "@eslint-community/eslint-utils": "^4.4.0",
+67:    "@typescript-eslint/scope-manager": "7.18.0",
+68:    "@typescript-eslint/types": "7.18.0",
+69:    "@typescript-eslint/typescript-estree": "7.18.0"
+72:    "eslint": "^8.56.0"
+77:    "prettier": "^3.2.5",
+83:    "url": "https://opencollective.com/typescript-eslint"
+--- ./shared/node_modules/@typescript-eslint/eslint-plugin/package.json
+2:  "name": "@typescript-eslint/eslint-plugin",
+25:    "./use-at-your-own-risk/eslint-recommended-raw": {
+26:      "types": "./eslint-recommended-raw.d.ts",
+27:      "default": "./dist/configs/eslint-recommended-raw.js"
+35:    "url": "https://github.com/typescript-eslint/typescript-eslint.git",
+36:    "directory": "packages/eslint-plugin"
+39:    "url": "https://github.com/typescript-eslint/typescript-eslint/issues"
+41:  "homepage": "https://typescript-eslint.io/packages/eslint-plugin",
+44:    "eslint",
+45:    "eslintplugin",
+46:    "eslint-plugin",
+53:    "format": "prettier --write \"./**/*.{ts,mts,cts,tsx,js,mjs,cjs,jsx,json,md,css}\" --ignore-path ../../.prettierignore",
+62:    "@eslint-community/regexpp": "^4.10.0",
+63:    "@typescript-eslint/scope-manager": "7.18.0",
+64:    "@typescript-eslint/type-utils": "7.18.0",
+65:    "@typescript-eslint/utils": "7.18.0",
+66:    "@typescript-eslint/visitor-keys": "7.18.0",
+77:    "@typescript-eslint/rule-schema-to-typescript-types": "7.18.0",
+78:    "@typescript-eslint/rule-tester": "7.18.0",
+82:    "eslint": "*",
+92:    "prettier": "^3.2.5",
+100:    "@typescript-eslint/parser": "^7.0.0",
+101:    "eslint": "^8.56.0"
+110:    "url": "https://opencollective.com/typescript-eslint"
+--- ./shared/node_modules/@typescript-eslint/scope-manager/package.json
+2:  "name": "@typescript-eslint/scope-manager",
+25:    "url": "https://github.com/typescript-eslint/typescript-eslint.git",
+29:    "url": "https://github.com/typescript-eslint/typescript-eslint/issues"
+31:  "homepage": "https://typescript-eslint.io/packages/scope-manager",
+34:    "eslint",
+42:    "format": "prettier --write \"./**/*.{ts,mts,cts,tsx,js,mjs,cjs,jsx,json,md,css}\" --ignore-path ../../.prettierignore",
+49:    "@typescript-eslint/types": "7.18.0",
+50:    "@typescript-eslint/visitor-keys": "7.18.0"
+55:    "@typescript-eslint/typescript-estree": "7.18.0",
+64:    "url": "https://opencollective.com/typescript-eslint"
+--- ./.vitest-cache/vitest/da39a3ee5e6b4b0d3255bfef95601890afd80709/deps_ssr/package.json
+--- ./frontend/package.json
+33:    "eslint": "^8.57.1",
+34:    "eslint-config-next": "14.2.5",
+--- ./package.json
+71:    "lint": "eslint src --ext .ts,.tsx,.js,.jsx",
+72:    "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
+73:    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+212:    "@typescript-eslint/eslint-plugin": "^8.43.0",
+213:    "@typescript-eslint/parser": "^8.43.0",
+218:    "eslint-plugin-import": "^2.32.0",
+219:    "eslint-plugin-prettier": "^5.5.4",
+250:  "eslintConfig": {
+252:      "@typescript-eslint/recommended",
+257:      "@typescript-eslint/no-unused-vars": "error",
+258:      "@typescript-eslint/explicit-function-return-type": "warn",
+--- ./backend/frontend/package.json
+30:    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+31:    "lint:fix": "eslint src --ext ts,tsx --fix",
+33:    "format": "prettier --write src/**/*.{ts,tsx,css,md}"
+47:    "@typescript-eslint/eslint-plugin": "^6.14.0",
+48:    "@typescript-eslint/parser": "^6.14.0",
+52:    "eslint": "^8.55.0",
+53:    "eslint-plugin-react-hooks": "^4.6.0",
+54:    "eslint-plugin-react-refresh": "^0.4.5",
+57:    "prettier": "^3.1.0",
+--- ./backend/frontend/node_modules/check-error/package.json
+28:    "lint": "eslint --ignore-path .gitignore .",
+42:  "eslintConfig": {
+64:    "eslint": "^2.4.0",
+65:    "eslint-config-strict": "^8.5.0",
+66:    "eslint-plugin-filenames": "^0.2.0",
+--- ./backend/frontend/node_modules/electron-to-chromium/package.json
+--- ./backend/frontend/node_modules/ci-info/package.json
+--- ./backend/frontend/node_modules/cac/package.json
+51:    "eslint-config-rem": "^3.0.0",
+60:    "prettier": "^2.2.1",
+85:        "prettier --write",
+90:        "prettier --write",
+--- ./backend/frontend/node_modules/ufo/package.json
+26:    "lint": "eslint . && prettier -c src test",
+27:    "lint:fix": "eslint --fix . && prettier -w src test",
+37:    "eslint": "^9.24.0",
+38:    "eslint-config-unjs": "^0.4.2",
+40:    "prettier": "^3.5.3",
+--- ./backend/frontend/node_modules/requires-port/package.json
+--- ./backend/frontend/node_modules/side-channel/package.json
+16:		"lint": "eslint --ext=js,mjs .",
+54:		"@ljharb/eslint-config": "^21.1.1",
+61:		"eslint": "=8.8.0",
+--- ./backend/frontend/node_modules/@sinclair/typebox/type/package.json
+--- ./backend/frontend/node_modules/@sinclair/typebox/compiler/package.json
+--- ./backend/frontend/node_modules/@sinclair/typebox/value/package.json
+--- ./backend/frontend/node_modules/@sinclair/typebox/syntax/package.json
+--- ./backend/frontend/node_modules/@sinclair/typebox/errors/package.json
+--- ./backend/frontend/node_modules/@sinclair/typebox/system/package.json
+--- ./backend/frontend/node_modules/@sinclair/typebox/parser/package.json
+--- ./backend/frontend/node_modules/@sinclair/typebox/package.json
+--- ./backend/frontend/node_modules/functions-have-names/package.json
+11:		"lint": "eslint --ext=js,mjs .",
+39:		"@ljharb/eslint-config": "^21.0.0",
+42:		"eslint": "=8.8.0",
+--- ./backend/frontend/node_modules/is-symbol/package.json
+14:		"lint": "eslint --ext=js,mjs .",
+44:		"@ljharb/eslint-config": "^21.1.1",
+52:		"eslint": "=8.8.0",
+--- ./backend/frontend/node_modules/punycode/package.json
+--- ./backend/frontend/node_modules/mlly/package.json
+23:    "lint": "eslint src test && prettier -c src test",
+24:    "lint:fix": "eslint src test --fix && prettier -w src test",
+39:    "eslint": "^9.33.0",
+40:    "eslint-config-unjs": "^0.5.0",
+43:    "prettier": "^3.6.2",
+--- ./backend/frontend/node_modules/mlly/node_modules/pathe/package.json
+43:    "eslint": "^9.20.1",
+44:    "eslint-config-unjs": "^0.4.2",
+46:    "prettier": "^3.5.0",
+55:    "lint": "eslint . && prettier -c src test",
+56:    "lint:fix": "eslint . --fix && prettier -w src test",
+--- ./backend/frontend/node_modules/which/package.json
+--- ./backend/frontend/node_modules/side-channel-list/package.json
+16:		"lint": "eslint --ext=js,mjs .",
+45:		"@ljharb/eslint-config": "^21.1.1",
+52:		"eslint": "=8.8.0",
+--- ./backend/frontend/node_modules/is-path-inside/package.json
+--- ./backend/frontend/node_modules/parent-module/package.json
+--- ./backend/frontend/node_modules/lz-string/package.json
+--- ./backend/frontend/node_modules/@inquirer/type/dist/commonjs/package.json
+--- ./backend/frontend/node_modules/@inquirer/type/dist/esm/package.json
+--- ./backend/frontend/node_modules/@inquirer/type/package.json
+--- ./backend/frontend/node_modules/@inquirer/core/dist/commonjs/package.json
+--- ./backend/frontend/node_modules/@inquirer/core/dist/esm/package.json
+--- ./backend/frontend/node_modules/@inquirer/core/package.json
+--- ./backend/frontend/node_modules/@inquirer/confirm/dist/commonjs/package.json
+--- ./backend/frontend/node_modules/@inquirer/confirm/dist/esm/package.json
+--- ./backend/frontend/node_modules/@inquirer/confirm/package.json
+--- ./backend/frontend/node_modules/@inquirer/figures/dist/commonjs/package.json
+--- ./backend/frontend/node_modules/@inquirer/figures/dist/esm/package.json
+--- ./backend/frontend/node_modules/@inquirer/figures/package.json
+--- ./backend/frontend/node_modules/istanbul-reports/package.json
+--- ./backend/frontend/node_modules/wrap-ansi/package.json
+--- ./backend/frontend/node_modules/form-data/package.json
+20:    "lint": "eslint --ext=js,mjs .",
+50:    "@ljharb/eslint-config": "^21.2.0",
+56:    "eslint": "=8.8.0",
+--- ./backend/frontend/node_modules/@istanbuljs/schema/package.json
+--- ./backend/frontend/node_modules/color-convert/package.json
+--- ./backend/frontend/node_modules/which-collection/package.json
+15:		"lint": "eslint --ext=js,mjs .",
+47:		"@ljharb/eslint-config": "^21.1.0",
+53:		"eslint": "=8.8.0",
+--- ./backend/frontend/node_modules/mdn-data/package.json
+--- ./backend/frontend/node_modules/string-width/package.json
+--- ./backend/frontend/node_modules/escalade/package.json
+--- ./backend/frontend/node_modules/indent-string/package.json
+--- ./backend/frontend/node_modules/universalify/package.json
+--- ./backend/frontend/node_modules/delayed-stream/package.json
+--- ./backend/frontend/node_modules/fast-glob/package.json
+38:    "eslint": "^6.5.1",
+39:    "eslint-config-mrmlnc": "^1.1.0",
+60:    "lint": "eslint \"src/**/*.ts\" --cache",
+--- ./backend/frontend/node_modules/fast-glob/node_modules/glob-parent/package.json
+21:    "lint": "eslint .",
+32:    "eslint": "^2.13.1",
+33:    "eslint-config-gulp": "^3.0.1",
+--- ./backend/frontend/node_modules/deep-equal/package.json
+26:    "lint": "eslint --ext=js,mjs .",

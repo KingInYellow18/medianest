@@ -3,7 +3,6 @@
  * Replaces 92+ direct process.env accesses with type-safe configuration
  */
 
-import { logger } from '../utils/logger';
 
 import {
   AppConfig,
@@ -23,6 +22,7 @@ import {
   ConfigSource,
 } from './config.types';
 import { readSecret, readSecretFromFile } from './secrets';
+import { logger } from '../utils/logger';
 
 export class ConfigService {
   private readonly config: AppConfig;

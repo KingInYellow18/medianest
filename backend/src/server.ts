@@ -2,10 +2,6 @@ import 'tsconfig-paths/register';
 import 'dotenv/config';
 
 // Import secrets validator before usage
-import { validateSecretsOrThrow } from './config/secrets-validator';
-
-// Validate all required secrets before starting the application
-validateSecretsOrThrow();
 
 // Import centralized configuration service
 
@@ -21,6 +17,7 @@ import { configService } from './config/config.service';
 import { initializeDatabase } from './config/database';
 import { initializeQueues } from './config/queues';
 import { initializeRedis } from './config/redis';
+import { validateSecretsOrThrow } from './config/secrets-validator';
 import { correlationIdMiddleware } from './middleware/correlation-id';
 import { errorHandler } from './middleware/error';
 import { requestLogger } from './middleware/logging';
@@ -38,6 +35,9 @@ import { IntegrationService } from './services/integration.service';
 import { MediaNestSocketServer } from './socket/socket-server';
 import { CatchError } from './types/common';
 import { logger } from './utils/logger';
+
+// Validate all required secrets before starting the application
+validateSecretsOrThrow();
 
 const app = express();
 const httpServer = createServer(app);
@@ -223,6 +223,7 @@ app.use(requestLogger);
 
 // Apply Prometheus metrics middleware
 const { prometheusMiddleware } = require('./metrics/prometheus');
+
 app.use(prometheusMiddleware);
 
 // Health check endpoint

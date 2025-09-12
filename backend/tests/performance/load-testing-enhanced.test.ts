@@ -5,8 +5,9 @@
  * Tests system behavior under various load conditions and identifies bottlenecks
  */
 
-import { describe, test, expect, beforeAll, afterAll } from 'vitest';
 import supertest from 'supertest';
+import { describe, test, expect, beforeAll, afterAll } from 'vitest';
+
 import { createApp } from '../../src/app';
 
 describe('Enhanced Load Testing Suite', () => {

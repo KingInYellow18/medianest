@@ -5,8 +5,9 @@
  * Lightweight security tests that can run in production environment
  */
 
-const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+
+const jwt = require('jsonwebtoken');
 
 class JWTSecurityAnalyzer {
   constructor() {

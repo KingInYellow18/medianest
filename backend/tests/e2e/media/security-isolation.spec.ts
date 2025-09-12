@@ -7,11 +7,12 @@
  * - Authorization boundary enforcement
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+
 import { MediaTestFactory } from '../../shared/factories/media-factory';
-import { ValidationHelper } from '../../shared/helpers/validation-helpers';
 import { BaseTestHelper, TestContext } from '../../shared/helpers/test-base';
+import { ValidationHelper } from '../../shared/helpers/validation-helpers';
 
 describe('Security and Isolation Testing', () => {
   let context: TestContext;

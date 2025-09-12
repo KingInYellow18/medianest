@@ -6,10 +6,11 @@
  * under controlled conditions to ensure production readiness
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 import { execSync, spawn } from 'child_process';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
+
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 
 describe('Disaster Recovery Integration Tests', () => {
   const backupDir = join(process.cwd(), 'backups');

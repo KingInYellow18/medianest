@@ -3,13 +3,13 @@ import {
 } from '@medianest/shared';
 import { Prisma } from '@prisma/client';
 
-type YoutubeDownload = Prisma.YoutubeDownloadGetPayload<{}>;
-
 // @ts-ignore
 
+import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
 import { CatchError } from '../types/common';
 
-import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
+
+type YoutubeDownload = any;
 
 export interface CreateYoutubeDownloadInput {
   userId: string;
@@ -82,7 +82,7 @@ export class YoutubeDownloadRepository extends BaseRepository<YoutubeDownload> {
     filters: YoutubeDownloadFilters,
     options: PaginationOptions = {},
   ): Promise<PaginatedResult<YoutubeDownload>> {
-    const where: Prisma.YoutubeDownloadWhereInput = {};
+    const where: any = {};
 
     if (filters.userId) where.userId = filters.userId;
     if (filters.status) where.status = filters.status;
@@ -195,7 +195,7 @@ export class YoutubeDownloadRepository extends BaseRepository<YoutubeDownload> {
     });
 
     return downloads.reduce(
-      (acc, item) => {
+      (acc: any, item: any) => {
         acc[item.status] = item._count;
         return acc;
       },

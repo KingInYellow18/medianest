@@ -8,9 +8,10 @@
  * but we verify that the Error Boundary still renders the correct error UI.
  */
 
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
-import { render, screen } from '@testing-library/react';
+
 import ErrorBoundary from '../ErrorBoundary';
 
 // Component that throws an error for testing

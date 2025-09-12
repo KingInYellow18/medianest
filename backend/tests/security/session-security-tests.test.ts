@@ -5,10 +5,11 @@
  * Tests session management, token security, and concurrent session handling
  */
 
-import { describe, test, expect, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
-import supertest from 'supertest';
-import { createApp } from '../../src/app';
 import { PrismaClient } from '@prisma/client';
+import supertest from 'supertest';
+import { describe, test, expect, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
+import { createApp } from '../../src/app';
 import { AuthTestHelper } from '../helpers/auth-test-helper';
 import { DatabaseTestHelper } from '../helpers/database-test-helper';
 

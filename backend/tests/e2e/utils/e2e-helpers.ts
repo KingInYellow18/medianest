@@ -3,13 +3,15 @@
  * Provides helpers for comprehensive end-to-end testing workflows
  */
 
-import { beforeAll, afterAll, beforeEach } from 'vitest';
 import { Application } from 'express';
+import { beforeAll, afterAll, beforeEach } from 'vitest';
+
 import { app } from '@/app';
 import { prisma } from '@/db/prisma';
-import { databaseCleanup } from '../../helpers/database-cleanup';
-import { createAuthToken } from '../../helpers/auth';
+
 import { testUsers } from '../../fixtures/test-data';
+import { createAuthToken } from '../../helpers/auth';
+import { databaseCleanup } from '../../helpers/database-cleanup';
 import { RequestStatus, createMockRequest } from '../fixtures/media-data';
 
 export interface E2ETestUser {

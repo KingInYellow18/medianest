@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import { AppError } from '@medianest/shared';
 import bcrypt from 'bcrypt';
 
+import { RedisService } from './redis.service';
 import { SessionTokenRepository } from '../repositories/session-token.repository';
 import { UserRepository } from '../repositories/user.repository';
 import { CatchError } from '../types/common';
@@ -15,7 +16,6 @@ import {
   logSecurityEvent,
 } from '../utils/security';
 
-import { RedisService } from './redis.service';
 // Email service removed - password reset via email disabled
 
 interface PasswordResetToken {

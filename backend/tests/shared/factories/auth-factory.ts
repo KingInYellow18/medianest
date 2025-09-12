@@ -4,6 +4,7 @@
  */
 
 import { Page } from '@playwright/test';
+
 import { BaseTestHelper, TestUser } from '../helpers/test-base';
 import {
   createMockAuthenticatedUser,

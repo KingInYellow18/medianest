@@ -8,6 +8,7 @@
  */
 
 import { performance } from 'perf_hooks';
+
 import {
   setupAdvancedMockCoordination,
   advancedMockCoordinator,
@@ -18,17 +19,15 @@ import {
   PredictiveMockCache,
   EmergencyMockRecovery,
 } from '../mocks/foundation/advanced-mock-coordination';
-
+import {
+  enterpriseIntegration,
+  quickEnterpriseSetup,
+} from '../mocks/foundation/enterprise-integration';
 import {
   enterpriseMockRegistry,
   configureEnterpriseScale,
   getEnterprisePerformanceReport,
 } from '../mocks/foundation/enterprise-mock-registry';
-
-import {
-  enterpriseIntegration,
-  quickEnterpriseSetup,
-} from '../mocks/foundation/enterprise-integration';
 
 // =============================================================================
 // DEPLOYMENT CONFIGURATION

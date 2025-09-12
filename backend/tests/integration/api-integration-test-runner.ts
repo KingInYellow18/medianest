@@ -5,10 +5,11 @@
  * Provides execution summary, coverage reporting, and test orchestration
  */
 
-import { describe, test, expect, beforeAll, afterAll } from 'vitest';
 import { spawn } from 'child_process';
-import path from 'path';
 import fs from 'fs';
+import path from 'path';
+
+import { describe, test, expect, beforeAll, afterAll } from 'vitest';
 
 // Test categories and their files
 const TEST_SUITES = {
@@ -110,7 +111,7 @@ const EXTERNAL_INTEGRATIONS_TESTED = [
 ];
 
 describe('API Integration Test Suite - Execution Summary', () => {
-  let testResults: any = {};
+  const testResults: any = {};
   let startTime: number;
   let endTime: number;
 

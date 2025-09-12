@@ -14,6 +14,12 @@
 import { vi, type MockedFunction } from 'vitest';
 
 // =============================================================================
+// ENHANCED JWT FACADE INTEGRATION
+// =============================================================================
+
+import { createJWTFacadeMock, resetJWTFacadeMock } from './jwt-facade-mock';
+
+// =============================================================================
 // ENCRYPTION SERVICE COMPLETE MOCK
 // =============================================================================
 
@@ -400,12 +406,6 @@ export class ServiceMockRegistry {
     this.register('jsonwebtoken', createJsonWebTokenMock);
   }
 }
-
-// =============================================================================
-// ENHANCED JWT FACADE INTEGRATION
-// =============================================================================
-
-import { createJWTFacadeMock, resetJWTFacadeMock } from './jwt-facade-mock';
 
 // JWT Facade mock for comprehensive integration
 export const jwtFacadeMock = createJWTFacadeMock();

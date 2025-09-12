@@ -6,6 +6,7 @@
  */
 
 import { vi } from 'vitest';
+
 import { TEST_CONFIG } from '../test-infrastructure-config';
 
 /**

@@ -129,7 +129,7 @@ app.use(
     windowBits: 13, // Context7: Reduced memory usage
     memLevel: 8, // Memory usage optimization
     strategy: require('zlib').constants.Z_RLE, // Context7: Optimized for JSON/text
-    filter: (req, res) => {
+    filter: (req: any, res: any) => {
       // Context7 Pattern: Enhanced compression filtering
       if (req.headers['x-no-compression']) return false;
 

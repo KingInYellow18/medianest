@@ -1,4 +1,5 @@
 import { test as setup, expect } from '@playwright/test';
+
 import { testUsers } from '../fixtures/test-data';
 
 const authFile = 'e2e/fixtures/auth.json';

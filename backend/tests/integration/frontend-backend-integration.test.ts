@@ -10,21 +10,26 @@
  * - File upload/download workflows
  */
 
-import { describe, test, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
-import request from 'supertest';
-import { Express } from 'express';
-import { PrismaClient } from '@prisma/client';
-import Redis from 'ioredis';
-import WebSocket from 'ws';
-import FormData from 'form-data';
 import fs from 'fs/promises';
 import path from 'path';
+
+import { PrismaClient } from '@prisma/client';
+import { Express } from 'express';
+import FormData from 'form-data';
+import Redis from 'ioredis';
+import request from 'supertest';
+import { describe, test, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
+import WebSocket from 'ws';
+
+
 import { createApp } from '@/app';
-import { AuthService } from '@/services/auth.service';
+
 import { testUsers } from '../fixtures/test-data';
+import { APIContractValidator } from '../helpers/api-contract-validator';
 import { DatabaseTestHelper } from '../helpers/database-test-helper';
 import { RedisTestHelper } from '../helpers/redis-test-helper';
-import { APIContractValidator } from '../helpers/api-contract-validator';
+
+import { AuthService } from '@/services/auth.service';
 
 describe('Frontend-Backend Integration Tests', () => {
   let app: Express;

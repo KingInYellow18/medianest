@@ -66,7 +66,7 @@ const securityPatterns = [
 
 let validationsPassed = 0;
 let totalValidations = 0;
-let criticalIssues = [];
+const criticalIssues = [];
 
 console.log('📋 VALIDATING SECURITY IMPLEMENTATIONS:\n');
 

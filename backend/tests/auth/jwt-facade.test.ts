@@ -1,6 +1,10 @@
-import { describe, it, expect, beforeEach, beforeAll, afterAll, vi } from 'vitest';
-import { JWTFacade, JWTPayload } from '../../src/auth/jwt-facade';
 import { AppError } from '@medianest/shared';
+import * as jwt from 'jsonwebtoken';
+import { describe, it, expect, beforeEach, beforeAll, afterAll, vi } from 'vitest';
+
+import { JWTFacade, JWTPayload } from '../../src/auth/jwt-facade';
+
+// Import jwt after mocking
 
 // Mock config service BEFORE imports to ensure it's available during module initialization
 vi.mock('../../src/config/config.service', () => ({
@@ -44,9 +48,6 @@ vi.mock('jsonwebtoken', () => ({
     }
   },
 }));
-
-// Import jwt after mocking
-import * as jwt from 'jsonwebtoken';
 
 describe('JWTFacade', () => {
   let jwtFacade: JWTFacade;

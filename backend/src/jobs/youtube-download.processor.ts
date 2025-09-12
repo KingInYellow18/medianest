@@ -3,7 +3,6 @@ import path from 'path';
 
 import { Worker, Job } from 'bullmq';
 
-import { CatchError } from '../types/common';
 
 import { config } from '@/config';
 import { getRedis } from '@/config/redis';
@@ -12,6 +11,8 @@ import { youtubeDownloadRepository } from '@/repositories/instances';
 import { plexService } from '@/services/plex.service';
 import { getSocketServer } from '@/socket/server';
 import { logger } from '@/utils/logger';
+
+import { CatchError } from '../types/common';
 
 interface DownloadJobData {
   downloadId: string;
@@ -194,14 +195,14 @@ export class YouTubeDownloadProcessor {
    * Setup worker event handlers
    */
   private setupEventHandlers(): void {
-    this.worker.on('completed', (job) => {
+    this.worker.on('completed', (job: any) => {
       logger.info('YouTube download job completed', {
         jobId: job.id,
         downloadId: job.data.downloadId,
       });
     });
 
-    this.worker.on('failed', (job, err) => {
+    this.worker.on('failed', (job: any, err: any) => {
       logger.error('YouTube download job failed', {
         jobId: job?.id,
         downloadId: job?.data.downloadId,
@@ -209,11 +210,11 @@ export class YouTubeDownloadProcessor {
       });
     });
 
-    this.worker.on('stalled', (jobId) => {
+    this.worker.on('stalled', (jobId: any) => {
       logger.warn('YouTube download job stalled', { jobId });
     });
 
-    this.worker.on('error', (err) => {
+    this.worker.on('error', (err: any) => {
       logger.error('YouTube download worker error', { error: err.message });
     });
   }

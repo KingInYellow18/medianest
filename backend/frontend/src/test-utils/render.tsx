@@ -3,9 +3,9 @@
  * Provides enhanced testing utilities with providers and helpers
  */
 
-import React, { ReactElement, ReactNode } from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import React, { ReactElement, ReactNode } from 'react';
 import { vi } from 'vitest';
 
 // Mock Error Boundary Provider for testing error states

@@ -4,8 +4,8 @@
  * by the boundary but still reported as test failures by the test framework
  */
 
-import React from 'react';
 import { render, RenderOptions } from '@testing-library/react';
+import React from 'react';
 
 // Component that safely throws errors for testing ErrorBoundaries
 export const SafeErrorThrower = ({

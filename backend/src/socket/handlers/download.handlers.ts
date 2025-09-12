@@ -1,11 +1,12 @@
 // @ts-nocheck
 import { Server, Socket } from 'socket.io';
 
-import { CatchError } from '../../types/common';
 
 import { youtubeQueue } from '@/config/queues';
 import { YoutubeDownloadRepository } from '@/repositories/youtube-download.repository';
 import { logger } from '@/utils/logger';
+
+import { CatchError } from '../../types/common';
 
 interface DownloadProgress {
   downloadId: string;

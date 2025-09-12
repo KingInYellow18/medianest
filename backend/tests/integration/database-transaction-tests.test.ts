@@ -4,8 +4,9 @@
  * Comprehensive testing of database operations, transactions, and data consistency
  */
 
-import { describe, test, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { PrismaClient } from '@prisma/client';
+import { describe, test, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+
 import { DatabaseTestHelper } from '../helpers/database-test-helper';
 
 const prisma = new PrismaClient();

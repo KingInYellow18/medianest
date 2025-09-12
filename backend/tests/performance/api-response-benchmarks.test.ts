@@ -5,12 +5,13 @@
  * Target: <200ms for most endpoints, <500ms for complex operations
  */
 
-import { describe, test, expect, beforeAll, afterAll, vi } from 'vitest';
-import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
+import request from 'supertest';
+import { describe, test, expect, beforeAll, afterAll, vi } from 'vitest';
+
 import { app, httpServer } from '../../src/app';
-import { AuthTestHelper } from '../helpers/auth-test-helper';
 import { logger } from '../../src/utils/logger';
+import { AuthTestHelper } from '../helpers/auth-test-helper';
 
 interface PerformanceMetric {
   endpoint: string;
@@ -39,8 +40,8 @@ describe('API Response Time Benchmarks', () => {
   let adminUser: any;
   let userToken: string;
   let adminToken: string;
-  let performanceMetrics: PerformanceMetric[] = [];
-  let benchmarkResults: BenchmarkResult[] = [];
+  const performanceMetrics: PerformanceMetric[] = [];
+  const benchmarkResults: BenchmarkResult[] = [];
 
   beforeAll(async () => {
     // Setup test environment

@@ -10,17 +10,20 @@
  * - Rate limiting and API quota management
  */
 
-import { describe, test, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
+import { PrismaClient } from '@prisma/client';
 import axios, { AxiosInstance } from 'axios';
 import { Express } from 'express';
-import { PrismaClient } from '@prisma/client';
 import Redis from 'ioredis';
+import nock from 'nock';
 import request from 'supertest';
+import { describe, test, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
+
 import { createApp } from '@/app';
+
+import { testUsers } from '../fixtures/test-data';
 import { DatabaseTestHelper } from '../helpers/database-test-helper';
 import { RedisTestHelper } from '../helpers/redis-test-helper';
-import { testUsers } from '../fixtures/test-data';
-import nock from 'nock';
+
 
 // Mock external service responses
 const MOCK_RESPONSES = {

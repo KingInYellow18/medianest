@@ -5,9 +5,6 @@
 
 import {
   isString,
-  isNumber,
-  isValidInteger,
-  isNonNullable,
   safeJsonParse,
 } from '../utils/type-guards';
 

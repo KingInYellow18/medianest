@@ -5,8 +5,9 @@
  * input validation, and protection against common attacks
  */
 
-import { describe, test, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import request from 'supertest';
+import { describe, test, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+
 import { createServer } from '../../src/server';
 import { AuthTestHelper } from '../helpers/auth-test-helper';
 import { DatabaseTestHelper } from '../helpers/database-test-helper';

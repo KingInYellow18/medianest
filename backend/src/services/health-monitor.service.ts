@@ -5,11 +5,11 @@ import { performance } from 'perf_hooks';
 import { PrismaClient } from '@prisma/client';
 import IORedis from 'ioredis';
 
+import { resilienceService } from './resilience.service';
 import { CatchError } from '../types/common';
 import { CircuitBreakerFactory } from '../utils/circuit-breaker';
 import { logger } from '../utils/logger';
 
-import { resilienceService } from './resilience.service';
 
 export interface ComponentHealth {
   name: string;

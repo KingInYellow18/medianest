@@ -4,8 +4,9 @@
  * Complete user journey testing from registration to media consumption
  */
 
-import { describe, test, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { Page, Browser, chromium } from '@playwright/test';
+import { describe, test, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+
 import { DatabaseTestHelper } from '../helpers/database-test-helper';
 
 let browser: Browser;

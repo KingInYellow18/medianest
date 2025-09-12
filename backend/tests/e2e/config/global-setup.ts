@@ -1,6 +1,7 @@
-import { FullConfig } from '@playwright/test';
 import { execSync } from 'child_process';
 import { performance } from 'perf_hooks';
+
+import { FullConfig } from '@playwright/test';
 
 async function globalSetup(config: FullConfig) {
   const startTime = performance.now();

@@ -1,11 +1,12 @@
 import { AppError } from '@medianest/shared';
 import { Request, Response } from 'express';
 
-import { CatchError } from '../types/common';
 
 import { mediaRequestRepository } from '@/repositories';
 import { overseerrService } from '@/services/overseerr.service';
 import { logger } from '@/utils/logger';
+
+import { CatchError } from '../types/common';
 
 /**
  * Media Controller - Handles all media-related HTTP requests

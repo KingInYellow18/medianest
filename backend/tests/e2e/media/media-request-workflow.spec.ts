@@ -8,12 +8,13 @@
  * - Status tracking and updates
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
-import { MediaTestFactory } from '../../shared/factories/media-factory';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+
 import { ScenarioBuilder } from '../../shared/builders/scenario-builder';
-import { ValidationHelper } from '../../shared/helpers/validation-helpers';
+import { MediaTestFactory } from '../../shared/factories/media-factory';
 import { BaseTestHelper, TestContext } from '../../shared/helpers/test-base';
+import { ValidationHelper } from '../../shared/helpers/validation-helpers';
 
 describe('Complete Media Request User Journey', () => {
   let context: TestContext;

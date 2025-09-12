@@ -1,6 +1,7 @@
 import { Pool, PoolClient } from 'pg';
-import { testUsers, allTestUsers } from '../fixtures/users.fixture';
+
 import { testMediaRequests } from '../fixtures/test-data';
+import { testUsers, allTestUsers } from '../fixtures/users.fixture';
 
 /**
  * Database helper utilities for E2E testing

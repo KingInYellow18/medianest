@@ -8,9 +8,10 @@
  */
 
 // External dependencies
-import { PerformanceMonitor, DatabaseOptimizer, CachingMiddleware } from '@medianest/shared';
 import { PrismaClient } from '@prisma/client';
 import { Redis } from 'ioredis';
+
+import { PerformanceMonitor, DatabaseOptimizer, CachingMiddleware } from '@medianest/shared';
 
 // Internal utilities
 import { logger } from '../utils/logger';

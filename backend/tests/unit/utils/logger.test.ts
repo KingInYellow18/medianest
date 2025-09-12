@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+// Import after mocking
+import winston from 'winston';
+
+import { logger, createChildLogger } from '@/utils/logger';
+
 // Mock winston before importing logger
 vi.mock('winston', () => {
   const mockLoggerInstance = {
@@ -54,10 +59,6 @@ vi.mock('winston', () => {
 vi.mock('winston-daily-rotate-file', () => ({
   default: vi.fn(),
 }));
-
-// Import after mocking
-import { logger, createChildLogger } from '@/utils/logger';
-import winston from 'winston';
 
 describe('Logger Utility', () => {
   beforeEach(() => {

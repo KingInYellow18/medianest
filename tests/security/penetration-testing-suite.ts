@@ -1,14 +1,16 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest';
-import request from 'supertest';
-import { User } from '@prisma/client';
-import crypto from 'crypto';
 import { spawn } from 'child_process';
+import crypto from 'crypto';
 
-import { app } from '../../backend/src/server';
-import { cleanDatabase, disconnectDatabase } from '../helpers/database';
-import { createTestUser, generateValidToken } from '../helpers/auth';
-import { UserRepository } from '../../backend/src/repositories/user.repository';
+import { User } from '@prisma/client';
+import request from 'supertest';
+import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest';
+
+
 import { getRedis } from '../../backend/src/config/redis';
+import { UserRepository } from '../../backend/src/repositories/user.repository';
+import { app } from '../../backend/src/server';
+import { createTestUser, generateValidToken } from '../helpers/auth';
+import { cleanDatabase, disconnectDatabase } from '../helpers/database';
 
 /**
  * PENETRATION TESTING SUITE

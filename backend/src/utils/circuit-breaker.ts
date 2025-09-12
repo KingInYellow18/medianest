@@ -1,9 +1,9 @@
 import { EventEmitter } from 'events';
 
+import { logger } from './logger';
 import { CatchError } from '../types/common';
 import { toError } from '../types/error-types';
 
-import { logger } from './logger';
 
 export interface CircuitBreakerOptions {
   failureThreshold: number;

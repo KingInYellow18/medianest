@@ -16,9 +16,11 @@
  * - Database recovery under extreme load
  */
 
+const { performance } = require('perf_hooks');
+
 const { Pool } = require('pg');
 const { createClient } = require('redis');
-const { performance } = require('perf_hooks');
+
 const fs = require('fs').promises;
 const path = require('path');
 

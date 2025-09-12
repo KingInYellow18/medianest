@@ -2,10 +2,10 @@
  * Database Performance Monitoring and Metrics
  * Provides real-time performance monitoring and alerting
  */
+import { getDatabaseStats } from './database-connection-pool';
 import { CatchError } from '../types/common';
 import { logger } from '../utils/logger';
 
-import { getDatabaseStats } from './database-connection-pool';
 
 interface PerformanceMetrics {
   timestamp: Date;

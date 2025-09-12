@@ -2,6 +2,7 @@ import crypto from 'crypto';
 
 import axios from 'axios';
 
+import { RedisService } from './redis.service';
 import { configService } from '../config/config.service';
 import { SessionTokenRepository } from '../repositories/session-token.repository';
 import { UserRepository } from '../repositories/user.repository';
@@ -11,7 +12,6 @@ import { generateToken } from '../utils/jwt';
 import { logger } from '../utils/logger';
 import { generateSecureToken, logSecurityEvent } from '../utils/security';
 
-import { RedisService } from './redis.service';
 
 interface OAuthConfig {
   clientId: string;

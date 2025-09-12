@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import * as winston from 'winston';
+
 const DailyRotateFile = require('winston-daily-rotate-file');
 
 // Winston type extensions are automatically available from types/winston.d.ts

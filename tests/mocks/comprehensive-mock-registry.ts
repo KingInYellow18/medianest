@@ -6,11 +6,12 @@
  */
 
 import { vi, type MockedFunction } from 'vitest';
-import { setupJWTMocks } from './jwt-mock';
-import { setupRedisMocks } from './redis-mock';
-import { setupPrismaMocks } from './prisma-mock';
+
 import { setupAuthServiceMocks } from './auth-mock';
 import { setupCacheServiceMocks } from './cache-service-mock';
+import { setupJWTMocks } from './jwt-mock';
+import { setupPrismaMocks } from './prisma-mock';
+import { setupRedisMocks } from './redis-mock';
 
 /**
  * Mock Registry - Central hub for all mocks

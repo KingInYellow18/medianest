@@ -1,14 +1,21 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { EventEmitter } from 'events';
+import { Server } from 'http';
+
 import request from 'supertest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { WebSocket } from 'ws';
+
+import { createAuthToken } from '../helpers/auth';
+import { databaseCleanup } from '../helpers/database-cleanup';
+
 import { app } from '@/app';
-import { IntegrationService } from '@/services/integration.service';
 import { initializeRedis, getRedis } from '@/config/redis';
 import { prisma } from '@/db/prisma';
-import { databaseCleanup } from '../helpers/database-cleanup';
-import { createAuthToken } from '../helpers/auth';
-import { Server } from 'http';
-import { WebSocket } from 'ws';
-import { EventEmitter } from 'events';
+import { IntegrationService } from '@/services/integration.service';
+
+
+
+
 
 /**
  * HIVE-MIND API INTEGRATION COORDINATOR

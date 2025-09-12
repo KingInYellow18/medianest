@@ -15,6 +15,11 @@
  */
 
 import { vi, type MockedFunction } from 'vitest';
+
+import {
+  generateCompleteOperations,
+  applyEmergencyOperationsToModel,
+} from './emergency-prisma-operations-repair';
 import {
   StatelessMock,
   MockFactory,
@@ -22,10 +27,6 @@ import {
   ValidationResult,
   MockIsolation,
 } from '../foundation/unified-mock-registry';
-import {
-  generateCompleteOperations,
-  applyEmergencyOperationsToModel,
-} from './emergency-prisma-operations-repair';
 
 // =============================================================================
 // TYPES AND INTERFACES
@@ -937,7 +938,7 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
               groups.get(groupKey).items.push(user);
             });
 
-            let result = Array.from(groups.values()).map((group) => {
+            const result = Array.from(groups.values()).map((group) => {
               const item = { ...group };
               delete item.items;
 
@@ -1169,7 +1170,7 @@ export class PrismaDatabaseMock extends StatelessMock<any> {
               groups.get(groupKey).items.push(request);
             });
 
-            let result = Array.from(groups.values()).map((group) => {
+            const result = Array.from(groups.values()).map((group) => {
               const item = { ...group };
               delete item.items;
 

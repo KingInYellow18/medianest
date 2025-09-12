@@ -1,5 +1,6 @@
-import type { User } from '@medianest/shared';
 import { Request } from 'express';
+
+import type { User } from '@medianest/shared';
 
 // Authenticated user type (extends User with required fields)
 export interface AuthenticatedUser {

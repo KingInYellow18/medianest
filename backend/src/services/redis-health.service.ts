@@ -1,6 +1,6 @@
+import { RedisService } from './redis.service';
 import { logger } from '../utils/logger';
 
-import { RedisService } from './redis.service';
 
 export interface RedisHealthStatus {
   status: 'healthy' | 'degraded' | 'unhealthy';

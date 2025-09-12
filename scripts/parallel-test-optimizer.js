@@ -13,9 +13,9 @@
  */
 
 const { spawn } = require('child_process');
+const fs = require('fs');
 const { cpus } = require('os');
 const path = require('path');
-const fs = require('fs');
 
 class HighPerformanceTestRunner {
   constructor() {

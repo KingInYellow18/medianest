@@ -1,6 +1,7 @@
 /// <reference types="vitest" />
-import { defineConfig } from 'vitest/config';
 import path from 'path';
+
+import { defineConfig } from 'vitest/config';
 
 /**
  * Vitest Configuration for Integration Tests

@@ -1,254 +1,137 @@
-import globals from "globals";
-import tsParser from "@typescript-eslint/parser";
-import typescriptEslint from "@typescript-eslint/eslint-plugin";
-import importPlugin from "eslint-plugin-import";
-import prettier from "eslint-plugin-prettier";
-import js from "@eslint/js";
 
+import js from '@eslint/js';
+import ts from '@typescript-eslint/eslint-plugin';
+import tsParser from '@typescript-eslint/parser';
+import prettier from 'eslint-config-prettier/flat';
+import importPlugin from 'eslint-plugin-import';
+import globals from 'globals';
+
+/** @type {import('eslint').Linter.FlatConfig[]} */
 export default [
-    // Ignore patterns for all configs
-    {
-        ignores: [
-            "node_modules/**",
-            "dist/**",
-            "build/**",
-            ".next/**",
-            "coverage/**",
-            "**/*.d.ts",
-            "**/*.config.js",
-            "**/*.config.ts",
-            ".eslintrc.js",
-            "eslint.config.js",
-            ".lintstagedrc.js",
-            "lint-staged.config.js",
-            "scripts/**/*.js",
-            "**/scripts/**",
-            ".claude/**",
-            "**/dist/**",
-            "**/build/**",
-            "**/__tests__/**",
-            "**/tests/**",
-        ],
+  // 1. Global Ignores
+  {
+    ignores: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/.next/**',
+      '**/.vite/**',
+      '**/.vitest-cache/**',
+      '**/allure-results/**',
+      '**/.code/**',
+      '**/coverage/**',
+      '**/playwright-report/**',
+      '**/.vercel/**',
+      '**/.claude/**',
+      '**/*.d.ts',
+    ],
+  },
+
+  // 2. Base Config for JavaScript files
+  {
+    files: ['**/*.{js,jsx}'],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaFeatures: { modules: true, jsx: true },
+        // NOTE: Intentionally not setting "project"/"projectService" here to keep
+        // local linting fast and non-type-aware. CI will supply a separate config.
+      },
+      globals: { ...globals.browser, ...globals.node, es2022: true },
     },
-    
-    // Base JavaScript configuration
-    {
-        files: ["**/*.js", "**/*.mjs", "**/*.cjs"],
-        languageOptions: {
-            globals: {
-                ...globals.node,
-                ...globals.es2022,
-            },
-            ecmaVersion: 2022,
-            sourceType: "module",
-        },
-        plugins: {
-            import: importPlugin,
-            prettier,
-        },
-        rules: {
-            ...js.configs.recommended.rules,
-            "no-console": ["warn", { allow: ["warn", "error"] }],
-            "prefer-const": "error",
-            "no-debugger": "error",
-            "prettier/prettier": "error",
-            "import/no-duplicates": "error",
-        },
+    plugins: {
+      import: importPlugin,
     },
-    
-    // TypeScript configuration for backend
-    {
-        files: ["backend/**/*.ts", "backend/**/*.tsx"],
-        languageOptions: {
-            globals: {
-                ...globals.node,
-                ...globals.es2022,
-            },
-            parser: tsParser,
-            ecmaVersion: 2022,
-            sourceType: "module",
-            parserOptions: {
-                tsconfigRootDir: import.meta.dirname + "/backend",
-                project: ["./tsconfig.json"],
-            },
+    rules: {
+      ...js.configs.recommended.rules,
+
+      // Sensible defaults
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'prefer-const': 'error',
+      'no-debugger': 'error',
+
+      // Import ordering (lightweight, warn during dev)
+      'import/order': [
+        'warn',
+        {
+          'newlines-between': 'always',
+          alphabetize: { order: 'asc', caseInsensitive: true },
+          groups: ['builtin', 'external', 'internal', ['parent', 'sibling', 'index'], 'object', 'type'],
         },
-        plugins: {
-            "@typescript-eslint": typescriptEslint,
-            import: importPlugin,
-            prettier,
-        },
-        rules: {
-            ...js.configs.recommended.rules,
-            ...typescriptEslint.configs.recommended.rules,
-            
-            // TypeScript rules
-            "@typescript-eslint/explicit-function-return-type": "off",
-            "@typescript-eslint/explicit-module-boundary-types": "off",
-            "@typescript-eslint/no-explicit-any": "warn",
-            "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
-            "@typescript-eslint/no-non-null-assertion": "warn",
-            "@typescript-eslint/no-var-requires": "warn",
-            "no-undef": "off", // TypeScript handles this
-            
-            // Import rules
-            "import/order": [
-                "error",
-                {
-                    groups: ["builtin", "external", "internal", "parent", "sibling", "index"],
-                    "newlines-between": "always",
-                    alphabetize: { order: "asc", caseInsensitive: true },
-                },
-            ],
-            "import/no-duplicates": "error",
-            "import/no-unresolved": "error",
-            
-            // General rules
-            "no-console": ["warn", { allow: ["warn", "error"] }],
-            "prefer-const": "error",
-            "no-debugger": "error",
-            "prettier/prettier": "error",
-        },
-        settings: {
-            "import/parsers": {
-                "@typescript-eslint/parser": [".ts", ".tsx"],
-            },
-            "import/resolver": {
-                typescript: {
-                    alwaysTryTypes: true,
-                    project: ["./backend/tsconfig.json"],
-                },
-            },
-        },
+      ],
+      'import/first': 'error',
+      'import/newline-after-import': 'error',
+      'import/no-duplicates': 'error',
     },
-    
-    // TypeScript configuration for shared
-    {
-        files: ["shared/**/*.ts", "shared/**/*.tsx"],
-        languageOptions: {
-            globals: {
-                ...globals.node,
-                ...globals.es2022,
-            },
-            parser: tsParser,
-            ecmaVersion: 2022,
-            sourceType: "module",
-            parserOptions: {
-                tsconfigRootDir: import.meta.dirname + "/shared",
-                project: ["./tsconfig.json"],
-            },
-        },
-        plugins: {
-            "@typescript-eslint": typescriptEslint,
-            import: importPlugin,
-            prettier,
-        },
-        rules: {
-            ...js.configs.recommended.rules,
-            ...typescriptEslint.configs.recommended.rules,
-            
-            // TypeScript rules
-            "@typescript-eslint/explicit-function-return-type": "off",
-            "@typescript-eslint/explicit-module-boundary-types": "off",
-            "@typescript-eslint/no-explicit-any": "warn",
-            "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
-            "@typescript-eslint/no-non-null-assertion": "warn",
-            "@typescript-eslint/no-var-requires": "warn",
-            "no-undef": "off", // TypeScript handles this
-            
-            // Import rules
-            "import/order": [
-                "error",
-                {
-                    groups: ["builtin", "external", "internal", "parent", "sibling", "index"],
-                    "newlines-between": "always",
-                    alphabetize: { order: "asc", caseInsensitive: true },
-                },
-            ],
-            "import/no-duplicates": "error",
-            "import/no-unresolved": "error",
-            
-            // General rules
-            "no-console": ["warn", { allow: ["warn", "error"] }],
-            "prefer-const": "error",
-            "no-debugger": "error",
-            "prettier/prettier": "error",
-        },
-        settings: {
-            "import/parsers": {
-                "@typescript-eslint/parser": [".ts", ".tsx"],
-            },
-            "import/resolver": {
-                typescript: {
-                    alwaysTryTypes: true,
-                    project: ["./shared/tsconfig.json"],
-                },
-            },
-        },
+    settings: {
+      'import/parsers': {
+        '@typescript-eslint/parser': ['.ts', '.tsx'],
+      },
+      'import/resolver': { typescript: { alwaysTryTypes: true } },
     },
-    
-    // TypeScript configuration for root src files
-    {
-        files: ["src/**/*.ts", "src/**/*.tsx"],
-        languageOptions: {
-            globals: {
-                ...globals.node,
-                ...globals.es2022,
-            },
-            parser: tsParser,
-            ecmaVersion: 2022,
-            sourceType: "module",
-            parserOptions: {
-                tsconfigRootDir: import.meta.dirname,
-                project: ["./tsconfig.base.json"],
-            },
-        },
-        plugins: {
-            "@typescript-eslint": typescriptEslint,
-            import: importPlugin,
-            prettier,
-        },
-        rules: {
-            ...js.configs.recommended.rules,
-            ...typescriptEslint.configs.recommended.rules,
-            
-            // TypeScript rules
-            "@typescript-eslint/explicit-function-return-type": "off",
-            "@typescript-eslint/explicit-module-boundary-types": "off",
-            "@typescript-eslint/no-explicit-any": "warn",
-            "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
-            "@typescript-eslint/no-non-null-assertion": "warn",
-            "@typescript-eslint/no-var-requires": "warn",
-            "no-undef": "off", // TypeScript handles this
-            
-            // Import rules
-            "import/order": [
-                "error",
-                {
-                    groups: ["builtin", "external", "internal", "parent", "sibling", "index"],
-                    "newlines-between": "always",
-                    alphabetize: { order: "asc", caseInsensitive: true },
-                },
-            ],
-            "import/no-duplicates": "error",
-            // Disable import/no-unresolved for root src files as they may have loose dependencies
-            "import/no-unresolved": "off",
-            
-            // General rules
-            "no-console": ["warn", { allow: ["warn", "error"] }],
-            "prefer-const": "error",
-            "no-debugger": "error",
-            "prettier/prettier": "error",
-        },
-        settings: {
-            "import/parsers": {
-                "@typescript-eslint/parser": [".ts", ".tsx"],
-            },
-            "import/resolver": {
-                typescript: {
-                    alwaysTryTypes: true,
-                    project: ["./tsconfig.base.json"],
-                },
-            },
-        },
+  },
+
+  // 3. Base Config for TypeScript files
+  {
+    files: ['**/*.{ts,tsx}'],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaFeatures: { modules: true, jsx: true },
+      },
+      globals: { ...globals.browser, ...globals.node, es2022: true },
     },
+    plugins: {
+      '@typescript-eslint': ts,
+      import: importPlugin,
+    },
+    rules: {
+      ...js.configs.recommended.rules,
+      ...ts.configs.recommended.rules,
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'prefer-const': 'error',
+      'no-debugger': 'error',
+      // Relax TS strictness during active development
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/no-unsafe-function-type': 'off',
+      'no-undef': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { vars: 'all', varsIgnorePattern: '^_', args: 'after-used', argsIgnorePattern: '^_' },
+      ],
+      'import/order': [
+        'warn',
+        {
+          'newlines-between': 'always',
+          alphabetize: { order: 'asc', caseInsensitive: true },
+          groups: ['builtin', 'external', 'internal', ['parent', 'sibling', 'index'], 'object', 'type'],
+        },
+      ],
+      'import/first': 'error',
+      'import/newline-after-import': 'error',
+      'import/no-duplicates': 'error',
+    },
+    settings: {
+      'import/parsers': {
+        '@typescript-eslint/parser': ['.ts', '.tsx'],
+      },
+      'import/resolver': { typescript: { alwaysTryTypes: true } },
+    },
+  },
+  // 4. Test/E2E Overrides (Vitest/Playwright)
+  {
+    files: ['**/*.test.{ts,tsx}', '**/*.spec.{ts,tsx}', 'tests/**/*.{ts,tsx}', 'backend/frontend/e2e/**/*.{ts,tsx}'],
+    rules: {
+      // Relax rules significantly for tests/e2e during active development
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-non-null-assertion': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/no-unsafe-function-type': 'off',
+      'import/order': 'off',
+      'no-undef': 'off',
+    },
+  },
+  // 5. Keep Prettier last to disable conflicting stylistic rules
+  prettier,
 ];

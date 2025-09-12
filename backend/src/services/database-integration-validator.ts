@@ -2,11 +2,11 @@
  * Database Integration Validator
  * Validates that all mock data has been replaced with real database operations
  */
+import { notificationDatabaseService } from './notification-database.service';
+import { serviceMonitoringService } from './service-monitoring-database.service';
 import { executeQuery, getDatabaseStats } from '../config/database-connection-pool';
 import { logger } from '../utils/logger';
 
-import { notificationDatabaseService } from './notification-database.service';
-import { serviceMonitoringService } from './service-monitoring-database.service';
 
 interface ValidationResult {
   passed: boolean;

@@ -1,6 +1,5 @@
 import { AppError } from '@medianest/shared';
 import axios from 'axios';
-import type { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 
 import { config } from '@/config';
@@ -9,6 +8,8 @@ import { encryptionService } from '@/services/encryption.service';
 import { jwtService } from '@/services/jwt.service';
 import { AuthenticatedRequest } from '@/types';
 import { logger } from '@/utils/logger';
+
+import type { Request, Response, NextFunction } from 'express';
 
 // Validation schemas
 const generatePinSchema = z.object({

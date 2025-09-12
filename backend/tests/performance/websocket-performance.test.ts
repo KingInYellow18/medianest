@@ -6,13 +6,15 @@
  * and memory efficiency of WebSocket operations
  */
 
-import { describe, test, expect, beforeAll, afterAll, vi } from 'vitest';
-import { Server as SocketIOServer } from 'socket.io';
 import { createServer } from 'http';
+
+import { Server as SocketIOServer } from 'socket.io';
 import { Client as SocketIOClient } from 'socket.io-client';
+import { describe, test, expect, beforeAll, afterAll, vi } from 'vitest';
+
 import { app } from '../../src/app';
-import { AuthTestHelper } from '../helpers/auth-test-helper';
 import { logger } from '../../src/utils/logger';
+import { AuthTestHelper } from '../helpers/auth-test-helper';
 
 interface WebSocketMetric {
   operation: 'connect' | 'disconnect' | 'message' | 'broadcast';
@@ -43,8 +45,8 @@ describe('WebSocket Connection Performance Tests', () => {
   let authHelper: AuthTestHelper;
   let testUsers: any[] = [];
   let userTokens: string[] = [];
-  let wsMetrics: WebSocketMetric[] = [];
-  let wsBenchmarks: WebSocketBenchmark[] = [];
+  const wsMetrics: WebSocketMetric[] = [];
+  const wsBenchmarks: WebSocketBenchmark[] = [];
   const activeConnections: Map<string, any> = new Map();
 
   beforeAll(async () => {

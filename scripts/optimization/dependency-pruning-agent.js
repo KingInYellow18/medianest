@@ -4,9 +4,9 @@
  * Remove unused dependencies and optimize imports
  */
 
+const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 
 class DependencyPruningAgent {
   constructor() {
@@ -145,8 +145,8 @@ class DependencyPruningAgent {
   async optimizeFileImports(filePath) {
     try {
       const content = fs.readFileSync(filePath, 'utf8');
-      let optimizedContent = content;
-      let hasChanges = false;
+      const optimizedContent = content;
+      const hasChanges = false;
 
       // Optimize lodash imports
       const lodashRegex = /import\s+_\s+from\s+['"]lodash['"]/g;

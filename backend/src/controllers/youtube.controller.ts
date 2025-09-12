@@ -3,7 +3,6 @@ import { Request, Response, NextFunction } from 'express';
 
 // @ts-ignore
 
-import { CatchError } from '../types/common';
 
 import { youtubeQueue } from '@/config/queues';
 import { youtubeDownloadRepository } from '@/repositories/instances';
@@ -15,6 +14,8 @@ import {
   getDownloadSchema,
   getMetadataSchema,
 } from '@/validations/youtube.validation';
+
+import { CatchError } from '../types/common';
 
 export class YouTubeController {
   private youtubeService: YouTubeService;

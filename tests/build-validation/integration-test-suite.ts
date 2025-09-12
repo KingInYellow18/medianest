@@ -4,11 +4,12 @@
  * Purpose: Comprehensive integration testing for build system changes
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+
 import axios from 'axios';
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 
 interface TestEnvironment {
   backendUrl: string;

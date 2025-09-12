@@ -1,5 +1,6 @@
-import { generateToken } from '@/utils/jwt';
 import { User } from '@prisma/client';
+
+import { generateToken } from '@/utils/jwt';
 
 export function createAuthToken(user: Partial<User> = {}) {
   const payload = {

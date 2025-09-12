@@ -5,6 +5,7 @@
 
 import { cleanup } from '@testing-library/react';
 import { beforeEach, afterEach, vi } from 'vitest';
+
 import '@testing-library/jest-dom';
 import { configureErrorBoundaryTesting, restoreErrorBoundaryTesting } from './errorBoundaryHelpers';
 

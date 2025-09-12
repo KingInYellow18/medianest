@@ -1,0 +1,247 @@
+Of course. Here is a simplified and sustainable linting strategy based on your requirements. This approach unifies linting under a single root configuration, providing a fast local development experience and a strict CI check.
+
+### Strategy Overview
+
+1.  **Unified Configuration:** We will establish a single source of truth for linting in the monorepo root. `eslint.config.js` will provide a fast, non-type-aware configuration for local development. A separate `eslint.ci.config.js` will extend it to enable slower, type-aware rules for CI.
+2.  **Unified Commands:** All linting will be run from the root of the project via `npm run lint` and `npm run lint:fix`. Sub-package `lint` scripts will be removed to avoid ambiguity. The `frontend` will be linted by the global config, which will correctly apply Next.js rules, removing the need for a separate `next lint` command in our workflow.
+3.  **Fast Local/Strict CI:** Local linting and pre-commit hooks will only fail on errors, not warnings. The `lint:ci` script will enforce zero warnings and run full type-aware checks.
+4.  **Dependency Cleanup:** We will remove the redundant `eslint-plugin-prettier` and the legacy `eslintConfig` block from `package.json`, relying on `eslint-config-prettier` to handle formatting conflicts.
+
+Here are the precise code edits and commands to implement this strategy.
+
+---
+
+### 1. New ESLint Configurations
+
+Create two files in the project root: `eslint.config.js` for local development and `eslint.ci.config.js` for continuous integration.
+
+**`/eslint.config.js`** (New file for local development)
+This configuration is optimized for speed by excluding type-aware rules.
+
+```javascript
+import js from '@eslint/js';
+import ts from '@typescript-eslint/eslint-plugin';
+import tsParser from '@typescript-eslint/parser';
+import nextPlugin from 'eslint-config-next';
+import importPlugin from 'eslint-plugin-import';
+import jsxA11y from 'eslint-plugin-jsx-a11y';
+import reactPlugin from 'eslint-plugin-react';
+import reactHooks from 'eslint-plugin-react-hooks';
+import security from 'eslint-plugin-security';
+import simpleImportSort from 'eslint-plugin-simple-import-sort';
+import unusedImports from 'eslint-plugin-unused-imports';
+import prettierConfig from 'eslint-config-prettier';
+import globals from 'globals';
+
+/** @type {import('eslint').Linter.FlatConfig[]} */
+export const baseConfig = [
+  // 1. Global Ignores
+  {
+    ignores: [
+      '**/node_modules/**', '**/dist/**', '**/build/**', '**/.next/**',
+      '**/coverage/**', '**/playwright-report/**', '**/.vercel/**',
+      '**/.claude/**', '**/*.d.ts', '**/generated/**',
+    ],
+  },
+
+  // 2. Base Config for all TypeScript files
+  {
+    files: ['**/*.{js,jsx,ts,tsx}'],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaFeatures: { modules: true, jsx: true },
+        warnOnUnsupportedTypeScriptVersion: false,
+      },
+      globals: { ...globals.browser, ...globals.node, es2022: true },
+    },
+    plugins: {
+      '@typescript-eslint': ts,
+      'import': importPlugin,
+      'simple-import-sort': simpleImportSort,
+      'unused-imports': unusedImports,
+    },
+    rules: {
+      ...js.configs.recommended.rules,
+      ...ts.configs.recommended.rules,
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'prefer-const': 'error',
+      'no-debugger': 'error',
+      '@typescript-eslint/no-unused-vars': 'off', // Disabled in favor of unused-imports
+      'unused-imports/no-unused-imports': 'error',
+      'unused-imports/no-unused-vars': [
+        'warn', { vars: 'all', varsIgnorePattern: '^_', args: 'after-used', argsIgnorePattern: '^_' },
+      ],
+      'simple-import-sort/imports': 'error',
+      'simple-import-sort/exports': 'error',
+      'import/first': 'error',
+      'import/newline-after-import': 'error',
+      'import/no-duplicates': 'error',
+    },
+    settings: {
+      'import/parsers': { '@typescript-eslint/parser': ['.ts', '.tsx'] },
+      'import/resolver': { typescript: { alwaysTryTypes: true } },
+    },
+  },
+
+  // 3. Frontend Overrides (Next.js, React)
+  {
+    files: ['frontend/**/*.{ts,tsx}'],
+    ...nextPlugin,
+    rules: {
+        ...nextPlugin.rules,
+        '@next/next/no-html-link-for-pages': 'off', // Example override
+    }
+  },
+
+  // 4. Backend Overrides (Node.js Security)
+  {
+    files: ['backend/**/*.ts'],
+    plugins: { security },
+    rules: security.configs.recommended.rules,
+  },
+
+  // 5. Test File Overrides
+  {
+    files: ['**/*.test.ts', '**/*.spec.ts', '**/tests/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-non-null-assertion': 'off',
+    },
+  },
+];
+
+export default [...baseConfig, prettierConfig];
+```
+
+**`/eslint.ci.config.js`** (New file for CI)
+This configuration extends the base config to enable slower, type-aware linting.
+
+```javascript
+import { baseConfig } from './eslint.config.js';
+import prettierConfig from 'eslint-config-prettier';
+import ts from '@typescript-eslint/eslint-plugin';
+
+const typeAwareConfig = {
+  ...baseConfig[1], // Clone the base TS config
+  languageOptions: {
+    ...baseConfig[1].languageOptions,
+    parserOptions: {
+      ...baseConfig[1].languageOptions.parserOptions,
+      project: true,
+      tsconfigRootDir: import.meta.dirname,
+    },
+  },
+  plugins: {
+    ...baseConfig[1].plugins,
+    '@typescript-eslint': ts,
+  },
+  rules: {
+    ...baseConfig[1].rules,
+    ...ts.configs['recommended-type-checked'].rules,
+    // Add back your desired type-aware rules
+    '@typescript-eslint/no-floating-promises': 'error',
+    '@typescript-eslint/no-misused-promises': 'error',
+  },
+};
+
+// Replace the original base config with the new type-aware one
+const ciConfig = [...baseConfig];
+ciConfig[1] = typeAwareConfig;
+
+export default [...ciConfig, prettierConfig];
+```
+
+### 2. Update `package.json` Files
+
+**`/package.json`** (Root)
+Remove the legacy `eslintConfig` block and update the scripts.
+
+```json
+{
+  "scripts": {
+    "lint": "eslint . --cache",
+    "lint:fix": "eslint . --fix --cache",
+    "lint:ci": "eslint --config eslint.ci.config.js . --max-warnings 0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.43.0",
+    "@typescript-eslint/parser": "^8.43.0",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "14.2.5",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-jsx-a11y": "^6.9.0",
+    "eslint-plugin-react": "^7.35.0",
+    "eslint-plugin-react-hooks": "^4.6.4",
+    "eslint-plugin-security": "^3.0.1",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "eslint-plugin-unused-imports": "^4.0.0",
+    "vitest": "^3.2.4"
+  }
+}
+```
+*I have removed `eslint-plugin-prettier` and added `eslint-config-prettier`. Please adjust versions in `devDependencies` as needed to match your existing packages, but ensure `eslint-config-prettier` is present.*
+
+**`/frontend/package.json`**, **`/backend/package.json`**, **`/shared/package.json`**
+To unify the linting process, remove the `lint` and `lint:fix` scripts from all sub-packages. This ensures developers always use the single root command.
+
+Example for `/backend/package.json`:
+```json
+{
+  "scripts": {
+    "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --fix"
+  }
+}
+```
+Becomes:
+```json
+{
+  "scripts": {
+  }
+}
+```
+*(Remove the `lint` and `lint:fix` lines entirely from the scripts object in `backend/package.json`, `frontend/package.json`, and `shared/package.json`)*.
+
+### 3. Update `.lintstagedrc.js`
+
+This change simplifies the pre-commit hook and removes the overly strict `--max-warnings=0` flag for local commits.
+
+**`/.lintstagedrc.js`**
+```javascript
+/** @type {import('lint-staged').Config} */
+module.exports = {
+  '**/*.{js,jsx,ts,tsx}': [
+    'prettier --write',
+    'eslint --fix --cache',
+  ],
+  '**/*.{json,md,yml,yaml}': [
+    'prettier --write',
+  ],
+};
+```
+
+### 4. Dependency Management
+
+1.  **Add `eslint-config-prettier`:** Ensure it's in your root `package.json`.
+    I cannot execute shell commands in this environment. Please run this command to ensure `eslint-config-prettier` is installed at the root of your project:
+
+```bash
+npm install -D eslint-config-prettier
+```
+
+2.  **Remove `eslint-plugin-prettier`:** This plugin is no longer needed. If it exists in any `package.json`, remove it.
+
+### 5. Validation Steps
+
+After applying these changes, you can validate the new setup:
+
+1.  **Check Local Linting:** Run `npm run lint` from the root. It should lint the entire monorepo and report any errors or warnings without failing on warnings.
+2.  **Check Autofixing:** Run `npm run lint:fix`. This should fix all auto-fixable issues.
+3.  **Check CI Linting:** Run `npm run lint:ci`. This will use the strict, type-aware configuration and fail if any warnings or errors are present. This may take longer to run.
+4.  **Verify Config Loading:** To ensure the correct rules are applied to a specific file, use the `--print-config` flag. For example:
+    *   Check a frontend file: `npx eslint --print-config frontend/src/app/layout.tsx`
+    *   Check a backend file: `npx eslint --print-config backend/src/index.ts`
+
+This will output the exact configuration being applied to that file, allowing you to verify that the `frontend` and `backend` overrides are working as expected.

@@ -147,6 +147,7 @@ describe('Media Request API - BEFORE Migration', () => {
 // ==========================================
 
 import { describe, it, expect } from 'vitest';
+
 import { integrationTestSetup, TestScenarioFactory, TestMediaFactory, quick } from '../index';
 
 describe('Media Request API - AFTER Migration', () => {

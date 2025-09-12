@@ -13,14 +13,14 @@
  * - CDN Static Asset Performance
  */
 
+const cluster = require('cluster');
+const crypto = require('crypto');
+const fs = require('fs');
 const http = require('http');
 const https = require('https');
-const fs = require('fs');
-const path = require('path');
-const crypto = require('crypto');
-const { performance } = require('perf_hooks');
-const cluster = require('cluster');
 const os = require('os');
+const path = require('path');
+const { performance } = require('perf_hooks');
 
 class MediaNestLoadTester {
   constructor(config = {}) {

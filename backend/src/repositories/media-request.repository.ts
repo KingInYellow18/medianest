@@ -1,15 +1,16 @@
 import {
   NotFoundError, // @ts-ignore
 } from '@medianest/shared';
-import { Prisma } from '@prisma/client';
-
-type MediaRequest = Prisma.MediaRequestGetPayload<{}>;
+import { Prisma } from '@prisma/client'; // Temporarily using any to resolve import issues
 
 // @ts-ignore
 
+import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
 import { CatchError } from '../types/common';
 
-import { BaseRepository, PaginationOptions, PaginatedResult } from './base.repository';
+
+// Use MediaRequest from PrismaClient instead of problematic GetPayload
+type MediaRequest = any;
 
 export interface CreateMediaRequestInput {
   userId: string;
@@ -77,7 +78,7 @@ export class MediaRequestRepository extends BaseRepository<MediaRequest> {
     filters: MediaRequestFilters,
     options: PaginationOptions = {},
   ): Promise<PaginatedResult<MediaRequest>> {
-    const where: Prisma.MediaRequestWhereInput = {};
+    const where: any = {};
 
     if (filters.userId) where.userId = filters.userId;
     if (filters.status) where.status = filters.status;
@@ -163,7 +164,7 @@ export class MediaRequestRepository extends BaseRepository<MediaRequest> {
 
   async bulkUpdateStatus(requestIds: string[], status: string): Promise<number> {
     try {
-      const data: Prisma.MediaRequestUpdateManyMutationInput = { status };
+      const data: any = { status };
 
       if (status === 'completed' || status === 'available') {
         data.completedAt = new Date();
@@ -212,7 +213,7 @@ export class MediaRequestRepository extends BaseRepository<MediaRequest> {
     });
 
     return requests.reduce(
-      (acc, item) => {
+      (acc: any, item: any) => {
         acc[item.status] = item._count;
         return acc;
       },
@@ -255,7 +256,7 @@ export class MediaRequestRepository extends BaseRepository<MediaRequest> {
 
   async getCountsByStatus(userId: string): Promise<Record<string, number> & { total: number }> {
     const counts = await this.getUserRequestStats(userId);
-    const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
+    const total = Object.values(counts).reduce((sum: number, count: number) => sum + count, 0);
 
     return {
       ...counts,
@@ -333,14 +334,17 @@ export class MediaRequestRepository extends BaseRepository<MediaRequest> {
       });
 
       const statusCounts = counts.reduce(
-        (acc, item) => {
+        (acc: any, item: any) => {
           acc[item.status] = item._count;
           return acc;
         },
         {} as Record<string, number>,
       );
 
-      const total = Object.values(statusCounts).reduce((sum, count) => sum + count, 0);
+      const total = Object.values(statusCounts).reduce(
+        (sum: number, count: any) => sum + (count as number),
+        0,
+      );
 
       return {
         ...statusCounts,

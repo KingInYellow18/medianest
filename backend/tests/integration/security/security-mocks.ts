@@ -4,6 +4,7 @@
  */
 
 import { vi } from 'vitest';
+
 import type { Request, Response, NextFunction } from 'express';
 
 // Context7 Pattern: Define proper types for middleware functions

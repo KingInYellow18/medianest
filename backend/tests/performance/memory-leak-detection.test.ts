@@ -5,11 +5,12 @@
  * Monitors heap growth, garbage collection efficiency, and memory patterns
  */
 
-import { describe, test, expect, beforeAll, afterAll, vi } from 'vitest';
 import request from 'supertest';
+import { describe, test, expect, beforeAll, afterAll, vi } from 'vitest';
+
 import { app, httpServer } from '../../src/app';
-import { AuthTestHelper } from '../helpers/auth-test-helper';
 import { logger } from '../../src/utils/logger';
+import { AuthTestHelper } from '../helpers/auth-test-helper';
 
 interface MemorySnapshot {
   timestamp: number;
@@ -40,8 +41,8 @@ describe('Memory Usage and Leak Detection Tests', () => {
   let adminToken: string;
   let testUser: any;
   let adminUser: any;
-  let memorySnapshots: MemorySnapshot[] = [];
-  let memoryAnalyses: MemoryAnalysis[] = [];
+  const memorySnapshots: MemorySnapshot[] = [];
+  const memoryAnalyses: MemoryAnalysis[] = [];
 
   beforeAll(async () => {
     authHelper = new AuthTestHelper();

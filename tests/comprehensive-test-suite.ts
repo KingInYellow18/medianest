@@ -3,13 +3,14 @@
  * Ensures minimum 80% test coverage for zero-failure deployment
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
-import request from 'supertest';
 import { performance } from 'perf_hooks';
+
+import request from 'supertest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 
 // Test Categories for Zero-Failure Pipeline
 describe('🎯 Zero-Failure Deployment Test Suite', () => {
-  let testMetrics = {
+  const testMetrics = {
     totalTests: 0,
     passedTests: 0,
     coverage: 0,

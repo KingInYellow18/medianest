@@ -1,6 +1,7 @@
-import { defineConfig } from 'vitest/config';
-import { resolve } from 'path';
 import { cpus } from 'os';
+import { resolve } from 'path';
+
+import { defineConfig } from 'vitest/config';
 
 /**
  * ULTRA-FAST TEST CONFIGURATION

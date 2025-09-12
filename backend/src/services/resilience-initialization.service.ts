@@ -2,6 +2,8 @@
 import { PrismaClient } from '@prisma/client';
 import IORedis from 'ioredis';
 
+import { healthMonitor } from './health-monitor.service';
+import { resilienceService } from './resilience.service';
 import {
   getMergedConfig,
   serviceDependencies,
@@ -13,8 +15,6 @@ import { CircuitBreakerFactory } from '../utils/circuit-breaker';
 import { errorRecoveryManager } from '../utils/error-recovery';
 import { logger } from '../utils/logger';
 
-import { healthMonitor } from './health-monitor.service';
-import { resilienceService } from './resilience.service';
 
 export class ResilienceInitializationService {
   private initialized = false;

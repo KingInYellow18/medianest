@@ -1,3 +1,7 @@
+import { logger } from './logger';
+import { CatchError } from '../types/common';
+import { toError, isValidationError, isHttpError } from '../types/error-types';
+
 import type {
   ApiResponse,
   PaginatedApiResponse,
@@ -10,10 +14,6 @@ import type {
   NextFunction as ExpressNextFunction,
 } from 'express';
 
-import { CatchError } from '../types/common';
-import { toError, isValidationError, isHttpError } from '../types/error-types';
-
-import { logger } from './logger';
 
 /**
  * Standard API response structure - now imported from shared

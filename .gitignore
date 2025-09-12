@@ -129,6 +129,9 @@ ruv-memory.db*
 *.memory.json
 .ai-session*
 .neural-cache/
+.code/
+
+
 # MKdocs generated files
 site/
 

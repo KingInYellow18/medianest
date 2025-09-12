@@ -3,13 +3,14 @@
  * Tests real-time WebSocket connections, message handling, reconnection logic, and error scenarios
  */
 
+import { screen, waitFor, act , renderHook } from '@testing-library/react';
+import React from 'react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { screen, waitFor, act } from '@testing-library/react';
-import { renderHook } from '@testing-library/react';
+
+import { useOptimizedWebSocket, useTypedWebSocketMessage } from '../../hooks/useOptimizedWebSocket';
 import { renderWithAuth, IntegrationProvider } from '../../test-utils/integration-render';
 import { mswUtils } from '../../test-utils/msw-server';
-import { useOptimizedWebSocket, useTypedWebSocketMessage } from '../../hooks/useOptimizedWebSocket';
-import React from 'react';
+
 
 // Mock WebSocket for testing
 class MockWebSocket {

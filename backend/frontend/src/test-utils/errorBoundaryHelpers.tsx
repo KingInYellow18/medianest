@@ -6,11 +6,11 @@
  * the testing framework before Error Boundaries can handle them.
  */
 
-import React from 'react';
 import { render, RenderOptions } from '@testing-library/react';
+import React from 'react';
 
 // Spy to track if error boundaries are working
-let errorBoundaryTestSpy: any = null;
+const errorBoundaryTestSpy: any = null;
 
 // Configure error boundary testing environment
 export const configureErrorBoundaryTesting = () => {

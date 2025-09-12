@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { ValidationSchemas } from '../middleware/validation';
 
 // PIN Generation Schema

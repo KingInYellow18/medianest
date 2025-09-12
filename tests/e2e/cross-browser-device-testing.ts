@@ -11,6 +11,7 @@
  */
 
 import { test, expect, Page, BrowserContext, Browser, devices } from '@playwright/test';
+
 import { E2ETestResult, AccessibilityReport } from './comprehensive-e2e-validator';
 
 interface DeviceTestConfiguration {

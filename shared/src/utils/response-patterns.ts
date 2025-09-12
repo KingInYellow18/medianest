@@ -1,8 +1,9 @@
-import type { Response } from 'express';
+import { logger } from './logger';
 
 import type { LegacyApiResponse } from '../types/index';
+import type { Response } from 'express';
 
-import { logger } from './logger';
+
 
 // Using LegacyApiResponse for backward compatibility with existing response patterns
 

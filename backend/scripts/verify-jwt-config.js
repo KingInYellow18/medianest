@@ -5,9 +5,10 @@
  * Tests JWT_SECRET configuration and token generation/verification
  */
 
-const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const path = require('path');
+
+const jwt = require('jsonwebtoken');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env.test') });
 
 console.log('🔐 JWT Configuration Verification');

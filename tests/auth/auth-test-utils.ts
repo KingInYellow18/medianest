@@ -11,8 +11,10 @@
  */
 
 import { vi } from 'vitest';
-import type { Request, Response, NextFunction } from 'express';
+
 import { AuthenticatedUser } from '../../backend/src/auth/authentication-facade';
+
+import type { Request, Response, NextFunction } from 'express';
 
 // ============================================================================
 // JWT Test Helpers

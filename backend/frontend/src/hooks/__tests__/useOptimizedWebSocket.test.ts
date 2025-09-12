@@ -1,5 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { vi } from 'vitest';
+
 import { useOptimizedWebSocket, useTypedWebSocketMessage } from '../useOptimizedWebSocket';
 
 // Mock WebSocket

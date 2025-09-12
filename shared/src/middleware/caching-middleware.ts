@@ -1,7 +1,8 @@
-import type { Request, Response, NextFunction } from 'express';
 
 import { createServiceLogger } from '../config/logging.config';
 import { redisConfig } from '../config/redis.config';
+
+import type { Request, Response, NextFunction } from 'express';
 
 export interface CacheConfig {
   ttl: number; // Time to live in seconds

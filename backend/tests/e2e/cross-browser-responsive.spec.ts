@@ -1,4 +1,5 @@
 import { test, expect, devices } from '@playwright/test';
+
 import { AuthHelper } from './helpers/auth';
 
 /**

@@ -1,5 +1,5 @@
-import express, { Express } from 'express';
 import { json } from 'body-parser';
+import express, { Express } from 'express';
 import jwt from 'jsonwebtoken';
 
 // Create a test app with basic middleware

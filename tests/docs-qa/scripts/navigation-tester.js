@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 
-const { chromium } = require('playwright');
-const fs = require('fs-extra');
 const path = require('path');
+
 const chalk = require('chalk');
+const fs = require('fs-extra');
+const { chromium } = require('playwright');
 
 class NavigationTester {
   constructor() {

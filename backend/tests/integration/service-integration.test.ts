@@ -10,19 +10,21 @@
  * - WebSocket real-time communication
  */
 
-import { describe, test, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 import { spawn, ChildProcess } from 'child_process';
-import Docker from 'dockerode';
-import { PrismaClient } from '@prisma/client';
-import Redis from 'ioredis';
-import WebSocket from 'ws';
-import axios from 'axios';
 import fs from 'fs/promises';
 import path from 'path';
+
+import { PrismaClient } from '@prisma/client';
+import axios from 'axios';
+import Docker from 'dockerode';
 import FormData from 'form-data';
+import Redis from 'ioredis';
+import { describe, test, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
+import WebSocket from 'ws';
+
 import { DatabaseTestHelper } from '../helpers/database-test-helper';
-import { RedisTestHelper } from '../helpers/redis-test-helper';
 import { FileTestHelper } from '../helpers/file-test-helper';
+import { RedisTestHelper } from '../helpers/redis-test-helper';
 import { WebSocketTestHelper } from '../helpers/websocket-test-helper';
 
 describe('MediaNest Service Integration Tests', () => {
@@ -35,8 +37,8 @@ describe('MediaNest Service Integration Tests', () => {
   let wsHelper: WebSocketTestHelper;
 
   // Service containers
-  let containers: { [key: string]: any } = {};
-  let services: { [key: string]: ChildProcess } = {};
+  const containers: { [key: string]: any } = {};
+  const services: { [key: string]: ChildProcess } = {};
 
   const TEST_CONFIG = {
     baseUrl: 'http://localhost:3001',

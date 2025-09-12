@@ -1,11 +1,12 @@
 // @ts-nocheck
 import { Server, Socket } from 'socket.io';
 
-import { CatchError } from '../../types/common';
 
 import { userRepository } from '@/repositories';
 import { statusService } from '@/services/status.service';
 import { logger } from '@/utils/logger';
+
+import { CatchError } from '../../types/common';
 
 interface AdminBroadcastData {
   type: 'announcement' | 'maintenance' | 'warning' | 'info';

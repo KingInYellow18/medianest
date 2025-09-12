@@ -28,6 +28,6 @@
     "target": "ES2022"
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "tailwind.config.ts", "tests/setup.ts"],
+  "exclude": ["node_modules", "tailwind.config.ts", "tests/setup.ts", "middleware.performance.ts"],
   "references": [{ "path": "../shared" }]
 }

@@ -8,12 +8,13 @@
  * - Database and Redis interaction
  */
 
-import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
 import { App } from '../../../backend/src/app';
+import { createMockUser } from '../../mocks/auth-mock';
 import { jwtTestHelpers } from '../../mocks/jwt-mock';
 import { userMockHelpers } from '../../mocks/prisma-mock';
-import { createMockUser } from '../../mocks/auth-mock';
 
 describe('Auth API Integration Tests', () => {
   let app: any;

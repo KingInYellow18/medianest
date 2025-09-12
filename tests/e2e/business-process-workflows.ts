@@ -11,6 +11,7 @@
  */
 
 import { test, expect, Page, BrowserContext } from '@playwright/test';
+
 import { UserJourney, UserJourneyStep } from './comprehensive-e2e-validator';
 
 export class BusinessProcessValidator {

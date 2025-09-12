@@ -1,8 +1,10 @@
 /// <reference types="vitest" />
-import { defineConfig } from 'vite';
 import path from 'path';
 
+import { defineConfig } from 'vite';
+
 const cpuCount = require('os').cpus().length;
+
 const maxWorkers = Math.max(2, Math.min(6, cpuCount));
 
 export default defineConfig({

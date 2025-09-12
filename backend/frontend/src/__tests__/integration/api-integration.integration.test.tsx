@@ -3,13 +3,17 @@
  * Tests comprehensive API interactions, error handling, retry logic, and caching behavior
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { screen, waitFor, act } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
+import React from 'react';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+import { useAsyncState } from '../../hooks/useOptimizedState';
 import { renderWithAuth, renderWithoutAuth } from '../../test-utils/integration-render';
 import { mswUtils, mswServer } from '../../test-utils/msw-server';
-import { http, HttpResponse } from 'msw';
-import { useAsyncState } from '../../hooks/useOptimizedState';
-import React from 'react';
+
+
+
 
 // API client hook for testing
 const useApiClient = () => {

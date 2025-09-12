@@ -7,9 +7,10 @@
  * by testing the actual running server endpoints.
  */
 
-const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
+
+const axios = require('axios');
 
 // Configuration
 const config = {

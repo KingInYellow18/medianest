@@ -2,7 +2,7 @@ import { defineWorkspace } from 'vitest/config';
 
 export default defineWorkspace([
   {
-    extends: './frontend/vitest.config.mts',
+    extends: './frontend/vitest.config.ts',
     test: {
       name: 'frontend',
       root: './frontend',

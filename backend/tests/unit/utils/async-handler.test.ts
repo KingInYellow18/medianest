@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Request, Response, NextFunction } from 'express';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
 import { asyncHandler } from '@/utils/async-handler';
 
 // DeviceSessionService Excellence Template - Stateless Mock Pattern for Perfect Isolation

@@ -20,8 +20,9 @@
  *   npm run test:e2e
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+
 import {
   setupE2EEnvironment,
   E2ETestContext,

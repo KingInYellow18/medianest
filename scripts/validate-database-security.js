@@ -9,6 +9,7 @@
  */
 
 import { performance } from 'perf_hooks';
+
 import dotenv from 'dotenv';
 
 // Load environment variables

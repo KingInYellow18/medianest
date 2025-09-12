@@ -10,8 +10,9 @@
  * Architecture: Production-like testing with realistic user simulation
  */
 
-import { test, expect, Page, BrowserContext, Browser } from '@playwright/test';
 import { performance } from 'perf_hooks';
+
+import { test, expect, Page, BrowserContext, Browser } from '@playwright/test';
 
 // Types for comprehensive E2E validation
 interface UserJourneyStep {

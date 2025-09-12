@@ -1,5 +1,6 @@
 import { render, screen, act } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+
 import RealtimeStatus from './RealtimeStatus';
 
 // Mock socket.io-client (already mocked in setup.ts, but adding explicit mock)

@@ -1,7 +1,8 @@
-import type { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
 
 import { logger } from './logger';
+
+import type { Request, Response, NextFunction } from 'express';
 
 /**
  * Standardized error types with correlation ID support

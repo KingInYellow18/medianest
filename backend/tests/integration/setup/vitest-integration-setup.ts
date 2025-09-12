@@ -5,10 +5,11 @@
  * Handles database setup, Redis connections, and service mocking.
  */
 
-import { beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 import { execSync } from 'child_process';
+
 import { PrismaClient } from '@prisma/client';
 import Redis from 'ioredis';
+import { beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 
 let prisma: PrismaClient;
 let redis: Redis;

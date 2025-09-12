@@ -1,9 +1,10 @@
-import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
 import { Request, Response } from 'express';
-import { HealthController } from '../../../src/controllers/health.controller';
-import { cacheService } from '../../../src/services/cache.service';
-import { getPrismaClient } from '../../../src/db/prisma';
+import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+
 import { redisClient } from '../../../src/config/redis';
+import { HealthController } from '../../../src/controllers/health.controller';
+import { getPrismaClient } from '../../../src/db/prisma';
+import { cacheService } from '../../../src/services/cache.service';
 import { logger } from '../../../src/utils/logger';
 
 // Mock dependencies

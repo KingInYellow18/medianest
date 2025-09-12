@@ -3,12 +3,13 @@
  * Testing: Render, Error Handling, Props, Accessibility, Edge Cases
  */
 
+import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
+
 import { renderWithErrorBoundarySupport } from '../../test-utils/errorBoundaryHelpers';
-import ErrorBoundary, { withErrorBoundary } from '../ErrorBoundary';
 import { ThrowError, ThrowAsyncError, suppressErrorOutput } from '../../test-utils/render';
+import ErrorBoundary, { withErrorBoundary } from '../ErrorBoundary';
 
 // Suppress React error logging during error boundary tests
 const originalConsoleError = console.error;

@@ -1,14 +1,15 @@
 import { AppError } from '@medianest/shared';
 
-import { CatchError, UnknownRecord } from '../types/common';
 
-import { encryptionService } from './encryption.service';
 
 import { redisClient } from '@/config/redis';
 import { OverseerrClient } from '@/integrations/overseerr/overseerr.client';
 import { serviceConfigRepository, mediaRequestRepository } from '@/repositories';
 import { socketService } from '@/services/socket.service';
 import { logger } from '@/utils/logger';
+
+import { encryptionService } from './encryption.service';
+import { CatchError, UnknownRecord } from '../types/common';
 
 export class OverseerrService {
   private client?: OverseerrClient;

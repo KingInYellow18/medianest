@@ -14,10 +14,13 @@
 
 const fs = require('fs').promises;
 const path = require('path');
-const axios = require('axios');
 const { performance } = require('perf_hooks');
-const { spawn, exec } = require('child_process');
 const { promisify } = require('util');
+
+const axios = require('axios');
+
+const { spawn, exec } = require('child_process');
+
 const execAsync = promisify(exec);
 
 class MediaNestPerformanceProfiler {

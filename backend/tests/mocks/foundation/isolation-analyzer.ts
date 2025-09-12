@@ -189,7 +189,7 @@ export class TestIsolationAnalyzer {
       return true; // No issues to fix
     }
 
-    let fixedContent = this.applyUniversalIsolationPattern(content, filePath);
+    const fixedContent = this.applyUniversalIsolationPattern(content, filePath);
 
     if (dryRun) {
       console.log(`Would apply fixes to ${filePath}:`);

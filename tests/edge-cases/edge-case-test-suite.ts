@@ -3,9 +3,10 @@
  * Comprehensive test runner for edge cases and boundary conditions
  */
 
-import { describe, test, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { PrismaClient } from '@prisma/client';
 import Redis from 'ioredis';
+import { describe, test, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+
 import { EdgeCaseTestRunner } from './edge-case-testing-framework';
 import { createTestUser, generateAuthToken, cleanupTestData } from '../utils/test-helpers';
 

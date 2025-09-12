@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useMemo, useCallback, ReactNode } from 'react';
+
 import { useOptimizedState } from '../hooks/useOptimizedState';
 
 // Context7 Pattern - Branded types for app state

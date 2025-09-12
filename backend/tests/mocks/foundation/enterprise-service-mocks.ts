@@ -14,6 +14,7 @@
  */
 
 import { vi, type MockedFunction } from 'vitest';
+
 import { EnterpriseStatelessMock, type ScalingConfig } from './enterprise-mock-registry';
 import { type MockConfig, type ValidationResult } from './unified-mock-registry';
 

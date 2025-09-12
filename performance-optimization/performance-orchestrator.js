@@ -4,9 +4,9 @@
  * Coordinates all performance optimizations and tracks metrics
  */
 
+const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const { exec } = require('child_process');
 const { promisify } = require('util');
 
 const execAsync = promisify(exec);

@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+
 import { StatelessMock, type MockConfig, type ValidationResult } from './unified-mock-registry';
 
 // Controller-specific mock interfaces that align with actual service implementations

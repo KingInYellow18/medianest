@@ -1,7 +1,8 @@
 // @ts-nocheck
+import { prisma } from '../lib/prisma';
+
 import type { Prisma } from '@prisma/client';
 
-import { prisma } from '../lib/prisma';
 
 export interface CreateErrorData {
   correlationId: string;

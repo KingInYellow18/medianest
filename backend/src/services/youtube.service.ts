@@ -5,12 +5,13 @@ import {
   NotFoundError, // @ts-ignore
 } from '@medianest/shared';
 
-import { CatchError } from '../types/common';
 
 import { getRedis } from '@/config/redis';
 import { YouTubeClient } from '@/integrations/youtube/youtube.client';
 import { YoutubeDownloadRepository } from '@/repositories/youtube-download.repository';
 import { logger } from '@/utils/logger';
+
+import { CatchError } from '../types/common';
 
 export interface VideoMetadata {
   id: string;

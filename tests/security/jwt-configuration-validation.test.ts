@@ -4,8 +4,8 @@
  * This test ensures the JWT_SECRET is loaded and JWT operations work correctly
  */
 
-import { describe, test, expect, beforeAll } from 'vitest';
 import jwt from 'jsonwebtoken';
+import { describe, test, expect, beforeAll } from 'vitest';
 
 describe('🔒 JWT Configuration Validation - Security Test Framework', () => {
   let jwtSecret: string;

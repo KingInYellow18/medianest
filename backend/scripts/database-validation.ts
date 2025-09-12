@@ -5,6 +5,7 @@
  */
 
 import { PrismaClient } from '@prisma/client';
+
 import {
   checkDatabaseHealth,
   createRecommendedIndexes,
@@ -96,7 +97,7 @@ class DatabaseValidator {
       );
 
       let passedTables = 0;
-      let totalTables = tables.length;
+      const totalTables = tables.length;
 
       tableChecks.forEach((check, index) => {
         const tableName = tables[index];

@@ -7,9 +7,9 @@ import { Decimal } from '@prisma/client/runtime/library';
 
 // @ts-ignore
 
+import { BaseRepository } from './base.repository';
 import { CatchError } from '../types/common';
 
-import { BaseRepository } from './base.repository';
 
 export interface ServiceStatusUpdate {
   status?: string;

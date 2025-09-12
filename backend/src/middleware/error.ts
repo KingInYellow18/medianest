@@ -2,11 +2,12 @@ import { AppError, RateLimitError } from '@medianest/shared';
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
 
+import { metrics } from '../utils/monitoring';
+
 // @ts-ignore
 
 // Re-export AppError for local imports
 export { AppError, RateLimitError };
-import { metrics } from '../utils/monitoring';
 
 // User-friendly error messages
 const USER_ERRORS: Record<string, string> = {

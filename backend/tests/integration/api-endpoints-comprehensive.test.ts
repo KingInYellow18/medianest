@@ -5,8 +5,9 @@
  * Tests complete request/response cycles with real dependencies
  */
 
-import { describe, test, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import supertest from 'supertest';
+import { describe, test, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+
 import { createApp } from '../../src/app';
 
 describe('Comprehensive API Endpoint Integration Tests', () => {

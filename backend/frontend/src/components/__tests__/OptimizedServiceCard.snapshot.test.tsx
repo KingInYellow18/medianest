@@ -5,13 +5,13 @@
 
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render } from '../../test-utils/render';
-import ServiceCard, { withLazyServiceCard } from '../OptimizedServiceCard';
-import {
+
+import { render ,
   createMockService,
   createMockServiceWithError,
   createMockServiceInactive,
 } from '../../test-utils/render';
+import ServiceCard, { withLazyServiceCard } from '../OptimizedServiceCard';
 
 describe('OptimizedServiceCard Snapshot Tests', () => {
   let consoleSpy: ReturnType<typeof vi.spyOn>;

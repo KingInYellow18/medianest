@@ -1,4 +1,5 @@
 import React, { memo, useMemo, useCallback } from 'react';
+
 import type { OptimizedProps, RenderMetadata } from '../../src/types/context7-optimizations';
 
 // Context7 Pattern - Branded types for service data

@@ -1,11 +1,12 @@
+import { AppError } from '@medianest/shared';
 import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
-import { PlexService } from '../../../src/services/plex.service';
+
 import { redisClient } from '../../../src/config/redis';
 import { PlexClient } from '../../../src/integrations/plex/plex.client';
 import { userRepository, serviceConfigRepository } from '../../../src/repositories';
-import { AppError } from '@medianest/shared';
-import { logger } from '../../../src/utils/logger';
 import { encryptionService } from '../../../src/services/encryption.service';
+import { PlexService } from '../../../src/services/plex.service';
+import { logger } from '../../../src/utils/logger';
 
 // Mock dependencies
 vi.mock('../../../src/config/redis', () => ({

@@ -3,14 +3,10 @@
  * Tests global state management, context providers, optimized state hooks, and real-time state updates
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { screen, waitFor, act } from '@testing-library/react';
-import {
-  renderWithAuth,
-  renderWithoutAuth,
-  IntegrationProvider,
-} from '../../test-utils/integration-render';
-import { mswUtils } from '../../test-utils/msw-server';
+import React from 'react';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
 import {
   useApp,
   useAppUser,
@@ -21,7 +17,13 @@ import {
   useHasNotifications,
 } from '../../contexts/OptimizedAppContext';
 import { useOptimizedState, useAsyncState, useDebouncedState } from '../../hooks/useOptimizedState';
-import React from 'react';
+import {
+  renderWithAuth,
+  renderWithoutAuth,
+  IntegrationProvider,
+} from '../../test-utils/integration-render';
+import { mswUtils } from '../../test-utils/msw-server';
+
 
 // Test components for state management
 const StateTestComponent = () => {

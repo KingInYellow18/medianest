@@ -1,6 +1,6 @@
+import { logger } from './logger';
 import { CatchError } from '../types/common';
 
-import { logger } from './logger';
 
 export interface RetryOptions {
   maxAttempts: number;

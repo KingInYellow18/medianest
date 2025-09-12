@@ -5,10 +5,10 @@
  * Automated security testing and vulnerability assessment
  */
 
-const fs = require('fs');
-const path = require('path');
 const { execSync, spawn } = require('child_process');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 
 class MediaNestSecurityScanner {
   constructor() {

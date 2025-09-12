@@ -5,8 +5,8 @@
  */
 
 import { PrismaClient } from '@prisma/client';
-import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 export class AuthTestHelper {
   private prisma: PrismaClient;

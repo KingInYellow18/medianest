@@ -5,8 +5,9 @@
  * Tests authentication bypass, authorization flaws, injection attacks, and more
  */
 
-import { describe, test, expect, beforeEach, afterEach } from 'vitest';
 import supertest from 'supertest';
+import { describe, test, expect, beforeEach, afterEach } from 'vitest';
+
 import { createApp } from '../../src/app';
 
 describe('Security Penetration Testing Suite', () => {

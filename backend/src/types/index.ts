@@ -3,18 +3,18 @@
 import { User } from '@medianest/shared';
 import { Request } from 'express';
 
+// Import Express consolidated global types
+import './express-consolidated';
+
+// Import winston type extensions (maintain existing import)
+import './winston';
+
 // Import and re-export AuthenticatedUser to maintain type consistency
 export type { AuthenticatedUser } from './auth';
 
 // Import consolidated type definitions
 export * from './logging';
 export * from './metrics';
-
-// Import Express consolidated global types
-import './express-consolidated';
-
-// Import winston type extensions (maintain existing import)
-import './winston';
 
 // Express consolidated types are globally declared
 // Re-export specific interfaces for backwards compatibility

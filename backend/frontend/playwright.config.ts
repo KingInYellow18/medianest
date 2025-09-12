@@ -1,5 +1,6 @@
-import { defineConfig, devices } from '@playwright/test';
 import path from 'path';
+
+import { defineConfig, devices } from '@playwright/test';
 
 /**
  * MediaNest Frontend E2E Testing Configuration

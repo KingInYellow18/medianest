@@ -17,6 +17,13 @@ import { PrismaClient } from '@prisma/client';
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 
+import { DatabaseOptimizer } from '../../../shared/src/utils/database-optimizations';
+import { PerformanceMonitor } from '../../../shared/src/utils/performance-monitor';
+import { authMiddleware } from '../middleware/auth';
+import { validateRequest } from '../middleware/validation';
+import { CatchError } from '../types/common';
+import { logger } from '../utils/logger';
+
 // WAVE 3 AGENT #9: API ROUTES - ENHANCED REDIS CONDITIONAL IMPORT
 // Only import Redis if not in test environment or if Redis is explicitly enabled
 let Redis: any;
@@ -31,12 +38,6 @@ if (
     console.warn('Redis not available, continuing without caching:', error.message as any);
   }
 }
-import { DatabaseOptimizer } from '../../../shared/src/utils/database-optimizations';
-import { PerformanceMonitor } from '../../../shared/src/utils/performance-monitor';
-import { authMiddleware } from '../middleware/auth';
-import { validateRequest } from '../middleware/validation';
-import { CatchError } from '../types/common';
-import { logger } from '../utils/logger';
 
 const router = Router();
 

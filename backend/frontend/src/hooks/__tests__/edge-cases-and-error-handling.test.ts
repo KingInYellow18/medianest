@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react';
-import { vi } from 'vitest';
 import React from 'react';
+import { vi } from 'vitest';
+
 import { useOptimizedState, useAsyncState, useDebouncedState } from '../useOptimizedState';
 import { useOptimizedWebSocket } from '../useOptimizedWebSocket';
 

@@ -6,6 +6,7 @@
  */
 
 import { performance } from 'perf_hooks';
+
 import JWTSecurityValidator from './jwt-security-vulnerability-tests';
 
 async function runJWTSecurityValidation() {

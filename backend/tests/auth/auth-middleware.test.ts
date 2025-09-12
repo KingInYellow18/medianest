@@ -1,11 +1,13 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import type { Request, Response, NextFunction } from 'express';
-import { AuthMiddleware } from '../../src/auth/middleware';
-import { UserRepository } from '../../src/repositories/user.repository';
-import { SessionTokenRepository } from '../../src/repositories/session-token.repository';
-import { DeviceSessionService } from '../../src/services/device-session.service';
 import { AuthenticationError } from '@medianest/shared';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+
 import { AuthenticatedUser } from '../../src/auth';
+import { AuthMiddleware } from '../../src/auth/middleware';
+import { SessionTokenRepository } from '../../src/repositories/session-token.repository';
+import { UserRepository } from '../../src/repositories/user.repository';
+import { DeviceSessionService } from '../../src/services/device-session.service';
+
+import type { Request, Response, NextFunction } from 'express';
 
 // Mock dependencies
 vi.mock('../../src/repositories/user.repository');

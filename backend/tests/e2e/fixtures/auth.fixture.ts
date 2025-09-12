@@ -1,7 +1,8 @@
 import { test as base, expect } from '@playwright/test';
-import { LoginPage } from '../pages/login.page';
-import { DashboardPage } from '../pages/dashboard.page';
+
 import { testUsers } from './users.fixture';
+import { DashboardPage } from '../pages/dashboard.page';
+import { LoginPage } from '../pages/login.page';
 import { apiHelpers } from '../utils/api-helpers';
 
 // Extend basic test with authentication fixtures

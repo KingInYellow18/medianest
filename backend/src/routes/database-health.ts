@@ -8,16 +8,17 @@
  */
 
 import { Router } from 'express';
+
+import { configService } from '../config/config.service';
+import { getRedis } from '../config/redis';
+import { prisma } from '../lib/prisma';
 import { authMiddleware } from '../middleware/auth';
-import { createEnhancedRateLimit } from '../middleware/enhanced-rate-limit';
 import {
   validateDatabaseSecurity,
   checkDatabaseConnectionSecurity,
   setDatabaseSecurityHeaders,
 } from '../middleware/database-security';
-import { configService } from '../config/config.service';
-import { prisma } from '../lib/prisma';
-import { getRedis } from '../config/redis';
+import { createEnhancedRateLimit } from '../middleware/enhanced-rate-limit';
 import { asyncHandler } from '../utils/async-handler';
 import { AppError } from '../utils/errors';
 import { logger } from '../utils/logger';

@@ -5,9 +5,9 @@
  * Ensures proper request/response handling, error cases, and security
  */
 
-import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Request, Response } from 'express';
 import supertest from 'supertest';
+import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Mock implementations for testing
 const mockRequest = (overrides = {}) =>

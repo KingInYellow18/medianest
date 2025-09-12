@@ -8,9 +8,9 @@
  * - Cleanup and organization
  */
 
+import crypto from 'crypto';
 import fs from 'fs/promises';
 import path from 'path';
-import crypto from 'crypto';
 
 export interface TestFile {
   filename: string;
@@ -175,7 +175,7 @@ export class FileTestHelper {
       }
 
       // Write chunks sequentially to simulate streaming
-      let writeStream = await fs.open(targetPath, 'w');
+      const writeStream = await fs.open(targetPath, 'w');
       let position = 0;
 
       for (const chunk of chunks) {

@@ -1,6 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
-import { UserRepository } from '@/repositories/user.repository';
 import { User } from '@prisma/client';
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+
+import { UserRepository } from '@/repositories/user.repository';
+
 import {
   createComprehensiveAlignedMocks,
   resetComprehensiveMocks,

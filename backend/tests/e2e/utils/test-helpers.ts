@@ -1,7 +1,8 @@
 import { Page, Browser, BrowserContext, expect } from '@playwright/test';
-import { testUsers } from '../fixtures/users.fixture';
+
 import { apiHelpers } from './api-helpers';
 import { dbHelpers } from './db-helpers';
+import { testUsers } from '../fixtures/users.fixture';
 
 /**
  * Common test helper utilities for E2E testing

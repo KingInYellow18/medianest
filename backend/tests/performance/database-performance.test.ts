@@ -5,10 +5,11 @@
  * Target: <100ms for simple queries, <500ms for complex operations
  */
 
-import { describe, test, expect, beforeAll, afterAll, vi } from 'vitest';
 import { PrismaClient } from '@prisma/client';
-import { AuthTestHelper } from '../helpers/auth-test-helper';
+import { describe, test, expect, beforeAll, afterAll, vi } from 'vitest';
+
 import { logger } from '../../src/utils/logger';
+import { AuthTestHelper } from '../helpers/auth-test-helper';
 
 interface QueryPerformanceMetric {
   queryName: string;
@@ -35,10 +36,10 @@ interface DatabaseBenchmark {
 describe('Database Query Performance Tests', () => {
   let prisma: PrismaClient;
   let authHelper: AuthTestHelper;
-  let performanceMetrics: QueryPerformanceMetric[] = [];
-  let benchmarkResults: DatabaseBenchmark[] = [];
-  let testUsers: any[] = [];
-  let testMediaRequests: any[] = [];
+  const performanceMetrics: QueryPerformanceMetric[] = [];
+  const benchmarkResults: DatabaseBenchmark[] = [];
+  const testUsers: any[] = [];
+  const testMediaRequests: any[] = [];
 
   beforeAll(async () => {
     prisma = new PrismaClient();

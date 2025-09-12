@@ -3,8 +3,9 @@ import { Router } from 'express';
 
 import { healthController } from '@/controllers/health.controller';
 import { authenticate } from '@/middleware/auth';
-import { authorize } from '@/middleware/rbac';
 import { asyncHandler } from '@/utils/async-handler';
+
+import { authorize } from '@/middleware/rbac';
 
 const router = Router();
 

@@ -9,12 +9,14 @@
  * - Testing error scenarios
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { MediaRequestService } from '@/services/media-request.service';
-import { MediaRequestRepository } from '@/repositories/media-request.repository';
-import { OverseerrClient } from '@/integrations/overseerr/client';
-// @ts-ignore
 import { BadRequestError, NotFoundError } from '@medianest/shared';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+import { MediaRequestRepository } from '@/repositories/media-request.repository';
+
+import { OverseerrClient } from '@/integrations/overseerr/client';
+import { MediaRequestService } from '@/services/media-request.service';
+// @ts-ignore
 
 // Mock the dependencies
 vi.mock('@/repositories/media-request.repository');

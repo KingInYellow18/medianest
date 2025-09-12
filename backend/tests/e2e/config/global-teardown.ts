@@ -1,7 +1,8 @@
-import { FullConfig } from '@playwright/test';
 import { execSync } from 'child_process';
 import { writeFileSync } from 'fs';
 import { performance } from 'perf_hooks';
+
+import { FullConfig } from '@playwright/test';
 
 async function globalTeardown(config: FullConfig) {
   const startTime = performance.now();
