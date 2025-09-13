@@ -133,7 +133,7 @@ describe('UserRepository', () => {
     plexUsername: 'testuser',
     email: 'test@example.com',
     name: null,
-    plexToken: 'encrypted-token',
+    plexToken: 'storage_encrypted_plex-token_123456',
     role: 'user',
     image: null,
     requiresPasswordChange: false,
@@ -175,7 +175,7 @@ describe('UserRepository', () => {
         plexId: 'plex-456',
         plexUsername: 'testuser',
         email: 'test@example.com',
-        plexToken: 'encrypted-token',
+        plexToken: 'storage_encrypted_plex-token_123456',
         role: 'user' as const,
       };
 
@@ -200,7 +200,7 @@ describe('UserRepository', () => {
         plexId: 'plex-456',
         plexUsername: 'testuser',
         email: 'test@example.com',
-        plexToken: 'encrypted-token',
+        plexToken: 'storage_encrypted_plex-token_123456',
       };
 
       const expectedUser = { ...mockUser, role: 'user' };
@@ -224,7 +224,7 @@ describe('UserRepository', () => {
         plexId: 'plex-456',
         plexUsername: 'testuser',
         email: 'test@example.com',
-        plexToken: 'encrypted-token',
+        plexToken: 'storage_encrypted_plex-token_123456',
       };
 
       isolatedMocks.database.user.create.mockRejectedValue(
@@ -239,7 +239,7 @@ describe('UserRepository', () => {
         plexId: 'plex-admin',
         plexUsername: 'admin',
         email: 'admin@example.com',
-        plexToken: 'encrypted-token',
+        plexToken: 'storage_encrypted_plex-token_123456',
         role: 'admin' as const,
       };
 

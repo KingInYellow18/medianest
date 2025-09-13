@@ -74,7 +74,6 @@ class SecureSecretManager {
         }
       } catch (error) {
         if (required) {
-          console.warn(`Failed to read Docker secret: ${secretFile}`);
         }
       }
     }

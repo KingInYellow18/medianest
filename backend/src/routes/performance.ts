@@ -35,7 +35,7 @@ if (
   try {
     Redis = require('ioredis').Redis;
   } catch (error: CatchError) {
-    console.warn('Redis not available, continuing without caching:', error.message as any);
+    logger.warn('Redis not available, continuing without caching:', error.message as any);
   }
 }
 

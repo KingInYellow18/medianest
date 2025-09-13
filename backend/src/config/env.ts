@@ -30,8 +30,6 @@ import { readSecret, readSecretFromFile, validateSecrets } from './secrets';
  *
  * @example
  * // Access configuration values
- * console.log('Server port:', env.PORT);
- * console.log('Database URL:', env.DATABASE_URL);
  *
  * @example
  * // Feature flag checks
@@ -123,6 +121,7 @@ export const env = {
   ENABLE_REQUEST_LOGGING: process.env.ENABLE_REQUEST_LOGGING !== 'false',
   LOG_REQUESTS: process.env.LOG_REQUESTS === 'true',
   LOG_ERRORS: process.env.LOG_ERRORS !== 'false',
+  METRICS_TOKEN: readSecret('metrics_token', 'METRICS_TOKEN', ''),
 
   /**
    * External Service Configuration

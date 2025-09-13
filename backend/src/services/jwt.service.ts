@@ -162,7 +162,6 @@ export class JwtService {
    * @example
    * try {
    *   const payload = jwtService.verifyToken(authToken);
-   *   console.log('User:', payload.userId);
    * } catch (error) {
    *   console.error('Invalid token:', error.message);
    * }
@@ -212,7 +211,6 @@ export class JwtService {
    * @example
    * const payload = jwtService.decodeToken(token);
    * if (payload) {
-   *   console.log('User ID:', payload.userId);
    * }
    *
    * @warning Does not verify token signature - use only for non-security-critical operations
@@ -323,7 +321,6 @@ export class JwtService {
    * const expTime = jwtService.getTokenExpirationTime(token);
    * if (expTime) {
    *   const expDate = new Date(expTime * 1000);
-   *   console.log('Token expires at:', expDate);
    * }
    */
   getTokenExpirationTime(token: string): number | null {

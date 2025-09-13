@@ -1,5 +1,6 @@
 import { Server } from 'socket.io';
 
+import { logger } from '../utils/logger';
 let io: Server | null = null;
 
 export const socketService = {
@@ -15,7 +16,7 @@ export const socketService = {
   // Emit to all clients in a room
   emitToRoom(room: string, event: string, data: unknown): void {
     if (!io) {
-      console.warn('Socket.io not initialized');
+      logger.warn('Socket.io not initialized');
       return;
     }
     io.to(room).emit(event, data);
@@ -43,7 +44,7 @@ export const socketService = {
   // Emit to all connected clients
   emit(event: string, data: unknown): void {
     if (!io) {
-      console.warn('Socket.io not initialized');
+      logger.warn('Socket.io not initialized');
       return;
     }
     io.emit(event, data);

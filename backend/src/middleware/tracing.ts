@@ -114,7 +114,6 @@ export const tracingErrorHandler = (
   }
 
   // Log error with trace context
-  console.error('Error occurred:', {
     error: error.message as any,
     correlationId: req.correlationId,
     traceId: req.traceId,

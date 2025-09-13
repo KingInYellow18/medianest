@@ -13,6 +13,7 @@ import dashboardRoutes from './dashboard';
 import { errorsRoutes } from './errors.routes';
 import healthRoutes from './health';
 import mediaRoutes from './media';
+import metricsRoutes from './metrics';
 import plexRoutes from './plex';
 import { resilienceRouter } from './resilience';
 import servicesRoutes from './services';

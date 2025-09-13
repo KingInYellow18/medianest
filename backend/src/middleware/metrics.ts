@@ -6,6 +6,7 @@ import client from 'prom-client';
 
 import { CatchError } from '../types/common';
 
+import { logger } from '../utils/logger';
 // Create a Registry
 const register = new client.Registry();
 
@@ -13,7 +14,7 @@ const register = new client.Registry();
 try {
   client.collectDefaultMetrics({ register });
 } catch (error: CatchError) {
-  console.warn('Default metrics already collected:', error);
+  logger.warn('Default metrics already collected:', error);
 }
 
 // Custom metrics
@@ -124,7 +125,7 @@ try {
   register.registerMetric(appInfo);
   register.registerMetric(eventLoopLag);
 } catch (error: CatchError) {
-  console.warn('Some metrics already registered:', error);
+  logger.warn('Some metrics already registered:', error);
 }
 
 // Set application info

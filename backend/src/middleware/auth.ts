@@ -54,7 +54,6 @@ const authFacade = new AuthenticationFacade(
  * @example
  * // Protect a route with authentication
  * router.get('/protected', authMiddleware(), (req, res) => {
- *   console.log('User:', req.user.email);
  *   res.json({ user: req.user });
  * });
  *
