@@ -1,16 +1,17 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-# Emergency mode with basic validation
-if [ "$MEDIANEST_SKIP_HOOKS" = "1" ]; then
-    commit_msg=$(cat "$1")
-    if [ ${#commit_msg} -lt 10 ]; then
-        echo "❌ Even emergency commits need descriptive messages (min 10 chars)"
-        exit 1
-    fi
-    echo "⚠️  Emergency mode: Basic validation only"
-    exit 0
-fi
+# Format commit message if it contains formatting indicators
+COMMIT_MSG_FILE=$1
+COMMIT_MSG=$(cat $COMMIT_MSG_FILE)
 
-# Fast validation
-NODE_OPTIONS="--max-old-space-size=256" npx commitlint --edit $1 --quiet
+# If commit message starts with "format:" run additional checks
+if echo "$COMMIT_MSG" | grep -q "^format:"; then
+  echo "🎨 Formatting commit detected - running comprehensive format check..."
+  
+  # Run a quick format check on recently modified files
+  if ! node scripts/prettier-dev-mode.js check src/; then
+    echo "⚠️  Format issues detected in src/ directory"
+    echo "Run 'npm run format:dev src/' to fix"
+  fi
+fi

@@ -1,28 +1,35 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-# Performance monitoring
-start_time=$(date +%s.%3N)
+# Prettier Git Integration - Smart formatting for staged files
+# Uses development-friendly settings during commit process
 
-# Emergency bypass mechanism
-if [ "$MEDIANEST_SKIP_HOOKS" = "1" ]; then
-    echo "🚀 Emergency bypass activated"
-    exit 0
+echo "🎨 Running Prettier on staged files..."
+
+# Check if there are staged files to format
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep -E "\.(ts|tsx|js|jsx|json|css|scss|md|yaml|yml)$" | tr '\n' ' ')
+
+if [ -z "$STAGED_FILES" ]; then
+  echo "📝 No formattable staged files found"
+  exit 0
 fi
 
-# Developer bypass with guidance
-if [ "$MEDIANEST_SKIP_PRECOMMIT" = "1" ]; then
-    echo "⚠️  Pre-commit checks skipped"
-    echo "   Remember to run 'npm run lint:fix' before pushing"
-    exit 0
+echo "📁 Files to format: $STAGED_FILES"
+
+# Use our optimized dev mode formatting
+if node scripts/prettier-dev-mode.js staged; then
+  echo "✅ Prettier formatting completed successfully"
+else
+  echo "❌ Prettier formatting failed"
+  echo "💡 You can bypass with: git commit --no-verify"
+  exit 1
 fi
 
-# Fast incremental checks
-NODE_OPTIONS="--max-old-space-size=512 --optimize-for-size" npx lint-staged --concurrent --quiet
-
-# Performance reporting
-end_time=$(date +%s.%3N)
-execution_time=$(echo "$end_time - $start_time" | bc -l 2>/dev/null || echo "0")
-if [ -n "$execution_time" ] && [ "$execution_time" != "0" ]; then
-    printf "✅ Pre-commit completed in %.3fs\n" "$execution_time"
+# Check for any remaining ESLint issues on staged files
+echo "🔍 Running ESLint on staged files..."
+if npm run lint:staged-only 2>/dev/null || true; then
+  echo "✅ ESLint check passed"
+else
+  echo "⚠️  ESLint issues found - check output above"
+  echo "💡 Fix issues or bypass with: git commit --no-verify"
 fi

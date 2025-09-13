@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Pre-push: Ensure production-quality formatting
+echo "🚀 Pre-push: Checking formatting with production standards..."
+
+# Quick format check with production config
+if node scripts/prettier-dev-mode.js batch-check "src/**/*.{ts,tsx,js,jsx}"; then
+  echo "✅ Production formatting check passed"
+else
+  echo "❌ Production formatting issues found"
+  echo "💡 Run 'npm run format:prod src/' to fix"
+  echo "💡 Or bypass with: git push --no-verify"
+  exit 1
+fi
