@@ -1,9 +1,11 @@
+# === Core Exclusions ===
 # Dependencies
 node_modules/
 **/node_modules/
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
+.pnpm-store/
 
 # Build outputs
 dist/
@@ -11,37 +13,74 @@ build/
 .next/
 out/
 coverage/
+.turbo/
+.vite/
+.vitest-cache/
 
-# Generated files
+# Generated files (performance optimization)
 **/*.d.ts
 **/*.map
 *.generated.ts
 *.generated.js
+*.bundle.js
+*.chunk.js
+*.min.js
+*.min.css
 *.lcov
 
-# Config files that should maintain their format
+# === Config Files (maintain original formatting) ===
+# ESLint configs
 .eslintrc.js
+.eslintrc.cjs
 eslint.config.js
+eslint.*.config.js
+
+# Build tools
 next.config.js
 tailwind.config.js
 postcss.config.js
 vitest.config.ts
+vitest.*.config.ts
+vite.config.ts
+webpack.config.js
+rollup.config.js
 
-# Environment files
+# Package managers
+.yarnrc.yml
+.npmrc
+
+# === Environment & Runtime ===
 .env*
+!.env.example
 
 # Logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+lerna-debug.log*
+
+# === Development Tools ===
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+test-results/
+playwright-report/
+allure-results/
 
 # Temporary folders
 .tmp/
 .temp/
 .claude/
+.cache/
+.build-cache/
 
-# OS generated files
+# === OS & System Files ===
 .DS_Store
 .DS_Store?
 ._*
@@ -52,11 +91,43 @@ Thumbs.db
 
 # Git
 .git/
+.gitignore
 .husky/
 
-# Database
+# === Database & Storage ===
 *.db
 *.sqlite
+*.sqlite3
 
-# Documentation build
+# === Documentation ===
 docs/build/
+site/
+
+# === Large Files (performance) ===
+# Binary assets that shouldn't be formatted
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.ico
+*.svg
+*.woff
+*.woff2
+*.ttf
+*.eot
+
+# Archives
+*.tar
+*.zip
+*.rar
+*.7z
+
+# === Project-Specific ===
+# Backup files
+git-state-backup.txt
+lint-report.json
+
+# Performance reports
+test-results/
+benchmark-results/
+performance-*.json

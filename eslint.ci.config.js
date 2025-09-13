@@ -2,7 +2,9 @@
 // This file extends the base flat config by adding parserOptions.projectService
 // and enforcing a small set of type-aware rules that are valuable in CI.
 
-import base from './eslint.config.js';
+const { createRequire } = require('module');
+const require = createRequire(import.meta.url);
+const base = require('./eslint.config.js');
 
 /** @type {import('eslint').Linter.FlatConfig[]} */
 const typedAugment = [
