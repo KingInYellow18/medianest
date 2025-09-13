@@ -98,11 +98,12 @@ services:
     <<: [*logging, *restart-policy, *resource-limits]
     environment:
       <<: [*common-env, *database-env, *redis-env, *security-env]
-      PORT: 3001
+      PORT: 4001
+      INTERNAL_PORT: 4001
       ENABLE_METRICS: ${ENABLE_MONITORING:-false}
       RUN_MIGRATIONS: ${RUN_MIGRATIONS:-false}
     ports:
-      - "${BACKEND_PORT:-3001}:3001"
+      - "${BACKEND_PORT:-4001}:4001"
     volumes:
       - backend_uploads:/app/uploads:rw
       - backend_logs:/app/logs:rw

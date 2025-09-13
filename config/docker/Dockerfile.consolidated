@@ -351,6 +351,49 @@ HEALTHCHECK --interval=30s --timeout=15s --start-period=60s --retries=3 \
 CMD ["dumb-init", "pm2-runtime", "start", "ecosystem.config.js"]
 
 # ==============================================================================
+# 🌐 NGINX PROXY - Production reverse proxy with security hardening
+# ==============================================================================
+FROM nginx:1.25.3-alpine AS nginx-proxy
+
+# Install security updates
+RUN apk update && apk upgrade && \
+    apk add --no-cache \
+    ca-certificates \
+    curl \
+    && rm -rf /var/cache/apk/*
+
+# Create nginx user and directories
+# Create required directories (nginx user already exists in Alpine nginx image)
+RUN mkdir -p /var/cache/nginx /var/log/nginx /etc/nginx/ssl && \
+    chown -R nginx:nginx /var/cache/nginx /var/log/nginx /etc/nginx/ssl
+
+# Copy nginx configuration
+COPY config/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY config/nginx/conf.d/ /etc/nginx/conf.d/
+COPY config/nginx/ssl.conf /etc/nginx/ssl.conf
+
+# Security hardening
+RUN chown -R nginx:nginx /etc/nginx && \
+    chmod -R 644 /etc/nginx/conf.d/*.conf && \
+    chmod 644 /etc/nginx/nginx.conf
+
+# Health check endpoint
+RUN echo 'server { listen 8080; location /health { return 200 "healthy\n"; add_header Content-Type text/plain; } }' > /etc/nginx/conf.d/health.conf
+
+# Security: Switch to non-root user
+USER nginx
+
+# Expose ports
+EXPOSE 80 443 8080
+
+# Health check
+HEALTHCHECK --interval=15s --timeout=5s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]
+
+# ==============================================================================
 # 🏷️ BUILD METADATA
 # ==============================================================================
 LABEL maintainer="MediaNest Team <team@medianest.com>" \

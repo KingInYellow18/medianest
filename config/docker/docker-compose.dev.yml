@@ -132,8 +132,8 @@ services:
       # Fixes file watching issues in containerized environments
       CHOKIDAR_USEPOLLING: "true"
     ports:
-      # Backend API server port for frontend and direct API access
-      - '4000:4000'
+      # Backend API server port for frontend and direct API access (standardized)
+      - '4001:4000'
       # Node.js debugger port for IDE debugging (VS Code, WebStorm, etc.)
       - '9229:9229'
     volumes:
@@ -195,7 +195,8 @@ services:
       FAST_REFRESH: "true"
       CHOKIDAR_USEPOLLING: "true"
     ports:
-      - '3000:3000'
+      # Frontend dev server (standardized port 3001)
+      - '3001:3000'
     volumes:
       # Hot reload volumes
       - ../../frontend/src:/app/frontend/src:cached
