@@ -1,10 +1,5 @@
 // Internal dependencies
-import {
-  BaseIntegrationClient,
-  ClientConfig,
-  HealthStatus,
-  ClientInitializer,
-} from '@medianest/shared';
+import { BaseIntegrationClient, ClientConfig, HealthStatus, ClientInitializer } from '@medianest/shared';
 
 import { OverseerrApiClient } from '../../integrations/overseerr/overseerr-api.client';
 import { logger } from '../../utils/logger';
@@ -47,13 +42,10 @@ export class OverseerrIntegrationService extends BaseIntegrationClient {
       this.client = await ClientInitializer.initializeWithRetry(
         'Overseerr',
         async () => {
-          return await OverseerrApiClient.createFromConfig(
-            overseerrConfig.url!,
-            overseerrConfig.apiKey!,
-          );
+          return await OverseerrApiClient.createFromConfig(overseerrConfig.url!, overseerrConfig.apiKey!);
         },
         3,
-        2000,
+        2000
       );
 
       if (this.client) {

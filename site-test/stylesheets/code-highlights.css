@@ -1,0 +1,642 @@
+/*
+ * MediaNest Documentation - Enhanced Code Highlighting
+ * Advanced syntax highlighting with MediaNest branding
+ */
+
+/* Enhanced Code Block Container */
+.md-typeset .highlight {
+  position: relative;
+  margin: 1.5rem 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: var(--md-code-bg-color);
+  border: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.md-typeset .highlight:hover {
+  box-shadow: 0 4px 12px rgba(103, 58, 183, 0.15);
+  transform: translateY(-1px);
+  transition: all 0.3s ease;
+}
+
+/* Code Block Header */
+.md-typeset .highlight .filename {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, var(--mn-primary) 0%, var(--mn-primary-dark) 100%);
+  color: white;
+  padding: 0.75rem 1rem;
+  font-family: var(--mn-font-mono);
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.md-typeset .highlight .filename::before {
+  content: '📄';
+  margin-right: 0.5rem;
+}
+
+/* Language Badge */
+.md-typeset .highlight .language-badge {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Enhanced Pre and Code Styling */
+.md-typeset .highlight pre {
+  margin: 0;
+  padding: 1.2rem;
+  background: transparent;
+  overflow-x: auto;
+  line-height: 1.6;
+  font-family: var(--mn-font-mono);
+  font-size: 0.85rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--mn-primary) var(--md-code-bg-color);
+}
+
+.md-typeset .highlight pre::-webkit-scrollbar {
+  height: 8px;
+}
+
+.md-typeset .highlight pre::-webkit-scrollbar-track {
+  background: var(--md-code-bg-color);
+}
+
+.md-typeset .highlight pre::-webkit-scrollbar-thumb {
+  background: var(--mn-primary);
+  border-radius: 4px;
+}
+
+.md-typeset .highlight pre::-webkit-scrollbar-thumb:hover {
+  background: var(--mn-primary-dark);
+}
+
+/* Copy Button Enhancement */
+.md-typeset .highlight .md-code__copy {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.4rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+  font-size: 0.75rem;
+  z-index: 10;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.md-typeset .highlight:hover .md-code__copy {
+  opacity: 1;
+}
+
+.md-typeset .highlight .md-code__copy:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.md-typeset .highlight .md-code__copy:active {
+  transform: scale(0.95);
+}
+
+.md-typeset .highlight .md-code__copy.copied {
+  background: var(--mn-success);
+  border-color: var(--mn-success);
+}
+
+.md-typeset .highlight .md-code__copy.copied::after {
+  content: '✓';
+  margin-left: 0.25rem;
+}
+
+/* Line Numbers Enhancement */
+.md-typeset .highlight .linenos {
+  background: rgba(0, 0, 0, 0.05);
+  border-right: 2px solid var(--mn-primary);
+  color: var(--md-default-fg-color--light);
+  padding: 1.2rem 0.75rem;
+  margin: 0;
+  text-align: right;
+  font-family: var(--mn-font-mono);
+  font-size: 0.75rem;
+  line-height: 1.6;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+[data-md-color-scheme='slate'] .md-typeset .highlight .linenos {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Highlighted Lines */
+.md-typeset .highlight .hll {
+  background: rgba(103, 58, 183, 0.1);
+  border-left: 3px solid var(--mn-primary);
+  padding-left: 0.5rem;
+  margin-left: -0.5rem;
+  display: block;
+}
+
+/* Language-Specific Styling */
+
+/* JavaScript/TypeScript */
+.md-typeset .highlight.language-javascript,
+.md-typeset .highlight.language-typescript,
+.md-typeset .highlight.language-js,
+.md-typeset .highlight.language-ts {
+  border-left: 4px solid #f7df1e;
+}
+
+.md-typeset .highlight.language-javascript .filename::before,
+.md-typeset .highlight.language-typescript .filename::before,
+.md-typeset .highlight.language-js .filename::before,
+.md-typeset .highlight.language-ts .filename::before {
+  content: '⚡';
+}
+
+/* Python */
+.md-typeset .highlight.language-python,
+.md-typeset .highlight.language-py {
+  border-left: 4px solid #3776ab;
+}
+
+.md-typeset .highlight.language-python .filename::before,
+.md-typeset .highlight.language-py .filename::before {
+  content: '🐍';
+}
+
+/* Bash/Shell */
+.md-typeset .highlight.language-bash,
+.md-typeset .highlight.language-shell,
+.md-typeset .highlight.language-sh {
+  border-left: 4px solid #4eaa25;
+}
+
+.md-typeset .highlight.language-bash .filename::before,
+.md-typeset .highlight.language-shell .filename::before,
+.md-typeset .highlight.language-sh .filename::before {
+  content: '💻';
+}
+
+/* Docker */
+.md-typeset .highlight.language-dockerfile,
+.md-typeset .highlight.language-docker {
+  border-left: 4px solid #2496ed;
+}
+
+.md-typeset .highlight.language-dockerfile .filename::before,
+.md-typeset .highlight.language-docker .filename::before {
+  content: '🐳';
+}
+
+/* YAML */
+.md-typeset .highlight.language-yaml,
+.md-typeset .highlight.language-yml {
+  border-left: 4px solid #cb171e;
+}
+
+.md-typeset .highlight.language-yaml .filename::before,
+.md-typeset .highlight.language-yml .filename::before {
+  content: '⚙️';
+}
+
+/* JSON */
+.md-typeset .highlight.language-json {
+  border-left: 4px solid #000000;
+}
+
+.md-typeset .highlight.language-json .filename::before {
+  content: '📋';
+}
+
+/* SQL */
+.md-typeset .highlight.language-sql {
+  border-left: 4px solid #336791;
+}
+
+.md-typeset .highlight.language-sql .filename::before {
+  content: '🗃️';
+}
+
+/* CSS */
+.md-typeset .highlight.language-css {
+  border-left: 4px solid #1572b6;
+}
+
+.md-typeset .highlight.language-css .filename::before {
+  content: '🎨';
+}
+
+/* HTML */
+.md-typeset .highlight.language-html {
+  border-left: 4px solid #e34f26;
+}
+
+.md-typeset .highlight.language-html .filename::before {
+  content: '🌐';
+}
+
+/* Enhanced Token Styling */
+
+/* Comments */
+.md-typeset .highlight .c,
+.md-typeset .highlight .c1,
+.md-typeset .highlight .cm {
+  color: var(--md-default-fg-color--light);
+  font-style: italic;
+  opacity: 0.8;
+}
+
+/* Keywords */
+.md-typeset .highlight .k,
+.md-typeset .highlight .kc,
+.md-typeset .highlight .kd,
+.md-typeset .highlight .kn,
+.md-typeset .highlight .kp,
+.md-typeset .highlight .kr,
+.md-typeset .highlight .kt {
+  color: var(--mn-primary);
+  font-weight: 600;
+}
+
+/* Strings */
+.md-typeset .highlight .s,
+.md-typeset .highlight .s1,
+.md-typeset .highlight .s2,
+.md-typeset .highlight .se,
+.md-typeset .highlight .sh,
+.md-typeset .highlight .si,
+.md-typeset .highlight .sx {
+  color: #22863a;
+}
+
+[data-md-color-scheme='slate'] .md-typeset .highlight .s,
+[data-md-color-scheme='slate'] .md-typeset .highlight .s1,
+[data-md-color-scheme='slate'] .md-typeset .highlight .s2,
+[data-md-color-scheme='slate'] .md-typeset .highlight .se,
+[data-md-color-scheme='slate'] .md-typeset .highlight .sh,
+[data-md-color-scheme='slate'] .md-typeset .highlight .si,
+[data-md-color-scheme='slate'] .md-typeset .highlight .sx {
+  color: #9ecbff;
+}
+
+/* Numbers */
+.md-typeset .highlight .m,
+.md-typeset .highlight .mb,
+.md-typeset .highlight .mf,
+.md-typeset .highlight .mh,
+.md-typeset .highlight .mi,
+.md-typeset .highlight .mo {
+  color: #005cc5;
+  font-weight: 500;
+}
+
+[data-md-color-scheme='slate'] .md-typeset .highlight .m,
+[data-md-color-scheme='slate'] .md-typeset .highlight .mb,
+[data-md-color-scheme='slate'] .md-typeset .highlight .mf,
+[data-md-color-scheme='slate'] .md-typeset .highlight .mh,
+[data-md-color-scheme='slate'] .md-typeset .highlight .mi,
+[data-md-color-scheme='slate'] .md-typeset .highlight .mo {
+  color: #79b8ff;
+}
+
+/* Functions */
+.md-typeset .highlight .n,
+.md-typeset .highlight .na,
+.md-typeset .highlight .nb,
+.md-typeset .highlight .nc,
+.md-typeset .highlight .nd,
+.md-typeset .highlight .ne,
+.md-typeset .highlight .nf,
+.md-typeset .highlight .ni,
+.md-typeset .highlight .nl,
+.md-typeset .highlight .nn,
+.md-typeset .highlight .nt,
+.md-typeset .highlight .nv {
+  color: #6f42c1;
+}
+
+[data-md-color-scheme='slate'] .md-typeset .highlight .n,
+[data-md-color-scheme='slate'] .md-typeset .highlight .na,
+[data-md-color-scheme='slate'] .md-typeset .highlight .nb,
+[data-md-color-scheme='slate'] .md-typeset .highlight .nc,
+[data-md-color-scheme='slate'] .md-typeset .highlight .nd,
+[data-md-color-scheme='slate'] .md-typeset .highlight .ne,
+[data-md-color-scheme='slate'] .md-typeset .highlight .nf,
+[data-md-color-scheme='slate'] .md-typeset .highlight .ni,
+[data-md-color-scheme='slate'] .md-typeset .highlight .nl,
+[data-md-color-scheme='slate'] .md-typeset .highlight .nn,
+[data-md-color-scheme='slate'] .md-typeset .highlight .nt,
+[data-md-color-scheme='slate'] .md-typeset .highlight .nv {
+  color: #b392f0;
+}
+
+/* Operators */
+.md-typeset .highlight .o,
+.md-typeset .highlight .ow {
+  color: var(--mn-accent);
+  font-weight: 600;
+}
+
+/* Variables */
+.md-typeset .highlight .vg,
+.md-typeset .highlight .vi,
+.md-typeset .highlight .vm {
+  color: #e36209;
+}
+
+[data-md-color-scheme='slate'] .md-typeset .highlight .vg,
+[data-md-color-scheme='slate'] .md-typeset .highlight .vi,
+[data-md-color-scheme='slate'] .md-typeset .highlight .vm {
+  color: #ffab70;
+}
+
+/* Error Highlighting */
+.md-typeset .highlight .err {
+  background: rgba(244, 67, 54, 0.1);
+  border-radius: 2px;
+  padding: 0 2px;
+  color: #f44336;
+}
+
+/* Inline Code Enhancement */
+.md-typeset code {
+  background: rgba(103, 58, 183, 0.1);
+  color: var(--mn-primary-dark);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-family: var(--mn-font-mono);
+  font-size: 0.85em;
+  font-weight: 500;
+  border: 1px solid rgba(103, 58, 183, 0.2);
+}
+
+[data-md-color-scheme='slate'] .md-typeset code {
+  background: rgba(187, 134, 252, 0.15);
+  color: #bb86fc;
+  border-color: rgba(187, 134, 252, 0.3);
+}
+
+.md-typeset a code {
+  color: inherit;
+}
+
+.md-typeset pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  font-weight: 400;
+}
+
+/* Code Tabs Enhancement */
+.md-typeset .tabbed-set {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin: 1.5rem 0;
+}
+
+.md-typeset .tabbed-labels {
+  background: linear-gradient(135deg, var(--mn-primary) 0%, var(--mn-primary-dark) 100%);
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.md-typeset .tabbed-labels label {
+  color: rgba(255, 255, 255, 0.8);
+  padding: 0.75rem 1.25rem;
+  font-weight: 500;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 3px solid transparent;
+}
+
+.md-typeset .tabbed-labels label:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.md-typeset .tabbed-set input:checked + label {
+  color: white;
+  background: rgba(255, 255, 255, 0.15);
+  border-bottom-color: var(--mn-accent);
+}
+
+.md-typeset .tabbed-content {
+  background: var(--md-code-bg-color);
+}
+
+.md-typeset .tabbed-content .highlight {
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
+}
+
+/* Terminal/Console Styling */
+.md-typeset .highlight.terminal {
+  background: #1e1e1e;
+  color: #d4d4d4;
+}
+
+.md-typeset .highlight.terminal .filename {
+  background: #2d2d30;
+  color: #cccccc;
+}
+
+.md-typeset .highlight.terminal .filename::before {
+  content: '⚡';
+}
+
+.md-typeset .highlight.terminal pre {
+  background: #1e1e1e;
+  color: #d4d4d4;
+}
+
+/* API Response Styling */
+.md-typeset .highlight.api-response {
+  border-left: 4px solid #28a745;
+}
+
+.md-typeset .highlight.api-response .filename {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.md-typeset .highlight.api-response .filename::before {
+  content: '✅';
+}
+
+/* API Request Styling */
+.md-typeset .highlight.api-request {
+  border-left: 4px solid #007bff;
+}
+
+.md-typeset .highlight.api-request .filename {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+}
+
+.md-typeset .highlight.api-request .filename::before {
+  content: '➡️';
+}
+
+/* Diff Styling */
+.md-typeset .highlight .gi {
+  background: rgba(40, 167, 69, 0.2);
+  color: #28a745;
+}
+
+.md-typeset .highlight .gd {
+  background: rgba(220, 53, 69, 0.2);
+  color: #dc3545;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+  .md-typeset .highlight {
+    margin: 1rem -0.5rem;
+    border-radius: 0;
+  }
+
+  .md-typeset .highlight .filename {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .md-typeset .highlight pre {
+    padding: 1rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .md-typeset .highlight .md-code__copy {
+    top: 0.25rem;
+    right: 0.25rem;
+    padding: 0.3rem;
+    font-size: 0.7rem;
+  }
+
+  .md-typeset .tabbed-labels label {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .md-typeset .highlight .filename {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .md-typeset .highlight .language-badge {
+    align-self: flex-end;
+  }
+
+  .md-typeset .tabbed-labels {
+    flex-direction: column;
+  }
+
+  .md-typeset .tabbed-labels label {
+    padding: 0.75rem;
+    text-align: center;
+    border-bottom: none;
+    border-left: 3px solid transparent;
+  }
+
+  .md-typeset .tabbed-set input:checked + label {
+    border-left-color: var(--mn-accent);
+    border-bottom: none;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .md-typeset .highlight {
+    border: 1px solid #ccc;
+    box-shadow: none;
+    background: white !important;
+    color: black !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .md-typeset .highlight .filename {
+    background: #f8f9fa !important;
+    color: black !important;
+    border-bottom: 1px solid #ccc;
+  }
+
+  .md-typeset .highlight pre {
+    background: transparent !important;
+    color: black !important;
+  }
+
+  .md-typeset .highlight .md-code__copy {
+    display: none !important;
+  }
+
+  .md-typeset code {
+    background: #f8f9fa !important;
+    color: black !important;
+    border: 1px solid #ccc !important;
+  }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .md-typeset .highlight {
+    border: 2px solid var(--md-default-fg-color);
+  }
+
+  .md-typeset .highlight .filename {
+    background: var(--md-default-fg-color) !important;
+    color: var(--md-default-bg-color) !important;
+  }
+
+  .md-typeset code {
+    border: 2px solid var(--md-default-fg-color);
+    background: var(--md-default-bg-color);
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .md-typeset .highlight {
+    transition: none;
+  }
+
+  .md-typeset .highlight:hover {
+    transform: none;
+  }
+
+  .md-typeset .highlight .md-code__copy {
+    transition: none;
+  }
+
+  .md-typeset .highlight .md-code__copy:hover {
+    transform: none;
+  }
+
+  .md-typeset .tabbed-labels label {
+    transition: none;
+  }
+}

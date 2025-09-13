@@ -102,7 +102,6 @@ class DeploymentHealthChecker {
    * Check application performance metrics
    */
   async checkPerformance(baseUrl) {
-    console.log('🚀 Running performance checks...');
 
     const performanceChecks = [
       {
@@ -137,7 +136,6 @@ class DeploymentHealthChecker {
    * Check database connectivity
    */
   async checkDatabase(dbUrl) {
-    console.log('🗄️  Checking database connectivity...');
 
     // Simulate database health check
     // In real implementation, this would connect to actual database
@@ -153,7 +151,6 @@ class DeploymentHealthChecker {
    * Check external service dependencies
    */
   async checkExternalServices() {
-    console.log('🔗 Checking external service dependencies...');
 
     const services = [
       {
@@ -189,9 +186,6 @@ class DeploymentHealthChecker {
    * Run comprehensive health check suite
    */
   async runHealthCheck(baseUrl) {
-    console.log(`🏥 Starting deployment health check for ${baseUrl}`);
-    console.log(`Environment: ${this.config.environment}`);
-    console.log('─'.repeat(50));
 
     try {
       // Basic endpoint checks
@@ -231,29 +225,19 @@ class DeploymentHealthChecker {
    * Generate health check report
    */
   generateReport() {
-    console.log('\n📊 Health Check Report');
-    console.log('═'.repeat(50));
-    console.log(
       `Overall Status: ${this.getStatusEmoji(
         this.results.overall.status
       )} ${this.results.overall.status.toUpperCase()}`
     );
-    console.log(`Timestamp: ${this.results.timestamp}`);
-    console.log(`Environment: ${this.results.environment}`);
-    console.log('');
 
     // Individual check results
-    console.log('Individual Checks:');
     this.results.checks.forEach((check) => {
       const emoji = this.getStatusEmoji(check.status);
       const responseTime = check.responseTime ? ` (${check.responseTime}ms)` : '';
-      console.log(`  ${emoji} ${check.name}${responseTime}`);
 
       if (check.error) {
-        console.log(`    ❌ Error: ${check.error}`);
       }
       if (check.warning) {
-        console.log(`    ⚠️  Warning: ${check.warning}`);
       }
     });
 
@@ -262,12 +246,6 @@ class DeploymentHealthChecker {
     const degradedCount = this.results.checks.filter((c) => c.status === 'degraded').length;
     const unhealthyCount = this.results.checks.filter((c) => c.status === 'unhealthy').length;
 
-    console.log('');
-    console.log('Summary:');
-    console.log(`  ✅ Healthy: ${healthyCount}`);
-    console.log(`  ⚠️  Degraded: ${degradedCount}`);
-    console.log(`  ❌ Unhealthy: ${unhealthyCount}`);
-    console.log(`  📊 Total Checks: ${this.results.checks.length}`);
 
     return this.results.overall.status === 'healthy';
   }
@@ -288,9 +266,7 @@ class DeploymentHealthChecker {
   async saveResults(filename = 'health-check-results.json') {
     try {
       await fs.writeFile(filename, JSON.stringify(this.results, null, 2));
-      console.log(`\n💾 Results saved to ${filename}`);
     } catch (error) {
-      console.error(`❌ Failed to save results: ${error.message}`);
     }
   }
 }
@@ -316,7 +292,6 @@ async function main() {
     // Exit with appropriate code for CI/CD
     process.exit(isHealthy ? 0 : 1);
   } catch (error) {
-    console.error('❌ Health check failed:', error.message);
     process.exit(1);
   }
 }

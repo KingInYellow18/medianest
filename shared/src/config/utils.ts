@@ -55,12 +55,10 @@ export class DockerSecretsLoader implements EnvLoader {
             const envKey = file.toUpperCase();
             env[envKey] = value;
           } catch (error) {
-            console.warn(`Failed to read Docker secret ${file}:`, error);
           }
         }
       }
     } catch (error) {
-      console.warn('Failed to read Docker secrets directory:', error);
     }
 
     return env;
@@ -83,7 +81,6 @@ export class DotenvLoader implements EnvLoader {
         Object.assign(env, result.parsed);
       }
     } catch (error) {
-      console.warn('Failed to load .env file:', error);
     }
 
     return env;

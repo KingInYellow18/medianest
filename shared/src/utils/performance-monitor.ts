@@ -82,7 +82,7 @@ export class PerformanceMonitor {
 
         // Log memory warnings
         if (endMemory.heapUsed > this.thresholds.memory_warning) {
-          console.warn('High memory usage detected', {
+          logger.warn('High memory usage detected', {
             heapUsed: `${Math.round(endMemory.heapUsed / 1024 / 1024)}MB`,
             heapTotal: `${Math.round(endMemory.heapTotal / 1024 / 1024)}MB`,
             path: req.path,
@@ -251,7 +251,6 @@ export class PerformanceMonitor {
    */
   static updateThresholds(thresholds: Partial<PerformanceThresholds>): void {
     this.thresholds = { ...this.thresholds, ...thresholds };
-    console.info('Performance thresholds updated', this.thresholds);
   }
 
   /**
@@ -259,7 +258,6 @@ export class PerformanceMonitor {
    */
   static clearMetrics(): void {
     this.metrics = [];
-    console.info('Performance metrics cleared');
   }
 
   /**

@@ -1,0 +1,751 @@
+<!doctype html><html lang="en" class="no-js"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Complete documentation for MediaNest - Advanced Media Management Platform with Plex Integration, API, and Developer Resources"><meta name="author" content="MediaNest Development Team"><link rel="canonical" href="https://kinginyellow.github.io/medianest/DOCUMENTATION_ARCHITECTURE/"><link rel="icon" href="../assets/images/favicon.ico"><meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.19"><title>MediaNest Documentation Architecture Plan - MediaNest Documentation</title><link rel="stylesheet" href="../assets/stylesheets/main.7e37652d.min.css"><link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback"><style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style><link rel="stylesheet" href="../css/timeago.css"><link rel="stylesheet" href="../stylesheets/extra.css"><link rel="stylesheet" href="../stylesheets/medianest-theme.css"><link rel="stylesheet" href="../stylesheets/material-enhancements.css"><link rel="stylesheet" href="../stylesheets/animations.css"><link rel="stylesheet" href="../stylesheets/responsive.css"><link rel="stylesheet" href="../stylesheets/diagram-styles.css"><link rel="stylesheet" href="../stylesheets/api-docs.css"><link rel="stylesheet" href="../stylesheets/code-highlights.css"><link rel="stylesheet" href="../stylesheets/mermaid-custom.css"><script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script><script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-XXXXXXXXXX"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-XXXXXXXXXX",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script><script>if("undefined"!=typeof __md_analytics){var consent=__md_get("__consent");consent&&consent.analytics&&__md_analytics()}</script></head><body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple"><input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off"><input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off"><label class="md-overlay" for="__drawer"></label><div data-md-component="skip"><a href="#medianest-documentation-architecture-plan" class="md-skip"> Skip to content </a></div><div data-md-component="announce"></div><div data-md-color-scheme="default" data-md-component="outdated" hidden></div><header class="md-header md-header--shadow md-header--lifted" data-md-component="header"><nav class="md-header__inner md-grid" aria-label="Header"><a href="https://kinginyellow.github.io/medianest/" title="MediaNest Documentation" class="md-header__button md-logo" aria-label="MediaNest Documentation" data-md-component="logo"><img src="../assets/images/logo.svg" alt="logo"></a><label class="md-header__button md-icon" for="__drawer"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg></label><div class="md-header__title" data-md-component="header-title"><div class="md-header__ellipsis"><div class="md-header__topic"><span class="md-ellipsis"> MediaNest Documentation </span></div><div class="md-header__topic" data-md-component="header-topic"><span class="md-ellipsis"> MediaNest Documentation Architecture Plan </span></div></div></div><form class="md-header__option" data-md-component="palette"><input class="md-option" data-md-color-media data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0"><label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg></label><input class="md-option" data-md-color-media data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1"><label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg></label></form><script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script><label class="md-header__button md-icon" for="__search"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg></label><div class="md-search" data-md-component="search" role="dialog"><label class="md-search__overlay" for="__search"></label><div class="md-search__inner" role="search"><form class="md-search__form" name="search"><input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required><label class="md-search__icon md-icon" for="__search"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg></label><nav class="md-search__options" aria-label="Search"><a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text data-md-component="search-share" tabindex="-1"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg></a><button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></nav><div class="md-search__suggest" data-md-component="search-suggest"></div></form><div class="md-search__output"><div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix><div class="md-search-result" data-md-component="search-result"><div class="md-search-result__meta"> Initializing search </div><ol class="md-search-result__list" role="presentation"></ol></div></div></div></div></div><div class="md-header__source"><a href="https://github.com/kinginyellow/medianest" title="Go to repository" class="md-source" data-md-component="source"><div class="md-source__icon md-icon"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 448 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg></div><div class="md-source__repository"> kinginyellow/medianest </div></a></div></nav><nav class="md-tabs" aria-label="Tabs" data-md-component="tabs"><div class="md-grid"><ul class="md-tabs__list"><li class="md-tabs__item"><a href=".." class="md-tabs__link"> Home </a></li><li class="md-tabs__item"><a href="../getting-started/" class="md-tabs__link"> Getting Started </a></li><li class="md-tabs__item"><a href="../architecture/component-architecture/" class="md-tabs__link"> Architecture </a></li><li class="md-tabs__item"><a href="../api/overview/" class="md-tabs__link"> API Reference </a></li><li class="md-tabs__item"><a href="../operations/monitoring-stack/" class="md-tabs__link"> Operations </a></li><li class="md-tabs__item"><a href="../deployment/ci-cd/" class="md-tabs__link"> Deployment </a></li><li class="md-tabs__item"><a href="../developers/contributing/" class="md-tabs__link"> Developers </a></li><li class="md-tabs__item"><a href="../visuals/database-schema/" class="md-tabs__link"> Visuals </a></li><li class="md-tabs__item"><a href="../standards/documentation-checklist/" class="md-tabs__link"> Standards </a></li></ul></div></nav></header><div class="md-container" data-md-component="container"><main class="md-main" data-md-component="main"><div class="md-main__inner md-grid"><div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation"><div class="md-sidebar__scrollwrap"><div class="md-sidebar__inner"><nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0"><label class="md-nav__title" for="__drawer"><a href="https://kinginyellow.github.io/medianest/" title="MediaNest Documentation" class="md-nav__button md-logo" aria-label="MediaNest Documentation" data-md-component="logo"><img src="../assets/images/logo.svg" alt="logo"></a> MediaNest Documentation </label><div class="md-nav__source"><a href="https://github.com/kinginyellow/medianest" title="Go to repository" class="md-source" data-md-component="source"><div class="md-source__icon md-icon"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 448 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg></div><div class="md-source__repository"> kinginyellow/medianest </div></a></div><ul class="md-nav__list" data-md-scrollfix><li class="md-nav__item"><a href=".." class="md-nav__link"><span class="md-ellipsis"> Home </span></a></li><li class="md-nav__item md-nav__item--pruned md-nav__item--nested"><a href="../getting-started/" class="md-nav__link"><span class="md-ellipsis"> Getting Started </span><span class="md-nav__icon md-icon"></span></a></li><li class="md-nav__item md-nav__item--pruned md-nav__item--nested"><a href="../architecture/component-architecture/" class="md-nav__link"><span class="md-ellipsis"> Architecture </span><span class="md-nav__icon md-icon"></span></a></li><li class="md-nav__item md-nav__item--pruned md-nav__item--nested"><a href="../api/overview/" class="md-nav__link"><span class="md-ellipsis"> API Reference </span><span class="md-nav__icon md-icon"></span></a></li><li class="md-nav__item md-nav__item--pruned md-nav__item--nested"><a href="../operations/monitoring-stack/" class="md-nav__link"><span class="md-ellipsis"> Operations </span><span class="md-nav__icon md-icon"></span></a></li><li class="md-nav__item md-nav__item--pruned md-nav__item--nested"><a href="../deployment/ci-cd/" class="md-nav__link"><span class="md-ellipsis"> Deployment </span><span class="md-nav__icon md-icon"></span></a></li><li class="md-nav__item md-nav__item--pruned md-nav__item--nested"><a href="../developers/contributing/" class="md-nav__link"><span class="md-ellipsis"> Developers </span><span class="md-nav__icon md-icon"></span></a></li><li class="md-nav__item md-nav__item--pruned md-nav__item--nested"><a href="../visuals/database-schema/" class="md-nav__link"><span class="md-ellipsis"> Visuals </span><span class="md-nav__icon md-icon"></span></a></li><li class="md-nav__item md-nav__item--pruned md-nav__item--nested"><a href="../standards/documentation-checklist/" class="md-nav__link"><span class="md-ellipsis"> Standards </span><span class="md-nav__icon md-icon"></span></a></li></ul></nav></div></div></div><div class="md-content" data-md-component="content"><article class="md-content__inner md-typeset"><a href="https://github.com/kinginyellow/medianest/edit/develop/docs/DOCUMENTATION_ARCHITECTURE.md" title="Edit this page" class="md-content__button md-icon" rel="edit"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg></a><a href="https://github.com/kinginyellow/medianest/raw/develop/docs/DOCUMENTATION_ARCHITECTURE.md" title="View source of this page" class="md-content__button md-icon"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.2 8.2 0 0 1-1.23-2"/></svg></a><h1 id="medianest-documentation-architecture-plan">MediaNest Documentation Architecture Plan<a class="headerlink" href="#medianest-documentation-architecture-plan" title="Permanent link">&para;</a></h1><h2 id="executive-summary">Executive Summary<a class="headerlink" href="#executive-summary" title="Permanent link">&para;</a></h2><p>This document outlines the comprehensive information architecture for MediaNest documentation, designed to optimize user experience, findability, and content organization using MKDocs Material's advanced features. The architecture follows information architecture best practices with a user-first approach, semantic organization, and scalable structure.</p><h2 id="current-state-analysis">Current State Analysis<a class="headerlink" href="#current-state-analysis" title="Permanent link">&para;</a></h2><h3 id="existing-content-inventory">Existing Content Inventory<a class="headerlink" href="#existing-content-inventory" title="Permanent link">&para;</a></h3><p><strong>📊 Current Statistics:</strong> - <strong>Total Files</strong>: 150+ documentation files - <strong>Categories</strong>: 12 main categories (scattered) - <strong>Redundancy</strong>: 15-20% content overlap identified - <strong>Navigation Depth</strong>: Up to 4 levels (too deep) - <strong>Broken Links</strong>: 8 identified - <strong>Missing Content</strong>: 12 gaps identified</p><p><strong>🔍 Content Categorization:</strong><div class="language-text highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Text Only</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1">1</a></span>
+<span class="normal"><a href="#__codelineno-0-2">2</a></span>
+<span class="normal"><a href="#__codelineno-0-3">3</a></span>
+<span class="normal"><a href="#__codelineno-0-4">4</a></span>
+<span class="normal"><a href="#__codelineno-0-5">5</a></span>
+<span class="normal"><a href="#__codelineno-0-6">6</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1"></a>📁 Current Structure Issues:
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2"></a>├── 🚨 Root-level clutter (15+ files)
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3"></a>├── 🔄 Inconsistent naming conventions
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4"></a>├── 📚 Mixed content types in same directories
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5"></a>├── 🔗 Complex cross-references
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6"></a>└── 🎯 User journey gaps
+</span></code></pre></div></td></tr></table></div></p><h2 id="optimal-documentation-architecture">Optimal Documentation Architecture<a class="headerlink" href="#optimal-documentation-architecture" title="Permanent link">&para;</a></h2><h3 id="primary-information-architecture">🏗️ Primary Information Architecture<a class="headerlink" href="#primary-information-architecture" title="Permanent link">&para;</a></h3><div class="language-text highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Text Only</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-1-1">  1</a></span>
+<span class="normal"><a href="#__codelineno-1-2">  2</a></span>
+<span class="normal"><a href="#__codelineno-1-3">  3</a></span>
+<span class="normal"><a href="#__codelineno-1-4">  4</a></span>
+<span class="normal"><a href="#__codelineno-1-5">  5</a></span>
+<span class="normal"><a href="#__codelineno-1-6">  6</a></span>
+<span class="normal"><a href="#__codelineno-1-7">  7</a></span>
+<span class="normal"><a href="#__codelineno-1-8">  8</a></span>
+<span class="normal"><a href="#__codelineno-1-9">  9</a></span>
+<span class="normal"><a href="#__codelineno-1-10"> 10</a></span>
+<span class="normal"><a href="#__codelineno-1-11"> 11</a></span>
+<span class="normal"><a href="#__codelineno-1-12"> 12</a></span>
+<span class="normal"><a href="#__codelineno-1-13"> 13</a></span>
+<span class="normal"><a href="#__codelineno-1-14"> 14</a></span>
+<span class="normal"><a href="#__codelineno-1-15"> 15</a></span>
+<span class="normal"><a href="#__codelineno-1-16"> 16</a></span>
+<span class="normal"><a href="#__codelineno-1-17"> 17</a></span>
+<span class="normal"><a href="#__codelineno-1-18"> 18</a></span>
+<span class="normal"><a href="#__codelineno-1-19"> 19</a></span>
+<span class="normal"><a href="#__codelineno-1-20"> 20</a></span>
+<span class="normal"><a href="#__codelineno-1-21"> 21</a></span>
+<span class="normal"><a href="#__codelineno-1-22"> 22</a></span>
+<span class="normal"><a href="#__codelineno-1-23"> 23</a></span>
+<span class="normal"><a href="#__codelineno-1-24"> 24</a></span>
+<span class="normal"><a href="#__codelineno-1-25"> 25</a></span>
+<span class="normal"><a href="#__codelineno-1-26"> 26</a></span>
+<span class="normal"><a href="#__codelineno-1-27"> 27</a></span>
+<span class="normal"><a href="#__codelineno-1-28"> 28</a></span>
+<span class="normal"><a href="#__codelineno-1-29"> 29</a></span>
+<span class="normal"><a href="#__codelineno-1-30"> 30</a></span>
+<span class="normal"><a href="#__codelineno-1-31"> 31</a></span>
+<span class="normal"><a href="#__codelineno-1-32"> 32</a></span>
+<span class="normal"><a href="#__codelineno-1-33"> 33</a></span>
+<span class="normal"><a href="#__codelineno-1-34"> 34</a></span>
+<span class="normal"><a href="#__codelineno-1-35"> 35</a></span>
+<span class="normal"><a href="#__codelineno-1-36"> 36</a></span>
+<span class="normal"><a href="#__codelineno-1-37"> 37</a></span>
+<span class="normal"><a href="#__codelineno-1-38"> 38</a></span>
+<span class="normal"><a href="#__codelineno-1-39"> 39</a></span>
+<span class="normal"><a href="#__codelineno-1-40"> 40</a></span>
+<span class="normal"><a href="#__codelineno-1-41"> 41</a></span>
+<span class="normal"><a href="#__codelineno-1-42"> 42</a></span>
+<span class="normal"><a href="#__codelineno-1-43"> 43</a></span>
+<span class="normal"><a href="#__codelineno-1-44"> 44</a></span>
+<span class="normal"><a href="#__codelineno-1-45"> 45</a></span>
+<span class="normal"><a href="#__codelineno-1-46"> 46</a></span>
+<span class="normal"><a href="#__codelineno-1-47"> 47</a></span>
+<span class="normal"><a href="#__codelineno-1-48"> 48</a></span>
+<span class="normal"><a href="#__codelineno-1-49"> 49</a></span>
+<span class="normal"><a href="#__codelineno-1-50"> 50</a></span>
+<span class="normal"><a href="#__codelineno-1-51"> 51</a></span>
+<span class="normal"><a href="#__codelineno-1-52"> 52</a></span>
+<span class="normal"><a href="#__codelineno-1-53"> 53</a></span>
+<span class="normal"><a href="#__codelineno-1-54"> 54</a></span>
+<span class="normal"><a href="#__codelineno-1-55"> 55</a></span>
+<span class="normal"><a href="#__codelineno-1-56"> 56</a></span>
+<span class="normal"><a href="#__codelineno-1-57"> 57</a></span>
+<span class="normal"><a href="#__codelineno-1-58"> 58</a></span>
+<span class="normal"><a href="#__codelineno-1-59"> 59</a></span>
+<span class="normal"><a href="#__codelineno-1-60"> 60</a></span>
+<span class="normal"><a href="#__codelineno-1-61"> 61</a></span>
+<span class="normal"><a href="#__codelineno-1-62"> 62</a></span>
+<span class="normal"><a href="#__codelineno-1-63"> 63</a></span>
+<span class="normal"><a href="#__codelineno-1-64"> 64</a></span>
+<span class="normal"><a href="#__codelineno-1-65"> 65</a></span>
+<span class="normal"><a href="#__codelineno-1-66"> 66</a></span>
+<span class="normal"><a href="#__codelineno-1-67"> 67</a></span>
+<span class="normal"><a href="#__codelineno-1-68"> 68</a></span>
+<span class="normal"><a href="#__codelineno-1-69"> 69</a></span>
+<span class="normal"><a href="#__codelineno-1-70"> 70</a></span>
+<span class="normal"><a href="#__codelineno-1-71"> 71</a></span>
+<span class="normal"><a href="#__codelineno-1-72"> 72</a></span>
+<span class="normal"><a href="#__codelineno-1-73"> 73</a></span>
+<span class="normal"><a href="#__codelineno-1-74"> 74</a></span>
+<span class="normal"><a href="#__codelineno-1-75"> 75</a></span>
+<span class="normal"><a href="#__codelineno-1-76"> 76</a></span>
+<span class="normal"><a href="#__codelineno-1-77"> 77</a></span>
+<span class="normal"><a href="#__codelineno-1-78"> 78</a></span>
+<span class="normal"><a href="#__codelineno-1-79"> 79</a></span>
+<span class="normal"><a href="#__codelineno-1-80"> 80</a></span>
+<span class="normal"><a href="#__codelineno-1-81"> 81</a></span>
+<span class="normal"><a href="#__codelineno-1-82"> 82</a></span>
+<span class="normal"><a href="#__codelineno-1-83"> 83</a></span>
+<span class="normal"><a href="#__codelineno-1-84"> 84</a></span>
+<span class="normal"><a href="#__codelineno-1-85"> 85</a></span>
+<span class="normal"><a href="#__codelineno-1-86"> 86</a></span>
+<span class="normal"><a href="#__codelineno-1-87"> 87</a></span>
+<span class="normal"><a href="#__codelineno-1-88"> 88</a></span>
+<span class="normal"><a href="#__codelineno-1-89"> 89</a></span>
+<span class="normal"><a href="#__codelineno-1-90"> 90</a></span>
+<span class="normal"><a href="#__codelineno-1-91"> 91</a></span>
+<span class="normal"><a href="#__codelineno-1-92"> 92</a></span>
+<span class="normal"><a href="#__codelineno-1-93"> 93</a></span>
+<span class="normal"><a href="#__codelineno-1-94"> 94</a></span>
+<span class="normal"><a href="#__codelineno-1-95"> 95</a></span>
+<span class="normal"><a href="#__codelineno-1-96"> 96</a></span>
+<span class="normal"><a href="#__codelineno-1-97"> 97</a></span>
+<span class="normal"><a href="#__codelineno-1-98"> 98</a></span>
+<span class="normal"><a href="#__codelineno-1-99"> 99</a></span>
+<span class="normal"><a href="#__codelineno-1-100">100</a></span>
+<span class="normal"><a href="#__codelineno-1-101">101</a></span>
+<span class="normal"><a href="#__codelineno-1-102">102</a></span>
+<span class="normal"><a href="#__codelineno-1-103">103</a></span>
+<span class="normal"><a href="#__codelineno-1-104">104</a></span>
+<span class="normal"><a href="#__codelineno-1-105">105</a></span>
+<span class="normal"><a href="#__codelineno-1-106">106</a></span>
+<span class="normal"><a href="#__codelineno-1-107">107</a></span>
+<span class="normal"><a href="#__codelineno-1-108">108</a></span>
+<span class="normal"><a href="#__codelineno-1-109">109</a></span>
+<span class="normal"><a href="#__codelineno-1-110">110</a></span>
+<span class="normal"><a href="#__codelineno-1-111">111</a></span>
+<span class="normal"><a href="#__codelineno-1-112">112</a></span>
+<span class="normal"><a href="#__codelineno-1-113">113</a></span>
+<span class="normal"><a href="#__codelineno-1-114">114</a></span>
+<span class="normal"><a href="#__codelineno-1-115">115</a></span>
+<span class="normal"><a href="#__codelineno-1-116">116</a></span>
+<span class="normal"><a href="#__codelineno-1-117">117</a></span>
+<span class="normal"><a href="#__codelineno-1-118">118</a></span>
+<span class="normal"><a href="#__codelineno-1-119">119</a></span>
+<span class="normal"><a href="#__codelineno-1-120">120</a></span>
+<span class="normal"><a href="#__codelineno-1-121">121</a></span>
+<span class="normal"><a href="#__codelineno-1-122">122</a></span>
+<span class="normal"><a href="#__codelineno-1-123">123</a></span>
+<span class="normal"><a href="#__codelineno-1-124">124</a></span>
+<span class="normal"><a href="#__codelineno-1-125">125</a></span>
+<span class="normal"><a href="#__codelineno-1-126">126</a></span>
+<span class="normal"><a href="#__codelineno-1-127">127</a></span>
+<span class="normal"><a href="#__codelineno-1-128">128</a></span>
+<span class="normal"><a href="#__codelineno-1-129">129</a></span>
+<span class="normal"><a href="#__codelineno-1-130">130</a></span>
+<span class="normal"><a href="#__codelineno-1-131">131</a></span>
+<span class="normal"><a href="#__codelineno-1-132">132</a></span>
+<span class="normal"><a href="#__codelineno-1-133">133</a></span>
+<span class="normal"><a href="#__codelineno-1-134">134</a></span>
+<span class="normal"><a href="#__codelineno-1-135">135</a></span>
+<span class="normal"><a href="#__codelineno-1-136">136</a></span>
+<span class="normal"><a href="#__codelineno-1-137">137</a></span>
+<span class="normal"><a href="#__codelineno-1-138">138</a></span>
+<span class="normal"><a href="#__codelineno-1-139">139</a></span>
+<span class="normal"><a href="#__codelineno-1-140">140</a></span>
+<span class="normal"><a href="#__codelineno-1-141">141</a></span>
+<span class="normal"><a href="#__codelineno-1-142">142</a></span>
+<span class="normal"><a href="#__codelineno-1-143">143</a></span>
+<span class="normal"><a href="#__codelineno-1-144">144</a></span>
+<span class="normal"><a href="#__codelineno-1-145">145</a></span>
+<span class="normal"><a href="#__codelineno-1-146">146</a></span>
+<span class="normal"><a href="#__codelineno-1-147">147</a></span>
+<span class="normal"><a href="#__codelineno-1-148">148</a></span>
+<span class="normal"><a href="#__codelineno-1-149">149</a></span>
+<span class="normal"><a href="#__codelineno-1-150">150</a></span>
+<span class="normal"><a href="#__codelineno-1-151">151</a></span>
+<span class="normal"><a href="#__codelineno-1-152">152</a></span>
+<span class="normal"><a href="#__codelineno-1-153">153</a></span>
+<span class="normal"><a href="#__codelineno-1-154">154</a></span>
+<span class="normal"><a href="#__codelineno-1-155">155</a></span>
+<span class="normal"><a href="#__codelineno-1-156">156</a></span>
+<span class="normal"><a href="#__codelineno-1-157">157</a></span>
+<span class="normal"><a href="#__codelineno-1-158">158</a></span>
+<span class="normal"><a href="#__codelineno-1-159">159</a></span>
+<span class="normal"><a href="#__codelineno-1-160">160</a></span>
+<span class="normal"><a href="#__codelineno-1-161">161</a></span>
+<span class="normal"><a href="#__codelineno-1-162">162</a></span>
+<span class="normal"><a href="#__codelineno-1-163">163</a></span>
+<span class="normal"><a href="#__codelineno-1-164">164</a></span>
+<span class="normal"><a href="#__codelineno-1-165">165</a></span>
+<span class="normal"><a href="#__codelineno-1-166">166</a></span>
+<span class="normal"><a href="#__codelineno-1-167">167</a></span>
+<span class="normal"><a href="#__codelineno-1-168">168</a></span>
+<span class="normal"><a href="#__codelineno-1-169">169</a></span>
+<span class="normal"><a href="#__codelineno-1-170">170</a></span>
+<span class="normal"><a href="#__codelineno-1-171">171</a></span>
+<span class="normal"><a href="#__codelineno-1-172">172</a></span>
+<span class="normal"><a href="#__codelineno-1-173">173</a></span>
+<span class="normal"><a href="#__codelineno-1-174">174</a></span>
+<span class="normal"><a href="#__codelineno-1-175">175</a></span>
+<span class="normal"><a href="#__codelineno-1-176">176</a></span>
+<span class="normal"><a href="#__codelineno-1-177">177</a></span>
+<span class="normal"><a href="#__codelineno-1-178">178</a></span>
+<span class="normal"><a href="#__codelineno-1-179">179</a></span>
+<span class="normal"><a href="#__codelineno-1-180">180</a></span>
+<span class="normal"><a href="#__codelineno-1-181">181</a></span>
+<span class="normal"><a href="#__codelineno-1-182">182</a></span>
+<span class="normal"><a href="#__codelineno-1-183">183</a></span>
+<span class="normal"><a href="#__codelineno-1-184">184</a></span>
+<span class="normal"><a href="#__codelineno-1-185">185</a></span>
+<span class="normal"><a href="#__codelineno-1-186">186</a></span>
+<span class="normal"><a href="#__codelineno-1-187">187</a></span>
+<span class="normal"><a href="#__codelineno-1-188">188</a></span>
+<span class="normal"><a href="#__codelineno-1-189">189</a></span>
+<span class="normal"><a href="#__codelineno-1-190">190</a></span>
+<span class="normal"><a href="#__codelineno-1-191">191</a></span>
+<span class="normal"><a href="#__codelineno-1-192">192</a></span>
+<span class="normal"><a href="#__codelineno-1-193">193</a></span>
+<span class="normal"><a href="#__codelineno-1-194">194</a></span>
+<span class="normal"><a href="#__codelineno-1-195">195</a></span>
+<span class="normal"><a href="#__codelineno-1-196">196</a></span>
+<span class="normal"><a href="#__codelineno-1-197">197</a></span>
+<span class="normal"><a href="#__codelineno-1-198">198</a></span>
+<span class="normal"><a href="#__codelineno-1-199">199</a></span>
+<span class="normal"><a href="#__codelineno-1-200">200</a></span>
+<span class="normal"><a href="#__codelineno-1-201">201</a></span>
+<span class="normal"><a href="#__codelineno-1-202">202</a></span>
+<span class="normal"><a href="#__codelineno-1-203">203</a></span>
+<span class="normal"><a href="#__codelineno-1-204">204</a></span>
+<span class="normal"><a href="#__codelineno-1-205">205</a></span>
+<span class="normal"><a href="#__codelineno-1-206">206</a></span>
+<span class="normal"><a href="#__codelineno-1-207">207</a></span>
+<span class="normal"><a href="#__codelineno-1-208">208</a></span>
+<span class="normal"><a href="#__codelineno-1-209">209</a></span>
+<span class="normal"><a href="#__codelineno-1-210">210</a></span>
+<span class="normal"><a href="#__codelineno-1-211">211</a></span>
+<span class="normal"><a href="#__codelineno-1-212">212</a></span>
+<span class="normal"><a href="#__codelineno-1-213">213</a></span>
+<span class="normal"><a href="#__codelineno-1-214">214</a></span>
+<span class="normal"><a href="#__codelineno-1-215">215</a></span>
+<span class="normal"><a href="#__codelineno-1-216">216</a></span>
+<span class="normal"><a href="#__codelineno-1-217">217</a></span>
+<span class="normal"><a href="#__codelineno-1-218">218</a></span>
+<span class="normal"><a href="#__codelineno-1-219">219</a></span>
+<span class="normal"><a href="#__codelineno-1-220">220</a></span>
+<span class="normal"><a href="#__codelineno-1-221">221</a></span>
+<span class="normal"><a href="#__codelineno-1-222">222</a></span>
+<span class="normal"><a href="#__codelineno-1-223">223</a></span>
+<span class="normal"><a href="#__codelineno-1-224">224</a></span>
+<span class="normal"><a href="#__codelineno-1-225">225</a></span>
+<span class="normal"><a href="#__codelineno-1-226">226</a></span>
+<span class="normal"><a href="#__codelineno-1-227">227</a></span>
+<span class="normal"><a href="#__codelineno-1-228">228</a></span>
+<span class="normal"><a href="#__codelineno-1-229">229</a></span>
+<span class="normal"><a href="#__codelineno-1-230">230</a></span>
+<span class="normal"><a href="#__codelineno-1-231">231</a></span>
+<span class="normal"><a href="#__codelineno-1-232">232</a></span>
+<span class="normal"><a href="#__codelineno-1-233">233</a></span>
+<span class="normal"><a href="#__codelineno-1-234">234</a></span>
+<span class="normal"><a href="#__codelineno-1-235">235</a></span>
+<span class="normal"><a href="#__codelineno-1-236">236</a></span>
+<span class="normal"><a href="#__codelineno-1-237">237</a></span>
+<span class="normal"><a href="#__codelineno-1-238">238</a></span>
+<span class="normal"><a href="#__codelineno-1-239">239</a></span>
+<span class="normal"><a href="#__codelineno-1-240">240</a></span>
+<span class="normal"><a href="#__codelineno-1-241">241</a></span>
+<span class="normal"><a href="#__codelineno-1-242">242</a></span>
+<span class="normal"><a href="#__codelineno-1-243">243</a></span>
+<span class="normal"><a href="#__codelineno-1-244">244</a></span>
+<span class="normal"><a href="#__codelineno-1-245">245</a></span>
+<span class="normal"><a href="#__codelineno-1-246">246</a></span>
+<span class="normal"><a href="#__codelineno-1-247">247</a></span>
+<span class="normal"><a href="#__codelineno-1-248">248</a></span>
+<span class="normal"><a href="#__codelineno-1-249">249</a></span>
+<span class="normal"><a href="#__codelineno-1-250">250</a></span>
+<span class="normal"><a href="#__codelineno-1-251">251</a></span>
+<span class="normal"><a href="#__codelineno-1-252">252</a></span>
+<span class="normal"><a href="#__codelineno-1-253">253</a></span>
+<span class="normal"><a href="#__codelineno-1-254">254</a></span>
+<span class="normal"><a href="#__codelineno-1-255">255</a></span>
+<span class="normal"><a href="#__codelineno-1-256">256</a></span>
+<span class="normal"><a href="#__codelineno-1-257">257</a></span>
+<span class="normal"><a href="#__codelineno-1-258">258</a></span>
+<span class="normal"><a href="#__codelineno-1-259">259</a></span>
+<span class="normal"><a href="#__codelineno-1-260">260</a></span>
+<span class="normal"><a href="#__codelineno-1-261">261</a></span>
+<span class="normal"><a href="#__codelineno-1-262">262</a></span>
+<span class="normal"><a href="#__codelineno-1-263">263</a></span>
+<span class="normal"><a href="#__codelineno-1-264">264</a></span>
+<span class="normal"><a href="#__codelineno-1-265">265</a></span>
+<span class="normal"><a href="#__codelineno-1-266">266</a></span>
+<span class="normal"><a href="#__codelineno-1-267">267</a></span>
+<span class="normal"><a href="#__codelineno-1-268">268</a></span>
+<span class="normal"><a href="#__codelineno-1-269">269</a></span>
+<span class="normal"><a href="#__codelineno-1-270">270</a></span>
+<span class="normal"><a href="#__codelineno-1-271">271</a></span>
+<span class="normal"><a href="#__codelineno-1-272">272</a></span>
+<span class="normal"><a href="#__codelineno-1-273">273</a></span>
+<span class="normal"><a href="#__codelineno-1-274">274</a></span>
+<span class="normal"><a href="#__codelineno-1-275">275</a></span>
+<span class="normal"><a href="#__codelineno-1-276">276</a></span>
+<span class="normal"><a href="#__codelineno-1-277">277</a></span>
+<span class="normal"><a href="#__codelineno-1-278">278</a></span>
+<span class="normal"><a href="#__codelineno-1-279">279</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1"></a>docs/
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2"></a>├── index.md                           # Landing page with wayfinding
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3"></a>├── mkdocs.yml                         # Configuration
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4"></a>├── stylesheets/                       # Custom CSS
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5"></a>├── javascripts/                       # Custom JS
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6"></a>├── assets/                           # Images, diagrams, media
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7"></a>│   ├── images/
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8"></a>│   │   ├── screenshots/
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9"></a>│   │   ├── diagrams/
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10"></a>│   │   └── logos/
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11"></a>│   └── videos/
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12"></a>├── getting-started/                   # 🎯 Entry Point Navigation
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13"></a>│   ├── index.md                      # Overview &amp; quick orientation
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14"></a>│   ├── installation.md               # Installation guide
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15"></a>│   ├── quick-start.md                # 5-minute setup
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16"></a>│   ├── configuration.md              # Basic configuration
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17"></a>│   ├── first-steps.md                # Post-installation workflow
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18"></a>│   └── troubleshooting.md            # Common setup issues
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19"></a>├── user-guide/                       # 👤 End User Documentation
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20"></a>│   ├── index.md                      # User guide overview
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21"></a>│   ├── dashboard/
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22"></a>│   │   ├── overview.md
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23"></a>│   │   ├── navigation.md
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24"></a>│   │   └── customization.md
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25"></a>│   ├── media-management/
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26"></a>│   │   ├── adding-media.md
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27"></a>│   │   ├── organizing-libraries.md
+</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28"></a>│   │   ├── metadata-editing.md
+</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29"></a>│   │   └── batch-operations.md
+</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30"></a>│   ├── plex-integration/
+</span><span id="__span-1-31"><a id="__codelineno-1-31" name="__codelineno-1-31"></a>│   │   ├── setup.md
+</span><span id="__span-1-32"><a id="__codelineno-1-32" name="__codelineno-1-32"></a>│   │   ├── synchronization.md
+</span><span id="__span-1-33"><a id="__codelineno-1-33" name="__codelineno-1-33"></a>│   │   └── advanced-features.md
+</span><span id="__span-1-34"><a id="__codelineno-1-34" name="__codelineno-1-34"></a>│   ├── search-filtering/
+</span><span id="__span-1-35"><a id="__codelineno-1-35" name="__codelineno-1-35"></a>│   │   ├── basic-search.md
+</span><span id="__span-1-36"><a id="__codelineno-1-36" name="__codelineno-1-36"></a>│   │   ├── advanced-filters.md
+</span><span id="__span-1-37"><a id="__codelineno-1-37" name="__codelineno-1-37"></a>│   │   └── saved-searches.md
+</span><span id="__span-1-38"><a id="__codelineno-1-38" name="__codelineno-1-38"></a>│   ├── collections/
+</span><span id="__span-1-39"><a id="__codelineno-1-39" name="__codelineno-1-39"></a>│   │   ├── creating-collections.md
+</span><span id="__span-1-40"><a id="__codelineno-1-40" name="__codelineno-1-40"></a>│   │   ├── smart-collections.md
+</span><span id="__span-1-41"><a id="__codelineno-1-41" name="__codelineno-1-41"></a>│   │   └── sharing.md
+</span><span id="__span-1-42"><a id="__codelineno-1-42" name="__codelineno-1-42"></a>│   └── user-settings/
+</span><span id="__span-1-43"><a id="__codelineno-1-43" name="__codelineno-1-43"></a>│       ├── profile-management.md
+</span><span id="__span-1-44"><a id="__codelineno-1-44" name="__codelineno-1-44"></a>│       ├── preferences.md
+</span><span id="__span-1-45"><a id="__codelineno-1-45" name="__codelineno-1-45"></a>│       └── security.md
+</span><span id="__span-1-46"><a id="__codelineno-1-46" name="__codelineno-1-46"></a>├── installation/                     # 🔧 Installation &amp; Setup
+</span><span id="__span-1-47"><a id="__codelineno-1-47" name="__codelineno-1-47"></a>│   ├── index.md                     # Installation overview
+</span><span id="__span-1-48"><a id="__codelineno-1-48" name="__codelineno-1-48"></a>│   ├── requirements.md              # System requirements
+</span><span id="__span-1-49"><a id="__codelineno-1-49" name="__codelineno-1-49"></a>│   ├── docker/
+</span><span id="__span-1-50"><a id="__codelineno-1-50" name="__codelineno-1-50"></a>│   │   ├── quick-start.md
+</span><span id="__span-1-51"><a id="__codelineno-1-51" name="__codelineno-1-51"></a>│   │   ├── docker-compose.md
+</span><span id="__span-1-52"><a id="__codelineno-1-52" name="__codelineno-1-52"></a>│   │   ├── production.md
+</span><span id="__span-1-53"><a id="__codelineno-1-53" name="__codelineno-1-53"></a>│   │   └── scaling.md
+</span><span id="__span-1-54"><a id="__codelineno-1-54" name="__codelineno-1-54"></a>│   ├── manual/
+</span><span id="__span-1-55"><a id="__codelineno-1-55" name="__codelineno-1-55"></a>│   │   ├── linux.md
+</span><span id="__span-1-56"><a id="__codelineno-1-56" name="__codelineno-1-56"></a>│   │   ├── windows.md
+</span><span id="__span-1-57"><a id="__codelineno-1-57" name="__codelineno-1-57"></a>│   │   ├── macos.md
+</span><span id="__span-1-58"><a id="__codelineno-1-58" name="__codelineno-1-58"></a>│   │   └── source-build.md
+</span><span id="__span-1-59"><a id="__codelineno-1-59" name="__codelineno-1-59"></a>│   ├── configuration/
+</span><span id="__span-1-60"><a id="__codelineno-1-60" name="__codelineno-1-60"></a>│   │   ├── environment-variables.md
+</span><span id="__span-1-61"><a id="__codelineno-1-61" name="__codelineno-1-61"></a>│   │   ├── database-setup.md
+</span><span id="__span-1-62"><a id="__codelineno-1-62" name="__codelineno-1-62"></a>│   │   ├── ssl-certificates.md
+</span><span id="__span-1-63"><a id="__codelineno-1-63" name="__codelineno-1-63"></a>│   │   └── reverse-proxy.md
+</span><span id="__span-1-64"><a id="__codelineno-1-64" name="__codelineno-1-64"></a>│   └── migration/
+</span><span id="__span-1-65"><a id="__codelineno-1-65" name="__codelineno-1-65"></a>│       ├── from-v1.md
+</span><span id="__span-1-66"><a id="__codelineno-1-66" name="__codelineno-1-66"></a>│       ├── backup-restore.md
+</span><span id="__span-1-67"><a id="__codelineno-1-67" name="__codelineno-1-67"></a>│       └── data-migration.md
+</span><span id="__span-1-68"><a id="__codelineno-1-68" name="__codelineno-1-68"></a>├── api/                              # ⚡ API Documentation
+</span><span id="__span-1-69"><a id="__codelineno-1-69" name="__codelineno-1-69"></a>│   ├── index.md                     # API overview
+</span><span id="__span-1-70"><a id="__codelineno-1-70" name="__codelineno-1-70"></a>│   ├── getting-started.md           # API quick start
+</span><span id="__span-1-71"><a id="__codelineno-1-71" name="__codelineno-1-71"></a>│   ├── authentication/
+</span><span id="__span-1-72"><a id="__codelineno-1-72" name="__codelineno-1-72"></a>│   │   ├── overview.md
+</span><span id="__span-1-73"><a id="__codelineno-1-73" name="__codelineno-1-73"></a>│   │   ├── jwt-tokens.md
+</span><span id="__span-1-74"><a id="__codelineno-1-74" name="__codelineno-1-74"></a>│   │   ├── api-keys.md
+</span><span id="__span-1-75"><a id="__codelineno-1-75" name="__codelineno-1-75"></a>│   │   └── oauth.md
+</span><span id="__span-1-76"><a id="__codelineno-1-76" name="__codelineno-1-76"></a>│   ├── endpoints/
+</span><span id="__span-1-77"><a id="__codelineno-1-77" name="__codelineno-1-77"></a>│   │   ├── overview.md
+</span><span id="__span-1-78"><a id="__codelineno-1-78" name="__codelineno-1-78"></a>│   │   ├── media.md
+</span><span id="__span-1-79"><a id="__codelineno-1-79" name="__codelineno-1-79"></a>│   │   ├── users.md
+</span><span id="__span-1-80"><a id="__codelineno-1-80" name="__codelineno-1-80"></a>│   │   ├── libraries.md
+</span><span id="__span-1-81"><a id="__codelineno-1-81" name="__codelineno-1-81"></a>│   │   ├── collections.md
+</span><span id="__span-1-82"><a id="__codelineno-1-82" name="__codelineno-1-82"></a>│   │   ├── plex.md
+</span><span id="__span-1-83"><a id="__codelineno-1-83" name="__codelineno-1-83"></a>│   │   ├── search.md
+</span><span id="__span-1-84"><a id="__codelineno-1-84" name="__codelineno-1-84"></a>│   │   └── admin.md
+</span><span id="__span-1-85"><a id="__codelineno-1-85" name="__codelineno-1-85"></a>│   ├── websocket/
+</span><span id="__span-1-86"><a id="__codelineno-1-86" name="__codelineno-1-86"></a>│   │   ├── overview.md
+</span><span id="__span-1-87"><a id="__codelineno-1-87" name="__codelineno-1-87"></a>│   │   ├── events.md
+</span><span id="__span-1-88"><a id="__codelineno-1-88" name="__codelineno-1-88"></a>│   │   └── examples.md
+</span><span id="__span-1-89"><a id="__codelineno-1-89" name="__codelineno-1-89"></a>│   ├── sdk/
+</span><span id="__span-1-90"><a id="__codelineno-1-90" name="__codelineno-1-90"></a>│   │   ├── javascript.md
+</span><span id="__span-1-91"><a id="__codelineno-1-91" name="__codelineno-1-91"></a>│   │   ├── python.md
+</span><span id="__span-1-92"><a id="__codelineno-1-92" name="__codelineno-1-92"></a>│   │   ├── php.md
+</span><span id="__span-1-93"><a id="__codelineno-1-93" name="__codelineno-1-93"></a>│   │   └── curl-examples.md
+</span><span id="__span-1-94"><a id="__codelineno-1-94" name="__codelineno-1-94"></a>│   └── reference/
+</span><span id="__span-1-95"><a id="__codelineno-1-95" name="__codelineno-1-95"></a>│       ├── openapi-spec.md
+</span><span id="__span-1-96"><a id="__codelineno-1-96" name="__codelineno-1-96"></a>│       ├── rate-limiting.md
+</span><span id="__span-1-97"><a id="__codelineno-1-97" name="__codelineno-1-97"></a>│       ├── error-codes.md
+</span><span id="__span-1-98"><a id="__codelineno-1-98" name="__codelineno-1-98"></a>│       └── changelog.md
+</span><span id="__span-1-99"><a id="__codelineno-1-99" name="__codelineno-1-99"></a>├── development/                      # 👨‍💻 Developer Documentation
+</span><span id="__span-1-100"><a id="__codelineno-1-100" name="__codelineno-1-100"></a>│   ├── index.md                     # Development overview
+</span><span id="__span-1-101"><a id="__codelineno-1-101" name="__codelineno-1-101"></a>│   ├── setup/
+</span><span id="__span-1-102"><a id="__codelineno-1-102" name="__codelineno-1-102"></a>│   │   ├── development-environment.md
+</span><span id="__span-1-103"><a id="__codelineno-1-103" name="__codelineno-1-103"></a>│   │   ├── local-setup.md
+</span><span id="__span-1-104"><a id="__codelineno-1-104" name="__codelineno-1-104"></a>│   │   ├── debugging.md
+</span><span id="__span-1-105"><a id="__codelineno-1-105" name="__codelineno-1-105"></a>│   │   └── hot-reload.md
+</span><span id="__span-1-106"><a id="__codelineno-1-106" name="__codelineno-1-106"></a>│   ├── architecture/
+</span><span id="__span-1-107"><a id="__codelineno-1-107" name="__codelineno-1-107"></a>│   │   ├── overview.md
+</span><span id="__span-1-108"><a id="__codelineno-1-108" name="__codelineno-1-108"></a>│   │   ├── system-design.md
+</span><span id="__span-1-109"><a id="__codelineno-1-109" name="__codelineno-1-109"></a>│   │   ├── database-schema.md
+</span><span id="__span-1-110"><a id="__codelineno-1-110" name="__codelineno-1-110"></a>│   │   ├── api-design.md
+</span><span id="__span-1-111"><a id="__codelineno-1-111" name="__codelineno-1-111"></a>│   │   └── security-model.md
+</span><span id="__span-1-112"><a id="__codelineno-1-112" name="__codelineno-1-112"></a>│   ├── contributing/
+</span><span id="__span-1-113"><a id="__codelineno-1-113" name="__codelineno-1-113"></a>│   │   ├── guidelines.md
+</span><span id="__span-1-114"><a id="__codelineno-1-114" name="__codelineno-1-114"></a>│   │   ├── code-style.md
+</span><span id="__span-1-115"><a id="__codelineno-1-115" name="__codelineno-1-115"></a>│   │   ├── pull-requests.md
+</span><span id="__span-1-116"><a id="__codelineno-1-116" name="__codelineno-1-116"></a>│   │   ├── issue-reporting.md
+</span><span id="__span-1-117"><a id="__codelineno-1-117" name="__codelineno-1-117"></a>│   │   └── testing.md
+</span><span id="__span-1-118"><a id="__codelineno-1-118" name="__codelineno-1-118"></a>│   ├── testing/
+</span><span id="__span-1-119"><a id="__codelineno-1-119" name="__codelineno-1-119"></a>│   │   ├── overview.md
+</span><span id="__span-1-120"><a id="__codelineno-1-120" name="__codelineno-1-120"></a>│   │   ├── unit-tests.md
+</span><span id="__span-1-121"><a id="__codelineno-1-121" name="__codelineno-1-121"></a>│   │   ├── integration-tests.md
+</span><span id="__span-1-122"><a id="__codelineno-1-122" name="__codelineno-1-122"></a>│   │   ├── e2e-tests.md
+</span><span id="__span-1-123"><a id="__codelineno-1-123" name="__codelineno-1-123"></a>│   │   └── performance-tests.md
+</span><span id="__span-1-124"><a id="__codelineno-1-124" name="__codelineno-1-124"></a>│   ├── plugins/
+</span><span id="__span-1-125"><a id="__codelineno-1-125" name="__codelineno-1-125"></a>│   │   ├── plugin-system.md
+</span><span id="__span-1-126"><a id="__codelineno-1-126" name="__codelineno-1-126"></a>│   │   ├── creating-plugins.md
+</span><span id="__span-1-127"><a id="__codelineno-1-127" name="__codelineno-1-127"></a>│   │   ├── plugin-api.md
+</span><span id="__span-1-128"><a id="__codelineno-1-128" name="__codelineno-1-128"></a>│   │   └── example-plugins.md
+</span><span id="__span-1-129"><a id="__codelineno-1-129" name="__codelineno-1-129"></a>│   └── internals/
+</span><span id="__span-1-130"><a id="__codelineno-1-130" name="__codelineno-1-130"></a>│       ├── codebase-structure.md
+</span><span id="__span-1-131"><a id="__codelineno-1-131" name="__codelineno-1-131"></a>│       ├── data-models.md
+</span><span id="__span-1-132"><a id="__codelineno-1-132" name="__codelineno-1-132"></a>│       ├── service-layer.md
+</span><span id="__span-1-133"><a id="__codelineno-1-133" name="__codelineno-1-133"></a>│       └── background-jobs.md
+</span><span id="__span-1-134"><a id="__codelineno-1-134" name="__codelineno-1-134"></a>├── deployment/                       # 🚀 Production Deployment
+</span><span id="__span-1-135"><a id="__codelineno-1-135" name="__codelineno-1-135"></a>│   ├── index.md                     # Deployment overview
+</span><span id="__span-1-136"><a id="__codelineno-1-136" name="__codelineno-1-136"></a>│   ├── production/
+</span><span id="__span-1-137"><a id="__codelineno-1-137" name="__codelineno-1-137"></a>│   │   ├── requirements.md
+</span><span id="__span-1-138"><a id="__codelineno-1-138" name="__codelineno-1-138"></a>│   │   ├── docker-production.md
+</span><span id="__span-1-139"><a id="__codelineno-1-139" name="__codelineno-1-139"></a>│   │   ├── kubernetes.md
+</span><span id="__span-1-140"><a id="__codelineno-1-140" name="__codelineno-1-140"></a>│   │   ├── security-hardening.md
+</span><span id="__span-1-141"><a id="__codelineno-1-141" name="__codelineno-1-141"></a>│   │   └── performance-tuning.md
+</span><span id="__span-1-142"><a id="__codelineno-1-142" name="__codelineno-1-142"></a>│   ├── staging/
+</span><span id="__span-1-143"><a id="__codelineno-1-143" name="__codelineno-1-143"></a>│   │   ├── staging-environment.md
+</span><span id="__span-1-144"><a id="__codelineno-1-144" name="__codelineno-1-144"></a>│   │   ├── testing-procedures.md
+</span><span id="__span-1-145"><a id="__codelineno-1-145" name="__codelineno-1-145"></a>│   │   └── rollback-procedures.md
+</span><span id="__span-1-146"><a id="__codelineno-1-146" name="__codelineno-1-146"></a>│   ├── ci-cd/
+</span><span id="__span-1-147"><a id="__codelineno-1-147" name="__codelineno-1-147"></a>│   │   ├── github-actions.md
+</span><span id="__span-1-148"><a id="__codelineno-1-148" name="__codelineno-1-148"></a>│   │   ├── automated-testing.md
+</span><span id="__span-1-149"><a id="__codelineno-1-149" name="__codelineno-1-149"></a>│   │   ├── deployment-pipeline.md
+</span><span id="__span-1-150"><a id="__codelineno-1-150" name="__codelineno-1-150"></a>│   │   └── quality-gates.md
+</span><span id="__span-1-151"><a id="__codelineno-1-151" name="__codelineno-1-151"></a>│   ├── infrastructure/
+</span><span id="__span-1-152"><a id="__codelineno-1-152" name="__codelineno-1-152"></a>│   │   ├── server-requirements.md
+</span><span id="__span-1-153"><a id="__codelineno-1-153" name="__codelineno-1-153"></a>│   │   ├── load-balancing.md
+</span><span id="__span-1-154"><a id="__codelineno-1-154" name="__codelineno-1-154"></a>│   │   ├── database-clustering.md
+</span><span id="__span-1-155"><a id="__codelineno-1-155" name="__codelineno-1-155"></a>│   │   └── cdn-setup.md
+</span><span id="__span-1-156"><a id="__codelineno-1-156" name="__codelineno-1-156"></a>│   └── cloud/
+</span><span id="__span-1-157"><a id="__codelineno-1-157" name="__codelineno-1-157"></a>│       ├── aws.md
+</span><span id="__span-1-158"><a id="__codelineno-1-158" name="__codelineno-1-158"></a>│       ├── azure.md
+</span><span id="__span-1-159"><a id="__codelineno-1-159" name="__codelineno-1-159"></a>│       ├── gcp.md
+</span><span id="__span-1-160"><a id="__codelineno-1-160" name="__codelineno-1-160"></a>│       └── digital-ocean.md
+</span><span id="__span-1-161"><a id="__codelineno-1-161" name="__codelineno-1-161"></a>├── operations/                       # 🔧 Operations &amp; Maintenance
+</span><span id="__span-1-162"><a id="__codelineno-1-162" name="__codelineno-1-162"></a>│   ├── index.md                     # Operations overview
+</span><span id="__span-1-163"><a id="__codelineno-1-163" name="__codelineno-1-163"></a>│   ├── monitoring/
+</span><span id="__span-1-164"><a id="__codelineno-1-164" name="__codelineno-1-164"></a>│   │   ├── setup.md
+</span><span id="__span-1-165"><a id="__codelineno-1-165" name="__codelineno-1-165"></a>│   │   ├── metrics.md
+</span><span id="__span-1-166"><a id="__codelineno-1-166" name="__codelineno-1-166"></a>│   │   ├── alerting.md
+</span><span id="__span-1-167"><a id="__codelineno-1-167" name="__codelineno-1-167"></a>│   │   ├── dashboards.md
+</span><span id="__span-1-168"><a id="__codelineno-1-168" name="__codelineno-1-168"></a>│   │   └── performance-monitoring.md
+</span><span id="__span-1-169"><a id="__codelineno-1-169" name="__codelineno-1-169"></a>│   ├── maintenance/
+</span><span id="__span-1-170"><a id="__codelineno-1-170" name="__codelineno-1-170"></a>│   │   ├── regular-maintenance.md
+</span><span id="__span-1-171"><a id="__codelineno-1-171" name="__codelineno-1-171"></a>│   │   ├── database-maintenance.md
+</span><span id="__span-1-172"><a id="__codelineno-1-172" name="__codelineno-1-172"></a>│   │   ├── backup-procedures.md
+</span><span id="__span-1-173"><a id="__codelineno-1-173" name="__codelineno-1-173"></a>│   │   └── update-procedures.md
+</span><span id="__span-1-174"><a id="__codelineno-1-174" name="__codelineno-1-174"></a>│   ├── troubleshooting/
+</span><span id="__span-1-175"><a id="__codelineno-1-175" name="__codelineno-1-175"></a>│   │   ├── common-issues.md
+</span><span id="__span-1-176"><a id="__codelineno-1-176" name="__codelineno-1-176"></a>│   │   ├── performance-issues.md
+</span><span id="__span-1-177"><a id="__codelineno-1-177" name="__codelineno-1-177"></a>│   │   ├── connectivity-issues.md
+</span><span id="__span-1-178"><a id="__codelineno-1-178" name="__codelineno-1-178"></a>│   │   ├── database-issues.md
+</span><span id="__span-1-179"><a id="__codelineno-1-179" name="__codelineno-1-179"></a>│   │   └── plex-integration-issues.md
+</span><span id="__span-1-180"><a id="__codelineno-1-180" name="__codelineno-1-180"></a>│   ├── runbooks/
+</span><span id="__span-1-181"><a id="__codelineno-1-181" name="__codelineno-1-181"></a>│   │   ├── incident-response.md
+</span><span id="__span-1-182"><a id="__codelineno-1-182" name="__codelineno-1-182"></a>│   │   ├── emergency-procedures.md
+</span><span id="__span-1-183"><a id="__codelineno-1-183" name="__codelineno-1-183"></a>│   │   ├── disaster-recovery.md
+</span><span id="__span-1-184"><a id="__codelineno-1-184" name="__codelineno-1-184"></a>│   │   └── security-incidents.md
+</span><span id="__span-1-185"><a id="__codelineno-1-185" name="__codelineno-1-185"></a>│   └── logging/
+</span><span id="__span-1-186"><a id="__codelineno-1-186" name="__codelineno-1-186"></a>│       ├── log-configuration.md
+</span><span id="__span-1-187"><a id="__codelineno-1-187" name="__codelineno-1-187"></a>│       ├── log-analysis.md
+</span><span id="__span-1-188"><a id="__codelineno-1-188" name="__codelineno-1-188"></a>│       └── audit-trails.md
+</span><span id="__span-1-189"><a id="__codelineno-1-189" name="__codelineno-1-189"></a>├── security/                         # 🔒 Security Documentation
+</span><span id="__span-1-190"><a id="__codelineno-1-190" name="__codelineno-1-190"></a>│   ├── index.md                     # Security overview
+</span><span id="__span-1-191"><a id="__codelineno-1-191" name="__codelineno-1-191"></a>│   ├── authentication/
+</span><span id="__span-1-192"><a id="__codelineno-1-192" name="__codelineno-1-192"></a>│   │   ├── user-authentication.md
+</span><span id="__span-1-193"><a id="__codelineno-1-193" name="__codelineno-1-193"></a>│   │   ├── api-authentication.md
+</span><span id="__span-1-194"><a id="__codelineno-1-194" name="__codelineno-1-194"></a>│   │   ├── multi-factor-auth.md
+</span><span id="__span-1-195"><a id="__codelineno-1-195" name="__codelineno-1-195"></a>│   │   └── session-management.md
+</span><span id="__span-1-196"><a id="__codelineno-1-196" name="__codelineno-1-196"></a>│   ├── authorization/
+</span><span id="__span-1-197"><a id="__codelineno-1-197" name="__codelineno-1-197"></a>│   │   ├── role-based-access.md
+</span><span id="__span-1-198"><a id="__codelineno-1-198" name="__codelineno-1-198"></a>│   │   ├── permissions.md
+</span><span id="__span-1-199"><a id="__codelineno-1-199" name="__codelineno-1-199"></a>│   │   └── access-control.md
+</span><span id="__span-1-200"><a id="__codelineno-1-200" name="__codelineno-1-200"></a>│   ├── data-protection/
+</span><span id="__span-1-201"><a id="__codelineno-1-201" name="__codelineno-1-201"></a>│   │   ├── data-encryption.md
+</span><span id="__span-1-202"><a id="__codelineno-1-202" name="__codelineno-1-202"></a>│   │   ├── privacy-compliance.md
+</span><span id="__span-1-203"><a id="__codelineno-1-203" name="__codelineno-1-203"></a>│   │   └── data-retention.md
+</span><span id="__span-1-204"><a id="__codelineno-1-204" name="__codelineno-1-204"></a>│   ├── network-security/
+</span><span id="__span-1-205"><a id="__codelineno-1-205" name="__codelineno-1-205"></a>│   │   ├── ssl-tls.md
+</span><span id="__span-1-206"><a id="__codelineno-1-206" name="__codelineno-1-206"></a>│   │   ├── firewall-configuration.md
+</span><span id="__span-1-207"><a id="__codelineno-1-207" name="__codelineno-1-207"></a>│   │   └── vpn-access.md
+</span><span id="__span-1-208"><a id="__codelineno-1-208" name="__codelineno-1-208"></a>│   └── compliance/
+</span><span id="__span-1-209"><a id="__codelineno-1-209" name="__codelineno-1-209"></a>│       ├── gdpr.md
+</span><span id="__span-1-210"><a id="__codelineno-1-210" name="__codelineno-1-210"></a>│       ├── security-audit.md
+</span><span id="__span-1-211"><a id="__codelineno-1-211" name="__codelineno-1-211"></a>│       └── vulnerability-management.md
+</span><span id="__span-1-212"><a id="__codelineno-1-212" name="__codelineno-1-212"></a>├── tutorials/                        # 📖 Step-by-Step Tutorials
+</span><span id="__span-1-213"><a id="__codelineno-1-213" name="__codelineno-1-213"></a>│   ├── index.md                     # Tutorials overview
+</span><span id="__span-1-214"><a id="__codelineno-1-214" name="__codelineno-1-214"></a>│   ├── beginner/
+</span><span id="__span-1-215"><a id="__codelineno-1-215" name="__codelineno-1-215"></a>│   │   ├── first-media-import.md
+</span><span id="__span-1-216"><a id="__codelineno-1-216" name="__codelineno-1-216"></a>│   │   ├── setting-up-plex.md
+</span><span id="__span-1-217"><a id="__codelineno-1-217" name="__codelineno-1-217"></a>│   │   └── basic-organization.md
+</span><span id="__span-1-218"><a id="__codelineno-1-218" name="__codelineno-1-218"></a>│   ├── intermediate/
+</span><span id="__span-1-219"><a id="__codelineno-1-219" name="__codelineno-1-219"></a>│   │   ├── advanced-metadata.md
+</span><span id="__span-1-220"><a id="__codelineno-1-220" name="__codelineno-1-220"></a>│   │   ├── custom-scripts.md
+</span><span id="__span-1-221"><a id="__codelineno-1-221" name="__codelineno-1-221"></a>│   │   └── api-integration.md
+</span><span id="__span-1-222"><a id="__codelineno-1-222" name="__codelineno-1-222"></a>│   ├── advanced/
+</span><span id="__span-1-223"><a id="__codelineno-1-223" name="__codelineno-1-223"></a>│   │   ├── custom-plugins.md
+</span><span id="__span-1-224"><a id="__codelineno-1-224" name="__codelineno-1-224"></a>│   │   ├── performance-optimization.md
+</span><span id="__span-1-225"><a id="__codelineno-1-225" name="__codelineno-1-225"></a>│   │   └── enterprise-deployment.md
+</span><span id="__span-1-226"><a id="__codelineno-1-226" name="__codelineno-1-226"></a>│   └── use-cases/
+</span><span id="__span-1-227"><a id="__codelineno-1-227" name="__codelineno-1-227"></a>│       ├── home-media-server.md
+</span><span id="__span-1-228"><a id="__codelineno-1-228" name="__codelineno-1-228"></a>│       ├── professional-archive.md
+</span><span id="__span-1-229"><a id="__codelineno-1-229" name="__codelineno-1-229"></a>│       └── content-distribution.md
+</span><span id="__span-1-230"><a id="__codelineno-1-230" name="__codelineno-1-230"></a>├── reference/                        # 📚 Reference Documentation
+</span><span id="__span-1-231"><a id="__codelineno-1-231" name="__codelineno-1-231"></a>│   ├── index.md                     # Reference overview
+</span><span id="__span-1-232"><a id="__codelineno-1-232" name="__codelineno-1-232"></a>│   ├── configuration/
+</span><span id="__span-1-233"><a id="__codelineno-1-233" name="__codelineno-1-233"></a>│   │   ├── configuration-reference.md
+</span><span id="__span-1-234"><a id="__codelineno-1-234" name="__codelineno-1-234"></a>│   │   ├── environment-variables.md
+</span><span id="__span-1-235"><a id="__codelineno-1-235" name="__codelineno-1-235"></a>│   │   ├── file-formats.md
+</span><span id="__span-1-236"><a id="__codelineno-1-236" name="__codelineno-1-236"></a>│   │   └── default-settings.md
+</span><span id="__span-1-237"><a id="__codelineno-1-237" name="__codelineno-1-237"></a>│   ├── api-reference/
+</span><span id="__span-1-238"><a id="__codelineno-1-238" name="__codelineno-1-238"></a>│   │   ├── rest-api.md
+</span><span id="__span-1-239"><a id="__codelineno-1-239" name="__codelineno-1-239"></a>│   │   ├── websocket-api.md
+</span><span id="__span-1-240"><a id="__codelineno-1-240" name="__codelineno-1-240"></a>│   │   ├── webhook-api.md
+</span><span id="__span-1-241"><a id="__codelineno-1-241" name="__codelineno-1-241"></a>│   │   └── graphql-api.md
+</span><span id="__span-1-242"><a id="__codelineno-1-242" name="__codelineno-1-242"></a>│   ├── database/
+</span><span id="__span-1-243"><a id="__codelineno-1-243" name="__codelineno-1-243"></a>│   │   ├── schema-reference.md
+</span><span id="__span-1-244"><a id="__codelineno-1-244" name="__codelineno-1-244"></a>│   │   ├── migration-scripts.md
+</span><span id="__span-1-245"><a id="__codelineno-1-245" name="__codelineno-1-245"></a>│   │   └── backup-formats.md
+</span><span id="__span-1-246"><a id="__codelineno-1-246" name="__codelineno-1-246"></a>│   ├── cli/
+</span><span id="__span-1-247"><a id="__codelineno-1-247" name="__codelineno-1-247"></a>│   │   ├── command-reference.md
+</span><span id="__span-1-248"><a id="__codelineno-1-248" name="__codelineno-1-248"></a>│   │   ├── scripts.md
+</span><span id="__span-1-249"><a id="__codelineno-1-249" name="__codelineno-1-249"></a>│   │   └── utilities.md
+</span><span id="__span-1-250"><a id="__codelineno-1-250" name="__codelineno-1-250"></a>│   └── glossary/
+</span><span id="__span-1-251"><a id="__codelineno-1-251" name="__codelineno-1-251"></a>│       ├── terms.md
+</span><span id="__span-1-252"><a id="__codelineno-1-252" name="__codelineno-1-252"></a>│       ├── acronyms.md
+</span><span id="__span-1-253"><a id="__codelineno-1-253" name="__codelineno-1-253"></a>│       └── concepts.md
+</span><span id="__span-1-254"><a id="__codelineno-1-254" name="__codelineno-1-254"></a>├── community/                        # 🤝 Community Resources
+</span><span id="__span-1-255"><a id="__codelineno-1-255" name="__codelineno-1-255"></a>│   ├── index.md                     # Community overview
+</span><span id="__span-1-256"><a id="__codelineno-1-256" name="__codelineno-1-256"></a>│   ├── contributing/
+</span><span id="__span-1-257"><a id="__codelineno-1-257" name="__codelineno-1-257"></a>│   │   ├── how-to-contribute.md
+</span><span id="__span-1-258"><a id="__codelineno-1-258" name="__codelineno-1-258"></a>│   │   ├── code-of-conduct.md
+</span><span id="__span-1-259"><a id="__codelineno-1-259" name="__codelineno-1-259"></a>│   │   └── governance.md
+</span><span id="__span-1-260"><a id="__codelineno-1-260" name="__codelineno-1-260"></a>│   ├── support/
+</span><span id="__span-1-261"><a id="__codelineno-1-261" name="__codelineno-1-261"></a>│   │   ├── getting-help.md
+</span><span id="__span-1-262"><a id="__codelineno-1-262" name="__codelineno-1-262"></a>│   │   ├── bug-reports.md
+</span><span id="__span-1-263"><a id="__codelineno-1-263" name="__codelineno-1-263"></a>│   │   ├── feature-requests.md
+</span><span id="__span-1-264"><a id="__codelineno-1-264" name="__codelineno-1-264"></a>│   │   └── discussions.md
+</span><span id="__span-1-265"><a id="__codelineno-1-265" name="__codelineno-1-265"></a>│   ├── resources/
+</span><span id="__span-1-266"><a id="__codelineno-1-266" name="__codelineno-1-266"></a>│   │   ├── external-tools.md
+</span><span id="__span-1-267"><a id="__codelineno-1-267" name="__codelineno-1-267"></a>│   │   ├── third-party-plugins.md
+</span><span id="__span-1-268"><a id="__codelineno-1-268" name="__codelineno-1-268"></a>│   │   └── community-guides.md
+</span><span id="__span-1-269"><a id="__codelineno-1-269" name="__codelineno-1-269"></a>│   └── events/
+</span><span id="__span-1-270"><a id="__codelineno-1-270" name="__codelineno-1-270"></a>│       ├── webinars.md
+</span><span id="__span-1-271"><a id="__codelineno-1-271" name="__codelineno-1-271"></a>│       ├── conferences.md
+</span><span id="__span-1-272"><a id="__codelineno-1-272" name="__codelineno-1-272"></a>│       └── meetups.md
+</span><span id="__span-1-273"><a id="__codelineno-1-273" name="__codelineno-1-273"></a>└── changelog/                        # 📋 Version History
+</span><span id="__span-1-274"><a id="__codelineno-1-274" name="__codelineno-1-274"></a>    ├── index.md                     # Changelog overview
+</span><span id="__span-1-275"><a id="__codelineno-1-275" name="__codelineno-1-275"></a>    ├── v2.0.0.md                    # Major release
+</span><span id="__span-1-276"><a id="__codelineno-1-276" name="__codelineno-1-276"></a>    ├── v1.9.x.md                    # Minor releases
+</span><span id="__span-1-277"><a id="__codelineno-1-277" name="__codelineno-1-277"></a>    └── migration-guides/
+</span><span id="__span-1-278"><a id="__codelineno-1-278" name="__codelineno-1-278"></a>        ├── v1-to-v2.md
+</span><span id="__span-1-279"><a id="__codelineno-1-279" name="__codelineno-1-279"></a>        └── breaking-changes.md
+</span></code></pre></div></td></tr></table></div><h2 id="navigation-hierarchy-design">🧭 Navigation Hierarchy Design<a class="headerlink" href="#navigation-hierarchy-design" title="Permanent link">&para;</a></h2><h3 id="primary-navigation-top-level">Primary Navigation (Top Level)<a class="headerlink" href="#primary-navigation-top-level" title="Permanent link">&para;</a></h3><div class="language-yaml highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">YAML</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-2-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-2-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-2-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-2-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-2-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-2-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-2-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-2-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-2-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-2-10">10</a></span>
+<span class="normal"><a href="#__codelineno-2-11">11</a></span>
+<span class="normal"><a href="#__codelineno-2-12">12</a></span>
+<span class="normal"><a href="#__codelineno-2-13">13</a></span>
+<span class="normal"><a href="#__codelineno-2-14">14</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1"></a><span class="nt">nav</span><span class="p">:</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">Home</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">index.md</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">Getting Started</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">getting-started/index.md</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">User Guide</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">user-guide/index.md</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">Installation</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">installation/index.md</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">API Reference</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">api/index.md</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">Development</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">development/index.md</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">Deployment</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">deployment/index.md</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">Operations</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">operations/index.md</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">Security</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">security/index.md</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">Tutorials</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tutorials/index.md</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">Reference</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">reference/index.md</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">Community</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">community/index.md</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">Changelog</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">changelog/index.md</span>
+</span></code></pre></div></td></tr></table></div><h3 id="information-architecture-principles">Information Architecture Principles<a class="headerlink" href="#information-architecture-principles" title="Permanent link">&para;</a></h3><p><strong>🎯 User-Centered Design:</strong> - <strong>Task-oriented organization</strong>: Content organized by user goals - <strong>Progressive disclosure</strong>: Information revealed by complexity level - <strong>Multiple access paths</strong>: Same content accessible through different routes - <strong>Contextual wayfinding</strong>: Clear location indicators and next steps</p><p><strong>📊 Content Strategy:</strong> - <strong>Semantic organization</strong>: Logical grouping by topic and purpose - <strong>Consistent taxonomy</strong>: Standardized terminology and categories - <strong>Modular content</strong>: Reusable components and snippets - <strong>Cross-linking</strong>: Rich interconnections between related topics</p><p><strong>🔍 Findability Optimization:</strong> - <strong>Faceted search</strong>: Multiple filter dimensions - <strong>Tag system</strong>: Topic-based content tagging - <strong>Search optimization</strong>: Enhanced search with suggestions - <strong>Browse paths</strong>: Alternative discovery methods</p><h2 id="material-design-implementation">🎨 Material Design Implementation<a class="headerlink" href="#material-design-implementation" title="Permanent link">&para;</a></h2><h3 id="theme-configuration-enhancements">Theme Configuration Enhancements<a class="headerlink" href="#theme-configuration-enhancements" title="Permanent link">&para;</a></h3><p><strong>Enhanced Features:</strong><div class="language-yaml highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">YAML</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-3-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-3-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-3-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-3-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-3-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-3-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-3-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-3-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-3-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-3-10">10</a></span>
+<span class="normal"><a href="#__codelineno-3-11">11</a></span>
+<span class="normal"><a href="#__codelineno-3-12">12</a></span>
+<span class="normal"><a href="#__codelineno-3-13">13</a></span>
+<span class="normal"><a href="#__codelineno-3-14">14</a></span>
+<span class="normal"><a href="#__codelineno-3-15">15</a></span>
+<span class="normal"><a href="#__codelineno-3-16">16</a></span>
+<span class="normal"><a href="#__codelineno-3-17">17</a></span>
+<span class="normal"><a href="#__codelineno-3-18">18</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1"></a><span class="nt">theme</span><span class="p">:</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2"></a><span class="w">  </span><span class="nt">features</span><span class="p">:</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3"></a><span class="w">    </span><span class="c1"># Navigation</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">navigation.instant.prefetch</span><span class="w">    </span><span class="c1"># Prefetch links</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">navigation.indexes</span><span class="w">            </span><span class="c1"># Section index pages</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">navigation.path</span><span class="w">              </span><span class="c1"># Breadcrumb navigation</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">navigation.prune</span><span class="w">             </span><span class="c1"># Hide irrelevant sections</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8"></a>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9"></a><span class="w">    </span><span class="c1"># Content</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">content.action.edit</span><span class="w">          </span><span class="c1"># Edit this page</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">content.action.view</span><span class="w">          </span><span class="c1"># View source</span>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">content.code.annotate</span><span class="w">        </span><span class="c1"># Code annotations</span>
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">content.tooltips</span><span class="w">             </span><span class="c1"># Enhanced tooltips</span>
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14"></a>
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15"></a><span class="w">    </span><span class="c1"># Search</span>
+</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">search.highlight</span><span class="w">             </span><span class="c1"># Highlight search terms</span>
+</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">search.share</span><span class="w">                 </span><span class="c1"># Share search results</span>
+</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">search.suggest</span><span class="w">               </span><span class="c1"># Search suggestions</span>
+</span></code></pre></div></td></tr></table></div></p><h3 id="advanced-plugin-configuration">Advanced Plugin Configuration<a class="headerlink" href="#advanced-plugin-configuration" title="Permanent link">&para;</a></h3><p><strong>Essential Plugins:</strong><div class="language-yaml highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">YAML</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-4-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-4-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-4-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-4-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-4-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-4-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-4-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-4-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-4-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-4-10">10</a></span>
+<span class="normal"><a href="#__codelineno-4-11">11</a></span>
+<span class="normal"><a href="#__codelineno-4-12">12</a></span>
+<span class="normal"><a href="#__codelineno-4-13">13</a></span>
+<span class="normal"><a href="#__codelineno-4-14">14</a></span>
+<span class="normal"><a href="#__codelineno-4-15">15</a></span>
+<span class="normal"><a href="#__codelineno-4-16">16</a></span>
+<span class="normal"><a href="#__codelineno-4-17">17</a></span>
+<span class="normal"><a href="#__codelineno-4-18">18</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1"></a><span class="nt">plugins</span><span class="p">:</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">search</span><span class="p">:</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3"></a><span class="w">      </span><span class="nt">separator</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;[\s\-,:!=\[\]()&quot;`/]+|\.(?!\d)|&amp;[lg]t;|(?!\b)(?=[A-Z][a-z])&#39;</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4"></a><span class="w">      </span><span class="nt">lang</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">en</span><span class="p p-Indicator">]</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5"></a>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">tags</span><span class="p">:</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7"></a><span class="w">      </span><span class="nt">tags_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">reference/tags.md</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8"></a>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">git-revision-date-localized</span><span class="p">:</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10"></a><span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">timeago</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11"></a><span class="w">      </span><span class="nt">enable_creation_date</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12"></a>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">minify</span><span class="p">:</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14"></a><span class="w">      </span><span class="nt">minify_html</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15"></a>
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">redirects</span><span class="p">:</span>
+</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17"></a><span class="w">      </span><span class="nt">redirect_maps</span><span class="p">:</span>
+</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18"></a><span class="w">        </span><span class="s">&#39;old-path.md&#39;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&#39;new-path.md&#39;</span>
+</span></code></pre></div></td></tr></table></div></p><h2 id="user-journey-mapping">📈 User Journey Mapping<a class="headerlink" href="#user-journey-mapping" title="Permanent link">&para;</a></h2><h3 id="primary-user-journeys">Primary User Journeys<a class="headerlink" href="#primary-user-journeys" title="Permanent link">&para;</a></h3><p><strong>🎯 New User Journey:</strong><pre class="mermaid"><code>graph TD
+    A[Landing Page] --&gt; B[Getting Started]
+    B --&gt; C[Installation]
+    C --&gt; D[Quick Start]
+    D --&gt; E[First Steps]
+    E --&gt; F[User Guide]
+
+    F --&gt; G{User Type}
+    G --&gt;|End User| H[User Guide]
+    G --&gt;|Developer| I[Development]
+    G --&gt;|Admin| J[Operations]</code></pre></p><p><strong>👨‍💻 Developer Journey:</strong><pre class="mermaid"><code>graph TD
+    A[API Reference] --&gt; B[Authentication]
+    B --&gt; C[Endpoints]
+    C --&gt; D[SDK Examples]
+    D --&gt; E[Development Setup]
+    E --&gt; F[Contributing]</code></pre></p><p><strong>🔧 Administrator Journey:</strong><pre class="mermaid"><code>graph TD
+    A[Installation] --&gt; B[Configuration]
+    B --&gt; C[Deployment]
+    C --&gt; D[Operations]
+    D --&gt; E[Monitoring]
+    E --&gt; F[Troubleshooting]</code></pre></p><h2 id="taxonomy-metadata-strategy">🏷️ Taxonomy &amp; Metadata Strategy<a class="headerlink" href="#taxonomy-metadata-strategy" title="Permanent link">&para;</a></h2><h3 id="content-tagging-system">Content Tagging System<a class="headerlink" href="#content-tagging-system" title="Permanent link">&para;</a></h3><p><strong>Primary Tags:</strong> - <code>setup</code>, <code>configuration</code>, <code>api</code>, <code>security</code>, <code>performance</code> - <code>beginner</code>, <code>intermediate</code>, <code>advanced</code> - <code>docker</code>, <code>kubernetes</code>, <code>plex</code>, <code>media</code> - <code>troubleshooting</code>, <code>monitoring</code>, <code>deployment</code></p><p><strong>Content Types:</strong> - <code>guide</code>, <code>reference</code>, <code>tutorial</code>, <code>runbook</code> - <code>api-doc</code>, <code>example</code>, <code>changelog</code></p><p><strong>Audience Tags:</strong> - <code>end-user</code>, <code>developer</code>, <code>administrator</code>, <code>contributor</code></p><h3 id="structured-metadata">Structured Metadata<a class="headerlink" href="#structured-metadata" title="Permanent link">&para;</a></h3><p><strong>YAML Frontmatter Template:</strong><div class="language-yaml highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">YAML</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-5-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-5-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-5-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-5-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-5-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-5-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-5-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-5-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-5-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-5-10">10</a></span>
+<span class="normal"><a href="#__codelineno-5-11">11</a></span>
+<span class="normal"><a href="#__codelineno-5-12">12</a></span>
+<span class="normal"><a href="#__codelineno-5-13">13</a></span>
+<span class="normal"><a href="#__codelineno-5-14">14</a></span>
+<span class="normal"><a href="#__codelineno-5-15">15</a></span>
+<span class="normal"><a href="#__codelineno-5-16">16</a></span>
+<span class="normal"><a href="#__codelineno-5-17">17</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1"></a><span class="nn">---</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2"></a><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Page</span><span class="nv"> </span><span class="s">Title&quot;</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3"></a><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Page</span><span class="nv"> </span><span class="s">description</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">SEO&quot;</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4"></a><span class="nt">tags</span><span class="p">:</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tag1</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tag2</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7"></a><span class="nt">audience</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;end-user&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;developer&quot;</span><span class="p p-Indicator">]</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8"></a><span class="nt">difficulty</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;beginner&quot;</span><span class="w"> </span><span class="p p-Indicator">|</span><span class="err"> &quot;intermediate&quot; | &quot;advanced&quot;</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9"></a><span class="nt">estimated_time</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;5</span><span class="nv"> </span><span class="s">minutes&quot;</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10"></a><span class="nt">prerequisites</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;requirement1&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;requirement2&quot;</span><span class="p p-Indicator">]</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11"></a><span class="nt">related_pages</span><span class="p">:</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">path/to/related.md</span>
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">path/to/another.md</span>
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14"></a><span class="nt">last_updated</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;2024-01-15&quot;</span>
+</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15"></a><span class="nt">version_added</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;2.0.0&quot;</span>
+</span><span id="__span-5-16"><a id="__codelineno-5-16" name="__codelineno-5-16"></a><span class="nt">status</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;stable&quot;</span><span class="w"> </span><span class="p p-Indicator">|</span><span class="err"> &quot;beta&quot; | &quot;deprecated&quot;</span>
+</span><span id="__span-5-17"><a id="__codelineno-5-17" name="__codelineno-5-17"></a><span class="nn">---</span>
+</span></code></pre></div></td></tr></table></div></p><h2 id="cross-reference-strategy">🔗 Cross-Reference Strategy<a class="headerlink" href="#cross-reference-strategy" title="Permanent link">&para;</a></h2><h3 id="link-architecture">Link Architecture<a class="headerlink" href="#link-architecture" title="Permanent link">&para;</a></h3><p><strong>Internal Linking:</strong> - Bidirectional references between related content - Contextual "See Also" sections - Automatic backlink generation - Related content suggestions</p><p><strong>External Integration:</strong> - GitHub repository links - API documentation integration - Community resource connections - Third-party tool references</p><h2 id="responsive-design-considerations">📱 Responsive Design Considerations<a class="headerlink" href="#responsive-design-considerations" title="Permanent link">&para;</a></h2><h3 id="mobile-first-information-architecture">Mobile-First Information Architecture<a class="headerlink" href="#mobile-first-information-architecture" title="Permanent link">&para;</a></h3><p><strong>Navigation Adaptations:</strong> - Collapsible navigation for mobile - Touch-optimized interaction targets - Simplified mobile menus - Progressive disclosure for complex content</p><p><strong>Content Optimization:</strong> - Shorter content blocks for mobile reading - Scannable headings and bullet points - Optimized images and diagrams - Touch-friendly interface elements</p><h2 id="search-strategy">🔍 Search Strategy<a class="headerlink" href="#search-strategy" title="Permanent link">&para;</a></h2><h3 id="enhanced-search-configuration">Enhanced Search Configuration<a class="headerlink" href="#enhanced-search-configuration" title="Permanent link">&para;</a></h3><p><strong>Search Optimization:</strong><div class="language-yaml highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">YAML</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-6-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-6-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-6-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-6-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-6-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-6-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-6-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-6-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-6-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-6-10">10</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1"></a><span class="nt">plugins</span><span class="p">:</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">search</span><span class="p">:</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3"></a><span class="w">      </span><span class="nt">separator</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;[\s\-,:!=\[\]()&quot;`/]+|\.(?!\d)|&amp;[lg]t;|(?!\b)(?=[A-Z][a-z])&#39;</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4"></a><span class="w">      </span><span class="nt">lang</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">en</span><span class="p p-Indicator">]</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5"></a><span class="w">      </span><span class="nt">indexing</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;full&#39;</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6"></a>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7"></a><span class="nt">extra</span><span class="p">:</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8"></a><span class="w">  </span><span class="nt">search</span><span class="p">:</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9"></a><span class="w">    </span><span class="nt">tokenizer</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;[\s\-,:!=\[\]()&quot;`/]+|\.(?!\d)|&amp;[lg]t;|(?!\b)(?=[A-Z][a-z])&#39;</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10"></a><span class="w">    </span><span class="nt">separator</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;[\s\-]+|(?=[A-Z][a-z])&#39;</span>
+</span></code></pre></div></td></tr></table></div></p><p><strong>Search Features:</strong> - Auto-complete suggestions - Fuzzy search tolerance - Search result highlighting - Category-based filtering - Recent searches memory</p><h2 id="analytics-optimization">📊 Analytics &amp; Optimization<a class="headerlink" href="#analytics-optimization" title="Permanent link">&para;</a></h2><h3 id="content-performance-metrics">Content Performance Metrics<a class="headerlink" href="#content-performance-metrics" title="Permanent link">&para;</a></h3><p><strong>Tracking Implementation:</strong> - Page view analytics - Search query analysis - User journey tracking - Content engagement metrics - Feedback collection</p><p><strong>Optimization Strategies:</strong> - A/B testing for navigation - Content gap analysis - User behavior analysis - Search result optimization</p><h2 id="migration-strategy">🔄 Migration Strategy<a class="headerlink" href="#migration-strategy" title="Permanent link">&para;</a></h2><h3 id="content-migration-plan">Content Migration Plan<a class="headerlink" href="#content-migration-plan" title="Permanent link">&para;</a></h3><p><strong>Phase 1: Foundation (Week 1-2)</strong> - Set up new directory structure - Migrate core getting-started content - Implement basic navigation - Update mkdocs.yml configuration</p><p><strong>Phase 2: Core Content (Week 3-4)</strong> - Migrate user guide content - Restructure API documentation - Organize development docs - Implement cross-references</p><p><strong>Phase 3: Advanced Features (Week 5-6)</strong> - Add advanced plugins - Implement search optimization - Create content templates - Add community sections</p><p><strong>Phase 4: Polish &amp; Launch (Week 7-8)</strong> - Final content review - Link validation - Performance optimization - User acceptance testing</p><h3 id="migration-mapping">Migration Mapping<a class="headerlink" href="#migration-mapping" title="Permanent link">&para;</a></h3><p><strong>Content Relocation Map:</strong><div class="language-yaml highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">YAML</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-7-1">1</a></span>
+<span class="normal"><a href="#__codelineno-7-2">2</a></span>
+<span class="normal"><a href="#__codelineno-7-3">3</a></span>
+<span class="normal"><a href="#__codelineno-7-4">4</a></span>
+<span class="normal"><a href="#__codelineno-7-5">5</a></span>
+<span class="normal"><a href="#__codelineno-7-6">6</a></span>
+<span class="normal"><a href="#__codelineno-7-7">7</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1"></a><span class="nt">Old Location → New Location</span><span class="p">:</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2"></a><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">docs/DEVELOPMENT.md → development/index.md</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3"></a><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">docs/getting-started/quickstart.md → getting-started/quick-start.md</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4"></a><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">docs/api/overview.md → api/index.md</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5"></a><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">docs/operations/staging-deployment.md → deployment/staging/staging-environment.md</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6"></a><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">docs/security/DATABASE_SECURITY.md → security/data-protection/data-encryption.md</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7"></a><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain"># ... (complete mapping)</span>
+</span></code></pre></div></td></tr></table></div></p><h2 id="success-metrics">🎯 Success Metrics<a class="headerlink" href="#success-metrics" title="Permanent link">&para;</a></h2><h3 id="key-performance-indicators">Key Performance Indicators<a class="headerlink" href="#key-performance-indicators" title="Permanent link">&para;</a></h3><p><strong>User Experience Metrics:</strong> - Time to find information &lt; 30 seconds - Task completion rate &gt; 90% - User satisfaction score &gt; 4.5/5 - Bounce rate &lt; 20%</p><p><strong>Content Metrics:</strong> - Search success rate &gt; 85% - Content coverage completeness &gt; 95% - Cross-reference accuracy 100% - Mobile usability score &gt; 90</p><p><strong>Technical Metrics:</strong> - Page load time &lt; 2 seconds - Search response time &lt; 500ms - Accessibility score &gt; 95 - SEO score &gt; 90</p><h2 id="implementation-tools">🛠️ Implementation Tools<a class="headerlink" href="#implementation-tools" title="Permanent link">&para;</a></h2><h3 id="development-tools">Development Tools<a class="headerlink" href="#development-tools" title="Permanent link">&para;</a></h3><ul><li><strong>MkDocs Material</strong>: Documentation platform</li><li><strong>Mermaid</strong>: Diagram generation</li><li><strong>PlantUML</strong>: Architecture diagrams</li><li><strong>Swagger UI</strong>: API documentation</li><li><strong>Git</strong>: Version control</li></ul><h3 id="content-management">Content Management<a class="headerlink" href="#content-management" title="Permanent link">&para;</a></h3><ul><li><strong>YAML</strong>: Structured metadata</li><li><strong>Markdown</strong>: Content authoring</li><li><strong>Template system</strong>: Consistent formatting</li><li><strong>Link checker</strong>: Link validation</li><li><strong>Content linter</strong>: Quality assurance</li></ul><h3 id="analytics-tools">Analytics Tools<a class="headerlink" href="#analytics-tools" title="Permanent link">&para;</a></h3><ul><li><strong>Google Analytics</strong>: User behavior</li><li><strong>Hotjar</strong>: Heatmaps and recordings</li><li><strong>Search console</strong>: Search optimization</li><li><strong>Lighthouse</strong>: Performance monitoring</li></ul><h2 id="next-steps">🚀 Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2><h3 id="immediate-actions-week-1">Immediate Actions (Week 1)<a class="headerlink" href="#immediate-actions-week-1" title="Permanent link">&para;</a></h3><ol><li><strong>Backup current documentation</strong></li><li><strong>Create new directory structure</strong></li><li><strong>Update mkdocs.yml with new navigation</strong></li><li><strong>Begin content migration with highest-priority sections</strong></li></ol><h3 id="short-term-goals-month-1">Short-term Goals (Month 1)<a class="headerlink" href="#short-term-goals-month-1" title="Permanent link">&para;</a></h3><ol><li><strong>Complete content migration</strong></li><li><strong>Implement enhanced search</strong></li><li><strong>Add advanced navigation features</strong></li><li><strong>Launch beta version for testing</strong></li></ol><h3 id="long-term-vision-quarter-1">Long-term Vision (Quarter 1)<a class="headerlink" href="#long-term-vision-quarter-1" title="Permanent link">&para;</a></h3><ol><li><strong>Full feature implementation</strong></li><li><strong>Community contribution system</strong></li><li><strong>Advanced analytics implementation</strong></li><li><strong>Continuous optimization based on metrics</strong></li></ol><hr><p><strong>This architecture provides a scalable, user-focused foundation for MediaNest documentation that will grow with the project and serve all user types effectively.</strong></p><aside class="md-source-file"><span class="md-source-file__fact"><span class="md-icon" title="Last update"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="September 13, 2025 01:14:38 UTC"><span class="timeago" datetime="2025-09-13T01:14:38+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="September 13, 2025 01:14:38 UTC">2025-09-13</span></span><span class="md-source-file__fact"><span class="md-icon" title="Created"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="September 13, 2025 01:14:38 UTC"><span class="timeago" datetime="2025-09-13T01:14:38+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="September 13, 2025 01:14:38 UTC">2025-09-13</span></span></aside><form class="md-feedback" name="feedback" hidden><fieldset><legend class="md-feedback__title"> Was this page helpful? </legend><div class="md-feedback__inner"><div class="md-feedback__list"><button class="md-feedback__icon md-icon" type="submit" title="This page was helpful" data-md-value="1"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m7 0c0 .8-.7 1.5-1.5 1.5S14 10.3 14 9.5 14.7 8 15.5 8s1.5.7 1.5 1.5m-5 7.73c-1.75 0-3.29-.73-4.19-1.81L9.23 14c.45.72 1.52 1.23 2.77 1.23s2.32-.51 2.77-1.23l1.42 1.42c-.9 1.08-2.44 1.81-4.19 1.81"/></svg></button><button class="md-feedback__icon md-icon" type="submit" title="This page could be improved" data-md-value="0"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10m-6.5-4c.8 0 1.5.7 1.5 1.5s-.7 1.5-1.5 1.5-1.5-.7-1.5-1.5.7-1.5 1.5-1.5M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m2 4.5c1.75 0 3.29.72 4.19 1.81l-1.42 1.42C14.32 16.5 13.25 16 12 16s-2.32.5-2.77 1.23l-1.42-1.42C8.71 14.72 10.25 14 12 14"/></svg></button></div><div class="md-feedback__note"><div data-md-value="1" hidden> Thanks for your feedback! Consider starring us on <a href="https://github.com/kinginyellow/medianest" target="_blank" rel="noopener">GitHub</a> and sharing with the community. </div><div data-md-value="0" hidden> Thanks for your feedback! Help us improve by <a href="https://github.com/kinginyellow/medianest/issues/new/?title=[Docs]+MediaNest%20Documentation%20Architecture%20Plan+-+/DOCUMENTATION_ARCHITECTURE/" target="_blank" rel="noopener">creating an issue</a> or <a href="https://github.com/kinginyellow/medianest/edit/develop/docs/{path}" target="_blank" rel="noopener">editing this page</a>. </div></div></div></fieldset></form></article></div><script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script><script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script></div><button type="button" class="md-top md-icon" data-md-component="top" hidden><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg> Back to top </button></main><footer class="md-footer"><div class="md-footer-meta md-typeset"><div class="md-footer-meta__inner md-grid"><div class="md-copyright"><div class="md-copyright__highlight"> Copyright &copy; 2024 MediaNest Development Team - <a href="#__consent">Manage Cookies</a> | <a href="/privacy">Privacy Policy</a> | <a href="/terms">Terms of Service</a></div></div><div class="md-social"><a href="https://github.com/kinginyellow/medianest" target="_blank" rel="noopener" title="GitHub Repository" class="md-social__link"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 512 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg></a><a href="https://hub.docker.com/r/medianest/medianest" target="_blank" rel="noopener" title="Docker Hub" class="md-social__link"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 640 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M349.9 236.3h-66.1v-59.4h66.1zm0-204.3h-66.1v60.7h66.1zm78.2 144.8H362v59.4h66.1zm-156.3-72.1h-66.1v60.1h66.1zm78.1 0h-66.1v60.1h66.1zm276.8 100c-14.4-9.7-47.6-13.2-73.1-8.4-3.3-24-16.7-44.9-41.1-63.7l-14-9.3-9.3 14c-18.4 27.8-23.4 73.6-3.7 103.8-8.7 4.7-25.8 11.1-48.4 10.7H2.4c-8.7 50.8 5.8 116.8 44 162.1 37.1 43.9 92.7 66.2 165.4 66.2 157.4 0 273.9-72.5 328.4-204.2 21.4.4 67.6.1 91.3-45.2 1.5-2.5 6.6-13.2 8.5-17.1zm-511.1-27.9h-66v59.4h66.1v-59.4zm78.1 0h-66.1v59.4h66.1zm78.1 0h-66.1v59.4h66.1zm-78.1-72.1h-66.1v60.1h66.1z"/></svg></a><a href="https://discord.gg/medianest" target="_blank" rel="noopener" title="Discord Community" class="md-social__link"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 576 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M492.5 69.8c-.2-.3-.4-.6-.8-.7-38.1-17.5-78.4-30-119.7-37.1-.4-.1-.8 0-1.1.1s-.6.4-.8.8c-5.5 9.9-10.5 20.2-14.9 30.6-44.6-6.8-89.9-6.8-134.4 0-4.5-10.5-9.5-20.7-15.1-30.6-.2-.3-.5-.6-.8-.8s-.7-.2-1.1-.2C162.5 39 122.2 51.5 84.1 69c-.3.1-.6.4-.8.7C7.1 183.5-13.8 294.6-3.6 404.2c0 .3.1.5.2.8s.3.4.5.6c44.4 32.9 94 58 146.8 74.2.4.1.8.1 1.1 0s.7-.4.9-.7c11.3-15.4 21.4-31.8 30-48.8.1-.2.2-.5.2-.8s0-.5-.1-.8-.2-.5-.4-.6-.4-.3-.7-.4c-15.8-6.1-31.2-13.4-45.9-21.9-.3-.2-.5-.4-.7-.6s-.3-.6-.3-.9 0-.6.2-.9.3-.5.6-.7c3.1-2.3 6.2-4.7 9.1-7.1.3-.2.6-.4.9-.4s.7 0 1 .1c96.2 43.9 200.4 43.9 295.5 0 .3-.1.7-.2 1-.2s.7.2.9.4c2.9 2.4 6 4.9 9.1 7.2.2.2.4.4.6.7s.2.6.2.9-.1.6-.3.9-.4.5-.6.6c-14.7 8.6-30 15.9-45.9 21.8-.2.1-.5.2-.7.4s-.3.4-.4.7-.1.5-.1.8.1.5.2.8c8.8 17 18.8 33.3 30 48.8.2.3.6.6.9.7s.8.1 1.1 0c52.9-16.2 102.6-41.3 147.1-74.2.2-.2.4-.4.5-.6s.2-.5.2-.8c12.3-126.8-20.5-236.9-86.9-334.5zm-302 267.7c-29 0-52.8-26.6-52.8-59.2s23.4-59.2 52.8-59.2c29.7 0 53.3 26.8 52.8 59.2 0 32.7-23.4 59.2-52.8 59.2m195.4 0c-29 0-52.8-26.6-52.8-59.2s23.4-59.2 52.8-59.2c29.7 0 53.3 26.8 52.8 59.2 0 32.7-23.2 59.2-52.8 59.2"/></svg></a><a href="https://twitter.com/medianest" target="_blank" rel="noopener" title="Twitter Updates" class="md-social__link"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 512 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M459.4 151.7c.3 4.5.3 9.1.3 13.6 0 138.7-105.6 298.6-298.6 298.6-59.5 0-114.7-17.2-161.1-47.1 8.4 1 16.6 1.3 25.3 1.3 49.1 0 94.2-16.6 130.3-44.8-46.1-1-84.8-31.2-98.1-72.8 6.5 1 13 1.6 19.8 1.6 9.4 0 18.8-1.3 27.6-3.6-48.1-9.7-84.1-52-84.1-103v-1.3c14 7.8 30.2 12.7 47.4 13.3-28.3-18.8-46.8-51-46.8-87.4 0-19.5 5.2-37.4 14.3-53C87.4 130.8 165 172.4 252.1 176.9c-1.6-7.8-2.6-15.9-2.6-24C249.5 95.1 296.3 48 354.4 48c30.2 0 57.5 12.7 76.7 33.1 23.7-4.5 46.5-13.3 66.6-25.3-7.8 24.4-24.4 44.8-46.1 57.8 21.1-2.3 41.6-8.1 60.4-16.2-14.3 20.8-32.2 39.3-52.6 54.3"/></svg></a><a href="https://medianest.com" target="_blank" rel="noopener" title="Official Website" class="md-social__link"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 512 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M351.9 280H161c2.9 64.5 17.2 123.9 37.5 167.4 11.4 24.5 23.7 41.8 35.1 52.4 11.2 10.5 18.9 12.2 22.9 12.2s11.7-1.7 22.9-12.2c11.4-10.6 23.7-28 35.1-52.4 20.3-43.5 34.6-102.9 37.5-167.4zm-191-48h190.9c-2.8-64.5-17.1-123.9-37.4-167.4-11.4-24.4-23.7-41.8-35.1-52.4C268.1 1.7 260.4 0 256.4 0s-11.7 1.7-22.9 12.2c-11.4 10.6-23.7 28-35.1 52.4-20.3 43.5-34.6 102.9-37.5 167.4m-48 0c3.5-85.6 25.6-165.1 57.9-217.3C78.7 47.3 10.9 131.2 1.5 232zM1.5 280c9.4 100.8 77.2 184.7 169.3 217.3-32.3-52.2-54.4-131.7-57.9-217.3zm398.4 0c-3.5 85.6-25.6 165.1-57.9 217.3 92.1-32.7 159.9-116.5 169.3-217.3zm111.4-48C501.9 131.2 434.1 47.3 342 14.7c32.3 52.2 54.4 131.7 57.9 217.3z"/></svg></a><a href="https://kinginyellow.github.io/medianest/" target="_blank" rel="noopener" title="Documentation" class="md-social__link"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 448 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M384 512H96c-53 0-96-43-96-96V96C0 43 43 0 96 0h304c26.5 0 48 21.5 48 48v288c0 20.9-13.4 38.7-32 45.3V448c17.7 0 32 14.3 32 32s-14.3 32-32 32zM96 384c-17.7 0-32 14.3-32 32s14.3 32 32 32h256v-64zm32-232c0 13.3 10.7 24 24 24h176c13.3 0 24-10.7 24-24s-10.7-24-24-24H152c-13.3 0-24 10.7-24 24m24 72c-13.3 0-24 10.7-24 24s10.7 24 24 24h176c13.3 0 24-10.7 24-24s-10.7-24-24-24z"/></svg></a></div></div></div></footer></div><div class="md-dialog" data-md-component="dialog"><div class="md-dialog__inner md-typeset"></div></div><div class="md-progress" data-md-component="progress" role="progressbar"></div><div class="md-consent" data-md-component="consent" id="__consent" hidden><div class="md-consent__overlay"></div><aside class="md-consent__inner"><form class="md-consent__form md-grid md-typeset" name="consent"><h4>Cookie consent</h4><p>We use cookies to recognize your repeated visits and preferences, as well as to measure the effectiveness of our documentation and whether users find what they're searching for. With your consent, you're helping us to make our documentation better.</p><input class="md-toggle" type="checkbox" id="__settings"><div class="md-consent__settings"><ul class="task-list"><li class="task-list-item"><label class="task-list-control"><input type="checkbox" name="analytics"><span class="task-list-indicator"></span> Google Analytics </label></li><li class="task-list-item"><label class="task-list-control"><input type="checkbox" name="github"><span class="task-list-indicator"></span> GitHub </label></li></ul></div><div class="md-consent__controls"><button class="md-button md-button--primary">Accept</button><button type="reset" class="md-button md-button--primary">Reject</button><label class="md-button" for="__settings">Manage settings</label></div></form></aside></div><script>var consent=__md_get("__consent");if(consent)for(var input of document.forms.consent.elements)input.name&&(input.checked=consent[input.name]||!1);else"file:"!==location.protocol&&setTimeout((function(){document.querySelector("[data-md-component=consent]").hidden=!1}),250);var form=document.forms.consent;for(var action of["submit","reset"])form.addEventListener(action,(function(e){if(e.preventDefault(),"reset"===e.type)for(var n of document.forms.consent.elements)n.name&&(n.checked=!1);__md_set("__consent",Object.fromEntries(Array.from(new FormData(form).keys()).map((function(e){return[e,!0]})))),location.hash="",location.reload()}))</script><script id="__config" type="application/json">{"base": "..", "features": ["announce.dismiss", "content.action.edit", "content.action.view", "content.code.annotate", "content.code.copy", "content.code.select", "content.footnote.tooltips", "content.tabs.link", "content.tooltips", "header.autohide", "navigation.expand", "navigation.footer", "navigation.indexes", "navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.path", "navigation.prune", "navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow", "toc.integrate"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": {"API": "api", "Configuration": "config", "Docker": "docker", "Performance": "performance", "Reference": "reference", "Security": "security", "Setup": "setup", "Tutorial": "tutorial"}, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script><script src="../assets/javascripts/bundle.92b07e13.min.js"></script><script src="../js/timeago.min.js"></script><script src="../js/timeago_mkdocs_material.js"></script><script src="../javascripts/extra.js"></script><script src="../javascripts/medianest.js"></script><script src="../javascripts/search-enhancements.js"></script><script src="../javascripts/api-explorer.js"></script><script src="../javascripts/mermaid-config.js"></script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script><script src="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui-bundle.js"></script></body></html>

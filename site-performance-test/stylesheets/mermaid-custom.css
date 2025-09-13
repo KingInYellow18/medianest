@@ -1,0 +1,388 @@
+/*
+ * MediaNest Documentation - Mermaid Diagram Styles
+ * Custom styling for Mermaid diagrams with MediaNest branding
+ */
+
+/* Base Mermaid Container Styling */
+.mermaid {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 2rem auto;
+  padding: 0;
+  background: transparent;
+  max-width: 100%;
+  overflow-x: auto;
+  text-align: center;
+}
+
+/* Responsive Diagram Container */
+.medianest-diagram {
+  background: var(--md-default-bg-color);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  box-shadow: 0 4px 12px rgba(103, 58, 183, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: visible;
+}
+
+.medianest-diagram:hover {
+  box-shadow: 0 6px 20px rgba(103, 58, 183, 0.15);
+  transform: translateY(-1px);
+}
+
+/* Dark Mode Support */
+[data-md-color-scheme='slate'] .medianest-diagram {
+  background: var(--md-code-bg-color);
+  border-color: var(--md-default-fg-color--lightest);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+[data-md-color-scheme='slate'] .medianest-diagram:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* Diagram Title Enhancement */
+.mermaid .diagram-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--mn-primary);
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+/* Flowchart Specific Styles */
+.mermaid .flowchart-node rect,
+.mermaid .flowchart-node circle,
+.mermaid .flowchart-node ellipse,
+.mermaid .flowchart-node polygon {
+  stroke-width: 2;
+  transition: all 0.2s ease;
+}
+
+.mermaid .flowchart-node:hover rect,
+.mermaid .flowchart-node:hover circle,
+.mermaid .flowchart-node:hover ellipse,
+.mermaid .flowchart-node:hover polygon {
+  filter: brightness(1.1);
+  stroke-width: 3;
+}
+
+/* Enhanced Edge Styling */
+.mermaid .flowchart-link {
+  stroke-width: 2;
+  marker-end: url(#arrowhead);
+}
+
+.mermaid .edgePath .path {
+  stroke-width: 2;
+  stroke-dasharray: none;
+}
+
+/* Sequence Diagram Enhancements */
+.mermaid .actor {
+  stroke-width: 2;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.mermaid .actor-box {
+  rx: 8;
+  ry: 8;
+}
+
+.mermaid .messageText {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.mermaid .activation0,
+.mermaid .activation1,
+.mermaid .activation2 {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+/* Gantt Chart Enhancements */
+.mermaid .section {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.mermaid .task {
+  stroke-width: 0;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.1));
+}
+
+.mermaid .taskText {
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.mermaid .grid .tick text {
+  font-size: 11px;
+  fill: var(--md-default-fg-color--light);
+}
+
+/* Class Diagram Styling */
+.mermaid .classBox {
+  stroke-width: 2;
+  rx: 8;
+  ry: 8;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.1));
+}
+
+.mermaid .classText {
+  font-weight: 500;
+}
+
+.mermaid .attributeBoxEven,
+.mermaid .attributeBoxOdd {
+  stroke-width: 1;
+}
+
+/* State Diagram Enhancements */
+.mermaid .state {
+  stroke-width: 2;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.mermaid .stateText {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+/* Pie Chart Styling */
+.mermaid .pieChart {
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+}
+
+.mermaid .pieTitleText {
+  font-size: 20px;
+  font-weight: 600;
+  fill: var(--md-default-fg-color);
+}
+
+/* Git Graph Enhancements */
+.mermaid .commit {
+  stroke-width: 2;
+  r: 6;
+}
+
+.mermaid .commit-label {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.mermaid .branch-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Journey Diagram Styling */
+.mermaid .journey-section {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.mermaid .task-type-0,
+.mermaid .task-type-1,
+.mermaid .task-type-2,
+.mermaid .task-type-3 {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+/* Error State Styling */
+.mermaid-error {
+  background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+  border: 2px solid #f44336;
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  color: #c62828;
+  font-weight: 600;
+  margin: 2rem 0;
+  position: relative;
+}
+
+.mermaid-error::before {
+  content: '⚠️';
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+[data-md-color-scheme='slate'] .mermaid-error {
+  background: linear-gradient(135deg, #2d1b1b 0%, #3d2626 100%);
+  border-color: #cf6679;
+  color: #cf6679;
+}
+
+/* Loading State */
+.mermaid-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  color: var(--md-default-fg-color--light);
+  font-style: italic;
+}
+
+.mermaid-loading::after {
+  content: '';
+  width: 20px;
+  height: 20px;
+  margin-left: 10px;
+  border: 2px solid var(--md-primary-fg-color);
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Accessibility Improvements */
+.mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.mermaid text {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Interactive Elements */
+.mermaid .clickable {
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.mermaid .clickable:hover {
+  opacity: 0.8;
+}
+
+/* Print Styles */
+@media print {
+  .mermaid {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin: 1rem 0;
+  }
+
+  .medianest-diagram {
+    border: 1px solid #ccc;
+    box-shadow: none;
+    background: white !important;
+    padding: 1rem;
+  }
+
+  .mermaid-error {
+    border: 1px solid #f44336;
+    background: #ffebee !important;
+    color: #c62828 !important;
+  }
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+  .mermaid {
+    margin: 1rem -0.5rem;
+  }
+
+  .medianest-diagram {
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+    overflow-x: auto;
+  }
+
+  .mermaid svg {
+    min-width: 320px;
+  }
+
+  .mermaid text {
+    font-size: 11px;
+  }
+
+  .mermaid .messageText,
+  .mermaid .stateText {
+    font-size: 12px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .medianest-diagram {
+    padding: 0.75rem;
+    border-radius: 4px;
+  }
+
+  .mermaid text {
+    font-size: 10px;
+  }
+
+  .mermaid .actor,
+  .mermaid .commit {
+    r: 4;
+  }
+}
+
+/* High DPI Display Support */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .mermaid svg {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Animation for diagram appearance */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mermaid {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Focus indicators for accessibility */
+.mermaid .clickable:focus {
+  outline: 2px solid var(--md-accent-fg-color);
+  outline-offset: 2px;
+}
+
+/* Custom scrollbar for diagram containers */
+.medianest-diagram::-webkit-scrollbar {
+  height: 8px;
+}
+
+.medianest-diagram::-webkit-scrollbar-track {
+  background: var(--md-default-fg-color--lightest);
+  border-radius: 4px;
+}
+
+.medianest-diagram::-webkit-scrollbar-thumb {
+  background: var(--md-primary-fg-color);
+  border-radius: 4px;
+}
+
+.medianest-diagram::-webkit-scrollbar-thumb:hover {
+  background: var(--md-accent-fg-color);
+}

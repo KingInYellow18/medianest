@@ -1,10 +1,5 @@
 // Internal dependencies
-import {
-  BaseIntegrationClient,
-  ClientConfig,
-  HealthStatus,
-  ClientInitializer,
-} from '@medianest/shared';
+import { BaseIntegrationClient, ClientConfig, HealthStatus, ClientInitializer } from '@medianest/shared';
 
 import { PlexApiClient } from '../../integrations/plex/plex-api.client';
 import { logger } from '../../utils/logger';
@@ -48,13 +43,10 @@ export class PlexIntegrationService extends BaseIntegrationClient {
       this.client = await ClientInitializer.initializeWithRetry(
         'Plex',
         async () => {
-          return await PlexApiClient.createFromUserToken(
-            plexConfig.defaultToken!,
-            plexConfig.serverUrl,
-          );
+          return await PlexApiClient.createFromUserToken(plexConfig.defaultToken!, plexConfig.serverUrl);
         },
         3,
-        2000,
+        2000
       );
 
       if (this.client) {

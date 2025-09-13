@@ -1,0 +1,588 @@
+<!doctype html><html lang="en" class="no-js"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Complete documentation for MediaNest - Advanced Media Management Platform with Plex Integration, API, and Developer Resources"><meta name="author" content="MediaNest Development Team"><link rel="canonical" href="https://kinginyellow.github.io/medianest/architecture/system-overview/"><link rel="prev" href="../data-flow/"><link rel="next" href="../decisions/adr-001-architecture/"><link rel="icon" href="../../assets/images/favicon.ico"><meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.19"><title>System Overview - MediaNest Documentation</title><link rel="stylesheet" href="../../assets/stylesheets/main.7e37652d.min.css"><link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback"><style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style><link rel="stylesheet" href="../../css/timeago.css"><link rel="stylesheet" href="../../stylesheets/extra.css"><link rel="stylesheet" href="../../stylesheets/medianest-theme.css"><link rel="stylesheet" href="../../stylesheets/material-enhancements.css"><link rel="stylesheet" href="../../stylesheets/animations.css"><link rel="stylesheet" href="../../stylesheets/responsive.css"><link rel="stylesheet" href="../../stylesheets/diagram-styles.css"><link rel="stylesheet" href="../../stylesheets/api-docs.css"><link rel="stylesheet" href="../../stylesheets/code-highlights.css"><link rel="stylesheet" href="../../stylesheets/mermaid-custom.css"><script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script><script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-XXXXXXXXXX"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-XXXXXXXXXX",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script><script>if("undefined"!=typeof __md_analytics){var consent=__md_get("__consent");consent&&consent.analytics&&__md_analytics()}</script></head><body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple"><input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off"><input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off"><label class="md-overlay" for="__drawer"></label><div data-md-component="skip"><a href="#medianest-system-overview" class="md-skip"> Skip to content </a></div><div data-md-component="announce"></div><div data-md-color-scheme="default" data-md-component="outdated" hidden></div><header class="md-header md-header--shadow md-header--lifted" data-md-component="header"><nav class="md-header__inner md-grid" aria-label="Header"><a href="https://kinginyellow.github.io/medianest/" title="MediaNest Documentation" class="md-header__button md-logo" aria-label="MediaNest Documentation" data-md-component="logo"><img src="../../assets/images/logo.svg" alt="logo"></a><label class="md-header__button md-icon" for="__drawer"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg></label><div class="md-header__title" data-md-component="header-title"><div class="md-header__ellipsis"><div class="md-header__topic"><span class="md-ellipsis"> MediaNest Documentation </span></div><div class="md-header__topic" data-md-component="header-topic"><span class="md-ellipsis"> System Overview </span></div></div></div><form class="md-header__option" data-md-component="palette"><input class="md-option" data-md-color-media data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0"><label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg></label><input class="md-option" data-md-color-media data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1"><label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg></label></form><script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script><label class="md-header__button md-icon" for="__search"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg></label><div class="md-search" data-md-component="search" role="dialog"><label class="md-search__overlay" for="__search"></label><div class="md-search__inner" role="search"><form class="md-search__form" name="search"><input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required><label class="md-search__icon md-icon" for="__search"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg></label><nav class="md-search__options" aria-label="Search"><a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text data-md-component="search-share" tabindex="-1"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg></a><button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></nav><div class="md-search__suggest" data-md-component="search-suggest"></div></form><div class="md-search__output"><div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix><div class="md-search-result" data-md-component="search-result"><div class="md-search-result__meta"> Initializing search </div><ol class="md-search-result__list" role="presentation"></ol></div></div></div></div></div><div class="md-header__source"><a href="https://github.com/kinginyellow/medianest" title="Go to repository" class="md-source" data-md-component="source"><div class="md-source__icon md-icon"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 448 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg></div><div class="md-source__repository"> kinginyellow/medianest </div></a></div></nav><nav class="md-tabs" aria-label="Tabs" data-md-component="tabs"><div class="md-grid"><ul class="md-tabs__list"><li class="md-tabs__item"><a href="../.." class="md-tabs__link"> Home </a></li><li class="md-tabs__item"><a href="../../getting-started/" class="md-tabs__link"> Getting Started </a></li><li class="md-tabs__item md-tabs__item--active"><a href="../component-architecture/" class="md-tabs__link"> Architecture </a></li><li class="md-tabs__item"><a href="../../api/overview/" class="md-tabs__link"> API Reference </a></li><li class="md-tabs__item"><a href="../../operations/monitoring-stack/" class="md-tabs__link"> Operations </a></li><li class="md-tabs__item"><a href="../../deployment/ci-cd/" class="md-tabs__link"> Deployment </a></li><li class="md-tabs__item"><a href="../../developers/contributing/" class="md-tabs__link"> Developers </a></li><li class="md-tabs__item"><a href="../../visuals/database-schema/" class="md-tabs__link"> Visuals </a></li><li class="md-tabs__item"><a href="../../standards/documentation-checklist/" class="md-tabs__link"> Standards </a></li></ul></div></nav></header><div class="md-container" data-md-component="container"><main class="md-main" data-md-component="main"><div class="md-main__inner md-grid"><div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation"><div class="md-sidebar__scrollwrap"><div class="md-sidebar__inner"><nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0"><label class="md-nav__title" for="__drawer"><a href="https://kinginyellow.github.io/medianest/" title="MediaNest Documentation" class="md-nav__button md-logo" aria-label="MediaNest Documentation" data-md-component="logo"><img src="../../assets/images/logo.svg" alt="logo"></a> MediaNest Documentation </label><div class="md-nav__source"><a href="https://github.com/kinginyellow/medianest" title="Go to repository" class="md-source" data-md-component="source"><div class="md-source__icon md-icon"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 448 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg></div><div class="md-source__repository"> kinginyellow/medianest </div></a></div><ul class="md-nav__list" data-md-scrollfix><li class="md-nav__item"><a href="../.." class="md-nav__link"><span class="md-ellipsis"> Home </span></a></li><li class="md-nav__item md-nav__item--pruned md-nav__item--nested"><a href="../../getting-started/" class="md-nav__link"><span class="md-ellipsis"> Getting Started </span><span class="md-nav__icon md-icon"></span></a></li><li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested"><input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked><label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex><span class="md-ellipsis"> Architecture </span><span class="md-nav__icon md-icon"></span></label><nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true"><label class="md-nav__title" for="__nav_3"><span class="md-nav__icon md-icon"></span> Architecture </label><ul class="md-nav__list" data-md-scrollfix><li class="md-nav__item"><a href="../component-architecture/" class="md-nav__link"><span class="md-ellipsis"> Component Architecture </span></a></li><li class="md-nav__item"><a href="../data-flow/" class="md-nav__link"><span class="md-ellipsis"> Data Flow </span></a></li><li class="md-nav__item md-nav__item--active"><input class="md-nav__toggle md-toggle" type="checkbox" id="__toc"><label class="md-nav__link md-nav__link--active" for="__toc"><span class="md-ellipsis"> System Overview </span><span class="md-nav__icon md-icon"></span></label><a href="./" class="md-nav__link md-nav__link--active"><span class="md-ellipsis"> System Overview </span></a><nav class="md-nav md-nav--secondary" aria-label="On this page"><label class="md-nav__title" for="__toc"><span class="md-nav__icon md-icon"></span> On this page </label><ul class="md-nav__list" data-md-component="toc" data-md-scrollfix><li class="md-nav__item"><a href="#introduction" class="md-nav__link"><span class="md-ellipsis"> Introduction </span></a></li><li class="md-nav__item"><a href="#system-architecture" class="md-nav__link"><span class="md-ellipsis"> System Architecture </span></a><nav class="md-nav" aria-label="System Architecture"><ul class="md-nav__list"><li class="md-nav__item"><a href="#high-level-architecture" class="md-nav__link"><span class="md-ellipsis"> High-Level Architecture </span></a></li></ul></nav></li><li class="md-nav__item"><a href="#c4-model-architecture" class="md-nav__link"><span class="md-ellipsis"> C4 Model Architecture </span></a><nav class="md-nav" aria-label="C4 Model Architecture"><ul class="md-nav__list"><li class="md-nav__item"><a href="#level-1-system-context-diagram" class="md-nav__link"><span class="md-ellipsis"> Level 1: System Context Diagram </span></a></li><li class="md-nav__item"><a href="#level-2-container-diagram" class="md-nav__link"><span class="md-ellipsis"> Level 2: Container Diagram </span></a></li><li class="md-nav__item"><a href="#level-3-component-diagram-api-application" class="md-nav__link"><span class="md-ellipsis"> Level 3: Component Diagram - API Application </span></a></li></ul></nav></li><li class="md-nav__item"><a href="#core-components" class="md-nav__link"><span class="md-ellipsis"> Core Components </span></a><nav class="md-nav" aria-label="Core Components"><ul class="md-nav__list"><li class="md-nav__item"><a href="#1-expressjs-application-server" class="md-nav__link"><span class="md-ellipsis"> 1. Express.js Application Server </span></a></li><li class="md-nav__item"><a href="#2-authentication-authorization" class="md-nav__link"><span class="md-ellipsis"> 2. Authentication &amp; Authorization </span></a></li><li class="md-nav__item"><a href="#3-data-persistence-layer" class="md-nav__link"><span class="md-ellipsis"> 3. Data Persistence Layer </span></a></li><li class="md-nav__item"><a href="#4-real-time-communication" class="md-nav__link"><span class="md-ellipsis"> 4. Real-time Communication </span></a></li><li class="md-nav__item"><a href="#5-external-integrations" class="md-nav__link"><span class="md-ellipsis"> 5. External Integrations </span></a></li></ul></nav></li><li class="md-nav__item"><a href="#technology-stack" class="md-nav__link"><span class="md-ellipsis"> Technology Stack </span></a><nav class="md-nav" aria-label="Technology Stack"><ul class="md-nav__list"><li class="md-nav__item"><a href="#backend-core" class="md-nav__link"><span class="md-ellipsis"> Backend Core </span></a></li><li class="md-nav__item"><a href="#infrastructure" class="md-nav__link"><span class="md-ellipsis"> Infrastructure </span></a></li><li class="md-nav__item"><a href="#monitoring-observability" class="md-nav__link"><span class="md-ellipsis"> Monitoring &amp; Observability </span></a></li></ul></nav></li><li class="md-nav__item"><a href="#performance-characteristics" class="md-nav__link"><span class="md-ellipsis"> Performance Characteristics </span></a><nav class="md-nav" aria-label="Performance Characteristics"><ul class="md-nav__list"><li class="md-nav__item"><a href="#response-time-optimization" class="md-nav__link"><span class="md-ellipsis"> Response Time Optimization </span></a></li><li class="md-nav__item"><a href="#scalability-features" class="md-nav__link"><span class="md-ellipsis"> Scalability Features </span></a></li></ul></nav></li><li class="md-nav__item"><a href="#security-architecture-deep-dive" class="md-nav__link"><span class="md-ellipsis"> Security Architecture Deep Dive </span></a><nav class="md-nav" aria-label="Security Architecture Deep Dive"><ul class="md-nav__list"><li class="md-nav__item"><a href="#zero-trust-security-model" class="md-nav__link"><span class="md-ellipsis"> Zero-Trust Security Model </span></a></li><li class="md-nav__item"><a href="#security-implementation-details" class="md-nav__link"><span class="md-ellipsis"> Security Implementation Details </span></a><nav class="md-nav" aria-label="Security Implementation Details"><ul class="md-nav__list"><li class="md-nav__item"><a href="#authentication-authorization" class="md-nav__link"><span class="md-ellipsis"> Authentication &amp; Authorization </span></a></li><li class="md-nav__item"><a href="#api-security" class="md-nav__link"><span class="md-ellipsis"> API Security </span></a></li><li class="md-nav__item"><a href="#data-security" class="md-nav__link"><span class="md-ellipsis"> Data Security </span></a></li></ul></nav></li><li class="md-nav__item"><a href="#data-protection" class="md-nav__link"><span class="md-ellipsis"> Data Protection </span></a></li></ul></nav></li><li class="md-nav__item"><a href="#database-schema-architecture" class="md-nav__link"><span class="md-ellipsis"> Database Schema Architecture </span></a><nav class="md-nav" aria-label="Database Schema Architecture"><ul class="md-nav__list"><li class="md-nav__item"><a href="#entity-relationship-diagram" class="md-nav__link"><span class="md-ellipsis"> Entity Relationship Diagram </span></a></li></ul></nav></li><li class="md-nav__item"><a href="#system-integration-architecture" class="md-nav__link"><span class="md-ellipsis"> System Integration Architecture </span></a><nav class="md-nav" aria-label="System Integration Architecture"><ul class="md-nav__list"><li class="md-nav__item"><a href="#external-service-integration-map" class="md-nav__link"><span class="md-ellipsis"> External Service Integration Map </span></a></li></ul></nav></li></ul></nav></li><li class="md-nav__item md-nav__item--section md-nav__item--nested"><input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_4"><label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex><span class="md-ellipsis"> Architecture Decisions </span><span class="md-nav__icon md-icon"></span></label><nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false"><label class="md-nav__title" for="__nav_3_4"><span class="md-nav__icon md-icon"></span> Architecture Decisions </label><ul class="md-nav__list" data-md-scrollfix><li class="md-nav__item"><a href="../decisions/adr-001-architecture/" class="md-nav__link"><span class="md-ellipsis"> ADR-001 Architecture </span></a></li></ul></nav></li></ul></nav></li><li class="md-nav__item md-nav__item--pruned md-nav__item--nested"><a href="../../api/overview/" class="md-nav__link"><span class="md-ellipsis"> API Reference </span><span class="md-nav__icon md-icon"></span></a></li><li class="md-nav__item md-nav__item--pruned md-nav__item--nested"><a href="../../operations/monitoring-stack/" class="md-nav__link"><span class="md-ellipsis"> Operations </span><span class="md-nav__icon md-icon"></span></a></li><li class="md-nav__item md-nav__item--pruned md-nav__item--nested"><a href="../../deployment/ci-cd/" class="md-nav__link"><span class="md-ellipsis"> Deployment </span><span class="md-nav__icon md-icon"></span></a></li><li class="md-nav__item md-nav__item--pruned md-nav__item--nested"><a href="../../developers/contributing/" class="md-nav__link"><span class="md-ellipsis"> Developers </span><span class="md-nav__icon md-icon"></span></a></li><li class="md-nav__item md-nav__item--pruned md-nav__item--nested"><a href="../../visuals/database-schema/" class="md-nav__link"><span class="md-ellipsis"> Visuals </span><span class="md-nav__icon md-icon"></span></a></li><li class="md-nav__item md-nav__item--pruned md-nav__item--nested"><a href="../../standards/documentation-checklist/" class="md-nav__link"><span class="md-ellipsis"> Standards </span><span class="md-nav__icon md-icon"></span></a></li></ul></nav></div></div></div><div class="md-content" data-md-component="content"><article class="md-content__inner md-typeset"><a href="https://github.com/kinginyellow/medianest/edit/develop/docs/architecture/system-overview.md" title="Edit this page" class="md-content__button md-icon" rel="edit"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg></a><a href="https://github.com/kinginyellow/medianest/raw/develop/docs/architecture/system-overview.md" title="View source of this page" class="md-content__button md-icon"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.2 8.2 0 0 1-1.23-2"/></svg></a><h1 id="medianest-system-overview">MediaNest System Overview<a class="headerlink" href="#medianest-system-overview" title="Permanent link">&para;</a></h1><h2 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Permanent link">&para;</a></h2><p>MediaNest is an Advanced Media Management Platform built on a modern, scalable microservices architecture. The system provides comprehensive media management capabilities including content discovery, request management, Plex integration, and YouTube downloading with real-time notifications and monitoring.</p><h2 id="system-architecture">System Architecture<a class="headerlink" href="#system-architecture" title="Permanent link">&para;</a></h2><h3 id="high-level-architecture">High-Level Architecture<a class="headerlink" href="#high-level-architecture" title="Permanent link">&para;</a></h3><pre class="mermaid"><code>graph TB
+    subgraph "Client Layer"
+        WEB[Web Browser]
+        MOBILE[Mobile App]
+        API_CLIENT[API Clients]
+    end
+
+    subgraph "Load Balancer &amp; Reverse Proxy"
+        NGINX[Nginx]
+    end
+
+    subgraph "Application Layer"
+        EXPRESS[Express.js Server]
+        SOCKET[Socket.IO Server]
+
+        subgraph "API Routes"
+            AUTH_API[Authentication API]
+            MEDIA_API[Media API]
+            PLEX_API[Plex API]
+            DASHBOARD_API[Dashboard API]
+            ADMIN_API[Admin API]
+            YOUTUBE_API[YouTube API]
+            WEBHOOK_API[Webhooks API]
+        end
+
+        subgraph "Controllers"
+            AUTH_CTRL[Auth Controller]
+            MEDIA_CTRL[Media Controller]
+            PLEX_CTRL[Plex Controller]
+            DASH_CTRL[Dashboard Controller]
+            ADMIN_CTRL[Admin Controller]
+            YT_CTRL[YouTube Controller]
+        end
+
+        subgraph "Services Layer"
+            PLEX_SVC[Plex Service]
+            MEDIA_SVC[Media Service]
+            AUTH_SVC[Authentication Service]
+            CACHE_SVC[Cache Service]
+            NOTIF_SVC[Notification Service]
+            ENCRYPTION_SVC[Encryption Service]
+            YOUTUBE_SVC[YouTube Service]
+            WEBHOOK_SVC[Webhook Service]
+        end
+
+        subgraph "Middleware"
+            AUTH_MW[Authentication]
+            VALIDATION_MW[Validation]
+            RATE_LIMIT_MW[Rate Limiting]
+            ERROR_MW[Error Handling]
+            SECURITY_MW[Security Headers]
+            PERFORMANCE_MW[Performance Monitoring]
+        end
+    end
+
+    subgraph "Data Layer"
+        POSTGRES[(PostgreSQL)]
+        REDIS[(Redis Cache)]
+
+        subgraph "Database Models"
+            USERS_TBL[Users]
+            MEDIA_REQ_TBL[Media Requests]
+            YT_DL_TBL[YouTube Downloads]
+            SERVICE_STATUS_TBL[Service Status]
+            NOTIFICATIONS_TBL[Notifications]
+            ERROR_LOGS_TBL[Error Logs]
+            SESSIONS_TBL[Sessions]
+        end
+    end
+
+    subgraph "External Services"
+        PLEX_SERVER[Plex Media Server]
+        OVERSEERR[Overseerr]
+        TMDB[The Movie DB]
+        YOUTUBE[YouTube API]
+        UPTIME_KUMA[Uptime Kuma]
+    end
+
+    subgraph "Monitoring &amp; Observability"
+        PROMETHEUS[Prometheus]
+        GRAFANA[Grafana]
+        OPENTEL[OpenTelemetry]
+        SENTRY[Sentry]
+    end
+
+    %% Client Connections
+    WEB --&gt; NGINX
+    MOBILE --&gt; NGINX
+    API_CLIENT --&gt; NGINX
+
+    %% Load Balancer
+    NGINX --&gt; EXPRESS
+    NGINX --&gt; SOCKET
+
+    %% API Flow
+    EXPRESS --&gt; AUTH_API
+    EXPRESS --&gt; MEDIA_API
+    EXPRESS --&gt; PLEX_API
+    EXPRESS --&gt; DASHBOARD_API
+    EXPRESS --&gt; ADMIN_API
+    EXPRESS --&gt; YOUTUBE_API
+    EXPRESS --&gt; WEBHOOK_API
+
+    %% Controller Mapping
+    AUTH_API --&gt; AUTH_CTRL
+    MEDIA_API --&gt; MEDIA_CTRL
+    PLEX_API --&gt; PLEX_CTRL
+    DASHBOARD_API --&gt; DASH_CTRL
+    ADMIN_API --&gt; ADMIN_CTRL
+    YOUTUBE_API --&gt; YT_CTRL
+
+    %% Service Layer
+    AUTH_CTRL --&gt; AUTH_SVC
+    MEDIA_CTRL --&gt; MEDIA_SVC
+    PLEX_CTRL --&gt; PLEX_SVC
+    DASH_CTRL --&gt; CACHE_SVC
+    DASH_CTRL --&gt; NOTIF_SVC
+    YT_CTRL --&gt; YOUTUBE_SVC
+
+    %% Middleware Stack
+    EXPRESS --&gt; AUTH_MW
+    EXPRESS --&gt; VALIDATION_MW
+    EXPRESS --&gt; RATE_LIMIT_MW
+    EXPRESS --&gt; ERROR_MW
+    EXPRESS --&gt; SECURITY_MW
+    EXPRESS --&gt; PERFORMANCE_MW
+
+    %% Data Connections
+    AUTH_SVC --&gt; POSTGRES
+    MEDIA_SVC --&gt; POSTGRES
+    PLEX_SVC --&gt; POSTGRES
+    NOTIF_SVC --&gt; POSTGRES
+
+    CACHE_SVC --&gt; REDIS
+    AUTH_SVC --&gt; REDIS
+    RATE_LIMIT_MW --&gt; REDIS
+
+    %% External Integrations
+    PLEX_SVC --&gt; PLEX_SERVER
+    MEDIA_SVC --&gt; OVERSEERR
+    MEDIA_SVC --&gt; TMDB
+    YOUTUBE_SVC --&gt; YOUTUBE
+    WEBHOOK_SVC --&gt; UPTIME_KUMA
+
+    %% Monitoring
+    EXPRESS --&gt; OPENTEL
+    EXPRESS --&gt; PROMETHEUS
+    OPENTEL --&gt; GRAFANA
+    ERROR_MW --&gt; SENTRY
+
+    classDef client fill:#e1f5fe
+    classDef api fill:#f3e5f5
+    classDef service fill:#e8f5e8
+    classDef data fill:#fff3e0
+    classDef external fill:#fce4ec
+    classDef monitoring fill:#f1f8e9
+
+    class WEB,MOBILE,API_CLIENT client
+    class AUTH_API,MEDIA_API,PLEX_API,DASHBOARD_API,ADMIN_API,YOUTUBE_API,WEBHOOK_API api
+    class AUTH_SVC,MEDIA_SVC,PLEX_SVC,CACHE_SVC,NOTIF_SVC,ENCRYPTION_SVC,YOUTUBE_SVC,WEBHOOK_SVC service
+    class POSTGRES,REDIS data
+    class PLEX_SERVER,OVERSEERR,TMDB,YOUTUBE,UPTIME_KUMA external
+    class PROMETHEUS,GRAFANA,OPENTEL,SENTRY monitoring</code></pre><h2 id="c4-model-architecture">C4 Model Architecture<a class="headerlink" href="#c4-model-architecture" title="Permanent link">&para;</a></h2><h3 id="level-1-system-context-diagram">Level 1: System Context Diagram<a class="headerlink" href="#level-1-system-context-diagram" title="Permanent link">&para;</a></h3><pre class="mermaid"><code>C4Context
+    title MediaNest System Context
+
+    Person(user, "MediaNest User", "Content consumer and requester")
+    Person(admin, "System Administrator", "Manages system configuration")
+
+    System(medianest, "MediaNest Platform", "Advanced Media Management Platform")
+
+    System_Ext(plex, "Plex Media Server", "Media streaming and library management")
+    System_Ext(overseerr, "Overseerr", "Media request management and automation")
+    System_Ext(tmdb, "TMDB API", "Movie and TV show metadata service")
+    System_Ext(youtube, "YouTube API", "Video information and download service")
+    System_Ext(uptime, "Uptime Kuma", "Service monitoring and alerting")
+
+    Rel(user, medianest, "Uses", "Web browser, Mobile app")
+    Rel(admin, medianest, "Administers", "Admin dashboard")
+
+    Rel(medianest, plex, "Integrates with", "REST API, OAuth")
+    Rel(medianest, overseerr, "Submits requests to", "REST API")
+    Rel(medianest, tmdb, "Fetches metadata from", "REST API")
+    Rel(medianest, youtube, "Downloads content from", "API")
+    Rel(medianest, uptime, "Monitored by", "Webhooks")
+
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="2")</code></pre><h3 id="level-2-container-diagram">Level 2: Container Diagram<a class="headerlink" href="#level-2-container-diagram" title="Permanent link">&para;</a></h3><pre class="mermaid"><code>C4Container
+    title MediaNest Container Diagram
+
+    Person(user, "MediaNest User", "Content consumer and requester")
+
+    System_Boundary(medianest, "MediaNest Platform") {
+        Container(webapp, "Web Application", "React, Next.js, TypeScript", "Delivers content and media management interface")
+        Container(api, "API Application", "Express.js, TypeScript", "Provides REST API endpoints and business logic")
+        Container(socketio, "WebSocket Server", "Socket.IO", "Handles real-time communication and notifications")
+        Container(nginx, "Reverse Proxy", "Nginx", "SSL termination, load balancing, static content")
+
+        ContainerDb(postgres, "Primary Database", "PostgreSQL", "Stores user data, media requests, system configuration")
+        ContainerDb(redis, "Cache &amp; Sessions", "Redis", "Caches data, manages sessions, handles rate limiting")
+    }
+
+    System_Ext(plex, "Plex Media Server", "Media streaming platform")
+    System_Ext(overseerr, "Overseerr", "Media request automation")
+    System_Ext(tmdb, "TMDB API", "Metadata service")
+    System_Ext(youtube, "YouTube API", "Video service")
+
+    Container_Ext(monitoring, "Monitoring Stack", "Prometheus, Grafana, Sentry", "System observability")
+
+    Rel(user, nginx, "Uses", "HTTPS")
+    Rel(nginx, webapp, "Serves", "Static content")
+    Rel(nginx, api, "Proxies to", "HTTP")
+
+    Rel(webapp, api, "Makes API calls to", "REST/HTTP")
+    Rel(webapp, socketio, "Connects to", "WebSocket")
+
+    Rel(api, postgres, "Reads/Writes", "SQL/TCP")
+    Rel(api, redis, "Caches data", "Redis Protocol")
+    Rel(socketio, redis, "Pub/Sub", "Redis Protocol")
+
+    Rel(api, plex, "Integrates", "REST API")
+    Rel(api, overseerr, "Submits requests", "REST API")
+    Rel(api, tmdb, "Fetches metadata", "REST API")
+    Rel(api, youtube, "Downloads content", "API")
+
+    Rel(api, monitoring, "Sends metrics", "HTTP")
+
+    UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")</code></pre><h3 id="level-3-component-diagram-api-application">Level 3: Component Diagram - API Application<a class="headerlink" href="#level-3-component-diagram-api-application" title="Permanent link">&para;</a></h3><pre class="mermaid"><code>C4Component
+    title MediaNest API Application Components
+
+    Container(webapp, "Web Application", "React, Next.js")
+    Container(socketio, "WebSocket Server", "Socket.IO")
+
+    Container_Boundary(api, "API Application") {
+        Component(router, "API Router", "Express Router", "Routes requests to appropriate controllers")
+
+        Component(auth_ctrl, "Auth Controller", "Express Controller", "Handles authentication and authorization")
+        Component(media_ctrl, "Media Controller", "Express Controller", "Manages media requests and searches")
+        Component(plex_ctrl, "Plex Controller", "Express Controller", "Handles Plex server integration")
+        Component(dashboard_ctrl, "Dashboard Controller", "Express Controller", "Provides system overview and statistics")
+        Component(admin_ctrl, "Admin Controller", "Express Controller", "Administrative functions")
+        Component(youtube_ctrl, "YouTube Controller", "Express Controller", "YouTube download management")
+
+        Component(auth_svc, "Authentication Service", "Service Class", "JWT token management, OAuth integration")
+        Component(media_svc, "Media Service", "Service Class", "Media request business logic")
+        Component(plex_svc, "Plex Service", "Service Class", "Plex API integration")
+        Component(cache_svc, "Cache Service", "Service Class", "Redis operations and caching")
+        Component(notif_svc, "Notification Service", "Service Class", "Real-time notifications")
+        Component(health_svc, "Health Service", "Service Class", "System health monitoring")
+        Component(youtube_svc, "YouTube Service", "Service Class", "YouTube integration")
+
+        Component(user_repo, "User Repository", "Repository Class", "User data access")
+        Component(media_repo, "Media Repository", "Repository Class", "Media request data access")
+        Component(youtube_repo, "YouTube Repository", "Repository Class", "YouTube download data access")
+        Component(service_repo, "Service Repository", "Repository Class", "Service status data access")
+
+        Component(middleware, "Middleware Stack", "Express Middleware", "Authentication, validation, security, rate limiting")
+    }
+
+    ContainerDb(postgres, "Primary Database", "PostgreSQL")
+    ContainerDb(redis, "Cache Database", "Redis")
+    System_Ext(plex, "Plex Media Server")
+    System_Ext(overseerr, "Overseerr")
+    System_Ext(tmdb, "TMDB API")
+    System_Ext(youtube, "YouTube API")
+
+    Rel(webapp, router, "Makes API calls", "REST/HTTP")
+    Rel(socketio, notif_svc, "Sends notifications", "Function calls")
+
+    Rel(router, middleware, "Processes through", "Middleware chain")
+    Rel(middleware, auth_ctrl, "Routes to")
+    Rel(middleware, media_ctrl, "Routes to")
+    Rel(middleware, plex_ctrl, "Routes to")
+    Rel(middleware, dashboard_ctrl, "Routes to")
+    Rel(middleware, admin_ctrl, "Routes to")
+    Rel(middleware, youtube_ctrl, "Routes to")
+
+    Rel(auth_ctrl, auth_svc, "Uses")
+    Rel(media_ctrl, media_svc, "Uses")
+    Rel(plex_ctrl, plex_svc, "Uses")
+    Rel(dashboard_ctrl, cache_svc, "Uses")
+    Rel(admin_ctrl, health_svc, "Uses")
+    Rel(youtube_ctrl, youtube_svc, "Uses")
+
+    Rel(auth_svc, user_repo, "Uses")
+    Rel(media_svc, media_repo, "Uses")
+    Rel(youtube_svc, youtube_repo, "Uses")
+    Rel(health_svc, service_repo, "Uses")
+
+    Rel(user_repo, postgres, "Reads/Writes", "SQL")
+    Rel(media_repo, postgres, "Reads/Writes", "SQL")
+    Rel(youtube_repo, postgres, "Reads/Writes", "SQL")
+    Rel(service_repo, postgres, "Reads/Writes", "SQL")
+
+    Rel(cache_svc, redis, "Caches", "Redis Protocol")
+    Rel(auth_svc, redis, "Stores sessions", "Redis Protocol")
+
+    Rel(plex_svc, plex, "Integrates", "REST API")
+    Rel(media_svc, overseerr, "Submits requests", "REST API")
+    Rel(media_svc, tmdb, "Fetches metadata", "REST API")
+    Rel(youtube_svc, youtube, "Downloads", "API")
+
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")</code></pre><h2 id="core-components">Core Components<a class="headerlink" href="#core-components" title="Permanent link">&para;</a></h2><h3 id="1-expressjs-application-server">1. Express.js Application Server<a class="headerlink" href="#1-expressjs-application-server" title="Permanent link">&para;</a></h3><ul><li><strong>Framework</strong>: Express.js 4.21+ with TypeScript</li><li><strong>Architecture</strong>: RESTful API with versioned endpoints</li><li><strong>Performance</strong>: Optimized with compression, caching, and connection pooling</li><li><strong>Security</strong>: Helmet, CORS, rate limiting, and authentication middleware</li></ul><h3 id="2-authentication-authorization">2. Authentication &amp; Authorization<a class="headerlink" href="#2-authentication-authorization" title="Permanent link">&para;</a></h3><ul><li><strong>Primary</strong>: JWT-based authentication with token rotation</li><li><strong>OAuth</strong>: Plex OAuth integration for seamless user experience</li><li><strong>Security Features</strong>:</li><li>Multi-device session management</li><li>Token blacklisting and rotation</li><li>Rate limiting per user and endpoint</li><li>Device fingerprinting</li></ul><h3 id="3-data-persistence-layer">3. Data Persistence Layer<a class="headerlink" href="#3-data-persistence-layer" title="Permanent link">&para;</a></h3><ul><li><strong>Database</strong>: PostgreSQL 15+ with Prisma ORM</li><li><strong>Cache</strong>: Redis 7+ for session management and performance optimization</li><li><strong>Connection Management</strong>: Optimized connection pooling and query optimization</li><li><strong>Backup Strategy</strong>: Automated daily backups with disaster recovery procedures</li></ul><h3 id="4-real-time-communication">4. Real-time Communication<a class="headerlink" href="#4-real-time-communication" title="Permanent link">&para;</a></h3><ul><li><strong>WebSocket</strong>: Socket.IO for real-time notifications and status updates</li><li><strong>Namespaces</strong>: Organized by feature (media requests, downloads, admin)</li><li><strong>Authentication</strong>: Socket-level authentication with JWT validation</li></ul><h3 id="5-external-integrations">5. External Integrations<a class="headerlink" href="#5-external-integrations" title="Permanent link">&para;</a></h3><ul><li><strong>Plex Media Server</strong>: Direct API integration for library management</li><li><strong>Overseerr</strong>: Media request management and automation</li><li><strong>The Movie Database (TMDB)</strong>: Metadata enrichment for media content</li><li><strong>YouTube API</strong>: Video downloading and playlist management</li><li><strong>Uptime Kuma</strong>: Service monitoring and health checks</li></ul><h2 id="technology-stack">Technology Stack<a class="headerlink" href="#technology-stack" title="Permanent link">&para;</a></h2><h3 id="backend-core">Backend Core<a class="headerlink" href="#backend-core" title="Permanent link">&para;</a></h3><ul><li><strong>Runtime</strong>: Node.js 20+</li><li><strong>Language</strong>: TypeScript 5.6+</li><li><strong>Framework</strong>: Express.js 4.21</li><li><strong>ORM</strong>: Prisma 5+</li><li><strong>Validation</strong>: Zod schemas with custom middleware</li><li><strong>Testing</strong>: Vitest with comprehensive test suites</li></ul><h3 id="infrastructure">Infrastructure<a class="headerlink" href="#infrastructure" title="Permanent link">&para;</a></h3><ul><li><strong>Containerization</strong>: Docker with multi-stage builds</li><li><strong>Orchestration</strong>: Docker Compose with environment-specific configurations</li><li><strong>Reverse Proxy</strong>: Nginx with SSL termination and load balancing</li><li><strong>Process Management</strong>: PM2 for production process management</li></ul><h3 id="monitoring-observability">Monitoring &amp; Observability<a class="headerlink" href="#monitoring-observability" title="Permanent link">&para;</a></h3><ul><li><strong>Metrics</strong>: Prometheus with custom business metrics</li><li><strong>Tracing</strong>: OpenTelemetry for distributed tracing</li><li><strong>Logging</strong>: Structured logging with correlation IDs</li><li><strong>Error Tracking</strong>: Sentry for error monitoring and alerting</li><li><strong>Health Checks</strong>: Multi-tier health checking with dependency validation</li></ul><h2 id="performance-characteristics">Performance Characteristics<a class="headerlink" href="#performance-characteristics" title="Permanent link">&para;</a></h2><h3 id="response-time-optimization">Response Time Optimization<a class="headerlink" href="#response-time-optimization" title="Permanent link">&para;</a></h3><ul><li><strong>API Routes</strong>: Optimized by frequency of use</li><li><strong>Caching Strategy</strong>: Multi-tier caching (Redis, HTTP headers, application-level)</li><li><strong>Database</strong>: Optimized indexes and query patterns</li><li><strong>Connection Pooling</strong>: Configured for high concurrency</li></ul><h3 id="scalability-features">Scalability Features<a class="headerlink" href="#scalability-features" title="Permanent link">&para;</a></h3><ul><li><strong>Horizontal Scaling</strong>: Stateless application design</li><li><strong>Load Balancing</strong>: Nginx-based load balancing</li><li><strong>Resource Management</strong>: Memory and CPU optimization</li><li><strong>Circuit Breakers</strong>: Resilience patterns for external service failures</li></ul><h2 id="security-architecture-deep-dive">Security Architecture Deep Dive<a class="headerlink" href="#security-architecture-deep-dive" title="Permanent link">&para;</a></h2><h3 id="zero-trust-security-model">Zero-Trust Security Model<a class="headerlink" href="#zero-trust-security-model" title="Permanent link">&para;</a></h3><pre class="mermaid"><code>graph TB
+    subgraph "Security Perimeter"
+        WAF[Web Application Firewall]
+        DDP[DDoS Protection]
+        SSL[SSL/TLS Termination]
+        RATE[Rate Limiting]
+    end
+
+    subgraph "Authentication Layer"
+        OAUTH[Plex OAuth]
+        JWT[JWT Tokens]
+        MFA[Multi-Factor Auth]
+        SESSION[Session Management]
+    end
+
+    subgraph "Authorization Layer"
+        RBAC[Role-Based Access Control]
+        PERM[Permission System]
+        API_KEY[API Key Management]
+        DEVICE[Device Registration]
+    end
+
+    subgraph "Data Protection"
+        ENCRYPT_REST[Encryption at Rest]
+        ENCRYPT_TRANSIT[Encryption in Transit]
+        SECRET_MGR[Secret Management]
+        AUDIT[Audit Logging]
+    end
+
+    subgraph "Threat Detection"
+        ANOMALY[Anomaly Detection]
+        INTRUSION[Intrusion Detection]
+        SIEM[SIEM Integration]
+        INCIDENT[Incident Response]
+    end
+
+    WAF --&gt; OAUTH
+    DDP --&gt; JWT
+    SSL --&gt; MFA
+    RATE --&gt; SESSION
+
+    OAUTH --&gt; RBAC
+    JWT --&gt; PERM
+    MFA --&gt; API_KEY
+    SESSION --&gt; DEVICE
+
+    RBAC --&gt; ENCRYPT_REST
+    PERM --&gt; ENCRYPT_TRANSIT
+    API_KEY --&gt; SECRET_MGR
+    DEVICE --&gt; AUDIT
+
+    ENCRYPT_REST --&gt; ANOMALY
+    ENCRYPT_TRANSIT --&gt; INTRUSION
+    SECRET_MGR --&gt; SIEM
+    AUDIT --&gt; INCIDENT
+
+    style WAF fill:#ffcdd2
+    style OAUTH fill:#c8e6c9
+    style RBAC fill:#bbdefb
+    style ENCRYPT_REST fill:#fff3e0
+    style ANOMALY fill:#f3e5f5</code></pre><h3 id="security-implementation-details">Security Implementation Details<a class="headerlink" href="#security-implementation-details" title="Permanent link">&para;</a></h3><h4 id="authentication-authorization">Authentication &amp; Authorization<a class="headerlink" href="#authentication-authorization" title="Permanent link">&para;</a></h4><ul><li><strong>JWT Security</strong>: Secure token generation and validation with RS256</li><li><strong>Session Management</strong>: Device-specific session handling with fingerprinting</li><li><strong>OAuth Integration</strong>: Plex OAuth 2.0 with PKCE flow</li><li><strong>Rate Limiting</strong>: Intelligent rate limiting per user and endpoint with Redis backing</li><li><strong>Multi-Device Support</strong>: Session management across multiple devices</li></ul><h4 id="api-security">API Security<a class="headerlink" href="#api-security" title="Permanent link">&para;</a></h4><ul><li><strong>CORS Policy</strong>: Strict origin validation for production environments</li><li><strong>Security Headers</strong>: Comprehensive security headers via Helmet.js</li><li>Content Security Policy (CSP)</li><li>HTTP Strict Transport Security (HSTS)</li><li>X-Frame-Options, X-Content-Type-Options</li><li>Referrer Policy, Permissions Policy</li><li><strong>Input Validation</strong>: Zod schema validation with sanitization</li><li><strong>SQL Injection Prevention</strong>: Parameterized queries via Prisma ORM</li></ul><h4 id="data-security">Data Security<a class="headerlink" href="#data-security" title="Permanent link">&para;</a></h4><ul><li><strong>Encryption at Rest</strong>: AES-256 database encryption</li><li><strong>Encryption in Transit</strong>: TLS 1.3 for all communications</li><li><strong>Secret Management</strong>: Environment variables with rotation capabilities</li><li><strong>Password Hashing</strong>: bcryptjs with configurable salt rounds</li><li><strong>Token Security</strong>: JWT with short expiration and refresh token rotation</li></ul><h3 id="data-protection">Data Protection<a class="headerlink" href="#data-protection" title="Permanent link">&para;</a></h3><ul><li><strong>Encryption</strong>: At-rest and in-transit encryption</li><li><strong>Secret Management</strong>: Environment-based secret management</li><li><strong>Database Security</strong>: Connection encryption and access controls</li><li><strong>Audit Logging</strong>: Comprehensive audit trails for security events</li></ul><h2 id="database-schema-architecture">Database Schema Architecture<a class="headerlink" href="#database-schema-architecture" title="Permanent link">&para;</a></h2><h3 id="entity-relationship-diagram">Entity Relationship Diagram<a class="headerlink" href="#entity-relationship-diagram" title="Permanent link">&para;</a></h3><pre class="mermaid"><code>erDiagram
+    User ||--o{ MediaRequest : creates
+    User ||--o{ YoutubeDownload : initiates
+    User ||--o{ SessionToken : has
+    User ||--o{ Notification : receives
+    User ||--o{ ErrorLog : generates
+    User ||--o{ RateLimit : subject_to
+    User ||--o{ Account : owns
+    User ||--o{ Session : has
+    User ||--o{ ServiceConfig : updates
+
+    User {
+        uuid id PK
+        string plex_id UK
+        string plex_username
+        string email UK
+        string name
+        string role
+        string plex_token
+        string image
+        boolean requires_password_change
+        datetime created_at
+        datetime last_login_at
+        string status
+    }
+
+    MediaRequest {
+        uuid id PK
+        uuid user_id FK
+        string title
+        string media_type
+        string tmdb_id
+        string status
+        string overseerr_id
+        datetime created_at
+        datetime completed_at
+    }
+
+    YoutubeDownload {
+        uuid id PK
+        uuid user_id FK
+        string playlist_url
+        string playlist_title
+        string status
+        json file_paths
+        string plex_collection_id
+        datetime created_at
+        datetime completed_at
+    }
+
+    SessionToken {
+        uuid id PK
+        uuid user_id FK
+        string token_hash UK
+        datetime expires_at
+        datetime created_at
+        datetime last_used_at
+    }
+
+    Notification {
+        uuid id PK
+        uuid user_id FK
+        string type
+        string title
+        string message
+        boolean read
+        datetime created_at
+        datetime read_at
+        json metadata
+    }
+
+    ServiceStatus {
+        int id PK
+        string service_name UK
+        string status
+        int response_time_ms
+        datetime last_check_at
+        decimal uptime_percentage
+    }
+
+    ErrorLog {
+        uuid id PK
+        string correlation_id
+        uuid user_id FK
+        string error_code
+        string error_message
+        text stack_trace
+        string request_path
+        string request_method
+        int status_code
+        json metadata
+        datetime created_at
+    }
+
+    ServiceMetric {
+        uuid id PK
+        string service_name
+        string metric_name
+        float metric_value
+        datetime timestamp
+        json metadata
+    }
+
+    ServiceIncident {
+        uuid id PK
+        string service_name
+        string incident_type
+        string description
+        string severity
+        string status
+        datetime created_at
+        datetime resolved_at
+        json metadata
+    }
+
+    RateLimit {
+        int id PK
+        uuid user_id FK
+        string endpoint
+        int request_count
+        datetime window_start
+    }
+
+    ServiceConfig {
+        int id PK
+        string service_name UK
+        string service_url
+        string api_key
+        boolean enabled
+        json config_data
+        datetime updated_at
+        uuid updated_by FK
+    }
+
+    Account {
+        uuid id PK
+        uuid user_id FK
+        string type
+        string provider
+        string provider_account_id
+        text refresh_token
+        text access_token
+        int expires_at
+        string token_type
+        string scope
+        text id_token
+        string session_state
+    }
+
+    Session {
+        uuid id PK
+        string session_token UK
+        uuid user_id FK
+        datetime expires
+    }
+
+    VerificationToken {
+        string identifier
+        string token UK
+        datetime expires
+    }</code></pre><h2 id="system-integration-architecture">System Integration Architecture<a class="headerlink" href="#system-integration-architecture" title="Permanent link">&para;</a></h2><h3 id="external-service-integration-map">External Service Integration Map<a class="headerlink" href="#external-service-integration-map" title="Permanent link">&para;</a></h3><pre class="mermaid"><code>graph TB
+    subgraph "MediaNest Core"
+        CORE[MediaNest Platform]
+        API[REST API]
+        WS[WebSocket Server]
+        BG[Background Jobs]
+    end
+
+    subgraph "Media Ecosystem"
+        PLEX[Plex Media Server]
+        OVERSEERR[Overseerr]
+        TMDB[TMDB API]
+        YOUTUBE[YouTube API]
+    end
+
+    subgraph "Infrastructure Services"
+        UPTIME[Uptime Kuma]
+        PROMETHEUS[Prometheus]
+        GRAFANA[Grafana]
+        SENTRY[Sentry]
+    end
+
+    subgraph "Authentication"
+        PLEX_OAUTH[Plex OAuth]
+        JWT_SVC[JWT Service]
+    end
+
+    subgraph "Storage Layer"
+        POSTGRES[(PostgreSQL)]
+        REDIS[(Redis)]
+        FILES[File Storage]
+    end
+
+    %% Core to Media Ecosystem
+    API &lt;--&gt;|OAuth Flow| PLEX_OAUTH
+    API &lt;--&gt;|Library Management| PLEX
+    API &lt;--&gt;|Media Requests| OVERSEERR
+    API &lt;--&gt;|Metadata Enrichment| TMDB
+    BG &lt;--&gt;|Video Downloads| YOUTUBE
+
+    %% Core to Infrastructure
+    API --&gt;|Health Checks| UPTIME
+    API --&gt;|Metrics| PROMETHEUS
+    PROMETHEUS --&gt;|Visualization| GRAFANA
+    API --&gt;|Error Tracking| SENTRY
+
+    %% Authentication Flow
+    API --&gt;|Token Management| JWT_SVC
+    JWT_SVC --&gt;|Session Storage| REDIS
+
+    %% Data Flow
+    API --&gt;|Data Persistence| POSTGRES
+    API --&gt;|Caching| REDIS
+    BG --&gt;|File Operations| FILES
+
+    %% Real-time Updates
+    WS --&gt;|Live Notifications| CORE
+    BG --&gt;|Status Updates| WS
+
+    classDef coreSystem fill:#e1f5fe,stroke:#0277bd,stroke-width:3px
+    classDef mediaService fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef infrastructure fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    classDef storage fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+
+    class CORE,API,WS,BG coreSystem
+    class PLEX,OVERSEERR,TMDB,YOUTUBE,PLEX_OAUTH mediaService
+    class UPTIME,PROMETHEUS,GRAFANA,SENTRY infrastructure
+    class POSTGRES,REDIS,FILES storage</code></pre><aside class="md-source-file"><span class="md-source-file__fact"><span class="md-icon" title="Last update"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="September 12, 2025 20:05:39 UTC"><span class="timeago" datetime="2025-09-12T20:05:39+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="September 12, 2025 20:05:39 UTC">2025-09-12</span></span><span class="md-source-file__fact"><span class="md-icon" title="Created"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="September 7, 2025 03:21:31 UTC"><span class="timeago" datetime="2025-09-07T03:21:31+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="September 7, 2025 03:21:31 UTC">2025-09-07</span></span></aside><form class="md-feedback" name="feedback" hidden><fieldset><legend class="md-feedback__title"> Was this page helpful? </legend><div class="md-feedback__inner"><div class="md-feedback__list"><button class="md-feedback__icon md-icon" type="submit" title="This page was helpful" data-md-value="1"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m7 0c0 .8-.7 1.5-1.5 1.5S14 10.3 14 9.5 14.7 8 15.5 8s1.5.7 1.5 1.5m-5 7.73c-1.75 0-3.29-.73-4.19-1.81L9.23 14c.45.72 1.52 1.23 2.77 1.23s2.32-.51 2.77-1.23l1.42 1.42c-.9 1.08-2.44 1.81-4.19 1.81"/></svg></button><button class="md-feedback__icon md-icon" type="submit" title="This page could be improved" data-md-value="0"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10m-6.5-4c.8 0 1.5.7 1.5 1.5s-.7 1.5-1.5 1.5-1.5-.7-1.5-1.5.7-1.5 1.5-1.5M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m2 4.5c1.75 0 3.29.72 4.19 1.81l-1.42 1.42C14.32 16.5 13.25 16 12 16s-2.32.5-2.77 1.23l-1.42-1.42C8.71 14.72 10.25 14 12 14"/></svg></button></div><div class="md-feedback__note"><div data-md-value="1" hidden> Thanks for your feedback! Consider starring us on <a href="https://github.com/kinginyellow/medianest" target="_blank" rel="noopener">GitHub</a> and sharing with the community. </div><div data-md-value="0" hidden> Thanks for your feedback! Help us improve by <a href="https://github.com/kinginyellow/medianest/issues/new/?title=[Docs]+System%20Overview+-+/architecture/system-overview/" target="_blank" rel="noopener">creating an issue</a> or <a href="https://github.com/kinginyellow/medianest/edit/develop/docs/{path}" target="_blank" rel="noopener">editing this page</a>. </div></div></div></fieldset></form></article></div><script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script><script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script></div><button type="button" class="md-top md-icon" data-md-component="top" hidden><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg> Back to top </button></main><footer class="md-footer"><nav class="md-footer__inner md-grid" aria-label="Footer"><a href="../data-flow/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Data Flow"><div class="md-footer__button md-icon"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg></div><div class="md-footer__title"><span class="md-footer__direction"> Previous </span><div class="md-ellipsis"> Data Flow </div></div></a><a href="../decisions/adr-001-architecture/" class="md-footer__link md-footer__link--next" aria-label="Next: ADR-001 Architecture"><div class="md-footer__title"><span class="md-footer__direction"> Next </span><div class="md-ellipsis"> ADR-001 Architecture </div></div><div class="md-footer__button md-icon"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg></div></a></nav><div class="md-footer-meta md-typeset"><div class="md-footer-meta__inner md-grid"><div class="md-copyright"><div class="md-copyright__highlight"> Copyright &copy; 2024 MediaNest Development Team - <a href="#__consent">Manage Cookies</a> | <a href="/privacy">Privacy Policy</a> | <a href="/terms">Terms of Service</a></div></div><div class="md-social"><a href="https://github.com/kinginyellow/medianest" target="_blank" rel="noopener" title="GitHub Repository" class="md-social__link"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 512 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg></a><a href="https://hub.docker.com/r/medianest/medianest" target="_blank" rel="noopener" title="Docker Hub" class="md-social__link"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 640 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M349.9 236.3h-66.1v-59.4h66.1zm0-204.3h-66.1v60.7h66.1zm78.2 144.8H362v59.4h66.1zm-156.3-72.1h-66.1v60.1h66.1zm78.1 0h-66.1v60.1h66.1zm276.8 100c-14.4-9.7-47.6-13.2-73.1-8.4-3.3-24-16.7-44.9-41.1-63.7l-14-9.3-9.3 14c-18.4 27.8-23.4 73.6-3.7 103.8-8.7 4.7-25.8 11.1-48.4 10.7H2.4c-8.7 50.8 5.8 116.8 44 162.1 37.1 43.9 92.7 66.2 165.4 66.2 157.4 0 273.9-72.5 328.4-204.2 21.4.4 67.6.1 91.3-45.2 1.5-2.5 6.6-13.2 8.5-17.1zm-511.1-27.9h-66v59.4h66.1v-59.4zm78.1 0h-66.1v59.4h66.1zm78.1 0h-66.1v59.4h66.1zm-78.1-72.1h-66.1v60.1h66.1z"/></svg></a><a href="https://discord.gg/medianest" target="_blank" rel="noopener" title="Discord Community" class="md-social__link"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 576 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M492.5 69.8c-.2-.3-.4-.6-.8-.7-38.1-17.5-78.4-30-119.7-37.1-.4-.1-.8 0-1.1.1s-.6.4-.8.8c-5.5 9.9-10.5 20.2-14.9 30.6-44.6-6.8-89.9-6.8-134.4 0-4.5-10.5-9.5-20.7-15.1-30.6-.2-.3-.5-.6-.8-.8s-.7-.2-1.1-.2C162.5 39 122.2 51.5 84.1 69c-.3.1-.6.4-.8.7C7.1 183.5-13.8 294.6-3.6 404.2c0 .3.1.5.2.8s.3.4.5.6c44.4 32.9 94 58 146.8 74.2.4.1.8.1 1.1 0s.7-.4.9-.7c11.3-15.4 21.4-31.8 30-48.8.1-.2.2-.5.2-.8s0-.5-.1-.8-.2-.5-.4-.6-.4-.3-.7-.4c-15.8-6.1-31.2-13.4-45.9-21.9-.3-.2-.5-.4-.7-.6s-.3-.6-.3-.9 0-.6.2-.9.3-.5.6-.7c3.1-2.3 6.2-4.7 9.1-7.1.3-.2.6-.4.9-.4s.7 0 1 .1c96.2 43.9 200.4 43.9 295.5 0 .3-.1.7-.2 1-.2s.7.2.9.4c2.9 2.4 6 4.9 9.1 7.2.2.2.4.4.6.7s.2.6.2.9-.1.6-.3.9-.4.5-.6.6c-14.7 8.6-30 15.9-45.9 21.8-.2.1-.5.2-.7.4s-.3.4-.4.7-.1.5-.1.8.1.5.2.8c8.8 17 18.8 33.3 30 48.8.2.3.6.6.9.7s.8.1 1.1 0c52.9-16.2 102.6-41.3 147.1-74.2.2-.2.4-.4.5-.6s.2-.5.2-.8c12.3-126.8-20.5-236.9-86.9-334.5zm-302 267.7c-29 0-52.8-26.6-52.8-59.2s23.4-59.2 52.8-59.2c29.7 0 53.3 26.8 52.8 59.2 0 32.7-23.4 59.2-52.8 59.2m195.4 0c-29 0-52.8-26.6-52.8-59.2s23.4-59.2 52.8-59.2c29.7 0 53.3 26.8 52.8 59.2 0 32.7-23.2 59.2-52.8 59.2"/></svg></a><a href="https://twitter.com/medianest" target="_blank" rel="noopener" title="Twitter Updates" class="md-social__link"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 512 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M459.4 151.7c.3 4.5.3 9.1.3 13.6 0 138.7-105.6 298.6-298.6 298.6-59.5 0-114.7-17.2-161.1-47.1 8.4 1 16.6 1.3 25.3 1.3 49.1 0 94.2-16.6 130.3-44.8-46.1-1-84.8-31.2-98.1-72.8 6.5 1 13 1.6 19.8 1.6 9.4 0 18.8-1.3 27.6-3.6-48.1-9.7-84.1-52-84.1-103v-1.3c14 7.8 30.2 12.7 47.4 13.3-28.3-18.8-46.8-51-46.8-87.4 0-19.5 5.2-37.4 14.3-53C87.4 130.8 165 172.4 252.1 176.9c-1.6-7.8-2.6-15.9-2.6-24C249.5 95.1 296.3 48 354.4 48c30.2 0 57.5 12.7 76.7 33.1 23.7-4.5 46.5-13.3 66.6-25.3-7.8 24.4-24.4 44.8-46.1 57.8 21.1-2.3 41.6-8.1 60.4-16.2-14.3 20.8-32.2 39.3-52.6 54.3"/></svg></a><a href="https://medianest.com" target="_blank" rel="noopener" title="Official Website" class="md-social__link"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 512 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M351.9 280H161c2.9 64.5 17.2 123.9 37.5 167.4 11.4 24.5 23.7 41.8 35.1 52.4 11.2 10.5 18.9 12.2 22.9 12.2s11.7-1.7 22.9-12.2c11.4-10.6 23.7-28 35.1-52.4 20.3-43.5 34.6-102.9 37.5-167.4zm-191-48h190.9c-2.8-64.5-17.1-123.9-37.4-167.4-11.4-24.4-23.7-41.8-35.1-52.4C268.1 1.7 260.4 0 256.4 0s-11.7 1.7-22.9 12.2c-11.4 10.6-23.7 28-35.1 52.4-20.3 43.5-34.6 102.9-37.5 167.4m-48 0c3.5-85.6 25.6-165.1 57.9-217.3C78.7 47.3 10.9 131.2 1.5 232zM1.5 280c9.4 100.8 77.2 184.7 169.3 217.3-32.3-52.2-54.4-131.7-57.9-217.3zm398.4 0c-3.5 85.6-25.6 165.1-57.9 217.3 92.1-32.7 159.9-116.5 169.3-217.3zm111.4-48C501.9 131.2 434.1 47.3 342 14.7c32.3 52.2 54.4 131.7 57.9 217.3z"/></svg></a><a href="https://kinginyellow.github.io/medianest/" target="_blank" rel="noopener" title="Documentation" class="md-social__link"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 448 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M384 512H96c-53 0-96-43-96-96V96C0 43 43 0 96 0h304c26.5 0 48 21.5 48 48v288c0 20.9-13.4 38.7-32 45.3V448c17.7 0 32 14.3 32 32s-14.3 32-32 32zM96 384c-17.7 0-32 14.3-32 32s14.3 32 32 32h256v-64zm32-232c0 13.3 10.7 24 24 24h176c13.3 0 24-10.7 24-24s-10.7-24-24-24H152c-13.3 0-24 10.7-24 24m24 72c-13.3 0-24 10.7-24 24s10.7 24 24 24h176c13.3 0 24-10.7 24-24s-10.7-24-24-24z"/></svg></a></div></div></div></footer></div><div class="md-dialog" data-md-component="dialog"><div class="md-dialog__inner md-typeset"></div></div><div class="md-progress" data-md-component="progress" role="progressbar"></div><div class="md-consent" data-md-component="consent" id="__consent" hidden><div class="md-consent__overlay"></div><aside class="md-consent__inner"><form class="md-consent__form md-grid md-typeset" name="consent"><h4>Cookie consent</h4><p>We use cookies to recognize your repeated visits and preferences, as well as to measure the effectiveness of our documentation and whether users find what they're searching for. With your consent, you're helping us to make our documentation better.</p><input class="md-toggle" type="checkbox" id="__settings"><div class="md-consent__settings"><ul class="task-list"><li class="task-list-item"><label class="task-list-control"><input type="checkbox" name="analytics"><span class="task-list-indicator"></span> Google Analytics </label></li><li class="task-list-item"><label class="task-list-control"><input type="checkbox" name="github"><span class="task-list-indicator"></span> GitHub </label></li></ul></div><div class="md-consent__controls"><button class="md-button md-button--primary">Accept</button><button type="reset" class="md-button md-button--primary">Reject</button><label class="md-button" for="__settings">Manage settings</label></div></form></aside></div><script>var consent=__md_get("__consent");if(consent)for(var input of document.forms.consent.elements)input.name&&(input.checked=consent[input.name]||!1);else"file:"!==location.protocol&&setTimeout((function(){document.querySelector("[data-md-component=consent]").hidden=!1}),250);var form=document.forms.consent;for(var action of["submit","reset"])form.addEventListener(action,(function(e){if(e.preventDefault(),"reset"===e.type)for(var n of document.forms.consent.elements)n.name&&(n.checked=!1);__md_set("__consent",Object.fromEntries(Array.from(new FormData(form).keys()).map((function(e){return[e,!0]})))),location.hash="",location.reload()}))</script><script id="__config" type="application/json">{"base": "../..", "features": ["announce.dismiss", "content.action.edit", "content.action.view", "content.code.annotate", "content.code.copy", "content.code.select", "content.footnote.tooltips", "content.tabs.link", "content.tooltips", "header.autohide", "navigation.expand", "navigation.footer", "navigation.indexes", "navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.path", "navigation.prune", "navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow", "toc.integrate"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": {"API": "api", "Configuration": "config", "Docker": "docker", "Performance": "performance", "Reference": "reference", "Security": "security", "Setup": "setup", "Tutorial": "tutorial"}, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script><script src="../../assets/javascripts/bundle.92b07e13.min.js"></script><script src="../../js/timeago.min.js"></script><script src="../../js/timeago_mkdocs_material.js"></script><script src="../../javascripts/extra.js"></script><script src="../../javascripts/medianest.js"></script><script src="../../javascripts/search-enhancements.js"></script><script src="../../javascripts/api-explorer.js"></script><script src="../../javascripts/mermaid-config.js"></script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script><script src="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui-bundle.js"></script></body></html>

@@ -371,7 +371,6 @@ export function isRetryableError(error: Error | AppError): boolean {
  * // Extract details from an AppError
  * const error = new AppError('VALIDATION_ERROR', 'Invalid input', 400, { field: 'email' });
  * const details = extractErrorDetails(error);
- * console.log(details);
  * // {
  * //   message: 'Invalid input',
  * //   name: 'AppError',

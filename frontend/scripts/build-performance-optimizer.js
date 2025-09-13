@@ -4,7 +4,6 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-console.log('⚡ PERFORMANCE BUILD OPTIMIZER\n');
 
 const colors = {
   red: '\x1b[31m',
@@ -640,7 +639,6 @@ export default {
 `;
 
 function optimizeBundle() {
-  console.log(
     `${colors.blue}${colors.bold}🚀 IMPLEMENTING ULTRA-AGGRESSIVE OPTIMIZATIONS${colors.reset}\n`
   );
 
@@ -650,12 +648,10 @@ function optimizeBundle() {
 
   if (fs.existsSync(currentConfig) && !fs.existsSync(backupConfig)) {
     fs.copyFileSync(currentConfig, backupConfig);
-    console.log(`${colors.green}✅ Backed up current config to ${backupConfig}${colors.reset}`);
   }
 
   // 2. Write optimized config
   fs.writeFileSync('next.config.performance-optimized.js', optimizedConfig);
-  console.log(`${colors.green}✅ Created optimized Next.js config${colors.reset}`);
 
   // 3. Create optimized dynamic imports
   const dynamicImportsPath = 'src/components/dynamic/OptimizedDynamicImports.tsx';
@@ -666,27 +662,13 @@ function optimizeBundle() {
   }
 
   fs.writeFileSync(dynamicImportsPath, dynamicImportsHelper);
-  console.log(`${colors.green}✅ Created optimized dynamic imports helper${colors.reset}`);
 
   // 4. Apply the optimized config
   fs.copyFileSync('next.config.performance-optimized.js', currentConfig);
-  console.log(`${colors.green}✅ Applied optimized configuration${colors.reset}`);
 
-  console.log(`\n${colors.yellow}${colors.bold}📋 OPTIMIZATION SUMMARY:${colors.reset}`);
-  console.log('   🎯 Target: <500KB total bundle size');
-  console.log('   📦 Applied: Ultra-aggressive code splitting (50+ chunks)');
-  console.log('   ⚡ Applied: Dynamic imports for all heavy components');
-  console.log('   🌳 Applied: Maximum tree-shaking optimizations');
-  console.log('   🔄 Applied: Micro-chunk strategy for vendor libraries');
-  console.log('   💾 Applied: Deterministic chunk IDs for caching');
 
-  console.log(`\n${colors.magenta}${colors.bold}🎛️  NEXT STEPS:${colors.reset}`);
-  console.log(`   1. Run: ${colors.cyan}npm run build${colors.reset} - Build with optimizations`);
-  console.log(
     `   2. Run: ${colors.cyan}npm run analyze:bundle${colors.reset} - Check new bundle sizes`
   );
-  console.log(`   3. Update components to use OptimizedDynamicImports.tsx`);
-  console.log(`   4. Test application functionality after optimization`);
 
   return true;
 }
@@ -695,9 +677,7 @@ function optimizeBundle() {
 if (require.main === module) {
   try {
     optimizeBundle();
-    console.log(`\n${colors.green}${colors.bold}🎉 BUNDLE OPTIMIZATION COMPLETE!${colors.reset}\n`);
   } catch (error) {
-    console.error(`${colors.red}❌ Optimization failed:${colors.reset}`, error.message);
     process.exit(1);
   }
 }

@@ -1,0 +1,914 @@
+<!doctype html><html lang="en" class="no-js"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Complete documentation for MediaNest - Advanced Media Management Platform with Plex Integration, API, and Developer Resources"><meta name="author" content="MediaNest Development Team"><link rel="canonical" href="https://kinginyellow.github.io/medianest/deployment/troubleshooting-guide/"><link rel="icon" href="../../assets/images/favicon.ico"><meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.19"><title>MediaNest Deployment Troubleshooting Guide - MediaNest Documentation</title><link rel="stylesheet" href="../../assets/stylesheets/main.7e37652d.min.css"><link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback"><style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style><link rel="stylesheet" href="../../css/timeago.css"><link rel="stylesheet" href="../../stylesheets/extra.css"><link rel="stylesheet" href="../../stylesheets/medianest-theme.css"><link rel="stylesheet" href="../../stylesheets/material-enhancements.css"><link rel="stylesheet" href="../../stylesheets/animations.css"><link rel="stylesheet" href="../../stylesheets/responsive.css"><link rel="stylesheet" href="../../stylesheets/diagram-styles.css"><link rel="stylesheet" href="../../stylesheets/api-docs.css"><link rel="stylesheet" href="../../stylesheets/code-highlights.css"><link rel="stylesheet" href="../../stylesheets/mermaid-custom.css"><script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script><script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-XXXXXXXXXX"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-XXXXXXXXXX",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script><script>if("undefined"!=typeof __md_analytics){var consent=__md_get("__consent");consent&&consent.analytics&&__md_analytics()}</script></head><body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple"><input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off"><input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off"><label class="md-overlay" for="__drawer"></label><div data-md-component="skip"><a href="#medianest-deployment-troubleshooting-guide" class="md-skip"> Skip to content </a></div><div data-md-component="announce"></div><div data-md-color-scheme="default" data-md-component="outdated" hidden></div><header class="md-header md-header--shadow md-header--lifted" data-md-component="header"><nav class="md-header__inner md-grid" aria-label="Header"><a href="https://kinginyellow.github.io/medianest/" title="MediaNest Documentation" class="md-header__button md-logo" aria-label="MediaNest Documentation" data-md-component="logo"><img src="../../assets/images/logo.svg" alt="logo"></a><label class="md-header__button md-icon" for="__drawer"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg></label><div class="md-header__title" data-md-component="header-title"><div class="md-header__ellipsis"><div class="md-header__topic"><span class="md-ellipsis"> MediaNest Documentation </span></div><div class="md-header__topic" data-md-component="header-topic"><span class="md-ellipsis"> MediaNest Deployment Troubleshooting Guide </span></div></div></div><form class="md-header__option" data-md-component="palette"><input class="md-option" data-md-color-media data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0"><label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg></label><input class="md-option" data-md-color-media data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1"><label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg></label></form><script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script><label class="md-header__button md-icon" for="__search"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg></label><div class="md-search" data-md-component="search" role="dialog"><label class="md-search__overlay" for="__search"></label><div class="md-search__inner" role="search"><form class="md-search__form" name="search"><input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required><label class="md-search__icon md-icon" for="__search"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg></label><nav class="md-search__options" aria-label="Search"><a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text data-md-component="search-share" tabindex="-1"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg></a><button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></nav><div class="md-search__suggest" data-md-component="search-suggest"></div></form><div class="md-search__output"><div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix><div class="md-search-result" data-md-component="search-result"><div class="md-search-result__meta"> Initializing search </div><ol class="md-search-result__list" role="presentation"></ol></div></div></div></div></div><div class="md-header__source"><a href="https://github.com/kinginyellow/medianest" title="Go to repository" class="md-source" data-md-component="source"><div class="md-source__icon md-icon"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 448 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg></div><div class="md-source__repository"> kinginyellow/medianest </div></a></div></nav><nav class="md-tabs" aria-label="Tabs" data-md-component="tabs"><div class="md-grid"><ul class="md-tabs__list"><li class="md-tabs__item"><a href="../.." class="md-tabs__link"> Home </a></li><li class="md-tabs__item"><a href="../../getting-started/" class="md-tabs__link"> Getting Started </a></li><li class="md-tabs__item"><a href="../../architecture/component-architecture/" class="md-tabs__link"> Architecture </a></li><li class="md-tabs__item"><a href="../../api/overview/" class="md-tabs__link"> API Reference </a></li><li class="md-tabs__item"><a href="../../operations/monitoring-stack/" class="md-tabs__link"> Operations </a></li><li class="md-tabs__item"><a href="../ci-cd/" class="md-tabs__link"> Deployment </a></li><li class="md-tabs__item"><a href="../../developers/contributing/" class="md-tabs__link"> Developers </a></li><li class="md-tabs__item"><a href="../../visuals/database-schema/" class="md-tabs__link"> Visuals </a></li><li class="md-tabs__item"><a href="../../standards/documentation-checklist/" class="md-tabs__link"> Standards </a></li></ul></div></nav></header><div class="md-container" data-md-component="container"><main class="md-main" data-md-component="main"><div class="md-main__inner md-grid"><div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation"><div class="md-sidebar__scrollwrap"><div class="md-sidebar__inner"><nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0"><label class="md-nav__title" for="__drawer"><a href="https://kinginyellow.github.io/medianest/" title="MediaNest Documentation" class="md-nav__button md-logo" aria-label="MediaNest Documentation" data-md-component="logo"><img src="../../assets/images/logo.svg" alt="logo"></a> MediaNest Documentation </label><div class="md-nav__source"><a href="https://github.com/kinginyellow/medianest" title="Go to repository" class="md-source" data-md-component="source"><div class="md-source__icon md-icon"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 448 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg></div><div class="md-source__repository"> kinginyellow/medianest </div></a></div><ul class="md-nav__list" data-md-scrollfix><li class="md-nav__item"><a href="../.." class="md-nav__link"><span class="md-ellipsis"> Home </span></a></li><li class="md-nav__item md-nav__item--pruned md-nav__item--nested"><a href="../../getting-started/" class="md-nav__link"><span class="md-ellipsis"> Getting Started </span><span class="md-nav__icon md-icon"></span></a></li><li class="md-nav__item md-nav__item--pruned md-nav__item--nested"><a href="../../architecture/component-architecture/" class="md-nav__link"><span class="md-ellipsis"> Architecture </span><span class="md-nav__icon md-icon"></span></a></li><li class="md-nav__item md-nav__item--pruned md-nav__item--nested"><a href="../../api/overview/" class="md-nav__link"><span class="md-ellipsis"> API Reference </span><span class="md-nav__icon md-icon"></span></a></li><li class="md-nav__item md-nav__item--pruned md-nav__item--nested"><a href="../../operations/monitoring-stack/" class="md-nav__link"><span class="md-ellipsis"> Operations </span><span class="md-nav__icon md-icon"></span></a></li><li class="md-nav__item md-nav__item--pruned md-nav__item--nested"><a href="../ci-cd/" class="md-nav__link"><span class="md-ellipsis"> Deployment </span><span class="md-nav__icon md-icon"></span></a></li><li class="md-nav__item md-nav__item--pruned md-nav__item--nested"><a href="../../developers/contributing/" class="md-nav__link"><span class="md-ellipsis"> Developers </span><span class="md-nav__icon md-icon"></span></a></li><li class="md-nav__item md-nav__item--pruned md-nav__item--nested"><a href="../../visuals/database-schema/" class="md-nav__link"><span class="md-ellipsis"> Visuals </span><span class="md-nav__icon md-icon"></span></a></li><li class="md-nav__item md-nav__item--pruned md-nav__item--nested"><a href="../../standards/documentation-checklist/" class="md-nav__link"><span class="md-ellipsis"> Standards </span><span class="md-nav__icon md-icon"></span></a></li></ul></nav></div></div></div><div class="md-content" data-md-component="content"><article class="md-content__inner md-typeset"><a href="https://github.com/kinginyellow/medianest/edit/develop/docs/deployment/troubleshooting-guide.md" title="Edit this page" class="md-content__button md-icon" rel="edit"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg></a><a href="https://github.com/kinginyellow/medianest/raw/develop/docs/deployment/troubleshooting-guide.md" title="View source of this page" class="md-content__button md-icon"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.2 8.2 0 0 1-1.23-2"/></svg></a><h1 id="medianest-deployment-troubleshooting-guide">MediaNest Deployment Troubleshooting Guide<a class="headerlink" href="#medianest-deployment-troubleshooting-guide" title="Permanent link">&para;</a></h1><p><strong>Comprehensive solutions for common deployment issues with step-by-step diagnostics and fixes.</strong></p><h2 id="diagnostic-quick-reference">🔍 Diagnostic Quick Reference<a class="headerlink" href="#diagnostic-quick-reference" title="Permanent link">&para;</a></h2><h3 id="first-steps-for-any-issue">First Steps for Any Issue<a class="headerlink" href="#first-steps-for-any-issue" title="Permanent link">&para;</a></h3><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1">1</a></span>
+<span class="normal"><a href="#__codelineno-0-2">2</a></span>
+<span class="normal"><a href="#__codelineno-0-3">3</a></span>
+<span class="normal"><a href="#__codelineno-0-4">4</a></span>
+<span class="normal"><a href="#__codelineno-0-5">5</a></span>
+<span class="normal"><a href="#__codelineno-0-6">6</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="c1"># Always start with these commands to gather information:</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>ps
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>logs<span class="w"> </span>--tail<span class="o">=</span><span class="m">50</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4"></a>docker<span class="w"> </span>system<span class="w"> </span>df
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5"></a>free<span class="w"> </span>-h
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6"></a>df<span class="w"> </span>-h
+</span></code></pre></div></td></tr></table></div><h3 id="log-locations">Log Locations<a class="headerlink" href="#log-locations" title="Permanent link">&para;</a></h3><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-1-1">1</a></span>
+<span class="normal"><a href="#__codelineno-1-2">2</a></span>
+<span class="normal"><a href="#__codelineno-1-3">3</a></span>
+<span class="normal"><a href="#__codelineno-1-4">4</a></span>
+<span class="normal"><a href="#__codelineno-1-5">5</a></span>
+<span class="normal"><a href="#__codelineno-1-6">6</a></span>
+<span class="normal"><a href="#__codelineno-1-7">7</a></span>
+<span class="normal"><a href="#__codelineno-1-8">8</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1"></a><span class="c1"># Application logs</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2"></a>tail<span class="w"> </span>-f<span class="w"> </span>logs/backend/application.log
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3"></a>tail<span class="w"> </span>-f<span class="w"> </span>logs/frontend/next.log
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4"></a>tail<span class="w"> </span>-f<span class="w"> </span>logs/nginx/access.log
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5"></a>tail<span class="w"> </span>-f<span class="w"> </span>logs/nginx/error.log
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6"></a>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7"></a><span class="c1"># Container logs</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>logs<span class="w"> </span>-f<span class="w"> </span>backend<span class="w"> </span>frontend<span class="w"> </span>postgres<span class="w"> </span>redis<span class="w"> </span>nginx
+</span></code></pre></div></td></tr></table></div><hr><h2 id="docker-container-issues">🐳 Docker &amp; Container Issues<a class="headerlink" href="#docker-container-issues" title="Permanent link">&para;</a></h2><h3 id="issue-containers-wont-start">Issue: Containers Won't Start<a class="headerlink" href="#issue-containers-wont-start" title="Permanent link">&para;</a></h3><p><strong>Symptoms:</strong></p><ul><li>Containers exit immediately with non-zero code</li><li><code>docker compose ps</code> shows services as "Exit 1" or "Exit 125"</li><li>Services stuck in "Restarting" state</li></ul><p><strong>Immediate Diagnosis:</strong></p><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-2-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-2-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-2-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-2-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-2-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-2-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-2-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-2-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-2-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-2-10">10</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1"></a><span class="c1"># Check container status and exit codes</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>ps
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3"></a>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4"></a><span class="c1"># Check logs for specific service (replace &#39;backend&#39; with problematic service)</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>logs<span class="w"> </span>backend
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6"></a>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7"></a><span class="c1"># Check system resources</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8"></a>df<span class="w"> </span>-h<span class="w">  </span><span class="c1"># Disk space</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9"></a>free<span class="w"> </span>-h<span class="w">  </span><span class="c1"># Memory</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10"></a>docker<span class="w"> </span>system<span class="w"> </span>df<span class="w">  </span><span class="c1"># Docker space usage</span>
+</span></code></pre></div></td></tr></table></div><p><strong>Common Root Causes &amp; Solutions:</strong></p><h4 id="a-insufficient-disk-space">A. Insufficient Disk Space<a class="headerlink" href="#a-insufficient-disk-space" title="Permanent link">&para;</a></h4><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-3-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-3-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-3-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-3-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-3-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-3-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-3-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-3-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-3-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-3-10">10</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1"></a><span class="c1"># Check available space</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2"></a>df<span class="w"> </span>-h
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3"></a>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4"></a><span class="c1"># Clean up Docker resources</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5"></a>docker<span class="w"> </span>system<span class="w"> </span>prune<span class="w"> </span>-f
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6"></a>docker<span class="w"> </span>volume<span class="w"> </span>prune<span class="w"> </span>-f
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7"></a>docker<span class="w"> </span>image<span class="w"> </span>prune<span class="w"> </span>-a<span class="w"> </span>-f
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8"></a>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9"></a><span class="c1"># Clean up logs if needed</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10"></a>sudo<span class="w"> </span>find<span class="w"> </span>/var/log<span class="w"> </span>-type<span class="w"> </span>f<span class="w"> </span>-name<span class="w"> </span><span class="s2">&quot;*.log&quot;</span><span class="w"> </span>-mtime<span class="w"> </span>+7<span class="w"> </span>-delete
+</span></code></pre></div></td></tr></table></div><h4 id="b-memory-issues">B. Memory Issues<a class="headerlink" href="#b-memory-issues" title="Permanent link">&para;</a></h4><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-4-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-4-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-4-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-4-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-4-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-4-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-4-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-4-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-4-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-4-10">10</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1"></a><span class="c1"># Check memory usage</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2"></a>free<span class="w"> </span>-h
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3"></a>ps<span class="w"> </span>aux<span class="w"> </span>--sort<span class="o">=</span>-%mem<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-10
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4"></a>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5"></a><span class="c1"># Add swap if needed</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6"></a>sudo<span class="w"> </span>fallocate<span class="w"> </span>-l<span class="w"> </span>2G<span class="w"> </span>/swapfile
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7"></a>sudo<span class="w"> </span>chmod<span class="w"> </span><span class="m">600</span><span class="w"> </span>/swapfile
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8"></a>sudo<span class="w"> </span>mkswap<span class="w"> </span>/swapfile
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9"></a>sudo<span class="w"> </span>swapon<span class="w"> </span>/swapfile
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10"></a><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;/swapfile none swap sw 0 0&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>/etc/fstab
+</span></code></pre></div></td></tr></table></div><h4 id="c-permission-issues">C. Permission Issues<a class="headerlink" href="#c-permission-issues" title="Permanent link">&para;</a></h4><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-5-1">1</a></span>
+<span class="normal"><a href="#__codelineno-5-2">2</a></span>
+<span class="normal"><a href="#__codelineno-5-3">3</a></span>
+<span class="normal"><a href="#__codelineno-5-4">4</a></span>
+<span class="normal"><a href="#__codelineno-5-5">5</a></span>
+<span class="normal"><a href="#__codelineno-5-6">6</a></span>
+<span class="normal"><a href="#__codelineno-5-7">7</a></span>
+<span class="normal"><a href="#__codelineno-5-8">8</a></span>
+<span class="normal"><a href="#__codelineno-5-9">9</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1"></a><span class="c1"># Fix data directory permissions</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2"></a>sudo<span class="w"> </span>chown<span class="w"> </span>-R<span class="w"> </span><span class="nv">$USER</span>:<span class="nv">$USER</span><span class="w"> </span>data<span class="w"> </span>logs<span class="w"> </span>backups<span class="w"> </span>secrets
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3"></a>chmod<span class="w"> </span><span class="m">755</span><span class="w"> </span>data<span class="w"> </span>logs<span class="w"> </span>backups
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4"></a>chmod<span class="w"> </span><span class="m">700</span><span class="w"> </span>secrets
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5"></a>chmod<span class="w"> </span><span class="m">600</span><span class="w"> </span>secrets/*
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6"></a>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7"></a><span class="c1"># Fix Docker socket permissions</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8"></a>sudo<span class="w"> </span>chown<span class="w"> </span>root:docker<span class="w"> </span>/var/run/docker.sock
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9"></a>sudo<span class="w"> </span>chmod<span class="w"> </span><span class="m">660</span><span class="w"> </span>/var/run/docker.sock
+</span></code></pre></div></td></tr></table></div><h4 id="d-port-conflicts">D. Port Conflicts<a class="headerlink" href="#d-port-conflicts" title="Permanent link">&para;</a></h4><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-6-1">1</a></span>
+<span class="normal"><a href="#__codelineno-6-2">2</a></span>
+<span class="normal"><a href="#__codelineno-6-3">3</a></span>
+<span class="normal"><a href="#__codelineno-6-4">4</a></span>
+<span class="normal"><a href="#__codelineno-6-5">5</a></span>
+<span class="normal"><a href="#__codelineno-6-6">6</a></span>
+<span class="normal"><a href="#__codelineno-6-7">7</a></span>
+<span class="normal"><a href="#__codelineno-6-8">8</a></span>
+<span class="normal"><a href="#__codelineno-6-9">9</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1"></a><span class="c1"># Check what&#39;s using ports 80/443</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2"></a>sudo<span class="w"> </span>ss<span class="w"> </span>-tlnp<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>:80
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3"></a>sudo<span class="w"> </span>ss<span class="w"> </span>-tlnp<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>:443
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4"></a>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5"></a><span class="c1"># Stop conflicting services</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>stop<span class="w"> </span>apache2<span class="w"> </span>nginx
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>disable<span class="w"> </span>apache2<span class="w"> </span>nginx
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8"></a>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9"></a><span class="c1"># Or configure alternative ports in docker-compose.prod.yml</span>
+</span></code></pre></div></td></tr></table></div><h3 id="issue-build-failures">Issue: Build Failures<a class="headerlink" href="#issue-build-failures" title="Permanent link">&para;</a></h3><p><strong>Symptoms:</strong></p><ul><li><code>docker compose build</code> fails with compilation errors</li><li>"No such file or directory" errors during build</li><li>TypeScript compilation failures</li></ul><p><strong>Diagnosis &amp; Solutions:</strong></p><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-7-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-7-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-7-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-7-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-7-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-7-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-7-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-7-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-7-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-7-10">10</a></span>
+<span class="normal"><a href="#__codelineno-7-11">11</a></span>
+<span class="normal"><a href="#__codelineno-7-12">12</a></span>
+<span class="normal"><a href="#__codelineno-7-13">13</a></span>
+<span class="normal"><a href="#__codelineno-7-14">14</a></span>
+<span class="normal"><a href="#__codelineno-7-15">15</a></span>
+<span class="normal"><a href="#__codelineno-7-16">16</a></span>
+<span class="normal"><a href="#__codelineno-7-17">17</a></span>
+<span class="normal"><a href="#__codelineno-7-18">18</a></span>
+<span class="normal"><a href="#__codelineno-7-19">19</a></span>
+<span class="normal"><a href="#__codelineno-7-20">20</a></span>
+<span class="normal"><a href="#__codelineno-7-21">21</a></span>
+<span class="normal"><a href="#__codelineno-7-22">22</a></span>
+<span class="normal"><a href="#__codelineno-7-23">23</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1"></a><span class="c1"># Clean build with verbose output</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>build<span class="w"> </span>--no-cache<span class="w"> </span>--progress<span class="o">=</span>plain<span class="w"> </span>backend
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3"></a>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4"></a><span class="c1"># Check if source files exist</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5"></a>ls<span class="w"> </span>-la<span class="w"> </span>backend/src
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6"></a>ls<span class="w"> </span>-la<span class="w"> </span>frontend/src
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7"></a>ls<span class="w"> </span>-la<span class="w"> </span>shared/src
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8"></a>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9"></a><span class="c1"># Verify package.json files</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10"></a>cat<span class="w"> </span>package.json
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11"></a>cat<span class="w"> </span>backend/package.json
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12"></a>cat<span class="w"> </span>frontend/package.json
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13"></a>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14"></a><span class="c1"># Fix missing dependencies</span>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15"></a>npm<span class="w"> </span>install
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16"></a><span class="nb">cd</span><span class="w"> </span>backend<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>npm<span class="w"> </span>install<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>..
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17"></a><span class="nb">cd</span><span class="w"> </span>frontend<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>npm<span class="w"> </span>install<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>..
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18"></a><span class="nb">cd</span><span class="w"> </span>shared<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>npm<span class="w"> </span>install<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>..
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19"></a>
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20"></a><span class="c1"># Rebuild with fresh containers</span>
+</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>down
+</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>build<span class="w"> </span>--no-cache
+</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>up<span class="w"> </span>-d
+</span></code></pre></div></td></tr></table></div><h3 id="issue-services-failing-health-checks">Issue: Services Failing Health Checks<a class="headerlink" href="#issue-services-failing-health-checks" title="Permanent link">&para;</a></h3><p><strong>Symptoms:</strong></p><ul><li>Services show as "unhealthy" in <code>docker compose ps</code></li><li>Health check timeouts</li><li>Services restart continuously</li></ul><p><strong>Diagnosis:</strong></p><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-8-1">1</a></span>
+<span class="normal"><a href="#__codelineno-8-2">2</a></span>
+<span class="normal"><a href="#__codelineno-8-3">3</a></span>
+<span class="normal"><a href="#__codelineno-8-4">4</a></span>
+<span class="normal"><a href="#__codelineno-8-5">5</a></span>
+<span class="normal"><a href="#__codelineno-8-6">6</a></span>
+<span class="normal"><a href="#__codelineno-8-7">7</a></span>
+<span class="normal"><a href="#__codelineno-8-8">8</a></span>
+<span class="normal"><a href="#__codelineno-8-9">9</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1"></a><span class="c1"># Check health check status</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>ps
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3"></a>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4"></a><span class="c1"># Test health endpoints manually</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5"></a>curl<span class="w"> </span>-f<span class="w"> </span>http://localhost:4000/api/health<span class="w">  </span><span class="c1"># Backend</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6"></a>curl<span class="w"> </span>-f<span class="w"> </span>http://localhost:3000/api/health<span class="w">  </span><span class="c1"># Frontend</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7"></a>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8"></a><span class="c1"># Check if services are actually responding</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>backend<span class="w"> </span>curl<span class="w"> </span>-f<span class="w"> </span>http://localhost:4000/api/health
+</span></code></pre></div></td></tr></table></div><p><strong>Solutions:</strong></p><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-9-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-9-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-9-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-9-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-9-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-9-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-9-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-9-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-9-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-9-10">10</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1"></a><span class="c1"># Increase health check timeouts in docker-compose.prod.yml</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2"></a>healthcheck:
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3"></a><span class="w">  </span>test:<span class="w"> </span><span class="o">[</span><span class="s1">&#39;CMD&#39;</span>,<span class="w"> </span><span class="s1">&#39;curl&#39;</span>,<span class="w"> </span><span class="s1">&#39;-f&#39;</span>,<span class="w"> </span><span class="s1">&#39;http://localhost:4000/api/health&#39;</span><span class="o">]</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4"></a><span class="w">  </span>interval:<span class="w"> </span>60s<span class="w">      </span><span class="c1"># Increased from 30s</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5"></a><span class="w">  </span>timeout:<span class="w"> </span>30s<span class="w">       </span><span class="c1"># Increased from 10s</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6"></a><span class="w">  </span>retries:<span class="w"> </span><span class="m">5</span><span class="w">         </span><span class="c1"># Increased from 3</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7"></a><span class="w">  </span>start_period:<span class="w"> </span>120s<span class="w"> </span><span class="c1"># Increased from 60s</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8"></a>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9"></a><span class="c1"># Restart services after configuration change</span>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>up<span class="w"> </span>-d
+</span></code></pre></div></td></tr></table></div><hr><h2 id="database-issues">🗄️ Database Issues<a class="headerlink" href="#database-issues" title="Permanent link">&para;</a></h2><h3 id="issue-database-connection-failures">Issue: Database Connection Failures<a class="headerlink" href="#issue-database-connection-failures" title="Permanent link">&para;</a></h3><p><strong>Symptoms:</strong></p><ul><li>"database connection failed" in backend logs</li><li>"ECONNREFUSED" errors</li><li>Prisma connection timeouts</li></ul><p><strong>Immediate Diagnosis:</strong></p><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-10-1">1</a></span>
+<span class="normal"><a href="#__codelineno-10-2">2</a></span>
+<span class="normal"><a href="#__codelineno-10-3">3</a></span>
+<span class="normal"><a href="#__codelineno-10-4">4</a></span>
+<span class="normal"><a href="#__codelineno-10-5">5</a></span>
+<span class="normal"><a href="#__codelineno-10-6">6</a></span>
+<span class="normal"><a href="#__codelineno-10-7">7</a></span>
+<span class="normal"><a href="#__codelineno-10-8">8</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1"></a><span class="c1"># Check PostgreSQL container status</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>ps<span class="w"> </span>postgres
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3"></a>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4"></a><span class="c1"># Check PostgreSQL logs</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>logs<span class="w"> </span>postgres
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6"></a>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7"></a><span class="c1"># Test database connection manually</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>postgres<span class="w"> </span>psql<span class="w"> </span>-U<span class="w"> </span>medianest<span class="w"> </span>-d<span class="w"> </span>medianest<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;SELECT version();&quot;</span>
+</span></code></pre></div></td></tr></table></div><p><strong>Common Solutions:</strong></p><h4 id="a-postgresql-not-ready">A. PostgreSQL Not Ready<a class="headerlink" href="#a-postgresql-not-ready" title="Permanent link">&para;</a></h4><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-11-1">1</a></span>
+<span class="normal"><a href="#__codelineno-11-2">2</a></span>
+<span class="normal"><a href="#__codelineno-11-3">3</a></span>
+<span class="normal"><a href="#__codelineno-11-4">4</a></span>
+<span class="normal"><a href="#__codelineno-11-5">5</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1"></a><span class="c1"># Wait for PostgreSQL to be fully ready (can take 30-60 seconds)</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2"></a>sleep<span class="w"> </span><span class="m">60</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3"></a>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4"></a><span class="c1"># Check if PostgreSQL is accepting connections</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>postgres<span class="w"> </span>pg_isready<span class="w"> </span>-U<span class="w"> </span>medianest<span class="w"> </span>-d<span class="w"> </span>medianest
+</span></code></pre></div></td></tr></table></div><h4 id="b-incorrect-database-credentials">B. Incorrect Database Credentials<a class="headerlink" href="#b-incorrect-database-credentials" title="Permanent link">&para;</a></h4><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-12-1">1</a></span>
+<span class="normal"><a href="#__codelineno-12-2">2</a></span>
+<span class="normal"><a href="#__codelineno-12-3">3</a></span>
+<span class="normal"><a href="#__codelineno-12-4">4</a></span>
+<span class="normal"><a href="#__codelineno-12-5">5</a></span>
+<span class="normal"><a href="#__codelineno-12-6">6</a></span>
+<span class="normal"><a href="#__codelineno-12-7">7</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1"></a><span class="c1"># Verify secrets exist and are readable</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2"></a>ls<span class="w"> </span>-la<span class="w"> </span>secrets/
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3"></a>cat<span class="w"> </span>secrets/database_url
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4"></a>cat<span class="w"> </span>secrets/postgres_password
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5"></a>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6"></a><span class="c1"># Check if credentials match between secrets and environment</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>backend<span class="w"> </span>env<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>DATABASE_URL
+</span></code></pre></div></td></tr></table></div><h4 id="c-database-url-formatting-issues">C. Database URL Formatting Issues<a class="headerlink" href="#c-database-url-formatting-issues" title="Permanent link">&para;</a></h4><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-13-1">1</a></span>
+<span class="normal"><a href="#__codelineno-13-2">2</a></span>
+<span class="normal"><a href="#__codelineno-13-3">3</a></span>
+<span class="normal"><a href="#__codelineno-13-4">4</a></span>
+<span class="normal"><a href="#__codelineno-13-5">5</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1"></a><span class="c1"># Correct format should be:</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2"></a><span class="c1"># postgresql://username:password@host:port/database?options</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3"></a>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4"></a><span class="c1"># Example valid DATABASE_URL:</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;postgresql://medianest:</span><span class="k">$(</span>cat<span class="w"> </span>secrets/postgres_password<span class="k">)</span><span class="s2">@postgres:5432/medianest?sslmode=prefer&amp;connection_limit=20&amp;pool_timeout=30&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>secrets/database_url
+</span></code></pre></div></td></tr></table></div><h3 id="issue-migration-failures">Issue: Migration Failures<a class="headerlink" href="#issue-migration-failures" title="Permanent link">&para;</a></h3><p><strong>Symptoms:</strong></p><ul><li>"Migration failed" errors</li><li>Database schema inconsistencies</li><li>Prisma migration errors</li></ul><p><strong>Solutions:</strong></p><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-14-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-14-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-14-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-14-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-14-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-14-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-14-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-14-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-14-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-14-10">10</a></span>
+<span class="normal"><a href="#__codelineno-14-11">11</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1"></a><span class="c1"># Check current migration status</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>backend<span class="w"> </span>npx<span class="w"> </span>prisma<span class="w"> </span>migrate<span class="w"> </span>status
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3"></a>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4"></a><span class="c1"># Reset database and run migrations (⚠️ DATA LOSS)</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>backend<span class="w"> </span>npx<span class="w"> </span>prisma<span class="w"> </span>migrate<span class="w"> </span>reset<span class="w"> </span>--force
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6"></a>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7"></a><span class="c1"># Or apply pending migrations</span>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>backend<span class="w"> </span>npx<span class="w"> </span>prisma<span class="w"> </span>migrate<span class="w"> </span>deploy
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9"></a>
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10"></a><span class="c1"># Generate Prisma client if needed</span>
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>backend<span class="w"> </span>npx<span class="w"> </span>prisma<span class="w"> </span>generate
+</span></code></pre></div></td></tr></table></div><h3 id="issue-database-performance-problems">Issue: Database Performance Problems<a class="headerlink" href="#issue-database-performance-problems" title="Permanent link">&para;</a></h3><p><strong>Symptoms:</strong></p><ul><li>Slow query responses</li><li>High CPU usage on PostgreSQL container</li><li>Connection timeouts</li></ul><p><strong>Diagnosis &amp; Solutions:</strong></p><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-15-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-15-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-15-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-15-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-15-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-15-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-15-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-15-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-15-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-15-10">10</a></span>
+<span class="normal"><a href="#__codelineno-15-11">11</a></span>
+<span class="normal"><a href="#__codelineno-15-12">12</a></span>
+<span class="normal"><a href="#__codelineno-15-13">13</a></span>
+<span class="normal"><a href="#__codelineno-15-14">14</a></span>
+<span class="normal"><a href="#__codelineno-15-15">15</a></span>
+<span class="normal"><a href="#__codelineno-15-16">16</a></span>
+<span class="normal"><a href="#__codelineno-15-17">17</a></span>
+<span class="normal"><a href="#__codelineno-15-18">18</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1"></a><span class="c1"># Check PostgreSQL performance</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>postgres<span class="w"> </span>psql<span class="w"> </span>-U<span class="w"> </span>medianest<span class="w"> </span>-d<span class="w"> </span>medianest<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;SELECT * FROM pg_stat_activity;&quot;</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3"></a>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4"></a><span class="c1"># Check slow queries</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>postgres<span class="w"> </span>psql<span class="w"> </span>-U<span class="w"> </span>medianest<span class="w"> </span>-d<span class="w"> </span>medianest<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;SELECT query, mean_exec_time, calls FROM pg_stat_statements ORDER BY mean_exec_time DESC LIMIT 10;&quot;</span>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6"></a>
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7"></a><span class="c1"># Optimize database</span>
+</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>postgres<span class="w"> </span>psql<span class="w"> </span>-U<span class="w"> </span>medianest<span class="w"> </span>-d<span class="w"> </span>medianest<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;VACUUM ANALYZE;&quot;</span>
+</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9"></a>
+</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10"></a><span class="c1"># Increase PostgreSQL resources in docker-compose.prod.yml</span>
+</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11"></a>deploy:
+</span><span id="__span-15-12"><a id="__codelineno-15-12" name="__codelineno-15-12"></a><span class="w">  </span>resources:
+</span><span id="__span-15-13"><a id="__codelineno-15-13" name="__codelineno-15-13"></a><span class="w">    </span>limits:
+</span><span id="__span-15-14"><a id="__codelineno-15-14" name="__codelineno-15-14"></a><span class="w">      </span>cpus:<span class="w"> </span><span class="s1">&#39;2.0&#39;</span><span class="w">     </span><span class="c1"># Increased from 1.0</span>
+</span><span id="__span-15-15"><a id="__codelineno-15-15" name="__codelineno-15-15"></a><span class="w">      </span>memory:<span class="w"> </span>2G<span class="w">      </span><span class="c1"># Increased from 1G</span>
+</span><span id="__span-15-16"><a id="__codelineno-15-16" name="__codelineno-15-16"></a><span class="w">    </span>reservations:
+</span><span id="__span-15-17"><a id="__codelineno-15-17" name="__codelineno-15-17"></a><span class="w">      </span>cpus:<span class="w"> </span><span class="s1">&#39;0.5&#39;</span>
+</span><span id="__span-15-18"><a id="__codelineno-15-18" name="__codelineno-15-18"></a><span class="w">      </span>memory:<span class="w"> </span>512M
+</span></code></pre></div></td></tr></table></div><hr><h2 id="ssl-https-issues">🔐 SSL &amp; HTTPS Issues<a class="headerlink" href="#ssl-https-issues" title="Permanent link">&para;</a></h2><h3 id="issue-ssl-certificate-problems">Issue: SSL Certificate Problems<a class="headerlink" href="#issue-ssl-certificate-problems" title="Permanent link">&para;</a></h3><p><strong>Symptoms:</strong></p><ul><li>Browser shows "Certificate error" or "Not secure"</li><li>SSL handshake failures</li><li>Certificate expired warnings</li></ul><p><strong>Diagnosis:</strong></p><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-16-1">1</a></span>
+<span class="normal"><a href="#__codelineno-16-2">2</a></span>
+<span class="normal"><a href="#__codelineno-16-3">3</a></span>
+<span class="normal"><a href="#__codelineno-16-4">4</a></span>
+<span class="normal"><a href="#__codelineno-16-5">5</a></span>
+<span class="normal"><a href="#__codelineno-16-6">6</a></span>
+<span class="normal"><a href="#__codelineno-16-7">7</a></span>
+<span class="normal"><a href="#__codelineno-16-8">8</a></span>
+<span class="normal"><a href="#__codelineno-16-9">9</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1"></a><span class="c1"># Check certificate files</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2"></a>ls<span class="w"> </span>-la<span class="w"> </span>data/certbot/ssl/
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3"></a>openssl<span class="w"> </span>x509<span class="w"> </span>-in<span class="w"> </span>data/certbot/ssl/fullchain.pem<span class="w"> </span>-text<span class="w"> </span>-noout<span class="w"> </span>-dates
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4"></a>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5"></a><span class="c1"># Test SSL connection</span>
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6"></a><span class="nb">echo</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>openssl<span class="w"> </span>s_client<span class="w"> </span>-servername<span class="w"> </span>your-domain.com<span class="w"> </span>-connect<span class="w"> </span>your-domain.com:443
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7"></a>
+</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8"></a><span class="c1"># Check nginx SSL configuration</span>
+</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>nginx<span class="w"> </span>nginx<span class="w"> </span>-t
+</span></code></pre></div></td></tr></table></div><p><strong>Solutions:</strong></p><h4 id="a-regenerate-lets-encrypt-certificate">A. Regenerate Let's Encrypt Certificate<a class="headerlink" href="#a-regenerate-lets-encrypt-certificate" title="Permanent link">&para;</a></h4><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-17-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-17-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-17-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-17-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-17-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-17-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-17-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-17-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-17-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-17-10">10</a></span>
+<span class="normal"><a href="#__codelineno-17-11">11</a></span>
+<span class="normal"><a href="#__codelineno-17-12">12</a></span>
+<span class="normal"><a href="#__codelineno-17-13">13</a></span>
+<span class="normal"><a href="#__codelineno-17-14">14</a></span>
+<span class="normal"><a href="#__codelineno-17-15">15</a></span>
+<span class="normal"><a href="#__codelineno-17-16">16</a></span>
+<span class="normal"><a href="#__codelineno-17-17">17</a></span>
+<span class="normal"><a href="#__codelineno-17-18">18</a></span>
+<span class="normal"><a href="#__codelineno-17-19">19</a></span>
+<span class="normal"><a href="#__codelineno-17-20">20</a></span>
+<span class="normal"><a href="#__codelineno-17-21">21</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1"></a><span class="c1"># Stop nginx temporarily</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>stop<span class="w"> </span>nginx
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3"></a>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4"></a><span class="c1"># Remove old certificate</span>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5"></a>sudo<span class="w"> </span>certbot<span class="w"> </span>delete<span class="w"> </span>--cert-name<span class="w"> </span>your-domain.com
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6"></a>
+</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7"></a><span class="c1"># Generate new certificate</span>
+</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8"></a>sudo<span class="w"> </span>certbot<span class="w"> </span>certonly<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-9"><a id="__codelineno-17-9" name="__codelineno-17-9"></a><span class="w">    </span>--standalone<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-10"><a id="__codelineno-17-10" name="__codelineno-17-10"></a><span class="w">    </span>--email<span class="w"> </span>your-email@domain.com<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-11"><a id="__codelineno-17-11" name="__codelineno-17-11"></a><span class="w">    </span>--agree-tos<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-12"><a id="__codelineno-17-12" name="__codelineno-17-12"></a><span class="w">    </span>--no-eff-email<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-13"><a id="__codelineno-17-13" name="__codelineno-17-13"></a><span class="w">    </span>--domains<span class="w"> </span>your-domain.com
+</span><span id="__span-17-14"><a id="__codelineno-17-14" name="__codelineno-17-14"></a>
+</span><span id="__span-17-15"><a id="__codelineno-17-15" name="__codelineno-17-15"></a><span class="c1"># Copy to application directory</span>
+</span><span id="__span-17-16"><a id="__codelineno-17-16" name="__codelineno-17-16"></a>sudo<span class="w"> </span>cp<span class="w"> </span>/etc/letsencrypt/live/your-domain.com/fullchain.pem<span class="w"> </span>data/certbot/ssl/
+</span><span id="__span-17-17"><a id="__codelineno-17-17" name="__codelineno-17-17"></a>sudo<span class="w"> </span>cp<span class="w"> </span>/etc/letsencrypt/live/your-domain.com/privkey.pem<span class="w"> </span>data/certbot/ssl/
+</span><span id="__span-17-18"><a id="__codelineno-17-18" name="__codelineno-17-18"></a>sudo<span class="w"> </span>chown<span class="w"> </span><span class="nv">$USER</span>:<span class="nv">$USER</span><span class="w"> </span>data/certbot/ssl/*
+</span><span id="__span-17-19"><a id="__codelineno-17-19" name="__codelineno-17-19"></a>
+</span><span id="__span-17-20"><a id="__codelineno-17-20" name="__codelineno-17-20"></a><span class="c1"># Restart nginx</span>
+</span><span id="__span-17-21"><a id="__codelineno-17-21" name="__codelineno-17-21"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>nginx
+</span></code></pre></div></td></tr></table></div><h4 id="b-fix-certificate-permissions">B. Fix Certificate Permissions<a class="headerlink" href="#b-fix-certificate-permissions" title="Permanent link">&para;</a></h4><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-18-1">1</a></span>
+<span class="normal"><a href="#__codelineno-18-2">2</a></span>
+<span class="normal"><a href="#__codelineno-18-3">3</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1"></a>chmod<span class="w"> </span><span class="m">644</span><span class="w"> </span>data/certbot/ssl/fullchain.pem
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2"></a>chmod<span class="w"> </span><span class="m">600</span><span class="w"> </span>data/certbot/ssl/privkey.pem
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3"></a>chown<span class="w"> </span><span class="nv">$USER</span>:<span class="nv">$USER</span><span class="w"> </span>data/certbot/ssl/*
+</span></code></pre></div></td></tr></table></div><h4 id="c-configure-self-signed-certificate-for-testing">C. Configure Self-Signed Certificate (for testing)<a class="headerlink" href="#c-configure-self-signed-certificate-for-testing" title="Permanent link">&para;</a></h4><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-19-1">1</a></span>
+<span class="normal"><a href="#__codelineno-19-2">2</a></span>
+<span class="normal"><a href="#__codelineno-19-3">3</a></span>
+<span class="normal"><a href="#__codelineno-19-4">4</a></span>
+<span class="normal"><a href="#__codelineno-19-5">5</a></span>
+<span class="normal"><a href="#__codelineno-19-6">6</a></span>
+<span class="normal"><a href="#__codelineno-19-7">7</a></span>
+<span class="normal"><a href="#__codelineno-19-8">8</a></span>
+<span class="normal"><a href="#__codelineno-19-9">9</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1"></a><span class="c1"># Generate self-signed certificate</span>
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2"></a>openssl<span class="w"> </span>req<span class="w"> </span>-x509<span class="w"> </span>-newkey<span class="w"> </span>rsa:4096<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3"></a><span class="w">    </span>-keyout<span class="w"> </span>data/certbot/ssl/privkey.pem<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4"></a><span class="w">    </span>-out<span class="w"> </span>data/certbot/ssl/fullchain.pem<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5"></a><span class="w">    </span>-days<span class="w"> </span><span class="m">365</span><span class="w"> </span>-nodes<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6"></a><span class="w">    </span>-subj<span class="w"> </span><span class="s2">&quot;/C=US/ST=State/L=City/O=Organization/CN=your-domain.com&quot;</span>
+</span><span id="__span-19-7"><a id="__codelineno-19-7" name="__codelineno-19-7"></a>
+</span><span id="__span-19-8"><a id="__codelineno-19-8" name="__codelineno-19-8"></a>chmod<span class="w"> </span><span class="m">600</span><span class="w"> </span>data/certbot/ssl/privkey.pem
+</span><span id="__span-19-9"><a id="__codelineno-19-9" name="__codelineno-19-9"></a>chmod<span class="w"> </span><span class="m">644</span><span class="w"> </span>data/certbot/ssl/fullchain.pem
+</span></code></pre></div></td></tr></table></div><h3 id="issue-https-redirects-not-working">Issue: HTTPS Redirects Not Working<a class="headerlink" href="#issue-https-redirects-not-working" title="Permanent link">&para;</a></h3><p><strong>Symptoms:</strong></p><ul><li>HTTP requests don't redirect to HTTPS</li><li>Mixed content warnings</li><li>Insecure connections allowed</li></ul><p><strong>Solutions:</strong></p><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-20-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-20-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-20-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-20-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-20-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-20-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-20-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-20-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-20-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-20-10">10</a></span>
+<span class="normal"><a href="#__codelineno-20-11">11</a></span>
+<span class="normal"><a href="#__codelineno-20-12">12</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1"></a><span class="c1"># Check nginx configuration</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>nginx<span class="w"> </span>cat<span class="w"> </span>/etc/nginx/nginx.conf
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3"></a>
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4"></a><span class="c1"># Ensure redirect is configured in nginx config:</span>
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5"></a>server<span class="w"> </span><span class="o">{</span>
+</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6"></a><span class="w">    </span>listen<span class="w"> </span><span class="m">80</span><span class="p">;</span>
+</span><span id="__span-20-7"><a id="__codelineno-20-7" name="__codelineno-20-7"></a><span class="w">    </span>server_name<span class="w"> </span>your-domain.com<span class="p">;</span>
+</span><span id="__span-20-8"><a id="__codelineno-20-8" name="__codelineno-20-8"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="m">301</span><span class="w"> </span>https://<span class="nv">$server_name$request_uri</span><span class="p">;</span>
+</span><span id="__span-20-9"><a id="__codelineno-20-9" name="__codelineno-20-9"></a><span class="o">}</span>
+</span><span id="__span-20-10"><a id="__codelineno-20-10" name="__codelineno-20-10"></a>
+</span><span id="__span-20-11"><a id="__codelineno-20-11" name="__codelineno-20-11"></a><span class="c1"># Restart nginx after configuration changes</span>
+</span><span id="__span-20-12"><a id="__codelineno-20-12" name="__codelineno-20-12"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>restart<span class="w"> </span>nginx
+</span></code></pre></div></td></tr></table></div><hr><h2 id="network-connectivity-issues">🌐 Network &amp; Connectivity Issues<a class="headerlink" href="#network-connectivity-issues" title="Permanent link">&para;</a></h2><h3 id="issue-external-access-problems">Issue: External Access Problems<a class="headerlink" href="#issue-external-access-problems" title="Permanent link">&para;</a></h3><p><strong>Symptoms:</strong></p><ul><li>Can't reach application from internet</li><li>Timeouts when accessing domain</li><li>DNS resolution failures</li></ul><p><strong>Diagnosis:</strong></p><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-21-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-21-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-21-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-21-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-21-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-21-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-21-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-21-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-21-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-21-10">10</a></span>
+<span class="normal"><a href="#__codelineno-21-11">11</a></span>
+<span class="normal"><a href="#__codelineno-21-12">12</a></span>
+<span class="normal"><a href="#__codelineno-21-13">13</a></span>
+<span class="normal"><a href="#__codelineno-21-14">14</a></span>
+<span class="normal"><a href="#__codelineno-21-15">15</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1"></a><span class="c1"># Test DNS resolution</span>
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2"></a>dig<span class="w"> </span>your-domain.com
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3"></a>nslookup<span class="w"> </span>your-domain.com
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4"></a>
+</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5"></a><span class="c1"># Test connectivity from server</span>
+</span><span id="__span-21-6"><a id="__codelineno-21-6" name="__codelineno-21-6"></a>curl<span class="w"> </span>-I<span class="w"> </span>http://localhost
+</span><span id="__span-21-7"><a id="__codelineno-21-7" name="__codelineno-21-7"></a>curl<span class="w"> </span>-I<span class="w"> </span>https://localhost<span class="w"> </span>-k
+</span><span id="__span-21-8"><a id="__codelineno-21-8" name="__codelineno-21-8"></a>
+</span><span id="__span-21-9"><a id="__codelineno-21-9" name="__codelineno-21-9"></a><span class="c1"># Check firewall</span>
+</span><span id="__span-21-10"><a id="__codelineno-21-10" name="__codelineno-21-10"></a>sudo<span class="w"> </span>ufw<span class="w"> </span>status
+</span><span id="__span-21-11"><a id="__codelineno-21-11" name="__codelineno-21-11"></a>sudo<span class="w"> </span>iptables<span class="w"> </span>-L
+</span><span id="__span-21-12"><a id="__codelineno-21-12" name="__codelineno-21-12"></a>
+</span><span id="__span-21-13"><a id="__codelineno-21-13" name="__codelineno-21-13"></a><span class="c1"># Check if ports are listening</span>
+</span><span id="__span-21-14"><a id="__codelineno-21-14" name="__codelineno-21-14"></a>sudo<span class="w"> </span>ss<span class="w"> </span>-tlnp<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>:80
+</span><span id="__span-21-15"><a id="__codelineno-21-15" name="__codelineno-21-15"></a>sudo<span class="w"> </span>ss<span class="w"> </span>-tlnp<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>:443
+</span></code></pre></div></td></tr></table></div><p><strong>Solutions:</strong></p><h4 id="a-dns-issues">A. DNS Issues<a class="headerlink" href="#a-dns-issues" title="Permanent link">&para;</a></h4><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-22-1">1</a></span>
+<span class="normal"><a href="#__codelineno-22-2">2</a></span>
+<span class="normal"><a href="#__codelineno-22-3">3</a></span>
+<span class="normal"><a href="#__codelineno-22-4">4</a></span>
+<span class="normal"><a href="#__codelineno-22-5">5</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1"></a><span class="c1"># Verify DNS A record points to correct IP</span>
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2"></a>dig<span class="w"> </span>your-domain.com<span class="w"> </span>+short
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3"></a>
+</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4"></a><span class="c1"># Check from external DNS checker</span>
+</span><span id="__span-22-5"><a id="__codelineno-22-5" name="__codelineno-22-5"></a><span class="c1"># Use online tools like whatsmydns.net</span>
+</span></code></pre></div></td></tr></table></div><h4 id="b-firewall-blocking-access">B. Firewall Blocking Access<a class="headerlink" href="#b-firewall-blocking-access" title="Permanent link">&para;</a></h4><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-23-1">1</a></span>
+<span class="normal"><a href="#__codelineno-23-2">2</a></span>
+<span class="normal"><a href="#__codelineno-23-3">3</a></span>
+<span class="normal"><a href="#__codelineno-23-4">4</a></span>
+<span class="normal"><a href="#__codelineno-23-5">5</a></span>
+<span class="normal"><a href="#__codelineno-23-6">6</a></span>
+<span class="normal"><a href="#__codelineno-23-7">7</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1"></a><span class="c1"># Allow HTTP/HTTPS through firewall</span>
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2"></a>sudo<span class="w"> </span>ufw<span class="w"> </span>allow<span class="w"> </span><span class="m">80</span>/tcp
+</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3"></a>sudo<span class="w"> </span>ufw<span class="w"> </span>allow<span class="w"> </span><span class="m">443</span>/tcp
+</span><span id="__span-23-4"><a id="__codelineno-23-4" name="__codelineno-23-4"></a>sudo<span class="w"> </span>ufw<span class="w"> </span>reload
+</span><span id="__span-23-5"><a id="__codelineno-23-5" name="__codelineno-23-5"></a>
+</span><span id="__span-23-6"><a id="__codelineno-23-6" name="__codelineno-23-6"></a><span class="c1"># Check if cloud provider firewall is also blocking</span>
+</span><span id="__span-23-7"><a id="__codelineno-23-7" name="__codelineno-23-7"></a><span class="c1"># Configure security groups in AWS/GCP/Azure console</span>
+</span></code></pre></div></td></tr></table></div><h4 id="c-docker-network-issues">C. Docker Network Issues<a class="headerlink" href="#c-docker-network-issues" title="Permanent link">&para;</a></h4><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-24-1">1</a></span>
+<span class="normal"><a href="#__codelineno-24-2">2</a></span>
+<span class="normal"><a href="#__codelineno-24-3">3</a></span>
+<span class="normal"><a href="#__codelineno-24-4">4</a></span>
+<span class="normal"><a href="#__codelineno-24-5">5</a></span>
+<span class="normal"><a href="#__codelineno-24-6">6</a></span>
+<span class="normal"><a href="#__codelineno-24-7">7</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1"></a><span class="c1"># Restart Docker daemon</span>
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>docker
+</span><span id="__span-24-3"><a id="__codelineno-24-3" name="__codelineno-24-3"></a>
+</span><span id="__span-24-4"><a id="__codelineno-24-4" name="__codelineno-24-4"></a><span class="c1"># Recreate networks</span>
+</span><span id="__span-24-5"><a id="__codelineno-24-5" name="__codelineno-24-5"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>down
+</span><span id="__span-24-6"><a id="__codelineno-24-6" name="__codelineno-24-6"></a>docker<span class="w"> </span>network<span class="w"> </span>prune<span class="w"> </span>-f
+</span><span id="__span-24-7"><a id="__codelineno-24-7" name="__codelineno-24-7"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>up<span class="w"> </span>-d
+</span></code></pre></div></td></tr></table></div><h3 id="issue-inter-service-communication-problems">Issue: Inter-Service Communication Problems<a class="headerlink" href="#issue-inter-service-communication-problems" title="Permanent link">&para;</a></h3><p><strong>Symptoms:</strong></p><ul><li>Frontend can't reach backend</li><li>Services can't connect to database/Redis</li><li>"Connection refused" between containers</li></ul><p><strong>Diagnosis &amp; Solutions:</strong></p><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-25-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-25-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-25-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-25-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-25-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-25-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-25-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-25-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-25-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-25-10">10</a></span>
+<span class="normal"><a href="#__codelineno-25-11">11</a></span>
+<span class="normal"><a href="#__codelineno-25-12">12</a></span>
+<span class="normal"><a href="#__codelineno-25-13">13</a></span>
+<span class="normal"><a href="#__codelineno-25-14">14</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1"></a><span class="c1"># Test network connectivity between containers</span>
+</span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>frontend<span class="w"> </span>ping<span class="w"> </span>backend
+</span><span id="__span-25-3"><a id="__codelineno-25-3" name="__codelineno-25-3"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>backend<span class="w"> </span>ping<span class="w"> </span>postgres
+</span><span id="__span-25-4"><a id="__codelineno-25-4" name="__codelineno-25-4"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>backend<span class="w"> </span>ping<span class="w"> </span>redis
+</span><span id="__span-25-5"><a id="__codelineno-25-5" name="__codelineno-25-5"></a>
+</span><span id="__span-25-6"><a id="__codelineno-25-6" name="__codelineno-25-6"></a><span class="c1"># Check Docker networks</span>
+</span><span id="__span-25-7"><a id="__codelineno-25-7" name="__codelineno-25-7"></a>docker<span class="w"> </span>network<span class="w"> </span>ls
+</span><span id="__span-25-8"><a id="__codelineno-25-8" name="__codelineno-25-8"></a>docker<span class="w"> </span>network<span class="w"> </span>inspect<span class="w"> </span>medianest_backend-network
+</span><span id="__span-25-9"><a id="__codelineno-25-9" name="__codelineno-25-9"></a>docker<span class="w"> </span>network<span class="w"> </span>inspect<span class="w"> </span>medianest_frontend-network
+</span><span id="__span-25-10"><a id="__codelineno-25-10" name="__codelineno-25-10"></a>
+</span><span id="__span-25-11"><a id="__codelineno-25-11" name="__codelineno-25-11"></a><span class="c1"># Recreate networks if corrupted</span>
+</span><span id="__span-25-12"><a id="__codelineno-25-12" name="__codelineno-25-12"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>down
+</span><span id="__span-25-13"><a id="__codelineno-25-13" name="__codelineno-25-13"></a>docker<span class="w"> </span>network<span class="w"> </span>prune<span class="w"> </span>-f
+</span><span id="__span-25-14"><a id="__codelineno-25-14" name="__codelineno-25-14"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>up<span class="w"> </span>-d
+</span></code></pre></div></td></tr></table></div><hr><h2 id="application-specific-issues">🚀 Application-Specific Issues<a class="headerlink" href="#application-specific-issues" title="Permanent link">&para;</a></h2><h3 id="issue-frontend-loading-problems">Issue: Frontend Loading Problems<a class="headerlink" href="#issue-frontend-loading-problems" title="Permanent link">&para;</a></h3><p><strong>Symptoms:</strong></p><ul><li>White screen or blank page</li><li>JavaScript errors in browser console</li><li>Next.js build failures</li></ul><p><strong>Diagnosis:</strong></p><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-26-1">1</a></span>
+<span class="normal"><a href="#__codelineno-26-2">2</a></span>
+<span class="normal"><a href="#__codelineno-26-3">3</a></span>
+<span class="normal"><a href="#__codelineno-26-4">4</a></span>
+<span class="normal"><a href="#__codelineno-26-5">5</a></span>
+<span class="normal"><a href="#__codelineno-26-6">6</a></span>
+<span class="normal"><a href="#__codelineno-26-7">7</a></span>
+<span class="normal"><a href="#__codelineno-26-8">8</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1"></a><span class="c1"># Check frontend logs</span>
+</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>logs<span class="w"> </span>frontend
+</span><span id="__span-26-3"><a id="__codelineno-26-3" name="__codelineno-26-3"></a>
+</span><span id="__span-26-4"><a id="__codelineno-26-4" name="__codelineno-26-4"></a><span class="c1"># Check browser console for JavaScript errors</span>
+</span><span id="__span-26-5"><a id="__codelineno-26-5" name="__codelineno-26-5"></a><span class="c1"># (Open browser developer tools)</span>
+</span><span id="__span-26-6"><a id="__codelineno-26-6" name="__codelineno-26-6"></a>
+</span><span id="__span-26-7"><a id="__codelineno-26-7" name="__codelineno-26-7"></a><span class="c1"># Test if backend API is accessible from frontend</span>
+</span><span id="__span-26-8"><a id="__codelineno-26-8" name="__codelineno-26-8"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>frontend<span class="w"> </span>curl<span class="w"> </span>-f<span class="w"> </span>http://backend:4000/api/health
+</span></code></pre></div></td></tr></table></div><p><strong>Solutions:</strong></p><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-27-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-27-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-27-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-27-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-27-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-27-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-27-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-27-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-27-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-27-10">10</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1"></a><span class="c1"># Rebuild frontend with clean cache</span>
+</span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>stop<span class="w"> </span>frontend
+</span><span id="__span-27-3"><a id="__codelineno-27-3" name="__codelineno-27-3"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>build<span class="w"> </span>--no-cache<span class="w"> </span>frontend
+</span><span id="__span-27-4"><a id="__codelineno-27-4" name="__codelineno-27-4"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>frontend
+</span><span id="__span-27-5"><a id="__codelineno-27-5" name="__codelineno-27-5"></a>
+</span><span id="__span-27-6"><a id="__codelineno-27-6" name="__codelineno-27-6"></a><span class="c1"># Check environment variables are correct</span>
+</span><span id="__span-27-7"><a id="__codelineno-27-7" name="__codelineno-27-7"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>frontend<span class="w"> </span>env<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>NEXT_PUBLIC
+</span><span id="__span-27-8"><a id="__codelineno-27-8" name="__codelineno-27-8"></a>
+</span><span id="__span-27-9"><a id="__codelineno-27-9" name="__codelineno-27-9"></a><span class="c1"># Verify API URL configuration</span>
+</span><span id="__span-27-10"><a id="__codelineno-27-10" name="__codelineno-27-10"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;NEXT_PUBLIC_API_URL should be: https://your-domain.com/api&quot;</span>
+</span></code></pre></div></td></tr></table></div><h3 id="issue-authentication-not-working">Issue: Authentication Not Working<a class="headerlink" href="#issue-authentication-not-working" title="Permanent link">&para;</a></h3><p><strong>Symptoms:</strong></p><ul><li>Login failures</li><li>JWT token errors</li><li>Session management issues</li></ul><p><strong>Diagnosis &amp; Solutions:</strong></p><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-28-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-28-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-28-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-28-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-28-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-28-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-28-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-28-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-28-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-28-10">10</a></span>
+<span class="normal"><a href="#__codelineno-28-11">11</a></span>
+<span class="normal"><a href="#__codelineno-28-12">12</a></span>
+<span class="normal"><a href="#__codelineno-28-13">13</a></span>
+<span class="normal"><a href="#__codelineno-28-14">14</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1"></a><span class="c1"># Check authentication secrets</span>
+</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2"></a>ls<span class="w"> </span>-la<span class="w"> </span>secrets/nextauth_secret<span class="w"> </span>secrets/jwt_secret
+</span><span id="__span-28-3"><a id="__codelineno-28-3" name="__codelineno-28-3"></a>
+</span><span id="__span-28-4"><a id="__codelineno-28-4" name="__codelineno-28-4"></a><span class="c1"># Verify NextAuth configuration</span>
+</span><span id="__span-28-5"><a id="__codelineno-28-5" name="__codelineno-28-5"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>frontend<span class="w"> </span>env<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>NEXTAUTH
+</span><span id="__span-28-6"><a id="__codelineno-28-6" name="__codelineno-28-6"></a>
+</span><span id="__span-28-7"><a id="__codelineno-28-7" name="__codelineno-28-7"></a><span class="c1"># Check if sessions are being created</span>
+</span><span id="__span-28-8"><a id="__codelineno-28-8" name="__codelineno-28-8"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>backend<span class="w"> </span>npx<span class="w"> </span>prisma<span class="w"> </span>studio
+</span><span id="__span-28-9"><a id="__codelineno-28-9" name="__codelineno-28-9"></a><span class="c1"># Check User and Session tables</span>
+</span><span id="__span-28-10"><a id="__codelineno-28-10" name="__codelineno-28-10"></a>
+</span><span id="__span-28-11"><a id="__codelineno-28-11" name="__codelineno-28-11"></a><span class="c1"># Test JWT token generation</span>
+</span><span id="__span-28-12"><a id="__codelineno-28-12" name="__codelineno-28-12"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>https://your-domain.com/api/auth/signin<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-28-13"><a id="__codelineno-28-13" name="__codelineno-28-13"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-28-14"><a id="__codelineno-28-14" name="__codelineno-28-14"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;email&quot;:&quot;test@example.com&quot;,&quot;password&quot;:&quot;password&quot;}&#39;</span>
+</span></code></pre></div></td></tr></table></div><h3 id="issue-file-upload-problems">Issue: File Upload Problems<a class="headerlink" href="#issue-file-upload-problems" title="Permanent link">&para;</a></h3><p><strong>Symptoms:</strong></p><ul><li>"File upload failed" errors</li><li>Permission denied on uploads</li><li>Disk space issues</li></ul><p><strong>Solutions:</strong></p><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-29-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-29-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-29-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-29-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-29-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-29-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-29-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-29-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-29-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-29-10">10</a></span>
+<span class="normal"><a href="#__codelineno-29-11">11</a></span>
+<span class="normal"><a href="#__codelineno-29-12">12</a></span>
+<span class="normal"><a href="#__codelineno-29-13">13</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1"></a><span class="c1"># Check upload directory permissions</span>
+</span><span id="__span-29-2"><a id="__codelineno-29-2" name="__codelineno-29-2"></a>ls<span class="w"> </span>-la<span class="w"> </span>data/uploads
+</span><span id="__span-29-3"><a id="__codelineno-29-3" name="__codelineno-29-3"></a>sudo<span class="w"> </span>chown<span class="w"> </span>-R<span class="w"> </span><span class="m">1001</span>:1001<span class="w"> </span>data/uploads
+</span><span id="__span-29-4"><a id="__codelineno-29-4" name="__codelineno-29-4"></a>chmod<span class="w"> </span><span class="m">755</span><span class="w"> </span>data/uploads
+</span><span id="__span-29-5"><a id="__codelineno-29-5" name="__codelineno-29-5"></a>
+</span><span id="__span-29-6"><a id="__codelineno-29-6" name="__codelineno-29-6"></a><span class="c1"># Check disk space</span>
+</span><span id="__span-29-7"><a id="__codelineno-29-7" name="__codelineno-29-7"></a>df<span class="w"> </span>-h<span class="w"> </span>data/uploads
+</span><span id="__span-29-8"><a id="__codelineno-29-8" name="__codelineno-29-8"></a>
+</span><span id="__span-29-9"><a id="__codelineno-29-9" name="__codelineno-29-9"></a><span class="c1"># Check upload limits in nginx</span>
+</span><span id="__span-29-10"><a id="__codelineno-29-10" name="__codelineno-29-10"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>nginx<span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;client_max_body_size&quot;</span><span class="w"> </span>/etc/nginx/nginx.conf
+</span><span id="__span-29-11"><a id="__codelineno-29-11" name="__codelineno-29-11"></a>
+</span><span id="__span-29-12"><a id="__codelineno-29-12" name="__codelineno-29-12"></a><span class="c1"># Test upload endpoint</span>
+</span><span id="__span-29-13"><a id="__codelineno-29-13" name="__codelineno-29-13"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>-F<span class="w"> </span><span class="s2">&quot;file=@testfile.txt&quot;</span><span class="w"> </span>https://your-domain.com/api/upload
+</span></code></pre></div></td></tr></table></div><hr><h2 id="performance-issues">🔧 Performance Issues<a class="headerlink" href="#performance-issues" title="Permanent link">&para;</a></h2><h3 id="issue-high-memory-usage">Issue: High Memory Usage<a class="headerlink" href="#issue-high-memory-usage" title="Permanent link">&para;</a></h3><p><strong>Symptoms:</strong></p><ul><li>System running out of memory</li><li>Containers being killed (OOMKilled)</li><li>Slow response times</li></ul><p><strong>Diagnosis:</strong></p><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-30-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-30-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-30-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-30-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-30-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-30-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-30-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-30-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-30-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-30-10">10</a></span>
+<span class="normal"><a href="#__codelineno-30-11">11</a></span>
+<span class="normal"><a href="#__codelineno-30-12">12</a></span>
+<span class="normal"><a href="#__codelineno-30-13">13</a></span>
+<span class="normal"><a href="#__codelineno-30-14">14</a></span>
+<span class="normal"><a href="#__codelineno-30-15">15</a></span>
+<span class="normal"><a href="#__codelineno-30-16">16</a></span>
+<span class="normal"><a href="#__codelineno-30-17">17</a></span>
+<span class="normal"><a href="#__codelineno-30-18">18</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1"></a><span class="c1"># Check system memory</span>
+</span><span id="__span-30-2"><a id="__codelineno-30-2" name="__codelineno-30-2"></a>free<span class="w"> </span>-h
+</span><span id="__span-30-3"><a id="__codelineno-30-3" name="__codelineno-30-3"></a>cat<span class="w"> </span>/proc/meminfo
+</span><span id="__span-30-4"><a id="__codelineno-30-4" name="__codelineno-30-4"></a>
+</span><span id="__span-30-5"><a id="__codelineno-30-5" name="__codelineno-30-5"></a><span class="c1"># Check container memory usage</span>
+</span><span id="__span-30-6"><a id="__codelineno-30-6" name="__codelineno-30-6"></a>docker<span class="w"> </span>stats<span class="w"> </span>--no-stream
+</span><span id="__span-30-7"><a id="__codelineno-30-7" name="__codelineno-30-7"></a>
+</span><span id="__span-30-8"><a id="__codelineno-30-8" name="__codelineno-30-8"></a><span class="c1"># Check for memory leaks</span>
+</span><span id="__span-30-9"><a id="__codelineno-30-9" name="__codelineno-30-9"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>backend<span class="w"> </span>node<span class="w"> </span>--expose-gc<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;</span>
+</span><span id="__span-30-10"><a id="__codelineno-30-10" name="__codelineno-30-10"></a><span class="s2">setInterval(() =&gt; {</span>
+</span><span id="__span-30-11"><a id="__codelineno-30-11" name="__codelineno-30-11"></a><span class="s2">  const usage = process.memoryUsage();</span>
+</span><span id="__span-30-12"><a id="__codelineno-30-12" name="__codelineno-30-12"></a><span class="s2">  console.log(&#39;Memory Usage:&#39;, {</span>
+</span><span id="__span-30-13"><a id="__codelineno-30-13" name="__codelineno-30-13"></a><span class="s2">    rss: Math.round(usage.rss / 1024 / 1024) + &#39;MB&#39;,</span>
+</span><span id="__span-30-14"><a id="__codelineno-30-14" name="__codelineno-30-14"></a><span class="s2">    heapTotal: Math.round(usage.heapTotal / 1024 / 1024) + &#39;MB&#39;,</span>
+</span><span id="__span-30-15"><a id="__codelineno-30-15" name="__codelineno-30-15"></a><span class="s2">    heapUsed: Math.round(usage.heapUsed / 1024 / 1024) + &#39;MB&#39;</span>
+</span><span id="__span-30-16"><a id="__codelineno-30-16" name="__codelineno-30-16"></a><span class="s2">  });</span>
+</span><span id="__span-30-17"><a id="__codelineno-30-17" name="__codelineno-30-17"></a><span class="s2">}, 5000);</span>
+</span><span id="__span-30-18"><a id="__codelineno-30-18" name="__codelineno-30-18"></a><span class="s2">&quot;</span><span class="w"> </span><span class="p">&amp;</span>
+</span></code></pre></div></td></tr></table></div><p><strong>Solutions:</strong></p><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-31-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-31-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-31-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-31-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-31-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-31-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-31-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-31-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-31-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-31-10">10</a></span>
+<span class="normal"><a href="#__codelineno-31-11">11</a></span>
+<span class="normal"><a href="#__codelineno-31-12">12</a></span>
+<span class="normal"><a href="#__codelineno-31-13">13</a></span>
+<span class="normal"><a href="#__codelineno-31-14">14</a></span>
+<span class="normal"><a href="#__codelineno-31-15">15</a></span>
+<span class="normal"><a href="#__codelineno-31-16">16</a></span>
+<span class="normal"><a href="#__codelineno-31-17">17</a></span>
+<span class="normal"><a href="#__codelineno-31-18">18</a></span>
+<span class="normal"><a href="#__codelineno-31-19">19</a></span>
+<span class="normal"><a href="#__codelineno-31-20">20</a></span>
+<span class="normal"><a href="#__codelineno-31-21">21</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1"></a><span class="c1"># Add or increase swap space</span>
+</span><span id="__span-31-2"><a id="__codelineno-31-2" name="__codelineno-31-2"></a>sudo<span class="w"> </span>fallocate<span class="w"> </span>-l<span class="w"> </span>4G<span class="w"> </span>/swapfile
+</span><span id="__span-31-3"><a id="__codelineno-31-3" name="__codelineno-31-3"></a>sudo<span class="w"> </span>chmod<span class="w"> </span><span class="m">600</span><span class="w"> </span>/swapfile
+</span><span id="__span-31-4"><a id="__codelineno-31-4" name="__codelineno-31-4"></a>sudo<span class="w"> </span>mkswap<span class="w"> </span>/swapfile
+</span><span id="__span-31-5"><a id="__codelineno-31-5" name="__codelineno-31-5"></a>sudo<span class="w"> </span>swapon<span class="w"> </span>/swapfile
+</span><span id="__span-31-6"><a id="__codelineno-31-6" name="__codelineno-31-6"></a>
+</span><span id="__span-31-7"><a id="__codelineno-31-7" name="__codelineno-31-7"></a><span class="c1"># Optimize container memory limits</span>
+</span><span id="__span-31-8"><a id="__codelineno-31-8" name="__codelineno-31-8"></a><span class="c1"># Edit docker-compose.prod.yml:</span>
+</span><span id="__span-31-9"><a id="__codelineno-31-9" name="__codelineno-31-9"></a>deploy:
+</span><span id="__span-31-10"><a id="__codelineno-31-10" name="__codelineno-31-10"></a><span class="w">  </span>resources:
+</span><span id="__span-31-11"><a id="__codelineno-31-11" name="__codelineno-31-11"></a><span class="w">    </span>limits:
+</span><span id="__span-31-12"><a id="__codelineno-31-12" name="__codelineno-31-12"></a><span class="w">      </span>memory:<span class="w"> </span>512M<span class="w">  </span><span class="c1"># Reduce if needed</span>
+</span><span id="__span-31-13"><a id="__codelineno-31-13" name="__codelineno-31-13"></a><span class="w">    </span>reservations:
+</span><span id="__span-31-14"><a id="__codelineno-31-14" name="__codelineno-31-14"></a><span class="w">      </span>memory:<span class="w"> </span>256M
+</span><span id="__span-31-15"><a id="__codelineno-31-15" name="__codelineno-31-15"></a>
+</span><span id="__span-31-16"><a id="__codelineno-31-16" name="__codelineno-31-16"></a><span class="c1"># Restart services with new limits</span>
+</span><span id="__span-31-17"><a id="__codelineno-31-17" name="__codelineno-31-17"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>up<span class="w"> </span>-d
+</span><span id="__span-31-18"><a id="__codelineno-31-18" name="__codelineno-31-18"></a>
+</span><span id="__span-31-19"><a id="__codelineno-31-19" name="__codelineno-31-19"></a><span class="c1"># Enable Node.js memory optimization</span>
+</span><span id="__span-31-20"><a id="__codelineno-31-20" name="__codelineno-31-20"></a>environment:
+</span><span id="__span-31-21"><a id="__codelineno-31-21" name="__codelineno-31-21"></a><span class="w">  </span>-<span class="w"> </span><span class="nv">NODE_OPTIONS</span><span class="o">=</span>--max-old-space-size<span class="o">=</span><span class="m">512</span><span class="w"> </span>--optimize-for-size
+</span></code></pre></div></td></tr></table></div><h3 id="issue-slow-database-queries">Issue: Slow Database Queries<a class="headerlink" href="#issue-slow-database-queries" title="Permanent link">&para;</a></h3><p><strong>Symptoms:</strong></p><ul><li>API responses taking &gt;2 seconds</li><li>Database timeout errors</li><li>High CPU usage on PostgreSQL</li></ul><p><strong>Solutions:</strong></p><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-32-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-32-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-32-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-32-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-32-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-32-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-32-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-32-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-32-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-32-10">10</a></span>
+<span class="normal"><a href="#__codelineno-32-11">11</a></span>
+<span class="normal"><a href="#__codelineno-32-12">12</a></span>
+<span class="normal"><a href="#__codelineno-32-13">13</a></span>
+<span class="normal"><a href="#__codelineno-32-14">14</a></span>
+<span class="normal"><a href="#__codelineno-32-15">15</a></span>
+<span class="normal"><a href="#__codelineno-32-16">16</a></span>
+<span class="normal"><a href="#__codelineno-32-17">17</a></span>
+<span class="normal"><a href="#__codelineno-32-18">18</a></span>
+<span class="normal"><a href="#__codelineno-32-19">19</a></span>
+<span class="normal"><a href="#__codelineno-32-20">20</a></span>
+<span class="normal"><a href="#__codelineno-32-21">21</a></span>
+<span class="normal"><a href="#__codelineno-32-22">22</a></span>
+<span class="normal"><a href="#__codelineno-32-23">23</a></span>
+<span class="normal"><a href="#__codelineno-32-24">24</a></span>
+<span class="normal"><a href="#__codelineno-32-25">25</a></span>
+<span class="normal"><a href="#__codelineno-32-26">26</a></span>
+<span class="normal"><a href="#__codelineno-32-27">27</a></span>
+<span class="normal"><a href="#__codelineno-32-28">28</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-32-1"><a id="__codelineno-32-1" name="__codelineno-32-1"></a><span class="c1"># Enable query logging in PostgreSQL</span>
+</span><span id="__span-32-2"><a id="__codelineno-32-2" name="__codelineno-32-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>postgres<span class="w"> </span>psql<span class="w"> </span>-U<span class="w"> </span>medianest<span class="w"> </span>-d<span class="w"> </span>medianest<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;</span>
+</span><span id="__span-32-3"><a id="__codelineno-32-3" name="__codelineno-32-3"></a><span class="s2">ALTER SYSTEM SET log_statement = &#39;all&#39;;</span>
+</span><span id="__span-32-4"><a id="__codelineno-32-4" name="__codelineno-32-4"></a><span class="s2">ALTER SYSTEM SET log_duration = on;</span>
+</span><span id="__span-32-5"><a id="__codelineno-32-5" name="__codelineno-32-5"></a><span class="s2">SELECT pg_reload_conf();</span>
+</span><span id="__span-32-6"><a id="__codelineno-32-6" name="__codelineno-32-6"></a><span class="s2">&quot;</span>
+</span><span id="__span-32-7"><a id="__codelineno-32-7" name="__codelineno-32-7"></a>
+</span><span id="__span-32-8"><a id="__codelineno-32-8" name="__codelineno-32-8"></a><span class="c1"># Analyze slow queries</span>
+</span><span id="__span-32-9"><a id="__codelineno-32-9" name="__codelineno-32-9"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>postgres<span class="w"> </span>psql<span class="w"> </span>-U<span class="w"> </span>medianest<span class="w"> </span>-d<span class="w"> </span>medianest<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;</span>
+</span><span id="__span-32-10"><a id="__codelineno-32-10" name="__codelineno-32-10"></a><span class="s2">SELECT query, mean_exec_time, calls, total_exec_time</span>
+</span><span id="__span-32-11"><a id="__codelineno-32-11" name="__codelineno-32-11"></a><span class="s2">FROM pg_stat_statements</span>
+</span><span id="__span-32-12"><a id="__codelineno-32-12" name="__codelineno-32-12"></a><span class="s2">ORDER BY mean_exec_time DESC</span>
+</span><span id="__span-32-13"><a id="__codelineno-32-13" name="__codelineno-32-13"></a><span class="s2">LIMIT 10;</span>
+</span><span id="__span-32-14"><a id="__codelineno-32-14" name="__codelineno-32-14"></a><span class="s2">&quot;</span>
+</span><span id="__span-32-15"><a id="__codelineno-32-15" name="__codelineno-32-15"></a>
+</span><span id="__span-32-16"><a id="__codelineno-32-16" name="__codelineno-32-16"></a><span class="c1"># Add database indexes (example)</span>
+</span><span id="__span-32-17"><a id="__codelineno-32-17" name="__codelineno-32-17"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>backend<span class="w"> </span>npx<span class="w"> </span>prisma<span class="w"> </span>db<span class="w"> </span>execute<span class="w"> </span>--stdin<span class="w"> </span><span class="o">&lt;&lt;&lt;</span><span class="w"> </span><span class="s2">&quot;</span>
+</span><span id="__span-32-18"><a id="__codelineno-32-18" name="__codelineno-32-18"></a><span class="s2">CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_email ON users(email);</span>
+</span><span id="__span-32-19"><a id="__codelineno-32-19" name="__codelineno-32-19"></a><span class="s2">CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_session_user_id ON sessions(user_id);</span>
+</span><span id="__span-32-20"><a id="__codelineno-32-20" name="__codelineno-32-20"></a><span class="s2">&quot;</span>
+</span><span id="__span-32-21"><a id="__codelineno-32-21" name="__codelineno-32-21"></a>
+</span><span id="__span-32-22"><a id="__codelineno-32-22" name="__codelineno-32-22"></a><span class="c1"># Optimize PostgreSQL configuration</span>
+</span><span id="__span-32-23"><a id="__codelineno-32-23" name="__codelineno-32-23"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>postgres<span class="w"> </span>psql<span class="w"> </span>-U<span class="w"> </span>medianest<span class="w"> </span>-d<span class="w"> </span>medianest<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;</span>
+</span><span id="__span-32-24"><a id="__codelineno-32-24" name="__codelineno-32-24"></a><span class="s2">ALTER SYSTEM SET shared_buffers = &#39;512MB&#39;;</span>
+</span><span id="__span-32-25"><a id="__codelineno-32-25" name="__codelineno-32-25"></a><span class="s2">ALTER SYSTEM SET effective_cache_size = &#39;1GB&#39;;</span>
+</span><span id="__span-32-26"><a id="__codelineno-32-26" name="__codelineno-32-26"></a><span class="s2">ALTER SYSTEM SET maintenance_work_mem = &#39;128MB&#39;;</span>
+</span><span id="__span-32-27"><a id="__codelineno-32-27" name="__codelineno-32-27"></a><span class="s2">SELECT pg_reload_conf();</span>
+</span><span id="__span-32-28"><a id="__codelineno-32-28" name="__codelineno-32-28"></a><span class="s2">&quot;</span>
+</span></code></pre></div></td></tr></table></div><hr><h2 id="emergency-recovery-procedures">🛠️ Emergency Recovery Procedures<a class="headerlink" href="#emergency-recovery-procedures" title="Permanent link">&para;</a></h2><h3 id="complete-system-recovery">Complete System Recovery<a class="headerlink" href="#complete-system-recovery" title="Permanent link">&para;</a></h3><p><strong>When everything is broken and you need to start fresh:</strong></p><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-33-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-33-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-33-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-33-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-33-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-33-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-33-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-33-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-33-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-33-10">10</a></span>
+<span class="normal"><a href="#__codelineno-33-11">11</a></span>
+<span class="normal"><a href="#__codelineno-33-12">12</a></span>
+<span class="normal"><a href="#__codelineno-33-13">13</a></span>
+<span class="normal"><a href="#__codelineno-33-14">14</a></span>
+<span class="normal"><a href="#__codelineno-33-15">15</a></span>
+<span class="normal"><a href="#__codelineno-33-16">16</a></span>
+<span class="normal"><a href="#__codelineno-33-17">17</a></span>
+<span class="normal"><a href="#__codelineno-33-18">18</a></span>
+<span class="normal"><a href="#__codelineno-33-19">19</a></span>
+<span class="normal"><a href="#__codelineno-33-20">20</a></span>
+<span class="normal"><a href="#__codelineno-33-21">21</a></span>
+<span class="normal"><a href="#__codelineno-33-22">22</a></span>
+<span class="normal"><a href="#__codelineno-33-23">23</a></span>
+<span class="normal"><a href="#__codelineno-33-24">24</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-33-1"><a id="__codelineno-33-1" name="__codelineno-33-1"></a><span class="c1"># 1. Stop all services</span>
+</span><span id="__span-33-2"><a id="__codelineno-33-2" name="__codelineno-33-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>down
+</span><span id="__span-33-3"><a id="__codelineno-33-3" name="__codelineno-33-3"></a>
+</span><span id="__span-33-4"><a id="__codelineno-33-4" name="__codelineno-33-4"></a><span class="c1"># 2. Create emergency backup (if possible)</span>
+</span><span id="__span-33-5"><a id="__codelineno-33-5" name="__codelineno-33-5"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-v<span class="w"> </span>medianest_postgres_data:/data<span class="w"> </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/emergency-backup:/backup<span class="w"> </span>alpine<span class="w"> </span>tar<span class="w"> </span>czf<span class="w"> </span>/backup/postgres-emergency.tar.gz<span class="w"> </span>-C<span class="w"> </span>/data<span class="w"> </span>.
+</span><span id="__span-33-6"><a id="__codelineno-33-6" name="__codelineno-33-6"></a>
+</span><span id="__span-33-7"><a id="__codelineno-33-7" name="__codelineno-33-7"></a><span class="c1"># 3. Clean up Docker completely</span>
+</span><span id="__span-33-8"><a id="__codelineno-33-8" name="__codelineno-33-8"></a>docker<span class="w"> </span>system<span class="w"> </span>prune<span class="w"> </span>-a<span class="w"> </span>-f<span class="w"> </span>--volumes
+</span><span id="__span-33-9"><a id="__codelineno-33-9" name="__codelineno-33-9"></a>docker<span class="w"> </span>network<span class="w"> </span>prune<span class="w"> </span>-f
+</span><span id="__span-33-10"><a id="__codelineno-33-10" name="__codelineno-33-10"></a>
+</span><span id="__span-33-11"><a id="__codelineno-33-11" name="__codelineno-33-11"></a><span class="c1"># 4. Reset to clean state</span>
+</span><span id="__span-33-12"><a id="__codelineno-33-12" name="__codelineno-33-12"></a>git<span class="w"> </span>status
+</span><span id="__span-33-13"><a id="__codelineno-33-13" name="__codelineno-33-13"></a>git<span class="w"> </span>reset<span class="w"> </span>--hard<span class="w"> </span>HEAD
+</span><span id="__span-33-14"><a id="__codelineno-33-14" name="__codelineno-33-14"></a>git<span class="w"> </span>clean<span class="w"> </span>-fd
+</span><span id="__span-33-15"><a id="__codelineno-33-15" name="__codelineno-33-15"></a>
+</span><span id="__span-33-16"><a id="__codelineno-33-16" name="__codelineno-33-16"></a><span class="c1"># 5. Regenerate all secrets</span>
+</span><span id="__span-33-17"><a id="__codelineno-33-17" name="__codelineno-33-17"></a>./generate-secrets.sh
+</span><span id="__span-33-18"><a id="__codelineno-33-18" name="__codelineno-33-18"></a>
+</span><span id="__span-33-19"><a id="__codelineno-33-19" name="__codelineno-33-19"></a><span class="c1"># 6. Rebuild and restart</span>
+</span><span id="__span-33-20"><a id="__codelineno-33-20" name="__codelineno-33-20"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>build<span class="w"> </span>--no-cache
+</span><span id="__span-33-21"><a id="__codelineno-33-21" name="__codelineno-33-21"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>up<span class="w"> </span>-d
+</span><span id="__span-33-22"><a id="__codelineno-33-22" name="__codelineno-33-22"></a>
+</span><span id="__span-33-23"><a id="__codelineno-33-23" name="__codelineno-33-23"></a><span class="c1"># 7. Restore data if needed</span>
+</span><span id="__span-33-24"><a id="__codelineno-33-24" name="__codelineno-33-24"></a><span class="c1"># (Follow backup restoration procedures)</span>
+</span></code></pre></div></td></tr></table></div><h3 id="quick-health-recovery-script">Quick Health Recovery Script<a class="headerlink" href="#quick-health-recovery-script" title="Permanent link">&para;</a></h3><p>Create this script for rapid diagnostics and fixes:</p><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-34-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-34-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-34-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-34-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-34-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-34-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-34-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-34-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-34-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-34-10">10</a></span>
+<span class="normal"><a href="#__codelineno-34-11">11</a></span>
+<span class="normal"><a href="#__codelineno-34-12">12</a></span>
+<span class="normal"><a href="#__codelineno-34-13">13</a></span>
+<span class="normal"><a href="#__codelineno-34-14">14</a></span>
+<span class="normal"><a href="#__codelineno-34-15">15</a></span>
+<span class="normal"><a href="#__codelineno-34-16">16</a></span>
+<span class="normal"><a href="#__codelineno-34-17">17</a></span>
+<span class="normal"><a href="#__codelineno-34-18">18</a></span>
+<span class="normal"><a href="#__codelineno-34-19">19</a></span>
+<span class="normal"><a href="#__codelineno-34-20">20</a></span>
+<span class="normal"><a href="#__codelineno-34-21">21</a></span>
+<span class="normal"><a href="#__codelineno-34-22">22</a></span>
+<span class="normal"><a href="#__codelineno-34-23">23</a></span>
+<span class="normal"><a href="#__codelineno-34-24">24</a></span>
+<span class="normal"><a href="#__codelineno-34-25">25</a></span>
+<span class="normal"><a href="#__codelineno-34-26">26</a></span>
+<span class="normal"><a href="#__codelineno-34-27">27</a></span>
+<span class="normal"><a href="#__codelineno-34-28">28</a></span>
+<span class="normal"><a href="#__codelineno-34-29">29</a></span>
+<span class="normal"><a href="#__codelineno-34-30">30</a></span>
+<span class="normal"><a href="#__codelineno-34-31">31</a></span>
+<span class="normal"><a href="#__codelineno-34-32">32</a></span>
+<span class="normal"><a href="#__codelineno-34-33">33</a></span>
+<span class="normal"><a href="#__codelineno-34-34">34</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-34-1"><a id="__codelineno-34-1" name="__codelineno-34-1"></a><span class="ch">#!/bin/bash</span>
+</span><span id="__span-34-2"><a id="__codelineno-34-2" name="__codelineno-34-2"></a><span class="c1"># Save as: emergency-fix.sh</span>
+</span><span id="__span-34-3"><a id="__codelineno-34-3" name="__codelineno-34-3"></a><span class="nb">set</span><span class="w"> </span>-e
+</span><span id="__span-34-4"><a id="__codelineno-34-4" name="__codelineno-34-4"></a>
+</span><span id="__span-34-5"><a id="__codelineno-34-5" name="__codelineno-34-5"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;🚨 MediaNest Emergency Recovery&quot;</span>
+</span><span id="__span-34-6"><a id="__codelineno-34-6" name="__codelineno-34-6"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;===============================&quot;</span>
+</span><span id="__span-34-7"><a id="__codelineno-34-7" name="__codelineno-34-7"></a>
+</span><span id="__span-34-8"><a id="__codelineno-34-8" name="__codelineno-34-8"></a><span class="c1"># Stop services</span>
+</span><span id="__span-34-9"><a id="__codelineno-34-9" name="__codelineno-34-9"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>down
+</span><span id="__span-34-10"><a id="__codelineno-34-10" name="__codelineno-34-10"></a>
+</span><span id="__span-34-11"><a id="__codelineno-34-11" name="__codelineno-34-11"></a><span class="c1"># Clean up resources</span>
+</span><span id="__span-34-12"><a id="__codelineno-34-12" name="__codelineno-34-12"></a>docker<span class="w"> </span>system<span class="w"> </span>prune<span class="w"> </span>-f
+</span><span id="__span-34-13"><a id="__codelineno-34-13" name="__codelineno-34-13"></a>docker<span class="w"> </span>volume<span class="w"> </span>prune<span class="w"> </span>-f
+</span><span id="__span-34-14"><a id="__codelineno-34-14" name="__codelineno-34-14"></a>
+</span><span id="__span-34-15"><a id="__codelineno-34-15" name="__codelineno-34-15"></a><span class="c1"># Fix permissions</span>
+</span><span id="__span-34-16"><a id="__codelineno-34-16" name="__codelineno-34-16"></a>sudo<span class="w"> </span>chown<span class="w"> </span>-R<span class="w"> </span><span class="nv">$USER</span>:<span class="nv">$USER</span><span class="w"> </span>data<span class="w"> </span>logs<span class="w"> </span>backups<span class="w"> </span>secrets
+</span><span id="__span-34-17"><a id="__codelineno-34-17" name="__codelineno-34-17"></a>chmod<span class="w"> </span><span class="m">755</span><span class="w"> </span>data<span class="w"> </span>logs<span class="w"> </span>backups
+</span><span id="__span-34-18"><a id="__codelineno-34-18" name="__codelineno-34-18"></a>chmod<span class="w"> </span><span class="m">700</span><span class="w"> </span>secrets
+</span><span id="__span-34-19"><a id="__codelineno-34-19" name="__codelineno-34-19"></a>chmod<span class="w"> </span><span class="m">600</span><span class="w"> </span>secrets/*
+</span><span id="__span-34-20"><a id="__codelineno-34-20" name="__codelineno-34-20"></a>
+</span><span id="__span-34-21"><a id="__codelineno-34-21" name="__codelineno-34-21"></a><span class="c1"># Restart services</span>
+</span><span id="__span-34-22"><a id="__codelineno-34-22" name="__codelineno-34-22"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>up<span class="w"> </span>-d
+</span><span id="__span-34-23"><a id="__codelineno-34-23" name="__codelineno-34-23"></a>
+</span><span id="__span-34-24"><a id="__codelineno-34-24" name="__codelineno-34-24"></a><span class="c1"># Wait for services to start</span>
+</span><span id="__span-34-25"><a id="__codelineno-34-25" name="__codelineno-34-25"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;⏳ Waiting for services to start...&quot;</span>
+</span><span id="__span-34-26"><a id="__codelineno-34-26" name="__codelineno-34-26"></a>sleep<span class="w"> </span><span class="m">60</span>
+</span><span id="__span-34-27"><a id="__codelineno-34-27" name="__codelineno-34-27"></a>
+</span><span id="__span-34-28"><a id="__codelineno-34-28" name="__codelineno-34-28"></a><span class="c1"># Check health</span>
+</span><span id="__span-34-29"><a id="__codelineno-34-29" name="__codelineno-34-29"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>ps
+</span><span id="__span-34-30"><a id="__codelineno-34-30" name="__codelineno-34-30"></a>
+</span><span id="__span-34-31"><a id="__codelineno-34-31" name="__codelineno-34-31"></a><span class="c1"># Test connectivity</span>
+</span><span id="__span-34-32"><a id="__codelineno-34-32" name="__codelineno-34-32"></a>curl<span class="w"> </span>-f<span class="w"> </span>https://your-domain.com/api/health<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;✅ Application is healthy&quot;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;❌ Application still has issues&quot;</span>
+</span><span id="__span-34-33"><a id="__codelineno-34-33" name="__codelineno-34-33"></a>
+</span><span id="__span-34-34"><a id="__codelineno-34-34" name="__codelineno-34-34"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;🏥 Emergency recovery complete!&quot;</span>
+</span></code></pre></div></td></tr></table></div><hr><h2 id="getting-help">📞 Getting Help<a class="headerlink" href="#getting-help" title="Permanent link">&para;</a></h2><h3 id="information-to-gather-before-seeking-help">Information to Gather Before Seeking Help<a class="headerlink" href="#information-to-gather-before-seeking-help" title="Permanent link">&para;</a></h3><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-35-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-35-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-35-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-35-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-35-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-35-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-35-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-35-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-35-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-35-10">10</a></span>
+<span class="normal"><a href="#__codelineno-35-11">11</a></span>
+<span class="normal"><a href="#__codelineno-35-12">12</a></span>
+<span class="normal"><a href="#__codelineno-35-13">13</a></span>
+<span class="normal"><a href="#__codelineno-35-14">14</a></span>
+<span class="normal"><a href="#__codelineno-35-15">15</a></span>
+<span class="normal"><a href="#__codelineno-35-16">16</a></span>
+<span class="normal"><a href="#__codelineno-35-17">17</a></span>
+<span class="normal"><a href="#__codelineno-35-18">18</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-35-1"><a id="__codelineno-35-1" name="__codelineno-35-1"></a><span class="c1"># System information</span>
+</span><span id="__span-35-2"><a id="__codelineno-35-2" name="__codelineno-35-2"></a>uname<span class="w"> </span>-a
+</span><span id="__span-35-3"><a id="__codelineno-35-3" name="__codelineno-35-3"></a>lsb_release<span class="w"> </span>-a
+</span><span id="__span-35-4"><a id="__codelineno-35-4" name="__codelineno-35-4"></a>docker<span class="w"> </span>--version
+</span><span id="__span-35-5"><a id="__codelineno-35-5" name="__codelineno-35-5"></a>docker<span class="w"> </span>compose<span class="w"> </span>version
+</span><span id="__span-35-6"><a id="__codelineno-35-6" name="__codelineno-35-6"></a>
+</span><span id="__span-35-7"><a id="__codelineno-35-7" name="__codelineno-35-7"></a><span class="c1"># Service status</span>
+</span><span id="__span-35-8"><a id="__codelineno-35-8" name="__codelineno-35-8"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>ps
+</span><span id="__span-35-9"><a id="__codelineno-35-9" name="__codelineno-35-9"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>logs<span class="w"> </span>--tail<span class="o">=</span><span class="m">100</span>
+</span><span id="__span-35-10"><a id="__codelineno-35-10" name="__codelineno-35-10"></a>
+</span><span id="__span-35-11"><a id="__codelineno-35-11" name="__codelineno-35-11"></a><span class="c1"># Resource usage</span>
+</span><span id="__span-35-12"><a id="__codelineno-35-12" name="__codelineno-35-12"></a>free<span class="w"> </span>-h
+</span><span id="__span-35-13"><a id="__codelineno-35-13" name="__codelineno-35-13"></a>df<span class="w"> </span>-h
+</span><span id="__span-35-14"><a id="__codelineno-35-14" name="__codelineno-35-14"></a>docker<span class="w"> </span>system<span class="w"> </span>df
+</span><span id="__span-35-15"><a id="__codelineno-35-15" name="__codelineno-35-15"></a>
+</span><span id="__span-35-16"><a id="__codelineno-35-16" name="__codelineno-35-16"></a><span class="c1"># Network configuration</span>
+</span><span id="__span-35-17"><a id="__codelineno-35-17" name="__codelineno-35-17"></a>ip<span class="w"> </span>addr<span class="w"> </span>show
+</span><span id="__span-35-18"><a id="__codelineno-35-18" name="__codelineno-35-18"></a>sudo<span class="w"> </span>ufw<span class="w"> </span>status
+</span></code></pre></div></td></tr></table></div><h3 id="log-collection-script">Log Collection Script<a class="headerlink" href="#log-collection-script" title="Permanent link">&para;</a></h3><div class="language-bash highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-36-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-36-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-36-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-36-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-36-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-36-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-36-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-36-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-36-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-36-10">10</a></span>
+<span class="normal"><a href="#__codelineno-36-11">11</a></span>
+<span class="normal"><a href="#__codelineno-36-12">12</a></span>
+<span class="normal"><a href="#__codelineno-36-13">13</a></span>
+<span class="normal"><a href="#__codelineno-36-14">14</a></span>
+<span class="normal"><a href="#__codelineno-36-15">15</a></span>
+<span class="normal"><a href="#__codelineno-36-16">16</a></span>
+<span class="normal"><a href="#__codelineno-36-17">17</a></span>
+<span class="normal"><a href="#__codelineno-36-18">18</a></span>
+<span class="normal"><a href="#__codelineno-36-19">19</a></span>
+<span class="normal"><a href="#__codelineno-36-20">20</a></span>
+<span class="normal"><a href="#__codelineno-36-21">21</a></span>
+<span class="normal"><a href="#__codelineno-36-22">22</a></span>
+<span class="normal"><a href="#__codelineno-36-23">23</a></span>
+<span class="normal"><a href="#__codelineno-36-24">24</a></span>
+<span class="normal"><a href="#__codelineno-36-25">25</a></span>
+<span class="normal"><a href="#__codelineno-36-26">26</a></span>
+<span class="normal"><a href="#__codelineno-36-27">27</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-36-1"><a id="__codelineno-36-1" name="__codelineno-36-1"></a><span class="ch">#!/bin/bash</span>
+</span><span id="__span-36-2"><a id="__codelineno-36-2" name="__codelineno-36-2"></a><span class="c1"># Save as: collect-logs.sh</span>
+</span><span id="__span-36-3"><a id="__codelineno-36-3" name="__codelineno-36-3"></a><span class="nv">TIMESTAMP</span><span class="o">=</span><span class="k">$(</span>date<span class="w"> </span>+%Y%m%d_%H%M%S<span class="k">)</span>
+</span><span id="__span-36-4"><a id="__codelineno-36-4" name="__codelineno-36-4"></a><span class="nv">LOG_DIR</span><span class="o">=</span><span class="s2">&quot;debug-logs-</span><span class="nv">$TIMESTAMP</span><span class="s2">&quot;</span>
+</span><span id="__span-36-5"><a id="__codelineno-36-5" name="__codelineno-36-5"></a>
+</span><span id="__span-36-6"><a id="__codelineno-36-6" name="__codelineno-36-6"></a>mkdir<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$LOG_DIR</span><span class="s2">&quot;</span>
+</span><span id="__span-36-7"><a id="__codelineno-36-7" name="__codelineno-36-7"></a>
+</span><span id="__span-36-8"><a id="__codelineno-36-8" name="__codelineno-36-8"></a><span class="c1"># Collect system info</span>
+</span><span id="__span-36-9"><a id="__codelineno-36-9" name="__codelineno-36-9"></a>uname<span class="w"> </span>-a<span class="w"> </span>&gt;<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$LOG_DIR</span><span class="s2">/system-info.txt&quot;</span>
+</span><span id="__span-36-10"><a id="__codelineno-36-10" name="__codelineno-36-10"></a>docker<span class="w"> </span>--version<span class="w"> </span>&gt;&gt;<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$LOG_DIR</span><span class="s2">/system-info.txt&quot;</span>
+</span><span id="__span-36-11"><a id="__codelineno-36-11" name="__codelineno-36-11"></a>free<span class="w"> </span>-h<span class="w"> </span>&gt;&gt;<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$LOG_DIR</span><span class="s2">/system-info.txt&quot;</span>
+</span><span id="__span-36-12"><a id="__codelineno-36-12" name="__codelineno-36-12"></a>df<span class="w"> </span>-h<span class="w"> </span>&gt;&gt;<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$LOG_DIR</span><span class="s2">/system-info.txt&quot;</span>
+</span><span id="__span-36-13"><a id="__codelineno-36-13" name="__codelineno-36-13"></a>
+</span><span id="__span-36-14"><a id="__codelineno-36-14" name="__codelineno-36-14"></a><span class="c1"># Collect container info</span>
+</span><span id="__span-36-15"><a id="__codelineno-36-15" name="__codelineno-36-15"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>ps<span class="w"> </span>&gt;<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$LOG_DIR</span><span class="s2">/container-status.txt&quot;</span>
+</span><span id="__span-36-16"><a id="__codelineno-36-16" name="__codelineno-36-16"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>config/docker/docker-compose.prod.yml<span class="w"> </span>logs<span class="w"> </span>--tail<span class="o">=</span><span class="m">200</span><span class="w"> </span>&gt;<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$LOG_DIR</span><span class="s2">/container-logs.txt&quot;</span>
+</span><span id="__span-36-17"><a id="__codelineno-36-17" name="__codelineno-36-17"></a>
+</span><span id="__span-36-18"><a id="__codelineno-36-18" name="__codelineno-36-18"></a><span class="c1"># Collect configuration (without secrets)</span>
+</span><span id="__span-36-19"><a id="__codelineno-36-19" name="__codelineno-36-19"></a>cp<span class="w"> </span>.env.production<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$LOG_DIR</span><span class="s2">/env-config.txt&quot;</span>
+</span><span id="__span-36-20"><a id="__codelineno-36-20" name="__codelineno-36-20"></a>sed<span class="w"> </span>-i<span class="w"> </span><span class="s1">&#39;s/password=[^&amp;]*/password=REDACTED/g&#39;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$LOG_DIR</span><span class="s2">/env-config.txt&quot;</span>
+</span><span id="__span-36-21"><a id="__codelineno-36-21" name="__codelineno-36-21"></a>
+</span><span id="__span-36-22"><a id="__codelineno-36-22" name="__codelineno-36-22"></a><span class="c1"># Create archive</span>
+</span><span id="__span-36-23"><a id="__codelineno-36-23" name="__codelineno-36-23"></a>tar<span class="w"> </span>-czf<span class="w"> </span><span class="s2">&quot;medianest-debug-</span><span class="nv">$TIMESTAMP</span><span class="s2">.tar.gz&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$LOG_DIR</span><span class="s2">&quot;</span>
+</span><span id="__span-36-24"><a id="__codelineno-36-24" name="__codelineno-36-24"></a>rm<span class="w"> </span>-rf<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$LOG_DIR</span><span class="s2">&quot;</span>
+</span><span id="__span-36-25"><a id="__codelineno-36-25" name="__codelineno-36-25"></a>
+</span><span id="__span-36-26"><a id="__codelineno-36-26" name="__codelineno-36-26"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;📦 Debug information collected: medianest-debug-</span><span class="nv">$TIMESTAMP</span><span class="s2">.tar.gz&quot;</span>
+</span><span id="__span-36-27"><a id="__codelineno-36-27" name="__codelineno-36-27"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;📧 Attach this file when reporting issues&quot;</span>
+</span></code></pre></div></td></tr></table></div><hr><p><strong>This troubleshooting guide covers the most common deployment issues. For additional help, check the main <a href="../README_DEPLOYMENT.md">README_DEPLOYMENT.md</a> or create an issue on the MediaNest GitHub repository.</strong></p><aside class="md-source-file"><span class="md-source-file__fact"><span class="md-icon" title="Last update"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="September 11, 2025 14:36:19 UTC"><span class="timeago" datetime="2025-09-11T14:36:19+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="September 11, 2025 14:36:19 UTC">2025-09-11</span></span><span class="md-source-file__fact"><span class="md-icon" title="Created"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="September 9, 2025 18:20:40 UTC"><span class="timeago" datetime="2025-09-09T18:20:40+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="September 9, 2025 18:20:40 UTC">2025-09-09</span></span></aside><form class="md-feedback" name="feedback" hidden><fieldset><legend class="md-feedback__title"> Was this page helpful? </legend><div class="md-feedback__inner"><div class="md-feedback__list"><button class="md-feedback__icon md-icon" type="submit" title="This page was helpful" data-md-value="1"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m7 0c0 .8-.7 1.5-1.5 1.5S14 10.3 14 9.5 14.7 8 15.5 8s1.5.7 1.5 1.5m-5 7.73c-1.75 0-3.29-.73-4.19-1.81L9.23 14c.45.72 1.52 1.23 2.77 1.23s2.32-.51 2.77-1.23l1.42 1.42c-.9 1.08-2.44 1.81-4.19 1.81"/></svg></button><button class="md-feedback__icon md-icon" type="submit" title="This page could be improved" data-md-value="0"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10m-6.5-4c.8 0 1.5.7 1.5 1.5s-.7 1.5-1.5 1.5-1.5-.7-1.5-1.5.7-1.5 1.5-1.5M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m2 4.5c1.75 0 3.29.72 4.19 1.81l-1.42 1.42C14.32 16.5 13.25 16 12 16s-2.32.5-2.77 1.23l-1.42-1.42C8.71 14.72 10.25 14 12 14"/></svg></button></div><div class="md-feedback__note"><div data-md-value="1" hidden> Thanks for your feedback! Consider starring us on <a href="https://github.com/kinginyellow/medianest" target="_blank" rel="noopener">GitHub</a> and sharing with the community. </div><div data-md-value="0" hidden> Thanks for your feedback! Help us improve by <a href="https://github.com/kinginyellow/medianest/issues/new/?title=[Docs]+MediaNest%20Deployment%20Troubleshooting%20Guide+-+/deployment/troubleshooting-guide/" target="_blank" rel="noopener">creating an issue</a> or <a href="https://github.com/kinginyellow/medianest/edit/develop/docs/{path}" target="_blank" rel="noopener">editing this page</a>. </div></div></div></fieldset></form></article></div><script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script><script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script></div><button type="button" class="md-top md-icon" data-md-component="top" hidden><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg> Back to top </button></main><footer class="md-footer"><div class="md-footer-meta md-typeset"><div class="md-footer-meta__inner md-grid"><div class="md-copyright"><div class="md-copyright__highlight"> Copyright &copy; 2024 MediaNest Development Team - <a href="#__consent">Manage Cookies</a> | <a href="/privacy">Privacy Policy</a> | <a href="/terms">Terms of Service</a></div></div><div class="md-social"><a href="https://github.com/kinginyellow/medianest" target="_blank" rel="noopener" title="GitHub Repository" class="md-social__link"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 512 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg></a><a href="https://hub.docker.com/r/medianest/medianest" target="_blank" rel="noopener" title="Docker Hub" class="md-social__link"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 640 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M349.9 236.3h-66.1v-59.4h66.1zm0-204.3h-66.1v60.7h66.1zm78.2 144.8H362v59.4h66.1zm-156.3-72.1h-66.1v60.1h66.1zm78.1 0h-66.1v60.1h66.1zm276.8 100c-14.4-9.7-47.6-13.2-73.1-8.4-3.3-24-16.7-44.9-41.1-63.7l-14-9.3-9.3 14c-18.4 27.8-23.4 73.6-3.7 103.8-8.7 4.7-25.8 11.1-48.4 10.7H2.4c-8.7 50.8 5.8 116.8 44 162.1 37.1 43.9 92.7 66.2 165.4 66.2 157.4 0 273.9-72.5 328.4-204.2 21.4.4 67.6.1 91.3-45.2 1.5-2.5 6.6-13.2 8.5-17.1zm-511.1-27.9h-66v59.4h66.1v-59.4zm78.1 0h-66.1v59.4h66.1zm78.1 0h-66.1v59.4h66.1zm-78.1-72.1h-66.1v60.1h66.1z"/></svg></a><a href="https://discord.gg/medianest" target="_blank" rel="noopener" title="Discord Community" class="md-social__link"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 576 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M492.5 69.8c-.2-.3-.4-.6-.8-.7-38.1-17.5-78.4-30-119.7-37.1-.4-.1-.8 0-1.1.1s-.6.4-.8.8c-5.5 9.9-10.5 20.2-14.9 30.6-44.6-6.8-89.9-6.8-134.4 0-4.5-10.5-9.5-20.7-15.1-30.6-.2-.3-.5-.6-.8-.8s-.7-.2-1.1-.2C162.5 39 122.2 51.5 84.1 69c-.3.1-.6.4-.8.7C7.1 183.5-13.8 294.6-3.6 404.2c0 .3.1.5.2.8s.3.4.5.6c44.4 32.9 94 58 146.8 74.2.4.1.8.1 1.1 0s.7-.4.9-.7c11.3-15.4 21.4-31.8 30-48.8.1-.2.2-.5.2-.8s0-.5-.1-.8-.2-.5-.4-.6-.4-.3-.7-.4c-15.8-6.1-31.2-13.4-45.9-21.9-.3-.2-.5-.4-.7-.6s-.3-.6-.3-.9 0-.6.2-.9.3-.5.6-.7c3.1-2.3 6.2-4.7 9.1-7.1.3-.2.6-.4.9-.4s.7 0 1 .1c96.2 43.9 200.4 43.9 295.5 0 .3-.1.7-.2 1-.2s.7.2.9.4c2.9 2.4 6 4.9 9.1 7.2.2.2.4.4.6.7s.2.6.2.9-.1.6-.3.9-.4.5-.6.6c-14.7 8.6-30 15.9-45.9 21.8-.2.1-.5.2-.7.4s-.3.4-.4.7-.1.5-.1.8.1.5.2.8c8.8 17 18.8 33.3 30 48.8.2.3.6.6.9.7s.8.1 1.1 0c52.9-16.2 102.6-41.3 147.1-74.2.2-.2.4-.4.5-.6s.2-.5.2-.8c12.3-126.8-20.5-236.9-86.9-334.5zm-302 267.7c-29 0-52.8-26.6-52.8-59.2s23.4-59.2 52.8-59.2c29.7 0 53.3 26.8 52.8 59.2 0 32.7-23.4 59.2-52.8 59.2m195.4 0c-29 0-52.8-26.6-52.8-59.2s23.4-59.2 52.8-59.2c29.7 0 53.3 26.8 52.8 59.2 0 32.7-23.2 59.2-52.8 59.2"/></svg></a><a href="https://twitter.com/medianest" target="_blank" rel="noopener" title="Twitter Updates" class="md-social__link"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 512 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M459.4 151.7c.3 4.5.3 9.1.3 13.6 0 138.7-105.6 298.6-298.6 298.6-59.5 0-114.7-17.2-161.1-47.1 8.4 1 16.6 1.3 25.3 1.3 49.1 0 94.2-16.6 130.3-44.8-46.1-1-84.8-31.2-98.1-72.8 6.5 1 13 1.6 19.8 1.6 9.4 0 18.8-1.3 27.6-3.6-48.1-9.7-84.1-52-84.1-103v-1.3c14 7.8 30.2 12.7 47.4 13.3-28.3-18.8-46.8-51-46.8-87.4 0-19.5 5.2-37.4 14.3-53C87.4 130.8 165 172.4 252.1 176.9c-1.6-7.8-2.6-15.9-2.6-24C249.5 95.1 296.3 48 354.4 48c30.2 0 57.5 12.7 76.7 33.1 23.7-4.5 46.5-13.3 66.6-25.3-7.8 24.4-24.4 44.8-46.1 57.8 21.1-2.3 41.6-8.1 60.4-16.2-14.3 20.8-32.2 39.3-52.6 54.3"/></svg></a><a href="https://medianest.com" target="_blank" rel="noopener" title="Official Website" class="md-social__link"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 512 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M351.9 280H161c2.9 64.5 17.2 123.9 37.5 167.4 11.4 24.5 23.7 41.8 35.1 52.4 11.2 10.5 18.9 12.2 22.9 12.2s11.7-1.7 22.9-12.2c11.4-10.6 23.7-28 35.1-52.4 20.3-43.5 34.6-102.9 37.5-167.4zm-191-48h190.9c-2.8-64.5-17.1-123.9-37.4-167.4-11.4-24.4-23.7-41.8-35.1-52.4C268.1 1.7 260.4 0 256.4 0s-11.7 1.7-22.9 12.2c-11.4 10.6-23.7 28-35.1 52.4-20.3 43.5-34.6 102.9-37.5 167.4m-48 0c3.5-85.6 25.6-165.1 57.9-217.3C78.7 47.3 10.9 131.2 1.5 232zM1.5 280c9.4 100.8 77.2 184.7 169.3 217.3-32.3-52.2-54.4-131.7-57.9-217.3zm398.4 0c-3.5 85.6-25.6 165.1-57.9 217.3 92.1-32.7 159.9-116.5 169.3-217.3zm111.4-48C501.9 131.2 434.1 47.3 342 14.7c32.3 52.2 54.4 131.7 57.9 217.3z"/></svg></a><a href="https://kinginyellow.github.io/medianest/" target="_blank" rel="noopener" title="Documentation" class="md-social__link"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 448 512"><!-- Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M384 512H96c-53 0-96-43-96-96V96C0 43 43 0 96 0h304c26.5 0 48 21.5 48 48v288c0 20.9-13.4 38.7-32 45.3V448c17.7 0 32 14.3 32 32s-14.3 32-32 32zM96 384c-17.7 0-32 14.3-32 32s14.3 32 32 32h256v-64zm32-232c0 13.3 10.7 24 24 24h176c13.3 0 24-10.7 24-24s-10.7-24-24-24H152c-13.3 0-24 10.7-24 24m24 72c-13.3 0-24 10.7-24 24s10.7 24 24 24h176c13.3 0 24-10.7 24-24s-10.7-24-24-24z"/></svg></a></div></div></div></footer></div><div class="md-dialog" data-md-component="dialog"><div class="md-dialog__inner md-typeset"></div></div><div class="md-progress" data-md-component="progress" role="progressbar"></div><div class="md-consent" data-md-component="consent" id="__consent" hidden><div class="md-consent__overlay"></div><aside class="md-consent__inner"><form class="md-consent__form md-grid md-typeset" name="consent"><h4>Cookie consent</h4><p>We use cookies to recognize your repeated visits and preferences, as well as to measure the effectiveness of our documentation and whether users find what they're searching for. With your consent, you're helping us to make our documentation better.</p><input class="md-toggle" type="checkbox" id="__settings"><div class="md-consent__settings"><ul class="task-list"><li class="task-list-item"><label class="task-list-control"><input type="checkbox" name="analytics"><span class="task-list-indicator"></span> Google Analytics </label></li><li class="task-list-item"><label class="task-list-control"><input type="checkbox" name="github"><span class="task-list-indicator"></span> GitHub </label></li></ul></div><div class="md-consent__controls"><button class="md-button md-button--primary">Accept</button><button type="reset" class="md-button md-button--primary">Reject</button><label class="md-button" for="__settings">Manage settings</label></div></form></aside></div><script>var consent=__md_get("__consent");if(consent)for(var input of document.forms.consent.elements)input.name&&(input.checked=consent[input.name]||!1);else"file:"!==location.protocol&&setTimeout((function(){document.querySelector("[data-md-component=consent]").hidden=!1}),250);var form=document.forms.consent;for(var action of["submit","reset"])form.addEventListener(action,(function(e){if(e.preventDefault(),"reset"===e.type)for(var n of document.forms.consent.elements)n.name&&(n.checked=!1);__md_set("__consent",Object.fromEntries(Array.from(new FormData(form).keys()).map((function(e){return[e,!0]})))),location.hash="",location.reload()}))</script><script id="__config" type="application/json">{"base": "../..", "features": ["announce.dismiss", "content.action.edit", "content.action.view", "content.code.annotate", "content.code.copy", "content.code.select", "content.footnote.tooltips", "content.tabs.link", "content.tooltips", "header.autohide", "navigation.expand", "navigation.footer", "navigation.indexes", "navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.path", "navigation.prune", "navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow", "toc.integrate"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": {"API": "api", "Configuration": "config", "Docker": "docker", "Performance": "performance", "Reference": "reference", "Security": "security", "Setup": "setup", "Tutorial": "tutorial"}, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script><script src="../../assets/javascripts/bundle.92b07e13.min.js"></script><script src="../../js/timeago.min.js"></script><script src="../../js/timeago_mkdocs_material.js"></script><script src="../../javascripts/extra.js"></script><script src="../../javascripts/medianest.js"></script><script src="../../javascripts/search-enhancements.js"></script><script src="../../javascripts/api-explorer.js"></script><script src="../../javascripts/mermaid-config.js"></script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script><script src="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui-bundle.js"></script></body></html>

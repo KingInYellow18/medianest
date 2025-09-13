@@ -30,6 +30,25 @@ export default defineConfig({
   cacheDir: '.vitest-performance-cache',
   
   test: {
+    // WORKSPACE CONFIGURATION: Use projects instead of deprecated workspace
+    projects: [
+      {
+        name: 'backend',
+        root: './backend',
+        config: './backend/tests/vitest.config.ts'
+      },
+      {
+        name: 'frontend', 
+        root: './frontend',
+        config: './frontend/vitest.config.ts'
+      },
+      {
+        name: 'shared',
+        root: './shared',
+        config: './shared/vitest.config.ts'
+      }
+    ],
+
     // STABILIZED THREAD POOL: Worker thread termination fixes
     pool: 'threads',
     poolOptions: {

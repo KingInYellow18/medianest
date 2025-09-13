@@ -310,7 +310,7 @@ export class DatabaseNullSafety {
       const relation = relationGetter(record);
       return relation ?? defaultValue;
     } catch (error) {
-      console.warn('Error accessing database relation:', error);
+      logger.warn('Error accessing database relation:', error);
       return defaultValue;
     }
   }

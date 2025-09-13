@@ -211,7 +211,7 @@ export function parseIntegerEnv(key: string, defaultValue: number): number {
 
   const parsed = parseInt(value, 10);
   if (isNaN(parsed)) {
-    console.warn(
+    logger.warn(
       `Invalid integer environment variable ${key}=${value}, using default: ${defaultValue}`,
     );
     return defaultValue;
@@ -250,13 +250,13 @@ export function safeJsonParse<T>(
 
     // Additional validation if validator provided
     if (validator && !validator(parsed)) {
-      console.warn('safeJsonParse: Parsed JSON failed validation, using fallback');
+      logger.warn('safeJsonParse: Parsed JSON failed validation, using fallback');
       return fallback;
     }
 
     return parsed ?? fallback;
   } catch (error) {
-    console.warn('safeJsonParse: JSON parsing failed:', error);
+    logger.warn('safeJsonParse: JSON parsing failed:', error);
     return fallback;
   }
 }

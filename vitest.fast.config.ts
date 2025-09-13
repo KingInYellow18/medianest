@@ -66,7 +66,7 @@ export default defineConfig({
     },
 
     // OPTIMAL REPORTER: Fast output without deprecation warnings
-    reporter: [['default', { summary: false }]],
+    reporter: 'default',
 
     // STABILIZED EXECUTION: Handle flaky tests
     retry: 1, // Allow 1 retry for stability

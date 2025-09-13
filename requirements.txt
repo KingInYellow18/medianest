@@ -1,36 +1,33 @@
-# MkDocs Material Theme Documentation Requirements
+# MkDocs Material Theme Documentation - Optimized Requirements
 # Install with: pip install -r requirements.txt
 
-# Core MkDocs
+# Core MkDocs - Essential packages only
 mkdocs>=1.5.0
-mkdocs-material>=9.0.0
+mkdocs-material>=9.4.0
 
-# Plugins for enhanced functionality
+# Essential plugins for production documentation
 mkdocs-git-revision-date-localized-plugin>=1.2.0
-mkdocs-git-committers-plugin-2>=1.2.0
 mkdocs-minify-plugin>=0.7.0
-mkdocs-redirects>=1.2.0
-# mkdocs-tags>=0.3.0  # Temporarily disabled - not available
 
-# Social cards and offline support
+# Social cards generation (requires Pillow and Cairo)
 pillow>=10.0.0
 cairosvg>=2.7.0
-# mkdocs-social>=0.3.0  # Plugin not found - using built-in social
-# mkdocs-offline>=1.0.0  # Plugin not found - using core offline features
 
-# Markdown extensions
+# Markdown extensions for enhanced formatting
 pygments>=2.15.0
 pymdown-extensions>=10.0.0
 
-# Development and testing tools
+# Development and quality assurance tools
 linkchecker>=10.0.0
 html5lib>=1.1
 beautifulsoup4>=4.12.0
 
-# Optional: for advanced search
-# elasticsearch>=8.0.0  # Optional - not needed for basic search
+# Optional: Advanced API documentation generation
+# Uncomment if needed for API docs generation
+# pydantic>=2.0.0
+# mkdocs-gen-files>=0.5.0
+# mkdocstrings>=0.22.0
 
-# Optional: for API documentation generation
-pydantic>=2.0.0
-mkdocs-gen-files>=0.5.0
-mkdocstrings>=0.22.0
+# Optional: Additional plugins (install if needed)
+# mkdocs-git-committers-plugin-2>=1.2.0
+# mkdocs-redirects>=1.2.0

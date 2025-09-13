@@ -3,7 +3,6 @@
 const fs = require('fs');
 const path = require('path');
 
-console.log('⚡ LIGHTWEIGHT BUNDLE OPTIMIZER - Target: <500KB\n');
 
 const colors = {
   green: '\x1b[32m',
@@ -174,7 +173,6 @@ const lightweightCSS = `/* Lightweight CSS animations to replace framer-motion *
 `;
 
 function applyOptimization() {
-  console.log(`${colors.blue}${colors.bold}🚀 APPLYING LIGHTWEIGHT OPTIMIZATIONS${colors.reset}\n`);
 
   try {
     // 1. Backup current config if needed
@@ -183,12 +181,10 @@ function applyOptimization() {
 
     if (fs.existsSync(currentConfig) && !fs.existsSync(backupConfig)) {
       fs.copyFileSync(currentConfig, backupConfig);
-      console.log(`${colors.green}✅ Backed up current config${colors.reset}`);
     }
 
     // 2. Apply lightweight config
     fs.writeFileSync(currentConfig, lightweightConfig);
-    console.log(`${colors.green}✅ Applied lightweight Next.js config${colors.reset}`);
 
     // 3. Create lightweight components
     const componentDir = 'src/components/lightweight';
@@ -197,60 +193,26 @@ function applyOptimization() {
     }
 
     fs.writeFileSync(`${componentDir}/LightweightComponents.tsx`, lightweightComponents);
-    console.log(`${colors.green}✅ Created lightweight components${colors.reset}`);
 
     // 4. Add CSS animations
     fs.writeFileSync('src/styles/lightweight-animations.css', lightweightCSS);
-    console.log(`${colors.green}✅ Created lightweight CSS animations${colors.reset}`);
 
-    console.log(`\n${colors.yellow}${colors.bold}📋 OPTIMIZATION SUMMARY:${colors.reset}`);
-    console.log('   🎯 Target: <500KB total bundle size');
-    console.log('   📦 Applied: Essential code splitting only');
-    console.log('   ⚡ Applied: Lightweight component alternatives');
-    console.log('   🌳 Applied: Selective tree-shaking');
-    console.log('   🎨 Applied: CSS animations instead of framer-motion');
 
-    console.log(`\n${colors.blue}${colors.bold}🎛️  NEXT STEPS:${colors.reset}`);
-    console.log(
       `   1. Run: ${colors.yellow}npm run build${colors.reset} - Test build with optimizations`
     );
-    console.log(`   2. Replace heavy components with lightweight alternatives`);
-    console.log(`   3. Import 'src/styles/lightweight-animations.css' in your app`);
-    console.log(`   4. Use LightweightComponents instead of heavy libraries`);
 
     return true;
   } catch (error) {
-    console.error(`${colors.red}❌ Optimization failed:${colors.reset}`, error.message);
     return false;
   }
 }
 
 // Bundle size tips
 function printOptimizationTips() {
-  console.log(`\n${colors.blue}${colors.bold}💡 BUNDLE SIZE REDUCTION TIPS:${colors.reset}\n`);
 
-  console.log('🏋️  Heavy Dependencies to Address:');
-  console.log('   • framer-motion (100KB+) → Use CSS animations');
-  console.log('   • @tabler/icons-react (200KB+) → Use selective imports');
-  console.log('   • lucide-react (150KB+) → Import specific icons only');
-  console.log('   • socket.io-client (80KB+) → Lazy load for real-time features');
 
-  console.log('\n🎯 Quick Wins:');
-  console.log('   • Use dynamic imports for non-critical components');
-  console.log('   • Replace moment.js with date-fns (already using ✅)');
-  console.log('   • Use next/image for automatic image optimization');
-  console.log('   • Enable gzip/brotli compression in production');
 
-  console.log('\n📊 Expected Results:');
-  console.log('   • Current bundle: ~1.5MB+ (estimated)');
-  console.log('   • Target bundle: <500KB');
-  console.log('   • Reduction needed: ~1MB+');
 
-  console.log(`\n${colors.green}💪 Aggressive Strategies:${colors.reset}`);
-  console.log('   • Replace axios with fetch API (save ~30KB)');
-  console.log('   • Use CSS modules instead of styled-components');
-  console.log('   • Implement virtual scrolling for long lists');
-  console.log('   • Use Web Workers for heavy computations');
 }
 
 // Main execution
@@ -259,7 +221,6 @@ if (require.main === module) {
 
   if (success) {
     printOptimizationTips();
-    console.log(
       `\n${colors.green}${colors.bold}🎉 LIGHTWEIGHT OPTIMIZATION COMPLETE!${colors.reset}\n`
     );
   }

@@ -90,7 +90,7 @@ export class NullSafetyValidator {
 
     const parsed = parseInt(value, 10);
 
-    if (!isValidInteger(parsed)) {
+    if (!Number.isInteger(parsed) || isNaN(parsed)) {
       const violation: NullSafetyViolation = {
         type: 'UNSAFE_PARSING',
         severity: 'MEDIUM',
@@ -232,7 +232,7 @@ export function nullSafetyMiddleware() {
     try {
       // Ensure body exists if method expects it
       if (['POST', 'PUT', 'PATCH'].includes(req.method) && req.body === undefined) {
-        console.warn(
+        logger.warn(
           `Null Safety Warning: ${req.method} request to ${req.path} has undefined body`,
         );
       }
@@ -240,14 +240,14 @@ export function nullSafetyMiddleware() {
       // Validate authentication token if present
       const authHeader = req.headers?.authorization;
       if (authHeader && !isString(authHeader)) {
-        console.warn('Null Safety Warning: Invalid authorization header type');
+        logger.warn('Null Safety Warning: Invalid authorization header type');
       }
 
       // Validate query parameters for common injection patterns
       if (req.query) {
         for (const [key, value] of Object.entries(req.query)) {
           if (value !== null && value !== undefined && !isString(value) && !Array.isArray(value)) {
-            console.warn(`Null Safety Warning: Unexpected query parameter type for ${key}`);
+            logger.warn(`Null Safety Warning: Unexpected query parameter type for ${key}`);
           }
         }
       }
@@ -337,7 +337,7 @@ export class NullSafetyMonitor {
 
     // Log frequent violations
     if (count > 5) {
-      console.warn(`NULL_SAFETY: Frequent violations at ${location} (${count + 1} times)`);
+      logger.warn(`NULL_SAFETY: Frequent violations at ${location} (${count + 1} times)`);
     }
   }
 

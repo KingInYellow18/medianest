@@ -6,6 +6,7 @@ pnpm-lock.yaml
 
 # Package manager cache and temporary files
 .npm/
+.npm-cache/
 .yarn/
 .pnpm-store/
 .turbo/
@@ -14,6 +15,9 @@ package-lock.json.local
 package-lock.json.remote
 package-lock.json.temp
 yarn.lock.backup
+npm-shrinkwrap.json*
+.node-version
+.nvmrc*
 
 # Testing
 coverage/
@@ -23,11 +27,22 @@ playwright-report/
 coverage/.tmp
 *.performance-test.tmp
 
+# Additional Testing Patterns
+__test_fixtures__/
+vitest.workspace.js.backup
+
+# K6 Load Testing
+k6-results/
+*.k6-results
+
 # Next.js
 .next/
+.next/trace
+.next/server/pages-manifest.json.backup
 out/
 build/
 dist/
+next.config.local.js
 
 # Misc
 .DS_Store
@@ -111,12 +126,21 @@ redis_data/
 *.db-shm
 *.db-wal
 
+# Prisma additional patterns
+prisma/migrations/.migration_lock.toml.backup
+
 # Logs
 logs/
 *.log
 
 # Monitoring data (Prometheus, Grafana, Loki runtime data)
 monitoring/data/
+
+# OpenTelemetry & Tracing
+tracing-data/
+telemetry-data/
+.otel/
+jaeger-trace*/
 
 # AI Development System Files (Claude, Swarm, etc.)
 .claude/
@@ -167,3 +191,13 @@ claude-flow
 claude-flow.bat
 claude-flow.ps1
 hive-mind-prompt-*.txt
+
+# Webpack & Bundlers
+.webpack/
+webpack-stats.json
+stats.json
+bundle-stats.html
+
+# PM2 Process Manager
+.pm2/
+pids/

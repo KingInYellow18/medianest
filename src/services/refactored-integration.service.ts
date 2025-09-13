@@ -2,12 +2,7 @@
 import { EventEmitter } from 'events';
 
 // Shared utilities (using barrel exports)
-import {
-  HealthCheckManager,
-  ServiceHealthStatus,
-  IntegrationClientFactory,
-  ServiceClient,
-} from '@medianest/shared';
+import { HealthCheckManager, ServiceHealthStatus, IntegrationClientFactory, ServiceClient } from '@medianest/shared';
 
 // Internal dependencies
 import { OverseerrApiClient } from '../integrations/overseerr/overseerr-api.client';
@@ -16,15 +11,9 @@ import { UptimeKumaClient } from '../integrations/uptime-kuma/uptime-kuma-client
 import { logger } from '../utils/logger';
 
 // Service integration imports
-import {
-  OverseerrIntegrationService,
-  OverseerrConfig,
-} from './integration/overseerr-integration.service';
+import { OverseerrIntegrationService, OverseerrConfig } from './integration/overseerr-integration.service';
 import { PlexIntegrationService, PlexConfig } from './integration/plex-integration.service';
-import {
-  UptimeKumaIntegrationService,
-  UptimeKumaConfig,
-} from './integration/uptime-kuma-integration.service';
+import { UptimeKumaIntegrationService, UptimeKumaConfig } from './integration/uptime-kuma-integration.service';
 
 export interface ServiceIntegrationConfig {
   plex?: PlexConfig;
@@ -175,15 +164,15 @@ export class RefactoredIntegrationService extends EventEmitter {
     const client = this.uptimeKumaService.getUptimeKumaClient();
     if (!client) return;
 
-    client.on('monitorsUpdated', (monitors) => {
+    client.on('monitorsUpdated', monitors => {
       this.emit('uptimeKumaMonitorsUpdated', monitors);
     });
 
-    client.on('heartbeat', (heartbeat) => {
+    client.on('heartbeat', heartbeat => {
       this.emit('uptimeKumaHeartbeat', heartbeat);
     });
 
-    client.on('statsUpdated', (stats) => {
+    client.on('statsUpdated', stats => {
       this.emit('uptimeKumaStatsUpdated', stats);
     });
   }

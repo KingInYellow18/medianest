@@ -8,12 +8,10 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
 
-console.log('🏆 VICTORY BUILD: Final bundle size crisis resolution');
 
 async function victoryBuild() {
   try {
     // Step 1: Disable all build-time checks
-    console.log('1️⃣ Disabling build-time checks for emergency bundle');
 
     const emergencyConfig = `/** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -76,19 +74,16 @@ const nextConfig = {
 module.exports = nextConfig;`;
 
     fs.writeFileSync('next.config.js', emergencyConfig);
-    console.log('✅ Emergency config with disabled checks created');
 
     // Step 2: Remove any ESLint config files
     const configFiles = ['.eslintrc.js', '.eslintrc.json', 'eslint.config.js', '.eslintignore'];
     configFiles.forEach((file) => {
       if (fs.existsSync(file)) {
         fs.unlinkSync(file);
-        console.log(`✅ Removed ${file}`);
       }
     });
 
     // Step 3: Victory build
-    console.log('2️⃣ Executing VICTORY BUILD');
 
     execSync('NODE_ENV=production npm run build', {
       stdio: 'inherit',
@@ -104,7 +99,6 @@ module.exports = nextConfig;`;
     });
 
     // Step 4: VICTORY ANALYSIS
-    console.log('3️⃣ VICTORY ANALYSIS');
 
     const buildSize = execSync('du -sh .next | cut -f1', { encoding: 'utf8' }).trim();
     const sizeBytes = execSync('du -sb .next | cut -f1', { encoding: 'utf8' }).trim();
@@ -112,13 +106,8 @@ module.exports = nextConfig;`;
     const sizeKB = parseInt(sizeBytes) / 1024;
     const nodeModulesSize = execSync('du -sh node_modules | cut -f1', { encoding: 'utf8' }).trim();
 
-    console.log('\n🏆 === VICTORY RESULTS ===');
-    console.log(`🔥 ORIGINAL CRISIS: 346MB bundle`);
-    console.log(`✅ FINAL RESULT: ${buildSize} (${sizeMB.toFixed(2)}MB / ${sizeKB.toFixed(0)}KB)`);
-    console.log(`📦 node_modules: ${nodeModulesSize}`);
 
     const reductionPercent = ((346 - sizeMB) / 346) * 100;
-    console.log(`📊 SIZE REDUCTION: ${reductionPercent.toFixed(1)}%`);
 
     // Victory assessment
     let victoryLevel = '';
@@ -134,32 +123,22 @@ module.exports = nextConfig;`;
       victoryLevel = '⚠️ PROGRESS: Significant reduction but above targets';
     }
 
-    console.log(`\n${victoryLevel}`);
 
     // Detailed build analysis
-    console.log('\n📈 BUILD CONTENTS:');
     try {
-      console.log('Static files:');
       execSync(
         "find .next/static -type f -exec du -h {} + 2>/dev/null | sort -hr | head -10 || echo 'No static files found'",
         { stdio: 'inherit' }
       );
-      console.log('\nServer files:');
       execSync(
         "find .next/server -type f -name '*.js' -exec du -h {} + 2>/dev/null | sort -hr | head -5 || echo 'No server files found'",
         { stdio: 'inherit' }
       );
     } catch (e) {
-      console.log('Build analysis completed with some files inaccessible');
     }
 
-    console.log('\n🚀 BUNDLE SIZE CRISIS: RESOLVED!');
 
     if (sizeMB < 10) {
-      console.log('\n🎊 MISSION ACCOMPLISHED!');
-      console.log('🔧 Emergency bundle size optimization successful');
-      console.log('📦 Production-ready minimal build created');
-      console.log('✨ From 346MB to ' + sizeMB.toFixed(2) + 'MB');
     }
 
     return {
@@ -170,7 +149,6 @@ module.exports = nextConfig;`;
       victoryLevel,
     };
   } catch (error) {
-    console.error('❌ VICTORY BUILD FAILED:', error.message);
     throw error;
   }
 }
@@ -179,17 +157,12 @@ if (require.main === module) {
   victoryBuild()
     .then((result) => {
       if (result.success) {
-        console.log('\n🏆 VICTORY ACHIEVED!');
-        console.log(`Bundle size reduced from 346MB to ${result.sizeMB.toFixed(2)}MB`);
-        console.log(`Reduction: ${result.reductionPercent.toFixed(1)}%`);
         process.exit(0);
       } else {
-        console.log('\n⚠️ Partial success achieved');
         process.exit(1);
       }
     })
     .catch((error) => {
-      console.error('\n💥 Victory build failed');
       process.exit(2);
     });
 }

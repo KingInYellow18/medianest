@@ -1,4 +1,4 @@
-import { User, MediaRequest, YoutubeDownload, ServiceStatus, RequestStatus } from '../types';
+import { User, MediaRequest, ServiceStatus, RequestStatus } from '../types';
 import { generateId } from './test-helpers';
 
 /**

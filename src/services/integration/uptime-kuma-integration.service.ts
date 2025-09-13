@@ -1,10 +1,5 @@
 // Internal dependencies
-import {
-  BaseIntegrationClient,
-  ClientConfig,
-  HealthStatus,
-  ClientInitializer,
-} from '@medianest/shared';
+import { BaseIntegrationClient, ClientConfig, HealthStatus, ClientInitializer } from '@medianest/shared';
 
 import { UptimeKumaClient } from '../../integrations/uptime-kuma/uptime-kuma-client';
 import { logger } from '../../utils/logger';
@@ -61,7 +56,7 @@ export class UptimeKumaIntegrationService extends BaseIntegrationClient {
           return client;
         },
         3,
-        2000,
+        2000
       );
 
       if (this.client) {
@@ -82,22 +77,22 @@ export class UptimeKumaIntegrationService extends BaseIntegrationClient {
   private setupEventHandlers(): void {
     if (!this.client) return;
 
-    this.client.on('monitorsUpdated', (monitors) => {
+    this.client.on('monitorsUpdated', monitors => {
       logger.debug('Uptime Kuma monitors updated', { count: monitors.length });
     });
 
-    this.client.on('heartbeat', (heartbeat) => {
+    this.client.on('heartbeat', heartbeat => {
       logger.debug('Uptime Kuma heartbeat received', {
         monitorId: heartbeat.monitorId,
         status: heartbeat.status,
       });
     });
 
-    this.client.on('statsUpdated', (stats) => {
+    this.client.on('statsUpdated', stats => {
       logger.debug('Uptime Kuma stats updated', stats);
     });
 
-    this.client.on('error', (error) => {
+    this.client.on('error', error => {
       this.logError('client event', error);
     });
 

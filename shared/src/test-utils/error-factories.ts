@@ -1,5 +1,7 @@
 // Test factories for error handling - applying proven 24-agent patterns
 
+/// <reference types="jest" />
+
 import {
   AppError,
   ValidationError,

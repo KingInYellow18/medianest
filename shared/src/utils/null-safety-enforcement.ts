@@ -125,7 +125,7 @@ export class SafeEnvironmentParser {
     const parsed = parseInt(trimmed, 10);
 
     if (!isValidInteger(parsed)) {
-      console.warn(
+      logger.warn(
         `SafeEnvironmentParser: Invalid integer '${value}', using default: ${defaultValue}`,
       );
       return defaultValue;
@@ -133,7 +133,7 @@ export class SafeEnvironmentParser {
 
     // Additional bounds checking for common use cases
     if (trimmed.includes('PORT') && (parsed < 1 || parsed > 65535)) {
-      console.warn(
+      logger.warn(
         `SafeEnvironmentParser: Port ${parsed} out of range, using default: ${defaultValue}`,
       );
       return defaultValue;
@@ -161,7 +161,7 @@ export class SafeEnvironmentParser {
       return false;
     }
 
-    console.warn(
+    logger.warn(
       `SafeEnvironmentParser: Ambiguous boolean '${value}', using default: ${defaultValue}`,
     );
     return defaultValue;
@@ -179,7 +179,7 @@ export class SafeEnvironmentParser {
       const parsed = JSON.parse(value.trim());
       return parsed ?? defaultValue;
     } catch (error) {
-      console.warn(`SafeEnvironmentParser: Invalid JSON '${value}', using default:`, defaultValue);
+      logger.warn(`SafeEnvironmentParser: Invalid JSON '${value}', using default:`, defaultValue);
       return defaultValue;
     }
   }

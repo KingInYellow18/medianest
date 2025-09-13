@@ -4,7 +4,6 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-console.log('🎯 BUNDLE SIZE OPTIMIZATION ANALYSIS\n');
 
 // Colors for better output
 const colors = {
@@ -31,10 +30,8 @@ function analyzeBundles() {
   const buildDir = '.next/static';
   const chunksDir = path.join(buildDir, 'chunks');
 
-  console.log(`${colors.blue}${colors.bold}📊 CURRENT BUNDLE ANALYSIS${colors.reset}\n`);
 
   if (!fs.existsSync(chunksDir)) {
-    console.log(
       `${colors.red}❌ Build directory not found. Run 'npm run build' first.${colors.reset}`
     );
     return;
@@ -70,54 +67,40 @@ function analyzeBundles() {
   // Sort by size descending
   bundles.sort((a, b) => b.size - a.size);
 
-  console.log(`${colors.cyan}📦 TOTAL BUNDLE SIZE: ${totalSize.toFixed(2)} KB${colors.reset}`);
 
   if (totalSize > 500) {
-    console.log(
       `${colors.red}⚠️  EXCEEDS TARGET: ${(totalSize - 500).toFixed(2)} KB over 500KB target${
         colors.reset
       }`
     );
   } else {
-    console.log(
       `${colors.green}✅ WITHIN TARGET: ${(500 - totalSize).toFixed(2)} KB under 500KB target${
         colors.reset
       }`
     );
   }
 
-  console.log(`\n${colors.yellow}${colors.bold}📋 TOP 10 LARGEST CHUNKS:${colors.reset}`);
   bundles.slice(0, 10).forEach((bundle, index) => {
     const indicator = bundle.size > 100 ? '🔴' : bundle.size > 50 ? '🟡' : '🟢';
-    console.log(`${indicator} ${index + 1}. ${bundle.name} - ${bundle.size} KB`);
   });
 
   if (largeChunks.length > 0) {
-    console.log(
       `\n${colors.red}${colors.bold}🚨 LARGE CHUNKS REQUIRING OPTIMIZATION (>100KB):${colors.reset}`
     );
     largeChunks.forEach((chunk) => {
-      console.log(`   • ${chunk.name} - ${chunk.size} KB`);
     });
   }
 
   // Bundle recommendations
-  console.log(`\n${colors.magenta}${colors.bold}💡 OPTIMIZATION RECOMMENDATIONS:${colors.reset}`);
 
   if (totalSize > 500) {
-    console.log('   🎯 Target: Reduce bundle size by', (totalSize - 500).toFixed(2), 'KB');
 
     if (largeChunks.some((c) => c.name.includes('vendor') || c.name.includes('framework'))) {
-      console.log('   📦 Split large vendor chunks further');
     }
 
     if (largeChunks.some((c) => c.name.includes('page'))) {
-      console.log('   📄 Implement more aggressive page-level code splitting');
     }
 
-    console.log('   🌳 Implement tree-shaking for unused exports');
-    console.log('   ⚡ Add dynamic imports for heavy components');
-    console.log('   🔄 Replace heavy libraries with lightweight alternatives');
   }
 
   // Generate performance report
@@ -135,7 +118,6 @@ function analyzeBundles() {
   // Save report
   const reportPath = 'bundle-analysis-report.json';
   fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
-  console.log(`\n${colors.green}📄 Report saved: ${reportPath}${colors.reset}`);
 
   return report;
 }
@@ -162,7 +144,6 @@ function generateRecommendations(bundles, totalSize) {
 
 // Enhanced dependency analysis
 function analyzeDependencies() {
-  console.log(`\n${colors.blue}${colors.bold}📚 DEPENDENCY WEIGHT ANALYSIS${colors.reset}\n`);
 
   try {
     const packageJson = require('../package.json');
@@ -177,20 +158,12 @@ function analyzeDependencies() {
       'axios',
     ];
 
-    console.log('🏋️  Heavy dependencies detected:');
     heavyDeps.forEach((dep) => {
       if (packageJson.dependencies[dep]) {
-        console.log(`   • ${dep} - ${packageJson.dependencies[dep]}`);
       }
     });
 
-    console.log('\n💡 Lightweight alternatives to consider:');
-    console.log('   • framer-motion → CSS transitions + minimal JS');
-    console.log('   • lucide-react → selective imports only');
-    console.log('   • axios → native fetch API');
-    console.log('   • @tabler/icons-react → tree-shake to specific icons');
   } catch (error) {
-    console.log('Could not analyze package.json');
   }
 }
 
@@ -199,8 +172,6 @@ if (require.main === module) {
   const report = analyzeBundles();
   analyzeDependencies();
 
-  console.log(`\n${colors.green}${colors.bold}✅ Analysis complete!${colors.reset}`);
-  console.log(`Run ${colors.cyan}npm run build:optimized${colors.reset} to apply optimizations\n`);
 }
 
 module.exports = { analyzeBundles, analyzeDependencies };

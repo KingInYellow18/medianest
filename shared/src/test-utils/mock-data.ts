@@ -60,7 +60,7 @@ export const mockServiceStatus: ServiceStatus[] = [
     status: 'online',
     responseTime: 45,
     uptime: 99.9,
-    lastCheck: new Date('2024-01-15T10:00:00Z'),
+    lastCheckAt: new Date('2024-01-15T10:00:00Z'),
     error: null,
   },
   {
@@ -70,7 +70,7 @@ export const mockServiceStatus: ServiceStatus[] = [
     status: 'online',
     responseTime: 120,
     uptime: 98.5,
-    lastCheck: new Date('2024-01-15T10:00:00Z'),
+    lastCheckAt: new Date('2024-01-15T10:00:00Z'),
     error: null,
   },
   {
@@ -80,7 +80,7 @@ export const mockServiceStatus: ServiceStatus[] = [
     status: 'offline',
     responseTime: null,
     uptime: 95.2,
-    lastCheck: new Date('2024-01-15T10:00:00Z'),
+    lastCheckAt: new Date('2024-01-15T10:00:00Z'),
     error: 'Connection timeout',
   },
 ];

@@ -1,0 +1,687 @@
+/*
+ * MediaNest Documentation - Diagram & Visualization Styles
+ * Enhanced styling for all diagram types and data visualizations
+ */
+
+/* Base Diagram Container */
+.diagram-container {
+  background: var(--md-default-bg-color);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 2rem 0;
+  overflow-x: auto;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.diagram-container:hover {
+  box-shadow: 0 4px 16px rgba(103, 58, 183, 0.15);
+  transition: box-shadow 0.3s ease;
+}
+
+/* Diagram Title */
+.diagram-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--mn-deep-purple-600);
+  margin-bottom: 1rem;
+  text-align: center;
+  position: relative;
+}
+
+.diagram-title::after {
+  content: '';
+  position: absolute;
+  bottom: -0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--mn-deep-purple-600), var(--mn-purple-600));
+}
+
+/* Architecture Diagrams */
+.architecture-diagram {
+  border-left: 4px solid #2196f3;
+}
+
+.architecture-diagram .diagram-title::before {
+  content: '🏗️';
+  margin-right: 0.5rem;
+}
+
+/* Flowchart Diagrams */
+.flowchart-diagram {
+  border-left: 4px solid #4caf50;
+}
+
+.flowchart-diagram .diagram-title::before {
+  content: '📊';
+  margin-right: 0.5rem;
+}
+
+/* Sequence Diagrams */
+.sequence-diagram {
+  border-left: 4px solid #ff9800;
+}
+
+.sequence-diagram .diagram-title::before {
+  content: '🔄';
+  margin-right: 0.5rem;
+}
+
+/* Database Diagrams */
+.database-diagram {
+  border-left: 4px solid #9c27b0;
+}
+
+.database-diagram .diagram-title::before {
+  content: '🗄️';
+  margin-right: 0.5rem;
+}
+
+/* Network Diagrams */
+.network-diagram {
+  border-left: 4px solid #f44336;
+}
+
+.network-diagram .diagram-title::before {
+  content: '🌐';
+  margin-right: 0.5rem;
+}
+
+/* Diagram Controls */
+.diagram-controls {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.diagram-control {
+  background: rgba(103, 58, 183, 0.1);
+  border: 1px solid rgba(103, 58, 183, 0.3);
+  color: var(--mn-deep-purple-600);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.diagram-control:hover {
+  background: rgba(103, 58, 183, 0.2);
+  transform: translateY(-1px);
+}
+
+.diagram-control.active {
+  background: var(--mn-deep-purple-600);
+  color: white;
+}
+
+/* Zoom Controls */
+.zoom-controls {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.diagram-container:hover .zoom-controls {
+  opacity: 1;
+}
+
+.zoom-btn {
+  width: 32px;
+  height: 32px;
+  background: var(--md-default-bg-color);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--md-default-fg-color);
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.zoom-btn:hover {
+  background: var(--mn-deep-purple-600);
+  color: white;
+  transform: scale(1.1);
+}
+
+/* Legend */
+.diagram-legend {
+  background: rgba(103, 58, 183, 0.05);
+  border: 1px solid rgba(103, 58, 183, 0.1);
+  border-radius: 6px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.legend-title {
+  font-weight: 600;
+  color: var(--mn-deep-purple-600);
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.legend-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.5rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* Interactive Elements */
+.interactive-node {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.interactive-node:hover {
+  filter: brightness(1.1) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  transform: scale(1.05);
+}
+
+.interactive-edge {
+  cursor: pointer;
+  transition: stroke-width 0.2s ease;
+}
+
+.interactive-edge:hover {
+  stroke-width: 3px;
+}
+
+/* Tooltip */
+.diagram-tooltip {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+  z-index: 1000;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.diagram-tooltip.visible {
+  opacity: 1;
+}
+
+.diagram-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.8);
+}
+
+/* Minimap */
+.diagram-minimap {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  width: 150px;
+  height: 100px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 4px;
+  overflow: hidden;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+.diagram-container:hover .diagram-minimap {
+  opacity: 1;
+}
+
+.minimap-viewport {
+  position: absolute;
+  border: 2px solid var(--mn-deep-purple-600);
+  background: rgba(103, 58, 183, 0.2);
+  cursor: move;
+}
+
+/* Flow Chart Specific Styles */
+.flowchart .node rect {
+  fill: var(--mn-deep-purple-100);
+  stroke: var(--mn-deep-purple-600);
+  stroke-width: 2;
+  rx: 4;
+  ry: 4;
+}
+
+.flowchart .node.decision polygon {
+  fill: var(--mn-purple-100);
+  stroke: var(--mn-purple-600);
+  stroke-width: 2;
+}
+
+.flowchart .node.process rect {
+  fill: var(--mn-deep-purple-200);
+  stroke: var(--mn-deep-purple-700);
+}
+
+.flowchart .node.start-end ellipse {
+  fill: var(--mn-deep-purple-300);
+  stroke: var(--mn-deep-purple-800);
+  stroke-width: 3;
+}
+
+.flowchart .edgePath path {
+  stroke: var(--mn-deep-purple-600);
+  stroke-width: 2;
+  fill: none;
+}
+
+.flowchart .arrowhead {
+  fill: var(--mn-deep-purple-600);
+}
+
+/* Sequence Diagram Specific Styles */
+.sequence-diagram .actor {
+  fill: var(--mn-deep-purple-100);
+  stroke: var(--mn-deep-purple-600);
+  stroke-width: 2;
+}
+
+.sequence-diagram .actor-box {
+  fill: var(--mn-deep-purple-50);
+  stroke: var(--mn-deep-purple-600);
+}
+
+.sequence-diagram .messageLine0,
+.sequence-diagram .messageLine1 {
+  stroke: var(--mn-deep-purple-600);
+  stroke-width: 2;
+}
+
+.sequence-diagram .messageText {
+  fill: var(--md-default-fg-color);
+  font-weight: 500;
+}
+
+.sequence-diagram .activation0,
+.sequence-diagram .activation1,
+.sequence-diagram .activation2 {
+  fill: var(--mn-deep-purple-200);
+  stroke: var(--mn-deep-purple-600);
+}
+
+/* Gantt Chart Specific Styles */
+.gantt .grid .tick line {
+  stroke: var(--md-default-fg-color--lightest);
+  stroke-dasharray: 3, 3;
+}
+
+.gantt .task {
+  fill: var(--mn-deep-purple-600);
+  stroke: var(--mn-deep-purple-700);
+}
+
+.gantt .taskText {
+  fill: white;
+  font-weight: 500;
+}
+
+.gantt .section {
+  fill: var(--mn-deep-purple-700);
+  font-weight: 600;
+}
+
+.gantt .today {
+  stroke: var(--mn-accent-600);
+  stroke-width: 3;
+  stroke-dasharray: 5, 5;
+}
+
+/* Class Diagram Specific Styles */
+.class-diagram .classBox {
+  fill: var(--mn-deep-purple-50);
+  stroke: var(--mn-deep-purple-600);
+  stroke-width: 2;
+}
+
+.class-diagram .classText {
+  fill: var(--md-default-fg-color);
+  font-weight: 600;
+}
+
+.class-diagram .attributeBoxEven,
+.class-diagram .attributeBoxOdd {
+  fill: var(--mn-deep-purple-100);
+  stroke: var(--mn-deep-purple-300);
+}
+
+/* State Diagram Specific Styles */
+.state-diagram .state {
+  fill: var(--mn-deep-purple-100);
+  stroke: var(--mn-deep-purple-600);
+  stroke-width: 2;
+}
+
+.state-diagram .stateText {
+  fill: var(--md-default-fg-color);
+  font-weight: 500;
+}
+
+.state-diagram .transition {
+  stroke: var(--mn-deep-purple-600);
+  stroke-width: 2;
+}
+
+/* Pie Chart Specific Styles */
+.pie-chart .slice {
+  stroke: white;
+  stroke-width: 2;
+}
+
+.pie-chart .slice:nth-child(1) {
+  fill: var(--mn-deep-purple-600);
+}
+.pie-chart .slice:nth-child(2) {
+  fill: var(--mn-purple-600);
+}
+.pie-chart .slice:nth-child(3) {
+  fill: var(--mn-deep-purple-400);
+}
+.pie-chart .slice:nth-child(4) {
+  fill: var(--mn-purple-400);
+}
+.pie-chart .slice:nth-child(5) {
+  fill: var(--mn-deep-purple-300);
+}
+.pie-chart .slice:nth-child(6) {
+  fill: var(--mn-purple-300);
+}
+
+.pie-chart .label {
+  fill: var(--md-default-fg-color);
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.pie-chart .percentage {
+  fill: white;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* Git Graph Specific Styles */
+.git-graph .commit {
+  stroke-width: 3;
+}
+
+.git-graph .commit-label {
+  fill: var(--md-default-fg-color);
+  font-weight: 500;
+}
+
+.git-graph .branch-label {
+  fill: var(--mn-deep-purple-600);
+  font-weight: 600;
+}
+
+/* Journey Diagram Specific Styles */
+.journey .task {
+  fill: var(--mn-deep-purple-600);
+  stroke: var(--mn-deep-purple-700);
+  stroke-width: 2;
+}
+
+.journey .taskText {
+  fill: white;
+  font-weight: 500;
+}
+
+.journey .section {
+  fill: var(--mn-deep-purple-700);
+  font-weight: 600;
+}
+
+/* Network/Graph Diagrams */
+.network-node {
+  fill: var(--mn-deep-purple-600);
+  stroke: var(--mn-deep-purple-700);
+  stroke-width: 2;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.network-node:hover {
+  fill: var(--mn-deep-purple-700);
+  stroke-width: 3;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.network-edge {
+  stroke: var(--mn-deep-purple-400);
+  stroke-width: 1.5;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+}
+
+.network-edge:hover,
+.network-node:hover ~ .network-edge {
+  stroke: var(--mn-deep-purple-600);
+  stroke-width: 3;
+  opacity: 1;
+}
+
+.network-label {
+  fill: white;
+  text-anchor: middle;
+  dominant-baseline: central;
+  font-weight: 500;
+  font-size: 12px;
+  pointer-events: none;
+}
+
+/* Diagram Annotations */
+.diagram-annotation {
+  position: absolute;
+  background: rgba(255, 235, 59, 0.9);
+  border: 1px solid #f57f17;
+  border-radius: 4px;
+  padding: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #3e2723;
+  max-width: 200px;
+  z-index: 100;
+}
+
+.diagram-annotation::before {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border: 6px solid transparent;
+  border-bottom-color: #f57f17;
+  top: -12px;
+  left: 20px;
+}
+
+/* Loading State */
+.diagram-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  color: var(--md-default-fg-color--light);
+}
+
+.diagram-loading::after {
+  content: '';
+  width: 24px;
+  height: 24px;
+  margin-left: 0.5rem;
+  border: 2px solid var(--mn-deep-purple-600);
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Error State */
+.diagram-error {
+  background: rgba(244, 67, 54, 0.1);
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  color: #c62828;
+  text-align: center;
+  padding: 2rem;
+  border-radius: 6px;
+  margin: 2rem 0;
+}
+
+.diagram-error::before {
+  content: '⚠️';
+  display: block;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Dark Mode Adjustments */
+[data-md-color-scheme='slate'] .diagram-container {
+  background: var(--md-code-bg-color);
+  border-color: var(--md-default-fg-color--lightest);
+}
+
+[data-md-color-scheme='slate'] .diagram-legend {
+  background: rgba(103, 58, 183, 0.1);
+  border-color: rgba(103, 58, 183, 0.2);
+}
+
+[data-md-color-scheme='slate'] .zoom-btn {
+  background: var(--md-code-bg-color);
+  color: var(--md-default-fg-color);
+}
+
+[data-md-color-scheme='slate'] .diagram-minimap {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+[data-md-color-scheme='slate'] .diagram-tooltip {
+  background: rgba(255, 255, 255, 0.9);
+  color: black;
+}
+
+[data-md-color-scheme='slate'] .diagram-tooltip::after {
+  border-top-color: rgba(255, 255, 255, 0.9);
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+  .diagram-container {
+    padding: 1rem;
+    margin: 1.5rem -0.5rem;
+  }
+
+  .diagram-controls {
+    gap: 0.25rem;
+  }
+
+  .diagram-control {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+  }
+
+  .zoom-controls {
+    position: static;
+    flex-direction: row;
+    justify-content: center;
+    margin-bottom: 1rem;
+    opacity: 1;
+  }
+
+  .diagram-minimap {
+    width: 120px;
+    height: 80px;
+  }
+
+  .legend-items {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .diagram-container {
+    padding: 0.75rem;
+  }
+
+  .diagram-title {
+    font-size: 1rem;
+  }
+
+  .diagram-controls {
+    flex-direction: column;
+  }
+
+  .diagram-control {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .diagram-minimap {
+    display: none;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .diagram-container {
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+    background: white !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .diagram-controls,
+  .zoom-controls,
+  .diagram-minimap {
+    display: none !important;
+  }
+
+  .diagram-tooltip {
+    display: none !important;
+  }
+
+  /* Ensure diagrams are visible in print */
+  .diagram-container svg {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+}

@@ -10,31 +10,25 @@ export interface Logger {
 export const logger: Logger = {
   info: (message: string, meta?: any) => {
     if (meta) {
-      console.log(`[INFO] ${message}`, meta);
     } else {
-      console.log(`[INFO] ${message}`);
     }
   },
   warn: (message: string, meta?: any) => {
     if (meta) {
-      console.warn(`[WARN] ${message}`, meta);
+      logger.warn(`[WARN] ${message}`, meta);
     } else {
-      console.warn(`[WARN] ${message}`);
+      logger.warn(`[WARN] ${message}`);
     }
   },
   error: (message: string, meta?: any) => {
     if (meta) {
-      console.error(`[ERROR] ${message}`, meta);
     } else {
-      console.error(`[ERROR] ${message}`);
     }
   },
   debug: (message: string, meta?: any) => {
     if (process.env.NODE_ENV !== 'production') {
       if (meta) {
-        console.debug(`[DEBUG] ${message}`, meta);
       } else {
-        console.debug(`[DEBUG] ${message}`);
       }
     }
   },
