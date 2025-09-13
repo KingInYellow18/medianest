@@ -1,6 +1,7 @@
 # Contributing Guidelines
 
-Welcome to the MediaNest contributor community! This guide provides everything you need to know to contribute effectively to the project.
+Welcome to the MediaNest contributor community! This guide provides everything
+you need to know to contribute effectively to the project.
 
 ## Table of Contents
 
@@ -17,7 +18,8 @@ Welcome to the MediaNest contributor community! This guide provides everything y
 
 ### Our Commitment
 
-We foster an open and welcoming environment where all contributors feel safe and valued, regardless of experience level, background, or identity.
+We foster an open and welcoming environment where all contributors feel safe and
+valued, regardless of experience level, background, or identity.
 
 ### Expected Behavior
 
@@ -51,7 +53,7 @@ Before contributing, ensure you have:
 
 1. **Read the Documentation**
    - [Getting Started Guide](../getting-started/index.md)
-   - [Architecture Overview](../ARCHITECTURE.md)
+   - [Architecture Overview](../architecture/system-overview.md)
    - [Development Setup](../getting-started/development-setup.md)
 
 2. **Set Up Development Environment**
@@ -266,7 +268,10 @@ interface ServiceCardProps {
   onTest?: () => void;
 }
 
-export const ServiceCard: React.FC<ServiceCardProps> = ({ service, onTest }) => {
+export const ServiceCard: React.FC<ServiceCardProps> = ({
+  service,
+  onTest,
+}) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleTest = useCallback(async () => {
@@ -343,7 +348,7 @@ const useServiceStatus = (serviceId: string) => {
 export class MediaService {
   constructor(
     private readonly mediaRepository: MediaRepository,
-    private readonly overseerrClient: OverseerrClient,
+    private readonly overseerrClient: OverseerrClient
   ) {}
 
   async searchMedia(query: MediaSearchQuery): Promise<MediaSearchResult[]> {
@@ -361,7 +366,9 @@ export class MediaService {
     return {
       id: result.tmdbId,
       title: result.title,
-      year: result.releaseDate ? new Date(result.releaseDate).getFullYear() : undefined,
+      year: result.releaseDate
+        ? new Date(result.releaseDate).getFullYear()
+        : undefined,
       type: result.mediaType,
       posterPath: result.posterPath,
       overview: result.overview,
@@ -482,7 +489,11 @@ export const CreateMediaRequestSchema = z.object({
 });
 
 // ✅ Good: Middleware usage
-export const validateCreateMediaRequest = (req: Request, res: Response, next: NextFunction) => {
+export const validateCreateMediaRequest = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     req.body = CreateMediaRequestSchema.parse(req.body);
     next();
@@ -507,7 +518,11 @@ export const validateCreateMediaRequest = (req: Request, res: Response, next: Ne
 ```typescript
 // ✅ Good: Role-based middleware
 export const requireRole = (role: UserRole) => {
-  return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  return async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -602,10 +617,14 @@ describe('MediaService', () => {
     it('should handle overseerr client errors', async () => {
       // Arrange
       const query = { title: 'Test', type: 'movie' };
-      mockOverseerrClient.search.mockRejectedValue(new Error('Service unavailable'));
+      mockOverseerrClient.search.mockRejectedValue(
+        new Error('Service unavailable')
+      );
 
       // Act & Assert
-      await expect(mediaService.searchMedia(query)).rejects.toThrow('Service unavailable');
+      await expect(mediaService.searchMedia(query)).rejects.toThrow(
+        'Service unavailable'
+      );
     });
   });
 });
@@ -660,7 +679,10 @@ describe('Media API', () => {
     it('should reject request without authentication', async () => {
       const requestData = { title: 'Test', mediaType: 'movie', tmdbId: '123' };
 
-      await request(app).post('/api/media/request').send(requestData).expect(401);
+      await request(app)
+        .post('/api/media/request')
+        .send(requestData)
+        .expect(401);
     });
   });
 });
@@ -696,11 +718,15 @@ test.describe('Media Management Flow', () => {
     await results.first().click('[data-testid="request-button"]');
 
     // Verify success message
-    await expect(page.locator('[data-testid="success-notification"]')).toBeVisible();
+    await expect(
+      page.locator('[data-testid="success-notification"]')
+    ).toBeVisible();
 
     // Verify request appears in user's requests
     await page.click('[data-testid="nav-requests"]');
-    await expect(page.locator('[data-testid="request-item"]')).toContainText('Inception');
+    await expect(page.locator('[data-testid="request-item"]')).toContainText(
+      'Inception'
+    );
   });
 });
 ```
@@ -762,7 +788,10 @@ async searchMedia(
  * />
  * ```
  */
-export const ServiceCard: React.FC<ServiceCardProps> = ({ service, onTest }) => {
+export const ServiceCard: React.FC<ServiceCardProps> = ({
+  service,
+  onTest,
+}) => {
   // Component implementation
 };
 ````
@@ -881,7 +910,8 @@ Brief description of the changes and their purpose.
 
 - [ ] 🐛 Bug fix (non-breaking change which fixes an issue)
 - [ ] ✨ New feature (non-breaking change which adds functionality)
-- [ ] 💥 Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] 💥 Breaking change (fix or feature that would cause existing functionality
+      to not work as expected)
 - [ ] 📚 Documentation update
 - [ ] 🔧 Refactoring
 - [ ] ⚡ Performance improvement
@@ -1003,8 +1033,10 @@ Exceptional contributors may be invited to become maintainers:
 
 ## License
 
-By contributing to MediaNest, you agree that your contributions will be licensed under the project's MIT License.
+By contributing to MediaNest, you agree that your contributions will be licensed
+under the project's MIT License.
 
 ---
 
-Thank you for contributing to MediaNest! Your efforts help make this project better for everyone in the community.
+Thank you for contributing to MediaNest! Your efforts help make this project
+better for everyone in the community.

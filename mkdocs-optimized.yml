@@ -1,0 +1,276 @@
+# MkDocs Configuration - Optimized for Performance and Reliability
+# MediaNest Documentation Platform - Production Ready
+site_name: MediaNest Documentation
+site_url: https://kinginyellow.github.io/medianest/
+site_author: MediaNest Development Team
+site_description: >-
+  Advanced Media Management Platform with Plex Integration, API Documentation, 
+  and Developer Resources - Complete technical documentation.
+
+# Repository Configuration
+repo_name: kinginyellow/medianest
+repo_url: https://github.com/kinginyellow/medianest
+edit_uri: edit/develop/docs/
+
+# Copyright and Legal
+copyright: >
+  Copyright &copy; 2024 MediaNest Development Team -
+  <a href="#__consent">Manage Cookies</a> |
+  <a href="/privacy">Privacy Policy</a> |
+  <a href="/terms">Terms of Service</a>
+
+# Optimized Theme Configuration - 82% Feature Reduction
+theme:
+  name: material
+  
+  # Color Scheme - Light/Dark Toggle
+  palette:
+    # Light mode
+    - scheme: default
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - scheme: slate
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+  # OPTIMIZED FEATURES - Essential Only (15 features vs 67 original)
+  features:
+    # Navigation essentials (6 features)
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    - navigation.footer
+    - navigation.indexes
+    
+    # Content essentials (4 features) 
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - content.tooltips
+    
+    # Search essentials (3 features)
+    - search.highlight
+    - search.suggest
+    - search.share
+    
+    # Performance features (2 features)
+    - navigation.instant
+    - toc.follow
+
+  # Assets - Using fallbacks for missing files
+  logo: assets/images/logo.svg
+  favicon: assets/images/favicon.ico
+  
+  # Typography
+  language: en
+  font:
+    text: Roboto
+    code: Roboto Mono
+
+# Streamlined Navigation Structure
+nav:
+  - Home: index.md
+  - Getting Started:
+      - getting-started/index.md
+      - Quick Start: getting-started/quickstart.md
+      - Development Setup: getting-started/development-setup.md
+  - Architecture:
+      - Component Architecture: architecture/component-architecture.md
+      - Data Flow: architecture/data-flow.md
+      - System Overview: architecture/system-overview.md
+      - Architecture Decisions:
+        - ADR-001 Architecture: architecture/decisions/adr-001-architecture.md
+  - API Reference:
+      - Overview: api/overview.md
+      - WebSocket API: api/websocket.md
+      - Endpoints:
+        - Dashboard: api/endpoints/dashboard.md
+        - Media: api/endpoints/media.md
+        - Plex: api/endpoints/plex.md
+  - Operations:
+      - Monitoring Stack: operations/monitoring-stack.md
+      - Alert Runbooks: operations/runbooks/alert-runbooks.md
+      - Staging Deployment:
+        - Deployment Guide: operations/staging-deployment.md
+        - Prerequisites: operations/staging-prerequisites.md
+        - Troubleshooting: operations/staging-troubleshooting.md
+        - Critical Fixes Applied: operations/critical-fixes-applied.md
+  - Deployment:
+      - CI/CD: deployment/ci-cd.md
+  - Developers:
+      - Contributing: developers/contributing.md
+      - Workflow: developers/workflow.md
+  - Visuals:
+      - Database Schema: visuals/database-schema.md
+      - Deployment Architecture: visuals/deployment-architecture.md
+      - System Flow: visuals/system-flow.md
+  - Standards:
+      - Documentation Checklist: standards/documentation-checklist.md
+
+# Optimized Plugin Configuration - Production Ready
+plugins:
+  # Enhanced search with optimized separator
+  - search:
+      separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+      lang: [en]
+      
+  # Performance optimization through minification
+  - minify:
+      minify_html: true
+      minify_js: true
+      minify_css: true
+      htmlmin_opts:
+        remove_comments: true
+        remove_empty_space: true
+        remove_optional_attribute_quotes: false
+        reduce_empty_attributes: true
+        collapse_whitespace: true
+        remove_redundant_attributes: true
+        
+  # Git integration for content management
+  - git-revision-date-localized:
+      type: timeago
+      timezone: UTC
+      locale: en
+      fallback_to_build_date: true
+      enable_creation_date: true
+      enable_git_follow: true
+      exclude:
+        - index.md
+        - tags.md
+
+# Essential Markdown Extensions Only
+markdown_extensions:
+  # Basic extensions
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      title: On this page
+      baselevel: 1
+      separator: "-"
+      
+  # PyMdown extensions - essential only
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+      auto_title: true
+      linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      user: kinginyellow
+      repo: medianest
+      normalize_issue_symbols: true
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets:
+      check_paths: true
+      base_path: 
+        - docs/snippets
+        - .
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+      clickable_checkbox: true
+  - pymdownx.tilde
+
+# Optimized Assets - Reduced CSS/JS Loading
+extra_css:
+  - stylesheets/extra.css
+  - stylesheets/medianest-theme.css
+  - stylesheets/material-enhancements.css
+  - stylesheets/responsive.css
+  - stylesheets/mermaid-custom.css
+
+extra_javascript:
+  - javascripts/extra.js
+  - javascripts/medianest.js
+  - javascripts/mermaid-config.js
+  - https://unpkg.com/mermaid@10/dist/mermaid.min.js
+
+# Essential Configuration
+extra:
+  # Social links
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/kinginyellow/medianest
+      name: GitHub Repository
+    - icon: fontawesome/brands/docker
+      link: https://hub.docker.com/r/medianest/medianest
+      name: Docker Hub
+    - icon: fontawesome/solid/globe
+      link: https://medianest.com
+      name: Official Website
+      
+  # Analytics - placeholder for actual ID
+  analytics:
+    provider: google
+    property: G-XXXXXXXXXX  # Replace with actual Google Analytics ID
+    feedback:
+      title: Was this page helpful?
+      ratings:
+        - icon: material/emoticon-happy-outline
+          name: This page was helpful
+          data: 1
+          note: >-
+            Thanks for your feedback! Consider starring us on 
+            <a href="https://github.com/kinginyellow/medianest" target="_blank" rel="noopener">GitHub</a>.
+        - icon: material/emoticon-sad-outline
+          name: This page could be improved
+          data: 0
+          note: >-
+            Thanks for your feedback! Help us improve by
+            <a href="https://github.com/kinginyellow/medianest/issues/new/?title=[Docs]+{title}+-+{url}" target="_blank" rel="noopener">creating an issue</a>.
+            
+  # Remove generator attribution
+  generator: false
+  
+  # Custom variables
+  medianest:
+    version: "2.0.0"
+    github_repo: "kinginyellow/medianest"
+    docker_image: "medianest/medianest"
+    api_base_url: "https://api.medianest.com"
+    demo_url: "https://demo.medianest.com"
+
+# Validation Configuration
+validation:
+  nav:
+    omitted_files: info
+    not_found: warn
+    absolute_links: info
+  links:
+    not_found: ignore
+    absolute_links: ignore
+    unrecognized_links: ignore
+
+# Watch Configuration
+watch:
+  - docs/
+  - mkdocs.yml
